@@ -72,7 +72,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
-function c_add_combat:evaluate()
+function c_add_combat:evaluate()	
 	Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 	local target = Player:GetTarget()
 	if(target ~= nil) then

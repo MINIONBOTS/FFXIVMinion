@@ -589,7 +589,7 @@ function SkillMgr.Attack( target )
 							-- RANGE + HEALTH						
 							if ( castable and (
 									   (skill.minRange > 0 and target.distance < skill.minRange)
-									or (skill.maxRange > 0 and target.distance > skill.maxRange)
+									or (skill.maxRange > 0 and target.distance- target.hitradius > skill.maxRange)
 									or (skill.thpl > 0 and skill.thpl > target.hp.percent)
 									or (skill.thpb > 0 and skill.thpb < target.hp.percent)
 									)) then castable = false end	
@@ -677,14 +677,17 @@ function ffxiv_task_skillmgrAttack:Create()
     return newinst
 end
 
-function ffxiv_task_skillmgrAttack:Init()
-
-end
 
 function ffxiv_task_skillmgrAttack:Process()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-	if (target ~= nil) then
-		SkillMgr.Attack( target )	
+	if (target ~= nil and target.alive) then
+		Player:SetFacing(target.x,target.y,target.z)
+		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+		SkillMgr.Attack( target )
+	else
+		d("COMPLETE")
+		self.targetid = 0
+		self.completed = true
 	end
 end
 
@@ -701,7 +704,8 @@ function ffxiv_task_skillmgrAttack:IsGoodToAbort()
 end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
-    local target = Player:GetTarget()
+    d("FUCKTASKSHIT")
+	local target = Player:GetTarget()
     if (target == nil or not target.alive) then
         return true
     end
