@@ -1,0 +1,5 @@
+[Module]
+Name=Dev
+Version=1
+Files=devmonitor.lua
+Enabled=1
