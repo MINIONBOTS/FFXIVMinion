@@ -1,8 +1,8 @@
 -- This file holds global helper functions
 
-function GetNearestAttackable()
+function GetNearestGrindAttackable()
 	local level = Player.level
-	local el = EntityList("nearest,alive,attackable,onmesh")
+	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level-3)..",maxlevel="..tostring(level+3))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -123,7 +123,7 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local nearestDistance = 99999999
 		local _, fate = next(fateList)
 		while (_ ~= nil and fate ~= nil) do
-			if (not levelCheck or (levelCheck and (fate.level >= (Player.level - 5) and fate.level <= (Player.level + 5)))) then
+			if (not levelCheck or (levelCheck and (fate.level >= tonumber(gMinFateLevel) and fate.level <= tonumber(gMaxFateLevel)))) then
 				if (not meshCheck or (meshCheck and NavigationManager:IsOnMesh(fate.x, fate.y, fate.z))) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then

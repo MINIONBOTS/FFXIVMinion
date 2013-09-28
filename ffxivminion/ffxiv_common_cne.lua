@@ -50,9 +50,7 @@ function c_add_movetotarget:evaluate()
 	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
 		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
 		if (target ~= nil and target ~= {}) then
-			--local LOS = T.los or false
-			--TODO: set custom range
-			if (target.distance > ml_global_information.AttackRange + target.hitradius --[[or LOS~=true]]) then				
+			if (target.distance > ml_global_information.AttackRange + target.hitradius or not target.los) then				
 				return true
 			end
 		end
@@ -67,6 +65,7 @@ function e_add_movetotarget:execute()
 		local newTask = ffxiv_task_movetotarget:Create()
 		newTask.targetid = target.id
 		newTask.range = (ml_global_information.AttackRange-1) + target.hitradius
+		newTask.losrange = newTask.range
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 	end
 end
@@ -78,12 +77,17 @@ end
 c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
-	Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-	local target = Player:GetTarget()
-	if(target ~= nil) then
-		if (target.id == ml_task_hub:CurrentTask().targetid) then			
-			if(target.hp.current > 0) then
-				return true
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	if target ~= nil and target ~= {} then
+		local targetPos = target.pos
+		Player:SetFacing(targetPos.x,targetPos.y,targetPos.z)
+		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+		local target = Player:GetTarget()
+		if(target ~= nil) then
+			if (target.id == ml_task_hub:CurrentTask().targetid) then			
+				if(target.hp.current > 0) then
+					return true
+				end
 			end
 		end
 	end
@@ -91,9 +95,6 @@ function c_add_combat:evaluate()
     return false
 end
 function e_add_combat:execute()
-	local target = Player:GetTarget()
-	Player:SetFacing(target.x,target.y,target.z)
-	
 	if ( gSMactive == "1" ) then
 		local newTask = ffxiv_task_skillmgrAttack:Create()
 		newTask.targetid = ml_task_hub:CurrentTask().targetid
@@ -173,7 +174,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_movetotarget = inheritsFrom( ml_cause )
 e_movetotarget = inheritsFrom( ml_effect )
---c_movetotarget.throttle = 500
+c_movetotarget.throttle = 500
 function c_movetotarget:evaluate()
 	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
@@ -184,7 +185,7 @@ function c_movetotarget:evaluate()
             if (target.distance > ml_task_hub:CurrentTask().range) then
                 ml_task_hub:CurrentTask().pos = target.pos
                 return true
-            end
+			end
         end
     end
     
@@ -193,7 +194,7 @@ end
 function e_movetotarget:execute()
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-	Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub:CurrentTask().range)
+	Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z)
 end
 
 ---------------------------------------------------------------------------------------------

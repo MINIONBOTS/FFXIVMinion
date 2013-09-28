@@ -18,7 +18,7 @@ function ffxiv_task_grind:Create()
     newinst.targetid = 0
     
     --this is the targeting function that will be used for the generic KillTarget task
-    newinst.targetFunction = GetNearestAttackable
+    newinst.targetFunction = GetNearestGrindAttackable
     
     return newinst
 end
@@ -74,6 +74,8 @@ end
 function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Do Fates", "gDoFates","Grind")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Fates Only", "gFatesOnly","Grind")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxFateLvl: +", "gMaxFateLevel", "Grind")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinFateLvl: -", "gMinFateLevel", "Grind")
 	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
@@ -85,12 +87,22 @@ function ffxiv_task_grind.UIInit()
 		Settings.FFXIVMINION.gFatesOnly = "0"
 	end
 	
+	if (Settings.FFXIVMINION.gMaxFateLevel == nil) then
+		Settings.FFXIVMINION.gMaxFateLevel = "5"
+	end
+	
+	if (Settings.FFXIVMINION.gMinFateLevel == nil) then
+		Settings.FFXIVMINION.gMinFateLevel = "5"
+	end
+	
 	if (Settings.FFXIVMINION.evacPoint == nil) then
 		Settings.FFXIVMINION.evacPoint = {x = 0, y = 0, z = 0}
 	end
 	
 	gDoFates = Settings.FFXIVMINION.gDoFates
 	gFatesOnly = Settings.FFXIVMINION.gFatesOnly
+	gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
+	gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
 	ffxiv_task_grind.evacPoint = Settings.FFXIVMINION.evacPoint
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)

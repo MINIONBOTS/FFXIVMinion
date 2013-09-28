@@ -51,6 +51,11 @@ function e_findgatherable:execute()
 	if (gatherable ~= nil) then
 		Player:SetTarget(gatherable.id)
 		ml_task_hub.CurrentTask().gatherid = gatherable.id
+	else
+		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+		if (markerInfo ~= nil and markerInfo ~= {}) then
+			Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10)
+		end
 	end
 end
 
@@ -147,7 +152,7 @@ function e_gather:execute()
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
 				for i, item in pairs(e_gather.list) do
 					if item.name == markerData then
-						Player:Gather(i)
+						Player:Gather(item.index)
 						return
 					end
 				end
@@ -157,7 +162,7 @@ function e_gather:execute()
 		-- otherwise just grab a random item 
 		for i, item in pairs(e_gather.list) do
 			if item.chance > 50 then
-				Player:Gather(i)
+				Player:Gather(item.index)
 			end
 		end
 	end

@@ -241,6 +241,7 @@ function ffxiv_task_movetotarget:Create()
     newinst.name = "RE_MOVETOTARGET"
     newinst.targetid = 0
 	newinst.range = 0
+	newinst.losrange = 0
 	
     return newinst
 end
@@ -258,7 +259,7 @@ function ffxiv_task_movetotarget:task_complete_eval()
         if (target == nil) then
 			return true
 		else
-            if (target.distance <= self.range + target.hitradius +0.1 or not target.alive) then
+            if (target.distance <= self.range + target.hitradius +0.1 and target.los or not target.alive) then
                 return true
             end
         end
@@ -268,6 +269,7 @@ function ffxiv_task_movetotarget:task_complete_eval()
 end
 
 function ffxiv_task_movetotarget:task_complete_execute()
+	Player:Stop()
     ml_task_hub:CurrentTask().completed = true
 end
 
