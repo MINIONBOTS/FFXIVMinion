@@ -64,7 +64,7 @@ e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
 	if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
 		local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-		if (gatherable ~= nil and gatherable.distance > 2.5) then
+		if (gatherable ~= nil and gatherable.distance > 3) then
 			return true
 		end
 	end
@@ -76,7 +76,7 @@ function e_movetogatherable:execute()
 	if (pos ~= nil and pos ~= {}) then
 		local newTask = ffxiv_task_movetopos:Create()
 		newTask.pos = pos
-		newTask.range = 2
+		newTask.range = 2.5
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 	end
 end

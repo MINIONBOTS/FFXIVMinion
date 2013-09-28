@@ -192,7 +192,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance < self.range+0.5) then
+		if (distance < self.range+1) then
 			return true
 		end
     end
