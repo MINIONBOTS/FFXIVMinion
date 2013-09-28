@@ -1,5 +1,6 @@
 ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.name = "LT_GRIND"
+ffxiv_task_grind.evacPoint = {0, 0, 0}
 
 function ffxiv_task_grind:Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
@@ -62,10 +63,18 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 	GUI_RefreshWindow(ml_global_information.MainWindow.Name)
 end
 
+function ffxiv_task_grind.SetEvacPoint()
+	if (Player.onmesh) then
+		ffxiv_task_grind.evacPoint = Player.pos
+		Settings.FFXIVMINION.evacPoint = Player.pos
+	end
+end
+
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Do Fates", "gDoFates","Grind")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Fates Only", "gFatesOnly","Grind")
+	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
 	if (Settings.FFXIVMINION.gDoFates == nil) then
@@ -76,8 +85,14 @@ function ffxiv_task_grind.UIInit()
 		Settings.FFXIVMINION.gFatesOnly = "0"
 	end
 	
+	if (Settings.FFXIVMINION.evacPoint == nil) then
+		Settings.FFXIVMINION.evacPoint = {x = 0, y = 0, z = 0}
+	end
+	
 	gDoFates = Settings.FFXIVMINION.gDoFates
 	gFatesOnly = Settings.FFXIVMINION.gFatesOnly
+	ffxiv_task_grind.evacPoint = Settings.FFXIVMINION.evacPoint
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
+	RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
 end

@@ -209,3 +209,7 @@ end
 function ml_task:UIInit()
 	return true
 end
+
+function ml_task:RegisterDebug()
+    
+end

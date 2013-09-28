@@ -29,7 +29,7 @@ e_truethrust = inheritsFrom( ml_effect )
 function c_truethrust:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(Skillbar:CanCast(FFXIVMINION.SKILLS.TRUETHRUST,ml_task_hub:CurrentTask().targetid)) then
+        if(Skillbar:CanCast(FFXIVMINION.SKILLS.TRUETHRUST)) then
             return true
         end
     end
@@ -82,7 +82,7 @@ e_vorpalthrust = inheritsFrom( ml_effect )
 function c_vorpalthrust:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.VORPALTHRUST].level) then
         if(ml_task_hub:CurrentTask().prevSkillID == ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.VORPALTHRUST].combo) then
-            if(Skillbar:CanCast(FFXIVMINION.SKILLS.VORPALTHRUST,ml_task_hub:CurrentTask().targetid)) then
+            if(Skillbar:CanCast(FFXIVMINION.SKILLS.VORPALTHRUST)) then
                 return true
             end
         end
@@ -113,7 +113,7 @@ e_heavythrust = inheritsFrom( ml_effect )
 function c_heavythrust:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.HEAVYTHRUST) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.HEAVYTHRUST].level) then
-			if(Skillbar:CanCast(FFXIVMINION.SKILLS.HEAVYTHRUST,ml_task_hub:CurrentTask().targetid)) then
+			if(Skillbar:CanCast(FFXIVMINION.SKILLS.HEAVYTHRUST)) then
 				return true
 			end
 		end
@@ -148,8 +148,8 @@ function ffxiv_combat_lancer:Init()
     local ke_vorpalthrust = ml_element:create( "VorpalThrust", c_vorpalthrust, e_vorpalthrust, 5 )
 	self:add( ke_vorpalthrust, self.process_elements)
 	
-	local ke_heavythrust = ml_element:create( "HeavyThrust", c_heavythrust, e_heavythrust, 15)
-	self:add( ke_heavythrust, self.process_elements)
+	--local ke_heavythrust = ml_element:create( "HeavyThrust", c_heavythrust, e_heavythrust, 15)
+	--self:add( ke_heavythrust, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

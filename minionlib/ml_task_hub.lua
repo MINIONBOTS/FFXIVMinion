@@ -124,5 +124,44 @@ function ml_task_hub.ToggleRun()
 	--ml_debug("Task Hub Update: "..tostring(ml_task_hub.shouldRun))	
 end
 
+function ml_task_hub:ShowDebugWindow()
+	if ( self.DebugWindowCreated == nil ) then
+		wt_debug( "Opening Hub Debug Window" )
+		GUI_NewWindow( "ML_TASK_QUEUES", 10, 10, 100, 50 + TableSize( 3 ) * 14)
+
+		for k, queue in pairs( ml_task_hub.queues ) do
+			GUI_NewButton( "ML_TASK_QUEUES", queue.name, "ML_TASK_QUEUE" .."::" .. queue.name )
+		end
+		self.DebugWindowCreated  = true
+	end
+end
+
+function ml_task_hub.HandleStateDebugButtons( Event, Button )
+	if ( Event == "GUI.Item" ) then
+		for k, v in string.gmatch( Button, "(.-)::(.+)") do
+			ml_debug( "A:" .. k .. " B:" .. v )
+			if ( k == "ML_TASK_QUEUES" ) then
+				for queueName, queue in pairs( ml_task_hub.queues ) do
+					if ( queue.name == v ) then
+						queue:ShowDebugWindow()
+					end
+				end
+			else
+				for statekey, state in pairs( wt_core_controller.state_list ) do
+					if ( state.name == k ) then
+						for ek, elmt in pairs( state.kelement_list ) do
+							if ( elmt.name == v ) then
+								wt_debug( "Executing elmt:evaluate() = " .. tostring( elmt:evaluate() ) )
+								wt_debug( "Executing effect" )
+								elmt.effect:execute()
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 RegisterEventHandler( "GUI_REQUEST_RUN_TOGGLE", ml_task_hub.ToggleRun )
 RegisterEventHandler( "FFXIVMINION.toggle", ml_task_hub.ToggleRun )

@@ -46,16 +46,18 @@ function PathDistance(posTable)
 end
 
 function FileExists(file)
-	local f = fileread(file)
-	if ( TableSize(f) > 0) then
-		return true
-	end
-	return false
+  local f = io.open(file, "rb")
+  if f then f:close() end
+  return f ~= nil
 end
 
 function LinesFrom(file)
-	lines = fileread(file)	
-	return lines
+  if not FileExists(file) then return {} end
+  lines = {}
+  for line in io.lines(file) do 
+    lines[#lines + 1] = line
+  end
+  return lines
 end
 
 

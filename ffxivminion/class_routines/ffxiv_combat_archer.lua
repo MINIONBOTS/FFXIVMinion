@@ -1,4 +1,5 @@
 ffxiv_combat_archer = inheritsFrom(ml_task)
+ffxiv_combat_archer.range = 25
 
 function ffxiv_combat_archer:Create()
     local newinst = inheritsFrom(ffxiv_combat_archer)
@@ -12,8 +13,9 @@ function ffxiv_combat_archer:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_combat_archer members
-    newinst.name = "ARCANIST"
+    newinst.name = "ARCHER"
     newinst.targetid = 0
+	newinst.range = 25
     
     return newinst
 end
