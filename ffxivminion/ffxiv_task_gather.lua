@@ -76,7 +76,7 @@ function e_movetogatherable:execute()
 	if (pos ~= nil and pos ~= {}) then
 		local newTask = ffxiv_task_movetopos:Create()
 		newTask.pos = pos
-		newTask.range = 2.5
+		newTask.range = 1.5
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 	end
 end
