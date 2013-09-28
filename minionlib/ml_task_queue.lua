@@ -87,3 +87,14 @@ function ml_task_queue:create( name )
 	return newinst
 end
 
+function ml_task_queue:ShowDebugWindow()
+	if ( self.DebugWindowCreated == nil ) then
+		ml_debug( "Opening Queue Debug Window" )
+		GUI_NewWindow( self.name, 140, 10, 100, 50 + #self.kelement_list * 14 )
+
+		for k, elem in pairs( self.kelement_list ) do
+			GUI_NewButton( self.name, elem.name , self.name .."::" .. elem.name )
+		end
+		self.DebugWindowCreated  = true
+	end
+end

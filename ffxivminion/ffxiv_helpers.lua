@@ -1,6 +1,7 @@
 -- This file holds global helper functions
 
 function GetNearestAttackable()
+	local level = Player.level
 	local el = EntityList("nearest,alive,attackable,onmesh")
 	if ( el ) then
 		local i,e = next(el)
@@ -9,6 +10,23 @@ function GetNearestAttackable()
 		end
 	end
 	ml_debug("GetNearestAttackable() failed with no entity found matching params")
+	return nil
+end
+
+function GetNearestFateAttackable()
+    local myPos = Player.pos
+    local fateID = GetClosestFateID(myPos, true, true)
+    if (fateID ~= nil and fateID ~= 0) then
+        local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
+        if ( el ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                return e
+            end
+        end
+    end
+    
+	ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
 	return nil
 end
 
@@ -91,7 +109,7 @@ function GetFateByID(fateID)
 			if (fate.id == fateID) then
 				return fate
 			end
-			_, fate = next(fatelist, _)
+			_, fate = next(fateList, _)
 		end
 	end
 	
@@ -105,8 +123,8 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local nearestDistance = 99999999
 		local _, fate = next(fateList)
 		while (_ ~= nil and fate ~= nil) do
-			if (levelCheck and (fate.level > (Player.level - 3) and fate.level < (Player.level + 2))) then
-				if (meshCheck and NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)) then
+			if (not levelCheck or (levelCheck and (fate.level >= (Player.level - 5) and fate.level <= (Player.level + 5)))) then
+				if (not meshCheck or (meshCheck and NavigationManager:IsOnMesh(fate.x, fate.y, fate.z))) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then
 						nearestFate = fate

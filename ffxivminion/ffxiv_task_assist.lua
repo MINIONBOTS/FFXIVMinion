@@ -38,7 +38,6 @@ function c_combatassist_task:evaluate()
     return false
 end
 function e_combatassist_task:execute()
-
 	if ( gSMactive == "1" ) then
 		local newTask = ffxiv_task_skillmgrAttack:Create()
 		newTask.targetid = ml_task_hub:CurrentTask().targetid
@@ -46,9 +45,8 @@ function e_combatassist_task:execute()
 	else
 		local newTask = ml_global_information.CurrentClass:Create()
 		newTask.targetid = ml_task_hub:CurrentTask().targetid
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		ml_task_hub.CurrentTask():AddSubTask(newTask)
 	end
-	
 end
 
 c_validtarget = inheritsFrom( ml_cause )

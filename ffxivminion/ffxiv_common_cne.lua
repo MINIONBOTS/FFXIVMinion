@@ -18,7 +18,11 @@
 c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
 function c_add_killtarget:evaluate()
-	local target = GetNearestAttackable()
+	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
+		return false
+	end
+	
+	local target = ml_task_hub:CurrentTask().targetFunction()
 	if (target ~= nil and target ~= {}) then
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
 			c_add_killtarget.targetid = target.id
@@ -31,6 +35,7 @@ end
 function e_add_killtarget:execute()
 	Player:SetTarget(c_add_killtarget.targetid)
 	local newTask = ffxiv_task_killtarget:Create()
+    newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
     newTask.targetid = c_add_killtarget.targetid
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
@@ -72,7 +77,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
-function c_add_combat:evaluate()	
+function c_add_combat:evaluate()
 	Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 	local target = Player:GetTarget()
 	if(target ~= nil) then
@@ -108,29 +113,10 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 function c_add_fate:evaluate()
 	if (gDoFates == "1") then
-		local fateList = MapObject:GetFateList()
-		if (fateList ~= nil and fateList ~= {}) then
-			local nearestFate = nil
-			local nearestDistance = 99999999
-			local _, fate = next(fateList)
-			while (_ ~= nil and fate ~= nil) do
-				if (fate.level > (Player.level - 3) and fate.level < (Player.level + 2)) then
-					if (NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)) then
-						local myPos = Player.pos
-						local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-						if (nearestFate == nil or distance < nearestDistance) then
-							nearestFate = fate
-							nearestDistance = distance
-						end
-					end
-				end
-				_, fate = next(fateList, _)
-			end
-		
-			if (nearestFate ~= nil) then
-				e_add_fate.fateid = nearestFate.id
-				return true
-			end
+		local myPos = Player.pos
+		local fateID = GetClosestFateID(myPos, true, true)
+		if (fateID ~= 0) then
+			return true
 		end
 	end
 	
@@ -138,7 +124,8 @@ function c_add_fate:evaluate()
 end
 function e_add_fate:execute()
 	local newTask = ffxiv_task_fate:Create()
-    newTask.fateid = e_fate_task.fateid
+	local myPos = Player.pos
+    newTask.fateid = GetClosestFateID(myPos, true, true)
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
@@ -186,7 +173,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_movetotarget = inheritsFrom( ml_cause )
 e_movetotarget = inheritsFrom( ml_effect )
-c_movetotarget.throttle = 500
+--c_movetotarget.throttle = 500
 function c_movetotarget:evaluate()
 	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
@@ -224,7 +211,7 @@ function c_movetopos:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance > ml_task_hub:CurrentTask().range) then
+		if (distance > ml_task_hub:CurrentTask().range+0.5) then
 			return true
 		end
     end
@@ -280,8 +267,8 @@ end
 ---------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------
---NOTARGET: If (no current target) Then (find the nearest target)
---Gets a new attackable target
+--NOTARGET: If (no current target) Then (find the nearest fate mob)
+--Gets a new target using the targeting function of the parent task
 ---------------------------------------------------------------------------------------------
 c_notarget = inheritsFrom( ml_cause )
 e_notarget = inheritsFrom( ml_effect )
@@ -303,11 +290,47 @@ function c_notarget:evaluate()
 end
 function e_notarget:execute()
 	ml_debug( "Getting new target" )
-	local target = GetNearestAttackable()
+	local target = ml_task_hub:CurrentTask().targetFunction()
 	if (target ~= nil) then
 		Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
 		Player:SetTarget(target.id)
 		ml_task_hub.CurrentTask().targetid = target.id
+	end
+end
+
+---------------------------------------------------------------------------------------------
+--FLEE: If (aggolist.size > 1 and health.percent < 50) Then (run to a random point)
+--Attempts to shake aggro by running away and resting
+---------------------------------------------------------------------------------------------
+c_flee = inheritsFrom( ml_cause )
+e_flee = inheritsFrom( ml_effect )
+e_flee.throttle = 1000
+c_flee.fleeing = false
+function c_flee:evaluate()
+	if (not self.fleeing) then
+		if (Player.hasaggro and Player.hp.percent < 30) then
+			d("test2")
+			self.fleeing = true
+			return true
+		end
+	else
+		d("test3")
+		if (not Player.hasaggro) then
+			d("test4")
+			Player:Stop()
+			self.fleeing = false
+		end
+	end
+    
+    return false
+end
+function e_flee:execute()
+	ml_debug( "Fleeing combat" )
+	d("flee execute")
+	local fleePos = ffxiv_task_grind.evacPoint
+	if (fleePos ~= {}) then
+		Player:SetFacing(fleePos.x, fleePos.y, fleePos.z)
+		Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
 	end
 end
 
@@ -346,39 +369,6 @@ function e_rest:execute()
 end
 
 ---------------------------------------------------------------------------------------------
---STEALTH: If (distance to aggro < 18) Then (cast stealth)
---Uses stealth when gathering to avoid aggro
----------------------------------------------------------------------------------------------
-c_stealth = inheritsFrom( ml_cause )
-e_stealth = inheritsFrom( ml_effect )
-function c_stealth:evaluate()
-	if (gBotMode.name ~= "LT_GATHER") then
-		return false
-	end
-	
-	local stealth = Skillbar:Get(229)
-	if (stealth ~= nil) then
-		local mobList = EntityList("attackable,onmesh,maxdistance=17")
-		if(TableSize(mobList) > 0) then
-			if (HasBuff(Player, 47)) then
-				return false
-			else
-				return true
-			end
-		else
-			if (HasBuff(Player, 47)) then
-				stealth:Cast()
-			end
-		end
-	end
-	
-	return false
-end
-function e_stealth:execute()
-	Skillbar:Get(229):Cast()
-end
-
----------------------------------------------------------------------------------------------
 --BETTERFATESEARCH: If (fate with < distance than current target exists) Then (select new fate)
 --Clears the current fate and adds a new one if it finds a better match along the route
 ---------------------------------------------------------------------------------------------
@@ -387,13 +377,14 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 function c_betterfatesearch:evaluate()
 	local currentFate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (currentFate ~= nil and currentFate ~= {}) then
-		local closestFate = GetFateByID(GetClosestFateID(Player.pos, true, true))
+		local myPos = Player.pos
+		local closestFate = GetFateByID(GetClosestFateID(myPos, true, true))
 		if (closestFate ~= nil and closestFate ~= {}) then
-			local myPos = Player.pos
+			
 			local currentFateDist = Distance3D(myPos.x, myPos.y, myPos.z, currentFate.x, currentFate.y, currentFate.z)
-			local newFateDist = Distance3D(myPos.x, myPos,y, myPos.z, closestFate.x, closestFate.y, closestFate.z)
+			local newFateDist = Distance3D(myPos.x, myPos.y, myPos.z, closestFate.x, closestFate.y, closestFate.z)
 			if (newFateDist < currentFateDist) then
-				ml_taskHub:CurrentTask().fateid = closestFate.id
+				ml_task_hub:CurrentTask().fateid = closestFate.id
 				return true
 			end
 		end

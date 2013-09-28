@@ -24,16 +24,13 @@ function ffxiv_task_killtarget:Create()
     --ffxiv_task_grind members
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
+    newinst.targetFunction = 0
     
     return newinst
 end
 
 function ffxiv_task_killtarget:Init()
-    --ProcessOverWatch() cnes
 	--init ProcessOverWatch() cnes
-    local ke_noTarget = ml_element:create( "NoTarget", c_notarget, e_notarget, 10 )
-	self:add(ke_noTarget, self.overwatch_elements)
-	
 	local ke_moveToTarget = ml_element:create( "AddMoveToTarget", c_add_movetotarget, e_add_movetotarget, 5 )
 	self:add( ke_moveToTarget, self.overwatch_elements)
 	
@@ -58,22 +55,19 @@ end
 
 function ffxiv_task_killtarget:task_complete_eval()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (target) then
-        if (not target.alive) then
-            return true
-        end
+    if (not target or (target and not target.alive)) then
+		return true
     end
     
     return false
 end
 
 function ffxiv_task_killtarget:task_complete_execute()
-    self.targetid = 0
     self.completed = true
 end
 
 ---------------------------------------------------------------------------------------------
---TASK_DOFATE: Longterm Goal - Complete a fate event successfully
+--TASK_FATE: Longterm Goal - Complete a fate event successfully
 ---------------------------------------------------------------------------------------------
 ffxiv_task_fate = inheritsFrom(ml_task)
 
@@ -91,14 +85,23 @@ function ffxiv_task_fate:Create()
     --ffxiv_task_fate members
     newinst.name = "LT_FATE"
     newinst.fateid = 0
+    newinst.targetFunction = GetNearestFateAttackable
     
     return newinst
 end
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
-    local ke_moveToFate = ml_element:create( "AddMoveToFate", c_add_movetofate, e_add_movetofate, 5 )
+    local ke_moveToFate = ml_element:create( "AddMoveToFate", c_add_movetofate, e_add_movetofate, 10 )
 	self:add( ke_moveToFate, self.overwatch_elements)
+    
+    --init process
+	local ke_noTarget = ml_element:create( "NoTarget", c_notarget, e_notarget, 10 )
+	self:add(ke_noTarget, self.process_elements)
+	
+    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 5 )
+	self:add(ke_addKillTarget, self.process_elements)
+    
     
     self:AddTaskCheckCEs()
 end
@@ -107,8 +110,10 @@ function ffxiv_task_fate:task_complete_eval()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (fate ~= nil and fate ~= {}) then
 		return fate.completion > 95
-    end
-    
+    elseif (fate == nil) then
+		return true
+	end
+	
     return false
 end
 
@@ -168,7 +173,7 @@ function ffxiv_task_movetopos:Create()
     --ffxiv_task_grind members
     newinst.name = "RE_MOVETOPOS"
     newinst.pos = 0
-	newinst.range = 0
+	newinst.range = 1.5
 	newinst.doFacing = 0
     newinst.pauseTimer = 0
 	
@@ -176,9 +181,6 @@ function ffxiv_task_movetopos:Create()
 end
 
 function ffxiv_task_movetopos:Init()
-	local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
-	self:add( ke_stealth, self.overwatch_elements)
-
 	local ke_moveToPos = ml_element:create( "MoveToPos", c_movetopos, e_movetopos, 10 )
 	self:add( ke_moveToPos, self.process_elements)
 	
@@ -190,7 +192,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance < self.range+0.1) then
+		if (distance < self.range+0.5) then
 			return true
 		end
     end
@@ -253,8 +255,10 @@ end
 function ffxiv_task_movetotarget:task_complete_eval()
 	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target ~= nil) then
-            if (target.distance <= self.range + target.hitradius +0.1) then
+        if (target == nil) then
+			return true
+		else
+            if (target.distance <= self.range + target.hitradius +0.1 or not target.alive) then
                 return true
             end
         end
@@ -320,14 +324,16 @@ end
 
 function ffxiv_task_movetofate:task_complete_eval()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTast().fateid)
+        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
         if (fate ~= nil and fate ~= {}) then
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-            if (distance < fate.radius) then
+            if (distance < 0.5 * (fate.radius)) then
                 return true
             end
-        end
+        else
+			return true
+		end
     end
     
     return false

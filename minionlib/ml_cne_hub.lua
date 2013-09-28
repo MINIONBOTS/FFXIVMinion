@@ -11,8 +11,8 @@ end
 function ml_cne_hub.eval_elements(elementList)
 	for k, elem in pairs( elementList ) do
 		ml_debug( "Evaluating:" .. tostring( elem.name ) )
-		local result = elem:evaluate()
-		ml_debug( "Evaluation Result:" .. tostring( result ) )
+		elem.eval = elem:evaluate()
+		ml_debug( "Evaluation Result:" .. tostring( elem.eval ) )
 	end
 end
 
@@ -68,6 +68,7 @@ function ml_cne_hub.execute()
 			GUI_SetStatusBar(effect.name)
 			end
 			ml_debug( "execute:" .. effect.name .. " (P:"..effect.priority..")" )
+            --ml_debug_window.lastExecuted = effect.name
 			effect:execute()
 			executed = true
 		else

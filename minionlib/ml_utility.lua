@@ -46,16 +46,18 @@ function PathDistance(posTable)
 end
 
 function FileExists(file)
-	local f = fileread(file)
-	if ( TableSize(f) > 0) then
-		return true
-	end
-	return false
+  local f = io.open(file, "rb")
+  if f then f:close() end
+  return f ~= nil
 end
 
 function LinesFrom(file)
-	lines = fileread(file)	
-	return lines
+  if not FileExists(file) then return {} end
+  lines = {}
+  for line in io.lines(file) do 
+    lines[#lines + 1] = line
+  end
+  return lines
 end
 
 
@@ -73,6 +75,15 @@ end
 
 function ApproxEqual(num1, num2)
     return math.abs(math.abs(num1) - math.abs(num2)) < .000001
+end
+
+function TableContains(table, element)
+  for _, value in pairs(table) do
+    if value == element then
+      return true
+    end
+  end
+  return false
 end
 
 --psuedo enum values for task classes

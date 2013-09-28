@@ -68,7 +68,13 @@ function mm.ModuleInit()
 	gmeshname_listitems = meshlist
 	gnewmeshname = ""
 	gMeshMGR = Settings.FFXIVMINION.gMeshMGR 
-    
+	
+	--TODO Remove this later
+	if (Settings.FFXIVMINION.gmeshname == nil) then
+		Settings.FFXIVMINION.gmeshname = ""
+	end
+    gmeshname = Settings.FFXIVMINION.gmeshname
+	mm.ChangeNavMesh(gmeshname)
     
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].selectedMarker,"gSelectedMarker",strings[gCurrentLanguage].markers,"None")
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].markers)
@@ -151,6 +157,14 @@ function mm.SetMarkerTime(markerName, time)
 	end
     
     return false
+end
+
+function mm.GetMarkerType(marker)
+    for tag, posList in pairs(mm.MarkerList) do
+		if posList[marker] ~= nil then
+			return tag
+		end
+	end
 end
 
 function mm.SelectClosestMarker()
@@ -452,7 +466,8 @@ function mm.ChangeNavMesh(newmesh)
             end
 		end
 	end
-	gmeshname = newmesh	
+	gmeshname = newmesh
+	Settings.FFXIVMINION.gmeshname = newmesh
 	gMeshMGR = "1"
 end
 
@@ -529,7 +544,7 @@ function mm.OnUpdate( event, tickcount )
 		if (mm.reloadMeshPensing and mm.lasttick - mm.reloadMeshTmr > 2000 and mm.reloadMeshName ~= "") then
 			mm.reloadMeshTmr = mm.lasttick
 			mm.ChangeNavMesh(mm.reloadMeshName)
-		end		
+		end
 	end
 end
 

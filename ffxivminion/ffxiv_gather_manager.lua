@@ -30,6 +30,11 @@ function GatherMgr.ModuleInit()
     if (gBaitName == nil) then
         gBaitName = ""
     end
+	
+	if (Settings.FFXIVMINION.gGMactive == nil) then
+		Settings.FFXIVMINION.gGMactive = "0"
+	end
+	gGMactive = Settings.FFXIVMINION.gGMactive
     
 	GUI_WindowVisible(GatherMgr.mainwindow.name,false)
 end
@@ -141,6 +146,7 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
 			time = tonumber(gMiningTime)
         elseif (markerType == "botanySpot") then
             data = gBotanyItem
+			d(data)
 			time = tonumber(gBotanyTime)
         elseif (markerType == "fishingSpot") then
             data = gFishingBait
@@ -155,6 +161,59 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
     end
     
     return false
+end
+
+function GatherMgr.GetNextMarker(currentMarker, prevMarker)
+	local markerType
+	for tag, posList in pairs(mm.MarkerList) do
+		if posList[currentMarker] ~= nil then
+			markerType = tag
+		end
+	end
+	
+	local list = {}
+	
+	if not gChangeJobs then
+		list = mm.MarkerList[markerType]
+	else
+		for k,v in pairs(mm.MarkerList["miningSpot"]) do list[k] = v end
+		for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
+	end
+	
+	-- if we only have one marker then we just return it
+	if (TableSize(list) == 1) then
+		local name, marker = next(list)
+		return name
+	end
+	
+	-- if we only have two markers we choose the other one
+	if (TableSize(list) == 2) then
+		for name, marker in pairs(list) do
+			if name ~= currentMarker then
+				return name
+			end
+		end
+	end
+	
+	-- otherwise grab the next marker based on randomization or closest distance
+	local closestMarker = nil
+	local closestDistance = 99999999
+	if not gRandomMarker then
+		for name, marker in pairs(list) do
+			local myPos = Player.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, marker.x, marker.y, marker.z)
+			if (closestMarker == nil or distance < closestDistance and name ~= currentMarker and name ~= prevMarker) then
+				closestMarker = name
+				closestDistance = distance
+			end
+		end
+	else
+		local rnd = math.random(1,#list)
+		local newTable = table_invert(list)
+		closestMarker = list[newTable]
+	end
+	
+	return closestMarker
 end
 
 function GatherMgr.GetMarkerData(markerName)
@@ -179,7 +238,7 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
 		--d(tostring(k).." = "..tostring(v))
 		if ( k == "gGMactive") then			
-			Settings.GW2MINION[tostring(k)] = v
+			Settings.FFXIVMINION[tostring(k)] = v
         elseif (k == "gMiningSpot") then
             GatherMgr.UpdateMarkerInfo("miningSpot",v)
         elseif (k == "gBotanySpot") then
@@ -188,9 +247,9 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
             GatherMgr.UpdateMarkerInfo("fishingSpot",v)
         elseif (k == "gMiningItem" or k == "gMiningTime") then
             GatherMgr.WriteMarkerInfo("miningSpot",gMiningSpot)
-        elseif (k == "gBotanySpot" or k == "gBotanyTime") then
+        elseif (k == "gBotanyItem" or k == "gBotanyTime") then
             GatherMgr.WriteMarkerInfo("botanySpot",gBotanySpot)
-        elseif (k == "gFishingSpot" or k == "gFishingTime") then
+        elseif (k == "gFishingBait" or k == "gFishingTime") then
             GatherMgr.WriteMarkerInfo("fishingSpot",gFishingSpot)
 		end
 	end

@@ -34,5 +34,7 @@ function ml_element:create( name, cause, effect, priority )
         newinst.effect = effect
 		newinst.effect.name = name
         newinst.effect.priority = priority == nil and ml_effect.priorities.normal or priority
+        newinst.eval = false
+        newinst.lastExec = 0
         return newinst
 end

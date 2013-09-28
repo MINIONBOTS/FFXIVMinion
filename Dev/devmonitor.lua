@@ -185,6 +185,8 @@ function Dev.ModuleInit()
 	GUI_NewButton("Dev","Interact with Target","Dev.Interact","General Functions")
 	RegisterEventHandler("Dev.Interact", Dev.Func)		
 	
+	GUI_WindowVisible("Dev",false)
+	
 	GUI_NewButton("Dev","Test1button","Dev.Test1")
 	GUI_NewButton("Dev","TOGGLE DEVMONITOR ON_OFF","Dev.Test2")
 	GUI_SizeWindow("Dev",250,550)		
@@ -299,7 +301,7 @@ function Dev.UpdateWindow()
 		TTID = tostring(mytarget.targetid)
 		TargetLevel = mytarget.level
 		TargetProfession = mytarget.job
-		TargetCangather = mytarget.cangather
+		TargetCangather = tostring(mytarget.cangather)
 		TFate = mytarget.fateid or 0
 		TAC = mytarget.action
 		TLAC = mytarget.lastaction
@@ -330,7 +332,7 @@ function Dev.UpdateWindow()
 				TTID = tostring(mytarget.targetid)
 				TargetLevel = mytarget.level
 				TargetProfession = mytarget.job
-				TargetCangather = mytarget.cangather
+				TargetCangather = tostring(mytarget.cangather)
 				TFate = mytarget.fateid or 0
 				TAC = mytarget.action
 				TLAC = mytarget.lastaction
