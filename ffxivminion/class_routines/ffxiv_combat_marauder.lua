@@ -1,5 +1,5 @@
 ffxiv_combat_marauder = inheritsFrom(ml_task)
-ffxiv_combat_marauder.range = 25
+ffxiv_combat_marauder.range = 2
 
 function ffxiv_combat_marauder:Create()
     local newinst = inheritsFrom(ffxiv_combat_marauder)
@@ -13,8 +13,9 @@ function ffxiv_combat_marauder:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_combat_marauder members
-    newinst.name = "ARCANIST"
+    newinst.name = "MARAUDER"
     newinst.targetid = 0
+	newinst.range = 2
     
     return newinst
 end

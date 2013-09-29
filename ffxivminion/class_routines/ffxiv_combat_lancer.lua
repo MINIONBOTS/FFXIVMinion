@@ -1,6 +1,6 @@
 ffxiv_combat_lancer = inheritsFrom(ml_task)
 ffxiv_combat_lancer.name = "LANCER"
-ffxiv_combat_lancer.range = 3
+ffxiv_combat_lancer.range = 2
 
 function ffxiv_combat_lancer:Create()
     local newinst = inheritsFrom(ffxiv_combat_lancer)

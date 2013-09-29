@@ -1,5 +1,5 @@
 ffxiv_combat_pugilist = inheritsFrom(ml_task)
-ffxiv_combat_pugilist.range = 25
+ffxiv_combat_pugilist.range = 2
 
 function ffxiv_combat_pugilist:Create()
     local newinst = inheritsFrom(ffxiv_combat_pugilist)
@@ -13,8 +13,9 @@ function ffxiv_combat_pugilist:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_combat_pugilist members
-    newinst.name = "ARCANIST"
+    newinst.name = "PUGILIST"
     newinst.targetid = 0
+	newinst.range = 2
     
     return newinst
 end
