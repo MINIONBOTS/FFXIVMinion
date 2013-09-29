@@ -12,7 +12,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","ID","TargetID","TargetInfo")
 	GUI_NewField("Dev","ContentID","TargetContentID","TargetInfo")
 	GUI_NewField("Dev","Name","TargetName","TargetInfo")
-	GUI_NewField("Dev","StatusBitfield","TStatus","TargetInfo")
+	GUI_NewField("Dev","StatusBitfield","TStatus","TargetInfo")	
+	GUI_NewField("Dev","Targetable","TTar","TargetInfo")
 	GUI_NewField("Dev","Attackable","TAtk","TargetInfo")
 	GUI_NewField("Dev","HasAggro","TAggro","TargetInfo")
 	GUI_NewField("Dev","distance","TargetDistance","TargetInfo")
@@ -286,9 +287,10 @@ function Dev.UpdateWindow()
 		TargetGetNPCType = mytarget.chartype
 		TargetName = mytarget.name
 		TargetContentID = mytarget.contentid
-		TStatus = string.format( "%x",tonumber(mytarget.status ))
+		TStatus = mytarget.status--string.format( "%x",tonumber(mytarget.status ))
+		TTar = tostring(mytarget.targetable)
 		TAggro = tostring(mytarget.aggro)
-		TAtk = tostring(mytarget.attackable)
+		TAtk = tostring(mytarget.attackable)		
 		TargetDistance = (math.floor(mytarget.distance * 10) / 10)
 		Tlos = tostring(mytarget.los)
 		TargetPosX = (math.floor(mytarget.pos.x * 10) / 10)
@@ -317,7 +319,8 @@ function Dev.UpdateWindow()
 				TargetGetType = mytarget.type
 				TargetGetNPCType = mytarget.chartype
 				TargetName = mytarget.name
-				TStatus = string.format( "%x",tonumber(mytarget.status ))
+				TStatus = mytarget.status--string.format( "%x",tonumber(mytarget.status ))
+				TTar = tostring(mytarget.targetable)
 				TAggro = tostring(mytarget.aggro)
 				TAtk = tostring(mytarget.attackable)
 				TargetDistance = (math.floor(mytarget.distance * 10) / 10)

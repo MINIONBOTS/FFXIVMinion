@@ -280,7 +280,7 @@ function c_notarget:evaluate()
     
     local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
     if (target ~= nil) then
-        if (not target.alive) then
+        if (not target.alive or not target.targetable) then
             return true
         end
     elseif (target == nil) then

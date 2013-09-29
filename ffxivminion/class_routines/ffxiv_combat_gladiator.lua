@@ -1,4 +1,5 @@
 ffxiv_combat_gladiator = inheritsFrom(ml_task)
+ffxiv_combat_gladiator.range = 25
 
 function ffxiv_combat_gladiator:Create()
     local newinst = inheritsFrom(ffxiv_combat_gladiator)
