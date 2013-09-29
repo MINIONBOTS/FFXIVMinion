@@ -1,5 +1,5 @@
 ffxiv_combat_archer = inheritsFrom(ml_task)
-ffxiv_combat_archer.range = 25
+ffxiv_combat_archer.range = 24
 
 function ffxiv_combat_archer:Create()
     local newinst = inheritsFrom(ffxiv_combat_archer)
@@ -15,7 +15,7 @@ function ffxiv_combat_archer:Create()
     --ffxiv_combat_archer members
     newinst.name = "ARCHER"
     newinst.targetid = 0
-	newinst.range = 25
+	newinst.range = 24
 	newinst.newRotation = true
     
     return newinst
@@ -96,4 +96,18 @@ end
 
 function ffxiv_combat_archer:IsGoodToAbort()
 
+end
+
+function ffxiv_combat_archer:task_complete_eval()
+    local target = Player:GetTarget()
+    if (target == nil or not target.alive) then
+        return true
+    end
+    
+    return false
+end
+
+function ffxiv_combat_archer:task_complete_execute()
+    self.targetid = 0
+    self.completed = true
 end

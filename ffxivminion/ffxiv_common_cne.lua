@@ -65,7 +65,6 @@ function e_add_movetotarget:execute()
 		local newTask = ffxiv_task_movetotarget:Create()
 		newTask.targetid = target.id
 		newTask.range = (ml_global_information.AttackRange-1) + target.hitradius
-		newTask.losrange = newTask.range
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 	end
 end
@@ -306,15 +305,12 @@ e_flee.throttle = 1000
 c_flee.fleeing = false
 function c_flee:evaluate()
 	if (not self.fleeing) then
-		if (Player.hasaggro and Player.hp.percent < 30) then
-			d("test2")
+		if (Player.hasaggro and Player.hp.percent < 50) then
 			self.fleeing = true
 			return true
 		end
 	else
-		d("test3")
 		if (not Player.hasaggro) then
-			d("test4")
 			Player:Stop()
 			self.fleeing = false
 		end
@@ -324,7 +320,6 @@ function c_flee:evaluate()
 end
 function e_flee:execute()
 	ml_debug( "Fleeing combat" )
-	d("flee execute")
 	local fleePos = ffxiv_task_grind.evacPoint
 	if (fleePos ~= {}) then
 		Player:SetFacing(fleePos.x, fleePos.y, fleePos.z)
@@ -349,12 +344,12 @@ function c_rest:evaluate()
 				return true
 			end
 		else
-			if (Player.hp.percent < 50 and not Player.hasaggro) then
+			if (Player.hp.percent < 60 and not Player.hasaggro) then
 				self.resting = true
 				return true
 			end
 		end
-	elseif (Player.hp.percent < 50 and not Player.hasaggro) then
+	elseif (Player.hp.percent < 60 and not Player.hasaggro) then
 		self.resting = true
 		return true
 	end

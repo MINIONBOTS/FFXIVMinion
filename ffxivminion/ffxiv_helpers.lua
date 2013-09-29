@@ -122,8 +122,9 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local nearestFate = nil
 		local nearestDistance = 99999999
 		local _, fate = next(fateList)
+		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
-			if (not levelCheck or (levelCheck and (fate.level >= tonumber(gMinFateLevel) and fate.level <= tonumber(gMaxFateLevel)))) then
+			if (not levelCheck or (levelCheck and (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel)))) then
 				if (not meshCheck or (meshCheck and NavigationManager:IsOnMesh(fate.x, fate.y, fate.z))) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then
