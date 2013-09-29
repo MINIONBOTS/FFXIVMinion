@@ -25,6 +25,6 @@ function ml_debug( OutString )
 end
 
 function ml_error( text )
-	--GUI_WindowMinimized("FFXIVConsole",false)
-	ml_debug( "**ERROR**: " .. tostring( text ) )
+	GUI_ToggleConsole(true)
+	d( "**ERROR**: " .. tostring( text ) )
 end

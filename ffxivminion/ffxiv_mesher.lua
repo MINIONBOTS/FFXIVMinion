@@ -276,7 +276,7 @@ function mm.AddMarker(arg)
 		mm.WriteMarkerList(gmeshname)
 		mm.UpdateMarkerList()
 	else
-        ml_debug("Current player position is not on NavMesh...cannot create marker")
+        ml_error("Current player position is not on a valid NavMesh or current NavMesh has not been saved. If you are building a new NavMesh please save the mesh and try again.")
 	end 
 end
 

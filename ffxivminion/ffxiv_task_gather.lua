@@ -54,9 +54,11 @@ function e_findgatherable:execute()
 		Player:SetTarget(gatherable.id)
 		ml_task_hub.CurrentTask().gatherid = gatherable.id
 	else
-		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-		if (markerInfo ~= nil and markerInfo ~= {}) then
-			Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10)
+		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
+			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+			if (markerInfo ~= nil and markerInfo ~= {}) then
+				Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10)
+			end
 		end
 	end
 end
