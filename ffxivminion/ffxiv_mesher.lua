@@ -232,7 +232,9 @@ function mm.AddMarker(arg)
         markerType = "navSpot"
     end
     
-
+	-- all markers are accessed using MESH ONLY movement functions
+	-- allowing them to be created off mesh is not only useless its an invitation for bugs and user confusion
+	if(Player.onmesh) then
         if (gMarkerName ~= "") then
             local p = Player.pos
             local newInfo = { x=string.format("%.2f", p.x), y=string.format("%.2f", p.y), z=string.format("%.2f", p.z), h=string.format("%.3f", p.h), level=tostring(gMarkerLevel), data="", time="0" }
@@ -267,13 +269,15 @@ function mm.AddMarker(arg)
                 end
                 list[key] = newInfo
             end
-        else
-            ml_debug("Must provide a name for marker")
-        end
-   	
-	
-    mm.WriteMarkerList(gmeshname)
-    mm.UpdateMarkerList()
+		else
+			ml_debug("Must provide a name for marker")
+		end
+		
+		mm.WriteMarkerList(gmeshname)
+		mm.UpdateMarkerList()
+	else
+        ml_debug("Current player position is not on NavMesh...cannot create marker")
+	end 
 end
 
 function mm.DeleteMarker()

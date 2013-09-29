@@ -1,5 +1,5 @@
 ffxiv_combat_gladiator = inheritsFrom(ml_task)
-ffxiv_combat_gladiator.range = 25
+ffxiv_combat_gladiator.range = 3
 
 function ffxiv_combat_gladiator:Create()
     local newinst = inheritsFrom(ffxiv_combat_gladiator)
@@ -13,8 +13,9 @@ function ffxiv_combat_gladiator:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_combat_gladiator members
-    newinst.name = "ARCANIST"
+    newinst.name = "GLADIATOR"
     newinst.targetid = 0
+	newinst.range = 3
     
     return newinst
 end

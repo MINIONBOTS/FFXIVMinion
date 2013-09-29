@@ -1,5 +1,5 @@
 ffxiv_combat_thaumaturge = inheritsFrom(ml_task)
-ffxiv_combat_thaumaturge.range = 25
+ffxiv_combat_thaumaturge.range = 24
 
 function ffxiv_combat_thaumaturge:Create()
     local newinst = inheritsFrom(ffxiv_combat_thaumaturge)
@@ -13,8 +13,9 @@ function ffxiv_combat_thaumaturge:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_combat_thaumaturge members
-    newinst.name = "ARCANIST"
+    newinst.name = "THAUMATURGE"
     newinst.targetid = 0
+	newinst.range = 24
     
     return newinst
 end

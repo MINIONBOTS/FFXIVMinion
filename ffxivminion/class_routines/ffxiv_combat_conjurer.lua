@@ -1,6 +1,6 @@
 ffxiv_combat_conjurer = inheritsFrom(ml_task)
 ffxiv_combat_conjurer.name = "CONJURER"
-ffxiv_combat_conjurer.range = 25
+ffxiv_combat_conjurer.range = 24
 
 function ffxiv_combat_conjurer:Create()
     local newinst = inheritsFrom(ffxiv_combat_conjurer)
@@ -16,7 +16,7 @@ function ffxiv_combat_conjurer:Create()
     --ffxiv_combat_conjurer members
     newinst.name = "CONJURER"
     newinst.targetid = 0
-    newinst.range = 25
+    newinst.range = 24
     newinst.prevSkillID = 0
     newinst.newRotation = true
     

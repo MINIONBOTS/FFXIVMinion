@@ -1,5 +1,5 @@
 ffxiv_combat_arcanist = inheritsFrom(ml_task)
-ffxiv_combat_arcanist.range = 25
+ffxiv_combat_arcanist.range = 24
 
 function ffxiv_combat_arcanist:Create()
     local newinst = inheritsFrom(ffxiv_combat_arcanist)
@@ -15,6 +15,7 @@ function ffxiv_combat_arcanist:Create()
     --ffxiv_combat_arcanist members
     newinst.name = "ARCANIST"
     newinst.targetid = 0
+	newinst.range = 24
     
     return newinst
 end
