@@ -232,7 +232,7 @@ function mm.AddMarker(arg)
         markerType = "navSpot"
     end
     
-    if(Player.onmesh) then
+
         if (gMarkerName ~= "") then
             local p = Player.pos
             local newInfo = { x=string.format("%.2f", p.x), y=string.format("%.2f", p.y), z=string.format("%.2f", p.z), h=string.format("%.3f", p.h), level=tostring(gMarkerLevel), data="", time="0" }
@@ -270,10 +270,7 @@ function mm.AddMarker(arg)
         else
             ml_debug("Must provide a name for marker")
         end
-	else
-        ml_debug("Current player position is not on NavMesh...cannot create marker")
-    end
-    	
+   	
 	
     mm.WriteMarkerList(gmeshname)
     mm.UpdateMarkerList()
@@ -300,7 +297,7 @@ function mm.ReadMarkerList(meshname)
     end
     
     -- helper functions located in ml_utility.lua
-    local lines = fileread(mm.navmeshfilepath..gmeshname..".info")
+    local lines = fileread(mm.navmeshfilepath..meshname..".info")
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
             local mark = string.find(line, "=")

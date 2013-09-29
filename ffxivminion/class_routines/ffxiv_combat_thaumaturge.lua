@@ -1,4 +1,5 @@
 ffxiv_combat_thaumaturge = inheritsFrom(ml_task)
+ffxiv_combat_thaumaturge.range = 25
 
 function ffxiv_combat_thaumaturge:Create()
     local newinst = inheritsFrom(ffxiv_combat_thaumaturge)

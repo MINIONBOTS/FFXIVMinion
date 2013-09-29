@@ -681,11 +681,11 @@ end
 function ffxiv_task_skillmgrAttack:Process()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	if (target ~= nil and target.alive) then
-		Player:SetFacing(target.x,target.y,target.z)
+		local pos = target.pos
+		Player:SetFacing(pos.x,pos.y,pos.z)
 		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 		SkillMgr.Attack( target )
 	else
-		d("COMPLETE")
 		self.targetid = 0
 		self.completed = true
 	end
@@ -704,9 +704,8 @@ function ffxiv_task_skillmgrAttack:IsGoodToAbort()
 end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
-    d("FUCKTASKSHIT")
 	local target = Player:GetTarget()
-    if (target == nil or not target.alive) then
+    if (target == nil or not target.alive or not target.attackable) then
         return true
     end
     
