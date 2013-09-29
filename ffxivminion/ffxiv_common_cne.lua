@@ -203,11 +203,8 @@ end
 ---------------------------------------------------------------------------------------------
 c_movetopos = inheritsFrom( ml_cause )
 e_movetopos = inheritsFrom( ml_effect )
+c_movetopos.throttle = 1000
 function c_movetopos:evaluate()
-    if (Player:IsMoving()) then
-        return false
-    end
-
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= {} ) then
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos

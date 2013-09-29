@@ -18,6 +18,7 @@ function ffxiv_task_gather:Create()
 	newinst.markerTimer = false
 	newinst.currentMarker = 0
 	newinst.prevMarker = 0
+	newinst.isGathering = false
 	
     return newinst
 end
@@ -47,6 +48,7 @@ function c_findgatherable:evaluate()
 end
 function e_findgatherable:execute()
 	ml_debug( "Getting new gatherable target" )
+	ml_task_hub:CurrentTask().isGathering = false
 	local gatherable = GetNearestGatherable()
 	if (gatherable ~= nil) then
 		Player:SetTarget(gatherable.id)
@@ -84,7 +86,7 @@ end
 c_nextmarker = inheritsFrom( ml_cause )
 e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
-	if ( gGMactive == "1" and ml_task_hub:CurrentTask().markerTimer ~= 0) then
+	if ( gGMactive == "1" and ml_task_hub:CurrentTask().markerTimer ~= 0 and not ml_task_hub:CurrentTask().isGathering) then
 		if ( ml_task_hub:CurrentTask().markerTimer == false or os.time() > ml_task_hub:CurrentTask().markerTimer) then
 			-- get the next marker
 			local marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().prevMarker)
@@ -133,6 +135,7 @@ function c_gather:evaluate()
 	if (node ~= nil and node.distance < 2.5) then
 		local list = Player:GetGatherableSlotList()
 		if (list ~= nil) then
+			ml_task_hub:CurrentTask().isGathering = true
 			e_gather.list = list
 			return true
 		else
