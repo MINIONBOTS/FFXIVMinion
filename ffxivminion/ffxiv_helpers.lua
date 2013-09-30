@@ -17,9 +17,7 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
-		d("FATEID CHECK : "..tostring(fateID))
         local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
-        d("FATEID CHECK2 : "..tostring(TableSize(el)))
 		if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

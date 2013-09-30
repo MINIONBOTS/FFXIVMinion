@@ -57,12 +57,10 @@ function mm.ModuleInit()
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].newMesh,"newMeshEvent",strings[gCurrentLanguage].editor)
 	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].recmesh,"gMeshrec",strings[gCurrentLanguage].editor)
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].saveMesh,"saveMeshEvent",strings[gCurrentLanguage].editor)
-	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].buildNAVMesh,"buildMeshEvent",strings[gCurrentLanguage].editor)
 	
 	
 	RegisterEventHandler("newMeshEvent",mm.CreateNewMesh)	
 	RegisterEventHandler("saveMeshEvent",mm.SaveMesh)
-	RegisterEventHandler("buildMeshEvent",mm.BuildMesh)
 
 
 	gmeshname_listitems = meshlist
@@ -422,17 +420,6 @@ function mm.SaveMesh()
 	else
 		d("gmeshname is empty!?")
 	end	
-end
-
-function mm.BuildMesh()
-	d("Building NAV-Meshfile...")
-	if (gmeshname ~= nil and gmeshname ~= "" and gmeshname ~= "none") then
-		mm.reloadMeshPensing = true
-		mm.reloadMeshTmr = mm.lasttick
-		mm.reloadMeshName = gmeshname
-	else
-		d("gmeshname is empty!?")
-	end
 end
 
 function mm.ChangeNavMesh(newmesh)			

@@ -25,18 +25,24 @@ end
 
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
+	
+	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
+	self:add( ke_dead, self.overwatch_elements)
+	
+	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
+	self:add( ke_flee, self.overwatch_elements)
+	
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 10 )
 	self:add( ke_rest, self.overwatch_elements)
-    
-    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
-	self:add( ke_flee, self.overwatch_elements)
-
+	
+	
     --init Process() cnes
-	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 10 )
-	self:add(ke_addKillTarget, self.process_elements)
-    
 	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 15 )
 	self:add(ke_addFate, self.process_elements)
+
+	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 10 )
+	self:add(ke_addKillTarget, self.process_elements)
+   
     
     self:AddTaskCheckCEs()
 end
