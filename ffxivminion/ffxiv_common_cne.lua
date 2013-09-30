@@ -65,7 +65,8 @@ function e_add_movetotarget:execute()
 		local newTask = ffxiv_task_movetotarget:Create()
 		newTask.targetid = target.id
 		newTask.range = (ml_global_information.AttackRange-1) + target.hitradius
-		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
+		--ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP) cockblocks overwatch
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
 
@@ -130,7 +131,7 @@ function e_add_fate:execute()
 end
 
 ---------------------------------------------------------------------------------------------
---ADD_MOVETOFATE: If (current fate distance > combat range) Then (add movetofate task)
+--ADD_MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
 --Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
 c_add_movetofate = inheritsFrom( ml_cause )
@@ -328,6 +329,23 @@ function e_flee:execute()
 end
 
 ---------------------------------------------------------------------------------------------
+--DEAD: Checks Revivestate of player and revives at nearest aetheryte, homepoint, favpoint or we shall see 
+--Blocks all subtask execution until player is alive 
+---------------------------------------------------------------------------------------------
+c_dead = inheritsFrom( ml_cause )
+e_dead = inheritsFrom( ml_effect )
+function c_dead:evaluate()
+	if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+		return true
+	end 
+    return false
+end
+function e_dead:execute()
+	ml_debug("Respawning...")
+	Player:Respawn()
+end
+
+---------------------------------------------------------------------------------------------
 --REST: If (not player.hasAggro and player.hp.percent < 50) Then (do nothing)
 --Blocks all subtask execution until player hp has increased
 ---------------------------------------------------------------------------------------------
@@ -357,8 +375,14 @@ function c_rest:evaluate()
 	self.resting = false
     return false
 end
-function e_rest:execute()
-	--do nothing, we will simply abort the current subtask
+function e_rest:execute()	
+	if ( gSMactive == "1" ) then
+		local newTask = ffxiv_task_skillmgrHeal:Create()
+		newTask.targetid = Player.id
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	else
+		--do nothing, we will simply abort the current subtask
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -386,8 +410,11 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
-	--ml_debug( "Closer fate found" )
-	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+	ml_debug( "Closer fate found" )
+	-- Since I removed that movetofatetask in the fatetask, no need to recreate everything, the
+	-- ml_task_hub:CurrentTask().fateid = closestFate.id was set to the new goal aready and the normal fatetask will take of all new calcs
+	
+	--[[local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (fate ~= nil and fate ~= {}) then
 		-- add new subtask for LT_GRIND
 		if (ml_task_hub.queues[QUEUE_LONG_TERM]:HasOrders()) then
@@ -406,5 +433,5 @@ function e_betterfatesearch:execute()
 			newTask.fateid = fate.id
 			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 		end
-	end
+	end]]
 end

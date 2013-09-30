@@ -31,13 +31,14 @@ end
 
 function ffxiv_task_killtarget:Init()
 	--init ProcessOverWatch() cnes
-	local ke_moveToTarget = ml_element:create( "AddMoveToTarget", c_add_movetotarget, e_add_movetotarget, 5 )
-	self:add( ke_moveToTarget, self.overwatch_elements)
+		
+    --Process() cnes		    
+	local ke_moveToTarget = ml_element:create( "AddMoveToTarget", c_add_movetotarget, e_add_movetotarget, 10 )
+	self:add( ke_moveToTarget, self.process_elements)
 	
-    --Process() cnes
-	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, ml_effect.priorities.interrupt )
+	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
 	self:add( ke_combat, self.process_elements)
-    
+	
     self:AddTaskCheckCEs()
 end
 
@@ -92,10 +93,13 @@ end
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
-    local ke_moveToFate = ml_element:create( "AddMoveToFate", c_add_movetofate, e_add_movetofate, 10 )
-	self:add( ke_moveToFate, self.overwatch_elements)
-    
+	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 10 )
+	self:add( ke_betterFate, self.overwatch_elements)
+	
     --init process
+	local ke_moveToFate = ml_element:create( "AddMoveToFate", c_movetofate, e_movetofate, 15 )
+	self:add( ke_moveToFate, self.process_elements)
+	
 	local ke_noTarget = ml_element:create( "NoTarget", c_notarget, e_notarget, 10 )
 	self:add(ke_noTarget, self.process_elements)
 	
@@ -285,6 +289,11 @@ function ffxiv_task_movetotarget:IsGoodToAbort()
 
 end
 
+
+
+-- As discussed before, a seperate task for each kind of "move to" is not needed since a planned moving is not a ASAP task and makes things unnecessary complex
+-- Checkign for better fates is done in the overwatch of the fate task without any problems
+--[[
 ---------------------------------------------------------------------------------------------
 --TASK_MOVETOFATE: Reactive - Move to the position of the fate specified by fateid
 --This task moves to the position of the current fate target. It differs from the other
@@ -355,4 +364,4 @@ end
 
 function ffxiv_task_movetofate:IsGoodToAbort()
 
-end
+end]]

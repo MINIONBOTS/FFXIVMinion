@@ -565,7 +565,7 @@ function SkillMgr.ToggleMenu()
 	end
 end
 
-function SkillMgr.Attack( target )
+function SkillMgr.Cast( target )
 	if ( target ) then
 		local PID = Player.id
 		local TID = target.id
@@ -581,7 +581,7 @@ function SkillMgr.Attack( target )
 						if ( realskilldata ) then
 							local castable = true
 							--COOLDOWN 
-							if (realskilldata.cd ~= 0) then castable = false end
+							if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
 							
 							-- soft cooldown for compensating the delay between spell cast and buff applies on target)							
 							if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*100 + 1000)) then castable = false end
@@ -646,7 +646,7 @@ function SkillMgr.Attack( target )
 								--d("CASTING : "..tostring(skill.name))
 								skill.lastcast = ml_global_information.Now
 								Skillbar:Cast(skill.id)
-								return
+								return true
 							end
 						end
 					end			
@@ -654,6 +654,7 @@ function SkillMgr.Attack( target )
 			end
 		end
 	end
+	return false
 end
 
 
@@ -684,7 +685,14 @@ function ffxiv_task_skillmgrAttack:Process()
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
 		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-		SkillMgr.Attack( target )
+		local cast = false
+		
+		if (Player.hp.percent < 70 )then
+			cast = SkillMgr.Cast( Player )
+		end
+		if not cast then
+			SkillMgr.Cast( target )
+		end
 	else
 		self.targetid = 0
 		self.completed = true
@@ -717,6 +725,64 @@ function ffxiv_task_skillmgrAttack:task_complete_execute()
     self.completed = true
 end
 
+-- SkillMgr Heal Task for Rest
+ffxiv_task_skillmgrHeal = inheritsFrom(ml_task)
+function ffxiv_task_skillmgrHeal:Create()
+    local newinst = inheritsFrom(ffxiv_task_skillmgrHeal)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_grind members
+    newinst.name = "LT_SM_HEAL"
+    newinst.targetid = 0
+    
+    return newinst
+end
+
+
+function ffxiv_task_skillmgrHeal:Process()
+	local target = Player
+	if (target ~= nil and target.alive and target.hp.percent < 95) then
+			
+		SkillMgr.Cast( target )
+		
+	else
+		self.targetid = 0
+		self.completed = true
+	end
+end
+
+function ffxiv_task_skillmgrHeal:OnSleep()
+
+end
+
+function ffxiv_task_skillmgrHeal:OnTerminate()
+
+end
+
+function ffxiv_task_skillmgrHeal:IsGoodToAbort()
+
+end
+
+function ffxiv_task_skillmgrHeal:task_complete_eval()
+	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+    if (target == nil or not target.alive or target.hp.percent > 95) then
+        return true
+    end
+    
+    return false
+end
+
+function ffxiv_task_skillmgrHeal:task_complete_execute()
+    self.targetid = 0
+    self.completed = true
+end
 
 RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
 RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
