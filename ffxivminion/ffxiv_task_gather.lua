@@ -180,11 +180,11 @@ end
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 function c_stealth:evaluate()
-	if (not gDoStealth) then
+	if (gDoStealth == "0") then
 		return false
 	end
 	
-	local stealth = Skillbar:Get(229)
+	local stealth = Skillbar:Get(212)
 	if (stealth ~= nil) then
 		local mobList = EntityList("attackable,onmesh,maxdistance=17")
 		if(TableSize(mobList) > 0) then
@@ -203,7 +203,7 @@ function c_stealth:evaluate()
 	return false
 end
 function e_stealth:execute()
-	Skillbar:Get(229):Cast()
+	Skillbar:Get(212):Cast()
 end
 
 function ffxiv_task_gather:Init()

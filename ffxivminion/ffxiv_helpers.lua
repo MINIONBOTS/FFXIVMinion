@@ -2,7 +2,7 @@
 
 function GetNearestGrindAttackable()
 	local level = Player.level
-	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level-3)..",maxlevel="..tostring(level+3))
+	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level)..",maxlevel="..tostring(level+3))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -144,4 +144,20 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 	end
 	
 	return 0
+end
+
+function InCombatRange(targetID)
+	local testSkills =
+	{
+		[FFXIV.JOBS.ARCANIST] 		= 163,
+		[FFXIV.JOBS.ARCHER]			= 97,
+		[FFXIV.JOBS.CONJURER]		= 119,
+		[FFXIV.JOBS.GLADIATOR] 		= 9,
+		[FFXIV.JOBS.LANCER]			= 75,
+		[FFXIV.JOBS.MARAUDER] 		= 31,
+		[FFXIV.JOBS.PUGILIST] 		= 53,
+		[FFXIV.JOBS.THAUMATURGE] 	= 142,
+	}
+	
+	return Skillbar:CanCast(testSkills[Player.job],tonumber(targetID))
 end

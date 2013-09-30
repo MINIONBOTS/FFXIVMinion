@@ -49,10 +49,8 @@ e_add_movetotarget = inheritsFrom( ml_effect )
 function c_add_movetotarget:evaluate()
 	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
 		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-		if (target ~= nil and target ~= {}) then
-			if (target.distance > ml_global_information.AttackRange + target.hitradius or not target.los) then				
-				return true
-			end
+		if (target ~= nil and target ~= {} and target.alive) then
+			return not InCombatRange(ml_task_hub:CurrentTask().targetid)
 		end
 	end
     
@@ -64,7 +62,6 @@ function e_add_movetotarget:execute()
 	if (target ~= nil and target.pos ~= nil) then
 		local newTask = ffxiv_task_movetotarget:Create()
 		newTask.targetid = target.id
-		newTask.range = (ml_global_information.AttackRange-1) + target.hitradius
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
 	end
 end
@@ -181,7 +178,7 @@ function c_movetotarget:evaluate()
 			--d("target.distance = "..tostring(target.distance))
 			--d("ml_task_hub:CurrentTask().range =  "..tostring(ml_task_hub:CurrentTask().range))
 			--d("target.hitradius = "..tostring(target.hitradius))
-            if (target.distance > ml_task_hub:CurrentTask().range) then
+            if (not InCombatRange(ml_task_hub:CurrentTask().targetid)) then
                 ml_task_hub:CurrentTask().pos = target.pos
                 return true
 			end
@@ -334,6 +331,11 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
+	if (Player.hasaggro) then
+		self.resting = false
+		return false
+	end
+	
 	if (self.resting ~= nil) then
 		if (self.resting == true) then
 			if (Player.hp.percent > 90) then

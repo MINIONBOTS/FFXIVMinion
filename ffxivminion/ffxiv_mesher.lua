@@ -69,12 +69,6 @@ function mm.ModuleInit()
 	gnewmeshname = ""
 	gMeshMGR = Settings.FFXIVMINION.gMeshMGR 
 	
-	--TODO Remove this later
-	if (Settings.FFXIVMINION.gmeshname == nil) then
-		Settings.FFXIVMINION.gmeshname = ""
-	end
-    gmeshname = Settings.FFXIVMINION.gmeshname
-	mm.ChangeNavMesh(gmeshname)
     
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].selectedMarker,"gSelectedMarker",strings[gCurrentLanguage].markers,"None")
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].markers)

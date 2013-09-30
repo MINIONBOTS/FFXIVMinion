@@ -259,9 +259,7 @@ function ffxiv_task_movetotarget:task_complete_eval()
         if (target == nil) then
 			return true
 		else
-            if (target.distance <= self.range + target.hitradius - 0.5 and target.los or not target.alive) then
-                return true
-            end
+            return InCombatRange(ml_task_hub:CurrentTask().targetid)
         end
     end
     
