@@ -224,6 +224,31 @@ end
 
 
 ---------------------------------------------------------------------------------------------
+--MOVETOWAITINGPOS: If (distance to pos > range) Then (move to pos)
+--Moves to position specified in  ffxiv_task_grind.SetWaitingPos(SetWaitingPos)
+---------------------------------------------------------------------------------------------
+c_movetowaitingspot = inheritsFrom( ml_cause )
+e_movetowaitingspot = inheritsFrom( ml_effect )
+c_movetowaitingspot.throttle = 1000
+function c_movetowaitingspot:evaluate()
+	if ( ml_task_hub:CurrentTask().waitingPos ~= nil and ml_task_hub:CurrentTask().waitingPos ~= {} ) then
+		local myPos = Player.pos
+		local gotoPos = ml_task_hub:CurrentTask().waitingPos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (distance > 50) then
+			return true
+		end
+    end
+    
+    return false
+end
+function e_movetowaitingspot:execute()
+	local gotoPos = ml_task_hub:CurrentTask().waitingPos
+	ml_debug( "Moving to waiting spot: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+    Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z)
+end
+
+---------------------------------------------------------------------------------------------
 --MOVETOFATE: If (current fate distance > combat range) Then (add movetopos task)
 --Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
