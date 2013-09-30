@@ -222,6 +222,40 @@ function e_movetopos:execute()
     Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)
 end
 
+---------------------------------------------------------------------------------------------
+--ADD_USEMOUNT: If (current task distance > 50 yalms) Then (add usemount task)
+--Adds a UseMount task 
+---------------------------------------------------------------------------------------------
+c_add_usemount = inheritsFrom( ml_cause )
+e_add_usemount = inheritsFrom( ml_effect )
+
+
+
+function c_add_usemount:evaluate()
+
+
+	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= {} ) then
+		local myPos = Player.pos
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (distance > 50 and Skillbar:CanCast(1))  then
+			return true
+		end
+    end
+    return false
+end
+function e_add_usemount:execute()
+	ml_debug( "Using mount")
+	    if (Player:IsMoving()) then
+        Player:Stop()
+		end
+		local skill = Skillbar:Get(1)
+            if (skill ~= nil) then
+                if ( skill.cd == 0) then
+                    Skillbar:Cast(1)
+                end
+            end
+end
 
 ---------------------------------------------------------------------------------------------
 --MOVETOFATE: If (current fate distance > combat range) Then (add movetopos task)
