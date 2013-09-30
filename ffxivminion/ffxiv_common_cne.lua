@@ -222,39 +222,30 @@ function e_movetopos:execute()
     Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)
 end
 
+
 ---------------------------------------------------------------------------------------------
---ADD_USEMOUNT: If (current task distance > 50 yalms) Then (add usemount task)
---Adds a UseMount task 
+--MOVETOWAITINGPOS: If (distance to pos > range) Then (move to pos)
+--Moves to position specified in  ffxiv_task_grind.SetWaitingPos(SetWaitingPos)
 ---------------------------------------------------------------------------------------------
-c_add_usemount = inheritsFrom( ml_cause )
-e_add_usemount = inheritsFrom( ml_effect )
-
-
-
-function c_add_usemount:evaluate()
-
-
-	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= {} ) then
+c_movetowaitingspot = inheritsFrom( ml_cause )
+e_movetowaitingspot = inheritsFrom( ml_effect )
+c_movetowaitingspot.throttle = 1000
+function c_movetowaitingspot:evaluate()
+	if ( ml_task_hub:CurrentTask().waitingPos ~= nil and ml_task_hub:CurrentTask().waitingPos ~= {} ) then
 		local myPos = Player.pos
-		local gotoPos = ml_task_hub:CurrentTask().pos
+		local gotoPos = ml_task_hub:CurrentTask().waitingPos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance > 50 and Skillbar:CanCast(1))  then
+		if (distance > 50) then
 			return true
 		end
     end
+    
     return false
 end
-function e_add_usemount:execute()
-	ml_debug( "Using mount")
-	    if (Player:IsMoving()) then
-        Player:Stop()
-		end
-		local skill = Skillbar:Get(1)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    Skillbar:Cast(1)
-                end
-            end
+function e_movetowaitingspot:execute()
+	local gotoPos = ml_task_hub:CurrentTask().waitingPos
+	ml_debug( "Moving to waiting spot: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+    Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z)
 end
 
 ---------------------------------------------------------------------------------------------
