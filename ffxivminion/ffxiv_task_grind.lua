@@ -42,6 +42,9 @@ function ffxiv_task_grind:Init()
 
 	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 10 )
 	self:add(ke_addKillTarget, self.process_elements)
+	
+	local ke_movetoWaitingSpot = ml_element:create( "MoveToWaitingSpot", c_movetowaitingspot, e_movetowaitingspot, 5)
+    self:add( ke_movetoWaitingSpot, self.process_elements)
    
     
     self:AddTaskCheckCEs()
@@ -76,6 +79,13 @@ function ffxiv_task_grind.SetEvacPoint()
 	end
 end
 
+function ffxiv_task_grind.SetWaitingPos()
+	if (Player.onmesh) then
+		ffxiv_task_grind.waitingPos = Player.pos
+		Settings.FFXIVMINION.waitingPos = Player.pos
+	end
+end
+
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Do Fates", "gDoFates","Grind")
@@ -83,6 +93,7 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxFateLvl: +", "gMaxFateLevel", "Grind")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinFateLvl: -", "gMinFateLevel", "Grind")
 	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
+	GUI_NewButton(ml_global_information.MainWindow.Name, "SetWaitingSpot", "setWaitingPosEvent","Grind")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
 	if (Settings.FFXIVMINION.gDoFates == nil) then
@@ -113,4 +124,5 @@ function ffxiv_task_grind.UIInit()
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
 	RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
+	RegisterEventHandler("setWaitingPosEvent",ffxiv_task_grind.SetWaitingPos)
 end
