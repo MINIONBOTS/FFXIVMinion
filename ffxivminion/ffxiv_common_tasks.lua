@@ -96,6 +96,9 @@ function ffxiv_task_fate:Init()
 	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 10 )
 	self:add( ke_betterFate, self.overwatch_elements)
 	
+	local ke_useMount = ml_element:create("AddUseMount", c_add_usemount, e_add_usemount, 5)
+	self:add(ke_useMount, self.overwatch_elements)	
+	
     --init process
 	local ke_moveToFate = ml_element:create( "AddMoveToFate", c_movetofate, e_movetofate, 15 )
 	self:add( ke_moveToFate, self.process_elements)
