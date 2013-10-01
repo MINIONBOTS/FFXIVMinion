@@ -2,7 +2,7 @@
 
 function GetNearestGrindAttackable()
 	local level = Player.level
-	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level)..",maxlevel="..tostring(level+3))
+	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level-3)..",maxlevel="..tostring(level+1))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
