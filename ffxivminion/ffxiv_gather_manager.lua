@@ -3,6 +3,7 @@ GatherMgr = { }
 GatherMgr.version = "v0.1";
 GatherMgr.infopath = GetStartupPath() .. [[\Navigation\]];
 GatherMgr.mainwindow = { name = strings[gCurrentLanguage].gatherManager, x = 450, y = 50, w = 350, h = 350}
+GatherMgr.visible = false
 
 function GatherMgr.ModuleInit() 	
 		
@@ -11,11 +12,13 @@ function GatherMgr.ModuleInit()
     
     --mining menu
 	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gMiningSpot",strings[gCurrentLanguage].mining,"None")
-	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem,"gMiningItem",strings[gCurrentLanguage].mining,"None")
+	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gMiningItem1",strings[gCurrentLanguage].mining,"None")
+    GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gMiningItem2",strings[gCurrentLanguage].mining,"None")
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gMiningTime",strings[gCurrentLanguage].mining,"0","7200")
     
     GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gBotanySpot",strings[gCurrentLanguage].botany,"None")
-	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem,"gBotanyItem",strings[gCurrentLanguage].botany,"None")
+	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gBotanyItem1",strings[gCurrentLanguage].botany,"None")
+    GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gBotanyItem2",strings[gCurrentLanguage].botany,"None")
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gBotanyTime",strings[gCurrentLanguage].botany,"0","7200")
     
     GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gFishingSpot",strings[gCurrentLanguage].fishing,"None")
@@ -26,7 +29,7 @@ function GatherMgr.ModuleInit()
     --for name,id in pairs(GatherMgr.BotanyItems) do
     --  botanyItems = botanyItems..","..name
     --end
-    --gBotanyItem_listitems = botanyItems
+    --gBotanyItem1_listitems = botanyItems
     if (gBaitName == nil) then
         gBaitName = ""
     end
@@ -64,30 +67,36 @@ function GatherMgr.UpdateMarkerLists()
     gFishingSpot_listitems = fishingMarkers
 	
 	gMiningSpot = "None"
-	gMiningItem = "None"
+	gMiningItem1 = "None"
+    gMiningItem2 = "None"
 	gBotanySpot = "None"
-	gBotanyItem = "None"
+	gBotanyItem1 = "None"
+    gBotanyItem2 = "None"
 	gFishingSpot = "None"
 	gFishingBait = "None"
 	
 	if (miningMarkers ~= "None") then
 		local miningItems = "None"
-		for name,id in pairs(GatherMgr.MiningItems) do
+		for _,name in ipairs(GatherMgr.MiningItems) do
 			miningItems = miningItems..","..name
 		end
-		gMiningItem_listitems = miningItems
+		gMiningItem1_listitems = miningItems
+        gMiningItem2_listitems = miningItems
 	else
-		gMiningItem_listitems = "None"
+		gMiningItem1_listitems = "None"
+        gMiningItem2_listitems = "None"
 	end
 	
 	if (botanyMarkers ~= "None") then
 		local botanyItems = "None"
-		for name,id in pairs(GatherMgr.BotanyItems) do
+		for _,name in ipairs(GatherMgr.BotanyItems) do
 			botanyItems = botanyItems..","..name
 		end
-		gBotanyItem_listitems = botanyItems
+		gBotanyItem1_listitems = botanyItems
+        gBotanyItem2_listitems = botanyItems
 	else
-		gBotanyItem_listitems = "None"
+		gBotanyItem1_listitems = "None"
+        gBotanyItem2_listitems = "None"
 	end
 end
 
@@ -99,9 +108,11 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 		
 		if(markerType == "miningSpot") then
 			if(data ~= nil and data ~= "") then
-				gMiningItem = data
+				gMiningItem1 = data[1]
+                gMiningItem2 = data[2]
 			else
-				gMiningItem = "None"
+				gMiningItem1 = "None"
+                gMiningItem2 = "None"
 			end
 			
 			if(time ~= nil and time ~= "") then
@@ -111,9 +122,11 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 			end
 		elseif(markerType == "botanySpot") then
 			if(data ~= nil and data ~= "") then
-				gBotanyItem = data
+				gBotanyItem1 = data[1]
+                gBotanyItem2 = data[2]
 			else
-				gBotanyItem = "None"
+				gBotanyItem1 = "None"
+                gBotanyItem2 = "None"
 			end
 			
 			if(time ~= nil and time ~= "") then
@@ -139,21 +152,22 @@ end
 
 function GatherMgr.WriteMarkerInfo(markerType, markerName)
     if (markerName ~= "" and markerName ~= "nil") then
-        local data = nil
+        local data = {}
 		local time = nil
         if(markerType == "miningSpot") then
-            data = gMiningItem
+            data[1] = gMiningItem1
+            data[2] = gMiningItem2
 			time = tonumber(gMiningTime)
         elseif (markerType == "botanySpot") then
-            data = gBotanyItem
-			d(data)
+            data[1] = gBotanyItem1
+            data[2] = gBotanyItem2
 			time = tonumber(gBotanyTime)
         elseif (markerType == "fishingSpot") then
             data = gFishingBait
 			time = tonumber(gFishingTime)
         end
         
-        if (data ~= nil and data ~= "") then
+        if (data ~= nil and data ~= {}) then
             mm.SetMarkerData(markerName,data)
 			mm.SetMarkerTime(markerName,time)
             return true
@@ -245,9 +259,9 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
             GatherMgr.UpdateMarkerInfo("botanySpot",v)
         elseif (k == "gFishingSpot") then
             GatherMgr.UpdateMarkerInfo("fishingSpot",v)
-        elseif (k == "gMiningItem" or k == "gMiningTime") then
+        elseif (k == "gMiningItem1" or k == "gMiningItem2" or k == "gMiningTime") then
             GatherMgr.WriteMarkerInfo("miningSpot",gMiningSpot)
-        elseif (k == "gBotanyItem" or k == "gBotanyTime") then
+        elseif (k == "gBotanyItem1" or k == "gBotanyItem2" or k == "gBotanyTime") then
             GatherMgr.WriteMarkerInfo("botanySpot",gBotanySpot)
         elseif (k == "gFishingBait" or k == "gFishingTime") then
             GatherMgr.WriteMarkerInfo("fishingSpot",gFishingSpot)
@@ -256,6 +270,7 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function GatherMgr.ToggleMenu()
+    d("test")
 	if (GatherMgr.visible) then
 		GUI_WindowVisible(GatherMgr.mainwindow.name,false)	
 		GatherMgr.visible = false
@@ -268,130 +283,131 @@ end
 
 GatherMgr.MiningItems =
 {
-    ["Alumen"],                       -- = "id",
-    ["Blue Pigment"],                 -- = "id",
-    ["Brimstone"],                    -- = "id",
-    ["Bomb Ash"],                     -- = "id",
-    ["Bone Chip"],                    -- = "id",
-    ["Brown Pigment"],                -- = "id",
-    ["Cinnabar"],                     -- = "id",
-    ["Copper Ore"],                   -- = "id",
-    ["Copper Sand"],                  -- = "id",
-    ["Earth Crystal"],                -- = "id",
-    ["Earth Rock"],                   -- = "id",
-    ["Earth Shard"],                  -- = "id",
-    ["Effervescent Water"],           -- = "id",
-    ["Fire Crystal"],                 -- = "id",
-    ["Fire Rock"],                    -- = "id",
-    ["Fire Shard"],                   -- = "id",
-    ["Grade 1 Carbonized Matter"],    -- = "id",
-    ["Grade 2 Carbonized Matter"],    -- = "id",
-    ["Green Pigment"],                -- = "id",
-    ["Grey Pigment"],                 -- = "id",
-    ["Ice Crystal"],                  -- = "id",
-    ["Ice Rock"],                     -- = "id",
-    ["Ice Shard"],                    -- = "id",
-    ["Iron Ore"],                     -- = "id",
-    ["Iron Sand"],                    -- = "id",
-    ["Lightning Crystal"],            -- = "id",
-    ["Lightning Rock"],               -- = "id",
-    ["Lightning Shard"],              -- = "id",
-    ["Muddy Water"],                  -- = "id",
-    ["Mudstone"],                     -- = "id",
-    ["Obsidian"],                     -- = "id",
-    ["Purple Pigment"],               -- = "id",
-    ["Ragstone"],                     -- = "id",
-    ["Raw Danburite"],                -- = "id",
-    ["Raw Fourite"],                  -- = "id",
-    ["Raw Malachite"],                -- = "id",
-    ["Raw Sphere"],                   -- = "id",
-    ["Raw Sunstone"],                 -- = "id",
-    ["Red Pigment"],                  -- = "id",
-    ["Rock Salt"],                    -- = "id",
-    ["Silex"],                        -- = "id",
-    ["Siltstone"],                    -- = "id",
-    ["Silver Ore"],                   -- = "id",
-    ["Silver Sand"],                  -- = "id",
-    ["Soiled Femur"],                 -- = "id",
-    ["Sunrise Tellin"],               -- = "id",
-    ["Tin Ore"],                      -- = "id",
-    ["Water Crystal"],                -- = "id",
-    ["Water Rock"],                   -- = "id",
-    ["Water Shard"],                  -- = "id",
-    ["Wind Crystal"],                 -- = "id",
-    ["Wind Shard"],                   -- = "id",
-    ["Wyvern Obsidian"],              -- = "id",
-    ["Yellow Pigment"],               -- = "id",
-    ["Zinc Ore"]                      -- = "id"
+    "Alumen",                       -- = "id",
+    "Blue Pigment",                 -- = "id",
+    "Brimstone",                    -- = "id",
+    "Bomb Ash",                     -- = "id",
+    "Bone Chip",                    -- = "id",
+    "Brown Pigment",                -- = "id",
+    "Cinnabar",                     -- = "id",
+    "Copper Ore",                   -- = "id",
+    "Copper Sand",                  -- = "id",
+    "Earth Crystal",                -- = "id",
+    "Earth Rock",                   -- = "id",
+    "Earth Shard",                  -- = "id",
+    "Effervescent Water",           -- = "id",
+    "Fire Crystal",                 -- = "id",
+    "Fire Rock",                    -- = "id",
+    "Fire Shard",                   -- = "id",
+    "Grade 1 Carbonized Matter",    -- = "id",
+    "Grade 2 Carbonized Matter",    -- = "id",
+    "Green Pigment",                -- = "id",
+    "Grey Pigment",                 -- = "id",
+    "Ice Crystal",                  -- = "id",
+    "Ice Rock",                     -- = "id",
+    "Ice Shard",                    -- = "id",
+    "Iron Ore",                     -- = "id",
+    "Iron Sand",                    -- = "id",
+    "Lightning Crystal",            -- = "id",
+    "Lightning Rock",               -- = "id",
+    "Lightning Shard",              -- = "id",
+    "Muddy Water",                  -- = "id",
+    "Mudstone",                     -- = "id",
+    "Obsidian",                     -- = "id",
+    "Purple Pigment",               -- = "id",
+    "Ragstone",                     -- = "id",
+    "Raw Danburite",                -- = "id",
+    "Raw Fourite",                  -- = "id",
+    "Raw Malachite",                -- = "id",
+    "Raw Sphere",                   -- = "id",
+    "Raw Sunstone",                 -- = "id",
+    "Red Pigment",                  -- = "id",
+    "Rock Salt",                    -- = "id",
+    "Silex",                        -- = "id",
+    "Siltstone",                    -- = "id",
+    "Silver Ore",                   -- = "id",
+    "Silver Sand",                  -- = "id",
+    "Soiled Femur",                 -- = "id",
+    "Sunrise Tellin",               -- = "id",
+    "Tin Ore",                      -- = "id",
+    "Water Crystal",                -- = "id",
+    "Water Rock",                   -- = "id",
+    "Water Shard",                  -- = "id",
+    "Wind Crystal",                 -- = "id",
+    "Wind Shard",                   -- = "id",
+    "Wyvern Obsidian",              -- = "id",
+    "Yellow Pigment",               -- = "id",
+    "Zinc Ore"                      -- = "id"
 }                                    
                                      
 GatherMgr.BotanyItems =              
 {                                    
-	["Allagan Snail"],                -- = "id",
-	["Alpine Parsnip"],               -- = "id",
-	["Ash Branch"],                   -- = "id",
-	["Ash Log"],                      -- = "id",
-	["Beehive Chip"],                 -- = "id",
-	["Belladonna"],                   -- = "id",
-	["Black Pepper"],                 -- = "id",
-	["Buffalo Beans"],                -- = "id",
-	["Carnation"],                    -- = "id",
-	["Chanterelle"],                  -- = "id",
-	["Cieldalaes Spinach"],           -- = "id",
-	["Cinderfoot Olive"],             -- = "id",
-	["Cinnamon"],                     -- = "id",
-	["Cloves"],                       -- = "id",
-	["Cock Feather"],                 -- = "id",
-	["Cotton Boll"],                  -- = "id",
-	["Crow Feather"],                 -- = "id",
-	["Earth Shard"],                  -- = "id",
-	["Elm Log"],                      -- = "id",
-	["Faerie Apple"],                 -- = "id",
-	["Fire Shard"],                   -- = "id",
-	["Galago Mint"],                  -- = "id",
-	["Garlean Garlic"],               -- = "id",
-	["Gil Bun"],                      -- = "id",
-	["Grade 1 Carbonized Matter"],    -- = "id",
-	["Grade 1 Dark Matter"],          -- = "id",
-	["Grade 2 Dark Matter"],          -- = "id",
-	["Grade 3 Dark Matter"],          -- = "id",
-	["Gridanian Chestnut"],           -- = "id",
-	["Gridanian Walnut"],             -- = "id",
-	["Highland Parsley"],             -- = "id",
-	["Ice Crystal"],                  --  = "id",
-	["Ice Shard"],                    -- = "id",
-	["Kukuru Bean"],                  -- = "id",
-	["La Noscean Lettuce"],           -- = "id",
-	["La Noscean Orange"],            -- = "id",
-	["Lalafellin Lentil"],            -- = "id",
-	["Latex"],                        -- = "id",
-	["Lavender"],                     -- = "id",
-	["Lightning Shard"],              -- = "id",
-	["Lowland Grapes"],               -- = "id",
-	["Maple Branch"],                 -- = "id",
-	["Maple Log"],                    -- = "id",
-	["Maple Sap"],                    -- = "id",
-	["Marjoram"],                     -- = "id",
-	["Matron's Mistletoe"],           -- = "id",
-	["Millioncorn"],                  -- = "id",
-	["Ogre Pumpkin"],                 -- = "id",
-	["Paprika"],                      -- = "id",
-	["Popoto"],                       --  = "id",
-	["Ruby Tomato"],                  -- = "id",
-	["Straw"],                        -- = "id",
-	["Sunset Wheat"],                 -- = "id",
-	["Tinolqa Mistletoe"],            -- = "id",
-	["Tree Toad"],                    -- = "id",
-	["Vanilla Beans"],                -- = "id",
-	["Walnut Log"],                   -- = "id",
-	["Water Shard"],                  -- = "id",
-	["White Scorpion"],               -- = "id",
-	["Wild Onion"],                   -- = "id",
-	["Wind Shard"],                   -- = "id",
-	["Yellow Ginseng"],               -- = "id",
-	["Yew Branch"],                   -- = "id",
-	["Yew Log"]                       -- = "id"
-}                                   
-RegisterEventHandler("ToggleGathermgr ", GatherMgr.ToggleMenu)
+	"Allagan Snail",                -- = "id",
+	"Alpine Parsnip",               -- = "id",
+	"Ash Branch",                   -- = "id",
+	"Ash Log",                      -- = "id",
+	"Beehive Chip",                 -- = "id",
+	"Belladonna",                   -- = "id",
+	"Black Pepper",                 -- = "id",
+	"Buffalo Beans",                -- = "id",
+	"Carnation",                    -- = "id",
+	"Chanterelle",                  -- = "id",
+	"Cieldalaes Spinach",           -- = "id",
+	"Cinderfoot Olive",             -- = "id",
+	"Cinnamon",                     -- = "id",
+	"Cloves",                       -- = "id",
+	"Cock Feather",                 -- = "id",
+	"Cotton Boll",                  -- = "id",
+	"Crow Feather",                 -- = "id",
+	"Earth Shard",                  -- = "id",
+	"Elm Log",                      -- = "id",
+	"Faerie Apple",                 -- = "id",
+	"Fire Shard",                   -- = "id",
+	"Galago Mint",                  -- = "id",
+	"Garlean Garlic",               -- = "id",
+	"Gil Bun",                      -- = "id",
+	"Grade 1 Carbonized Matter",    -- = "id",
+	"Grade 1 Dark Matter",          -- = "id",
+	"Grade 2 Dark Matter",          -- = "id",
+	"Grade 3 Dark Matter",          -- = "id",
+	"Gridanian Chestnut",           -- = "id",
+	"Gridanian Walnut",             -- = "id",
+	"Highland Parsley",             -- = "id",
+	"Ice Crystal",                  --  = "id",
+	"Ice Shard",                    -- = "id",
+	"Kukuru Bean",                  -- = "id",
+	"La Noscean Lettuce",           -- = "id",
+	"La Noscean Orange",            -- = "id",
+	"Lalafellin Lentil",            -- = "id",
+	"Latex",                        -- = "id",
+	"Lavender",                     -- = "id",
+	"Lightning Shard",              -- = "id",
+	"Lowland Grapes",               -- = "id",
+	"Maple Branch",                 -- = "id",
+	"Maple Log",                    -- = "id",
+	"Maple Sap",                    -- = "id",
+	"Marjoram",                     -- = "id",
+	"Matron's Mistletoe",           -- = "id",
+	"Millioncorn",                  -- = "id",
+	"Ogre Pumpkin",                 -- = "id",
+	"Paprika",                      -- = "id",
+	"Popoto",                       --  = "id",
+	"Ruby Tomato",                  -- = "id",
+	"Straw",                        -- = "id",
+	"Sunset Wheat",                 -- = "id",
+	"Tinolqa Mistletoe",            -- = "id",
+	"Tree Toad",                    -- = "id",
+	"Vanilla Beans",                -- = "id",
+	"Walnut Log",                   -- = "id",
+	"Water Shard",                  -- = "id",
+	"White Scorpion",               -- = "id",
+	"Wild Onion",                   -- = "id",
+	"Wind Shard",                   -- = "id",
+	"Yellow Ginseng",               -- = "id",
+	"Yew Branch",                   -- = "id",
+	"Yew Log"                       -- = "id"
+}                         
+          
+RegisterEventHandler("ToggleGathermgr", GatherMgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",GatherMgr.GUIVarUpdate)
 RegisterEventHandler("Module.Initalize",GatherMgr.ModuleInit)
