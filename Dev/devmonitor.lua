@@ -137,6 +137,7 @@ function Dev.ModuleInit()
 	-- FateInfo
 	GUI_NewNumeric("Dev","FateIndex","faidx","FateInfo","1","20")
 	GUI_NewField("Dev","ID","faid","FateInfo")
+	GUI_NewField("Dev","TargetFID","tfaid","FateInfo")
 	GUI_NewField("Dev","Name","faname","FateInfo")
 	GUI_NewField("Dev","Desc","fadesc","FateInfo")
 	GUI_NewField("Dev","Status","fastat","FateInfo")
@@ -309,6 +310,7 @@ function Dev.UpdateWindow()
 		TFate = mytarget.fateid or 0
 		TAC = mytarget.action
 		TLAC = mytarget.lastaction
+		tfaid = mytarget.fateid
 	else
 		local el = EntityList("nearest")
 		if ( el ) then

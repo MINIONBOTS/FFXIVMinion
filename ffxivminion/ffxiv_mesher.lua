@@ -5,7 +5,8 @@ mm.mainwindow = { name = strings[gCurrentLanguage].meshManager, x = 350, y = 100
 mm.meshfiles = {}
 mm.currentmapdata = {} 
 mm.visible = false
-mm.lasttick = 0 
+mm.lasttick = 0
+mm.mapID = 0
 mm.MarkerList = 
 {
     ["grindSpot"] = {},
@@ -67,12 +68,6 @@ function mm.ModuleInit()
 	gnewmeshname = ""
 	gMeshMGR = Settings.FFXIVMINION.gMeshMGR 
 	
-	--TODO Remove this later
-	if (Settings.FFXIVMINION.gmeshname == nil) then
-		Settings.FFXIVMINION.gmeshname = ""
-	end
-    gmeshname = Settings.FFXIVMINION.gmeshname
-	mm.ChangeNavMesh(gmeshname)
     
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].selectedMarker,"gSelectedMarker",strings[gCurrentLanguage].markers,"None")
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].markers)
@@ -106,9 +101,9 @@ function mm.UpdateMarkerList()
     -- setup markers
 	local markers = "None"
     for tag, posList in pairs(mm.MarkerList) do
-        for key, pos in pairs(posList) do
-            markers = markers..","..key
-        end
+		for key, pos in pairs(posList) do
+			markers = markers..","..key
+		end
 	end
 
 	gSelectedMarker_listitems = markers
@@ -218,16 +213,22 @@ end
 
 function mm.AddMarker(arg)
     local markerType = ""
+	local markerData = {"None"}
     if (arg == "addGrindSpotEvent") then
         markerType = "grindSpot"
+		markerData = {""}
     elseif (arg == "addFishingSpotEvent") then
         markerType = "fishingSpot"
+		markerData = {"None"}
     elseif (arg == "addMiningSpotEvent") then
         markerType = "miningSpot"
+		markerData = {"None","None"}
     elseif (arg == "addBotanySpotEvent") then
         markerType = "botanySpot"
+		markerData = {"None","None"}
     elseif (arg == "addNavSpotEvent") then
         markerType = "navSpot"
+		markerData = {""}
     end
     
 	-- all markers are accessed using MESH ONLY movement functions
@@ -235,7 +236,7 @@ function mm.AddMarker(arg)
 	if(Player.onmesh) then
         if (gMarkerName ~= "") then
             local p = Player.pos
-            local newInfo = { x=string.format("%.2f", p.x), y=string.format("%.2f", p.y), z=string.format("%.2f", p.z), h=string.format("%.3f", p.h), level=tostring(gMarkerLevel), data="", time="0" }
+            local newInfo = { x=string.format("%.2f", p.x), y=string.format("%.2f", p.y), z=string.format("%.2f", p.z), h=string.format("%.3f", p.h), level=tostring(gMarkerLevel), time="0", data=markerData }
             local key = gMarkerName
             local found = false
             
@@ -302,34 +303,49 @@ function mm.ReadMarkerList(meshname)
     local lines = fileread(mm.navmeshfilepath..meshname..".info")
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
-            local mark = string.find(line, "=")
-            if (mark ~= nil) then
-                local tag = line:sub(0,mark-1)
-                local keyStart = mark+1
-                mark = string.find(line, ":")
-                if (mark ~= nil) then
-                    local key = line:sub(keyStart,mark-1)
-                    local infoTable = {}
-                    for info in StringSplit(line:sub(mark+1),",") do
-                        table.insert(infoTable, info)
-                    end
-                    if (infoTable ~= {}) then
-                        if ( tag == "MapID" ) then
-                            mm.MarkerList["MapID"] = tonumber(infoTable[1])
-                        else
-                            local list = mm.MarkerList[tag]
-                            -- Remove old Marker
-                            if (mm.MarkerRenderList[key]) then
-                                RenderManager:RemoveObject(mm.MarkerRenderList[key])
-                            end
-                            -- Draw this Marker
-                            mm.MarkerRenderList[key] = mm.DrawMarker( {x=tonumber(infoTable[1]),y=tonumber(infoTable[2]),z=tonumber(infoTable[3])}, tag )
-                            
-                            list[key] = {x=tonumber(infoTable[1]),y=tonumber(infoTable[2]),z=tonumber(infoTable[3]),h=tonumber(infoTable[4]),level=tonumber(infoTable[5]),data=tostring(infoTable[6]),time=tonumber(infoTable[7])}						
-                        end
-                    end
-                end
+            local sections = {}
+            for section in StringSplit(line,":") do
+                table.insert(sections, section)
             end
+			--d(sections)
+            -- handle first section (tag and key)
+			local tag = nil
+			local key = nil
+            local mark = string.find(sections[1], "=")
+            if (mark ~= nil) then
+                tag = sections[1]:sub(0,mark-1)
+                key = sections[1]:sub(mark+1)
+            end
+			if ( tag == "MapID" ) then
+				mm.mapID = tonumber(key)
+			else
+				-- handle second section (position)
+				local posTable = {}
+				for coord in StringSplit(sections[2],",") do
+					table.insert(posTable, tonumber(coord))
+				end
+				--d(posTable)
+				-- handle third section (level)
+				local markerLevel = tonumber(sections[3])
+				-- handle third section (timer)
+				local markerTime = tonumber(sections[4])
+				-- handle fourth section (data)
+				local dataTable = {}
+				for data in StringSplit(sections[5],",") do
+					table.insert(dataTable, data)
+				end
+				
+				-- add the marker to the list
+				local list = mm.MarkerList[tag]
+				-- Remove old Marker
+				if (mm.MarkerRenderList[key]) then
+					RenderManager:RemoveObject(mm.MarkerRenderList[key])
+				end
+				-- Draw this Marker
+				mm.MarkerRenderList[key] = mm.DrawMarker( {x=tonumber(posTable[1]),y=tonumber(posTable[2]),z=tonumber(posTable[3])}, tag )
+				
+				list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],level=markerLevel,time=markerTime,data=dataTable}						
+			end
         end
     else
         ml_debug("NO INFO FILE FOR THAT MESH EXISTS")
@@ -350,7 +366,15 @@ function mm.WriteMarkerList(meshname)
 			if ( tag ~= "MapID") then
 				for key, pos in pairs(posList) do
 					--d(tag)
-					string2write = string2write..tag.."="..key..":"..pos.x..","..pos.y..","..pos.z..","..pos.h..","..pos.level..","..pos.data..","..pos.time.."\n"				
+					string2write = string2write..tag.."="..key..":"..pos.x..","..pos.y..","..pos.z..","..pos.h..":"..pos.level..":"..pos.time..":"
+                    for i,data in ipairs(pos.data) do
+                        string2write = string2write..data
+                        if (pos.data[i+1] ~= nil) then
+                            string2write = string2write..","
+                        else
+                            string2write = string2write.."\n"
+                        end
+                    end
 				end
 			end
         end

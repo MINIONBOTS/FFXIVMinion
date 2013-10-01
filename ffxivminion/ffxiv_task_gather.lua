@@ -78,10 +78,14 @@ end
 function e_movetogatherable:execute()
 	local pos = EntityList:Get(ml_task_hub.CurrentTask().gatherid).pos
 	if (pos ~= nil and pos ~= {}) then
-		local newTask = ffxiv_task_movetopos:Create()
-		newTask.pos = pos
-		newTask.range = 2.5
-		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
+		if (gGatherTP == "1") then
+			GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
+		else
+			local newTask = ffxiv_task_movetopos:Create()
+			newTask.pos = pos
+			newTask.range = 1.5
+			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
+		end
 	end
 end
 
@@ -134,13 +138,21 @@ e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
 	Player:SetTarget(ml_task_hub:CurrentTask().gatherid)
 	local node = Player:GetTarget()
-	if (node ~= nil and node.distance < 2.5) then
+	if (node ~= nil and node.distance < 3) then
 		local list = Player:GetGatherableSlotList()
 		if (list ~= nil) then
 			ml_task_hub:CurrentTask().isGathering = true
 			e_gather.list = list
 			return true
 		else
+			if (gGatherTP == "1") then
+				local pos = Player.pos
+				if (NavigationManager:IsOnMesh(pos.x+2, pos.y, pos.z)) then
+					Player:MoveToStraight(pos.x+2,pos.y,pos.z)
+				else
+					Player:MoveTo(pos.x,pos.y,pos.z+2)
+				end
+			end
 			Player:Interact(node.id)
 		end
 	else
@@ -156,7 +168,7 @@ function e_gather:execute()
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
 				for i, item in pairs(e_gather.list) do
-					if item.name == markerData then
+					if item.name == markerData[1] or item.name == markerData[2] then
 						Player:Gather(item.index)
 						return
 					end
@@ -180,11 +192,11 @@ end
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 function c_stealth:evaluate()
-	if (not gDoStealth) then
+	if (gDoStealth == "0") then
 		return false
 	end
 	
-	local stealth = Skillbar:Get(229)
+	local stealth = Skillbar:Get(212)
 	if (stealth ~= nil) then
 		local mobList = EntityList("attackable,onmesh,maxdistance=17")
 		if(TableSize(mobList) > 0) then
@@ -203,7 +215,7 @@ function c_stealth:evaluate()
 	return false
 end
 function e_stealth:execute()
-	Skillbar:Get(229):Cast()
+	Skillbar:Get(212):Cast()
 end
 
 function ffxiv_task_gather:Init()
@@ -241,10 +253,22 @@ function ffxiv_task_gather:IsGoodToAbort()
 end
 
 function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
+	d("test1")
 	for k,v in pairs(NewVals) do
+		if (	k == "gGatherPS"	) then
+			d("test")
+			if (v == "1") then
+				GameHacks:SetPermaSprint(true)
+			else
+				GameHacks:SetPermaSprint(false)
+			end
+		end
 		if ( 	k == "gDoStealth" or
 				k == "gRandomMarker" or
-				k == "gChangeJobs" ) then
+				k == "gChangeJobs" or
+				k == "gGatherPS" or
+				k == "gGatherTP" ) then
+				d("test2")
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
@@ -255,7 +279,10 @@ end
 function ffxiv_task_gather.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Stealth", "gDoStealth","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Randomize Markers", "gRandomMarker","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs", "gChangeJobs","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Teleport (HACK!)", "gGatherTP","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use PermaSprint (HACK!)", "gGatherPS","Gather")
+	
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
 	if (Settings.FFXIVMINION.gDoStealth == nil) then
@@ -270,9 +297,20 @@ function ffxiv_task_gather.UIInit()
 		Settings.FFXIVMINION.gChangeJobs = "0"
 	end
 	
+	if (Settings.FFXIVMINION.gGatherTP == nil) then
+		Settings.FFXIVMINION.gGatherTP = "0"
+	end
+	
+	if (Settings.FFXIVMINION.gGatherPS == nil) then
+		Settings.FFXIVMINION.gGatherPS = "0"
+	end
+	
 	gDoStealth = Settings.FFXIVMINION.gDoFates
 	gRandomMarker = Settings.FFXIVMINION.gFatesOnly
-	gChangeJobs = Settings.FFXIVMINION.evacPoint
+	gChangeJobs = Settings.FFXIVMINION.gChangeJobs
+	gGatherTP = Settings.FFXIVMINION.gGatherTP
+	gGatherPS = Settings.FFXIVMINION.gGatherPS
 	
-	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
+	
+	RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
 end
