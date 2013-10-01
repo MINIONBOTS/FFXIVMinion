@@ -487,8 +487,8 @@ function mm.ChangeNavMesh(newmesh)
 			if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..gmeshname)) then
 				d("Error loading Navmesh: "..path)
             else
-                mm.ReadMarkerList(gmeshname)
-				mm.reloadMeshPensing = false
+                mm.reloadMeshPensing = false
+				mm.ReadMarkerList(gmeshname)				
             end
 		end
 	end
