@@ -253,8 +253,10 @@ function ffxiv_task_gather:IsGoodToAbort()
 end
 
 function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
+	d("test1")
 	for k,v in pairs(NewVals) do
 		if (	k == "gGatherPS"	) then
+			d("test")
 			if (v == "1") then
 				GameHacks:SetPermaSprint(true)
 			else
@@ -266,6 +268,7 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gChangeJobs" or
 				k == "gGatherPS" or
 				k == "gGatherTP" ) then
+				d("test2")
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
@@ -309,5 +312,5 @@ function ffxiv_task_gather.UIInit()
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
 	
 	
-	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
+	RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
 end

@@ -270,7 +270,6 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function GatherMgr.ToggleMenu()
-    d("test")
 	if (GatherMgr.visible) then
 		GUI_WindowVisible(GatherMgr.mainwindow.name,false)	
 		GatherMgr.visible = false
