@@ -34,30 +34,31 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","CurrentAction","TAC","TargetInfo")
 	GUI_NewField("Dev","LastAction","TLAC","TargetInfo")	
 	
-	-- Skillbar
-	GUI_NewField("Dev","IsCasting","sbiscast","SkillbarInfo")
-	GUI_NewNumeric("Dev","SlotNumber","sbSelSlot","SkillbarInfo","1","199");
-	GUI_NewComboBox("Dev","Hotbar","sbSelHotbar","SkillbarInfo","Hotbar,Petbar,Crossbar");		
-	GUI_NewField("Dev","Name","sbname","SkillbarInfo")
-	GUI_NewField("Dev","Ptr","sbptr","SkillbarInfo")
-	GUI_NewField("Dev","SkillID","sbid","SkillbarInfo")
-	GUI_NewField("Dev","Type","sbtype","SkillbarInfo")
-	GUI_NewField("Dev","JobType","sbjobtype","SkillbarInfo")
-	GUI_NewField("Dev","Slot","sbslot","SkillbarInfo")
-	GUI_NewField("Dev","TP/MP Cost","sbmp","SkillbarInfo")
-	GUI_NewField("Dev","Cooldown","sbcd","SkillbarInfo")
-	GUI_NewField("Dev","Range","sbran","SkillbarInfo")
-	GUI_NewField("Dev","Radius","sbrad","SkillbarInfo")
-	GUI_NewField("Dev","Casttime","sbct","SkillbarInfo")
-	GUI_NewField("Dev","Recasttime","sbrct","SkillbarInfo")
-	GUI_NewField("Dev","CanCast","sbcanc","SkillbarInfo")
-	GUI_NewField("Dev","CanCastOnTarget","sbcancast","SkillbarInfo")
-	GUI_NewField("Dev","Unknown1","sbt1","SkillbarInfo")
-	GUI_NewField("Dev","Unknown2","sbt2","SkillbarInfo")	
-	GUI_NewField("Dev","Unknown4","sbt4","SkillbarInfo")
-	GUI_NewField("Dev","Unknown5","sbt5","SkillbarInfo")
-	sbSelSlot = 0
-	sbSelHotbar = "Hotbar"		
+	-- ActionList
+	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
+	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands");
+	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
+	GUI_NewField("Dev","Name","sbname","ActionListInfo")
+	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
+	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
+	GUI_NewField("Dev","Type","sbtype","ActionListInfo")
+	GUI_NewField("Dev","JobType","sbjobtype","ActionListInfo")
+	GUI_NewField("Dev","Level","sblevel","ActionListInfo")
+	GUI_NewField("Dev","TP/MP Cost","sbcost","ActionListInfo")
+	GUI_NewField("Dev","Cooldown","sbcd","ActionListInfo")
+	GUI_NewField("Dev","MaxCooldown","sbcdmax","ActionListInfo")
+	GUI_NewField("Dev","IsOnCooldown","sbisoncd","ActionListInfo")
+	GUI_NewField("Dev","Range","sbran","ActionListInfo")
+	GUI_NewField("Dev","Radius","sbrad","ActionListInfo")
+	GUI_NewField("Dev","Casttime","sbct","ActionListInfo")
+	GUI_NewField("Dev","Recasttime","sbrct","ActionListInfo")
+	GUI_NewField("Dev","CanCast","sbcanc","ActionListInfo")
+	GUI_NewField("Dev","CanCastOnTarget","sbcancast","ActionListInfo")
+	GUI_NewButton("Dev","Cast","Dev.Cast","ActionListInfo")
+	RegisterEventHandler("Dev.Cast", Dev.Func)	
+	sbSelSlot = 0		
+	sbSelHotbar = "Actions"
+	sbpendingcast = false
 	
 	GUI_NewComboBox("Dev","Inventory","invinv","InventoryInfo","0,1,2,3,1000,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500,10000,10001,10002,10003,10004,10005,10006,11000,12000,12001,12002");	
 	GUI_NewNumeric("Dev","SlotNumber","invSelSlot","InventoryInfo","1","199");
@@ -246,15 +247,17 @@ function Dev.Func ( arg )
 		d(Player:Respawn())
 	elseif ( arg == "Dev.Gather" ) then
 		d(Player:Gather(tonumber(gaindex)))
+	elseif ( arg == "Dev.Cast" ) then
+		sbpendingcast = true
 	end
 end
 
 function Dev.FishTask()
 	local fs = tonumber(Player:GetFishingState())
 	if ( fs == 0 or fs == 4 ) then -- FISHSTATE_NONE or FISHSTATE_POLEREADY
-		Skillbar:Cast(289) --fish skillid 2 
+		ActionList:Cast(289) --fish skillid 2 
 	elseif( fs == 5 ) then -- FISHSTATE_BITE
-		Skillbar:Cast(296) -- Hook, skill 3   (129 is some other hook skillid ??	
+		ActionList:Cast(296) -- Hook, skill 3   (129 is some other hook skillid ??	
 	end
 end
 
@@ -348,49 +351,81 @@ function Dev.UpdateWindow()
 		end
 	end
 	
-	--Skillbar
-	sbiscast = tostring(Skillbar:IsCasting())
-	local spell
-	if  sbSelHotbar == "Hotbar"  then
-		spell = Skillbar:GetSlot(sbSelSlot,1)
-	elseif sbSelHotbar == "Petbar"  then
-		spell = Skillbar:GetSlot(sbSelSlot,2)
-	elseif sbSelHotbar == "Crossbar"  then
-		spell = Skillbar:GetSlot(sbSelSlot,3)
+	--ActionList	
+	local spelllist
+	local sfound = false
+	if  sbSelHotbar == "Actions"  then
+		spelllist = ActionList("type=1")	
+	elseif  sbSelHotbar == "Pet"  then
+		spelllist = ActionList("type=11")
+	elseif  sbSelHotbar == "General"  then
+		spelllist = ActionList("type=5")	
+	elseif  sbSelHotbar == "Maincommands"  then
+		spelllist = ActionList("type=10")	
 	end
-	if ( spell ) then
-		sbname = spell.name
-		sbptr = string.format( "%x",tonumber(spell.ptr ))
-		sbid = spell.id
-		sbtype = spell.type
-		sbjobtype = tostring(spell.jobtype)
-		sbslot = spell.slot
-		sbmp = spell.mp
-		sbcd = spell.cd
-		sbran = spell.range
-		sbrad = spell.radius
-		sbct = spell.casttime
-		sbrct = spell.recasttime
-		sbt1 = spell.t1
-		sbt2 = spell.t2		
-		sbt4 = spell.t4
-		sbt5 = spell.t5	
-		mytarget = Player:GetTarget() 
-		if (mytarget  ~= nil) then
-			sbcancast = tostring(Skillbar:CanCast(spell.id,mytarget.id))
-		else
-			sbcancast = "No Target"
+		
+	
+	if ( TableSize(spelllist) > 0 ) then
+		local i,spell = next (spelllist)
+		local counter = 0
+		while i~=nil and spell~=nil do
+			if ( counter == tonumber(sbSelSlot) ) then
+				sfound = true
+				break
+			end
+			counter = counter + 1
+			i,spell = next (spelllist,i)
 		end
-		sbcanc = tostring(Skillbar:CanCast(spell.id))
-	else
+		if (spell and sfound) then
+			sbiscast = spell.iscasting
+			sbname = spell.name
+			sbdesc = spell.description
+			sbid = spell.id
+			sbtype = spell.type
+			sbjobtype = tostring(spell.job)
+			sblevel = spell.level
+			sbcost = spell.cost
+			sbcd = spell.cd
+			sbcdmax = spell.cdmax
+			sbisoncd = tostring(spell.isoncd)
+			sbran = spell.range
+			sbrad = spell.radius
+			sbct = spell.casttime
+			sbrct = spell.recasttime
+			sbt1 = spell.t1
+			sbt2 = spell.t2		
+			sbt4 = spell.t4
+			sbt5 = spell.t5	
+			mytarget = Player:GetTarget() 
+			if (mytarget  ~= nil) then
+				sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id))
+			else
+				sbcancast = "No Target"
+			end
+			sbcanc = tostring(ActionList:CanCast(spell.id))
+			if ( sbpendingcast) then
+				sbpendingcast = false
+				if ( mytarget  ~= nil ) then
+					spell:Cast(mytarget.id)
+				else
+					spell:Cast()
+				end
+			end
+		end
+	end
+	if ( not sfound ) then
+		sbiscast = "false"
 		sbname = "NoSpellFound..."
+		sbdesc = ""
 		sbptr = 0
 		sbid = 0
 		sbtype = 0
 		sbjobtype = 0
-		sbslot = 0
-		sbmp = 0
+		sblevel = 0
+		sbcost = 0
 		sbcd = 0
+		sbcdmax = 0
+		sbisoncd = "false"
 		sbran = 0
 		sbrad = 0
 		sbct = 0
@@ -543,7 +578,7 @@ function Dev.UpdateWindow()
 	
 	-- Fishinginfo
 	fishstate = tostring(Player:GetFishingState())	
-	fishcs = tostring(Skillbar:CanCast(289,Player.id))
+	fishcs = tostring(ActionList:CanCast(289,Player.id))
 	fishbait = Player:GetBait()
 	
 	-- GatheringInfo

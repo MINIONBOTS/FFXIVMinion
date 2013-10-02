@@ -60,7 +60,7 @@ function mm.ModuleInit()
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].saveMesh,"saveMeshEvent",strings[gCurrentLanguage].editor)
 	
 	
-	RegisterEventHandler("newMeshEvent",mm.CreateNewMesh)	
+	RegisterEventHandler("newMeshEvent",mm.ClearNavMesh)	
 	RegisterEventHandler("saveMeshEvent",mm.SaveMesh)
 
 
@@ -404,14 +404,29 @@ end
 ---------
 
 
-function mm.CreateNewMesh()
-	d("Creating NEW MESH")
+function mm.ClearNavMesh()
 	-- Unload old Mesh
 	if (NavigationManager:GetNavMeshName() ~= "") then
 		d("Unloading ".. NavigationManager:GetNavMeshName() .." NavMesh.")
-		d("Result: "..tostring(NavigationManager:UnloadNavMesh()))		
+		d("Result: "..tostring(NavigationManager:UnloadNavMesh()))	
 	end
-	
+	-- Remove Renderdata
+	for key,e in pairs(mm.MarkerRenderList) do	
+		if ( key ~= nil ) then
+			RenderManager:RemoveObject(mm.MarkerRenderList[key])
+			mm.MarkerRenderList[key] = nil
+		end
+	end
+	-- Delete Markers
+	for tag, list in pairs(mm.MarkerList) do
+        mm.MarkerList[tag] = {}
+    end
+end
+
+function mm.SaveMesh()
+	d("Saving NavMesh...")
+	local filename = ""
+	-- If a new Meshname is given, create a new file and save it in there
 	if ( gnewmeshname ~= nil and gnewmeshname ~= "" ) then
 		-- Make sure file doesnt exist
 		local found = false		
@@ -428,28 +443,27 @@ function mm.CreateNewMesh()
 				i,meshname = next ( meshfilelist,i)
 			end
 		end
-		if (not found) then
-			-- Setup everything for new mesh
-			gmeshname_listitems = gmeshname_listitems..","..gnewmeshname
-			gmeshname = gnewmeshname
-			mm.SaveMesh()
-			mm.ChangeNavMesh(gmeshname)
+		if ( not found) then
+			-- add new file to list
+			gmeshname_listitems = gmeshname_listitems..","..gnewmeshname			
 		end
-	else
-		d("Enter a new MeshName first!")
-	end
-end
-
-function mm.SaveMesh()
-	d("Saving NavMesh...")
-	if (gmeshname ~= nil and gmeshname ~= "" and gmeshname ~= "none") then
-		d("Result: "..tostring(NavigationManager:SaveNavMesh(gmeshname)))
+		filename = gnewmeshname		
+		
+	-- Else we save it under the selected name
+	elseif (gmeshname ~= nil and gmeshname ~= "" and gmeshname ~= "none") then
+		filename = gmeshname		
+	end	
+	if ( filename ~= "" and filename ~= "none" ) then
+		d("SAVING UNDER: "..tostring(filename))
+		d("Result: "..tostring(NavigationManager:SaveNavMesh(filename)))
 		mm.reloadMeshPensing = true
 		mm.reloadMeshTmr = mm.lasttick
-		mm.reloadMeshName = gmeshname
+		mm.reloadMeshName = filename	
+		gnewmeshname = ""
+		gmeshname = filename
 	else
-		d("gmeshname is empty!?")
-	end	
+		wt_error("Enter a proper Navmesh name!")
+	end
 end
 
 function mm.ChangeNavMesh(newmesh)			
@@ -473,8 +487,8 @@ function mm.ChangeNavMesh(newmesh)
 			if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..gmeshname)) then
 				d("Error loading Navmesh: "..path)
             else
-                mm.ReadMarkerList(gmeshname)
-				mm.reloadMeshPensing = false
+                mm.reloadMeshPensing = false
+				mm.ReadMarkerList(gmeshname)				
             end
 		end
 	end
