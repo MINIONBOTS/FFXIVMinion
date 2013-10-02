@@ -144,7 +144,7 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 	return 0
 end
 
-function InCombatRange(targetID)
+function InCombatRange(target)
 	local testSkills =
 	{
 		[FFXIV.JOBS.ARCANIST] 		= 163,
@@ -156,6 +156,33 @@ function InCombatRange(targetID)
 		[FFXIV.JOBS.PUGILIST] 		= 53,
 		[FFXIV.JOBS.THAUMATURGE] 	= 142,
 	}
-	
-	return Skillbar:CanCast(testSkills[Player.job],tonumber(targetID))
+	-- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
+	local skill = ActionList:Get(testSkills[Player.job])
+	if ( skill )then
+		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id)) and skill.range > target.distance
+	else
+		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+	end
+	return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+end
+
+function GetCombatRange()
+	local testSkills =
+	{
+		[FFXIV.JOBS.ARCANIST] 		= 163,
+		[FFXIV.JOBS.ARCHER]			= 97,
+		[FFXIV.JOBS.CONJURER]		= 119,
+		[FFXIV.JOBS.GLADIATOR] 		= 9,
+		[FFXIV.JOBS.LANCER]			= 75,
+		[FFXIV.JOBS.MARAUDER] 		= 31,
+		[FFXIV.JOBS.PUGILIST] 		= 53,
+		[FFXIV.JOBS.THAUMATURGE] 	= 142,
+	}
+	-- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
+	local skill = ActionList:Get(testSkills[Player.job])
+	if ( skill )then
+		return skill.range or 2
+	else
+		return 2 --failchecklol
+	end
 end

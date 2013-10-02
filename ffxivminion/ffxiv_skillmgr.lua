@@ -413,24 +413,14 @@ end
 
 --+Rebuilds the UI Entries for the SkillbookList
 function SkillMgr.RefreshSkillBook()
-	-- TODO: GET A PROPER SKILLBOOK FROM THE DAMN 1500er LIST, FOR NOW, NOOBMODE
+	-- TODO: CROSSCLASS STUFF
 	
-	--[[local SkillList = Skillbar("")
+	local SkillList = ActionList("type=1,job="..Player.job)
 	if ( TableSize( SkillList ) > 0 ) then
-	d("SIZE: "..tostring(TableSize(SkillList)))
 		local i,s = next ( SkillList )
 		while i and s and s.id do
-			d("Create : "..s.name )
-			--SkillMgr.CreateNewSkillBookEntry(s)
+			SkillMgr.CreateNewSkillBookEntry(s)
 			i,s = next ( SkillList , i )
-		end
-	end]]
-	
-	for i=1,120,1 do
-		local skill = Skillbar:GetSlot(i,1)
-		if ( skill ) then
-			--d("Create : "..skill.name )
-			SkillMgr.CreateNewSkillBookEntry(skill)
 		end
 	end
 
@@ -572,12 +562,12 @@ function SkillMgr.Cast( target )
 		local pbuffs = Player.buffs
 		local tbuffs = target.buffs
 				
-		if ( TID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not Skillbar:IsCasting()) then
+		if ( TID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
 				if ( skill.used == "1" ) then			
-					if (Skillbar:CanCast(skill.id,TID)) then-- takes care of los, range, facing target and valid target
-						local realskilldata = Skillbar:Get(skill.id)
+					if (ActionList:CanCast(skill.id,TID)) then-- takes care of los, range, facing target and valid target
+						local realskilldata = ActionList:Get(skill.id)
 						if ( realskilldata ) then
 							local castable = true
 							--COOLDOWN 
@@ -589,7 +579,7 @@ function SkillMgr.Cast( target )
 							-- RANGE + HEALTH						
 							if ( castable and (
 									   (skill.minRange > 0 and target.distance < skill.minRange)
-									or (skill.maxRange > 0 and target.distance- target.hitradius > skill.maxRange)
+									or (skill.maxRange > 0 and target.distance > skill.maxRange)--target.distance- target.hitradius > skill.maxRange)
 									or (skill.thpl > 0 and skill.thpl > target.hp.percent)
 									or (skill.thpb > 0 and skill.thpb < target.hp.percent)
 									)) then castable = false end	
@@ -645,7 +635,7 @@ function SkillMgr.Cast( target )
 							if ( castable ) then
 								--d("CASTING : "..tostring(skill.name))
 								skill.lastcast = ml_global_information.Now
-								Skillbar:Cast(skill.id)
+								ActionList:Cast(skill.id)
 								return true
 							end
 						end
@@ -692,6 +682,10 @@ function ffxiv_task_skillmgrAttack:Process()
 		end
 		if not cast then
 			SkillMgr.Cast( target )
+		end
+		if ( not cast ) then
+			self.targetid = 0
+			self.completed = true
 		end
 	else
 		self.targetid = 0
@@ -749,9 +743,11 @@ end
 function ffxiv_task_skillmgrHeal:Process()
 	local target = Player
 	if (target ~= nil and target.alive and target.hp.percent < 95) then
-			
-		SkillMgr.Cast( target )
 		
+		if ( not SkillMgr.Cast( target )) then
+			self.targetid = 0
+			self.completed = true
+		end		
 	else
 		self.targetid = 0
 		self.completed = true

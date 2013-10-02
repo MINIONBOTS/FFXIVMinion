@@ -41,33 +41,6 @@ function e_add_killtarget:execute()
 end
 
 ---------------------------------------------------------------------------------------------
---ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
---Adds a MoveToTarget task 
----------------------------------------------------------------------------------------------
-c_add_movetotarget = inheritsFrom( ml_cause )
-e_add_movetotarget = inheritsFrom( ml_effect )
-function c_add_movetotarget:evaluate()
-	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
-		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-		if (target ~= nil and target ~= {} and target.alive) then
-			return not InCombatRange(ml_task_hub:CurrentTask().targetid)
-		end
-	end
-    
-    return false
-end
-function e_add_movetotarget:execute()
-	--ml_debug( "Moving to within combat range of target" )
-	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-	if (target ~= nil and target.pos ~= nil) then
-		local newTask = ffxiv_task_movetotarget:Create()
-		newTask.targetid = target.id
-		--ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP) cockblocks overwatch
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
-end
-
----------------------------------------------------------------------------------------------
 --ADD_COMBAT: If (target hp > 0) Then (add combat task)
 --Adds a task to use a combat routine to attack/kill target 
 ---------------------------------------------------------------------------------------------
@@ -127,7 +100,36 @@ function e_add_fate:execute()
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
+
 ---------------------------------------------------------------------------------------------
+--ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
+--Adds a MoveToTarget task 
+---------------------------------------------------------------------------------------------
+c_add_movetotarget = inheritsFrom( ml_cause )
+e_add_movetotarget = inheritsFrom( ml_effect )
+function c_add_movetotarget:evaluate()
+	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
+		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+		if (target ~= nil and target ~= {} and target.alive) then
+			return not InCombatRange(target)
+		end
+	end
+    
+    return false
+end
+function e_add_movetotarget:execute()
+	ml_debug( "Moving within combat range of target" )
+	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+	if (target ~= nil and target.pos ~= nil) then
+		local newTask = ffxiv_task_movetotarget:Create()
+		newTask.pos = target.pos
+		--TODO: Randomize position		
+		newTask.range = GetCombatRange()
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+
+-----------------------------------------------------------------------------------------------
 --ADD_MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
 --Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
@@ -148,12 +150,14 @@ function c_add_movetofate:evaluate()
     return false
 end
 function e_add_movetofate:execute()
-	--ml_debug( "Moving to fate" )
+	ml_debug( "Moving to fate" )
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (fate ~= nil and fate ~= {}) then
-		local newTask = ffxiv_task_movetofate:Create()
-		newTask.fateid = fate.id
-		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
+		local newTask = ffxiv_task_movetopos:Create()
+		--TODO: Randomize position
+		newTask.pos = fate.pos
+		newTask.range = math.random(1.5,fate.radius)
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
 
@@ -165,93 +169,27 @@ end
 --the task in order to ensure its completion. 
 ---------------------------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------------------------
+--WALKTOPOS: If (distance to target > task.range) Then (move to pos)
 ---------------------------------------------------------------------------------------------
---MOVETOTARGET: If (distance to target > range) Then (move to target pos)
---Updates continually with new positions every 500 ticks
----------------------------------------------------------------------------------------------
-c_movetotarget = inheritsFrom( ml_cause )
-e_movetotarget = inheritsFrom( ml_effect )
-c_movetotarget.throttle = 500
-function c_movetotarget:evaluate()
-	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
-        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target ~= nil) then
-			--d("target.distance = "..tostring(target.distance))
-			--d("ml_task_hub:CurrentTask().range =  "..tostring(ml_task_hub:CurrentTask().range))
-			--d("target.hitradius = "..tostring(target.hitradius))
-            if (not InCombatRange(ml_task_hub:CurrentTask().targetid)) then
-                ml_task_hub:CurrentTask().pos = target.pos
-                return true
-			end
-        end
-    end
-    
-    return false
-end
-function e_movetotarget:execute()
-	local gotoPos = ml_task_hub:CurrentTask().pos
-	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-	Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z)
-end
-
----------------------------------------------------------------------------------------------
---MOVETOPOS: If (distance to pos > range) Then (move to pos)
---Moves to position specified by ml_task_hub.CurrentTask().pos
----------------------------------------------------------------------------------------------
-c_movetopos = inheritsFrom( ml_cause )
-e_movetopos = inheritsFrom( ml_effect )
-c_movetopos.throttle = 1000
-function c_movetopos:evaluate()
-	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= {} ) then
-		local myPos = Player.pos
-		local gotoPos = ml_task_hub:CurrentTask().pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance > ml_task_hub:CurrentTask().range+0.5) then
+c_walktopos = inheritsFrom( ml_cause )
+e_walktopos = inheritsFrom( ml_effect )
+function c_walktopos:evaluate()
+	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
+        local myPos = Player.pos
+		local tPos = ml_task_hub:CurrentTask().pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, tPos.x, tPos.y, tPos.z)
+		if (distance > ml_task_hub:CurrentTask().range) then				
 			return true
 		end
     end
     
     return false
 end
-function e_movetopos:execute()
+function e_walktopos:execute()
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-    Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)
-end
-
-
----------------------------------------------------------------------------------------------
---MOVETOFATE: If (current fate distance > combat range) Then (add movetopos task)
---Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
----------------------------------------------------------------------------------------------
-c_movetofate = inheritsFrom( ml_cause )
-e_movetofate = inheritsFrom( ml_effect )
-function c_movetofate:evaluate()
-	if (Player:IsMoving()) then
-		return false
-	end
-	
-	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-		if (fate ~= nil and fate ~= {}) then
-			local myPos = Player.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-			if (distance > fate.radius) then				
-				return true
-			end
-		end
-	end
-    
-    return false
-end
-function e_movetofate:execute()
-	--ml_debug( "Moving to fate" )
-	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (fate ~= nil and fate ~= {}) then
-		local gotoPos = {x = fate.x, y = fate.y, z = fate.z}
-		ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-		Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z)
-	end
+    ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)))
 end
 
 ---------------------------------------------------------------------------------------------
@@ -413,12 +351,14 @@ function c_betterfatesearch:evaluate()
 end
 function e_betterfatesearch:execute()
 	ml_debug( "Closer fate found" )
-	-- Since I removed that movetofatetask in the fatetask, no need to recreate everything, the
-	-- ml_task_hub:CurrentTask().fateid = closestFate.id was set to the new goal aready and the normal fatetask will take of all new calcs
+	-- If I'm not totally wrong, we can just terminate our current fatetask here and GrindTask will create a new Fatetask with the closer Fate,
+	-- this would also reset all data & progress done so far in the fate	no?
 	
-	--[[local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (fate ~= nil and fate ~= {}) then
-		-- add new subtask for LT_GRIND
+	ml_task_hub:CurrentTask():task_complete_execute()
+	d("TEEEEEEEEEST CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+	
+	-- The code below assumes there is only the grind task makign use of the fatetask, it could not be added to other tasks/subtasks
+	--[[	-- add new subtask for LT_GRIND
 		if (ml_task_hub.queues[QUEUE_LONG_TERM]:HasOrders()) then
 			local grindTask = ml_task_hub.queues[QUEUE_LONG_TERM].rootTask
 			grindTask:DeleteSubTasks()

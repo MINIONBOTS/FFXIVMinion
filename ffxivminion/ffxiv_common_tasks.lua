@@ -93,8 +93,12 @@ end
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
-	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 10 )
+	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
 	self:add( ke_betterFate, self.overwatch_elements)
+	
+	-- TODO: ADD Overwatch for fate position/data changes
+	--local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
+	--self:add( ke_betterFate, self.overwatch_elements)
 	
     --init process
 	local ke_moveToFate = ml_element:create( "AddMoveToFate", c_movetofate, e_movetofate, 15 )
@@ -145,6 +149,7 @@ function ffxiv_task_fate:IsGoodToAbort()
 
 end
 
+
 ---------------------------------------------------------------------------------------------
 --REACTIVE GOALS--
 --These are tasks which may be called in reaction to changes in the game state, such as
@@ -156,10 +161,8 @@ end
 
 ---------------------------------------------------------------------------------------------
 --TASK_MOVETOPOS: Reactive Goal - Move to the specified position
---This task moves the player to a specified position, and contains overwatch checks for
---both gathering and combat. When used for grinding/questing, it should check for mob
---aggro and either kill the mob or flee. When used for gathering, it should check for
---mobs BEFORE aggro range and stealth to avoid combat.
+--This task moves the player to a specified position, the partent of this task needs to make sure
+--that this movetopos task has up2date positions and is still valid.
 ---------------------------------------------------------------------------------------------
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 
@@ -174,7 +177,7 @@ function ffxiv_task_movetopos:Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     
-    --ffxiv_task_grind members
+    --ffxiv_task_movetopos members
     newinst.name = "RE_MOVETOPOS"
     newinst.pos = 0
 	newinst.range = 1.5
@@ -185,8 +188,10 @@ function ffxiv_task_movetopos:Create()
 end
 
 function ffxiv_task_movetopos:Init()
-	local ke_moveToPos = ml_element:create( "MoveToPos", c_movetopos, e_movetopos, 10 )
-	self:add( ke_moveToPos, self.process_elements)
+	-- TODO: Chocobo, Sprint n waypoint usage goes here
+	-- The parent needs to take care of checking and updating the position of this task!!	
+	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+	self:add( ke_walkToPos, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
@@ -196,11 +201,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance < self.range+1) then
+		if (distance <= self.range) then
 			return true
 		end
-    end
-    
+    end    
     return false
 end
 
@@ -220,7 +224,12 @@ function ffxiv_task_movetopos:IsGoodToAbort()
 
 end
 
----------------------------------------------------------------------------------------------
+
+
+
+
+
+--[[-------------------------------------------------------------------------------------------
 --TASK_MOVETOTARGET: Reactive Goal - Move to the position of the (possibly moving) target
 --This task varies slightly from the MOVETOPOS task as it continually updates the MoveTo
 --command based on the position of the target in order to properly track mobs over longer
@@ -265,12 +274,12 @@ function ffxiv_task_movetotarget:task_complete_eval()
 		else
             return InCombatRange(ml_task_hub:CurrentTask().targetid)
         end
-    end
-    
+    end    
     return false
 end
 
 function ffxiv_task_movetotarget:task_complete_execute()
+	d("SHIT IS BLOCKING MOVEMENT")
 	Player:Stop()
     ml_task_hub:CurrentTask().completed = true
 end
@@ -285,7 +294,7 @@ end
 
 function ffxiv_task_movetotarget:IsGoodToAbort()
 
-end
+end]]
 
 
 
