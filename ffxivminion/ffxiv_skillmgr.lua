@@ -11,7 +11,7 @@ SkillMgr.SkillProfile = {}
 SkillMgr.UIRefreshPending = false
 SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
-
+SkillMgr.prevSkillID = ""
 	
 function SkillMgr.ModuleInit() 	
 	if (Settings.FFXIVMINION.gSMactive == nil) then
@@ -45,8 +45,6 @@ function SkillMgr.ModuleInit()
 						
     gSMactive = Settings.FFXIVMINION.gSMactive	
 	gSMnewname = ""
-
-
 	
 	-- EDITOR WINDOW
 	GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h)		
@@ -70,6 +68,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHas,"SKM_TBuff","SkillDetails");
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHasNot,"SKM_TNBuff","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
 	
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
@@ -95,6 +94,7 @@ function SkillMgr.ModuleInit()
 	SKM_PNBuff = ""
 	SKM_TBuff = ""
 	SKM_TNBuff = ""
+	SKM_PSkillID = 0
 	
 	GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
 	RegisterEventHandler("SMEDeleteEvent",SkillMgr.ButtonHandler)	
@@ -148,7 +148,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif ( k == "SKM_PBuff" ) then SkillMgr.SkillProfile[SKM_Prio].pbuff = v
 		elseif ( k == "SKM_PNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].pnbuff = v
 		elseif ( k == "SKM_TBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tbuff = v
-		elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v		
+		elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
+		elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v	
 		end
 	end
 end
@@ -311,7 +312,8 @@ function SkillMgr.SaveProfile()
 			string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
 			string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
 			string2write = string2write.."SKM_TBuff="..skill.tbuff.."\n" 
-			string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n" 
+			string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n"
+			string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n" 
 			string2write = string2write.."SKM_END=0\n"
 		
 			skID,skill = next (SkillMgr.SkillProfile,skID)
@@ -377,6 +379,7 @@ function SkillMgr.UpdateCurrentProfileData()
 							elseif ( key == "PNBuff" )then newskill.pnbuff = tostring(value)
 							elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
 							elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
+							elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
 						end
 					else
 						d("Error loading inputline: Key: "..(tostring(key)).." value:"..tostring(value))
@@ -514,6 +517,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
 				pnbuff = skill.pnbuff or "",
 				tbuff = skill.tbuff or "",
 				tnbuff = skill.tnbuff or "",
+				pskill = skill.pskill or ""
 			}	
 		end		
 	end
@@ -547,6 +551,7 @@ function SkillMgr.EditSkill(event)
 		SKM_PNBuff = skill.pnbuff or ""
 		SKM_TBuff = skill.tbuff or ""
 		SKM_TNBuff = skill.tnbuff or ""
+		SKM_PSkillID = skill.pskill or ""
 	end
 end
 
@@ -642,10 +647,18 @@ function SkillMgr.Cast( target )
 								end
 							end
 							
+							-- PREVIOUS SKILL
+							if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
+								if ( SkillMgr.prevSkillID ~= skill.pskill) then
+									castable = false
+								end
+							end
+							
 							if ( castable ) then
 								--d("CASTING : "..tostring(skill.name))
 								skill.lastcast = ml_global_information.Now
 								Skillbar:Cast(skill.id)
+								SkillMgr.prevSkillID = tostring(skill.id)
 								return true
 							end
 						end

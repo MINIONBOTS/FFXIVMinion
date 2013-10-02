@@ -196,6 +196,7 @@ strings =
         orTargetHas                     = "or Target has ",
         targetHasNot                    = "Target has NOT Buff : like 13,4152,521",
         orTargetHasNot                  = "or Target has NOT ",
+		prevSkillID						= "Previous Skill ID",
 		AdvancedSettings				= "Advanced Settings",
 		SwapA							= "Swap Weapons",
 		SwapR							= "Swap Randomly",

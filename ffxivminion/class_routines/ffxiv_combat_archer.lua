@@ -193,6 +193,10 @@ function ffxiv_combat_archer:task_complete_eval()
     if (target == nil or not target.alive) then
         return true
     end
+	
+	if (not InCombatRange(target.id)) then
+		return true
+	end
     
     return false
 end
