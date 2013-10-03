@@ -130,7 +130,7 @@ function e_nextmarker:execute()
 	local newTask = ffxiv_task_movetopos:Create()
 	newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
 	newTask.range = 3
-	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
+	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
 c_gather = inheritsFrom( ml_cause )
@@ -211,7 +211,7 @@ function ffxiv_task_gather:Init()
 	self:add( ke_stealth, self.overwatch_elements)
 	
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 10 )
-	self:add( ke_nextMarker, self.overwatch_elements)
+	self:add( ke_nextMarker, self.process_elements)
 	
 	--init Process cnes
 	
@@ -224,7 +224,10 @@ function ffxiv_task_gather:Init()
 	local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 5 )
 	self:add(ke_gather, self.process_elements)
     
-    self:AddTaskCheckCEs()
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+	self:add( ke_nextMarker, self.process_elements)
+	
+	self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_gather:OnSleep()
