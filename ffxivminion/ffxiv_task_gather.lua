@@ -98,14 +98,7 @@ function c_nextmarker:evaluate()
 			local marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().prevMarker)
 			if marker ~= nil then
 				if marker ~= currentMarker then
-					ml_task_hub:CurrentTask().prevMarker = ml_task_hub:CurrentTask().currentMarker
-					ml_task_hub:CurrentTask().currentMarker = marker
-					local timer = GatherMgr.GetMarkerTime(marker)
-					if (timer ~= 0) then
-						timer = timer + os.time()
-					end
-					ml_task_hub:CurrentTask().markerTimer = timer
-					
+                    e_nextmarker.marker = marker
 					return true
 				end
 			end
@@ -115,7 +108,14 @@ function c_nextmarker:evaluate()
 	return false
 end
 function e_nextmarker:execute()
-	local marker = ml_task_hub:CurrentTask().currentMarker
+    ml_task_hub:CurrentTask().prevMarker = ml_task_hub:CurrentTask().currentMarker
+    ml_task_hub:CurrentTask().currentMarker = e_nextmarker.marker
+    local timer = GatherMgr.GetMarkerTime(e_nextmarker.marker)
+    if (timer ~= 0) then
+        timer = timer + os.time()
+    end
+    ml_task_hub:CurrentTask().markerTimer = timer
+
 	local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 	
 	if (gChangeJobs) then
@@ -136,38 +136,22 @@ end
 c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
-	Player:SetTarget(ml_task_hub:CurrentTask().gatherid)
-	local node = Player:GetTarget()
+	local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (node ~= nil and node.distance < 3) then
-		local list = Player:GetGatherableSlotList()
-		if (list ~= nil) then
-			ml_task_hub:CurrentTask().isGathering = true
-			e_gather.list = list
-			return true
-		else
-			if (gGatherTP == "1") then
-				local pos = Player.pos
-				if (NavigationManager:IsOnMesh(pos.x+2, pos.y, pos.z)) then
-					Player:MoveToStraight(pos.x+2,pos.y,pos.z)
-				else
-					Player:MoveTo(pos.x,pos.y,pos.z+2)
-				end
-			end
-			Player:Interact(node.id)
-		end
-	else
-		Player:SetTarget(ml_task_hub.CurrentTask().targetid)
-	end
+        return true
+    end
 	
 	return false
 end
 function e_gather:execute()
-	if (e_gather.list ~= nil and TableSize(e_gather.list) > 0) then
+    local list = Player:GetGatherableSlotList()
+    if (list ~= nil) then
+        ml_task_hub:CurrentTask().isGathering = true
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
-				for i, item in pairs(e_gather.list) do
+				for i, item in pairs(list) do
 					if item.name == markerData[1] or item.name == markerData[2] then
 						Player:Gather(item.index)
 						return
@@ -177,12 +161,22 @@ function e_gather:execute()
 		end
 		
 		-- otherwise just grab a random item 
-		for i, item in pairs(e_gather.list) do
+		for i, item in pairs(list) do
 			if item.chance > 50 then
 				Player:Gather(item.index)
+                return
 			end
 		end
-	end
+    else
+        local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+        Player:Interact(node.id)
+        
+        -- little hack here to resync if we teleported...hopefully remove it later
+        --if (gGatherTP == "1") then
+		--	local Skill = 
+        --   ActionList:Cast(JUMP)
+        --end
+    end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -195,27 +189,20 @@ function c_stealth:evaluate()
 	if (gDoStealth == "0") then
 		return false
 	end
-	
-	local stealth = Skillbar:Get(212)
-	if (stealth ~= nil) then
+
+	if (ActionList:CanCast(212)) then
 		local mobList = EntityList("attackable,onmesh,maxdistance=17")
-		if(TableSize(mobList) > 0) then
-			if (HasBuff(Player, 47)) then
-				return false
-			else
-				return true
-			end
-		else
-			if (HasBuff(Player, 47)) then
-				stealth:Cast()
-			end
-		end
+		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
+          (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
+        then
+            return true
+        end
 	end
 	
 	return false
 end
 function e_stealth:execute()
-	Skillbar:Get(212):Cast()
+	ActionList:Cast(212)
 end
 
 function ffxiv_task_gather:Init()
@@ -279,8 +266,8 @@ function ffxiv_task_gather.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Stealth", "gDoStealth","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Randomize Markers", "gRandomMarker","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Teleport (HACK!)", "gGatherTP","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use PermaSprint (HACK!)", "gGatherPS","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Teleport (HACK!)", "gGatherTP","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "PermaSprint (HACK!)", "gGatherPS","Gather")
 	
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	

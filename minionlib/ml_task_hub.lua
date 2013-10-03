@@ -12,6 +12,7 @@ ml_task_hub.queues = {
 ml_task_hub.prevQueueId = nil
 ml_task_hub.shouldRun = false
 ml_task_hub.currentTask = nil
+ml_task_hub.thisTask = nil
 
 function ml_task_hub:Add(task, queueIndex, priority)
 	if( task ~= nil and queueIndex < 4 and priority < 2) then
@@ -52,6 +53,7 @@ function ml_task_hub:CurrentQueue()
     return ml_task_hub.queues[ml_task_hub.prevQueueId]
 end
 
+-- CurrentTask() returns the deepest subtask on the stack
 function ml_task_hub:CurrentTask()
 	if (ml_task_hub.prevQueueId ~= nil) then
 		local task = ml_task_hub.queues[ml_task_hub.prevQueueId].rootTask
@@ -63,6 +65,12 @@ function ml_task_hub:CurrentTask()
 		
 		return currTask
 	end
+end
+
+-- ThisTask() returns the task which is currently in its Update() function
+-- It is set in the Update() function by whatever task enters it
+function ml_task_hub:ThisTask()
+    return ml_task_hub.thisTask
 end
 
 function ml_task_hub:CheckForTask(task)

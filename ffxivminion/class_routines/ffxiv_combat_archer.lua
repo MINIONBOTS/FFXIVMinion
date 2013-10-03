@@ -17,7 +17,7 @@ function ffxiv_combat_archer:Create()
     newinst.targetid = 0
 	newinst.range = 24
 	newinst.newRotation = true
-    
+	
     return newinst
 end
 
@@ -27,7 +27,7 @@ e_heavyshot = inheritsFrom( ml_effect )
 function c_heavyshot:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(Skillbar:CanCast(97)) then
+        if(ActionList:CanCast(97)) then
             return true
         end
     end
@@ -35,16 +35,11 @@ function c_heavyshot:evaluate()
     return false
 end
 function e_heavyshot:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(97)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = 97
-                end
-            end
+	local skill = ActionList:Get(97)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = 97
 		end
 	end
 end
@@ -53,7 +48,7 @@ end
 c_straightshot = inheritsFrom( ml_cause )
 e_straightshot = inheritsFrom( ml_effect )
 function c_straightshot:evaluate()
-	if (not HasBuff(Player, 130)) then
+	if (not HasBuff(Player.id, 130)) then
 		return true
 	end
 	
@@ -61,16 +56,11 @@ function c_straightshot:evaluate()
 end
 
 function e_straightshot:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(98)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = 98
-                end
-            end
+	local skill = ActionList:Get(98)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = 98
 		end
 	end
 end
@@ -78,27 +68,20 @@ end
 c_venomousbite = inheritsFrom( ml_cause )
 e_venomousbite = inheritsFrom( ml_effect )
 function c_venomousbite:evaluate()
-	local target = Player:GetTarget()
-	if (target ~= nil and target ~= {}) then
-		if (not HasBuff(target, 124) and target.hp.percent > 20) then
-			return true
-		end
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	if (not HasBuff(target.id, 124) and target.hp.percent > 20) then
+		return true
 	end
 	
 	return false
 end
 
 function e_venomousbite:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(100)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = 100
-                end
-            end
+	local skill = ActionList:Get(100)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = 100
 		end
 	end
 end
@@ -107,13 +90,11 @@ end
 c_miserysend = inheritsFrom( ml_cause )
 e_miserysend = inheritsFrom( ml_effect )
 function c_miserysend:evaluate()
-	local target = Player:GetTarget()
-	if (target ~= nil and target ~= {}) then
-		if (target.hp.percent < 20) then
-			local skill = Skillbar:Get(103)
-            if (skill ~= nil and skill.cd == 0) then
-				return true
-			end
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	if (target.hp.percent < 20) then
+		local skill = ActionList:Get(103)
+		if (skill ~= nil and skill.cd == 0) then
+			return true
 		end
 	end
 	
@@ -121,16 +102,11 @@ function c_miserysend:evaluate()
 end
 
 function e_miserysend:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(103)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = 103
-                end
-            end
+	local skill = ActionList:Get(103)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = 103
 		end
 	end
 end
@@ -138,9 +114,9 @@ end
 c_ragingstrikes = inheritsFrom( ml_cause )
 e_ragingstrikes = inheritsFrom( ml_effect )
 function c_ragingstrikes:evaluate()
-	local skill = Skillbar:Get(101)
+	local skill = ActionList:Get(101)
 	if (skill ~= nil and skill.cd == 0) then
-		if (not HasBuff(Player, 125)) then
+		if (not HasBuff(Player.id, 125)) then
 			return true
 		end
 	end
@@ -149,7 +125,7 @@ function c_ragingstrikes:evaluate()
 end
 
 function e_ragingstrikes:execute()
-	local skill = Skillbar:Get(101)
+	local skill = ActionList:Get(101)
 	if (skill ~= nil and skill.cd == 0) then
 		skill:Cast()
 		ml_task_hub:CurrentTask().prevSkillID = 101
@@ -189,7 +165,7 @@ function ffxiv_combat_archer:IsGoodToAbort()
 end
 
 function ffxiv_combat_archer:task_complete_eval()
-    local target = Player:GetTarget()
+    local target = EntityList:Get(self.targetid)
     if (target == nil or not target.alive) then
         return true
     end

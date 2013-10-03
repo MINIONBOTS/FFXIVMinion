@@ -44,6 +44,7 @@ end
 
 function ml_task:Update()
 	ml_debug(self.name.."->Update()")
+    ml_task_hub.thisTask = self
     local continueUpdate = true
     while (continueUpdate) do
         if (not self:isValid()) then
@@ -59,9 +60,9 @@ function ml_task:Update()
         local taskRet = nil
 		
 		if(self:ProcessOverWatch()) then
-			ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
+			--ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
 			--if process overwatch executed an effect then break the current loop
-			break
+			--break
 		end
 		
         if ( self.subtask ~= nil ) then

@@ -31,9 +31,11 @@ end
 
 function ffxiv_task_killtarget:Init()
 	--init ProcessOverWatch() cnes
+	local ke_atTarget = ml_element:create("AtTarget", c_attarget, e_attarget, 5)
+	self:add( ke_atTarget, self.overwatch_elements)
 		
     --Process() cnes		    
-	local ke_moveToTarget = ml_element:create( "AddMoveToTarget", c_add_movetotarget, e_add_movetotarget, 10 )
+	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
 	self:add( ke_moveToTarget, self.process_elements)
 	
 	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
@@ -101,7 +103,7 @@ function ffxiv_task_fate:Init()
 	--self:add( ke_betterFate, self.overwatch_elements)
 	
     --init process
-	local ke_moveToFate = ml_element:create( "AddMoveToFate", c_movetofate, e_movetofate, 15 )
+	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 15 )
 	self:add( ke_moveToFate, self.process_elements)
 	
 	local ke_noTarget = ml_element:create( "NoTarget", c_notarget, e_notarget, 10 )
@@ -178,7 +180,7 @@ function ffxiv_task_movetopos:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_task_movetopos members
-    newinst.name = "RE_MOVETOPOS"
+    newinst.name = "MOVETOPOS"
     newinst.pos = 0
 	newinst.range = 1.5
 	newinst.doFacing = 0
@@ -209,6 +211,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
+	Player:Stop()
 	ml_task_hub:CurrentTask().completed = true
 end
 
@@ -223,152 +226,3 @@ end
 function ffxiv_task_movetopos:IsGoodToAbort()
 
 end
-
-
-
-
-
-
---[[-------------------------------------------------------------------------------------------
---TASK_MOVETOTARGET: Reactive Goal - Move to the position of the (possibly moving) target
---This task varies slightly from the MOVETOPOS task as it continually updates the MoveTo
---command based on the position of the target in order to properly track mobs over longer
---distances. It should be used both when moving to engage mobs in combat and placed in the
---ProcessOverWatch element list so that it will automatically follow a mob who moves out
---of combat range.
----------------------------------------------------------------------------------------------
-ffxiv_task_movetotarget = inheritsFrom(ml_task)
-
-function ffxiv_task_movetotarget:Create()
-    local newinst = inheritsFrom(ffxiv_task_movetotarget)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_grind members
-    newinst.name = "RE_MOVETOTARGET"
-    newinst.targetid = 0
-	newinst.range = 0
-	newinst.losrange = 0
-	
-    return newinst
-end
-
-function ffxiv_task_movetotarget:Init()
-	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
-	self:add( ke_moveToTarget, self.process_elements)
-	
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_movetotarget:task_complete_eval()
-	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
-        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target == nil) then
-			return true
-		else
-            return InCombatRange(ml_task_hub:CurrentTask().targetid)
-        end
-    end    
-    return false
-end
-
-function ffxiv_task_movetotarget:task_complete_execute()
-	d("SHIT IS BLOCKING MOVEMENT")
-	Player:Stop()
-    ml_task_hub:CurrentTask().completed = true
-end
-
-function ffxiv_task_movetotarget:OnSleep()
-
-end
-
-function ffxiv_task_movetotarget:OnTerminate()
-
-end
-
-function ffxiv_task_movetotarget:IsGoodToAbort()
-
-end]]
-
-
-
--- As discussed before, a seperate task for each kind of "move to" is not needed since a planned moving is not a ASAP task and makes things unnecessary complex
--- Checkign for better fates is done in the overwatch of the fate task without any problems
---[[
----------------------------------------------------------------------------------------------
---TASK_MOVETOFATE: Reactive - Move to the position of the fate specified by fateid
---This task moves to the position of the current fate target. It differs from the other
---MoveTo tasks by continually checking for closer fates so that it will stop if a new
---fate spawns during travel rather than skipping it. It should also contain overwatch
---checks for aggro and check a user variable to determine whether to stop and fight
---or ignore aggro and continue on to the current fate location.
----------------------------------------------------------------------------------------------
-
-ffxiv_task_movetofate = inheritsFrom(ml_task)
-
-function ffxiv_task_movetofate:Create()
-    local newinst = inheritsFrom(ffxiv_task_movetofate)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_movetofate members
-    newinst.name = "RE_MOVETOFATE"
-    newinst.fateid = 0
-	
-    return newinst
-end
-
-function ffxiv_task_movetofate:Init()
-	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 10 )
-	self:add( ke_moveToFate, self.process_elements)
-	
-	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
-	self:add( ke_betterFate, self.process_elements)
-	
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_movetofate:task_complete_eval()
-	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-        if (fate ~= nil and fate ~= {}) then
-			local myPos = Player.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-            if (distance < 0.5 * (fate.radius)) then
-                return true
-            end
-        else
-			return true
-		end
-    end
-    
-    return false
-end
-
-function ffxiv_task_movetofate:task_complete_execute()
-    ml_task_hub:CurrentTask().completed = true
-end
-
-function ffxiv_task_movetofate:OnSleep()
-
-end
-
-function ffxiv_task_movetofate:OnTerminate()
-
-end
-
-function ffxiv_task_movetofate:IsGoodToAbort()
-
-end]]

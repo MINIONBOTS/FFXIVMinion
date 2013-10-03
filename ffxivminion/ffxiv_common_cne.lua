@@ -33,7 +33,6 @@ function c_add_killtarget:evaluate()
     return false
 end
 function e_add_killtarget:execute()
-	Player:SetTarget(c_add_killtarget.targetid)
 	local newTask = ffxiv_task_killtarget:Create()
     newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
     newTask.targetid = c_add_killtarget.targetid
@@ -49,17 +48,7 @@ e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	if target ~= nil and target ~= {} then
-		local targetPos = target.pos
-		Player:SetFacing(targetPos.x,targetPos.y,targetPos.z)
-		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-		local target = Player:GetTarget()
-		if(target ~= nil) then
-			if (target.id == ml_task_hub:CurrentTask().targetid) then			
-				if(target.hp.current > 0) then
-					return true
-				end
-			end
-		end
+        return InCombatRange(target.id) and target.alive
 	end
 		
     return false
@@ -105,26 +94,25 @@ end
 --ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
 --Adds a MoveToTarget task 
 ---------------------------------------------------------------------------------------------
-c_add_movetotarget = inheritsFrom( ml_cause )
-e_add_movetotarget = inheritsFrom( ml_effect )
-function c_add_movetotarget:evaluate()
+c_movetotarget = inheritsFrom( ml_cause )
+e_movetotarget = inheritsFrom( ml_effect )
+function c_movetotarget:evaluate()
 	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
 		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
 		if (target ~= nil and target ~= {} and target.alive) then
-			return not InCombatRange(target)
+			return not InCombatRange(target.id)
 		end
 	end
     
     return false
 end
-function e_add_movetotarget:execute()
+function e_movetotarget:execute()
 	ml_debug( "Moving within combat range of target" )
 	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
 	if (target ~= nil and target.pos ~= nil) then
-		local newTask = ffxiv_task_movetotarget:Create()
+		local newTask = ffxiv_task_movetopos:Create()
 		newTask.pos = target.pos
-		--TODO: Randomize position		
-		newTask.range = GetCombatRange()
+		newTask.targetid = target.id
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
@@ -133,9 +121,9 @@ end
 --ADD_MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
 --Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
-c_add_movetofate = inheritsFrom( ml_cause )
-e_add_movetofate = inheritsFrom( ml_effect )
-function c_add_movetofate:evaluate()
+c_movetofate = inheritsFrom( ml_cause )
+e_movetofate = inheritsFrom( ml_effect )
+function c_movetofate:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		if (fate ~= nil and fate ~= {}) then
@@ -149,13 +137,13 @@ function c_add_movetofate:evaluate()
     
     return false
 end
-function e_add_movetofate:execute()
+function e_movetofate:execute()
 	ml_debug( "Moving to fate" )
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (fate ~= nil and fate ~= {}) then
 		local newTask = ffxiv_task_movetopos:Create()
 		--TODO: Randomize position
-		newTask.pos = fate.pos
+		newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
 		newTask.range = math.random(1.5,fate.radius)
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
@@ -192,6 +180,19 @@ function e_walktopos:execute()
     ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)))
 end
 
+c_attarget = inheritsFrom( ml_cause )
+e_attarget = inheritsFrom( ml_effect )
+function c_attarget:evaluate()
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+		return InCombatRange(ml_task_hub:ThisTask().targetid)
+	end
+	return false
+end
+function e_attarget:execute()
+	Player:Stop()
+	ml_task_hub:CurrentTask():Terminate()
+end
+
 ---------------------------------------------------------------------------------------------
 --REACTIVE/IMMEDIATE Game State CNEs
 --These are cnes which are used to check the current game state and perform some kind of
@@ -226,41 +227,40 @@ function e_notarget:execute()
 	local target = ml_task_hub:CurrentTask().targetFunction()
 	if (target ~= nil) then
 		Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
-		Player:SetTarget(target.id)
 		ml_task_hub.CurrentTask().targetid = target.id
 	end
 end
 
 ---------------------------------------------------------------------------------------------
---FLEE: If (aggolist.size > 1 and health.percent < 50) Then (run to a random point)
+--FLEE: If (aggolist.size > 0 and health.percent < 50) Then (run to a random point)
 --Attempts to shake aggro by running away and resting
 ---------------------------------------------------------------------------------------------
 c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.throttle = 1000
-c_flee.fleeing = false
 function c_flee:evaluate()
-	if (not self.fleeing) then
-		if (Player.hasaggro and Player.hp.percent < 50) then
-			self.fleeing = true
-			return true
-		end
-	else
-		if (not Player.hasaggro) then
-			Player:Stop()
-			self.fleeing = false
-		end
+    if (Player.hasaggro and Player.hp.percent < 50 or self.fleeing) then
+        return true
 	end
     
     return false
 end
 function e_flee:execute()
-	ml_debug( "Fleeing combat" )
-	local fleePos = ffxiv_task_grind.evacPoint
-	if (fleePos ~= {}) then
-		Player:SetFacing(fleePos.x, fleePos.y, fleePos.z)
-		Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
-	end
+    if (self.fleeing) then
+        if (not Player.hasaggro) then
+			Player:Stop()
+			self.fleeing = false
+            return
+		end
+    else
+        local fleePos = ffxiv_task_grind.evacPoint
+        if (fleePos ~= {}) then
+            ml_debug( "Fleeing combat" )
+            Player:SetFacing(fleePos.x, fleePos.y, fleePos.z)
+            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
+            self.fleeing = true
+        end
+    end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -331,49 +331,22 @@ end
 ---------------------------------------------------------------------------------------------
 c_betterfatesearch = inheritsFrom( ml_cause )
 e_betterfatesearch = inheritsFrom( ml_effect )
+c_betterfatesearch.throttle = 1000
 function c_betterfatesearch:evaluate()
-	local currentFate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (currentFate ~= nil and currentFate ~= {}) then
-		local myPos = Player.pos
-		local closestFate = GetFateByID(GetClosestFateID(myPos, true, true))
-		if (closestFate ~= nil and closestFate ~= {}) then
-			
-			local currentFateDist = Distance3D(myPos.x, myPos.y, myPos.z, currentFate.x, currentFate.y, currentFate.z)
-			local newFateDist = Distance3D(myPos.x, myPos.y, myPos.z, closestFate.x, closestFate.y, closestFate.z)
-			if (newFateDist < currentFateDist) then
-				ml_task_hub:CurrentTask().fateid = closestFate.id
-				return true
-			end
-		end
-	end
+    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+        return false
+    end
+    
+    local myPos = Player.pos
+	local fateID = GetClosestFateID(myPos,true,true)
+    if (fateID ~= ml_task_hub:ThisTask().fateid) then
+        return true
+    end
     
     return false
 end
 function e_betterfatesearch:execute()
 	ml_debug( "Closer fate found" )
-	-- If I'm not totally wrong, we can just terminate our current fatetask here and GrindTask will create a new Fatetask with the closer Fate,
-	-- this would also reset all data & progress done so far in the fate	no?
-	
-	ml_task_hub:CurrentTask():task_complete_execute()
+    ml_task_hub:ThisTask():Terminate()
 	d("TEEEEEEEEEST CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
-	
-	-- The code below assumes there is only the grind task makign use of the fatetask, it could not be added to other tasks/subtasks
-	--[[	-- add new subtask for LT_GRIND
-		if (ml_task_hub.queues[QUEUE_LONG_TERM]:HasOrders()) then
-			local grindTask = ml_task_hub.queues[QUEUE_LONG_TERM].rootTask
-			grindTask:DeleteSubTasks()
-			local newTask = ffxiv_task_fate:Create()
-			newTask.fateid = ml_task_hub:CurrentTask().fateid
-			grindTask:AddSubTask(newTask)
-		end
-		
-		if (ml_task_hub.queues[QUEUE_REACTIVE]:HasOrders()) then
-			local moveToFateTask = ml_task_hub.queues[QUEUE_LONG_TERM].rootTask
-			moveToFateTask:Terminate()
-			
-			local newTask = ffxiv_task_movetofate:Create()
-			newTask.fateid = fate.id
-			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
-		end
-	end]]
 end

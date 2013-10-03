@@ -42,7 +42,8 @@ function GetNearestGatherable()
 	return nil
 end
 
-function HasBuff(entity, buffID)
+function HasBuff(targetid, buffID)
+	local entity = EntityList:Get(targetid)
 	local buffs = entity.buffs
 	if (buffs ~= nil and TableSize(buffs) > 0) then
 		for i, buff in pairs(buffs) do
@@ -144,7 +145,12 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 	return 0
 end
 
-function InCombatRange(target)
+function InCombatRange(targetid)
+    local target = EntityList:Get(targetid)
+    if (target == nil or target == {}) then
+        return false
+    end
+    
 	local testSkills =
 	{
 		[FFXIV.JOBS.ARCANIST] 		= 163,
@@ -159,11 +165,13 @@ function InCombatRange(target)
 	-- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
 	local skill = ActionList:Get(testSkills[Player.job])
 	if ( skill )then
-		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id)) and skill.range > target.distance
-	else
-		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+		-- You can't check for skill.range > target.distance...this will make melee characters look really stupid
+		-- because they run right up underneath larger monsters. You have to account for hitradius which can be 
+		-- very large for big mobs.
+		return result = ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
 	end
-	return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+	
+	return false
 end
 
 function GetCombatRange()
