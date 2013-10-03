@@ -194,6 +194,10 @@ function GatherMgr.GetNextMarker(currentMarker, prevMarker)
 		for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
 	end
 	
+	if (TableSize(list) == 0) then
+		return nil
+	end
+	
 	-- if we only have one marker then we just return it
 	if (TableSize(list) == 1) then
 		local name, marker = next(list)

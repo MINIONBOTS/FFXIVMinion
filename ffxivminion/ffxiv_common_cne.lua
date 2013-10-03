@@ -239,7 +239,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.throttle = 1000
 function c_flee:evaluate()
-    if (Player.hasaggro and Player.hp.percent < 50 or self.fleeing) then
+    if (Player.hasaggro and Player.hp.percent < 50 or e_flee.fleeing) then
         return true
 	end
     
@@ -288,40 +288,30 @@ c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
 	if (Player.hasaggro) then
-		self.resting = false
 		return false
 	end
 	
-	if (self.resting ~= nil) then
-		if (self.resting == true) then
-			if (Player.hp.percent > 90) then
-				self.resting = false
-				return false
-			else
-				self.resting = true
-				return true
-			end
-		else
-			if (Player.hp.percent < 60 and not Player.hasaggro) then
-				self.resting = true
-				return true
-			end
-		end
-	elseif (Player.hp.percent < 60 and not Player.hasaggro) then
-		self.resting = true
+	if (e_rest.resting or (not Player.hasaggro and Player.hp.percent < 60)) then
 		return true
 	end
-    
-	self.resting = false
-    return false
 end
-function e_rest:execute()	
+function e_rest:execute()
 	if ( gSMactive == "1" ) then
 		local newTask = ffxiv_task_skillmgrHeal:Create()
 		newTask.targetid = Player.id
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
-		--do nothing, we will simply abort the current subtask
+		if (e_rest.resting == true) then
+			if (Player.hp.percent > 95) then
+				e_rest.resting = false
+				return
+			end
+		else
+			if (Player.hp.percent < 60 and not Player.hasaggro) then
+				e_rest.resting = true
+				return
+			end
+		end
 	end
 end
 
