@@ -168,7 +168,7 @@ function InCombatRange(targetid)
 		-- You can't check for skill.range > target.distance...this will make melee characters look really stupid
 		-- because they run right up underneath larger monsters. You have to account for hitradius which can be 
 		-- very large for big mobs.
-		return result = ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
 	end
 	
 	return false
