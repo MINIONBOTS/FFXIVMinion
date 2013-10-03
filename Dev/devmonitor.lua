@@ -402,7 +402,7 @@ function Dev.UpdateWindow()
 			else
 				sbcancast = "No Target"
 			end
-			sbcanc = tostring(ActionList:CanCast(spell.id))
+			sbcanc = tostring(ActionList:CanCast(spell.id,0))
 			if ( sbpendingcast) then
 				sbpendingcast = false
 				if ( mytarget  ~= nil ) then

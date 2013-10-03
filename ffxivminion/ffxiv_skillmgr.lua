@@ -647,7 +647,7 @@ function SkillMgr.Cast( target )
 							if ( castable ) then
 								--d("CASTING : "..tostring(skill.name))
 								skill.lastcast = ml_global_information.Now
-								ActionList:Cast(skill.id)
+								ActionList:Cast(skill.id,TID)
 								SkillMgr.prevSkillID = tostring(skill.id)
 								return true
 							end

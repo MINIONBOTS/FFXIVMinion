@@ -190,7 +190,7 @@ function c_stealth:evaluate()
 		return false
 	end
 
-	if (ActionList:CanCast(212)) then
+	if (ActionList:CanCast(212,0)) then
 		local mobList = EntityList("attackable,onmesh,maxdistance=17")
 		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
@@ -202,7 +202,7 @@ function c_stealth:evaluate()
 	return false
 end
 function e_stealth:execute()
-	ActionList:Cast(212)
+	ActionList:Cast(212,0)
 end
 
 function ffxiv_task_gather:Init()
