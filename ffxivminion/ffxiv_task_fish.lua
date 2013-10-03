@@ -84,10 +84,10 @@ function ffxiv_task_fish:Process()
 			if(gFishBaitId ~= tostring(Player:GetBait())) then
                 Player:SetBait(tonumber(gFishBaitId))
 			end
-			Skillbar:Cast(289) --fish skillid 2
+			Skillbar:Cast(289,0) --fish skillid 2
 			ffxiv_task_fish.pauseTimer = ml_global_information.Now + 2000
 		elseif( fs == 5 ) then -- FISHSTATE_BITE
-			Skillbar:Cast(296) -- Hook, skill 3   (129 is some other hook skillid ??
+			Skillbar:Cast(296,0) -- Hook, skill 3   (129 is some other hook skillid ??
 			ffxiv_task_fish.pauseTimer = ml_global_information.Now + 2000
 			ffxiv_task_fish.moveTimer = 0
 		end
