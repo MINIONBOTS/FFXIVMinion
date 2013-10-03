@@ -18,6 +18,7 @@
 c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
 function c_add_killtarget:evaluate()
+	-- this will block the fatetask from wroking if I'm not mistaken ...since it never picks a target to attack
 	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
 		return false
 	end
@@ -178,6 +179,32 @@ function e_walktopos:execute()
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
     ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)))
+end
+
+-- The movetotask in the killtask needs to always have up2date data since the targt is also moving away sometimes. Therefore giving the movetopos task the data and let 
+-- it handle the (dynamic) movement of enemies is better than just doing a "is in range, terminate movetopos", since it doesnt account for moving enemies if I haven't missed 
+-- stuff so far. Also this way we can terminate the killtask when the enemy died meanwhile.
+c_updatetarget = inheritsFrom( ml_cause )
+e_updatetarget = inheritsFrom( ml_effect )
+function c_updatetarget:evaluate()	
+	if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then
+		local target = EntityList:Get(ml_task_hub.ThisTask().targetid)
+		if (target ~= nil) then
+			if (target.alive and target.targetable) then
+				if (ml_task_hub:CurrentTask().name == "MOVETOPOS" ) then
+					-- MOVETOPOS is moving to a static pos, the enemy moves, either update the MOVETOPOS.pos or create a new movetopos task with teh new positoon, I choose a)
+					ml_task_hub:CurrentTask().pos = target.pos					
+				end
+				return false
+			end
+		end
+	end	
+	-- our target which we moveto (in order to kill) is not there anymore/dead/not selectable, we can kill the current killtask
+	return true
+end
+function e_updatetarget:execute()
+	Player:Stop()
+	ml_task_hub:ThisTask():Terminate()
 end
 
 c_attarget = inheritsFrom( ml_cause )

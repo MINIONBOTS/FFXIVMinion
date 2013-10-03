@@ -31,8 +31,12 @@ end
 
 function ffxiv_task_killtarget:Init()
 	--init ProcessOverWatch() cnes
-	local ke_atTarget = ml_element:create("AtTarget", c_attarget, e_attarget, 5)
-	self:add( ke_atTarget, self.overwatch_elements)
+	
+	local ke_attarget = ml_element:create("ATTarget", c_attarget, e_attarget, 10)
+	self:add( ke_attarget, self.overwatch_elements)
+	
+	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
+	self:add( ke_updateTarget, self.overwatch_elements)
 		
     --Process() cnes		    
 	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
