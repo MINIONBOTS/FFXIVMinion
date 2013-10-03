@@ -29,7 +29,7 @@ e_truethrust = inheritsFrom( ml_effect )
 function c_truethrust:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(Skillbar:CanCast(FFXIVMINION.SKILLS.TRUETHRUST)) then
+        if(ActionList:CanCast(FFXIVMINION.SKILLS.TRUETHRUST,ml_task_hub:CurrentTask().targetid)) then
             return true
         end
     end
@@ -37,17 +37,12 @@ function c_truethrust:evaluate()
     return false
 end
 function e_truethrust:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.TRUETHRUST)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.TRUETHRUST
-                    ml_task_hub:CurrentTask().newRotation = false
-                end
-            end
+	local skill = ActionList:Get(FFXIVMINION.SKILLS.TRUETHRUST, 1)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.TRUETHRUST
+			ml_task_hub:CurrentTask().newRotation = false
 		end
 	end
 end
@@ -63,16 +58,11 @@ function c_feint:evaluate()
     return false
 end
 function e_feint:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.FEINT)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.FEINT
-                end
-            end
+	local skill = ActionList:Get(FFXIVMINION.SKILLS.FEINT, 1)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.FEINT
 		end
 	end
 end
@@ -82,7 +72,7 @@ e_vorpalthrust = inheritsFrom( ml_effect )
 function c_vorpalthrust:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.VORPALTHRUST].level) then
         if(ml_task_hub:CurrentTask().prevSkillID == ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.VORPALTHRUST].combo) then
-            if(Skillbar:CanCast(FFXIVMINION.SKILLS.VORPALTHRUST)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.VORPALTHRUST, ml_task_hub:CurrentTask().targetid, 1)) then
                 return true
             end
         end
@@ -91,19 +81,14 @@ function c_vorpalthrust:evaluate()
     return false
 end
 function e_vorpalthrust:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.VORPALTHRUST)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.VORPALTHRUST
-                    if(Player.level < 26) then
-                        ml_task_hub:CurrentTask().newRotation = true
-                    end
-                end
-            end
+	local skill = ActionList:Get(FFXIVMINION.SKILLS.VORPALTHRUST,1)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.VORPALTHRUST
+			if(Player.level < 26) then
+				ml_task_hub:CurrentTask().newRotation = true
+			end
 		end
 	end
 end
@@ -113,7 +98,7 @@ e_heavythrust = inheritsFrom( ml_effect )
 function c_heavythrust:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.HEAVYTHRUST) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_lancer.skills[FFXIVMINION.SKILLS.HEAVYTHRUST].level) then
-			if(Skillbar:CanCast(FFXIVMINION.SKILLS.HEAVYTHRUST)) then
+			if(ActionList:CanCast(FFXIVMINION.SKILLS.HEAVYTHRUST, ml_task_hub:CurrentTask().targetid, 1)) then
 				return true
 			end
 		end
@@ -122,16 +107,11 @@ function c_heavythrust:evaluate()
     return false
 end
 function e_heavythrust:execute()
-	local t = Player:GetTarget()
-	if ( t ) then 
-		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.HEAVYTHRUST)
-            if (skill ~= nil) then
-                if ( skill.cd == 0) then
-                    skill:Cast()
-                    ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.HEAVYTHRUST
-                end
-            end
+	local skill = ActionList:Get(FFXIVMINION.SKILLS.HEAVYTHRUST, 1)
+	if (skill ~= nil) then
+		if ( skill.cd == 0) then
+			skill:Cast(ml_task_hub:CurrentTask().targetid)
+			ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.HEAVYTHRUST
 		end
 	end
 end
@@ -155,8 +135,8 @@ function ffxiv_combat_lancer:Init()
 end
 
 function ffxiv_combat_lancer:task_complete_eval()
-    local target = Player:GetTarget()
-    if (target == nil or not target.alive) then
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+    if (target == nil or not target.alive or not InCombatRange(target.id)) then
         return true
     end
     

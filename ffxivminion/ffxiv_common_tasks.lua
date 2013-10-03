@@ -102,10 +102,6 @@ function ffxiv_task_fate:Init()
 	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
 	self:add( ke_betterFate, self.overwatch_elements)
 	
-	-- TODO: ADD Overwatch for fate position/data changes
-	--local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
-	--self:add( ke_betterFate, self.overwatch_elements)
-	
     --init process
 	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 15 )
 	self:add( ke_moveToFate, self.process_elements)
