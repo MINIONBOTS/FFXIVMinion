@@ -81,6 +81,7 @@ function e_movetogatherable:execute()
 			local newTask = ffxiv_task_movetopos:Create()
 			newTask.pos = pos
 			newTask.range = 1.5
+            newTask.gatherRange = 1.0
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end

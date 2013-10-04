@@ -185,6 +185,7 @@ function ffxiv_task_movetopos:Create()
 	newinst.range = 1.0
 	newinst.doFacing = false
     newinst.pauseTimer = 0
+    newinst.gatherRange = 0.0
 	
     return newinst
 end
@@ -203,7 +204,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (distance <= self.range) then -- this +1 fucks up all InCombatRange checks for melee, it makes this task terminate when beeing <= 2.5ft, when we want to walk closer to our targetposition
+		if (distance <= self.range + self.gatherRange) then -- this +1 fucks up all InCombatRange checks for melee, it makes this task terminate when beeing <= 2.5ft, when we want to walk closer to our targetposition
 			return true
 		end
     end    
