@@ -177,8 +177,8 @@ function c_walktopos:evaluate()
 end
 function e_walktopos:execute()
 	local gotoPos = ml_task_hub:CurrentTask().pos
-	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-    ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(gotoPos.x,gotoPos.y,gotoPos.z,ml_task_hub.CurrentTask().range)))
+	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
+    ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range))))
 end
 
 -- The movetotask in the killtask needs to always have up2date data since the targt is also moving away sometimes. Therefore giving the movetopos task the data and let 
