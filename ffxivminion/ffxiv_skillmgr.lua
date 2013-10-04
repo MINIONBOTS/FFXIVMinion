@@ -48,7 +48,8 @@ function SkillMgr.ModuleInit()
 	
 	-- EDITOR WINDOW
 	GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h)		
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")	
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR","SkillDetails")
@@ -74,6 +75,7 @@ function SkillMgr.ModuleInit()
 	GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 	
 	SKM_NAME = ""
+	SKM_ID = 0
 	SKM_ON = "0"
 	SKM_DOBUFF = "0"
 	SKM_Prio = 0
@@ -418,7 +420,8 @@ end
 function SkillMgr.RefreshSkillBook()
 	-- TODO: CROSSCLASS STUFF
 	
-	local SkillList = ActionList("type=1,job="..Player.job)
+	--local SkillList = ActionList("type=1,job="..Player.job)
+	local SkillList = ActionList("type=1,minlevel=1")
 	if ( TableSize( SkillList ) > 0 ) then
 		local i,s = next ( SkillList )
 		while i and s and s.id do
@@ -450,7 +453,6 @@ function SkillMgr.CreateNewSkillBookEntry(skill)
 end
 -- Button Handler for Skillbook-skill-buttons
 function SkillMgr.AddSkillToProfile(event)
-	d(event)
 	if (SkillMgr.SkillBook[event]) then
 		SkillMgr.CreateNewSkillEntry(SkillMgr.SkillBook[event])
 	end
@@ -521,6 +523,7 @@ function SkillMgr.EditSkill(event)
 	local skill = SkillMgr.SkillProfile[tonumber(event)]	
 	if ( skill ) then		
 		SKM_NAME = skill.name or ""
+		SKM_ID = skill.id
 		SKM_ON = skill.used or "1"
 		SKM_DOBUFF = skill.dobuff or "0"
 		SKM_Prio = tonumber(event)
@@ -570,97 +573,104 @@ function SkillMgr.Cast( target )
 		if ( TID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
-				if ( skill.used == "1" ) then				
-					--if (ActionList:CanCast(skill.id,TID)) then-- takes care of los, range, facing target and valid target
+				if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
 					
-						local realskilldata = ActionList:Get(skill.id)
-						if ( realskilldata and realskilldata.isready) then
+					local realskilldata = ActionList:Get(skill.id)
+					if ( realskilldata and realskilldata.isready ) then 
+					d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
 						
-							local castable = true
-							--COOLDOWN 
-							if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
-							
-							-- soft cooldown for compensating the delay between spell cast and buff applies on target)
-							if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*100 + 1000)) then castable = false end
-							
-							-- RANGE + HEALTH						
-							if ( castable and (
-									   (skill.minRange > 0 and target.distance < skill.minRange)
-									or (skill.maxRange > 0 and target.distance > skill.maxRange)--target.distance- target.hitradius > skill.maxRange)
-									or (skill.thpl > 0 and skill.thpl > target.hp.percent)
-									or (skill.thpb > 0 and skill.thpb < target.hp.percent)
-									)) then castable = false end	
-							
-							-- PLAYER HEALTH, TP/MP
-							if ( castable and (
-								(skill.phpl > 0 and skill.phpl > Player.hp.percent)
-								or (skill.phpb > 0 and skill.phpb < Player.hp.percent)
-								or (skill.ppowl > 0 and skill.ppowl > Player.mp.percent)
-								or (skill.ppowb > 0 and skill.ppowb < Player.mp.percent)					
+						local castable = true
+						--COOLDOWN													
+						if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
+						
+						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
+						if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*1000 + 500)) then castable = false end
+						
+						-- RANGE + HEALTH							
+						if ( castable and (
+								   (skill.minRange > 0 and target.distance < skill.minRange)
+								or (skill.maxRange > 0 and target.distance > skill.maxRange+target.hitradius+1)--target.distance- target.hitradius > skill.maxRange)
+								or (skill.thpl > 0 and skill.thpl > target.hp.percent)
+								or (skill.thpb > 0 and skill.thpb < target.hp.percent)
 								)) then castable = false end	
-							
-							-- TARGET BUFFS
-							if ( castable and TableSize(tbuffs) > 0) then 
-								-- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
-								if (skill.tbuff ~= "" ) then
-									local tbfound = false
-									for buffid in StringSplit(skill.tbuff,",") do
-										if (tonumber(buffid) ~= nil) then
-											for i, buff in pairs(tbuffs) do
-												if (buff.id == buffID and buff.ownerid == PID) then
-													tbfound = true
-													break
-												end
-											end	
-										end
+
+						-- PLAYER HEALTH, TP/MP
+						if ( castable and (
+							(skill.phpl > 0 and skill.phpl > Player.hp.percent)
+							or (skill.phpb > 0 and skill.phpb < Player.hp.percent)
+							or (skill.ppowl > 0 and skill.ppowl > Player.mp.current)
+							or (skill.ppowb > 0 and skill.ppowb < Player.mp.current)					
+							)) then castable = false end	
+						
+						-- TARGET BUFFS
+						if ( castable and TableSize(tbuffs) > 0) then 							
+							-- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
+							if (skill.tbuff ~= "" ) then								
+								local tbfound = false
+								for buffid in StringSplit(skill.tbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(tbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
 									end
-									if not tbfound then castable = false end								
 								end
-								-- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
-								if (skill.tnbuff ~= "" ) then
-									local tbfound = false
-									for buffid in StringSplit(skill.tnbuff,",") do
-										if (tonumber(buffid) ~= nil) then
-											for i, buff in pairs(tbuffs) do
-												if (buff.id == buffID and buff.ownerid == PID) then
-													tbfound = true
-													break
-												end
-											end	
-										end
+								if not tbfound then castable = false end								
+							end
+							-- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
+							if (skill.tnbuff ~= "" ) then
+								local tbfound = false
+								for buffid in StringSplit(skill.tnbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(tbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
 									end
-									if not tbfound then castable = false end								
-								end							
-							end	
-							-- TARGET AE CHECK
-							if ( castable and skill.tecount > 0 and skill.terange > 0) then
-								if ( ( TableSize(EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..target.id)) < skill.tecount)) then
-									castable = false
 								end
+								if tbfound then castable = false end								
+							end							
+						end	
+						
+						-- TARGET AE CHECK
+						if ( castable and skill.tecount > 0 and skill.terange > 0) then
+							if ( ( TableSize(EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..target.id)) < skill.tecount)) then
+								castable = false
 							end
-							
-							-- PREVIOUS SKILL
-							if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
-								if ( SkillMgr.prevSkillID ~= skill.pskill) then
-									castable = false
-								end
+						end
+						
+						-- PREVIOUS SKILL
+						if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
+							if ( SkillMgr.prevSkillID ~= skill.pskill) then
+								castable = false
 							end
-							
-							if ( castable ) then
-								d("CASTING : "..tostring(skill.name))								
-								if ( ActionList:Cast(skill.id,TID) ) then
+						end
+						
+						if ( castable ) then
+							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
+							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target
+								d("CASTING(attack) : "..tostring(skill.name) .." on "..tostring(target.name))								
+								if ( ActionList:Cast(skill.id,TID) ) then									
 									skill.lastcast = ml_global_information.Now
 									SkillMgr.prevSkillID = tostring(skill.id)
 								end
-								return true
+							elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
+								d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))								
+								if ( ActionList:Cast(skill.id,PID) ) then									
+									skill.lastcast = ml_global_information.Now
+									SkillMgr.prevSkillID = tostring(skill.id)
+								end								
 							end
 						end
-					--end			
+					end					
 				end
 			end
 		end
 	end
-	return false
 end
 
 
@@ -688,6 +698,7 @@ end
 function ffxiv_task_skillmgrAttack:Process()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	if (target ~= nil and target.alive and InCombatRange(target.id)) then
+		
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
 		Player:SetTarget(ml_task_hub:CurrentTask().targetid)

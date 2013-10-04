@@ -204,7 +204,7 @@ function mm.MoveToMarker()
     local info = mm.GetMarkerInfo(gMarkerName)
     if (info ~= nil and info ~= {}) then
         local pos = {x = info.x, y = info.y, z = info.z}
-        if (NavigationManager:IsOnMesh(pos.x,pos.y,pos.z)) then
+        if (NavigationManager:GetPointToMeshDistance(pos)<=3) then
             Player:MoveTo(pos.x,pos.y,pos.z)
         else
             ml_debug("Currently selected marker is not on the currently loaded NavMesh or no mesh is loaded")

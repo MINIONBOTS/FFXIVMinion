@@ -127,7 +127,7 @@ end
 function e_ragingstrikes:execute()
 	local skill = ActionList:Get(101,1)
 	if (skill ~= nil and skill.cd == 0) then
-		skill:Cast()
+		skill:Cast() -- THIS NEEDS A TARGET
 		ml_task_hub:CurrentTask().prevSkillID = 101
 	end
 end

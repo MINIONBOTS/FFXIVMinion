@@ -365,5 +365,5 @@ end
 function e_betterfatesearch:execute()
 	ml_debug( "Closer fate found" )
     ml_task_hub:ThisTask():Terminate()
-	d("TEEEEEEEEEST CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+	d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
 end
