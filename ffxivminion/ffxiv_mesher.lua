@@ -17,16 +17,20 @@ mm.MarkerList =
     ["navSpot"] = {}
 }
 mm.MarkerRenderList = {}
-mm.reloadMeshPensing = false
+mm.reloadMeshPending = false
 mm.reloadMeshTmr = 0
 mm.reloadMeshName = ""
+
 
 function mm.ModuleInit() 	
 		
 	if (Settings.FFXIVMINION.gMeshMGR == nil) then
 		Settings.FFXIVMINION.gMeshMGR = "1"
 	end
-        
+    if (Settings.FFXIVMINION.Maps == nil) then
+		Settings.FFXIVMINION.Maps = {}
+	end
+	
 	local wnd = GUI_GetWindowInfo("FFXIVMinion")
 	GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)
 	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].activated,"gMeshMGR",strings[gCurrentLanguage].generalSettings)
@@ -97,7 +101,6 @@ end
 -------------------------------------------
 --Marker Stuff
 -------------------------------------------
-
 function mm.UpdateMarkerList()
     -- setup markers
 	local markers = "None"
@@ -476,13 +479,13 @@ function mm.SaveMesh()
 	if ( filename ~= "" and filename ~= "none" ) then
 		d("SAVING UNDER: "..tostring(filename))
 		d("Result: "..tostring(NavigationManager:SaveNavMesh(filename)))
-		mm.reloadMeshPensing = true
+		mm.reloadMeshPending = true
 		mm.reloadMeshTmr = mm.lasttick
 		mm.reloadMeshName = filename	
 		gnewmeshname = ""
 		gmeshname = filename
 	else
-		wt_error("Enter a proper Navmesh name!")
+		ml_error("Enter a proper Navmesh name!")
 	end
 end
 
@@ -496,7 +499,7 @@ function mm.ChangeNavMesh(newmesh)
 				mm.MarkerRenderList[key] = nil
 			end
 		end
-		mm.reloadMeshPensing = true
+		mm.reloadMeshPending = true
 		mm.reloadMeshTmr = mm.lasttick
 		mm.reloadMeshName = newmesh
 		return
@@ -507,8 +510,14 @@ function mm.ChangeNavMesh(newmesh)
 			if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..gmeshname)) then
 				d("Error loading Navmesh: "..path)
             else
-                mm.reloadMeshPensing = false
+                mm.reloadMeshPending = false
 				mm.ReadMarkerList(gmeshname)				
+				local mapid = Player.localmapid
+				if ( mapid ~= nil and mapid~=0 ) then
+					d("Setting new default Mesh for this Zone..(ID :"..tostring(mapid).." Meshname: "..gmeshname)
+					Settings.FFXIVMINION.Maps[mapid] = gmeshname
+					mm.mapID = mapid
+				end				
             end
 		end
 	end
@@ -587,9 +596,20 @@ function mm.OnUpdate( event, tickcount )
 		end
 		
 		-- (re-)Loading Navmesh
-		if (mm.reloadMeshPensing and mm.lasttick - mm.reloadMeshTmr > 2000 and mm.reloadMeshName ~= "") then
+		if (mm.reloadMeshPending and mm.lasttick - mm.reloadMeshTmr > 2000 and mm.reloadMeshName ~= "") then
 			mm.reloadMeshTmr = mm.lasttick
 			mm.ChangeNavMesh(mm.reloadMeshName)
+		end
+		
+		-- Check if we switched maps
+		local mapid = Player.localmapid
+		if ( not mm.reloadMeshPending and mapid ~= nil and mm.mapID ~= mapid ) then			
+			if (Settings.FFXIVMINION.Maps[mapid] ~= nil) then
+				d("Autoloading Navmesh for this Zone: "..Settings.FFXIVMINION.Maps[mapid])
+				mm.reloadMeshPending = true
+				mm.reloadMeshTmr = mm.lasttick
+				mm.reloadMeshName = Settings.FFXIVMINION.Maps[mapid]				
+            end
 		end
 	end
 end

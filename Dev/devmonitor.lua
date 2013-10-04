@@ -270,12 +270,12 @@ function Dev.Test1()
 	--local bb=MeshManager:AddVertex({x=p.x+2,y=p.z,z=p.y+2})
 	--local cc=MeshManager:AddVertex({x=p.x-2,y=p.z,z=p.y+1})	
 	--d(MeshManager:AddTriangle({a=aa,b=bb,c=cc}))
-	local t = { [1] = { 10.4,20.2,30.5,55 },
-				[2] = { 11.4,21.5,31.5,55 },
-				[3] = { 12.5,22.3,32.5,55 },
-				[4] = { 13.6,23.7,33.7,55 },
-				}
-	d(RenderManager:AddObject(t))
+	d("TableSize: "..tostring(TableSize(mm.MarkerList)))
+	for tag, posList in pairs(mm.MarkerList) do 
+		for key, pos in pairs(posList) do	
+			d(tostring(tag).." "..tostring(key).." "..tostring(pos)	)
+		end	
+	end
 end
 
 function Dev.Test2()
