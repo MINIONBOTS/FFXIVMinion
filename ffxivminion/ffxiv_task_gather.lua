@@ -15,10 +15,9 @@ function ffxiv_task_gather:Create()
     --ffxiv_task_gather members
     newinst.name = "LT_GATHER"
     newinst.gatherid = 0
-	newinst.markerTimer = false
-	newinst.currentMarker = 0
-	newinst.prevMarker = 0
-	newinst.isGathering = false
+	newinst.markerTime = 0
+	newinst.currentMarker = false
+	newinst.previousMarker = false
 	
     return newinst
 end
@@ -48,10 +47,8 @@ function c_findgatherable:evaluate()
 end
 function e_findgatherable:execute()
 	ml_debug( "Getting new gatherable target" )
-	ml_task_hub:CurrentTask().isGathering = false
 	local gatherable = GetNearestGatherable()
 	if (gatherable ~= nil) then
-		Player:SetTarget(gatherable.id)
 		ml_task_hub.CurrentTask().gatherid = gatherable.id
 	else
 		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
@@ -92,34 +89,42 @@ end
 c_nextmarker = inheritsFrom( ml_cause )
 e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
-	if ( gGMactive == "1" and ml_task_hub:CurrentTask().markerTimer ~= 0 and not ml_task_hub:CurrentTask().isGathering) then
-		if ( ml_task_hub:CurrentTask().markerTimer == false or os.time() > ml_task_hub:CurrentTask().markerTimer) then
-			-- get the next marker
-			local marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().prevMarker)
-			if marker ~= nil then
-				if marker ~= currentMarker then
-                    e_nextmarker.marker = marker
-					return true
-				end
+	if ( gGMactive == "1" and ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= {}) then
+        local marker = nil
+        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
+            marker = GatherMgr.GetNextMarker(nil, nil)
+        else
+            local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+            if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
+                marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
+            else
+				return false
 			end
-		end
+        end
+        
+        if marker ~= nil then
+            if marker ~= currentMarker then
+                e_nextmarker.marker = marker
+                return true
+            end
+        else
+            ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
+            gGMactive = "0"
+        end
 	end
 	
 	return false
 end
 function e_nextmarker:execute()
-    ml_task_hub:CurrentTask().prevMarker = ml_task_hub:CurrentTask().currentMarker
+    ml_task_hub:CurrentTask().previousMarker = ml_task_hub:CurrentTask().currentMarker
     ml_task_hub:CurrentTask().currentMarker = e_nextmarker.marker
-    local timer = GatherMgr.GetMarkerTime(e_nextmarker.marker)
-    if (timer ~= 0) then
-        timer = timer + os.time()
-    end
-    ml_task_hub:CurrentTask().markerTimer = timer
+    ml_task_hub:CurrentTask().markerTime = os.time()
 
 	local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-	
-	if (gChangeJobs) then
-		local markerType = mm.GetMarkerType(marker)
+    local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
+    
+    -- handle switching jobs (not implemented yet)
+	if (gChangeJobs and (markerType == "miningSpot" or markerType == "botanySpot")) then
 		if (markerType == "miningSpot" and Player.job == FFXIV.JOBS.BOTANIST) then
 			--change job
 		elseif (markerType == "botanySpot" and Player.job == FFXIV.JOBS.MINER) then
@@ -130,6 +135,11 @@ function e_nextmarker:execute()
 	local newTask = ffxiv_task_movetopos:Create()
 	newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
 	newTask.range = 3
+    if (markerType == "fishingSpot") then
+        newTask.pos.h = markerInfo.h
+        newTask.range = 1.5
+        newTask.doFacing = true
+    end
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
@@ -146,7 +156,6 @@ end
 function e_gather:execute()
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-        ml_task_hub:CurrentTask().isGathering = true
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
@@ -190,7 +199,7 @@ function c_stealth:evaluate()
 		return false
 	end
 
-	if (ActionList:CanCast(212,0)) then
+	if (ActionList:CanCast(212,1)) then
 		local mobList = EntityList("attackable,onmesh,maxdistance=17")
 		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
@@ -202,16 +211,13 @@ function c_stealth:evaluate()
 	return false
 end
 function e_stealth:execute()
-	ActionList:Cast(212,0)
+	ActionList:Cast(212,1)
 end
 
 function ffxiv_task_gather:Init()
 	--init ProcessOverWatch cnes
 	local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
 	self:add( ke_stealth, self.overwatch_elements)
-	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 10 )
-	self:add( ke_nextMarker, self.process_elements)
 	
 	--init Process cnes
 	
@@ -245,7 +251,6 @@ end
 function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
 		if (	k == "gGatherPS"	) then
-			d("test")
 			if (v == "1") then
 				GameHacks:SetPermaSprint(true)
 			else
@@ -256,8 +261,8 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gRandomMarker" or
 				k == "gChangeJobs" or
 				k == "gGatherPS" or
-				k == "gGatherTP" ) then
-				d("test2")
+				k == "gGatherTP" or
+                k == "gIgnoreGatherLvl" ) then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
@@ -268,6 +273,7 @@ end
 function ffxiv_task_gather.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Stealth", "gDoStealth","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Randomize Markers", "gRandomMarker","Gather")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreGatherLvl","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Teleport (HACK!)", "gGatherTP","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "PermaSprint (HACK!)", "gGatherPS","Gather")
@@ -293,12 +299,17 @@ function ffxiv_task_gather.UIInit()
 	if (Settings.FFXIVMINION.gGatherPS == nil) then
 		Settings.FFXIVMINION.gGatherPS = "0"
 	end
+    
+    if (Settings.FFXIVMINION.gIgnoreGatherLvl == nil) then
+		Settings.FFXIVMINION.gIgnoreGatherLvl = "1"
+	end
 	
 	gDoStealth = Settings.FFXIVMINION.gDoFates
 	gRandomMarker = Settings.FFXIVMINION.gFatesOnly
 	gChangeJobs = Settings.FFXIVMINION.gChangeJobs
 	gGatherTP = Settings.FFXIVMINION.gGatherTP
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
+    gIgnoreGatherLvl = Settings.FFXIVMINION.gIgnoreGatherLvl
     if(gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
     end

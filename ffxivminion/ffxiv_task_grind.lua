@@ -16,6 +16,9 @@ function ffxiv_task_grind:Create()
     --ffxiv_task_grind members
     newinst.name = "LT_GRIND"
     newinst.targetid = 0
+    newinst.markerTime = 0
+    newinst.currentMarker = false
+    newinst.previousMarker = false
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
@@ -37,12 +40,15 @@ function ffxiv_task_grind:Init()
 	
 	
     --init Process() cnes
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 15 )
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 20 )
 	self:add(ke_addFate, self.process_elements)
 
 	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 10 )
 	self:add(ke_addKillTarget, self.process_elements)
    
+    --nextmarker defined in ffxiv_task_gather.lua
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 15 )
+	self:add( ke_nextMarker, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
@@ -62,7 +68,11 @@ end
 function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
 		if ( 	k == "gDoFates" or
-				k == "gFatesOnly" ) then
+				k == "gFatesOnly" or
+                k == "gIgnoreGrindLvl" or
+                k == "gMinFateLevel" or
+                k == "gMaxFateLevel" )
+        then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
@@ -70,9 +80,9 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxiv_task_grind.SetEvacPoint()
-	if (Player.onmesh) then
-		ffxiv_task_grind.evacPoint = Player.pos
-		Settings.FFXIVMINION.evacPoint = Player.pos
+	if (gmeshname ~= "" and Player.onmesh) then
+		mm.evacPoint = Player.pos
+		mm.WriteMarkerList(gmeshname)
 	end
 end
 
@@ -83,6 +93,7 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxFateLvl: +", "gMaxFateLevel", "Grind")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinFateLvl: -", "gMinFateLevel", "Grind")
 	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreGrindLvl","Grind")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
 	if (Settings.FFXIVMINION.gDoFates == nil) then
@@ -100,9 +111,9 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gMinFateLevel == nil) then
 		Settings.FFXIVMINION.gMinFateLevel = "5"
 	end
-	
-	if (Settings.FFXIVMINION.evacPoint == nil) then
-		Settings.FFXIVMINION.evacPoint = {x = 0, y = 0, z = 0}
+    
+    if (Settings.FFXIVMINION.gIgnoreGrindLvl == nil) then
+		Settings.FFXIVMINION.gIgnoreGrindLvl = "0"
 	end
 	
 	gDoFates = Settings.FFXIVMINION.gDoFates
@@ -110,6 +121,7 @@ function ffxiv_task_grind.UIInit()
 	gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
 	gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
 	ffxiv_task_grind.evacPoint = Settings.FFXIVMINION.evacPoint
+    gIgnoreGrindLvl = Settings.FFXIVMINION.gIgnoreGrindLvl
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
 	RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)

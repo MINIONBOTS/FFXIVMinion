@@ -76,8 +76,8 @@ end
 function ml_task_hub:CheckForTask(task)
 	if (task ~= nil) then
 		for i, queue in pairs (ml_task_hub.queues) do
-			if (queue.rootTask ~= nil and queue.rootTask.name == task.name or
-				queue.pendingTask ~= nil and queue.pendingTask.name == task.name) then
+			if (queue.rootTask ~= false and queue.rootTask ~= nil and queue.rootTask.name == task.name or
+				queue.pendingTask ~= false and queue.pendingTask ~= nil and queue.pendingTask.name == task.name) then
 				return true
 			end
 		end
@@ -124,7 +124,7 @@ end
 function ml_task_hub.ToggleRun()	
 	ml_task_hub.shouldRun = not ml_task_hub.shouldRun
 	-- don't reset information when we stop or else we lose debugging info
-	if (shouldRun) then
+	if (ml_task_hub.shouldRun) then
 		ml_global_information.Reset()
 	else
 		ml_global_information.Stop()
@@ -169,6 +169,14 @@ function ml_task_hub.HandleStateDebugButtons( Event, Button )
 			end
 		end
 	end
+end
+
+-- this will be set by the game lua's init function
+function ml_task_hub.Reset()
+end
+
+-- this will be set by the game lua's init function
+function ml_task_hub.Stop()
 end
 
 RegisterEventHandler( "GUI_REQUEST_RUN_TOGGLE", ml_task_hub.ToggleRun )

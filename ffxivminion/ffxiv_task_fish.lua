@@ -1,7 +1,5 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.name = "LT_FISH"
-ffxiv_task_fish.pauseTimer = 0
-ffxiv_task_fish.moveTimer = 0
 
 function ffxiv_task_fish:Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
@@ -14,84 +12,107 @@ function ffxiv_task_fish:Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
 	
+    --ffxiv_task_fish members
+    newinst.castTimer = 0
+	newinst.markerTime = 0
+    newinst.currentMarker = false
+    newinst.previousMarker = false
+	newinst.baitName = ""
+	newinst.castFailTimer = 0
+    
     return newinst
+end
+
+c_cast = inheritsFrom( ml_cause )
+e_cast = inheritsFrom( ml_effect )
+function c_cast:evaluate()
+    local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (os.time() > castTimer) then
+        local fs = tonumber(Player:GetFishingState())
+        if (fs == 0 or fs == 4) then
+            return true
+        end
+    end
+    return false
+end
+function e_cast:execute()
+	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
+    ActionList:Cast(289,1)
+end
+
+c_bite = inheritsFrom( ml_cause )
+e_bite = inheritsFrom( ml_effect )
+function c_bite:evaluate()
+    local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (os.time() > castTimer) then
+        local fs = tonumber(Player:GetFishingState())
+        if( fs == 5 ) then -- FISHSTATE_BITE
+            return true
+        end
+    end
+    return false
+end
+function e_bite:execute()
+	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
+    ActionList:Cast(296,1)
+end
+
+c_setbait = inheritsFrom( ml_cause )
+e_setbait = inheritsFrom( ml_effect )
+function c_setbait:evaluate()
+    if (gGMactive == "1") then
+        local fs = tonumber(Player:GetFishingState())
+        if (fs == 0 or fs == 4) then
+			local marker = ml_task_hub:CurrentTask().currentMarker
+			if (marker ~= nil and marker ~= false) then
+				local data = GatherMgr.GetMarkerData(marker)
+				if data[1] ~= ml_task_hub:CurrentTask().baitName then
+					return true
+				end
+			end
+        end
+    end
+    return false
+end
+function e_setbait:execute()
+    local marker = ml_task_hub:CurrentTask().currentMarker
+    if (marker ~= nil and marker ~= false) then
+        local data = GatherMgr.GetMarkerData(marker)
+        if (data ~= nil and data ~= {}) then
+            local _,bait = next(data)
+            if (bait ~= nil and bait ~= "") then
+				for i = 0,4 do
+					local inventory = Inventory("type="..tostring(i))
+					if (inventory ~= nil and inventory ~= {}) then
+						for _,item in ipairs(inventory) do
+							if item.name == bait then
+								Player:SetBait(item.id)
+								ml_task_hub:CurrentTask().baitName = item.name
+							end
+						end
+					end
+				end
+            end
+        end
+    end
 end
 
 function ffxiv_task_fish:Init()
     --init Process() cnes
-	
-	--init ProcessOverWatch() cnes
-	--local ke_killTask = ml_element:create( "AddKillTask", c_add_killtarget, e_add_killtarget, ml_effect.priorities.interrupt )
-	--self:add(ke_killTask, self.process_elements)
+	local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 5 )
+	self:add(ke_cast, self.process_elements)
+    
+    local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 5 )
+	self:add(ke_bite, self.process_elements)
+    
+    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
+	self:add(ke_setbait, self.process_elements)
+    
+    --nextmarker defined in ffxiv_gather_manager.lua
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+	self:add( ke_nextMarker, self.process_elements)
     
     self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_fish:Process()
-    -- move to the nearest fish spot
-    if (not Player:IsMoving()) then
-        local onPos = false
-        for i, pos in pairs(mm.MarkerList["fishingSpot"]) do
-            if Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) < 2 then
-                onPos = true
-            end
-        end
-        
-        if (not onPos) then
-            local destPos = mm.GetClosestMarkerPos(Player.pos, "fishingSpot")
-            if (destPos ~= nil) then
-                local newTask = ffxiv_task_movetopos:Create()
-                newTask.pos = destPos
-                newTask.range = 1.5
-                newTask.doFacing = true
-                ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
-                gFishCC = "false"
-                return
-            end
-        end
-    end
-
-	-- pause here after casting/hooking so we don't spam cast
-	if (ml_global_information.Now >= self.pauseTimer) then    
-		gFishState = tostring(Player:GetFishingState())	
-		gFishCC = tostring(Skillbar:CanCast(289,Player.id))
-		gFishBait = Player:GetBait()
-        if (gFishBaitId == "0") then
-            gFishBaitId = tostring(gFishBait)
-        end
-
-		local fs = tonumber(Player:GetFishingState())
-		if (fs == 0 or fs == 4 and not Player:IsMoving() and gFishCC == "true") then
-			if (fs == 0) then
-				if (ffxiv_task_fish.moveTimer == 0) then
-					ffxiv_task_fish.moveTimer = ml_global_information.Now + 3000
-				else
-					if (ffxiv_task_fish.moveTimer < ml_global_information.Now) then
-						ffxiv_task_fish.moveTimer = 0
-                        local destPos = mm.GetClosestMarkerPos(Player.pos, "fishSpot")
-                        if (destPos ~= nil) then
-                            local newTask = ffxiv_task_movetopos:Create()
-                            newTask.pos = destPos
-                            newTask.range = 1.5
-                            newTask.doFacing = true
-                            ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
-                            return
-                        end
-						return
-					end
-				end
-			end
-			if(gFishBaitId ~= tostring(Player:GetBait())) then
-                Player:SetBait(tonumber(gFishBaitId))
-			end
-			Skillbar:Cast(289,0) --fish skillid 2
-			ffxiv_task_fish.pauseTimer = ml_global_information.Now + 2000
-		elseif( fs == 5 ) then -- FISHSTATE_BITE
-			Skillbar:Cast(296,0) -- Hook, skill 3   (129 is some other hook skillid ??
-			ffxiv_task_fish.pauseTimer = ml_global_information.Now + 2000
-			ffxiv_task_fish.moveTimer = 0
-		end
-	end
 end
 
 function ffxiv_task_fish:OnSleep()
@@ -106,43 +127,22 @@ function ffxiv_task_fish:IsGoodToAbort()
 
 end
 
-function ffxiv_task_fish.MoveNext()
-    if (not Player:IsMoving()) then
-        local destPos = mm.GetClosestMarkerPos(Player.pos, "fishingSpot")
-        if (destPos ~= nil) then
-            local newTask = ffxiv_task_movetopos:Create()
-            newTask.pos = destPos
-            newTask.range = 1.5
-            newTask.doFacing = true
-            ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_ASAP)
-            gFishCC = "false"
-            return
-        end
-    end
-end
-
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
-	GUI_NewField(ml_global_information.MainWindow.Name,"CurrentBaitID","gFishBait","Fish")
-	GUI_NewField(ml_global_information.MainWindow.Name,"SetBaitID","gFishBaitId","Fish")
-	GUI_NewField(ml_global_information.MainWindow.Name,"FishingState","gFishState","Fish")
-	GUI_NewField(ml_global_information.MainWindow.Name,"CanCast","gFishCC","Fish")
-	GUI_NewButton(ml_global_information.MainWindow.Name, "MoveToNextSpot", "ffxiv_task_fish.MoveNextEvent","Fish")
-	RegisterEventHandler("ffxiv_task_fish.MoveNextEvent", ffxiv_task_fish.MoveNext)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreFishLvl","Fish")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
-	if (Settings.FFXIVMINION.gFishBaitId == nil) then
-		Settings.FFXIVMINION.gFishBaitId = 0
+    if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
+		Settings.FFXIVMINION.gIgnoreFishLvl = "0"
 	end
-	
-	gFishBaitId = Settings.FFXIVMINION.gFishBaitId
+	gIgnoreFishLvl = Settings.FFXIVMINION.gIgnoreFishLvl
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
-		if ( k == "gFishBaitId" ) then
+		if ( k == "gIgnoreFishLvl" ) then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end

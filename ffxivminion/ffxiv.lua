@@ -29,7 +29,6 @@ function ml_global_information.OnUpdate( event, tickcount )
 			gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
 		end
 		if(ml_task_hub.shouldRun) then
-			ffxivminion.CheckMode()
 			ffxivminion.CheckClass()
 		end
 		
@@ -95,20 +94,23 @@ function ffxivminion.HandleInit()
 			i,entry = next ( ffxivminion.modes,i)
 		end
 	end
-
+    
 	gBotMode_listitems = botModes
 	gBotMode = Settings.FFXIVMINION.gBotMode
 	ffxivminion.SetMode(gBotMode)
-	
+    
 	ml_debug("GUI Setup done")
 	GUI_SetStatusBar("Ready...")
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
-		if ( 	k == "gEnableLog" or 
-				k == "gFFXIVMINIONPulseTime" or
-				k == "gBotMode" )
+        if( k == "gBotMode" ) then
+            ffxivminion.CheckMode()
+        end
+		if (k == "gEnableLog" or 
+            k == "gFFXIVMINIONPulseTime" or
+            k == "gBotMode" )
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
@@ -117,8 +119,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxivminion.SetMode(mode)
-	ml_global_information.Reset()
-
 	local task = ffxivminion.modes[mode]
 	if (task ~= nil) then
 		ml_task_hub:Add(task:Create(), LONG_TERM_GOAL, TP_ASAP)
@@ -162,23 +162,8 @@ end
 
 function ml_global_information.Reset()
     --TODO: Figure out what state needs to be reset and add calls here
-    
 	ml_task_hub:ClearQueues()
-	
-	--wt_core_state_combat.StopCM()
-	--wt_core_taskmanager.ClearTasks()
-	--ml_global_information.CurrentMarkerList = nil
-	--ml_global_information.SelectedMarker = nil
-	--ml_global_information.AttackRange = 1200
-	--ml_global_information.MaxLootDistance = 4000
-	--ml_global_information.lastrun = 0
-	--ml_global_information.InventoryFull = 0
-	--wt_core_state_combat.target = 0
-	--ml_global_information.FocusTarget = nil
-	--gMapswitch = 0	
-	
-	--NavigationManager:SetTargetMapID(0)
-	--wt_core_controller.requestStateChange(wt_core_state_idle)
+    ffxivminion.CheckMode()
 end
 
 function ml_global_information.Stop()

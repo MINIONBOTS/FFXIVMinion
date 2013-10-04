@@ -7,6 +7,7 @@ mm.currentmapdata = {}
 mm.visible = false
 mm.lasttick = 0
 mm.mapID = 0
+mm.evacPoint = {}
 mm.MarkerList = 
 {
     ["grindSpot"] = {},
@@ -246,11 +247,11 @@ function mm.AddMarker(arg)
                     if (key == name) then
                         found = true
                         if (tag == markerType) then
-                            info = newInfo
                             if (mm.MarkerRenderList[key]) then
                                 RenderManager:RemoveObject(mm.MarkerRenderList[key])
                             end
                             mm.MarkerRenderList[key] = mm.DrawMarker( p, markerType )
+							list[key] = newInfo
 						else
                             ml_debug("This marker name cannot be used as it conflicts with another marker of a different type")
                         end
@@ -263,11 +264,11 @@ function mm.AddMarker(arg)
                 
                 -- First time we are creating this marker, so we create a new object to be drawn here
                 if ( list[key] == nil )	then
-                    d(key)
                     mm.MarkerRenderList[key] = mm.DrawMarker( p, markerType )
                 end
-                list[key] = newInfo
+				list[key] = newInfo
             end
+			
 		else
 			ml_debug("Must provide a name for marker")
 		end
@@ -318,7 +319,15 @@ function mm.ReadMarkerList(meshname)
             end
 			if ( tag == "MapID" ) then
 				mm.mapID = tonumber(key)
-			else
+			elseif (tag == "evacPoint") then
+                local posTable = {}
+				for coord in StringSplit(key,",") do
+					table.insert(posTable, tonumber(coord))
+				end
+                if (TableSize(posTable) == 3) then
+                    mm.evacPoint = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
+                end
+            else
 				-- handle second section (position)
 				local posTable = {}
 				for coord in StringSplit(sections[2],",") do
@@ -361,7 +370,12 @@ function mm.WriteMarkerList(meshname)
         ml_debug("Generating .info file..")
         local string2write = ""
 		-- Save the mapID first
-		string2write = string2write.."MapID="..Player.localmapid.."\n"	
+		string2write = string2write.."MapID="..Player.localmapid.."\n"
+        -- Write the evac point if it exists
+        if (mm.evacPoint ~= nil and mm.evacPoint ~= {}) then
+            local pos = mm.evacPoint
+            string2write = string2write.."evacPoint="..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z).."\n"
+        end
 		for tag, posList in pairs(mm.MarkerList) do  
 			if ( tag ~= "MapID") then
 				for key, pos in pairs(posList) do

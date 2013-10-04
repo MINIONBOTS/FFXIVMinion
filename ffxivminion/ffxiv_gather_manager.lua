@@ -107,7 +107,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
         local time = GatherMgr.GetMarkerTime(markerName)
 		
 		if(markerType == "miningSpot") then
-			if(data ~= nil and data ~= "") then
+			if(data ~= nil and data ~= {}) then
 				gMiningItem1 = data[1]
                 gMiningItem2 = data[2]
 			else
@@ -121,7 +121,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 				gMiningTime = 0
 			end
 		elseif(markerType == "botanySpot") then
-			if(data ~= nil and data ~= "") then
+			if(data ~= nil and data ~= {}) then
 				gBotanyItem1 = data[1]
                 gBotanyItem2 = data[2]
 			else
@@ -135,10 +135,10 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 				gBotanyTime = 0
 			end
 		elseif(markerType == "fishingSpot") then
-			if(data ~= nil and data ~= "") then
-				gFishingItem = data
+			if(data ~= nil and data ~= {}) then
+				gBaitName = data[1]
 			else
-				gFishingItem = "None"
+				gBaitName = "None"
 			end
 			
 			if(time ~= nil and time ~= "") then
@@ -163,7 +163,7 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
             data[2] = gBotanyItem2
 			time = tonumber(gBotanyTime)
         elseif (markerType == "fishingSpot") then
-            data = gFishingBait
+            data = {gBaitName}
 			time = tonumber(gFishingTime)
         end
         
@@ -177,22 +177,34 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
     return false
 end
 
-function GatherMgr.GetNextMarker(currentMarker, prevMarker)
+function GatherMgr.GetNextMarker(currentMarker, previousMarker)
 	local markerType
-	for tag, posList in pairs(mm.MarkerList) do
-		if posList[currentMarker] ~= nil then
-			markerType = tag
-		end
-	end
+    if (currentMarker ~= nil) then
+        for tag, posList in pairs(mm.MarkerList) do
+            if posList[currentMarker] ~= nil then
+                markerType = tag
+            end
+        end
+    else
+        if (Player.job == FFXIV.JOBS.BOTANIST) then
+            markerType = "botanySpot"
+        elseif (Player.job == FFXIV.JOBS.MINER) then
+            markerType = "miningSpot"
+        elseif (Player.job == FFXIV.JOBS.FISHER) then
+            markerType = "fishingSpot"
+        else
+            markerType = "grindSpot"
+        end
+    end
 	
 	local list = {}
 	
-	if not gChangeJobs then
-		list = mm.MarkerList[markerType]
-	else
-		for k,v in pairs(mm.MarkerList["miningSpot"]) do list[k] = v end
-		for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
-	end
+    if (markerType == "miningSpot" or markerType == "botanySpot" and gChangeJobs) then
+        for k,v in pairs(mm.MarkerList["miningSpot"]) do list[k] = v end
+        for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
+    else
+        list = mm.MarkerList[markerType]
+    end
 	
 	if (TableSize(list) == 0) then
 		return nil
@@ -213,6 +225,10 @@ function GatherMgr.GetNextMarker(currentMarker, prevMarker)
 		end
 	end
 	
+    -- thanks stefan
+    local currMarker = currentMarker or ""
+    local prevMarker = previousMarker or ""
+    
 	-- otherwise grab the next marker based on randomization or closest distance
 	local closestMarker = nil
 	local closestDistance = 99999999
@@ -220,15 +236,25 @@ function GatherMgr.GetNextMarker(currentMarker, prevMarker)
 		for name, marker in pairs(list) do
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, marker.x, marker.y, marker.z)
-			if (closestMarker == nil or distance < closestDistance and name ~= currentMarker and name ~= prevMarker) then
-				closestMarker = name
-				closestDistance = distance
+			if (closestMarker == nil or distance < closestDistance and name ~= currMarker and name ~= prevMarker) then
+                if  (markerType == "grindSpot" and ((Player.level >= marker.level - 5 and Player.level <= marker.level + 5) or gIgnoreGrindLvl == "1")) or
+                    (markerType == "fishingSpot" and ((Player.level >= marker.level - 5 and Player.level <= marker.level + 5) or gIgnoreFishLvl == "1")) or
+                    ((markerType == "botanySpot" or markerType == "miningSpot") and ((Player.level >= marker.level - 5 and Player.level <= marker.level + 5) or gIgnoreGatherLvl == "1"))
+				then
+					closestMarker = name
+					closestDistance = distance
+				end
 			end
 		end
 	else
-		local rnd = math.random(1,#list)
-		local newTable = table_invert(list)
-		closestMarker = list[newTable]
+		local rnd = math.random(1,TableSize(list))
+		local index = 1
+		for name,info in pairs(list) do
+			if rnd == index then
+				closestMarker = name
+			end
+			index = index + 1
+		end
 	end
 	
 	return closestMarker
@@ -267,7 +293,7 @@ function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
             GatherMgr.WriteMarkerInfo("miningSpot",gMiningSpot)
         elseif (k == "gBotanyItem1" or k == "gBotanyItem2" or k == "gBotanyTime") then
             GatherMgr.WriteMarkerInfo("botanySpot",gBotanySpot)
-        elseif (k == "gFishingBait" or k == "gFishingTime") then
+        elseif (k == "gBaitName" or k == "gFishingTime") then
             GatherMgr.WriteMarkerInfo("fishingSpot",gFishingSpot)
 		end
 	end

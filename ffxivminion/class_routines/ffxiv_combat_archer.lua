@@ -27,7 +27,7 @@ e_heavyshot = inheritsFrom( ml_effect )
 function c_heavyshot:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(ActionList:CanCast(97)) then
+        if(ActionList:CanCast(97,1)) then
             return true
         end
     end
@@ -35,7 +35,7 @@ function c_heavyshot:evaluate()
     return false
 end
 function e_heavyshot:execute()
-	local skill = ActionList:Get(97)
+	local skill = ActionList:Get(97,1)
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
@@ -56,7 +56,7 @@ function c_straightshot:evaluate()
 end
 
 function e_straightshot:execute()
-	local skill = ActionList:Get(98)
+	local skill = ActionList:Get(98,1)
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
@@ -77,7 +77,7 @@ function c_venomousbite:evaluate()
 end
 
 function e_venomousbite:execute()
-	local skill = ActionList:Get(100)
+	local skill = ActionList:Get(100,1)
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
@@ -92,7 +92,7 @@ e_miserysend = inheritsFrom( ml_effect )
 function c_miserysend:evaluate()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	if (target.hp.percent < 20) then
-		local skill = ActionList:Get(103)
+		local skill = ActionList:Get(103,1)
 		if (skill ~= nil and skill.cd == 0) then
 			return true
 		end
@@ -102,7 +102,7 @@ function c_miserysend:evaluate()
 end
 
 function e_miserysend:execute()
-	local skill = ActionList:Get(103)
+	local skill = ActionList:Get(103,1)
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
@@ -114,7 +114,7 @@ end
 c_ragingstrikes = inheritsFrom( ml_cause )
 e_ragingstrikes = inheritsFrom( ml_effect )
 function c_ragingstrikes:evaluate()
-	local skill = ActionList:Get(101)
+	local skill = ActionList:Get(101,1)
 	if (skill ~= nil and skill.cd == 0) then
 		if (not HasBuff(Player.id, 125)) then
 			return true
@@ -125,7 +125,7 @@ function c_ragingstrikes:evaluate()
 end
 
 function e_ragingstrikes:execute()
-	local skill = ActionList:Get(101)
+	local skill = ActionList:Get(101,1)
 	if (skill ~= nil and skill.cd == 0) then
 		skill:Cast()
 		ml_task_hub:CurrentTask().prevSkillID = 101
