@@ -2,7 +2,7 @@ ml_global_information = {}
 --ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
-ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=400, height=600 }
+ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=300, height=600 }
 ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
 ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
 ml_global_information.CurrentClass = nil
@@ -130,15 +130,25 @@ function ffxivminion.CheckClass()
 	{
 		[FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
 		[FFXIV.JOBS.ARCHER]			= ffxiv_combat_archer,
+		[FFXIV.JOBS.BARD]			= ffxiv_combat_bard,
+		[FFXIV.JOBS.BLACKMAGE]		= ffxiv_combat_blackmage,
 		[FFXIV.JOBS.CONJURER]		= ffxiv_combat_conjurer,
+		[FFXIV.JOBS.DRAGOON]		= ffxiv_combat_dragoon,
 		[FFXIV.JOBS.GLADIATOR] 		= ffxiv_combat_gladiator,
 		[FFXIV.JOBS.LANCER]			= ffxiv_combat_lancer,
 		[FFXIV.JOBS.MARAUDER] 		= ffxiv_combat_marauder,
+		[FFXIV.JOBS.MONK] 			= ffxiv_combat_monk,
+		[FFXIV.JOBS.PALADIN] 		= ffxiv_combat_paladin,
 		[FFXIV.JOBS.PUGILIST] 		= ffxiv_combat_pugilist,
+		[FFXIV.JOBS.SCHOLAR] 		= ffxiv_combat_scholar,
+		[FFXIV.JOBS.SUMMONER] 		= ffxiv_combat_summoner,
 		[FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
+		[FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
+		[FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
 		[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
 		[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
 		[FFXIV.JOBS.MINER] 			= ffxiv_gather_miner
+		
 	}
 	
 	--TODO check which class we are currently using and modify globals appropriately
