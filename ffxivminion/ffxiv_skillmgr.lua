@@ -570,17 +570,19 @@ function SkillMgr.Cast( target )
 		if ( TID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
-				if ( skill.used == "1" ) then			
-					if (ActionList:CanCast(skill.id,TID)) then-- takes care of los, range, facing target and valid target
+				if ( skill.used == "1" ) then				
+					--if (ActionList:CanCast(skill.id,TID)) then-- takes care of los, range, facing target and valid target
+					
 						local realskilldata = ActionList:Get(skill.id)
-						if ( realskilldata ) then
+						if ( realskilldata and realskilldata.isready) then
+						
 							local castable = true
 							--COOLDOWN 
 							if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
 							
-							-- soft cooldown for compensating the delay between spell cast and buff applies on target)							
+							-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 							if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*100 + 1000)) then castable = false end
-
+							
 							-- RANGE + HEALTH						
 							if ( castable and (
 									   (skill.minRange > 0 and target.distance < skill.minRange)
@@ -645,14 +647,15 @@ function SkillMgr.Cast( target )
 							end
 							
 							if ( castable ) then
-								--d("CASTING : "..tostring(skill.name))
-								skill.lastcast = ml_global_information.Now
-								ActionList:Cast(skill.id,TID)
-								SkillMgr.prevSkillID = tostring(skill.id)
+								d("CASTING : "..tostring(skill.name))								
+								if ( ActionList:Cast(skill.id,TID) ) then
+									skill.lastcast = ml_global_information.Now
+									SkillMgr.prevSkillID = tostring(skill.id)
+								end
 								return true
 							end
 						end
-					end			
+					--end			
 				end
 			end
 		end
@@ -684,7 +687,7 @@ end
 
 function ffxiv_task_skillmgrAttack:Process()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-	if (target ~= nil and target.alive) then
+	if (target ~= nil and target.alive and InCombatRange(target.id)) then
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
 		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
@@ -693,13 +696,9 @@ function ffxiv_task_skillmgrAttack:Process()
 		if (Player.hp.percent < 70 )then
 			cast = SkillMgr.Cast( Player )
 		end
-		if not cast then
+		if not cast then			
 			SkillMgr.Cast( target )
-		end
-		if ( not cast ) then
-			self.targetid = 0
-			self.completed = true
-		end
+		end		
 	else
 		self.targetid = 0
 		self.completed = true
@@ -755,12 +754,10 @@ end
 
 function ffxiv_task_skillmgrHeal:Process()
 	local target = Player
-	if (target ~= nil and target.alive and target.hp.percent < 95) then
+	if (target ~= nil and target.alive and target.hp.percent < 95 and InCombatRange(target.id)) then
 		
-		if ( not SkillMgr.Cast( target )) then
-			self.targetid = 0
-			self.completed = true
-		end		
+		SkillMgr.Cast( target )
+		
 	else
 		self.targetid = 0
 		self.completed = true

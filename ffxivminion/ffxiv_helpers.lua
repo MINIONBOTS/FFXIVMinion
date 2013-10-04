@@ -148,7 +148,8 @@ end
 function InCombatRange(targetid)
     local target = EntityList:Get(targetid)
     if (target == nil or target == {}) then
-        return false
+        d("InCombatRange NO TARGET")
+		return false
     end
     
 	local testSkills =
@@ -168,29 +169,15 @@ function InCombatRange(targetid)
 		-- You can't check for skill.range > target.distance...this will make melee characters look really stupid
 		-- because they run right up underneath larger monsters. You have to account for hitradius which can be 
 		-- very large for big mobs.
-		return ActionList:CanCast(testSkills[Player.job],tonumber(target.id))
+		
+		--[[if ( skill.range > 10 ) then
+			return skill.range > target.distance
+		else		
+			return skill.range > (target.distance - target.hitradius)
+		end]]
+		
+		return ActionList:CanCast(testSkills[Player.job],target.id)
 	end
 	
 	return false
-end
-
-function GetCombatRange()
-	local testSkills =
-	{
-		[FFXIV.JOBS.ARCANIST] 		= 163,
-		[FFXIV.JOBS.ARCHER]			= 97,
-		[FFXIV.JOBS.CONJURER]		= 119,
-		[FFXIV.JOBS.GLADIATOR] 		= 9,
-		[FFXIV.JOBS.LANCER]			= 75,
-		[FFXIV.JOBS.MARAUDER] 		= 31,
-		[FFXIV.JOBS.PUGILIST] 		= 53,
-		[FFXIV.JOBS.THAUMATURGE] 	= 142,
-	}
-	-- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
-	local skill = ActionList:Get(testSkills[Player.job])
-	if ( skill )then
-		return skill.range or 2
-	else
-		return 2 --failchecklol
-	end
 end
