@@ -89,6 +89,11 @@ end
 c_nextmarker = inheritsFrom( ml_cause )
 e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
+	local list = Player:GetGatherableSlotList()
+	if (list ~= nil) then
+		return false
+	end
+	
 	if ( gGMactive == "1" and ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= {}) then
         local marker = nil
         if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
