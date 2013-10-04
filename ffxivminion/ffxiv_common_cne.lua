@@ -266,7 +266,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.throttle = 1000
 function c_flee:evaluate()
-    if (Player.hasaggro and Player.hp.percent < 50 or e_flee.fleeing) then
+    if (ffxiv_task_grind.evacPoint ~= nil and Player.hasaggro and Player.hp.percent < 50 or e_flee.fleeing) then
         return true
 	end
     
