@@ -237,7 +237,13 @@ function mm.AddMarker(arg)
 	if(Player.onmesh) then
         if (gMarkerName ~= "") then
             local p = Player.pos
-            local newInfo = { x=string.format("%.2f", p.x), y=string.format("%.2f", p.y), z=string.format("%.2f", p.z), h=string.format("%.3f", p.h), level=tostring(gMarkerLevel), time="0", data=markerData }
+            local newInfo = { 	x=tonumber(string.format("%.2f", p.x)), 
+								y=tonumber(string.format("%.2f", p.y)), 
+								z=tonumber(string.format("%.2f", p.z)), 
+								h=tonumber(string.format("%.3f", p.h)), 
+								level=gMarkerLevel, 
+								time=0, 
+								data=markerData }
             local key = gMarkerName
             local found = false
             

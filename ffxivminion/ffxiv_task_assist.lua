@@ -53,7 +53,7 @@ c_validtarget = inheritsFrom( ml_cause )
 e_validtarget = inheritsFrom( ml_effect )
 function c_validtarget:evaluate()
 	local target = Player:GetTarget()
-	if 	(target == nil or target == {} or not target.attackable or target.distance > ml_global_information.AttackRange + target.hitradius  or 
+	if 	(target == nil or target == {} or not target.attackable or not InCombatRange(target.id)  or 
 		(target.id ~= ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0))
 	then
 		return true
@@ -62,9 +62,7 @@ function c_validtarget:evaluate()
     return false
 end
 function e_validtarget:execute()
-	ml_task_hub:CurrentTask().targetid = 0
-	ml_task_hub:CurrentTask():Terminate()
-	ml_task_hub:CurrentTask().completed = true
+	ml_task_hub.queues[3].rootTask:DeleteSubTasks()
 end
 
 function ffxiv_task_assist:Init()

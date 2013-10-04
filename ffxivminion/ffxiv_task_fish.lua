@@ -108,7 +108,7 @@ function ffxiv_task_fish:Init()
     local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
 	self:add(ke_setbait, self.process_elements)
     
-    --nextmarker defined in ffxiv_gather_manager.lua
+    --nextmarker defined in ffxiv_task_gather.lua
     local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
 	self:add( ke_nextMarker, self.process_elements)
     
