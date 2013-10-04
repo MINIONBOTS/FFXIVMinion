@@ -29,7 +29,7 @@ e_heavyswing = inheritsFrom( ml_effect )
 function c_heavyswing:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(Skillbar:CanCast(FFXIVMINION.SKILLS.HEAVYSWING)) then
+        if(ActionList:CanCast(FFXIVMINION.SKILLS.HEAVYSWING)) then
             return true
         end
     end
@@ -40,10 +40,10 @@ function e_heavyswing:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.HEAVYSWING)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.HEAVYSWING)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.HEAVYSWING
                     ml_task_hub:CurrentTask().newRotation = false
                 end
@@ -58,7 +58,7 @@ e_skullsunder = inheritsFrom( ml_effect )
 function c_skullsunder:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.SKULLSUNDER) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.SKULLSUNDER].level) then
-			if(Skillbar:CanCast(FFXIVMINION.SKILLS.SKULLSUNDER)) then
+			if(ActionList:CanCast(FFXIVMINION.SKILLS.SKULLSUNDER)) then
 				return true
 			end
 		end
@@ -70,10 +70,10 @@ function e_skullsunder:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.SKULLSUNDER)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.SKULLSUNDER)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.SKULLSUNDER
                 end
             end
@@ -86,7 +86,7 @@ e_fracture = inheritsFrom( ml_effect )
 function c_fracture:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.FRACTURE].level) then
         if(ml_task_hub:CurrentTask().prevSkillID ~= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.FRACTURE]) then
-            if(Skillbar:CanCast(FFXIVMINION.SKILLS.FRACTURE)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.FRACTURE)) then
                 return true
             end
         end
@@ -98,10 +98,10 @@ function e_fracture:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.FRACTURE)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.FRACTURE)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.FRACTURE
                 end
             end
@@ -114,7 +114,7 @@ e_overpower = inheritsFrom( ml_effect )
 function c_overpower:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.OVERPOWER) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.OVERPOWER].level) then
-			if(Skillbar:CanCast(FFXIVMINION.SKILLS.OVERPOWER)) then
+			if(ActionList:CanCast(FFXIVMINION.SKILLS.OVERPOWER)) then
 				return true
 			end
 		end
@@ -126,10 +126,10 @@ function e_overpower:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.OVERPOWER)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.OVERPOWER)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.OVERPOWER
                 end
             end
@@ -143,7 +143,7 @@ e_maim = inheritsFrom( ml_effect )
 function c_maim:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.MAIM].level) then
         if(ml_task_hub:CurrentTask().prevSkillID ~= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.MAIM]) then
-            if(Skillbar:CanCast(FFXIVMINION.SKILLS.MAIM)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.MAIM)) then
                 return true
             end
         end
@@ -155,10 +155,10 @@ function e_maim:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.MAIM)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.MAIM)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.MAIM
                 end
             end
@@ -171,7 +171,7 @@ e_brutalswing = inheritsFrom( ml_effect )
 function c_brutalswing:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.BRUTALSWING].level) then
         if(ml_task_hub:CurrentTask().prevSkillID == ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.BRUTALSWING]) then
-            if(Skillbar:CanCast(FFXIVMINION.SKILLS.BRUTALSWING)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.BRUTALSWING)) then
                 return true
             end
         end
@@ -183,10 +183,10 @@ function e_brutalswing:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.BRUTALSWING)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.BRUTALSWING)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                     ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.BRUTALSWING
 					if(Player.level < 35) then
                         ml_task_hub:CurrentTask().newRotation = true

@@ -126,7 +126,7 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
 			if (not levelCheck or (levelCheck and (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel)))) then
-				if (not meshCheck or (meshCheck and NavigationManager:IsOnMesh(fate.x, fate.y, fate.z))) then
+				if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({fate.x, fate.y, fate.z})<=3)) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then
 						nearestFate = fate
@@ -170,13 +170,14 @@ function InCombatRange(targetid)
 		-- because they run right up underneath larger monsters. You have to account for hitradius which can be 
 		-- very large for big mobs.
 		
-		--[[if ( skill.range > 10 ) then
-			return skill.range > target.distance
-		else		
-			return skill.range > (target.distance - target.hitradius)
-		end]]
-		
-		return ActionList:CanCast(testSkills[Player.job],target.id)
+		-- fix for melee chars hopping behind an enemy that runs away?
+		if ( ActionList:CanCast(testSkills[Player.job],target.id) ) then
+			if ( skill.range < 5 or skill.range == 255) then  -- 255 is -1 , melee weapons need a fix I guess, they show -1
+				return (target.distance - target.hitradius) < 3
+			else
+				return true
+			end
+		end				
 	end
 	
 	return false

@@ -256,9 +256,9 @@ end
 function Dev.FishTask()
 	local fs = tonumber(Player:GetFishingState())
 	if ( fs == 0 or fs == 4 ) then -- FISHSTATE_NONE or FISHSTATE_POLEREADY
-		ActionList:Cast(289) --fish skillid 2 
+		ActionList:Cast(289,0) --fish skillid 2 
 	elseif( fs == 5 ) then -- FISHSTATE_BITE
-		ActionList:Cast(296) -- Hook, skill 3   (129 is some other hook skillid ??	
+		ActionList:Cast(296,0) -- Hook, skill 3   (129 is some other hook skillid ??	
 	end
 end
 
@@ -320,7 +320,7 @@ function Dev.UpdateWindow()
 		if ( el ) then
 			i,mytarget = next (el)
 			if ( i and mytarget ) then
-				Player:SetTarget(i)
+				--Player:SetTarget(i)
 				TargetPtr = string.format( "%x",tonumber(mytarget.ptr ))
 				TargetID = mytarget.id
 				TargetContentID = mytarget.contentid

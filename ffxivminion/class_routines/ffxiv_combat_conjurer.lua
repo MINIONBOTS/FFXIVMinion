@@ -27,7 +27,7 @@ end
 c_cure = inheritsFrom( ml_cause )
 e_cure = inheritsFrom( ml_effect )
 function c_cure:evaluate()
-    if(Player.hp.percent < 50 and Skillbar:CanCast(FFXIVMINION.SKILLS.CURE,Player.id)) then
+    if(Player.hp.percent < 50 and ActionList:CanCast(FFXIVMINION.SKILLS.CURE,Player.id)) then
 		return true
     end
     return false
@@ -36,10 +36,10 @@ function e_cure:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub:CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.CURE)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.CURE)
             if (skill ~= nil) then
                 if (skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(0)
                 end
             end
 		end
@@ -58,10 +58,10 @@ function c_buffs:evaluate()
 end
 
 function e_buffs:execute()
-	local skill = Skillbar:Get(FFXIVMINION.SKILLS.PROTECT)
+	local skill = ActionList:Get(FFXIVMINION.SKILLS.PROTECT)
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
-			skill:Cast()
+			skill:Cast(0)
 		end
 	end
 end
@@ -69,7 +69,7 @@ end
 c_stone = inheritsFrom( ml_cause )
 e_stone = inheritsFrom( ml_effect )
 function c_stone:evaluate()
-	if(Skillbar:CanCast(FFXIVMINION.SKILLS.STONE,ml_task_hub:CurrentTask().targetid)) then
+	if(ActionList:CanCast(FFXIVMINION.SKILLS.STONE,ml_task_hub:CurrentTask().targetid)) then
 		return true
 	end
     return false
@@ -78,10 +78,10 @@ function e_stone:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.STONE)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.STONE)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(0)
                 end
             end
 		end
@@ -92,7 +92,7 @@ c_aero = inheritsFrom( ml_cause )
 e_aero = inheritsFrom( ml_effect )
 function c_aero:evaluate()
 	local t = ml_task_hub:CurrentTask().targetid
-	if(Skillbar:CanCast(FFXIVMINION.SKILLS.AERO,t) and not HasBuffFrom(t,FFXIVMINION.BUFFS.AERO,Player.id)) then
+	if(ActionList:CanCast(FFXIVMINION.SKILLS.AERO,t) and not HasBuffFrom(t,FFXIVMINION.BUFFS.AERO,Player.id)) then
 		return true
 	end
     return false
@@ -102,10 +102,10 @@ function e_aero:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
 		if t.id == ml_task_hub.CurrentTask().targetid then
-			local skill = Skillbar:Get(FFXIVMINION.SKILLS.AERO)
+			local skill = ActionList:Get(FFXIVMINION.SKILLS.AERO)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
-                    skill:Cast()
+                    skill:Cast(t.id)
                 end
             end
 		end
