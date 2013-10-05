@@ -577,7 +577,6 @@ function SkillMgr.Cast( target )
 					
 					local realskilldata = ActionList:Get(skill.id)
 					if ( realskilldata and realskilldata.isready ) then 
-					d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
 						
 						local castable = true
 						--COOLDOWN													
@@ -653,13 +652,13 @@ function SkillMgr.Cast( target )
 						if ( castable ) then
 							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target
-								d("CASTING(attack) : "..tostring(skill.name) .." on "..tostring(target.name))								
+								--d("CASTING(attack) : "..tostring(skill.name) .." on "..tostring(target.name))								
 								if ( ActionList:Cast(skill.id,TID) ) then									
 									skill.lastcast = ml_global_information.Now
 									SkillMgr.prevSkillID = tostring(skill.id)
 								end
 							elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
-								d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))								
+								--d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))								
 								if ( ActionList:Cast(skill.id,PID) ) then									
 									skill.lastcast = ml_global_information.Now
 									SkillMgr.prevSkillID = tostring(skill.id)

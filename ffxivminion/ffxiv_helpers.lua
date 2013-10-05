@@ -126,7 +126,9 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
 			if (not levelCheck or (levelCheck and (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel)))) then
-				if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({fate.x, fate.y, fate.z})<=3)) then
+				--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
+				-- dirty fix for and fate.x != 0 for now, we need to fix that GetPointToMeshDistance on our side ...
+				if (not meshCheck or (meshCheck and tonumber(fate.x)~= nil and tonumber(fate.x) > 0 and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=3)) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then
 						nearestFate = fate
@@ -156,13 +158,23 @@ function InCombatRange(targetid)
 	{
 		[FFXIV.JOBS.ARCANIST] 		= 163,
 		[FFXIV.JOBS.ARCHER]			= 97,
+		[FFXIV.JOBS.BARD]			= 97,
+		[FFXIV.JOBS.BLACKMAGE]		= 142,
 		[FFXIV.JOBS.CONJURER]		= 119,
+		[FFXIV.JOBS.DRAGOON]		= 75,
 		[FFXIV.JOBS.GLADIATOR] 		= 9,
 		[FFXIV.JOBS.LANCER]			= 75,
 		[FFXIV.JOBS.MARAUDER] 		= 31,
+		[FFXIV.JOBS.MONK] 			= 53,
+		[FFXIV.JOBS.PALADIN] 		= 9,
 		[FFXIV.JOBS.PUGILIST] 		= 53,
+		[FFXIV.JOBS.SCHOLAR] 		= 163,
+		[FFXIV.JOBS.SUMMONER] 		= 163,
 		[FFXIV.JOBS.THAUMATURGE] 	= 142,
+		[FFXIV.JOBS.WARRIOR] 	 	= 31,
+		[FFXIV.JOBS.WHITEMAGE] 	 	= 119,
 	}
+	
 	-- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
 	local skill = ActionList:Get(testSkills[Player.job])
 	if ( skill )then
