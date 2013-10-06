@@ -18,6 +18,7 @@ function ffxiv_task_gather:Create()
 	newinst.markerTime = 0
 	newinst.currentMarker = false
 	newinst.previousMarker = false
+	newinst.gatherTimer = 0
 	
     return newinst
 end
@@ -63,6 +64,10 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
+	if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) < 3 ) then
+		return false
+	end
+	
 	if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
 		local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
 		if (gatherable ~= nil and gatherable.distance > 3) then
@@ -173,6 +178,7 @@ function e_gather:execute()
 					for i, item in pairs(list) do
 						if item.name == markerData[1] or item.name == markerData[2] then
 							Player:Gather(item.index)
+							ml_task_hub:CurrentTask().gatherTimer = os.time()
 							return
 						end
 					end
@@ -184,6 +190,7 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if item.chance > 50 then
 				Player:Gather(item.index)
+				ml_task_hub:CurrentTask().gatherTimer = os.time()
                 return
 			end
 		end
