@@ -62,6 +62,13 @@ function c_validtarget:evaluate()
     return false
 end
 function e_validtarget:execute()
+	local target = Player:GetTarget()
+	if (target ~= nil and target ~= {}) then
+		ml_task_hub:CurrentTask().targetid = target.id
+	else
+		ml_task_hub:CurrentTask().targetid = 0
+	end
+	
 	ml_task_hub.queues[3].rootTask:DeleteSubTasks()
 end
 
