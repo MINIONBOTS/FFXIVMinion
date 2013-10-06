@@ -633,6 +633,40 @@ function SkillMgr.Cast( target )
 								end
 								if tbfound then castable = false end								
 							end							
+						end
+						
+						-- PLAYER BUFFS
+						if ( castable and TableSize(pbuffs) > 0) then 							
+							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
+							if (skill.pbuff ~= "" ) then								
+								local tbfound = false
+								for buffid in StringSplit(skill.pbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(pbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if not tbfound then castable = false end								
+							end
+							-- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
+							if (skill.pnbuff ~= "" ) then
+								local tbfound = false
+								for buffid in StringSplit(skill.pnbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(pbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if tbfound then castable = false end								
+							end							
 						end	
 						
 						-- TARGET AE CHECK

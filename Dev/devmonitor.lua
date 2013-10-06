@@ -36,8 +36,8 @@ function Dev.ModuleInit()
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
-	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands");
-	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
+	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting");
+	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","0","999");		
 	GUI_NewField("Dev","Name","sbname","ActionListInfo")
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
 	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
@@ -181,6 +181,14 @@ function Dev.ModuleInit()
 	RegisterEventHandler("Dev.Gather", Dev.Func)
 	gaidx = 1
 	
+	-- Crafting
+	GUI_NewField("Dev","CraftingLogOpen","cropen","CraftingInfo")
+	GUI_NewField("Dev","CanCraftSelectedItem","crcan","CraftingInfo")
+	GUI_NewButton("Dev","ToggleCraftingLog","Dev.CraftLog","CraftingInfo")
+	RegisterEventHandler("Dev.CraftLog", Dev.Func)
+	GUI_NewButton("Dev","CraftSelectedItem","Dev.Craft","CraftingInfo")
+	RegisterEventHandler("Dev.Craft", Dev.Func)
+	
 	-- Respawn_Teleportinfo
 	GUI_NewField("Dev","RespawnState","resState","Respawn_Teleportinfo")
 	GUI_NewButton("Dev","Respawn","Dev.Rezz","Respawn_Teleportinfo")
@@ -250,6 +258,10 @@ function Dev.Func ( arg )
 		d(Player:Gather(tonumber(gaindex)))
 	elseif ( arg == "Dev.Cast" ) then
 		sbpendingcast = true
+	elseif ( arg == "Dev.Craft" ) then
+		Dev.curTask = Dev.CraftTask	
+	elseif ( arg == "Dev.CraftLog" ) then	
+		Crafting:ToggleCraftingLog()	
 	end
 end
 
@@ -262,6 +274,30 @@ function Dev.FishTask()
 	end
 end
 
+Dev.Crafttmr = 0
+function Dev.CraftTask()
+	local synth = Crafting:SynthInfo()
+	if ( synth ) then
+		d("Using Skill...")
+		local job = Player.job
+		if ( job == 14 ) then
+			ActionList:Cast(100090,0)
+		else
+			ActionList:Cast(100105,0)
+		end
+		Dev.lastticks = Dev.lastticks + 1000
+	else
+		if (not Crafting:IsCraftingLogOpen()) then
+			Crafting:ToggleCraftingLog()
+		else
+			d("Crafting Item...")
+			Crafting:CraftSelectedItem()
+			Crafting:ToggleCraftingLog()
+			Dev.lastticks = Dev.lastticks + 3000
+		end
+	end	
+end
+
 function Dev.Test1()
 	--d("Test1..")
 	--local p = Player.pos
@@ -270,12 +306,7 @@ function Dev.Test1()
 	--local bb=MeshManager:AddVertex({x=p.x+2,y=p.z,z=p.y+2})
 	--local cc=MeshManager:AddVertex({x=p.x-2,y=p.z,z=p.y+1})	
 	--d(MeshManager:AddTriangle({a=aa,b=bb,c=cc}))
-	d("TableSize: "..tostring(TableSize(mm.MarkerList)))
-	for tag, posList in pairs(mm.MarkerList) do 
-		for key, pos in pairs(posList) do	
-			d(tostring(tag).." "..tostring(key).." "..tostring(pos)	)
-		end	
-	end
+	crcan = Crafting:CraftSelectedItem()
 end
 
 function Dev.Test2()
@@ -363,6 +394,8 @@ function Dev.UpdateWindow()
 		spelllist = ActionList("type=5")	
 	elseif  sbSelHotbar == "Maincommands"  then
 		spelllist = ActionList("type=10")	
+	elseif  sbSelHotbar == "Crafting"  then
+		spelllist = ActionList("type=9")
 	end
 		
 	
@@ -614,6 +647,11 @@ function Dev.UpdateWindow()
 	
 	-- Respawn n Teleportinfo
 	resState = tostring(Player.revivestate)
+	
+	-- CraftingInfo
+	cropen = tostring(Crafting:IsCraftingLogOpen())
+	--crcan = tostring(Crafting:CanCraftSelectedItem())
+	
 end
 
 function Dev.DoTask()
