@@ -13,7 +13,9 @@ function ffxiv_gather_botanist:Create()
     
     --ffxiv_gather_botanist members
     newinst.name = "BOTANIST"
-    
+    newinst.range = 3
+	newinst.targetid = 0
+	
     return newinst
 end
 

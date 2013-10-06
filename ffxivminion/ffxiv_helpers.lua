@@ -30,6 +30,19 @@ function GetNearestFateAttackable()
 	return nil
 end
 
+function GetNearestAggro()
+    local el = EntityList("nearest,alive,attackable,onmesh,aggro")
+    if ( el ) then
+        local i,e = next(el)
+        if (i~=nil and e~=nil) then
+            return e
+        end
+    end
+    
+	ml_debug("GetNearestAggro() failed with no entity found matching params")
+	return nil
+end
+
 function GetNearestGatherable()
 	local el = EntityList("nearest,onmesh,gatherable")
 	if ( el ) then
@@ -184,7 +197,7 @@ function InCombatRange(targetid)
 		
 		-- fix for melee chars hopping behind an enemy that runs away?
 		if ( ActionList:CanCast(testSkills[Player.job],target.id) ) then
-			if ( skill.range < 5 or skill.range == 255) then  -- 255 is -1 , melee weapons need a fix I guess, they show -1
+			if ( ml_global_information.AttackRange < 5) then  -- 255 is -1 , melee weapons need a fix I guess, they show -1
 				return (target.distance - target.hitradius) < 3
 			else
 				return true

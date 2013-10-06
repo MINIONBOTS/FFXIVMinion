@@ -365,6 +365,7 @@ GatherMgr.MiningItems =
     "Grade 2 Carbonized Matter",    -- = "id",
     "Green Pigment",                -- = "id",
 	"Green Quartz",					-- = "id",
+	"Grenade Ash",					-- = "id",
     "Grey Pigment",                 -- = "id",
 	"Garnet",						-- = "id",
 	"Goshenite",					-- = "id",

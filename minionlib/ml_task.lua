@@ -11,6 +11,7 @@ ml_task.subtask = nil
 ml_task.auxiliary = false
 ml_task.process_elements = {}
 ml_task.overwatch_elements = {}
+ml_task.breakUpdate = false
 
 -- These functions are NOT overwritten in derived tasks
 
@@ -60,9 +61,12 @@ function ml_task:Update()
         local taskRet = nil
 		
 		if(self:ProcessOverWatch()) then
-			--ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
-			--if process overwatch executed an effect then break the current loop
-			--break
+				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
+				--process overwatch element requested to break update loop
+				if (self.subtask ~= nil) then
+					self:DeleteSubTasks()
+				end
+				break
 		end
 		
         if ( self.subtask ~= nil ) then

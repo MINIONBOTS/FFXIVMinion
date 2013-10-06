@@ -7,7 +7,7 @@ ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Even
 ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
-ml_global_information.AttackRange = 4
+ml_global_information.AttackRange = 2
 ml_global_information.TaskUIInit = false
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -126,6 +126,7 @@ function ffxivminion.SetMode(mode)
 end
 
 function ffxivminion.CheckClass()
+	ml_debug("enter check class")
 	local classes = 
 	{
 		[FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
@@ -157,6 +158,7 @@ function ffxivminion.CheckClass()
 		ml_global_information.CurrentClassID = Player.job
 		ml_global_information.AttackRange = ml_global_information.CurrentClass.range
 	end
+	ml_debug("leave check class")
 end
 
 function ffxivminion.CheckMode()

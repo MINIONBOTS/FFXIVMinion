@@ -111,6 +111,9 @@ function ffxiv_task_fish:Init()
     --nextmarker defined in ffxiv_task_gather.lua
     local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
 	self:add( ke_nextMarker, self.process_elements)
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+	self:add( ke_returnToMarker, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

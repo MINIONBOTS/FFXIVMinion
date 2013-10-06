@@ -35,20 +35,28 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
 	self:add( ke_flee, self.overwatch_elements)
 	
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 10 )
-	self:add( ke_rest, self.overwatch_elements)
-	
-	
     --init Process() cnes
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 20 )
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 25 )
 	self:add(ke_addFate, self.process_elements)
 
-	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 10 )
+	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
 	self:add(ke_addKillTarget, self.process_elements)
    
     --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 15 )
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
 	self:add( ke_nextMarker, self.process_elements)
+    
+    local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
+	self:add(ke_fateWait, self.process_elements)
+	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 30 )
+	self:add( ke_rest, self.process_elements)
+	
+	local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
+	--self:add(ke_mobAggro, self.process_elements)
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+	self:add( ke_returnToMarker, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
@@ -71,7 +79,10 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gFatesOnly" or
                 k == "gIgnoreGrindLvl" or
                 k == "gMinFateLevel" or
-                k == "gMaxFateLevel" )
+                k == "gMaxFateLevel" or 
+				k == "gRestHP" or
+				k == "gRestMP" or
+				k == "gFleeHP" )
         then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end
@@ -92,8 +103,11 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Fates Only", "gFatesOnly","Grind")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxFateLvl: +", "gMaxFateLevel", "Grind")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinFateLvl: -", "gMinFateLevel", "Grind")
-	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Rest HP%: ", "gRestHP", "Grind", "0", "100")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Rest MP%: ", "gRestMP", "Grind", "0", "100")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Flee HP%: ", "gFleeHP", "Grind", "0", "100")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreGrindLvl","Grind")
+	GUI_NewButton(ml_global_information.MainWindow.Name, "SetEvacPoint", "setEvacPointEvent","Grind")
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
 	if (Settings.FFXIVMINION.gDoFates == nil) then
@@ -116,12 +130,27 @@ function ffxiv_task_grind.UIInit()
 		Settings.FFXIVMINION.gIgnoreGrindLvl = "0"
 	end
 	
+	if (Settings.FFXIVMINION.gRestHP == nil) then
+		Settings.FFXIVMINION.gRestHP = "70"
+	end
+	
+	if (Settings.FFXIVMINION.gRestMP == nil) then
+		Settings.FFXIVMINION.gRestMP = "0"
+	end
+	
+	if (Settings.FFXIVMINION.gFleeHP == nil) then
+		Settings.FFXIVMINION.gFleeHP = "50"
+	end
+	
 	gDoFates = Settings.FFXIVMINION.gDoFates
 	gFatesOnly = Settings.FFXIVMINION.gFatesOnly
 	gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
 	gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
 	ffxiv_task_grind.evacPoint = Settings.FFXIVMINION.evacPoint
     gIgnoreGrindLvl = Settings.FFXIVMINION.gIgnoreGrindLvl
+	gRestHP = Settings.FFXIVMINION.gRestHP
+	gRestMP = Settings.FFXIVMINION.gRestMP
+	gFleeHP = Settings.FFXIVMINION.gFleeHP
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
 	RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)

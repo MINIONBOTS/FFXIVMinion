@@ -90,17 +90,30 @@ end
 c_nextmarker = inheritsFrom( ml_cause )
 e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
-	local list = Player:GetGatherableSlotList()
-	if (list ~= nil) then
+	-- this function (along with the marker manager stuff in general) needs a major refactor
+	-- for the purposes of beta I'm just doing all the marker checking shit for all modes here
+	if ((gBotMode == "Gather" or gBotMode == "Fish") and gGMactive == "0") or
+	   (gBotMode == "Grind" and gDoFates == "1" and gFatesOnly == "1")
+	then
 		return false
 	end
 	
-	if ( gGMactive == "1" and ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= {}) then
+	if gBotMode == "Gather" then
+		local list = Player:GetGatherableSlotList()
+		if (list ~= nil) then
+			return false
+		end
+	end
+	
+	if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= {}) then
         local marker = nil
         if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
             marker = GatherMgr.GetNextMarker(nil, nil)
         else
             local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+			if gBotMode == "Grind" then
+				time = math.random(1800,3600)
+			end
             if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else
@@ -137,16 +150,6 @@ function e_nextmarker:execute()
 			--change job
 		end
 	end
-	
-	local newTask = ffxiv_task_movetopos:Create()
-	newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
-	newTask.range = 3
-    if (markerType == "fishingSpot") then
-        newTask.pos.h = markerInfo.h
-        newTask.range = 1.5
-        newTask.doFacing = true
-    end
-	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
 c_gather = inheritsFrom( ml_cause )
@@ -166,10 +169,12 @@ function e_gather:execute()
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
-				for i, item in pairs(list) do
-					if item.name == markerData[1] or item.name == markerData[2] then
-						Player:Gather(item.index)
-						return
+				if (markerData ~= nil and markerData ~= {}) then
+					for i, item in pairs(list) do
+						if item.name == markerData[1] or item.name == markerData[2] then
+							Player:Gather(item.index)
+							return
+						end
 					end
 				end
 			end
@@ -184,13 +189,11 @@ function e_gather:execute()
 		end
     else
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-        Player:Interact(node.id)
-        
-        -- little hack here to resync if we teleported...hopefully remove it later
-        --if (gGatherTP == "1") then
-		--	local Skill = 
-        --   ActionList:Cast(JUMP)
-        --end
+		Player:Interact(node.id)
+
+        if (gGatherTP == "1") then
+			Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
+        end
     end
 end
 
@@ -238,6 +241,9 @@ function ffxiv_task_gather:Init()
     
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
 	self:add( ke_nextMarker, self.process_elements)
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+	self:add( ke_returnToMarker, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -310,8 +316,8 @@ function ffxiv_task_gather.UIInit()
 		Settings.FFXIVMINION.gIgnoreGatherLvl = "1"
 	end
 	
-	gDoStealth = Settings.FFXIVMINION.gDoFates
-	gRandomMarker = Settings.FFXIVMINION.gFatesOnly
+	gDoStealth = Settings.FFXIVMINION.gDoStealth
+	gRandomMarker = Settings.FFXIVMINION.gRandomMarker
 	gChangeJobs = Settings.FFXIVMINION.gChangeJobs
 	gGatherTP = Settings.FFXIVMINION.gGatherTP
 	gGatherPS = Settings.FFXIVMINION.gGatherPS

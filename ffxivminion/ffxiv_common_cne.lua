@@ -17,7 +17,9 @@
 ---------------------------------------------------------------------------------------------
 c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
+
 function c_add_killtarget:evaluate()
+	
 	-- this will block the fatetask from wroking if I'm not mistaken ...since it never picks a target to attack
 	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
 		return false
@@ -259,34 +261,123 @@ function e_notarget:execute()
 end
 
 ---------------------------------------------------------------------------------------------
+--MOBAGGRO: If (detect new aggro) Then (kill mob)
+--
+---------------------------------------------------------------------------------------------
+c_mobaggro = inheritsFrom( ml_cause )
+e_mobaggro = inheritsFrom( ml_effect )
+function c_mobaggro:evaluate()
+	if ( Player.hasaggro ) then
+        local target = GetNearestAggro()
+        if (target ~= nil and target ~= {}) then
+            e_mobaggro.targetid = target.id
+            return true
+        end
+    end
+    
+    return false
+end
+function e_mobaggro:execute()
+	ml_debug( "Getting new target" )
+	local target = GetNearestAggro()
+	if (target ~= nil) then
+        local newTask = ffxiv_task_killtarget:Create()
+        newTask.targetid = e_mobaggro.targetid
+        ml_task_hub.Add(newTask, QUEUE_REACTIVE, TP_IMMEDIATE)
+	end
+end
+
+---------------------------------------------------------------------------------------------
+--FATEWAIT: If (detect new aggro) Then (kill mob)
+--
+---------------------------------------------------------------------------------------------
+c_fatewait = inheritsFrom( ml_cause )
+e_fatewait = inheritsFrom( ml_effect )
+function c_fatewait:evaluate()
+    local myPos = Player.pos
+    local gotoPos = mm.evacPoint
+    return  gFatesOnly == "1" and gDoFates == "1" and gotoPos ~= {} and 
+            NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
+            Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 15 -- ? 
+            
+end
+function e_fatewait:execute()
+    local newTask = ffxiv_task_movetopos:Create()
+    newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+---------------------------------------------------------------------------------------------
+--REST: If (not player.hasAggro and player.hp.percent < 50) Then (do nothing)
+--Blocks all subtask execution until player hp has increased
+---------------------------------------------------------------------------------------------
+c_rest = inheritsFrom( ml_cause )
+e_rest = inheritsFrom( ml_effect )
+function c_rest:evaluate()
+	if (e_rest.resting or 
+		Player.hp.percent < tonumber(gRestHP) or
+		Player.mp.percent < tonumber(gRestMP))
+	then
+		return true
+	end
+	
+	return false
+end
+function e_rest:execute()
+	if ( gSMactive == "1" ) then
+		local newTask = ffxiv_task_skillmgrHeal:Create()
+		newTask.targetid = Player.id
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+
+		if (e_rest.resting == true) then
+			if (Player.hp.percent > 95) then
+				e_rest.resting = false
+				return
+			end
+		else
+			if (Player.hp.percent < tonumber(gRestHP) or
+				Player.mp.percent < tonumber(gRestMP)) 
+			then
+				e_rest.resting = true
+				return
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------------------------
 --FLEE: If (aggolist.size > 0 and health.percent < 50) Then (run to a random point)
 --Attempts to shake aggro by running away and resting
 ---------------------------------------------------------------------------------------------
 c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
-e_flee.throttle = 1000
+e_flee.fleeing = false
 function c_flee:evaluate()
-    if (ffxiv_task_grind.evacPoint ~= nil and Player.hasaggro and Player.hp.percent < 50 or e_flee.fleeing) then
+    if (mm.evacPoint ~= nil and Player.hasaggro and
+		Player.hp.percent < tonumber(gFleeHP)) or e_flee.fleeing
+	then
         return true
 	end
     
     return false
 end
 function e_flee:execute()
-    if (self.fleeing) then
+    if (e_flee.fleeing) then
         if (not Player.hasaggro) then
 			Player:Stop()
-			self.fleeing = false
+			e_flee.fleeing = false
             return
 		end
     else
-        local fleePos = ffxiv_task_grind.evacPoint
-        if (fleePos ~= {}) then
+        local fleePos = mm.evacPoint
+        if (fleePos ~= nil and fleePos ~= {}) then
             ml_debug( "Fleeing combat" )
-            Player:SetFacing(fleePos.x, fleePos.y, fleePos.z)
+			ml_task_hub:ThisTask():DeleteSubTasks()
             Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
-            self.fleeing = true
-        end
+            e_flee.fleeing = true
+        else
+			ml_error( "Need to flee combat but no evacPoint set!!")
+		end
     end
 end
 
@@ -305,41 +396,6 @@ end
 function e_dead:execute()
 	ml_debug("Respawning...")
 	Player:Respawn()
-end
-
----------------------------------------------------------------------------------------------
---REST: If (not player.hasAggro and player.hp.percent < 50) Then (do nothing)
---Blocks all subtask execution until player hp has increased
----------------------------------------------------------------------------------------------
-c_rest = inheritsFrom( ml_cause )
-e_rest = inheritsFrom( ml_effect )
-function c_rest:evaluate()
-	if (Player.hasaggro) then
-		return false
-	end
-	
-	if (e_rest.resting or (not Player.hasaggro and Player.hp.percent < 60)) then
-		return true
-	end
-end
-function e_rest:execute()
-	if ( gSMactive == "1" ) then
-		local newTask = ffxiv_task_skillmgrHeal:Create()
-		newTask.targetid = Player.id
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	else
-		if (e_rest.resting == true) then
-			if (Player.hp.percent > 95) then
-				e_rest.resting = false
-				return
-			end
-		else
-			if (Player.hp.percent < 60 and not Player.hasaggro) then
-				e_rest.resting = true
-				return
-			end
-		end
-	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -366,4 +422,31 @@ function e_betterfatesearch:execute()
 	ml_debug( "Closer fate found" )
     ml_task_hub:ThisTask():Terminate()
 	d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+end
+
+c_returntomarker = inheritsFrom( ml_cause )
+e_returntomarker = inheritsFrom( ml_effect )
+function c_returntomarker:evaluate()
+	if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
+		local myPos = Player.pos
+		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
+		if (distance > 75) then
+			return true
+		end
+	end
+    
+    return false
+end
+function e_returntomarker:execute()
+	local newTask = ffxiv_task_movetopos:Create()
+	local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+	newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
+	newTask.range = math.random(5,25)
+    if (markerType == "fishingSpot") then
+        newTask.pos.h = markerInfo.h
+        newTask.range = 1.5
+        newTask.doFacing = true
+    end
+	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end

@@ -12,9 +12,10 @@ function ffxiv_gather_miner:Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_gather_miner members
-    newinst.name = "ARCANIST"
+    newinst.name = "MINER"
     newinst.targetid = 0
-    
+    newinst.range = 3
+	
     return newinst
 end
 
