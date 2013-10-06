@@ -111,6 +111,9 @@ function mm.UpdateMarkerList()
 	end
 
 	gSelectedMarker_listitems = markers
+	gMarkerName = ""
+	gMarkerLevel = "1"
+	gSelectedMarker = "None"
     
     -- call gathermanager update also
     GatherMgr.UpdateMarkerLists()
@@ -292,8 +295,10 @@ end
 function mm.DeleteMarker()
     -- since marker names are unique we can simply delete this marker wherever it exists
     for tag, posList in pairs(mm.MarkerList) do
-        if (postList[gMarkerName] ~= nil) then
+        if (posList[gMarkerName] ~= nil) then
             posList[gMarkerName] = nil
+			RenderManager:RemoveObject(mm.MarkerRenderList[gMarkerName])
+			mm.MarkerRenderList[gMarkerName] = nil
             mm.WriteMarkerList(gmeshname)
             mm.UpdateMarkerList()
             return true

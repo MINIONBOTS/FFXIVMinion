@@ -13,7 +13,8 @@ function ffxiv_gather_fisher:Create()
     
     --ffxiv_gather_fisher members
     newinst.name = "ARCANIST"
-    newinst.targetid = 0
+    newinst.range = 3
+	newinst.targetid = 0
     
     return newinst
 end
