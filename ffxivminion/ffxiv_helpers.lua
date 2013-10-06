@@ -2,7 +2,7 @@
 
 function GetNearestGrindAttackable()
 	local level = Player.level
-	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level-3)..",maxlevel="..tostring(level+1))
+	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..tostring(level-1)..",maxlevel="..tostring(level+1))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -138,10 +138,13 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local _, fate = next(fateList)
 		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
+			if (mm.FateBlacklist[fate.id] ~= nil) then
+				return false
+			end
 			if (not levelCheck or (levelCheck and (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel)))) then
 				--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
 				-- dirty fix for and fate.x != 0 for now, we need to fix that GetPointToMeshDistance on our side ...
-				if (not meshCheck or (meshCheck and tonumber(fate.x)~= nil and tonumber(fate.x) > 0 and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=3)) then
+				if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=3)) then
 					local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 					if (nearestFate == nil or distance < nearestDistance) then
 						nearestFate = fate

@@ -20,6 +20,7 @@ mm.MarkerRenderList = {}
 mm.reloadMeshPending = false
 mm.reloadMeshTmr = 0
 mm.reloadMeshName = ""
+mm.FateBlacklist = {}
 
 
 function mm.ModuleInit() 	
