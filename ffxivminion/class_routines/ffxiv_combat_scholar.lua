@@ -1,8 +1,8 @@
-ffxiv_combat_scholer = inheritsFrom(ml_task)
-ffxiv_combat_scholer.range = 24
+ffxiv_combat_scholar = inheritsFrom(ml_task)
+ffxiv_combat_scholar.range = 24
 
-function ffxiv_combat_scholer:Create()
-    local newinst = inheritsFrom(ffxiv_combat_scholer)
+function ffxiv_combat_scholar:Create()
+    local newinst = inheritsFrom(ffxiv_combat_scholar)
     
     --ml_task members
     newinst.valid = true
@@ -12,7 +12,7 @@ function ffxiv_combat_scholer:Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     
-    --ffxiv_combat_scholer members
+    --ffxiv_combat_scholar members
     newinst.name = "SCHOLER"
     newinst.targetid = 0
 	newinst.range = 24
@@ -20,20 +20,20 @@ function ffxiv_combat_scholer:Create()
     return newinst
 end
 
-function ffxiv_combat_scholer:Init()
+function ffxiv_combat_scholar:Init()
     --init cnes
     
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_combat_scholer:OnSleep()
+function ffxiv_combat_scholar:OnSleep()
 
 end
 
-function ffxiv_combat_scholer:OnTerminate()
+function ffxiv_combat_scholar:OnTerminate()
 
 end
 
-function ffxiv_combat_scholer:IsGoodToAbort()
+function ffxiv_combat_scholar:IsGoodToAbort()
 
 end

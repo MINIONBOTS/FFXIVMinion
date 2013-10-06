@@ -36,8 +36,8 @@ function Dev.ModuleInit()
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
-	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands");
-	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
+	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting");
+	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","0","999");		
 	GUI_NewField("Dev","Name","sbname","ActionListInfo")
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
 	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
@@ -181,6 +181,25 @@ function Dev.ModuleInit()
 	RegisterEventHandler("Dev.Gather", Dev.Func)
 	gaidx = 1
 	
+	-- Crafting
+	GUI_NewNumeric("Dev","Amount to Craft","cramount","CraftingInfo","1","9999");
+	GUI_NewField("Dev","ItemID","crid","CraftingInfo")
+	GUI_NewField("Dev","Step","crst","CraftingInfo")
+	GUI_NewField("Dev","StepMax","crstm","CraftingInfo")	
+	GUI_NewField("Dev","Durability","crdu","CraftingInfo")
+	GUI_NewField("Dev","DurabilityMax","crdum","CraftingInfo")
+	GUI_NewField("Dev","Progress","crpr","CraftingInfo")
+	GUI_NewField("Dev","ProgressMax","crprm","CraftingInfo")
+	GUI_NewField("Dev","Quality","crqu","CraftingInfo")
+	GUI_NewField("Dev","QualityMax","crqum","CraftingInfo")
+	GUI_NewField("Dev","Text","crtext","CraftingInfo")	
+	GUI_NewField("Dev","CraftingLogOpen","cropen","CraftingInfo")	
+	GUI_NewField("Dev","CanCraftSelectedItem","crcan","CraftingInfo")
+	GUI_NewButton("Dev","ToggleCraftingLog","Dev.CraftLog","CraftingInfo")
+	RegisterEventHandler("Dev.CraftLog", Dev.Func)
+	GUI_NewButton("Dev","CraftSelectedItem","Dev.Craft","CraftingInfo")
+	RegisterEventHandler("Dev.Craft", Dev.Func)
+	
 	-- Respawn_Teleportinfo
 	GUI_NewField("Dev","RespawnState","resState","Respawn_Teleportinfo")
 	GUI_NewButton("Dev","Respawn","Dev.Rezz","Respawn_Teleportinfo")
@@ -250,6 +269,10 @@ function Dev.Func ( arg )
 		d(Player:Gather(tonumber(gaindex)))
 	elseif ( arg == "Dev.Cast" ) then
 		sbpendingcast = true
+	elseif ( arg == "Dev.Craft" ) then
+		Dev.curTask = Dev.CraftTask	
+	elseif ( arg == "Dev.CraftLog" ) then	
+		Crafting:ToggleCraftingLog()	
 	end
 end
 
@@ -262,20 +285,82 @@ function Dev.FishTask()
 	end
 end
 
+
+Dev.SteadyHandUsed = false
+function Dev.CraftTask()
+	local synth = Crafting:SynthInfo()
+	if ( synth ) then
+		
+		if (synth.durabilitymax > 0) then
+			-- normal crafting
+			d("Using Skill...")
+			local job = Player.job
+			if ( job == 14 ) then
+				if ( synth.durability <= 10 and Player.cp.current > 92) then
+					ActionList:Cast(100092,0)
+				else
+					if ( synth.durability <= 20 and Dev.SteadyHandUsed == false and Player.cp.current > 22) then
+						ActionList:Cast(250,0)
+						Dev.SteadyHandUsed = true
+					else
+						ActionList:Cast(100090,0)
+					end
+				end
+			else
+				ActionList:Cast(100105,0)
+			end
+		else
+			-- quicksynth
+			if ( synth.step == synth.stepmax ) then
+				Crafting:EndSynthesis()
+			end
+		end
+		Dev.lastticks = Dev.lastticks + 1000
+	else
+		if (not Crafting:IsCraftingLogOpen()) then
+			Crafting:ToggleCraftingLog()
+		else
+			local eq = Inventory("type=1000")
+			if (eq) then
+				local i,e = next (eq)
+				while ( i and e ) do
+					if ( e.condition < 10 ) then
+						d("R: "..tostring(e.name .. " " ..tostring(e.slot)))
+						Inventory:Repair(1000,e.slot)
+					end
+					i,e = next (eq,i)
+				end		
+			end
+			d("Crafting Item...")
+			if ( tonumber(cramount) > 1 ) then
+				Crafting:CraftSelectedItem(tonumber(cramount))
+			else
+				Crafting:CraftSelectedItem()
+			end
+			Crafting:ToggleCraftingLog()
+			Dev.lastticks = Dev.lastticks + 3000
+			Dev.SteadyHandUsed = false
+		end
+	end	
+end
+
 function Dev.Test1()
-	--d("Test1..")
+	d("Test1..")
 	--local p = Player.pos
 	--d(Player:GetGatherableSlotList())
 	--local aa=MeshManager:AddVertex({x=p.x,y=p.z,z=p.y})
 	--local bb=MeshManager:AddVertex({x=p.x+2,y=p.z,z=p.y+2})
 	--local cc=MeshManager:AddVertex({x=p.x-2,y=p.z,z=p.y+1})	
 	--d(MeshManager:AddTriangle({a=aa,b=bb,c=cc}))
-	d("TableSize: "..tostring(TableSize(mm.MarkerList)))
-	for tag, posList in pairs(mm.MarkerList) do 
-		for key, pos in pairs(posList) do	
-			d(tostring(tag).." "..tostring(key).." "..tostring(pos)	)
-		end	
-	end
+			local eq = Inventory("type=1000")
+			if (eq) then
+				local i,e = next (eq)
+				while ( i and e ) do					
+					d("R: "..tostring(e.name .. " " ..tostring(e.slot)))
+					Inventory:Repair(1000,e.slot)
+					i,e = next (eq,i)
+				end		
+			end
 end
 
 function Dev.Test2()
@@ -363,6 +448,8 @@ function Dev.UpdateWindow()
 		spelllist = ActionList("type=5")	
 	elseif  sbSelHotbar == "Maincommands"  then
 		spelllist = ActionList("type=10")	
+	elseif  sbSelHotbar == "Crafting"  then
+		spelllist = ActionList("type=9")
 	end
 		
 	
@@ -614,6 +701,35 @@ function Dev.UpdateWindow()
 	
 	-- Respawn n Teleportinfo
 	resState = tostring(Player.revivestate)
+	
+	-- CraftingInfo
+	local synth = Crafting:SynthInfo()
+	if ( synth )then
+		crid = synth.itemid
+		crst = synth.step
+		crstm =synth.stepmax
+		crdu = synth.durability
+		crdum = synth.durabilitymax
+		crpr = synth.progress
+		crprm =synth.progressmax
+		crqu = synth.quality
+		crqum =synth.qualitymax
+		crtext = synth.description
+	else
+		crid = 0
+		crst = 0
+		crstm =0
+		crdu = 0
+		crdum = 0
+		crpr = 0
+		crprm =0
+		crqu = 0
+		crqum =0
+		crtext ="" 	
+	end
+	cropen = tostring(Crafting:IsCraftingLogOpen())
+	
+	
 end
 
 function Dev.DoTask()
