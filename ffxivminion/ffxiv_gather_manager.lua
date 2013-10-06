@@ -12,13 +12,13 @@ function GatherMgr.ModuleInit()
     
     --mining menu
 	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gMiningSpot",strings[gCurrentLanguage].mining,"None")
-	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gMiningItem1",strings[gCurrentLanguage].mining,"None")
-    GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gMiningItem2",strings[gCurrentLanguage].mining,"None")
+	GUI_NewField(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gMiningItem1",strings[gCurrentLanguage].mining)
+    GUI_NewField(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gMiningItem2",strings[gCurrentLanguage].mining)
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gMiningTime",strings[gCurrentLanguage].mining,"0","7200")
     
     GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gBotanySpot",strings[gCurrentLanguage].botany,"None")
-	GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gBotanyItem1",strings[gCurrentLanguage].botany,"None")
-    GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gBotanyItem2",strings[gCurrentLanguage].botany,"None")
+	GUI_NewField(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem1,"gBotanyItem1",strings[gCurrentLanguage].botany)
+    GUI_NewField(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectItem2,"gBotanyItem2",strings[gCurrentLanguage].botany)
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gBotanyTime",strings[gCurrentLanguage].botany,"0","7200")
     
     GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gFishingSpot",strings[gCurrentLanguage].fishing,"None")
@@ -39,6 +39,7 @@ function GatherMgr.ModuleInit()
 	end
 	gGMactive = Settings.FFXIVMINION.gGMactive
     
+	GUI_UnFoldGroup(GatherMgr.mainwindow.name, strings[gCurrentLanguage].generalSettings)
 	GUI_WindowVisible(GatherMgr.mainwindow.name,false)
 end
 
@@ -74,30 +75,6 @@ function GatherMgr.UpdateMarkerLists()
     gBotanyItem2 = "None"
 	gFishingSpot = "None"
 	gFishingBait = "None"
-	
-	if (miningMarkers ~= "None") then
-		local miningItems = "None"
-		for _,name in ipairs(GatherMgr.MiningItems) do
-			miningItems = miningItems..","..name
-		end
-		gMiningItem1_listitems = miningItems
-        gMiningItem2_listitems = miningItems
-	else
-		gMiningItem1_listitems = "None"
-        gMiningItem2_listitems = "None"
-	end
-	
-	if (botanyMarkers ~= "None") then
-		local botanyItems = "None"
-		for _,name in ipairs(GatherMgr.BotanyItems) do
-			botanyItems = botanyItems..","..name
-		end
-		gBotanyItem1_listitems = botanyItems
-        gBotanyItem2_listitems = botanyItems
-	else
-		gBotanyItem1_listitems = "None"
-        gBotanyItem2_listitems = "None"
-	end
 end
 
 function GatherMgr.UpdateMarkerInfo(markerType, markerName)

@@ -80,7 +80,8 @@ function ffxivminion.HandleInit()
 	
 	gFFXIVMINIONTask = ""
 	
-	GUI_FoldGroup(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botStatus );
+	--GUI_FoldGroup(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botStatus );
+	GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].settings)
 	
 	gEnableLog = Settings.FFXIVMINION.gEnableLog
 	gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
