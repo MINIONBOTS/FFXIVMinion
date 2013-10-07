@@ -424,6 +424,7 @@ function e_betterfatesearch:execute()
 	d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
 end
 
+-- more to refactor here later most likely
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
@@ -431,7 +432,9 @@ function c_returntomarker:evaluate()
 		local myPos = Player.pos
 		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
-		if (distance > 150) then
+        if  ((gBotMode == "Grind" or gBotMode == "Gather") and distance > 150) or
+            (gBotMode == "Fish" and distance > 3)
+		then
 			return true
 		end
 	end
@@ -441,6 +444,7 @@ end
 function e_returntomarker:execute()
 	local newTask = ffxiv_task_movetopos:Create()
 	local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+    local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
 	newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
 	newTask.range = math.random(5,25)
     if (markerType == "fishingSpot") then

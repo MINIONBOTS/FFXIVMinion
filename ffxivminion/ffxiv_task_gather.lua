@@ -201,6 +201,7 @@ function e_gather:execute()
 		end
     else
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+        Player:SetTarget(node.id)
 		Player:Interact(node.id)
 
         if (gGatherTP == "1") then
