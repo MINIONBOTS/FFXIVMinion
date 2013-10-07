@@ -133,7 +133,10 @@ function c_nextmarker:evaluate()
                 e_nextmarker.marker = marker
                 return true
             end
-        else
+        elseif (gBotMode == "Grind") then
+			--ignore it so people don't whine about debug spam
+			--ml_debug("No grind markers detected. Defaulting to local grinding at current position")
+		else
             ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
             gGMactive = "0"
         end

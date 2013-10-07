@@ -157,7 +157,9 @@ function ffxivminion.CheckClass()
 	if (ml_global_information.CurrentClass == nil or ml_global_information.CurrentClassID ~= Player.job) then
 		ml_global_information.CurrentClass = classes[Player.job]
 		ml_global_information.CurrentClassID = Player.job
-		ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		if ml_global_information.CurrentClass ~= nil then
+			ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		end
 	end
 	ml_debug("leave check class")
 end
