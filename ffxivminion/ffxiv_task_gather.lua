@@ -180,8 +180,17 @@ function e_gather:execute()
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
 				if (markerData ~= nil and markerData ~= {}) then
+                    -- do 2 loops to allow prioritization of first item
 					for i, item in pairs(list) do
-						if item.name == markerData[1] or item.name == markerData[2] then
+						if item.name == markerData[1] then
+							Player:Gather(item.index)
+							ml_task_hub:CurrentTask().gatherTimer = os.time()
+							return
+						end
+					end
+                    
+                    for i, item in pairs(list) do
+						if item.name == markerData[2] then
 							Player:Gather(item.index)
 							ml_task_hub:CurrentTask().gatherTimer = os.time()
 							return
