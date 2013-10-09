@@ -257,6 +257,8 @@ function e_notarget:execute()
 	if (target ~= nil) then
 		Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
 		ml_task_hub.CurrentTask().targetid = target.id
+	else
+		ml_error ( "We shouldn't be here, ml_task_hub:CurrentTask().targetFunction() is NIL" )
 	end
 end
 
@@ -353,8 +355,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleeing = false
 function c_flee:evaluate()
-    if (mm.evacPoint ~= nil and Player.hasaggro and
-		Player.hp.percent < tonumber(gFleeHP)) or e_flee.fleeing
+    if (mm.evacPoint ~= nil and mm.evacPoint ~= {} and Player.hasaggro and Player.hp.percent < tonumber(gFleeHP)) or e_flee.fleeing
 	then
         return true
 	end

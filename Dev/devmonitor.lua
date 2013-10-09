@@ -357,7 +357,7 @@ function Dev.Test1()
 				local i,e = next (eq)
 				while ( i and e ) do					
 					d("R: "..tostring(e.name .. " " ..tostring(e.slot)))
-					Inventory:Repair(1000,e.slot)
+					Inventory:Repair(1000,e.slot-1)
 					i,e = next (eq,i)
 				end		
 			end

@@ -66,6 +66,7 @@ function c_setbait:evaluate()
 			local marker = ml_task_hub:CurrentTask().currentMarker
 			if (marker ~= nil and marker ~= false) then
 				local data = GatherMgr.GetMarkerData(marker)
+				d("DATA[1] :"..tostring(data[1]).. " currenttaskbait: "..tostring(ml_task_hub:CurrentTask().baitName))
 				if data[1] ~= ml_task_hub:CurrentTask().baitName then
 					return true
 				end

@@ -24,7 +24,7 @@ function ffxiv_task_killtarget:Create()
     --ffxiv_task_grind members
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
-    newinst.targetFunction = 0
+    newinst.targetFunction = nil
     
     return newinst
 end
