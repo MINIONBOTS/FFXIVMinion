@@ -212,7 +212,7 @@ function e_gather:execute()
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if ( node ) then
 			local target = Player:GetTarget()
-			if (target ~=nil and target.id ~= node.id ) then
+			if ( (target ~=nil and target.id ~= node.id) or target == nil or target == {} ) then
 				Player:SetTarget(node.id)
 			else
 				Player:Interact(node.id)
