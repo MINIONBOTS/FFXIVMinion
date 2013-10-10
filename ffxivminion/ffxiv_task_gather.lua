@@ -210,12 +210,20 @@ function e_gather:execute()
 		end
     else
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-        Player:SetTarget(node.id)
-		Player:Interact(node.id)
+        if ( node ) then
+			local target = Player:GetTarget()
+			if ( (target ~=nil and target.id ~= node.id) or target == nil or target == {} ) then
+				Player:SetTarget(node.id)
+			else
+				Player:Interact(node.id)
+			end
 
-        if (gGatherTP == "1") then
-			Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
-        end
+			if (gGatherTP == "1") then
+				Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
+			end
+		else
+			wt_error("If you can see this, I was right hahaha")
+		end
     end
 end
 

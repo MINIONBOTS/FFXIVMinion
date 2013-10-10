@@ -12,7 +12,7 @@ SkillMgr.UIRefreshPending = false
 SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
 SkillMgr.prevSkillID = ""
-	
+
 function SkillMgr.ModuleInit() 	
 	if (Settings.FFXIVMINION.gSMactive == nil) then
 		Settings.FFXIVMINION.gSMactive = "0"
@@ -46,19 +46,21 @@ function SkillMgr.ModuleInit()
     gSMactive = Settings.FFXIVMINION.gSMactive	
 	gSMnewname = ""
 	
+	
 	-- EDITOR WINDOW
 	GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h)		
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF","SkillDetails")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].useOutOfCombat,"SKM_OutOfCombat","SkillDetails")			
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR","SkillDetails")
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR","SkillDetails")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].useOutOfCombat,"SKM_OutOfCombat","SkillDetails")
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR","SkillDetails")	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPLT,"SKM_PHPB","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerGT ,"SKM_PPowL","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB","SkillDetails")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally");
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].enemiesNearCount,"SKM_TECount","SkillDetails");
@@ -79,9 +81,10 @@ function SkillMgr.ModuleInit()
 	SKM_ON = "0"
 	SKM_DOBUFF = "0"
 	SKM_Prio = 0
-	SKM_MinR = 0
-	SKM_MaxR = 0
 	SKM_OutOfCombat = "0"
+	SKM_TRG = "Enemy"
+	SKM_MinR = 0
+	SKM_MaxR = 0	
 	SKM_PHPL = 0
 	SKM_PHPB = 0
 	SKM_PPowL = 0
@@ -125,7 +128,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		if ( k == "gSMactive" ) then			
 			Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gSMprofile" ) then			
-			gSMactive = "0"					
+			gSMactive = "1"					
 			GUI_WindowVisible(SkillMgr.editwindow.name,false)
 			GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 			SkillMgr.SkillProfile = {}
@@ -133,10 +136,11 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 			Settings.FFXIVMINION.gSMlastprofile = tostring(v)
 		elseif ( k == "SKM_NAME" ) then SkillMgr.SkillProfile[SKM_Prio].name = v		
 		elseif ( k == "SKM_ON" ) then SkillMgr.SkillProfile[SKM_Prio].used = v
-		elseif ( k == "SKM_DOBUFF" ) then SkillMgr.SkillProfile[SKM_Prio].dobuff = v		
-		elseif ( k == "SKM_MinR" ) then SkillMgr.SkillProfile[SKM_Prio].minRange = tonumber(v)
-		elseif ( k == "SKM_MaxR" ) then SkillMgr.SkillProfile[SKM_Prio].maxRange = tonumber(v)
+		elseif ( k == "SKM_DOBUFF" ) then SkillMgr.SkillProfile[SKM_Prio].dobuff = v
+		elseif ( k == "SKM_TRG" ) then SkillMgr.SkillProfile[SKM_Prio].trg = v
 		elseif ( k == "SKM_OutOfCombat" ) then SkillMgr.SkillProfile[SKM_Prio].ooc = v
+		elseif ( k == "SKM_MinR" ) then SkillMgr.SkillProfile[SKM_Prio].minRange = tonumber(v)
+		elseif ( k == "SKM_MaxR" ) then SkillMgr.SkillProfile[SKM_Prio].maxRange = tonumber(v)		
 		elseif ( k == "SKM_PHPL" ) then SkillMgr.SkillProfile[SKM_Prio].phpl = tonumber(v)
 		elseif ( k == "SKM_PHPB" ) then SkillMgr.SkillProfile[SKM_Prio].phpb = tonumber(v)
 		elseif ( k == "SKM_PPowL" ) then SkillMgr.SkillProfile[SKM_Prio].ppowl = tonumber(v)
@@ -297,10 +301,11 @@ function SkillMgr.SaveProfile()
 			string2write = string2write.."SKM_ID="..skill.id.."\n"
 			string2write = string2write.."SKM_ON="..skill.used.."\n"
 			string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"
-			string2write = string2write.."SKM_Prio="..skill.prio.."\n"	
+			string2write = string2write.."SKM_Prio="..skill.prio.."\n"
+			string2write = string2write.."SKM_TRG="..skill.trg.."\n"		
+			string2write = string2write.."SKM_OutOfCombat="..skill.ooc.."\n"			
 			string2write = string2write.."SKM_MinR="..skill.minRange.."\n"
-			string2write = string2write.."SKM_MaxR="..skill.maxRange.."\n" 
-			string2write = string2write.."SKM_OutOfCombat="..skill.ooc.."\n"
+			string2write = string2write.."SKM_MaxR="..skill.maxRange.."\n" 			
 			string2write = string2write.."SKM_PHPL="..skill.phpl.."\n" 
 			string2write = string2write.."SKM_PHPB="..skill.phpb.."\n" 
 			string2write = string2write.."SKM_PPowL="..skill.ppowl.."\n" 
@@ -363,10 +368,11 @@ function SkillMgr.UpdateCurrentProfileData()
 							elseif ( key == "NAME" )then newskill.name = value
 							elseif ( key == "ON" )then newskill.used = tostring(value)
 							elseif ( key == "DOBUFF" )then newskill.dobuff = tostring(value)							
-							elseif ( key == "Prio" )then newskill.prio = tonumber(value)							
-							elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
-							elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 
+							elseif ( key == "Prio" )then newskill.prio = tonumber(value)
 							elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
+							elseif ( key == "TRG" )then newskill.trg = tostring(value)							
+							elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
+							elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 							
 							elseif ( key == "PHPL" )then newskill.phpl = tonumber(value)
 							elseif ( key == "PHPB" )then newskill.phpb = tonumber(value)
 							elseif ( key == "PPowL" )then newskill.ppowl = tonumber(value)
@@ -492,9 +498,10 @@ function SkillMgr.CreateNewSkillEntry(skill)
 				name = skname or "",
 				used = skill.used or "1",
 				dobuff = skill.dobuff or "0",
-				minRange = skill.minRange or 0,
-				maxRange = skill.maxRange or skill.range or 0,
 				ooc = skill.ooc or "0",
+				trg = skill.trg or "Enemy",
+				minRange = skill.minRange or 0,
+				maxRange = skill.maxRange or skill.range or 0,				
 				phpl = skill.phpl or 0,
 				phpb = skill.phpb or 0,
 				ppowl = skill.ppowl or 0,
@@ -527,9 +534,10 @@ function SkillMgr.EditSkill(event)
 		SKM_ON = skill.used or "1"
 		SKM_DOBUFF = skill.dobuff or "0"
 		SKM_Prio = tonumber(event)
-		SKM_MinR = tonumber(skill.minRange) or 0
-		SKM_MaxR = tonumber(skill.maxRange) or 3
 		SKM_OutOfCombat = skill.ooc or "0"
+		SKM_TRG = skill.trg or "Enemy"
+		SKM_MinR = tonumber(skill.minRange) or 0
+		SKM_MaxR = tonumber(skill.maxRange) or 3		
 		SKM_PHPL = tonumber(skill.phpl) or 0
 		SKM_PHPB = tonumber(skill.phpb) or 0
 		SKM_PPowL = tonumber(skill.ppowl) or 0
@@ -563,20 +571,39 @@ function SkillMgr.ToggleMenu()
 	end
 end
 
-function SkillMgr.Cast( target )
-	if ( target ) then
+function SkillMgr.IsPetSummonSkill(skillID)
+	
+	if (	skillID == 165
+		or 	skillID == 170
+		or 	skillID == 180) then
+		return true
+	end
+	return false
+end
+
+
+function SkillMgr.Cast( entity )
+	if ( entity ) then
 		local PID = Player.id
-		local TID = target.id
 		local pbuffs = Player.buffs
-		local tbuffs = target.buffs
-				
-		if ( TID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
+		
+		local EID = entity.id				
+		local ebuffs = entity.buffs
+		
+		local pet = Player.pet
+							
+		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
 				if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
 					
 					local realskilldata = ActionList:Get(skill.id)
 					if ( realskilldata and realskilldata.isready ) then 
+						
+						--reset our variables
+						target = entity
+						TID = EID
+						tbuffs = ebuffs
 						
 						local castable = true
 						--COOLDOWN													
@@ -585,14 +612,6 @@ function SkillMgr.Cast( target )
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*1000 + 500)) then castable = false end
 						
-						-- RANGE + HEALTH							
-						if ( castable and (
-								   (skill.minRange > 0 and target.distance < skill.minRange)
-								or (skill.maxRange > 0 and target.distance > skill.maxRange+target.hitradius+1)--target.distance- target.hitradius > skill.maxRange)
-								or (skill.thpl > 0 and skill.thpl > target.hp.percent)
-								or (skill.thpb > 0 and skill.thpb < target.hp.percent)
-								)) then castable = false end	
-
 						-- PLAYER HEALTH, TP/MP
 						if ( castable and (
 							(skill.phpl > 0 and skill.phpl > Player.hp.percent)
@@ -600,40 +619,6 @@ function SkillMgr.Cast( target )
 							or (skill.ppowl > 0 and skill.ppowl > Player.mp.current)
 							or (skill.ppowb > 0 and skill.ppowb < Player.mp.current)					
 							)) then castable = false end	
-						
-						-- TARGET BUFFS
-						if ( castable and TableSize(tbuffs) > 0) then 							
-							-- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
-							if (skill.tbuff ~= "" ) then								
-								local tbfound = false
-								for buffid in StringSplit(skill.tbuff,",") do
-									if (tonumber(buffid) ~= nil) then
-										for i, buff in pairs(tbuffs) do
-											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-												tbfound = true
-												break
-											end
-										end	
-									end
-								end
-								if not tbfound then castable = false end								
-							end
-							-- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
-							if (skill.tnbuff ~= "" ) then
-								local tbfound = false
-								for buffid in StringSplit(skill.tnbuff,",") do
-									if (tonumber(buffid) ~= nil) then
-										for i, buff in pairs(tbuffs) do
-											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-												tbfound = true
-												break
-											end
-										end	
-									end
-								end
-								if tbfound then castable = false end								
-							end							
-						end
 						
 						-- PLAYER BUFFS
 						if ( castable and TableSize(pbuffs) > 0) then 							
@@ -668,6 +653,71 @@ function SkillMgr.Cast( target )
 								if tbfound then castable = false end								
 							end							
 						end	
+						
+						
+						-- TODO: switch target when skill.trh == "Ally", first party members, then any other guys around ya
+						-- SWITCH TARGET FOR PET - CHECK
+						if ( skill.trg == "Pet" ) then
+							if ( pet ~= nil and pet ~= {}) then
+								if ( SkillMgr.IsPetSummonSkill(skill.id) ) then castable = false end -- we still have a pet, no need to summon
+								target = pet
+								TID = pet.id
+								tbuffs = pet.buffs
+								
+							else	
+							
+							-- we have no pet, check if the skill is summoning a new pet, else dont cast
+								if not SkillMgr.IsPetSummonSkill(skill.id) then castable = false end
+							end									
+						end
+						
+						-- RANGE 							
+						if ( castable and (
+								   (skill.minRange > 0 and target.distance < skill.minRange)
+								or (skill.maxRange > 0 and target.distance > skill.maxRange+target.hitradius+1)--target.distance- target.hitradius > skill.maxRange)
+								)) then castable = false end	
+												
+						-- HEALTH
+						if ( castable and (
+							(skill.thpl > 0 and skill.thpl > target.hp.percent)
+							or (skill.thpb > 0 and skill.thpb < target.hp.percent)
+							)) then castable = false end									
+						
+						
+						-- TARGET BUFFS
+						if ( castable and TableSize(tbuffs) > 0) then 							
+							-- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
+							if (skill.tbuff ~= "" ) then								
+								local tbfound = false
+								for buffid in StringSplit(skill.tbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(tbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if not tbfound then castable = false end								
+							end
+							-- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
+							if (skill.tnbuff ~= "" ) then
+								local tbfound = false
+								for buffid in StringSplit(skill.tnbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(tbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if tbfound then castable = false end								
+							end							
+						end
+									
 						
 						-- TARGET AE CHECK
 						if ( castable and skill.tecount > 0 and skill.terange > 0) then

@@ -150,12 +150,12 @@ strings =
 		newProfileName                  = "New Profile Name",
         newProfile                      = "Clear Profile",		
 		skillbookrefresh                = "Refresh Skills",
+		targetType                      = "Target",
 		
         profile                         = "Profile",
 		sMmode							= "Attack Mode",
 		sMtargetmode					= "Target Mode",
-		refreshProfiles                 = "Refresh Profile List",		
-
+		refreshProfiles                 = "Refresh Profile List",				
 
         deleteProfile                   = "Delete Current Profile",
         autoetectSkills                 = "Autodetect Skills",
@@ -170,8 +170,7 @@ strings =
 		cooldown                        = "Cooldown",
         minRange                        = "MinRange",
         maxRange                        = "MaxRange",
-        isGroundTargeted                = "Is GroundTargeted",
-        targetType                      = "TargetType",
+        isGroundTargeted                = "Is GroundTargeted",        
         useOutOfCombat                  = "Use out of Combat",
         playerMoving                    = "Player Moving",
         playerHPGT                      = "Player HP% >",

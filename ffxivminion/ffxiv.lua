@@ -63,7 +63,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gEnableLog = "0"
 	end
 	if ( Settings.FFXIVMINION.gBotMode == nil ) then
-		Settings.FFXIVMINION.gBotMode = "None"
+		Settings.FFXIVMINION.gBotMode = "Grind"
 	end
 	
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
@@ -97,6 +97,7 @@ function ffxivminion.HandleInit()
 	end
     
 	gBotMode_listitems = botModes
+	
 	gBotMode = Settings.FFXIVMINION.gBotMode
 	ffxivminion.SetMode(gBotMode)
     
