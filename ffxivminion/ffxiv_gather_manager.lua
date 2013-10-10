@@ -34,6 +34,9 @@ function GatherMgr.ModuleInit()
         gBaitName = ""
     end
 	
+    gMiningTime = "300"
+    gBotanyTime = "300"
+    
 	if (Settings.FFXIVMINION.gGMactive == nil) then
 		Settings.FFXIVMINION.gGMactive = "0"
 	end
@@ -95,7 +98,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 			if(time ~= nil and time ~= "") then
 				gMiningTime = time
 			else
-				gMiningTime = 0
+				gMiningTime = "300"
 			end
 		elseif(markerType == "botanySpot") then
 			if(data ~= nil and data ~= {}) then
@@ -109,7 +112,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 			if(time ~= nil and time ~= "") then
 				gBotanyTime = time
 			else
-				gBotanyTime = 0
+				gBotanyTime = "300"
 			end
 		elseif(markerType == "fishingSpot") then
 			if(data ~= nil and data ~= {}) then
@@ -121,7 +124,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 			if(time ~= nil and time ~= "") then
 				gFishingTime = time
 			else
-				gFishingTime = 0
+				gFishingTime = "300"
 			end
 		end
     end
