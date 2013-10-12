@@ -45,7 +45,8 @@ ffxivminion.modes =
 	["Grind"] 	= ffxiv_task_grind, 
 	["Fish"] 	= ffxiv_task_fish,
 	["Gather"] 	= ffxiv_task_gather,
-	["Assist"]	= ffxiv_task_assist
+	["Assist"]	= ffxiv_task_assist,
+	["Party-Grind"]	= ffxiv_task_party
 }
 
 -- Module Event Handler
@@ -188,6 +189,8 @@ function ffxivminion.CheckClass()
 		ml_global_information.CurrentClassID = Player.job
 		if ml_global_information.CurrentClass ~= nil then
 			ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		else
+			ml_global_information.AttackRange = 3
 		end
 	end
 end

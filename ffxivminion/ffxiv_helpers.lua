@@ -1,8 +1,19 @@
 -- This file holds global helper functions
 
+-- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
+-- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
-	local level = Player.level
-	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..gMinMobLevel..",maxlevel="..gMaxMobLevel)
+	local minLevel = tostring(Player.level - tonumber(gMinMobLevel))
+	local maxLevel = tostring(Player.level + tonumber(gMaxMobLevel))
+	local el = EntityList("lowesthealth,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minLevel="..minLevel..",maxlevel="..maxLevel)
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
+		end
+	end
+	
+	local el = EntityList("nearest,alive,attackable,onmesh,minLevel="..minLevel..",maxlevel="..maxLevel)
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -17,6 +28,14 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
+	    local el = EntityList("lowesthealth,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
+		if ( el ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                return e
+            end
+        end	
+	
 		local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
 		if ( el ) then
 			local i,e = next(el)
@@ -42,6 +61,27 @@ function GetNearestFateAttackableID(fateID)
     end
     
 	ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
+	return nil
+end
+
+function GetBestHealTarget()
+	local level = Player.level
+	local el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange))
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
+		end
+	end
+	
+	local el = EntityList("lowesthealth,friendly,chartype=4,targetable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange))
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
+		end
+	end
+	--ml_debug("GetBestHealTarget() failed with no entity found matching params")
 	return nil
 end
 
@@ -86,7 +126,7 @@ end
 
 function HasBuffFrom(targetID, buffID, ownerID)
 	local target = EntityList:Get(targetID)
-	if (target ~= nil and target ~= {}) then
+	if (target ~= nil and target ~= 0) then
 		local buffs = target.buffs
 		if (buffs ~= nil and TableSize(buffs) > 0) then
 			for i, buff in pairs(buffs) do
@@ -132,7 +172,7 @@ end
 function GetFateByID(fateID)
 	local fate = nil
 	local fateList = MapObject:GetFateList()
-	if (fateList ~= nil and fateList ~= {}) then
+	if (fateList ~= nil and fateList ~= 0) then
 		local _, fate = next(fateList)
 		while (_ ~= nil and fate ~= nil) do
 			if (fate.id == fateID) then
@@ -147,7 +187,7 @@ end
 
 function GetClosestFateID(pos, levelCheck, meshCheck)
 	local fateList = MapObject:GetFateList()
-	if (fateList ~= nil and fateList ~= {}) then
+	if (fateList ~= nil and fateList ~= 0) then
 		local nearestFate = nil
 		local nearestDistance = 99999999
 		local _, fate = next(fateList)
@@ -174,6 +214,32 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 	end
 	
 	return 0
+end
+
+function IsLeader()
+	if (gBotMode == "Party-Grind" ) then
+		local leader = GetPartyLeader()
+		if ( leader ) then
+			if ( leader.id == Player.id ) then
+				return true
+			end
+		end	
+	end
+	return false
+end
+
+function GetPartyLeader()
+	local Plist = EntityList.myparty
+	if (TableSize(Plist) > 0 ) then
+		local i,member = next (Plist)
+		while (i~=nil and member~=nil ) do
+			if ( member.isleader ) then
+				return member
+			end
+			i,member = next (Plist,i)
+		end
+	end
+	return nil	
 end
 
 function InCombatRange(targetid)

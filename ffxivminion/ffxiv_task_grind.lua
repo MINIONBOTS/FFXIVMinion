@@ -40,27 +40,28 @@ function ffxiv_task_grind:Init()
 	self:add( ke_flee, self.overwatch_elements)
 	
     --init Process() cnes
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 25 )
-	self:add(ke_addFate, self.process_elements)
-
-	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
-	self:add(ke_addKillTarget, self.process_elements)
-   
-    --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
-	self:add( ke_nextMarker, self.process_elements)
-    
-    local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
-	self:add(ke_fateWait, self.process_elements)
+	local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
+	--self:add(ke_mobAggro, self.process_elements)
 	
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 30 )
 	self:add( ke_rest, self.process_elements)
 	
-	local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
-	--self:add(ke_mobAggro, self.process_elements)
-	
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 25 )
+	self:add(ke_addFate, self.process_elements)
+
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
 	self:add( ke_returnToMarker, self.process_elements)
+	
+	--nextmarker defined in ffxiv_task_gather.lua
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+	self:add( ke_nextMarker, self.process_elements)
+	
+	local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
+	self:add(ke_addKillTarget, self.process_elements)
+       
+    local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
+	self:add(ke_fateWait, self.process_elements)
+	
     
     self:AddTaskCheckCEs()
 end

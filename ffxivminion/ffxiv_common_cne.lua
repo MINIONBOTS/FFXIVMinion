@@ -23,7 +23,6 @@ function c_add_killtarget:evaluate()
 	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1" and not Player.hasaggro) then
 		return false
 	end
-	
     -- block killtarget for fates when user has specified a fate completion % to start
     if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
         if (ml_task_hub:CurrentTask().fateid ~= nil) then
@@ -35,6 +34,9 @@ function c_add_killtarget:evaluate()
             end
         end
     end
+	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+		return false
+	end
     
     local target = ml_task_hub:CurrentTask().targetFunction()
 	if ((target == nil or target == 0) and Player.hasaggro) then
@@ -60,6 +62,50 @@ function e_add_killtarget:execute()
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
+
+
+---------------------------------------------------------------------------------------------
+---- minion attacks the target the leader has
+--Adds a task to use a combat routine to attack/kill target 
+---------------------------------------------------------------------------------------------
+c_assistleader = inheritsFrom( ml_cause )
+e_assistleader = inheritsFrom( ml_effect )
+c_assistleader.targetid = nil
+function c_assistleader:evaluate()
+	
+	if (gBotMode == "Party-Grind" and IsLeader() ) then
+		return false
+	end
+	leader = GetPartyLeader()	
+	if (leader ~= nil and leader.id ~= 0) then
+		local entity = EntityList:Get(leader.id)
+		if ( entity ~= nil and entity ~= 0 ) then
+			local leadtarget = entity.targetid
+			if ( leadtarget ~= nil and leadtarget ~= 0 ) then
+				local target = EntityList:Get(leadtarget)
+				if ( target ~= nil and target ~= 0 and target.attackable and target.alive and target.distance < 30) then
+					if ( target.onmesh or InCombatRange(target.id)) then
+						c_assistleader.targetid = target.id
+						return true
+					end
+				end
+			end
+		end
+	end
+    
+    return false
+end
+function e_assistleader:execute()
+	if ( c_assistleader.targetid ) then
+		local newTask = ffxiv_task_killtarget:Create()
+		newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
+		newTask.targetid = c_assistleader.targetid 
+		ml_task_hub.CurrentTask():AddSubTask(newTask)
+	else
+		wt_debug("Ohboy, something went really wrong : e_assistleader")
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 --ADD_COMBAT: If (target hp > 0) Then (add combat task)
 --Adds a task to use a combat routine to attack/kill target 
@@ -68,7 +114,7 @@ c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
 	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-	if target ~= nil and target ~= {} then
+	if target ~= nil and target ~= 0 then
         return InCombatRange(target.id) and target.alive
 	end
 		
@@ -93,6 +139,11 @@ end
 c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 function c_add_fate:evaluate()
+	
+	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+		return false
+	end
+	
 	if (gDoFates == "1") then
 		local myPos = Player.pos
 		local fateID = GetClosestFateID(myPos, true, true)
@@ -125,7 +176,7 @@ e_movetotarget = inheritsFrom( ml_effect )
 function c_movetotarget:evaluate()
 	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
 		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-		if (target ~= nil and target ~= {} and target.alive) then
+		if (target ~= nil and target ~= 0 and target.alive) then
 			return not InCombatRange(target.id)
 		end
 	end
@@ -143,6 +194,55 @@ function e_movetotarget:execute()
 	end
 end
 
+
+
+c_followleader = inheritsFrom( ml_cause )
+e_followleader = inheritsFrom( ml_effect )
+c_followleader.rrange = math.random(1,15)
+c_followleader.leader = nil
+function c_followleader:evaluate()
+	
+	if (gBotMode == "Party-Grind" and IsLeader()) then
+		return false
+	end
+	
+	local leader = GetPartyLeader()
+	if ( leader ~= nil ) then
+		if ( leader.mapid == Player.localmapid ) then
+			c_followleader.leaderpos = leader.pos
+			if ( c_followleader.leaderpos.x ~= -1000 ) then 			
+				local myPos = Player.pos				
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleader.leaderpos.x, c_followleader.leaderpos.y, c_followleader.leaderpos.z)
+				if ((distance > c_followleader.rrange and leader.onmesh) or (distance > c_followleader.rrange and distance < 30 and not leader.onmesh)) then					
+					c_followleader.leader = leader
+					return true
+				end
+			end
+		end
+	end    
+    return false
+end
+function e_followleader:execute()
+	-- honestly I tried to build a new task here, I tried n wasted more than 4  hours, it just doesnt work, gets stuck , doesnt return, repeatly goes into movetask or just doesnt finish it, got enough now
+	if ( c_followleader.leader ~= nil) then	
+		if ( leader.onmesh and Player.onmesh) then
+			local lpos = c_followleader.leader.pos
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange))))	
+			if ( not Player:IsMoving()) then
+				if ( ml_global_information.AttackRange < 5 ) then
+					c_followleader.rrange = math.random(1,6)
+				else
+					c_followleader.rrange = math.random(6,20)
+				end
+			end
+		else
+			if ( not Player:IsMoving() ) then
+				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleader.leader.id)))
+			end
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 --Task Completion CNEs
 --These are cnes which are added to the process element list for a task and exist only to
@@ -156,9 +256,9 @@ end
 ---------------------------------------------------------------------------------------------
 c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
+c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        local myPos = Player.pos
+	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then        
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
         
@@ -168,17 +268,46 @@ function c_walktopos:evaluate()
         ml_debug("Execute Distance: "..tostring(self.range))
         
 		if (distance > ml_task_hub:CurrentTask().range) then		
+			c_walktopos.pos = gotoPos
 			return true
 		end
     end
-    
     return false
 end
 function e_walktopos:execute()
-	local gotoPos = ml_task_hub:CurrentTask().pos
-	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-    ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range))))
+	if ( c_walktopos.pos ~= 0) then
+		local gotoPos = c_walktopos.pos
+		ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
+		ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range))))
+	else
+		mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
+	end
+	c_walktopos.pos = 0
 end
+
+
+-- Checks for a better target while we are engaged in fighting an enemy and switches to it
+c_bettertargetsearch = inheritsFrom( ml_cause )
+e_bettertargetsearch = inheritsFrom( ml_effect )
+function c_bettertargetsearch:evaluate()	
+	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+		return false
+	end
+	
+	if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
+		local bettertarget = ml_task_hub:ThisTask().targetFunction()
+		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
+			return true			
+		end		
+	end	
+	return false
+end
+function e_bettertargetsearch:execute()
+	Player:Stop()
+	ml_task_hub:ThisTask():Terminate()
+end
+
+
 
 -----------------------------------------------------------------------------------------------
 --MOUNT: If (distance to pos > ? or < ?) Then (mount or unmount)
@@ -238,9 +367,8 @@ function c_updatetarget:evaluate()
 	if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then
 		local target = EntityList:Get(ml_task_hub.ThisTask().targetid)
 		if (target ~= nil) then
-			if (target.alive and target.targetable) then
+			if (target.alive and target.attackable) then
 				if (ml_task_hub:CurrentTask().name == "MOVETOPOS" ) then
-					-- MOVETOPOS is moving to a static pos, the enemy moves, either update the MOVETOPOS.pos or create a new movetopos task with teh new positoon, I choose a)
 					ml_task_hub:CurrentTask().pos = target.pos					
 				end
 				return false
@@ -253,6 +381,27 @@ end
 function e_updatetarget:execute()
 	Player:Stop()
 	ml_task_hub:ThisTask():Terminate()
+end
+
+
+-- Updates the leaderposition and ID for the partytask - minions, since we have only the position and the leader is not in the Entitylist when he is too far away
+c_updateleaderdata = inheritsFrom( ml_cause )
+e_updateleaderdata = inheritsFrom( ml_effect )
+function c_updateleaderdata:evaluate()	
+	local leader = GetPartyLeader()
+	if (leader ~=nil and leader.id ~= 0) then	
+		if (ml_task_hub:CurrentTask().name == "FOLLOWENTITY" ) then
+			local myPos = Player.pos
+			if (Distance3D(myPos.x, myPos.y, myPos.z, ml_task_hub:CurrentTask().pos.x, ml_task_hub:CurrentTask().pos.y, ml_task_hub:CurrentTask().pos.z) > 10 and leader.onmesh) then
+				ml_task_hub:CurrentTask().pos = leader.pos
+				ml_task_hub:CurrentTask().targetid = leader.id
+			end
+		end		
+	end	
+	return false
+end
+function e_updateleaderdata:execute()
+
 end
 
 c_attarget = inheritsFrom( ml_cause )
@@ -282,29 +431,29 @@ end
 c_notarget = inheritsFrom( ml_cause )
 e_notarget = inheritsFrom( ml_effect )
 function c_notarget:evaluate()
-	if ( ml_task_hub.CurrentTask().targetid == nil or ml_task_hub.CurrentTask().targetid == 0 ) then
-		return true
-    end
-    
-    local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-    if (target ~= nil) then
-        if (not target.alive or not target.targetable) then
-            return true
-        end
-    elseif (target == nil) then
-        return true
-    end
-    
+	
+	if ( ml_task_hub:CurrentTask().targetFunction() ~= nil ) then
+		if ( ml_task_hub.CurrentTask().targetid == nil or ml_task_hub.CurrentTask().targetid == 0 ) then
+			return true
+		end
+		
+		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+		if (target ~= nil) then
+			if (not target.alive or not target.targetable) then
+				return true
+			end
+		elseif (target == nil) then
+			return true
+		end
+	end    
     return false
 end
 function e_notarget:execute()
 	ml_debug( "Getting new target" )
 	local target = ml_task_hub:CurrentTask().targetFunction()
-	if (target ~= nil) then
+	if (target ~= nil and target ~= 0) then
 		Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
 		ml_task_hub.CurrentTask().targetid = target.id
-	else
-		--ml_error ( "We shouldn't be here, ml_task_hub:CurrentTask().targetFunction() is NIL" )
 	end
 end
 
@@ -317,7 +466,7 @@ e_mobaggro = inheritsFrom( ml_effect )
 function c_mobaggro:evaluate()
 	if ( Player.hasaggro ) then
         local target = GetNearestAggro()
-        if (target ~= nil and target ~= {}) then
+        if (target ~= nil and target ~= 0) then
             e_mobaggro.targetid = target.id
             return true
         end
@@ -330,6 +479,7 @@ function e_mobaggro:execute()
 	local target = GetNearestAggro()
 	if (target ~= nil) then
         local newTask = ffxiv_task_killtarget:Create()
+		newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
         newTask.targetid = e_mobaggro.targetid
         ml_task_hub.Add(newTask, QUEUE_REACTIVE, TP_IMMEDIATE)
 	end
@@ -342,11 +492,13 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-	if (e_rest.resting or 
-		Player.hp.percent < tonumber(gRestHP) or
-		Player.mp.percent < tonumber(gRestMP))
-	then
-		return true
+	if (not Player.hasaggro) then
+		if (e_rest.resting or 
+			Player.hp.percent < tonumber(gRestHP) or
+			Player.mp.percent < tonumber(gRestMP))
+		then
+			return true
+		end
 	end
 	
 	return false
@@ -356,19 +508,19 @@ function e_rest:execute()
 		local newTask = ffxiv_task_skillmgrHeal:Create()
 		newTask.targetid = Player.id
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
-
-		if (e_rest.resting == true) then
-			if (Player.hp.percent > 95) then
-				e_rest.resting = false
-				return
-			end
-		else
-			if (Player.hp.percent < tonumber(gRestHP) or
-				Player.mp.percent < tonumber(gRestMP)) 
-			then
-				e_rest.resting = true
-				return
-			end
+	end
+	
+	if (e_rest.resting == true) then
+		if (Player.hp.percent > 95) then
+			e_rest.resting = false
+			return
+		end
+	else
+		if (Player.hp.percent < tonumber(gRestHP) or
+			Player.mp.percent < tonumber(gRestMP)) 
+		then
+			e_rest.resting = true
+			return
 		end
 	end
 end
@@ -381,7 +533,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleeing = false
 function c_flee:evaluate()
-    if (mm.evacPoint ~= nil and mm.evacPoint ~= {} and Player.hasaggro and 
+    if (ValidTable(mm.evacPoint) and Player.hasaggro and 
         Player.hp.percent < tonumber(gFleeHP)) or 
         Player.mp.percent < tonumber(gFleeMP) or
         e_flee.fleeing
@@ -400,7 +552,7 @@ function e_flee:execute()
 		end
     else
         local fleePos = mm.evacPoint
-        if (fleePos ~= nil and fleePos ~= {}) then
+        if (fleePos ~= nil and fleePos ~= 0) then
             ml_debug( "Fleeing combat" )
 			ml_task_hub:ThisTask():DeleteSubTasks()
             Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
@@ -432,6 +584,10 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
+	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+		return false
+	end
+	
 	if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
 		local myPos = Player.pos
 		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)

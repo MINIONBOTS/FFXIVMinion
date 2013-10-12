@@ -591,7 +591,9 @@ function SkillMgr.Cast( entity )
 		local ebuffs = entity.buffs
 		
 		local pet = Player.pet
-							
+		
+		local ally = GetBestHealTarget()
+		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
@@ -655,10 +657,10 @@ function SkillMgr.Cast( entity )
 						end	
 						
 						
-						-- TODO: switch target when skill.trh == "Ally", first party members, then any other guys around ya
-						-- SWITCH TARGET FOR PET - CHECK
+						
+						-- SWITCH TARGET FOR PET / ALLY - CHECK
 						if ( skill.trg == "Pet" ) then
-							if ( pet ~= nil and pet ~= {}) then
+							if ( pet ~= nil and pet ~= 0) then
 								if ( SkillMgr.IsPetSummonSkill(skill.id) ) then castable = false end -- we still have a pet, no need to summon
 								target = pet
 								TID = pet.id
@@ -668,7 +670,13 @@ function SkillMgr.Cast( entity )
 							
 							-- we have no pet, check if the skill is summoning a new pet, else dont cast
 								if not SkillMgr.IsPetSummonSkill(skill.id) then castable = false end
-							end									
+							end
+						elseif ( skill.trg == "Ally" ) then
+							if ( ally ~= nil ) then
+								target = ally
+								TID = ally.id
+								tbuffs = ally.buffs
+							end
 						end
 						
 						-- RANGE 							
@@ -847,15 +855,18 @@ end
 
 
 function ffxiv_task_skillmgrHeal:Process()
-	local target = Player
-	if (target ~= nil and target.alive and target.hp.percent < 95 and InCombatRange(target.id)) then
-		
-		SkillMgr.Cast( target )
-		
-	else
-		self.targetid = 0
-		self.completed = true
+	
+	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
+		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+		if (target ~= nil and target.alive and target.hp.percent < 95 and InCombatRange(target.id)) then
+			
+			SkillMgr.Cast( target )
+			
+		end
 	end
+	-- test if these 2 are needed or if eval complete does the job ...
+	self.targetid = 0
+	self.completed = true
 end
 
 function ffxiv_task_skillmgrHeal:OnSleep()
@@ -872,7 +883,7 @@ end
 
 function ffxiv_task_skillmgrHeal:task_complete_eval()
 	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-    if (target == nil or not target.alive or target.hp.percent > 95) then
+    if (target == nil or not target.alive or target.hp.percent > 95 or not InCombatRange(target.id)) then
         return true
     end
     

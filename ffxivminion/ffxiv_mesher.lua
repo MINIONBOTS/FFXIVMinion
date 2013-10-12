@@ -209,7 +209,7 @@ end
 
 function mm.MoveToMarker()
     local info = mm.GetMarkerInfo(gMarkerName)
-    if (info ~= nil and info ~= {}) then
+    if (info ~= nil and info ~= 0) then
         local pos = {x = info.x, y = info.y, z = info.z}
         if (NavigationManager:GetPointToMeshDistance(pos)<=3) then
             Player:MoveTo(pos.x,pos.y,pos.z)
@@ -387,7 +387,7 @@ function mm.WriteMarkerList(meshname)
 		-- Save the mapID first
 		string2write = string2write.."MapID="..Player.localmapid.."\n"
         -- Write the evac point if it exists
-        if (mm.evacPoint ~= nil and mm.evacPoint ~= {}) then
+        if (mm.evacPoint ~= nil and mm.evacPoint ~= 0) then
             local pos = mm.evacPoint
             string2write = string2write.."evacPoint="..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z).."\n"
         end

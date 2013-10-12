@@ -31,8 +31,11 @@ end
 function ffxiv_task_killtarget:Init()
 	--init ProcessOverWatch() cnes
 	
-	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 10)
+	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
 	self:add( ke_attarget, self.overwatch_elements)
+	
+	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	self:add( ke_bettertargetsearch, self.overwatch_elements)
 	
 	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
 	self:add( ke_updateTarget, self.overwatch_elements)
@@ -61,7 +64,7 @@ end
 
 function ffxiv_task_killtarget:task_complete_eval()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (not target or (target and not target.alive)) then
+    if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
 		return true
     end
     

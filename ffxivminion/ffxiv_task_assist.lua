@@ -28,7 +28,7 @@ c_combatassist_task = inheritsFrom( ml_cause )
 e_combatassist_task = inheritsFrom( ml_effect )
 function c_combatassist_task:evaluate()
 	local target = Player:GetTarget()
-	if (target ~= nil and target ~= {}) then
+	if (target ~= nil and target ~= 0) then
 		if(target.attackable and target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and target.distance < ml_global_information.AttackRange + target.hitradius) then
 			ml_task_hub:CurrentTask().targetid = target.id
 			return true
@@ -63,7 +63,7 @@ function c_validtarget:evaluate()
 end
 function e_validtarget:execute()
 	local target = Player:GetTarget()
-	if (target ~= nil and target ~= {}) then
+	if (target ~= nil and target ~= 0) then
 		ml_task_hub:CurrentTask().targetid = target.id
 	else
 		ml_task_hub:CurrentTask().targetid = 0

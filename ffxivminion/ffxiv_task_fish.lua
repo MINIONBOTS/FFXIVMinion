@@ -96,12 +96,12 @@ function e_setbait:execute()
     local marker = ml_task_hub:CurrentTask().currentMarker
     if (marker ~= nil and marker ~= false) then
         local data = GatherMgr.GetMarkerData(marker)
-        if (data ~= nil and data ~= {}) then
+        if (data ~= nil and data ~= 0) then
             local _,bait = next(data)
             if (bait ~= nil and bait ~= "") then
 				for i = 0,4 do
 					local inventory = Inventory("type="..tostring(i))
-					if (inventory ~= nil and inventory ~= {}) then
+					if (inventory ~= nil and inventory ~= 0) then
 						for _,item in ipairs(inventory) do
 							if item.name == bait then
 								Player:SetBait(item.id)

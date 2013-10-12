@@ -1,5 +1,5 @@
 ffxiv_combat_warrior = inheritsFrom(ml_task)
-ffxiv_combat_warrior.range = 3
+ffxiv_combat_warrior.range = 2
 
 function ffxiv_combat_warrior:Create()
     local newinst = inheritsFrom(ffxiv_combat_warrior)
@@ -15,7 +15,7 @@ function ffxiv_combat_warrior:Create()
     --ffxiv_combat_warrior members
     newinst.name = "WARRIOR"
     newinst.targetid = 0
-	newinst.range = 3
+	newinst.range = 2
     
     return newinst
 end

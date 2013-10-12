@@ -82,12 +82,12 @@ end
 
 function GatherMgr.UpdateMarkerInfo(markerType, markerName)
     local markerInfo = mm.GetMarkerInfo(markerName)
-    if (markerInfo ~= nil and markerInfo ~= {}) then
+    if (markerInfo ~= nil and markerInfo ~= 0) then
         local data = GatherMgr.GetMarkerData(markerName)
         local time = GatherMgr.GetMarkerTime(markerName)
 		
 		if(markerType == "miningSpot") then
-			if(data ~= nil and data ~= {}) then
+			if(data ~= nil and data ~= 0) then
 				gMiningItem1 = data[1]
                 gMiningItem2 = data[2]
 			else
@@ -101,7 +101,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 				gMiningTime = "300"
 			end
 		elseif(markerType == "botanySpot") then
-			if(data ~= nil and data ~= {}) then
+			if(data ~= nil and data ~= 0) then
 				gBotanyItem1 = data[1]
                 gBotanyItem2 = data[2]
 			else
@@ -115,7 +115,7 @@ function GatherMgr.UpdateMarkerInfo(markerType, markerName)
 				gBotanyTime = "300"
 			end
 		elseif(markerType == "fishingSpot") then
-			if(data ~= nil and data ~= {}) then
+			if(data ~= nil and data ~= 0) then
 				gBaitName = data[1]
 			else
 				gBaitName = "None"
@@ -147,7 +147,7 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
 			time = tonumber(gFishingTime)
         end
         
-        if (data ~= nil and data ~= {}) then
+        if (data ~= nil and data ~= 0) then
             mm.SetMarkerData(markerName,data)
 			mm.SetMarkerTime(markerName,time)
             return true
@@ -242,7 +242,7 @@ end
 
 function GatherMgr.GetMarkerData(markerName)
     local markerInfo = mm.GetMarkerInfo(markerName)
-    if (markerInfo ~= nil and markerInfo ~= {}) then
+    if (markerInfo ~= nil and markerInfo ~= 0) then
         return markerInfo.data
     end
     
@@ -251,7 +251,7 @@ end
 
 function GatherMgr.GetMarkerTime(markerName)
     local markerInfo = mm.GetMarkerInfo(markerName)
-    if (markerInfo ~= nil and markerInfo ~= {}) then
+    if (markerInfo ~= nil and markerInfo ~= 0) then
         return markerInfo.time
     end
     

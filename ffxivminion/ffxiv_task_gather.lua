@@ -55,7 +55,7 @@ function e_findgatherable:execute()
 		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
 			if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 3 ) then
 				local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-				if (markerInfo ~= nil and markerInfo ~= {}) then
+				if (markerInfo ~= nil and markerInfo ~= 0) then
 					Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10)
 				end
 			end
@@ -81,7 +81,7 @@ function c_movetogatherable:evaluate()
 end
 function e_movetogatherable:execute()
 	local pos = EntityList:Get(ml_task_hub.CurrentTask().gatherid).pos
-	if (pos ~= nil and pos ~= {}) then
+	if (pos ~= nil and pos ~= 0) then
 		if (gGatherTP == "1") then
 			GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
 		else
@@ -99,6 +99,10 @@ e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
 	-- this function (along with the marker manager stuff in general) needs a major refactor
 	-- for the purposes of beta I'm just doing all the marker checking shit for all modes here
+	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+		return false
+	end
+	
 	if ((gBotMode == "Gather" or gBotMode == "Fish") and gGMactive == "0") or
 	   (gBotMode == "Grind" and gDoFates == "1" and gFatesOnly == "1")
 	then
@@ -112,7 +116,7 @@ function c_nextmarker:evaluate()
 		end
 	end
 	
-	if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= {}) then
+	if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
         local marker = nil
         if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
             marker = GatherMgr.GetNextMarker(nil, nil)
@@ -179,7 +183,7 @@ function e_gather:execute()
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
 				local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
-				if (markerData ~= nil and markerData ~= {}) then
+				if (markerData ~= nil and markerData ~= 0) then
                     -- do 2 loops to allow prioritization of first item
 					for i, item in pairs(list) do
 						if item.name == markerData[1] then
