@@ -44,9 +44,6 @@ function c_add_killtarget:evaluate()
 	end
     
 	if (ValidTable(target)) then
-		d(target.name)
-		d(target.distance)
-		d(ml_task_hub:CurrentTask().name)
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
 			c_add_killtarget.targetid = target.id
 			return true
