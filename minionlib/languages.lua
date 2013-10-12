@@ -104,7 +104,7 @@ strings =
         mapName                         = "Map",
         navmesh                         = "Navmesh",
         waypoint                        = "Waypoint",
-        generalSettings                 = "GeneralSettings",
+        generalSettings                 = "General",
 		getWaypoint						= "GetMeshWP",
 		useInSwitcher					= "UseInSwitcher",
 		enableSwitcher					= "EnableSwitcher",
@@ -360,7 +360,12 @@ strings =
         selectClosestMarker             = "Select Closest Marker",
         moveToMarker                    = "Move To Marker",
         gatherManager                   = "GatherManager",
-        selectMarker                    = "Select Marker"
+        selectMarker                    = "Select Marker",
+        logCNE                          = "Log CNE Results",
+        useMount                        = "Use Mount",
+        useSprint                       = "Use Sprint",
+        mountDist                       = "Mount Distance: ",
+        sprintDist                      = "Sprint Distance: "
     },
     ["de"] =
         {

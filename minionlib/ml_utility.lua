@@ -84,6 +84,10 @@ function TableContains(table, element)
   return false
 end
 
+function ValidTable(table)
+    return table ~= nil and TableSize(table) > 0
+end
+
 --psuedo enum values for task classes
 TS_FAILED = 0
 TS_SUCCEEDED = 1

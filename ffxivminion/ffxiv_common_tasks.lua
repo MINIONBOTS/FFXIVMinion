@@ -21,10 +21,9 @@ function ffxiv_task_killtarget:Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     
-    --ffxiv_task_grind members
+    --ffxiv_task_killtarget members
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
-    newinst.targetFunction = nil
     
     return newinst
 end
@@ -73,84 +72,6 @@ function ffxiv_task_killtarget:task_complete_execute()
     self.completed = true
 end
 
----------------------------------------------------------------------------------------------
---TASK_FATE: Longterm Goal - Complete a fate event successfully
----------------------------------------------------------------------------------------------
-ffxiv_task_fate = inheritsFrom(ml_task)
-
-function ffxiv_task_fate:Create()
-    local newinst = inheritsFrom(ffxiv_task_fate)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_fate members
-    newinst.name = "LT_FATE"
-    newinst.fateid = 0
-    newinst.targetFunction = GetNearestFateAttackable
-    
-    return newinst
-end
-
-function ffxiv_task_fate:Init()
-    --init processoverwatch 
-	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
-	self:add( ke_betterFate, self.overwatch_elements)
-	
-    --init process
-	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 15 )
-	self:add( ke_moveToFate, self.process_elements)
-	
-	local ke_noTarget = ml_element:create( "NoTarget", c_notarget, e_notarget, 10 )
-	self:add(ke_noTarget, self.process_elements)
-	
-    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 5 )
-	self:add(ke_addKillTarget, self.process_elements)
-    
-    
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_fate:task_complete_eval()
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (fate ~= nil and fate ~= {}) then
-		return fate.completion > 95
-    elseif (fate == nil) then
-		return true
-	end
-	
-    return false
-end
-
-function ffxiv_task_fate:task_complete_execute()
-    self.completed = true
-end
-
-function ffxiv_task_fate:task_fail_eval()
-
-end
-
-function ffxiv_task_fate:task_fail_execute()
-    self.valid = false
-end
-
-function ffxiv_task_fate:OnSleep()
-
-end
-
-function ffxiv_task_fate:OnTerminate()
-
-end
-
-function ffxiv_task_fate:IsGoodToAbort()
-
-end
-
 
 ---------------------------------------------------------------------------------------------
 --REACTIVE GOALS--
@@ -190,8 +111,15 @@ function ffxiv_task_movetopos:Create()
     return newinst
 end
 
+
+
 function ffxiv_task_movetopos:Init()
-	-- TODO: Chocobo, Sprint n waypoint usage goes here
+    local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	self:add( ke_mount, self.process_elements)
+    
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+	self:add( ke_sprint, self.process_elements)
+    
 	-- The parent needs to take care of checking and updating the position of this task!!	
 	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
 	self:add( ke_walkToPos, self.process_elements)
@@ -204,6 +132,13 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+        
+        ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
+        ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+        ml_debug("Task Range: "..tostring(self.range))
+        ml_debug("Current Distance: "..tostring(distance))
+        ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
+        
 		if (distance <= self.range + self.gatherRange) then -- this +1 fucks up all InCombatRange checks for melee, it makes this task terminate when beeing <= 2.5ft, when we want to walk closer to our targetposition
 			return true
 		end

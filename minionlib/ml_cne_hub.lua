@@ -10,9 +10,13 @@ end
 
 function ml_cne_hub.eval_elements(elementList)
 	for k, elem in pairs( elementList ) do
-		ml_debug( "Evaluating:" .. tostring( elem.name ) )
+        if (gLogCNE == "1") then
+            ml_debug( "Evaluating:" .. tostring( elem.name ) )
+        end
 		elem.eval = elem:evaluate()
-		ml_debug( "Evaluation Result:" .. tostring( elem.eval ) )
+        if (gLogCNE == "1") then
+            ml_debug( "Evaluation Result:" .. tostring( elem.eval ) )
+        end
 	end
 end
 
@@ -39,7 +43,9 @@ function ml_cne_hub.queue_to_execute( )
 	if ( highestPriority > 0 ) then
 		for k, effect in pairs( ml_cne_hub.execution_queue ) do
 			if( effect.priority < highestPriority ) then
-				ml_debug( "Removing:"..effect.name .. "(P:"..effect.priority..")" )
+                if (gLogCNE == "1") then
+                    ml_debug( "Removing:"..effect.name .. "(P:"..effect.priority..")" )
+                end
 				effect:interrupt()
 				ml_cne_hub.execution_queue[ k ] = nil
 			end
@@ -47,7 +53,9 @@ function ml_cne_hub.queue_to_execute( )
 		-- All effects with the hightest priority will be added to the execution que
 		for k, effect in pairs( ml_cne_hub.effect_queue ) do
 			if ( highestPriority == effect.priority ) then
-				ml_debug( "Scheduling:" .. effect.name .. "(P:"..effect.priority..")" )
+                if (gLogCNE == "1") then
+                    ml_debug( "Scheduling:" .. effect.name .. "(P:"..effect.priority..")" )
+                end
 				effect.execution_count = 0
 				ml_cne_hub.execution_queue[ tostring( effect ) ] = effect
 			end
@@ -67,7 +75,9 @@ function ml_cne_hub.execute()
 			gFFXIVMinionEffect = self.name.."."..effect.name
 			GUI_SetStatusBar(effect.name)
 			end
-			ml_debug( "execute:" .. effect.name .. " (P:"..effect.priority..")" )
+            if (gLogCNE == "1") then
+                ml_debug( "execute:" .. effect.name .. " (P:"..effect.priority..")" )
+            end
             --ml_debug_window.lastExecuted = effect.name
 			effect:execute()
 			executed = true

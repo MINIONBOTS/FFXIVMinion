@@ -239,7 +239,7 @@ function c_stealth:evaluate()
 	end
 
 	if (ActionList:CanCast(212,0)) then
-		local mobList = EntityList("attackable,onmesh,maxdistance=17")
+		local mobList = EntityList("attackable,onmesh,aggressive,maxdistance=17")
 		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
         then
@@ -250,7 +250,8 @@ function c_stealth:evaluate()
 	return false
 end
 function e_stealth:execute()
-	ActionList:Cast(212,0)
+    Player:Stop()
+    ActionList:Cast(212,0)
 end
 
 function ffxiv_task_gather:Init()
@@ -259,7 +260,13 @@ function ffxiv_task_gather:Init()
 	self:add( ke_stealth, self.overwatch_elements)
 	
 	--init Process cnes
-	
+    --in descending priority order just for you stefan
+    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+	self:add( ke_returnToMarker, self.process_elements)
+    
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+	self:add( ke_nextMarker, self.process_elements)
+    
 	local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
 	self:add(ke_findGatherable, self.process_elements)
 	
@@ -269,12 +276,6 @@ function ffxiv_task_gather:Init()
 	local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 5 )
 	self:add(ke_gather, self.process_elements)
     
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
-	self:add( ke_nextMarker, self.process_elements)
-	
-	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
-	self:add( ke_returnToMarker, self.process_elements)
-	
 	self:AddTaskCheckCEs()
 end
 

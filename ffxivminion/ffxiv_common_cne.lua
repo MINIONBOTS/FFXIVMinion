@@ -19,14 +19,32 @@ c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
 
 function c_add_killtarget:evaluate()
-	
-	-- this will block the fatetask from wroking if I'm not mistaken ...since it never picks a target to attack
-	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
+    -- block killtarget for grinding when user has specified "Fates Only"
+	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1" and not Player.hasaggro) then
 		return false
 	end
 	
-	local target = ml_task_hub:CurrentTask().targetFunction()
-	if (target ~= nil and target ~= {}) then
+    -- block killtarget for fates when user has specified a fate completion % to start
+    if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+        if (ml_task_hub:CurrentTask().fateid ~= nil) then
+            local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+            if ValidTable(fate) then
+                if (fate.completion < tonumber(gFateWaitPercent) and not Player.hasaggro) then
+                    return false
+                end
+            end
+        end
+    end
+    
+    local target = ml_task_hub:CurrentTask().targetFunction()
+	if ((target == nil or target == 0) and Player.hasaggro) then
+		target = GetNearestAggro()
+	end
+    
+	if (ValidTable(target)) then
+		d(target.name)
+		d(target.distance)
+		d(ml_task_hub:CurrentTask().name)
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
 			c_add_killtarget.targetid = target.id
 			return true
@@ -37,8 +55,8 @@ function c_add_killtarget:evaluate()
 end
 function e_add_killtarget:execute()
 	local newTask = ffxiv_task_killtarget:Create()
-    newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
     newTask.targetid = c_add_killtarget.targetid
+	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 
@@ -79,7 +97,12 @@ function c_add_fate:evaluate()
 		local myPos = Player.pos
 		local fateID = GetClosestFateID(myPos, true, true)
 		if (fateID ~= 0) then
-			return true
+			local fate = GetFateByID(fateID)
+			if (fate ~= nil and fate ~= {}) then
+				if (fate.status == 2) then
+					return true
+				end
+			end
 		end
 	end
 	
@@ -89,9 +112,9 @@ function e_add_fate:execute()
 	local newTask = ffxiv_task_fate:Create()
 	local myPos = Player.pos
     newTask.fateid = GetClosestFateID(myPos, true, true)
+    newTask.fateTimer = os.time()
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
-
 
 ---------------------------------------------------------------------------------------------
 --ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
@@ -120,38 +143,6 @@ function e_movetotarget:execute()
 	end
 end
 
------------------------------------------------------------------------------------------------
---ADD_MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
---Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
----------------------------------------------------------------------------------------------
-c_movetofate = inheritsFrom( ml_cause )
-e_movetofate = inheritsFrom( ml_effect )
-function c_movetofate:evaluate()
-	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-		if (fate ~= nil and fate ~= {}) then
-			local myPos = Player.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-			if (distance > fate.radius) then				
-				return true
-			end
-		end
-	end
-    
-    return false
-end
-function e_movetofate:execute()
-	ml_debug( "Moving to fate" )
-	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (fate ~= nil and fate ~= {}) then
-		local newTask = ffxiv_task_movetopos:Create()
-		--TODO: Randomize position
-		newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
-		newTask.range = math.random(1.5,fate.radius)
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
-end
-
 ---------------------------------------------------------------------------------------------
 --Task Completion CNEs
 --These are cnes which are added to the process element list for a task and exist only to
@@ -168,9 +159,15 @@ e_walktopos = inheritsFrom( ml_effect )
 function c_walktopos:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
         local myPos = Player.pos
-		local tPos = ml_task_hub:CurrentTask().pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, tPos.x, tPos.y, tPos.z)
-		if (distance > ml_task_hub:CurrentTask().range) then				
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+        
+        ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
+        ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+        ml_debug("Current Distance: "..tostring(distance))
+        ml_debug("Execute Distance: "..tostring(self.range))
+        
+		if (distance > ml_task_hub:CurrentTask().range) then		
 			return true
 		end
     end
@@ -181,6 +178,55 @@ function e_walktopos:execute()
 	local gotoPos = ml_task_hub:CurrentTask().pos
 	ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
     ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range))))
+end
+
+-----------------------------------------------------------------------------------------------
+--MOUNT: If (distance to pos > ? or < ?) Then (mount or unmount)
+---------------------------------------------------------------------------------------------
+c_mount = inheritsFrom( ml_cause )
+e_mount = inheritsFrom( ml_effect )
+function c_mount:evaluate()
+    -- check if mounted already
+    -- check if can cast mount
+    
+	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
+        local myPos = Player.pos
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+        
+		if (distance > tonumber(gMountDist)) then		
+			return true
+		end
+    end
+    
+    return false
+end
+function e_mount:execute()
+    --use mount
+end
+
+-----------------------------------------------------------------------------------------------
+--SPRINT: If (distance to pos > ? or < ?) Then (mount or unmount)
+---------------------------------------------------------------------------------------------
+c_sprint = inheritsFrom( ml_cause )
+e_sprint = inheritsFrom( ml_effect )
+function c_sprint:evaluate()
+    if not HasBuff(Player.id, 50) and ActionList:CanCast(3,0) then
+		if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
+			local myPos = Player.pos
+			local gotoPos = ml_task_hub:CurrentTask().pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			
+			if (distance > tonumber(gSprintDist)) then		
+				return true
+			end
+		end
+	end
+    
+    return false
+end
+function e_sprint:execute()
+    ActionList:Get(3):Cast()
 end
 
 -- The movetotask in the killtask needs to always have up2date data since the targt is also moving away sometimes. Therefore giving the movetopos task the data and let 
@@ -258,7 +304,7 @@ function e_notarget:execute()
 		Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
 		ml_task_hub.CurrentTask().targetid = target.id
 	else
-		ml_error ( "We shouldn't be here, ml_task_hub:CurrentTask().targetFunction() is NIL" )
+		--ml_error ( "We shouldn't be here, ml_task_hub:CurrentTask().targetFunction() is NIL" )
 	end
 end
 
@@ -287,26 +333,6 @@ function e_mobaggro:execute()
         newTask.targetid = e_mobaggro.targetid
         ml_task_hub.Add(newTask, QUEUE_REACTIVE, TP_IMMEDIATE)
 	end
-end
-
----------------------------------------------------------------------------------------------
---FATEWAIT: If (detect new aggro) Then (kill mob)
---
----------------------------------------------------------------------------------------------
-c_fatewait = inheritsFrom( ml_cause )
-e_fatewait = inheritsFrom( ml_effect )
-function c_fatewait:evaluate()
-    local myPos = Player.pos
-    local gotoPos = mm.evacPoint
-    return  gFatesOnly == "1" and gDoFates == "1" and gotoPos ~= {} and 
-            NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
-            Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 15 -- ? 
-            
-end
-function e_fatewait:execute()
-    local newTask = ffxiv_task_movetopos:Create()
-    newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
-    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -355,7 +381,10 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleeing = false
 function c_flee:evaluate()
-    if (mm.evacPoint ~= nil and mm.evacPoint ~= {} and Player.hasaggro and Player.hp.percent < tonumber(gFleeHP)) or e_flee.fleeing
+    if (mm.evacPoint ~= nil and mm.evacPoint ~= {} and Player.hasaggro and 
+        Player.hp.percent < tonumber(gFleeHP)) or 
+        Player.mp.percent < tonumber(gFleeMP) or
+        e_flee.fleeing
 	then
         return true
 	end
@@ -399,32 +428,6 @@ function e_dead:execute()
 	Player:Respawn()
 end
 
----------------------------------------------------------------------------------------------
---BETTERFATESEARCH: If (fate with < distance than current target exists) Then (select new fate)
---Clears the current fate and adds a new one if it finds a better match along the route
----------------------------------------------------------------------------------------------
-c_betterfatesearch = inheritsFrom( ml_cause )
-e_betterfatesearch = inheritsFrom( ml_effect )
-c_betterfatesearch.throttle = 1000
-function c_betterfatesearch:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
-        return false
-    end
-    
-    local myPos = Player.pos
-	local fateID = GetClosestFateID(myPos,true,true)
-    if (fateID ~= ml_task_hub:ThisTask().fateid) then
-        return true
-    end
-    
-    return false
-end
-function e_betterfatesearch:execute()
-	ml_debug( "Closer fate found" )
-    ml_task_hub:ThisTask():Terminate()
-	d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
-end
-
 -- more to refactor here later most likely
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
@@ -433,7 +436,7 @@ function c_returntomarker:evaluate()
 		local myPos = Player.pos
 		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
-        if  ((gBotMode == "Grind" or gBotMode == "Gather") and distance > 150) or
+        if  ((gBotMode == "Grind" or gBotMode == "Gather") and distance > 200) or
             (gBotMode == "Fish" and distance > 3)
 		then
 			return true

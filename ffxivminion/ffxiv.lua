@@ -62,8 +62,23 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gEnableLog == nil ) then
 		Settings.FFXIVMINION.gEnableLog = "0"
 	end
+    if ( Settings.FFXIVMINION.gLogCNE == nil ) then
+		Settings.FFXIVMINION.gLogCNE = "0"
+	end
 	if ( Settings.FFXIVMINION.gBotMode == nil ) then
 		Settings.FFXIVMINION.gBotMode = "Grind"
+	end
+    if ( Settings.FFXIVMINION.gUseMount == nil ) then
+		Settings.FFXIVMINION.gUseMount = "0"
+	end
+    if ( Settings.FFXIVMINION.gUseSprint == nil ) then
+		Settings.FFXIVMINION.gUseSprint = "0"
+	end
+    if ( Settings.FFXIVMINION.gMountDist == nil ) then
+		Settings.FFXIVMINION.gMountDist = "200"
+	end
+    if ( Settings.FFXIVMINION.gSprintDist == nil ) then
+		Settings.FFXIVMINION.gSprintDist = "50"
 	end
 	
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
@@ -71,7 +86,12 @@ function ffxivminion.HandleInit()
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
+    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
+    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -85,7 +105,11 @@ function ffxivminion.HandleInit()
 	
 	gEnableLog = Settings.FFXIVMINION.gEnableLog
 	gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
-	
+    gUseMount = Settings.FFXIVMINION.gUseMount
+    gUseSprint = Settings.FFXIVMINION.gUseSprint
+    gMountDist = Settings.FFXIVMINION.gMountDist
+    gSprintDist = Settings.FFXIVMINION.gSprintDist
+        
 	-- setup bot mode
 	local botModes = "None"
 	if ( TableSize(ffxivminion.modes) > 0) then
@@ -110,9 +134,14 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
         if( k == "gBotMode" ) then
             ffxivminion.CheckMode()
         end
-		if (k == "gEnableLog" or 
+		if (k == "gEnableLog" or
+            k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or
-            k == "gBotMode" )
+            k == "gBotMode" or 
+            k == "gUseMount" or
+            k == "gUseSprint" or
+            k == "gMountDist" or
+            k == "gSprintDist")
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
 		end

@@ -242,7 +242,7 @@ function mm.AddMarker(arg)
 	-- all markers are accessed using MESH ONLY movement functions
 	-- allowing them to be created off mesh is not only useless its an invitation for bugs and user confusion
 	if(Player.onmesh) then
-        if (gMarkerName ~= "") then
+        if (gMarkerName ~= "" and gMarkerName ~= "None") then
             local p = Player.pos
             local newInfo = { 	x=tonumber(string.format("%.2f", p.x)), 
 								y=tonumber(string.format("%.2f", p.y)), 
