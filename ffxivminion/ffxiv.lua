@@ -157,7 +157,6 @@ function ffxivminion.SetMode(mode)
 end
 
 function ffxivminion.CheckClass()
-	ml_debug("enter check class")
 	local classes = 
 	{
 		[FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
@@ -191,7 +190,6 @@ function ffxivminion.CheckClass()
 			ml_global_information.AttackRange = ml_global_information.CurrentClass.range
 		end
 	end
-	ml_debug("leave check class")
 end
 
 function ffxivminion.CheckMode()

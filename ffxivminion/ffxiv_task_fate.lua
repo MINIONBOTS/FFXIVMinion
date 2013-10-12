@@ -136,11 +136,11 @@ end
 c_atfate = inheritsFrom( ml_cause )
 e_atfate = inheritsFrom( ml_effect )
 function c_atfate:evaluate()
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
 		if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
 			local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 			if (ValidTable(fate)) then
-				local target = GetNearestFateAttackable(fate.id)
+				local target = GetNearestFateAttackableID(fate.id)
 				return fate.completion > tonumber(gFateWaitPercent) and ValidTable(target)
 			end
 		end

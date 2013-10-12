@@ -2,6 +2,7 @@ ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.name = "LT_GRIND"
 ffxiv_task_grind.evacPoint = {0, 0, 0}
 ffxiv_task_grind.ticks = 0
+ffxiv_task_grind.blTicks = 0
 gFateID = 0
 gFateBlacklist = {}
 
@@ -98,13 +99,13 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 	GUI_RefreshWindow(ml_global_information.MainWindow.Name)
 end
 
-function ffxiv_task_grind.OnUpdateHandler( Event, ticks )
-    -- update fate name in gui
-	if ( ticks - ffxiv_task_grind.ticks > 500 ) then
-		ffxiv_task_grind.ticks = ticks
-        local fafound = false
+function ffxiv_task_grind.OnUpdateHandler( event, tickcount )
+	if ( tickcount - ffxiv_task_grind.ticks > 500 ) then
+	    -- update fate name in gui
+		ffxiv_task_grind.ticks = tickcount
+	    local fafound = false
         local falist = MapObject:GetFateList()
-        if ( falist ) then
+		if ( falist ) then
             local f = falist[tonumber(gFateIndex)]
             if ( f ) then
                 fafound = true
@@ -116,15 +117,16 @@ function ffxiv_task_grind.OnUpdateHandler( Event, ticks )
             gFateName = ""
             gFateID = 0
         end
-	elseif (ticks - ffxiv_task_grind.ticks > 1000) then
+	end
+	if (tickcount - ffxiv_task_grind.blTicks > 1000) then
         -- clear out temporarily blacklisted fates
-        ffxiv_task_grind.ticks = ticks
+        ffxiv_task_grind.blTicks = tickcount
         for id, timer in pairs(gFateBlacklist) do
-            if timer ~= true then
-                if os.difftime(os.time(), timer) > 300 then
-                    gFateBlacklist[id] = nil
-                end
-            end
+			if id and timer and timer ~= true then
+				if os.difftime(os.time(), timer) > 300 then
+					gFateBlacklist[id] = nil
+				end
+			end
         end
     end
 end
@@ -171,8 +173,8 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "BlacklistTimer (s)", "gFateBLTimer", "Fates", "30","600")
     GUI_NewNumeric(ml_global_information.MainWindow.Name,"FateIndex","gFateIndex","Fates","1","5")
 	GUI_NewField(ml_global_information.MainWindow.Name,"FateName","gFateName","Fates")
-    GUI_NewButton(ml_global_information.MainWindow.Name, "BlacklistAdd", "gBlacklistFateRemEvent", "Fates")
-    GUI_NewButton(ml_global_information.MainWindow.Name, "BlacklistRem", "gBlacklistFateAddEvent", "Fates")
+    GUI_NewButton(ml_global_information.MainWindow.Name, "BlacklistAdd", "gBlacklistFateAddEvent", "Fates")
+    GUI_NewButton(ml_global_information.MainWindow.Name, "BlacklistRem", "gBlacklistFateRemEvent", "Fates")
 	RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
 	RegisterEventHandler("gBlacklistFateRemEvent", ffxiv_task_grind.BlacklistFate)
     
@@ -249,7 +251,7 @@ function ffxiv_task_grind.UIInit()
 	gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
     gFateBlacklist = Settings.FFXIVMINION.gFateBlacklist
-    
-	RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
-	RegisterEventHandler("Gameloop.Update",ffxiv_task_grind.OnUpdateHandler)
 end
+
+RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
+RegisterEventHandler("Gameloop.Update",ffxiv_task_grind.OnUpdateHandler)

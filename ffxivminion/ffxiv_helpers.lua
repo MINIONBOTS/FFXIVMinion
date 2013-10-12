@@ -30,7 +30,7 @@ function GetNearestFateAttackable()
 	return nil
 end
 
-function GetNearestFateAttackable(fateID)
+function GetNearestFateAttackableID(fateID)
     if (fateID ~= nil and fateID ~= 0) then
 		local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
 		if ( el ) then
