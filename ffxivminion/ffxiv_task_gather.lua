@@ -238,24 +238,28 @@ end
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 function c_stealth:evaluate()
-	if (gDoStealth == "0") then
-		return false
-	end
-
-	if (ActionList:CanCast(212,0)) then
-		local mobList = EntityList("attackable,onmesh,aggressive,maxdistance=17")
-		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
+ if (gDoStealth == "0") then
+  return false
+ end
+ action = ActionList:Get(212)
+ if (action.isready) then
+  local mobList = EntityList("attackable,onmesh,aggressive,notincombat,maxdistance=17")
+  if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
         then
             return true
         end
-	end
-	
-	return false
+ end
+ 
+ return false
 end
 function e_stealth:execute()
-    Player:Stop()
-    ActionList:Cast(212,0)
+ 
+ action = ActionList:Get(212)
+ if(action.isready) then
+  Player:Stop()
+  action:Cast()
+ end
 end
 
 function ffxiv_task_gather:Init()
