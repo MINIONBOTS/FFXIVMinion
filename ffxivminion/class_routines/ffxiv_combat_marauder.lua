@@ -1,6 +1,6 @@
 ffxiv_combat_marauder = inheritsFrom(ml_task)
 ffxiv_combat_marauder.name = "MARAUDER"
-ffxiv_combat_marauder.range = 3
+ffxiv_combat_marauder.range = 2
 
 function ffxiv_combat_marauder:Create()
     local newinst = inheritsFrom(ffxiv_combat_marauder)

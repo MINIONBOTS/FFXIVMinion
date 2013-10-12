@@ -15,7 +15,10 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","StatusBitfield","TStatus","TargetInfo")	
 	GUI_NewField("Dev","Targetable","TTar","TargetInfo")
 	GUI_NewField("Dev","Attackable","TAtk","TargetInfo")
+	GUI_NewField("Dev","Aggressive","TAgg","TargetInfo")
+	GUI_NewField("Dev","Friendly","TFri","TargetInfo")
 	GUI_NewField("Dev","HasAggro","TAggro","TargetInfo")
+	GUI_NewField("Dev","InCombat","Tincmb","TargetInfo")
 	GUI_NewField("Dev","Aggropercentage","TAggroP","TargetInfo")
 	GUI_NewField("Dev","distance","TargetDistance","TargetInfo")
 	GUI_NewField("Dev","pos.x","TargetPosX","TargetInfo")
@@ -205,9 +208,22 @@ function Dev.ModuleInit()
 	GUI_NewButton("Dev","Respawn","Dev.Rezz","Respawn_Teleportinfo")
 	RegisterEventHandler("Dev.Rezz", Dev.Func)
 	
+	--Partymember
+	GUI_NewNumeric("Dev","Partymember","pamem","PartyInfo","0","10");
+	GUI_NewField("Dev","Name","paname","PartyInfo")
+	GUI_NewField("Dev","ID","paid","PartyInfo")
+	GUI_NewField("Dev","Region","pareg","PartyInfo")
+	GUI_NewField("Dev","MapID","pacid","PartyInfo")
+	GUI_NewField("Dev","IsLeader","palead","PartyInfo")	
+	GUI_NewField("Dev","OnMesh","paonmesh","PartyInfo")			
+	GUI_NewField("Dev","Position","papos","PartyInfo")	
+	pamem = 0
+	
 	-- General Functions
 	GUI_NewButton("Dev","Interact with Target","Dev.Interact","General Functions")
 	RegisterEventHandler("Dev.Interact", Dev.Func)		
+	GUI_NewButton("Dev","Follow Target","Dev.Follow","General Functions")
+	RegisterEventHandler("Dev.Follow", Dev.Func)
 	
 	GUI_WindowVisible("Dev",false)
 	
@@ -256,7 +272,12 @@ function Dev.Func ( arg )
 		local t = Player:GetTarget()
 		if ( t ) then
 			Player:Interact(t.id)
-		end
+		end		
+	elseif ( arg == "Dev.Follow") then
+		local t = Player:GetTarget()
+		if ( t ) then
+			Player:FollowTarget(t.id)
+		end			
 	elseif ( arg == "Dev.Fish") then
 		Dev.curTask = Dev.FishTask	
 	elseif ( arg == "Dev.Bait") then
@@ -382,7 +403,10 @@ function Dev.UpdateWindow()
 		TTar = tostring(mytarget.targetable)
 		TAggro = tostring(mytarget.aggro)
 		TAggroP = mytarget.aggropercentage
-		TAtk = tostring(mytarget.attackable)		
+		TAtk = tostring(mytarget.attackable)
+		TAgg = tostring(mytarget.aggressive)
+		TFri = tostring(mytarget.friendly)
+		Tincmb = tostring(mytarget.incombat)
 		TargetDistance = (math.floor(mytarget.distance * 10) / 10)
 		Tlos = tostring(mytarget.los)
 		TargetPosX = (math.floor(mytarget.pos.x * 10) / 10)
@@ -401,7 +425,7 @@ function Dev.UpdateWindow()
 		TLAC = mytarget.lastaction
 		tfaid = mytarget.fateid
 	else
-		local el = EntityList("nearest")
+		local el = EntityList("nearest,onmesh,gatherable")
 		if ( el ) then
 			i,mytarget = next (el)
 			if ( i and mytarget ) then
@@ -417,6 +441,9 @@ function Dev.UpdateWindow()
 				TAggro = tostring(mytarget.aggro)
 				TAggroP = mytarget.aggropercentage
 				TAtk = tostring(mytarget.attackable)
+				TAgg = tostring(mytarget.aggressive)
+				TFri = tostring(mytarget.friendly)
+				Tincmb = tostring(mytarget.incombat)
 				TargetDistance = (math.floor(mytarget.distance * 10) / 10)
 				Tlos = tostring ( mytarget.los)
 				TargetPosX = (math.floor(mytarget.pos.x * 10) / 10)
@@ -607,7 +634,7 @@ function Dev.UpdateWindow()
 			aename = a.name
 			aeishp = tostring(a.ishomepoint)
 			aeisfav = tostring(a.isfavpoint)
-			aeterr = string.format( "%x",tonumber(a.territory))	
+			aeterr = a.territory
 			aeregion = tostring(a.region)
 			aeisloc = tostring(a.islocalmap)
 		end
@@ -729,6 +756,31 @@ function Dev.UpdateWindow()
 	end
 	cropen = tostring(Crafting:IsCraftingLogOpen())
 	
+	local Plist = EntityList.myparty
+	local pfound = false
+	local i,member = next (Plist)	
+	if (i and member ) then
+		local member = Plist[tonumber(pamem)]
+		if ( member) then
+		pfound=true
+		paname = member.name
+		paid = member.id
+		pareg = member.region
+		pacid = member.mapid		
+		palead = tostring(member.isleader)		
+		papos = tostring ( math.floor(tonumber(member.pos.x)).." / ".. math.floor(member.pos.y ) .. " / " ..math.floor(member.pos.z))
+		paonmesh = tostring(member.onmesh)
+		end
+	end
+	if not pfound then
+		paname = 0
+		paid = 0
+		pareg = 0
+		pacid = 0
+		papos = 0
+		palead = false
+		paonmesh = false
+	end
 	
 end
 
