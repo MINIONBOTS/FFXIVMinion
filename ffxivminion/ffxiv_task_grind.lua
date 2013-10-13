@@ -218,7 +218,7 @@ function ffxiv_task_grind.UIInit()
 	end
 	
 	if (Settings.FFXIVMINION.gFleeHP == nil) then
-		Settings.FFXIVMINION.gFleeHP = "50"
+		Settings.FFXIVMINION.gFleeHP = "20"
 	end
     
     if (Settings.FFXIVMINION.gFleeMP == nil) then
