@@ -348,14 +348,18 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
-    if not HasBuff(Player.id, 50) and ActionList:CanCast(3,0) then
-		if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
-			local myPos = Player.pos
-			local gotoPos = ml_task_hub:CurrentTask().pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-			
-			if (distance > tonumber(gSprintDist)) then		
-				return true
+    if not HasBuff(Player.id, 50) then
+		local skills = ActionList("type=1")
+		local skill = skills[3]
+		if (skill.isready) then
+			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
+				local myPos = Player.pos
+				local gotoPos = ml_task_hub:CurrentTask().pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				
+				if (distance > tonumber(gSprintDist)) then		
+					return true
+				end
 			end
 		end
 	end
