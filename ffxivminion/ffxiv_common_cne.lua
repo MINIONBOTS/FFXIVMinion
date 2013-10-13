@@ -255,7 +255,11 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then 
+	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
+		if (os.difftime(os.time(), ml_task_hub:CurrentTask().mountTimer) < 2.6) then
+			return false
+		end
+		
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
@@ -313,23 +317,29 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
-    -- check if mounted already
-    -- check if can cast mount
-    
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-        local myPos = Player.pos
-		local gotoPos = ml_task_hub:CurrentTask().pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (not ml_task_hub:CurrentTask().isMounted) then
+			local myPos = Player.pos
+			local gotoPos = ml_task_hub:CurrentTask().pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
         
-		if (distance > tonumber(gMountDist)) then		
-			return true
+			if (distance > tonumber(gMountDist)) then
+				return true
+			end
 		end
     end
     
     return false
 end
 function e_mount:execute()
-    --use mount
+    local mounts = ActionList("type=13")
+	local mount = mounts[1]
+	if (mount.isready) then
+		Player:Stop()
+		mount:Cast()
+		ml_task_hub:CurrentTask().isMounted = true
+		ml_task_hub:CurrentTask().mountTimer = os.time()
+	end
 end
 
 -----------------------------------------------------------------------------------------------

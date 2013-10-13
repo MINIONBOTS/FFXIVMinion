@@ -238,28 +238,38 @@ end
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 function c_stealth:evaluate()
- if (gDoStealth == "0") then
-  return false
- end
- action = ActionList:Get(212)
- if (action.isready) then
-  local mobList = EntityList("attackable,onmesh,aggressive,notincombat,maxdistance=17")
-  if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
-          (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
-        then
-            return true
-        end
- end
+	if (gDoStealth == "0") then
+		return false
+	end
+	local action = nil
+	if (Player.job == FFXIV.JOBS.BOTANIST) then
+		action = ActionList:Get(212)
+	elseif (Player.job == FFXIV.JOBS.MINER) then
+		action = ActionList:Get(229)
+	end
+	
+	if (action and action.isready) then
+	local mobList = EntityList("attackable,onmesh,aggressive,notincombat,maxdistance=17")
+		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
+		  (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
+		then
+			return true
+		end
+	end
  
- return false
+	return false
 end
 function e_stealth:execute()
- 
- action = ActionList:Get(212)
- if(action.isready) then
-  Player:Stop()
-  action:Cast()
- end
+	local action = nil
+	if (Player.job == FFXIV.JOBS.BOTANIST) then
+		action = ActionList:Get(212)
+	elseif (Player.job == FFXIV.JOBS.MINER) then
+		action = ActionList:Get(229)
+	end
+	if(action and action.isready) then
+		Player:Stop()
+		action:Cast()
+	end
 end
 
 function ffxiv_task_gather:Init()

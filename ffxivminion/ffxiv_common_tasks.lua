@@ -151,9 +151,18 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
 	Player:Stop()
+	if (ml_task_hub:CurrentTask().isMounted) then
+		local mounts = ActionList("type=13")
+		local mount = mounts[1]
+		if (mount.isready) then
+			mount:Cast()
+		end
+	end
+	
     if (ml_task_hub:CurrentTask().doFacing) then
         Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
     end
+	
 	ml_task_hub:CurrentTask().completed = true
 end
 
