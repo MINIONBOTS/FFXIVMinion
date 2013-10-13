@@ -33,7 +33,7 @@ e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate() 
     local myPos = Player.pos
     local gotoPos = mm.evacPoint
-    return  gFatesOnly == "1" and gDoFates == "1" and gotoPos ~= {} and 
+    return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
             Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 15 -- ? 
 end
@@ -51,7 +51,7 @@ e_fatequit = inheritsFrom( ml_effect )
 function c_fatequit:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-		if (fate ~= nil and fate ~= {}) then
+		if (fate ~= nil and TableSize(fate) > 0) then
             if (ml_task_hub:CurrentTask().fateCompletion ~= nil and ml_task_hub:CurrentTask().fateCompletion == fate.completion) then
                 if (ml_task_hub:CurrentTask().fateTimer ~= nil and ml_task_hub:CurrentTask().fateTimer ~= 0) then
                     if (os.difftime(os.time(), ml_task_hub:CurrentTask().fateTimer) > tonumber(gFateBLTimer)) then
@@ -110,7 +110,7 @@ e_movetofate = inheritsFrom( ml_effect )
 function c_movetofate:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-		if (fate ~= nil and fate ~= {}) then
+		if (fate ~= nil and TableSize(fate) > 0) then
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance > fate.radius) then				
@@ -175,7 +175,7 @@ end
 
 function ffxiv_task_fate:task_complete_eval()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-	if (fate ~= nil and fate ~= {}) then
+	if (fate ~= nil and TableSize(fate) > 0) then
 		return fate.completion > 99
     elseif (fate == nil) then
 		return true

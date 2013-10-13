@@ -146,7 +146,7 @@ function c_add_fate:evaluate()
 		local fateID = GetClosestFateID(myPos, true, true)
 		if (fateID ~= 0) then
 			local fate = GetFateByID(fateID)
-			if (fate ~= nil and fate ~= {}) then
+			if (fate ~= nil and TableSize(fate) > 0) then
 				if (fate.status == 2) then
 					return true
 				end
