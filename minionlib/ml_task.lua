@@ -60,10 +60,16 @@ function ml_task:Update()
         end
         local taskRet = nil
 		
+		local currentSubtaskName = nil
+		if (self.subtask ~= nil) then
+			currentSubtaskName = self.subtask.name
+		end
+		
 		if(self:ProcessOverWatch()) then
 				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
 				--process overwatch element requested to break update loop
-				if (self.subtask ~= nil) then
+				--only delete subtask if we didn't just add it via our overwatch cne
+				if (self.subtask ~= nil and currentSubtaskName ~= nil and self.subtask.name == currentSubtaskName) then
 					self:DeleteSubTasks()
 				end
 				break
