@@ -672,11 +672,15 @@ function SkillMgr.Cast( entity )
 								if not SkillMgr.IsPetSummonSkill(skill.id) then castable = false end
 							end
 						elseif ( skill.trg == "Ally" ) then
-							if ( ally ~= nil ) then
+							if ( ally ~= nil and ally.id ~= PID) then
 								target = ally
 								TID = ally.id
 								tbuffs = ally.buffs
 							end
+						elseif ( skill.trg == "Player" ) then							
+							target = Player
+							TID = PID
+							tbuffs = pbuffs
 						end
 						
 						-- RANGE 							
@@ -743,18 +747,18 @@ function SkillMgr.Cast( entity )
 						
 						if ( castable ) then
 							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
-							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target
-								--d("CASTING(attack) : "..tostring(skill.name) .." on "..tostring(target.name))								
+							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
+								d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))								
 								if ( ActionList:Cast(skill.id,TID) ) then									
 									skill.lastcast = ml_global_information.Now
 									SkillMgr.prevSkillID = tostring(skill.id)
 								end
-							elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
-								--d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))								
+							--[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
+								d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))
 								if ( ActionList:Cast(skill.id,PID) ) then									
 									skill.lastcast = ml_global_information.Now
 									SkillMgr.prevSkillID = tostring(skill.id)
-								end								
+								end	]]							
 							end
 						end
 					end					
