@@ -20,7 +20,7 @@ e_add_killtarget = inheritsFrom( ml_effect )
 
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
-	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1" and not Player.hasaggro) then
+	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
 		return false
 	end
     -- block killtarget for fates when user has specified a fate completion % to start
@@ -28,7 +28,7 @@ function c_add_killtarget:evaluate()
         if (ml_task_hub:CurrentTask().fateid ~= nil) then
             local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
             if ValidTable(fate) then
-                if (fate.completion < tonumber(gFateWaitPercent) and not Player.hasaggro) then
+                if (fate.completion < tonumber(gFateWaitPercent)) then
                     return false
                 end
             end
@@ -39,10 +39,6 @@ function c_add_killtarget:evaluate()
 	end
     
     local target = ml_task_hub:CurrentTask().targetFunction()
-	if ((target == nil or target == 0) and Player.hasaggro) then
-		target = GetNearestAggro()
-	end
-    
 	if (ValidTable(target)) then
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
 			c_add_killtarget.targetid = target.id
@@ -137,7 +133,7 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 function c_add_fate:evaluate()
 	
-	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+	if (gBotMode == "Party-Grind" and not IsLeader()) then
 		return false
 	end
 	
@@ -420,7 +416,14 @@ c_attarget = inheritsFrom( ml_cause )
 e_attarget = inheritsFrom( ml_effect )
 function c_attarget:evaluate()
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-		return InCombatRange(ml_task_hub:ThisTask().targetid)
+        if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
+            local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
+            if ValidTable(target) then
+                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance < (ml_global_information.AttackRange * 0.75)
+            end
+        else
+            return InCombatRange(ml_task_hub:ThisTask().targetid)
+        end
 	end
 	return false
 end

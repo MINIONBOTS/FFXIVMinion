@@ -43,6 +43,22 @@ function ml_task:DeleteSubTasks()
     end
 end
 
+function ml_task:ParentTask()
+    if (ml_task_hub.prevQueueId ~= nil) then
+		local task = ml_task_hub.queues[ml_task_hub.prevQueueId].rootTask
+		local currTask = nil
+		while(task ~= nil) do
+			currTask = task
+			task = task.subtask
+            if task == self then
+                return currTask
+            end
+		end
+		
+		return nil
+	end
+end
+
 function ml_task:Update()
 	ml_debug(self.name.."->Update()")
     ml_task_hub.thisTask = self

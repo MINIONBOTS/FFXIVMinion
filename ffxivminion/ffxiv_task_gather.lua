@@ -267,7 +267,9 @@ function e_stealth:execute()
 		action = ActionList:Get(229)
 	end
 	if(action and action.isready) then
-		Player:Stop()
+        if HasBuff(Player.id, 47) then
+            Player:Stop()
+        end
 		action:Cast()
 	end
 end
