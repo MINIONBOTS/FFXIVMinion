@@ -119,6 +119,7 @@ strings =
 		saveMesh						= "Save NavMesh",
 		buildNAVMesh					= "Build NavMesh",
 		editor							= "Editor",
+		undoMesh						= "Undo 50 Triangles",
         enablePSwitch					= "EnableParanoiaSwitch",
         pSwitchCount                    = "ParanoiaPlayerCount",
 		

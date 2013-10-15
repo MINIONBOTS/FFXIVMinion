@@ -142,7 +142,7 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Current Distance: "..tostring(distance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
         
-		if (distance <= self.range + self.gatherRange) then -- this +1 fucks up all InCombatRange checks for melee, it makes this task terminate when beeing <= 2.5ft, when we want to walk closer to our targetposition
+		if (distance <= self.range + self.gatherRange) then
 			return true
 		end
 	else

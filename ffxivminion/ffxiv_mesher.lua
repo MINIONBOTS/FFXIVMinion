@@ -64,10 +64,12 @@ function mm.ModuleInit()
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].newMesh,"newMeshEvent",strings[gCurrentLanguage].editor)
 	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].recmesh,"gMeshrec",strings[gCurrentLanguage].editor)
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].saveMesh,"saveMeshEvent",strings[gCurrentLanguage].editor)
+	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].undoMesh,"undoMeshEvent",strings[gCurrentLanguage].editor)
 	
 	
 	RegisterEventHandler("newMeshEvent",mm.ClearNavMesh)	
 	RegisterEventHandler("saveMeshEvent",mm.SaveMesh)
+	RegisterEventHandler("undoMeshEvent",mm.UndoMesh)
 
 
 	gmeshname_listitems = meshlist
@@ -298,6 +300,7 @@ function mm.DeleteMarker()
     for tag, posList in pairs(mm.MarkerList) do
         if (posList[gMarkerName] ~= nil) then
             posList[gMarkerName] = nil
+			--d("REMOVE MARKER ID "..tostring(mm.MarkerRenderList[gMarkerName]))
 			RenderManager:RemoveObject(mm.MarkerRenderList[gMarkerName])
 			mm.MarkerRenderList[gMarkerName] = nil
             mm.WriteMarkerList(gmeshname)
@@ -440,9 +443,9 @@ function mm.ClearNavMesh()
 		d("Result: "..tostring(NavigationManager:UnloadNavMesh()))	
 	end
 	-- Remove Renderdata
+	RenderManager:RemoveAllObjects()
 	for key,e in pairs(mm.MarkerRenderList) do	
-		if ( key ~= nil ) then
-			RenderManager:RemoveObject(mm.MarkerRenderList[key])
+		if ( key ~= nil ) then			
 			mm.MarkerRenderList[key] = nil
 		end
 	end
@@ -454,6 +457,15 @@ end
 
 function mm.SaveMesh()
 	d("Saving NavMesh...")
+	--[[gShowRealMesh = "0"
+	NavigationManager:ShowNavMesh(false)
+	gShowPath = "0"
+	NavigationManager:ShowNavPath(false)
+	gShowMesh = "0"
+	MeshManager:ShowTriMesh(false)
+	gMeshrec = "0"
+	MeshManager:Record(false)]]
+			
 	local filename = ""
 	-- If a new Meshname is given, create a new file and save it in there
 	if ( gnewmeshname ~= nil and gnewmeshname ~= "" ) then
@@ -495,13 +507,19 @@ function mm.SaveMesh()
 	end
 end
 
+
+function mm.UndoMesh()
+	d("Deleting last 50 Triangles...")
+	MeshManager:Undo()
+end
+
 function mm.ChangeNavMesh(newmesh)			
 	-- Set the new mesh for the local map	
 	if ( NavigationManager:GetNavMeshName() ~= newmesh and NavigationManager:GetNavMeshName() ~= "") then
 		d("Unloading current Navmesh: "..tostring(NavigationManager:UnloadNavMesh()))		
+		RenderManager:RemoveAllObjects()
 		for key,e in pairs(mm.MarkerRenderList) do	
 			if ( key ~= nil ) then
-				RenderManager:RemoveObject(mm.MarkerRenderList[key])
 				mm.MarkerRenderList[key] = nil
 			end
 		end
@@ -511,17 +529,17 @@ function mm.ChangeNavMesh(newmesh)
 		return
 	else
 		-- Load the mesh for our Map
-		if (gmeshname ~= nil and gmeshname ~= "" and gmeshname ~= "none") then				
-			d("Loading Navmesh " ..gmeshname)
-			if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..gmeshname)) then
+		if (newmesh ~= nil and newmesh ~= "" and newmesh ~= "none") then				
+			d("Loading Navmesh " ..newmesh)
+			if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..newmesh)) then
 				d("Error loading Navmesh: "..path)
             else
                 mm.reloadMeshPending = false
-				mm.ReadMarkerList(gmeshname)				
+				mm.ReadMarkerList(newmesh)				
 				local mapid = Player.localmapid
 				if ( mapid ~= nil and mapid~=0 ) then
-					d("Setting new default Mesh for this Zone..(ID :"..tostring(mapid).." Meshname: "..gmeshname)
-					Settings.FFXIVMINION.Maps[mapid] = gmeshname
+					d("Setting default Mesh for this Zone..(ID :"..tostring(mapid).." Meshname: "..newmesh)
+					Settings.FFXIVMINION.Maps[mapid] = newmesh
 					mm.mapID = mapid
 				end				
             end
@@ -596,7 +614,7 @@ function mm.OnUpdate( event, tickcount )
 		end
 		-- 160 = Left Shift
 		if ( MeshManager:IsKeyPressed(160) ) then
-			MeshManager:RecSize(14)
+			MeshManager:RecSize(50)
 		else
 			MeshManager:RecSize(8)
 		end
@@ -655,7 +673,8 @@ function mm.DrawMarker( pos, markertype )
 		[12] = { pos.x,   pos.y-s+h,   pos.z, color  },
 	}
 	
-	return RenderManager:AddObject(t)
+	local id = RenderManager:AddObject(t)	
+	return id
 end
 
 RegisterEventHandler("ToggleMeshmgr", mm.ToggleMenu)
