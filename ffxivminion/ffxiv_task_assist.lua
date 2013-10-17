@@ -78,7 +78,10 @@ function ffxiv_task_assist:Init()
 	self:add(ke_validTarget, self.overwatch_elements)
 
     --init Process() cnes
-	local ke_combatAssist = ml_element:create( "AddCombatAssistTask", c_combatassist_task, e_combatassist_task, ml_effect.priorities.interrupt )
+	local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
+	self:add(ke_mobAggro, self.process_elements)
+	
+	local ke_combatAssist = ml_element:create( "AddCombatAssistTask", c_combatassist_task, e_combatassist_task, 10 )
 	self:add(ke_combatAssist, self.process_elements)
     
     self:AddTaskCheckCEs()

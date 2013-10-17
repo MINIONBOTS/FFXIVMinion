@@ -45,6 +45,7 @@ ffxivminion.modes =
 	["Grind"] 	= ffxiv_task_grind, 
 	["Fish"] 	= ffxiv_task_fish,
 	["Gather"] 	= ffxiv_task_gather,
+	--["Crafting"] = ffxiv_task_craft,
 	["Assist"]	= ffxiv_task_assist,
 	["Party-Grind"]	= ffxiv_task_party
 }

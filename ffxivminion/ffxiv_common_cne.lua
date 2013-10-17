@@ -276,7 +276,7 @@ function e_walktopos:execute()
 	if ( c_walktopos.pos ~= 0) then
 		local gotoPos = c_walktopos.pos
 		ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-		ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range))))
+		ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75))))
 	else
 		mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
 	end
