@@ -1,6 +1,5 @@
 ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.name = "LT_GRIND"
-ffxiv_task_grind.evacPoint = {0, 0, 0}
 ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0
@@ -39,6 +38,9 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
 	self:add( ke_flee, self.overwatch_elements)
 	
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 )
+	self:add(ke_addFate, self.overwatch_elements)
+	
     --not sure if we need this, taking it out for now
 	--init Process() cnes
 	--local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
@@ -49,9 +51,6 @@ function ffxiv_task_grind:Init()
 
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
 	self:add( ke_returnToMarker, self.process_elements)
-	
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 25 )
-	self:add(ke_addFate, self.process_elements)
 	
 	--nextmarker defined in ffxiv_task_gather.lua
     local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
@@ -169,6 +168,7 @@ function ffxiv_task_grind.UIInit()
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
     -- Fates
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Rest In Fates", "gRestInFates","Fates")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxFateLvl: +", "gMaxFateLevel", "Fates", "0", "50")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinFateLvl: -", "gMinFateLevel", "Fates", "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, "WaitForComplete%: ", "gFateWaitPercent", "Fates", "0", "99")
@@ -226,6 +226,10 @@ function ffxiv_task_grind.UIInit()
 		Settings.FFXIVMINION.gFleeMP = "0"
 	end
     
+    if (Settings.FFXIVMINION.gRestInFates == nil) then
+		Settings.FFXIVMINION.gRestInFates = "1"
+	end
+    
     if (Settings.FFXIVMINION.gFateWaitPercent == nil) then
 		Settings.FFXIVMINION.gFateWaitPercent = "0"
 	end
@@ -244,7 +248,7 @@ function ffxiv_task_grind.UIInit()
 	gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
     gMaxMobLevel = Settings.FFXIVMINION.gMaxMobLevel
 	gMinMobLevel = Settings.FFXIVMINION.gMinMobLevel
-	ffxiv_task_grind.evacPoint = Settings.FFXIVMINION.evacPoint
+    gRestInFates = Settings.FFXIVMINION.gRestInFates
     gIgnoreGrindLvl = Settings.FFXIVMINION.gIgnoreGrindLvl
 	gRestHP = Settings.FFXIVMINION.gRestHP
 	gRestMP = Settings.FFXIVMINION.gRestMP

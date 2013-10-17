@@ -161,8 +161,11 @@ function ffxiv_task_fate:Init()
 	self:add( ke_atFate, self.overwatch_elements)
 	
     --init process
-    local ke_quitFate = ml_element:create( "QuitFate", c_quitfate, e_quitfate, 25 )
+    local ke_quitFate = ml_element:create( "QuitFate", c_fatequit, e_fatequit, 25 )
     self:add( ke_quitFate, self.process_elements)
+    
+    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 20 )
+	self:add( ke_rest, self.process_elements)
 	
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
 	self:add(ke_addKillTarget, self.process_elements)
