@@ -138,13 +138,15 @@ function c_add_fate:evaluate()
 	end
 	
 	if (gDoFates == "1") then
-		local myPos = Player.pos
-		local fateID = GetClosestFateID(myPos, true, true)
-		if (fateID ~= 0) then
-			local fate = GetFateByID(fateID)
-			if (fate ~= nil and TableSize(fate) > 0) then
-				if (fate.status == 2) then
-					return true
+		if (ml_task_hub:ThisTask().subtask == nil or ml_task_hub:ThisTask().subtask.name ~= "LT_FATE") then
+			local myPos = Player.pos
+			local fateID = GetClosestFateID(myPos, true, true)
+			if (fateID ~= 0) then
+				local fate = GetFateByID(fateID)
+				if (fate ~= nil and TableSize(fate) > 0) then
+					if (fate.status == 2) then
+						return true
+					end
 				end
 			end
 		end
@@ -507,6 +509,12 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
+    if (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") then
+        if (gRestInFates == "0") then
+            return false
+        end
+    end
+    
 	if (not Player.hasaggro) then
 		if (e_rest.resting or 
 			Player.hp.percent < tonumber(gRestHP) or
@@ -526,7 +534,7 @@ function e_rest:execute()
 	end
 	
 	if (e_rest.resting == true) then
-		if (Player.hp.percent > 95) then
+		if (Player.hp.percent == 100) and (Player.mp.percent == 100)  then
 			e_rest.resting = false
 			return
 		end
