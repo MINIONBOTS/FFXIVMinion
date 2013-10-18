@@ -82,6 +82,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
 	GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")	
+	GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].stepmin,"SKM_STMIN","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].stepmax,"SKM_STMAX","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].cpmin,"SKM_CPMIN","SkillDetails");
@@ -93,6 +94,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMIN","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails");
 	GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails"," ,Excellent,Good,Normal,Poor");
+	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,"SkillDetails")
 	GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")
@@ -189,17 +192,17 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
 		elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
 		--crafting
-		elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_DURMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_DURMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_PROGMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_PROGMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_QUALMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
+		elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].stepmin = tonumber(v)
+		elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].stepmax = tonumber(v)
+		elseif ( k == "SKM_CPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].cpmin = tonumber(v)
+		elseif ( k == "SKM_CPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].cpmax = tonumber(v)
+		elseif ( k == "SKM_DURMIN" ) then SkillMgr.SkillProfile[SKM_Prio].durabmin = tonumber(v)
+		elseif ( k == "SKM_DURMAX" ) then SkillMgr.SkillProfile[SKM_Prio].durabmax = tonumber(v)
+		elseif ( k == "SKM_PROGMIN" ) then SkillMgr.SkillProfile[SKM_Prio].progmin = tonumber(v)
+		elseif ( k == "SKM_PROGMAX" ) then SkillMgr.SkillProfile[SKM_Prio].progmax = tonumber(v)
+		elseif ( k == "SKM_QUALMIN" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymin = tonumber(v)
+		elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymax = tonumber(v)
+		elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
 		end
 	end
 end
@@ -349,6 +352,7 @@ function SkillMgr.SaveProfile()
 			string2write = string2write.."SKM_Prio="..skill.prio.."\n"
 			if ( job >= 8 and job <=15 ) then
 				--crafting
+				string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"			
 				string2write = string2write.."SKM_STMIN="..skill.stepmin.."\n"			
 				string2write = string2write.."SKM_STMAX="..skill.stepmax.."\n"			
 				string2write = string2write.."SKM_CPMIN="..skill.cpmin.."\n"			
@@ -360,6 +364,8 @@ function SkillMgr.SaveProfile()
 				string2write = string2write.."SKM_QUALMIN="..skill.qualitymin.."\n"		
 				string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"			
 				string2write = string2write.."SKM_CONDITION="..skill.condition.."\n"				
+				string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
+				string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
 				
 			else
 				string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"			
@@ -529,7 +535,8 @@ end
 function SkillMgr.CreateNewSkillBookEntry(skill)	
 	if (skill ~= nil ) then
 		local skname = skill.name
-		local skID = skill.id	
+		local skID = skill.id
+
 		if (skname and skname ~= "" and skID ) then			
 			local newskillprio = skill.prio or table.maxn(SkillMgr.SkillBook)+1
 			
@@ -636,6 +643,7 @@ function SkillMgr.EditSkill(event)
 			SKM_NAME = skill.name or ""
 			SKM_ID = skill.id
 			SKM_ON = skill.used or "1"
+			SKM_DOBUFF = skill.dobuff or "0"
 			SKM_Prio = tonumber(event)	
 			SKM_STMIN = tonumber(skill.stepmin) or 0
 			SKM_STMAX = tonumber(skill.stepmax) or 0
@@ -648,6 +656,8 @@ function SkillMgr.EditSkill(event)
 			SKM_QUALMIN = tonumber(skill.qualitymin) or 0
 			SKM_QUALMAX = tonumber(skill.qualitymax) or 0
 			SKM_CONDITION = skill.condition or "Normal"
+			SKM_PBuff = skill.pbuff or ""
+			SKM_PNBuff = skill.pnbuff or ""
 		
 		end	
 	else	
@@ -678,8 +688,6 @@ function SkillMgr.EditSkill(event)
 			SKM_TARange = tonumber(skill.terange) or 0
 			SKM_PBuff = skill.pbuff or ""
 			SKM_PNBuff = skill.pnbuff or ""
-			SKM_TBuff = skill.tbuff or ""
-			SKM_TNBuff = skill.tnbuff or ""
 			SKM_PSkillID = skill.pskill or ""
 		end
 	end
@@ -899,6 +907,8 @@ function SkillMgr.Cast( entity )
 end
 
 function SkillMgr.Craft( )
+	local PID = Player.id
+	local pbuffs = Player.buffs
 	
 	local synth = Crafting:SynthInfo()
 	if ( TableSize(synth) > 0 and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
@@ -911,6 +921,10 @@ function SkillMgr.Craft( )
 					if ( realskilldata.isready ) then
 						local castable = true
 						
+						local castable = true
+						--COOLDOWN													
+						-- if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
+
 						if ( (skill.stepmin > 0 and synth.step < skill.stepmin) or
 							 (skill.stepmax > 0 and synth.step > skill.stepmax) or
 							 (skill.cpmin > 0 and Player.cp.current < skill.cpmin) or
@@ -920,19 +934,55 @@ function SkillMgr.Craft( )
 							 (skill.progrmin > 0 and synth.progress < skill.progrmin) or
 							 (skill.progrmax > 0 and synth.progress > skill.progrmax) or
 							 (skill.qualitymin > 0 and synth.quality < skill.qualitymin) or
-							 (skill.qualitymin > 0 and synth.quality > skill.qualitymin) or
+							 (skill.qualitymax > 0 and synth.quality > skill.qualitymax) or
 							 (skill.condition ~= " " and synth.description ~= skill.condition))
 							 then castable = false 
 						end
 							 
-							 
+						-- PLAYER BUFFS
+						if ( castable and TableSize(pbuffs) > 0) then 							
+							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
+							if (skill.pbuff ~= "" ) then								
+								local tbfound = false
+								for buffid in StringSplit(skill.pbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(pbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if not tbfound then castable = false end								
+							end
+							-- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
+							if (skill.pnbuff ~= "" ) then
+								local tbfound = false
+								for buffid in StringSplit(skill.pnbuff,",") do
+									if (tonumber(buffid) ~= nil) then
+										for i, buff in pairs(pbuffs) do
+											if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
+												tbfound = true
+												break
+											end
+										end	
+									end
+								end
+								if tbfound then castable = false end								
+							end							
+						end	
+													 
 						if ( castable ) then
-							d("CASTING : "..tostring(skill.name))								
-							if ( ActionList:Cast(skill.id,0) ) then									
-								skill.lastcast = ml_global_information.Now
-								SkillMgr.prevSkillID = tostring(skill.id)
+								d("CASTING : "..tostring(skill.name))								
+							if (skill.isready) then
+								d("CASTING : "..tostring(skill.name))								
+								if ( ActionList:Cast(skill.id,0) ) then									
+									skill.lastcast = ml_global_information.Now
+									SkillMgr.prevSkillID = tostring(skill.id)
+								end
 							end	
-						end					
+						end	
 					end
 				end
 			end
