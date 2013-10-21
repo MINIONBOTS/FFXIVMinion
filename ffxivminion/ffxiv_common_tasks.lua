@@ -131,6 +131,22 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
+--******************************* Fishing Stealth Fix ****************************************
+	local fs = tonumber(Player:GetFishingState())
+  	local gDoStealth = Settings.FFXIVMINION.gDoStealth
+    	if (Player.job == FFXIV.JOBS.FISHER and tonumber(gDoStealth) == 1) then
+      		if (fs == 0 and HasBuff(Player.id, 47)) then 
+        		ActionList:Cast(298)
+        		gafterStealth = 0
+      		end
+      		if (gafterStealth == 2) then
+        		Player:Stop()
+      		end 
+      		if (gafterStealth < 3) then 
+        		gafterStealth = gafterStealth + 1 
+      		end
+    	end   
+ --****************************************************************************************** 
 	if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
