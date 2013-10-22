@@ -245,7 +245,14 @@ function mm.AddMarker(arg)
 	-- allowing them to be created off mesh is not only useless its an invitation for bugs and user confusion
 	if(Player.onmesh) then
         if (gMarkerName ~= "" and gMarkerName ~= "None") then
-            local p = Player.pos
+            local p = nil
+			if (markerType == "fishingSpot") then
+				p = NavigationManager:GetClosestPointOnMesh(Player.pos)
+				p.h = Player.pos.h
+			else
+				p = Player.pos
+			end
+			
             local newInfo = { 	x=tonumber(string.format("%.2f", p.x)), 
 								y=tonumber(string.format("%.2f", p.y)), 
 								z=tonumber(string.format("%.2f", p.z)), 
