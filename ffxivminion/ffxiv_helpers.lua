@@ -6,7 +6,7 @@ function GetNearestGrindAttackable()
 	local minLevel = tostring(Player.level - tonumber(gMinMobLevel))
 	local maxLevel = tostring(Player.level + tonumber(gMaxMobLevel))
     
-    local el = EntityList("lowesthealth,nearest,alive,attackable,onmesh,targetingme")
+    local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -37,7 +37,7 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
-        local el = EntityList("lowesthealth,nearest,alive,attackable,onmesh,targetingme")
+        local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
 		if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

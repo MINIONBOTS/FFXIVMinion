@@ -309,60 +309,150 @@ end
 
 Dev.SteadyHandUsed = false
 function Dev.CraftTask()
-	local synth = Crafting:SynthInfo()
-	if ( synth ) then
-		
-		if (synth.durabilitymax > 0) then
-			-- normal crafting
-			d("Using Skill...")
-			local job = Player.job
-			if ( job == 14 ) then
-				if ( synth.durability <= 10 and Player.cp.current > 92) then
-					ActionList:Cast(100092,0)
+ local synth = Crafting:SynthInfo()
+ if ( synth ) then
+	if (synth.durabilitymax > 0) then
+		if (true) then -- armorer
+			if ( synth.durability >= 30 and Player.cp.current > 32) then
+				if ( Player.cp.current >= 64 and not HasBuff(Player.id, 253 ) ) then
+					d("buff up...")
+					ActionList:Cast(247,0)
 				else
-					if ( synth.durability <= 20 and Dev.SteadyHandUsed == false and Player.cp.current > 22) then
-						ActionList:Cast(250,0)
-						Dev.SteadyHandUsed = true
-					else
-						ActionList:Cast(100090,0)
+					d("qual up...")
+				
+					if ( Player.cp.current >= 18 ) then
+					 --  ActionList:Cast(100034,0)
+					--else
+						ActionList:Cast(100076,0)
+					--else
 					end
 				end
+			elseif ( synth.durability == 10 and Player.cp.current > 92 ) then
+				d("dur up...")
+				ActionList:Cast(100077,0)
+			--elseif (false and Player.cp.current > 15 ) then
+			-- d("std synt...")
+			-- ActionList:Cast(100007,0)
 			else
-				ActionList:Cast(100105,0)
+				 d("cheap synt...")
+				 ActionList:Cast(100075,0)
 			end
-		else
-			-- quicksynth
-			if ( synth.step == synth.stepmax ) then
-				Crafting:EndSynthesis()
-			end
-		end
-		Dev.lastticks = Dev.lastticks + 1000
-	else
-		if (not Crafting:IsCraftingLogOpen()) then
-			Crafting:ToggleCraftingLog()
-		else
-			local eq = Inventory("type=1000")
-			if (eq) then
-				local i,e = next (eq)
-				while ( i and e ) do
-					if ( e.condition < 10 ) then
-						d("R: "..tostring(e.name .. " " ..tostring(e.slot)))
-						Inventory:Repair(1000,e.slot)
-					end
-					i,e = next (eq,i)
-				end		
-			end
-			d("Crafting Item...")
-			if ( tonumber(cramount) > 1 ) then
-				Crafting:CraftSelectedItem(tonumber(cramount))
-			else
-				Crafting:CraftSelectedItem()
-			end
-			Crafting:ToggleCraftingLog()
-			Dev.lastticks = Dev.lastticks + 3000
-			Dev.SteadyHandUsed = false
-		end
-	end	
+		elseif (false) then -- armorer
+    if ( synth.durability >= 30 and Player.cp.current > 32) then
+     if ( Player.cp.current >= 64 and not HasBuff(Player.id, 253 ) ) then
+      d("buff up...")
+      ActionList:Cast(246,0)
+     else
+      d("qual up...")
+      if ( Player.cp.current >= 32 ) then
+       ActionList:Cast(100034,0)
+      else
+       ActionList:Cast(100031,0)
+      end
+     end
+    elseif ( synth.durability == 10 and Player.cp.current > 92 ) then
+     d("dur up...")
+     ActionList:Cast(100032,0)
+    elseif (false and Player.cp.current > 15 ) then
+     d("std synt...")
+     ActionList:Cast(100007,0)
+    else
+     d("cheap synt...")
+     ActionList:Cast(100030,0)
+    end
+   elseif (false) then -- crapenter
+   -- normal crafting
+    if ( synth.durability >= 30 and Player.cp.current > 32) then
+     if ( Player.cp.current >= 64 and not HasBuff(Player.id, 254 ) ) then
+      d("buff up...")
+      ActionList:Cast(260,0)
+     else
+      d("qual up...")
+      if ( Player.cp.current >= 48 ) then
+       ActionList:Cast(100008,0)
+      else
+       ActionList:Cast(100004,0)
+      end
+     end
+    elseif ( synth.durability == 10 and Player.cp.current > 92 ) then
+     d("dur up...")
+     ActionList:Cast(100003,0)
+    elseif (false and Player.cp.current > 15 ) then
+     d("std synt...")
+     ActionList:Cast(100007,0)
+    else
+     d("cheap synt...")
+     ActionList:Cast(100001,0)
+    end
+   elseif (false) then  --leatherworker
+    -- 279 waste not
+    if ( synth.durability == 10 and Player.cp.current > 92 ) then
+     d("dur up...")
+     ActionList:Cast(100047,0)
+    elseif (synth.durability >= 40 and Player.cp.current >= 200 and  not HasBuff(Player.id, 252 )  ) then
+     ActionList:Cast(279,0)
+   elseif (synth.durability > 20 and Player.cp.current >= 92+32 ) then
+     -- 100046 Basic Touch
+     ActionList:Cast(100048,0)
+    elseif (synth.durability > 20 and Player.cp.current >= 92+18 ) then
+      --100046 Basic Touch
+     ActionList:Cast(100046,0)
+    else
+     ActionList:Cast(100045,0)
+    end
+   elseif (false) then --weaver
+    if ( synth.durability == 10 and Player.cp.current > 92 ) then
+     d("dur up...")
+     ActionList:Cast(100062,0)
+    elseif (synth.durability >= 40 and Player.cp.current >= 18) then
+     ActionList:Cast(100061,0)
+    elseif (synth.durability > 20 and Player.cp.current >= 92+32 ) then
+     -- 100064 Basic Touch
+     ActionList:Cast(100064,0)    
+    else    
+     ActionList:Cast(100060,0)
+    end
+   elseif (false) then
+    -- goldsmith
+    
+    ActionList:Cast(100075,0)
+   
+   end
+   
+   
+  else
+   -- quicksynth
+   if ( synth.step == synth.stepmax ) then
+    Crafting:EndSynthesis()
+   end
+  end
+  Dev.lastticks = Dev.lastticks + 1000
+ else
+  if (not Crafting:IsCraftingLogOpen()) then
+   Crafting:ToggleCraftingLog()
+  else
+   local eq = Inventory("type=1000")
+   if (eq) then
+    local i,e = next (eq)
+    while ( i and e ) do
+     if ( e.condition < 10 ) then
+      d("R: "..tostring(e.name .. " " ..tostring(e.slot)))
+      Inventory:Repair(1000,e.slot)
+     end
+     i,e = next (eq,i)
+    end  
+   end
+   d("Crafting Item...")
+   if ( tonumber(cramount) > 1 ) then
+    Crafting:CraftSelectedItem(tonumber(cramount))
+   else
+    Crafting:CraftSelectedItem()
+   end
+   Crafting:ToggleCraftingLog()
+   Dev.lastticks = Dev.lastticks + 3000
+   Dev.SteadyHandUsed = false
+  end
+ end 
 end
 
 function Dev.Test1()
