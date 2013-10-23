@@ -6,6 +6,7 @@ SkillMgr.skillbook = { name = strings[gCurrentLanguage].skillbook, x = 250, y = 
 SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, y = 50, w = 250, h = 350}
 SkillMgr.editwindow = { name = strings[gCurrentLanguage].skillEditor, w = 250, h = 550}
 SkillMgr.editwindow_crafting = { name = strings[gCurrentLanguage].skillEditor_craft, w = 250, h = 550}
+SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_gather, w = 250, h = 550}
 SkillMgr.lasttick = 0
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
@@ -93,6 +94,17 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMIN","SkillDetails");
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails");
 	GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails"," ,Excellent,Good,Normal,Poor");
+    
+    -- Gathering EDITOR WINDOW
+	-- GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
+	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
+	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
+	-- GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")	
+	-- GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN","SkillDetails");
+	-- GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX","SkillDetails");
+	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff","SkillDetails");
+	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
+    -- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_Item","SkillDetails");
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,"SkillDetails")
 	GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")
@@ -103,6 +115,16 @@ function SkillMgr.ModuleInit()
 	RegisterEventHandler("SMESkillUPEvent",SkillMgr.ButtonHandler)
 	GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
+	GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
+	RegisterEventHandler("SMEDeleteEvent",SkillMgr.ButtonHandler)	
+	GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
+	RegisterEventHandler("SMESkillDOWNEvent",SkillMgr.ButtonHandler)	
+	GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
+	RegisterEventHandler("SMESkillUPEvent",SkillMgr.ButtonHandler)
+	GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
+	GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	
 	SKM_NAME = ""
 	SKM_ID = 0
@@ -140,7 +162,10 @@ function SkillMgr.ModuleInit()
 	SKM_QUALMIN = 0
 	SKM_QUALMAX = 0
 	SKM_CONDITION = " "
-	
+	--Gathering
+	-- SKM_GPMIN = 0
+	-- SKM_GPMAX = 0
+    -- SKM_Item  = ""
 
 	SkillMgr.SkillBook = {}
 	--TODO: Update Skillbook wit hspells, use refresh button 
@@ -189,17 +214,21 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
 		elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
 		--crafting
-		elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_DURMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_DURMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_PROGMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_PROGMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_QUALMIN" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = tonumber(v)
-		elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
+		elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].stepmin = tonumber(v)
+		elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].stepmax = tonumber(v)
+		elseif ( k == "SKM_CPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].cpmin = tonumber(v)
+		elseif ( k == "SKM_CPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].cpmax = tonumber(v)
+		elseif ( k == "SKM_DURMIN" ) then SkillMgr.SkillProfile[SKM_Prio].durabmin = tonumber(v)
+		elseif ( k == "SKM_DURMAX" ) then SkillMgr.SkillProfile[SKM_Prio].durabmax = tonumber(v)
+		elseif ( k == "SKM_PROGMIN" ) then SkillMgr.SkillProfile[SKM_Prio].progrmin = tonumber(v)
+		elseif ( k == "SKM_PROGMAX" ) then SkillMgr.SkillProfile[SKM_Prio].progrmax = tonumber(v)
+		elseif ( k == "SKM_QUALMIN" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymin = tonumber(v)
+		elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymax = tonumber(v)
+		elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
+        --gathering
+		-- elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
+		-- elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
+		-- elseif ( k == "SKM_ITEM" ) then SkillMgr.SkillProfile[SKM_Prio].hasitem = v
 		end
 	end
 end
@@ -360,7 +389,13 @@ function SkillMgr.SaveProfile()
 				string2write = string2write.."SKM_QUALMIN="..skill.qualitymin.."\n"		
 				string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"			
 				string2write = string2write.."SKM_CONDITION="..skill.condition.."\n"				
-				
+            -- elseif ( job >= 16 and job <=17 ) then
+				-- gathering		
+				-- string2write = string2write.."SKM_GPMIN="..skill.gpmin.."\n"			
+				-- string2write = string2write.."SKM_GPMAX="..skill.gpmax.."\n"
+				-- string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
+				-- string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 	                      
+				-- string2write = string2write.."SKM_ITEM="..skill.hasitem.."\n"          
 			else
 				string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"			
 				string2write = string2write.."SKM_TRG="..skill.trg.."\n"		
@@ -463,6 +498,10 @@ function SkillMgr.UpdateCurrentProfileData()
 							elseif ( key == "QUALMIN" ) then newskill.qualitymin = tonumber(value)
 							elseif ( key == "QUALMAX" ) then newskill.qualitymax = tonumber(value)
 							elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
+                            --gathering
+							-- elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
+							-- elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
+							-- elseif ( key == "ITEM" ) then newskill.hasitem = tostring(value)
 							
 						end
 					else
@@ -521,6 +560,15 @@ function SkillMgr.RefreshSkillBook()
 				i,s = next ( SkillList , i )
 			end
 		end
+	-- elseif ( job >= 16 and job <=1 ) then
+		-- SkillList = ActionList("type=9")
+		-- if ( TableSize( SkillList ) > 0 ) then
+			-- local i,s = next ( SkillList )
+			-- while i and s and s.id do
+				-- SkillMgr.CreateNewSkillBookEntry(s)
+				-- i,s = next ( SkillList , i )
+			-- end
+		-- end
 	end
 
 	GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
@@ -650,6 +698,30 @@ function SkillMgr.EditSkill(event)
 			SKM_CONDITION = skill.condition or "Normal"
 		
 		end	
+    -- elseif ( job >= 16 and job <=18 ) then
+		-- -- Gathering Editor 
+		-- GUI_MoveWindow( SkillMgr.editwindow_crafting.name, wnd.x+wnd.width,wnd.y) 
+		-- GUI_WindowVisible(SkillMgr.editwindow_crafting.name,true)
+		-- -- Update EditorData
+		-- local skill = SkillMgr.SkillProfile[tonumber(event)]	
+		-- if ( skill ) then		
+			-- SKM_NAME = skill.name or ""
+			-- SKM_ID = skill.id
+			-- SKM_ON = skill.used or "1"
+			-- SKM_Prio = tonumber(event)	
+			-- SKM_STMIN = tonumber(skill.stepmin) or 0
+			-- SKM_STMAX = tonumber(skill.stepmax) or 0
+			-- SKM_CPMIN = tonumber(skill.cpmin) or 0
+			-- SKM_CPMAX = tonumber(skill.cpmax) or 0
+			-- SKM_DURMIN = tonumber(skill.durabmin) or 0
+			-- SKM_DURMAX = tonumber(skill.durabmax) or 0
+			-- SKM_PROGMIN = tonumber(skill.progrmin) or 0
+			-- SKM_PROGMAX = tonumber(skill.progrmax) or 0
+			-- SKM_QUALMIN = tonumber(skill.qualitymin) or 0
+			-- SKM_QUALMAX = tonumber(skill.qualitymax) or 0
+			-- SKM_CONDITION = skill.condition or "Normal"
+		
+		-- end	
 	else	
 		-- Normal Editor 
 		GUI_MoveWindow( SkillMgr.editwindow.name, wnd.x+wnd.width,wnd.y) 

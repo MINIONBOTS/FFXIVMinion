@@ -148,6 +148,7 @@ strings =
 		skillManager                    = "SkillManager",
 		skillEditor                  	= "SkillEditor",
 		skillEditor_craft              	= "SkillEditor_Crafting",
+        skillEditor_gather            	= "SkillEditor_Gathering",
 		saveProfile                 	= "Save Current Profile",
 		newProfileName                  = "New Profile Name",
         newProfile                      = "Clear Profile",		
@@ -164,6 +165,11 @@ strings =
 		condition						= "Condition =",
 		cpmin							= "CP <",
 		cpmax							= "CP >",
+        
+        -- gathering
+        gpmin							= "GP <",
+		gpmax							= "GP >",
+        nodeHas						    = "Has Item: ",
 		
         profile                         = "Profile",
 		sMmode							= "Attack Mode",
