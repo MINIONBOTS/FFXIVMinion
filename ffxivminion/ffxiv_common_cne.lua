@@ -632,7 +632,7 @@ function e_returntomarker:execute()
 	newTask.range = math.random(5,25)
     if (markerType == "fishingSpot") then
         newTask.pos.h = markerInfo.h
-        newTask.range = 0.5
+        newTask.range = 0.8
         newTask.doFacing = true
     end
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
