@@ -36,8 +36,17 @@ function c_cast:evaluate()
     return false
 end
 function e_cast:execute()
-	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(289,0)
+	local fs = tonumber(Player:GetFishingState())
+	local action = ActionList:Get(289,FFXIV.ACTIONTYPE.CRAFT)
+	local action2 = ActionList:Get(298,FFXIV.ACTIONTYPE.CRAFT)
+	local gDoStealth = Settings.FFXIVMINION.gDoStealth
+	if (fs == 0 and not HasBuff(Player.id, 47) and tonumber(gDoStealth) == 1) and (action2 and action2.isready) then 
+    		ActionList:Cast(298)
+  	else
+    		if (action and action.isready) then
+      			ActionList:Cast(289,0)
+    		end
+  	end
 end
 
 -- Has to get called, else the dude issnot moving thanks to "runforward" usage ;)
@@ -55,7 +64,11 @@ function c_finishcast:evaluate()
 end
 function e_finishcast:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(299,0)
+	local fs = tonumber(Player:GetFishingState())
+	local action = ActionList:Get(299,FFXIV.ACTIONTYPE.CRAFT)
+	if (action and action.isready) then
+		ActionList:Cast(299,0)
+	end
 end
 
 c_bite = inheritsFrom( ml_cause )
@@ -72,7 +85,10 @@ function c_bite:evaluate()
 end
 function e_bite:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(296,0)
+	local action = ActionList:Get(296,FFXIV.ACTIONTYPE.CRAFT)
+	if (action and action.isready) then
+		ActionList:Cast(296,0)
+	end
 end
 
 c_setbait = inheritsFrom( ml_cause )
