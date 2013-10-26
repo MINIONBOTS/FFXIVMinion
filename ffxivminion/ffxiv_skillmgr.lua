@@ -1,6 +1,6 @@
 ﻿-- Skillmanager for adv. skill customization
 SkillMgr = { }
-SkillMgr.version = "v0.4";
+SkillMgr.version = "v0.5";
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
 SkillMgr.skillbook = { name = strings[gCurrentLanguage].skillbook, x = 250, y = 50, w = 250, h = 350}
 SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, y = 50, w = 250, h = 350}
@@ -118,11 +118,8 @@ function SkillMgr.ModuleInit()
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 	GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
-	RegisterEventHandler("SMEDeleteEvent",SkillMgr.ButtonHandler)	
 	GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
-	RegisterEventHandler("SMESkillDOWNEvent",SkillMgr.ButtonHandler)	
 	GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
-	RegisterEventHandler("SMESkillUPEvent",SkillMgr.ButtonHandler)
 	GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
 	GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	
@@ -168,7 +165,6 @@ function SkillMgr.ModuleInit()
     -- SKM_Item  = ""
 
 	SkillMgr.SkillBook = {}
-	--TODO: Update Skillbook wit hspells, use refresh button 
 	SkillMgr.SkillProfile = {}
 	SkillMgr.UpdateProfiles()
 	
@@ -871,7 +867,14 @@ function SkillMgr.Cast( entity )
 							else	
 							
 							-- we have no pet, check if the skill is summoning a new pet, else dont cast
-								if not SkillMgr.IsPetSummonSkill(skill.id) then castable = false end
+								if not SkillMgr.IsPetSummonSkill(skill.id) then 
+									castable = false 
+								else
+									-- we need to cast the summon on our player
+									target = Player
+									TID = PID
+									tbuffs = pbuffs
+								end
 							end
 						elseif ( skill.trg == "Ally" ) then
 							if ( ally ~= nil and ally.id ~= PID) then
