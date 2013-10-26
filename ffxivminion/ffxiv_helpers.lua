@@ -14,7 +14,7 @@ function GetNearestGrindAttackable()
         end
     end	
     
-	local el = EntityList("lowesthealth,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel)
+	local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel)
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -45,7 +45,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-	    local el = EntityList("lowesthealth,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
+	    local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
 		if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

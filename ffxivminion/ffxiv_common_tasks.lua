@@ -110,6 +110,7 @@ function ffxiv_task_movetopos:Create()
 	newinst.doFacing = false
     newinst.pauseTimer = 0
     newinst.gatherRange = 0.0
+	newinst.remainMounted = false
 	
     return newinst
 end
@@ -153,7 +154,7 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
 	Player:Stop()
-	if (Player.ismounted) then
+	if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
 		local mounts = ActionList("type=13")
 		local mount = mounts[1]
 		if (mount.isready) then

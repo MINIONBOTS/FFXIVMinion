@@ -40,6 +40,7 @@ end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos:Create()
     newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
+	newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
