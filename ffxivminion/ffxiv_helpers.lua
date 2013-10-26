@@ -6,6 +6,16 @@ function GetNearestGrindAttackable()
 	local minLevel = tostring(Player.level - tonumber(gMinMobLevel))
 	local maxLevel = tostring(Player.level + tonumber(gMaxMobLevel))
     
+	if (ValidTable(ml_task_hub:CurrentTask())) then
+		if (ml_task_hub:CurrentTask().name == "LT_GRIND" and ml_task_hub:CurrentTask().currentMarker ~= false) then
+			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+			if (ValidTable(markerInfo)) then
+				minLevel = markerInfo.minlevel
+				maxLevel = markerInfo.maxlevel
+			end
+		end
+	end
+	
     local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
     if ( el ) then
         local i,e = next(el)
@@ -115,8 +125,8 @@ function GetNearestAggro()
 	return nil
 end
 
-function GetNearestGatherable()
-	local el = EntityList("nearest,onmesh,gatherable")
+function GetNearestGatherable(minlevel,maxlevel)
+	local el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then

@@ -8,6 +8,7 @@ mm.visible = false
 mm.lasttick = 0
 mm.mapID = 0
 mm.evacPoint = {}
+mm.version = 1.0
 mm.MarkerList = 
 {
     ["grindSpot"] = {},
@@ -79,7 +80,8 @@ function mm.ModuleInit()
     
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].selectedMarker,"gSelectedMarker",strings[gCurrentLanguage].markers,"None")
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].markers)
-    GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].markerLevel,"gMarkerLevel",strings[gCurrentLanguage].markers,"1","50")
+    GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].markerMinLevel,"gMarkerMinLevel",strings[gCurrentLanguage].markers,"1","50")
+    GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].markerMaxLevel,"gMarkerMaxLevel",strings[gCurrentLanguage].markers,"1","50")
     GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].selectClosestMarker,"selectClosestMarkerEvent",strings[gCurrentLanguage].markers)
     GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].moveToMarker,"moveToMarkerEvent",strings[gCurrentLanguage].markers)
     RegisterEventHandler("selectClosestMarkerEvent", mm.SelectClosestMarker)
@@ -115,7 +117,8 @@ function mm.UpdateMarkerList()
 
 	gSelectedMarker_listitems = markers
 	gMarkerName = ""
-	gMarkerLevel = "1"
+	gMarkerMinLevel = "1"
+    gMarkerMaxLevel = "1"
 	gSelectedMarker = "None"
     
     -- call gathermanager update also
@@ -198,7 +201,9 @@ function mm.SelectMarker(markerName)
         gSelectedMarker = markerName
         gMarkerName = markerName
         local info = mm.GetMarkerInfo(markerName)
-        gMarkerLevel = tostring(info.level)
+		d(info)
+        gMarkerMinLevel = tostring(info.minlevel)
+		gMarkerMaxLevel = tostring(info.maxlevel)
         return true
     end
     
@@ -257,7 +262,8 @@ function mm.AddMarker(arg)
 								y=tonumber(string.format("%.2f", p.y)), 
 								z=tonumber(string.format("%.2f", p.z)), 
 								h=tonumber(string.format("%.3f", p.h)), 
-								level=gMarkerLevel, 
+								minlevel=tonumber(gMarkerMinLevel),
+                                maxlevel=tonumber(gMarkerMaxLevel), 
 								time=0, 
 								data=markerData }
             local key = gMarkerName
@@ -327,14 +333,13 @@ function mm.ReadMarkerList(meshname)
     
     -- helper functions located in ml_utility.lua
     local lines = fileread(mm.navmeshfilepath..meshname..".info")
+	local version = 0
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
             local sections = {}
             for section in StringSplit(line,":") do
                 table.insert(sections, section)
             end
-			--d(sections)
-            -- handle first section (tag and key)
 			local tag = nil
 			local key = nil
             local mark = string.find(sections[1], "=")
@@ -352,20 +357,30 @@ function mm.ReadMarkerList(meshname)
                 if (TableSize(posTable) == 3) then
                     mm.evacPoint = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
                 end
+            elseif (tag == "version") then
+                version = tonumber(key)
+				d(version)
             else
-				-- handle second section (position)
 				local posTable = {}
 				for coord in StringSplit(sections[2],",") do
 					table.insert(posTable, tonumber(coord))
 				end
-				--d(posTable)
-				-- handle third section (level)
-				local markerLevel = tonumber(sections[3])
-				-- handle third section (timer)
-				local markerTime = tonumber(sections[4])
-				-- handle fourth section (data)
+                local i = 4
+				local markerMinLevel = 1
+				local markerMaxLevel = 50
+				d(version)
+                if (version == 1) then
+                    markerMinLevel = tonumber(sections[3])
+                    markerMaxLevel = tonumber(sections[4])
+                    i = 5
+                else
+                    markerMinLevel = tonumber(sections[3])
+                    markerMaxLevel = tonumber(sections[3])
+                end
+                
+                local markerTime = tonumber(sections[i])
 				local dataTable = {}
-				for data in StringSplit(sections[5],",") do
+				for data in StringSplit(sections[i+1],",") do
 					table.insert(dataTable, data)
 				end
 				
@@ -378,7 +393,7 @@ function mm.ReadMarkerList(meshname)
 				-- Draw this Marker
 				mm.MarkerRenderList[key] = mm.DrawMarker( {x=tonumber(posTable[1]),y=tonumber(posTable[2]),z=tonumber(posTable[3])}, tag )
 				
-				list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],level=markerLevel,time=markerTime,data=dataTable}						
+				list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}						
 			end
         end
     else
@@ -394,6 +409,7 @@ function mm.WriteMarkerList(meshname)
 	if ( meshname ~= "" and meshname ~= nil ) then
         ml_debug("Generating .info file..")
         local string2write = ""
+		string2write = string2write.."version="..tostring(mm.version).."\n"
 		-- Save the mapID first
 		string2write = string2write.."MapID="..Player.localmapid.."\n"
         -- Write the evac point if it exists
@@ -402,10 +418,10 @@ function mm.WriteMarkerList(meshname)
             string2write = string2write.."evacPoint="..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z).."\n"
         end
 		for tag, posList in pairs(mm.MarkerList) do  
-			if ( tag ~= "MapID") then
+			if ( tag ~= "MapID" and tag ~= "version") then
 				for key, pos in pairs(posList) do
 					--d(tag)
-					string2write = string2write..tag.."="..key..":"..pos.x..","..pos.y..","..pos.z..","..pos.h..":"..pos.level..":"..pos.time..":"
+					string2write = string2write..tag.."="..key..":"..pos.x..","..pos.y..","..pos.z..","..pos.h..":"..pos.minlevel..":"..pos.maxlevel..":"..pos.time..":"
                     for i,data in ipairs(pos.data) do
                         string2write = string2write..data
                         if (pos.data[i+1] ~= nil) then

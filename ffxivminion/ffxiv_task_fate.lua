@@ -39,9 +39,15 @@ function c_fatewait:evaluate()
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos:Create()
-    newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
+	local newPos = NavigationManager:GetRandomPointOnCircle(mm.evacPoint.x,mm.evacPoint.y,mm.evacPoint.z,1,5)
+	if (ValidTable(newPos)) then
+		newTask.pos = {x = newPos.x, y = newPos.y, z = newPos.z}
+	else
+		newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
+	end
+	
 	newTask.remainMounted = true
-    ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -150,7 +156,8 @@ function c_atfate:evaluate()
 end
 function e_atfate:execute()
 	Player:Stop()
-	ml_task_hub:CurrentTask():task_complete_execute()
+    -- call the complete logic so that bot will dismount
+    ml_task_hub:CurrentTask():task_complete_execute()
 	ml_task_hub:CurrentTask():Terminate()
 end
 

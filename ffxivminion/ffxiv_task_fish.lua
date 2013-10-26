@@ -37,7 +37,12 @@ function c_cast:evaluate()
 end
 function e_cast:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(289,0)
+	local mooch = ActionList:Get(297,1)
+	if (mooch) and (mooch.isready) then
+		mooch:Cast()
+	else
+		ActionList:Cast(289,0)
+	end
 end
 
 -- Has to get called, else the dude issnot moving thanks to "runforward" usage ;)
@@ -72,7 +77,7 @@ function c_bite:evaluate()
 end
 function e_bite:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(296,0)
+	ActionList:Cast(296,0)
 end
 
 c_setbait = inheritsFrom( ml_cause )
