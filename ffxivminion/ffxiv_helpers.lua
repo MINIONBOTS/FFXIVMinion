@@ -37,13 +37,13 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
-        local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
-		if ( el ) then
-            local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                return e
-            end
-        end	
+        --local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
+		--if ( el ) then
+         --   local i,e = next(el)
+        --    if (i~=nil and e~=nil) then
+         --       return e
+       --     end
+      --  end	
     
 	    local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
 		if ( el ) then
@@ -309,4 +309,24 @@ function InCombatRange(targetid)
 	end
 	
 	return false
+end
+
+function Mount()
+	if not(Player.ismounted) then
+		local mounts = ActionList("type=13")
+		local mount = mounts[1]
+		if (mount.isready) then
+			mount:Cast()
+		end
+	end
+end
+
+function Dismount()
+	if (Player.ismounted) then
+		local mounts = ActionList("type=13")
+		local mount = mounts[1]
+		if (mount.isready) then
+			mount:Cast()
+		end
+	end
 end

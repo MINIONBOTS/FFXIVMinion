@@ -49,6 +49,9 @@ function c_add_killtarget:evaluate()
     return false
 end
 function e_add_killtarget:execute()
+	--just in case
+	Dismount()
+	
 	local newTask = ffxiv_task_killtarget:Create()
     newTask.targetid = c_add_killtarget.targetid
 	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
@@ -330,13 +333,7 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
-    local mounts = ActionList("type=13")
-	local mount = mounts[1]
-	if (mount.isready) then
-		Player:Stop()
-		mount:Cast()
-		ml_task_hub:CurrentTask().mountTimer = os.time()
-	end
+	Mount()
 end
 
 -----------------------------------------------------------------------------------------------
