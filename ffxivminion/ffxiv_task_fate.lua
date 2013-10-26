@@ -149,6 +149,7 @@ function c_atfate:evaluate()
 end
 function e_atfate:execute()
 	Player:Stop()
+	ml_task_hub:CurrentTask():task_complete_execute()
 	ml_task_hub:CurrentTask():Terminate()
 end
 

@@ -316,7 +316,7 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-		if (not ml_task_hub:CurrentTask().isMounted) then
+		if (not Player.ismounted) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
@@ -335,7 +335,6 @@ function e_mount:execute()
 	if (mount.isready) then
 		Player:Stop()
 		mount:Cast()
-		ml_task_hub:CurrentTask().isMounted = true
 		ml_task_hub:CurrentTask().mountTimer = os.time()
 	end
 end

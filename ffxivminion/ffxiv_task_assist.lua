@@ -53,8 +53,8 @@ c_validtarget = inheritsFrom( ml_cause )
 e_validtarget = inheritsFrom( ml_effect )
 function c_validtarget:evaluate()
 	local target = Player:GetTarget()
-	if 	(target == nil or target == {} or not target.attackable or not InCombatRange(target.id)  or 
-		(target.id ~= ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0))
+	if 	(not ValidTable(target) or not target.attackable or not InCombatRange(target.id)  or
+		(target.id ~= ml_task_hub:ThisTask().targetid and ml_task_hub:ThisTask().targetid ~= 0))
 	then
 		return true
 	end
@@ -78,9 +78,6 @@ function ffxiv_task_assist:Init()
 	self:add(ke_validTarget, self.overwatch_elements)
 
     --init Process() cnes
-	local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
-	self:add(ke_mobAggro, self.process_elements)
-	
 	local ke_combatAssist = ml_element:create( "AddCombatAssistTask", c_combatassist_task, e_combatassist_task, 10 )
 	self:add(ke_combatAssist, self.process_elements)
     
