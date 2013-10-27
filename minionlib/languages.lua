@@ -170,6 +170,7 @@ strings =
         gpmin							= "GP <",
 		gpmax							= "GP >",
         nodeHas						    = "Has Item: ",
+		gatherAttempts					= "Gather Attempts >",
 		
         profile                         = "Profile",
 		sMmode							= "Attack Mode",

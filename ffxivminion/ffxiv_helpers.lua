@@ -340,3 +340,16 @@ function Dismount()
 		end
 	end
 end
+
+function NodeHasItem(itemName)
+	local list = Player:GetGatherableSlotList()
+	if (ValidTable(list)) then
+		for i,item in pairs(list) do
+			if (item.name == itemName) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end

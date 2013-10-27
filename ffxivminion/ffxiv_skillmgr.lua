@@ -96,15 +96,16 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails"," ,Excellent,Good,Normal,Poor");
     
     -- Gathering EDITOR WINDOW
-	-- GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
-	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
-	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
-	-- GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")	
-	-- GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN","SkillDetails");
-	-- GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX","SkillDetails");
-	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff","SkillDetails");
-	-- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
-    -- GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_Item","SkillDetails");
+	GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")	
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN","SkillDetails");
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts","SkillDetails");
+    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_Item","SkillDetails");
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,"SkillDetails")
 	GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")
@@ -115,6 +116,8 @@ function SkillMgr.ModuleInit()
 	RegisterEventHandler("SMESkillUPEvent",SkillMgr.ButtonHandler)
 	GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
+	GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
+	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 	GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
@@ -160,9 +163,10 @@ function SkillMgr.ModuleInit()
 	SKM_QUALMAX = 0
 	SKM_CONDITION = " "
 	--Gathering
-	-- SKM_GPMIN = 0
-	-- SKM_GPMAX = 0
-    -- SKM_Item  = ""
+	SKM_GPMIN = 0
+	SKM_GPMAX = 0
+    SKM_Item  = ""
+	SKM_GAttempts = 0
 
 	SkillMgr.SkillBook = {}
 	SkillMgr.SkillProfile = {}
@@ -222,9 +226,10 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymax = tonumber(v)
 		elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
         --gathering
-		-- elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
-		-- elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
-		-- elseif ( k == "SKM_ITEM" ) then SkillMgr.SkillProfile[SKM_Prio].hasitem = v
+		elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
+		elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
+		elseif ( k == "SKM_GAttempts" ) then SkillMgr.SkillProfile[SKM_Prio].gatherAttempts = tonumber(v)
+		elseif ( k == "SKM_ITEM" ) then SkillMgr.SkillProfile[SKM_Prio].hasitem = v
 		end
 	end
 end
@@ -385,13 +390,14 @@ function SkillMgr.SaveProfile()
 				string2write = string2write.."SKM_QUALMIN="..skill.qualitymin.."\n"		
 				string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"			
 				string2write = string2write.."SKM_CONDITION="..skill.condition.."\n"				
-            -- elseif ( job >= 16 and job <=17 ) then
+            elseif ( job >= 16 and job <=17 ) then
 				-- gathering		
-				-- string2write = string2write.."SKM_GPMIN="..skill.gpmin.."\n"			
-				-- string2write = string2write.."SKM_GPMAX="..skill.gpmax.."\n"
-				-- string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
-				-- string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 	                      
-				-- string2write = string2write.."SKM_ITEM="..skill.hasitem.."\n"          
+				string2write = string2write.."SKM_GPMIN="..skill.gpmin.."\n"			
+				string2write = string2write.."SKM_GPMAX="..skill.gpmax.."\n"
+				string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
+				string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n"
+				string2write = string2write.."SKM_GAttempts="..skill.gatherattempts.."\n"   				
+				string2write = string2write.."SKM_ITEM="..skill.hasitem.."\n"          
 			else
 				string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"			
 				string2write = string2write.."SKM_TRG="..skill.trg.."\n"		
@@ -495,9 +501,10 @@ function SkillMgr.UpdateCurrentProfileData()
 							elseif ( key == "QUALMAX" ) then newskill.qualitymax = tonumber(value)
 							elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
                             --gathering
-							-- elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
-							-- elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
-							-- elseif ( key == "ITEM" ) then newskill.hasitem = tostring(value)
+							elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
+							elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
+							elseif ( key == "GAttempts" ) then newskill.gatherattempts = tonumber(value)
+							elseif ( key == "ITEM" ) then newskill.hasitem = tostring(value)
 							
 						end
 					else
@@ -556,15 +563,6 @@ function SkillMgr.RefreshSkillBook()
 				i,s = next ( SkillList , i )
 			end
 		end
-	-- elseif ( job >= 16 and job <=1 ) then
-		-- SkillList = ActionList("type=9")
-		-- if ( TableSize( SkillList ) > 0 ) then
-			-- local i,s = next ( SkillList )
-			-- while i and s and s.id do
-				-- SkillMgr.CreateNewSkillBookEntry(s)
-				-- i,s = next ( SkillList , i )
-			-- end
-		-- end
 	end
 
 	GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
@@ -659,8 +657,12 @@ function SkillMgr.CreateNewSkillEntry(skill)
 				progrmax = skill.progrmax or 0,
 				qualitymin = skill.qualitymin or 0,
 				qualitymax = skill.qualitymax or 0,
-				condition = skill.condition or " ",
-				
+				condition = skill.condition or "",
+				--gathering
+				gpmin=skill.gpmin or 0,
+				gpmax=skill.gpmax or 0,
+				gatherattempts=skill.gatherattempts or 0,
+				hasitem =skill.hasitem or ""
 			}	
 		end		
 	end
@@ -694,30 +696,24 @@ function SkillMgr.EditSkill(event)
 			SKM_CONDITION = skill.condition or "Normal"
 		
 		end	
-    -- elseif ( job >= 16 and job <=18 ) then
-		-- -- Gathering Editor 
-		-- GUI_MoveWindow( SkillMgr.editwindow_crafting.name, wnd.x+wnd.width,wnd.y) 
-		-- GUI_WindowVisible(SkillMgr.editwindow_crafting.name,true)
-		-- -- Update EditorData
-		-- local skill = SkillMgr.SkillProfile[tonumber(event)]	
-		-- if ( skill ) then		
-			-- SKM_NAME = skill.name or ""
-			-- SKM_ID = skill.id
-			-- SKM_ON = skill.used or "1"
-			-- SKM_Prio = tonumber(event)	
-			-- SKM_STMIN = tonumber(skill.stepmin) or 0
-			-- SKM_STMAX = tonumber(skill.stepmax) or 0
-			-- SKM_CPMIN = tonumber(skill.cpmin) or 0
-			-- SKM_CPMAX = tonumber(skill.cpmax) or 0
-			-- SKM_DURMIN = tonumber(skill.durabmin) or 0
-			-- SKM_DURMAX = tonumber(skill.durabmax) or 0
-			-- SKM_PROGMIN = tonumber(skill.progrmin) or 0
-			-- SKM_PROGMAX = tonumber(skill.progrmax) or 0
-			-- SKM_QUALMIN = tonumber(skill.qualitymin) or 0
-			-- SKM_QUALMAX = tonumber(skill.qualitymax) or 0
-			-- SKM_CONDITION = skill.condition or "Normal"
-		
-		-- end	
+    elseif ( job >= 16 and job <=17 ) then
+		-- Gathering Editor 
+		GUI_MoveWindow( SkillMgr.editwindow_gathering.name, wnd.x+wnd.width,wnd.y) 
+		GUI_WindowVisible(SkillMgr.editwindow_gathering.name,true)
+		-- Update EditorData
+		local skill = SkillMgr.SkillProfile[tonumber(event)]	
+		if ( skill ) then		
+			SKM_NAME = skill.name or ""
+			SKM_ID = skill.id
+			SKM_ON = skill.used or "1"
+			SKM_Prio = tonumber(event)	
+			SKM_GPMIN = tonumber(skill.gpmin) or 0
+			SKM_GPMAX = tonumber(skill.gpmax) or 0
+			SKM_PBuff = skill.pbuff or ""
+			SKM_PNBuff = skill.pnbuff or ""
+			SKM_GAttempts = tonumber(skill.gatherattempts) or 0
+			SKM_Item = skill.hasitem or ""
+		end	
 	else	
 		-- Normal Editor 
 		GUI_MoveWindow( SkillMgr.editwindow.name, wnd.x+wnd.width,wnd.y) 
@@ -759,7 +755,8 @@ function SkillMgr.ToggleMenu()
 		GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
 		GUI_WindowVisible(SkillMgr.skillbook.name,false)	
 		GUI_WindowVisible(SkillMgr.editwindow.name,false)	
-		GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)		
+		GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
+		GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)	
 		SkillMgr.visible = false
 	else	 
 	
@@ -982,9 +979,10 @@ function SkillMgr.Craft( )
 			if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
 				
 				local realskilldata = ActionList:Get(skill.id)
-				if ( realskilldata and realskilldata.isready ) then 
+				if ( realskilldata and realskilldata.isready ) then
 					if ( realskilldata.isready ) then
 						local castable = true
+						local pbuffs = Player.buffs
 						
 						if ( (skill.stepmin > 0 and synth.step < skill.stepmin) or
 							 (skill.stepmax > 0 and synth.step > skill.stepmax) or
@@ -1015,6 +1013,42 @@ function SkillMgr.Craft( )
 	end
 end
 
+function SkillMgr.Gather( )
+	
+	local node = Player:GetTarget()
+	if ( ValidTable(node) and node.cangather and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
+		
+		for prio,skill in pairs(SkillMgr.SkillProfile) do
+			if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
+				
+				local realskilldata = ActionList:Get(skill.id)
+				if ( realskilldata and realskilldata.isready ) then 
+					if ( realskilldata.isready ) then
+						local castable = true
+						
+						if ((skill.gpmin > 0 and Player.gp.current < skill.gpmin) or
+							(skill.gpmax > 0 and Player.gp.current > skill.gpmax) or
+							(skill.pbuff ~= "" and not HasBuff(Player.id,tonumber(skill.pbuff))) or
+							(skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pbuff))) or
+							(skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
+							(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
+							then castable = false 
+						end
+							 
+							 
+						if ( castable ) then
+							d("CASTING : "..tostring(skill.name))								
+							if ( ActionList:Cast(skill.id,0) ) then									
+								skill.lastcast = ml_global_information.Now
+								SkillMgr.prevSkillID = tostring(skill.id)
+							end	
+						end					
+					end
+				end
+			end
+		end
+	end
+end
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
 function ffxiv_task_skillmgrAttack:Create()
@@ -1050,7 +1084,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		end
 		if not cast then			
 			SkillMgr.Cast( target )
-		end		
+		end
 	else
 		self.targetid = 0
 		self.completed = true

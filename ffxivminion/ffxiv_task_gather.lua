@@ -189,6 +189,7 @@ end
 function e_gather:execute()
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
+		SkillMgr.Gather()
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
