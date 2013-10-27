@@ -116,6 +116,11 @@ function SkillMgr.ModuleInit()
 	RegisterEventHandler("SMESkillUPEvent",SkillMgr.ButtonHandler)
 	GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,"SkillDetails")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
 	GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
 	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
 	
@@ -793,7 +798,7 @@ function SkillMgr.Cast( entity )
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
 				if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-					
+					d("tes")
 					local realskilldata = ActionList:Get(skill.id)
 					if ( realskilldata and realskilldata.isready ) then 
 						
@@ -946,7 +951,7 @@ function SkillMgr.Cast( entity )
 								castable = false
 							end
 						end
-						
+												d("test")
 						if ( castable ) then
 							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
