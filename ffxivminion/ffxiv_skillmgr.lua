@@ -798,7 +798,6 @@ function SkillMgr.Cast( entity )
 			
 			for prio,skill in pairs(SkillMgr.SkillProfile) do
 				if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-					d("tes")
 					local realskilldata = ActionList:Get(skill.id)
 					if ( realskilldata and realskilldata.isready ) then 
 						
@@ -808,8 +807,10 @@ function SkillMgr.Cast( entity )
 						tbuffs = ebuffs
 						
 						local castable = true
-						--COOLDOWN													
-						if (realskilldata.cd ~= 0 and realskilldata.cd ~= 2.5) then castable = false end  --2.5 is a dummyfix, game is bugged 
+						--COOLDOWN
+						--d(realskilldata.cd)
+						--if (realskilldata.cd ~= 0 and math.abs(realskilldata.cd-2.5) < .00001) then castable = false end  --2.5 is a dummyfix, game is bugged 
+						--d(castable)
 						
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*1000 + 500)) then castable = false end
@@ -856,8 +857,7 @@ function SkillMgr.Cast( entity )
 							end							
 						end	
 						
-						
-						
+																															
 						-- SWITCH TARGET FOR PET / ALLY - CHECK
 						if ( skill.trg == "Pet" ) then
 							if ( pet ~= nil and pet ~= 0) then
@@ -889,7 +889,6 @@ function SkillMgr.Cast( entity )
 							TID = PID
 							tbuffs = pbuffs
 						end
-						
 						-- RANGE 							
 						if ( castable and (
 								   (skill.minRange > 0 and target.distance < skill.minRange)
@@ -951,7 +950,6 @@ function SkillMgr.Cast( entity )
 								castable = false
 							end
 						end
-												d("test")
 						if ( castable ) then
 							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 							if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
@@ -1034,7 +1032,7 @@ function SkillMgr.Gather( )
 						if ((skill.gpmin > 0 and Player.gp.current < skill.gpmin) or
 							(skill.gpmax > 0 and Player.gp.current > skill.gpmax) or
 							(skill.pbuff ~= "" and not HasBuff(Player.id,tonumber(skill.pbuff))) or
-							(skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pbuff))) or
+							(skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pnbuff))) or
 							(skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
 							(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
 							then castable = false 
