@@ -154,12 +154,8 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
 	Player:Stop()
-	if (Player.ismounted and not ml_task_hub:CurrentTask().remainMounted) then
-		local mounts = ActionList("type=13")
-		local mount = mounts[1]
-		if (mount.isready) then
-			mount:Cast()
-		end
+	if (not ml_task_hub:CurrentTask().remainMounted) then
+		Dismount()
 	end
 	
     if (ml_task_hub:CurrentTask().doFacing) then

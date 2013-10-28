@@ -48,7 +48,17 @@ function c_findgatherable:evaluate()
 end
 function e_findgatherable:execute()
 	ml_debug( "Getting new gatherable target" )
-	local gatherable = GetNearestGatherable()
+    local minlevel = 1
+    local maxlevel = 50
+    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false) then
+        local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+        if ValidTable(markerInfo) then
+            minlevel = markerInfo.minlevel
+            maxlevel = markerInfo.maxlevel
+        end
+    end
+    
+	local gatherable = GetNearestGatherable(minlevel,maxlevel)
 	if (gatherable ~= nil) then
 		ml_task_hub.CurrentTask().gatherid = gatherable.id
 	else
@@ -179,6 +189,7 @@ end
 function e_gather:execute()
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
+		SkillMgr.Gather()
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then

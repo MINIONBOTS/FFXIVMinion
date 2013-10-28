@@ -49,6 +49,9 @@ function c_add_killtarget:evaluate()
     return false
 end
 function e_add_killtarget:execute()
+	--just in case
+	Dismount()
+	
 	local newTask = ffxiv_task_killtarget:Create()
     newTask.targetid = c_add_killtarget.targetid
 	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
@@ -254,7 +257,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-		if (os.difftime(os.time(), ml_task_hub:CurrentTask().mountTimer) < 2.6) then
+		if (ActionList:IsCasting()) then
 			return false
 		end
 		
@@ -316,7 +319,7 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-		if (not Player.ismounted) then
+		if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
@@ -330,13 +333,7 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
-    local mounts = ActionList("type=13")
-	local mount = mounts[1]
-	if (mount.isready) then
-		Player:Stop()
-		mount:Cast()
-		ml_task_hub:CurrentTask().mountTimer = os.time()
-	end
+	Mount()
 end
 
 -----------------------------------------------------------------------------------------------
@@ -345,7 +342,7 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
-    if not HasBuff(Player.id, 50) then
+    if not HasBuff(Player.id, 50 and not Player.ismounted) then
 		local skills = ActionList("type=1")
 		local skill = skills[3]
 		if (skill.isready) then
@@ -417,7 +414,8 @@ c_attarget = inheritsFrom( ml_cause )
 e_attarget = inheritsFrom( ml_effect )
 function c_attarget:evaluate()
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
+        --if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
+		if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
             if ValidTable(target) then
                 return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance < (ml_global_information.AttackRange * 0.75)

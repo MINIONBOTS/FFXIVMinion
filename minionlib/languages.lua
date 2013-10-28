@@ -170,6 +170,7 @@ strings =
         gpmin							= "GP <",
 		gpmax							= "GP >",
         nodeHas						    = "Has Item: ",
+		gatherAttempts					= "Gather Attempts >",
 		
         profile                         = "Profile",
 		sMmode							= "Attack Mode",
@@ -362,6 +363,8 @@ strings =
         deleteSpot                      = "Delete Nearest Marker",
         markers                         = "Markers",
         markerLevel						= "Marker Level",
+        markerMinLevel				    = "Marker Min Level",
+        markerMaxLevel				    = "Marker Max Level",
         selectedMarker                  = "Selected Marker",
         mining                          = "Mining",
         fishing                         = "Fishing",
