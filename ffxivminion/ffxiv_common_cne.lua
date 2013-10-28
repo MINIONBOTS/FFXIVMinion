@@ -342,7 +342,7 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
-    if not HasBuff(Player.id, 50 and not Player.ismounted) then
+    if not HasBuff(Player.id, 50) and not Player.ismounted then
 		local skills = ActionList("type=1")
 		local skill = skills[3]
 		if (skill.isready) then
