@@ -257,7 +257,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-		if (os.difftime(os.time(), ml_task_hub:CurrentTask().mountTimer) < 2.6) then
+		if (ActionList:IsCasting()) then
 			return false
 		end
 		
@@ -319,7 +319,7 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
 	if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-		if (not Player.ismounted) then
+		if (not Player.ismounted and not ActionList:IsCasting() and not Player.hasaggro) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
@@ -414,7 +414,8 @@ c_attarget = inheritsFrom( ml_cause )
 e_attarget = inheritsFrom( ml_effect )
 function c_attarget:evaluate()
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
+        --if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
+		if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
             if ValidTable(target) then
                 return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance < (ml_global_information.AttackRange * 0.75)
