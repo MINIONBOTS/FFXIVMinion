@@ -15,7 +15,7 @@ function ffxiv_combat_bard:Create()
     --ffxiv_combat_bard members
     newinst.name = "BARD"
     newinst.targetid = 0
-	newinst.range = 3
+	newinst.range = 24
     
     return newinst
 end

@@ -893,7 +893,7 @@ function SkillMgr.Cast( entity )
 						if ( castable and (
 								   (skill.minRange > 0 and target.distance < skill.minRange)
 								or (skill.maxRange > 0 and target.distance > skill.maxRange+target.hitradius+1)--target.distance- target.hitradius > skill.maxRange)
-								)) then castable = false end	
+								)) then castable = false end
 												
 						-- HEALTH
 						if ( castable and (
