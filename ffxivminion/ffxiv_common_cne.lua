@@ -333,6 +333,7 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
+	Player:Stop()
 	Mount()
 end
 
@@ -428,6 +429,7 @@ function c_attarget:evaluate()
 end
 function e_attarget:execute()
 	Player:Stop()
+	ml_task_hub:CurrentTask():task_complete_execute()
 	ml_task_hub:CurrentTask():Terminate()
 end
 
