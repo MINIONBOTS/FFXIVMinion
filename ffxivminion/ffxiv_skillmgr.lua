@@ -717,7 +717,7 @@ function SkillMgr.EditSkill(event)
 			SKM_PBuff = skill.pbuff or ""
 			SKM_PNBuff = skill.pnbuff or ""
 			SKM_GAttempts = tonumber(skill.gatherattempts) or 0
-			SKM_Item = skill.hasitem or ""
+			SKM_ITEM = skill.hasitem or ""
 		end	
 	else	
 		-- Normal Editor 

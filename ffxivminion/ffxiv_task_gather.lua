@@ -50,7 +50,7 @@ function e_findgatherable:execute()
 	ml_debug( "Getting new gatherable target" )
     local minlevel = 1
     local maxlevel = 50
-    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false) then
+    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false and gIgnoreGatherLevel == "0") then
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
         if ValidTable(markerInfo) then
             minlevel = markerInfo.minlevel
