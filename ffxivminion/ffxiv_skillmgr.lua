@@ -233,7 +233,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         --gathering
 		elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
 		elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
-		elseif ( k == "SKM_GAttempts" ) then SkillMgr.SkillProfile[SKM_Prio].gatherAttempts = tonumber(v)
+		elseif ( k == "SKM_GAttempts" ) then SkillMgr.SkillProfile[SKM_Prio].gatherattempts = tonumber(v)
 		elseif ( k == "SKM_ITEM" ) then SkillMgr.SkillProfile[SKM_Prio].hasitem = v
 		end
 	end

@@ -342,7 +342,7 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
-    if not HasBuff(Player.id, 50 and not Player.ismounted) then
+    if not HasBuff(Player.id, 50) and not Player.ismounted then
 		local skills = ActionList("type=1")
 		local skill = skills[3]
 		if (skill.isready) then
@@ -629,7 +629,7 @@ function e_returntomarker:execute()
 	newTask.range = math.random(5,25)
     if (markerType == "fishingSpot") then
         newTask.pos.h = markerInfo.h
-        newTask.range = 0.8
+        newTask.range = 0.5
         newTask.doFacing = true
     end
 	ml_task_hub.CurrentTask():AddSubTask(newTask)
