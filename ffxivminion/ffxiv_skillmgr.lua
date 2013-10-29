@@ -233,7 +233,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         --gathering
 		elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
 		elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
-		elseif ( k == "SKM_GAttempts" ) then SkillMgr.SkillProfile[SKM_Prio].gatherAttempts = tonumber(v)
+		elseif ( k == "SKM_GAttempts" ) then SkillMgr.SkillProfile[SKM_Prio].gatherattempts = tonumber(v)
 		elseif ( k == "SKM_ITEM" ) then SkillMgr.SkillProfile[SKM_Prio].hasitem = v
 		end
 	end
@@ -831,7 +831,7 @@ function SkillMgr.Cast( entity )
 								for buffid in StringSplit(skill.pbuff,",") do
 									if (tonumber(buffid) ~= nil) then
 										for i, buff in pairs(pbuffs) do
-											if (buff.id == tonumber(buffid) then--and buff.ownerid == PID) then
+											if (buff.id == tonumber(buffid)) then--and buff.ownerid == PID) then
 												tbfound = true
 												break
 											end
@@ -846,7 +846,7 @@ function SkillMgr.Cast( entity )
 								for buffid in StringSplit(skill.pnbuff,",") do
 									if (tonumber(buffid) ~= nil) then
 										for i, buff in pairs(pbuffs) do
-											if (buff.id == tonumber(buffid) then --and buff.ownerid == PID) then
+											if (buff.id == tonumber(buffid)) then --and buff.ownerid == PID) then
 												tbfound = true
 												break
 											end
