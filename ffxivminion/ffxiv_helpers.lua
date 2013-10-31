@@ -3,8 +3,8 @@
 -- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
 -- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
-	local minLevel = tostring(Player.level - tonumber(gMinMobLevel))
-	local maxLevel = tostring(Player.level + tonumber(gMaxMobLevel))
+	local minLevel = "1"
+	local maxLevel = "50"
     
 	if (ValidTable(ml_task_hub:CurrentTask())) then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND" and ml_task_hub:CurrentTask().currentMarker ~= false) then

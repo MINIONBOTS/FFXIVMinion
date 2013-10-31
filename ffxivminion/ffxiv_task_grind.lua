@@ -155,8 +155,6 @@ end
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
     -- Grind
-	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MaxMobLvl: +", "gMaxMobLevel", "Grind", "0", "50")
-	GUI_NewNumeric(ml_global_information.MainWindow.Name, "MinMobLvl: -", "gMinMobLevel", "Grind", "0", "50")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Rest HP%: ", "gRestHP", "Grind", "0", "100")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Rest MP%: ", "gRestMP", "Grind", "0", "100")
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, "Flee HP%: ", "gFleeHP", "Grind", "0", "100")
