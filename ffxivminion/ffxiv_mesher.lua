@@ -99,6 +99,9 @@ function mm.ModuleInit()
     GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].deleteMarker,"deleteSpotEvent",strings[gCurrentLanguage].markers)
     RegisterEventHandler("deleteSpotEvent", mm.DeleteMarker)
 	
+	gMarkerMinLevel = "1"
+	gMarkerMaxLevel = "50"
+	
 	GUI_SizeWindow(mm.mainwindow.name,mm.mainwindow.w,mm.mainwindow.h)
 	GUI_WindowVisible(mm.mainwindow.name,false)
 end

@@ -1029,8 +1029,9 @@ function SkillMgr.Gather( )
 					if ( realskilldata.isready ) then
 						local castable = true
 						
-						if ((skill.gpmin > 0 and Player.gp.current < skill.gpmin) or
-							(skill.gpmax > 0 and Player.gp.current > skill.gpmax) or
+						--these first two conditionals here look retarded due to poor naming but they are correct
+						if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
+							(skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
 							(skill.pbuff ~= "" and not HasBuff(Player.id,tonumber(skill.pbuff))) or
 							(skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pnbuff))) or
 							(skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
