@@ -38,6 +38,9 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
 	self:add( ke_flee, self.overwatch_elements)
 	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
+	self:add( ke_rest, self.overwatch_elements)
+	
 	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 )
 	self:add(ke_addFate, self.overwatch_elements)
 	
@@ -45,9 +48,6 @@ function ffxiv_task_grind:Init()
 	--init Process() cnes
 	--local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
 	--self:add(ke_mobAggro, self.process_elements)
-	
-	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 30 )
-	self:add( ke_rest, self.process_elements)
 
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
 	self:add( ke_returnToMarker, self.process_elements)

@@ -518,8 +518,12 @@ function c_rest:evaluate()
             return false
         end
     end
-    
+	
 	if (not Player.hasaggro) then
+		--d(Player.hp.percent)
+		--d(tonumber(gRestHP))
+		--d(Player.mp.percent)
+		--d(tonumber(gRestMP))
 		if (e_rest.resting or 
 			Player.hp.percent < tonumber(gRestHP) or
 			Player.mp.percent < tonumber(gRestMP))
@@ -546,6 +550,7 @@ function e_rest:execute()
 		if (Player.hp.percent < tonumber(gRestHP) or
 			Player.mp.percent < tonumber(gRestMP)) 
 		then
+			Player:Stop()
 			e_rest.resting = true
 			return
 		end
