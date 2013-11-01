@@ -297,6 +297,11 @@ function c_bettertargetsearch:evaluate()
 		return false
 	end
 	
+	-- this breaks rest because we never finish the current target
+	if (Player.hp.percent < tonumber(gRestHP) or Player.mp.percent < tonumber(gRestMP)) then
+		return false
+	end
+	
 	if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
 		local bettertarget = ml_task_hub:ThisTask().targetFunction()
 		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
