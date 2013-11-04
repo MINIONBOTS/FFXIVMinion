@@ -1,7 +1,7 @@
 ﻿-- Map & Meshmanager
 mm = { }
 mm.navmeshfilepath = GetStartupPath() .. [[\Navigation\]];
-mm.mainwindow = { name = strings[gCurrentLanguage].meshManager, x = 350, y = 100, w = 280, h = 250}
+mm.mainwindow = { name = strings[gCurrentLanguage].meshManager, x = 350, y = 100, w = 280, h = 400}
 mm.meshfiles = {}
 mm.currentmapdata = {} 
 mm.visible = false
@@ -22,7 +22,7 @@ mm.reloadMeshPending = false
 mm.reloadMeshTmr = 0
 mm.reloadMeshName = ""
 mm.FateBlacklist = {}
-
+mm.OMC = 0
 
 function mm.ModuleInit() 	
 		
@@ -52,11 +52,7 @@ function mm.ModuleInit()
 			i,meshname = next ( meshfilelist,i)
 		end
 	end
-			
-	gShowMesh = "0"
-	gShowRealMesh = "0"
-	gShowPath = "0"
-	gMeshrec = "0"
+		
 	if (Settings.FFXIVMINION.gnewmeshname == nil) then
 		Settings.FFXIVMINION.gnewmeshname = ""
 	end
@@ -64,13 +60,41 @@ function mm.ModuleInit()
 	GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].newMeshName,"gnewmeshname",strings[gCurrentLanguage].editor)
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].newMesh,"newMeshEvent",strings[gCurrentLanguage].editor)
 	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].recmesh,"gMeshrec",strings[gCurrentLanguage].editor)
+	GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].recAreaType ,"gRecAreaType",strings[gCurrentLanguage].editor,"Road,Lowdanger,Highdanger")-- enum 1,2,3
+	GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].recAreaSize,"gRecAreaSize",strings[gCurrentLanguage].editor,"1","500")
+	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].changeMesh,"gMeshChange",strings[gCurrentLanguage].editor)
+	GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].changeAreaType ,"gChangeAreaType",strings[gCurrentLanguage].editor,"Delete,Road,Lowdanger,Highdanger")
+	GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].changeAreaSize,"gChangeAreaSize",strings[gCurrentLanguage].editor,"1","10")	
+	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addOffMeshSpot,"offMeshSpotEvent",strings[gCurrentLanguage].editor)
+	RegisterEventHandler("offMeshSpotEvent", mm.AddOMC)
+	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].delOffMeshSpot,"deleteoffMeshEvent",strings[gCurrentLanguage].editor)
+    RegisterEventHandler("deleteoffMeshEvent", mm.DeleteOMC)
+	GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].biDirOffMesh,"gBiDirOffMesh",strings[gCurrentLanguage].editor)
+	
+	
+	gShowMesh = "0"
+	gShowRealMesh = "0"
+	gShowPath = "0"
+	gMeshrec = "0"
+	gRecAreaType = "Lowdanger"
+	gRecAreaSize = "50"
+	gMeshChange = "0"
+	gChangeAreaType = "Road"
+	gChangeAreaSize = "5"
+	gBiDirOffMesh = "0"
+		
+	MeshManager:SetRecordingArea(2)
+	MeshManager:RecSize(gRecAreaSize)
+	MeshManager:SetChangeToArea(3)
+	MeshManager:SetChangeToRadius(gChangeAreaSize)
+	MeshManager:SetChangeAreaMode(false)
+	MeshManager:Record(false)
+	
 	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].saveMesh,"saveMeshEvent",strings[gCurrentLanguage].editor)
-	GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].undoMesh,"undoMeshEvent",strings[gCurrentLanguage].editor)
 	
 	
 	RegisterEventHandler("newMeshEvent",mm.ClearNavMesh)	
 	RegisterEventHandler("saveMeshEvent",mm.SaveMesh)
-	RegisterEventHandler("undoMeshEvent",mm.UndoMesh)
 
 
 	gmeshname_listitems = meshlist
@@ -246,7 +270,7 @@ function mm.AddMarker(arg)
 		markerData = {"None","None"}
     elseif (arg == "addNavSpotEvent") then
         markerType = "navSpot"
-		markerData = {""}
+		markerData = {""}	
     end
     
 	-- all markers are accessed using MESH ONLY movement functions
@@ -314,8 +338,8 @@ end
 function mm.DeleteMarker()
     -- since marker names are unique we can simply delete this marker wherever it exists
     for tag, posList in pairs(mm.MarkerList) do
-        if (posList[gMarkerName] ~= nil) then
-            posList[gMarkerName] = nil
+        if (posList[gMarkerName] ~= nil) then            
+			posList[gMarkerName] = nil
 			--d("REMOVE MARKER ID "..tostring(mm.MarkerRenderList[gMarkerName]))
 			RenderManager:RemoveObject(mm.MarkerRenderList[gMarkerName])
 			mm.MarkerRenderList[gMarkerName] = nil
@@ -359,7 +383,7 @@ function mm.ReadMarkerList(meshname)
 				end
                 if (TableSize(posTable) == 3) then
                     mm.evacPoint = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
-                end
+                end	
             elseif (tag == "version") then
                 version = tonumber(key)
 				d(version)
@@ -396,7 +420,8 @@ function mm.ReadMarkerList(meshname)
 				-- Draw this Marker
 				mm.MarkerRenderList[key] = mm.DrawMarker( {x=tonumber(posTable[1]),y=tonumber(posTable[2]),z=tonumber(posTable[3])}, tag )
 				
-				list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}						
+				list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}
+								
 			end
         end
     else
@@ -534,11 +559,6 @@ function mm.SaveMesh()
 end
 
 
-function mm.UndoMesh()
-	d("Deleting last 50 Triangles...")
-	MeshManager:Undo()
-end
-
 function mm.ChangeNavMesh(newmesh)			
 	-- Set the new mesh for the local map	
 	if ( NavigationManager:GetNavMeshName() ~= newmesh and NavigationManager:GetNavMeshName() ~= "") then
@@ -619,6 +639,34 @@ function mm.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				MeshManager:Record(false)
 			end
+		elseif( k == "gRecAreaType") then
+			if (v == "Road") then
+				MeshManager:SetRecordingArea(1)
+			elseif (v == "Lowdanger") then
+				MeshManager:SetRecordingArea(2)
+			elseif (v == "Highdanger") then
+				MeshManager:SetRecordingArea(3)
+			end
+		elseif( k == "gRecAreaSize") then
+			MeshManager:RecSize(tonumber(gRecAreaSize))
+		elseif( k == "gMeshChange") then
+			if (v == "1") then
+				MeshManager:SetChangeAreaMode(true)
+			else
+				MeshManager:SetChangeAreaMode(false)
+			end
+		elseif( k == "gChangeAreaType") then
+			if (v == "Road") then
+				MeshManager:SetChangeToArea(1)
+			elseif (v == "Lowdanger") then
+				MeshManager:SetChangeToArea(2)
+			elseif (v == "Highdanger") then
+				MeshManager:SetChangeToArea(3)
+			elseif (v == "Delete") then	
+				-- banana
+			end
+		elseif( k == "gChangeAreaSize") then
+			MeshManager:SetChangeToRadius(tonumber(gChangeAreaSize))
         elseif( k == "gSelectedMarker") then
             mm.SelectMarker(v)
 		elseif( k == "gMeshMGR" or k == "gnewmeshname" ) then
@@ -631,18 +679,25 @@ end
 function mm.OnUpdate( event, tickcount )
 	if ( tickcount - mm.lasttick > 500 ) then
 		mm.lasttick = tickcount
-				
-		-- 162 = Left CTRL
-		if ( MeshManager:IsKeyPressed(162) ) then
-			MeshManager:RecForce(true)
-		else
-			MeshManager:RecForce(false)
-		end
-		-- 160 = Left Shift
-		if ( MeshManager:IsKeyPressed(160) ) then
-			MeshManager:RecSize(50)
-		else
-			MeshManager:RecSize(8)
+		
+		if ( gMeshrec == "1") then
+			-- 162 = Left CTRL
+			if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
+				MeshManager:RecForce(true)
+			else
+				MeshManager:RecForce(false)
+			end
+			-- 160 = Left Shift
+			if ( MeshManager:IsKeyPressed(160) ) then
+				MeshManager:RecSize(2*gRecAreaSize)
+			else
+				MeshManager:RecSize(gRecAreaSize)
+			end
+			
+			-- 18 + 2 = ALT + VK_RBUTTON Delete Triangles under mouse
+			if ( MeshManager:IsKeyPressed(18) and MeshManager:IsKeyPressed(2)) then
+				-- Add delete triangles mouse function here	 or grab the mousepos and use that / playerpos to delete
+			end				
 		end
 		
 		-- (re-)Loading Navmesh
@@ -702,6 +757,33 @@ function mm.DrawMarker( pos, markertype )
 	local id = RenderManager:AddObject(t)	
 	return id
 end
+
+-- add offmesh connection
+function mm.AddOMC()
+	local pos = Player.pos
+	
+	mm.OMC = mm.OMC+1
+	if (mm.OMC == 1 ) then
+		mm.OMCP1 = pos
+		mm.OMCP1.y = mm.OMCP1.y +0.15
+	elseif (mm.OMC == 2 ) then
+		mm.OMCP2 = pos
+		mm.OMCP2.y = mm.OMCP2.y + 0.15
+		if ( gBiDirOffMesh == "0" ) then
+			MeshManager:AddOffMeshConnection(mm.OMCP1,mm.OMCP2,false)
+		else
+			MeshManager:AddOffMeshConnection(mm.OMCP1,mm.OMCP2,true)
+		end
+		mm.OMC = 0
+	end	
+end
+-- delete offmesh connection
+function mm.DeleteOMC()
+	local pos = Player.pos
+	MeshManager:DeleteOffMeshConnection(pos)
+	mm.OMC = 0
+end
+
 
 RegisterEventHandler("ToggleMeshmgr", mm.ToggleMenu)
 RegisterEventHandler("GUI.Update",mm.GUIVarUpdate)
