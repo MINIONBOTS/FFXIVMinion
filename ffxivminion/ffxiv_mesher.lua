@@ -85,7 +85,7 @@ function mm.ModuleInit()
 		
 	MeshManager:SetRecordingArea(2)
 	MeshManager:RecSize(gRecAreaSize)
-	MeshManager:SetChangeToArea(3)
+	MeshManager:SetChangeToArea(1)
 	MeshManager:SetChangeToRadius(gChangeAreaSize)
 	MeshManager:SetChangeAreaMode(false)
 	MeshManager:Record(false)

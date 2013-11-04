@@ -6,6 +6,7 @@ function GetNearestGrindAttackable()
 	local minLevel = "1"
 	local maxLevel = "50"
     
+	--  TODO: make min&maxlevel global n set it when new marker is choosen
 	if (ValidTable(ml_task_hub:CurrentTask())) then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND" and ml_task_hub:CurrentTask().currentMarker ~= false) then
 			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)

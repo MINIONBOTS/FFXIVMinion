@@ -39,11 +39,9 @@ function e_cast:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
 	local mooch = ActionList:Get(297,1)
 	if (mooch) and (mooch.isready) then
-		d("CHECKmooch : "..tostring(mooch.isready))
 		mooch:Cast()
 	else
 		local cast = ActionList:Get(289,1)
-		d("CHECK : "..tostring(cast.isready))
 		if (cast and cast.isready) then			
 			d(cast:Cast())
 		end
