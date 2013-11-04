@@ -311,7 +311,7 @@ function ffxiv_task_gather:Init()
 	self:add( ke_stealth, self.overwatch_elements)
 	
 	local ke_atNode = ml_element:create( "AtNode", c_atnode, e_atnode, 10 )
-	self:add( ke_atnode, self.overwatch_elements)
+	self:add( ke_atNode, self.overwatch_elements)
 	
 	--init Process cnes
     --in descending priority order just for you stefan
