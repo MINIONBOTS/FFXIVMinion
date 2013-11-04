@@ -299,7 +299,6 @@ function c_atnode:evaluate()
 	return false
 end
 function e_atnode:execute()
-    Player:Stop()
     -- call the complete logic so that bot will dismount
     ml_task_hub:CurrentTask():task_complete_execute()
     ml_task_hub:CurrentTask():Terminate()
