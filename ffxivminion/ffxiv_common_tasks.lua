@@ -154,6 +154,8 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
+    Player:Stop()
+    
 	if (not ml_task_hub:CurrentTask().remainMounted) then
 		Dismount()
 	end
