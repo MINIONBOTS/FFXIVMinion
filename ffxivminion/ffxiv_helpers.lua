@@ -325,8 +325,9 @@ function Mount()
 	if not(Player.ismounted) then
 		local mounts = ActionList("type=13")
 		local mount = mounts[1]
-		if (mount.isready) then
-			mount:Cast()
+		local acMount = ActionList:Get(mount.id,13)
+		if (acMount.isready) then
+			acMount:Cast()
 		end
 	end
 end
@@ -335,8 +336,9 @@ function Dismount()
 	if (Player.ismounted) then
 		local mounts = ActionList("type=13")
 		local mount = mounts[1]
-		if (mount.isready) then
-			mount:Cast()
+		local acMount = ActionList:Get(mount.id,13)
+		if (acMount.isready) then
+			acMount:Cast()
 		end
 	end
 end

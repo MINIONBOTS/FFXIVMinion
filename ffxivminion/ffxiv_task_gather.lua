@@ -249,7 +249,7 @@ end
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 function c_stealth:evaluate()
-	if (gDoStealth == "0") then
+	if (gDoStealth == "0" or Player.ismounted) then
 		return false
 	end
 	local action = nil
@@ -285,10 +285,33 @@ function e_stealth:execute()
 	end
 end
 
+c_atnode = inheritsFrom( ml_cause )
+e_atnode = inheritsFrom( ml_effect )
+function c_atnode:evaluate()
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
+		if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
+			local gatherable = EntitlyList:Get(ml_task_hub:ThisTask().gatherid)
+			if (ValidTable(gatherable)) then
+				return gatherable.distance < 4
+			end
+		end
+	end
+	return false
+end
+function e_atnode:execute()
+	Player:Stop()
+    -- call the complete logic so that bot will dismount
+    ml_task_hub:CurrentTask():task_complete_execute()
+	ml_task_hub:CurrentTask():Terminate()
+end
+
 function ffxiv_task_gather:Init()
 	--init ProcessOverWatch cnes
 	local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
 	self:add( ke_stealth, self.overwatch_elements)
+	
+	local ke_atNode = ml_element:create( "AtNode", c_atnode, e_atnode, 10 )
+	self:add( ke_atnode, self.overwatch_elements)
 	
 	--init Process cnes
     --in descending priority order just for you stefan
