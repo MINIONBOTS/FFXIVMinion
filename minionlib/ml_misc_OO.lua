@@ -132,7 +132,12 @@ function Distance3D( x, y, z, x1, y1, z1 )
 	dy = y1-y
 	dz = z1-z
 	return math.sqrt( math.pow( dx, 2 ) + math.pow( dy, 2 ) + math.pow( dz, 2 ) )
+end
 
+function Distance2D( x, y, x1, y1)
+	dx = x1-x
+	dy = y1-y
+	return math.sqrt( math.pow( dx, 2 ) + math.pow( dy, 2 ))
 end
 
 function toboolean ( input)

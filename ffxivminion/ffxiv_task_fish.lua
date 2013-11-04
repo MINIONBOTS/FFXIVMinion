@@ -41,7 +41,10 @@ function e_cast:execute()
 	if (mooch) and (mooch.isready) then
 		mooch:Cast()
 	else
-		ActionList:Cast(289,0)
+		local cast = ActionList:Get(289,1)
+		if (cast and cast.isready) then			
+			d(cast:Cast())
+		end
 	end
 end
 
@@ -60,7 +63,10 @@ function c_finishcast:evaluate()
 end
 function e_finishcast:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-    ActionList:Cast(299,0)
+	local finishcast = ActionList:Get(299,1)
+	if (finishcast and finishcast.isready) then
+		finishcast:Cast()
+	end
 end
 
 c_bite = inheritsFrom( ml_cause )
@@ -77,7 +83,10 @@ function c_bite:evaluate()
 end
 function e_bite:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
-	ActionList:Cast(296,0)
+	local bite = ActionList:Get(296,1)
+	if (bite and bite.isready) then
+		bite:Cast()
+	end
 end
 
 c_setbait = inheritsFrom( ml_cause )
