@@ -288,9 +288,9 @@ end
 c_atnode = inheritsFrom( ml_cause )
 e_atnode = inheritsFrom( ml_effect )
 function c_atnode:evaluate()
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask() and Player.ismounted) then
 		if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
-			local gatherable = EntitlyList:Get(ml_task_hub:ThisTask().gatherid)
+			local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
 			if (ValidTable(gatherable)) then
 				return gatherable.distance < 4
 			end
@@ -299,10 +299,10 @@ function c_atnode:evaluate()
 	return false
 end
 function e_atnode:execute()
-	Player:Stop()
+    Player:Stop()
     -- call the complete logic so that bot will dismount
     ml_task_hub:CurrentTask():task_complete_execute()
-	ml_task_hub:CurrentTask():Terminate()
+    ml_task_hub:CurrentTask():Terminate()
 end
 
 function ffxiv_task_gather:Init()
