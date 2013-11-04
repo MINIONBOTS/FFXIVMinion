@@ -263,12 +263,13 @@ function c_walktopos:evaluate()
 		
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-        
+		-- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference
+		--local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)        
+		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
         ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         ml_debug("Current Distance: "..tostring(distance))
-        ml_debug("Execute Distance: "..tostring(self.range))
+        ml_debug("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
         
 		if (distance > ml_task_hub:CurrentTask().range) then		
 			c_walktopos.pos = gotoPos
