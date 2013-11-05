@@ -306,14 +306,18 @@ function c_bettertargetsearch:evaluate()
 	if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
 		local bettertarget = ml_task_hub:ThisTask().targetFunction()
 		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
+			ml_task_hub:ThisTask().targetid = bettertarget.id
+			Player:SetTarget(bettertarget.id)
 			return true			
 		end		
 	end	
 	return false
 end
 function e_bettertargetsearch:execute()
-	Player:Stop()
-	ml_task_hub:ThisTask():Terminate()
+	Player:Stop()	
+	d("Switching Target to better target")
+	
+	--ml_task_hub:ThisTask():Terminate()
 end
 
 

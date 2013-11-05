@@ -122,7 +122,13 @@ end
 
 -- on/off switch
 function ml_task_hub.ToggleRun()	
-	ml_task_hub.shouldRun = not ml_task_hub.shouldRun
+	if ( ml_task_hub.shouldRun ) then
+		ml_task_hub.shouldRun = false
+		gBotRunning = "0"
+	else
+		ml_task_hub.shouldRun = true
+		gBotRunning = "1"
+	end	
 	-- don't reset information when we stop or else we lose debugging info
 	if (ml_task_hub.shouldRun) then
 		ml_global_information.Reset()

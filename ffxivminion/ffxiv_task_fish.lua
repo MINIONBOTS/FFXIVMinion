@@ -38,7 +38,7 @@ end
 function e_cast:execute()
 	--ml_task_hub:CurrentTask().castTimer = os.time() + 3
 	local mooch = ActionList:Get(297,1)
-	if (mooch) and (mooch.isready) then
+	if (mooch) and Player.level > 24 and (mooch.isready) then
 		mooch:Cast()
 	else
 		local cast = ActionList:Get(289,1)

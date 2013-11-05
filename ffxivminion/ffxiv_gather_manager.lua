@@ -2,7 +2,7 @@
 GatherMgr = { }
 GatherMgr.version = "v0.1";
 GatherMgr.infopath = GetStartupPath() .. [[\Navigation\]];
-GatherMgr.mainwindow = { name = strings[gCurrentLanguage].gatherManager, x = 450, y = 50, w = 350, h = 350}
+GatherMgr.mainwindow = { name = strings[gCurrentLanguage].gatherManager, x = 450, y = 50, w = 250, h = 350}
 GatherMgr.visible = false
 
 function GatherMgr.ModuleInit() 	
@@ -284,11 +284,13 @@ function GatherMgr.ToggleMenu()
 		GUI_WindowVisible(GatherMgr.mainwindow.name,false)	
 		GatherMgr.visible = false
 	else
-		--local wnd = GUI_GetWindowInfo("GW2Minion")	 
+		local wnd = GUI_GetWindowInfo("FFXIVMinion")
+		GUI_MoveWindow( GatherMgr.mainwindow.name, wnd.x+wnd.width,wnd.y) 
 		GUI_WindowVisible(GatherMgr.mainwindow.name,true)	
 		GatherMgr.visible = true
 	end
 end
+
 
 GatherMgr.MiningItems =
 {

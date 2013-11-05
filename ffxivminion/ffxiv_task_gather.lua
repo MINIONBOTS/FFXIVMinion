@@ -135,7 +135,9 @@ function c_nextmarker:evaluate()
 			if gBotMode == "Grind" then
 				time = math.random(1800,3600)
 			end
+			d("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
             if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
+				d("GET NEW MARKER, TIME IS UP!")
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else
 				return false
@@ -162,10 +164,31 @@ function e_nextmarker:execute()
     ml_task_hub:CurrentTask().previousMarker = ml_task_hub:CurrentTask().currentMarker
     ml_task_hub:CurrentTask().currentMarker = e_nextmarker.marker
     ml_task_hub:CurrentTask().markerTime = os.time()
-
+	
 	local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
     local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
     
+	if (TableSize(markerInfo) > 0) then
+		-- fix the stoopid issues with not properly setup markers in all kinds of "killshit" modes
+		local lvldiff = math.abs(markerInfo.maxlevel - markerInfo.minlevel)
+		if ( lvldiff < 5 ) then
+			local avglvl = markerInfo.minlevel + math.floor(lvldiff / 2)
+			if ( avglvl - 3 < 1 ) then 
+				ml_global_information.MarkerMinLevel = 1
+			else
+				ml_global_information.MarkerMinLevel = avglvl - 3
+			end			
+			ml_global_information.MarkerMaxLevel = avglvl + 2
+		else
+			ml_global_information.MarkerMinLevel = markerInfo.minlevel
+			ml_global_information.MarkerMaxLevel = markerInfo.maxlevel
+		end
+	else
+		ml_global_information.MarkerMinLevel = 1
+		ml_global_information.MarkerMaxLevel = 50
+	end
+	d("Setting new Enemy level boundaries: "..tostring(ml_global_information.MarkerMinLevel).. " - "..tostring(ml_global_information.MarkerMaxLevel))	
+	
     -- handle switching jobs (not implemented yet)
 	if (gChangeJobs and (markerType == "miningSpot" or markerType == "botanySpot")) then
 		if (markerType == "miningSpot" and Player.job == FFXIV.JOBS.BOTANIST) then
@@ -348,7 +371,7 @@ function ffxiv_task_gather.UIInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Stealth", "gDoStealth","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Randomize Markers", "gRandomMarker","Gather")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreGatherLvl","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
+	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Teleport (HACK!)", "gGatherTP","Gather")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "PermaSprint (HACK!)", "gGatherPS","Gather")
 	

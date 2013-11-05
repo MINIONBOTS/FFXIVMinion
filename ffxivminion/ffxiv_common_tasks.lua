@@ -34,8 +34,8 @@ function ffxiv_task_killtarget:Init()
 	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
 	self:add( ke_attarget, self.overwatch_elements)
 	
-	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
-	self:add( ke_bettertargetsearch, self.overwatch_elements)
+	--local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	--self:add( ke_bettertargetsearch, self.overwatch_elements)
 	
 	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
 	self:add( ke_updateTarget, self.overwatch_elements)
