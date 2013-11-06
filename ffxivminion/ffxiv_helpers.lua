@@ -93,8 +93,8 @@ function GetNearestFateAttackableID(fateID)
 end
 
 function GetBestHealTarget()
-	local level = Player.level
-	local el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange))
+	local pID = Player.id
+	local el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -102,7 +102,28 @@ function GetBestHealTarget()
 		end
 	end
 	
-	local el = EntityList("lowesthealth,friendly,chartype=4,targetable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange))
+	local el = EntityList("lowesthealth,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
+		end
+	end
+	--ml_debug("GetBestHealTarget() failed with no entity found matching params")
+	return nil
+end
+
+function GetClosestHealTarget()
+	local pID = Player.id
+	local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
+		end
+	end
+	
+	local el = EntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then

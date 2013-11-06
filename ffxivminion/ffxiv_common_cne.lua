@@ -196,7 +196,7 @@ end
 
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.rrange = math.random(1,15)
+c_followleader.rrange = math.random(3,15)
 c_followleader.leader = nil
 function c_followleader:evaluate()
 	
@@ -220,11 +220,34 @@ function c_followleader:evaluate()
 	end    
     return false
 end
+
 function e_followleader:execute()
 	-- honestly I tried to build a new task here, I tried n wasted more than 4  hours, it just doesnt work, gets stuck , doesnt return, repeatly goes into movetask or just doesnt finish it, got enough now
 	if ( c_followleader.leader ~= nil) then	
 		if ( leader.onmesh and Player.onmesh) then
 			local lpos = c_followleader.leader.pos
+			local myPos = Player.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, lpos.x, lpos.y, lpos.z)	
+			
+			-- mount
+			if ( gUseMount == "1" and not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then							
+				if (distance > tonumber(gMountDist)) then
+					Player:Stop()
+					Mount()
+					return
+				end
+			end
+			
+			--sprint
+			if ( not HasBuff(Player.id, 50) and not Player.ismounted and gUseSprint == "1") then
+				local skill = ActionList:Get(3)
+				if (skill.isready) then
+					if (distance > tonumber(gSprintDist)) then		
+						skill:Cast()
+					end
+				end
+			end
+			
 			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange))))	
 			if ( not Player:IsMoving()) then
 				if ( ml_global_information.AttackRange < 5 ) then
@@ -540,7 +563,7 @@ function c_rest:evaluate()
 	return false
 end
 function e_rest:execute()
-	if ( gSMactive == "1" ) then
+	if ( gSMactive == "1" and Player.hp.percent < tonumber(gRestHP)) then
 		local newTask = ffxiv_task_skillmgrHeal:Create()
 		newTask.targetid = Player.id
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -629,7 +652,7 @@ function c_returntomarker:evaluate()
 		local myPos = Player.pos
 		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
-        if  ((gBotMode == "Grind" or gBotMode == "Gather") and distance > 200) or
+        if  ((gBotMode == "Grind" or gBotMode == "Party-Grind" or gBotMode == "Gather") and distance > 200) or
             (gBotMode == "Fish" and distance > 3)
 		then
 			return true

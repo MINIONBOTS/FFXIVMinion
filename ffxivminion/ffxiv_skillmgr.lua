@@ -781,6 +781,19 @@ function SkillMgr.IsPetSummonSkill(skillID)
 	return false
 end
 
+-- Goes through all spells and returns the highest HP% of all spells
+function SkillMgr.GetHealSpellHPLimit()
+	local highestHPLimit = 0
+	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
+		for prio,skill in pairs(SkillMgr.SkillProfile) do
+			--d(tostring(skill.trg).." "..tostring(skill.thpb))
+			if ( (skill.trg == "Ally" or skill.trg == "Player") and skill.thpb > 0 and skill.thpb > highestHPLimit ) then
+				highestHPLimit = skill.thpb
+			end
+		end
+	end
+	return highestHPLimit
+end
 
 function SkillMgr.Cast( entity )
 	if ( entity ) then
@@ -1109,7 +1122,7 @@ end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
 	local target = Player:GetTarget()
-    if (target == nil or not target.alive or not target.attackable) then
+    if (target == nil or not target.alive or not target.attackable or target.distance > ml_global_information.AttackRange) then
         return true
     end
     
@@ -1121,7 +1134,7 @@ function ffxiv_task_skillmgrAttack:task_complete_execute()
     self.completed = true
 end
 
--- SkillMgr Heal Task for Rest
+-- SkillMgr Heal Task
 ffxiv_task_skillmgrHeal = inheritsFrom(ml_task)
 function ffxiv_task_skillmgrHeal:Create()
     local newinst = inheritsFrom(ffxiv_task_skillmgrHeal)
@@ -1146,7 +1159,7 @@ function ffxiv_task_skillmgrHeal:Process()
 	
 	if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
 		local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-		if (target ~= nil and target.alive and target.hp.percent < 95 and InCombatRange(target.id)) then
+		if (target ~= nil and target.alive and target.hp.percent < 95 and target.distance <= ml_global_information.AttackRange) then
 			
 			SkillMgr.Cast( target )
 			
@@ -1171,7 +1184,7 @@ end
 
 function ffxiv_task_skillmgrHeal:task_complete_eval()
 	local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-    if (target == nil or not target.alive or target.hp.percent > 95 or not InCombatRange(target.id)) then
+    if (target == nil or not target.alive or target.hp.percent > 95 or target.distance > ml_global_information.AttackRange) then
         return true
     end
     

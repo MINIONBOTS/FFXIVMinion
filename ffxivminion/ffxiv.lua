@@ -85,6 +85,13 @@ function ffxivminion.HandleInit()
     if ( Settings.FFXIVMINION.gSprintDist == nil ) then
 		Settings.FFXIVMINION.gSprintDist = "50"
 	end
+	if ( Settings.FFXIVMINION.gAssistMode == nil ) then
+		Settings.FFXIVMINION.gAssistMode = "None"
+	end
+	if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
+		Settings.FFXIVMINION.gAssistPriority = "Damage"
+	end
+	
 	
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 	GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -101,6 +108,8 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
 	
 	
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,300)
@@ -117,7 +126,9 @@ function ffxivminion.HandleInit()
     gUseSprint = Settings.FFXIVMINION.gUseSprint
     gMountDist = Settings.FFXIVMINION.gMountDist
     gSprintDist = Settings.FFXIVMINION.gSprintDist
-        
+    gAssistMode = Settings.FFXIVMINION.gAssistMode
+	gAssistPriority = Settings.FFXIVMINION.gAssistPriority
+	
 	-- setup bot mode
 	local botModes = "None"
 	if ( TableSize(ffxivminion.modes) > 0) then
@@ -149,6 +160,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gUseMount" or
             k == "gUseSprint" or
             k == "gMountDist" or
+			k == "gAssistMode" or
+			k == "gAssistPriority" or
             k == "gSprintDist")			
 		then
 			Settings.FFXIVMINION[tostring(k)] = v

@@ -35,16 +35,16 @@ function ffxiv_task_party:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
 	self:add( ke_flee, self.overwatch_elements)
 	
-	local ke_updateleaderdata = ml_element:create("UpdateLeaderData", c_updateleaderdata, e_updateleaderdata, 10)
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
+	self:add( ke_rest, self.overwatch_elements)
+	
+	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 ) --leader only
+	self:add(ke_addFate, self.overwatch_elements)
+	
+	local ke_updateleaderdata = ml_element:create("UpdateLeaderData", c_updateleaderdata, e_updateleaderdata, 5)
 	self:add( ke_updateleaderdata, self.overwatch_elements)
 	
     --init Process() cnes
-	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 45 )
-	self:add( ke_rest, self.process_elements)
-	
-	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 40 ) --leader only
-	self:add(ke_addFate, self.process_elements)
-
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 35 )--leader only
 	self:add( ke_returnToMarker, self.process_elements)
 	

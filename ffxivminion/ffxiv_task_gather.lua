@@ -132,12 +132,12 @@ function c_nextmarker:evaluate()
             marker = GatherMgr.GetNextMarker(nil, nil)
         else
             local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
-			if gBotMode == "Grind" then
-				time = math.random(1800,3600)
+			if gBotMode == "Grind" or gBotMode == "Party-Grind" then
+				time = math.random(600,1200)
 			end
 			d("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
             if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
-				d("GET NEW MARKER, TIME IS UP!")
+				d("Getting Next Marker, TIME IS UP!")
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else
 				return false
@@ -187,7 +187,7 @@ function e_nextmarker:execute()
 		ml_global_information.MarkerMinLevel = 1
 		ml_global_information.MarkerMaxLevel = 50
 	end
-	d("Setting new Enemy level boundaries: "..tostring(ml_global_information.MarkerMinLevel).. " - "..tostring(ml_global_information.MarkerMaxLevel))	
+	d("Setting new Enemy level boundaries: "..tostring(ml_global_information.MarkerMinLevel).. " - "..tostring(ml_global_information.MarkerMaxLevel).." from Marker "..tostring(ml_task_hub:CurrentTask().currentMarker))	
 	
     -- handle switching jobs (not implemented yet)
 	if (gChangeJobs and (markerType == "miningSpot" or markerType == "botanySpot")) then

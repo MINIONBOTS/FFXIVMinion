@@ -291,7 +291,7 @@ function mm.AddMarker(arg)
 								h=tonumber(string.format("%.3f", p.h)), 
 								minlevel=tonumber(gMarkerMinLevel),
                                 maxlevel=tonumber(gMarkerMaxLevel), 
-								time=0, 
+								time=180, 
 								data=markerData }
             local key = gMarkerName
             local found = false
