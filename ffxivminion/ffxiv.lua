@@ -2,7 +2,7 @@ ml_global_information = {}
 --ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
-ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=300, height=600 }
+ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=210, height=300 }
 ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
 ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
 ml_global_information.CurrentClass = nil
@@ -112,7 +112,7 @@ function ffxivminion.HandleInit()
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
 	
 	
-	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,300)
+	GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
 	
 	gFFXIVMINIONTask = ""
 	gBotRunning = "0"

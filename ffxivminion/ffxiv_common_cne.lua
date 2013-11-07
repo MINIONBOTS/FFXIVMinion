@@ -563,11 +563,11 @@ function c_rest:evaluate()
 	return false
 end
 function e_rest:execute()
-	if ( gSMactive == "1" and Player.hp.percent < tonumber(gRestHP)) then
+	--[[if ( gSMactive == "1" and Player.hp.percent < tonumber(gRestHP)) then
 		local newTask = ffxiv_task_skillmgrHeal:Create()
 		newTask.targetid = Player.id
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
+	end]] --have to fix that
 	
 	if (e_rest.resting == true) then
 		if (Player.hp.percent == 100) and (Player.mp.percent == 100)  then

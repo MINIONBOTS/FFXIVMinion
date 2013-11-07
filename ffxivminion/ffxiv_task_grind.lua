@@ -193,7 +193,7 @@ function ffxiv_task_grind.UIInit()
 	end
 	
 	if (Settings.FFXIVMINION.gMinFateLevel == nil) then
-		Settings.FFXIVMINION.gMinFateLevel = "5"
+		Settings.FFXIVMINION.gMinFateLevel = "0"
 	end
     
     if (Settings.FFXIVMINION.gMaxMobLevel == nil) then

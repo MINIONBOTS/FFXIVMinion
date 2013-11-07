@@ -238,7 +238,7 @@ function GetFateByID(fateID)
 	return fate
 end
 
-function GetClosestFateID(pos, levelCheck, meshCheck)
+function GetClosestFateID(pos, levelcheck, meshCheck)
 	local fateList = MapObject:GetFateList()
 	if (fateList ~= nil and fateList ~= 0) then
 		local nearestFate = nil
@@ -247,7 +247,7 @@ function GetClosestFateID(pos, levelCheck, meshCheck)
 		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
 			if (gFateBlacklist[fate.id] == nil) then
-				if (not levelCheck or (levelCheck and (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel)))) then
+				if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
 					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
 					if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
 						local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)

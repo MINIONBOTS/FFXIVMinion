@@ -152,12 +152,11 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Pos","fapos","FateInfo")
 	GUI_NewField("Dev","Radius","farad","FateInfo")
 	GUI_NewField("Dev","Duration","fdur","FateInfo")
-	GUI_NewField("Dev","EventObjID1","fanpc1","FateInfo")
-	GUI_NewField("Dev","EventObjID2","fanpc2","FateInfo")	
-	GUI_NewField("Dev","U1","fa1","FateInfo")
-	GUI_NewField("Dev","U2","fa2","FateInfo")
-	GUI_NewField("Dev","U3","fa3","FateInfo")
+	GUI_NewField("Dev","Synced FateLevel","fasynclvl","FateInfo")
+	GUI_NewButton("Dev","Sync Fate Level","Dev.Sync","FateInfo")
+	RegisterEventHandler("Dev.Sync", Dev.Func)
 	faidx = 0
+	fasynclvl = 0
 	
 	-- FishingInfo
 	GUI_NewField("Dev","BaitItemID","fishbait","FishingInfo")
@@ -224,7 +223,10 @@ function Dev.ModuleInit()
 	RegisterEventHandler("Dev.Interact", Dev.Func)		
 	GUI_NewButton("Dev","Follow Target","Dev.Follow","General Functions")
 	RegisterEventHandler("Dev.Follow", Dev.Func)
-	
+	GUI_NewNumeric("Dev","Sound","gsound","General Functions","0","71");
+	GUI_NewButton("Dev","PlaySound","Dev.Sound","General Functions")
+	RegisterEventHandler("Dev.Sound", Dev.Func)
+	gsound = 0
 	GUI_WindowVisible("Dev",false)
 	
 	GUI_NewButton("Dev","Test1button","Dev.Test1")
@@ -293,7 +295,11 @@ function Dev.Func ( arg )
 	elseif ( arg == "Dev.Craft" ) then
 		Dev.curTask = Dev.CraftTask	
 	elseif ( arg == "Dev.CraftLog" ) then	
-		Crafting:ToggleCraftingLog()	
+		Crafting:ToggleCraftingLog()
+	elseif ( arg == "Dev.Sync" ) then
+		Player:SyncLevel()
+	elseif ( arg == "Dev.Sound" ) then
+		GameHacks:PlaySound(tonumber(gsound))
 	end
 end
 
@@ -757,11 +763,6 @@ function Dev.UpdateWindow()
 			fapos = tostring ( math.floor(f.x * 10) / 10 .." / ".. math.floor(f.y * 10) / 10 .. " / " ..math.floor(f.z * 10) / 10)
 			farad = f.radius 
 			fdur = f.duration
-			fanpc1 = tostring(f.eventnpc1)
-			fanpc2 = tostring(f.eventnpc2)
-			fa1 = f.t1
-			fa2 = f.t2
-			fa3 = f.t3
 		end
 	end
 	if (not fafound) then
@@ -775,13 +776,8 @@ function Dev.UpdateWindow()
 		fapos = 0
 		farad = 0
 		fdur = 0
-		fanpc1 = 0
-		fanpc2 = 0
-		fa1 = 0
-		fa2 = 0
-		fa3 = 0
 	end
-
+	fasynclvl = tostring(Player:GetSyncLevel())
 	
 	-- Fishinginfo
 	fishstate = tostring(Player:GetFishingState())	

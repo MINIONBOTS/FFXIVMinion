@@ -1,7 +1,7 @@
 ﻿-- Map & Meshmanager
 mm = { }
 mm.navmeshfilepath = GetStartupPath() .. [[\Navigation\]];
-mm.mainwindow = { name = strings[gCurrentLanguage].meshManager, x = 350, y = 100, w = 280, h = 400}
+mm.mainwindow = { name = strings[gCurrentLanguage].meshManager, x = 350, y = 100, w = 250, h = 400}
 mm.meshfiles = {}
 mm.currentmapdata = {} 
 mm.visible = false
@@ -663,7 +663,7 @@ function mm.GUIVarUpdate(Event, NewVals, OldVals)
 			elseif (v == "Highdanger") then
 				MeshManager:SetChangeToArea(3)
 			elseif (v == "Delete") then	
-				-- banana
+				MeshManager:SetChangeToArea(255)
 			end
 		elseif( k == "gChangeAreaSize") then
 			MeshManager:SetChangeToRadius(tonumber(gChangeAreaSize))
@@ -694,12 +694,19 @@ function mm.OnUpdate( event, tickcount )
 				MeshManager:RecSize(gRecAreaSize)
 			end
 			
-			-- 18 + 2 = ALT + VK_RBUTTON Delete Triangles under mouse
-			if ( MeshManager:IsKeyPressed(18) and MeshManager:IsKeyPressed(2)) then
-				-- Add delete triangles mouse function here	 or grab the mousepos and use that / playerpos to delete
-			end				
+						
 		end
 		
+		
+		-- 18 + 2 = ALT + VK_RBUTTON Delete Triangles under mouse
+			if ( MeshManager:IsKeyPressed(18) and MeshManager:IsKeyPressed(2)) then
+				local mousepos = MeshManager:GetMousePos()
+				d("Deleting cell "..tostring(mousepos.x).." "..tostring(mousepos.z).. " "..tostring(mousepos.y))
+				if ( TableSize(mousepos) > 0 ) then					
+					d("Deleting cell result: "..tostring(MeshManager:DeleteRasterTriangle(mousepos)))
+				end
+			end	
+			
 		-- (re-)Loading Navmesh
 		if (mm.reloadMeshPending and mm.lasttick - mm.reloadMeshTmr > 2000 and mm.reloadMeshName ~= "") then
 			mm.reloadMeshTmr = mm.lasttick

@@ -97,7 +97,7 @@ function c_betterfatesearch:evaluate()
     local myPos = Player.pos
 	local fateID = GetClosestFateID(myPos,true,true)
     if (fateID ~= ml_task_hub:ThisTask().fateid) then
-        return true
+        return true	
     end
     
     return false
@@ -161,12 +161,45 @@ function e_atfate:execute()
 	ml_task_hub:CurrentTask():Terminate()
 end
 
+---------------------------------------------------------------------------------------------
+--SyncFateLevel
+---------------------------------------------------------------------------------------------
+c_syncfatelevel = inheritsFrom( ml_cause )
+e_syncfatelevel = inheritsFrom( ml_effect )
+c_syncfatelevel.throttle = 1000
+function c_syncfatelevel:evaluate()
+    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+        return false
+    end
+    
+    local myPos = Player.pos
+	local fateID = GetClosestFateID(myPos,true,true)
+    if (fateID == ml_task_hub:ThisTask().fateid) then
+        local fate = GetFateByID(fateID)
+		if ( fate ) then
+			local plevel = Player.level
+			if ( ( fate.level > plevel +5 or fate.level < plevel -5) and Player:GetSyncLevel() == 0 )then
+				return true
+			end
+		end
+    end
+    
+    return false
+end
+function e_syncfatelevel:execute()
+	ml_debug( "Curren Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
+	ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
+end
+
 function ffxiv_task_fate:Init()
     --init processoverwatch 
 	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
 	self:add( ke_betterFate, self.overwatch_elements)
+	
+	local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 10 )
+	self:add( ke_syncFate, self.overwatch_elements)
     
-    local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 10 )
+    local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 5 )
 	self:add( ke_atFate, self.overwatch_elements)
 	
     --init process
@@ -175,7 +208,7 @@ function ffxiv_task_fate:Init()
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 20 )
 	self:add( ke_rest, self.process_elements)
-	
+		
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
 	self:add(ke_addKillTarget, self.process_elements)
     
