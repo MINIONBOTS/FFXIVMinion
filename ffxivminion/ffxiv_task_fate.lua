@@ -170,20 +170,22 @@ c_syncfatelevel.throttle = 1000
 function c_syncfatelevel:evaluate()
     if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
         return false
-    end
-    
+    end    
     local myPos = Player.pos
 	local fateID = GetClosestFateID(myPos,true,true)
     if (fateID == ml_task_hub:ThisTask().fateid) then
         local fate = GetFateByID(fateID)
-		if ( fate ) then
+		if ( fate and TableSize(fate)) then
 			local plevel = Player.level
 			if ( ( fate.level > plevel +5 or fate.level < plevel -5) and Player:GetSyncLevel() == 0 )then
-				return true
+				local myPos = Player.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+				if (distance < fate.radius) then				
+					return true
+				end
 			end
 		end
     end
-    
     return false
 end
 function e_syncfatelevel:execute()
@@ -195,10 +197,10 @@ function ffxiv_task_fate:Init()
     --init processoverwatch 
 	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
 	self:add( ke_betterFate, self.overwatch_elements)
-	
+    		
 	local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 10 )
 	self:add( ke_syncFate, self.overwatch_elements)
-    
+	
     local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 5 )
 	self:add( ke_atFate, self.overwatch_elements)
 	
