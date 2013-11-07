@@ -2,6 +2,38 @@ ffxiv_task_party = inheritsFrom(ml_task)
 ffxiv_task_party.name = "LT_PARTY"
 ffxiv_task_party.evacPoint = {0, 0, 0}
 
+c_partysyncfatelevel = inheritsFrom( ml_cause )
+e_partysyncfatelevel = inheritsFrom( ml_effect )
+c_partysyncfatelevel.throttle = 1000
+function c_partysyncfatelevel:evaluate()
+    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+        return false
+    end 
+	if ( IsLeader()) then
+		return false
+	end
+	
+    local myPos = Player.pos
+	local fateID = GetClosestFateID(myPos,true,true)
+    if (fateID) then
+        local fate = GetFateByID(fateID)
+		if ( fate and TableSize(fate)) then
+			local plevel = Player.level
+			if ( ( fate.level > plevel +5 or fate.level < plevel -5) and Player:GetSyncLevel() == 0 )then
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+				if (distance < fate.radius) then				
+					return true
+				end
+			end
+		end
+    end
+    return false
+end
+function e_partysyncfatelevel:execute()
+	ml_debug( "Curren Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
+	ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
+end
+
 function ffxiv_task_party:Create()
     local newinst = inheritsFrom(ffxiv_task_party)
     
@@ -43,6 +75,9 @@ function ffxiv_task_party:Init()
 	
 	local ke_updateleaderdata = ml_element:create("UpdateLeaderData", c_updateleaderdata, e_updateleaderdata, 5)
 	self:add( ke_updateleaderdata, self.overwatch_elements)
+	
+	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 2 )
+	self:add( ke_psyncFate, self.overwatch_elements)
 	
     --init Process() cnes
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 35 )--leader only

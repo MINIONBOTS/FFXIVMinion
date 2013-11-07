@@ -178,7 +178,6 @@ function c_syncfatelevel:evaluate()
 		if ( fate and TableSize(fate)) then
 			local plevel = Player.level
 			if ( ( fate.level > plevel +5 or fate.level < plevel -5) and Player:GetSyncLevel() == 0 )then
-				local myPos = Player.pos
 				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 				if (distance < fate.radius) then				
 					return true
