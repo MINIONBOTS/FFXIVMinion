@@ -4,7 +4,6 @@ ffxiv_task_party.evacPoint = {0, 0, 0}
 
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
-c_partysyncfatelevel.throttle = 1000
 function c_partysyncfatelevel:evaluate()
     if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
         return false
@@ -70,14 +69,14 @@ function ffxiv_task_party:Init()
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
 	self:add( ke_rest, self.overwatch_elements)
 	
+	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 12 ) --minion only
+	self:add( ke_psyncFate, self.overwatch_elements)
+	
 	local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 ) --leader only
 	self:add(ke_addFate, self.overwatch_elements)
 	
 	local ke_updateleaderdata = ml_element:create("UpdateLeaderData", c_updateleaderdata, e_updateleaderdata, 5)
 	self:add( ke_updateleaderdata, self.overwatch_elements)
-	
-	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 2 )
-	self:add( ke_psyncFate, self.overwatch_elements)
 	
     --init Process() cnes
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 35 )--leader only
