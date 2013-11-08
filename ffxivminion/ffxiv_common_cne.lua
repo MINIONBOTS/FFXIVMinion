@@ -188,6 +188,7 @@ function e_movetotarget:execute()
 		local newTask = ffxiv_task_movetopos:Create()
 		newTask.pos = target.pos
 		newTask.targetid = target.id
+		newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
@@ -306,6 +307,7 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
 		ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75))))
+		local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75), ml_task_hub.CurrentTask().useFollowMovement)
 	else
 		mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
 	end

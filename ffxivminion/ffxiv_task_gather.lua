@@ -280,6 +280,8 @@ function c_stealth:evaluate()
 		action = ActionList:Get(212)
 	elseif (Player.job == FFXIV.JOBS.MINER) then
 		action = ActionList:Get(229)
+	elseif (Player.job == FFXIV.JOBS.FISHER) then
+		action = ActionList:Get(298)
 	end
 	
 	if (action and action.isready) then
@@ -299,6 +301,8 @@ function e_stealth:execute()
 		action = ActionList:Get(212)
 	elseif (Player.job == FFXIV.JOBS.MINER) then
 		action = ActionList:Get(229)
+	elseif (Player.job == FFXIV.JOBS.FISHER) then
+		action = ActionList:Get(298)
 	end
 	if(action and action.isready) then
         if HasBuff(Player.id, 47) then

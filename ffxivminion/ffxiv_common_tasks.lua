@@ -111,6 +111,7 @@ function ffxiv_task_movetopos:Create()
     newinst.pauseTimer = 0
     newinst.gatherRange = 0.0
 	newinst.remainMounted = false
+	newinst.useFollowMovement = false
 	
     return newinst
 end
