@@ -34,8 +34,8 @@ function GatherMgr.ModuleInit()
         gBaitName = ""
     end
 	
-    gMiningTime = "300"
-    gBotanyTime = "300"
+    gMiningTime = "900"
+    gBotanyTime = "900"
     
 	if (Settings.FFXIVMINION.gGMactive == nil) then
 		Settings.FFXIVMINION.gGMactive = "0"

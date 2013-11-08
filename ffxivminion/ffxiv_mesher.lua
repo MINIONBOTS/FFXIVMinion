@@ -145,7 +145,7 @@ function mm.UpdateMarkerList()
 	gSelectedMarker_listitems = markers
 	gMarkerName = ""
 	gMarkerMinLevel = "1"
-    gMarkerMaxLevel = "1"
+    gMarkerMaxLevel = "50"
 	gSelectedMarker = "None"
     
     -- call gathermanager update also
@@ -291,7 +291,7 @@ function mm.AddMarker(arg)
 								h=tonumber(string.format("%.3f", p.h)), 
 								minlevel=tonumber(gMarkerMinLevel),
                                 maxlevel=tonumber(gMarkerMaxLevel), 
-								time=180, 
+								time=math.random(900,1800), --default to 15-30mins for markers 
 								data=markerData }
             local key = gMarkerName
             local found = false
