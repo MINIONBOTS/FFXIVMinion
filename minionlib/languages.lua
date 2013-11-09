@@ -357,7 +357,8 @@ strings =
         useMount                        = "Use Mount",
         useSprint                       = "Use Sprint",
         mountDist                       = "Mount Distance: ",
-        sprintDist                      = "Sprint Distance: "
+        sprintDist                      = "Sprint Distance: ",
+		randomPaths						= "Randomize Paths"
     },
     ["de"] =
         {

@@ -91,6 +91,9 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
 		Settings.FFXIVMINION.gAssistPriority = "Damage"
 	end
+	if ( Settings.FFXIVMINION.gRandomPaths == nil ) then
+		Settings.FFXIVMINION.gRandomPaths = "0"
+	end
 	
 	
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
@@ -104,7 +107,8 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
-    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );	
+    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -126,6 +130,7 @@ function ffxivminion.HandleInit()
     gUseSprint = Settings.FFXIVMINION.gUseSprint
     gMountDist = Settings.FFXIVMINION.gMountDist
     gSprintDist = Settings.FFXIVMINION.gSprintDist
+	gRandomPaths = Settings.FFXIVMINION.gRandomPaths
     gAssistMode = Settings.FFXIVMINION.gAssistMode
 	gAssistPriority = Settings.FFXIVMINION.gAssistPriority
 	
@@ -162,7 +167,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gMountDist" or
 			k == "gAssistMode" or
 			k == "gAssistPriority" or
-            k == "gSprintDist")			
+            k == "gSprintDist" or
+			k == "gRandomPaths" )			
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gBotRunning" ) then

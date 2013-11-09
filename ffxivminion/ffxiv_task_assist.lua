@@ -88,7 +88,7 @@ function ffxiv_task_assist:Process()
 	if 	( target and target.alive and target.distance <= 30 ) then
 		local pos = target.pos
 		
-		Player:SetFacing(pos.x,pos.y,pos.z)
+		--Player:SetFacing(pos.x,pos.y,pos.z)
 		Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 		local cast = false
 		
