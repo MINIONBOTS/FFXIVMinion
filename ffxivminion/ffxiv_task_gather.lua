@@ -66,7 +66,7 @@ function e_findgatherable:execute()
 			if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 3 ) then
 				local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 				if (markerInfo ~= nil and markerInfo ~= 0) then
-					Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10)
+					Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10, false, gRandomPaths=="1")
 				end
 			end
 		end

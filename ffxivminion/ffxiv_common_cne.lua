@@ -306,8 +306,7 @@ function e_walktopos:execute()
 	if ( c_walktopos.pos ~= 0) then
 		local gotoPos = c_walktopos.pos
 		ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-		ml_debug( "Moving to Pathresult: "..tostring(Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75))))
-		local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75), ml_task_hub.CurrentTask().useFollowMovement,gRandomPaths=="1")
+		local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75), ml_task_hub.CurrentTask().useFollowMovement or false,gRandomPaths=="1")
 	else
 		mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
 	end
@@ -617,7 +616,7 @@ function e_flee:execute()
         if (fleePos ~= nil and fleePos ~= 0) then
             ml_debug( "Fleeing combat" )
 			ml_task_hub:ThisTask():DeleteSubTasks()
-            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z)
+            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z, 1.5, false, gRandomPaths=="1")
             e_flee.fleeing = true
         else
 			ml_error( "Need to flee combat but no evacPoint set!!")
