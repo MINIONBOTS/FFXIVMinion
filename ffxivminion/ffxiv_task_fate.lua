@@ -159,8 +159,14 @@ function c_atfate:evaluate()
 		if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
 			local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 			if (ValidTable(fate)) then
-				local target = GetNearestFateAttackableID(fate.id)
-				return fate.completion > tonumber(gFateWaitPercent) and ValidTable(target)
+                -- check for fate targets within combat range and stop if we find one instead of running into fate
+                local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+                if ( el ) then
+                    local i,e = next(el)
+                    if (i~=nil and e~=nil) then
+                        return fate.completion > tonumber(gFateWaitPercent) and ValidTable(e)
+                    end
+                end	
 			end
 		end
 	end
@@ -215,7 +221,7 @@ function c_movingfate:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		if (ValidTable(fate)) then
-			local fatePos = {x = fate.x, y = fate.y, x = fate.z}
+			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			if ( TableSize(ml_task_hub:CurrentTask().fatePos) == 0 ) then
 				ml_task_hub:CurrentTask().fatePos = fatePos
 				return false
