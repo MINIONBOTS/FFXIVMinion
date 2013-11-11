@@ -45,12 +45,12 @@ ffxivminion = {}
 
 ffxivminion.modes = 
 {
-	["Grind"] 	= ffxiv_task_grind, 
-	["Fish"] 	= ffxiv_task_fish,
-	["Gather"] 	= ffxiv_task_gather,
+	[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
+	[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
+	[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
 	--["Crafting"] = ffxiv_task_craft,
-	["Assist"]	= ffxiv_task_assist,
-	["Party-Grind"]	= ffxiv_task_party
+	[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
+	[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party
 }
 
 -- Module Event Handler
@@ -99,7 +99,7 @@ function ffxivminion.HandleInit()
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 	GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,"Bot Enabled","gBotRunning",strings[gCurrentLanguage].settings);
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );

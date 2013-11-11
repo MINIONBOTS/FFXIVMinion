@@ -22,14 +22,9 @@ function GatherMgr.ModuleInit()
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gBotanyTime",strings[gCurrentLanguage].botany,"0","7200")
     
     GUI_NewComboBox(GatherMgr.mainwindow.name,strings[gCurrentLanguage].selectMarker,"gFishingSpot",strings[gCurrentLanguage].fishing,"None")
-	--GUI_NewComboBox(GatherMgr.mainWindow.name,strings[gCurrentLanguage].selectBait,"gFishingBait",strings[gCurrentLanguage].fishing,"None")
     GUI_NewField(GatherMgr.mainwindow.name,strings[gCurrentLanguage].baitName,"gBaitName",strings[gCurrentLanguage].fishing)
     GUI_NewNumeric(GatherMgr.mainwindow.name,strings[gCurrentLanguage].gatherTime,"gFishingTime",strings[gCurrentLanguage].fishing,"0","7200")
-    --local fishingBait = "None"
-    --for name,id in pairs(GatherMgr.BotanyItems) do
-    --  botanyItems = botanyItems..","..name
-    --end
-    --gBotanyItem1_listitems = botanyItems
+
     if (gBaitName == nil) then
         gBaitName = ""
     end

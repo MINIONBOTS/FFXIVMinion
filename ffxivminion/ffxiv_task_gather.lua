@@ -394,12 +394,11 @@ end
 
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Use Stealth", "gDoStealth","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Randomize Markers", "gRandomMarker","Gather")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Ignore Marker Lvl", "gIgnoreGatherLvl","Gather")
-	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Change Jobs (Not Working)", "gChangeJobs","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Teleport (HACK!)", "gGatherTP","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "PermaSprint (HACK!)", "gGatherPS","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealth","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].randomizeMarkers, "gRandomMarker","Gather")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGatherLvl","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS","Gather")
 	
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
