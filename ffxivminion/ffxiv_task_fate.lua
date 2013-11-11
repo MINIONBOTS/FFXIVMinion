@@ -21,6 +21,8 @@ function ffxiv_task_fate:Create()
     newinst.fateTimer = 0
     newinst.fateCompletion = 0
 	newinst.started = false
+	newinst.moving = false
+	newinst.fatePos = {}
     
     return newinst
 end
@@ -120,8 +122,14 @@ function c_movetofate:evaluate()
 		if (fate ~= nil and TableSize(fate) > 0) then
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-			if (distance > fate.radius) then				
-				return true
+			if ( ml_task_hub:CurrentTask().moving) then
+				if (distance > fate.radius/2) then				
+					return true
+				end
+			else
+				if (distance > fate.radius) then				
+					return true
+				end
 			end
 		end
 	end
@@ -135,7 +143,11 @@ function e_movetofate:execute()
 		local newTask = ffxiv_task_movetopos:Create()
 		--TODO: Randomize position
 		newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
-		newTask.range = math.random(fate.radius * .9, fate.radius)
+		if ( ml_task_hub:CurrentTask().moving) then
+			newTask.range = math.random(5, fate.radius/2)
+		else
+			newTask.range = math.random(fate.radius * .9, fate.radius)
+		end
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
@@ -192,6 +204,37 @@ function e_syncfatelevel:execute()
 	ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
 end
 
+c_movingfate = inheritsFrom( ml_cause )
+e_movingfate = inheritsFrom( ml_effect )
+c_movingfate.throttle = 1000
+function c_movingfate:evaluate()
+	if ( ml_task_hub:CurrentTask().moving) then
+		return false
+	end
+	
+	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
+		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+		if (ValidTable(fate)) then
+			local fatePos = {x = fate.x, y = fate.y, x = fate.z}
+			if ( TableSize(ml_task_hub:CurrentTask().fatePos) == 0 ) then
+				ml_task_hub:CurrentTask().fatePos = fatePos
+				return false
+			else
+				local oldFatePos = ml_task_hub:CurrentTask().fatePos
+				local distance = Distance3D(oldFatePos.x, oldFatePos.y, oldFatePos.z, fatePos.x, fatePos.y, fatePos.z)
+				if (distance > 0) then
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
+end
+function e_movingfate:execute()
+	ml_task_hub:CurrentTask().moving = true
+end
+
 function ffxiv_task_fate:Init()
     --init processoverwatch 
 	local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
@@ -204,6 +247,9 @@ function ffxiv_task_fate:Init()
 	self:add( ke_atFate, self.overwatch_elements)
 	
     --init process
+	local ke_movingFate = ml_element:create( "SetFateMovingFlag", c_movingfate, e_movingfate, 30 )
+	self:add( ke_movingFate, self.process_elements)
+	
     local ke_quitFate = ml_element:create( "QuitFate", c_fatequit, e_fatequit, 25 )
     self:add( ke_quitFate, self.process_elements)
     
