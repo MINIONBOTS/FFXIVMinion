@@ -1054,10 +1054,11 @@ function SkillMgr.Gather( )
 							 
 							 
 						if ( castable ) then
-							d("CASTING : "..tostring(skill.name))								
+							d("CASTING (gathering) : "..tostring(skill.name))								
 							if ( ActionList:Cast(skill.id,0) ) then									
 								skill.lastcast = ml_global_information.Now
 								SkillMgr.prevSkillID = tostring(skill.id)
+								return true
 							end	
 						end					
 					end
@@ -1065,6 +1066,7 @@ function SkillMgr.Gather( )
 			end
 		end
 	end
+	return false
 end
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
