@@ -212,7 +212,9 @@ end
 function e_gather:execute()
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-		SkillMgr.Gather()
+		if ( SkillMgr.Gather() ) then
+			return
+		end
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
 			if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
@@ -260,7 +262,7 @@ function e_gather:execute()
 				Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
 			end
 		else
-			wt_error("If you can see this, I was right hahaha")
+			wt_error(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
 		end
     end
 end
