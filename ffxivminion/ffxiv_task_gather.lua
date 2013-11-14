@@ -50,7 +50,7 @@ function e_findgatherable:execute()
 	ml_debug( "Getting new gatherable target" )
     local minlevel = 1
     local maxlevel = 50
-    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false and gIgnoreGatherLevel == "0") then
+    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false) then
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
         if ValidTable(markerInfo) then
             minlevel = markerInfo.minlevel
@@ -98,7 +98,7 @@ function e_movetogatherable:execute()
 			local newTask = ffxiv_task_movetopos:Create()
 			newTask.pos = pos
 			newTask.range = 1.5
-            newTask.gatherRange = 1.0
+            newTask.gatherRange = 0.0
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -127,22 +127,43 @@ function c_nextmarker:evaluate()
 	end
 	
 	if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
-        local marker = nil
-        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
-            marker = GatherMgr.GetNextMarker(nil, nil)
-        else
-            local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+	    local marker = nil
+		
+		-- first check to see if we have no initiailized marker
+		if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
+			marker = GatherMgr.GetNextMarker(nil, nil)
+		end
+		
+		-- next check to see if our level is out of range
+		if (marker == nil) then
+			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+			if (ValidTable(markerInfo)) then
+				local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
+				if 	(markerType == "grindSpot" and gIgnoreGrindLvl == "0") or
+					((markerType == "botanySpot" or markerType == "miningSpot") and gIgnoreGatherLvl == "0") or
+					(markerType == "fishingSpot" and gIgnoreFishLvl == "0") 
+				then
+					if (Player.level < markerInfo.minlevel or Player.level > markerInfo.maxlevel) then
+						marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
+					end
+				end
+			end
+		end
+		
+		-- last check if our time has run out
+        if (marker == nil) then
+			local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
 			if gBotMode == "Grind" or gBotMode == "Party-Grind" then
 				time = math.random(600,1200)
 			end
 			d("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
-            if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
+			if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
 				d("Getting Next Marker, TIME IS UP!")
-                marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
-            else
+				marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
+			else
 				return false
 			end
-        end
+		end
         
         if marker ~= nil then
             if marker ~= currentMarker then
@@ -169,33 +190,11 @@ function e_nextmarker:execute()
     local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
     
 	if (TableSize(markerInfo) > 0) then
-		-- fix the stoopid issues with not properly setup markers in all kinds of "killshit" modes
-		local lvldiff = math.abs(markerInfo.maxlevel - markerInfo.minlevel)
-		if ( lvldiff < 5 ) then
-			local avglvl = markerInfo.minlevel + math.floor(lvldiff / 2)
-			if ( avglvl - 3 < 1 ) then 
-				ml_global_information.MarkerMinLevel = 1
-			else
-				ml_global_information.MarkerMinLevel = avglvl - 3
-			end			
-			ml_global_information.MarkerMaxLevel = avglvl + 2
-		else
-			ml_global_information.MarkerMinLevel = markerInfo.minlevel
-			ml_global_information.MarkerMaxLevel = markerInfo.maxlevel
-		end
+        ml_global_information.MarkerMinLevel = markerInfo.minlevel
+        ml_global_information.MarkerMaxLevel = markerInfo.maxlevel
 	else
 		ml_global_information.MarkerMinLevel = 1
 		ml_global_information.MarkerMaxLevel = 50
-	end
-	d("Setting new Enemy level boundaries: "..tostring(ml_global_information.MarkerMinLevel).. " - "..tostring(ml_global_information.MarkerMaxLevel).." from Marker "..tostring(ml_task_hub:CurrentTask().currentMarker))	
-	
-    -- handle switching jobs (not implemented yet)
-	if (gChangeJobs and (markerType == "miningSpot" or markerType == "botanySpot")) then
-		if (markerType == "miningSpot" and Player.job == FFXIV.JOBS.BOTANIST) then
-			--change job
-		elseif (markerType == "botanySpot" and Player.job == FFXIV.JOBS.MINER) then
-			--change job
-		end
 	end
 end
 

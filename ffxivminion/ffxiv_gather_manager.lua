@@ -207,7 +207,7 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
 	-- otherwise grab the next marker based on randomization or closest distance
 	local closestMarker = nil
 	local closestDistance = 99999999
-	if not gRandomMarker then
+	if gRandomMarker == "0" then
 		for name, marker in pairs(list) do
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, marker.x, marker.y, marker.z)

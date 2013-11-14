@@ -228,7 +228,6 @@ function mm.SelectMarker(markerName)
         gSelectedMarker = markerName
         gMarkerName = markerName
         local info = mm.GetMarkerInfo(markerName)
-		d(info)
         gMarkerMinLevel = tostring(info.minlevel)
 		gMarkerMaxLevel = tostring(info.maxlevel)
         return true
@@ -386,7 +385,6 @@ function mm.ReadMarkerList(meshname)
                 end	
             elseif (tag == "version") then
                 version = tonumber(key)
-				d(version)
             else
 				local posTable = {}
 				for coord in StringSplit(sections[2],",") do
@@ -395,7 +393,6 @@ function mm.ReadMarkerList(meshname)
                 local i = 4
 				local markerMinLevel = 1
 				local markerMaxLevel = 50
-				d(version)
                 if (version == 1) then
                     markerMinLevel = tonumber(sections[3])
                     markerMaxLevel = tonumber(sections[4])

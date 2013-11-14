@@ -43,7 +43,7 @@ function e_cast:execute()
 	else
 		local cast = ActionList:Get(289,1)
 		if (cast and cast.isready) then			
-			d(cast:Cast())
+			cast:Cast()
 		end
 	end
 end
