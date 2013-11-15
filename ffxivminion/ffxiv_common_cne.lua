@@ -542,8 +542,9 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-    if (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") then
-        if (gRestInFates == "0") then
+    -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
+    if (gRestInFates == "0") then
+        if  (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") or (gFatesOnly == "1") then
             return false
         end
     end

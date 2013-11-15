@@ -211,8 +211,10 @@ end
 function e_gather:execute()
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-		if ( SkillMgr.Gather() ) then
-			return
+		if ( gSMactive == "1") then
+            if (SkillMgr.Gather() ) then
+                return
+            end
 		end
 		-- first check to see if we have a gathermanager marker
 		if (gGMactive == "1") then
