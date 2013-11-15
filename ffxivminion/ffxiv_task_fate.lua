@@ -155,16 +155,16 @@ end
 c_atfate = inheritsFrom( ml_cause )
 e_atfate = inheritsFrom( ml_effect )
 function c_atfate:evaluate()
-    -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
-    local plevel = Player.level
-    if (fate.level > plevel + 5 or fate.level < plevel - 5) then
-        return false
-    end
-    
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
 		if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
 			local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 			if (ValidTable(fate)) then
+                -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
+                local plevel = Player.level
+                if (fate.level > plevel + 5 or fate.level < plevel - 5) then
+                    return false
+                end
+                
                 -- check for fate targets within combat range and stop if we find one instead of running into fate
                 local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
                 if ( el ) then
