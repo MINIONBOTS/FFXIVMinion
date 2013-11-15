@@ -155,6 +155,12 @@ end
 c_atfate = inheritsFrom( ml_cause )
 e_atfate = inheritsFrom( ml_effect )
 function c_atfate:evaluate()
+    -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
+    local plevel = Player.level
+    if (fate.level > plevel + 5 or fate.level < plevel - 5) then
+        return false
+    end
+    
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
 		if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
 			local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
@@ -175,6 +181,8 @@ end
 function e_atfate:execute()
 	Player:Stop()
     -- call the complete logic so that bot will dismount
+    -- stay mounted since we have a target and we want to continue running to it
+    ml_task_hub:CurrentTask().remainMounted = true
     ml_task_hub:CurrentTask():task_complete_execute()
 	ml_task_hub:CurrentTask():Terminate()
 end
@@ -186,16 +194,17 @@ c_syncfatelevel = inheritsFrom( ml_cause )
 e_syncfatelevel = inheritsFrom( ml_effect )
 c_syncfatelevel.throttle = 1000
 function c_syncfatelevel:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+    if (ml_task_hub:CurrentTask().name == "MOVETOPOS" or Player:GetSyncLevel() ~= 0) then
         return false
-    end    
+    end
+    
     local myPos = Player.pos
 	local fateID = GetClosestFateID(myPos,true,true)
     if (fateID == ml_task_hub:ThisTask().fateid) then
         local fate = GetFateByID(fateID)
 		if ( fate and TableSize(fate)) then
 			local plevel = Player.level
-			if ( ( fate.level > plevel +5 or fate.level < plevel -5) and Player:GetSyncLevel() == 0 )then
+			if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
 				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 				if (distance < fate.radius) then				
 					return true
@@ -207,7 +216,7 @@ function c_syncfatelevel:evaluate()
 end
 function e_syncfatelevel:execute()
 	ml_debug( "Curren Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
-	ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
+	ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))
 end
 
 c_movingfate = inheritsFrom( ml_cause )

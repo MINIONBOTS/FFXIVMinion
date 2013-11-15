@@ -77,7 +77,7 @@ function mm.ModuleInit()
 	gShowPath = "0"
 	gMeshrec = "0"
 	gRecAreaType = "Lowdanger"
-	gRecAreaSize = "50"
+	gRecAreaSize = "20"
 	gMeshChange = "0"
 	gChangeAreaType = "Road"
 	gChangeAreaSize = "5"
