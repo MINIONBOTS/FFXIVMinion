@@ -1198,7 +1198,7 @@ function ffxiv_task_skillmgrHeal:task_complete_execute()
     self.completed = true
 end
 
-RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
+--RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
 RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",SkillMgr.GUIVarUpdate)
 RegisterEventHandler("Module.Initalize",SkillMgr.ModuleInit)

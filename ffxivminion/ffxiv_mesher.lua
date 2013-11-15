@@ -792,5 +792,5 @@ end
 RegisterEventHandler("ToggleMeshmgr", mm.ToggleMenu)
 RegisterEventHandler("GUI.Update",mm.GUIVarUpdate)
 RegisterEventHandler("Module.Initalize",mm.ModuleInit)
-RegisterEventHandler("Gameloop.Update",mm.OnUpdate)
+--RegisterEventHandler("Gameloop.Update",mm.OnUpdate)
 
