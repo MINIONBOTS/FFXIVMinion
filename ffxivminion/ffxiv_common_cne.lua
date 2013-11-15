@@ -34,7 +34,7 @@ function c_add_killtarget:evaluate()
             end
         end
     end
-	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
 		return false
 	end
     
@@ -69,7 +69,7 @@ e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
 function c_assistleader:evaluate()
 	
-	if (gBotMode == "Party-Grind" and IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
 		return false
 	end
 	leader = GetPartyLeader()	
@@ -136,7 +136,7 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 function c_add_fate:evaluate()
 	
-	if (gBotMode == "Party-Grind" and not IsLeader()) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
 	end
 	
@@ -201,7 +201,7 @@ c_followleader.rrange = math.random(3,15)
 c_followleader.leader = nil
 function c_followleader:evaluate()
 	
-	if (gBotMode == "Party-Grind" and IsLeader()) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader()) then
 		return false
 	end
 	
@@ -318,7 +318,7 @@ end
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
 function c_bettertargetsearch:evaluate()	
-	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
 		return false
 	end
 	
@@ -645,7 +645,7 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
 		return false
 	end
 	
@@ -653,8 +653,8 @@ function c_returntomarker:evaluate()
 		local myPos = Player.pos
 		local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
-        if  ((gBotMode == "Grind" or gBotMode == "Party-Grind" or gBotMode == "Gather") and distance > 200) or
-            (gBotMode == "Fish" and distance > 3)
+        if  ((gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode or gBotMode == strings[gCurrentLanguage].gatherMode) and distance > 200) or
+            (gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
 		then
 			return true
 		end

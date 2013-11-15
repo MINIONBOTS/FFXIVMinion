@@ -109,17 +109,17 @@ e_nextmarker = inheritsFrom( ml_effect )
 function c_nextmarker:evaluate()
 	-- this function (along with the marker manager stuff in general) needs a major refactor
 	-- for the purposes of beta I'm just doing all the marker checking shit for all modes here
-	if (gBotMode == "Party-Grind" and not IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
 		return false
 	end
 	
-	if ((gBotMode == "Gather" or gBotMode == "Fish") and gGMactive == "0") or
-	   (gBotMode == "Grind" and gDoFates == "1" and gFatesOnly == "1")
+	if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0") or
+	   (gBotMode == strings[gCurrentLanguage].grindMode and gDoFates == "1" and gFatesOnly == "1")
 	then
 		return false
 	end
 	
-	if gBotMode == "Gather" then
+	if gBotMode == strings[gCurrentLanguage].gatherMode then
 		local list = Player:GetGatherableSlotList()
 		if (list ~= nil) then
 			return false
@@ -153,7 +153,7 @@ function c_nextmarker:evaluate()
 		-- last check if our time has run out
         if (marker == nil) then
 			local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
-			if gBotMode == "Grind" or gBotMode == "Party-Grind" then
+			if gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode then
 				time = math.random(600,1200)
 			end
 			d("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
@@ -170,7 +170,7 @@ function c_nextmarker:evaluate()
                 e_nextmarker.marker = marker
                 return true
             end
-        elseif (gBotMode == "Grind") then
+        elseif (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
 			--ignore it so people don't whine about debug spam
 			--ml_debug("No grind markers detected. Defaulting to local grinding at current position")
 		else
@@ -395,11 +395,11 @@ end
 
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealth","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].randomizeMarkers, "gRandomMarker","Gather")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGatherLvl","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP","Gather")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS","Gather")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].randomizeMarkers, "gRandomMarker",strings[gCurrentLanguage].gatherMode)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGatherLvl",strings[gCurrentLanguage].gatherMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP",strings[gCurrentLanguage].gatherMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",strings[gCurrentLanguage].gatherMode)
 	
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	

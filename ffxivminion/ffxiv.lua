@@ -17,7 +17,13 @@ FFXIVMINION.SKILLS = {}
 
 function ml_global_information.OnUpdate( event, tickcount )
 	ml_global_information.Now = tickcount
-		
+	
+	-- Mesher.lua
+	mm.OnUpdate( event, tickcount )
+	
+	-- skillmgr.lua
+	SkillMgr.OnUpdate( event, tickcount )
+	
 	gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
 	if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
 		if (not ml_global_information.TaskUIInit) then
@@ -71,7 +77,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gLogCNE = "0"
 	end
 	if ( Settings.FFXIVMINION.gBotMode == nil ) then
-		Settings.FFXIVMINION.gBotMode = "Grind"
+		Settings.FFXIVMINION.gBotMode = strings[gCurrentLanguage].grindMode
 	end
     if ( Settings.FFXIVMINION.gUseMount == nil ) then
 		Settings.FFXIVMINION.gUseMount = "0"

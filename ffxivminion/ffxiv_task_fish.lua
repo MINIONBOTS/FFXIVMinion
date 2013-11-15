@@ -168,7 +168,7 @@ end
 
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl","Fish")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
 	GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
     if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then

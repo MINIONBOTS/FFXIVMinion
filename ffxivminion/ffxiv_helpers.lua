@@ -249,7 +249,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
 			if (gFateBlacklist[fate.id] == nil) then
 				if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
 					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-					if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=3)) then
+					if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
 					--	d(" NavigationManager:GetPointToMeshDistance: "..tostring( NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z}) ).." fate: "..tostring( fate.name))
 						local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
 						if (nearestFate == nil or distance < nearestDistance) then
@@ -271,7 +271,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
 end
 
 function IsLeader()
-	if (gBotMode == "Party-Grind" ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode ) then
 		local leader = GetPartyLeader()
 		if ( leader ) then
 			if ( leader.id == Player.id ) then
