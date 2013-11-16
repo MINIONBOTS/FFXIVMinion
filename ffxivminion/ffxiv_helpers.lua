@@ -8,7 +8,7 @@ function GetNearestGrindAttackable()
 	local maxLevel = ml_global_information.MarkerMaxLevel
    -- d(tostring(minLevel).. " "..tostring(maxLevel))
 	if (ValidTable(ml_task_hub:CurrentTask())) then
-		if (ml_task_hub:CurrentTask().name == "LT_GRIND" and ml_task_hub:CurrentTask().currentMarker ~= false) then
+		if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and ml_task_hub:CurrentTask().currentMarker ~= false) then
 			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 			if (ValidTable(markerInfo)) then
 				minLevel = markerInfo.minlevel
@@ -135,7 +135,7 @@ function GetClosestHealTarget()
 end
 
 function GetNearestAggro()
-    local el = EntityList("nearest,alive,attackable,onmesh,aggro")
+    local el = EntityList("nearest,alive,attackable,onmesh,aggro,maxdistance="..tostring(ml_global_information.AttackRange))
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then

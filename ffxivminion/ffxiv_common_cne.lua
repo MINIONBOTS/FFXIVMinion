@@ -20,7 +20,7 @@ e_add_killtarget = inheritsFrom( ml_effect )
 
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
-	if (ml_task_hub:CurrentTask().name == "LT_GRIND" and gFatesOnly == "1") then
+	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
 		return false
 	end
     -- block killtarget for fates when user has specified a fate completion % to start
@@ -60,6 +60,44 @@ end
 
 
 
+c_killaggrotarget = inheritsFrom( ml_cause )
+e_killaggrotarget = inheritsFrom( ml_effect )
+function c_killaggrotarget:evaluate()
+    -- block killtarget for grinding when user has specified "Fates Only"
+	if ( (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
+		return false
+	end
+    -- block killtarget for fates when user has specified a fate completion % to start
+    if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+        if (ml_task_hub:CurrentTask().fateid ~= nil) then
+            local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+            if ValidTable(fate) then
+                if (fate.completion < tonumber(gFateWaitPercent)) then
+                    return false
+                end
+            end
+        end
+    end
+    
+    local target = GetNearestAggro()
+	if (ValidTable(target)) then
+		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+			c_killaggrotarget.targetid = target.id
+			return true
+		end
+	end
+    
+    return false
+end
+function e_killaggrotarget:execute()
+	--just in case
+	Dismount()
+	
+	local newTask = ffxiv_task_killtarget:Create()
+    newTask.targetid = c_killaggrotarget.targetid
+	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
+	ml_task_hub.CurrentTask():AddSubTask(newTask)
+end
 ---------------------------------------------------------------------------------------------
 ---- minion attacks the target the leader has
 --Adds a task to use a combat routine to attack/kill target 
@@ -197,7 +235,7 @@ end
 
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.rrange = math.random(3,15)
+c_followleader.rrange = math.random(5,15)
 c_followleader.leader = nil
 function c_followleader:evaluate()
 	
@@ -252,9 +290,9 @@ function e_followleader:execute()
 			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange))))	
 			if ( not Player:IsMoving()) then
 				if ( ml_global_information.AttackRange < 5 ) then
-					c_followleader.rrange = math.random(1,6)
+					c_followleader.rrange = math.random(4,8)
 				else
-					c_followleader.rrange = math.random(6,20)
+					c_followleader.rrange = math.random(8,20)
 				end
 			end
 		else

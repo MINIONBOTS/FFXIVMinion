@@ -820,10 +820,6 @@ function SkillMgr.Cast( entity )
 						tbuffs = ebuffs
 						
 						local castable = true
-						--COOLDOWN
-						--d(realskilldata.cd)
-						--if (realskilldata.cd ~= 0 and math.abs(realskilldata.cd-2.5) < .00001) then castable = false end  --2.5 is a dummyfix, game is bugged 
-						--d(castable)
 						
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*1000 + 500)) then castable = false end
