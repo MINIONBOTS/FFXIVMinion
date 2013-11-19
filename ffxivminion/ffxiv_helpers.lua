@@ -246,7 +246,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
 		local _, fate = next(fateList)
 		local level = Player.level
 		while (_ ~= nil and fate ~= nil) do
-			if (gFateBlacklist[fate.id] == nil and (fate.status == 2 or fate.status == 7)) then
+			if (gFateBlacklist[fate.id] == nil and (fate.status == 2 ) then --or fate.status == 7)) then
 				if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
 					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
 					if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then

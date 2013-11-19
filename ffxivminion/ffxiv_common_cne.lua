@@ -185,7 +185,7 @@ function c_add_fate:evaluate()
 			if (fateID ~= 0) then
 				local fate = GetFateByID(fateID)
 				if (fate ~= nil and TableSize(fate) > 0) then
-					if (fate.status == 2 or fate.status == 7) then
+					if (fate.status == 2 ) then --or fate.status == 7) then
 						return true
 					end
 				end
