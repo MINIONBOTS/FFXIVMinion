@@ -24,6 +24,7 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "MeshManager", 	
@@ -231,6 +232,7 @@ strings =
 		depositItems					= "存仓",
 		checkChat						= "聊天报警",
 		randomfarmspot 					= "随机挂机",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "网格脚本管理器",
@@ -448,6 +450,7 @@ strings =
 		depositItems					= "アイテム預金",
 		checkChat						= "チャット警告",
 		randomfarmspot 					= "ランダム採集",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "３Dメッシュ管理", 	
@@ -654,6 +657,7 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "MeshManager", 	
@@ -860,6 +864,7 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "MeshManager", 	
@@ -1066,6 +1071,7 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
+		disabledrawing 					= "Disable Rendering",
 		
         -- mesher.lua
         meshManager                     = "MeshManager", 	

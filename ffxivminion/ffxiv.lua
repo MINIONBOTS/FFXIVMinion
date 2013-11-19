@@ -99,8 +99,10 @@ function ffxivminion.HandleInit()
 	end
 	if ( Settings.FFXIVMINION.gRandomPaths == nil ) then
 		Settings.FFXIVMINION.gRandomPaths = "0"
+	end	
+	if ( Settings.FFXIVMINION.gDisableDrawing == nil ) then
+		Settings.FFXIVMINION.gDisableDrawing = "0"
 	end
-	
 	
 	GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 	GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -114,7 +116,8 @@ function ffxivminion.HandleInit()
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
 	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -139,6 +142,7 @@ function ffxivminion.HandleInit()
 	gRandomPaths = Settings.FFXIVMINION.gRandomPaths
     gAssistMode = Settings.FFXIVMINION.gAssistMode
 	gAssistPriority = Settings.FFXIVMINION.gAssistPriority
+	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	
 	-- setup bot mode
 	local botModes = "None"
@@ -179,6 +183,12 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gBotRunning" ) then
 			ml_task_hub.ToggleRun()
+		elseif ( k == "gDisableDrawing" ) then
+			if ( v == "1" ) then
+				GameHacks:Disable3DRendering(true)
+			else
+				GameHacks:Disable3DRendering(false)
+			end
 		end
 	end
 	GUI_RefreshWindow(ml_global_information.MainWindow.Name)
