@@ -25,7 +25,7 @@ strings =
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -233,7 +233,7 @@ strings =
 		checkChat						= "聊天报警",
 		randomfarmspot 					= "随机挂机",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "网格脚本管理器",
 		activated                       = "激活",
@@ -451,7 +451,7 @@ strings =
 		checkChat						= "チャット警告",
 		randomfarmspot 					= "ランダム採集",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "３Dメッシュ管理", 	
 		activated                       = "実行中",
@@ -658,7 +658,7 @@ strings =
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -865,7 +865,7 @@ strings =
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -1072,7 +1072,7 @@ strings =
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
 		disabledrawing 					= "Disable Rendering",
-		
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",

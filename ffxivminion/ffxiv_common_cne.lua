@@ -63,7 +63,11 @@ end
 c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 function c_killaggrotarget:evaluate()
-    -- block killtarget for grinding when user has specified "Fates Only"
+    if ( gKillAggroEnemies == "0" ) then
+		return false
+	end
+	
+	-- block killtarget for grinding when user has specified "Fates Only"	
 	if ( (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
 		return false
 	end
