@@ -24,7 +24,8 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -178,7 +179,7 @@ strings =
         teleport                        = "Teleport (HACK!)",
         permaSprint                     = "PermaSprint (HACK!)",
         restHP                          = "Rest HP%: ",
-        restMP                          = "Rest HP%: ",
+        restMP                          = "Rest MP%: ",
         fleeHP                          = "Flee HP%: ",
         fleeMP                          = "Flee MP%: ",
         doFates                         = "Do Fates",
@@ -231,7 +232,8 @@ strings =
 		depositItems					= "存仓",
 		checkChat						= "聊天报警",
 		randomfarmspot 					= "随机挂机",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "网格脚本管理器",
 		activated                       = "激活",
@@ -396,7 +398,7 @@ strings =
         teleport                        = "瞬移 (HACK!)",
         permaSprint                     = "无限疾跑 (HACK!)",
         restHP                          = "休息 HP%: ",
-        restMP                          = "休息 HP%: ",
+        restMP                          = "休息 MP%: ",
         fleeHP                          = "逃跑 HP%: ",
         fleeMP                          = "逃跑 MP%: ",
         doFates                         = "打 Fates",
@@ -448,7 +450,8 @@ strings =
 		depositItems					= "アイテム預金",
 		checkChat						= "チャット警告",
 		randomfarmspot 					= "ランダム採集",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "３Dメッシュ管理", 	
 		activated                       = "実行中",
@@ -602,7 +605,7 @@ strings =
         teleport                        = "テレポート (チート!)",
         permaSprint                     = "永久疾走 (チート!)",
         restHP                          = "休憩 HP%: ",
-        restMP                          = "休憩 HP%: ",
+        restMP                          = "休憩 MP%: ",
         fleeHP                          = "退避 HP%: ",
         fleeMP                          = "退避 MP%: ",
         doFates                         = "FATE参加",
@@ -654,7 +657,8 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -808,7 +812,7 @@ strings =
         teleport                        = "Teleport (HACK!)",
         permaSprint                     = "PermaSprint (HACK!)",
         restHP                          = "Rest HP%: ",
-        restMP                          = "Rest HP%: ",
+        restMP                          = "Rest MP%: ",
         fleeHP                          = "Flee HP%: ",
         fleeMP                          = "Flee MP%: ",
         doFates                         = "Do Fates",
@@ -860,7 +864,8 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -1014,7 +1019,7 @@ strings =
         teleport                        = "Teleport (HACK!)",
         permaSprint                     = "PermaSprint (HACK!)",
         restHP                          = "Rest HP%: ",
-        restMP                          = "Rest HP%: ",
+        restMP                          = "Rest MP%: ",
         fleeHP                          = "Flee HP%: ",
         fleeMP                          = "Flee MP%: ",
         doFates                         = "Do Fates",
@@ -1066,7 +1071,8 @@ strings =
 		depositItems					= "Deposit Items",
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
-		
+		disabledrawing 					= "Disable Rendering",
+		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -1220,7 +1226,7 @@ strings =
         teleport                        = "Teleport (HACK!)",
         permaSprint                     = "PermaSprint (HACK!)",
         restHP                          = "Rest HP%: ",
-        restMP                          = "Rest HP%: ",
+        restMP                          = "Rest MP%: ",
         fleeHP                          = "Flee HP%: ",
         fleeMP                          = "Flee MP%: ",
         doFates                         = "Do Fates",

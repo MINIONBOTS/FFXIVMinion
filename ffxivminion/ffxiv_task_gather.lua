@@ -156,7 +156,7 @@ function c_nextmarker:evaluate()
                 time = math.random(600,1200)
             end
             d("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
-            if (time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
+			if (time and time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
                 d("Getting Next Marker, TIME IS UP!")
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else

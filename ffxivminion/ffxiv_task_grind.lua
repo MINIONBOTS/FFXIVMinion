@@ -169,6 +169,7 @@ function ffxiv_task_grind.UIInit()
     
     -- Fates
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies","Fates")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", "Fates", "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", "Fates", "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", "Fates", "0", "99")
@@ -179,6 +180,8 @@ function ffxiv_task_grind.UIInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistRem, "gBlacklistFateRemEvent", "Fates")
     RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
     RegisterEventHandler("gBlacklistFateRemEvent", ffxiv_task_grind.BlacklistFate)
+	
+	
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -242,6 +245,11 @@ function ffxiv_task_grind.UIInit()
         Settings.FFXIVMINION.gFateBlacklist = {}
     end
     
+	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
+		Settings.FFXIVMINION.gKillAggroEnemies = "0"
+	end
+	
+	
     gDoFates = Settings.FFXIVMINION.gDoFates
     gFatesOnly = Settings.FFXIVMINION.gFatesOnly
     gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
@@ -257,6 +265,7 @@ function ffxiv_task_grind.UIInit()
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
     gFateBlacklist = Settings.FFXIVMINION.gFateBlacklist
+	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)

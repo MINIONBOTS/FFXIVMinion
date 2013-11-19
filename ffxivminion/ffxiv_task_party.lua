@@ -95,6 +95,8 @@ function ffxiv_task_party:Init()
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 ) --leader only
     self:add(ke_addKillTarget, self.process_elements)
     
+	local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 10 )
+	self:add(ke_KillAggroTarget, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

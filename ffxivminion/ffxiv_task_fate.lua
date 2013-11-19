@@ -276,6 +276,9 @@ function ffxiv_task_fate:Init()
     
     local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
     self:add( ke_moveToFate, self.process_elements)
+	
+	local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 2 )
+	self:add(ke_KillAggroTarget, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

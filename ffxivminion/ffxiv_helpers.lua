@@ -8,7 +8,7 @@ function GetNearestGrindAttackable()
     local maxLevel = ml_global_information.MarkerMaxLevel
    -- d(tostring(minLevel).. " "..tostring(maxLevel))
     if (ValidTable(ml_task_hub:CurrentTask())) then
-        if (ml_task_hub:CurrentTask().name == "LT_GRIND" and ml_task_hub:CurrentTask().currentMarker ~= false) then
+		if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and ml_task_hub:CurrentTask().currentMarker ~= false) then
             local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
             if (ValidTable(markerInfo)) then
                 minLevel = markerInfo.minlevel
@@ -135,7 +135,7 @@ function GetClosestHealTarget()
 end
 
 function GetNearestAggro()
-    local el = EntityList("nearest,alive,attackable,onmesh,aggro")
+    local el = EntityList("nearest,alive,attackable,onmesh,aggro,maxdistance="..tostring(ml_global_information.AttackRange))
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -246,7 +246,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
         local _, fate = next(fateList)
         local level = Player.level
         while (_ ~= nil and fate ~= nil) do
-            if (gFateBlacklist[fate.id] == nil) then
+			if (gFateBlacklist[fate.id] == nil and (fate.status == 2 )) then --or fate.status == 7)) then
                 if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
