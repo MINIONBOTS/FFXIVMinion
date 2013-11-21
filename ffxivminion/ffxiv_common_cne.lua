@@ -696,7 +696,7 @@ function c_returntomarker:evaluate()
         local myPos = Player.pos
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
         local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
-        if  ((gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
+        if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
             (gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
