@@ -50,7 +50,10 @@ function ml_task_hub:Update()
 end
 
 function ml_task_hub:CurrentQueue()
-    return ml_task_hub.queues[ml_task_hub.prevQueueId]
+    local queue = ml_task_hub.queues[ml_task_hub.prevQueueId]
+    if (queue == nil) then
+        return ml_task_hub.queues[3]
+    end
 end
 
 -- CurrentTask() returns the deepest subtask on the stack

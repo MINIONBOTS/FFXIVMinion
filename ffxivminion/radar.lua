@@ -46,7 +46,7 @@ function wt_radar.HandleInit()
         Settings.FFXIVMINION.gRadarX = -1.0
     end		
     if ( Settings.FFXIVMINION.gRadarY == nil ) then
-        Settings.FFXIVMINION.gRadarXY = -1.0
+        Settings.FFXIVMINION.gRadarY = -1.0
     end	
     
     GUI_NewWindow(wt_radar.MainWindow.Name,wt_radar.MainWindow.x,wt_radar.MainWindow.y,wt_radar.MainWindow.width,wt_radar.MainWindow.height)	
@@ -76,7 +76,7 @@ function wt_radar.HandleInit()
     gRadarShowEventObjs = Settings.FFXIVMINION.gRadarShowEventObjs
     gRadarShowAetherytes = Settings.FFXIVMINION.gRadarShowAetherytes
     gRadarX = Settings.FFXIVMINION.gRadarX
-    gRadarY = Settings.FFXIVMINION.gRadarX
+    gRadarY = Settings.FFXIVMINION.gRadarY
     
     if ( gRadar == "0") then GameHacks:SetRadarSettings("gRadar",false) else GameHacks:SetRadarSettings("gRadar",true) end
     if ( g2dRadar == "0") then GameHacks:SetRadarSettings("g2dRadar",false) else GameHacks:SetRadarSettings("g2dRadar",true) end

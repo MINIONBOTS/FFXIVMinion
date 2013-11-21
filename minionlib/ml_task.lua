@@ -240,3 +240,26 @@ end
 function ml_task:RegisterDebug()
     
 end
+
+function ml_task:ShowDebugWindow()
+    if ( self.DebugWindowCreated == nil ) then
+        ml_debug( "Opening Queue Debug Window" )
+        GUI_NewWindow( self.name, 140, 10, 100, 50 + (TableSize(self.process_elements) + TableSize(self.overwatch_elements)) * 18 )
+        
+        if (TableSize(self.overwatch_elements) > 0) then
+            for _, elem in pairs(self.overwatch_elements) do
+                GUI_NewButton( self.name, elem.name , self.name .."::" .. elem.name )
+            end
+        end
+
+        if (TableSize(self.process_elements) > 0) then
+            for _, elem in pairs(self.process_elements) do
+                GUI_NewButton( self.name, elem.name , self.name .."::" .. elem.name )
+            end
+        end
+        
+        GUI_SizeWindow( self.name, 100, 50 + (TableSize(self.process_elements) + TableSize(self.overwatch_elements)) * 18 )
+        
+        self.DebugWindowCreated  = true
+    end
+end

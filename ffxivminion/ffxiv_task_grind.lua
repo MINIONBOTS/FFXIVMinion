@@ -92,46 +92,13 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFleeHP" or
                 k == "gFleeMP" or
                 k == "gFateWaitPercent" or
-                k == "gFateBLTimer")
+                k == "gFateBLTimer" or
+                k == "gRestInFates")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
     GUI_RefreshWindow(ml_global_information.MainWindow.Name)
-end
-
-function ffxiv_task_grind.OnUpdateHandler(event, tickcount)
-    if ml_task_hub.shouldRun then
-        if ( tickcount - ffxiv_task_grind.ticks > 500 ) then
-            -- update fate name in gui
-            ffxiv_task_grind.ticks = tickcount
-            local fafound = false
-            local falist = MapObject:GetFateList()
-            if ( falist ) then
-                local f = falist[tonumber(gFateIndex)]
-                if ( f ) then
-                    fafound = true
-                    gFateName = f.name
-                    gFateID = f.id
-                end
-            end
-            if (not fafound) then
-                gFateName = ""
-                gFateID = 0
-            end
-        end
-        if (tickcount - ffxiv_task_grind.blTicks > 1000) then
-            -- clear out temporarily blacklisted fates
-            ffxiv_task_grind.blTicks = tickcount
-            for id, timer in pairs(gFateBlacklist) do
-                if id and timer and timer ~= true then
-                    if os.difftime(os.time(), timer) > 300 then
-                        gFateBlacklist[id] = nil
-                    end
-                end
-            end
-        end
-    end
 end
 
 function ffxiv_task_grind.SetEvacPoint()
@@ -269,4 +236,3 @@ function ffxiv_task_grind.UIInit()
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
-RegisterEventHandler("Gameloop.Update",ffxiv_task_grind.OnUpdateHandler)

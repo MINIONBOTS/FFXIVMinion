@@ -24,6 +24,12 @@ function ml_global_information.OnUpdate( event, tickcount )
     -- skillmgr.lua
     SkillMgr.OnUpdate( event, tickcount )
     
+    -- ffxiv_task_fate.lua
+    ffxiv_task_fate.UpdateFateInfo(tickcount)
+    
+    -- ml_blacklist.lua
+    ml_blacklist.ClearBlacklists()
+    
     gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
     if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
         if (not ml_global_information.TaskUIInit) then
@@ -168,7 +174,13 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
         if( k == "gBotMode" ) then
             ffxivminion.CheckMode()
         end
-        if (k == "gEnableLog" or
+        if (k == "gEnableLog") then
+            if ( v == "1" ) then
+                gFFXIVMINIONPulseTime = 1000
+            else
+                gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
+            end
+        elseif (
             k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or
             k == "gBotMode" or 

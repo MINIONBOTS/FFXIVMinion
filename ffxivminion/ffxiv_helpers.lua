@@ -17,7 +17,7 @@ function GetNearestGrindAttackable()
         end
     end
     
-    local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
+    local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -25,7 +25,7 @@ function GetNearestGrindAttackable()
         end
     end	
     
-    local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0")
+    local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -33,7 +33,7 @@ function GetNearestGrindAttackable()
         end
     end
     
-    local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0")
+    local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -148,6 +148,15 @@ function GetNearestAggro()
 end
 
 function GetNearestGatherable(minlevel,maxlevel)
+    local excludeString = ml_blacklist.GetExcludeString(ffxiv_task_gather.name)
+    local el = nil
+    
+    if (excludeString) then
+        el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
+    else
+        el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+    end
+    
     local el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
     if ( el ) then
         local i,e = next(el)

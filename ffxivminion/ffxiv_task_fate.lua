@@ -317,3 +317,24 @@ end
 function ffxiv_task_fate:IsGoodToAbort()
 
 end
+
+function ffxiv_task_fate.UpdateFateInfo(tickcount)
+    if ( tickcount - ffxiv_task_grind.ticks > 500 ) then
+        -- update fate name in gui
+        ffxiv_task_grind.ticks = tickcount
+        local fafound = false
+        local falist = MapObject:GetFateList()
+        if ( falist ) then
+            local f = falist[tonumber(gFateIndex)]
+            if ( f ) then
+                fafound = true
+                gFateName = f.name
+                gFateID = f.id
+            end
+        end
+        if (not fafound) then
+            gFateName = ""
+            gFateID = 0
+        end
+    end
+end

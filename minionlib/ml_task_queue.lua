@@ -8,6 +8,7 @@ function ml_task_queue:Add(task, prio)
     self:DeletePending()
     self.pendingTask = task
     self.pendingPrio = prio
+    self.pendingTask:Init()
 end
 
 function ml_task_queue:Update()
@@ -62,7 +63,6 @@ function ml_task_queue:PromotePending()
     if (not self.rootTask) then
         self.rootTask = self.pendingTask
         self.pendingTask = nil
-		self.rootTask:Init()
     else
         ml_debug("Root task still alive, can't promote pending task")
     end
@@ -78,6 +78,23 @@ function ml_task_queue:DeletePending()
     end
 end
 
+function ml_task_queue:TaskList()
+    local tasklist = {}
+    local task = nil
+    if (self.rootTask) then
+        task = self.rootTask
+    elseif (self.pendingTask) then
+        task = self.pendingTask
+    end
+    
+    while (task ~= nil) do
+        table.insert(tasklist, task)
+        task = task.subtask
+    end
+    
+    return tasklist
+end
+
 function ml_task_queue:create( name )
 	local newinst = inheritsFrom( ml_task_queue )
 	newinst.name = name
@@ -90,11 +107,17 @@ end
 function ml_task_queue:ShowDebugWindow()
 	if ( self.DebugWindowCreated == nil ) then
 		ml_debug( "Opening Queue Debug Window" )
-		GUI_NewWindow( self.name, 140, 10, 100, 50 + #self.kelement_list * 14 )
+        local tasklist = self:TaskList()
+        
+        if (TableSize(tasklist) > 0) then
+            GUI_NewWindow( self.name, 140, 10, 100, 50 + TableSize(tasklist) * 18 )
 
-		for k, elem in pairs( self.kelement_list ) do
-			GUI_NewButton( self.name, elem.name , self.name .."::" .. elem.name )
-		end
-		self.DebugWindowCreated  = true
+            for k, task in pairs( tasklist ) do
+                GUI_NewButton( self.name, task.name , self.name .."::" .. task.name )
+            end
+            
+            GUI_SizeWindow(self.name, 100, 50 + TableSize(tasklist) * 18 )
+            self.DebugWindowCreated  = true
+        end
 	end
 end
