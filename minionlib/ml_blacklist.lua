@@ -57,7 +57,7 @@ function ml_blacklist.GetExcludeString(blacklistName)
     local excludeString = ""
 	local blacklist = ml_blacklist.blacklist[blacklistName]
     for entry, time in pairs(blacklist) do
-        excludeString = excludeString .. entry .. ","
+        excludeString = excludeString .. entry .. ";"
     end
     
     if (excludeString ~= "") then
