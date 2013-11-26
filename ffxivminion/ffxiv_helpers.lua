@@ -148,13 +148,13 @@ function GetNearestAggro()
 end
 
 function GetNearestGatherable(minlevel,maxlevel)
-    local excludeString = ml_blacklist.GetExcludeString(ffxiv_task_gather.name)
+    --local excludeString = ml_blacklist.GetExcludeString(ffxiv_task_gather.name)
     local el = nil
-    if (excludeString) then
-        el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
-    else
+    --if (excludeString) then
+        --el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
+    --else
         el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
-    end
+    --end
     
     if ( el ) then
         local i,e = next(el)
