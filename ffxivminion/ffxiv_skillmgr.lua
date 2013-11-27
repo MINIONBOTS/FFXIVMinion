@@ -900,8 +900,8 @@ function SkillMgr.Cast( entity )
                         end
                         -- RANGE 							
                         if ( castable and (
-                                   (skill.minRange > 0 and target.distance < skill.minRange)
-                                or (skill.maxRange > 0 and target.distance > skill.maxRange+target.hitradius+1)--target.distance- target.hitradius > skill.maxRange)
+                                   (skill.minRange > 0 and target.distance2d < skill.minRange)
+                                or (skill.maxRange > 0 and target.distance2d > skill.maxRange+target.hitradius+1)--target.distance2d- target.hitradius > skill.maxRange)
                                 )) then castable = false end
                                                 
                         -- HEALTH
@@ -1120,7 +1120,7 @@ end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
     local target = Player:GetTarget()
-    if (target == nil or not target.alive or not target.attackable or target.distance > ml_global_information.AttackRange) then
+    if (target == nil or not target.alive or not target.attackable or target.distance2d > ml_global_information.AttackRange) then
         return true
     end
     
@@ -1157,7 +1157,7 @@ function ffxiv_task_skillmgrHeal:Process()
     
     if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-        if (target ~= nil and target.alive and target.hp.percent < 95 and target.distance <= ml_global_information.AttackRange) then
+        if (target ~= nil and target.alive and target.hp.percent < 95 and target.distance2d <= ml_global_information.AttackRange) then
             
             SkillMgr.Cast( target )
             
@@ -1182,7 +1182,7 @@ end
 
 function ffxiv_task_skillmgrHeal:task_complete_eval()
     local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
-    if (target == nil or not target.alive or target.hp.percent > 95 or target.distance > ml_global_information.AttackRange) then
+    if (target == nil or not target.alive or target.hp.percent > 95 or target.distance2d > ml_global_information.AttackRange) then
         return true
     end
     

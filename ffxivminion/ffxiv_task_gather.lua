@@ -18,7 +18,7 @@ function ffxiv_task_gather:Create()
     newinst.currentMarker = false
     newinst.previousMarker = false
     newinst.gatherTimer = 0
-	newinst.gatherDistance = 1.5
+	newinst.gatherDistance = 2.0
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -90,7 +90,7 @@ function c_movetogatherable:evaluate()
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-        if (gatherable ~= nil and gatherable.distance > (ml_task_hub.CurrentTask().gatherDistance + 0.1)) then
+        if (gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.1)) then
             return true
         end
     end
@@ -210,7 +210,7 @@ c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
     local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (node ~= nil and node.distance < ml_task_hub:CurrentTask().gatherDistance + 0.1) then
+    if (node ~= nil and node.distance2d < ml_task_hub:CurrentTask().gatherDistance + 0.1) then
         return true
     end
     
@@ -273,8 +273,8 @@ function e_gather:execute()
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
                     ml_task_hub:CurrentTask().failedTimer = os.time()
-                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 1) then
-					if (node.distance <= 0.5 or ml_task_hub:CurrentTask().failedAttempts == 5) then
+                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 3) then
+					if (node.distance2d <= 0.5 or ml_task_hub:CurrentTask().failedAttempts == 5) then
                         -- 15 minute blacklist?
                         ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, os.time() + 1800)
                         ml_task_hub:CurrentTask().gatherid = 0
@@ -349,7 +349,7 @@ function c_atnode:evaluate()
         if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
             local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
             if (ValidTable(gatherable)) then
-                return gatherable.distance < 4
+                return gatherable.distance2d < 4
             end
         end
     end
@@ -361,10 +361,27 @@ function e_atnode:execute()
     ml_task_hub:CurrentTask():Terminate()
 end
 
+c_gatherwindow = inheritsFrom( ml_cause )
+e_gatherwindow = inheritsFrom( ml_effect )
+function c_gatherwindow:evaluate()
+	local list = Player:GetGatherableSlotList()
+    if (list ~= nil and ml_task_hub.CurrentTask().name == "MOVETOPOS") then
+		return true
+	end
+end
+function e_gatherwindow:execute()
+	ml_debug("Bad! We fell into the gathering/moveto timing bug...terminating MoveTo task")
+	-- Complete the moveto task so that we can go back to gathering window
+	ml_task_hub.CurrentTask():task_complete_execute()
+end
+
 function ffxiv_task_gather:Init()
     --init ProcessOverWatch cnes
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
     self:add( ke_stealth, self.overwatch_elements)
+	
+	local ke_gatherWindow = ml_element:create( "GatherWindow", c_gatherwindow, e_gatherwindow, 20)
+	self:add( ke_gatherWindow, self.overwatch_elements)
     
     --local ke_atNode = ml_element:create( "AtNode", c_atnode, e_atnode, 10 )
     --self:add( ke_atNode, self.overwatch_elements)

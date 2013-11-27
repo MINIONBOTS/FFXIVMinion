@@ -210,7 +210,7 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
     if gRandomMarker == "0" then
         for name, marker in pairs(list) do
             local myPos = Player.pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, marker.x, marker.y, marker.z)
+            local distance = Distance2D(myPos.x, myPos.z, marker.x, marker.z)
             if (closestMarker == nil or distance < closestDistance and name ~= currMarker and name ~= prevMarker) then
                 if  (markerType == "grindSpot" and ((Player.level >= marker.minlevel and Player.level <= marker.maxlevel) or gIgnoreGrindLvl == "1")) or
                     (markerType == "fishingSpot" and ((Player.level >= marker.minlevel and Player.level <= marker.maxlevel) or gIgnoreFishLvl == "1")) or

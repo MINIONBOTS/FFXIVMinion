@@ -121,7 +121,7 @@ function c_assistleader:evaluate()
             local leadtarget = entity.targetid
             if ( leadtarget ~= nil and leadtarget ~= 0 ) then
                 local target = EntityList:Get(leadtarget)
-                if ( target ~= nil and target ~= 0 and target.attackable and target.alive and target.distance < 30) then
+                if ( target ~= nil and target ~= 0 and target.attackable and target.alive and target.distance2d < 30) then
                     if ( target.onmesh or InCombatRange(target.id)) then
                         c_assistleader.targetid = target.id
                         return true
@@ -253,7 +253,7 @@ function c_followleader:evaluate()
             c_followleader.leaderpos = leader.pos
             if ( c_followleader.leaderpos.x ~= -1000 ) then 			
                 local myPos = Player.pos				
-                local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleader.leaderpos.x, c_followleader.leaderpos.y, c_followleader.leaderpos.z)
+                local distance = Distance2D(myPos.x, myPos.z, c_followleader.leaderpos.x, c_followleader.leaderpos.z)
                 if ((distance > c_followleader.rrange and leader.onmesh) or (distance > c_followleader.rrange and distance < 30 and not leader.onmesh)) then					
                     c_followleader.leader = leader
                     return true
@@ -270,7 +270,7 @@ function e_followleader:execute()
         if ( leader.onmesh and Player.onmesh) then
             local lpos = c_followleader.leader.pos
             local myPos = Player.pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, lpos.x, lpos.y, lpos.z)	
+            local distance = Distance2D(myPos.x, myPos.z, lpos.x, lpos.z)	
             
             -- mount
             if ( gUseMount == "1" and not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then							
@@ -329,8 +329,7 @@ function c_walktopos:evaluate()
         
         local myPos = Player.pos
         local gotoPos = ml_task_hub:CurrentTask().pos
-        -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference
-        --local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)        
+        -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference     
         local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
         ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
@@ -398,7 +397,7 @@ function c_mount:evaluate()
         if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
             local myPos = Player.pos
             local gotoPos = ml_task_hub:CurrentTask().pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+            local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
         
             if (distance > tonumber(gMountDist)) then
                 return true
@@ -426,7 +425,7 @@ function c_sprint:evaluate()
             if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
                 local myPos = Player.pos
                 local gotoPos = ml_task_hub:CurrentTask().pos
-                local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+                local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
                 
                 if (distance > tonumber(gSprintDist)) then		
                     return true
@@ -475,7 +474,7 @@ function c_updateleaderdata:evaluate()
     if (leader ~=nil and leader.id ~= 0) then	
         if (ml_task_hub:CurrentTask().name == "FOLLOWENTITY" ) then
             local myPos = Player.pos
-            if (Distance3D(myPos.x, myPos.y, myPos.z, ml_task_hub:CurrentTask().pos.x, ml_task_hub:CurrentTask().pos.y, ml_task_hub:CurrentTask().pos.z) > 10 and leader.onmesh) then
+            if (Distance2D(myPos.x, myPos.z, ml_task_hub:CurrentTask().pos.x, ml_task_hub:CurrentTask().pos.z) > 10 and leader.onmesh) then
                 ml_task_hub:CurrentTask().pos = leader.pos
                 ml_task_hub:CurrentTask().targetid = leader.id
             end
@@ -495,7 +494,7 @@ function c_attarget:evaluate()
         if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
             if ValidTable(target) then
-                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance < (ml_global_information.AttackRange * 0.75)
+                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * 0.75)
             end
         else
             return InCombatRange(ml_task_hub:ThisTask().targetid)
@@ -695,7 +694,7 @@ function c_returntomarker:evaluate()
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
         local myPos = Player.pos
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-        local distance = Distance3D(myPos.x, myPos.y, myPos.z, markerInfo.x, markerInfo.y, markerInfo.z)
+        local distance = Distance2D(myPos.x, myPos.z, markerInfo.x, markerInfo.z)
         if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
             (gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then

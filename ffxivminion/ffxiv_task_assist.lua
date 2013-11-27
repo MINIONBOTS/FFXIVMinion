@@ -85,7 +85,7 @@ function ffxiv_task_assist:Process()
         end
     end	
 
-    if 	( target and target.alive and target.distance <= 30 ) then
+    if 	( target and target.alive and target.distance2d <= 30 ) then
         local pos = target.pos
         
         --Player:SetFacing(pos.x,pos.y,pos.z)

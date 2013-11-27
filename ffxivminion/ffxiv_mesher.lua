@@ -207,7 +207,7 @@ function mm.SelectClosestMarker()
     for tag, posList in pairs(mm.MarkerList) do
         for key, pos in pairs(posList) do
             local myPos = Player.pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+            local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
             if (closestMarker == nil or distance < closestDistance) then
                 closestMarker = key
                 closestDistance = distance
@@ -469,7 +469,7 @@ function mm.GetClosestMarkerPos(startPos, tag)
     destDistance = 9999999
     if (TableSize(mm.MarkerList[tostring(tag)]) > 0) then
         for i, pos in pairs(mm.MarkerList[tostring(tag)]) do
-            local distance = Distance3D(startPos.x, startPos.y, startPos.z, pos.x, pos.y, pos.z)
+            local distance = Distance2D(startPos.x, startPos.z, pos.x, pos.z)
             if ( distance < destDistance and distance > 2) then
                 destPos = pos
                 destDistance = distance

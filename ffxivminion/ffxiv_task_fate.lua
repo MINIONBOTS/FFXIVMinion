@@ -37,7 +37,7 @@ function c_fatewait:evaluate()
     local gotoPos = mm.evacPoint
     return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
-            Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 15 -- ? 
+            Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 -- ? 
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos:Create()
@@ -121,7 +121,7 @@ function c_movetofate:evaluate()
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
         if (fate ~= nil and TableSize(fate) > 0) then
             local myPos = Player.pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+            local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
             if ( ml_task_hub:CurrentTask().moving) then
                 if (distance > fate.radius/2) then				
                     return true
@@ -205,7 +205,7 @@ function c_syncfatelevel:evaluate()
         if ( fate and TableSize(fate)) then
             local plevel = Player.level
             if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
-                local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+                local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
                 if (distance < fate.radius) then				
                     return true
                 end
@@ -236,7 +236,7 @@ function c_movingfate:evaluate()
                 return false
             else
                 local oldFatePos = ml_task_hub:CurrentTask().fatePos
-                local distance = Distance3D(oldFatePos.x, oldFatePos.y, oldFatePos.z, fatePos.x, fatePos.y, fatePos.z)
+                local distance = Distance2D(oldFatePos.x, oldFatePos.z, fatePos.x, fatePos.z)
                 if (distance > 0) then
                     return true
                 end

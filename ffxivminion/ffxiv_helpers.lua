@@ -199,7 +199,7 @@ function HasBuffFrom(targetID, buffID, ownerID)
 end
 
 function IsBehind(entity)
-    if(entity.distance < ml_global_information.AttackRange) then
+    if(entity.distance2d < ml_global_information.AttackRange) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -258,7 +258,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
                     --	d(" NavigationManager:GetPointToMeshDistance: "..tostring( NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z}) ).." fate: "..tostring( fate.name))
-                        local distance = Distance3D(pos.x, pos.y, pos.z, fate.x, fate.y, fate.z)
+                        local distance = Distance2D(pos.x, pos.z, fate.x, fate.z)
                         if ((nearestFate == nil or distance < nearestDistance) and fate.status == 2) then
                             nearestFate = fate
                             nearestDistance = distance
@@ -334,14 +334,14 @@ function InCombatRange(targetid)
     -- CanCast returns true 90% of the cases for me when beeing 1-2 units too far away to cast
     local skill = ActionList:Get(testSkills[Player.job])
     if ( skill )then
-        -- You can't check for skill.range > target.distance...this will make melee characters look really stupid
+        -- You can't check for skill.range > target.distance2d...this will make melee characters look really stupid
         -- because they run right up underneath larger monsters. You have to account for hitradius which can be 
         -- very large for big mobs.
         
         -- fix for melee chars hopping behind an enemy that runs away?
         if ( ActionList:CanCast(testSkills[Player.job],target.id) ) then
             if ( ml_global_information.AttackRange < 5) then  -- 255 is -1 , melee weapons need a fix I guess, they show -1
-                return (target.distance - target.hitradius) < 3
+                return (target.distance2d - target.hitradius) < 3
             else
                 return true
             end
