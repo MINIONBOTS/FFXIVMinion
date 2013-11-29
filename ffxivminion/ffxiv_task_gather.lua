@@ -18,7 +18,7 @@ function ffxiv_task_gather:Create()
     newinst.currentMarker = false
     newinst.previousMarker = false
     newinst.gatherTimer = 0
-	newinst.gatherDistance = 1.0
+	newinst.gatherDistance = 2.0
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
