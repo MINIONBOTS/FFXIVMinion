@@ -208,6 +208,9 @@ strings =
         yPos                            = "Y Position",
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
+		
+		-- new stuff (since last translation)
+		useMooch						= "Use Mooch"
     },                                  
     ["cn"] =                            
     {                               
