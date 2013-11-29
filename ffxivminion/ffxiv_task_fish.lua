@@ -38,7 +38,7 @@ end
 function e_cast:execute()
     --ml_task_hub:CurrentTask().castTimer = os.time() + 3
     local mooch = ActionList:Get(297,1)
-    if (mooch) and Player.level > 24 and (mooch.isready) then
+    if (mooch) and gUseMooch == "1" and Player.level > 24 and (mooch.isready) then
         mooch:Cast()
     else
         local cast = ActionList:Get(289,1)
@@ -169,19 +169,26 @@ end
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
     if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
         Settings.FFXIVMINION.gIgnoreFishLvl = "0"
     end
+	
+	if (Settings.FFXIVMINION.gUseMooch == nil) then
+        Settings.FFXIVMINION.gUseMooch = "1"
+    end
     gIgnoreFishLvl = Settings.FFXIVMINION.gIgnoreFishLvl
+	gUseMooch = Settings.FFXIVMINION.gUseMooch
     
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if ( k == "gIgnoreFishLvl" ) then
+        if 	( k == "gIgnoreFishLvl" ) or
+			( k == "gUseMooch" )then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
