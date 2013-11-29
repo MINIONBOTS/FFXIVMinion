@@ -55,6 +55,8 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID","SkillDetails")
     GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].enabled,"SKM_ON","SkillDetails")
     GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF","SkillDetails")
+	--GUI_NewCheckbox(SkillMgr.editwindow.name,"Do not record","SKM_DOPREV","SkillDetails")-- Needs a string	
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Player Level >","SKM_LevelMin","SkillDetails")-- Needs a string
     GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].useOutOfCombat,"SKM_OutOfCombat","SkillDetails")			
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR","SkillDetails")
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR","SkillDetails")	
@@ -62,6 +64,8 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPLT,"SKM_PHPB","SkillDetails")
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerGT ,"SKM_PPowL","SkillDetails")
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB","SkillDetails")
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP >","SKM_PTPL","SkillDetails") -- Needs a string
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP <","SKM_PTPB","SkillDetails") -- Needs a string
     GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB","SkillDetails");
@@ -135,6 +139,8 @@ function SkillMgr.ModuleInit()
     SKM_ID = 0
     SKM_ON = "0"
     SKM_DOBUFF = "0"
+	SKM_DOPREV = "0" --custom
+	SKM_LevelMin = 0 --custom
     SKM_Prio = 0
     SKM_OutOfCombat = "0"
     SKM_TRG = "Enemy"
@@ -144,6 +150,8 @@ function SkillMgr.ModuleInit()
     SKM_PHPB = 0
     SKM_PPowL = 0
     SKM_PPowB = 0
+	SKM_PTPL = 0 --custom
+	SKM_PTPB = 0 --custom
     SKM_THPL = 0
     SKM_THPB = 0
     SKM_TECount = 0
@@ -199,6 +207,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_NAME" ) then SkillMgr.SkillProfile[SKM_Prio].name = v		
         elseif ( k == "SKM_ON" ) then SkillMgr.SkillProfile[SKM_Prio].used = v
         elseif ( k == "SKM_DOBUFF" ) then SkillMgr.SkillProfile[SKM_Prio].dobuff = v
+		elseif ( k == "SKM_DOPREV" ) then SkillMgr.SkillProfile[SKM_Prio].doprev = v -- custom
+		elseif ( k == "SKM_LevelMin" ) then SkillMgr.SkillProfile[SKM_Prio].levelmin = v -- custom
         elseif ( k == "SKM_TRG" ) then SkillMgr.SkillProfile[SKM_Prio].trg = v
         elseif ( k == "SKM_OutOfCombat" ) then SkillMgr.SkillProfile[SKM_Prio].ooc = v
         elseif ( k == "SKM_MinR" ) then SkillMgr.SkillProfile[SKM_Prio].minRange = tonumber(v)
@@ -207,6 +217,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_PHPB" ) then SkillMgr.SkillProfile[SKM_Prio].phpb = tonumber(v)
         elseif ( k == "SKM_PPowL" ) then SkillMgr.SkillProfile[SKM_Prio].ppowl = tonumber(v)
         elseif ( k == "SKM_PPowB" ) then SkillMgr.SkillProfile[SKM_Prio].ppowb = tonumber(v)	
+		elseif ( k == "SKM_PTPL" ) then SkillMgr.SkillProfile[SKM_Prio].ptpl = v -- custom
+		elseif ( k == "SKM_PTPB" ) then SkillMgr.SkillProfile[SKM_Prio].ptpb = v -- custom
         elseif ( k == "SKM_THPL" ) then SkillMgr.SkillProfile[SKM_Prio].thpl = tonumber(v)
         elseif ( k == "SKM_THPB" ) then SkillMgr.SkillProfile[SKM_Prio].thpb = tonumber(v)
         elseif ( k == "SKM_TECount" ) then SkillMgr.SkillProfile[SKM_Prio].tecount = tonumber(v)
@@ -406,6 +418,8 @@ function SkillMgr.SaveProfile()
             else
                 string2write = string2write.."SKM_DOBUFF="..skill.dobuff.."\n"			
                 string2write = string2write.."SKM_TRG="..skill.trg.."\n"		
+				string2write = string2write.."SKM_LevelMin="..skill.levelmin.."\n"	--custom
+				string2write = string2write.."SKM_TRG="..skill.trg.."\n"
                 string2write = string2write.."SKM_OutOfCombat="..skill.ooc.."\n"			
                 string2write = string2write.."SKM_MinR="..skill.minRange.."\n"
                 string2write = string2write.."SKM_MaxR="..skill.maxRange.."\n" 			
@@ -413,6 +427,8 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PHPB="..skill.phpb.."\n" 
                 string2write = string2write.."SKM_PPowL="..skill.ppowl.."\n" 
                 string2write = string2write.."SKM_PPowB="..skill.ppowb.."\n" 
+				string2write = string2write.."SKM_PTPL="..skill.ptpl.."\n"	--custom
+				string2write = string2write.."SKM_PTPB="..skill.ptpb.."\n"	--custom
                 string2write = string2write.."SKM_THPL="..skill.thpl.."\n" 
                 string2write = string2write.."SKM_THPB="..skill.thpb.."\n" 
                 string2write = string2write.."SKM_TECount="..skill.tecount.."\n" 
@@ -473,6 +489,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "NAME" )then newskill.name = value
                             elseif ( key == "ON" )then newskill.used = tostring(value)
                             elseif ( key == "DOBUFF" )then newskill.dobuff = tostring(value)							
+elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom		
+							elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
                             elseif ( key == "Prio" )then newskill.prio = tonumber(value)
                             elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
                             elseif ( key == "TRG" )then newskill.trg = tostring(value)							
@@ -482,6 +500,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "PHPB" )then newskill.phpb = tonumber(value)
                             elseif ( key == "PPowL" )then newskill.ppowl = tonumber(value)
                             elseif ( key == "PPowB" )then newskill.ppowb = tonumber(value)
+							elseif ( key == "PTPL" )then newskill.ptpl = tostring(value)	--custom	
+							elseif ( key == "PTPB" )then newskill.ptpb = tostring(value)	--custom
                             elseif ( key == "THPL" )then newskill.thpl = tonumber(value)
                             elseif ( key == "THPB" )then newskill.thpb = tonumber(value)						
                             elseif ( key == "TECount" )then newskill.tecount = tonumber(value)
@@ -632,6 +652,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 name = skname or "",
                 used = skill.used or "1",
                 dobuff = skill.dobuff or "0",
+				doprev = skill.doprev or "0",
+				levelmin = skill.levelmin or 0,
                 ooc = skill.ooc or "0",
                 trg = skill.trg or "Enemy",
                 minRange = skill.minRange or 0,
@@ -640,6 +662,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 phpb = skill.phpb or 0,
                 ppowl = skill.ppowl or 0,
                 ppowb = skill.ppowb or 0,
+				ptpl = skill.ptpl or 0,
+				ptpb = skill.ptpb or 0,
                 thpl = skill.thpl or 0,
                 thpb = skill.thpb or 0,
                 tecount = skill.tecount or 0,
@@ -730,6 +754,8 @@ function SkillMgr.EditSkill(event)
             SKM_ID = skill.id
             SKM_ON = skill.used or "1"
             SKM_DOBUFF = skill.dobuff or "0"
+			SKM_DOPREV = skill.doprev or "0" --custom
+			SKM_LevelMin = skill.levelmin or 0  --custom
             SKM_Prio = tonumber(event)
             SKM_OutOfCombat = skill.ooc or "0"
             SKM_TRG = skill.trg or "Enemy"
@@ -739,6 +765,8 @@ function SkillMgr.EditSkill(event)
             SKM_PHPB = tonumber(skill.phpb) or 0
             SKM_PPowL = tonumber(skill.ppowl) or 0
             SKM_PPowB = tonumber(skill.ppowb) or 0
+			SKM_PTPL = tonumber(skill.ptpl) or 0 --custom
+			SKM_PTPB = tonumber(skill.ptpb) or 0 --custom
             SKM_THPL = tonumber(skill.thpl) or 0
             SKM_THPB = tonumber(skill.thpb) or 0
             SKM_TECount = tonumber(skill.tecount) or 0
@@ -826,10 +854,13 @@ function SkillMgr.Cast( entity )
                         
                         -- PLAYER HEALTH, TP/MP
                         if ( castable and (
-                            (skill.phpl > 0 and skill.phpl > Player.hp.percent)
+							(tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
+                            or (skill.phpl > 0 and skill.phpl > Player.hp.percent)
                             or (skill.phpb > 0 and skill.phpb < Player.hp.percent)
                             or (skill.ppowl > 0 and skill.ppowl > Player.mp.current)
                             or (skill.ppowb > 0 and skill.ppowb < Player.mp.current)					
+							or (tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > Player.tp) --custom
+							or (tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < Player.tp)	--custom	
                             )) then castable = false end	
                         
                         -- PLAYER BUFFS
@@ -953,12 +984,20 @@ function SkillMgr.Cast( entity )
                             end
                         end
                         
-                        -- PREVIOUS SKILL
-                        if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
-                            if ( SkillMgr.prevSkillID ~= skill.pskill) then
-                                castable = false
-                            end
-                        end
+						-- PREVIOUS SKILL
+						if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
+							castable = false
+							for i in skill.pskill:gmatch("%S+") do --custom
+								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
+								if ( SkillMgr.prevSkillID == i) then
+
+
+
+									castable = true
+									break
+								end
+							end
+						end
                         if ( castable ) then
                             -- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
                             if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
