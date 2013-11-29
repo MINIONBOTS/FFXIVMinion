@@ -180,6 +180,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             else
                 gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
             end
+			Settings.FFXIVMINION[tostring(k)] = v
         elseif (
             k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or

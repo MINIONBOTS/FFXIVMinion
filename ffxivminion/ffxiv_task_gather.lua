@@ -18,11 +18,10 @@ function ffxiv_task_gather:Create()
     newinst.currentMarker = false
     newinst.previousMarker = false
     newinst.gatherTimer = 0
-	newinst.gatherDistance = 2.0
+	newinst.gatherDistance = 1.0
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
-	newinst.failedAttempts = 0
     
     return newinst
 end
@@ -66,7 +65,6 @@ function e_findgatherable:execute()
     if (gatherable ~= nil) then
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0
-		ml_task_hub:CurrentTask().failedAttempts = 0
 		
         ml_task_hub.CurrentTask().gatherid = gatherable.id
     else
@@ -90,7 +88,7 @@ function c_movetogatherable:evaluate()
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-        if (gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.1)) then
+        if (gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.5)) then
             return true
         end
     end
@@ -105,7 +103,7 @@ function e_movetogatherable:execute()
         else
             local newTask = ffxiv_task_movetopos:Create()
             newTask.pos = pos
-            newTask.range = ml_task_hub.CurrentTask().gatherDistance - 0.1
+            newTask.range = ml_task_hub.CurrentTask().gatherDistance
             newTask.gatherRange = 0.0
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
@@ -209,8 +207,9 @@ end
 c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
+    local list = Player:GetGatherableSlotList()
     local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (node ~= nil and node.distance2d < ml_task_hub:CurrentTask().gatherDistance + 0.1) then
+    if (node ~= nil and node.distance2d < ml_task_hub:CurrentTask().gatherDistance + 0.5 or list) then
         return true
     end
     
@@ -273,16 +272,9 @@ function e_gather:execute()
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
                     ml_task_hub:CurrentTask().failedTimer = os.time()
-                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 3) then
-					if (node.distance2d <= 0.5 or ml_task_hub:CurrentTask().failedAttempts == 5) then
-                        -- 15 minute blacklist?
-                        ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, os.time() + 1800)
-                        ml_task_hub:CurrentTask().gatherid = 0
-					else
-						-- try to move closer
-						ml_task_hub:CurrentTask().gatherDistance = ml_task_hub:CurrentTask().gatherDistance - 0.5
-						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-					end
+                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 10) then
+					ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, os.time() + 1800)
+					ml_task_hub:CurrentTask().gatherid = 0
 				end
             end
 
