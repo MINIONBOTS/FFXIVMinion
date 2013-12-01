@@ -25,7 +25,7 @@ strings =
 		checkChat						= "Chat Alert",
 		randomfarmspot 					= "Use Random Farmspots",
 		disabledrawing 					= "Disable Rendering",
-		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
+		killaggrononfateenemies 		= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
@@ -209,8 +209,8 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		
-		-- new stuff (since last translation)
-		useMooch						= "Use Mooch"
+		-- new stuff (since last translation) how about adding stuff to all languages instead of causing a crash when not doing it?
+		useMooch						= "Use Mooch",
     },                                  
     ["cn"] =                            
     {                               
@@ -430,6 +430,7 @@ strings =
         yPos                            = "Y 坐标",
         assist                          = "辅助",
 		assistPriority            	    = "优先级",
+		useMooch						= "Use Mooch",
     },
     ["jp"] =
     {
@@ -637,6 +638,7 @@ strings =
         yPos                            = "Y 地点",
         assist                          = "アシスト",
 		assistPriority            	    = "優先度",
+		useMooch						= "Use Mooch",
     },   
     ["de"] =
     {
@@ -844,6 +846,7 @@ strings =
         yPos                            = "Y Position",
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
+		useMooch						= "Use Mooch",
     },     
     ["fr"] =
     {
@@ -1051,6 +1054,7 @@ strings =
         yPos                            = "Y Position",
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
+		useMooch						= "Use Mooch",
     },       
     ["ru"] =
     {
@@ -1258,6 +1262,7 @@ strings =
         yPos                            = "Y Position",
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
+		useMooch						= "Use Mooch",
     },    	
 
 }
