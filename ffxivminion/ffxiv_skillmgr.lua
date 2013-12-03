@@ -802,6 +802,7 @@ end
 function SkillMgr.IsPetSummonSkill(skillID)
     
     if (	skillID == 165
+		or 	skillID == 150
         or 	skillID == 170
         or 	skillID == 180) then
         return true

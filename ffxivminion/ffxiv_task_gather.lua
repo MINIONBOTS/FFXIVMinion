@@ -19,6 +19,7 @@ function ffxiv_task_gather:Create()
     newinst.previousMarker = false
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
+	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -64,16 +65,42 @@ function e_findgatherable:execute()
     local gatherable = GetNearestGatherable(minlevel,maxlevel)
     if (gatherable ~= nil) then
 		-- reset blacklist vars for a new node
-		ml_task_hub:CurrentTask().failedTimer = 0
+		ml_task_hub:CurrentTask().failedTimer = 0		
+        ml_task_hub.CurrentTask().gatherid = gatherable.id		
+				
+		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
+		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
+			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+			local nodePos = gatherable.pos
+			
+			--just for testing
+			local distance2d = Distance2D(nodePos.x, nodePos.z, markerInfo.x, markerInfo.z)
+			ml_debug("Distance2D Node <-> current Marker: "..tostring(distance2d))		
+			local pathdist = NavigationManager:GetPath(nodePos.x,nodePos.y,nodePos.z,markerInfo.x, markerInfo.y,markerInfo.z)
+			if ( pathdist ) then
+				local pdist = PathDistance(pathdist)
+				ml_debug("Path distance Node <-> current Marker : "..tostring(pdist))
+				if ( pdist > 50 ) then
+					ml_task_hub.CurrentTask().maxGatherDistance = pdist + 25
+					return
+				end
+			end			
+		end
+		--default 
+		ml_task_hub.CurrentTask().maxGatherDistance = 250
 		
-        ml_task_hub.CurrentTask().gatherid = gatherable.id
     else
+		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
-            if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 3 ) then
-                local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+            if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 1 ) then
+                local t = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+				ml_task_hub:CurrentTask().markerTime = ml_task_hub:CurrentTask().markerTime - t
+				
+				-- this didnt work, it just moved to the same current marker again
+				--[[local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
                 if (markerInfo ~= nil and markerInfo ~= 0) then
                     Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10, false, gRandomPaths=="1")
-                end
+                end]]
             end
         end
     end
@@ -82,13 +109,13 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-    if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) < 3 ) then
+    if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) < 1 ) then
         return false
     end
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-        if (gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.5)) then
+        if (Player:GetGatherableSlotList() == nil and gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.5)) then
             return true
         end
     end
@@ -172,7 +199,7 @@ function c_nextmarker:evaluate()
         end
         
         if marker ~= nil then
-            if marker ~= currentMarker then
+            if marker ~= ml_task_hub:CurrentTask().currentMarker then
                 e_nextmarker.marker = marker
                 return true
             end
@@ -209,7 +236,7 @@ e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
     local list = Player:GetGatherableSlotList()
     local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (node ~= nil and node.distance2d < ml_task_hub:CurrentTask().gatherDistance + 0.5 or list) then
+    if (list or (node ~= nil and node.distance2d < ml_task_hub:CurrentTask().gatherDistance + 0.5)) then
         return true
     end
     
@@ -225,6 +252,7 @@ function e_gather:execute()
     
         if ( gSMactive == "1") then
             if (SkillMgr.Gather() ) then
+				ml_task_hub:CurrentTask().failedTimer = os.time() -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
                 return
             end
         end
@@ -272,9 +300,10 @@ function e_gather:execute()
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
                     ml_task_hub:CurrentTask().failedTimer = os.time()
-                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 10) then
+                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 12) then
 					ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, os.time() + 1800)
 					ml_task_hub:CurrentTask().gatherid = 0
+					ml_task_hub:CurrentTask().failedTimer = 0
 				end
             end
 

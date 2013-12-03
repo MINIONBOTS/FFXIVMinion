@@ -200,7 +200,6 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
         end
     end
     
-    -- thanks stefan
     local currMarker = currentMarker or ""
     local prevMarker = previousMarker or ""
     
@@ -252,6 +251,7 @@ function GatherMgr.GetMarkerTime(markerName)
     
     return nil
 end
+
 
 function GatherMgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do

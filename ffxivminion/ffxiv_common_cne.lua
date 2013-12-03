@@ -690,12 +690,22 @@ function c_returntomarker:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
+	
+	-- never switch to a new marker when the gatherableitemselect window is up, happens in some rare occasions
+	if gBotMode == strings[gCurrentLanguage].gatherMode then
+        local list = Player:GetGatherableSlotList()
+        if (list ~= nil) then
+            return false
+        end
+    end
     
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
         local myPos = Player.pos
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
         local distance = Distance2D(myPos.x, myPos.z, markerInfo.x, markerInfo.z)
         if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
+			(gBotMode == strings[gCurrentLanguage].partyMode and distance > 200) or
+			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub.CurrentTask().maxGatherDistance and distance > ml_task_hub.CurrentTask().maxGatherDistance) or
             (gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
