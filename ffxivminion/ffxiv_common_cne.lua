@@ -699,6 +699,8 @@ function c_returntomarker:evaluate()
         end
     end
     
+	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
+	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
         local myPos = Player.pos
         local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
@@ -706,7 +708,7 @@ function c_returntomarker:evaluate()
         if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].partyMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub.CurrentTask().maxGatherDistance and distance > ml_task_hub.CurrentTask().maxGatherDistance) or
-            (gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
+			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
         end

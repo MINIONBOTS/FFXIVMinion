@@ -220,11 +220,11 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
                 end
             end
         end
-    else
+    else		
         local rnd = math.random(1,TableSize(list))
         local index = 1
         for name,info in pairs(list) do
-            if rnd == index then
+            if rnd == index then				
                 closestMarker = name
             end
             index = index + 1
