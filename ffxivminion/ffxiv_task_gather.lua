@@ -93,14 +93,18 @@ function e_findgatherable:execute()
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
             if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 1 ) then
-                local t = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
-				ml_task_hub:CurrentTask().markerTime = ml_task_hub:CurrentTask().markerTime - t
-				
-				-- this didnt work, it just moved to the same current marker again
-				--[[local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-                if (markerInfo ~= nil and markerInfo ~= 0) then
-                    Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10, false, gRandomPaths=="1")
-                end]]
+                local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+				local pPos = Player.pos
+				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
+				if (Distance2D(pPos.x, pPos.z, markerInfo.x, markerInfo.z) < 15) then
+					local t = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+					ml_task_hub:CurrentTask().markerTime = ml_task_hub:CurrentTask().markerTime - t
+				else
+					-- walk to the center of our marker first
+					if (markerInfo ~= nil and markerInfo ~= 0) then
+						Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10, false, gRandomPaths=="1")
+					end
+				end
             end
         end
     end
