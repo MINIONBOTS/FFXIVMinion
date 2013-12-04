@@ -211,8 +211,10 @@ function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
         ml_task_hub:Add(task:Create(), LONG_TERM_GOAL, TP_ASAP)
+		gBotMode = mode
     end
 end
+
 
 function ffxivminion.CheckClass()
     local classes = 
@@ -246,6 +248,18 @@ function ffxivminion.CheckClass()
         ml_global_information.CurrentClassID = Player.job
         if ml_global_information.CurrentClass ~= nil then
             ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+			
+			-- autosetting the correct botmode
+			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist ) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].gatherMode)
+			elseif ( ml_global_information.CurrentClass == ffxiv_gather_miner ) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].gatherMode)
+			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].fishMode)
+			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode ) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)
+			end
+			
         else
             ml_global_information.AttackRange = 3
         end

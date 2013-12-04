@@ -456,13 +456,19 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
             end
         end
         if ( 	k == "gDoStealth" or
-                k == "gRandomMarker" or
                 k == "gChangeJobs" or
                 k == "gGatherPS" or
                 k == "gGatherTP" or
                 k == "gIgnoreGatherLvl" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
+		if ( k == "gRandomMarker" ) then
+			-- always enable ignorelevel with randomMarkers to prevent fuckups
+			if ( v == "1") then
+				gIgnoreGrindLvl = "1"
+			end
+			Settings.FFXIVMINION[tostring(k)] = v
+		end
     end
     GUI_RefreshWindow(ml_global_information.MainWindow.Name)
 end
