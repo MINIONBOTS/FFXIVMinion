@@ -60,7 +60,7 @@ ffxivminion.modes =
     [strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
     [strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
     [strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
-    --["Crafting"] = ffxiv_task_craft,
+	[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
     [strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
     [strings[gCurrentLanguage].partyMode]	= ffxiv_task_party
 }
@@ -238,8 +238,16 @@ function ffxivminion.CheckClass()
         [FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
         [FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
         [FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
-        [FFXIV.JOBS.MINER] 			= ffxiv_gather_miner
-        
+        [FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
+		
+		[FFXIV.JOBS.CARPENTER] 		= ffxiv_crafting_carpenter,
+        [FFXIV.JOBS.BLACKSMITH] 	= ffxiv_crafting_blacksmith,
+		[FFXIV.JOBS.ARMORER] 		= ffxiv_crafting_armorer,
+		[FFXIV.JOBS.GOLDSMITH] 		= ffxiv_crafting_goldsmith,
+		[FFXIV.JOBS.LEATHERWORKER] 	= ffxiv_crafting_leatherworker,
+		[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
+		[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
+		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
     }
     
     --TODO check which class we are currently using and modify globals appropriately
@@ -256,8 +264,14 @@ function ffxivminion.CheckClass()
 				ffxivminion.SetMode(strings[gCurrentLanguage].gatherMode)
 			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
 				ffxivminion.SetMode(strings[gCurrentLanguage].fishMode)
-			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode ) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)
+			elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
+					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
+					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
+					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].craftMode)
+			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
+			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode or gBotMode == strings[gCurrentLanguage].craftMode) then
+				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)				
 			end
 			
         else
