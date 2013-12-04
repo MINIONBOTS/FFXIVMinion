@@ -1052,17 +1052,18 @@ function SkillMgr.Craft()
                 if ( realskilldata and realskilldata.isready ) then
 				
                     local castable = true
-                    --d("Checking on skill:" ..tostring(skill.durabmin > 0 ) .. " condis: "..tostring(skill.durabmax > 0))
-                    if ( (skill.stepmin > 0 and synth.step < skill.stepmin) or
-                        (skill.stepmax > 0 and synth.step > skill.stepmax) or
-                        (skill.cpmin > 0 and Player.cp.current < skill.cpmin) or
-                        (skill.cpmax > 0 and Player.cp.current > skill.cpmax) or
-                        (skill.durabmin > 0 and synth.durability < skill.durabmin) or
-                        (skill.durabmax > 0 and synth.durability > skill.durabmax) or
-                        (skill.progrmin > 0 and synth.progress < skill.progrmin) or
-                        (skill.progrmax > 0 and synth.progress > skill.progrmax) or
-                        (skill.qualitymin > 0 and synth.quality < skill.qualitymin) or
+                    --d("Checking on skill:"..tostring(skill.name).."  "..tostring(synth.durability).." > "..tostring(skill.durabmax) .. ": "..tostring(skill.durabmax > 0 and synth.durability > skill.durabmax))
+					--d("Checking on skill:"..tostring(skill.name).."  "..tostring(skill.condition).." > "..tostring(synth.description) .. ": "..tostring(skill.condition ~= "NotUsed" and synth.description ~= skill.condition))
+                    if ( (skill.stepmin > 0 and synth.step > skill.stepmin) or
+                        (skill.stepmax > 0 and synth.step < skill.stepmax) or
+                        (skill.cpmin > 0 and Player.cp.current > skill.cpmin) or
+                        (skill.cpmax > 0 and Player.cp.current < skill.cpmax) or
+                        (skill.durabmin > 0 and synth.durability > skill.durabmin) or
+                        (skill.durabmax > 0 and synth.durability < skill.durabmax) or
+                        (skill.progrmin > 0 and synth.progress > skill.progrmin) or
+                        (skill.progrmax > 0 and synth.progress < skill.progrmax) or
                         (skill.qualitymin > 0 and synth.quality > skill.qualitymin) or
+                        (skill.qualitymin > 0 and synth.quality < skill.qualitymin) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
 						d("Not gonna get used")
