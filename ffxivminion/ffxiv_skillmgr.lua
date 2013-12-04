@@ -14,6 +14,7 @@ SkillMgr.UIRefreshPending = false
 SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
 SkillMgr.prevSkillID = ""
+SkillMgr.lastSkillID = ""
 
 function SkillMgr.ModuleInit() 	
     if (Settings.FFXIVMINION.gSMactive == nil) then
@@ -1005,7 +1006,13 @@ function SkillMgr.Cast( entity )
                                 d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))								
                                 if ( ActionList:Cast(skill.id,TID) ) then									
                                     skill.lastcast = ml_global_information.Now
-                                    SkillMgr.prevSkillID = tostring(skill.id)
+					if ShouldNotSetPrev(skill.id) == true  then
+						SkillMgr.prevSkillID = tostring(skill.id)										                 
+					end
+					if SkillMgr.lastSkillID == tostring(skill.id) then
+						SkillMgr.prevSkillID = tostring(skill.id)   
+					end   
+					SkillMgr.lastSkillID = tostring(skill.id)
                                 end
                             --[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
                                 d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))
