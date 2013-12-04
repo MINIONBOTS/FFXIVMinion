@@ -385,3 +385,39 @@ function NodeHasItem(itemName)
     
     return false
 end
+SkillsSkip = { 
+10, --Rampart
+20, --Flight or Fight
+14, --Flash
+12, --Convalescence
+18, --Provoke
+26, --Sword Oath
+25, --Shield Swipe
+13, --Awareness
+27, --Cover
+17, --Sentinel
+28, --Shield Oath
+19, --Tempered Will
+29, --Spirits Within
+22, --Bulwark
+30, --Hallowed Ground
+32, --Foresight
+34, --Bloodbath
+120, --Cure
+129 --StoneSkin
+}
+
+function ShouldNotSetPrev(skills)
+	local SID = skills
+	local SList = SkillsSkip	
+    if (TableSize(SList) > 0 ) then						
+		local i,skip = next(SList) 			
+		while (i~=nil and skip ~=nil) do 			
+			if tonumber(SID) == tonumber(skip) then
+				return false
+			end			
+			i,skip = next(SList,i) 		
+		end
+		return true
+	end
+end
