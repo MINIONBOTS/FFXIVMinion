@@ -100,6 +100,7 @@ function SkillMgr.ModuleInit()
     GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails",strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_CPBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHasNot,"SKM_CPNBuff","SkillDetails");
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].iqstack,"SKM_IQSTACK","SkillDetails");
     
     -- Gathering EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
@@ -179,6 +180,7 @@ function SkillMgr.ModuleInit()
     SKM_CONDITION = "NotUsed"
 	SKM_CPBuff = ""
 	SKM_CPNBuff = ""
+	SKM_IQSTACK = 0
     --Gathering
     SKM_GPMIN = 0
     SKM_GPMAX = 0
@@ -248,6 +250,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
 		elseif ( k == "SKM_CPBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpbuff = v
         elseif ( k == "SKM_CPNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpnbuff = v
+		elseif ( k == "SKM_IQSTACK" ) then SkillMgr.SkillProfile[SKM_Prio].iqstack = v
+		
         --gathering
         elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
         elseif ( k == "SKM_GPMAX" ) then SkillMgr.SkillProfile[SKM_Prio].gpmax = tonumber(v)
@@ -414,7 +418,8 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"			
                 string2write = string2write.."SKM_CONDITION="..skill.condition.."\n"
 				string2write = string2write.."SKM_CPBuff="..skill.cpbuff.."\n" 
-                string2write = string2write.."SKM_CPNBuff="..skill.cpnbuff.."\n" 	
+                string2write = string2write.."SKM_CPNBuff="..skill.cpnbuff.."\n" 
+				string2write = string2write.."SKM_IQSTACK="..skill.iqstack.."\n" 
             elseif ( job >= 16 and job <=17 ) then
                 -- gathering		
                 string2write = string2write.."SKM_GPMIN="..skill.gpmin.."\n"			
@@ -535,6 +540,8 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
                             elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
 							elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
                             elseif ( key == "CPNBuff" )then newskill.cpnbuff = tostring(value)
+							elseif ( key == "IQSTACK" )then newskill.iqstack = tostring(value)
+							
                             --gathering
                             elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
                             elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
@@ -699,6 +706,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 condition = skill.condition or "NotUsed",
 				cpbuff = skill.cpbuff or "",
                 cpnbuff = skill.cpnbuff or "",
+				iqstack = skill.iqstack or 0,
                 --gathering
                 gpmin=skill.gpmin or 0,
                 gpmax=skill.gpmax or 0,
@@ -737,6 +745,7 @@ function SkillMgr.EditSkill(event)
             SKM_CONDITION = skill.condition or "NotUsed"
 			SKM_CPBuff = skill.cpbuff or ""
             SKM_CPNBuff = skill.cpnbuff or ""
+			SKM_IQSTACK = skill.iqstack or 0
         end	
     elseif ( job >= 16 and job <=17 ) then
         -- Gathering Editor 
@@ -1037,12 +1046,39 @@ function SkillMgr.Cast( entity )
 	return false
 end
 
+
+SkillMgr.lastquality = 0
+SkillMgr.currentIQStack = 0
 function SkillMgr.Craft()
     
     local synth = Crafting:SynthInfo()
     if ( TableSize(synth) > 0 and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 
 		local pbuffs = Player.buffs
+		
+		-- update inner quite stack
+		local iqfound=false
+		if ( TableSize(pbuffs) > 0) then
+			for i, buff in pairs(pbuffs) do
+                if (buff.id == 251) then
+						-- first time we have the buff
+					if ( SkillMgr.lastquality == 0 ) then
+						SkillMgr.lastquality = synth.quality
+					elseif ( synth.quality > SkillMgr.lastquality ) then
+						-- second time in here with increased quality -> we gained a stack IQ
+						SkillMgr.lastquality = synth.quality
+						SkillMgr.currentIQStack = SkillMgr.currentIQStack + 1
+					end
+					iqfound = true
+					break
+                end
+            end
+		end
+		-- reset
+		if not iqfound then 
+			SkillMgr.currentIQStack = 0 
+			SkillMgr.lastquality = 0
+		end
 		
         for prio,skill in pairs(SkillMgr.SkillProfile) do
 		
@@ -1064,6 +1100,7 @@ function SkillMgr.Craft()
                         (skill.progrmax > 0 and synth.progress < skill.progrmax) or
                         (skill.qualitymin > 0 and synth.quality >= skill.qualitymin) or
                         (skill.qualitymin > 0 and synth.quality < skill.qualitymin) or
+						(skill.iqstack > 0 and SkillMgr.currentIQStack < skill.iqstack) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
 						d("Not gonna get used")

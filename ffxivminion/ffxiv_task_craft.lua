@@ -80,6 +80,8 @@ end
 function e_selectitem:execute()
     Crafting:CraftSelectedItem()
 	Crafting:ToggleCraftingLog()
+	SkillMgr.currentIQStack = 0 
+	SkillMgr.lastquality = 0
 end
 
 
