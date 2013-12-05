@@ -250,7 +250,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
 		elseif ( k == "SKM_CPBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpbuff = v
         elseif ( k == "SKM_CPNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpnbuff = v
-		elseif ( k == "SKM_IQSTACK" ) then SkillMgr.SkillProfile[SKM_Prio].iqstack = v
+		elseif ( k == "SKM_IQSTACK" ) then SkillMgr.SkillProfile[SKM_Prio].iqstack = tonumber(v)
 		
         --gathering
         elseif ( k == "SKM_GPMIN" ) then SkillMgr.SkillProfile[SKM_Prio].gpmin = tonumber(v)
@@ -540,7 +540,7 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
                             elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
 							elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
                             elseif ( key == "CPNBuff" )then newskill.cpnbuff = tostring(value)
-							elseif ( key == "IQSTACK" )then newskill.iqstack = tostring(value)
+							elseif ( key == "IQSTACK" )then newskill.iqstack = tonumber(value)
 							
                             --gathering
                             elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
@@ -745,7 +745,7 @@ function SkillMgr.EditSkill(event)
             SKM_CONDITION = skill.condition or "NotUsed"
 			SKM_CPBuff = skill.cpbuff or ""
             SKM_CPNBuff = skill.cpnbuff or ""
-			SKM_IQSTACK = skill.iqstack or 0
+			SKM_IQSTACK = tonumber(skill.iqstack) or 0
         end	
     elseif ( job >= 16 and job <=17 ) then
         -- Gathering Editor 
