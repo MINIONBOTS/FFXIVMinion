@@ -1103,7 +1103,6 @@ function SkillMgr.Craft()
 						(skill.iqstack > 0 and SkillMgr.currentIQStack < skill.iqstack) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
-						d("Not gonna get used")
                     end
                         
 					-- buff checks
