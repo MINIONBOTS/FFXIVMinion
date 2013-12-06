@@ -59,7 +59,6 @@ function ffxiv_task_assist:GetAttackTarget()
 end
 
 
--- Fuck this taskshit, all it should do is : pick (better) target + cast!
 function ffxiv_task_assist:Process()
 
     local target = Player:GetTarget()
@@ -85,7 +84,7 @@ function ffxiv_task_assist:Process()
         end
     end	
 
-    if 	( target and target.alive and target.distance2d <= 30 ) then
+    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance2d <= 30 ) then
         local pos = target.pos
         
         --Player:SetFacing(pos.x,pos.y,pos.z)

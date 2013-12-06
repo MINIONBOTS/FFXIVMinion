@@ -174,9 +174,10 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
     
     local list = {}
     
-    if (markerType == "miningSpot" or markerType == "botanySpot" and gChangeJobs) then
-        for k,v in pairs(mm.MarkerList["miningSpot"]) do list[k] = v end
-        for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
+    if (markerType == "miningSpot" and gChangeJobs) then
+		for k,v in pairs(mm.MarkerList["miningSpot"]) do list[k] = v end
+    elseif ( markerType == "botanySpot" and gChangeJobs ) then
+		for k,v in pairs(mm.MarkerList["botanySpot"]) do list[k] = v end
     else
         list = mm.MarkerList[markerType]
     end
