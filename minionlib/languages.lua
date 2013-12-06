@@ -216,8 +216,10 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		
-		-- new stuff (since last translation) how about adding stuff to all languages instead of causing a crash when not doing it?
+		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
+		
     },                                  
     ["cn"] =                            
     {                               
@@ -445,6 +447,7 @@ strings =
         assist                          = "辅助",
 		assistPriority            	    = "优先级",
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
     },
     ["jp"] =
     {
@@ -660,6 +663,7 @@ strings =
         assist                          = "アシスト",
 		assistPriority            	    = "優先度",
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
     },   
     ["de"] =
     {
@@ -875,6 +879,7 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
     },     
     ["fr"] =
     {
@@ -1090,6 +1095,7 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
     },       
     ["ru"] =
     {
@@ -1305,6 +1311,7 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
+		markerManager					= "MarkerManager"
     },    	
 
 }
