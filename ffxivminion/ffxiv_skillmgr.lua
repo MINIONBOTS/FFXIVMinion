@@ -829,15 +829,13 @@ function SkillMgr.Cast( entity )
         local ebuffs = entity.buffs
         
         local pet = Player.pet
-        local tank = 0
-		
+        local tank = GetBestHealTargetTank()
         local ally = GetBestHealTarget()
 		local isally = false
 		local targetbased = false
-        
-        if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
-            
-            for prio,skill in pairs(SkillMgr.SkillProfile) do
+		
+        if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then       
+            for prio,skill in pairs(SkillMgr.SkillProfile) do				
                 if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
                     local realskilldata = ActionList:Get(skill.id)
                     if ( realskilldata and realskilldata.isready ) then 
@@ -915,14 +913,17 @@ function SkillMgr.Cast( entity )
                             TID = PID
                             tbuffs = pbuffs
                         end						
-                        -- RANGE 	
-						if skill.maxrange > 0 then
+                        -- RANGE 
+						
+						if skill.maxRange > 0 then							
 							targetbased = true
-						end								
+						end
                         if ( castable and (
                                    (skill.minRange > 0 and target.distance2d < skill.minRange)
                                 or (skill.maxRange > 0 and target.distance2d > skill.maxRange+target.hitradius+1)--target.distance2d- target.hitradius > skill.maxRange)
                                 )) then castable = false end
+
+
                                                 
                         -- HEALTH
                         if ( castable and (
@@ -944,7 +945,7 @@ function SkillMgr.Cast( entity )
                         -- TARGET AE CHECK
                         if ( castable and skill.tecount > 0 and skill.terange > 0) then
 							
-							target = GetAoETarget(isally,TargetBased,skill.maxRange,skill.terange,skill.thpb,skill.tecount)
+							target = GetAoETarget(isally,targetbased,skill.maxRange,skill.terange,skill.thpb,skill.tecount)
 							if target == false then
 								castable = false
 							end
