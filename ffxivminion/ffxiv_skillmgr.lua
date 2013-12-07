@@ -1,4 +1,5 @@
-﻿-- Skillmanager for adv. skill customization
+-- Skillmanager for adv. skill customization
+-- Skillmanager for adv. skill customization
 SkillMgr = { }
 SkillMgr.version = "v0.5";
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
@@ -49,7 +50,6 @@ function SkillMgr.ModuleInit()
     gSMactive = Settings.FFXIVMINION.gSMactive	
     gSMnewname = ""
     
-    
     -- EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h)		
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME","SkillDetails")
@@ -67,7 +67,7 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP >","SKM_PTPL","SkillDetails") -- Needs a string
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP <","SKM_PTPB","SkillDetails") -- Needs a string
-    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally");
+    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally,Tank");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].enemiesNearCount,"SKM_TECount","SkillDetails");
@@ -251,7 +251,6 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         end
     end
 end
-
 
 function SkillMgr.OnUpdate( event, tick )
     
@@ -456,7 +455,6 @@ function SkillMgr.SaveProfile()
         end
     end
 end
-
 --+
 function SkillMgr.UpdateCurrentProfileData()
     if ( gSMprofile ~= nil and gSMprofile ~= "" and gSMprofile ~= "None" ) then
@@ -565,7 +563,6 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 end
 
-
 --+Rebuilds the UI Entries for the SkillbookList
 function SkillMgr.RefreshSkillBook()
     local SkillList = ActionList("type=1,minlevel=1")
@@ -618,7 +615,6 @@ function SkillMgr.AddSkillToProfile(event)
         SkillMgr.CreateNewSkillEntry(SkillMgr.SkillBook[event])
     end
 end
-
 
 --+Rebuilds the UI Entries for the Profile-SkillList
 function SkillMgr.RefreshSkillList()	
@@ -783,7 +779,6 @@ function SkillMgr.EditSkill(event)
     end
 end
 
-
 function SkillMgr.ToggleMenu()
     if (SkillMgr.visible) then
         GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
@@ -817,7 +812,7 @@ function SkillMgr.GetHealSpellHPLimit()
     if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
         for prio,skill in pairs(SkillMgr.SkillProfile) do
             --d(tostring(skill.trg).." "..tostring(skill.thpb))
-            if ( (skill.trg == "Ally" or skill.trg == "Player") and skill.thpb > 0 and skill.thpb > highestHPLimit ) then
+            if ( (skill.trg == "Ally" or skill.trg == "Player" or skill.trg == "Tank") and skill.thpb > 0 and skill.thpb > highestHPLimit ) then
                 highestHPLimit = skill.thpb
             end
         end
@@ -834,8 +829,11 @@ function SkillMgr.Cast( entity )
         local ebuffs = entity.buffs
         
         local pet = Player.pet
-        
+        local tank = 0
+		
         local ally = GetBestHealTarget()
+		local isally = false
+		local targetbased = false
         
         if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
             
@@ -866,72 +864,61 @@ function SkillMgr.Cast( entity )
                             )) then castable = false end	
                         
                         -- PLAYER BUFFS
-                        if ( castable and TableSize(pbuffs) > 0) then 							
-                            -- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
-                            if (skill.pbuff ~= "" ) then								
-                                local tbfound = false
-                                for buffid in StringSplit(skill.pbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(pbuffs) do
-                                            if (buff.id == tonumber(buffid)) then--and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
-                                if not tbfound then castable = false end								
-                            end
-                            -- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
-                            if (skill.pnbuff ~= "" ) then
-                                local tbfound = false
-                                for buffid in StringSplit(skill.pnbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(pbuffs) do
-                                            if (buff.id == tonumber(buffid)) then --and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
-                                if tbfound then castable = false end								
-                            end							
-                        end	
                         
-                                                                                                                            
+					   
+					    if ( castable and TableSize(pbuffs) > 0) then 							
+							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
+                            if DoesPlayerHaveBuff(skill.pbuff) == false then
+								castable = false
+							-- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
+							elseif  DoesPlayerHaveBuff(skill.pnbuff) == true then
+								castable = false
+							end
+                        end	                        
+                                                                                                                        
                         -- SWITCH TARGET FOR PET / ALLY - CHECK
                         if ( skill.trg == "Pet" ) then
                             if ( pet ~= nil and pet ~= 0) then
                                 if ( SkillMgr.IsPetSummonSkill(skill.id) ) then castable = false end -- we still have a pet, no need to summon
                                 target = pet
                                 TID = pet.id
-                                tbuffs = pet.buffs
-                                
-                            else	
-                            
+                                tbuffs = pet.buffs                                
+                            else                            
                             -- we have no pet, check if the skill is summoning a new pet, else dont cast
                                 if not SkillMgr.IsPetSummonSkill(skill.id) then 
                                     castable = false 
                                 else
                                     -- we need to cast the summon on our player
+									isally = true
                                     target = Player
                                     TID = PID
                                     tbuffs = pbuffs
                                 end
                             end
-                        elseif ( skill.trg == "Ally" ) then
+                        elseif ( skill.trg == "Tank" ) then
+						    if ( tank ~= nil and ally.id ~= PID) then
+								isally = true
+                                target = tank
+                                TID = tank.id
+                                tbuffs = tank.buffs
+                            end
+						elseif ( skill.trg == "Ally" ) then
                             if ( ally ~= nil and ally.id ~= PID) then
+								isally = true
                                 target = ally
                                 TID = ally.id
                                 tbuffs = ally.buffs
                             end
-                        elseif ( skill.trg == "Player" ) then							
+                        elseif ( skill.trg == "Player" ) then
+							isally = true						
                             target = Player
                             TID = PID
                             tbuffs = pbuffs
-                        end
-                        -- RANGE 							
+                        end						
+                        -- RANGE 	
+						if skill.maxrange > 0 then
+							targetbased = true
+						end								
                         if ( castable and (
                                    (skill.minRange > 0 and target.distance2d < skill.minRange)
                                 or (skill.maxRange > 0 and target.distance2d > skill.maxRange+target.hitradius+1)--target.distance2d- target.hitradius > skill.maxRange)
@@ -947,43 +934,20 @@ function SkillMgr.Cast( entity )
                         -- TARGET BUFFS
                         if ( castable and TableSize(tbuffs) > 0) then 							
                             -- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
-                            if (skill.tbuff ~= "" ) then								
-                                local tbfound = false
-                                for buffid in StringSplit(skill.tbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(tbuffs) do
-                                            if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
-                                if not tbfound then castable = false end								
-                            end
-                            -- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
-                            if (skill.tnbuff ~= "" ) then
-                                local tbfound = false
-                                for buffid in StringSplit(skill.tnbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(tbuffs) do
-                                            if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
-                                if tbfound then castable = false end								
-                            end							
-                        end
-                                    
+                            if DoesEntityHaveBuff(skill.tbuff) == false then
+								castable = false
+							 -- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
+							elseif  DoesEntityHaveBuff(skill.tnbuff) == true then
+								castable = false
+							end                                    
                         
                         -- TARGET AE CHECK
                         if ( castable and skill.tecount > 0 and skill.terange > 0) then
-                            if ( ( TableSize(EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..target.id)) < skill.tecount)) then
-                                castable = false
-                            end
+							
+							target = GetAoETarget(isally,TargetBased,skill.maxRange,skill.terange,skill.thpb,skill.tecount)
+							if target == false then
+								castable = false
+							end
                         end
                         
 						-- PREVIOUS SKILL
@@ -992,8 +956,6 @@ function SkillMgr.Cast( entity )
 							for i in skill.pskill:gmatch("%S+") do --custom
 								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
 								if ( SkillMgr.prevSkillID == i) then
-
-
 
 									castable = true
 									break
@@ -1006,13 +968,13 @@ function SkillMgr.Cast( entity )
                                 d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))								
                                 if ( ActionList:Cast(skill.id,TID) ) then									
                                     skill.lastcast = ml_global_information.Now
-					if ShouldNotSetPrev(skill.id) == true  then
-						SkillMgr.prevSkillID = tostring(skill.id)										                 
-					end
-					if SkillMgr.lastSkillID == tostring(skill.id) then
-						SkillMgr.prevSkillID = tostring(skill.id)   
-					end   
-					SkillMgr.lastSkillID = tostring(skill.id)
+										if ShouldNotSetPrev(skill.id) == true then
+                                                SkillMgr.prevSkillID = tostring(skill.id)                                                                                
+                                        end
+                                        if SkillMgr.lastSkillID == tostring(skill.id) then
+                                                SkillMgr.prevSkillID = tostring(skill.id)
+                                        end
+                                        SkillMgr.lastSkillID = tostring(skill.id)
                                 end
                             --[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
                                 d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))
@@ -1027,6 +989,7 @@ function SkillMgr.Cast( entity )
             end
         end
     end
+end
 end
 
 function SkillMgr.Craft( )
@@ -1131,7 +1094,6 @@ function ffxiv_task_skillmgrAttack:Create()
     return newinst
 end
 
-
 function ffxiv_task_skillmgrAttack:Process()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (target ~= nil and target.alive and InCombatRange(target.id)) then
@@ -1198,7 +1160,6 @@ function ffxiv_task_skillmgrHeal:Create()
     
     return newinst
 end
-
 
 function ffxiv_task_skillmgrHeal:Process()
     
