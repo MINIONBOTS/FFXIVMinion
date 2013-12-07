@@ -1099,7 +1099,7 @@ function SkillMgr.Craft()
                         (skill.progrmin > 0 and synth.progress >= skill.progrmin) or
                         (skill.progrmax > 0 and synth.progress < skill.progrmax) or
                         (skill.qualitymin > 0 and synth.quality >= skill.qualitymin) or
-                        (skill.qualitymin > 0 and synth.quality < skill.qualitymin) or
+                        (skill.qualitymax > 0 and synth.quality < skill.qualitymax) or
 						(skill.iqstack > 0 and SkillMgr.currentIQStack < skill.iqstack) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
