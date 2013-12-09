@@ -680,7 +680,14 @@ function c_dead:evaluate()
 end
 function e_dead:execute()
     ml_debug("Respawning...")
-    Player:Respawn()
+	-- try raise first
+    if(PressYesNo(true)) then
+      return
+    end
+	-- press ok
+    if(PressOK()) then
+      return
+    end
 end
 
 -- more to refactor here later most likely
