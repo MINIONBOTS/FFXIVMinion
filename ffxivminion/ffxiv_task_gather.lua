@@ -320,53 +320,6 @@ function e_gather:execute()
     end
 end
 
----------------------------------------------------------------------------------------------
---STEALTH: If (distance to aggro < 18) Then (cast stealth)
---Uses stealth when gathering to avoid aggro
----------------------------------------------------------------------------------------------
-c_stealth = inheritsFrom( ml_cause )
-e_stealth = inheritsFrom( ml_effect )
-function c_stealth:evaluate()
-    if (gDoStealth == "0" or Player.ismounted) then
-        return false
-    end
-    local action = nil
-    if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = ActionList:Get(212)
-    elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = ActionList:Get(229)
-    elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = ActionList:Get(298)
-    end
-    
-    if (action and action.isready) then
-    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=25")
-        if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
-          (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
-        then
-            return true
-        end
-    end
- 
-    return false
-end
-function e_stealth:execute()
-    local action = nil
-    if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = ActionList:Get(212)
-    elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = ActionList:Get(229)
-    elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = ActionList:Get(298)
-    end
-    if(action and action.isready) then
-        if HasBuff(Player.id, 47) then
-            Player:Stop()
-        end
-        action:Cast()
-    end
-end
-
 c_atnode = inheritsFrom( ml_cause )
 e_atnode = inheritsFrom( ml_effect )
 function c_atnode:evaluate()
@@ -402,6 +355,9 @@ end
 
 function ffxiv_task_gather:Init()
     --init ProcessOverWatch cnes
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
+    self:add( ke_dead, self.overwatch_elements)
+    
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
     self:add( ke_stealth, self.overwatch_elements)
 	

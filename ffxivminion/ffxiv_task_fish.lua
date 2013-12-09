@@ -130,6 +130,14 @@ function e_setbait:execute()
 end
 
 function ffxiv_task_fish:Init()
+
+    --init ProcessOverwatch() cnes
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
+    self:add( ke_dead, self.overwatch_elements)
+    
+    local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
+    self:add( ke_stealth, self.overwatch_elements)
+  
     --init Process() cnes
     local ke_finishcast = ml_element:create( "FinishingCast", c_finishcast, e_finishcast, 30 )
     self:add(ke_finishcast, self.process_elements)
@@ -170,6 +178,7 @@ end
 function ffxiv_task_fish.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealthFish",strings[gCurrentLanguage].fishMode)
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
     if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
@@ -179,8 +188,14 @@ function ffxiv_task_fish.UIInit()
 	if (Settings.FFXIVMINION.gUseMooch == nil) then
         Settings.FFXIVMINION.gUseMooch = "1"
     end
+    
+    if (Settings.FFXIVMINION.gDoStealthFish == nil) then
+        Settings.FFXIVMINION.gDoStealthFish = "0"
+    end
+    
     gIgnoreFishLvl = Settings.FFXIVMINION.gIgnoreFishLvl
 	gUseMooch = Settings.FFXIVMINION.gUseMooch
+	gDoStealthFish = Settings.FFXIVMINION.gDoStealthFish
     
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 end
@@ -188,7 +203,9 @@ end
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if 	( k == "gIgnoreFishLvl" ) or
-			( k == "gUseMooch" )then
+			( k == "gUseMooch" ) or
+            ( k == "gDoStealthFish" )
+        then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end

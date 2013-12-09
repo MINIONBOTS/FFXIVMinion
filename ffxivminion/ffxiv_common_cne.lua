@@ -736,3 +736,53 @@ function e_returntomarker:execute()
     end
     ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
+
+---------------------------------------------------------------------------------------------
+--STEALTH: If (distance to aggro < 18) Then (cast stealth)
+--Uses stealth when gathering to avoid aggro
+---------------------------------------------------------------------------------------------
+c_stealth = inheritsFrom( ml_cause )
+e_stealth = inheritsFrom( ml_effect )
+function c_stealth:evaluate()
+    if  (Player.ismounted or
+        (gBotMode == strings[gCurrentLanguage].gatherMode and gDoStealth == "0") or
+        (gBotMode == strings[gCurrentLanguage].fishMode and gDoStealthFish == "0"))
+    then
+        return false
+    end
+    local action = nil
+    if (Player.job == FFXIV.JOBS.BOTANIST) then
+        action = ActionList:Get(212)
+    elseif (Player.job == FFXIV.JOBS.MINER) then
+        action = ActionList:Get(229)
+    elseif (Player.job == FFXIV.JOBS.FISHER) then
+        action = ActionList:Get(298)
+    end
+    
+    if (action and action.isready) then
+    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=25")
+        if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
+          (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
+        then
+            return true
+        end
+    end
+ 
+    return false
+end
+function e_stealth:execute()
+    local action = nil
+    if (Player.job == FFXIV.JOBS.BOTANIST) then
+        action = ActionList:Get(212)
+    elseif (Player.job == FFXIV.JOBS.MINER) then
+        action = ActionList:Get(229)
+    elseif (Player.job == FFXIV.JOBS.FISHER) then
+        action = ActionList:Get(298)
+    end
+    if(action and action.isready) then
+        if HasBuff(Player.id, 47) then
+            Player:Stop()
+        end
+        action:Cast()
+    end
+end
