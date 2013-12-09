@@ -990,9 +990,7 @@ function SkillMgr.Cast( entity )
                             end
                           end
                         end
-                        
-                        
-                        
+                                               
                         -- ISMOVING CHECK
                         if( castable) then
                           if(Player:IsMoving() and realskilldata.casttime > 0) then
