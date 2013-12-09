@@ -355,7 +355,7 @@ end
 
 function ffxiv_task_gather:Init()
     --init ProcessOverWatch cnes
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
     self:add( ke_dead, self.overwatch_elements)
     
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
