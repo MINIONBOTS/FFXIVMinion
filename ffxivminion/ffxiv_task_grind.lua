@@ -93,7 +93,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFleeMP" or
                 k == "gFateWaitPercent" or
                 k == "gFateBLTimer" or
-                k == "gRestInFates")
+                k == "gRestInFates" or
+                k == "gCombatRangePercent" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -131,6 +132,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates","Fates")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly","Fates")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
@@ -196,6 +198,10 @@ function ffxiv_task_grind.UIInit()
         Settings.FFXIVMINION.gFleeMP = "0"
     end
     
+   if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
+        Settings.FFXIVMINION.gCombatRangePercent = "75"
+    end
+    
     if (Settings.FFXIVMINION.gRestInFates == nil) then
         Settings.FFXIVMINION.gRestInFates = "1"
     end
@@ -229,6 +235,7 @@ function ffxiv_task_grind.UIInit()
     gRestMP = Settings.FFXIVMINION.gRestMP
     gFleeHP = Settings.FFXIVMINION.gFleeHP
     gFleeMP = Settings.FFXIVMINION.gFleeMP
+    gCombatRangePercent = Settings.FFXIVMINION.gCombatRangePercent
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
     gFateBlacklist = Settings.FFXIVMINION.gFateBlacklist

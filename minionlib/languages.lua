@@ -218,7 +218,8 @@ strings =
 		
 		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
 		
     },                                  
     ["cn"] =                            
@@ -447,7 +448,8 @@ strings =
         assist                          = "辅助",
 		assistPriority            	    = "优先级",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
     },
     ["jp"] =
     {
@@ -663,7 +665,8 @@ strings =
         assist                          = "アシスト",
 		assistPriority            	    = "優先度",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
     },   
     ["de"] =
     {
@@ -879,7 +882,8 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
     },     
     ["fr"] =
     {
@@ -1095,7 +1099,8 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
     },       
     ["ru"] =
     {
@@ -1311,7 +1316,8 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+        combatRangePercent              = "Combat Range %: "
     },    	
 
 }
