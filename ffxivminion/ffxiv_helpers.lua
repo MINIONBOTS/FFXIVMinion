@@ -197,6 +197,50 @@ function HasBuffFrom(targetID, buffID, ownerID)
         end
     end
 end
+function HasBuffs(entity, buffIDs, ownerid)
+    local buffs = entity.buffs
+    if (buffs == nil or TableSize(buffs) == 0) then return false end
+    for _orids in StringSplit(buffIDs,",") do
+      local found = false
+      for _andid in StringSplit(_orids,"+") do
+          found = false
+          for i, buff in pairs(buffs) do
+            if (buff.id == tonumber(_andid)and buff.ownerid == ownerid) then 
+              found = true 
+            end
+          end
+          if (not found) then 
+            break
+          end
+      end
+      if (found) then 
+        return true 
+      end
+    end
+    return false
+end
+function HasBuffs(entity, buffIDs)
+    local buffs = entity.buffs
+    if (buffs == nil or TableSize(buffs) == 0) then return false end
+    for _orids in StringSplit(buffIDs,",") do
+      local found = false
+      for _andid in StringSplit(_orids,"+") do
+          found = false
+          for i, buff in pairs(buffs) do
+            if (buff.id == tonumber(_andid)) then 
+              found = true 
+            end
+          end
+          if (not found) then 
+            break
+          end
+      end
+      if (found) then 
+        return true 
+      end
+    end
+    return false
+end
 
 function IsBehind(entity)
     if(entity.distance2d < ml_global_information.AttackRange) then

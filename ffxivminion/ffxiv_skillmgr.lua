@@ -97,6 +97,9 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].progrmax,"SKM_PROGMAX","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMIN","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails");
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMINP","SkillDetails");
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails")   
+    
     GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails",strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_CPBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHasNot,"SKM_CPNBuff","SkillDetails");
@@ -776,8 +779,8 @@ function SkillMgr.EditSkill(event)
             SKM_ID = skill.id
             SKM_ON = skill.used or "1"
             SKM_DOBUFF = skill.dobuff or "0"
-			SKM_DOPREV = skill.doprev or "0" --custom
-			SKM_LevelMin = skill.levelmin or 0  --custom
+            SKM_DOPREV = skill.doprev or "0" --custom
+            SKM_LevelMin = skill.levelmin or 0  --custom
             SKM_Prio = tonumber(event)
             SKM_OutOfCombat = skill.ooc or "0"
             SKM_TRG = skill.trg or "Enemy"
@@ -787,8 +790,8 @@ function SkillMgr.EditSkill(event)
             SKM_PHPB = tonumber(skill.phpb) or 0
             SKM_PPowL = tonumber(skill.ppowl) or 0
             SKM_PPowB = tonumber(skill.ppowb) or 0
-			SKM_PTPL = tonumber(skill.ptpl) or 0 --custom
-			SKM_PTPB = tonumber(skill.ptpb) or 0 --custom
+            SKM_PTPL = tonumber(skill.ptpl) or 0 --custom
+            SKM_PTPB = tonumber(skill.ptpb) or 0 --custom
             SKM_THPL = tonumber(skill.thpl) or 0
             SKM_THPB = tonumber(skill.thpb) or 0
             SKM_TECount = tonumber(skill.tecount) or 0
@@ -873,49 +876,36 @@ function SkillMgr.Cast( entity )
                         local castable = true
                         
                         -- soft cooldown for compensating the delay between spell cast and buff applies on target)
-                        if ( skill.dobuff and skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < (realskilldata.casttime*1000 + 500)) then castable = false end
+                        if ( skill.dobuff and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now)) then 
+                            --d("CASTED A DEBUFF Skill=" ..skill.name .."casttime="..tostring(realskilldata.casttime))
+                            castable = false 
+                        end
                         
                         -- PLAYER HEALTH, TP/MP
                         if ( castable and (
-							(tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
+                        (tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
                             or (skill.phpl > 0 and skill.phpl > Player.hp.percent)
                             or (skill.phpb > 0 and skill.phpb < Player.hp.percent)
                             or (skill.ppowl > 0 and skill.ppowl > Player.mp.current)
                             or (skill.ppowb > 0 and skill.ppowb < Player.mp.current)					
-							or (tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > Player.tp) --custom
-							or (tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < Player.tp)	--custom	
+                            or (tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > Player.tp) --custom
+                            or (tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < Player.tp)	--custom	
                             )) then castable = false end	
                         
                         -- PLAYER BUFFS
-                        if ( castable and TableSize(pbuffs) > 0) then 							
+                        if ( castable ) then 							
                             -- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
                             if (skill.pbuff ~= "" ) then								
-                                local tbfound = false
-                                for buffid in StringSplit(skill.pbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(pbuffs) do
-                                            if (buff.id == tonumber(buffid)) then--and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
+                                --local tbfound = false
+                                local tbfound = HasBuffs(Player, skill.pbuff)
+                                --d("Player Has buff Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if not tbfound then castable = false end								
                             end
                             -- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
                             if (skill.pnbuff ~= "" ) then
-                                local tbfound = false
-                                for buffid in StringSplit(skill.pnbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(pbuffs) do
-                                            if (buff.id == tonumber(buffid)) then --and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
+                                --local tbfound = false
+                                local tbfound = HasBuffs(Player, skill.pnbuff)
+                                --d("Player Has buff Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if tbfound then castable = false end								
                             end							
                         end	
@@ -966,35 +956,17 @@ function SkillMgr.Cast( entity )
                         
                         
                         -- TARGET BUFFS
-                        if ( castable and TableSize(tbuffs) > 0) then 							
+                        if ( castable ) then 							
                             -- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
                             if (skill.tbuff ~= "" ) then								
-                                local tbfound = false
-                                for buffid in StringSplit(skill.tbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(tbuffs) do
-                                            if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
+                                local tbfound = HasBuffs(target, skill.tbuff, PID)
+                                d("Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if not tbfound then castable = false end								
                             end
                             -- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
                             if (skill.tnbuff ~= "" ) then
-                                local tbfound = false
-                                for buffid in StringSplit(skill.tnbuff,",") do
-                                    if (tonumber(buffid) ~= nil) then
-                                        for i, buff in pairs(tbuffs) do
-                                            if (buff.id == tonumber(buffid) and buff.ownerid == PID) then
-                                                tbfound = true
-                                                break
-                                            end
-                                        end	
-                                    end
-                                end
+                                local tbfound = HasBuffs(target, skill.tnbuff, PID)
+                                d("Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if tbfound then castable = false end								
                             end							
                         end
@@ -1007,28 +979,35 @@ function SkillMgr.Cast( entity )
                             end
                         end
                         
-						-- PREVIOUS SKILL
-						if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
-							castable = false
-							for i in skill.pskill:gmatch("%S+") do --custom
-								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
-								if ( SkillMgr.prevSkillID == i) then
-
-
-
-									castable = true
-									break
-								end
-							end
-						end
+                        -- PREVIOUS SKILL
+                        if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
+                          castable = false
+                          for i in skill.pskill:gmatch("%S+") do --custom
+                            --d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
+                            if ( SkillMgr.prevSkillID == i) then
+                              castable = true
+                              break
+                            end
+                          end
+                        end
+                        
+                        
+                        
+                        -- ISMOVING CHECK
+                        if( castable) then
+                          if(Player:IsMoving() and realskilldata.casttime > 0) then
+                            castable = false;
+                           end
+                        end
+                        
                         if ( castable ) then
                             -- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
-                            if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
-                                d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))								
+                            if ( ActionList:CanCast(skill.id,tonumber(TID)) )then -- takes care of los, range, facing target and valid target								
+                                --d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name) .." Prio="..skill.prio)								
                                 if ( ActionList:Cast(skill.id,TID) ) then									
                                     skill.lastcast = ml_global_information.Now
                                     SkillMgr.prevSkillID = tostring(skill.id)
-									return true
+                                    return true
                                 end
                             --[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
                                 d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))
