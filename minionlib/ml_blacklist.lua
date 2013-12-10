@@ -9,9 +9,9 @@ function ml_blacklist.ClearBlacklists()
         ml_blacklist.lastClearTime = ml_global_information.Now
     
         for name, blacklist in pairs(ml_blacklist.blacklist) do
-            for entry, time in pairs (blacklist) do
-                if time ~= true and TimeSince(time) > 0 then
-                    ml_blacklist.DeleteEntry(name, entry)
+            for id, entry in pairs (blacklist) do
+                if entry.time ~= true and TimeSince(entry.time) > 0 then
+                    ml_blacklist.DeleteEntry(name, id)
                 end
             end
         end
@@ -22,14 +22,15 @@ end
 -- for temp entries to remove
 function ml_blacklist.CreateBlacklist(blacklistName)
     ml_blacklist.blacklist[blacklistName] = {}
+    ml_blacklist_mgr.RefreshNames()
 end
 
 -- checks ALL blacklists to see if entryName exists
 -- use this ONLY if you're sure your blacklists have unique types
 function ml_blacklist.IsBlacklisted(entryName)
 	for name, blacklist in pairs(ml_blacklist.blacklist) do
-		for entry, time in pairs (blacklist) do
-			if entry == entryName then
+		for id, entry in pairs (blacklist) do
+			if entry.name == entryName then
 				return true
 			end
 		end
@@ -39,22 +40,22 @@ function ml_blacklist.IsBlacklisted(entryName)
 end
 
 -- checks only the named blacklist to see if entryName exists
-function ml_blacklist.CheckBlacklistEntry(blacklistName, entryName)
+function ml_blacklist.CheckBlacklistEntry(blacklistName, entryID)
 	local blacklist = ml_blacklist.blacklist[blacklistName]
-	if blacklist[entryName] then
+	if blacklist[entryID] then
 		return true
 	end
     
     return false
 end
 
-function ml_blacklist.GetEntryTime(blacklistName, entryName)
+function ml_blacklist.GetEntryTime(blacklistName, entryID)
     local blacklist = ml_blacklist.blacklist[blacklistName]
-    if blacklist and blacklist[entryName] then
-        if (blacklist[entryName] == true) then
+    if blacklist and blacklist[entryID] then
+        if (blacklist[entryID].time == true) then
             return true
         else
-            return blacklist[entryName] - ml_global_information.Now
+            return blacklist[entryID].time - ml_global_information.Now
         end
 	else
         return nil
@@ -63,10 +64,10 @@ end
 
 -- adds a new entry to the named blacklist for the given time duration
 -- if time == true then the entry is permanent for the duration of the session
-function ml_blacklist.AddBlacklistEntry(blacklistName, entryName, time)
+function ml_blacklist.AddBlacklistEntry(blacklistName, entryID, entryName, entryTime)
 	local blacklist = ml_blacklist.blacklist[blacklistName]
     if (blacklist) then
-        blacklist[entryName] = time
+        blacklist[entryID] = { time = entryTime, name = entryName } 
         ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
         return true
     end
@@ -81,8 +82,8 @@ end
 function ml_blacklist.GetExcludeString(blacklistName)
     local excludeString = ""
 	local blacklist = ml_blacklist.blacklist[blacklistName]
-    for entry, time in pairs(blacklist) do
-        excludeString = excludeString .. entry .. ";"
+    for id, entry in pairs(blacklist) do
+        excludeString = excludeString .. id .. ";"
     end
     
     if (excludeString ~= "") then
@@ -93,11 +94,10 @@ function ml_blacklist.GetExcludeString(blacklistName)
     end
 end
 
-function ml_blacklist.DeleteEntry(blacklistName, entryName)
+function ml_blacklist.DeleteEntry(blacklistName, entryID)
     local blacklist = ml_blacklist.blacklist[blacklistName]
-	if blacklist[entryName] then
-		blacklist[entryName] = nil
-        
+	if blacklist[entryID] then
+		blacklist[entryID] = nil
         ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
         return true
 	end

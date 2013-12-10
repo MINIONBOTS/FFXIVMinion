@@ -62,10 +62,6 @@ function ffxiv_task_grind:Init()
     self:add(ke_fateWait, self.process_elements)
   
     self:AddTaskCheckCEs()
-    
-    if not ml_blacklist.BlacklistExists("Fates") then
-        ml_blacklist.CreateBlacklist("Fates")
-    end
 end
 
 function ffxiv_task_grind:OnSleep()
@@ -111,12 +107,22 @@ function ffxiv_task_grind.SetEvacPoint()
     end
 end
 
+function ffxiv_task_grind.BlacklistTarget()
+    local target = Player:GetTarget()
+    if ValidTable(target) then
+        ml_blacklist.AddBlacklistEntry("Mobs", target.contentid, target.name, true)
+        ml_debug("Blacklisted "..target.name)
+    else
+        ml_debug("Invalid target or no target selected")
+    end
+end
+
 function ffxiv_task_grind.BlacklistFate(arg)
     if (gFateName ~= "") then
         if (arg == "gBlacklistFateAddEvent") then
-            ml_blacklist.AddBlacklistEntry("Fates", gFateName, true)
+            ml_blacklist.AddBlacklistEntry("Fates", tonumber(gFateID), gFateName, true)
         elseif (arg == "gBlacklistFateRemEvent") then
-            ml_blacklist.DeleteEntry("Fates", gFateName)
+            ml_blacklist.DeleteEntry("Fates", tonumber(gFateID))
         end
         ml_blacklist_mgr.RefreshNames()
     else
@@ -136,7 +142,9 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
+    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTarget, "ffxiv_task_grind.blacklistTarget",strings[gCurrentLanguage].grindMode)
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
+    RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
     
     -- Fates
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")

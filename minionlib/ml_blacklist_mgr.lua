@@ -2,6 +2,7 @@ ml_blacklist_mgr = {}
 ml_blacklist_mgr.mainwindow = { name = strings[gCurrentLanguage].blacklistManager, x = 350, y = 100, w = 250, h = 400}
 ml_blacklist_mgr.parentWindow = nil
 ml_blacklist_mgr.path = ""
+ml_blacklist_mgr.currentID = ""
 
 function ml_blacklist_mgr.HandleInit()
     GUI_NewWindow(ml_blacklist_mgr.mainwindow.name,ml_blacklist_mgr.mainwindow.x,ml_blacklist_mgr.mainwindow.y,ml_blacklist_mgr.mainwindow.w,ml_blacklist_mgr.mainwindow.h)
@@ -25,13 +26,27 @@ function ml_blacklist_mgr.RefreshNames()
 end
 
 function ml_blacklist_mgr.RefreshEntries()
-    local entryList = GetComboBoxList(ml_blacklist.blacklist[gBlacklistName])
-    gBlacklistEntry_listitems = entryList["keyList"]
-    gBlacklistEntry = entryList["firstKey"]
+    local entrylist = ""
+    local firstEntry = ""
+    local blacklist = ml_blacklist.blacklist[gBlacklistName]
+    if (blacklist) then
+        for id, entry in pairs(blacklist) do
+            if (entrylist == "") then
+                entrylist = entry.name
+                firstEntry = entry.name
+                ml_blacklist_mgr.currentID = id
+            else
+                entrylist = entrylist..","..entry.name
+            end
+        end
+        
+        gBlacklistEntry_listitems = entrylist
+        gBlacklistEntry = firstEntry
+    end
 end
 
 function ml_blacklist_mgr.DeleteEntry()
-    ml_blacklist.DeleteEntry(gBlacklistName, gBlacklistEntry)
+    ml_blacklist.DeleteEntry(gBlacklistName, ml_blacklist_mgr.currentID)
     ml_blacklist_mgr.RefreshEntries()
 end
 

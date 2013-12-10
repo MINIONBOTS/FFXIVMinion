@@ -168,9 +168,17 @@ function ffxivminion.HandleInit()
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
     ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
     
-    -- setup/load blacklist table
+    -- setup/load blacklist tables
     ml_blacklist_mgr.path = GetStartupPath() .. [[\LuaMods\ffxivminion\blacklist.info]]
     ml_blacklist_mgr.ReadBlacklistFile(ml_blacklist_mgr.path)
+    
+    if not ml_blacklist.BlacklistExists("Fates") then
+        ml_blacklist.CreateBlacklist("Fates")
+    end
+    
+    if not ml_blacklist.BlacklistExists("Mobs") then
+        ml_blacklist.CreateBlacklist("Mobs")
+    end
     
     gBotMode_listitems = botModes
     

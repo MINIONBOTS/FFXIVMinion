@@ -3,6 +3,8 @@
 -- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
 -- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
+    local excludeString = ml_blacklist.GetExcludeString("Mobs")
+    local el = nil
     
     local minLevel = ml_global_information.MarkerMinLevel 
     local maxLevel = ml_global_information.MarkerMaxLevel
@@ -17,7 +19,12 @@ function GetNearestGrindAttackable()
         end
     end
     
-    local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
+    if (excludeString) then
+        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid"..excludeString)
+    else
+        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
+    end
+    
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -25,7 +32,12 @@ function GetNearestGrindAttackable()
         end
     end	
     
-    local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+    if (excludeString) then
+        local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+    else
+        local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+    end
+    
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -33,7 +45,12 @@ function GetNearestGrindAttackable()
         end
     end
     
-    local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+    if (excludeString) then
+        local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+    else
+        local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+    end
+    
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -45,18 +62,19 @@ function GetNearestGrindAttackable()
 end
 
 function GetNearestFateAttackable()
+    local excludeString = ml_blacklist.GetExcludeString("Mobs")
+    local el = nil
+
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
-        --local el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme")
-        --if ( el ) then
-         --   local i,e = next(el)
-        --    if (i~=nil and e~=nil) then
-         --       return e
-       --     end
-      --  end	
-    
-        local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
+        
+        if (excludeString) then
+            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+        else
+            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
+        end
+        
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -64,7 +82,12 @@ function GetNearestFateAttackable()
             end
         end	
     
-        local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
+        if (excludeString) then
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+        else    
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))            
+        end    
+            
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -79,7 +102,14 @@ end
 
 function GetNearestFateAttackableID(fateID)
     if (fateID ~= nil and fateID ~= 0) then
-        local el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
+        local excludeString = ml_blacklist.GetExcludeString("Mobs")
+        local el = nil
+        if (excludeString) then
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+        else
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
+        end
+         
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

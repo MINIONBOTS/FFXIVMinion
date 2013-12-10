@@ -238,6 +238,7 @@ strings =
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
     },                                  
     ["cn"] =                            
     {                               
@@ -486,7 +487,8 @@ strings =
         entryTime                       = "Entry Time",
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
-		qualitymaxper					= "Quality % >=", 
+		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
 	},
     ["jp"] =
     {
@@ -724,6 +726,7 @@ strings =
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
 	},   
     ["de"] =
     {
@@ -961,6 +964,7 @@ strings =
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
 	},     
     ["fr"] =
     {
@@ -1198,6 +1202,7 @@ strings =
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
 	},       
     ["ru"] =
     {
@@ -1435,6 +1440,7 @@ strings =
         deleteEntry                     = "Delete Entry",
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
+        blacklistTarget                 = "Blacklist Target",
 	},    	
 
 }

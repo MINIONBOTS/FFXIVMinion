@@ -80,7 +80,7 @@ function e_fatequit:execute()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         -- blacklist fate for 5 minutes and terminate task
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-        ml_blacklist.AddBlacklistEntry("Fates", fate.name, ml_global_information.Now + 1800*1000)
+        ml_blacklist.AddBlacklistEntry("Fates", fate.id, fate.name, ml_global_information.Now + 1800*1000)
         ml_task_hub:CurrentTask():Terminate()
     end
 end
