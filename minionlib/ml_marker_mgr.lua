@@ -1,6 +1,6 @@
 --ml_marker_mgr is a gwen GUI for editing general marker information
 
-ml_marker_mgr = inheritsFrom(nil)
+ml_marker_mgr = {}
 
 ml_marker_mgr.markerList = {}
 ml_marker_mgr.version = 1.0

@@ -67,3 +67,7 @@ function ml_blacklist.GetExcludeString(blacklistName)
         return nil
     end
 end
+
+function ml_blacklist.HandleInit()
+    
+end

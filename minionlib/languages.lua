@@ -219,7 +219,8 @@ strings =
 		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
 		
     },                                  
     ["cn"] =                            
@@ -449,7 +450,8 @@ strings =
 		assistPriority            	    = "优先级",
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
     },
     ["jp"] =
     {
@@ -666,7 +668,8 @@ strings =
 		assistPriority            	    = "優先度",
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
     },   
     ["de"] =
     {
@@ -883,7 +886,8 @@ strings =
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
     },     
     ["fr"] =
     {
@@ -1100,7 +1104,8 @@ strings =
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
     },       
     ["ru"] =
     {
@@ -1317,7 +1322,8 @@ strings =
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
-        combatRangePercent              = "Combat Range %: "
+        combatRangePercent              = "Combat Range %: ",
+        blacklistManager                = "BlacklistManager"
     },    	
 
 }
