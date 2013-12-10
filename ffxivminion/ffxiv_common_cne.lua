@@ -494,7 +494,8 @@ function c_attarget:evaluate()
         if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
             if ValidTable(target) then
-                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * 0.75)
+                local rangePercent = tonumber(gCombatRangePercent) * 0.01
+                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * rangePercent)
             end
         else
             return InCombatRange(ml_task_hub:ThisTask().targetid)
