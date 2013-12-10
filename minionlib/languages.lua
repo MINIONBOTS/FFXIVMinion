@@ -71,6 +71,8 @@ strings =
 		progrmax						= "Progress >=",
 		qualitymin						= "Quality <",
 		qualitymax						= "Quality >=",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
 		condition						= "Condition =",
 		cpmin							= "CP <",
 		cpmax							= "CP >",
@@ -214,7 +216,7 @@ strings =
         xPos                            = "X Position",
         yPos                            = "Y Position",
         assist                          = "Assist",
-		assistPriority            	    = "Priority",
+        assistPriority            	    = "Priority",
 		
 		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
@@ -463,10 +465,12 @@ strings =
         assist                          = "辅助",
 		assistPriority            	    = "优先级",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
         combatRangePercent              = "Combat Range %: ",
+		qualitymaxper						= "Quality % >=",        
         blacklistManager                = "BlacklistManager"
-    },
+		combatRangePercent              = "Combat Range %: "    
+	},
     ["jp"] =
     {
         startStop                       = "実行停止",
@@ -681,10 +685,11 @@ strings =
         assist                          = "アシスト",
 		assistPriority            	    = "優先度",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager",
+ 		qualityminper						= "Quality % <",
         combatRangePercent              = "Combat Range %: ",
+		qualitymaxper						= "Quality % >=",
         blacklistManager                = "BlacklistManager"
-    },   
+	},   
     ["de"] =
     {
         startStop                       = "StartStop",
@@ -899,10 +904,11 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
         combatRangePercent              = "Combat Range %: ",
+		qualitymaxper						= "Quality % >=",
         blacklistManager                = "BlacklistManager"
-    },     
+	},     
     ["fr"] =
     {
         startStop                       = "StartStop",
@@ -1117,10 +1123,11 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
         combatRangePercent              = "Combat Range %: ",
+		qualitymaxper						= "Quality % >=",
         blacklistManager                = "BlacklistManager"
-    },       
+	},       
     ["ru"] =
     {
         startStop                       = "StartStop",
@@ -1335,10 +1342,11 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
         combatRangePercent              = "Combat Range %: ",
+		qualitymaxper						= "Quality % >=",
         blacklistManager                = "BlacklistManager"
-    },    	
+	},    	
 
 }
 

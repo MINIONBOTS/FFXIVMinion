@@ -95,7 +95,7 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gUseSprint = "0"
     end
     if ( Settings.FFXIVMINION.gMountDist == nil ) then
-        Settings.FFXIVMINION.gMountDist = "200"
+        Settings.FFXIVMINION.gMountDist = "75"
     end
     if ( Settings.FFXIVMINION.gSprintDist == nil ) then
         Settings.FFXIVMINION.gSprintDist = "50"
