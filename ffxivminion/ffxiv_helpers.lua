@@ -197,7 +197,7 @@ function HasBuffFrom(targetID, buffID, ownerID)
         end
     end
 end
-function HasBuffsFromOwner(entity, buffIDs, ownerid)
+function HasBuffs(entity, buffIDs, ownerid)
     local buffs = entity.buffs
     if (buffs == nil or TableSize(buffs) == 0) then return false end
     for _orids in StringSplit(buffIDs,",") do
@@ -242,6 +242,29 @@ function HasBuffs(entity, buffIDs)
     return false
 end
 
+function HasBuffsDura(entity, buffIDs, duration)
+    local buffs = entity.buffs
+    if (buffs == nil or TableSize(buffs) == 0) then return false end
+    for _orids in StringSplit(buffIDs,",") do
+      local found = false
+      for _andid in StringSplit(_orids,"+") do
+          found = false
+          for i, buff in pairs(buffs) do
+            if (buff.id == tonumber(_andid) and buff.duration > duration) then 
+              found = true 
+            end
+          end
+          if (not found) then 
+            break
+          end
+      end
+      if (found) then 
+        return true 
+      end
+    end
+    return false
+end
+
 function IsBehind(entity)
     if(entity.distance2d < ml_global_information.AttackRange) then
         local entityHeading = nil
@@ -267,6 +290,30 @@ function IsBehind(entity)
         local leftover = absDeviation - math.pi
         --d("Leftover: "..tostring(leftover))
         if (leftover > -(math.pi/4) and leftover < (math.pi/4))then
+            return true
+        end
+    end
+    return false
+end
+
+function IsFlank(entity)
+    if(entity.distance2d < ml_global_information.AttackRange) then
+        local entityHeading = nil
+        
+        if (entity.pos.h < 0) then
+            entityHeading = entity.pos.h + 2 * math.pi
+        else
+            entityHeading = entity.pos.h
+        end
+
+        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+        local deviation = entityAngle - entityHeading
+        local absDeviation = math.abs(deviation)
+        
+        local leftover = absDeviation - math.pi
+	leftover = math.abs(leftover)
+		
+        if (leftover > (math.pi/4) and leftover < (math.pi*.75)) then
             return true
         end
     end
