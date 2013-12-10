@@ -3,7 +3,6 @@ ffxiv_task_grind.name = "LT_GRIND"
 ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0
-gFateBlacklist = {}
 
 function ffxiv_task_grind:Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
@@ -61,9 +60,12 @@ function ffxiv_task_grind:Init()
        
     local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
     self:add(ke_fateWait, self.process_elements)
-    
-    
+  
     self:AddTaskCheckCEs()
+    
+    if not ml_blacklist.BlacklistExists("Fates") then
+        ml_blacklist.CreateBlacklist("Fates")
+    end
 end
 
 function ffxiv_task_grind:OnSleep()
@@ -112,11 +114,11 @@ end
 function ffxiv_task_grind.BlacklistFate(arg)
     if (gFateName ~= "") then
         if (arg == "gBlacklistFateAddEvent") then
-            gFateBlacklist[tonumber(gFateID)] = true
+            ml_blacklist.AddBlacklistEntry("Fates", gFateName, true)
         elseif (arg == "gBlacklistFateRemEvent") then
-            gFateBlacklist[tonumber(gFateID)] = nil
+            ml_blacklist.DeleteEntry("Fates", gFateName)
         end
-        Settings.FFXIVMINION.gFateBlacklist = gFateBlacklist
+        ml_blacklist_mgr.RefreshNames()
     else
         ml_debug("No valid fate selected")
     end
@@ -149,8 +151,6 @@ function ffxiv_task_grind.UIInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistRem, "gBlacklistFateRemEvent", "Fates")
     RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
     RegisterEventHandler("gBlacklistFateRemEvent", ffxiv_task_grind.BlacklistFate)
-	
-	
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -214,14 +214,9 @@ function ffxiv_task_grind.UIInit()
         Settings.FFXIVMINION.gFateBLTimer = "120"
     end
     
-    if (Settings.FFXIVMINION.gFateBlacklist == nil) then
-        Settings.FFXIVMINION.gFateBlacklist = {}
-    end
-    
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
-	
 	
     gDoFates = Settings.FFXIVMINION.gDoFates
     gFatesOnly = Settings.FFXIVMINION.gFatesOnly
@@ -238,7 +233,6 @@ function ffxiv_task_grind.UIInit()
     gCombatRangePercent = Settings.FFXIVMINION.gCombatRangePercent
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
-    gFateBlacklist = Settings.FFXIVMINION.gFateBlacklist
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
 end
 

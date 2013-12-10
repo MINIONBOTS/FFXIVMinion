@@ -2,6 +2,7 @@
 
 ml_marker_mgr = {}
 ml_marker_mgr.mainwindow = { name = strings[gCurrentLanguage].markerManager, x = 340, y = 50, w = 335, h = 200}
+ml_marker_mgr.markerList = {}
 ml_marker_mgr.markerList.editList = {}
 ml_marker_mgr.markerList.editList.editList = {}
 ml_marker_mgr.markerList.editList.orderList = {}
@@ -89,7 +90,7 @@ function ml_marker_mgr.RemoveMarker(oldMarker)
 end
 
 function ml_marker_mgr.ReadMarkerFile(path)
-	ml_marker_mgr.markerList.editList = persistence.load(path)
+	ml_marker_mgr.markerList = persistence.load(path)
 	for type, list in pairs(ml_marker_mgr.markerList.editList) do
 		for name, marker in pairs(list) do
 			-- set marker class metatable for each marker
@@ -99,7 +100,7 @@ function ml_marker_mgr.ReadMarkerFile(path)
 end
 
 function ml_marker_mgr.WriteMarkerFile(path)
-	persistence.store(path, ml_marker_mgr.markerList.editList)
+	persistence.store(path, ml_marker_mgr.markerList)
 end
 
 function ml_marker_mgr.HandleInit()
@@ -116,6 +117,7 @@ function ml_marker_mgr.HandleInit()
 	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
 	
 	GUI_SizeWindow(ml_marker_mgr.mainwindow.name, ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.h)
+    GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
 end
 
 function ml_marker_mgr.RefreshMarkers()
@@ -173,5 +175,21 @@ function ml_marker_mgr.SetupTest()
 	testPath = GetStartupPath()..[[\Navigation\]].."markerTests.txt"
 end
 
+function ml_marker_mgr.ToggleMenu()
+    if (ml_marker_mgr.visible) then
+        GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)	
+        ml_marker_mgr.visible = false
+    else
+        local wnd = GUI_GetWindowInfo(ml_marker_mgr.parentWindow.Name)
+        if (wnd) then
+            GUI_MoveWindow( ml_marker_mgr.mainwindow.name, wnd.x+wnd.width,wnd.y) 
+            GUI_WindowVisible(ml_marker_mgr.mainwindow.name,true)
+        end
+        
+        ml_marker_mgr.visible = true
+    end
+end
+
+RegisterEventHandler("ToggleMarkerMgr", ml_marker_mgr.ToggleMenu)
 RegisterEventHandler("Module.Initalize",ml_marker_mgr.HandleInit)
 RegisterEventHandler("Module.Initalize",ml_marker_mgr.SetupTest)

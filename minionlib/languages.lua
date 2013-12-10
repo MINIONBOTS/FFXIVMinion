@@ -222,7 +222,7 @@ strings =
 		prevSkillIDNot				 	= "Previous Skill ID NOT",
 		secsSinceLastCast				= "Secs Since Last Cast",
         combatRangePercent              = "Combat Range %: ",
-        blacklistManager                = "BlacklistManager"
+        blacklistManager                = "BlacklistManager",
 		createMarker				 	= "Create Marker",
 		editMarkers						= "Edit Markers",
 		markerType						= "Marker Type",
@@ -232,6 +232,10 @@ strings =
 		newMarker						= "New Marker",
 		markerList						= "Marker List",
 		setupList						= "Setup List",
+        blacklistName                   = "Blacklist Name",
+        blacklistEntry                  = "Blacklist Entry",
+        entryTime                       = "Entry Time",
+        deleteEntry                     = "Delete Entry",
     },                                  
     ["cn"] =                            
     {                               
@@ -257,7 +261,7 @@ strings =
 		checkChat						= "聊天报警",
 		randomfarmspot 					= "随机挂机",
 		disabledrawing 					= "Disable Rendering",
-		killaggrononfateenemies 					= "Kill attacking None-Fate Enemies",
+		killaggrononfateenemies 		= "Kill attacking None-Fate Enemies",
         -- mesher.lua
         meshManager                     = "网格脚本管理器",
 		activated                       = "激活",

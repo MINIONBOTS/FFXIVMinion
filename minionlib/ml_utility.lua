@@ -122,6 +122,10 @@ function GetComboBoxList(entryTable)
 	return { firstKey = firstkey, firstValue = firstvalue, keyList = keylist, valueList = valuelist}
 end
 
+function round(num, idp)
+  return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+end
+
 --psuedo enum values for task classes
 TS_FAILED = 0
 TS_SUCCEEDED = 1

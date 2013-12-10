@@ -27,7 +27,7 @@ c_cast = inheritsFrom( ml_cause )
 e_cast = inheritsFrom( ml_effect )
 function c_cast:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (os.time() > castTimer) then
+    if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
             return true
@@ -36,7 +36,6 @@ function c_cast:evaluate()
     return false
 end
 function e_cast:execute()
-    --ml_task_hub:CurrentTask().castTimer = os.time() + 3
     local mooch = ActionList:Get(297,1)
     if (mooch) and gUseMooch == "1" and Player.level > 24 and (mooch.isready) then
         mooch:Cast()
@@ -53,7 +52,7 @@ c_finishcast = inheritsFrom( ml_cause )
 e_finishcast = inheritsFrom( ml_effect )
 function c_finishcast:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (os.time() > castTimer) then
+    if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs ~= 0 and c_returntomarker:evaluate()) then
             return true
@@ -62,7 +61,6 @@ function c_finishcast:evaluate()
     return false
 end
 function e_finishcast:execute()
-    --ml_task_hub:CurrentTask().castTimer = os.time() + 3
     local finishcast = ActionList:Get(299,1)
     if (finishcast and finishcast.isready) then
         finishcast:Cast()
@@ -73,7 +71,7 @@ c_bite = inheritsFrom( ml_cause )
 e_bite = inheritsFrom( ml_effect )
 function c_bite:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (os.time() > castTimer) then
+    if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if( fs == 5 ) then -- FISHSTATE_BITE
             return true
@@ -82,7 +80,6 @@ function c_bite:evaluate()
     return false
 end
 function e_bite:execute()
-    --ml_task_hub:CurrentTask().castTimer = os.time() + 3
     local bite = ActionList:Get(296,1)
     if (bite and bite.isready) then
         bite:Cast()

@@ -898,9 +898,6 @@ function SkillMgr.Cast( entity )
 						-- SECOND SINCE LAST CAST
 						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
 						
-						-- SECOND SINCE LAST CAST
-						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
-						
                         -- PLAYER HEALTH, TP/MP
                         if ( castable and (
                         (tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
@@ -1010,36 +1007,24 @@ function SkillMgr.Cast( entity )
                             end
                           end
                         end
-						
-						-- PREVIOUS SKILL NOT
+                        
+                        						-- PREVIOUS SKILL NOT
 						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
 							for i in skill.npskill:gmatch("%S+") do --custom
 								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
 								if ( SkillMgr.prevSkillID == i) then
 									castable = false
 									break
-                                               
+								end
+							end
+						end
+                        
                         -- ISMOVING CHECK
                         if( castable) then
                           if(Player:IsMoving() and realskilldata.casttime > 0) then
                             castable = false;
                            end
                         end
-                        
-								end
-							end
-						end
-						
-						-- PREVIOUS SKILL NOT
-						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
-							for i in skill.npskill:gmatch("%S+") do --custom
-								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
-								if ( SkillMgr.prevSkillID == i) then
-									castable = false
-									break
-								end
-							end
-						end
 						
                         if ( castable ) then
                             -- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)

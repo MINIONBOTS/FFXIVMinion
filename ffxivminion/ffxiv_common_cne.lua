@@ -203,7 +203,7 @@ function e_add_fate:execute()
     local newTask = ffxiv_task_fate:Create()
     local myPos = Player.pos
     newTask.fateid = GetClosestFateID(myPos, true, true)
-    newTask.fateTimer = os.time()
+    newTask.fateTimer = ml_global_information.Now
     ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 

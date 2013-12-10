@@ -148,7 +148,7 @@ function GetNearestAggro()
 end
 
 function GetNearestGatherable(minlevel,maxlevel)
-    local excludeString = ml_blacklist.GetExcludeString(ffxiv_task_gather.name)
+    local excludeString = ml_blacklist.GetExcludeString("Gathering Nodes")
     local el = nil
     if (excludeString) then
         el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
@@ -297,13 +297,13 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
         local _, fate = next(fateList)
         local level = Player.level
         while (_ ~= nil and fate ~= nil) do
-			if (gFateBlacklist[fate.id] == nil and (fate.status == 2 or fate.status == 7 )) then --or fate.status == 7)) then
+			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.name) and (fate.status == 2 or fate.status == 7 )) then
                 if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
                     --	d(" NavigationManager:GetPointToMeshDistance: "..tostring( NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z}) ).." fate: "..tostring( fate.name))
                         local distance = Distance2D(pos.x, pos.z, fate.x, fate.z)
-                        if ((nearestFate == nil or distance < nearestDistance) and fate.status == 2) then
+                        if (nearestFate == nil or distance < nearestDistance) then
                             nearestFate = fate
                             nearestDistance = distance
                         end
@@ -428,4 +428,8 @@ function NodeHasItem(itemName)
     end
     
     return false
+end
+
+function TimeSince(previousTime)
+    return ml_global_information.Now - previousTime
 end
