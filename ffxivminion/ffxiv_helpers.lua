@@ -197,7 +197,7 @@ function HasBuffFrom(targetID, buffID, ownerID)
         end
     end
 end
-function HasBuffs(entity, buffIDs, ownerid)
+function HasBuffsFromOwner(entity, buffIDs, ownerid)
     local buffs = entity.buffs
     if (buffs == nil or TableSize(buffs) == 0) then return false end
     for _orids in StringSplit(buffIDs,",") do

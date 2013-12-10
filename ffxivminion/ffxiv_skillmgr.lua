@@ -97,8 +97,8 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].progrmax,"SKM_PROGMAX","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMIN","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails");
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMINP","SkillDetails");
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX","SkillDetails")   
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualityminper,"SKM_QUALMINPer","SkillDetails");
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymaxper,"SKM_QUALMAXPer","SkillDetails")   
     
     GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION","SkillDetails",strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_CPBuff","SkillDetails");
@@ -180,6 +180,8 @@ function SkillMgr.ModuleInit()
     SKM_PROGMAX = 0
     SKM_QUALMIN = 0
     SKM_QUALMAX = 0
+    SKM_QUALMINPer = 0
+    SKM_QUALMAXPer = 0
     SKM_CONDITION = "NotUsed"
 	SKM_CPBuff = ""
 	SKM_CPNBuff = ""
@@ -250,6 +252,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_PROGMAX" ) then SkillMgr.SkillProfile[SKM_Prio].progrmax = tonumber(v)
         elseif ( k == "SKM_QUALMIN" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymin = tonumber(v)
         elseif ( k == "SKM_QUALMAX" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymax = tonumber(v)
+        elseif ( k == "SKM_QUALMINPer" ) then SkillMgr.SkillProfile[SKM_Prio].qualityminper = tonumber(v)
+        elseif ( k == "SKM_QUALMAXPer" ) then SkillMgr.SkillProfile[SKM_Prio].qualitymaxper = tonumber(v)          
         elseif ( k == "SKM_CONDITION" ) then SkillMgr.SkillProfile[SKM_Prio].condition = v
 		elseif ( k == "SKM_CPBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpbuff = v
         elseif ( k == "SKM_CPNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].cpnbuff = v
@@ -418,11 +422,13 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PROGMIN="..skill.progrmin.."\n"			
                 string2write = string2write.."SKM_PROGMAX="..skill.progrmax.."\n"			
                 string2write = string2write.."SKM_QUALMIN="..skill.qualitymin.."\n"		
-                string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"			
+                string2write = string2write.."SKM_QUALMAX="..skill.qualitymax.."\n"	
+                 string2write = string2write.."SKM_QUALMINPer="..skill.qualityminper.."\n"		
+                string2write = string2write.."SKM_QUALMAXPer="..skill.qualitymaxper.."\n"	               
                 string2write = string2write.."SKM_CONDITION="..skill.condition.."\n"
-				string2write = string2write.."SKM_CPBuff="..skill.cpbuff.."\n" 
+                string2write = string2write.."SKM_CPBuff="..skill.cpbuff.."\n" 
                 string2write = string2write.."SKM_CPNBuff="..skill.cpnbuff.."\n" 
-				string2write = string2write.."SKM_IQSTACK="..skill.iqstack.."\n" 
+                string2write = string2write.."SKM_IQSTACK="..skill.iqstack.."\n" 
             elseif ( job >= 16 and job <=17 ) then
                 -- gathering		
                 string2write = string2write.."SKM_GPMIN="..skill.gpmin.."\n"			
@@ -505,8 +511,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "NAME" )then newskill.name = value
                             elseif ( key == "ON" )then newskill.used = tostring(value)
                             elseif ( key == "DOBUFF" )then newskill.dobuff = tostring(value)							
-elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom		
-							elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
+                            elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom		
+                            elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
                             elseif ( key == "Prio" )then newskill.prio = tonumber(value)
                             elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
                             elseif ( key == "TRG" )then newskill.trg = tostring(value)							
@@ -516,8 +522,8 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
                             elseif ( key == "PHPB" )then newskill.phpb = tonumber(value)
                             elseif ( key == "PPowL" )then newskill.ppowl = tonumber(value)
                             elseif ( key == "PPowB" )then newskill.ppowb = tonumber(value)
-							elseif ( key == "PTPL" )then newskill.ptpl = tostring(value)	--custom	
-							elseif ( key == "PTPB" )then newskill.ptpb = tostring(value)	--custom
+                            elseif ( key == "PTPL" )then newskill.ptpl = tostring(value)	--custom	
+                            elseif ( key == "PTPB" )then newskill.ptpb = tostring(value)	--custom
                             elseif ( key == "THPL" )then newskill.thpl = tonumber(value)
                             elseif ( key == "THPB" )then newskill.thpb = tonumber(value)						
                             elseif ( key == "TECount" )then newskill.tecount = tonumber(value)
@@ -540,10 +546,12 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
                             elseif ( key == "PROGMAX" ) then newskill.progrmax = tonumber(value)
                             elseif ( key == "QUALMIN" ) then newskill.qualitymin = tonumber(value)
                             elseif ( key == "QUALMAX" ) then newskill.qualitymax = tonumber(value)
+                            elseif ( key == "QUALMINPer" ) then newskill.qualityminper= tonumber(value)
+                            elseif ( key == "QUALMAXPer" ) then newskill.qualitymaxper = tonumber(value)
                             elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
-							elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
+                            elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
                             elseif ( key == "CPNBuff" )then newskill.cpnbuff = tostring(value)
-							elseif ( key == "IQSTACK" )then newskill.iqstack = tonumber(value)
+                            elseif ( key == "IQSTACK" )then newskill.iqstack = tonumber(value)
 							
                             --gathering
                             elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
@@ -672,8 +680,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 name = skname or "",
                 used = skill.used or "1",
                 dobuff = skill.dobuff or "0",
-				doprev = skill.doprev or "0",
-				levelmin = skill.levelmin or 0,
+                 doprev = skill.doprev or "0",
+                levelmin = skill.levelmin or 0,
                 ooc = skill.ooc or "0",
                 trg = skill.trg or "Enemy",
                 minRange = skill.minRange or 0,
@@ -682,8 +690,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 phpb = skill.phpb or 0,
                 ppowl = skill.ppowl or 0,
                 ppowb = skill.ppowb or 0,
-				ptpl = skill.ptpl or 0,
-				ptpb = skill.ptpb or 0,
+                ptpl = skill.ptpl or 0,
+                ptpb = skill.ptpb or 0,
                 thpl = skill.thpl or 0,
                 thpb = skill.thpb or 0,
                 tecount = skill.tecount or 0,
@@ -706,10 +714,12 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 progrmax = skill.progrmax or 0,
                 qualitymin = skill.qualitymin or 0,
                 qualitymax = skill.qualitymax or 0,
+                 qualityminper = skill.qualityminper or 0,
+                qualitymaxper = skill.qualitymaxper or 0,              
                 condition = skill.condition or "NotUsed",
-				cpbuff = skill.cpbuff or "",
+                cpbuff = skill.cpbuff or "",
                 cpnbuff = skill.cpnbuff or "",
-				iqstack = skill.iqstack or 0,
+                iqstack = skill.iqstack or 0,
                 --gathering
                 gpmin=skill.gpmin or 0,
                 gpmax=skill.gpmax or 0,
@@ -745,10 +755,12 @@ function SkillMgr.EditSkill(event)
             SKM_PROGMAX = tonumber(skill.progrmax) or 0
             SKM_QUALMIN = tonumber(skill.qualitymin) or 0
             SKM_QUALMAX = tonumber(skill.qualitymax) or 0
+            SKM_QUALMINPer = tonumber(skill.qualityminper) or 0
+            SKM_QUALMAXPer = tonumber(skill.qualitymaxper) or 0
             SKM_CONDITION = skill.condition or "NotUsed"
-			SKM_CPBuff = skill.cpbuff or ""
+            SKM_CPBuff = skill.cpbuff or ""
             SKM_CPNBuff = skill.cpnbuff or ""
-			SKM_IQSTACK = tonumber(skill.iqstack) or 0
+            SKM_IQSTACK = tonumber(skill.iqstack) or 0
         end	
     elseif ( job >= 16 and job <=17 ) then
         -- Gathering Editor 
@@ -898,14 +910,11 @@ function SkillMgr.Cast( entity )
                             if (skill.pbuff ~= "" ) then								
                                 --local tbfound = false
                                 local tbfound = HasBuffs(Player, skill.pbuff)
-                                --d("Player Has buff Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if not tbfound then castable = false end								
                             end
                             -- dont cast this spell when we have any of the BuffIDs in the skill.pnbuff list
                             if (skill.pnbuff ~= "" ) then
-                                --local tbfound = false
                                 local tbfound = HasBuffs(Player, skill.pnbuff)
-                                --d("Player Has buff Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
                                 if tbfound then castable = false end								
                             end							
                         end	
@@ -959,14 +968,12 @@ function SkillMgr.Cast( entity )
                         if ( castable ) then 							
                             -- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
                             if (skill.tbuff ~= "" ) then								
-                                local tbfound = HasBuffs(target, skill.tbuff, PID)
-                                d("Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
+                                local tbfound = HasBuffsFromOwner(target, skill.tbuff, PID)
                                 if not tbfound then castable = false end								
                             end
                             -- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
                             if (skill.tnbuff ~= "" ) then
-                                local tbfound = HasBuffs(target, skill.tnbuff, PID)
-                                d("Skill= "..skill.name .." tnbuff=" ..tostring(tbfound))
+                                local tbfound = HasBuffsFromOwner(target, skill.tnbuff, PID)
                                 if tbfound then castable = false end								
                             end							
                         end
@@ -1067,6 +1074,7 @@ function SkillMgr.Craft()
                     local castable = true
                     --d("Checking on skill:"..tostring(skill.name).."  "..tostring(synth.durability).." > "..tostring(skill.durabmax) .. ": "..tostring(skill.durabmax > 0 and synth.durability > skill.durabmax))
 					--d("Checking on skill:"..tostring(skill.name).."  "..tostring(skill.condition).." > "..tostring(synth.description) .. ": "..tostring(skill.condition ~= "NotUsed" and synth.description ~= skill.condition))
+                    d(tostring(skill.qualityminper))
                     if ( (skill.stepmin > 0 and synth.step >= skill.stepmin) or
                         (skill.stepmax > 0 and synth.step < skill.stepmax) or
                         (skill.cpmin > 0 and Player.cp.current >= skill.cpmin) or
@@ -1077,7 +1085,9 @@ function SkillMgr.Craft()
                         (skill.progrmax > 0 and synth.progress < skill.progrmax) or
                         (skill.qualitymin > 0 and synth.quality >= skill.qualitymin) or
                         (skill.qualitymax > 0 and synth.quality < skill.qualitymax) or
-						(skill.iqstack > 0 and SkillMgr.currentIQStack < skill.iqstack) or
+                        (skill.qualityminper > 0 and synth.qualitypercent >= skill.qualityminper) or
+                        (skill.qualitymaxper > 0 and synth.qualitypercent < skill.qualitymaxper) or
+                        (skill.iqstack > 0 and SkillMgr.currentIQStack < skill.iqstack) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
                     end

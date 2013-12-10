@@ -71,6 +71,8 @@ strings =
 		progrmax						= "Progress >=",
 		qualitymin						= "Quality <",
 		qualitymax						= "Quality >=",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
 		condition						= "Condition =",
 		cpmin							= "CP <",
 		cpmax							= "CP >",
@@ -214,7 +216,7 @@ strings =
         xPos                            = "X Position",
         yPos                            = "Y Position",
         assist                          = "Assist",
-		assistPriority            	    = "Priority",
+        assistPriority            	    = "Priority",
 		
 		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
@@ -447,7 +449,9 @@ strings =
         assist                          = "辅助",
 		assistPriority            	    = "优先级",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
     },
     ["jp"] =
     {
@@ -663,7 +667,9 @@ strings =
         assist                          = "アシスト",
 		assistPriority            	    = "優先度",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+ 		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
     },   
     ["de"] =
     {
@@ -879,7 +885,9 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
     },     
     ["fr"] =
     {
@@ -1095,7 +1103,9 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
     },       
     ["ru"] =
     {
@@ -1311,7 +1321,9 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 		useMooch						= "Use Mooch",
-		markerManager					= "MarkerManager"
+		markerManager					= "MarkerManager",
+		qualityminper						= "Quality % <",
+		qualitymaxper						= "Quality % >=",
     },    	
 
 }
