@@ -92,6 +92,36 @@ function TrimString(new_string, count)
 	return new_string:sub(1,new_string:len() - count)
 end
 
+-- returns a table containing first entry in the list, list of keys, and list of values
+function GetComboBoxList(entryTable)
+	local firstkey = ""
+	local firstvalue = ""
+	local keylist = ""
+	local valuelist = ""
+	
+	for key, value in pairs(entryTable) do
+		if (type(key) == "string" or type(key) == "number") then
+			if (keylist == "") then
+				keylist = tostring(key)
+				firstkey = tostring(key)
+			else
+				keylist = keylist..","..tostring(key)
+			end
+		end
+		
+		if (type(value) == "string" or type(value) == "number") then
+			if (valuelist == "") then
+				valuelist = tostring(value)
+				firstvalue = tostring(value)
+			else
+				valuelist = valuelist..","..tostring(value)
+			end
+		end
+	end
+	
+	return { firstKey = firstkey, firstValue = firstvalue, keyList = keylist, valueList = valuelist}
+end
+
 --psuedo enum values for task classes
 TS_FAILED = 0
 TS_SUCCEEDED = 1

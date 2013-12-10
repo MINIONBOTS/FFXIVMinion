@@ -77,7 +77,9 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHas,"SKM_TBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHasNot,"SKM_TNBuff","SkillDetails");
-    GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");		
+    GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed","SkillDetails");
     GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -168,7 +170,9 @@ function SkillMgr.ModuleInit()
     SKM_PNBuff = ""
     SKM_TBuff = ""
     SKM_TNBuff = ""
-    SKM_PSkillID = 0
+    SKM_PSkillID = ""
+	SKM_NPSkillID = ""
+	SKM_SecsPassed = 0
     --Crafting
     SKM_STMIN = 0
     SKM_STMAX = 0
@@ -239,6 +243,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_TBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tbuff = v
         elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
         elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
+        elseif ( k == "SKM_NPSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].npskill = v
+        elseif ( k == "SKM_SecsPassed" ) then SkillMgr.SkillProfile[SKM_Prio].secspassed = tonumber(v)
         --crafting
         elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].stepmin = tonumber(v)
         elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].stepmax = tonumber(v)
@@ -455,7 +461,9 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
                 string2write = string2write.."SKM_TBuff="..skill.tbuff.."\n" 
                 string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n"
-                string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n" 
+                string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n"
+                string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
+                string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n" 
             end
                         
             string2write = string2write.."SKM_END=0\n"
@@ -529,6 +537,8 @@ elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom
                             elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
                             elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
                             elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
+                            elseif ( key == "NPSkillID" ) then newskill.npskill = tostring(value)
+							elseif ( key == "SecsPassed" ) then newskill.secspassed = tonumber(value)
                             --crafting
                             elseif ( key == "STMIN" ) then newskill.stepmin = tonumber(value)
                             elseif ( key == "STMAX" ) then newskill.stepmax = tonumber(value)
@@ -695,6 +705,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 tbuff = skill.tbuff or "",
                 tnbuff = skill.tnbuff or "",
                 pskill = skill.pskill or "",
+				npskill = skill.npskill or "",
+				secspassed = skill.secspassed or 0,
                 --crafting
                 stepmin = skill.stepmin or 0,
                 stepmax = skill.stepmax or 0,
@@ -803,6 +815,8 @@ function SkillMgr.EditSkill(event)
             SKM_TBuff = skill.tbuff or ""
             SKM_TNBuff = skill.tnbuff or ""
             SKM_PSkillID = skill.pskill or ""
+			SKM_NPSkillID = skill.npskill or ""
+			SKM_SecsPassed = skill.secspassed or ""
         end
     end
 end
@@ -881,6 +895,12 @@ function SkillMgr.Cast( entity )
                             castable = false 
                         end
                         
+						-- SECOND SINCE LAST CAST
+						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
+						
+						-- SECOND SINCE LAST CAST
+						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
+						
                         -- PLAYER HEALTH, TP/MP
                         if ( castable and (
                         (tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
@@ -990,6 +1010,14 @@ function SkillMgr.Cast( entity )
                             end
                           end
                         end
+						
+						-- PREVIOUS SKILL NOT
+						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
+							for i in skill.npskill:gmatch("%S+") do --custom
+								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
+								if ( SkillMgr.prevSkillID == i) then
+									castable = false
+									break
                                                
                         -- ISMOVING CHECK
                         if( castable) then
@@ -998,6 +1026,21 @@ function SkillMgr.Cast( entity )
                            end
                         end
                         
+								end
+							end
+						end
+						
+						-- PREVIOUS SKILL NOT
+						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
+							for i in skill.npskill:gmatch("%S+") do --custom
+								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
+								if ( SkillMgr.prevSkillID == i) then
+									castable = false
+									break
+								end
+							end
+						end
+						
                         if ( castable ) then
                             -- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
                             if ( ActionList:CanCast(skill.id,tonumber(TID)) )then -- takes care of los, range, facing target and valid target								
@@ -1005,6 +1048,7 @@ function SkillMgr.Cast( entity )
                                 if ( ActionList:Cast(skill.id,TID) ) then									
                                     skill.lastcast = ml_global_information.Now
                                     SkillMgr.prevSkillID = tostring(skill.id)
+									
                                     return true
                                 end
                             --[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then

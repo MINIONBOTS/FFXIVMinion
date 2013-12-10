@@ -219,9 +219,19 @@ strings =
 		-- new stuff (since last translation)
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
+		prevSkillIDNot				 	= "Previous Skill ID NOT",
+		secsSinceLastCast				= "Secs Since Last Cast",
         combatRangePercent              = "Combat Range %: ",
         blacklistManager                = "BlacklistManager"
-		
+		createMarker				 	= "Create Marker",
+		editMarkers						= "Edit Markers",
+		markerType						= "Marker Type",
+		editMarkerList					= "Setup List",
+		addMarker					 	= "Add Marker",
+		editMarker						= "Edit Marker",
+		newMarker						= "New Marker",
+		markerList						= "Marker List",
+		setupList						= "Setup List",
     },                                  
     ["cn"] =                            
     {                               
