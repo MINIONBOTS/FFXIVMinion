@@ -241,7 +241,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
     },                                  
     ["cn"] =                            
@@ -495,7 +495,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
 	},
     ["jp"] =
@@ -737,7 +737,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
 	},   
     ["de"] =
@@ -979,7 +979,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
 	},     
     ["fr"] =
@@ -1221,7 +1221,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
 	},       
     ["ru"] =
@@ -1463,7 +1463,7 @@ strings =
         blacklistTarget                 = "Blacklist Target",
         addEntry                        = "Add Entry",
         blacklistFate                   = "Blacklist Fate",
-        notAttackable                   = "Not Attackable",
+        notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
 	},    	
 

@@ -20,7 +20,7 @@ function GetNearestGrindAttackable()
     end
     
     if (excludeString) then
-        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid"..excludeString)
+        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString)
     else
         el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
     end
@@ -33,7 +33,7 @@ function GetNearestGrindAttackable()
     end	
     
     if (excludeString) then
-        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
     else
         el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
@@ -46,7 +46,7 @@ function GetNearestGrindAttackable()
     end
     
     if (excludeString) then
-        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
     else
         el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
@@ -70,7 +70,7 @@ function GetNearestFateAttackable()
     if (fateID ~= nil and fateID ~= 0) then
         
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else
             el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
         end
@@ -83,7 +83,7 @@ function GetNearestFateAttackable()
         end	
     
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else    
             el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))            
         end    
@@ -105,7 +105,7 @@ function GetNearestFateAttackableID(fateID)
         local excludeString = ml_blacklist.GetExcludeString("Mobs")
         local el = nil
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else
             el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
         end
