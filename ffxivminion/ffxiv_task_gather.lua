@@ -92,7 +92,7 @@ function e_findgatherable:execute()
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
-            if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) > 1 ) then
+            if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1000 ) then
                 local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 				local pPos = Player.pos
 				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
@@ -113,7 +113,7 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-    if ( os.difftime(os.time(), ml_task_hub:CurrentTask().gatherTimer) < 1 ) then
+    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 1000 ) then
         return false
     end
     
@@ -193,8 +193,8 @@ function c_nextmarker:evaluate()
             if gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode then
                 time = math.random(600,1200)
             end
-            ml_debug("Marker timer: "..tostring(os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) .."seconds of " ..tostring(time)))
-			if (time and time ~= 0 and os.difftime(os.time(),ml_task_hub:CurrentTask().markerTime) > time) then
+            ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time))
+			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
                 ml_debug("Getting Next Marker, TIME IS UP!")
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else
@@ -221,7 +221,7 @@ end
 function e_nextmarker:execute()
     ml_task_hub:CurrentTask().previousMarker = ml_task_hub:CurrentTask().currentMarker
     ml_task_hub:CurrentTask().currentMarker = e_nextmarker.marker
-    ml_task_hub:CurrentTask().markerTime = os.time()
+    ml_task_hub:CurrentTask().markerTime = ml_global_information.Now
     
     local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
     local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
@@ -256,7 +256,7 @@ function e_gather:execute()
     
         if ( gSMactive == "1") then
             if (SkillMgr.Gather() ) then
-				ml_task_hub:CurrentTask().failedTimer = os.time() -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
+				ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
                 return
             end
         end
@@ -269,7 +269,7 @@ function e_gather:execute()
                     for i, item in pairs(list) do
                         if item.name == markerData[1] then
                             Player:Gather(item.index)
-                            ml_task_hub:CurrentTask().gatherTimer = os.time()
+                            ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
                             return
                         end
                     end
@@ -277,7 +277,7 @@ function e_gather:execute()
                     for i, item in pairs(list) do
                         if item.name == markerData[2] then
                             Player:Gather(item.index)
-                            ml_task_hub:CurrentTask().gatherTimer = os.time()
+                            ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
                             return
                         end
                     end
@@ -289,7 +289,7 @@ function e_gather:execute()
         for i, item in pairs(list) do
             if item.chance > 50 then
                 Player:Gather(item.index)
-                ml_task_hub:CurrentTask().gatherTimer = os.time()
+                ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
                 return
             end
         end
@@ -303,9 +303,9 @@ function e_gather:execute()
                 Player:Interact(node.id)
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
-                    ml_task_hub:CurrentTask().failedTimer = os.time()
-                elseif (os.difftime(os.time(), ml_task_hub:CurrentTask().failedTimer) > 12) then
-					ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, os.time() + 1800)
+                    ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now
+                elseif (TimeSince(ml_task_hub:CurrentTask().failedTimer) > 12000) then
+					ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, node.name, ml_global_information.Now + 1800*1000)
 					ml_task_hub:CurrentTask().gatherid = 0
 					ml_task_hub:CurrentTask().failedTimer = 0
 				end
@@ -387,7 +387,7 @@ function ffxiv_task_gather:Init()
     self:AddTaskCheckCEs()
     
     -- create node blacklist
-    ml_blacklist.CreateBlacklist(self.name)
+    ml_blacklist.CreateBlacklist("Gathering Nodes")
 end
 
 function ffxiv_task_gather:OnSleep()

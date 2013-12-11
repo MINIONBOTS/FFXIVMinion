@@ -30,6 +30,9 @@ function ml_global_information.OnUpdate( event, tickcount )
     -- ml_blacklist.lua
     ml_blacklist.ClearBlacklists()
     
+    -- ml_blacklist_mgr.lua
+    ml_blacklist_mgr.UpdateEntryTime()
+    
     gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
     if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
         if (not ml_global_information.TaskUIInit) then
@@ -127,6 +130,7 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
+    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     
@@ -158,6 +162,22 @@ function ffxivminion.HandleInit()
             botModes = botModes..","..i
             i,entry = next ( ffxivminion.modes,i)
         end
+    end
+    
+    -- setup parent window for minionlib modules
+    ml_marker_mgr.parentWindow = ml_global_information.MainWindow
+    ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
+    
+    -- setup/load blacklist tables
+    ml_blacklist_mgr.path = GetStartupPath() .. [[\LuaMods\ffxivminion\blacklist.info]]
+    ml_blacklist_mgr.ReadBlacklistFile(ml_blacklist_mgr.path)
+    
+    if not ml_blacklist.BlacklistExists("Fates") then
+        ml_blacklist.CreateBlacklist("Fates")
+    end
+    
+    if not ml_blacklist.BlacklistExists("Mobs") then
+        ml_blacklist.CreateBlacklist("Mobs")
     end
     
     gBotMode_listitems = botModes
@@ -214,7 +234,6 @@ function ffxivminion.SetMode(mode)
 		gBotMode = mode
     end
 end
-
 
 function ffxivminion.CheckClass()
     local classes = 

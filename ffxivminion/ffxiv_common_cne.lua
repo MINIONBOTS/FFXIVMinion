@@ -189,7 +189,7 @@ function c_add_fate:evaluate()
             if (fateID ~= 0) then
                 local fate = GetFateByID(fateID)
                 if (fate ~= nil and TableSize(fate) > 0) then
-					if (fate.status == 2 ) then --or fate.status == 7) then
+					if (fate.status == 2 ) or (fate.status == 7 and Distance2D(myPos.x, myPos.y, fate.x, fate.y) < 100) then
                         return true
                     end
                 end
@@ -203,7 +203,7 @@ function e_add_fate:execute()
     local newTask = ffxiv_task_fate:Create()
     local myPos = Player.pos
     newTask.fateid = GetClosestFateID(myPos, true, true)
-    newTask.fateTimer = os.time()
+    newTask.fateTimer = ml_global_information.Now
     ml_task_hub.CurrentTask():AddSubTask(newTask)
 end
 

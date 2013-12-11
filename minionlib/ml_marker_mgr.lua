@@ -1,13 +1,16 @@
 --ml_marker_mgr is a gwen GUI for editing general marker information
 
-ml_marker_mgr = inheritsFrom(nil)
-
+ml_marker_mgr = {}
+ml_marker_mgr.mainwindow = { name = strings[gCurrentLanguage].markerManager, x = 340, y = 50, w = 335, h = 200}
 ml_marker_mgr.markerList = {}
+ml_marker_mgr.markerList.editList = {}
+ml_marker_mgr.markerList.editList.editList = {}
+ml_marker_mgr.markerList.editList.orderList = {}
 ml_marker_mgr.version = 1.0
 
 -- backend functions
 function ml_marker_mgr.GetList(markerType, filterEnabled)
-	local list = ml_marker_mgr.markerList[markerType]
+	local list = ml_marker_mgr.markerList.editList.editList[markerType]
 	
 	if filterEnabled then
 		-- filter only enabled markers
@@ -25,7 +28,7 @@ function ml_marker_mgr.GetList(markerType, filterEnabled)
 end
 
 function ml_marker_mgr.GetMarker(markerName)
-	for _, list in pairs(ml_marker_mgr.markerList) do
+	for _, list in pairs(ml_marker_mgr.markerList.editList) do
 		for name, marker in pairs(list) do
 			if (name == markerName) then
 				return marker
@@ -45,7 +48,7 @@ function ml_marker_mgr.AddMarker(newMarker)
 		
 	local found = false
 	
-	for _, list in pairs(ml_marker_mgr.markerList) do
+	for _, list in pairs(ml_marker_mgr.markerList.editList) do
 		for name, marker in pairs(list) do
 			if (name == newMarker:GetName()) then
 				ml_debug("Marker "..newMarker:GetName().." cannot be added because another marker with that name already exists")
@@ -54,10 +57,10 @@ function ml_marker_mgr.AddMarker(newMarker)
 		end
 	end
 	
-	local markerList = ml_marker_mgr.markerList[newMarker:GetType()]
+	local markerList = ml_marker_mgr.markerList.editList[newMarker:GetType()]
 	if not markerList then
 		markerList = {}
-		ml_marker_mgr.markerList[newMarker:GetType()] = markerList
+		ml_marker_mgr.markerList.editList[newMarker:GetType()] = markerList
 	end
 	
 	markerList[newMarker:GetName()] = newMarker
@@ -74,7 +77,7 @@ function ml_marker_mgr.RemoveMarker(oldMarker)
 		return false
 	end
 	
-	for _, list in pairs(ml_marker_mgr.markerList) do
+	for _, list in pairs(ml_marker_mgr.markerList.editList) do
 		for name, marker in pairs(list) do
 			if (name == oldMarker:GetName()) then
 				list[name] = nil
@@ -88,7 +91,7 @@ end
 
 function ml_marker_mgr.ReadMarkerFile(path)
 	ml_marker_mgr.markerList = persistence.load(path)
-	for type, list in pairs(ml_marker_mgr.markerList) do
+	for type, list in pairs(ml_marker_mgr.markerList.editList) do
 		for name, marker in pairs(list) do
 			-- set marker class metatable for each marker
 			setmetatable(marker, {__index = ml_marker})
@@ -98,6 +101,42 @@ end
 
 function ml_marker_mgr.WriteMarkerFile(path)
 	persistence.store(path, ml_marker_mgr.markerList)
+end
+
+function ml_marker_mgr.HandleInit()
+	GUI_NewWindow(ml_marker_mgr.mainwindow.name,ml_marker_mgr.mainwindow.x,ml_marker_mgr.mainwindow.y,ml_marker_mgr.mainwindow.w,ml_marker_mgr.mainwindow.h)
+	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gAddMarkerType",strings[gCurrentLanguage].addMarker,"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].newMarker,"ml_marker_mgr.NewMarker",strings[gCurrentLanguage].addMarker)
+	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].editMarker,"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].editMarker,"ml_marker_mgr.EditMarker",strings[gCurrentLanguage].editMarker)
+	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gListMarkerType",strings[gCurrentLanguage].markerList,"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].setupList,"ml_marker_mgr.SetupMarkerList",strings[gCurrentLanguage].markerList)
+	
+	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].addMarker)
+	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].editMarker)
+	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
+	
+	GUI_SizeWindow(ml_marker_mgr.mainwindow.name, ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.h)
+    GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
+end
+
+function ml_marker_mgr.RefreshMarkers()
+	-- refresh markerType and markerName lists
+	local markerTypeList = GetComboBoxList(ml_marker_mgr.markerList.editList)
+	
+	local namestring = ""
+	for markerType, markerList in pairs(ml_marker_mgr.markerList.editList) do
+		local markerNameList = GetComboBoxList(markerList)
+		if namestring == "" then
+			namestring = markerNameList["keyList"]
+		else
+			namestring = namestring..","..markerNameList["keyList"]
+		end
+	end
+	
+	gAddMarkerType_listitems = markerTypeList["keyList"]
+	gListMarkerType_listitems = markerTypeList["keyList"]
+	gMarkerName_listitems = namestring
 end
 
 function ml_marker_mgr.SetupTest()
@@ -130,7 +169,27 @@ function ml_marker_mgr.SetupTest()
 	-- remove via string
 	ml_marker_mgr.RemoveMarker("testMarker5")
 	
+	-- refresh markers for GUI
+	ml_marker_mgr.RefreshMarkers()
+	
 	testPath = GetStartupPath()..[[\Navigation\]].."markerTests.txt"
 end
 
+function ml_marker_mgr.ToggleMenu()
+    if (ml_marker_mgr.visible) then
+        GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)	
+        ml_marker_mgr.visible = false
+    else
+        local wnd = GUI_GetWindowInfo(ml_marker_mgr.parentWindow.Name)
+        if (wnd) then
+            GUI_MoveWindow( ml_marker_mgr.mainwindow.name, wnd.x+wnd.width,wnd.y) 
+            GUI_WindowVisible(ml_marker_mgr.mainwindow.name,true)
+        end
+        
+        ml_marker_mgr.visible = true
+    end
+end
+
+RegisterEventHandler("ToggleMarkerMgr", ml_marker_mgr.ToggleMenu)
+RegisterEventHandler("Module.Initalize",ml_marker_mgr.HandleInit)
 RegisterEventHandler("Module.Initalize",ml_marker_mgr.SetupTest)

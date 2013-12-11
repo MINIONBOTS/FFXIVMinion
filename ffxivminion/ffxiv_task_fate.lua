@@ -63,13 +63,13 @@ function c_fatequit:evaluate()
         if (fate ~= nil and TableSize(fate) > 0) then
             if (ml_task_hub:CurrentTask().fateCompletion ~= nil and ml_task_hub:CurrentTask().fateCompletion == fate.completion) then
                 if (ml_task_hub:CurrentTask().fateTimer ~= nil and ml_task_hub:CurrentTask().fateTimer ~= 0) then
-                    if (os.difftime(os.time(), ml_task_hub:CurrentTask().fateTimer) > tonumber(gFateBLTimer)) then
+                    if (TimeSince(ml_task_hub:CurrentTask().fateTimer) > (tonumber(gFateBLTimer)*1000)) then
                         return true
                     end
                 end
             elseif (ml_task_hub:CurrentTask().fateCompletion ~= nil and ml_task_hub:CurrentTask().fateTimer ~= nil) then
                 ml_task_hub:CurrentTask().fateCompletion = fate.completion
-                ml_task_hub:CurrentTask().fateTimer = os.time()
+                ml_task_hub:CurrentTask().fateTimer = ml_global_information.Now
             end
         end
     end
@@ -79,7 +79,8 @@ end
 function e_fatequit:execute()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         -- blacklist fate for 5 minutes and terminate task
-        gFateBlacklist[ml_task_hub:CurrentTask().fateid] = 300
+        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+        ml_blacklist.AddBlacklistEntry("Fates", fate.id, fate.name, ml_global_information.Now + 1800*1000)
         ml_task_hub:CurrentTask():Terminate()
     end
 end
