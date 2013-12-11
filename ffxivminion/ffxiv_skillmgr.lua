@@ -1074,7 +1074,6 @@ function SkillMgr.Craft()
                     local castable = true
                     --d("Checking on skill:"..tostring(skill.name).."  "..tostring(synth.durability).." > "..tostring(skill.durabmax) .. ": "..tostring(skill.durabmax > 0 and synth.durability > skill.durabmax))
 					--d("Checking on skill:"..tostring(skill.name).."  "..tostring(skill.condition).." > "..tostring(synth.description) .. ": "..tostring(skill.condition ~= "NotUsed" and synth.description ~= skill.condition))
-                    d(tostring(skill.qualityminper))
                     if ( (skill.stepmin > 0 and synth.step >= skill.stepmin) or
                         (skill.stepmax > 0 and synth.step < skill.stepmax) or
                         (skill.cpmin > 0 and Player.cp.current >= skill.cpmin) or
