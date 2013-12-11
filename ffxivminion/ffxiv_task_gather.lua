@@ -69,7 +69,7 @@ function e_findgatherable:execute()
         ml_task_hub.CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
-		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
+		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then
 			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 			local nodePos = gatherable.pos
 			
@@ -91,8 +91,8 @@ function e_findgatherable:execute()
 		
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
-        if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
-            if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1000 ) then
+        if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then            
+			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1000 ) then
                 local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 				local pPos = Player.pos
 				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
@@ -108,6 +108,11 @@ function e_findgatherable:execute()
             end
         end
     end
+	
+	--idiotcheck for no usable markers found on this mesh
+	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
+		ml_error("ERROR: THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+	end
 end
 
 c_movetogatherable = inheritsFrom( ml_cause )
@@ -315,7 +320,7 @@ function e_gather:execute()
                 Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
             end
         else
-            wt_error(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
+            ml_error(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
         end
     end
 end
