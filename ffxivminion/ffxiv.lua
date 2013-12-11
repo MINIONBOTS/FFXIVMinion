@@ -25,7 +25,7 @@ function ml_global_information.OnUpdate( event, tickcount )
     SkillMgr.OnUpdate( event, tickcount )
     
     -- ffxiv_task_fate.lua
-    ffxiv_task_fate.UpdateFateInfo(tickcount)
+    ffxiv_task_grind.UpdateBlacklistUI(tickcount)
     
     -- ml_blacklist.lua
     ml_blacklist.ClearBlacklists()

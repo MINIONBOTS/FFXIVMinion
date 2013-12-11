@@ -3,6 +3,9 @@ ml_blacklist_mgr.mainwindow = { name = strings[gCurrentLanguage].blacklistManage
 ml_blacklist_mgr.parentWindow = nil
 ml_blacklist_mgr.path = ""
 ml_blacklist_mgr.currentID = ""
+ml_blacklist_mgr.UIList = {}
+ml_blacklist_mgr.ticks = 0
+ml_blacklist_mgr.currentEntryCount = 0
 
 function ml_blacklist_mgr.HandleInit()
     GUI_NewWindow(ml_blacklist_mgr.mainwindow.name,ml_blacklist_mgr.mainwindow.x,ml_blacklist_mgr.mainwindow.y,ml_blacklist_mgr.mainwindow.w,ml_blacklist_mgr.mainwindow.h)
@@ -22,6 +25,7 @@ function ml_blacklist_mgr.RefreshNames()
     gBlacklistName_listitems = nameList["keyList"]
     gBlacklistName = nameList["firstKey"]
     
+    ml_blacklist_mgr.UpdateAddEntry()
     ml_blacklist_mgr.RefreshEntries()
 end
 
@@ -42,12 +46,30 @@ function ml_blacklist_mgr.RefreshEntries()
         
         gBlacklistEntry_listitems = entrylist
         gBlacklistEntry = firstEntry
+        ml_blacklist_mgr.currentEntryCount = TableSize(blacklist)
     end
+end
+
+function ml_blacklist_mgr.UpdateAddEntry()
+    -- init the correct "Add Entry" controls
+    GUI_DeleteGroup(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry)
+    local initUI = ml_blacklist_mgr.UIList[gBlacklistName]
+    if (initUI) then
+        initUI()
+        GUI_UnFoldGroup(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry)
+    end
+    
+    GUI_SizeWindow(ml_blacklist_mgr.mainwindow.name, ml_blacklist_mgr.mainwindow.w, ml_blacklist_mgr.mainwindow.h)
 end
 
 function ml_blacklist_mgr.DeleteEntry()
     ml_blacklist.DeleteEntry(gBlacklistName, ml_blacklist_mgr.currentID)
     ml_blacklist_mgr.RefreshEntries()
+end
+
+function ml_blacklist_mgr.AddInitUI(blacklistName, initFunc)
+    ml_blacklist_mgr.UIList[blacklistName] = initFunc
+    ml_blacklist_mgr.UpdateAddEntry()
 end
 
 function ml_blacklist_mgr.ReadBlacklistFile(path)
@@ -66,6 +88,7 @@ end
 function ml_blacklist_mgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if (k == "gBlacklistName") then
+            ml_blacklist_mgr.UpdateAddEntry()
             ml_blacklist_mgr.RefreshEntries()
         elseif (k == "gBlacklistEntry") then
             ml_blacklist_mgr.UpdateEntryTime()
@@ -74,7 +97,7 @@ function ml_blacklist_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ml_blacklist_mgr.UpdateEntryTime()
-    local entryTime = ml_blacklist.GetEntryTime(gBlacklistName, gBlacklistEntry)
+    local entryTime = ml_blacklist.GetEntryTime(gBlacklistName, ml_blacklist_mgr.currentID)
     if (entryTime == true) then
         gBlacklistEntryTime = "Infinite"
     elseif (entryTime) then
@@ -96,6 +119,18 @@ function ml_blacklist_mgr.ToggleMenu()
         end
         
         ml_blacklist_mgr.visible = true
+    end
+end
+
+-- have to update the entry list regularly since there's no way to capture a button click 
+-- externally when entries are added to the list
+function ml_blacklist_mgr.UpdateEntries(tickcount)
+    if (tickcount - ml_blacklist_mgr.ticks > 500) then
+        ml_blacklist_mgr.ticks = tickcount
+        local blacklist = ml_blacklist.blacklist[gBlacklistName]
+        if (TableSize(blacklist) ~= ml_blacklist_mgr.currentEntryCount) then
+            ml_blacklist_mgr.RefreshEntries()
+        end
     end
 end
 

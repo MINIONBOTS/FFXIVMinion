@@ -33,9 +33,9 @@ function GetNearestGrindAttackable()
     end	
     
     if (excludeString) then
-        local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
     else
-        local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
     
     if ( el ) then
@@ -46,9 +46,9 @@ function GetNearestGrindAttackable()
     end
     
     if (excludeString) then
-        local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
+        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid"..excludeString)
     else
-        local el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
     
     if ( el ) then
@@ -70,7 +70,7 @@ function GetNearestFateAttackable()
     if (fateID ~= nil and fateID ~= 0) then
         
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
         else
             el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
         end
@@ -83,7 +83,7 @@ function GetNearestFateAttackable()
         end	
     
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
         else    
             el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))            
         end    
@@ -105,7 +105,7 @@ function GetNearestFateAttackableID(fateID)
         local excludeString = ml_blacklist.GetExcludeString("Mobs")
         local el = nil
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID).."exclude_contentid"..excludeString)
+            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid"..excludeString)
         else
             el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
         end
@@ -326,8 +326,9 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
         local nearestDistance = 99999999
         local _, fate = next(fateList)
         local level = Player.level
+		local myPos = Player.pos
         while (_ ~= nil and fate ~= nil) do
-			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.name) and (fate.status == 2 or fate.status == 7 )) then
+			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.name) and (fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, fate.x, fate.y) < 50))) then
                 if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then

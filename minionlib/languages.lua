@@ -239,6 +239,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
     },                                  
     ["cn"] =                            
     {                               
@@ -489,6 +493,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
 	},
     ["jp"] =
     {
@@ -727,6 +735,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
 	},   
     ["de"] =
     {
@@ -965,6 +977,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
 	},     
     ["fr"] =
     {
@@ -1203,6 +1219,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
 	},       
     ["ru"] =
     {
@@ -1441,6 +1461,10 @@ strings =
         qualityminper					= "Quality % <",
 		qualitymaxper					= "Quality % >=",
         blacklistTarget                 = "Blacklist Target",
+        addEntry                        = "Add Entry",
+        blacklistFate                   = "Blacklist Fate",
+        notAttackable                   = "Not Attackable",
+        targetName                      = "Target Name",
 	},    	
 
 }

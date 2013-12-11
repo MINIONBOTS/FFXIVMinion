@@ -130,6 +130,12 @@ function ffxiv_task_grind.BlacklistFate(arg)
     end
 end
 
+function ffxiv_task_grind.BlacklistInitUI()
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName, "gTargetName", strings[gCurrentLanguage].addEntry)
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistTarget, "ffxiv_task_grind.blacklistTarget",strings[gCurrentLanguage].addEntry)
+    RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
+end
+
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
     -- Grind
@@ -142,9 +148,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTarget, "ffxiv_task_grind.blacklistTarget",strings[gCurrentLanguage].grindMode)
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
-    RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
     
     -- Fates
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")
@@ -153,12 +157,6 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", "Fates", "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", "Fates", "0", "99")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", "Fates", "30","600")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].fateIndex,"gFateIndex","Fates","1","5")
-    GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].fateName,"gFateName","Fates")
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistAdd, "gBlacklistFateAddEvent", "Fates")
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistRem, "gBlacklistFateRemEvent", "Fates")
-    RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
-    RegisterEventHandler("gBlacklistFateRemEvent", ffxiv_task_grind.BlacklistFate)
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -242,6 +240,38 @@ function ffxiv_task_grind.UIInit()
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
+    
+    --add blacklist init function
+    ml_blacklist_mgr.AddInitUI("Mobs",ffxiv_task_grind.BlacklistInitUI)
+    ml_blacklist_mgr.AddInitUI("Fates",ffxiv_task_fate.BlacklistInitUI)
+end
+
+function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
+    if ( tickcount - ffxiv_task_grind.ticks > 500 ) then
+        -- update fate name in gui
+        ffxiv_task_grind.ticks = tickcount
+        local fafound = false
+        local falist = MapObject:GetFateList()
+        if ( falist ) then
+            local f = falist[tonumber(gFateIndex)]
+            if ( f ) then
+                fafound = true
+                gFateName = f.name
+                gFateID = f.id
+            end
+        end
+        if (not fafound) then
+            gFateName = ""
+            gFateID = 0
+        end
+        
+        local target = Player:GetTarget()
+        if target and target.attackable then
+            gTargetName = target.name
+        else
+            gTargetName = strings[gCurrentLanguage].notAttackable
+        end
+    end
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_grind.GUIVarUpdate)
