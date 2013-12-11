@@ -112,11 +112,15 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gDisableDrawing == nil ) then
 		Settings.FFXIVMINION.gDisableDrawing = "0"
 	end
+	if ( Settings.FFXIVMINION.gAutoStart == nil ) then
+		Settings.FFXIVMINION.gAutoStart = "0"
+	end	
     
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].settings);	
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
@@ -153,7 +157,8 @@ function ffxivminion.HandleInit()
     gAssistMode = Settings.FFXIVMINION.gAssistMode
     gAssistPriority = Settings.FFXIVMINION.gAssistPriority
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-    
+    gAutoStart = Settings.FFXIVMINION.gAutoStart
+	
     -- setup bot mode
     local botModes = "None"
     if ( TableSize(ffxivminion.modes) > 0) then
@@ -185,6 +190,11 @@ function ffxivminion.HandleInit()
     gBotMode = Settings.FFXIVMINION.gBotMode
     ffxivminion.SetMode(gBotMode)
     
+	-- gAutoStart
+	if ( gAutoStart == "1" ) then
+		ml_task_hub.ToggleRun()		
+	end
+	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
 end
@@ -211,6 +221,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gAssistMode" or
             k == "gAssistPriority" or
             k == "gSprintDist" or
+			k == "gAutoStart" or
             k == "gRandomPaths" )			
         then
             Settings.FFXIVMINION[tostring(k)] = v
