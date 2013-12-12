@@ -124,7 +124,6 @@ function ffxiv_task_grind.BlacklistFate(arg)
         elseif (arg == "gBlacklistFateRemEvent") then
             ml_blacklist.DeleteEntry("Fates", tonumber(gFateID))
         end
-        ml_blacklist_mgr.RefreshNames()
     else
         ml_debug("No valid fate selected")
     end

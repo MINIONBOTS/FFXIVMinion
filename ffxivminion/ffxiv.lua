@@ -32,6 +32,7 @@ function ml_global_information.OnUpdate( event, tickcount )
     
     -- ml_blacklist_mgr.lua
     ml_blacklist_mgr.UpdateEntryTime()
+    ml_blacklist_mgr.UpdateEntries(tickcount)
     
     gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
     if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
