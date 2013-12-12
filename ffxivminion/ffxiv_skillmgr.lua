@@ -10,19 +10,13 @@ SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_g
 SkillMgr.lasttick = 0
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
-SkillMgr.currentJob = 0
 SkillMgr.UIRefreshPending = false
 SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
 SkillMgr.prevSkillID = ""
 
 function SkillMgr.ModuleInit() 	
-    
-	-- make sure to do set the default meshes even when Settings.FFXIVMINION.DefaultProfiles ~= nil
-	if (Settings.FFXIVMINION.DefaultProfiles == nil) then
-        Settings.FFXIVMINION.DefaultProfiles = {}
-    end	
-	if (Settings.FFXIVMINION.gSMactive == nil) then
+    if (Settings.FFXIVMINION.gSMactive == nil) then
         Settings.FFXIVMINION.gSMactive = "0"
     end
     if (Settings.FFXIVMINION.gSMlastprofile == nil) then
@@ -284,14 +278,9 @@ end
 function SkillMgr.OnUpdate( event, tick )
     
     if ( gSMactive == "1" ) then		
-        if	( tick - SkillMgr.lasttick > 500 ) then
+        if	( tick - SkillMgr.lasttick > 150 ) then
             SkillMgr.lasttick = tick
-			
-			-- Autoselect a working default profile
-            if ( (gSMprofile ~= nil and gSMprofile == "") or (SkillMgr.currentJob ~= 0 and SkillMgr.currentJob ~= Player.job) ) then
-				d("Selecting a working default profile for our current class")
-				
-			end
+            
         end
     end
     
@@ -423,7 +412,6 @@ function SkillMgr.SaveProfile()
         local string2write = "SKM_SMVersion_1=1\n"
         local skID,skill = next (SkillMgr.SkillProfile)
         local job = Player.job
-		string2write = string2write.."SKM_JOB="..job.."\n"
         while skID and skill do
             string2write = string2write.."SKM_NAME="..skill.name.."\n"
             string2write = string2write.."SKM_ID="..skill.id.."\n"
@@ -525,9 +513,8 @@ function SkillMgr.UpdateCurrentProfileData()
                         value = string.gsub(value, "\r", "")					
                         if ( key == "END" ) then
                             --d("Adding Skill :"..newskill.name.."Prio:"..tostring(newskill.prio))
-                            table.insert(unsortedSkillList,tonumber(newskill.prio),newskill)							
+                            table.insert(unsortedSkillList,tonumber(newskill.prio),newskill)						
                             newskill = {}
-							elseif ( key == "JOB" ) then SkillMgr.currentJob = tonumber(value)
                             elseif ( key == "ID" )then newskill.id = tonumber(value)
                             elseif ( key == "NAME" )then newskill.name = value
                             elseif ( key == "ON" )then newskill.used = tostring(value)
@@ -1176,10 +1163,10 @@ function SkillMgr.Gather( )
                         local castable = true
                         
                         --these first two conditionals here look retarded due to poor naming but they are correct
-						if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
+                        if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
                             (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.pbuff ~= "" and not HasBuff(Player.id,tonumber(skill.pbuff))) or
-                            (skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pnbuff))) or
+                            (skill.pbuff ~= "" and not HasBuffs(Player,skill.pbuff)) or
+                            (skill.pnbuff ~= "" and HasBuffs(Player,skill.pnbuff)) or
                             (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
                             (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
                             then castable = false 
