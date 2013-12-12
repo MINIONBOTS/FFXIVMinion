@@ -29,9 +29,30 @@ function mm.ModuleInit()
     if (Settings.FFXIVMINION.gMeshMGR == nil) then
         Settings.FFXIVMINION.gMeshMGR = "1"
     end
+	-- make sure to do set the default meshes even when Settings.FFXIVMINION.Maps ~= nil
     if (Settings.FFXIVMINION.Maps == nil) then
-        Settings.FFXIVMINION.Maps = {}
+        Settings.FFXIVMINION.Maps = {
+			[134] = "Middle La Noscea",
+			[135] = "Lower La Noscea",
+			[137] = "Costa Del Sol",
+			[138] = "Western La Noscea",
+			[139] = "Upper La Noscea - Left",
+			[140] = "Western Thanalan",
+			[141] = "Central Thanalan",
+			[145] = "Eastern Thanalan",
+			[146] = "Southern Thanalan",
+			[147] = "Northern Thanalan",
+			[148] = "Central Shroud",
+			[152] = "East Shroud",
+			[153] = "South Shroud",
+			[154] = "North Shroud",
+			[155] = "Coerthas",
+			[156] = "Mor Dhona",
+			[180] = "Outer La Noscea",
+		}
     end
+	
+
     
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
     GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)

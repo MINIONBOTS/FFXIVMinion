@@ -135,6 +135,9 @@ function c_assistleader:evaluate()
 end
 function e_assistleader:execute()
     if ( c_assistleader.targetid ) then
+		if ( Player.ismounted ) then
+			Dismount()
+		end
         local newTask = ffxiv_task_killtarget:Create()
         newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
         newTask.targetid = c_assistleader.targetid 
@@ -273,10 +276,12 @@ function e_followleader:execute()
             local distance = Distance2D(myPos.x, myPos.z, lpos.x, lpos.z)	
             
             -- mount
-            if ( gUseMount == "1" and not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then							
+            if ( gUseMount == "1" and not Player.ismounted and not Player.incombat) then							
                 if (distance > tonumber(gMountDist)) then
-                    Player:Stop()
-                    Mount()
+                    if (not ActionList:IsCasting() ) then
+						Player:Stop()
+						Mount()
+					end
                     return
                 end
             end
@@ -591,12 +596,13 @@ function c_rest:evaluate()
         end
     end
     
-    if (not Player.hasaggro) then
+    --if (not Player.hasaggro) then	
         --d(Player.hp.percent)
         --d(tonumber(gRestHP))
         --d(Player.mp.percent)
         --d(tonumber(gRestMP))
-        if (e_rest.resting or 
+	if ( TableSize(EntityList("nearest,alive,attackable,onmesh,targetingme") == 0 )) then
+        if (e_rest.resting or 		
             Player.hp.percent < tonumber(gRestHP) or
             Player.mp.percent < tonumber(gRestMP))
         then
