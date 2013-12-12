@@ -1120,45 +1120,26 @@ function SkillMgr.Craft()
                         then castable = false 
                     end
                         
-					-- buff checks
-					if ( castable and TableSize(pbuffs) > 0) then
-						if ( skill.cpbuff ~= "" ) then
-							local bfound = false
-							-- cast only when player has any of the buffs in the cpbuff field
-							for i in skill.pskill:cpbuff("%S+") do 
-								for i, buff in pairs(pbuffs) do
-                                       if (buff.id == tonumber(i)) then
-                                           bfound = true
-                                           break
-                                       end
-                                   end
-							end
-							if not bfound then castable = false end
-						end						
-						
-						-- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
-                        if (skill.cpnbuff ~= "" ) then
-                            local tbfound = false
-                            for buffid in StringSplit(skill.cpnbuff,",") do
-                                if (tonumber(buffid) ~= nil) then
-                                    for i, buff in pairs(pbuffs) do
-                                        if (buff.id == tonumber(buffid)) then
-                                            tbfound = true
-                                            break
-                                        end
-                                    end	
-                                end
-                            end
-							if tbfound then castable = false end								
-                        end								
-					end			 
+                  -- buff checks
+
+                    if ( skill.cpbuff ~= "" ) then
+                      local bfound = HasBuffs(Player,skill.cpbuff)
+                      if not bfound then castable = false end
+                    end						
+                    
+                    -- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
+                      if (skill.cpnbuff ~= "" ) then
+                        local tbfound = HasBuffs(Player,skill.cpnbuff)
+                        if tbfound then castable = false end								
+                      end								
+	 
 							 
-                    if ( castable ) then
-                        d("CASTING(Crafting) : "..tostring(skill.name))								
-                        if ( ActionList:Cast(skill.id,0) ) then									
+                        if ( castable ) then
+                          d("CASTING(Crafting) : "..tostring(skill.name))								
+                          if ( ActionList:Cast(skill.id,0) ) then									
                             skill.lastcast = ml_global_information.Now
                             SkillMgr.prevSkillID = tostring(skill.id)
-							return true
+                          return true
                         end	
                     end	
                 end
