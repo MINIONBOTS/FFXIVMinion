@@ -110,7 +110,7 @@ end
 function ffxiv_task_grind.BlacklistTarget()
     local target = Player:GetTarget()
     if ValidTable(target) then
-        ml_blacklist.AddBlacklistEntry("Mobs", target.contentid, target.name, true)
+        ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].monsters, target.contentid, target.name, true)
         ml_debug("Blacklisted "..target.name)
     else
         ml_debug("Invalid target or no target selected")
@@ -242,7 +242,7 @@ function ffxiv_task_grind.UIInit()
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
     
     --add blacklist init function
-    ml_blacklist_mgr.AddInitUI("Mobs",ffxiv_task_grind.BlacklistInitUI)
+    ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
     ml_blacklist_mgr.AddInitUI("Fates",ffxiv_task_fate.BlacklistInitUI)
 end
 

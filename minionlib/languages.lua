@@ -243,6 +243,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
     },                                  
     ["cn"] =                            
     {                               
@@ -497,6 +499,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
 	},
     ["jp"] =
     {
@@ -739,6 +743,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
 	},   
     ["de"] =
     {
@@ -981,6 +987,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
 	},     
     ["fr"] =
     {
@@ -1223,6 +1231,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
 	},       
     ["ru"] =
     {
@@ -1465,6 +1475,8 @@ strings =
         blacklistFate                   = "Blacklist Fate",
         notAttackable                   = "Invalid Target",
         targetName                      = "Target Name",
+        monsters                        = "Monsters",
+        fates                           = "Fates",
 	},    	
 
 }

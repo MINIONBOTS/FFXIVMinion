@@ -310,7 +310,7 @@ function e_gather:execute()
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
                     ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now
                 elseif (TimeSince(ml_task_hub:CurrentTask().failedTimer) > 12000) then
-					ml_blacklist.AddBlacklistEntry(ffxiv_task_gather.name, node.id, node.name, ml_global_information.Now + 1800*1000)
+					ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].gatherMode, node.id, node.name, ml_global_information.Now + 1800*1000)
 					ml_task_hub:CurrentTask().gatherid = 0
 					ml_task_hub:CurrentTask().failedTimer = 0
 				end
@@ -390,9 +390,6 @@ function ffxiv_task_gather:Init()
     self:add(ke_gather, self.process_elements)
     
     self:AddTaskCheckCEs()
-    
-    -- create node blacklist
-    ml_blacklist.CreateBlacklist("Gathering Nodes")
 end
 
 function ffxiv_task_gather:OnSleep()

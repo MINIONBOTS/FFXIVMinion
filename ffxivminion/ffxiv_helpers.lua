@@ -3,7 +3,7 @@
 -- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
 -- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
-    local excludeString = ml_blacklist.GetExcludeString("Mobs")
+    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
     local el = nil
     
     local minLevel = ml_global_information.MarkerMinLevel 
@@ -62,7 +62,7 @@ function GetNearestGrindAttackable()
 end
 
 function GetNearestFateAttackable()
-    local excludeString = ml_blacklist.GetExcludeString("Mobs")
+    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
     local el = nil
 
     local myPos = Player.pos
@@ -102,7 +102,7 @@ end
 
 function GetNearestFateAttackableID(fateID)
     if (fateID ~= nil and fateID ~= 0) then
-        local excludeString = ml_blacklist.GetExcludeString("Mobs")
+        local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
         local el = nil
         if (excludeString) then
             el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
@@ -178,7 +178,7 @@ function GetNearestAggro()
 end
 
 function GetNearestGatherable(minlevel,maxlevel)
-    local excludeString = ml_blacklist.GetExcludeString("Gathering Nodes")
+    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].gatherMode)
     local el = nil
     if (excludeString) then
         el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)

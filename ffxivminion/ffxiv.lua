@@ -181,8 +181,12 @@ function ffxivminion.HandleInit()
         ml_blacklist.CreateBlacklist("Fates")
     end
     
-    if not ml_blacklist.BlacklistExists("Mobs") then
-        ml_blacklist.CreateBlacklist("Mobs")
+    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].monsters) then
+        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].monsters)
+    end
+    
+    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].gatherMode) then
+        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
     end
     
     gBotMode_listitems = botModes
