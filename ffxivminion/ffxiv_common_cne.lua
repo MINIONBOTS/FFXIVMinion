@@ -604,7 +604,8 @@ function c_rest:evaluate()
         --d(tonumber(gRestHP))
         --d(Player.mp.percent)
         --d(tonumber(gRestMP))
-	if ( TableSize(EntityList("nearest,alive,attackable,onmesh,targetingme") == 0 )) then
+		--d("WTF: "..tostring( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 )) .." COMB: "..tostring(Player.incombat))
+	if ( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
         if (e_rest.resting or 		
             Player.hp.percent < tonumber(gRestHP) or
             Player.mp.percent < tonumber(gRestMP))
