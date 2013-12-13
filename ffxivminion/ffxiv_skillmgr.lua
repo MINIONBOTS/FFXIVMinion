@@ -1,4 +1,4 @@
-﻿-- Skillmanager for adv. skill customization
+-- Skillmanager for adv. skill customization
 SkillMgr = { }
 SkillMgr.version = "v0.5";
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
@@ -14,6 +14,7 @@ SkillMgr.UIRefreshPending = false
 SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
 SkillMgr.prevSkillID = ""
+SkillMgr.lastSkillID = ""
 
 function SkillMgr.ModuleInit() 	
     if (Settings.FFXIVMINION.gSMactive == nil) then
@@ -66,7 +67,7 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP >","SKM_PTPL","SkillDetails") -- Needs a string
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP <","SKM_PTPB","SkillDetails") -- Needs a string
-    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally");
+    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally,Tank");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].enemiesNearCount,"SKM_TECount","SkillDetails");
@@ -77,9 +78,7 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHas,"SKM_TBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHasNot,"SKM_TNBuff","SkillDetails");
-    GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed","SkillDetails");
+    GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");		
     GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -170,9 +169,7 @@ function SkillMgr.ModuleInit()
     SKM_PNBuff = ""
     SKM_TBuff = ""
     SKM_TNBuff = ""
-    SKM_PSkillID = ""
-	SKM_NPSkillID = ""
-	SKM_SecsPassed = 0
+    SKM_PSkillID = 0
     --Crafting
     SKM_STMIN = 0
     SKM_STMAX = 0
@@ -245,8 +242,6 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_TBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tbuff = v
         elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
         elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
-        elseif ( k == "SKM_NPSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].npskill = v
-        elseif ( k == "SKM_SecsPassed" ) then SkillMgr.SkillProfile[SKM_Prio].secspassed = tonumber(v)
         --crafting
         elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].stepmin = tonumber(v)
         elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].stepmax = tonumber(v)
@@ -467,9 +462,7 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
                 string2write = string2write.."SKM_TBuff="..skill.tbuff.."\n" 
                 string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n"
-                string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n"
-                string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
-                string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n" 
+                string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n" 
             end
                         
             string2write = string2write.."SKM_END=0\n"
@@ -543,8 +536,6 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
                             elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
                             elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
-                            elseif ( key == "NPSkillID" ) then newskill.npskill = tostring(value)
-							elseif ( key == "SecsPassed" ) then newskill.secspassed = tonumber(value)
                             --crafting
                             elseif ( key == "STMIN" ) then newskill.stepmin = tonumber(value)
                             elseif ( key == "STMAX" ) then newskill.stepmax = tonumber(value)
@@ -713,8 +704,6 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 tbuff = skill.tbuff or "",
                 tnbuff = skill.tnbuff or "",
                 pskill = skill.pskill or "",
-				npskill = skill.npskill or "",
-				secspassed = skill.secspassed or 0,
                 --crafting
                 stepmin = skill.stepmin or 0,
                 stepmax = skill.stepmax or 0,
@@ -827,8 +816,6 @@ function SkillMgr.EditSkill(event)
             SKM_TBuff = skill.tbuff or ""
             SKM_TNBuff = skill.tnbuff or ""
             SKM_PSkillID = skill.pskill or ""
-			SKM_NPSkillID = skill.npskill or ""
-			SKM_SecsPassed = skill.secspassed or ""
         end
     end
 end
@@ -867,7 +854,7 @@ function SkillMgr.GetHealSpellHPLimit()
     if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
         for prio,skill in pairs(SkillMgr.SkillProfile) do
             --d(tostring(skill.trg).." "..tostring(skill.thpb))
-            if ( (skill.trg == "Ally" or skill.trg == "Player") and skill.thpb > 0 and skill.thpb > highestHPLimit ) then
+            if ( (skill.trg == "Ally" or skill.trg == "Player" or skill.trg == "Tank") and skill.thpb > 0 and skill.thpb > highestHPLimit ) then
                 highestHPLimit = skill.thpb
             end
         end
@@ -884,8 +871,10 @@ function SkillMgr.Cast( entity )
         local ebuffs = entity.buffs
         
         local pet = Player.pet
-        
+        local tank = GetBestHealTargetTank()
         local ally = GetBestHealTarget()
+		local isally = false
+		local targetbased = false
         
         if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
             
@@ -907,9 +896,6 @@ function SkillMgr.Cast( entity )
                             castable = false 
                         end
                         
-						-- SECOND SINCE LAST CAST
-						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
-						
                         -- PLAYER HEALTH, TP/MP
                         if ( castable and (
                         (tonumber(skill.levelmin) > 0 and tonumber(skill.levelmin) > tonumber(Player.level)) --custom
@@ -952,23 +938,36 @@ function SkillMgr.Cast( entity )
                                     castable = false 
                                 else
                                     -- we need to cast the summon on our player
+									isally = true
                                     target = Player
                                     TID = PID
                                     tbuffs = pbuffs
                                 end
                             end
+						elseif ( skill.trg == "Tank" ) then
+						    if ( tank ~= nil and ally.id ~= PID) then
+								isally = true
+                                target = tank
+                                TID = tank.id
+                                tbuffs = tank.buffs
+                            end
                         elseif ( skill.trg == "Ally" ) then
                             if ( ally ~= nil and ally.id ~= PID) then
+								isally = true	
                                 target = ally
                                 TID = ally.id
                                 tbuffs = ally.buffs
                             end
-                        elseif ( skill.trg == "Player" ) then							
+                        elseif ( skill.trg == "Player" ) then
+							isally = true							
                             target = Player
                             TID = PID
                             tbuffs = pbuffs
                         end
-                        -- RANGE 							
+                        -- RANGE 
+						if skill.maxRange > 0 then							
+							targetbased = true
+						end							
                         if ( castable and (
                                    (skill.minRange > 0 and target.distance2d < skill.minRange)
                                 or (skill.maxRange > 0 and target.distance2d > skill.maxRange+target.hitradius+1)--target.distance2d- target.hitradius > skill.maxRange)
@@ -998,9 +997,10 @@ function SkillMgr.Cast( entity )
                         
                         -- TARGET AE CHECK
                         if ( castable and skill.tecount > 0 and skill.terange > 0) then
-                            if ( ( TableSize(EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..target.id)) < skill.tecount)) then
-                                castable = false
-                            end
+                           	target = GetAoETarget(isally,targetbased,skill.maxRange,skill.terange,skill.thpb,skill.thpl,skill.tecount,target)
+							if target == false then
+								castable = false
+							end
                         end
                         
                         -- PREVIOUS SKILL
@@ -1014,34 +1014,27 @@ function SkillMgr.Cast( entity )
                             end
                           end
                         end
-                        
-                        						-- PREVIOUS SKILL NOT
-						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
-							for i in skill.npskill:gmatch("%S+") do --custom
-								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
-								if ( SkillMgr.prevSkillID == i) then
-									castable = false
-									break
-								end
-							end
-						end
-                        
+                                               
                         -- ISMOVING CHECK
                         if( castable) then
                           if(Player:IsMoving() and realskilldata.casttime > 0) then
                             castable = false;
                            end
                         end
-						
+                        
                         if ( castable ) then
                             -- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
                             if ( ActionList:CanCast(skill.id,tonumber(TID)) )then -- takes care of los, range, facing target and valid target								
                                 --d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name) .." Prio="..skill.prio)								
                                 if ( ActionList:Cast(skill.id,TID) ) then									
                                     skill.lastcast = ml_global_information.Now
-                                    SkillMgr.prevSkillID = tostring(skill.id)
-									
-                                    return true
+									                    	if ShouldNotSetPrev(skill.id) == true then
+                                                 SkillMgr.prevSkillID = tostring(skill.id)                                                                                
+                                        end
+                                        if SkillMgr.lastSkillID == tostring(skill.id) then
+                                                SkillMgr.prevSkillID = tostring(skill.id)
+                                        end
+                                        SkillMgr.lastSkillID = tostring(skill.id)
                                 end
                             --[[elseif ( ActionList:CanCast(skill.id,tonumber(PID) )) then
                                 d("CASTING(heal/buff) : "..tostring(skill.name) .." on "..tostring(target.name))
@@ -1120,26 +1113,45 @@ function SkillMgr.Craft()
                         then castable = false 
                     end
                         
-                  -- buff checks
-
-                    if ( skill.cpbuff ~= "" ) then
-                      local bfound = HasBuffs(Player,skill.cpbuff)
-                      if not bfound then castable = false end
-                    end						
-                    
-                    -- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
-                      if (skill.cpnbuff ~= "" ) then
-                        local tbfound = HasBuffs(Player,skill.cpnbuff)
-                        if tbfound then castable = false end								
-                      end								
-	 
+					-- buff checks
+					if ( castable and TableSize(pbuffs) > 0) then
+						if ( skill.cpbuff ~= "" ) then
+							local bfound = false
+							-- cast only when player has any of the buffs in the cpbuff field
+							for i in skill.pskill:cpbuff("%S+") do 
+								for i, buff in pairs(pbuffs) do
+                                       if (buff.id == tonumber(i)) then
+                                           bfound = true
+                                           break
+                                       end
+                                   end
+							end
+							if not bfound then castable = false end
+						end						
+						
+						-- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
+                        if (skill.cpnbuff ~= "" ) then
+                            local tbfound = false
+                            for buffid in StringSplit(skill.cpnbuff,",") do
+                                if (tonumber(buffid) ~= nil) then
+                                    for i, buff in pairs(pbuffs) do
+                                        if (buff.id == tonumber(buffid)) then
+                                            tbfound = true
+                                            break
+                                        end
+                                    end	
+                                end
+                            end
+							if tbfound then castable = false end								
+                        end								
+					end			 
 							 
-                        if ( castable ) then
-                          d("CASTING(Crafting) : "..tostring(skill.name))								
-                          if ( ActionList:Cast(skill.id,0) ) then									
+                    if ( castable ) then
+                        d("CASTING(Crafting) : "..tostring(skill.name))								
+                        if ( ActionList:Cast(skill.id,0) ) then									
                             skill.lastcast = ml_global_information.Now
                             SkillMgr.prevSkillID = tostring(skill.id)
-                          return true
+							return true
                         end	
                     end	
                 end
@@ -1163,10 +1175,10 @@ function SkillMgr.Gather( )
                         local castable = true
                         
                         --these first two conditionals here look retarded due to poor naming but they are correct
-                        if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
+						if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
                             (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.pbuff ~= "" and not HasBuffs(Player,skill.pbuff)) or
-                            (skill.pnbuff ~= "" and HasBuffs(Player,skill.pnbuff)) or
+                            (skill.pbuff ~= "" and not HasBuff(Player.id,tonumber(skill.pbuff))) or
+                            (skill.pnbuff ~= "" and HasBuff(Player.id,tonumber(skill.pnbuff))) or
                             (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
                             (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
                             then castable = false 
