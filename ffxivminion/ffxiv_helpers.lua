@@ -333,7 +333,7 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
                     --	d(" NavigationManager:GetPointToMeshDistance: "..tostring( NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z}) ).." fate: "..tostring( fate.name))
-                        local distance = Distance2D(pos.x, pos.z, fate.x, fate.z)
+                        local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
                         if (nearestFate == nil or distance < nearestDistance) then
                             nearestFate = fate
                             nearestDistance = distance
