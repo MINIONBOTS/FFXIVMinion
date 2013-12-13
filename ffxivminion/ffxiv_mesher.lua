@@ -34,7 +34,7 @@ function mm.ModuleInit()
         Settings.FFXIVMINION.Maps = {
 			[134] = "Middle La Noscea",
 			[135] = "Lower La Noscea",
-			[137] = "Costa Del Sol",
+			[137] = "Eastern La Noscea - Costa Del Sol",
 			[138] = "Western La Noscea",
 			[139] = "Upper La Noscea - Left",
 			[140] = "Western Thanalan",
