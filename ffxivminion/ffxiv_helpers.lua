@@ -464,3 +464,150 @@ end
 function TimeSince(previousTime)
     return ml_global_information.Now - previousTime
 end
+
+SkillsSkip = {
+10, --Rampart
+20, --Flight or Fight
+14, --Flash
+12, --Convalescence
+18, --Provoke
+26, --Sword Oath
+25, --Shield Swipe
+13, --Awareness
+27, --Cover
+17, --Sentinel
+28, --Shield Oath
+19, --Tempered Will
+29, --Spirits Within
+22, --Bulwark
+30, --Hallowed Ground
+32, --Foresight
+34, --Bloodbath
+120, --Cure
+129 --StoneSkin
+}
+
+function ShouldNotSetPrev(skills)
+        local SID = skills
+        local SList = SkillsSkip        
+    if (TableSize(SList) > 0 ) then                                                
+                local i,skip = next(SList)                         
+                while (i~=nil and skip ~=nil) do                         
+                        if tonumber(SID) == tonumber(skip) then
+                                return false
+                        end                        
+                        i,skip = next(SList,i)                 
+                end
+                return true
+        end
+end
+
+	----This returns [true or false] weather or not a AoE should be done based on the conditions passed to it.
+function GetAoETarget(Allys,TargetBaseds,MaxSpellRange,MaxSpellRadius,HPCheckAmountLT,HPCheckAmountGT,CountCheck,CurrentTarget)
+	local el = 0
+	local el2 = 0
+	local e = CurrentTarget
+	local MSRange = MaxSpellRange --//The Maximum Range of the Spell.
+	local MSRadius = MaxSpellRadius --//The Maximum Radius of the Spell from the Player.
+	local HPChkAmountLT = HPCheckAmountLT --//"Target HP% <"The Health Threshhold for counting as a Target.
+	local HPChkAmountGT = HPCheckAmountGT --//"Target HP% >" The Health Threshhold for counting as a Target.
+	local CountChk= CountCheck --//The Number Of Unit's whom meet the Spells Critira.
+	local Ally = Allys	--//Dictates weather the spell is allybased or not.
+	local TargetBased = TargetBaseds --Dictates weather the spell is player or target based.
+	local PrevCount = 0 --//The Previous Count Of Unit's whom meet the Spells Critira.
+	local PrevID = 0 
+	local EntityCount = 0
+	if CountChk == 0 then
+		return false
+	end
+	if Ally == true then
+		el = EntityList("alive,chartype=4,targetable,myparty,maxdistance="..tostring(MSRange))
+	else
+		el = EntityList("alive,attackable,maxdistance="..tostring(MSRange))
+	end
+	if Ally == true then
+		if TargetBased == true then
+			el2 = EntityList("alive,chartype=4,targetable,myparty,distanceto="..e.id..",maxdistance="..tostring(MSRadius))
+		else 
+			el2 = EntityList("alive,chartype=4,targetable,myparty,maxdistance="..tostring(MSRadius))
+		end
+	else
+		if TargetBased == true then
+			el2 = EntityList("alive,attackable,distanceto="..e.id..",maxdistance="..tostring(MSRadius))
+		else 
+			el2 = EntityList("alive,attackable,maxdistance="..tostring(MSRadius))
+		end
+	end
+
+	if ( el ) then
+		local i,e = next(el)
+		while (i~=nil and e~=nil) do				
+			if ( el2 ) then
+				local i2,e2 = next(el2)
+				while (i2~=nil and e2~=nil) do
+						if ((( HPChkAmountLT ~= 0 ) and ( HPChkAmountGT == 0 )) and ( e2.hp.percent <= HPChkAmountLT )) then
+							EntityCount = EntityCount + 1							
+						elseif ((( HPChkAmountGT ~= 0 ) and ( HPChkAmountLT == 0 )) and ( e2.hp.percent >= HPChkAmountGT )) then
+							EntityCount = EntityCount + 1	
+						elseif ((( HPChkAmountGT ~= 0 ) and ( HPChkAmountLT ~= 0 )) and (( e2.hp.percent >= HPChkAmountGT ) and ( e2.hp.percent <= HPChkAmountLT ))) then
+							EntityCount = EntityCount + .5			
+						end
+					i2,e2 = next(el2,i2)  
+				end  
+			end
+			if EntityCount ~= 0 then
+					if PrevCount < EntityCount then						
+						PrevCount = EntityCount						
+						PrevID = e
+					end
+					EntityCount = 0
+			end			
+			i,e = next(el,i)  				
+		end
+		if (PrevCount ~= 0 or EntityCount ~= 0) then
+			if PrevCount > EntityCount then
+				if PrevCount >= CountChk then
+					return PrevID
+				end
+			else
+				if EntityCount >= CountCheck then
+					return e
+				end
+			end
+		end
+		return false
+	end
+end
+
+function GetBestHealTargetTank()
+local tank1 = 0
+local tank2 = 0
+local el = EntityList("friendly,chartype=4,alive,myparty,targetable,maxdistance="..tostring(ml_global_information.AttackRange))
+	if ( el ) then
+		local i,e = next(el)
+		while (i~=nil and e~=nil) do
+			if e.job == (1 or 3 or 19 or 21) then
+				if tank1 == 0 then
+					tank1 = e
+				end
+				if tank2 == 0 then
+					tank2 = e
+				end
+			end		
+		i,e = next(el,i) 
+		end  
+	end
+	
+	if tank2 ~= 0 and tank1 ~= 0 then
+		if tank2 == 0 then
+			return tank1
+		end
+			if tank1.hp.percent <= tank2.hp.percent then
+				return tank1
+			elseif tank2.hp.percent <= tank1.hp.percent then
+				return tank2
+			end
+	end
+	--ml_debug("GetBestHealTarget() failed with no entity found matching params")
+	return nil
+end
