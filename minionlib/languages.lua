@@ -248,6 +248,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
     },                                  
     ["cn"] =                            
     {                               
@@ -507,6 +508,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
 	},
     ["jp"] =
     {
@@ -754,6 +756,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
 	},   
     ["de"] =
     {
@@ -1001,6 +1004,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
 	},     
     ["fr"] =
     {
@@ -1248,6 +1252,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
 	},       
     ["ru"] =
     {
@@ -1495,6 +1500,7 @@ strings =
         startCombat                     = "Start Combat",
 		onlySolo						= "Only solo",
 		onlyParty						= "Only in party",
+		alliesNearHPLT					= "Allies HP% <",
 	},    	
 
 }

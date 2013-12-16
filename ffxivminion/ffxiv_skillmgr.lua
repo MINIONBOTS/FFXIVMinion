@@ -76,6 +76,7 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].enemiesNearRange,"SKM_TERange","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].alliesNearCount,"SKM_TACount","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].alliesNearRange,"SKM_TARange","SkillDetails");
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].alliesNearHPLT,"SKM_TAHPL","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHas,"SKM_TBuff","SkillDetails");
@@ -170,6 +171,7 @@ function SkillMgr.ModuleInit()
     SKM_TERange = 0
     SKM_TACount = 0
     SKM_TARange = 0
+	SKM_TAHPL = 0
     SKM_PBuff = ""
     SKM_PNBuff = ""
     SKM_TBuff = ""
@@ -245,7 +247,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_TECount" ) then SkillMgr.SkillProfile[SKM_Prio].tecount = tonumber(v)
         elseif ( k == "SKM_TERange" ) then SkillMgr.SkillProfile[SKM_Prio].terange = tonumber(v)
         elseif ( k == "SKM_TACount" ) then SkillMgr.SkillProfile[SKM_Prio].tacount = tonumber(v)
-        elseif ( k == "SKM_TARange" ) then SkillMgr.SkillProfile[SKM_Prio].terange = tonumber(v)
+        elseif ( k == "SKM_TARange" ) then SkillMgr.SkillProfile[SKM_Prio].tarange = tonumber(v)
+		elseif ( k == "SKM_TAHPL" ) then SkillMgr.SkillProfile[SKM_Prio].tahpl = tonumber(v)
         elseif ( k == "SKM_PBuff" ) then SkillMgr.SkillProfile[SKM_Prio].pbuff = v
         elseif ( k == "SKM_PNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].pnbuff = v
         elseif ( k == "SKM_TBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tbuff = v
@@ -468,7 +471,8 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_TECount="..skill.tecount.."\n" 
                 string2write = string2write.."SKM_TERange="..skill.terange.."\n" 
                 string2write = string2write.."SKM_TACount="..skill.tacount.."\n" 
-                string2write = string2write.."SKM_TARange="..skill.terange.."\n"
+                string2write = string2write.."SKM_TARange="..skill.tarange.."\n"
+                string2write = string2write.."SKM_TAHPL="..skill.tahpl.."\n"
                 string2write = string2write.."SKM_PBuff="..skill.pbuff.."\n" 
                 string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
                 string2write = string2write.."SKM_TBuff="..skill.tbuff.."\n" 
@@ -548,6 +552,7 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "TERange" )then newskill.terange = tonumber(value)
                             elseif ( key == "TACount" )then newskill.tacount = tonumber(value)
                             elseif ( key == "TARange" )then newskill.tarange = tonumber(value)
+                            elseif ( key == "TAHPL" )then newskill.tahpl = tonumber(value)
                             elseif ( key == "PBuff" )then newskill.pbuff = tostring(value)
                             elseif ( key == "PNBuff" )then newskill.pnbuff = tostring(value)
                             elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
@@ -720,6 +725,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 terange = skill.terange or 0,
                 tacount = skill.tacount or 0,
                 tarange = skill.tarange or 0,
+                tahpl = skill.tahpl or 0,
                 pbuff = skill.pbuff or "",
                 pnbuff = skill.pnbuff or "",
                 tbuff = skill.tbuff or "",
@@ -835,7 +841,8 @@ function SkillMgr.EditSkill(event)
             SKM_TECount = tonumber(skill.tecount) or 0
             SKM_TERange = tonumber(skill.terange) or 0
             SKM_TACount = tonumber(skill.tacount) or 0
-            SKM_TARange = tonumber(skill.terange) or 0
+            SKM_TARange = tonumber(skill.tarange) or 0
+            SKM_TAHPL = tonumber(skill.tahpl) or 0
             SKM_PBuff = skill.pbuff or ""
             SKM_PNBuff = skill.pnbuff or ""
             SKM_TBuff = skill.tbuff or ""
@@ -905,6 +912,7 @@ function SkillMgr.Cast( entity )
         local pet = Player.pet
         local plist = EntityList.myparty
         local ally = GetBestHealTarget()
+		local plistAE = nil
         
         if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
             
@@ -1026,6 +1034,26 @@ function SkillMgr.Cast( entity )
                                 castable = false
                             end
                         end
+						
+						-- ALLY AE CHECK
+						if ( castable and skill.tacount > 0 and skill.tarange > 0) then
+							plistAE = EntityList("myparty,maxdistance="..skill.tarange..",distanceto="..target.id)
+							if (TableSize(plistAE) < skill.tacount) then castable = false end
+						end
+						
+						-- ALLY HEALTH CHECK
+						-- If we get into this function than we know that skill.tacount > 0 and skill.tarange > 0
+						-- and that tarange has already been checked in the previous conditional
+						if ( castable and ValidTable(plistAE) and skill.tahpl > 0 ) then
+							local count = 0
+							for id, entity in pairs(plistAE) do
+								if entity.hp.percent < skill.tahpl then
+									count = count + 1
+								end
+							end
+							
+							if count < skill.tacount then castable = false end
+						end
                         
                         -- PREVIOUS SKILL
                         if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
