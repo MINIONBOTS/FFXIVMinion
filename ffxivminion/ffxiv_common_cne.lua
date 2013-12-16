@@ -643,10 +643,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleeing = false
 function c_flee:evaluate()
-    if (ValidTable(mm.evacPoint) and Player.hasaggro and 
-        Player.hp.percent < tonumber(gFleeHP)) or 
-        Player.mp.percent < tonumber(gFleeMP) or
-        e_flee.fleeing
+    if (ValidTable(mm.evacPoint) and (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)))) or e_flee.fleeing
     then
         return true
     end

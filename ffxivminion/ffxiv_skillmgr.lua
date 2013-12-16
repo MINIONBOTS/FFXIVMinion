@@ -45,7 +45,7 @@ function SkillMgr.ModuleInit()
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     GUI_WindowVisible(SkillMgr.mainwindow.name,false)		
                         
-    gSMactive = Settings.FFXIVMINION.gSMactive	
+    gSMactive = Settings.FFXIVMINION.gSMactive
     gSMnewname = ""
     
     
@@ -57,7 +57,10 @@ function SkillMgr.ModuleInit()
     GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF","SkillDetails")
 	--GUI_NewCheckbox(SkillMgr.editwindow.name,"Do not record","SKM_DOPREV","SkillDetails")-- Needs a string	
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player Level >","SKM_LevelMin","SkillDetails")-- Needs a string
-    GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].useOutOfCombat,"SKM_OutOfCombat","SkillDetails")			
+    GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].useOutOfCombat,"SKM_OutOfCombat","SkillDetails")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo","SkillDetails");
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlyParty,"SKM_OnlyParty","SkillDetails");
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed","SkillDetails");	
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR","SkillDetails")
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR","SkillDetails")	
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL","SkillDetails")
@@ -79,7 +82,6 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHasNot,"SKM_TNBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed","SkillDetails");
     GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -151,6 +153,8 @@ function SkillMgr.ModuleInit()
 	SKM_LevelMin = 0 --custom
     SKM_Prio = 0
     SKM_OutOfCombat = "0"
+	SKM_OnlySolo = "0"
+	SKM_OnlyParty = "0"
     SKM_TRG = "Enemy"
     SKM_MinR = 0
     SKM_MaxR = 0	
@@ -211,7 +215,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         --d(tostring(k).." = "..tostring(v))
         if ( k == "gSMactive" ) then			
             Settings.FFXIVMINION[tostring(k)] = v
-        elseif ( k == "gSMprofile" ) then			
+        elseif ( k == "gSMprofile" ) then
             gSMactive = "1"					
             GUI_WindowVisible(SkillMgr.editwindow.name,false)
             GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
@@ -226,6 +230,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif ( k == "SKM_LevelMin" ) then SkillMgr.SkillProfile[SKM_Prio].levelmin = v -- custom
         elseif ( k == "SKM_TRG" ) then SkillMgr.SkillProfile[SKM_Prio].trg = v
         elseif ( k == "SKM_OutOfCombat" ) then SkillMgr.SkillProfile[SKM_Prio].ooc = v
+        elseif ( k == "SKM_OnlySolo" ) then SkillMgr.SkillProfile[SKM_Prio].onlysolo = v
+        elseif ( k == "SKM_OnlyParty" ) then SkillMgr.SkillProfile[SKM_Prio].onlyparty = v
         elseif ( k == "SKM_MinR" ) then SkillMgr.SkillProfile[SKM_Prio].minRange = tonumber(v)
         elseif ( k == "SKM_MaxR" ) then SkillMgr.SkillProfile[SKM_Prio].maxRange = tonumber(v)		
         elseif ( k == "SKM_PHPL" ) then SkillMgr.SkillProfile[SKM_Prio].phpl = tonumber(v)
@@ -469,7 +475,9 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n"
                 string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n"
                 string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
-                string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n" 
+                string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n"
+				string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
+				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"		
             end
                         
             string2write = string2write.."SKM_END=0\n"
@@ -523,6 +531,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
                             elseif ( key == "Prio" )then newskill.prio = tonumber(value)
                             elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
+							elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
+                            elseif ( key == "OnlyParty" )then newskill.onlyparty = tostring(value)
                             elseif ( key == "TRG" )then newskill.trg = tostring(value)							
                             elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
                             elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 							
@@ -693,6 +703,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
                  doprev = skill.doprev or "0",
                 levelmin = skill.levelmin or 0,
                 ooc = skill.ooc or "0",
+				onlysolo = skill.onlysolo or "0",
+				onlyparty = skill.onlyparty or "0",
                 trg = skill.trg or "Enemy",
                 minRange = skill.minRange or 0,
                 maxRange = skill.maxRange or skill.range or 0,				
@@ -807,6 +819,8 @@ function SkillMgr.EditSkill(event)
             SKM_LevelMin = skill.levelmin or 0  --custom
             SKM_Prio = tonumber(event)
             SKM_OutOfCombat = skill.ooc or "0"
+            SKM_OnlySolo = skill.onlysolo or "0"
+            SKM_OnlyParty = skill.onlyparty or "0"
             SKM_TRG = skill.trg or "Enemy"
             SKM_MinR = tonumber(skill.minRange) or 0
             SKM_MaxR = tonumber(skill.maxRange) or 3		
@@ -877,6 +891,11 @@ end
 
 function SkillMgr.Cast( entity )
     if ( entity ) then
+        -- first check if we're in combat or not for the start combat setting
+        if (gStartCombat == "0" and not Player.incombat) then
+            return
+        end
+	
         local PID = Player.id
         local pbuffs = Player.buffs
         
@@ -884,7 +903,7 @@ function SkillMgr.Cast( entity )
         local ebuffs = entity.buffs
         
         local pet = Player.pet
-        
+        local plist = EntityList.myparty
         local ally = GetBestHealTarget()
         
         if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
@@ -907,6 +926,11 @@ function SkillMgr.Cast( entity )
                             castable = false 
                         end
                         
+						-- only solo
+						if ( skill.onlysolo == "1" and TableSize(plist) > 0 ) then castable = false end
+						
+						if ( skill.onlyparty == "1" and TableSize(plist) == 0 ) then castable = false end
+						
 						-- SECOND SINCE LAST CAST
 						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
 						
@@ -1063,7 +1087,6 @@ end
 SkillMgr.lastquality = 0
 SkillMgr.currentIQStack = 0
 function SkillMgr.Craft()
-    
     local synth = Crafting:SynthInfo()
     if ( TableSize(synth) > 0 and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
 

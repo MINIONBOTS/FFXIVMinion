@@ -92,7 +92,7 @@ function e_findgatherable:execute()
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then            
-			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1000 ) then
+			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1500 ) then
                 local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 				local pPos = Player.pos
 				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
@@ -118,7 +118,7 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 2000 ) then
+    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 1500 ) then
         return false
     end
     

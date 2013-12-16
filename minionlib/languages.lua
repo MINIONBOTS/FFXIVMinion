@@ -245,6 +245,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
     },                                  
     ["cn"] =                            
     {                               
@@ -501,6 +504,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
 	},
     ["jp"] =
     {
@@ -745,6 +751,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
 	},   
     ["de"] =
     {
@@ -960,7 +969,7 @@ strings =
         assist                          = "Assist",
 		assistPriority            	    = "Priority",
 
-        		-- new stuff (since last translation)
+        -- new stuff (since last translation)
 		useMooch						= "Use Mooch",
 		markerManager					= "MarkerManager",
 		prevSkillIDNot				 	= "Previous Skill ID NOT",
@@ -989,6 +998,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
 	},     
     ["fr"] =
     {
@@ -1233,6 +1245,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
 	},       
     ["ru"] =
     {
@@ -1477,6 +1492,9 @@ strings =
         targetName                      = "Target Name",
         monsters                        = "Monsters",
         fates                           = "Fates",
+        startCombat                     = "Start Combat",
+		onlySolo						= "Only solo",
+		onlyParty						= "Only in party",
 	},    	
 
 }

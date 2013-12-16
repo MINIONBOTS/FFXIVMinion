@@ -54,8 +54,20 @@ function FileExists(file)
 end
 
 function LinesFrom(file)
-	lines = fileread(file)  
-  return lines 
+	lines = fileread(file)
+	cleanedLines = {}
+	--strip any bad line endings
+	if (ValidTable(lines)) then
+		for i,line in pairs(lines) do
+			if line:sub(line:len(),line:len()+1) == "\r" then
+				cleanedLines[i] = line:sub(1,line:len()-1)
+			else
+				cleanedLines[i] = line
+			end
+		end
+	end
+	
+  return cleanedLines 
 end
 
 

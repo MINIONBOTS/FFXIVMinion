@@ -116,6 +116,9 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAutoStart == nil ) then
 		Settings.FFXIVMINION.gAutoStart = "0"
 	end	
+    if (Settings.FFXIVMINION.gStartCombat == nil) then
+        Settings.FFXIVMINION.gStartCombat = "1"
+    end
     
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -138,6 +141,7 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
     
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
@@ -159,6 +163,7 @@ function ffxivminion.HandleInit()
     gAssistPriority = Settings.FFXIVMINION.gAssistPriority
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
     gAutoStart = Settings.FFXIVMINION.gAutoStart
+    gStartCombat = Settings.FFXIVMINION.gStartCombat
 	
     -- setup bot mode
     local botModes = "None"
@@ -227,6 +232,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gAssistPriority" or
             k == "gSprintDist" or
 			k == "gAutoStart" or
+			k == "gStartCombat" or
             k == "gRandomPaths" )			
         then
             Settings.FFXIVMINION[tostring(k)] = v

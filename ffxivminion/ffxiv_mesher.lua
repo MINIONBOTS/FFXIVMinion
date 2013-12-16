@@ -379,10 +379,12 @@ function mm.ReadMarkerList(meshname)
     end
     
     -- helper functions located in ml_utility.lua
-    local lines = fileread(mm.navmeshfilepath..meshname..".info")
+    local lines = LinesFrom(mm.navmeshfilepath..meshname..".info")
     local version = 0
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
+			
+		
             local sections = {}
             for section in StringSplit(line,":") do
                 table.insert(sections, section)
