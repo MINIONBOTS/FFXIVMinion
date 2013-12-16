@@ -67,11 +67,14 @@ function c_killaggrotarget:evaluate()
 		return false
 	end
 	
-	-- block killtarget for grinding when user has specified "Fates Only"	
+	
+	-- I'll take these out, I dont see any reason why the bot should not defend itself against aggroed enemies while waiting in a fate
+    
+	--[[ block killtarget for grinding when user has specified "Fates Only"	
 	if ( (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
 		return false
-	end
-    -- block killtarget for fates when user has specified a fate completion % to start
+	end]]	
+	--[[ block killtarget for fates when user has specified a fate completion % to start
     if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
         if (ml_task_hub:CurrentTask().fateid ~= nil) then
             local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
@@ -81,7 +84,7 @@ function c_killaggrotarget:evaluate()
                 end
             end
         end
-    end
+    end]]
     
     local target = GetNearestAggro()
 	if (ValidTable(target)) then
@@ -601,7 +604,8 @@ function c_rest:evaluate()
         --d(tonumber(gRestHP))
         --d(Player.mp.percent)
         --d(tonumber(gRestMP))
-	if ( TableSize(EntityList("nearest,alive,attackable,onmesh,targetingme") == 0 )) then
+		--d("WTF: "..tostring( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 )) .." COMB: "..tostring(Player.incombat))
+	if ( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
         if (e_rest.resting or 		
             Player.hp.percent < tonumber(gRestHP) or
             Player.mp.percent < tonumber(gRestMP))
