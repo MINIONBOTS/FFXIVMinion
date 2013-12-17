@@ -241,8 +241,6 @@ function e_movetotarget:execute()
     end
 end
 
-
-
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
 c_followleader.rrange = math.random(5,15)

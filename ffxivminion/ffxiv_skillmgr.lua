@@ -69,7 +69,11 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB","SkillDetails")
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP >","SKM_PTPL","SkillDetails") -- Needs a string
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Player TP <","SKM_PTPB","SkillDetails") -- Needs a string
+    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].combatType,"SKM_PVEPVP","SkillDetails", "");
+    SKM_PVEPVP_listitems = strings[gCurrentLanguage].pve..","..strings[gCurrentLanguage].pvpMode..","..strings[gCurrentLanguage].both
     GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetType,"SKM_TRG","SkillDetails","Enemy,Player,Pet,Ally");
+    GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].pvpTargetType,"SKM_PVPTRG","SkillDetails", "");
+    SKM_PVPTRG_listitems = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank..","..strings[gCurrentLanguage].any
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB","SkillDetails");
     GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].enemiesNearCount,"SKM_TECount","SkillDetails");
@@ -156,7 +160,9 @@ function SkillMgr.ModuleInit()
     SKM_OutOfCombat = "0"
 	SKM_OnlySolo = "0"
 	SKM_OnlyParty = "0"
+    SKM_PVEPVP = "Both"
     SKM_TRG = "Enemy"
+    SKM_PVPTRG = "Any"
     SKM_MinR = 0
     SKM_MaxR = 0	
     SKM_PHPL = 0
@@ -230,7 +236,9 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_DOBUFF" ) then SkillMgr.SkillProfile[SKM_Prio].dobuff = v
 		elseif ( k == "SKM_DOPREV" ) then SkillMgr.SkillProfile[SKM_Prio].doprev = v -- custom
 		elseif ( k == "SKM_LevelMin" ) then SkillMgr.SkillProfile[SKM_Prio].levelmin = v -- custom
+        elseif ( k == "SKM_PVEPVP" ) then SkillMgr.SkillProfile[SKM_Prio].pvepvp = v
         elseif ( k == "SKM_TRG" ) then SkillMgr.SkillProfile[SKM_Prio].trg = v
+        elseif ( k == "SKM_PVPTRG" ) then SkillMgr.SkillProfile[SKM_Prio].pvptrg = v
         elseif ( k == "SKM_OutOfCombat" ) then SkillMgr.SkillProfile[SKM_Prio].ooc = v
         elseif ( k == "SKM_OnlySolo" ) then SkillMgr.SkillProfile[SKM_Prio].onlysolo = v
         elseif ( k == "SKM_OnlyParty" ) then SkillMgr.SkillProfile[SKM_Prio].onlyparty = v
@@ -457,6 +465,7 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_TRG="..skill.trg.."\n"		
 				string2write = string2write.."SKM_LevelMin="..skill.levelmin.."\n"	--custom
 				string2write = string2write.."SKM_TRG="..skill.trg.."\n"
+                string2write = string2write.."SKM_TRG="..skill.trg.."\n"
                 string2write = string2write.."SKM_OutOfCombat="..skill.ooc.."\n"			
                 string2write = string2write.."SKM_MinR="..skill.minRange.."\n"
                 string2write = string2write.."SKM_MaxR="..skill.maxRange.."\n" 			
@@ -481,7 +490,9 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
                 string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n"
 				string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
-				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"		
+				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
+                string2write = string2write.."SKM_PVEPVP="..skill.pvepvp.."\n"
+                string2write = string2write.."SKM_PVPTRG="..skill.pvptrg.."\n"                
             end
                         
             string2write = string2write.."SKM_END=0\n"
@@ -537,7 +548,9 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
 							elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
                             elseif ( key == "OnlyParty" )then newskill.onlyparty = tostring(value)
-                            elseif ( key == "TRG" )then newskill.trg = tostring(value)							
+                            elseif ( key == "PVEPVP" )then newskill.pvepvp = tostring(value)	
+                            elseif ( key == "TRG" )then newskill.trg = tostring(value)
+                            elseif ( key == "PVPTRG" )then newskill.pvptrg = tostring(value)	
                             elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
                             elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 							
                             elseif ( key == "PHPL" )then newskill.phpl = tonumber(value)
@@ -710,7 +723,9 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 ooc = skill.ooc or "0",
 				onlysolo = skill.onlysolo or "0",
 				onlyparty = skill.onlyparty or "0",
+                pvepvp = skill.pvppve or "Both",
                 trg = skill.trg or "Enemy",
+                pvptrg = skill.pvptrg or "Any",
                 minRange = skill.minRange or 0,
                 maxRange = skill.maxRange or skill.range or 0,				
                 phpl = skill.phpl or 0,
@@ -827,6 +842,8 @@ function SkillMgr.EditSkill(event)
             SKM_OutOfCombat = skill.ooc or "0"
             SKM_OnlySolo = skill.onlysolo or "0"
             SKM_OnlyParty = skill.onlyparty or "0"
+            SKM_PVEPVP = skill.pvepvp or "Both"
+            SKM_PVPTRG = skill.pvptrg or "Any"
             SKM_TRG = skill.trg or "Enemy"
             SKM_MinR = tonumber(skill.minRange) or 0
             SKM_MaxR = tonumber(skill.maxRange) or 3		
@@ -967,8 +984,8 @@ function SkillMgr.Cast( entity )
                                 if tbfound then castable = false end								
                             end							
                         end	
+
                         
-                                                                                                                            
                         -- SWITCH TARGET FOR PET / ALLY - CHECK
                         if ( skill.trg == "Pet" ) then
                             if ( pet ~= nil and pet ~= 0) then
@@ -1000,6 +1017,16 @@ function SkillMgr.Cast( entity )
                             TID = PID
                             tbuffs = pbuffs
                         end
+                        
+                        if (skill.pvepvp == strings[gCurrentLanguage].pvpMode and Player.localmapid ~= 0) then castable = false end--change this to be the wolves den id
+                        
+                        if (skill.pvepvp == strings[gCurrentLanguage].pve and Player.localmapid == 0) then castable = false end--change this to be the wolves den id
+                        
+                        if (castable and skill.pvepvp == strings[gCurrentLanguage].pvpMode and skill.pvptrg ~= strings[gCurrentLanguage].any) then
+                            local roleString = GetRoleString(target.job)
+                            if skill.pvptrg ~= roleString then castable = false end
+                        end
+                        
                         -- RANGE 							
                         if ( castable and (
                                    (skill.minRange > 0 and target.distance2d < skill.minRange)

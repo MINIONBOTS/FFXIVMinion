@@ -66,8 +66,11 @@ ffxivminion.modes =
     [strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
 	[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
     [strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
-    [strings[gCurrentLanguage].partyMode]	= ffxiv_task_party
+    [strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
+    [strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
 }
+
+FFXIVMINION.PVPTYPES = { [1] = "Healer", [2] = "DPS", [3] = "Tank" , [4] = "Any" }
 
 -- Module Event Handler
 function ffxivminion.HandleInit()	

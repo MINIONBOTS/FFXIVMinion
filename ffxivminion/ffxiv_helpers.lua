@@ -164,6 +164,71 @@ function GetClosestHealTarget()
     return nil
 end
 
+function GetPVPTarget()
+    local targets = {}
+    local bestTarget = nil
+    local role = nil
+    
+    local el = EntityList("nearest,onmesh,attackable,alive")
+    if (el) then
+        local id, entity = next(el)
+        if not HasBuff(entity.id, 3) then -- get sleep buff id
+            targets[strings[gCurrentLanguage].nearest] = entity.id
+        end
+    end
+        
+    el = EntityList("onmesh,attackable,alive,lowesthealth")
+    if (el) then
+        local id, entity = next(el)
+        if not HasBuff(entity.id, 3) then -- get sleep buff id
+            targets[strings[gCurrentLanguage].lowestHealth] = entity.id
+        end
+    end
+
+    local enemyParty = EntityList("onmesh,attackable,alive")
+    if (ValidTable(enemyParty)) then
+        local id, entity = next(enemyPart)
+        while (id ~= nil and entity ~= nil) do
+            if not HasBuff(entity.id, 3) then -- get sleep buff id
+                role = GetRoleString(entity.job)
+                if role == "healer" then
+                    targets[strings[gCurrentLanguage].healer] = entity.id
+                elseif role == "dps" then
+                    if (targets[strings[gCurrentLanguage].dps]) then
+                        local en = EntityList:Get(targets[strings[gCurrentLanguage].dps])
+                        if (ValidTable(en)) then
+                            if gPrioritizeRanged == "1" and entity.distance > en.distance then
+                                targets[strings[gCurrentLanguage].dps] = entity.id
+                            end
+                        end
+                    else
+                        targets[strings[gCurrentLanguage].dps] = entity.id
+                    end
+                else
+                    targets[strings[gCurrentLanguage].tank] = entity.id
+                end 
+            end
+        end
+    end
+    
+    -- look for a priority one target
+    bestTarget = targets[gPVPTargetOne]
+    
+    if not bestTarget then
+        bestTarget = targets[gPVPTargetTwo]
+    end
+    
+    if not bestTarget then
+        bestTarget = targets[strings[gCurrentLanguage].lowestHealth]
+    end
+    
+    if not bestTarget then
+        bestTarget = targets[strings[gCurrentLanguage].nearest]
+    end
+    
+    return bestTarget
+end
+
 function GetNearestAggro()
     local el = EntityList("nearest,alive,attackable,onmesh,aggro,maxdistance="..tostring(ml_global_information.AttackRange))
     if ( el ) then
@@ -463,4 +528,34 @@ end
 
 function TimeSince(previousTime)
     return ml_global_information.Now - previousTime
+end
+
+function GetRoleString(jobID)
+    if 
+        jobID == FFXIV.JOBS.ARCANIST or
+        jobID == FFXIV.JOBS.ARCHER or
+        jobID == FFXIV.JOBS.BARD or
+        jobID == FFXIV.JOBS.BLACKMAGE or
+        jobID == FFXIV.JOBS.DRAGOON or
+        jobID == FFXIV.JOBS.LANCER or
+        jobID == FFXIV.JOBS.MONK or
+        jobID == FFXIV.JOBS.PUGILIST or
+        jobID == FFXIV.JOBS.SUMMONER or
+        jobID == FFXIV.JOBS.THAUMATURGE
+    then
+        return "DPS"
+    elseif
+        jobID == FFXIV.JOBS.CONJURER or
+        jobID == FFXIV.JOBS.SCHOLAR or
+        jobID == FFXIV.JOBS.WHITEMAGE
+    then
+        return "Healer"
+    elseif 
+        jobID == FFXIV.JOBS.GLADIATOR or
+        jobID == FFXIV.JOBS.MARAUDER or
+        jobID == FFXIV.JOBS.PALADIN or
+        jobID == FFXIV.JOBS.WARRIOR
+    then
+        return "Tank"
+    end
 end

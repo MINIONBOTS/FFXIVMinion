@@ -119,6 +119,9 @@ function ml_task:Process()
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
+		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().process_elements)
+		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -134,6 +137,9 @@ function ml_task:ProcessOverWatch()
 		ml_debug(self.name.."->ProcessOverWatch()")
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.overwatch_elements)
+		if (self:superClass() and TableSize(self:superClass().overwatch_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().overwatch_elements)
+		end
 		ml_cne_hub.queue_to_execute()
 		return ml_cne_hub.execute()
 	end
