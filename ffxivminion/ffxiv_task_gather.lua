@@ -116,11 +116,12 @@ function e_findgatherable:execute()
 		then
 			ml_error("Warning: GatherManager is Disabled! ENABLING the Gathermanager now and we'll see if that helps!")
 			gGMactive = "1"
-			return false
+			
 		else
-			ml_error("ERROR: THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
 		end		
 	end
+	return false
 end
 
 c_movetogatherable = inheritsFrom( ml_cause )

@@ -99,7 +99,7 @@ end
 
 -- UI settings etc
 function ffxiv_task_pvp.UIInit()
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
+   --[[ GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
 
@@ -124,7 +124,7 @@ function ffxiv_task_pvp.UIInit()
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
-    gPrioritizeRanged = Settings.FFXIVMINION.gPrioritizeRanged
+    gPrioritizeRanged = Settings.FFXIVMINION.gPrioritizeRanged]]
 end
 
 function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
