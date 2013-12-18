@@ -31,50 +31,56 @@ function e_joinqueue:execute()
     -- join df queue
 end
 
-c_acceptqueue = inheritsFrom( ml_cause )
-e_acceptqueue = inheritsFrom( ml_effect )
-function c_acceptqueue:evaluate() 
+c_pressconfirm = inheritsFrom( ml_cause )
+e_pressconfirm = inheritsFrom( ml_effect )
+function c_pressconfirm:evaluate() 
     -- check if df queue window is open
+	-- added function DutyReady() but it's not returnign a bool?
 end
-function e_acceptqueue:execute()
-    -- click "Commence"
+function e_pressconfirm:execute()
+    PressDutyConfirm(true)
 end
 
-c_leavepvp = inheritsFrom( ml_cause )
-e_leavepvp = inheritsFrom( ml_effect )
-function c_leavepvp:evaluate() 
-    -- check if leave pvp window is open
+c_pressleave = inheritsFrom( ml_cause )
+e_pressleave = inheritsFrom( ml_effect )
+function c_pressleave:evaluate() 
+    -- check if map is wolves den (175) and colosseum record is open
 end
-function e_leavepvp:execute()
-    -- click "Leave"
+function e_pressleave:execute()
+    PressLeaveColosseum()
 end
 
 c_pvpBetterTarget = inheritsFrom( ml_cause )
 e_pvpBetterTarget = inheritsFrom( ml_effect )
-function c_pvpBetterTarget:evaluate() 
+function c_pvpBetterTarget:evaluate()
     -- check if our current target is no longer valid or a better target exists
     if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
         local bettertarget = ml_task_hub:ThisTask().targetFunction()
         if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
-            ml_task_hub:ThisTask().targetid = bettertarget.id
-            Player:SetTarget(bettertarget.id)
+            e_pvpBetterTarget.id = bettertarget.id
             return true			
         end		
     end	
 end
 function e_pvpBetterTarget:execute()
-    -- click "Leave"
+    ml_task_hub:ThisTask().targetid = e_pvpBetterTarget.id
+    Player:SetTarget(e_pvpBetterTarget.id)
 end
 
 function ffxiv_task_pvp:Init()
     --init ProcessOverWatch() elements
+    local ke_pvpBetterTarget = ml_element:create( "PVPBetterTarget", c_pvpBetterTarget, e_pvpBetterTarget, 15 )
+    self:add(ke_pvpBetterTarget, self.process_elements)
    
-    
-    --not sure if we need this, taking it out for now
     --init Process() cnes
-    --local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
-    --self:add(ke_mobAggro, self.process_elements)
-
+    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
+    self:add(ke_addKillTarget, self.process_elements)
+	
+	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 10 )
+    self:add(ke_pressConfirm, self.process_elements)
+	
+	local ke_pressLeave = ml_element:create( "LeaveColosseum", c_pressleave, e_pressleave, 10 )
+    self:add(ke_pressLeave, self.process_elements)
   
     self:AddTaskCheckCEs()
 end
@@ -103,11 +109,11 @@ function ffxiv_task_pvp.UIInit()
     gPVPTargetTwo_listitems = targetTypeList
     
     if (Settings.FFXIVMINION.gPVPTargetOne == nil) then
-        Settings.FFXIVMINION.gPVPTargetOne = "1"
+        Settings.FFXIVMINION.gPVPTargetOne = "Healer"
     end
     
     if (Settings.FFXIVMINION.gPVPTargetTwo == nil) then
-        Settings.FFXIVMINION.gPVPTargetTwo = "2"
+        Settings.FFXIVMINION.gPVPTargetTwo = "Lowest Health"
     end
     
     if (Settings.FFXIVMINION.gPrioritizeRanged == nil) then

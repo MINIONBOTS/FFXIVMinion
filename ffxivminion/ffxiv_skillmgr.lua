@@ -1018,11 +1018,11 @@ function SkillMgr.Cast( entity )
                             tbuffs = pbuffs
                         end
                         
-                        if (skill.pvepvp == strings[gCurrentLanguage].pvpMode and Player.localmapid ~= 0) then castable = false end--change this to be the wolves den id
+                        if (skill.pvepvp == strings[gCurrentLanguage].pvpMode and Player.localmapid ~= 175) then castable = false end--change this to be the wolves den id
                         
-                        if (skill.pvepvp == strings[gCurrentLanguage].pve and Player.localmapid == 0) then castable = false end--change this to be the wolves den id
+                        if (skill.pvepvp == strings[gCurrentLanguage].pve and Player.localmapid == 175) then castable = false end--change this to be the wolves den id
                         
-                        if (castable and skill.pvepvp == strings[gCurrentLanguage].pvpMode and skill.pvptrg ~= strings[gCurrentLanguage].any) then
+                        if (castable and skill.pvepvp ~= strings[gCurrentLanguage].pve and skill.pvptrg ~= strings[gCurrentLanguage].any) then
                             local roleString = GetRoleString(target.job)
                             if skill.pvptrg ~= roleString then castable = false end
                         end

@@ -170,44 +170,45 @@ function GetPVPTarget()
     local role = nil
     
     local el = EntityList("nearest,onmesh,attackable,alive")
-    if (el) then
+    if (ValidTable(el)) then
         local id, entity = next(el)
         if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets[strings[gCurrentLanguage].nearest] = entity.id
+            targets[strings[gCurrentLanguage].nearest] = entity
         end
     end
         
     el = EntityList("onmesh,attackable,alive,lowesthealth")
-    if (el) then
+    if (ValidTable(el)) then
         local id, entity = next(el)
         if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets[strings[gCurrentLanguage].lowestHealth] = entity.id
+            targets[strings[gCurrentLanguage].lowestHealth] = entity
         end
     end
 
     local enemyParty = EntityList("onmesh,attackable,alive")
     if (ValidTable(enemyParty)) then
-        local id, entity = next(enemyPart)
+        local id, entity = next(enemyParty)
         while (id ~= nil and entity ~= nil) do
             if not HasBuff(entity.id, 3) then -- get sleep buff id
                 role = GetRoleString(entity.job)
-                if role == "healer" then
-                    targets[strings[gCurrentLanguage].healer] = entity.id
-                elseif role == "dps" then
+                if role == "Healer" then
+                    targets[strings[gCurrentLanguage].healer] = entity
+                elseif role == "DPS" then
                     if (targets[strings[gCurrentLanguage].dps]) then
                         local en = EntityList:Get(targets[strings[gCurrentLanguage].dps])
                         if (ValidTable(en)) then
                             if gPrioritizeRanged == "1" and entity.distance > en.distance then
-                                targets[strings[gCurrentLanguage].dps] = entity.id
+                                targets[strings[gCurrentLanguage].dps] = entity
                             end
                         end
                     else
-                        targets[strings[gCurrentLanguage].dps] = entity.id
+                        targets[strings[gCurrentLanguage].dps] = entity
                     end
                 else
-                    targets[strings[gCurrentLanguage].tank] = entity.id
+                    targets[strings[gCurrentLanguage].tank] = entity
                 end 
             end
+            id, entity = next(enemyParty, id)
         end
     end
     

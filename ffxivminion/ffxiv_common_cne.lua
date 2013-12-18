@@ -399,6 +399,10 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
+    if (gBotMode == "PVP") then
+        return false
+    end
+
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
         if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
             local myPos = Player.pos
@@ -424,6 +428,10 @@ end
 c_sprint = inheritsFrom( ml_cause )
 e_sprint = inheritsFrom( ml_effect )
 function c_sprint:evaluate()
+    if (gBotMode == "PVP") then
+        return false
+    end
+
     if not HasBuff(Player.id, 50) and not Player.ismounted then
         local skills = ActionList("type=1")
         local skill = skills[3]
