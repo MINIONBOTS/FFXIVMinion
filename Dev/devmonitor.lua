@@ -222,6 +222,13 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Position","papos","PartyInfo")	
 	pamem = 0
 	
+	--DutyFinder/PvP
+	GUI_NewField("Dev","IsDutryReady","DutReady","DutyInfo")
+	GUI_NewButton("Dev","PressDutyConfirm","Dev.DConf","DutyInfo")
+	RegisterEventHandler("Dev.DConf", Dev.Func)	
+	GUI_NewButton("Dev","PressLeaveColosseum","Dev.PressLeaveColosseum","DutyInfo")
+	RegisterEventHandler("Dev.PressLeaveColosseum", Dev.Func)	
+	
 	-- General Functions
 	GUI_NewButton("Dev","Interact with Target","Dev.Interact","General Functions")
 	RegisterEventHandler("Dev.Interact", Dev.Func)		
@@ -270,7 +277,7 @@ function Dev.Move( dir )
 		Player:MoveToStraight(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos))
 	elseif ( dir == "Dev.teleport") then
 		d("Teleporting to : "..tostring(tb_xPos).." "..tostring(tb_yPos).." "..tostring(tb_zPos))
-		GameHacks:TeleportToXYZ(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos))
+		d(GameHacks:TeleportToXYZ(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos)))
 	end
 end
 
@@ -305,6 +312,10 @@ function Dev.Func ( arg )
 		Player:SyncLevel()
 	elseif ( arg == "Dev.Sound" ) then
 		GameHacks:PlaySound(tonumber(gsound))
+	elseif ( arg == "Dev.DConf") then
+		d(PressDutyConfirm(true))
+	elseif ( arg == "Dev.PressLeaveColosseum") then
+		d(PressLeaveColosseum())
 	end
 end
 
@@ -881,6 +892,13 @@ function Dev.UpdateWindow()
 		palead = false
 		paonmesh = false
 	end
+	
+	-- Dutyfinder / PvP
+	DutReady = tostring(DutyReady())
+	
+	
+	
+	
 end
 
 function Dev.DoTask()
