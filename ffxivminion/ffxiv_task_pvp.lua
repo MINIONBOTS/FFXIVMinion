@@ -77,7 +77,7 @@ function c_startcombat:evaluate()
             end
         end
         
-        if maxdistance > 10 then
+        if maxdistance > 15 then
             return true
         end
             
@@ -137,9 +137,6 @@ end
 
 function ffxiv_task_pvp:Init()
     --init Process() cnes
-    local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 20 )
-    self:add(ke_startCombat, self.process_elements)
-    
     local ke_atTarget = ml_element:create( "AtTarget", c_attarget, e_attarget, 15 )
     self:add(ke_atTarget, self.process_elements)
     
@@ -151,6 +148,9 @@ function ffxiv_task_pvp:Init()
 	
 	local ke_pressLeave = ml_element:create( "LeaveColosseum", c_pressleave, e_pressleave, 10 )
     self:add(ke_pressLeave, self.process_elements)
+    
+    local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 5 )
+    self:add(ke_startCombat, self.process_elements)
   
     self:AddTaskCheckCEs()
 end
@@ -158,7 +158,7 @@ end
 -- custom process function for optimal performance
 function ffxiv_task_pvp:Process()
     -- only perform combat logic when we are in the wolves den
-    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ml_task_hub.CurrentTask().combatStarted) then
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ml_task_hub.CurrentTask().combatStarted and Player.alive) then
         -- first check for an optimal target
         local target = GetPVPTarget()
         if ValidTable(target) and target.id ~= self.targetid then

@@ -169,70 +169,76 @@ function GetPVPTarget()
     local bestTarget = nil
     local role = nil
     
-    local el = EntityList("nearest,onmesh,attackable,alive")
-    if (ValidTable(el)) then
-        local id, entity = next(el)
-        d("Found nearest target "..entity.name.." with distance "..tostring(entity.distance))
-        if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets["Nearest"] = entity
-        end
-    end
-        
-    el = EntityList("onmesh,attackable,alive,lowesthealth")
+    local el = EntityList("onmesh,attackable,alive,lowesthealth")
     if (ValidTable(el)) then
         local id, entity = next(el)
         d("Found lowest health target "..entity.name.." with health percent "..tostring(entity.hp.percent))
         if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets["Lowest Health"] = entity
+            bestTarget = entity
+            --targets["Lowest Health"] = entity
         end
+    end
+    
+    if (not bestTarget) then
+    el = EntityList("nearest,onmesh,attackable,alive")
+    if (ValidTable(el)) then
+        local id, entity = next(el)
+        d("Found nearest target "..entity.name.." with distance "..tostring(entity.distance))
+        if not HasBuff(entity.id, 3) then -- get sleep buff id
+            --targets["Nearest"] = entity
+            bestTarget = entity
+        end
+    end
     end
 
-    local enemyParty = EntityList("onmesh,attackable,alive")
-    if (ValidTable(enemyParty)) then
-        local id, entity = next(enemyParty)
-        while (id ~= nil and entity ~= nil) do
-                local role = GetRoleString(entity.job)
+    --local enemyParty = EntityList("onmesh,attackable,alive")
+    --if (ValidTable(enemyParty)) then
+    --    local id, entity = next(enemyParty)
+    --    while (id ~= nil and entity ~= nil) do
+     --           local role = GetRoleString(entity.job)
             --if not HasBuff(entity.id, 3) then -- get sleep buff id
-                if role == "Healer" then
-                    d("Found healer "..entity.name)
-                    targets[strings[gCurrentLanguage].healer] = entity
-                elseif role == "DPS" then
-                    if (targets["DPS"] ~= nil) then
-                        d("Found DPS "..entity.name)
-                        local en = EntityList:Get(targets[strings[gCurrentLanguage].dps])
-                        if (ValidTable(en)) then
-                            if gPrioritizeRanged == "1" and entity.distance > en.distance then
-                                targets[strings[gCurrentLanguage].dps] = entity
-                            end
-                        end
-                    else
-                        d("Found DPS "..entity.name)
-                        targets["DPS"] = entity
-                    end
-                else
-                    targets["Tank"] = entity
-                end 
-            --end
-            id, entity = next(enemyParty, id)
-        end
-    end
+    --            if role == "Healer" then
+    --                d("Found healer "..entity.name)
+    --                targets["Healer"] = entity
+    --            elseif role == "DPS" then
+    ----                if (targets["DPS"] ~= nil) then
+    --                    d("Found DPS "..entity.name)
+    --                    local en = EntityList:Get(targets[strings[gCurrentLanguage].dps])
+   --                    if (ValidTable(en)) then
+    --                        if gPrioritizeRanged == "1" and entity.distance > en.distance then
+    --                            targets["DPS"] = entity
+    --                        end
+     --                   end
+    --                else
+    --                    d("Found DPS "..entity.name)
+    --                    targets["DPS"] = entity
+    --                end
+   --             else
+    --                d("Found Tank"..entity.name)
+    --                targets["Tank"] = entity
+    --            end 
+    --        --end
+    --        id, entity = next(enemyParty, id)
+    --    end
+    --end
     
     -- look for a priority one target
-    bestTarget = targets[gPVPTargetOne]
+    --bestTarget = targets[gPVPTargetOne]
     
-    if not bestTarget then
-        bestTarget = targets[gPVPTargetTwo]
-    end
+    --if not bestTarget then
+    --    bestTarget = targets[gPVPTargetTwo]
+    --end
     
-    if not bestTarget then
-        bestTarget = targets[strings[gCurrentLanguage].lowestHealth]
-    end
+    --if not bestTarget then
+    --    bestTarget = targets[strings[gCurrentLanguage].lowestHealth]
+    --end
     
-    if not bestTarget then
-        bestTarget = targets[strings[gCurrentLanguage].nearest]
-    end
+    --if not bestTarget then
+    --    bestTarget = targets[strings[gCurrentLanguage].nearest]
+    --end
     
-    d(targets)
+    --d(targets)
+    --d(bestTarget.name)
     
     return bestTarget
 end
