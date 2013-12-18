@@ -33,7 +33,7 @@ function GatherMgr.ModuleInit()
     gBotanyTime = "900"
     
     if (Settings.FFXIVMINION.gGMactive == nil) then
-        Settings.FFXIVMINION.gGMactive = "0"
+        Settings.FFXIVMINION.gGMactive = "1"
     end
     gGMactive = Settings.FFXIVMINION.gGMactive
     

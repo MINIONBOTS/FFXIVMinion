@@ -182,10 +182,9 @@ end
 ---------------------------------------------------------------------------------------------
 c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
-function c_add_fate:evaluate()
-    
+function c_add_fate:evaluate()    
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
-        return false
+		return false
     end
     
     if (gDoFates == "1") then
