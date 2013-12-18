@@ -15,6 +15,7 @@ function ffxiv_task_pvp:Create()
     --ffxiv_task_pvp members
     newinst.name = "LT_PVP"
     newinst.targetid = 0
+    newinst.combatStarted = false
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -32,49 +33,118 @@ function e_joinqueue:execute()
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
+c_pressconfirm.throttle = 10000
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate() 
-    -- check if df queue window is open
-	-- added function DutyReady() but it's not returnign a bool?
+    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
 end
 function e_pressconfirm:execute()
     PressDutyConfirm(true)
 end
 
 c_pressleave = inheritsFrom( ml_cause )
+c_pressleave.throttle = 10000
 e_pressleave = inheritsFrom( ml_effect )
 function c_pressleave:evaluate() 
-    -- check if map is wolves den (175) and colosseum record is open
+    return ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ControlVisible("ColosseumRecord"))
 end
 function e_pressleave:execute()
+    ml_task_hub:CurrentTask().combatStarted = false
     PressLeaveColosseum()
 end
 
-c_pvpBetterTarget = inheritsFrom( ml_cause )
-e_pvpBetterTarget = inheritsFrom( ml_effect )
-function c_pvpBetterTarget:evaluate()
-    -- check if our current target is no longer valid or a better target exists
-    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
-        local bettertarget = ml_task_hub:ThisTask().targetFunction()
-        if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
-            e_pvpBetterTarget.id = bettertarget.id
-            return true			
-        end		
-    end	
+c_startcombat = inheritsFrom( ml_cause )
+e_startcombat = inheritsFrom( ml_effect )
+function c_startcombat:evaluate()
+    --ml_debug("startcombat eval - combat started = "..tostring(ml_task_hub:CurrentTask().combatStarted).."; startTime = "..tostring(ml_task_hub:CurrentTask().startTime).."; timesince = "..tostring(TimeSince(ml_task_hub:CurrentTask().startTime)))
+    -- just in case we restart lua while in pvp combat
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and (Player.incombat or InCombatRange(ml_task_hub:CurrentTask().targetid))) then
+        return true
+    end
+
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and not ml_task_hub:CurrentTask().combatStarted) then
+        local party = EntityList("myparty")
+        local maxdistance = 0
+        if (ValidTable(party)) then
+            local i, e = next(party)
+            while i ~= nil and e ~= nil do
+                if e.incombat then return true end
+                if e.distance > maxdistance then
+                    maxdistance = e.distance
+                    d(maxdistance)
+                end
+            i, e = next(party, i)
+            end
+        end
+        
+        if maxdistance > 10 then
+            return true
+        end
+            
+        return false
+    end
+    
+    return false
 end
-function e_pvpBetterTarget:execute()
-    ml_task_hub:ThisTask().targetid = e_pvpBetterTarget.id
-    Player:SetTarget(e_pvpBetterTarget.id)
+function e_startcombat:execute()
+    ml_task_hub:CurrentTask().combatStarted = true
+end
+
+c_movetotargetpvp = inheritsFrom( ml_cause )
+e_movetotargetpvp = inheritsFrom( ml_effect )
+function c_movetotargetpvp:evaluate()
+    if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0) then
+        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+        return ValidTable(target) and not InCombatRange(target.id)
+    end
+    
+    return false
+
+    -- will we need this?
+    --if (ActionList:IsCasting()) then
+    --    return false
+    --end
+end
+function e_movetotargetpvp:execute()
+    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+    if ValidTable(target) then
+        local gotoPos = target.pos
+        ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
+        local PathSize = Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, 
+                                        ml_task_hub.CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+    end
+end
+
+c_attarget = inheritsFrom( ml_cause )
+e_attarget = inheritsFrom( ml_effect )
+function c_attarget:evaluate()
+    if (Player:IsMoving()) then
+        if ml_global_information.AttackRange > 20 then
+            local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
+            if ValidTable(target) then
+                local rangePercent = tonumber(gCombatRangePercent) * 0.01
+                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * rangePercent)
+            end
+        else
+            return InCombatRange(ml_task_hub:ThisTask().targetid)
+        end
+    end
+    return false
+end
+function e_attarget:execute()
+    Player:Stop()
 end
 
 function ffxiv_task_pvp:Init()
-    --init ProcessOverWatch() elements
-    local ke_pvpBetterTarget = ml_element:create( "PVPBetterTarget", c_pvpBetterTarget, e_pvpBetterTarget, 15 )
-    self:add(ke_pvpBetterTarget, self.process_elements)
-   
     --init Process() cnes
-    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
-    self:add(ke_addKillTarget, self.process_elements)
+    local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 20 )
+    self:add(ke_startCombat, self.process_elements)
+    
+    local ke_atTarget = ml_element:create( "AtTarget", c_attarget, e_attarget, 15 )
+    self:add(ke_atTarget, self.process_elements)
+    
+    local ke_moveToTargetPVP = ml_element:create( "MoveToTargetPVP", c_movetotargetpvp, e_movetotargetpvp, 10 )
+    self:add(ke_moveToTargetPVP, self.process_elements)
 	
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 10 )
     self:add(ke_pressConfirm, self.process_elements)
@@ -83,6 +153,50 @@ function ffxiv_task_pvp:Init()
     self:add(ke_pressLeave, self.process_elements)
   
     self:AddTaskCheckCEs()
+end
+
+-- custom process function for optimal performance
+function ffxiv_task_pvp:Process()
+    -- only perform combat logic when we are in the wolves den
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ml_task_hub.CurrentTask().combatStarted) then
+        -- first check for an optimal target
+        local target = GetPVPTarget()
+        if ValidTable(target) and target.id ~= self.targetid then
+            ml_task_hub.CurrentTask().targetid = target.id
+        end
+        
+        -- second try to cast if we're within range or a healer
+        if (InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) then
+            local pos = target.pos
+            
+            Player:SetFacing(pos.x,pos.y,pos.z)
+            Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+            
+            local cast = false
+        
+            if (Player.hp.percent < 75 )then
+                cast = SkillMgr.Cast( Player )
+            end
+            if not cast then			
+                SkillMgr.Cast( target )
+            end	
+        end
+    end
+    
+    -- last run the regular cne elements
+
+    if (TableSize(self.process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(self.process_elements)
+		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().process_elements)
+		end
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
+	else
+		ml_debug("no elements in process table")
+	end
 end
 
 function ffxiv_task_pvp:OnSleep()

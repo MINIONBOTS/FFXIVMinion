@@ -172,16 +172,18 @@ function GetPVPTarget()
     local el = EntityList("nearest,onmesh,attackable,alive")
     if (ValidTable(el)) then
         local id, entity = next(el)
+        d("Found nearest target "..entity.name.." with distance "..tostring(entity.distance))
         if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets[strings[gCurrentLanguage].nearest] = entity
+            targets["Nearest"] = entity
         end
     end
         
     el = EntityList("onmesh,attackable,alive,lowesthealth")
     if (ValidTable(el)) then
         local id, entity = next(el)
+        d("Found lowest health target "..entity.name.." with health percent "..tostring(entity.hp.percent))
         if not HasBuff(entity.id, 3) then -- get sleep buff id
-            targets[strings[gCurrentLanguage].lowestHealth] = entity
+            targets["Lowest Health"] = entity
         end
     end
 
@@ -189,12 +191,14 @@ function GetPVPTarget()
     if (ValidTable(enemyParty)) then
         local id, entity = next(enemyParty)
         while (id ~= nil and entity ~= nil) do
-            if not HasBuff(entity.id, 3) then -- get sleep buff id
-                role = GetRoleString(entity.job)
+                local role = GetRoleString(entity.job)
+            --if not HasBuff(entity.id, 3) then -- get sleep buff id
                 if role == "Healer" then
+                    d("Found healer "..entity.name)
                     targets[strings[gCurrentLanguage].healer] = entity
                 elseif role == "DPS" then
-                    if (targets[strings[gCurrentLanguage].dps]) then
+                    if (targets["DPS"] ~= nil) then
+                        d("Found DPS "..entity.name)
                         local en = EntityList:Get(targets[strings[gCurrentLanguage].dps])
                         if (ValidTable(en)) then
                             if gPrioritizeRanged == "1" and entity.distance > en.distance then
@@ -202,12 +206,13 @@ function GetPVPTarget()
                             end
                         end
                     else
-                        targets[strings[gCurrentLanguage].dps] = entity
+                        d("Found DPS "..entity.name)
+                        targets["DPS"] = entity
                     end
                 else
-                    targets[strings[gCurrentLanguage].tank] = entity
+                    targets["Tank"] = entity
                 end 
-            end
+            --end
             id, entity = next(enemyParty, id)
         end
     end
@@ -226,6 +231,8 @@ function GetPVPTarget()
     if not bestTarget then
         bestTarget = targets[strings[gCurrentLanguage].nearest]
     end
+    
+    d(targets)
     
     return bestTarget
 end
@@ -447,7 +454,7 @@ end
 function InCombatRange(targetid)
     local target = EntityList:Get(targetid)
     if (target == nil or target == {}) then
-        d("InCombatRange NO TARGET")
+        ml_debug("InCombatRange NO TARGET")
         return false
     end
     
