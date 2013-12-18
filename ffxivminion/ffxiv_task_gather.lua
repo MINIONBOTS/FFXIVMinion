@@ -111,8 +111,17 @@ function e_findgatherable:execute()
 	
 	--idiotcheck for no usable markers found on this mesh
 	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-		ml_error("ERROR: THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		
+		if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0")
+		then
+			ml_error("Warning: GatherManager is Disabled! ENABLING the Gathermanager now and we'll see if that helps!")
+			gGMactive = "1"
+			
+		else
+			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		end		
 	end
+	return false
 end
 
 c_movetogatherable = inheritsFrom( ml_cause )
@@ -158,6 +167,7 @@ function c_nextmarker:evaluate()
     if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0") or
        (gBotMode == strings[gCurrentLanguage].grindMode and gDoFates == "1" and gFatesOnly == "1")
     then
+		ml_debug("Warning: GatherManager is Disabled! If your character doesnt move right now, ENABLE the Gathermanager!")
         return false
     end
     
@@ -216,8 +226,9 @@ function c_nextmarker:evaluate()
             --ignore it so people don't whine about debug spam
             --ml_debug("No grind markers detected. Defaulting to local grinding at current position")
         else
-            ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
-            gGMactive = "0"
+           -- cant disable the GM here, else the stupid bot wont do shit when it is started before the mesh has been loaded
+		   -- ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
+            --gGMactive = "0"
         end
     end
     
@@ -462,7 +473,7 @@ function ffxiv_task_gather.UIInit()
     end
     
     if (Settings.FFXIVMINION.gIgnoreGatherLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreGatherLvl = "1"
+        Settings.FFXIVMINION.gIgnoreGatherLvl = "0"
     end
     
     gDoStealth = Settings.FFXIVMINION.gDoStealth

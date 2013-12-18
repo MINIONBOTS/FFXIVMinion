@@ -502,11 +502,13 @@ end
 function Mount()
     if not(Player.ismounted) then
         local mounts = ActionList("type=13")
-        local mount = mounts[1]
-        local acMount = ActionList:Get(mount.id,13)
-        if (acMount.isready) then
-            acMount:Cast()
-        end
+		local mount = mounts[1]
+		if ( mount ) then
+			local acMount = ActionList:Get(mount.id,13)
+			if (acMount.isready) then
+				acMount:Cast()
+			end
+		end
     end
 end
 
