@@ -16,6 +16,7 @@ function ffxiv_task_pvp:Create()
     newinst.name = "LT_PVP"
     newinst.targetid = 0
     newinst.combatStarted = false
+    newinst.queued = false
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -26,10 +27,15 @@ end
 c_joinqueue = inheritsFrom( ml_cause )
 e_joinqueue = inheritsFrom( ml_effect )
 function c_joinqueue:evaluate() 
-    -- check if current map is not equal to wolves den and df is not currently queued
+    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and not ml_task_hub:CurrentTask().queued)
 end
 function e_joinqueue:execute()
-    -- join df queue
+    if not ControlVisible("ContentsFinder") then
+        ActionList:Cast(33,0,10)
+    else
+        PressDutyJoin()
+        ml_task_hub:CurrentTask().queued = true
+    end
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
@@ -51,6 +57,7 @@ end
 function e_pressleave:execute()
     ml_task_hub:CurrentTask().combatStarted = false
     PressLeaveColosseum()
+    ml_task_hub:CurrentTask().queued = false
 end
 
 c_startcombat = inheritsFrom( ml_cause )
@@ -77,7 +84,7 @@ function c_startcombat:evaluate()
             end
         end
         
-        if maxdistance > 15 then
+        if maxdistance > 25 then
             return true
         end
             
@@ -93,7 +100,7 @@ end
 c_movetotargetpvp = inheritsFrom( ml_cause )
 e_movetotargetpvp = inheritsFrom( ml_effect )
 function c_movetotargetpvp:evaluate()
-    if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0) then
+    if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 and Player.alive) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         return ValidTable(target) and not InCombatRange(target.id)
     end
@@ -149,6 +156,9 @@ function ffxiv_task_pvp:Init()
 	local ke_pressLeave = ml_element:create( "LeaveColosseum", c_pressleave, e_pressleave, 10 )
     self:add(ke_pressLeave, self.process_elements)
     
+    local ke_pressJoin = ml_element:create( "JoinDutyFinder", c_joinqueue, e_joinqueue, 10 )
+    self:add(ke_pressJoin, self.process_elements)
+    
     local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 5 )
     self:add(ke_startCombat, self.process_elements)
   
@@ -169,7 +179,9 @@ function ffxiv_task_pvp:Process()
         if (InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) then
             local pos = target.pos
             
-            Player:SetFacing(pos.x,pos.y,pos.z)
+            if not HasBuff(Player.id,3) then
+                Player:SetFacing(pos.x,pos.y,pos.z)
+            end
             Player:SetTarget(ml_task_hub:CurrentTask().targetid)
             
             local cast = false

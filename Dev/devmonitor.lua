@@ -892,13 +892,6 @@ function Dev.UpdateWindow()
 		palead = false
 		paonmesh = false
 	end
-	
-	-- Dutyfinder / PvP
-	DutReady = tostring(DutyReady())
-	
-	
-	
-	
 end
 
 function Dev.DoTask()
