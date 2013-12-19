@@ -34,6 +34,7 @@ function c_joinqueue:evaluate()
                 ml_task_hub:CurrentTask().queued)
 end
 function e_joinqueue:execute()
+	d("Combat started = "..tostring(ml_task_hub:CurrentTask().combatStarted))
     if not ControlVisible("ContentsFinder") then
         ActionList:Cast(33,0,10)
         ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now
@@ -62,6 +63,7 @@ end
 function e_pressleave:execute()
     ml_task_hub:CurrentTask().combatStarted = false
     ml_task_hub:CurrentTask().queued = false
+	ml_task_hub:CurrentTask().targetid = 0
     ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
     Player:Stop()
     PressLeaveColosseum()
@@ -182,7 +184,7 @@ function ffxiv_task_pvp:Process()
         end
         
         -- second try to cast if we're within range or a healer
-        if (InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) then
+        if ((InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
             local pos = target.pos
             
             if not HasBuff(Player.id,3) then
@@ -199,7 +201,9 @@ function ffxiv_task_pvp:Process()
                 SkillMgr.Cast( target )
             end	
         end
-    end
+    else
+		Player:Stop()
+	end
     
     -- last run the regular cne elements
 

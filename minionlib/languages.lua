@@ -264,6 +264,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
     },                                  
     ["cn"] =                            
     {                               
@@ -538,6 +539,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
 	},
     ["jp"] =
     {
@@ -800,6 +802,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
 	},   
     ["de"] =
     {
@@ -1062,6 +1065,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
 	},     
     ["fr"] =
     {
@@ -1324,6 +1328,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
 	},       
     ["ru"] =
     {
@@ -1586,6 +1591,7 @@ strings =
         lowestHealth                    = "Lowest Health",
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
+		gatherMaps						= "Gather Maps",
 	},    	
 
 }
