@@ -17,6 +17,8 @@ function ffxiv_task_pvp:Create()
     newinst.targetid = 0
     newinst.combatStarted = false
     newinst.queued = false
+    newinst.queueTimer = 0
+    newinst.windowTimer = 0
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -27,12 +29,15 @@ end
 c_joinqueue = inheritsFrom( ml_cause )
 e_joinqueue = inheritsFrom( ml_effect )
 function c_joinqueue:evaluate() 
-    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and not ml_task_hub:CurrentTask().queued)
+    return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
+                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,15000) and not 
+                ml_task_hub:CurrentTask().queued)
 end
 function e_joinqueue:execute()
     if not ControlVisible("ContentsFinder") then
         ActionList:Cast(33,0,10)
-    else
+        ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now
+    elseif (TimeSince(ml_task_hub:CurrentTask().windowTimer) > math.random(4000,5000)) then
         PressDutyJoin()
         ml_task_hub:CurrentTask().queued = true
     end
@@ -56,8 +61,10 @@ function c_pressleave:evaluate()
 end
 function e_pressleave:execute()
     ml_task_hub:CurrentTask().combatStarted = false
-    PressLeaveColosseum()
     ml_task_hub:CurrentTask().queued = false
+    ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
+    Player:Stop()
+    PressLeaveColosseum()
 end
 
 c_startcombat = inheritsFrom( ml_cause )
@@ -78,13 +85,12 @@ function c_startcombat:evaluate()
                 if e.incombat then return true end
                 if e.distance > maxdistance then
                     maxdistance = e.distance
-                    d(maxdistance)
                 end
             i, e = next(party, i)
             end
         end
         
-        if maxdistance > 25 then
+        if maxdistance > 30 then
             return true
         end
             
