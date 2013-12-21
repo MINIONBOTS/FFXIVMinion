@@ -49,6 +49,9 @@ function mm.ModuleInit()
 			[155] = "Coerthas",
 			[156] = "Mor Dhona",
 			[180] = "Outer La Noscea",
+			[337] = "Wolves Den",
+			[336] = "Wolves Den",
+			[175] = "Wolves Den",
 		}
     end
 	

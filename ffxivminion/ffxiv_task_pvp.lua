@@ -18,6 +18,7 @@ function ffxiv_task_pvp:Create()
     newinst.queueTimer = 0
     newinst.windowTimer = 0
 	newinst.state = ""
+	newinst.targetTimer = 0
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -30,8 +31,8 @@ e_joinqueue = inheritsFrom( ml_effect )
 function c_joinqueue:evaluate() 
     return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
                 TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,15000) and
-                ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
-				ml_task_hub:CurrentTask().state == "")
+                (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
+				ml_task_hub:CurrentTask().state == ""))
 end
 function e_joinqueue:execute()
     if not ControlVisible("ContentsFinder") then
@@ -120,9 +121,10 @@ function e_movetotargetpvp:execute()
     end
 end
 
-c_attarget = inheritsFrom( ml_cause )
-e_attarget = inheritsFrom( ml_effect )
-function c_attarget:evaluate()
+c_attargetpvp = inheritsFrom( ml_cause )
+e_attargetpvp = inheritsFrom( ml_effect )
+function c_attargetpvp:evaluate()
+	d("test")
     if (Player:IsMoving()) then
         if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
@@ -136,14 +138,15 @@ function c_attarget:evaluate()
     end
     return false
 end
-function e_attarget:execute()
+function e_attargetpvp:execute()
+	d("test2")
     Player:Stop()
 end
 
 function ffxiv_task_pvp:Init()
     --init Process() cnes
-    local ke_atTarget = ml_element:create( "AtTarget", c_attarget, e_attarget, 15 )
-    self:add(ke_atTarget, self.process_elements)
+    local ke_atTargetPVP = ml_element:create( "AtTarget", c_attargetpvp, e_attargetpvp, 15 )
+    self:add(ke_atTargetPVP, self.process_elements)
     
     local ke_moveToTargetPVP = ml_element:create( "MoveToTargetPVP", c_movetotargetpvp, e_movetotargetpvp, 10 )
     self:add(ke_moveToTargetPVP, self.process_elements)
@@ -159,6 +162,9 @@ function ffxiv_task_pvp:Init()
     
     local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 5 )
     self:add(ke_startCombat, self.process_elements)
+	
+	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 5 )
+    self:add( ke_dead, self.process_elements)
   
     self:AddTaskCheckCEs()
 end
@@ -169,10 +175,13 @@ function ffxiv_task_pvp:Process()
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
           -- first check for an optimal target
-          local target = GetPVPTarget()
-          if ValidTable(target) and target.id ~= self.targetid then
-              ml_task_hub.CurrentTask().targetid = target.id
-          end
+			if (TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000) then
+				local target = GetPVPTarget()
+				if ValidTable(target) and target.id ~= self.targetid then
+					ml_task_hub.CurrentTask().targetid = target.id
+				end
+				ml_task_hub:CurrentTask().targetTimer = ml_global_information.Now
+			end
                  -- second try to cast if we're within range or a healer
           if ((InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
             local pos = target.pos
