@@ -44,16 +44,6 @@ function e_joinqueue:execute()
     end
 end
 
-c_pressconfirm = inheritsFrom( ml_cause )
-c_pressconfirm.throttle = 10000
-e_pressconfirm = inheritsFrom( ml_effect )
-function c_pressconfirm:evaluate() 
-    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
-end
-function e_pressconfirm:execute()
-    PressDutyConfirm(true)
-end
-
 c_pressleave = inheritsFrom( ml_cause )
 c_pressleave.throttle = 10000
 e_pressleave = inheritsFrom( ml_effect )
@@ -176,17 +166,17 @@ end
 -- custom process function for optimal performance
 function ffxiv_task_pvp:Process()
     -- only perform combat logic when we are in the wolves den
-    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ml_task_hub.CurrentTask().combatStarted and Player.alive) then
-        -- first check for an optimal target
-        local target = GetPVPTarget()
-        if ValidTable(target) and target.id ~= self.targetid then
-            ml_task_hub.CurrentTask().targetid = target.id
-        end
-        
-        -- second try to cast if we're within range or a healer
-        if ((InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
+        if (ml_task_hub.CurrentTask().combatStarted) then
+          -- first check for an optimal target
+          local target = GetPVPTarget()
+          if ValidTable(target) and target.id ~= self.targetid then
+              ml_task_hub.CurrentTask().targetid = target.id
+          end
+                 -- second try to cast if we're within range or a healer
+          if ((InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
             local pos = target.pos
-            
+          
             if not HasBuff(Player.id,3) then
                 Player:SetFacing(pos.x,pos.y,pos.z)
             end
@@ -200,11 +190,13 @@ function ffxiv_task_pvp:Process()
             if not cast then			
                 SkillMgr.Cast( target )
             end	
+          end
+        else
+           -- cast precombat actions
+           SkillMgr.Cast( Player , true )
         end
-    else
-		Player:Stop()
-	end
-    
+    end
+      
     -- last run the regular cne elements
 
     if (TableSize(self.process_elements) > 0) then

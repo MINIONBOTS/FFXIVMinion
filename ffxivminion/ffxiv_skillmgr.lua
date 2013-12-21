@@ -85,6 +85,9 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHas,"SKM_TBuff","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHasNot,"SKM_TNBuff","SkillDetails");
+    GUI_NewField(SkillMgr.editwindow.name,"Party has","SKM_PTBuff","SkillDetails");
+    GUI_NewField(SkillMgr.editwindow.name,"Party has not","SKM_PTNBuff","SkillDetails");
+    GUI_NewCheckbox(SkillMgr.editwindow.name,"PVP precombat only","SKM_PVPPreCombat","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
     GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
@@ -182,6 +185,9 @@ function SkillMgr.ModuleInit()
     SKM_PNBuff = ""
     SKM_TBuff = ""
     SKM_TNBuff = ""
+    SKM_PTBuff = ""
+    SKM_PTNBuff = ""
+    SKM_PVPPreCombat = "0"
     SKM_PSkillID = ""
 	SKM_NPSkillID = ""
 	SKM_SecsPassed = 0
@@ -241,6 +247,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_PVPTRG" ) then SkillMgr.SkillProfile[SKM_Prio].pvptrg = v
         elseif ( k == "SKM_OutOfCombat" ) then SkillMgr.SkillProfile[SKM_Prio].ooc = v
         elseif ( k == "SKM_OnlySolo" ) then SkillMgr.SkillProfile[SKM_Prio].onlysolo = v
+        elseif ( k == "SKM_PVPPreCombat" ) then SkillMgr.SkillProfile[SKM_Prio].pvpprecombat = v
         elseif ( k == "SKM_OnlyParty" ) then SkillMgr.SkillProfile[SKM_Prio].onlyparty = v
         elseif ( k == "SKM_MinR" ) then SkillMgr.SkillProfile[SKM_Prio].minRange = tonumber(v)
         elseif ( k == "SKM_MaxR" ) then SkillMgr.SkillProfile[SKM_Prio].maxRange = tonumber(v)		
@@ -261,6 +268,8 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_PNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].pnbuff = v
         elseif ( k == "SKM_TBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tbuff = v
         elseif ( k == "SKM_TNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].tnbuff = v
+        elseif ( k == "SKM_PTBuff" ) then SkillMgr.SkillProfile[SKM_Prio].ptbuff = v
+        elseif ( k == "SKM_PTNBuff" ) then SkillMgr.SkillProfile[SKM_Prio].ptnbuff = v
         elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
         elseif ( k == "SKM_NPSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].npskill = v
         elseif ( k == "SKM_SecsPassed" ) then SkillMgr.SkillProfile[SKM_Prio].secspassed = tonumber(v)
@@ -486,11 +495,15 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PNBuff="..skill.pnbuff.."\n" 			
                 string2write = string2write.."SKM_TBuff="..skill.tbuff.."\n" 
                 string2write = string2write.."SKM_TNBuff="..skill.tnbuff.."\n"
+                string2write = string2write.."SKM_PTBuff="..skill.ptbuff.."\n"
+                string2write = string2write.."SKM_PTNBuff="..skill.ptnbuff.."\n"
                 string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n"
                 string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
                 string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n"
 				string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
-				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
+        string2write = string2write.."SKM_PVPPreCombat="..skill.pvpprecombat.."\n"		
+      
+        string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
                 string2write = string2write.."SKM_PVEPVP="..skill.pvepvp.."\n"
                 string2write = string2write.."SKM_PVPTRG="..skill.pvptrg.."\n"                
             end
@@ -546,7 +559,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
                             elseif ( key == "Prio" )then newskill.prio = tonumber(value)
                             elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
-							elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
+                            elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
+                            elseif ( key == "PVPPreCombat" )then newskill.pvpprecombat = tostring(value)
                             elseif ( key == "OnlyParty" )then newskill.onlyparty = tostring(value)
                             elseif ( key == "PVEPVP" )then newskill.pvepvp = tostring(value)	
                             elseif ( key == "TRG" )then newskill.trg = tostring(value)
@@ -570,6 +584,8 @@ function SkillMgr.UpdateCurrentProfileData()
                             elseif ( key == "PNBuff" )then newskill.pnbuff = tostring(value)
                             elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
                             elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
+                            elseif ( key == "PTBuff" )then newskill.ptbuff = tostring(value)
+                            elseif ( key == "PTNBuff" )then newskill.ptnbuff = tostring(value)
                             elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
                             elseif ( key == "NPSkillID" ) then newskill.npskill = tostring(value)
 							elseif ( key == "SecsPassed" ) then newskill.secspassed = tonumber(value)
@@ -721,8 +737,9 @@ function SkillMgr.CreateNewSkillEntry(skill)
                  doprev = skill.doprev or "0",
                 levelmin = skill.levelmin or 0,
                 ooc = skill.ooc or "0",
-				onlysolo = skill.onlysolo or "0",
-				onlyparty = skill.onlyparty or "0",
+                onlysolo = skill.onlysolo or "0",
+                pvpprecombat = skill.pvpprecombat or "0",
+                onlyparty = skill.onlyparty or "0",
                 pvepvp = skill.pvppve or "Both",
                 trg = skill.trg or "Enemy",
                 pvptrg = skill.pvptrg or "Any",
@@ -745,9 +762,11 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 pnbuff = skill.pnbuff or "",
                 tbuff = skill.tbuff or "",
                 tnbuff = skill.tnbuff or "",
+                ptbuff = skill.ptbuff or "",
+                ptnbuff = skill.ptnbuff or "",
                 pskill = skill.pskill or "",
-				npskill = skill.npskill or "",
-				secspassed = skill.secspassed or 0,
+                npskill = skill.npskill or "",
+                secspassed = skill.secspassed or 0,
                 --crafting
                 stepmin = skill.stepmin or 0,
                 stepmax = skill.stepmax or 0,
@@ -841,6 +860,7 @@ function SkillMgr.EditSkill(event)
             SKM_Prio = tonumber(event)
             SKM_OutOfCombat = skill.ooc or "0"
             SKM_OnlySolo = skill.onlysolo or "0"
+            SKM_PVPPreCombat = skill.pvpprecombat or "0"
             SKM_OnlyParty = skill.onlyparty or "0"
             SKM_PVEPVP = skill.pvepvp or "Both"
             SKM_PVPTRG = skill.pvptrg or "Any"
@@ -862,6 +882,8 @@ function SkillMgr.EditSkill(event)
             SKM_TAHPL = tonumber(skill.tahpl) or 0
             SKM_PBuff = skill.pbuff or ""
             SKM_PNBuff = skill.pnbuff or ""
+            SKM_PTBuff = skill.ptbuff or ""
+            SKM_PTNBuff = skill.ptnbuff or ""
             SKM_TBuff = skill.tbuff or ""
             SKM_TNBuff = skill.tnbuff or ""
             SKM_PSkillID = skill.pskill or ""
@@ -913,10 +935,10 @@ function SkillMgr.GetHealSpellHPLimit()
     return highestHPLimit
 end
 
-function SkillMgr.Cast( entity )
+function SkillMgr.Cast( entity , prePVPCombat )
     if ( entity ) then
         -- first check if we're in combat or not for the start combat setting
-        if (gBotmode == strings[gCurrentLanguage].assistMode and gStartCombat == "0" and not Player.incombat) then
+        if (not prePVPCombat and gBotmode == strings[gCurrentLanguage].assistMode and gStartCombat == "0" and not Player.incombat) then
             return
         end
 	
@@ -929,7 +951,7 @@ function SkillMgr.Cast( entity )
         local pet = Player.pet
         local plist = EntityList.myparty
         local ally = GetBestHealTarget()
-		local plistAE = nil
+        local plistAE = nil
         
         if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
             
@@ -955,7 +977,9 @@ function SkillMgr.Cast( entity )
 						if ( skill.onlysolo == "1" and TableSize(plist) > 0 ) then castable = false end
 						
 						if ( skill.onlyparty == "1" and TableSize(plist) == 0 ) then castable = false end
-						
+            
+            if ( skill.pvpprecombat == "1" and (prePVPCombat == nil or prePVPCombat == false) ) then castable = false end
+		
 						-- SECOND SINCE LAST CAST
 						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
 						
@@ -1006,8 +1030,18 @@ function SkillMgr.Cast( entity )
                                     tbuffs = pbuffs
                                 end
                             end
+                       
                         elseif ( skill.trg == "Ally" ) then
-                            if ( ally ~= nil and ally.id ~= PID) then
+                            if ( skill.ptbuff ~= "" or skill.ptnbuff ~= "" ) then
+                                local newtarget = PartyMemberWithBuff(skill.ptbuff, skill.ptnbuff,skill.maxRange)
+                                if (newtarget ~= nil) then
+                                  target = newtarget
+                                  TID = newtarget.id
+                                  tbuffs = newtarget.buffs
+                                  --Player:SetTarget(TID)
+                                  d("partybuff target " .. newtarget.id .. " " .. newtarget.name)
+                                end
+                            elseif ( ally ~= nil and ally.id ~= PID) then
                                 target = ally
                                 TID = ally.id
                                 tbuffs = ally.buffs
@@ -1207,7 +1241,7 @@ function SkillMgr.Craft()
                     end						
                     
                     -- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
-                      if (skill.cpnbuff ~= "" ) then
+                    if (skill.cpnbuff ~= "" ) then
                         local tbfound = HasBuffs(Player,skill.cpnbuff)
                         if tbfound then castable = false end								
                       end								

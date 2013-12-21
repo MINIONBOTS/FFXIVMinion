@@ -703,6 +703,16 @@ function e_dead:execute()
     end
 end
 
+c_pressconfirm = inheritsFrom( ml_cause )
+c_pressconfirm.throttle = 10000
+e_pressconfirm = inheritsFrom( ml_effect )
+function c_pressconfirm:evaluate() 
+    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
+end
+function e_pressconfirm:execute()
+    PressDutyConfirm(true)
+end
+
 -- more to refactor here later most likely
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )

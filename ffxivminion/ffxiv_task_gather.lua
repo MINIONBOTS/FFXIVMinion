@@ -20,6 +20,7 @@ function ffxiv_task_gather:Create()
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
+	newinst.gatheredMap = false
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -66,6 +67,7 @@ function e_findgatherable:execute()
     if (gatherable ~= nil) then
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
+		ml_task_hub:CurrentTask().gatheredMap = false
         ml_task_hub.CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
@@ -280,7 +282,7 @@ function e_gather:execute()
         -- first check to see if we have a gathermanager marker
 		
 		-- first try to get treasure maps
-		if (gGatherMaps == "1") then
+		if (gGatherMaps == "1" and not ml_task_hub:CurrentTask().gatheredMap) then
 			for i, item in pairs(list) do
 				if 	item.id == 6692 or
 					item.id == 6688 or
@@ -289,6 +291,7 @@ function e_gather:execute()
 					item.id == 6689
 				then
 					Player:Gather(item.index)
+					ml_task_hub:CurrentTask().gatheredMap = true
 					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 					return
 				end

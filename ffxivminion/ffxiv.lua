@@ -122,6 +122,10 @@ function ffxivminion.HandleInit()
     if (Settings.FFXIVMINION.gStartCombat == nil) then
         Settings.FFXIVMINION.gStartCombat = "1"
     end
+	
+    if (Settings.FFXIVMINION.gConfirmDuty == nil) then
+        Settings.FFXIVMINION.gConfirmDuty = "0"
+    end
     
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -145,7 +149,7 @@ function ffxivminion.HandleInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
-    
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
     
@@ -167,6 +171,7 @@ function ffxivminion.HandleInit()
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
     gAutoStart = Settings.FFXIVMINION.gAutoStart
     gStartCombat = Settings.FFXIVMINION.gStartCombat
+    gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	
     -- setup bot mode
     local botModes = "None"
@@ -179,7 +184,7 @@ function ffxivminion.HandleInit()
     end
     
     -- setup parent window for minionlib modules
-    ml_marker_mgr.parentWindow = ml_global_information.MainWindow
+    --ml_marker_mgr.parentWindow = ml_global_information.MainWindow
     ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
     
     -- setup/load blacklist tables
@@ -236,6 +241,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gSprintDist" or
 			k == "gAutoStart" or
 			k == "gStartCombat" or
+			k == "gConfirmDuty" or
             k == "gRandomPaths" )			
         then
             Settings.FFXIVMINION[tostring(k)] = v

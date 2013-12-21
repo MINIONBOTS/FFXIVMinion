@@ -265,6 +265,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
     },                                  
     ["cn"] =                            
     {                               
@@ -540,6 +542,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
 	},
     ["jp"] =
     {
@@ -803,6 +807,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
 	},   
     ["de"] =
     {
@@ -1066,6 +1072,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
 	},     
     ["fr"] =
     {
@@ -1329,6 +1337,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
 	},       
     ["ru"] =
     {
@@ -1592,6 +1602,8 @@ strings =
         pvpTargetOne                    = "Target Prio One",
         pvpTargetTwo                    = "Target Prio Two",
 		gatherMaps						= "Gather Maps",
+        markerFields                    = "Marker Fields",
+		confirmDuty						= "Auto-Confirm Duty",
 	},    	
 
 }
