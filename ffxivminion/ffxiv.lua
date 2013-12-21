@@ -70,8 +70,6 @@ ffxivminion.modes =
     [strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
 }
 
-FFXIVMINION.PVPTYPES = { [1] = "Healer", [2] = "DPS", [3] = "Tank" , [4] = "Any" }
-
 -- Module Event Handler
 function ffxivminion.HandleInit()	
     GUI_SetStatusBar("Initalizing ffxiv Module...")

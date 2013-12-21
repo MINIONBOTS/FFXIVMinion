@@ -15,10 +15,9 @@ function ffxiv_task_pvp:Create()
     --ffxiv_task_pvp members
     newinst.name = "LT_PVP"
     newinst.targetid = 0
-    newinst.combatStarted = false
-    newinst.queued = false
     newinst.queueTimer = 0
     newinst.windowTimer = 0
+	newinst.state = ""
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -30,17 +29,17 @@ c_joinqueue = inheritsFrom( ml_cause )
 e_joinqueue = inheritsFrom( ml_effect )
 function c_joinqueue:evaluate() 
     return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
-                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,15000) and not 
-                ml_task_hub:CurrentTask().queued)
+                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,15000) and
+                ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
+				ml_task_hub:CurrentTask().state == "")
 end
 function e_joinqueue:execute()
-	d("Combat started = "..tostring(ml_task_hub:CurrentTask().combatStarted))
     if not ControlVisible("ContentsFinder") then
         ActionList:Cast(33,0,10)
         ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now
     elseif (TimeSince(ml_task_hub:CurrentTask().windowTimer) > math.random(4000,5000)) then
         PressDutyJoin()
-        ml_task_hub:CurrentTask().queued = true
+        ml_task_hub:CurrentTask().state = "WAITING_FOR_DUTY"
     end
 end
 
@@ -51,8 +50,7 @@ function c_pressleave:evaluate()
     return ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ControlVisible("ColosseumRecord"))
 end
 function e_pressleave:execute()
-    ml_task_hub:CurrentTask().combatStarted = false
-    ml_task_hub:CurrentTask().queued = false
+    ml_task_hub:CurrentTask().state = "COMBAT_ENDED"
 	ml_task_hub:CurrentTask().targetid = 0
     ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
     Player:Stop()
@@ -62,13 +60,15 @@ end
 c_startcombat = inheritsFrom( ml_cause )
 e_startcombat = inheritsFrom( ml_effect )
 function c_startcombat:evaluate()
-    --ml_debug("startcombat eval - combat started = "..tostring(ml_task_hub:CurrentTask().combatStarted).."; startTime = "..tostring(ml_task_hub:CurrentTask().startTime).."; timesince = "..tostring(TimeSince(ml_task_hub:CurrentTask().startTime)))
+	-- make sure we don't go back into combat state after the leave button is pressed
+	if ml_task_hub:CurrentTask().state == "COMBAT_ENDED" then return false end
+	
     -- just in case we restart lua while in pvp combat
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and (Player.incombat or InCombatRange(ml_task_hub:CurrentTask().targetid))) then
         return true
     end
 
-    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and not ml_task_hub:CurrentTask().combatStarted) then
+    if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ml_task_hub:CurrentTask().state == "DUTY_STARTED") then
         local party = EntityList("myparty")
         local maxdistance = 0
         if (ValidTable(party)) then
@@ -92,7 +92,7 @@ function c_startcombat:evaluate()
     return false
 end
 function e_startcombat:execute()
-    ml_task_hub:CurrentTask().combatStarted = true
+    ml_task_hub:CurrentTask().state = "COMBAT_STARTED"
 end
 
 c_movetotargetpvp = inheritsFrom( ml_cause )
@@ -167,7 +167,7 @@ end
 function ffxiv_task_pvp:Process()
     -- only perform combat logic when we are in the wolves den
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
-        if (ml_task_hub.CurrentTask().combatStarted) then
+        if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
           -- first check for an optimal target
           local target = GetPVPTarget()
           if ValidTable(target) and target.id ~= self.targetid then

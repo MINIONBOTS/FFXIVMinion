@@ -711,6 +711,9 @@ function c_pressconfirm:evaluate()
 end
 function e_pressconfirm:execute()
     PressDutyConfirm(true)
+	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
+	end
 end
 
 -- more to refactor here later most likely
