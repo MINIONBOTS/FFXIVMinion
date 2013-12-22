@@ -173,7 +173,11 @@ function ffxiv_task_pvp:Process()
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
           -- first check for an optimal target
-			if (TimeSince(ml_task_hub:CurrentTask().targetTimer) > 5000) then
+			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+			if (	TimeSince(ml_task_hub:CurrentTask().targetTimer) > 3000 or
+					ml_task_hub:CurrentTask().targetid == 0 or
+					(target and not target.alive)) 
+			then
 				local target = GetPVPTarget()
 				if ValidTable(target) and target.id ~= self.targetid then
 					ml_task_hub.CurrentTask().targetid = target.id
