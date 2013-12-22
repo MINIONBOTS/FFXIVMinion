@@ -17,8 +17,15 @@ function ffxiv_task_pvp:Create()
     newinst.targetid = 0
     newinst.queueTimer = 0
     newinst.windowTimer = 0
-	newinst.state = ""
+	
+	-- set the correct starting state in case we're already in a pvp map and reload lua
+	if (Player.localmapid == 337 or Player.localmapid == 175 or Player.localmapid == 336) then
+		newinst.state = "DUTY_STARTED"
+	else
+		newinst.state = ""
+	end
 	newinst.targetTimer = 0
+	newinst.startTimer = 0
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetPVPTarget
@@ -51,8 +58,10 @@ function c_pressleave:evaluate()
     return ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ControlVisible("ColosseumRecord"))
 end
 function e_pressleave:execute()
+	-- reset pvp task state since it doesn't get terminated/reinstantiated
     ml_task_hub:CurrentTask().state = "COMBAT_ENDED"
 	ml_task_hub:CurrentTask().targetid = 0
+	ml_task_hub:CurrentTask().startTimer = 0
     ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
     Player:Stop()
     PressLeaveColosseum()
@@ -62,7 +71,7 @@ c_startcombat = inheritsFrom( ml_cause )
 e_startcombat = inheritsFrom( ml_effect )
 function c_startcombat:evaluate()
 	-- make sure we don't go back into combat state after the leave button is pressed
-	if ml_task_hub:CurrentTask().state == "COMBAT_ENDED" then return false end
+	if ml_task_hub:CurrentTask().state == "COMBAT_ENDED"  or ml_task_hub:CurrentTask().state == "COMBAT_STARTED" then return false end
 	
     -- just in case we restart lua while in pvp combat
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and (Player.incombat or InCombatRange(ml_task_hub:CurrentTask().targetid))) then
@@ -73,18 +82,21 @@ function c_startcombat:evaluate()
         local party = EntityList("myparty")
         local maxdistance = 0
         if (ValidTable(party)) then
+			local myPos = Player.pos
             local i, e = next(party)
             while i ~= nil and e ~= nil do
                 if e.incombat then return true end
-                if e.distance > maxdistance then
-                    maxdistance = e.distance
+                if 	(myPos.x > 33 and e.pos.x < 33) or
+					(myPos.x < -33 and e.pos.x > -33) 
+				then
+					if (ml_task_hub:CurrentTask().startTimer == 0) then
+						ml_task_hub:CurrentTask().startTimer = ml_global_information.Now + math.random(500,3000)
+					elseif (ml_global_information.Now > ml_task_hub:CurrentTask().startTimer) then
+						return true
+					end
                 end
             i, e = next(party, i)
             end
-        end
-        
-        if maxdistance > 30 then
-            return true
         end
             
         return false
@@ -105,11 +117,6 @@ function c_movetotargetpvp:evaluate()
     end
     
     return false
-
-    -- will we need this?
-    --if (ActionList:IsCasting()) then
-    --    return false
-    --end
 end
 function e_movetotargetpvp:execute()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
