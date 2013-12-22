@@ -205,27 +205,6 @@ function GetPVPTarget()
         end
     end
 	
-    -- local el = EntityList("onmesh,attackable,alive,lowesthealth")
-    -- if (ValidTable(el)) then
-        -- local id, entity = next(el)
-        -- d("Found lowest health target "..entity.name.." with health percent "..tostring(entity.hp.percent))
-        -- if not HasBuff(entity.id, 3) then -- get sleep buff id
-            -- bestTarget = entity
-            -- --targets["Lowest Health"] = entity
-        -- end
-    -- end
-    
-    -- if (not bestTarget) then
-        -- el = EntityList("nearest,onmesh,attackable,alive")
-        -- if (ValidTable(el)) then
-            -- local id, entity = next(el)
-            -- d("Found nearest target "..entity.name.." with distance "..tostring(entity.distance))
-            -- if not HasBuff(entity.id, 3) then -- get sleep buff id
-                -- --targets["Nearest"] = entity
-                -- bestTarget = entity
-            -- end
-        -- end
-    -- end
 	for ttype, target in pairs(targets) do
 		if (target and target.alive) then
 			ml_debug(ttype..": "..target.name)

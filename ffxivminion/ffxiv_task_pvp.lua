@@ -178,20 +178,26 @@ function ffxiv_task_pvp:Process()
 					ml_task_hub:CurrentTask().targetid == 0 or
 					(target and not target.alive)) 
 			then
-				local target = GetPVPTarget()
-				if ValidTable(target) and target.id ~= self.targetid then
+				target = GetPVPTarget()
+				if ValidTable(target) and target.id ~= ml_task_hub.CurrentTask().targetid then
 					ml_task_hub.CurrentTask().targetid = target.id
+					
+					local pos = target.pos
+          
+					if not HasBuff(Player.id,3) then
+						Player:SetFacing(pos.x,pos.y,pos.z)
+					end
+					
+					local currentTarget = Player:GetTarget()
+					if currentTarget and currentTarget.id ~= ml_task_hub:CurrentTask().targetid then
+						Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+					end
+					
 				end
 				ml_task_hub:CurrentTask().targetTimer = ml_global_information.Now
 			end
                  -- second try to cast if we're within range or a healer
           if ((InCombatRange(ml_task_hub.CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
-            local pos = target.pos
-          
-            if not HasBuff(Player.id,3) then
-                Player:SetFacing(pos.x,pos.y,pos.z)
-            end
-            Player:SetTarget(ml_task_hub:CurrentTask().targetid)
             
             local cast = false
         
