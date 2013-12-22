@@ -124,7 +124,6 @@ end
 c_attargetpvp = inheritsFrom( ml_cause )
 e_attargetpvp = inheritsFrom( ml_effect )
 function c_attargetpvp:evaluate()
-	d("test")
     if (Player:IsMoving()) then
         if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
@@ -139,7 +138,6 @@ function c_attargetpvp:evaluate()
     return false
 end
 function e_attargetpvp:execute()
-	d("test2")
     Player:Stop()
 end
 
@@ -175,7 +173,7 @@ function ffxiv_task_pvp:Process()
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
           -- first check for an optimal target
-			if (TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000) then
+			if (TimeSince(ml_task_hub:CurrentTask().targetTimer) > 5000) then
 				local target = GetPVPTarget()
 				if ValidTable(target) and target.id ~= self.targetid then
 					ml_task_hub.CurrentTask().targetid = target.id
