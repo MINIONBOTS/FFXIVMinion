@@ -978,7 +978,8 @@ function SkillMgr.Cast( entity , prePVPCombat )
 						
 						if ( skill.onlyparty == "1" and TableSize(plist) == 0 ) then castable = false end
             
-            if ( skill.pvpprecombat == "1" and (prePVPCombat == nil or prePVPCombat == false) ) then castable = false end
+						if ( skill.pvpprecombat == "1" and (prePVPCombat == nil or prePVPCombat == false) ) then castable = false end
+						if ( skill.pvpprecombat == "0" and (prePVPCombat == true) ) then castable = false end
 		
 						-- SECOND SINCE LAST CAST
 						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
