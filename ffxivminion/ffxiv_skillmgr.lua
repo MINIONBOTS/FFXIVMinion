@@ -501,9 +501,8 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
                 string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n"
 				string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
-        string2write = string2write.."SKM_PVPPreCombat="..skill.pvpprecombat.."\n"		
-      
-        string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
+				string2write = string2write.."SKM_PVPPreCombat="..skill.pvpprecombat.."\n"		
+				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
                 string2write = string2write.."SKM_PVEPVP="..skill.pvepvp.."\n"
                 string2write = string2write.."SKM_PVPTRG="..skill.pvptrg.."\n"                
             end
@@ -740,7 +739,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 onlysolo = skill.onlysolo or "0",
                 pvpprecombat = skill.pvpprecombat or "0",
                 onlyparty = skill.onlyparty or "0",
-                pvepvp = skill.pvppve or "Both",
+                pvepvp = skill.pvepvp or "Both",
                 trg = skill.trg or "Enemy",
                 pvptrg = skill.pvptrg or "Any",
                 minRange = skill.minRange or 0,

@@ -180,14 +180,14 @@ function GetPVPTarget()
                     targets["Healer"] = entity
                 elseif role == "DPS" then
                     if (targets["DPS"] ~= nil) then
-                        local en = EntityList:Get(targets["DPS"])
-						if (ValidTable(en)) then
-                            if gPrioritizeRanged == "1" and entity.distance > en.distance then
-                                targets["DPS"] = entity
+						-- keep blackmage as highest prioritized ranged target
+						if (gPrioritizeRanged == "1" and IsRangedDPS(entity.job)) then
+							if (targets["DPS"].job ~= FFXIV.JOBS.BLACKMAGE) then
+								targets["DPS"] = entity
 							end
                         end
-                    else
-                        targets["DPS"] = entity
+					else
+						targets["DPS"] = entity
                     end
                 else
                     targets["Tank"] = entity
@@ -239,7 +239,7 @@ function GetPVPTarget()
 end
 
 function GetNearestAggro()
-    local el = EntityList("nearest,alive,attackable,onmesh,aggro,maxdistance="..tostring(ml_global_information.AttackRange))
+    local el = EntityList("nearest,alive,attackable,onmesh,targetingme")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -452,7 +452,7 @@ function GetPartyLeader()
     return nil	
 end
 
-function InCombatRange(targetid)
+function InCombatRange(targetid, checkTargetRange)
     local target = EntityList:Get(targetid)
     if (target == nil or target == {}) then
         ml_debug("InCombatRange NO TARGET")
@@ -571,6 +571,26 @@ function GetRoleString(jobID)
     end
 end
 
+function IsRangedDPS(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.ARCHER or
+			jobID == FFXIV.JOBS.BARD or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE
+end
+
+function IsRanged(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.ARCHER or
+			jobID == FFXIV.JOBS.BARD or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE or
+			jobID == FFXIV.JOBS.CONJURER or
+			jobID == FFXIV.JOBS.SCHOLAR or
+			jobID == FFXIV.JOBS.WHITEMAGE
+end
 
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
   if (maxdistance==nil or maxdistance == "") then

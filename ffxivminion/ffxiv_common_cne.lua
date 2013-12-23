@@ -710,9 +710,10 @@ function c_pressconfirm:evaluate()
     return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
 end
 function e_pressconfirm:execute()
-    PressDutyConfirm(true)
+	PressDutyConfirm(true)
 	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
+		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
 	end
 end
 

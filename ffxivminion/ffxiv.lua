@@ -11,6 +11,7 @@ ml_global_information.AttackRange = 2
 ml_global_information.TaskUIInit = false
 ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
+ml_global_information.afkTimer = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}

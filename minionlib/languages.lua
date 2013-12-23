@@ -267,6 +267,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
     },                                  
     ["cn"] =                            
     {                               
@@ -544,6 +546,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
 	},
     ["jp"] =
     {
@@ -809,6 +813,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
 	},   
     ["de"] =
     {
@@ -1074,6 +1080,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
 	},     
     ["fr"] =
     {
@@ -1339,6 +1347,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
 	},       
     ["ru"] =
     {
@@ -1604,6 +1614,8 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
+		antiAFKMove						= "Anti-AFK Move",
+		pvpFlee							= "Ranged Flee",
 	},    	
 
 }
