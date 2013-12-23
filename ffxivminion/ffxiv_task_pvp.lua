@@ -121,7 +121,7 @@ c_movetotargetpvp = inheritsFrom( ml_cause )
 e_movetotargetpvp = inheritsFrom( ml_effect )
 function c_movetotargetpvp:evaluate()
     if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 
-		and Player.alive and not ml_task_hub:CurrentTask().fleeing) 
+		and Player.alive and not ml_task_hub:CurrentTask().fleeing and not HasBuff(Player.id,3))
 	then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         return ValidTable(target) and not InCombatRange(target.id)
@@ -252,6 +252,11 @@ function ffxiv_task_pvp:Process()
     -- only perform combat logic when we are in the wolves den
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
+			-- if we got slept then stop any current movement attempts
+			if (HasBuff(Player.id,3)) then
+				Player:Stop()
+			end
+		
           -- first check for an optimal target
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 			if (	TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000 or
