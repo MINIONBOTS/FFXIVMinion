@@ -41,7 +41,7 @@ c_joinqueue = inheritsFrom( ml_cause )
 e_joinqueue = inheritsFrom( ml_effect )
 function c_joinqueue:evaluate() 
     return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
-                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,15000) and
+                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(30000,35000) and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
 end
@@ -121,7 +121,8 @@ c_movetotargetpvp = inheritsFrom( ml_cause )
 e_movetotargetpvp = inheritsFrom( ml_effect )
 function c_movetotargetpvp:evaluate()
     if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 
-		and Player.alive and not ml_task_hub:CurrentTask().fleeing and not HasBuff(Player.id,3))
+		and Player.alive and not ml_task_hub:CurrentTask().fleeing and not HasBuff(Player.id,3)
+		and not HasBuff(Player.id,280) and not HasBuff(Player.id,13))
 	then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         return ValidTable(target) and not InCombatRange(target.id)
@@ -253,7 +254,7 @@ function ffxiv_task_pvp:Process()
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
 			-- if we got slept then stop any current movement attempts
-			if (HasBuff(Player.id,3)) then
+			if (HasBuff(Player.id,3) or HasBuff(Player.id,280) or HasBuff(Player.id,13)) then
 				Player:Stop()
 			end
 		

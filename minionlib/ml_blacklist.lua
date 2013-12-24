@@ -94,6 +94,19 @@ function ml_blacklist.GetExcludeString(blacklistName)
     end
 end
 
+function ml_blacklist.GetEntryID(blacklistName, entryName)
+    local blacklist = ml_blacklist.blacklist[blacklistName]
+    if (blacklist) then
+        for id, entry in pairs(blacklist) do
+            if entry.name == entryName then
+                return id
+            end
+        end
+    end
+    
+    return nil
+end
+
 function ml_blacklist.DeleteEntry(blacklistName, entryID)
     local blacklist = ml_blacklist.blacklist[blacklistName]
 	if blacklist[entryID] then
