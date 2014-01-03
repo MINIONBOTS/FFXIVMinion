@@ -241,7 +241,7 @@ function ffxivminion.HandleInit()
 	end
     
     if (gSkipCutscene == "1" ) then
-        GameHacks:DisableCutscene(true)
+        GameHacks:SkipCutscene(true)
     end
     
     if (gSkipDialogue == "1" ) then
@@ -291,9 +291,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			end
 		elseif ( k == "gSkipCutscene" ) then
 			if ( v == "1" ) then
-				GameHacks:DisableCutscene(true)
+				GameHacks:SkipCutscene(true)
 			else
-				GameHacks:DisableCutscene(false)
+				GameHacks:SkipCutscene(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gSkipDialogue" ) then
