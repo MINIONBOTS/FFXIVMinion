@@ -637,6 +637,7 @@ function e_rest:execute()
         if (Player.hp.percent < tonumber(gRestHP) or
             Player.mp.percent < tonumber(gRestMP)) 
         then
+            ml_global_information.IsWaiting = true
             Player:Stop()
             e_rest.resting = true
             return

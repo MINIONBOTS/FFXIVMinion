@@ -4,7 +4,7 @@ ffxiv_unstuck.count = 0
 ffxiv_unstuck.laststuck = 0
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 5  },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 10 },
 	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, maxticks = 15 },
 	IDLE 	= { id = 2, name = "IDLE" 		, stats = 0, ticks = 0, maxticks = 120 },
 }
@@ -73,6 +73,8 @@ function ffxiv_unstuck.CheckStuck()
 		if state.ticks ~= 0 then
 			if state.ticks > state.maxticks then
 				d(state.name..tostring(state.ticks).." EXCEEDED")
+                d(ml_task_hub:CurrentTask().name)
+                d(Player.hp.percent)
 				if not ffxiv_unstuck.task then
 					ffxiv_unstuck.State.STUCK.ticks = 0
 					ffxiv_unstuck.State.OFFMESH.ticks = 0
@@ -83,6 +85,7 @@ function ffxiv_unstuck.CheckStuck()
                             local index = GetLocalAetheryte()
                             if (index) then
                                 ml_global_information.UnstuckTimer = ml_global_information.Now
+                                Player:Stop()
                                 ml_task_hub:ToggleRun()
                                 Player:Teleport(index)
                             end
@@ -92,6 +95,7 @@ function ffxiv_unstuck.CheckStuck()
 
                             if (ValidTable(newPos)) then
                                 ml_global_information.UnstuckTimer = ml_global_information.Now
+                                Player:Stop()
                                 ml_task_hub:ToggleRun()
                                 Player:MoveTo(newPos.x, newPos.y, newPos.z, 0.5)
                             end
