@@ -33,7 +33,7 @@ function e_partysyncfatelevel:execute()
     ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
 end
 
-function ffxiv_task_party:Create()
+function ffxiv_task_party.Create()
     local newinst = inheritsFrom(ffxiv_task_party)
     
     --ml_task members

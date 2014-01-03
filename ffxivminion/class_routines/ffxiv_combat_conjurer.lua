@@ -2,7 +2,7 @@ ffxiv_combat_conjurer = inheritsFrom(ml_task)
 ffxiv_combat_conjurer.name = "CONJURER"
 ffxiv_combat_conjurer.range = 24
 
-function ffxiv_combat_conjurer:Create()
+function ffxiv_combat_conjurer.Create()
     local newinst = inheritsFrom(ffxiv_combat_conjurer)
     
     --ml_task members
@@ -77,7 +77,7 @@ end
 function e_stone:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
-		if t.id == ml_task_hub.CurrentTask().targetid then
+		if t.id == ml_task_hub:CurrentTask().targetid then
 			local skill = ActionList:Get(FFXIVMINION.SKILLS.STONE)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then
@@ -101,7 +101,7 @@ end
 function e_aero:execute()
 	local t = Player:GetTarget()
 	if ( t ) then 
-		if t.id == ml_task_hub.CurrentTask().targetid then
+		if t.id == ml_task_hub:CurrentTask().targetid then
 			local skill = ActionList:Get(FFXIVMINION.SKILLS.AERO)
             if (skill ~= nil) then
                 if ( skill.cd == 0) then

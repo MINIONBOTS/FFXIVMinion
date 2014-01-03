@@ -29,7 +29,10 @@ function c_add_killtarget:evaluate()
             local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
             if ValidTable(fate) then
                 if (fate.completion < tonumber(gFateWaitPercent)) then
+                    ml_global_information.IsWaiting = true
                     return false
+                else
+                    ml_global_information.IsWaiting = false
                 end
             end
         end
@@ -52,10 +55,10 @@ function e_add_killtarget:execute()
     --just in case
     Dismount()
     
-    local newTask = ffxiv_task_killtarget:Create()
+    local newTask = ffxiv_task_killtarget.Create()
     newTask.targetid = c_add_killtarget.targetid
     newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
-    ml_task_hub.CurrentTask():AddSubTask(newTask)
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 
@@ -100,10 +103,10 @@ function e_killaggrotarget:execute()
 	--just in case
 	Dismount()
 	
-	local newTask = ffxiv_task_killtarget:Create()
+	local newTask = ffxiv_task_killtarget.Create()
     newTask.targetid = c_killaggrotarget.targetid
 	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
-	ml_task_hub.CurrentTask():AddSubTask(newTask)
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 ---------------------------------------------------------------------------------------------
 ---- minion attacks the target the leader has
@@ -141,10 +144,10 @@ function e_assistleader:execute()
 		if ( Player.ismounted ) then
 			Dismount()
 		end
-        local newTask = ffxiv_task_killtarget:Create()
+        local newTask = ffxiv_task_killtarget.Create()
         newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
         newTask.targetid = c_assistleader.targetid 
-        ml_task_hub.CurrentTask():AddSubTask(newTask)
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
     else
         wt_debug("Ohboy, something went really wrong : e_assistleader")
     end
@@ -166,11 +169,11 @@ function c_add_combat:evaluate()
 end
 function e_add_combat:execute()
     if ( gSMactive == "1" ) then
-        local newTask = ffxiv_task_skillmgrAttack:Create()
+        local newTask = ffxiv_task_skillmgrAttack.Create()
         newTask.targetid = ml_task_hub:CurrentTask().targetid
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     else
-        local newTask = ml_global_information.CurrentClass:Create()
+        local newTask = ml_global_information.CurrentClass.Create()
         newTask.targetid = ml_task_hub:CurrentTask().targetid
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
@@ -195,6 +198,7 @@ function c_add_fate:evaluate()
                 local fate = GetFateByID(fateID)
                 if (fate ~= nil and TableSize(fate) > 0) then
 					if (fate.status == 2 ) or (fate.status == 7 and Distance2D(myPos.x, myPos.y, fate.x, fate.y) < 50) then
+                        ml_global_information.IsWaiting = false
                         return true
                     end
                 end
@@ -205,11 +209,11 @@ function c_add_fate:evaluate()
     return false
 end
 function e_add_fate:execute()
-    local newTask = ffxiv_task_fate:Create()
+    local newTask = ffxiv_task_fate.Create()
     local myPos = Player.pos
     newTask.fateid = GetClosestFateID(myPos, true, true)
     newTask.fateTimer = ml_global_information.Now
-    ml_task_hub.CurrentTask():AddSubTask(newTask)
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -219,8 +223,8 @@ end
 c_movetotarget = inheritsFrom( ml_cause )
 e_movetotarget = inheritsFrom( ml_effect )
 function c_movetotarget:evaluate()
-    if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
-        local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         if (target ~= nil and target ~= 0 and target.alive) then
             return not InCombatRange(target.id)
         end
@@ -230,9 +234,9 @@ function c_movetotarget:evaluate()
 end
 function e_movetotarget:execute()
     ml_debug( "Moving within combat range of target" )
-    local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (target ~= nil and target.pos ~= nil) then
-        local newTask = ffxiv_task_movetopos:Create()
+        local newTask = ffxiv_task_movetopos.Create()
         newTask.pos = target.pos
         newTask.targetid = target.id
         newTask.useFollowMovement = true
@@ -352,7 +356,7 @@ function e_walktopos:execute()
     if ( c_walktopos.pos ~= 0) then
         local gotoPos = c_walktopos.pos
         ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-        local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub.CurrentTask().range *0.75), ml_task_hub.CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+        local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub:CurrentTask().range *0.75), ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
     else
         mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
     end
@@ -538,11 +542,11 @@ e_notarget = inheritsFrom( ml_effect )
 function c_notarget:evaluate()
     
     if ( ml_task_hub:CurrentTask().targetFunction() ~= nil ) then
-        if ( ml_task_hub.CurrentTask().targetid == nil or ml_task_hub.CurrentTask().targetid == 0 ) then
+        if ( ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0 ) then
             return true
         end
         
-        local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         if (target ~= nil) then
             if (not target.alive or not target.targetable) then
                 return true
@@ -558,7 +562,7 @@ function e_notarget:execute()
     local target = ml_task_hub:CurrentTask().targetFunction()
     if (target ~= nil and target ~= 0) then
         Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
-        ml_task_hub.CurrentTask().targetid = target.id
+        ml_task_hub:CurrentTask().targetid = target.id
     end
 end
 
@@ -583,7 +587,7 @@ function e_mobaggro:execute()
     ml_debug( "Getting new target" )
     local target = GetNearestAggro()
     if (target ~= nil) then
-        local newTask = ffxiv_task_killtarget:Create()
+        local newTask = ffxiv_task_killtarget.Create()
         newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
         newTask.targetid = e_mobaggro.targetid
         ml_task_hub.Add(newTask, QUEUE_REACTIVE, TP_IMMEDIATE)
@@ -603,18 +607,13 @@ function c_rest:evaluate()
             return false
         end
     end
-    
-    --if (not Player.hasaggro) then	
-        --d(Player.hp.percent)
-        --d(tonumber(gRestHP))
-        --d(Player.mp.percent)
-        --d(tonumber(gRestMP))
-		--d("WTF: "..tostring( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 )) .." COMB: "..tostring(Player.incombat))
-	if ( TableSize(EntityList("nearest,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
+   
+	if ( TableSize(EntityList("shortestpath,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
         if (e_rest.resting or 		
             Player.hp.percent < tonumber(gRestHP) or
             Player.mp.percent < tonumber(gRestMP))
         then
+            ml_global_information.IsWaiting = true
             return true
         end
     end
@@ -623,7 +622,7 @@ function c_rest:evaluate()
 end
 function e_rest:execute()
     --[[if ( gSMactive == "1" and Player.hp.percent < tonumber(gRestHP)) then
-        local newTask = ffxiv_task_skillmgrHeal:Create()
+        local newTask = ffxiv_task_skillmgrHeal.Create()
         newTask.targetid = Player.id
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end]] --have to fix that
@@ -631,6 +630,7 @@ function e_rest:execute()
     if (e_rest.resting == true) then
         if (Player.hp.percent == 100) and (Player.mp.percent == 100)  then
             e_rest.resting = false
+            ml_global_information.IsWaiting = false
             return
         end
     else
@@ -704,7 +704,7 @@ function e_dead:execute()
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
-c_pressconfirm.throttle = 10000
+c_pressconfirm.throttle = 5000
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate() 
     return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
@@ -714,6 +714,9 @@ function e_pressconfirm:execute()
 	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
 		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
+	elseif (gBotMode == strings[gCurrentLanguage].dutyMode) then
+		ml_task_hub:CurrentTask().timer = ml_global_information.Now + 30000
+		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
 	end
 end
 
@@ -741,7 +744,7 @@ function c_returntomarker:evaluate()
         local distance = Distance2D(myPos.x, myPos.z, markerInfo.x, markerInfo.z)
         if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].partyMode and distance > 200) or
-			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub.CurrentTask().maxGatherDistance and distance > ml_task_hub.CurrentTask().maxGatherDistance) or
+			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
 			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
@@ -751,7 +754,7 @@ function c_returntomarker:evaluate()
     return false
 end
 function e_returntomarker:execute()
-    local newTask = ffxiv_task_movetopos:Create()
+    local newTask = ffxiv_task_movetopos.Create()
     local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
     local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
     newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
@@ -761,7 +764,7 @@ function e_returntomarker:execute()
         newTask.range = 0.5
         newTask.doFacing = true
     end
-    ml_task_hub.CurrentTask():AddSubTask(newTask)
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 ---------------------------------------------------------------------------------------------

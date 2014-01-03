@@ -1,6 +1,6 @@
 ffxiv_crafting_carpenter = inheritsFrom(ml_task)
 
-function ffxiv_crafting_carpenter:Create()
+function ffxiv_crafting_carpenter.Create()
     local newinst = inheritsFrom(ffxiv_crafting_carpenter)
     
     --ml_task members

@@ -1,6 +1,6 @@
 ffxiv_crafting_weaver = inheritsFrom(ml_task)
 
-function ffxiv_crafting_weaver:Create()
+function ffxiv_crafting_weaver.Create()
     local newinst = inheritsFrom(ffxiv_crafting_weaver)
     
     --ml_task members

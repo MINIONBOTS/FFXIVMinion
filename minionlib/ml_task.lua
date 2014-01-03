@@ -82,13 +82,13 @@ function ml_task:Update()
 		end
 		
 		if(self:ProcessOverWatch()) then
-				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
-				--process overwatch element requested to break update loop
-				--only delete subtask if we didn't just add it via our overwatch cne
-				if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
-					self:DeleteSubTasks()
-				end
-				break
+			ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
+			--process overwatch element requested to break update loop
+			--only delete subtask if we didn't just add it via our overwatch cne
+			if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
+				self:DeleteSubTasks()
+			end
+			break
 		end
 		
         if ( self.subtask ~= nil ) then
@@ -227,7 +227,7 @@ function ml_task:AddTaskCheckCEs()
 	self:add( ke_fail, self.process_elements)
 end
 
-function ml_task:create()
+function ml_task.Create()
 	local newinst = inheritsFrom( ml_task )
     newinst.name = ""
     newinst.valid = true

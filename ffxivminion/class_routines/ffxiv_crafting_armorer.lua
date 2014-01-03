@@ -1,6 +1,6 @@
 ffxiv_crafting_armorer = inheritsFrom(ml_task)
 
-function ffxiv_crafting_armorer:Create()
+function ffxiv_crafting_armorer.Create()
     local newinst = inheritsFrom(ffxiv_crafting_armorer)
     
     --ml_task members

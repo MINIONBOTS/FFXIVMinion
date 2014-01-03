@@ -1,7 +1,7 @@
 ffxiv_combat_paladin = inheritsFrom(ml_task)
 ffxiv_combat_paladin.range = 2
 
-function ffxiv_combat_paladin:Create()
+function ffxiv_combat_paladin.Create()
     local newinst = inheritsFrom(ffxiv_combat_paladin)
     
     --ml_task members

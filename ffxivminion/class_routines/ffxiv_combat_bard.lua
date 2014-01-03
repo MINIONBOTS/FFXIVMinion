@@ -1,7 +1,7 @@
 ffxiv_combat_bard = inheritsFrom(ml_task)
 ffxiv_combat_bard.range = 24
 
-function ffxiv_combat_bard:Create()
+function ffxiv_combat_bard.Create()
     local newinst = inheritsFrom(ffxiv_combat_bard)
     
     --ml_task members

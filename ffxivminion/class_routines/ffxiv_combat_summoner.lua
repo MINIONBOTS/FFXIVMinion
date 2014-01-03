@@ -1,7 +1,7 @@
 ffxiv_combat_summoner = inheritsFrom(ml_task)
 ffxiv_combat_summoner.range = 24
 
-function ffxiv_combat_summoner:Create()
+function ffxiv_combat_summoner.Create()
     local newinst = inheritsFrom(ffxiv_combat_summoner)
     
     --ml_task members

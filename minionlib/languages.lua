@@ -269,6 +269,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
     },                                  
     ["cn"] =                            
     {                               
@@ -548,6 +551,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
 	},
     ["jp"] =
     {
@@ -815,6 +821,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
 	},   
     ["de"] =
     {
@@ -1082,6 +1091,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
 	},     
     ["fr"] =
     {
@@ -1349,6 +1361,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
 	},       
     ["ru"] =
     {
@@ -1616,6 +1631,9 @@ strings =
 		confirmDuty						= "Auto-Confirm Duty",
 		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
+        skipCutscene                    = "Skip Cutscenes",
+        skipDialogue                    = "Skip Dialogues",
+        doUnstuck                       = "Enable Unstuck",
 	},    	
 
 }

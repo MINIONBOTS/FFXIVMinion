@@ -12,12 +12,19 @@ ml_global_information.TaskUIInit = false
 ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
 ml_global_information.afkTimer = 0
+ml_global_information.IsWaiting = false
+ml_global_information.UnstuckTimer = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
 
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
+    
+    if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 10000) then
+        ml_task_hub:ToggleRun()
+        ml_global_information.UnstuckTimer = 0
+    end
     
     -- Mesher.lua
     mm.OnUpdate( event, tickcount )
@@ -35,6 +42,9 @@ function ml_global_information.OnUpdate( event, tickcount )
     ml_blacklist_mgr.UpdateEntryTime()
     ml_blacklist_mgr.UpdateEntries(tickcount)
     
+    --ffxiv_unstuck.lua
+    ffxiv_unstuck.HandleUpdate(tickcount)
+    
     gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
     if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
         if (not ml_global_information.TaskUIInit) then
@@ -45,7 +55,7 @@ function ml_global_information.OnUpdate( event, tickcount )
             ml_global_information.TaskUIInit = true
         end
         ml_global_information.lastrun = tickcount
-        if( ml_task_hub.CurrentTask() ~= nil) then
+        if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
         if(ml_task_hub.shouldRun) then
@@ -126,6 +136,18 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gConfirmDuty = "0"
     end
     
+    if (Settings.FFXIVMINION.gSkipCutscene == nil) then
+        Settings.FFXIVMINION.gSkipCutscene = "0"
+    end
+	
+    if (Settings.FFXIVMINION.gSkipDialogue == nil) then
+        Settings.FFXIVMINION.gSkipDialogue = "0"
+    end
+    
+    if (Settings.FFXIVMINION.gDoUnstuck == nil) then
+        Settings.FFXIVMINION.gDoUnstuck = "0"
+    end
+    
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -141,6 +163,9 @@ function ffxivminion.HandleInit()
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",strings[gCurrentLanguage].generalSettings );
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",strings[gCurrentLanguage].generalSettings );	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -171,6 +196,9 @@ function ffxivminion.HandleInit()
     gAutoStart = Settings.FFXIVMINION.gAutoStart
     gStartCombat = Settings.FFXIVMINION.gStartCombat
     gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
+    gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+    gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+    gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
 	
     -- setup bot mode
     local botModes = "None"
@@ -211,6 +239,14 @@ function ffxivminion.HandleInit()
 	if ( gAutoStart == "1" ) then
 		ml_task_hub.ToggleRun()		
 	end
+    
+    if (gSkipCutscene == "1" ) then
+        GameHacks:DisableCutscene(true)
+    end
+    
+    if (gSkipDialogue == "1" ) then
+        GameHacks:SkipDialogue(true)
+    end
 	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
@@ -241,6 +277,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAutoStart" or
 			k == "gStartCombat" or
 			k == "gConfirmDuty" or
+            k == "gDoUnstuck" or
             k == "gRandomPaths" )			
         then
             Settings.FFXIVMINION[tostring(k)] = v
@@ -252,6 +289,20 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:Disable3DRendering(false)
 			end
+		elseif ( k == "gSkipCutscene" ) then
+			if ( v == "1" ) then
+				GameHacks:DisableCutscene(true)
+			else
+				GameHacks:DisableCutscene(false)
+			end
+            Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gSkipDialogue" ) then
+			if ( v == "1" ) then
+				GameHacks:SkipDialogue(true)
+			else
+				GameHacks:SkipDialogue(false)
+			end
+            Settings.FFXIVMINION[tostring(k)] = v
         end
     end
     GUI_RefreshWindow(ml_global_information.MainWindow.Name)
@@ -260,7 +311,7 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-        ml_task_hub:Add(task:Create(), LONG_TERM_GOAL, TP_ASAP)
+        ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
 		gBotMode = mode
     end
 end

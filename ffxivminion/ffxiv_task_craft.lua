@@ -1,7 +1,7 @@
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
 
-function ffxiv_task_craft:Create()
+function ffxiv_task_craft.Create()
     local newinst = inheritsFrom(ffxiv_task_craft)
     
     --ml_task members

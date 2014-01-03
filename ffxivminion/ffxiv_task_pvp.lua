@@ -1,7 +1,7 @@
 ffxiv_task_pvp = inheritsFrom(ml_task)
 ffxiv_task_pvp.name = "LT_PVP"
 
-function ffxiv_task_pvp:Create()
+function ffxiv_task_pvp.Create()
     local newinst = inheritsFrom(ffxiv_task_pvp)
     
     --ml_task members
@@ -37,15 +37,15 @@ function ffxiv_task_pvp:Create()
     return newinst
 end
 
-c_joinqueue = inheritsFrom( ml_cause )
-e_joinqueue = inheritsFrom( ml_effect )
-function c_joinqueue:evaluate() 
+c_joinqueuepvp = inheritsFrom( ml_cause )
+e_joinqueuepvp = inheritsFrom( ml_effect )
+function c_joinqueuepvp:evaluate() 
     return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
                 TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(30000,35000) and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
 end
-function e_joinqueue:execute()
+function e_joinqueuepvp:execute()
     if not ControlVisible("ContentsFinder") then
         ActionList:Cast(33,0,10)
         ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now
@@ -233,7 +233,7 @@ function ffxiv_task_pvp:Init()
 	local ke_pressLeave = ml_element:create( "LeaveColosseum", c_pressleave, e_pressleave, 10 )
     self:add(ke_pressLeave, self.process_elements)
     
-    local ke_pressJoin = ml_element:create( "JoinDutyFinder", c_joinqueue, e_joinqueue, 10 )
+    local ke_pressJoin = ml_element:create( "JoinDutyFinder", c_joinqueuepvp, e_joinqueuepvp, 10 )
     self:add(ke_pressJoin, self.process_elements)
     
     local ke_startCombat = ml_element:create( "StartCombat", c_startcombat, e_startcombat, 5 )
@@ -273,14 +273,16 @@ function ffxiv_task_pvp:Process()
 						if not HasBuff(Player.id,3) then
 							local pos = newTarget.pos
 							Player:SetFacing(pos.x,pos.y,pos.z)
+							ml_task_hub:CurrentTask().targetid = newTarget.id
+							Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 						end
-						ml_task_hub:CurrentTask().targetid = newTarget.id
-						Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 					end
 				end
 				ml_task_hub:CurrentTask().targetTimer = ml_global_information.Now
 			end
                  -- second try to cast if we're within range or a healer
+				 
+			target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
           if ((InCombatRange(ml_task_hub:CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
             
             local cast = false

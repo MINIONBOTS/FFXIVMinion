@@ -1,7 +1,7 @@
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
 
-function ffxiv_task_gather:Create()
+function ffxiv_task_gather.Create()
     local newinst = inheritsFrom(ffxiv_task_gather)
     --ml_task members
     newinst.valid = true
@@ -36,11 +36,11 @@ end
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
 function c_findgatherable:evaluate()
-    if ( ml_task_hub.CurrentTask().gatherid == nil or ml_task_hub.CurrentTask().gatherid == 0 ) then
+    if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
         return true
     end
     
-    local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
+    local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
     if (gatherable ~= nil) then
         if (not gatherable.cangather) then
             return true 
@@ -68,7 +68,7 @@ function e_findgatherable:execute()
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
 		ml_task_hub:CurrentTask().gatheredMap = false
-        ml_task_hub.CurrentTask().gatherid = gatherable.id		
+        ml_task_hub:CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
 		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then
@@ -83,13 +83,13 @@ function e_findgatherable:execute()
 				local pdist = PathDistance(pathdist)
 				ml_debug("Path distance Node <-> current Marker : "..tostring(pdist))
 				if ( pdist > 50 ) then
-					ml_task_hub.CurrentTask().maxGatherDistance = pdist + 25
+					ml_task_hub:CurrentTask().maxGatherDistance = pdist + 25
 					return
 				end
 			end			
 		end
 		--default 
-		ml_task_hub.CurrentTask().maxGatherDistance = 250
+		ml_task_hub:CurrentTask().maxGatherDistance = 250
 		
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
@@ -134,8 +134,8 @@ function c_movetogatherable:evaluate()
     end
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
-        local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-        if (Player:GetGatherableSlotList() == nil and gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.5)) then
+        local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+        if (Player:GetGatherableSlotList() == nil and gatherable ~= nil and gatherable.distance2d > (ml_task_hub:CurrentTask().gatherDistance + 0.5)) then
             return true
         end
     end
@@ -143,14 +143,14 @@ function c_movetogatherable:evaluate()
     return false
 end
 function e_movetogatherable:execute()
-    local pos = EntityList:Get(ml_task_hub.CurrentTask().gatherid).pos
+    local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
         if (gGatherTP == "1") then
             GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
         else
-            local newTask = ffxiv_task_movetopos:Create()
+            local newTask = ffxiv_task_movetopos.Create()
             newTask.pos = pos
-            newTask.range = ml_task_hub.CurrentTask().gatherDistance
+            newTask.range = ml_task_hub:CurrentTask().gatherDistance
             newTask.gatherRange = 0.0
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
@@ -380,14 +380,14 @@ c_gatherwindow = inheritsFrom( ml_cause )
 e_gatherwindow = inheritsFrom( ml_effect )
 function c_gatherwindow:evaluate()
 	local list = Player:GetGatherableSlotList()
-    if (list ~= nil and ml_task_hub.CurrentTask().name == "MOVETOPOS") then
+    if (list ~= nil and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 		return true
 	end
 end
 function e_gatherwindow:execute()
 	ml_debug("Bad! We fell into the gathering/moveto timing bug...terminating MoveTo task")
 	-- Complete the moveto task so that we can go back to gathering window
-	ml_task_hub.CurrentTask():task_complete_execute()
+	ml_task_hub:CurrentTask():task_complete_execute()
 end
 
 function ffxiv_task_gather:Init()

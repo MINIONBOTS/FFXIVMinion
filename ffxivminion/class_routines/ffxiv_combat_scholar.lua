@@ -1,7 +1,7 @@
 ffxiv_combat_scholar = inheritsFrom(ml_task)
 ffxiv_combat_scholar.range = 24
 
-function ffxiv_combat_scholar:Create()
+function ffxiv_combat_scholar.Create()
     local newinst = inheritsFrom(ffxiv_combat_scholar)
     
     --ml_task members

@@ -14,7 +14,7 @@ function inheritsFrom( baseClass )
     local new_class = {}
     local class_mt = { __index = new_class }
 
-    function new_class:create()
+    function new_class.Create()
         local newinst = {}
         setmetatable( newinst, class_mt )
         return newinst

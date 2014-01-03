@@ -1,7 +1,7 @@
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
 
-function ffxiv_task_assist:Create()
+function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
     
     --ml_task members
@@ -54,7 +54,7 @@ function ffxiv_task_assist:GetAttackTarget()
         end	
     
     elseif ( gAssistMode == "Closest" ) then	
-        local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
+        local el = EntityList("shortestpath,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

@@ -1,7 +1,7 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.name = "LT_FISH"
 
-function ffxiv_task_fish:Create()
+function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
     
     --ml_task members

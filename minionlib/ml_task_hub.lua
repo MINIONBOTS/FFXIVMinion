@@ -133,7 +133,7 @@ function ml_task_hub.ToggleRun()
 		gBotRunning = "1"
 	end	
 	-- don't reset information when we stop or else we lose debugging info
-	if (ml_task_hub.shouldRun) then
+	if (ml_task_hub.shouldRun and ml_global_information.UnstuckTimer == 0) then
 		ml_global_information.Reset()
 	else
 		ml_global_information.Stop()

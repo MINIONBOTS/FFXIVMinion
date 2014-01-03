@@ -1303,7 +1303,7 @@ function SkillMgr.Gather( )
 end
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
-function ffxiv_task_skillmgrAttack:Create()
+function ffxiv_task_skillmgrAttack.Create()
     local newinst = inheritsFrom(ffxiv_task_skillmgrAttack)
     
     --ml_task members
@@ -1371,7 +1371,7 @@ end
 
 -- SkillMgr Heal Task
 ffxiv_task_skillmgrHeal = inheritsFrom(ml_task)
-function ffxiv_task_skillmgrHeal:Create()
+function ffxiv_task_skillmgrHeal.Create()
     local newinst = inheritsFrom(ffxiv_task_skillmgrHeal)
     
     --ml_task members
@@ -1392,8 +1392,8 @@ end
 
 function ffxiv_task_skillmgrHeal:Process()
     
-    if ( ml_task_hub.CurrentTask().targetid ~= nil and ml_task_hub.CurrentTask().targetid ~= 0 ) then
-        local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         if (target ~= nil and target.alive and target.hp.percent < 95 and target.distance2d <= ml_global_information.AttackRange) then
             
             SkillMgr.Cast( target )
@@ -1418,7 +1418,7 @@ function ffxiv_task_skillmgrHeal:IsGoodToAbort()
 end
 
 function ffxiv_task_skillmgrHeal:task_complete_eval()
-    local target = EntityList:Get(ml_task_hub.CurrentTask().targetid)
+    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (target == nil or not target.alive or target.hp.percent > 95 or target.distance2d > ml_global_information.AttackRange) then
         return true
     end

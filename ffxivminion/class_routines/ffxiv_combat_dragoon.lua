@@ -1,7 +1,7 @@
 ffxiv_combat_dragoon = inheritsFrom(ml_task)
 ffxiv_combat_dragoon.range = 2
 
-function ffxiv_combat_dragoon:Create()
+function ffxiv_combat_dragoon.Create()
     local newinst = inheritsFrom(ffxiv_combat_dragoon)
     
     --ml_task members

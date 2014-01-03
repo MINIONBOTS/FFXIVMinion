@@ -1,6 +1,6 @@
 ffxiv_crafting_blacksmith = inheritsFrom(ml_task)
 
-function ffxiv_crafting_blacksmith:Create()
+function ffxiv_crafting_blacksmith.Create()
     local newinst = inheritsFrom(ffxiv_crafting_blacksmith)
     
     --ml_task members

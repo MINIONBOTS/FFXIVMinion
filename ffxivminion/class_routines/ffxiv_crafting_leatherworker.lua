@@ -1,6 +1,6 @@
 ffxiv_crafting_leatherworker = inheritsFrom(ml_task)
 
-function ffxiv_crafting_leatherworker:Create()
+function ffxiv_crafting_leatherworker.Create()
     local newinst = inheritsFrom(ffxiv_crafting_leatherworker)
     
     --ml_task members

@@ -1,7 +1,7 @@
 ffxiv_combat_pugilist = inheritsFrom(ml_task)
 ffxiv_combat_pugilist.range = 2
 
-function ffxiv_combat_pugilist:Create()
+function ffxiv_combat_pugilist.Create()
     local newinst = inheritsFrom(ffxiv_combat_pugilist)
     
     --ml_task members
