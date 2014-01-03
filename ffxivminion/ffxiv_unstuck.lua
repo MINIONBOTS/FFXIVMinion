@@ -1,7 +1,7 @@
 ffxiv_unstuck = {}
 ffxiv_unstuck.evaltime = 0
 ffxiv_unstuck.count = 0
-ffxiv_unstuck_laststuck = 0
+ffxiv_unstuck.laststuck = 0
 
 ffxiv_unstuck.State = {
 	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 5  },
@@ -79,7 +79,7 @@ function ffxiv_unstuck.CheckStuck()
 					ffxiv_unstuck.State.IDLE.ticks = 0
 					ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
 					if (gDoUnstuck == "1") then
-                        if (TimeSince(ffxiv_untuck.laststuck) > 15000) then
+                        if (ffxiv_unstuck.laststuck ~= 0 and TimeSince(ffxiv_unstuck.laststuck) > 15000) then
                             local index = GetLocalAetheryte()
                             if (index) then
                                 ml_global_information.UnstuckTimer = ml_global_information.Now
@@ -97,6 +97,7 @@ function ffxiv_unstuck.CheckStuck()
                             end
                         end
                         ffxiv_unstuck.count = ffxiv_unstuck.count + 1
+                        ffxiv_unstuck.laststuck = ml_global_information.Now
 					end
 					break
 				end
