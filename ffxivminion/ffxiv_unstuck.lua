@@ -87,6 +87,7 @@ function ffxiv_unstuck.CheckStuck()
                                 ml_global_information.UnstuckTimer = ml_global_information.Now
                                 Player:Stop()
                                 ml_task_hub:ToggleRun()
+                                d("Teleporting to aetheryte at index "..tostring(index))
                                 Player:Teleport(index)
                             end
                         else
