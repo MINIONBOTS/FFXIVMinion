@@ -4,7 +4,7 @@ ffxiv_unstuck.count = 0
 ffxiv_unstuck.laststuck = 0
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 10 },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 5 },
 	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, maxticks = 15 },
 	IDLE 	= { id = 2, name = "IDLE" 		, stats = 0, ticks = 0, maxticks = 120 },
 }
@@ -57,6 +57,7 @@ function ffxiv_unstuck.IsIdle()
 			ffxiv_unstuck.diffY == 0 and
 			ffxiv_unstuck.diffZ == 0 and
 			not ActionList:IsCasting() and
+			not Player.incombat and
 			not ml_global_information.IsWaiting
 end
 
@@ -65,7 +66,9 @@ end
 --*************************************************************************************************************
 
 function ffxiv_unstuck.CheckStuck()
-	if (gDoUnstuck == "0") then
+	if (gDoUnstuck == "0" or gBotMode == strings[gCurrentLanguage].pvpMode or
+		gBotMode == strings[gCurrentLanguage].assistMode) 
+	then
 		return
 	end
 	
@@ -81,28 +84,16 @@ function ffxiv_unstuck.CheckStuck()
 					ffxiv_unstuck.State.IDLE.ticks = 0
 					ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
 					if (gDoUnstuck == "1") then
-                        if (ffxiv_unstuck.laststuck ~= 0 and TimeSince(ffxiv_unstuck.laststuck) > 15000) then
-                            local index = GetLocalAetheryte()
-                            if (index) then
-                                ml_global_information.UnstuckTimer = ml_global_information.Now
-                                Player:Stop()
-                                ml_task_hub:ToggleRun()
-                                d("Teleporting to aetheryte at index "..tostring(index))
-                                Player:Teleport(index)
-                            end
-                        else
-                            local myPos = Player.pos
-                            local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,10,20)
-
-                            if (ValidTable(newPos)) then
-                                ml_global_information.UnstuckTimer = ml_global_information.Now
-                                Player:Stop()
-                                ml_task_hub:ToggleRun()
-                                Player:MoveTo(newPos.x, newPos.y, newPos.z, 0.5)
-                            end
-                        end
-                        ffxiv_unstuck.count = ffxiv_unstuck.count + 1
-                        ffxiv_unstuck.laststuck = ml_global_information.Now
+						local id = GetLocalAetheryte()
+						if (id) then
+							ml_global_information.UnstuckTimer = ml_global_information.Now
+							Player:Stop()
+							ml_task_hub:ToggleRun()
+							d("Teleporting to aetheryte at index "..tostring(id))
+							Player:Teleport(id)
+							ffxiv_unstuck.count = ffxiv_unstuck.count + 1
+							ffxiv_unstuck.laststuck = ml_global_information.Now
+						end
 					end
 					break
 				end

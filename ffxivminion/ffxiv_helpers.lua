@@ -611,7 +611,7 @@ function GetLocalAetheryte()
     local list = Player:GetAetheryteList()
     for index,aetheryte in ipairs(list) do
         if (aetheryte.islocalmap) then
-            return index
+            return aetheryte.id
         end
     end
     
