@@ -45,6 +45,7 @@ function ffxiv_unstuck.IsStuck()
 			ffxiv_unstuck.diffY > 0 and ffxiv_unstuck.diffY <= 5 and
 			ffxiv_unstuck.diffZ > 0 and ffxiv_unstuck.diffZ <= 5 and
 			not ActionList:IsCasting() and
+			not Player.incombat and
             not ml_global_information.IsWaiting
 end
 
@@ -88,6 +89,7 @@ function ffxiv_unstuck.CheckStuck()
 						if (id) then
 							ml_global_information.UnstuckTimer = ml_global_information.Now
 							Player:Stop()
+							Dismount()
 							ml_task_hub:ToggleRun()
 							d("Teleporting to aetheryte at index "..tostring(id))
 							Player:Teleport(id)

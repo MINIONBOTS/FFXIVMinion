@@ -21,7 +21,7 @@ FFXIVMINION.SKILLS = {}
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
     
-    if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 10000) then
+    if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 15000) then
         ml_task_hub:ToggleRun()
         ml_global_information.UnstuckTimer = 0
     end
