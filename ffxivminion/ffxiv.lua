@@ -313,11 +313,11 @@ function ffxivminion.SetMode(mode)
     if (task ~= nil) then
         ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
 		gBotMode = mode
-        if (gBotMode == strings[gCurrentLanguage].pvpMode) then
-            Player:EnableUnstuckJump(false)
-        else
-            Player:EnableUnstuckJump(true)
-        end
+        --if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+            --Player:EnableUnstuckJump(false)
+        --else
+            --Player:EnableUnstuckJump(true)
+        --end
     end
 end
 
