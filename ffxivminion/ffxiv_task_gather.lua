@@ -263,12 +263,15 @@ function c_gather:evaluate()
         return true
     end
     
+	ml_global_information.IsWaiting = false
     return false
 end
 function e_gather:execute()    
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-        -- reset fail timer
+		ml_global_information.IsWaiting = true
+        
+		-- reset fail timer
         if (ml_task_hub:CurrentTask().failedTimer ~= 0) then
             ml_task_hub:CurrentTask().failedTimer = 0
         end
@@ -331,6 +334,7 @@ function e_gather:execute()
             end
         end
     else
+		ml_global_information.IsWaiting = false
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if ( node ) then
             local target = Player:GetTarget()
