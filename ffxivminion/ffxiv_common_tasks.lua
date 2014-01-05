@@ -161,7 +161,7 @@ function ffxiv_task_movetopos:task_complete_execute()
     end
     
     if (ml_task_hub:CurrentTask().doFacing) then
-        Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
+        Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
     end
     
     ml_task_hub:CurrentTask().completed = true

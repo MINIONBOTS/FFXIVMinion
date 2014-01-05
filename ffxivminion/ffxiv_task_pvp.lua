@@ -136,7 +136,7 @@ function e_movetotargetpvp:execute()
         local gotoPos = target.pos
         ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
         local PathSize = Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, 
-                                        ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+                                        true,gRandomPaths=="1")
     end
 end
 
