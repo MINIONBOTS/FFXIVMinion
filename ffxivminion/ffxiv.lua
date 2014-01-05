@@ -18,6 +18,9 @@ ml_global_information.UnstuckTimer = 0
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
 
+ffxivminion = {}
+ffxivminion.modes = {}
+
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
     
@@ -67,19 +70,6 @@ function ml_global_information.OnUpdate( event, tickcount )
         end
     end
 end
-
-ffxivminion = {}
-
-ffxivminion.modes = 
-{
-    [strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
-    [strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
-    [strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
-	[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
-    [strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
-    [strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
-    [strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-}
 
 -- Module Event Handler
 function ffxivminion.HandleInit()	
@@ -199,6 +189,17 @@ function ffxivminion.HandleInit()
     gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
     gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
+	
+	ffxivminion.modes =
+	{
+		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
+		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
+		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
+		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
+		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
+		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
+		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
+	}
 	
     -- setup bot mode
     local botModes = "None"
