@@ -21,6 +21,7 @@ function ffxiv_task_pvp.Create()
 	newinst.lastPos = {}
 	newinst.fleeing = false
 	newinst.targetPrio = ""
+    newinst.leavetimer = 0
 	
 	-- set the correct starting state in case we're already in a pvp map and reload lua
 	if (Player.localmapid == 337 or Player.localmapid == 175 or Player.localmapid == 336) then
@@ -56,21 +57,26 @@ function e_joinqueuepvp:execute()
 end
 
 c_pressleave = inheritsFrom( ml_cause )
-c_pressleave.throttle = 10000
+c_pressleave.throttle = 1000
 e_pressleave = inheritsFrom( ml_effect )
 function c_pressleave:evaluate() 
     return ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and ControlVisible("ColosseumRecord"))
 end
 function e_pressleave:execute()
 	-- reset pvp task state since it doesn't get terminated/reinstantiated
-	ml_task_hub:CurrentTask().state = "COMBAT_ENDED"
-	ml_task_hub:CurrentTask().targetid = 0
-	ml_task_hub:CurrentTask().startTimer = 0
-	ml_task_hub:CurrentTask().lastPos = {}
-	ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(300000,600000)
-	ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
-	Player:Stop()
-	PressLeaveColosseum()
+    if (gPVPDelayLeave == "1" and ml_task_hub:CurrentTask().leaveTimer == 0) then
+        ml_task_hub:CurrentTask().leaveTimer = ml_global_information.Now + math.random(15000,25000)
+    elseif (gPVPDelayLeave == "0" or ml_global_information.Now > ml_task_hub:CurrentTask().leaveTimer) then
+        ml_task_hub:CurrentTask().state = "COMBAT_ENDED"
+        ml_task_hub:CurrentTask().targetid = 0
+        ml_task_hub:CurrentTask().startTimer = 0
+        ml_task_hub:CurrentTask().leaveTimer = 0
+        ml_task_hub:CurrentTask().lastPos = {}
+        ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(300000,600000)
+        ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
+        Player:Stop()
+        PressLeaveColosseum()
+    end
 end
 
 c_startcombat = inheritsFrom( ml_cause )
@@ -334,6 +340,7 @@ function ffxiv_task_pvp.UIInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
 	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].pvpFlee, "gPVPFlee",strings[gCurrentLanguage].pvpMode)
 
     --init combo boxes
@@ -356,6 +363,10 @@ function ffxiv_task_pvp.UIInit()
 	if (Settings.FFXIVMINION.gAFKMove == nil) then
         Settings.FFXIVMINION.gAFKMove = "1"
     end
+    
+    if (Settings.FFXIVMINION.gPVPDelayLeave == nil) then
+        Settings.FFXIVMINION.gPVPDelayLeave = "0"
+    end
 	
 	--if (Settings.FFXIVMINION.gPVPFlee == nil) then
         --Settings.FFXIVMINION.gPVPFlee = "0"
@@ -367,6 +378,7 @@ function ffxiv_task_pvp.UIInit()
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
     gPrioritizeRanged = Settings.FFXIVMINION.gPrioritizeRanged
     gAFKMove = Settings.FFXIVMINION.gAFKMove
+    gPVPDelayLeave = Settings.FFXIVMINION.gPVPDelayLeave
 	--gPVPFlee = Settings.FFXIVMINION.gPVPFlee
 end
 
@@ -376,7 +388,8 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gPVPTargetTwo" or
                 k == "gPrioritizeRanged" or
                 k == "gAFKMove" or
-                k == "gPVPFlee")
+                k == "gPVPFlee" or
+                k == "gPVPDelayLeave")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end

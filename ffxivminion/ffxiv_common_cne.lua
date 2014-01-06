@@ -817,3 +817,4 @@ function e_stealth:execute()
         action:Cast()
     end
 end
+

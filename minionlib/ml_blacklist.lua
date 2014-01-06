@@ -67,8 +67,10 @@ end
 function ml_blacklist.AddBlacklistEntry(blacklistName, entryID, entryName, entryTime)
 	local blacklist = ml_blacklist.blacklist[blacklistName]
     if (blacklist) then
-        blacklist[entryID] = { time = entryTime, name = entryName } 
-        ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
+        if (not blacklist[entryID]) then
+            blacklist[entryID] = { time = entryTime, name = entryName } 
+            ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
+        end
         return true
     end
     

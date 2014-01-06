@@ -272,6 +272,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
     },                                  
     ["cn"] =                            
     {                               
@@ -554,6 +555,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
 	},
     ["jp"] =
     {
@@ -824,6 +826,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
 	},   
     ["de"] =
     {
@@ -1094,6 +1097,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
 	},     
     ["fr"] =
     {
@@ -1364,6 +1368,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
 	},       
     ["ru"] =
     {
@@ -1634,6 +1639,7 @@ strings =
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
+        delayLeave                      = "Delay Leave",
 	},    	
 
 }

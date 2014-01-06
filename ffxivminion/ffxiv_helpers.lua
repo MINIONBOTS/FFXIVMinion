@@ -377,6 +377,22 @@ function IsBehind(entity)
     return false
 end
 
+function ConvertHeading(heading)
+	if (heading < 0) then
+		return heading + 2 * math.pi
+	else
+		return heading
+	end
+end
+
+function GetPosFromDistanceHeading(startPos, distance, heading)
+	local head = ConvertHeading(heading)
+	d(head)
+	local newX = distance * math.sin(head) + startPos.x
+	local newZ = distance * math.cos(head) + startPos.z
+	return {x = newX, y = startPos.y, z = newZ}
+end
+
 function GetFateByID(fateID)
     local fate = nil
     local fateList = MapObject:GetFateList()
