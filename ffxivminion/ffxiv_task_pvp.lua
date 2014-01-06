@@ -207,7 +207,7 @@ function c_afkmove:evaluate()
 end
 function e_afkmove:execute()
 	local myPos = Player.pos
-	local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,1,3)
+	local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,0.5,1)
 	
 	if (ValidTable(newPos)) then
 		Player:MoveTo(newPos.x, newPos.y, newPos.z, 0.5)
