@@ -54,7 +54,19 @@ function mm.ModuleInit()
 			[175] = "Wolves Den",
 		}
     end
+    
+    -- for wolves den
+    if Settings.FFXIVMINION.Maps[336] == nil then
+        Settings.FFXIVMINION.Maps[336] = "Wolves Den"
+    end
 	
+    if Settings.FFXIVMINION.Maps[337] == nil then
+        Settings.FFXIVMINION.Maps[337] = "Wolves Den"
+    end
+    
+    if Settings.FFXIVMINION.Maps[175] == nil then
+        Settings.FFXIVMINION.Maps[175] = "Wolves Den"
+    end
 
     
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
