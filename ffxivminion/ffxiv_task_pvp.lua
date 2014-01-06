@@ -21,7 +21,7 @@ function ffxiv_task_pvp.Create()
 	newinst.lastPos = {}
 	newinst.fleeing = false
 	newinst.targetPrio = ""
-    newinst.leavetimer = 0
+    newinst.leaveTimer = 0
 	
 	-- set the correct starting state in case we're already in a pvp map and reload lua
 	if (Player.localmapid == 337 or Player.localmapid == 175 or Player.localmapid == 336) then
