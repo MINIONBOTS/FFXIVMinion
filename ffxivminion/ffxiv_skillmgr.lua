@@ -34,6 +34,7 @@ function SkillMgr.ModuleInit()
     -- SelectedSkills/Main Window
     GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
     GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].activated,"gSMactive",strings[gCurrentLanguage].generalSettings)
+    GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].defaultProfile,"gSMDefaultProfile",strings[gCurrentLanguage].generalSettings)
     GUI_NewComboBox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].profile,"gSMprofile",strings[gCurrentLanguage].generalSettings,"")
                 
     GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].saveProfile,"SMSaveEvent")
@@ -237,6 +238,15 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
             SkillMgr.SkillProfile = {}
             SkillMgr.UpdateCurrentProfileData()
             Settings.FFXIVMINION.gSMlastprofile = tostring(v)
+        elseif ( k == "gSMDefaultProfile" ) then
+            if ( v == "0" ) then
+                Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = nil
+            elseif ( v == "1" ) then
+                if (gSMprofile ~= "" and gSMprofile ~= "None") then
+                    Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = gSMprofile
+                end
+            end
+            Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles
         elseif ( k == "SKM_NAME" ) then SkillMgr.SkillProfile[SKM_Prio].name = v		
         elseif ( k == "SKM_ON" ) then SkillMgr.SkillProfile[SKM_Prio].used = v
         elseif ( k == "SKM_DOBUFF" ) then SkillMgr.SkillProfile[SKM_Prio].dobuff = v
@@ -393,8 +403,26 @@ function SkillMgr.CreateNewProfile()
     gSMnewname = ""	
 end
 
+function SkillMgr.SetDefaultProfile()
+    local default = Settings.FFXIVMINION.SMDefaultProfiles[Player.job]
+    if (default) then
+        gSMprofile = default
+		gSMDefaultProfile = "1"
+        GUI_WindowVisible(SkillMgr.editwindow.name,false)
+        GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
+        GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+        SkillMgr.SkillProfile = {}
+        SkillMgr.UpdateCurrentProfileData()
+    else
+		gSMDefaultProfile = "0"
+	end
+end
+
 --Grasb all Profiles and enlist them in the dropdown field
 function SkillMgr.UpdateProfiles()
+    if (Settings.FFXIVMINION.SMDefaultProfiles == nil) then
+        Settings.FFXIVMINION.SMDefaultProfiles = {}
+    end
     
     local profiles = "None"
     local found = "None"	
@@ -405,9 +433,10 @@ function SkillMgr.UpdateProfiles()
             profile = string.gsub(profile, ".lua", "")
             --d("X: "..tostring(profile).." == "..tostring(gSMnewname))
             profiles = profiles..","..profile
-            if ( Settings.FFXIVMINION.gSMlastprofile ~= nil and Settings.FFXIVMINION.gSMlastprofile == profile ) then
-                d("Last Profile found : "..profile)
+            if ( Settings.FFXIVMINION.SMDefaultProfiles[Player.job] ~= nil and Settings.FFXIVMINION.SMDefaultProfiles[Player.job] == profile ) then
+                d("Default Profile found : "..profile)
                 found = profile
+                gSMDefaultProfile = "1"
             end
             i,profile = next ( profilelist,i)
         end		

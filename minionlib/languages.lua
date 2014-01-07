@@ -273,6 +273,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
     },                                  
     ["cn"] =                            
     {                               
@@ -556,6 +557,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
 	},
     ["jp"] =
     {
@@ -827,6 +829,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
 	},   
     ["de"] =
     {
@@ -1098,6 +1101,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
 	},     
     ["fr"] =
     {
@@ -1369,6 +1373,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
 	},       
     ["ru"] =
     {
@@ -1640,6 +1645,7 @@ strings =
         skipDialogue                    = "Skip Dialogues",
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
+        defaultProfile                  = "Default Profile",
 	},    	
 
 }

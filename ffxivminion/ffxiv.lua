@@ -61,9 +61,7 @@ function ml_global_information.OnUpdate( event, tickcount )
         if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
-        if(ml_task_hub.shouldRun) then
-            ffxivminion.CheckClass()
-        end
+		ffxivminion.CheckClass()
         
         if (not ml_task_hub:Update() and ml_task_hub.shouldRun) then
             ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
@@ -379,6 +377,9 @@ function ffxivminion.CheckClass()
 			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode or gBotMode == strings[gCurrentLanguage].craftMode) then
 				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)				
 			end
+            
+            -- set default sm profile
+            SkillMgr.SetDefaultProfile()
 			
         else
             ml_global_information.AttackRange = 3
