@@ -416,6 +416,7 @@ function SkillMgr.SetDefaultProfile()
     else
 		gSMDefaultProfile = "0"
 	end
+	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
 
 --Grasb all Profiles and enlist them in the dropdown field
@@ -425,7 +426,8 @@ function SkillMgr.UpdateProfiles()
     end
     
     local profiles = "None"
-    local found = "None"	
+    local found = "None"
+	local foundOld = "None"
     local profilelist = dirlist(SkillMgr.profilepath,".*lua")
     if ( TableSize(profilelist) > 0) then			
         local i,profile = next ( profilelist)
@@ -437,6 +439,9 @@ function SkillMgr.UpdateProfiles()
                 d("Default Profile found : "..profile)
                 found = profile
                 gSMDefaultProfile = "1"
+            elseif ( Settings.FFXIVMINION.gSMlastprofile ~= nil and Settings.FFXIVMINION.gSMlastprofile == profile ) then
+                d("Last Profile found : "..profile)
+                foundOld = profile
             end
             i,profile = next ( profilelist,i)
         end		
@@ -444,7 +449,14 @@ function SkillMgr.UpdateProfiles()
         d("No Skillmanager profiles found")
     end
     gSMprofile_listitems = profiles
-    gSMprofile = found
+	
+	if (found ~= "None") then
+		gSMprofile = found
+	elseif (foundOld ~= "None") then
+		Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = foundOld
+		gSMDefaultProfile = "1"
+		gSMprofile = foundOld
+	end
 end
 
 --+
@@ -665,6 +677,13 @@ function SkillMgr.UpdateCurrentProfileData()
                     end
                 end
             end
+			
+			-- Set default checkbox correctly
+			if (Settings.FFXIVMINION.SMDefaultProfiles[Player.job] == gSMprofile) then
+				gSMDefaultProfile = "1"
+			else
+				gSMDefaultProfile = "0"
+			end
         else
             d("Profile is empty..")
         end		

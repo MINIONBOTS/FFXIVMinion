@@ -611,7 +611,7 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
   if (maxdistance==nil or maxdistance == "") then
     maxdistance = 30
   end
-  local el = EntityList("friendly,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")--myparty
+  local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
   local i,e = next(el)
   while (i~=nil and e ~= nil) do
     if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not HasBuffs(e,hasnot)) ) then
