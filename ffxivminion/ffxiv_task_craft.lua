@@ -13,7 +13,7 @@ function ffxiv_task_craft.Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_task_craft members
-
+    e_opencraftwnd.CraftStart = ml_global_information.Now
     
     return newinst
 end
@@ -55,18 +55,19 @@ e_opencraftwnd  = inheritsFrom( ml_effect )
 c_opencraftwnd.throttle = 1500
 function c_opencraftwnd:evaluate()
     local synth = Crafting:SynthInfo()
-	if ( not synth and not Crafting:IsCraftingLogOpen()) then
+	if (  ml_global_information.Now - e_opencraftwnd.CraftStart > 3000 and  not synth and not Crafting:IsCraftingLogOpen()) then
 		return true
 	end	
     return false
 end
+
 function e_opencraftwnd:execute()
     Crafting:ToggleCraftingLog()
 end
 
 c_selectitem = inheritsFrom( ml_cause )
 e_selectitem = inheritsFrom( ml_effect )
-c_selectitem.throttle = 1500
+c_selectitem.throttle = 1000
 function c_selectitem:evaluate()
     local synth = Crafting:SynthInfo()
 	if ( not synth and Crafting:IsCraftingLogOpen()) then
@@ -78,9 +79,10 @@ function c_selectitem:evaluate()
     return false
 end
 function e_selectitem:execute()
-    Crafting:CraftSelectedItem()
+  Crafting:CraftSelectedItem()
 	Crafting:ToggleCraftingLog()
-	SkillMgr.currentIQStack = 0 
+	e_opencraftwnd.CraftStart = ml_global_information.Now
+  SkillMgr.currentIQStack = 0 
 	SkillMgr.lastquality = 0
 end
 
