@@ -274,6 +274,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
     },                                  
     ["cn"] =                            
     {                               
@@ -558,6 +559,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
 	},
     ["jp"] =
     {
@@ -830,6 +832,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
 	},   
     ["de"] =
     {
@@ -1102,6 +1105,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
 	},     
     ["fr"] =
     {
@@ -1374,6 +1378,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
 	},       
     ["ru"] =
     {
@@ -1646,6 +1651,7 @@ strings =
         doUnstuck                       = "Enable Unstuck",
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
+		useHQMats						= "Craft HQ Mats",
 	},    	
 
 }

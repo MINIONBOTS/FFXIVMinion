@@ -135,6 +135,10 @@ function ffxivminion.HandleInit()
     if (Settings.FFXIVMINION.gDoUnstuck == nil) then
         Settings.FFXIVMINION.gDoUnstuck = "0"
     end
+	
+	if (Settings.FFXIVMINION.gUseHQMats == nil) then
+		Settings.FFXIVMINION.gUseHQMats = "0"
+	end
     
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -154,6 +158,7 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",strings[gCurrentLanguage].generalSettings );	
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -187,6 +192,7 @@ function ffxivminion.HandleInit()
     gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
     gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
+    gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
 	
 	ffxivminion.modes =
 	{
@@ -247,6 +253,10 @@ function ffxivminion.HandleInit()
         GameHacks:SkipDialogue(true)
     end
 	
+	if (gUseHQMats == "1") then
+		Crafting:UseHQMats(true)
+	end
+	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
 end
@@ -300,6 +310,13 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 				GameHacks:SkipDialogue(true)
 			else
 				GameHacks:SkipDialogue(false)
+			end
+            Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gUseHQMats" ) then
+			if ( v == "1" ) then
+				Crafting:UseHQMats(true)
+			else
+				Crafting:UseHQMats(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
         end
