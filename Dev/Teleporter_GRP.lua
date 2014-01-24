@@ -2,10 +2,10 @@
 
 -- ************************************************************
 -- Standard GroupName for Waypoints
-Teleport.StdWPName = "Waypoints"
+TP.StdWPName = "Waypoints"
 -- ************************************************************
 
-Teleport.GRPName = {
+TP.GRPName = {
 
 -- ************************************************************
 --  {"<GROUPNAME>","<SEARCH>","<REPLACE>",<1,0 - UNFOLD GROUP>},
@@ -13,7 +13,7 @@ Teleport.GRPName = {
 	{"Gilde","(G)","",1},
 	{"Trader","(H)","",0},
 	{"Botany","(BO-","(",0},
-	{Teleport.StdWPName,"","",1},
+	{TP.StdWPName,"","",1},
 	{"Dungeons","(D-","(",0},
 	{"FATE","(F-","(",0},
 	{"Bestiarium","(B-","(",0},
