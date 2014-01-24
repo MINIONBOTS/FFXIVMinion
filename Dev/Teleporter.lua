@@ -93,6 +93,8 @@ function TP.UpdateAutoAddGUI()
        --d("adding " .. obj.NAME)
        GUI_NewButton(TP.WinName,obj.NAME .. " / " .. tostring(obj.ID),"AutoListTP_" .. tostring(obj.ID),TP.AutoGroups[obj.TYPE])
   end
+  
+  GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
 end
 
 function TP.DoAutoAdd()
@@ -239,6 +241,7 @@ function TP.Build()
 	GUI_NewButton(TP.WinName,"Save","TP.saveOpen")
 	RegisterEventHandler("TP.saveOpen", TP.Save)
 	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+    GUI_WindowVisible(TP.WinName, false)
 end
 --**************************************************************************************************************************************
 function TP.StartTPs(dir)
@@ -375,6 +378,8 @@ function TP.Change(dir)
 		GUI_RefreshWindow(WinName)
 		--TP.Change("TP.Change_Open")
 	end	
+    
+    GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
 end
 --**************************************************************************************************************************************
 function TP.Save(dir)
@@ -614,6 +619,7 @@ function TP.OnUpdateHandler( Event, ticks )
   elseif (ticks - TP.LastAutoList > 2000) then
     TP.LastAutoList = ticks
     TP.DoAutoAdd()
+    GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
   end
 end
 
