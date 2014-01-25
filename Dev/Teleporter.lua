@@ -17,6 +17,7 @@ TP.cRepID = 0
 TP.cDelID = 0
 TP.DelGRP = {}
 TP.halfticks = 0
+TP.isTraveling = false
 TP.key1 = {"NONE","Left Mouse","Right Mouse","Middle Mouse","BACKSPACE","TAB","ENTER","PAUSE","ESC","SPACEBAR","PAGE UP","PAGE DOWN","END","HOME","LEFT ARROW","UP ARROW","RIGHT ARROW","DOWN ARROW","PRINT","INS","DEL","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","NUM 0","NUM 1","NUM 2","NUM 3","NUM 4","NUM 5","NUM 6","NUM 7","NUM 8","NUM 9","Separator","Subtract","Decimal","Divide","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","SCROLL LOCK","Left SHIFT","Right SHIFT","Left CONTROL","Right CONTROL","Left ALT","Right ALT"}
 TP.key2 = {0,1,2,4,8,9,13,19,27,32,33,34,35,36,37,38,39,40,42,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,145,160,161,162,163,164,165}
 
@@ -73,10 +74,30 @@ function TP.GUIItem( evnttype , event )
     d("extracted id " .. id)
     local obj = TP.AutoList[tonumber(id)]
     if (obj ~= nil) then
+      
+      if (TP.isTraveling) then 
+        Player:Stop()
+        TP.isTraveling = false
+        return
+      end
+      
       d("found obj " .. obj.NAME .. ", telporting ....")
-      local dest = CalculateTargetPosition(obj.POS)
-      GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
-      Player:SetFacingSynced(obj.POS.x,obj.POS.y,obj.POS.z)
+      if (tpMoveToMode == "1") then
+        ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
+        local PathSize = Player:MoveTo(tonumber(obj.POS.x),tonumber(obj.POS.y),tonumber(obj.POS.z),1.5, false,false)  
+        if (PathSize == 0) then
+          mt_error("ERROR: No route to target")
+          Player:Stop()
+          TP.isTraveling=false
+        else
+          TP.isTraveling=true
+          ml_debug( "traveling to destination")	
+        end
+      else
+        local dest = CalculateTargetPosition(obj.POS)
+        GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+        Player:SetFacingSynced(obj.POS.x,obj.POS.y,obj.POS.z)
+      end
     end
   end
 end
@@ -194,6 +215,10 @@ function TP.Build()
     Settings.Dev.tpDistance = "0.0"
   end
   
+  if (Settings.Dev.tpMoveToMode == nil) then
+    Settings.Dev.tpMoveToMode = "0"
+  end
+  
 	--
   GUI_NewCheckbox(TP.WinName,"Auto-Sync","tpAuto_Sync","Setting")
 	tpAuto_Sync = Settings.Dev.Auto_Sync
@@ -201,6 +226,8 @@ function TP.Build()
 	tpAuto_Record = Settings.Dev.Auto_Record
   GUI_NewField(TP.WinName,"Distance","tpDistance","Setting")
 	tpDistance = Settings.Dev.tpDistance
+  GUI_NewCheckbox(TP.WinName,"Move To Mode","tpMoveToMode","Setting")
+	tpMoveToMode = Settings.Dev.tpMoveToMode
 	GUI_NewCheckbox(TP.WinName,"Port 2 Cursor","tpClick_Tele","Setting")
 	tpClick_Tele = Settings.Dev.Click_Teleport
 	GUI_NewComboBox(TP.WinName,"Port Buttons","tpClick_Button1","Setting",B1)
@@ -478,8 +505,27 @@ function TP.PortTO(event)
 		end
 	end
 	TP.cSaveName = str
-	GameHacks:TeleportToXYZ(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY))
-	Player:SetFacingSynced(tonumber(SavedL))
+  if (TP.isTraveling) then 
+    Player:Stop()
+    TP.isTraveling = false
+    return
+  end
+      
+  if (tpMoveToMode == "1") then
+    ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
+    local PathSize = Player:MoveTo(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY),1.5, false,false)  
+    if (PathSize == 0) then
+      mt_error("ERROR: No route to target")
+      Player:Stop()
+      TP.isTraveling=false
+    else
+      TP.isTraveling=true
+      ml_debug( "traveling to destination")	
+    end
+  else
+    GameHacks:TeleportToXYZ(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY))
+    Player:SetFacingSynced(tonumber(SavedL))
+  end	
 end
 --**************************************************************************************************************************************
 function TP.UpdateWaypoints()
@@ -590,6 +636,10 @@ local WM = GUI_GetWindowInfo(TP.WinName)
 	 if (Settings.Dev.tpDistance ~= tpDistance ) then
         Settings.Dev.tpDistance  = tpDistance 
    end
+	 if ( Settings.Dev.tpMoveToMode ~= tpMoveToMode ) then
+        Settings.Dev.tpMoveToMode  = tpMoveToMode 
+   end
+  
   
   
 end

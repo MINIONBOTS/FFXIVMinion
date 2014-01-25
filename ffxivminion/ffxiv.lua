@@ -203,6 +203,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
 		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
+		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty
 	}
 	
     -- setup bot mode

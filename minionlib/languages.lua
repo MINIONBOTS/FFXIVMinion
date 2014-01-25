@@ -275,6 +275,11 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
+
     },                                  
     ["cn"] =                            
     {                               
@@ -560,6 +565,10 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
 	},
     ["jp"] =
     {
@@ -833,6 +842,10 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
 	},   
     ["de"] =
     {
@@ -1106,6 +1119,10 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
 	},     
     ["fr"] =
     {
@@ -1379,6 +1396,10 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
 	},       
     ["ru"] =
     {
@@ -1652,6 +1673,10 @@ strings =
         delayLeave                      = "Delay Leave",
         defaultProfile                  = "Default Profile",
 		useHQMats						= "Craft HQ Mats",
+		enterDutyTimer 					= "Enter Timer: ",
+		leaveDutyTimer 					= "Leave Timer: ",
+		dutyMode						= "Duty",
+		dutyLeader						= "Duty Leader: "
 	},    	
 
 }

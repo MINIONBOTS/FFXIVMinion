@@ -716,7 +716,7 @@ function e_pressconfirm:execute()
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
 		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
 	elseif (gBotMode == strings[gCurrentLanguage].dutyMode) then
-		ml_task_hub:CurrentTask().timer = ml_global_information.Now + 30000
+		ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gEnterDutyTimer)
 		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
 	end
 end
