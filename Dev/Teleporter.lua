@@ -18,6 +18,7 @@ TP.cDelID = 0
 TP.DelGRP = {}
 TP.halfticks = 0
 TP.isTraveling = false
+TP.TravelingStopingDistance = 10.0
 TP.key1 = {"NONE","Left Mouse","Right Mouse","Middle Mouse","BACKSPACE","TAB","ENTER","PAUSE","ESC","SPACEBAR","PAGE UP","PAGE DOWN","END","HOME","LEFT ARROW","UP ARROW","RIGHT ARROW","DOWN ARROW","PRINT","INS","DEL","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","NUM 0","NUM 1","NUM 2","NUM 3","NUM 4","NUM 5","NUM 6","NUM 7","NUM 8","NUM 9","Separator","Subtract","Decimal","Divide","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","SCROLL LOCK","Left SHIFT","Right SHIFT","Left CONTROL","Right CONTROL","Left ALT","Right ALT"}
 TP.key2 = {0,1,2,4,8,9,13,19,27,32,33,34,35,36,37,38,39,40,42,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,145,160,161,162,163,164,165}
 
@@ -51,17 +52,24 @@ function spairs(t, order)
 end
 
 function CalculateTargetPosition( dest )
-  
-  local pos = deepcopy(dest)
   d(dest)
-  local dist = tonumber(tpDistance)
-  if (dist == nil ) then dist = 0.0 end
-  
-  local dirV = { x=math.sin(dest.h)*dist,z = math.cos(dest.h)*dist }
-  pos.x = dest.x + dirV.x
-  pos.z = dest.z + dirV.z
-  d(pos)
-  return pos
+   
+  local p,dist = NavigationManager:GetClosestPointOnMesh(dest)
+  d("mesh distance" .. dist)
+  if (tpPrefMeshPos == "0" or dist > 40) then
+    dist = tonumber(tpDistance)
+    if (dist == nil ) then dist = 0.0 end
+    local dirV = { x=math.sin(dest.h)*dist,z = math.cos(dest.h)*dist }
+    local pos = deepcopy(dest)
+    pos.x = dest.x + dirV.x
+    pos.z = dest.z + dirV.z
+    d("calculated pos " .. tostring(pos))
+    return pos
+  else
+    d("mesh pos " .. tostring(p))
+    return p
+  end
+    
 end
 
 function TP.GUIItem( evnttype , event )
@@ -84,7 +92,7 @@ function TP.GUIItem( evnttype , event )
       d("found obj " .. obj.NAME .. ", telporting ....")
       if (tpMoveToMode == "1") then
         ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
-        local PathSize = Player:MoveTo(tonumber(obj.POS.x),tonumber(obj.POS.y),tonumber(obj.POS.z),1.5, false,false)  
+        local PathSize = Player:MoveTo(tonumber(obj.POS.x),tonumber(obj.POS.y),tonumber(obj.POS.z),TP.TravelingStopingDistance, false,false)  
         if (PathSize == 0) then
           mt_error("ERROR: No route to target")
           Player:Stop()
@@ -115,7 +123,6 @@ function TP.UpdateAutoAddGUI()
        GUI_NewButton(TP.WinName,obj.NAME .. " / " .. tostring(obj.ID),"AutoListTP_" .. tostring(obj.ID),TP.AutoGroups[obj.TYPE])
   end
   
-  GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
 end
 
 function TP.DoAutoAdd()
@@ -219,6 +226,11 @@ function TP.Build()
     Settings.Dev.tpMoveToMode = "0"
   end
   
+  if (Settings.Dev.tpPrefMeshPos == nil) then
+    Settings.Dev.tpPrefMeshPos = "1"
+  end
+    
+  
 	--
   GUI_NewCheckbox(TP.WinName,"Auto-Sync","tpAuto_Sync","Setting")
 	tpAuto_Sync = Settings.Dev.Auto_Sync
@@ -228,6 +240,8 @@ function TP.Build()
 	tpDistance = Settings.Dev.tpDistance
   GUI_NewCheckbox(TP.WinName,"Move To Mode","tpMoveToMode","Setting")
 	tpMoveToMode = Settings.Dev.tpMoveToMode
+  GUI_NewCheckbox(TP.WinName,"Use Mesh Positions","tpPrefMeshPos","Setting")
+	tpPrefMeshPos = Settings.Dev.tpPrefMeshPos
 	GUI_NewCheckbox(TP.WinName,"Port 2 Cursor","tpClick_Tele","Setting")
 	tpClick_Tele = Settings.Dev.Click_Teleport
 	GUI_NewComboBox(TP.WinName,"Port Buttons","tpClick_Button1","Setting",B1)
@@ -268,7 +282,7 @@ function TP.Build()
 	GUI_NewButton(TP.WinName,"Save","TP.saveOpen")
 	RegisterEventHandler("TP.saveOpen", TP.Save)
 	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-    GUI_WindowVisible(TP.WinName, false)
+  --  GUI_WindowVisible(TP.WinName, false)
 end
 --**************************************************************************************************************************************
 function TP.StartTPs(dir)
@@ -513,7 +527,7 @@ function TP.PortTO(event)
       
   if (tpMoveToMode == "1") then
     ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
-    local PathSize = Player:MoveTo(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY),1.5, false,false)  
+    local PathSize = Player:MoveTo(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY),TP.TravelingStopingDistance, false,false)  
     if (PathSize == 0) then
       mt_error("ERROR: No route to target")
       Player:Stop()
@@ -669,7 +683,6 @@ function TP.OnUpdateHandler( Event, ticks )
   elseif (ticks - TP.LastAutoList > 2000) then
     TP.LastAutoList = ticks
     TP.DoAutoAdd()
-    GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
   end
 end
 
@@ -690,6 +703,7 @@ function TP.TargetPort()
 end
 --**************************************************************************************************************************************
 function TP.CorMove(dir)
+	d("test")
 	local p = Player.pos
 	local SavedX,SavedY,SavedZ,SavedH
 	SavedX = p.x
@@ -703,7 +717,7 @@ function TP.CorMove(dir)
 	local theta_back = ConvertHeading((h - (math.pi)))%(2*math.pi)
 	local newPos = {}
 	
-	if (string.sub(dir,1,13) == "TP.Move") then
+	if (string.sub(dir,1,7) == "TP.Move") then
 		if (dir == "TP.MoveF") then newPos = GetPosFromDistanceHeading(p, dist, p.h)
 		elseif (dir == "TP.MoveB") then newPos = GetPosFromDistanceHeading(p, dist, theta_back)
 		elseif (dir == "TP.MoveR") then newPos = GetPosFromDistanceHeading(p, dist, theta_right)
@@ -753,6 +767,5 @@ end
 
 RegisterEventHandler("Module.Initalize",TP.Build)
 RegisterEventHandler("Gameloop.Update", TP.OnUpdateHandler)
-RegisterEventHandler("GUI.Update",TP.GUIVarUpdate)
 RegisterEventHandler("GUI.Item",TP.GUIItem)
 
