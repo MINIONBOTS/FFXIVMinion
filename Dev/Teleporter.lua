@@ -282,7 +282,7 @@ function TP.Build()
 	GUI_NewButton(TP.WinName,"Save","TP.saveOpen")
 	RegisterEventHandler("TP.saveOpen", TP.Save)
 	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-  --  GUI_WindowVisible(TP.WinName, false)
+	GUI_WindowVisible(TP.WinName, false)
 end
 --**************************************************************************************************************************************
 function TP.StartTPs(dir)
