@@ -584,6 +584,8 @@ function TP.UpdateWaypoints()
 			end
 		end
 		TP.DelGroups(TP.WinName)
+		
+		
 	end
 	local p = Player.pos
 	tb_aPos = string.format("%f",p.x).." | "..string.format("%f",p.z).." | "..string.format("%f",p.y).." | "..string.format("%f",p.h)
@@ -618,6 +620,7 @@ end
 --**************************************************************************************************************************************
 function TP.Refreshing()  
 	TP.MapID = 0
+	TP.AutoListMapId = 0
 end
 --**************************************************************************************************************************************
 function TP.WindowsHandler()
