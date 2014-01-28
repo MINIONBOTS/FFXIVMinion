@@ -278,7 +278,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 
     },                                  
     ["cn"] =                            
@@ -568,7 +570,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 	},
     ["jp"] =
     {
@@ -845,7 +849,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 	},   
     ["de"] =
     {
@@ -1122,7 +1128,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 	},     
     ["fr"] =
     {
@@ -1399,7 +1407,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 	},       
     ["ru"] =
     {
@@ -1676,7 +1686,9 @@ strings =
 		enterDutyTimer 					= "Enter Timer: ",
 		leaveDutyTimer 					= "Leave Timer: ",
 		dutyMode						= "Duty",
-		dutyLeader						= "Duty Leader: "
+		dutyLeader						= "Duty Leader: ",
+        clickToTeleport                 = "Click To Teleport",
+        clickToTravel                   = "Click To Travel",
 	},    	
 
 }

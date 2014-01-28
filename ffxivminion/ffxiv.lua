@@ -140,6 +140,14 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gUseHQMats = "0"
 	end
     
+    if (Settings.FFXIVMINION.gClickToTeleport == nil) then
+		Settings.FFXIVMINION.gClickToTeleport = "0"
+	end
+    
+    if (Settings.FFXIVMINION.gClickToTravel == nil) then
+		Settings.FFXIVMINION.gClickToTravel = "0"
+	end
+    
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -159,6 +167,8 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].clickToTravel,"gClickToTravel",strings[gCurrentLanguage].generalSettings );
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
@@ -193,6 +203,8 @@ function ffxivminion.HandleInit()
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
     gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
+    gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
+    gClickToTravel = Settings.FFXIVMINION.gClickToTravel
 	
 	ffxivminion.modes =
 	{
@@ -257,6 +269,15 @@ function ffxivminion.HandleInit()
 	if (gUseHQMats == "1") then
 		Crafting:UseHQMats(true)
 	end
+    
+	if (gClickToTeleport == "1") then
+		GameHacks:ClickToTeleport(true)
+	end
+    
+	if (gClickToTravel == "1") then
+		GameHacks:ClickToTravel(true)
+	end
+    
 	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
@@ -311,6 +332,20 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 				GameHacks:SkipDialogue(true)
 			else
 				GameHacks:SkipDialogue(false)
+			end
+            Settings.FFXIVMINION[tostring(k)] = v
+        elseif ( k == "gClickToTeleport" ) then
+			if ( v == "1" ) then
+				GameHacks:SetClickToTeleport(true)
+			else
+				GameHacks:SetClickToTeleport(false)
+			end
+            Settings.FFXIVMINION[tostring(k)] = v
+        elseif ( k == "gClickToTravel" ) then
+			if ( v == "1" ) then
+				GameHacks:SetClickToTravel(true)
+			else
+				GameHacks:SetClickToTravel(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gUseHQMats" ) then
