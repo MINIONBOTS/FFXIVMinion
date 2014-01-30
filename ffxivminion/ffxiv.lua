@@ -271,11 +271,11 @@ function ffxivminion.HandleInit()
 	end
     
 	if (gClickToTeleport == "1") then
-		GameHacks:ClickToTeleport(true)
+		GameHacks:SetClickToTeleport(true)
 	end
     
 	if (gClickToTravel == "1") then
-		GameHacks:ClickToTravel(true)
+		GameHacks:SetClickToTravel(true)
 	end
     
 	
