@@ -49,20 +49,18 @@ function c_followleaderduty:evaluate()
     
     local leader = GetDutyLeader()
     if ( leader ~= nil ) then
-        if ( leader.mapid == Player.localmapid ) then
-            c_followleaderduty.leaderpos = leader.pos
-            if ( c_followleaderduty.leaderpos.x ~= -1000 ) then 			
-                local myPos = Player.pos				
-                local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
-                if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
-					(distance > 1 and gDutyTeleport == "1")) 
-				then				
-                    c_followleaderduty.leader = leader
-                    return true
-                end
-            end
-        end
-    end    
+		c_followleaderduty.leaderpos = leader.pos
+		if ( c_followleaderduty.leaderpos.x ~= -1000 ) then 			
+			local myPos = Player.pos				
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
+			if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
+				(distance > 1 and gDutyTeleport == "1")) 
+			then				
+				c_followleaderduty.leader = leader
+				return true
+			end
+		end
+	end 
     return false
 end
 function e_followleaderduty:execute()
