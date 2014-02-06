@@ -2,6 +2,8 @@ ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.name = "LT_GRIND"
 ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
+ffxiv_task_grind.Mount = 1
+ffxiv_task_grind.Stance = 4
 gFateID = 0
 
 function ffxiv_task_grind.Create()
@@ -77,6 +79,46 @@ function ffxiv_task_grind:IsGoodToAbort()
 end
 
 function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
+
+	if gChocoStance == "Follow"  then
+		ffxiv_task_grind.Stance = 3	
+	elseif  gChocoStance == "Free Stance"  then
+		ffxiv_task_grind.Stance = 4
+	elseif  gChocoStance == "Defender Stance"  then
+		ffxiv_task_grind.Stance = 5
+	elseif  gChocoStance == "Attacker Stance"  then
+		ffxiv_task_grind.Stance = 6	
+	elseif  gChocoStance == "Healer Stance"  then
+		ffxiv_task_grind.Stance = 7	
+	end
+	
+	--Mounts
+	if  gMounts == "Ahriman"  then
+		ffxiv_task_grind.Mount  = 9
+	elseif  gMounts == "Behemoth"  then
+		ffxiv_task_grind.Mount  = 18
+	elseif  gMounts == "Cavalry Drake"  then
+		ffxiv_task_grind.Mount  = 19
+	elseif  gMounts == "Coeurl"  then
+		ffxiv_task_grind.Mount  = 8
+	elseif  gMounts == "Company Chocobo"  then
+		ffxiv_task_grind.Mount  = 1
+	elseif  gMounts == "Gilded Magitek Armor"  then
+		ffxiv_task_grind.Mount  = 21
+	elseif  gMounts == "Goobbue"  then
+		ffxiv_task_grind.Mount  = 4
+	elseif  gMounts == "Laurel Goobue"  then
+		ffxiv_task_grind.Mount  = 20
+	elseif  gMounts == "Legacy Chocobo"  then
+		ffxiv_task_grind.Mount  = 5
+	elseif  gMounts == "Magitek Armor"  then
+		ffxiv_task_grind.Mount  = 6
+	elseif  gMounts == "Nightmare"  then
+		ffxiv_task_grind.Mount  = 22
+	elseif  gMounts == "Unicorn"  then
+		ffxiv_task_grind.Mount  = 15
+	end
+	
     for k,v in pairs(NewVals) do
         if ( 	k == "gDoFates" or
                 k == "gFatesOnly" or
@@ -92,7 +134,15 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFateWaitPercent" or
                 k == "gFateBLTimer" or
                 k == "gRestInFates" or
-                k == "gCombatRangePercent" )
+                k == "gCombatRangePercent" or
+				k == "gMounts" or
+				k == "gChoco" or			
+				k == "gChocoName" or			
+				k == "gChocoStance" or
+				k == "gClaimFirst" or
+				k == "gClaimed" or
+				k == "gClaimRange" or
+				k == "gKillAggroAlways")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -137,29 +187,7 @@ end
 
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
-    -- Grind
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restHP, "gRestHP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restMP, "gRestMP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
-    RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
-    
-    -- Fates
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates","Fates")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly","Fates")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies","Fates")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", "Fates", "0", "50")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", "Fates", "0", "50")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", "Fates", "0", "99")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", "Fates", "30","600")
-    
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
-    
-    if (Settings.FFXIVMINION.gDoFates == nil) then
+	if (Settings.FFXIVMINION.gDoFates == nil) then
         Settings.FFXIVMINION.gDoFates = "0"
     end
     
@@ -203,7 +231,7 @@ function ffxiv_task_grind.UIInit()
         Settings.FFXIVMINION.gFleeMP = "0"
     end
     
-   if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
+    if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
         Settings.FFXIVMINION.gCombatRangePercent = "75"
     end
     
@@ -222,6 +250,61 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
+	--new stuff
+	if (Settings.FFXIVMINION.gMounts == nil) then
+		Settings.FFXIVMINION.gMounts = "Company Chocobo"
+	end
+	if (Settings.FFXIVMINION.gChoco == nil) then
+		Settings.FFXIVMINION.gChoco = "0"
+	end	
+	if (Settings.FFXIVMINION.gChocoName == nil) then
+		Settings.FFXIVMINION.gChocoName = "0"
+	end
+	if (Settings.FFXIVMINION.gChocoStance == nil) then
+		Settings.FFXIVMINION.gChocoStance = "Free Stance"
+	end
+	if (Settings.FFXIVMINION.gClaimFirst == nil) then
+		Settings.FFXIVMINION.gClaimFirst = "0"
+	end
+	if (Settings.FFXIVMINION.gClaimed == nil) then
+		Settings.FFXIVMINION.gClaimed = "0"
+	end
+	if (Settings.FFXIVMINION.gClaimRange == nil) then
+		Settings.FFXIVMINION.gClaimRange = "37"
+	end
+	if (Settings.FFXIVMINION.gKillAggroAlways == nil) then
+		Settings.FFXIVMINION.gKillAggroAlways = "1"
+	end
+	
+    -- Grind
+	GUI_NewComboBox	(ml_global_information.MainWindow.Name, "Mount","gMounts"	,strings[gCurrentLanguage].grindMode,"Ahriman,Behemoth,Cavalry Drake,Coeurl,Company Chocobo,Gilded Magitek Armor,Goobbue,Laurel Goobue,Legacy Chocobo,Magitek Armor,Nightmare,Unicorn");
+	GUI_NewCheckbox	(ml_global_information.MainWindow.Name, "Companion", 		"gChoco",			strings[gCurrentLanguage].grindMode)
+	GUI_NewField	(ml_global_information.MainWindow.Name, "Companion's Name", "gChocoName",		strings[gCurrentLanguage].grindMode)
+	GUI_NewComboBox	(ml_global_information.MainWindow.Name, "Stance",			"gChocoStance",		strings[gCurrentLanguage].grindMode,"Follow,Free Stance,Defender Stance,Attacker Stance,Healer Stance");
+	GUI_NewCheckbox	(ml_global_information.MainWindow.Name, "Prioritize Claims", 	"gClaimFirst",		strings[gCurrentLanguage].grindMode)
+	GUI_NewNumeric 	(ml_global_information.MainWindow.Name, "Claim Range:", 		"gClaimRange", 		strings[gCurrentLanguage].grindMode, "0", "250")
+	GUI_NewCheckbox	(ml_global_information.MainWindow.Name, "Attack Claimed", 		"gClaimed",			strings[gCurrentLanguage].grindMode)
+	GUI_NewCheckbox	(ml_global_information.MainWindow.Name, "Always Kill Aggro",	"gKillAggroAlways",		strings[gCurrentLanguage].grindMode)
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restHP, "gRestHP", strings[gCurrentLanguage].grindMode, "0", "100")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restMP, "gRestMP", strings[gCurrentLanguage].grindMode, "0", "100")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
+    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
+    RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
+    
+    -- Fates
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates","Fates")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly","Fates")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies","Fates")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", "Fates", "0", "50")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", "Fates", "0", "50")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", "Fates", "0", "99")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", "Fates", "30","600")
+    
+    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
     gDoFates = Settings.FFXIVMINION.gDoFates
     gFatesOnly = Settings.FFXIVMINION.gFatesOnly
@@ -239,6 +322,15 @@ function ffxiv_task_grind.UIInit()
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
+	
+	gMounts = Settings.FFXIVMINION.gMounts
+	gChoco =  Settings.FFXIVMINION.gChoco
+	gChocoName =  Settings.FFXIVMINION.gChocoName	
+	gChocoStance =  Settings.FFXIVMINION.gChocoStance
+	gClaimFirst = Settings.FFXIVMINION.gClaimFirst
+	gClaimed = Settings.FFXIVMINION.gClaimed
+	gClaimRange = Settings.FFXIVMINION.gClaimRange
+	gKillAggroAlways = Settings.FFXIVMINION.gKillAggroAlways
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)

@@ -189,14 +189,21 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
     -- if we only have one marker then we just return it
     if (TableSize(list) == 1) then
         local name, marker = next(list)
-        return name
+		if ((Player.level >= marker.minlevel and Player.level <= marker.maxlevel) or gIgnoreGrindLvl == "1") then
+			return name
+		else
+			return nil
+		end
     end
     
     -- if we only have two markers we choose the other one
+	-- Changed this to take into account level ranges, otherwise you end up running into problems if you only have 2 markers in a given area like 20 and 50.
     if (TableSize(list) == 2) then
         for name, marker in pairs(list) do
-            if name ~= currentMarker then
+            if (name ~= currentMarker and ((Player.level >= marker.minlevel and Player.level <= marker.maxlevel) or gIgnoreGrindLvl == "1")) then
                 return name
+			else
+				return currentMarker
             end
         end
     end
