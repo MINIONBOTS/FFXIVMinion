@@ -283,24 +283,34 @@ function e_gather:execute()
             end
         end
         -- first check to see if we have a gathermanager marker
-		
+
 		-- first try to get treasure maps
 		if (gGatherMaps == "1" and not ml_task_hub:CurrentTask().gatheredMap) then
 			for i, item in pairs(list) do
-				if 	item.id == 6692 or
-					item.id == 6688 or
-					item.id == 6691 or
-					item.id == 6690 or
-					item.id == 6689
-				then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatheredMap = true
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
+				if (gPskinOnly == "1" ) then
+					if 	item.id == 6692
+					then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatheredMap = true
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
+				else
+					if 	item.id == 6692 or
+						item.id == 6688 or
+						item.id == 6691 or
+						item.id == 6690 or
+						item.id == 6689
+					then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatheredMap = true
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
 				end
 			end
 		end
-		
+
         if (gGMactive == "1") then
             if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
                 local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
@@ -454,7 +464,8 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gGatherPS" or
                 k == "gGatherTP" or
                 k == "gIgnoreGatherLvl" or
-				k == "gGatherMaps" ) then
+				k == "gGatherMaps" or
+				k == "gPskinOnly") then
             Settings.FFXIVMINION[tostring(k)] = v
         end
 		if ( k == "gRandomMarker" ) then
@@ -476,6 +487,7 @@ function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",strings[gCurrentLanguage].gatherMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherMaps, "gGatherMaps",strings[gCurrentLanguage].gatherMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Only Peisteskin", 					"gPskinOnly",strings[gCurrentLanguage].gatherMode)
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -506,6 +518,10 @@ function ffxiv_task_gather.UIInit()
 	if (Settings.FFXIVMINION.gGatherMaps == nil) then
         Settings.FFXIVMINION.gGatherMaps = "1"
     end
+	
+	if (Settings.FFXIVMINION.gPskinOnly == nil) then
+        Settings.FFXIVMINION.gPskinOnly = "0"
+    end
     
     gDoStealth = Settings.FFXIVMINION.gDoStealth
     gRandomMarker = Settings.FFXIVMINION.gRandomMarker
@@ -514,6 +530,8 @@ function ffxiv_task_gather.UIInit()
     gGatherPS = Settings.FFXIVMINION.gGatherPS
     gIgnoreGatherLvl = Settings.FFXIVMINION.gIgnoreGatherLvl
     gGatherMaps = Settings.FFXIVMINION.gGatherMaps
+	gPskinOnly = Settings.FFXIVMINION.gPskinOnly
+	
     if(gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
     end

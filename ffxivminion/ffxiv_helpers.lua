@@ -1,11 +1,13 @@
 -- This file holds global helper functions
 
--- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
--- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
+--Slightly changing aggro handlers here, only process the excludeString if "always kill aggro" is not checked. 
+--Most users expect this to be the default action I find, so I set it to true by default.
 function GetNearestGrindAttackable()
+	local huntString = ml_blacklist.GetExcludeString("Hunt Monsters")
     local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
     local el = nil
-    
+	local nearestGrind = nil
+    local nearestDistance = 9999
     local minLevel = ml_global_information.MarkerMinLevel 
     local maxLevel = ml_global_information.MarkerMaxLevel
    -- d(tostring(minLevel).. " "..tostring(maxLevel))
@@ -18,47 +20,139 @@ function GetNearestGrindAttackable()
             end
         end
     end
+	
+
+	if gClaimFirst	== "1" then		
+		if (huntString) then
+			local el = EntityList("shortestpath,contentid="..huntString..",notincombat,targeting=0,alive,attackable,onmesh,maxdistance="..tostring(gClaimRange))
+			if ( el ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					d("Priority claim target returned.")
+					return e
+				end
+			end
+		end
+	end	
     
-    if (excludeString) then
-        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString)
-    else
-        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
-    end
-    
+	--Prioritize the lowest health with aggro on player, non-fate mobs.
+	if (excludeString and gKillAggroAlways == "0") then
+		el = EntityList("lowesthealth,alive,attackable,onmesh,aggro,fateid=0,exclude_contentid="..excludeString) 
+	else
+		el = EntityList("lowesthealth,alive,attackable,onmesh,aggro,fateid=0") 
+	end
+	
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
+			d("Lowest health aggro on player returned.")
             return e
         end
     end	
-    
-    if (excludeString) then
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-    else
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-    end
-    
-    if ( el ) then
-        local i,e = next(el)
-        if (i~=nil and e~=nil) then
-            return e
-        end
-    end
-    
-    if (excludeString) then
-        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-    else
-        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-    end
-    
-    if ( el ) then
-        local i,e = next(el)
-        if (i~=nil and e~=nil) then
-            return e
-        end
-    end
-    ml_debug("GetNearestGrindAttackable() failed with no entity found matching params")
+	ml_debug("Grind failed check #1")
+	
+	--Lowest health with aggro on anybody in player's party, non-fate mobs.
+	--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
+	
+	local partymemberlist = EntityList.myparty
+	if ( partymemberlist) then
+	   local i,entity = next(partymemberlist)
+	   while ( i~=nil and entity~=nil ) do 
+			if (excludeString and gKillAggroAlways == "0") then
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
+			end
+			
+			if ( el ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					d("Lowest health with aggro on party member.")
+					return e
+				end
+			end
+			i,entity  = next(partymemberlist,i)  
+	   end  
+	end
+	ml_debug("Grind failed check #3")
+	
+	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
+	if (huntString) then
+		el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh,fateid=0,targeting=0")
+		
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				return e
+			end
+		end
+		
+		if gClaimed == "1" then 
+			el = EntityList("shortestpath,contentid="..huntString..",alive,attackable,onmesh")
+
+			if ( el ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					return e
+				end
+			end
+		end
+	end
+	
+	--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
+	if (not huntString or huntString == "" or huntString == nil) then
+		if (excludeString) then
+			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+		else
+			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+		end
+		
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				return e
+			end
+		end
+	
+		if (excludeString) then
+			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+		else
+			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+		end
+		
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				return e
+			end
+		end
+	end
+	
+    --ml_debug("GetNearestGrindAttackable() failed with no entity found matching params")
     return nil
+end
+
+function GetNearestGrindPriority()
+	local huntString = ml_blacklist.GetExcludeString("Hunt Monsters")
+    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
+    local el = nil
+    local minLevel = ml_global_information.MarkerMinLevel 
+    local maxLevel = ml_global_information.MarkerMaxLevel
+	
+	if (gClaimFirst	== "1") then
+		if (huntString) then
+			local el = EntityList("shortestpath,contentid="..tostring(huntString)..",notincombat,targeting=0,alive,attackable,onmesh,maxdistance="..tostring(gClaimRange))
+			if ( el ) then
+				local i,e = next(el)
+				if ( i~= nil and e~= nil ) then
+					return e
+				end
+			end
+		end
+	end	
+	--]]
+	ml_debug("Grind Priority returned nothing.")
+	return nil
 end
 
 function GetNearestFateAttackable()
@@ -68,6 +162,64 @@ function GetNearestFateAttackable()
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
+	
+		el = EntityList("lowesthealth,alive,attackable,onmesh,aggro") 
+	
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				d("Lowest health aggro on player returned.")
+				return e
+			end
+		end	
+		ml_debug("Grind failed check #1")
+		
+		--Nearest with aggro on player, non-fate mobs only.
+		el = EntityList("nearest,alive,attackable,onmesh,aggro")
+
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				d("Nearest with aggro on player returned.")
+				return e
+			end
+		end	
+		
+		local partymemberlist = EntityList.myparty
+		if ( partymemberlist) then
+		   local i,entity = next(partymemberlist)
+		   while ( i~=nil and entity~=nil ) do 
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(entity.id))
+				
+				if ( el ) then
+					local i,e = next(el)
+					if (i~=nil and e~=nil) then
+						d("Lowest health with aggro on party member.")
+						return e
+					end
+				end
+				i,entity  = next(partymemberlist,i)  
+		   end  
+		end
+		ml_debug("Grind failed check #3")
+		
+		--Nearest with aggro on anybody in player's party, non-fate mobs.
+		local partymemberlist= EntityList.myparty
+		if ( partymemberlist) then
+		   local i,entity = next(partymemberlist)
+		   while ( i~=nil and entity~=nil ) do 
+				el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(entity.id))
+				
+				if ( el ) then
+					local i,e = next(el)
+					if (i~=nil and e~=nil) then
+						d("Nearest with aggro on party member.")
+						return e
+					end
+				end
+				i,entity  = next(partymemberlist,i)  
+		   end  
+		end
         
         if (excludeString) then
             el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
@@ -80,7 +232,7 @@ function GetNearestFateAttackable()
             if (i~=nil and e~=nil) then
                 return e
             end
-        end	
+        end        
     
         if (excludeString) then
             el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
@@ -346,6 +498,52 @@ function HasBuffs(entity, buffIDs)
     return false
 end
 
+function HasBuffsFromOwnerDura(entity, buffIDs, ownerid, dura)
+    local buffs = entity.buffs
+    if (buffs == nil or TableSize(buffs) == 0) then return false end
+    for _orids in StringSplit(buffIDs,",") do
+      local found = false
+      for _andid in StringSplit(_orids,"+") do
+          found = false
+          for i, buff in pairs(buffs) do
+            if (buff.id == tonumber(_andid) and buff.ownerid == ownerid and buff.duration > dura) then 
+              found = true 
+            end
+          end
+          if (not found) then 
+            break
+          end
+      end
+      if (found) then 
+        return true 
+      end
+    end
+    return false
+end
+
+function HasBuffsDura(entity, buffIDs, duration)
+     local buffs = entity.buffs
+     if (buffs == nil or TableSize(buffs) == 0) then return false end
+     for _orids in StringSplit(buffIDs,",") do
+       local found = false
+       for _andid in StringSplit(_orids,"+") do
+           found = false
+           for i, buff in pairs(buffs) do
+             if (buff.id == tonumber(_andid) and buff.duration > duration) then 
+               found = true 
+             end
+           end
+           if (not found) then 
+             break
+           end
+       end
+       if (found) then 
+         return true 
+       end
+     end
+     return false
+ end
+
 function IsBehind(entity)
     if(entity.distance2d < ml_global_information.AttackRange) then
         local entityHeading = nil
@@ -371,6 +569,30 @@ function IsBehind(entity)
         local leftover = absDeviation - math.pi
         --d("Leftover: "..tostring(leftover))
         if (leftover > -(math.pi/4) and leftover < (math.pi/4))then
+            return true
+        end
+    end
+    return false
+end
+
+ function IsFlanking(entity)
+    if(entity.distance2d < ml_global_information.AttackRange) then
+        local entityHeading = nil
+        
+        if (entity.pos.h < 0) then
+            entityHeading = entity.pos.h + 2 * math.pi
+        else
+            entityHeading = entity.pos.h
+        end
+
+        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+        local deviation = entityAngle - entityHeading
+        local absDeviation = math.abs(deviation)
+        
+        local leftover = absDeviation - math.pi
+		leftover = math.abs(leftover)
+		
+        if (leftover > (math.pi/4) and leftover < (math.pi*.75)) then
             return true
         end
     end
@@ -516,16 +738,22 @@ function InCombatRange(targetid)
 end
 
 function Mount()
-    if not(Player.ismounted) then
-        local mounts = ActionList("type=13")
-		local mount = mounts[1]
-		if ( mount ) then
+		--dismiss Companion before mount.
+		local al = ActionList("type=6")
+		local dismiss = al[2]
+		local acDismiss = ActionList:Get(dismiss.id,6)
+		if (acDismiss.isready) then
+			acDismiss:Cast()
+		end
+
+		if not(Player.ismounted) then
+			local mountList = ActionList("type=13")
+			local mount = mountList[ffxiv_task_grind.Mount]
 			local acMount = ActionList:Get(mount.id,13)
 			if (acMount.isready) then
 				acMount:Cast()
 			end
 		end
-    end
 end
 
 function Dismount()
@@ -537,6 +765,81 @@ function Dismount()
             acMount:Cast()
         end
     end
+end
+
+function GetLowestMPAlly()
+    local pID = Player.id
+	local lowest = nil
+	local lowestMP = 101
+    local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance=35")
+    if ( el ) then
+        local i,e = next(el)
+        while (i~=nil and e~=nil) do
+            if (e.mp.percent ~= nil and e.hp.percent > 0 and e.mp.percent < lowestMP) then
+				if (e.job == 28 or e.job == 27 or e.job == 26 or e.job == 24 or e.job == 19 or e.job == 6 or e.job == 1 ) then
+					lowest = e
+					lowestMP = e.mp.percent
+				end
+			end
+			i,e  = next(el,i) 
+        end
+    end
+	
+	if (lowest ~= nil and lowest.hp.percent ~= 0) then
+		return lowest
+	end
+	
+    --ml_debug("GetLowestMPTarget() failed with no entity found matching params")
+    return nil
+end
+
+function GetLowestHPAlly()
+    local pID = Player.id
+	local lowest = nil
+	local lowestHP = 101
+    local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance=35")
+    if ( el ) then
+        local i,e = next(el)
+        while (i~=nil and e~=nil) do
+            if (e.hp.percent ~= nil and e.hp.percent > 0 and e.hp.percent < lowestHP) then
+				lowest = e
+				lowestHP = e.hp.percent
+			end
+			i,e  = next(el,i) 
+        end
+    end
+	
+	if (lowest ~= nil and lowest.hp.percent ~= 0) then
+		return lowest
+	end
+	
+    --ml_debug("GetLowestHPTarget() failed with no entity found matching params")
+    return nil
+end
+
+function GetLowestTPAlly()
+	local lowest = nil
+	local lowestTP = 1001
+    local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance=35")
+    if ( el ) then
+        local i,e = next(el)
+        while (i~=nil and e~=nil) do
+            if (e.tp ~= nil and e.hp.percent > 0 and e.tp < lowestTP) then
+				if (e.job == 1 or e.job == 2 or e.job == 3 or e.job == 4 or e.job == 5 or e.job == 19 or e.job == 20 or
+					e.job == 21 or e.job == 22 or e.job == 23 ) then
+					lowest = e
+					lowestTP = e.tp
+				end
+			end
+			i,e  = next(el,i) 
+        end
+    end
+	
+	if (lowest ~= nil and lowest.hp.percent ~= 0) then
+		return lowest
+	end
+	--ml_debug("lowest tp failed with no matches.")
+    return nil
 end
 
 function NodeHasItem(itemName)
@@ -632,4 +935,18 @@ function GetLocalAetheryte()
     end
     
     return nil
+end
+
+function Repair(RC)
+	local repair = tonumber(RC)	
+	local eq = Inventory("type=1000")
+	if (eq) then
+		local i,e = next (eq)
+		while ( i~=nil and e~=nil ) do                                        
+			if (e.condition <= repair) then
+				e:Repair()
+			end
+			i,e = next (eq,i)
+		end                
+	end
 end

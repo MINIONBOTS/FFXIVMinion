@@ -70,25 +70,6 @@ function c_killaggrotarget:evaluate()
 		return false
 	end
 	
-	
-	-- I'll take these out, I dont see any reason why the bot should not defend itself against aggroed enemies while waiting in a fate
-    
-	--[[ block killtarget for grinding when user has specified "Fates Only"	
-	if ( (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
-		return false
-	end]]	
-	--[[ block killtarget for fates when user has specified a fate completion % to start
-    if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if (ml_task_hub:CurrentTask().fateid ~= nil) then
-            local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-            if ValidTable(fate) then
-                if (fate.completion < tonumber(gFateWaitPercent)) then
-                    return false
-                end
-            end
-        end
-    end]]
-    
     local target = GetNearestAggro()
 	if (ValidTable(target)) then
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
@@ -367,7 +348,7 @@ end
 -- Checks for a better target while we are engaged in fighting an enemy and switches to it
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
-function c_bettertargetsearch:evaluate()	
+function c_bettertargetsearch:evaluate()        
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
@@ -376,22 +357,23 @@ function c_bettertargetsearch:evaluate()
     if (Player.hp.percent < tonumber(gRestHP) or Player.mp.percent < tonumber(gRestMP)) then
         return false
     end
+	
+	if ( gClaimFirst == "0" ) then
+		return false
+	end
     
-    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
-        local bettertarget = ml_task_hub:ThisTask().targetFunction()
+    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0) then  
+        local bettertarget = GetNearestGrindPriority()
         if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
             ml_task_hub:ThisTask().targetid = bettertarget.id
             Player:SetTarget(bettertarget.id)
-            return true			
-        end		
-    end	
+            return true                        
+        end                
+    end        
     return false
 end
 function e_bettertargetsearch:execute()
-    Player:Stop()	
-    d("Switching Target to better target")
-    
-    --ml_task_hub:ThisTask():Terminate()
+    Player:Stop()        
 end
 
 
@@ -405,17 +387,22 @@ function c_mount:evaluate()
     if (gBotMode == "PVP") then
         return false
     end
-
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-        if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
-            local myPos = Player.pos
-            local gotoPos = ml_task_hub:CurrentTask().pos
-            local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-        
-            if (distance > tonumber(gMountDist)) then
-                return true
-            end
-        end
+	
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
+		if ( (ml_task_hub:ThisTask():ParentTask().name == "LT_GRIND" and gChoco ~= "0")
+				or ml_task_hub:ThisTask():ParentTask().name == "LT_GATHER"
+				or ml_task_hub:ThisTask():ParentTask().name == "LT_FATE"
+			) then
+			if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
+				local myPos = Player.pos
+				local gotoPos = ml_task_hub:CurrentTask().pos
+				local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+			
+				if (distance > tonumber(gMountDist)) then
+					return true
+				end
+			end
+		end
     end
     
     return false
@@ -423,6 +410,95 @@ end
 function e_mount:execute()
     Player:Stop()
     Mount()
+end
+
+c_companion = inheritsFrom( ml_cause )
+e_companion = inheritsFrom( ml_effect )
+function c_companion:evaluate()
+    if (gBotMode == "PVP") then
+        return false
+    end
+
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gChoco == "1" and ml_task_hub:CurrentTask():ParentTask().name ~= "LT_GATHER") then
+        if (not Player.ismounted and not ActionList:IsCasting()) then
+			local partymemberlist = EntityList.myparty 
+			local companion = nil
+			if partymemberlist then 
+				local i,member = next(partymemberlist) 
+				while (i~=nil and member ~=nil) do
+					if member.name == tostring(gChocoName) then
+						companion = member
+					end
+					i,member = next(partymemberlist,i) 
+				end	
+			end
+			
+			if ( companion == nil ) then
+				local item = Inventory:Get(4868)
+				if ( item and item.isready and not Player.ismounted ) then
+					return true
+				else
+					return false
+				end
+			end
+			return false
+        end
+    end
+    
+    return false
+end
+
+function e_companion:execute()
+    local item = Inventory:Get(4868)
+	Player:Stop()
+	item:Use()
+	
+	if (not item.isready) then
+		local newTask = ffxiv_task_summonchoco.Create()
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+
+c_stance = inheritsFrom( ml_cause )
+e_stance = inheritsFrom( ml_effect )
+function c_stance:evaluate()
+    if (gBotMode == "PVP") then
+        return false
+    end
+
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gChoco == "1" and gBotMode == "Grind") then
+		local partymemberlist = EntityList.myparty 
+		local companion = nil
+		if partymemberlist then 
+			local i,member = next(partymemberlist) 
+			while (i~=nil and member ~=nil) do
+				if member.name == tostring(gChocoName) then
+					companion = member
+				end
+				i,member = next(partymemberlist,i) 
+			end	
+		end
+		
+		--Set the stance if it hasn't been set, otherwise, check it every minute.
+		if ( companion ~= nil ) then
+			if ( ml_global_information.StanceTick == 0 and (ml_global_information.Now - ml_global_information.SummonTick) >= 5000 ) then
+				return true
+			elseif ( (ml_global_information.Now - ml_global_information.StanceTick) >= 60000 ) then
+				return true
+			end
+		end
+		return false
+    end
+    
+    return false
+end
+
+function e_stance:execute()
+	local stanceList = ActionList("type=6")
+	local stance = stanceList[ffxiv_task_grind.Stance]
+    local acStance = ActionList:Get(stance.id,6)		
+	acStance:Cast(Player.id)
+	ml_global_information.StanceTick = ml_global_information.Now
 end
 
 -----------------------------------------------------------------------------------------------

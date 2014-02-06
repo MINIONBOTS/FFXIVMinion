@@ -29,25 +29,25 @@ function ffxiv_task_killtarget.Create()
 end
 
 function ffxiv_task_killtarget:Init()
-    --init ProcessOverWatch() cnes
-    
-    local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
-    self:add( ke_attarget, self.overwatch_elements)
-    
-    --local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
-    --self:add( ke_bettertargetsearch, self.overwatch_elements)
-    
-    local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
-    self:add( ke_updateTarget, self.overwatch_elements)
-        
-    --Process() cnes		    
-    local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
-    self:add( ke_moveToTarget, self.process_elements)
-    
-    local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
-    self:add( ke_combat, self.process_elements)
-    
-    self:AddTaskCheckCEs()
+	--init ProcessOverWatch() cnes
+	
+	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
+	self:add( ke_attarget, self.overwatch_elements)
+	
+	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	self:add( ke_bettertargetsearch, self.overwatch_elements)
+	
+	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
+	self:add( ke_updateTarget, self.overwatch_elements)
+		
+	--Process() cnes		    
+	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
+	self:add( ke_moveToTarget, self.process_elements)
+	
+	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
+	self:add( ke_combat, self.process_elements)
+	
+	self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_killtarget:OnSleep()
@@ -116,16 +116,20 @@ function ffxiv_task_movetopos.Create()
     return newinst
 end
 
-
-
 function ffxiv_task_movetopos:Init()
     local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
     self:add( ke_mount, self.process_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 18 )
+    self:add( ke_companion, self.process_elements)
+	
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
+    self:add( ke_stance, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
     
-    -- The parent needs to take care of checking and updating the position of this task!!	
+    -- The parent needs to take care of checking and updating the position of this task!!        
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
     self:add( ke_walkToPos, self.process_elements)
     
@@ -177,4 +181,65 @@ end
 
 function ffxiv_task_movetopos:IsGoodToAbort()
 
+end
+
+ffxiv_task_summonchoco = inheritsFrom(ml_task)
+
+function ffxiv_task_summonchoco.Create()
+    local newinst = inheritsFrom(ffxiv_task_summonchoco)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_killtarget members
+    newinst.name = "LT_SUMMON_CHOCOBO"
+    
+    return newinst
+end
+
+function ffxiv_task_summonchoco:Init()    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_summonchoco:OnSleep()
+
+end
+
+function ffxiv_task_summonchoco:OnTerminate()
+
+end
+
+function ffxiv_task_summonchoco:IsGoodToAbort()
+
+end
+
+function ffxiv_task_summonchoco:task_complete_eval()
+	local partymemberlist = EntityList.myparty 
+	local companion = nil
+	if partymemberlist then 
+		local i,member = next(partymemberlist) 
+		while (i~=nil and member ~=nil) do
+			if member.name == tostring(gChocoName) then
+				companion = member
+			end
+			i,member = next(partymemberlist,i) 
+		end	
+	end
+	
+	local item = Inventory:Get(4868)	
+	if ( companion ~= nil or item.isready) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_task_summonchoco:task_complete_execute()
+    self.completed = true
+	ml_global_information.SummonTick = ml_global_information.Now
 end

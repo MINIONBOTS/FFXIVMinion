@@ -14,6 +14,9 @@ ml_global_information.MarkerMaxLevel = 50
 ml_global_information.afkTimer = 0
 ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
+ml_global_information.RepairTick = 0
+ml_global_information.SummonTick = 0
+ml_global_information.StanceTick = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -28,6 +31,13 @@ function ml_global_information.OnUpdate( event, tickcount )
         ml_task_hub:ToggleRun()
         ml_global_information.UnstuckTimer = 0
     end
+	
+	if ( gRepair == "1" ) then
+		if ( (tickcount - ml_global_information.RepairTick) > 30000 ) then
+			ml_global_information.RepairTick = tickcount
+			Repair(gRepairCent)
+		end
+	end
     
     -- Mesher.lua
     mm.OnUpdate( event, tickcount )
@@ -119,40 +129,41 @@ function ffxivminion.HandleInit()
     if (Settings.FFXIVMINION.gStartCombat == nil) then
         Settings.FFXIVMINION.gStartCombat = "1"
     end
-	
     if (Settings.FFXIVMINION.gConfirmDuty == nil) then
         Settings.FFXIVMINION.gConfirmDuty = "0"
     end
-    
     if (Settings.FFXIVMINION.gSkipCutscene == nil) then
         Settings.FFXIVMINION.gSkipCutscene = "0"
     end
-	
     if (Settings.FFXIVMINION.gSkipDialogue == nil) then
         Settings.FFXIVMINION.gSkipDialogue = "0"
     end
-    
     if (Settings.FFXIVMINION.gDoUnstuck == nil) then
         Settings.FFXIVMINION.gDoUnstuck = "0"
     end
-	
 	if (Settings.FFXIVMINION.gUseHQMats == nil) then
 		Settings.FFXIVMINION.gUseHQMats = "0"
 	end
-    
     if (Settings.FFXIVMINION.gClickToTeleport == nil) then
 		Settings.FFXIVMINION.gClickToTeleport = "0"
 	end
-    
     if (Settings.FFXIVMINION.gClickToTravel == nil) then
 		Settings.FFXIVMINION.gClickToTravel = "0"
+	end
+	if (Settings.FFXIVMINION.gRepair == nil) then
+		Settings.FFXIVMINION.gRepair = "0"
+	end
+	if (Settings.FFXIVMINION.gRepairCent == nil) then
+		Settings.FFXIVMINION.gRepairCent = "11"
 	end
     
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].settings);	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].settings);
+	--GUI_NewCheckbox	(ml_global_information.MainWindow.Name, "Repair", 			"gRepair",			strings[gCurrentLanguage].settings)
+	--GUI_NewNumeric	(ml_global_information.MainWindow.Name, "Repair @%", 		"gRepairCent", 		strings[gCurrentLanguage].settings, "0", "99")
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
@@ -177,6 +188,7 @@ function ffxivminion.HandleInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
+
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
     
@@ -205,6 +217,9 @@ function ffxivminion.HandleInit()
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
+	
+	gRepair =  Settings.FFXIVMINION.gRepair
+	gRepairCent =  Settings.FFXIVMINION.gRepairCent
 	
 	ffxivminion.modes =
 	{
@@ -247,6 +262,12 @@ function ffxivminion.HandleInit()
     if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].gatherMode) then
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
     end
+	
+	if not ml_blacklist.BlacklistExists("Hunt Monsters") then
+		ml_blacklist.CreateBlacklist("Hunt Monsters")
+	end
+
+	ml_blacklist_mgr.AddInitUI("Hunt Monsters",ffxivminion.HuntingUI)
     
     gBotMode_listitems = botModes
     
@@ -278,12 +299,25 @@ function ffxivminion.HandleInit()
 		GameHacks:SetClickToTravel(true)
 	end
     
-	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
 end
 
+function ffxivminion.HuntingUI()
+	GUI_NewField	(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName,"gTargetName", 		strings[gCurrentLanguage].addEntry)
+	GUI_NewButton	(ml_blacklist_mgr.mainwindow.name, "Hunt", 	"ffxivminion.huntTarget",strings[gCurrentLanguage].addEntry)
+	RegisterEventHandler("ffxivminion.huntTarget",ffxivminion.HuntTarget)
+end
+
+function ffxivminion.HuntTarget()
+	local target = Player:GetTarget()
+	if ValidTable(target) then
+		ml_blacklist.AddBlacklistEntry("Hunt Monsters", target.contentid, target.name, true)
+	end
+end
+
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
+	
     for k,v in pairs(NewVals) do
         if( k == "gBotMode" ) then
             ffxivminion.CheckMode()
@@ -309,7 +343,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gStartCombat" or
 			k == "gConfirmDuty" or
             k == "gDoUnstuck" or
-            k == "gRandomPaths" )			
+            k == "gRandomPaths" or
+			k == "gRepair" or
+			k == "gRepairCent")			
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then
