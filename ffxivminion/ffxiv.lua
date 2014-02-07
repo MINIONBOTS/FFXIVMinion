@@ -173,6 +173,7 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
+	GUI_NewButton(ml_global_information.MainWindow.Name, GetString("questManager"), "QuestManager.toggle")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
@@ -215,7 +216,8 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
 		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty
+		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
+		[strings[gCurrentLanguage].questRunProfile] = ffxiv_task_quest
 	}
 	
     -- setup bot mode

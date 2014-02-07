@@ -282,6 +282,35 @@ strings =
         clickToTeleport                 = "Click To Teleport",
         clickToTravel                   = "Click To Travel",
 
+		
+		--ml_quest_mgr
+		questRunProfile					= "RunQuests",
+		questManager					= "QuestManager",		
+		quests							= "Quests",
+		questEditor						= "Quest Editor",
+		questDone						= "Quest Done",
+		questInfo						= "Quest Information",
+		questSteps						= "Steps",
+		questDo							= "Do Quest Now",
+		questAddQuest					= "Add New Quest",
+		questAddStep					= "Add New Step",
+		questDelete						= "Delete Quest",
+		questUp 						= "Higher Priority",
+		questDown						= "Lower Priority",
+		questStepEditor					= "Step Editor",
+		questStep						= "Step",
+		questStepInfo					= "Step Information",
+		questStepDetails				= "Script Details",
+		questStepScript					= "Task-Script",
+		questStepDelete					= "Delete Step",
+		questName						= "Name",		
+		questMinLevel					= "Min Level",
+		questMaxLevel					= "Max Level",
+		questPreQuest					= "Needs Previous Quest",
+		questMap						= "Map",
+		questRepeat						= "Repeatable",
+		questStepDone					= "Step Done",
+		questReset						= "Reset Questprogress"
     },                                  
     ["cn"] =                            
     {                               
