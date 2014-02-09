@@ -11,13 +11,11 @@ end
 function ml_cne_hub.eval_elements(elementList)
 	for k, elem in pairs( elementList ) do
         if (gLogCNE == "1") then
-            --ml_debug( "Evaluating:" .. tostring( elem.name ) )
+            ml_debug( "Evaluating:" .. tostring( elem.name ) )
         end
 		elem.eval = elem:evaluate()
-        if (gLogCNE == "1") then
-            if (elem.eval) then
-                ml_debug( elem.name .. " evaluation result:" .. tostring( elem.eval ) )
-            end 
+    if (gLogCNE == "1") then
+            ml_debug( elem.name .. " evaluation result:" .. tostring( elem.eval ) )
         end
 	end
 end

@@ -1,6 +1,6 @@
 ffxiv_crafting_alchemist = inheritsFrom(ml_task)
 
-function ffxiv_crafting_alchemist:Create()
+function ffxiv_crafting_alchemist.Create()
     local newinst = inheritsFrom(ffxiv_crafting_alchemist)
     
     --ml_task members

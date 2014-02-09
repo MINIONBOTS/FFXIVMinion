@@ -2,7 +2,7 @@ ffxiv_combat_lancer = inheritsFrom(ml_task)
 ffxiv_combat_lancer.name = "LANCER"
 ffxiv_combat_lancer.range = 2
 
-function ffxiv_combat_lancer:Create()
+function ffxiv_combat_lancer.Create()
     local newinst = inheritsFrom(ffxiv_combat_lancer)
     
     --ml_task members
@@ -85,7 +85,7 @@ function e_vorpalthrust:execute()
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
-			ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.VORPALTHRUST
+			ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.VORPALTHRUST
 			if(Player.level < 26) then
 				ml_task_hub:CurrentTask().newRotation = true
 			end
@@ -111,7 +111,7 @@ function e_heavythrust:execute()
 	if (skill ~= nil) then
 		if ( skill.cd == 0) then
 			skill:Cast(ml_task_hub:CurrentTask().targetid)
-			ml_task_hub.CurrentTask().prevSkillID = FFXIVMINION.SKILLS.HEAVYTHRUST
+			ml_task_hub:CurrentTask().prevSkillID = FFXIVMINION.SKILLS.HEAVYTHRUST
 		end
 	end
 end

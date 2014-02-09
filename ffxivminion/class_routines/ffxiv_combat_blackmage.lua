@@ -1,7 +1,7 @@
 ffxiv_combat_blackmage = inheritsFrom(ml_task)
 ffxiv_combat_blackmage.range = 24
 
-function ffxiv_combat_blackmage:Create()
+function ffxiv_combat_blackmage.Create()
     local newinst = inheritsFrom(ffxiv_combat_blackmage)
     
     --ml_task members

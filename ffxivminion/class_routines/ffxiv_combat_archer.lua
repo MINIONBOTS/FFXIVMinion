@@ -1,7 +1,7 @@
 ffxiv_combat_archer = inheritsFrom(ml_task)
 ffxiv_combat_archer.range = 24
 
-function ffxiv_combat_archer:Create()
+function ffxiv_combat_archer.Create()
     local newinst = inheritsFrom(ffxiv_combat_archer)
     
     --ml_task members

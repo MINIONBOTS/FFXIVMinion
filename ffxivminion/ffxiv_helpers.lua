@@ -33,9 +33,9 @@ function GetNearestGrindAttackable()
     end	
     
     if (excludeString) then
-        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
     else
-        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
     
     if ( el ) then
@@ -46,9 +46,9 @@ function GetNearestGrindAttackable()
     end
     
     if (excludeString) then
-        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
     else
-        el = EntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
     end
     
     if ( el ) then
@@ -70,9 +70,9 @@ function GetNearestFateAttackable()
     if (fateID ~= nil and fateID ~= 0) then
         
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else
-            el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
+            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
         end
         
         if ( el ) then
@@ -83,9 +83,9 @@ function GetNearestFateAttackable()
         end	
     
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else    
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))            
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))            
         end    
             
         if ( el ) then
@@ -105,9 +105,9 @@ function GetNearestFateAttackableID(fateID)
         local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
         local el = nil
         if (excludeString) then
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
         else
-            el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fateID))
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))
         end
          
         if ( el ) then
@@ -164,8 +164,82 @@ function GetClosestHealTarget()
     return nil
 end
 
+function GetPVPTarget()
+    local targets = {}
+    local bestTarget = nil
+    local nearest = nil
+	local lowestHealth = nil
+    
+	local enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+    if (ValidTable(enemyParty)) then
+        local id, entity = next(enemyParty)
+        while (id ~= nil and entity ~= nil) do
+            if not HasBuff(entity.id, 3) and entity.chartype ~= 2 then -- get sleep buff id
+				local role = GetRoleString(entity.job)
+                if role == "Healer" then
+                    targets["Healer"] = entity
+                elseif role == "DPS" then
+                    if (targets["DPS"] ~= nil) then
+						-- keep blackmage as highest prioritized ranged target
+						if (gPrioritizeRanged == "1" and IsRangedDPS(entity.job)) then
+							if (targets["DPS"].job ~= FFXIV.JOBS.BLACKMAGE) then
+								targets["DPS"] = entity
+							end
+                        end
+					else
+						targets["DPS"] = entity
+                    end
+                else
+                    targets["Tank"] = entity
+                end 
+				
+				if targets["Nearest"] == nil or targets["Nearest"].distance > entity.distance then
+					targets["Nearest"] = entity
+				end
+				
+				if targets["Lowest Health"] == nil or targets["Lowest Health"].hp.percent > entity.hp.percent then
+					targets["Lowest Health"] = entity
+				end
+            end
+            id, entity = next(enemyParty, id)
+        end
+    end
+	
+	for ttype, target in pairs(targets) do
+		if (target and target.alive) then
+			ml_debug(ttype..": "..target.name)
+		end
+	end
+    
+	if gPVPTargetOne == strings[gCurrentLanguage].healer and targets["Healer"] and targets["Healer"].alive then
+		return targets["Healer"]
+	elseif gPVPTargetOne == strings[gCurrentLanguage].dps and targets["DPS"] and targets["DPS"].alive then
+		return targets["DPS"]
+	elseif gPVPTargetOne == strings[gCurrentLanguage].tank and targets["Tank"] and targets["Tank"].alive then
+		return targets["Tank"]
+	elseif gPVPTargetOne == strings[gCurrentLanguage].lowestHealth and targets["Lowest Health"] and targets["Lowest Health"].alive then
+		return targets["Lowest Health"]
+	elseif gPVPTargetOne == strings[gCurrentLanguage].nearest and targets["Nearest"] and targets["Nearest"].alive then
+		return targets["Nearest"]
+	elseif gPVPTargetTwo == strings[gCurrentLanguage].healer and targets["Healer"] and targets["Healer"].alive then
+		return targets["Healer"]
+	elseif gPVPTargetTwo == strings[gCurrentLanguage].dps and targets["DPS"] and targets["DPS"].alive then
+		return targets["DPS"]
+	elseif gPVPTargetTwo == strings[gCurrentLanguage].tank and targets["Tank"] and targets["Tank"].alive then
+		return targets["Tank"]
+	elseif gPVPTargetTwo == strings[gCurrentLanguage].lowestHealth and targets["Lowest Health"] and targets["Lowest Health"].alive then
+		return targets["Lowest Health"]
+	elseif gPVPTargetTwo == strings[gCurrentLanguage].nearest and targets["Nearest"] and targets["Nearest"].alive then
+		return targets["Nearest"]
+	else 
+		return targets["Lowest Health"]
+	end
+	
+	ml_error("Bad, we shouldn't have gotten to this point!")
+end
+
 function GetNearestAggro()
-    local el = EntityList("nearest,alive,attackable,onmesh,aggro,maxdistance="..tostring(ml_global_information.AttackRange))
+    local el = EntityList("nearest,alive,attackable,onmesh,targetingme")
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -181,9 +255,9 @@ function GetNearestGatherable(minlevel,maxlevel)
     local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].gatherMode)
     local el = nil
     if (excludeString) then
-        el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
+        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
     else
-        el = EntityList("nearest,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
     end
     
     if ( el ) then
@@ -303,6 +377,22 @@ function IsBehind(entity)
     return false
 end
 
+function ConvertHeading(heading)
+	if (heading < 0) then
+		return heading + 2 * math.pi
+	else
+		return heading
+	end
+end
+
+function GetPosFromDistanceHeading(startPos, distance, heading)
+	local head = ConvertHeading(heading)
+	d(head)
+	local newX = distance * math.sin(head) + startPos.x
+	local newZ = distance * math.cos(head) + startPos.z
+	return {x = newX, y = startPos.y, z = newZ}
+end
+
 function GetFateByID(fateID)
     local fate = nil
     local fateList = MapObject:GetFateList()
@@ -328,12 +418,12 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
         local level = Player.level
 		local myPos = Player.pos
         while (_ ~= nil and fate ~= nil) do
-			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.name) and (fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, fate.x, fate.y) < 50))) then
+			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and (fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.z, fate.x, fate.z) < 20))) then
                 if ( (tonumber(gMinFateLevel) == 0 and fate.level <= level + tonumber(gMaxFateLevel) ) or (fate.level >= level - tonumber(gMinFateLevel) and fate.level <= level + tonumber(gMaxFateLevel))) then
                     --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
                     if (not meshCheck or (meshCheck and NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})<=5)) then
                     --	d(" NavigationManager:GetPointToMeshDistance: "..tostring( NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z}) ).." fate: "..tostring( fate.name))
-                        local distance = Distance2D(pos.x, pos.z, fate.x, fate.z)
+                        local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
                         if (nearestFate == nil or distance < nearestDistance) then
                             nearestFate = fate
                             nearestDistance = distance
@@ -353,14 +443,13 @@ function GetClosestFateID(pos, levelcheck, meshCheck)
 end
 
 function IsLeader()
-    if (gBotMode == strings[gCurrentLanguage].partyMode ) then
-        local leader = GetPartyLeader()
-        if ( leader ) then
-            if ( leader.id == Player.id ) then
-                return true
-            end
-        end	
-    end
+	local leader = GetPartyLeader()
+	if ( leader ) then
+		if ( leader.id == Player.id ) then
+			return true
+		end
+	end	
+		
     return false
 end
 
@@ -381,7 +470,7 @@ end
 function InCombatRange(targetid)
     local target = EntityList:Get(targetid)
     if (target == nil or target == {}) then
-        d("InCombatRange NO TARGET")
+        ml_debug("InCombatRange NO TARGET")
         return false
     end
     
@@ -429,11 +518,13 @@ end
 function Mount()
     if not(Player.ismounted) then
         local mounts = ActionList("type=13")
-        local mount = mounts[1]
-        local acMount = ActionList:Get(mount.id,13)
-        if (acMount.isready) then
-            acMount:Cast()
-        end
+		local mount = mounts[1]
+		if ( mount ) then
+			local acMount = ActionList:Get(mount.id,13)
+			if (acMount.isready) then
+				acMount:Cast()
+			end
+		end
     end
 end
 
@@ -463,4 +554,82 @@ end
 
 function TimeSince(previousTime)
     return ml_global_information.Now - previousTime
+end
+
+function GetRoleString(jobID)
+    if 
+        jobID == FFXIV.JOBS.ARCANIST or
+        jobID == FFXIV.JOBS.ARCHER or
+        jobID == FFXIV.JOBS.BARD or
+        jobID == FFXIV.JOBS.BLACKMAGE or
+        jobID == FFXIV.JOBS.DRAGOON or
+        jobID == FFXIV.JOBS.LANCER or
+        jobID == FFXIV.JOBS.MONK or
+        jobID == FFXIV.JOBS.PUGILIST or
+        jobID == FFXIV.JOBS.SUMMONER or
+        jobID == FFXIV.JOBS.THAUMATURGE
+    then
+        return "DPS"
+    elseif
+        jobID == FFXIV.JOBS.CONJURER or
+        jobID == FFXIV.JOBS.SCHOLAR or
+        jobID == FFXIV.JOBS.WHITEMAGE
+    then
+        return "Healer"
+    elseif 
+        jobID == FFXIV.JOBS.GLADIATOR or
+        jobID == FFXIV.JOBS.MARAUDER or
+        jobID == FFXIV.JOBS.PALADIN or
+        jobID == FFXIV.JOBS.WARRIOR
+    then
+        return "Tank"
+    end
+end
+
+function IsRangedDPS(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.ARCHER or
+			jobID == FFXIV.JOBS.BARD or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE
+end
+
+function IsRanged(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.ARCHER or
+			jobID == FFXIV.JOBS.BARD or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE or
+			jobID == FFXIV.JOBS.CONJURER or
+			jobID == FFXIV.JOBS.SCHOLAR or
+			jobID == FFXIV.JOBS.WHITEMAGE
+end
+
+function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
+  if (maxdistance==nil or maxdistance == "") then
+    maxdistance = 30
+  end
+  local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
+  local i,e = next(el)
+  while (i~=nil and e ~= nil) do
+    if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not HasBuffs(e,hasnot)) ) then
+        d("picking " .. e.name )
+        return e
+    end
+    i,e = next(el,i)
+  end  
+  return nil
+end
+
+function GetLocalAetheryte()
+    local list = Player:GetAetheryteList()
+    for index,aetheryte in ipairs(list) do
+        if (aetheryte.islocalmap) then
+            return aetheryte.id
+        end
+    end
+    
+    return nil
 end

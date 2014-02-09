@@ -82,13 +82,13 @@ function ml_task:Update()
 		end
 		
 		if(self:ProcessOverWatch()) then
-				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
-				--process overwatch element requested to break update loop
-				--only delete subtask if we didn't just add it via our overwatch cne
-				if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
-					self:DeleteSubTasks()
-				end
-				break
+			ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
+			--process overwatch element requested to break update loop
+			--only delete subtask if we didn't just add it via our overwatch cne
+			if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
+				self:DeleteSubTasks()
+			end
+			break
 		end
 		
         if ( self.subtask ~= nil ) then
@@ -119,6 +119,9 @@ function ml_task:Process()
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
+		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().process_elements)
+		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -134,6 +137,9 @@ function ml_task:ProcessOverWatch()
 		ml_debug(self.name.."->ProcessOverWatch()")
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.overwatch_elements)
+		if (self:superClass() and TableSize(self:superClass().overwatch_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().overwatch_elements)
+		end
 		ml_cne_hub.queue_to_execute()
 		return ml_cne_hub.execute()
 	end
@@ -221,7 +227,7 @@ function ml_task:AddTaskCheckCEs()
 	self:add( ke_fail, self.process_elements)
 end
 
-function ml_task:create()
+function ml_task.Create()
 	local newinst = inheritsFrom( ml_task )
     newinst.name = ""
     newinst.valid = true

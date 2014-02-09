@@ -67,8 +67,10 @@ end
 function ml_blacklist.AddBlacklistEntry(blacklistName, entryID, entryName, entryTime)
 	local blacklist = ml_blacklist.blacklist[blacklistName]
     if (blacklist) then
-        blacklist[entryID] = { time = entryTime, name = entryName } 
-        ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
+        if (not blacklist[entryID]) then
+            blacklist[entryID] = { time = entryTime, name = entryName } 
+            ml_blacklist_mgr.WriteBlacklistFile(ml_blacklist_mgr.path)
+        end
         return true
     end
     
@@ -92,6 +94,19 @@ function ml_blacklist.GetExcludeString(blacklistName)
     else
         return nil
     end
+end
+
+function ml_blacklist.GetEntryID(blacklistName, entryName)
+    local blacklist = ml_blacklist.blacklist[blacklistName]
+    if (blacklist) then
+        for id, entry in pairs(blacklist) do
+            if entry.name == entryName then
+                return id
+            end
+        end
+    end
+    
+    return nil
 end
 
 function ml_blacklist.DeleteEntry(blacklistName, entryID)

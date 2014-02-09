@@ -10,7 +10,7 @@
 ---------------------------------------------------------------------------------------------
 ffxiv_task_killtarget = inheritsFrom(ml_task)
 
-function ffxiv_task_killtarget:Create()
+function ffxiv_task_killtarget.Create()
     local newinst = inheritsFrom(ffxiv_task_killtarget)
     
     --ml_task members
@@ -92,7 +92,7 @@ end
 ---------------------------------------------------------------------------------------------
 ffxiv_task_movetopos = inheritsFrom(ml_task)
 
-function ffxiv_task_movetopos:Create()
+function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)
     
     --ml_task members
@@ -161,7 +161,7 @@ function ffxiv_task_movetopos:task_complete_execute()
     end
     
     if (ml_task_hub:CurrentTask().doFacing) then
-        Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
+        Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
     end
     
     ml_task_hub:CurrentTask().completed = true

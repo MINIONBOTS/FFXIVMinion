@@ -1,7 +1,8 @@
 --ml_marker_mgr is a gwen GUI for editing general marker information
 
 ml_marker_mgr = {}
-ml_marker_mgr.mainwindow = { name = strings[gCurrentLanguage].markerManager, x = 340, y = 50, w = 335, h = 200}
+ml_marker_mgr.mainwindow =  { name = strings[gCurrentLanguage].markerManager,    x = 340, y = 50, w = 335, h = 200}
+ml_marker_mgr.editwindow =  { name = strings[gCurrentLanguage].editMarker,       w = 250, h = 550}
 ml_marker_mgr.markerList = {}
 ml_marker_mgr.markerList.editList = {}
 ml_marker_mgr.markerList.editList.editList = {}
@@ -104,39 +105,49 @@ function ml_marker_mgr.WriteMarkerFile(path)
 end
 
 function ml_marker_mgr.HandleInit()
+    -- main window
 	GUI_NewWindow(ml_marker_mgr.mainwindow.name,ml_marker_mgr.mainwindow.x,ml_marker_mgr.mainwindow.y,ml_marker_mgr.mainwindow.w,ml_marker_mgr.mainwindow.h)
-	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gAddMarkerType",strings[gCurrentLanguage].addMarker,"")
-	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].newMarker,"ml_marker_mgr.NewMarker",strings[gCurrentLanguage].addMarker)
-	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].editMarker,"")
-	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].editMarker,"ml_marker_mgr.EditMarker",strings[gCurrentLanguage].editMarker)
-	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gListMarkerType",strings[gCurrentLanguage].markerList,"")
-	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].setupList,"ml_marker_mgr.SetupMarkerList",strings[gCurrentLanguage].markerList)
+	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gMarkerMgrType",strings[gCurrentLanguage].generalSettings,"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].newMarker,"ml_marker_mgr.NewMarker",strings[gCurrentLanguage].generalSettings)
+    GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerMgrName",strings[gCurrentLanguage].markerList,"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].addMarker,"ml_marker_mgr.AddMarker",strings[gCurrentLanguage].markerList)
+    
+    -- setup marker type list
+    local markerTypeList = GetComboBoxList(ml_marker_mgr.markerList.editList)
+    gMarkerMgrType_listitems = markerTypeList["keyList"]
+    gMarkerMgrType = markerTypeList["firstKey"]
 	
-	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].addMarker)
-	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].editMarker)
+	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].generalSettings)
 	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
-	
 	GUI_SizeWindow(ml_marker_mgr.mainwindow.name, ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.h)
     GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
+    
+    -- marker editor window
+    GUI_NewWindow(ml_marker_mgr.editwindow.name, ml_marker_mgr.mainwindow.x+ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.y, ml_marker_mgr.editwindow.w, ml_marker_mgr.editwindow.h)
+    GUI_NewCheckBox(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].enabled, "gMarkerEnabled")
+    GUI_NewField(ml_marker_mgr.editwindow.name, "Placeholder", "gPlaceholder", strings[gCurrentLanguage].markerFields)
+    GUI_NewButton(ml_marker_mgr.editwindow.name,"DELETE","ml_marker_mgr.RemoveMarker")
+    GUI_NewButton(ml_marker_mgr.editwindow.name,"DOWN","ml_marker_mgr.MarkerDown")	
+    GUI_NewButton(ml_marker_mgr.editwindow.name,"UP","ml_marker_mgr.MarkerUp")
+    GUI_SizeWindow(ml_marker_mgr.editwindow.name,ml_marker_mgr.editwindow.w,ml_marker_mgr.editwindow.h)
+    GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 end
 
 function ml_marker_mgr.RefreshMarkers()
 	-- refresh markerType and markerName lists
-	local markerTypeList = GetComboBoxList(ml_marker_mgr.markerList.editList)
-	
-	local namestring = ""
-	for markerType, markerList in pairs(ml_marker_mgr.markerList.editList) do
-		local markerNameList = GetComboBoxList(markerList)
+	local markerList = ml_marker_mgr.GetList(gMarkerMgrType,false)
+    
+    local namestring = ""
+    if (markerList) then
+        local markerNameList = GetComboBoxList(markerList)
 		if namestring == "" then
 			namestring = markerNameList["keyList"]
 		else
 			namestring = namestring..","..markerNameList["keyList"]
 		end
-	end
+    end
 	
-	gAddMarkerType_listitems = markerTypeList["keyList"]
-	gListMarkerType_listitems = markerTypeList["keyList"]
-	gMarkerName_listitems = namestring
+	gMarkerMgrName_listitems = namestring
 end
 
 function ml_marker_mgr.SetupTest()

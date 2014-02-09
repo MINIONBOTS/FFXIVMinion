@@ -1,7 +1,7 @@
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
 
-function ffxiv_task_assist:Create()
+function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
     
     --ml_task members
@@ -17,6 +17,14 @@ function ffxiv_task_assist:Create()
     newinst.targetid = 0
     
     return newinst
+end
+
+function ffxiv_task_assist:Init()
+    --init Process() cnes
+	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 10 )
+    self:add(ke_pressConfirm, self.process_elements)
+  
+    self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_assist:GetHealingTarget()
@@ -46,7 +54,7 @@ function ffxiv_task_assist:GetAttackTarget()
         end	
     
     elseif ( gAssistMode == "Closest" ) then	
-        local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
+        local el = EntityList("shortestpath,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -98,6 +106,21 @@ function ffxiv_task_assist:Process()
             SkillMgr.Cast( target )
         end	
     end
+	
+	    -- last run the regular cne elements
+
+    if (TableSize(self.process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(self.process_elements)
+		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
+			ml_cne_hub.eval_elements(self:superClass().process_elements)
+		end
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
+	else
+		ml_debug("no elements in process table")
+	end
 end
 
 function ffxiv_task_assist:OnSleep()

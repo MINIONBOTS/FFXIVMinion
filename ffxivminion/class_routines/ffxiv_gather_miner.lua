@@ -1,6 +1,6 @@
 ffxiv_gather_miner = inheritsFrom(ml_task)
 
-function ffxiv_gather_miner:Create()
+function ffxiv_gather_miner.Create()
     local newinst = inheritsFrom(ffxiv_gather_miner)
     
     --ml_task members

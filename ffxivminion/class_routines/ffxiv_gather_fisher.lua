@@ -1,6 +1,6 @@
 ffxiv_gather_fisher = inheritsFrom(ml_task)
 
-function ffxiv_gather_fisher:Create()
+function ffxiv_gather_fisher.Create()
     local newinst = inheritsFrom(ffxiv_gather_fisher)
     
     --ml_task members

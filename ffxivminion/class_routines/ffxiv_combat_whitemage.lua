@@ -1,7 +1,7 @@
 ffxiv_combat_whitemage = inheritsFrom(ml_task)
 ffxiv_combat_whitemage.range = 24
 
-function ffxiv_combat_whitemage:Create()
+function ffxiv_combat_whitemage.Create()
     local newinst = inheritsFrom(ffxiv_combat_whitemage)
     
     --ml_task members

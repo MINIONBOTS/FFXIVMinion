@@ -142,7 +142,8 @@ function Dev.ModuleInit()
 	aesel = 0
 	
 	-- FateInfo
-	GUI_NewNumeric("Dev","FateIndex","faidx","FateInfo","1","20")
+	GUI_NewNumeric("Dev","FateIndex","faidx","FateInfo","1","20")	
+	GUI_NewField("Dev","P","faptr","FateInfo")
 	GUI_NewField("Dev","ID","faid","FateInfo")
 	GUI_NewField("Dev","TargetFID","tfaid","FateInfo")
 	GUI_NewField("Dev","Name","faname","FateInfo")
@@ -210,7 +211,8 @@ function Dev.ModuleInit()
 	RegisterEventHandler("Dev.Rezz", Dev.Func)
 	
 	--Partymember
-	GUI_NewNumeric("Dev","Partymember","pamem","PartyInfo","0","10");
+	GUI_NewNumeric("Dev","Partymember","pamem","PartyInfo","0","10");	
+	GUI_NewField("Dev","P","pptr","PartyInfo")
 	GUI_NewField("Dev","Name","paname","PartyInfo")
 	GUI_NewField("Dev","ID","paid","PartyInfo")
 	GUI_NewField("Dev","Region","pareg","PartyInfo")
@@ -219,6 +221,13 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","OnMesh","paonmesh","PartyInfo")			
 	GUI_NewField("Dev","Position","papos","PartyInfo")	
 	pamem = 0
+	
+	--DutyFinder/PvP
+	GUI_NewField("Dev","IsDutryReady","DutReady","DutyInfo")
+	GUI_NewButton("Dev","PressDutyConfirm","Dev.DConf","DutyInfo")
+	RegisterEventHandler("Dev.DConf", Dev.Func)	
+	GUI_NewButton("Dev","PressLeaveColosseum","Dev.PressLeaveColosseum","DutyInfo")
+	RegisterEventHandler("Dev.PressLeaveColosseum", Dev.Func)	
 	
 	-- General Functions
 	GUI_NewButton("Dev","Interact with Target","Dev.Interact","General Functions")
@@ -267,7 +276,8 @@ function Dev.Move( dir )
 	elseif ( dir == "Dev.moveTo") then
 		Player:MoveToStraight(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos))
 	elseif ( dir == "Dev.teleport") then
-		Player:Teleport(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos))
+		d("Teleporting to : "..tostring(tb_xPos).." "..tostring(tb_yPos).." "..tostring(tb_zPos))
+		d(GameHacks:TeleportToXYZ(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos)))
 	end
 end
 
@@ -302,6 +312,10 @@ function Dev.Func ( arg )
 		Player:SyncLevel()
 	elseif ( arg == "Dev.Sound" ) then
 		GameHacks:PlaySound(tonumber(gsound))
+	elseif ( arg == "Dev.DConf") then
+		d(PressDutyConfirm(true))
+	elseif ( arg == "Dev.PressLeaveColosseum") then
+		d(PressLeaveColosseum())
 	end
 end
 
@@ -757,8 +771,9 @@ function Dev.UpdateWindow()
 	local falist = MapObject:GetFateList()
 	if ( falist ) then
 		local f = falist[tonumber(faidx)]
-		if ( f ) then
+		if ( f ) then		
 			fafound = true
+			faptr = f.ptr
 			faid = f.id
 			faname = f.name
 			fadesc = f.description
@@ -772,6 +787,7 @@ function Dev.UpdateWindow()
 		end
 	end
 	if (not fafound) then
+		faptr = 0
 		faid = 0
 		faname = 0
 		fadesc = 0
@@ -848,13 +864,15 @@ function Dev.UpdateWindow()
 	end
 	cropen = tostring(Crafting:IsCraftingLogOpen())
 	
+	-- PartyInfo
 	local Plist = EntityList.myparty
 	local pfound = false
 	local i,member = next (Plist)	
 	if (i and member ) then
 		local member = Plist[tonumber(pamem)]
 		if ( member) then
-		pfound=true
+		pfound=true		
+		pptr = member.ptr
 		paname = member.name
 		paid = member.id
 		pareg = member.region
@@ -865,6 +883,7 @@ function Dev.UpdateWindow()
 		end
 	end
 	if not pfound then
+		pptr = 0
 		paname = 0
 		paid = 0
 		pareg = 0
@@ -873,7 +892,6 @@ function Dev.UpdateWindow()
 		palead = false
 		paonmesh = false
 	end
-	
 end
 
 function Dev.DoTask()

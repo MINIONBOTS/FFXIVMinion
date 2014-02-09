@@ -4,7 +4,7 @@ ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0
 
-function ffxiv_task_grind:Create()
+function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
     
     --ml_task members

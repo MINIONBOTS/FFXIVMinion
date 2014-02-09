@@ -1,7 +1,7 @@
 ffxiv_task_gather = inheritsFrom(ml_task)
 ffxiv_task_gather.name = "LT_GATHER"
 
-function ffxiv_task_gather:Create()
+function ffxiv_task_gather.Create()
     local newinst = inheritsFrom(ffxiv_task_gather)
     --ml_task members
     newinst.valid = true
@@ -20,6 +20,7 @@ function ffxiv_task_gather:Create()
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
+	newinst.gatheredMap = false
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -35,11 +36,11 @@ end
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
 function c_findgatherable:evaluate()
-    if ( ml_task_hub.CurrentTask().gatherid == nil or ml_task_hub.CurrentTask().gatherid == 0 ) then
+    if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
         return true
     end
     
-    local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
+    local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
     if (gatherable ~= nil) then
         if (not gatherable.cangather) then
             return true 
@@ -66,7 +67,8 @@ function e_findgatherable:execute()
     if (gatherable ~= nil) then
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
-        ml_task_hub.CurrentTask().gatherid = gatherable.id		
+		ml_task_hub:CurrentTask().gatheredMap = false
+        ml_task_hub:CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
 		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then
@@ -81,18 +83,18 @@ function e_findgatherable:execute()
 				local pdist = PathDistance(pathdist)
 				ml_debug("Path distance Node <-> current Marker : "..tostring(pdist))
 				if ( pdist > 50 ) then
-					ml_task_hub.CurrentTask().maxGatherDistance = pdist + 25
+					ml_task_hub:CurrentTask().maxGatherDistance = pdist + 25
 					return
 				end
 			end			
 		end
 		--default 
-		ml_task_hub.CurrentTask().maxGatherDistance = 250
+		ml_task_hub:CurrentTask().maxGatherDistance = 250
 		
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then            
-			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1000 ) then
+			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1500 ) then
                 local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
 				local pPos = Player.pos
 				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
@@ -111,20 +113,29 @@ function e_findgatherable:execute()
 	
 	--idiotcheck for no usable markers found on this mesh
 	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-		ml_error("ERROR: THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		
+		if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0")
+		then
+			ml_error("Warning: GatherManager is Disabled! ENABLING the Gathermanager now and we'll see if that helps!")
+			gGMactive = "1"
+			
+		else
+			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		end		
 	end
+	return false
 end
 
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 1000 ) then
+    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 1500 ) then
         return false
     end
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
-        local gatherable = EntityList:Get(ml_task_hub.CurrentTask().gatherid)
-        if (Player:GetGatherableSlotList() == nil and gatherable ~= nil and gatherable.distance2d > (ml_task_hub.CurrentTask().gatherDistance + 0.5)) then
+        local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+        if (Player:GetGatherableSlotList() == nil and gatherable ~= nil and gatherable.distance2d > (ml_task_hub:CurrentTask().gatherDistance + 0.5)) then
             return true
         end
     end
@@ -132,14 +143,14 @@ function c_movetogatherable:evaluate()
     return false
 end
 function e_movetogatherable:execute()
-    local pos = EntityList:Get(ml_task_hub.CurrentTask().gatherid).pos
+    local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
         if (gGatherTP == "1") then
             GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
         else
-            local newTask = ffxiv_task_movetopos:Create()
+            local newTask = ffxiv_task_movetopos.Create()
             newTask.pos = pos
-            newTask.range = ml_task_hub.CurrentTask().gatherDistance
+            newTask.range = ml_task_hub:CurrentTask().gatherDistance
             newTask.gatherRange = 0.0
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
@@ -158,6 +169,7 @@ function c_nextmarker:evaluate()
     if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0") or
        (gBotMode == strings[gCurrentLanguage].grindMode and gDoFates == "1" and gFatesOnly == "1")
     then
+		ml_debug("Warning: GatherManager is Disabled! If your character doesnt move right now, ENABLE the Gathermanager!")
         return false
     end
     
@@ -198,8 +210,9 @@ function c_nextmarker:evaluate()
             if gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode then
                 time = math.random(600,1200)
             end
-            ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time))
+			            
 			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
+				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
                 ml_debug("Getting Next Marker, TIME IS UP!")
                 marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
             else
@@ -216,8 +229,9 @@ function c_nextmarker:evaluate()
             --ignore it so people don't whine about debug spam
             --ml_debug("No grind markers detected. Defaulting to local grinding at current position")
         else
-            ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
-            gGMactive = "0"
+           -- cant disable the GM here, else the stupid bot wont do shit when it is started before the mesh has been loaded
+		   -- ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
+            --gGMactive = "0"
         end
     end
     
@@ -249,12 +263,15 @@ function c_gather:evaluate()
         return true
     end
     
+	ml_global_information.IsWaiting = false
     return false
 end
 function e_gather:execute()    
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-        -- reset fail timer
+		ml_global_information.IsWaiting = true
+        
+		-- reset fail timer
         if (ml_task_hub:CurrentTask().failedTimer ~= 0) then
             ml_task_hub:CurrentTask().failedTimer = 0
         end
@@ -266,6 +283,24 @@ function e_gather:execute()
             end
         end
         -- first check to see if we have a gathermanager marker
+		
+		-- first try to get treasure maps
+		if (gGatherMaps == "1" and not ml_task_hub:CurrentTask().gatheredMap) then
+			for i, item in pairs(list) do
+				if 	item.id == 6692 or
+					item.id == 6688 or
+					item.id == 6691 or
+					item.id == 6690 or
+					item.id == 6689
+				then
+					Player:Gather(item.index)
+					ml_task_hub:CurrentTask().gatheredMap = true
+					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+					return
+				end
+			end
+		end
+		
         if (gGMactive == "1") then
             if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
                 local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
@@ -299,6 +334,7 @@ function e_gather:execute()
             end
         end
     else
+		ml_global_information.IsWaiting = false
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if ( node ) then
             local target = Player:GetTarget()
@@ -348,14 +384,14 @@ c_gatherwindow = inheritsFrom( ml_cause )
 e_gatherwindow = inheritsFrom( ml_effect )
 function c_gatherwindow:evaluate()
 	local list = Player:GetGatherableSlotList()
-    if (list ~= nil and ml_task_hub.CurrentTask().name == "MOVETOPOS") then
+    if (list ~= nil and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 		return true
 	end
 end
 function e_gatherwindow:execute()
 	ml_debug("Bad! We fell into the gathering/moveto timing bug...terminating MoveTo task")
 	-- Complete the moveto task so that we can go back to gathering window
-	ml_task_hub.CurrentTask():task_complete_execute()
+	ml_task_hub:CurrentTask():task_complete_execute()
 end
 
 function ffxiv_task_gather:Init()
@@ -417,7 +453,8 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gChangeJobs" or
                 k == "gGatherPS" or
                 k == "gGatherTP" or
-                k == "gIgnoreGatherLvl" ) then
+                k == "gIgnoreGatherLvl" or
+				k == "gGatherMaps" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
 		if ( k == "gRandomMarker" ) then
@@ -438,6 +475,7 @@ function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGatherLvl",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",strings[gCurrentLanguage].gatherMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherMaps, "gGatherMaps",strings[gCurrentLanguage].gatherMode)
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -462,7 +500,11 @@ function ffxiv_task_gather.UIInit()
     end
     
     if (Settings.FFXIVMINION.gIgnoreGatherLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreGatherLvl = "1"
+        Settings.FFXIVMINION.gIgnoreGatherLvl = "0"
+    end
+	
+	if (Settings.FFXIVMINION.gGatherMaps == nil) then
+        Settings.FFXIVMINION.gGatherMaps = "1"
     end
     
     gDoStealth = Settings.FFXIVMINION.gDoStealth
@@ -471,6 +513,7 @@ function ffxiv_task_gather.UIInit()
     gGatherTP = Settings.FFXIVMINION.gGatherTP
     gGatherPS = Settings.FFXIVMINION.gGatherPS
     gIgnoreGatherLvl = Settings.FFXIVMINION.gIgnoreGatherLvl
+    gGatherMaps = Settings.FFXIVMINION.gGatherMaps
     if(gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
     end

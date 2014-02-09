@@ -91,6 +91,7 @@ function ml_blacklist_mgr.GUIVarUpdate(Event, NewVals, OldVals)
             ml_blacklist_mgr.UpdateAddEntry()
             ml_blacklist_mgr.RefreshEntries()
         elseif (k == "gBlacklistEntry") then
+            ml_blacklist_mgr.currentID = ml_blacklist.GetEntryID(gBlacklistName,gBlacklistEntry)
             ml_blacklist_mgr.UpdateEntryTime()
         end
     end

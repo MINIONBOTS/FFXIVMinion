@@ -34,7 +34,7 @@ function mm.ModuleInit()
         Settings.FFXIVMINION.Maps = {
 			[134] = "Middle La Noscea",
 			[135] = "Lower La Noscea",
-			[137] = "Costa Del Sol",
+			[137] = "Eastern La Noscea - Costa Del Sol",
 			[138] = "Western La Noscea",
 			[139] = "Upper La Noscea - Left",
 			[140] = "Western Thanalan",
@@ -49,9 +49,24 @@ function mm.ModuleInit()
 			[155] = "Coerthas",
 			[156] = "Mor Dhona",
 			[180] = "Outer La Noscea",
+			[337] = "Wolves Den",
+			[336] = "Wolves Den",
+			[175] = "Wolves Den",
 		}
     end
+    
+    -- for wolves den
+    if Settings.FFXIVMINION.Maps[336] == nil then
+        Settings.FFXIVMINION.Maps[336] = "Wolves Den"
+    end
 	
+    if Settings.FFXIVMINION.Maps[337] == nil then
+        Settings.FFXIVMINION.Maps[337] = "Wolves Den"
+    end
+    
+    if Settings.FFXIVMINION.Maps[175] == nil then
+        Settings.FFXIVMINION.Maps[175] = "Wolves Den"
+    end
 
     
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
@@ -379,10 +394,12 @@ function mm.ReadMarkerList(meshname)
     end
     
     -- helper functions located in ml_utility.lua
-    local lines = fileread(mm.navmeshfilepath..meshname..".info")
+    local lines = LinesFrom(mm.navmeshfilepath..meshname..".info")
     local version = 0
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
+			
+		
             local sections = {}
             for section in StringSplit(line,":") do
                 table.insert(sections, section)

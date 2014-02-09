@@ -1,6 +1,6 @@
 ffxiv_gather_botanist = inheritsFrom(ml_task)
 
-function ffxiv_gather_botanist:Create()
+function ffxiv_gather_botanist.Create()
     local newinst = inheritsFrom(ffxiv_gather_botanist)
     
     --ml_task members

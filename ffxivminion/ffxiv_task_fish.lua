@@ -1,7 +1,7 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.name = "LT_FISH"
 
-function ffxiv_task_fish:Create()
+function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
     
     --ml_task members
@@ -104,12 +104,15 @@ function c_setbait:evaluate()
     return false
 end
 function e_setbait:execute()
+	ml_debug("Attempting to set bait for marker "..ml_task_hub:CurrentTask().currentMarker)
     local marker = ml_task_hub:CurrentTask().currentMarker
     if (marker ~= nil and marker ~= false) then
         local data = GatherMgr.GetMarkerData(marker)
         if (data ~= nil and data ~= 0) then
             local _,bait = next(data)
             if (bait ~= nil and bait ~= "") then
+				ml_debug("Looking for bait named "..bait)
+				local found = false
                 for i = 0,4 do
                     local inventory = Inventory("type="..tostring(i))
                     if (inventory ~= nil and inventory ~= 0) then
@@ -117,10 +120,16 @@ function e_setbait:execute()
                             if item.name == bait then
                                 Player:SetBait(item.id)
                                 ml_task_hub:CurrentTask().baitName = item.name
+								found = true
                             end
                         end
                     end
                 end
+				
+				if not found then
+					ml_error("Could not find bait! Deactivating gather manager and attempting to use current bait")
+					gGMactive = "0"
+				end
             end
         end
     end

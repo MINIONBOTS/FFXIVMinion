@@ -1,6 +1,6 @@
 ffxiv_crafting_culinarian = inheritsFrom(ml_task)
 
-function ffxiv_crafting_culinarian:Create()
+function ffxiv_crafting_culinarian.Create()
     local newinst = inheritsFrom(ffxiv_crafting_culinarian)
     
     --ml_task members

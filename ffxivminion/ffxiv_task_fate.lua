@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------
 ffxiv_task_fate = inheritsFrom(ml_task)
 
-function ffxiv_task_fate:Create()
+function ffxiv_task_fate.Create()
     local newinst = inheritsFrom(ffxiv_task_fate)
     
     --ml_task members
@@ -40,7 +40,7 @@ function c_fatewait:evaluate()
             Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 -- ? 
 end
 function e_fatewait:execute()
-    local newTask = ffxiv_task_movetopos:Create()
+    local newTask = ffxiv_task_movetopos.Create()
     local newPos = NavigationManager:GetRandomPointOnCircle(mm.evacPoint.x,mm.evacPoint.y,mm.evacPoint.z,1,5)
     if (ValidTable(newPos)) then
         newTask.pos = {x = newPos.x, y = newPos.y, z = newPos.z}
@@ -48,6 +48,7 @@ function e_fatewait:execute()
         newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
     end
     
+    ml_global_information.IsWaiting = true
     newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -113,7 +114,7 @@ end
 
 -----------------------------------------------------------------------------------------------
 --MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
---Moves within range of fate specified by ml_task_hub.CurrentTask().fateid
+--Moves within range of fate specified by ml_task_hub:CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
 c_movetofate = inheritsFrom( ml_cause )
 e_movetofate = inheritsFrom( ml_effect )
@@ -141,8 +142,8 @@ function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
         ml_debug( "Moving to location of fate: "..fate.name )
-        local newTask = ffxiv_task_movetopos:Create()
-        --TODO: Randomize position
+        local newTask = ffxiv_task_movetopos.Create()
+
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
         if ( ml_task_hub:CurrentTask().moving) then
             newTask.range = math.random(5, fate.radius/2)
@@ -167,7 +168,7 @@ function c_atfate:evaluate()
                 end
                 
                 -- check for fate targets within combat range and stop if we find one instead of running into fate
-                local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+                local el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
                 if ( el ) then
                     local i,e = next(el)
                     if (i~=nil and e~=nil) then
