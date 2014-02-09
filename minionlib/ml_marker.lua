@@ -4,7 +4,13 @@ ml_marker = inheritsFrom(nil)
 -- external API functions
 function ml_marker:AddField(fieldType, fieldName, defaultValue)
 	if (self.fields[fieldName] == nil) then
-		self.fields[fieldName] = {type = fieldType, name = fieldName, value = defaultValue }
+		local fieldTable = self:GetLastField()
+		local nextOrder = 1
+		if (fieldTable) then
+			nextOrder = fieldTable["order"] + 1
+		end
+		
+		self.fields[fieldName] = {type = fieldType, name = fieldName, value = defaultValue, order = nextOrder}
 	else
 		ml_error("Cannot add field "..fieldName.."...another field with same name already exists")
 	end
@@ -28,6 +34,16 @@ function ml_marker:GetFieldValue(fieldName)
 	end
 end
 
+function ml_marker:GetFieldType(fieldName)
+	local field_table = self:GetFieldTable(fieldName)
+	if (field_table) then
+		return field_table["type"]
+	else
+		ml_debug("No field with name "..filedName.." found in the marker table")
+		return nil
+	end
+end
+
 function ml_marker:SetFieldValue(fieldName, fieldValue)
 	if (self.fields[fieldName]) then
 		self.fields[fieldName].value = fieldValue
@@ -36,6 +52,63 @@ function ml_marker:SetFieldValue(fieldName, fieldValue)
 		ml_debug("No field with name "..fieldName.." found in the marker table")
 		return false
 	end
+end
+
+-- return list of fields names in order
+function ml_marker:GetFieldNames()
+	local namesTable = {}
+	
+	for name, fieldTable in pairs(self.fields) do
+		if	(name ~= "x") and
+			(name ~= "y") and
+			(name ~= "z") and
+			(name ~= "h") and
+			(name ~= "red") and
+			(name ~= "green") and
+			(name ~= "blue") and
+			(name ~= "type")
+		then
+			namesTable[fieldTable["order"]] = name
+		end
+	end
+	
+	return namesTable
+end
+
+function ml_marker:GetLastField()
+    local lastField = nil
+    
+	for name, fieldTable in pairs(self.fields) do
+		if (lastField == nil or fieldTable["order"] > lastField["order"]) then
+			lastField = fieldTable
+		end
+	end
+    
+    return lastField
+end
+
+function ml_marker:HasField(fieldName)
+	return (self.fields[fieldName] ~= nil)
+end
+
+--returns a reference to a new marker with the same fields
+function ml_marker:Copy()
+	local name = self:GetName()
+	if (name) then
+		local marker = ml_marker:Create(name)
+		for fieldName, fieldTable in pairs(self.fields) do
+			if (marker:HasField(fieldName)) then
+				marker:SetFieldValue(fieldName, self:GetFieldValue(fieldName))
+			else
+				marker:AddField(fieldName, self:GetFieldType(fieldName), self:GetFieldValue(fieldName))
+			end
+		end
+
+		return marker
+	end
+	
+	ml_debug("Error copying marker")
+	return nil
 end
 
 --convenience accessors
@@ -103,7 +176,7 @@ end
 function ml_marker:Create(markerName)
 	local newMarker = inheritsFrom(ml_marker)
 	newMarker.fields = {}
-	newMarker.enabled = true
+    newMarker.order = 0
 	
 	-- add default fields
 	-- name
@@ -129,7 +202,7 @@ function ml_marker:Create(markerName)
 	-- minlevel
 	newMarker:AddField("int", "minLevel", 0)
 	
-	--maxlevel
+	-- maxlevel
 	newMarker:AddField("int", "maxLevel", 0)
 	
 	return newMarker

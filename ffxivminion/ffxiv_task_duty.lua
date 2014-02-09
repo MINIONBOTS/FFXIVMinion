@@ -3,11 +3,19 @@ ffxiv_task_duty.name = "LT_DUTY"
 ffxiv_task_duty.dutyInfo = {}
 ffxiv_task_duty.dutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles\]]
 ffxiv_task_duty.updateTicks = 0
+ffxiv_task_duty.respawnTime = 0
 
 if(Settings.FFXIVMINION.gDutyMapID == nil) then
 	Settings.FFXIVMINION.gDutyMapID = 0
 end
 ffxiv_task_duty.mapID = Settings.FFXIVMINION.gDutyMapID
+
+function file_exists(name)
+	if (name) then
+	   local f=io.open(name,"r")
+	   if f~=nil then io.close(f) return true else return false end
+	end
+end
 
 function ffxiv_task_duty.Create()
     local newinst = inheritsFrom(ffxiv_task_duty)
@@ -130,6 +138,10 @@ function e_assistleaderduty:execute()
     if ( c_assistleaderduty.targetid ) then
 		local entity = EntityList:Get(c_assistleaderduty.targetid)
 		Player:SetFacingSynced(entity.pos.x,entity.pos.y,entity.pos.z)
+		if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
+			ml_task_hub:CurrentTask():Terminate()
+		end
+		
         if (gDutyTeleport == "1") then
             local newTask = ffxiv_task_skillmgrAttack.Create()
             newTask.targetid = c_assistleaderduty.targetid
@@ -294,6 +306,10 @@ function ffxiv_task_duty:Init()
 
     local ke_followleaderduty = ml_element:create( "FollowLeader", c_followleaderduty, e_followleaderduty, 25 )--minion only
     self:add( ke_followleaderduty, self.overwatch_elements)
+
+    local ke_respawning = ml_element:create( "Respawning", c_respawning, e_respawning, 30 )--minion only
+    self:add( ke_respawning, self.overwatch_elements)
+
 	
 	local ke_deadDuty = ml_element:create( "Dead", c_deadduty, e_deadduty, 35 )
     self:add( ke_deadDuty, self.overwatch_elements)
@@ -365,7 +381,11 @@ function ffxiv_task_duty.UpdateProfiles()
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 	end
-	d(loadfile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua"))
+	d("test")
+  if (file_exists(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")) then
+    d("loading"..ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
+    dofile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
+  end
 end
 
 function ffxiv_task_duty.UpdateParty(ticks)
@@ -456,22 +476,6 @@ function GetDutyLeader()
     end
 end
 
-function findfunction(x)
-  assert(type(x) == "string")
-  local f=_G
-  for v in x:gmatch("[^%.]+") do
-    if type(f) ~= "table" then
-       return nil, "looking for '"..v.."' expected table, not "..type(f)
-    end
-    f=f[v]
-  end
-  if type(f) == "function" then
-    return f
-  else
-    return nil, "expected function, not "..type(f)
-  end
-end
-
 function ffxiv_task_duty.HandleUpdate(event, tickcount)
 	ffxiv_task_duty.UpdateParty(tickcount)
 end
@@ -487,6 +491,21 @@ end
 function e_deadduty:execute()
     ml_debug("Respawning...")
 	ml_task_hub:ThisTask().state = "DUTY_NEXTENCOUNTER"
+    local leader = GetDutyLeader()
+	local lpos = leader.pos
+	if (gDutyTeleport == "1") then
+      --d("dead, stay close")
+      if (not IsDutyLeader()) then
+        GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+      else
+        GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
+      end
+	end
+  local target = EntityList:Get(leadtarget)
+	if (target~=nil) then
+    Player:SetFacingSynced(target.pos.x, target.pos.y, target.pos.z)
+  end
+
 	-- try raise first
     if(PressYesNo(true)) then
       return
@@ -496,6 +515,32 @@ function e_deadduty:execute()
       return
     end
 end
+
+c_respawning = inheritsFrom( ml_cause )
+e_respawning = inheritsFrom( ml_effect )
+function c_respawning:evaluate()
+    if (ffxiv_task_duty.respawnTime ~=0 and ml_global_information.Now - ffxiv_task_duty.respawnTime < 2000  ) then 
+        return true
+    end 
+    return false
+end
+function e_respawning:execute()
+  local leader = GetDutyLeader()
+  local lpos = leader.pos
+  if (gDutyTeleport == "1") then
+     -- d("keeping it up")
+    if (not IsDutyLeader()) then
+        GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+    else
+        GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
+    end
+  end
+  local target = EntityList:Get(leadtarget)
+  if (target~=nil) then
+    Player:SetFacingSynced(target.pos.x, target.pos.y, target.pos.z)
+  end
+end
+
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)
 RegisterEventHandler("Gameloop.Update",ffxiv_task_duty.HandleUpdate)

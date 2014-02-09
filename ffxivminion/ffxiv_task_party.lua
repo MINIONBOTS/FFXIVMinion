@@ -5,9 +5,6 @@ ffxiv_task_party.evacPoint = {0, 0, 0}
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
 function c_partysyncfatelevel:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
-        return false
-    end 
     if ( IsLeader()) then
         return false
     end

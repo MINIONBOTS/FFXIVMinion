@@ -194,7 +194,7 @@ function ml_task:task_complete_eval()
 end
 
 function ml_task:task_complete_execute()
-
+    self.completed = true
 end
 
 function ml_task:task_fail_eval()
@@ -202,7 +202,7 @@ function ml_task:task_fail_eval()
 end
 
 function ml_task:task_fail_execute()
- 
+    self.completed = true
 end
 
 function ml_task:AddTaskCheckCEs()

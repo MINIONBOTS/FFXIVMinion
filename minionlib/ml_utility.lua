@@ -138,6 +138,40 @@ function round(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
 end
 
+function findfunction(x)
+  assert(type(x) == "string")
+  local f=_G
+  for v in x:gmatch("[^%.]+") do
+    if type(f) ~= "table" then
+       return nil, "looking for '"..v.."' expected table, not "..type(f)
+    end
+    f=f[v]
+  end
+  if type(f) == "function" then
+    return f
+  else
+    return nil, "expected function, not "..type(f)
+  end
+end
+
+function table_merge(t1, t2)
+    for k,v in pairs(t2) do t1[k] = v end
+end
+
+function pairsByKeys (t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+	i = i + 1
+	if a[i] == nil then return nil
+	else return a[i], t[a[i]]
+	end
+  end
+  return iter
+end
+
 --psuedo enum values for task classes
 TS_FAILED = 0
 TS_SUCCEEDED = 1
