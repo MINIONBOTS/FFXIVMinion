@@ -271,7 +271,8 @@ function c_reactonleaderaction:evaluate()
                 return true
           end
           
-          if (leaderE.action ~= 166 and leaderE.action ~= 167 and Player.ismounted) then
+          local distance = Distance2D(Player.pos.x, Player.pos.z, leaderE.pos.x, leaderE.pos.z)
+          if (leaderE.action ~= 166 and leaderE.action ~= 167 and Player.ismounted and distance < 20) then
             c_reactonleaderaction.Reaction = 2
             return true
           end
