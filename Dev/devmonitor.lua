@@ -10,7 +10,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","ObjectType","TargetGetType","TargetInfo")
 	GUI_NewField("Dev","CharacterType","TargetGetNPCType","TargetInfo")
 	GUI_NewField("Dev","ID","TargetID","TargetInfo")
-	GUI_NewField("Dev","ContentID","TargetContentID","TargetInfo")
+	GUI_NewField("Dev","uniqueid","TargetContentID","TargetInfo")
 	GUI_NewField("Dev","Name","TargetName","TargetInfo")
 	GUI_NewField("Dev","StatusBitfield","TStatus","TargetInfo")	
 	GUI_NewField("Dev","Targetable","TTar","TargetInfo")
@@ -38,6 +38,10 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Belongs to FateID","TFate","TargetInfo")	
 	GUI_NewField("Dev","CurrentAction","TAC","TargetInfo")
 	GUI_NewField("Dev","LastAction","TLAC","TargetInfo")	
+	GUI_NewField("Dev","ChannelingAction","ChannelAction","TargetInfo")	
+	GUI_NewField("Dev","ChannelTime","ChannelTime","TargetInfo")	
+	GUI_NewField("Dev","ChannelTime","CastTime","TargetInfo")	
+	GUI_NewField("Dev","ChannelTarget","ChannelTarget","TargetInfo")	
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
@@ -510,7 +514,7 @@ function Dev.UpdateWindow()
 		TargetGetType = mytarget.type
 		TargetGetNPCType = mytarget.chartype
 		TargetName = mytarget.name
-		TargetContentID = mytarget.contentid
+		TargetContentID = mytarget.uniqueid
 		TStatus = mytarget.status--string.format( "%x",tonumber(mytarget.status ))
 		TTar = tostring(mytarget.targetable)
 		TAggro = tostring(mytarget.aggro)
@@ -538,6 +542,13 @@ function Dev.UpdateWindow()
 		TAC = mytarget.action
 		TLAC = mytarget.lastaction
 		tfaid = mytarget.fateid
+    if (mytarget.castinginfo ~= nil ) then
+      ChannelAction = mytarget.castinginfo.channelingid
+      ChannelTime = mytarget.castinginfo.channeltime
+      CastTime = mytarget.castinginfo.casttime
+      ChannelTarget  = mytarget.castinginfo.channeltargetid
+    end
+    
 	else
 		local el = EntityList("nearest,onmesh,gatherable")
 		if ( el ) then
@@ -901,7 +912,7 @@ function Dev.DoTask()
 end
 
 function Dev.OnUpdateHandler( Event, ticks ) 	
-	if ( ticks - Dev.lastticks > 500 ) then
+	if ( ticks - Dev.lastticks > 250 ) then
 		Dev.lastticks = ticks		
 		if ( Dev.running ) then
 			Dev.UpdateWindow()

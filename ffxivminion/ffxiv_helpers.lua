@@ -454,17 +454,32 @@ function IsLeader()
 end
 
 function GetPartyLeader()
-    local Plist = EntityList.myparty
-    if (TableSize(Plist) > 0 ) then
-        local i,member = next (Plist)
-        while (i~=nil and member~=nil ) do
-            if ( member.isleader ) then
-                return member
-            end
-            i,member = next (Plist,i)
+    
+    if (gPartyGrindUsePartyLeader == "1") then
+      local Plist = EntityList.myparty
+      if (TableSize(Plist) > 0 ) then
+          local i,member = next (Plist)
+          while (i~=nil and member~=nil ) do
+              if ( member.isleader ) then
+                  return member , false
+              end
+              i,member = next (Plist,i)
+          end
+      end
+    else
+      if (gPartyLeaderName ~= "") then
+        local Plist = EntityList("type=1,name="..gPartyLeaderName)
+        if (TableSize(Plist) > 0 ) then
+          local i,member = next (Plist)
+          if (i~=nil and member~=nil ) then
+                 return member , true
+          end
         end
+      end
     end
+    
     return nil	
+    
 end
 
 function InCombatRange(targetid)

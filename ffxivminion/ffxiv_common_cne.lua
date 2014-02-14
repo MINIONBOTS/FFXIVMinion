@@ -120,9 +120,14 @@ function c_assistleader:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
         return false
     end
-    leader = GetPartyLeader()	
+    leader , isEntity = GetPartyLeader()	
     if (leader ~= nil and leader.id ~= 0) then
-        local entity = EntityList:Get(leader.id)
+        local entity = nil
+        if (isEntity) then
+          entity = leader
+        else
+          entity = EntityList:Get(leader.id)
+        end
         if ( entity ~= nil and entity ~= 0 ) then
             local leadtarget = entity.targetid
             if ( leadtarget ~= nil and leadtarget ~= 0 ) then
@@ -244,9 +249,58 @@ function e_movetotarget:execute()
     end
 end
 
+
+c_reactonleaderaction = inheritsFrom( ml_cause )
+e_reactonleaderaction= inheritsFrom( ml_effect )
+c_reactonleaderaction.Reaction  = 0
+
+function c_reactonleaderaction:evaluate()
+    local leader , isEntity = GetPartyLeader()
+    if ( leader ~= nil ) then
+        local leaderE = nil
+        if (isEntity) then
+          leaderE = leader
+        else
+          leaderE = EntityList:Get(leader.id)
+        end
+        
+        if ( leaderE ~= nil and leaderE ~= 0 ) then
+          if (leaderE.castinginfo.channelingid==4 or leaderE.action == 166 or leaderE.action == 167
+              and gUseMount == "1" and not Player.ismounted and not Player.incombat) then
+                c_reactonleaderaction.Reaction = 1
+                return true
+          end
+          
+          if (leaderE.action ~= 166 and leaderE.action ~= 167 and Player.ismounted) then
+            c_reactonleaderaction.Reaction = 2
+            return true
+          end
+        end
+    end
+    return false
+end
+
+
+function e_reactonleaderaction:execute()
+    if (c_reactonleaderaction.Reaction == 1) then
+      if (not ActionList:IsCasting() ) then
+        Player:Stop()
+        Mount()
+      end
+    elseif (c_reactonleaderaction.Reaction == 2) then
+      if (not ActionList:IsCasting() ) then
+        --Player:Stop()
+        Dismount()
+      end
+    end
+    
+
+    
+end
+
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.rrange = math.random(5,15)
+c_followleader.rrange = math.random(5,10)
 c_followleader.leader = nil
 function c_followleader:evaluate()
     
@@ -254,9 +308,9 @@ function c_followleader:evaluate()
         return false
     end
     
-    local leader = GetPartyLeader()
+    local leader , isEntity = GetPartyLeader()
     if ( leader ~= nil ) then
-        if ( leader.mapid == Player.localmapid ) then
+        if ( (not isEntity and leader.mapid == Player.localmapid) or isEntity  ) then
             c_followleader.leaderpos = leader.pos
             if ( c_followleader.leaderpos.x ~= -1000 ) then 			
                 local myPos = Player.pos				
@@ -281,11 +335,11 @@ function e_followleader:execute()
             
             -- mount
             if ( gUseMount == "1" and not Player.ismounted and not Player.incombat) then							
-                if (distance > tonumber(gMountDist)) then
+                if (c_followleader.leader.castinginfo.channelingid==4 or c_followleader.leader.action == 166 or c_followleader.leader.action == 167 or  distance > tonumber(gMountDist)) then
                     if (not ActionList:IsCasting() ) then
-						Player:Stop()
-						Mount()
-					end
+                      Player:Stop()
+                      Mount()
+                    end
                     return
                 end
             end
@@ -300,17 +354,18 @@ function e_followleader:execute()
                 end
             end
             
-            ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange))))	
+            ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange),true,false)))	
             if ( not Player:IsMoving()) then
                 if ( ml_global_information.AttackRange < 5 ) then
-					c_followleader.rrange = math.random(4,8)
+                  c_followleader.rrange = math.random(4,8)
                 else
-					c_followleader.rrange = math.random(8,20)
+                  c_followleader.rrange = math.random(8,20)
                 end
             end
         else
             if ( not Player:IsMoving() ) then
-                ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleader.leader.id)))
+                FollowResult = Player:FollowTarget(c_followleader.leader.id)
+                ml_debug( "Following Leader: "..tostring(FollowResult))
             end
         end
     end

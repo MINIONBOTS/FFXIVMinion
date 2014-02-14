@@ -315,6 +315,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
     },                                  
     ["cn"] =                            
     {                               
@@ -640,6 +644,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
 	},
     ["jp"] =
     {
@@ -953,6 +961,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
 	},   
     ["de"] =
     {
@@ -1266,6 +1278,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",
 	},     
     ["fr"] =
     {
@@ -1579,6 +1595,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",
 	},       
     ["ru"] =
     {
@@ -1892,6 +1912,10 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",	
 	},    	
 
 }
