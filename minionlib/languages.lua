@@ -319,6 +319,10 @@ strings =
     PartyLeader         = "Leader:",
     GetPartyLeader      = "Target->Leader",
     UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On Me",
+    TargetCastingTime           = "Casting Time >",
+    
     },                                  
     ["cn"] =                            
     {                               
@@ -648,6 +652,10 @@ strings =
     PartyLeader         = "Leader:",
     GetPartyLeader      = "Target->Leader",
     UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+    
 	},
     ["jp"] =
     {
@@ -965,6 +973,9 @@ strings =
     PartyLeader         = "Leader:",
     GetPartyLeader      = "Target->Leader",
     UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
 	},   
     ["de"] =
     {
@@ -1282,6 +1293,10 @@ strings =
 	    PartyLeader         = "Leader:",
 	    GetPartyLeader      = "Target->Leader",
 	    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},     
     ["fr"] =
     {
@@ -1599,6 +1614,10 @@ strings =
 	    PartyLeader         = "Leader:",
 	    GetPartyLeader      = "Target->Leader",
 	    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},       
     ["ru"] =
     {
@@ -1916,6 +1935,10 @@ strings =
 	    PartyLeader         = "Leader:",
 	    GetPartyLeader      = "Target->Leader",
 	    UseGamePartyLeader  = "Use Party Leader",	
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},    	
 
 }

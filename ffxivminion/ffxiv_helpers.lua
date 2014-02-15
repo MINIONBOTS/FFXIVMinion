@@ -323,6 +323,7 @@ function HasBuffsFromOwner(entity, buffIDs, ownerid)
     end
     return false
 end
+
 function HasBuffs(entity, buffIDs)
     local buffs = entity.buffs
     if (buffs == nil or TableSize(buffs) == 0) then return false end
@@ -344,6 +345,24 @@ function HasBuffs(entity, buffIDs)
       end
     end
     return false
+end
+
+function isCasting(entity, actionIDs , minCasttime , targetid) 
+  local ci = entity.castinginfo 
+  if ( ci == nil or ci.channelingid == 0) then return false end
+  if (minCasttime ~= nil and ci.channeltime < minCasttime) then return false end
+  
+  if (targetid ~= nil) then d(ci.channeltargetid .. "  == " .. targetid) end
+
+  
+  if (targetid ~= nil and ci.channeltargetid ~= targetid) then return false end
+  for _orids in StringSplit(actionIDs,",") do
+      if (tonumber(_orids) == ci.channelingid) then
+          d("is casting " .. ci.channelingid)
+          return true
+      end
+  end
+  return false
 end
 
 function IsBehind(entity)
