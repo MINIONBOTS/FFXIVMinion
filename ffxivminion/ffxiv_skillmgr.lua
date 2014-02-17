@@ -90,7 +90,12 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,"Party has not","SKM_PTNBuff","SkillDetails");
     GUI_NewCheckbox(SkillMgr.editwindow.name,"PVP precombat only","SKM_PVPPreCombat","SkillDetails");
     GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID","SkillDetails");
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
+	  GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID","SkillDetails");
+  
+    -- casting info
+	  GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].TargetIsCasting,"SKM_TCASTID","SkillDetails");
+	  GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].TargetCastingOnMe,"SKM_TCASTTM","SkillDetails");
+	  GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].TargetCastingTime,"SKM_TCASTTIME","SkillDetails");
     GUI_UnFoldGroup(SkillMgr.editwindow.name,"SkillDetails")
 
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -192,6 +197,10 @@ function SkillMgr.ModuleInit()
     SKM_PSkillID = ""
 	SKM_NPSkillID = ""
 	SKM_SecsPassed = 0
+  SKM_TCASTID = ""
+  SKM_TCASTTM = "0"
+  SKM_TCASTTIME = "0.0"
+  
     --Crafting
     SKM_STMIN = 0
     SKM_STMAX = 0
@@ -283,6 +292,10 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         elseif ( k == "SKM_PSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].pskill = v
         elseif ( k == "SKM_NPSkillID" ) then SkillMgr.SkillProfile[SKM_Prio].npskill = v
         elseif ( k == "SKM_SecsPassed" ) then SkillMgr.SkillProfile[SKM_Prio].secspassed = tonumber(v)
+        elseif ( k == "SKM_TCASTTIME" ) then SkillMgr.SkillProfile[SKM_Prio].tcasttime = v
+        elseif ( k == "SKM_TCASTID" ) then SkillMgr.SkillProfile[SKM_Prio].tcastids = v
+        elseif ( k == "SKM_TCASTTM" ) then SkillMgr.SkillProfile[SKM_Prio].tcastonme = v
+  
         --crafting
         elseif ( k == "SKM_STMIN" ) then SkillMgr.SkillProfile[SKM_Prio].stepmin = tonumber(v)
         elseif ( k == "SKM_STMAX" ) then SkillMgr.SkillProfile[SKM_Prio].stepmax = tonumber(v)
@@ -541,11 +554,14 @@ function SkillMgr.SaveProfile()
                 string2write = string2write.."SKM_PSkillID="..skill.pskill.."\n"
                 string2write = string2write.."SKM_NPSkillID="..skill.npskill.."\n" 
                 string2write = string2write.."SKM_SecsPassed="..skill.secspassed.."\n"
-				string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
-				string2write = string2write.."SKM_PVPPreCombat="..skill.pvpprecombat.."\n"		
-				string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
+                string2write = string2write.."SKM_OnlySolo="..skill.onlysolo.."\n"		
+                string2write = string2write.."SKM_PVPPreCombat="..skill.pvpprecombat.."\n"		
+                string2write = string2write.."SKM_OnlyParty="..skill.onlyparty.."\n"
                 string2write = string2write.."SKM_PVEPVP="..skill.pvepvp.."\n"
                 string2write = string2write.."SKM_PVPTRG="..skill.pvptrg.."\n"                
+                string2write = string2write.."SKM_TCASTTIME="..skill.tcasttime.."\n"
+                string2write = string2write.."SKM_TCASTID="..skill.tcastids.."\n"
+                string2write = string2write.."SKM_TCASTTM="..skill.tcastonme.."\n"
             end
                         
             string2write = string2write.."SKM_END=0\n"
@@ -591,68 +607,69 @@ function SkillMgr.UpdateCurrentProfileData()
                             --d("Adding Skill :"..newskill.name.."Prio:"..tostring(newskill.prio))
                             table.insert(unsortedSkillList,tonumber(newskill.prio),newskill)						
                             newskill = {}
-                            elseif ( key == "ID" )then newskill.id = tonumber(value)
-                            elseif ( key == "NAME" )then newskill.name = value
-                            elseif ( key == "ON" )then newskill.used = tostring(value)
-                            elseif ( key == "DOBUFF" )then newskill.dobuff = tostring(value)							
-                            elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom		
-                            elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
-                            elseif ( key == "Prio" )then newskill.prio = tonumber(value)
-                            elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
-                            elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
-                            elseif ( key == "PVPPreCombat" )then newskill.pvpprecombat = tostring(value)
-                            elseif ( key == "OnlyParty" )then newskill.onlyparty = tostring(value)
-                            elseif ( key == "PVEPVP" )then newskill.pvepvp = tostring(value)	
-                            elseif ( key == "TRG" )then newskill.trg = tostring(value)
-                            elseif ( key == "PVPTRG" )then newskill.pvptrg = tostring(value)	
-                            elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
-                            elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 							
-                            elseif ( key == "PHPL" )then newskill.phpl = tonumber(value)
-                            elseif ( key == "PHPB" )then newskill.phpb = tonumber(value)
-                            elseif ( key == "PPowL" )then newskill.ppowl = tonumber(value)
-                            elseif ( key == "PPowB" )then newskill.ppowb = tonumber(value)
-                            elseif ( key == "PTPL" )then newskill.ptpl = tostring(value)	--custom	
-                            elseif ( key == "PTPB" )then newskill.ptpb = tostring(value)	--custom
-                            elseif ( key == "THPL" )then newskill.thpl = tonumber(value)
-                            elseif ( key == "THPB" )then newskill.thpb = tonumber(value)						
-                            elseif ( key == "TECount" )then newskill.tecount = tonumber(value)
-                            elseif ( key == "TERange" )then newskill.terange = tonumber(value)
-                            elseif ( key == "TACount" )then newskill.tacount = tonumber(value)
-                            elseif ( key == "TARange" )then newskill.tarange = tonumber(value)
-                            elseif ( key == "TAHPL" )then newskill.tahpl = tonumber(value)
-                            elseif ( key == "PBuff" )then newskill.pbuff = tostring(value)
-                            elseif ( key == "PNBuff" )then newskill.pnbuff = tostring(value)
-                            elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
-                            elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
-                            elseif ( key == "PTBuff" )then newskill.ptbuff = tostring(value)
-                            elseif ( key == "PTNBuff" )then newskill.ptnbuff = tostring(value)
-                            elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
-                            elseif ( key == "NPSkillID" ) then newskill.npskill = tostring(value)
-							elseif ( key == "SecsPassed" ) then newskill.secspassed = tonumber(value)
-                            --crafting
-                            elseif ( key == "STMIN" ) then newskill.stepmin = tonumber(value)
-                            elseif ( key == "STMAX" ) then newskill.stepmax = tonumber(value)
-                            elseif ( key == "CPMIN" ) then newskill.cpmin = tonumber(value)
-                            elseif ( key == "CPMAX" ) then newskill.cpmax = tonumber(value)
-                            elseif ( key == "DURMIN" ) then newskill.durabmin = tonumber(value)
-                            elseif ( key == "DURMAX" ) then newskill.durabmax = tonumber(value)
-                            elseif ( key == "PROGMIN" ) then newskill.progrmin = tonumber(value)
-                            elseif ( key == "PROGMAX" ) then newskill.progrmax = tonumber(value)
-                            elseif ( key == "QUALMIN" ) then newskill.qualitymin = tonumber(value)
-                            elseif ( key == "QUALMAX" ) then newskill.qualitymax = tonumber(value)
-                            elseif ( key == "QUALMINPer" ) then newskill.qualityminper= tonumber(value)
-                            elseif ( key == "QUALMAXPer" ) then newskill.qualitymaxper = tonumber(value)
-                            elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
-                            elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
-                            elseif ( key == "CPNBuff" )then newskill.cpnbuff = tostring(value)
-                            elseif ( key == "IQSTACK" )then newskill.iqstack = tonumber(value)
-							
-                            --gathering
-                            elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
-                            elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
-                            elseif ( key == "GAttempts" ) then newskill.gatherattempts = tonumber(value)
-                            elseif ( key == "ITEM" ) then newskill.hasitem = tostring(value)
-                            
+                        elseif ( key == "ID" )then newskill.id = tonumber(value)
+                        elseif ( key == "NAME" )then newskill.name = value
+                        elseif ( key == "ON" )then newskill.used = tostring(value)
+                        elseif ( key == "DOBUFF" )then newskill.dobuff = tostring(value)							
+                        elseif ( key == "DOPREV" )then newskill.doprev = tostring(value)	--custom		
+                        elseif ( key == "LevelMin" )then newskill.levelmin = tostring(value)	--custom
+                        elseif ( key == "Prio" )then newskill.prio = tonumber(value)
+                        elseif ( key == "OutOfCombat" )then newskill.ooc = tostring(value)
+                        elseif ( key == "OnlySolo" )then newskill.onlysolo = tostring(value)
+                        elseif ( key == "PVPPreCombat" )then newskill.pvpprecombat = tostring(value)
+                        elseif ( key == "OnlyParty" )then newskill.onlyparty = tostring(value)
+                        elseif ( key == "PVEPVP" )then newskill.pvepvp = tostring(value)	
+                        elseif ( key == "TRG" )then newskill.trg = tostring(value)
+                        elseif ( key == "PVPTRG" )then newskill.pvptrg = tostring(value)	
+                        elseif ( key == "MinR" )then newskill.minRange = tonumber(value)
+                        elseif ( key == "MaxR" )then newskill.maxRange = tonumber(value) 							
+                        elseif ( key == "PHPL" )then newskill.phpl = tonumber(value)
+                        elseif ( key == "PHPB" )then newskill.phpb = tonumber(value)
+                        elseif ( key == "PPowL" )then newskill.ppowl = tonumber(value)
+                        elseif ( key == "PPowB" )then newskill.ppowb = tonumber(value)
+                        elseif ( key == "PTPL" )then newskill.ptpl = tostring(value)	--custom	
+                        elseif ( key == "PTPB" )then newskill.ptpb = tostring(value)	--custom
+                        elseif ( key == "THPL" )then newskill.thpl = tonumber(value)
+                        elseif ( key == "THPB" )then newskill.thpb = tonumber(value)						
+                        elseif ( key == "TECount" )then newskill.tecount = tonumber(value)
+                        elseif ( key == "TERange" )then newskill.terange = tonumber(value)
+                        elseif ( key == "TACount" )then newskill.tacount = tonumber(value)
+                        elseif ( key == "TARange" )then newskill.tarange = tonumber(value)
+                        elseif ( key == "TAHPL" )then newskill.tahpl = tonumber(value)
+                        elseif ( key == "PBuff" )then newskill.pbuff = tostring(value)
+                        elseif ( key == "PNBuff" )then newskill.pnbuff = tostring(value)
+                        elseif ( key == "TBuff" )then newskill.tbuff = tostring(value)
+                        elseif ( key == "TNBuff" )then newskill.tnbuff = tostring(value)
+                        elseif ( key == "PTBuff" )then newskill.ptbuff = tostring(value)
+                        elseif ( key == "PTNBuff" )then newskill.ptnbuff = tostring(value)
+                        elseif ( key == "PSkillID" ) then newskill.pskill = tostring(value)
+                        elseif ( key == "NPSkillID" ) then newskill.npskill = tostring(value)
+                        elseif ( key == "SecsPassed" ) then newskill.secspassed = tonumber(value)
+                        elseif ( key == "TCASTTIME" ) then newskill.tcasttime = tostring(value)
+                        elseif ( key == "TCASTID" ) then newskill.tcastids = tostring(value)
+                        elseif ( key == "TCASTTM" ) then newskill.tcastonme = tostring(value)
+                        --crafting
+                        elseif ( key == "STMIN" ) then newskill.stepmin = tonumber(value)
+                        elseif ( key == "STMAX" ) then newskill.stepmax = tonumber(value)
+                        elseif ( key == "CPMIN" ) then newskill.cpmin = tonumber(value)
+                        elseif ( key == "CPMAX" ) then newskill.cpmax = tonumber(value)
+                        elseif ( key == "DURMIN" ) then newskill.durabmin = tonumber(value)
+                        elseif ( key == "DURMAX" ) then newskill.durabmax = tonumber(value)
+                        elseif ( key == "PROGMIN" ) then newskill.progrmin = tonumber(value)
+                        elseif ( key == "PROGMAX" ) then newskill.progrmax = tonumber(value)
+                        elseif ( key == "QUALMIN" ) then newskill.qualitymin = tonumber(value)
+                        elseif ( key == "QUALMAX" ) then newskill.qualitymax = tonumber(value)
+                        elseif ( key == "QUALMINPer" ) then newskill.qualityminper= tonumber(value)
+                        elseif ( key == "QUALMAXPer" ) then newskill.qualitymaxper = tonumber(value)
+                        elseif ( key == "CONDITION" ) then newskill.condition = tostring(value)
+                        elseif ( key == "CPBuff" )then newskill.cpbuff = tostring(value)
+                        elseif ( key == "CPNBuff" )then newskill.cpnbuff = tostring(value)
+                        elseif ( key == "IQSTACK" )then newskill.iqstack = tonumber(value)
+                        --gathering
+                        elseif ( key == "GPMIN" ) then newskill.gpmin = tonumber(value)
+                        elseif ( key == "GPMAX" ) then newskill.gpmax = tonumber(value)
+                        elseif ( key == "GAttempts" ) then newskill.gatherattempts = tonumber(value)
+                        elseif ( key == "ITEM" ) then newskill.hasitem = tostring(value)
                         end
                     else
                         d("Error loading inputline: Key: "..(tostring(key)).." value:"..tostring(value))
@@ -814,6 +831,9 @@ function SkillMgr.CreateNewSkillEntry(skill)
                 pskill = skill.pskill or "",
                 npskill = skill.npskill or "",
                 secspassed = skill.secspassed or 0,
+                tcasttime = skill.tcasttime or "0.0",
+                tcastids =  skill.tcastids or "", 
+                tcastonme = skill.tcastonme or "0",
                 --crafting
                 stepmin = skill.stepmin or 0,
                 stepmax = skill.stepmax or 0,
@@ -934,8 +954,11 @@ function SkillMgr.EditSkill(event)
             SKM_TBuff = skill.tbuff or ""
             SKM_TNBuff = skill.tnbuff or ""
             SKM_PSkillID = skill.pskill or ""
-			SKM_NPSkillID = skill.npskill or ""
-			SKM_SecsPassed = skill.secspassed or ""
+            SKM_NPSkillID = skill.npskill or ""
+            SKM_SecsPassed = skill.secspassed or ""
+            SKM_TCASTTIME = skill.tcasttime or "0.0"
+            SKM_TCASTID = skill.tcastids or ""
+            SKM_TCASTTM = skill.tcastonme or "0"
         end
     end
 end
@@ -1027,7 +1050,7 @@ function SkillMgr.Cast( entity , prePVPCombat )
             
 						if ( skill.pvpprecombat == "1" and (prePVPCombat == nil or prePVPCombat == false) ) then castable = false end
 						if ( skill.pvpprecombat == "0" and (prePVPCombat == true) ) then castable = false end
-		
+            
 						-- SECOND SINCE LAST CAST
 						if ( skill.secspassed > 0 and (skill.lastcast ~= nil and ml_global_information.Now - skill.lastcast < skill.secspassed*1000)) then castable = false end
 						
@@ -1136,7 +1159,12 @@ function SkillMgr.Cast( entity , prePVPCombat )
                                 if tbfound then castable = false end								
                             end							
                         end
-                                    
+                        if (skill.tcasttime==nil) then skill.tcasttime="0.0" end
+                        local casttime = tonumber(skill.tcasttime)
+                        local ctid = (skill.tcastonme =="1" and Player.id or nil)
+                        if ( skill.tcastids ~="" and not isCasting(entity,skill.tcastids, casttime, ctid ) ) then
+                          castable = false
+                        end
                         
                         -- TARGET AE CHECK
                         if ( castable and skill.tecount > 0 and skill.terange > 0) then

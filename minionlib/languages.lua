@@ -315,6 +315,14 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On Me",
+    TargetCastingTime           = "Casting Time >",
+    
     },                                  
     ["cn"] =                            
     {                               
@@ -640,6 +648,14 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+    
 	},
     ["jp"] =
     {
@@ -953,6 +969,13 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+    PartyGrind          = "Party Grind",
+    PartyLeader         = "Leader:",
+    GetPartyLeader      = "Target->Leader",
+    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
 	},   
     ["de"] =
     {
@@ -1266,6 +1289,14 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},     
     ["fr"] =
     {
@@ -1579,6 +1610,14 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},       
     ["ru"] =
     {
@@ -1892,6 +1931,14 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
+	    PartyGrind          = "Party Grind",
+	    PartyLeader         = "Leader:",
+	    GetPartyLeader      = "Target->Leader",
+	    UseGamePartyLeader  = "Use Party Leader",	
+    TargetIsCasting           = "Target Casting",
+    TargetCastingOnMe           = "Casting On",
+    TargetCastingTime           = "Casting Time >",
+      
 	},    	
 
 }
