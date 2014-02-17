@@ -172,6 +172,22 @@ function pairsByKeys (t, f)
   return iter
 end
 
+function GetRandomTableEntry(t)
+    if (ValidTable(t)) then
+        local i = math.random(1,TableSize(t))
+        local counter = 1
+        for key, value in pairs(t) do
+            if (counter == i) then
+                return value
+            else
+                counter = counter + 1
+            end
+        end
+    end
+    
+    ml_debug("Error in GetRandomTableEntry()")
+end
+
 --psuedo enum values for task classes
 TS_FAILED = 0
 TS_SUCCEEDED = 1

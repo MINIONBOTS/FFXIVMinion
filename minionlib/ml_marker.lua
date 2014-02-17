@@ -12,7 +12,7 @@ function ml_marker:AddField(fieldType, fieldName, defaultValue)
 		
 		self.fields[fieldName] = {type = fieldType, name = fieldName, value = defaultValue, order = nextOrder}
 	else
-		ml_error("Cannot add field "..fieldName.."...another field with same name already exists")
+		ml_error("Cannot add field "..fieldName.." another field with same name already exists")
 	end
 end
 
@@ -97,11 +97,13 @@ function ml_marker:Copy()
 	if (name) then
 		local marker = ml_marker:Create(name)
 		for fieldName, fieldTable in pairs(self.fields) do
+			
 			if (marker:HasField(fieldName)) then
 				marker:SetFieldValue(fieldName, self:GetFieldValue(fieldName))
 			else
-				marker:AddField(fieldName, self:GetFieldType(fieldName), self:GetFieldValue(fieldName))
+				marker:AddField(self:GetFieldType(fieldName), fieldName, self:GetFieldValue(fieldName))
 			end
+			marker:GetFieldTable(fieldName).order = fieldTable.order
 		end
 
 		return marker
@@ -116,16 +118,21 @@ function ml_marker:GetPosition()
 	return {x = self:GetFieldValue("x"), y = self:GetFieldValue("y"), z = self:GetFieldValue("z"), h = self:GetFieldValue("h") }
 end
 
-function ml_marker:SetPosition(x, y, z, h)
-	return self:SetFieldValue("x", x) and self:SetFieldValue("y", y) and self:SetFieldValue("z", z) and self:SetFieldValue("h", h)
+function ml_marker:SetPosition(posTable)
+	return 	self:SetFieldValue("x", posTable.x) and 
+			self:SetFieldValue("y", posTable.y) and 
+			self:SetFieldValue("z", posTable.z) and 
+			self:SetFieldValue("h", posTable.h)
 end
 
 function ml_marker:GetColor()
 	return {red = self:GetFieldValue("red"), green = self:GetFieldValue("green"), blue = self:GetFieldValue("blue") }
 end
 
-function ml_marker:SetColor(r, g, b)
-	return self:SetFieldValue("red", r) and self:SetFieldValue("green", g) and self:SetFieldValue("blue", b)
+function ml_marker:SetColor(colorTable)
+	return 	self:SetFieldValue("red", colorTable.r) and 
+			self:SetFieldValue("green", colorTable.g) and 
+			self:SetFieldValue("blue", colorTable.b)
 end
 
 function ml_marker:GetType()
@@ -164,7 +171,7 @@ function ml_marker:GetMaxLevel()
 	return self:GetFieldValue("maxLevel")
 end
 
-function ml_marker:SetMaxLevel()
+function ml_marker:SetMaxLevel(maxLevel)
 	return self:SetFieldValue("maxLevel", maxLevel)
 end
 

@@ -518,5 +518,28 @@ function ffxiv_task_gather.UIInit()
         GameHacks:SetPermaSprint(true)
     end
     
+    ffxiv_task_gather.SetupMarkers()
+    
     RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
+end
+
+function ffxiv_task_gather.SetupMarkers()
+    -- add marker templates for gathering
+    local botanyMarker = ml_marker:Create("botanyTemplate")
+	botanyMarker:SetType("Botany Marker")
+	botanyMarker:AddField("string", "Priority 1 Item", "")
+	botanyMarker:AddField("string", "Priority 2 Item", "")
+    botanyMarker:SetTime(300)
+    botanyMarker:SetMinLevel(1)
+    botanyMarker:SetMaxLevel(50)
+    ml_marker_mgr.AddMarkerTemplate(botanyMarker)
+	
+	local miningMarker = botanyMarker:Copy()
+	miningMarker:SetName("miningTemplate")
+	miningMarker:SetType("Mining Marker")
+    ml_marker_mgr.AddMarkerTemplate(miningMarker)
+    
+    -- refresh the manager with the new templates
+    ml_marker_mgr.RefreshMarkerTypes()
+	ml_marker_mgr.RefreshMarkerNames()
 end

@@ -220,16 +220,6 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 	}
-	
-    -- setup bot mode
-    local botModes = "None"
-    if ( TableSize(ffxivminion.modes) > 0) then
-        local i,entry = next ( ffxivminion.modes)
-        while i and entry do
-            botModes = botModes..","..i
-            i,entry = next ( ffxivminion.modes,i)
-        end
-    end
     
     -- setup parent window for minionlib modules
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
@@ -251,6 +241,20 @@ function ffxivminion.HandleInit()
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
     end
     
+	-- setup marker manager callbacks and vars
+	ml_marker_mgr.GetPosition = 	function () return Player.pos end
+	ml_marker_mgr.GetLevel = 		function () return Player.level end
+	
+	-- setup bot mode
+    local botModes = "None"
+    if ( TableSize(ffxivminion.modes) > 0) then
+        local i,entry = next ( ffxivminion.modes)
+        while i and entry do
+            botModes = botModes..","..i
+            i,entry = next ( ffxivminion.modes,i)
+        end
+    end
+	
     gBotMode_listitems = botModes
     
     gBotMode = Settings.FFXIVMINION.gBotMode

@@ -381,7 +381,6 @@ function ffxiv_task_duty.UpdateProfiles()
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 	end
-	d("test")
   if (file_exists(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")) then
     d("loading"..ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
     dofile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
