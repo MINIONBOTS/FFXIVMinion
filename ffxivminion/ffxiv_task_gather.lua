@@ -16,11 +16,12 @@ function ffxiv_task_gather.Create()
     newinst.gatherid = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
-    newinst.previousMarker = false
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
 	newinst.gatheredMap = false
+    newinst.idleTimer = 0
+	newinst.filterLevel = true
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -36,6 +37,11 @@ end
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
 function c_findgatherable:evaluate()
+	local list = Player:GetGatherableSlotList()
+    if (list ~= nil) then
+        return false
+    end
+
     if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
         return true
     end
@@ -55,11 +61,10 @@ function e_findgatherable:execute()
     ml_debug( "Getting new gatherable target" )
     local minlevel = 1
     local maxlevel = 50
-    if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= false) then
-        local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+    if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
         if ValidTable(markerInfo) then
-            minlevel = markerInfo.minlevel
-            maxlevel = markerInfo.maxlevel
+            minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+            maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
         end
     end
     
@@ -71,14 +76,14 @@ function e_findgatherable:execute()
         ml_task_hub:CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
-		if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then
-			local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+		if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
 			local nodePos = gatherable.pos
-			
+			local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+            
 			--just for testing
-			local distance2d = Distance2D(nodePos.x, nodePos.z, markerInfo.x, markerInfo.z)
+			local distance2d = Distance2D(nodePos.x, nodePos.z, markerPos.x, markerPos.z)
 			ml_debug("Distance2D Node <-> current Marker: "..tostring(distance2d))		
-			local pathdist = NavigationManager:GetPath(nodePos.x,nodePos.y,nodePos.z,markerInfo.x, markerInfo.y,markerInfo.z)
+			local pathdist = NavigationManager:GetPath(nodePos.x,nodePos.y,nodePos.z,markerPos.x, markerPos.y,markerPos.z)
 			if ( pathdist ) then
 				local pdist = PathDistance(pathdist)
 				ml_debug("Path distance Node <-> current Marker : "..tostring(pdist))
@@ -93,18 +98,19 @@ function e_findgatherable:execute()
 		
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
-        if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker ~= false) then            
+        if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then            
 			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1500 ) then
-                local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
+                local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
 				local pPos = Player.pos
 				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
-				if (Distance2D(pPos.x, pPos.z, markerInfo.x, markerInfo.z) < 15) then
-					local t = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
+				if (Distance2D(pPos.x, pPos.z, markerPos.x, markerPos.z) < 15) then
+					local t = ml_task_hub:CurrentTask().currentMarker:GetTime()
 					ml_task_hub:CurrentTask().markerTime = ml_task_hub:CurrentTask().markerTime - t
 				else
 					-- walk to the center of our marker first
-					if (markerInfo ~= nil and markerInfo ~= 0) then
-						Player:MoveTo(markerInfo.x, markerInfo.y, markerInfo.z, 10, false, gRandomPaths=="1")
+					if (markerPos ~= nil and markerPos ~= 0) then
+						Player:MoveTo(markerPos.x, markerPos.y, markerPos.z, 10, false, gRandomPaths=="1")
+                        ml_task_hub:CurrentTask().idleTimer = ml_global_information.Now
 					end
 				end
             end
@@ -113,15 +119,7 @@ function e_findgatherable:execute()
 	
 	--idiotcheck for no usable markers found on this mesh
 	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-		
-		if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0")
-		then
-			ml_error("Warning: GatherManager is Disabled! ENABLING the Gathermanager now and we'll see if that helps!")
-			gGMactive = "1"
-			
-		else
-			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
-		end		
+        ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")	
 	end
 	return false
 end
@@ -143,6 +141,9 @@ function c_movetogatherable:evaluate()
     return false
 end
 function e_movetogatherable:execute()
+    -- reset idle timer
+    ml_task_hub:CurrentTask().idleTimer = 0
+
     local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
         if (gGatherTP == "1") then
@@ -157,101 +158,87 @@ function e_movetogatherable:execute()
     end
 end
 
-c_nextmarker = inheritsFrom( ml_cause )
-e_nextmarker = inheritsFrom( ml_effect )
-function c_nextmarker:evaluate()
-    -- this function (along with the marker manager stuff in general) needs a major refactor
-    -- for the purposes of beta I'm just doing all the marker checking shit for all modes here
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+c_nextgathermarker = inheritsFrom( ml_cause )
+e_nextgathermarker = inheritsFrom( ml_effect )
+function c_nextgathermarker:evaluate()
+    local list = Player:GetGatherableSlotList()
+    if (list ~= nil) then
         return false
     end
     
-    if ((gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode) and gGMactive == "0") or
-       (gBotMode == strings[gCurrentLanguage].grindMode and gDoFates == "1" and gFatesOnly == "1")
-    then
-		ml_debug("Warning: GatherManager is Disabled! If your character doesnt move right now, ENABLE the Gathermanager!")
-        return false
-    end
-    
-    if gBotMode == strings[gCurrentLanguage].gatherMode then
-        local list = Player:GetGatherableSlotList()
-        if (list ~= nil) then
-            return false
-        end
-    end
-    
-    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0) then
+    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
         
-        -- first check to see if we have no initiailized marker
+        -- first check to see if we have no initialized marker
         if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
-            marker = GatherMgr.GetNextMarker(nil, nil)
+            local markerType = ""
+            if (Player.job == FFXIV.JOBS.BOTANIST) then
+                markerType = strings[gCurrentLanguage].botanyMarker
+            else
+                markerType = strings[gCurrentLanguage].miningMarker
+            end
+            marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:CurrentTask().filterLevel)
+			
+			if (marker == nil) then
+				ml_task_hub:CurrentTask().filterLevel = false
+				marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:CurrentTask().filterLevel)
+			end
         end
         
         -- next check to see if our level is out of range
         if (marker == nil) then
-            local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-            if (ValidTable(markerInfo)) then
-                local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
-                if 	(markerType == "grindSpot" and gIgnoreGrindLvl == "0") or
-                    ((markerType == "botanySpot" or markerType == "miningSpot") and gIgnoreGatherLvl == "0") or
-                    (markerType == "fishingSpot" and gIgnoreFishLvl == "0") 
+            if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+                if 	(ml_task_hub:CurrentTask().filterLevel) and
+					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
+                    Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
                 then
-                    if (Player.level < markerInfo.minlevel or Player.level > markerInfo.maxlevel) then
-                        marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
-                    end
+                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
                 end
+            end
+        end
+        
+        -- next check to see if we can't find any gatherables at our current marker
+        if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then            
+			if ( ml_task_hub:CurrentTask().idleTimer ~= 0 and TimeSince(ml_task_hub:CurrentTask().idleTimer) > 30 * 1000 ) then
+                ml_task_hub:CurrentTask().idleTimer = 0
+                local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+				local pPos = Player.pos
+				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
+				if (Distance2D(pPos.x, pPos.z, markerPos.x, markerPos.z) < 15) then
+                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+				end
             end
         end
         
         -- last check if our time has run out
         if (marker == nil) then
-            local time = GatherMgr.GetMarkerTime(ml_task_hub:CurrentTask().currentMarker)
-            if gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode then
-                time = math.random(600,1200)
-            end
-			            
+            local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
 			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
 				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
                 ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = GatherMgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker, ml_task_hub:CurrentTask().previousMarker)
+                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
             else
                 return false
             end
         end
         
-        if marker ~= nil then
-            if marker ~= ml_task_hub:CurrentTask().currentMarker then
-                e_nextmarker.marker = marker
-                return true
-            end
-        elseif (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
-            --ignore it so people don't whine about debug spam
-            --ml_debug("No grind markers detected. Defaulting to local grinding at current position")
-        else
-           -- cant disable the GM here, else the stupid bot wont do shit when it is started before the mesh has been loaded
-		   -- ml_error("The gather manager is enabled but no markers have been detected on mesh. Defaulting to random behavior and disabling gather manager")
-            --gGMactive = "0"
+        if (ValidTable(marker)) then
+            e_nextgathermarker.marker = marker
+            return true
         end
     end
     
     return false
 end
-function e_nextmarker:execute()
-    ml_task_hub:CurrentTask().previousMarker = ml_task_hub:CurrentTask().currentMarker
-    ml_task_hub:CurrentTask().currentMarker = e_nextmarker.marker
+function e_nextgathermarker:execute()
+    ml_task_hub:CurrentTask().currentMarker = e_nextgathermarker.marker
     ml_task_hub:CurrentTask().markerTime = ml_global_information.Now
-    
-    local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-    local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
-    
-    if (TableSize(markerInfo) > 0) then
-        ml_global_information.MarkerMinLevel = markerInfo.minlevel
-        ml_global_information.MarkerMaxLevel = markerInfo.maxlevel
-    else
-        ml_global_information.MarkerMinLevel = 1
-        ml_global_information.MarkerMaxLevel = 50
-    end
+	ml_global_information.MarkerTime = ml_global_information.Now
+    ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+    ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
+	ml_global_information.BlacklistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
+    ml_global_information.WhitelistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
+	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
 end
 
 c_gather = inheritsFrom( ml_cause )
@@ -282,8 +269,7 @@ function e_gather:execute()
                 return
             end
         end
-        -- first check to see if we have a gathermanager marker
-		
+
 		-- first try to get treasure maps
 		if (gGatherMaps == "1" and not ml_task_hub:CurrentTask().gatheredMap) then
 			for i, item in pairs(list) do
@@ -301,38 +287,38 @@ function e_gather:execute()
 			end
 		end
 		
-        if (gGMactive == "1") then
-            if (ml_task_hub:CurrentTask().currentMarker ~= nil) then
-                local markerData = GatherMgr.GetMarkerData(ml_task_hub:CurrentTask().currentMarker)
-                if (markerData ~= nil and markerData ~= 0) then
-                    -- do 2 loops to allow prioritization of first item
-                    for i, item in pairs(list) do
-                        if item.name == markerData[1] then
-                            Player:Gather(item.index)
-                            ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-                            return
-                        end
-                    end
-                    
-                    for i, item in pairs(list) do
-                        if item.name == markerData[2] then
-                            Player:Gather(item.index)
-                            ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-                            return
-                        end
-                    end
-                end
-            end
+        if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+            -- do 2 loops to allow prioritization of first item
+			local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem1)
+            local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem2)
+            
+            if (item1 ~= "") then
+				for i, item in pairs(list) do
+					if (item.name == item1) then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
+				end
+			elseif (item2 ~= "") then
+				for i, item in pairs(list) do
+					if (item.name == item2) then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
+				end
+			end
         end
-        
-        -- otherwise just grab a random item 
-        for i, item in pairs(list) do
-            if item.chance > 50 then
-                Player:Gather(item.index)
-                ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-                return
-            end
-        end
+		
+		-- just grab a random item otherwise
+		for i, item in pairs(list) do
+			if item.chance > 50 then
+				Player:Gather(item.index)
+				ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+				return
+			end
+		end
     else
 		ml_global_information.IsWaiting = false
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
@@ -361,25 +347,6 @@ function e_gather:execute()
     end
 end
 
-c_atnode = inheritsFrom( ml_cause )
-e_atnode = inheritsFrom( ml_effect )
-function c_atnode:evaluate()
-    if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask() and Player.ismounted) then
-        if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
-            local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-            if (ValidTable(gatherable)) then
-                return gatherable.distance2d < 4
-            end
-        end
-    end
-    return false
-end
-function e_atnode:execute()
-    -- call the complete logic so that bot will dismount
-    ml_task_hub:CurrentTask():task_complete_execute()
-    ml_task_hub:CurrentTask():Terminate()
-end
-
 c_gatherwindow = inheritsFrom( ml_cause )
 e_gatherwindow = inheritsFrom( ml_effect )
 function c_gatherwindow:evaluate()
@@ -405,15 +372,12 @@ function ffxiv_task_gather:Init()
 	local ke_gatherWindow = ml_element:create( "GatherWindow", c_gatherwindow, e_gatherwindow, 20)
 	self:add( ke_gatherWindow, self.overwatch_elements)
     
-    --local ke_atNode = ml_element:create( "AtNode", c_atnode, e_atnode, 10 )
-    --self:add( ke_atNode, self.overwatch_elements)
-    
     --init Process cnes
     --in descending priority order just for you stefan
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add( ke_returnToMarker, self.process_elements)
     
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 20 )
     self:add( ke_nextMarker, self.process_elements)
     
     local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
@@ -450,20 +414,11 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
             end
         end
         if ( 	k == "gDoStealth" or
-                k == "gChangeJobs" or
                 k == "gGatherPS" or
                 k == "gGatherTP" or
-                k == "gIgnoreGatherLvl" or
 				k == "gGatherMaps" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
-		if ( k == "gRandomMarker" ) then
-			-- always enable ignorelevel with randomMarkers to prevent fuckups
-			if ( v == "1") then
-				gIgnoreGrindLvl = "1"
-			end
-			Settings.FFXIVMINION[tostring(k)] = v
-		end
     end
     GUI_RefreshWindow(ml_global_information.MainWindow.Name)
 end
@@ -471,8 +426,6 @@ end
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].randomizeMarkers, "gRandomMarker",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGatherLvl",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",strings[gCurrentLanguage].gatherMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherMaps, "gGatherMaps",strings[gCurrentLanguage].gatherMode)
@@ -481,10 +434,6 @@ function ffxiv_task_gather.UIInit()
     
     if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"
-    end
-    
-    if (Settings.FFXIVMINION.gRandomMarker == nil) then
-        Settings.FFXIVMINION.gRandomMarker = "0"
     end
     
     if (Settings.FFXIVMINION.gChangeJobs == nil) then
@@ -498,21 +447,15 @@ function ffxiv_task_gather.UIInit()
     if (Settings.FFXIVMINION.gGatherPS == nil) then
         Settings.FFXIVMINION.gGatherPS = "0"
     end
-    
-    if (Settings.FFXIVMINION.gIgnoreGatherLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreGatherLvl = "0"
-    end
 	
 	if (Settings.FFXIVMINION.gGatherMaps == nil) then
         Settings.FFXIVMINION.gGatherMaps = "1"
     end
     
     gDoStealth = Settings.FFXIVMINION.gDoStealth
-    gRandomMarker = Settings.FFXIVMINION.gRandomMarker
     gChangeJobs = Settings.FFXIVMINION.gChangeJobs
     gGatherTP = Settings.FFXIVMINION.gGatherTP
     gGatherPS = Settings.FFXIVMINION.gGatherPS
-    gIgnoreGatherLvl = Settings.FFXIVMINION.gIgnoreGatherLvl
     gGatherMaps = Settings.FFXIVMINION.gGatherMaps
     if(gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
@@ -526,9 +469,11 @@ end
 function ffxiv_task_gather.SetupMarkers()
     -- add marker templates for gathering
     local botanyMarker = ml_marker:Create("botanyTemplate")
-	botanyMarker:SetType("Botany Marker")
-	botanyMarker:AddField("string", "Priority 1 Item", "")
-	botanyMarker:AddField("string", "Priority 2 Item", "")
+	botanyMarker:SetType(strings[gCurrentLanguage].botanyMarker)
+	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
+	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
+	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
     botanyMarker:SetMaxLevel(50)
@@ -536,7 +481,7 @@ function ffxiv_task_gather.SetupMarkers()
 	
 	local miningMarker = botanyMarker:Copy()
 	miningMarker:SetName("miningTemplate")
-	miningMarker:SetType("Mining Marker")
+	miningMarker:SetType(strings[gCurrentLanguage].miningMarker)
     ml_marker_mgr.AddMarkerTemplate(miningMarker)
     
     -- refresh the manager with the new templates

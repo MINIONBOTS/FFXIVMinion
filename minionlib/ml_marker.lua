@@ -29,7 +29,7 @@ function ml_marker:GetFieldValue(fieldName)
 	if (field_table) then
 		return field_table["value"]
 	else
-		ml_debug("No field with name "..filedName.." found in the marker table")
+		ml_debug("No field with name "..fieldName.." found in the marker table")
 		return nil
 	end
 end
@@ -144,35 +144,35 @@ function ml_marker:SetType(markerType)
 end
 
 function ml_marker:GetName()
-	return self:GetFieldValue("name")
+	return self:GetFieldValue(strings[gCurrentLanguage].name)
 end
 
 function ml_marker:SetName(markerName)
-	return self:SetFieldValue("name", markerName)
+	return self:SetFieldValue(strings[gCurrentLanguage].name, markerName)
 end
 
 function ml_marker:GetTime()
-	return self:GetFieldValue("time")
+	return self:GetFieldValue(strings[gCurrentLanguage].time)
 end
 
 function ml_marker:SetTime(markerTime)
-	return self:SetFieldValue("time", markerTime)
+	return self:SetFieldValue(strings[gCurrentLanguage].time, markerTime)
 end
 
 function ml_marker:GetMinLevel()
-	return self:GetFieldValue("minLevel")
+	return self:GetFieldValue(strings[gCurrentLanguage].minLevel)
 end
 
 function ml_marker:SetMinLevel(minLevel)
-	return self:SetFieldValue("minLevel", minLevel)
+	return self:SetFieldValue(strings[gCurrentLanguage].minLevel, minLevel)
 end
 
 function ml_marker:GetMaxLevel()
-	return self:GetFieldValue("maxLevel")
+	return self:GetFieldValue(strings[gCurrentLanguage].maxLevel)
 end
 
 function ml_marker:SetMaxLevel(maxLevel)
-	return self:SetFieldValue("maxLevel", maxLevel)
+	return self:SetFieldValue(strings[gCurrentLanguage].maxLevel, maxLevel)
 end
 
 -- internal functions
@@ -187,7 +187,7 @@ function ml_marker:Create(markerName)
 	
 	-- add default fields
 	-- name
-	newMarker:AddField("string", "name", markerName)
+	newMarker:AddField("string", strings[gCurrentLanguage].name, markerName)
 	
 	-- position
 	newMarker:AddField("float", "x", 0.0)
@@ -204,13 +204,13 @@ function ml_marker:Create(markerName)
 	newMarker:AddField("string", "type", "")
 	
 	-- time
-	newMarker:AddField("int", "time", 0)
+	newMarker:AddField("int", strings[gCurrentLanguage].time, 0)
 	
 	-- minlevel
-	newMarker:AddField("int", "minLevel", 0)
+	newMarker:AddField("int", strings[gCurrentLanguage].minLevel, 0)
 	
 	-- maxlevel
-	newMarker:AddField("int", "maxLevel", 0)
+	newMarker:AddField("int", strings[gCurrentLanguage].maxLevel, 0)
 	
 	return newMarker
 end

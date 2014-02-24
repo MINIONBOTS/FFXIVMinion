@@ -797,8 +797,8 @@ function c_returntomarker:evaluate()
 	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
         local myPos = Player.pos
-        local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-        local distance = Distance2D(myPos.x, myPos.z, markerInfo.x, markerInfo.z)
+        local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+        local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
         if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].partyMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
@@ -812,12 +812,12 @@ function c_returntomarker:evaluate()
 end
 function e_returntomarker:execute()
     local newTask = ffxiv_task_movetopos.Create()
-    local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-    local markerType = mm.GetMarkerType(ml_task_hub:CurrentTask().currentMarker)
-    newTask.pos = {x = markerInfo.x, y = markerInfo.y, z = markerInfo.z}
+    local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+    local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+    newTask.pos = markerPos
     newTask.range = math.random(5,25)
-    if (markerType == "fishingSpot") then
-        newTask.pos.h = markerInfo.h
+    if (markerType == "Fishing Marker") then
+        newTask.pos.h = markerPos.h
         newTask.range = 0.5
         newTask.doFacing = true
     end

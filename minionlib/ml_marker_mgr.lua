@@ -12,12 +12,13 @@ ml_marker_mgr.parentWindow = nil
 ml_marker_mgr.mainwindow =  { name = strings[gCurrentLanguage].markerManager,    x = 340, y = 50, w = 250, h = 300}
 ml_marker_mgr.editwindow =  { name = strings[gCurrentLanguage].editMarker,       w = 250, h = 300}
 ml_marker_mgr.markerList = {}
+ml_marker_mgr.renderList = {}
 ml_marker_mgr.currentMarker = {}		--current marker selected by the GetNextMarker() function
 ml_marker_mgr.currentEditMarker = {}	--current marker displayed in the edit window
 --CREATE THIS LIST IN GAME IMPLEMENTATION
 ml_marker_mgr.templateList = {}			--list of marker templates for defining marker types and creating new markers
 --SET THIS PATH IN GAME IMPLEMENTATION
-ml_marker_mgr.markerPath = GetStartupPath()..[[\Navigation\]].."markerTests.txt"
+ml_marker_mgr.markerPath = ""
 
 -- OVERRIDE THIS FUNCTION IN GAME IMPLEMENTATION
 function ml_marker_mgr.GetPosition()
@@ -29,7 +30,17 @@ function ml_marker_mgr.GetLevel()
 	return 99
 end
 
+-- OVERRIDE THIS FUNCTION IN GAME IMPLEMENTATION
+function ml_marker_mgr.DrawMarker(marker)
+	return false
+end
+
 -- ACCESSORS
+-- Global function to get current marker
+function GetCurrentMarker()
+    return ml_marker_mgr.currentMarker
+end
+
 function ml_marker_mgr.GetList(markerType, filterEnabled, filterLevel)
 	local list = ml_marker_mgr.markerList[markerType]
 	local newlist = {}
@@ -69,8 +80,6 @@ function ml_marker_mgr.GetListByOrder(markerType, filterLevel)
             return orderedList
         end
     end
-    
-    ml_debug("Error in ml_marker_mgr.GetListByOrder")
 end
 
 function ml_marker_mgr.GetMarker(markerName)
@@ -230,8 +239,10 @@ function ml_marker_mgr.AddMarker(newMarker)
 		markerList = {}
 		ml_marker_mgr.markerList[newMarker:GetType()] = markerList
 	end
-
+	
 	markerList[newMarker:GetName()] = newMarker
+	ml_marker_mgr.renderList[newMarker:GetName()] = ml_marker_mgr.DrawMarker(newMarker)
+	
 	return true
 end
 
@@ -255,6 +266,8 @@ function ml_marker_mgr.DeleteMarker(oldMarker)
 		for name, marker in pairs(list) do
 			if (name == oldMarker:GetName()) then
 				list[name] = nil
+				RenderManager:RemoveObject(ml_marker_mgr.renderList[name])
+				ml_marker_mgr.renderList[name] = nil
 				return true
 			end
 		end
@@ -323,17 +336,33 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
     end
 end
 
+function ml_marker_mgr.ClearMarkerList()
+	ml_marker_mgr.markerList = {}
+	ml_marker_mgr.renderList = {}
+	RenderManager:RemoveAllObjects()
+end
+
 --IO FUNCTIONS
 function ml_marker_mgr.ReadMarkerFile(path)
 	local markerList = persistence.load(path)
 	if (ValidTable(markerList)) then
 		ml_marker_mgr.markerList = markerList
 		for type, list in pairs(ml_marker_mgr.markerList) do
+			local templateMarker = ml_marker_mgr.templateList[type]
 			for name, marker in pairs(list) do
 				-- set marker class metatable for each marker
 				setmetatable(marker, {__index = ml_marker})
+				if (ValidTable(templateMarker)) then
+					for name, fieldTable in pairs(templateMarker.fields) do
+						if (not marker:HasField(name)) then
+							marker:AddField(templateMarker:GetFieldType(name), name, templateMarker:GetFieldValue(name))
+						end
+					end
+				end
 			end
 		end
+		
+		ml_marker_mgr.markerPath = path
 	else
 		ml_debug("Invalid path specified for marker file")
 	end
@@ -373,7 +402,7 @@ end
 function ml_marker_mgr.RefreshMarkerNames()
 	if (ValidTable(ml_marker_mgr.markerList)) then
 		local list = ml_marker_mgr.GetList(gMarkerMgrType, true)
-		if (list) then
+		if (ValidTable(list)) then
 			local markerNameList = GetComboBoxList(list)
 			local namestring = ""
 			if (markerNameList) then
@@ -393,7 +422,9 @@ function ml_marker_mgr.RefreshMarkerNames()
 			end
 			
 			gMarkerMgrName_listitems = namestring
-			
+			ml_marker_mgr.RefreshMarkerList()
+		else
+			gMarkerMgrName_listitems = ""
 			ml_marker_mgr.RefreshMarkerList()
 		end
 	end
@@ -490,8 +521,6 @@ function ml_marker_mgr.HandleInit()
     GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 	
 	gMarkerMgrMode = Settings.minionlib.gMarkerMgrMode
-	
-	ml_marker_mgr.ReadMarkerFile(ml_marker_mgr.markerPath)
 end
 
 function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
@@ -654,6 +683,5 @@ end
 
 RegisterEventHandler("ToggleMarkerMgr", ml_marker_mgr.ToggleMenu)
 RegisterEventHandler("Module.Initalize",ml_marker_mgr.HandleInit)
---RegisterEventHandler("Module.Initalize",ml_marker_mgr.SetupTest)
 RegisterEventHandler("GUI.Update",ml_marker_mgr.GUIVarUpdate)
 RegisterEventHandler("GUI.Item",ml_marker_mgr.GUIItem)

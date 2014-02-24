@@ -20,12 +20,75 @@ function ffxiv_task_grind.Create()
     newinst.targetid = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
-    newinst.previousMarker = false
+	newinst.filterLevel = true
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
     
     return newinst
+end
+
+c_nextgrindmarker = inheritsFrom( ml_cause )
+e_nextgrindmarker = inheritsFrom( ml_effect )
+function c_nextgrindmarker:evaluate()
+    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+        return false
+    end
+    
+    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
+        local marker = nil
+        
+        -- first check to see if we have no initiailized marker
+        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
+            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
+        
+			if (marker == nil) then
+				ml_task_hub:CurrentTask().filterLevel = false
+				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
+			end	
+		end
+        
+        -- next check to see if our level is out of range
+        if (marker == nil) then
+            if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+                if 	(ml_task_hub:CurrentTask().filterLevel) and
+					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
+                    Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
+                then
+                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                end
+            end
+        end
+        
+        -- last check if our time has run out
+        if (marker == nil) then
+            local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
+			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
+				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
+                ml_debug("Getting Next Marker, TIME IS UP!")
+                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+            else
+                return false
+            end
+        end
+        
+        if (ValidTable(marker)) then
+            e_nextgrindmarker.marker = marker
+            return true
+        end
+    end
+    
+    return false
+end
+function e_nextgrindmarker:execute()
+    ml_task_hub:CurrentTask().currentMarker = e_nextgrindmarker.marker
+    ml_task_hub:CurrentTask().markerTime = ml_global_information.Now
+	ml_global_information.MarkerTime = ml_global_information.Now
+    ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+    ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
+    ml_global_information.BlacklistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
+    ml_global_information.WhitelistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
+	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
 end
 
 function ffxiv_task_grind:Init()
@@ -52,7 +115,7 @@ function ffxiv_task_grind:Init()
     self:add( ke_returnToMarker, self.process_elements)
     
     --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 20 )
     self:add( ke_nextMarker, self.process_elements)
     
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
@@ -80,11 +143,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gDoFates" or
                 k == "gFatesOnly" or
-                k == "gIgnoreGrindLvl" or
                 k == "gMinFateLevel" or
-                k == "gMaxFateLevel" or
-                k == "gMinMobLevel" or
-                k == "gMaxMobLevel" or                 
+                k == "gMaxFateLevel" or              
                 k == "gRestHP" or
                 k == "gRestMP" or
                 k == "gFleeHP" or
@@ -143,7 +203,6 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreGrindLvl",strings[gCurrentLanguage].grindMode)
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
@@ -173,18 +232,6 @@ function ffxiv_task_grind.UIInit()
     
     if (Settings.FFXIVMINION.gMinFateLevel == nil) then
         Settings.FFXIVMINION.gMinFateLevel = "0"
-    end
-    
-    if (Settings.FFXIVMINION.gMaxMobLevel == nil) then
-        Settings.FFXIVMINION.gMaxMobLevel = "3"
-    end
-    
-    if (Settings.FFXIVMINION.gMinMobLevel == nil) then
-        Settings.FFXIVMINION.gMinMobLevel = "3"
-    end
-    
-    if (Settings.FFXIVMINION.gIgnoreGrindLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreGrindLvl = "0"
     end
     
     if (Settings.FFXIVMINION.gRestHP == nil) then
@@ -227,10 +274,7 @@ function ffxiv_task_grind.UIInit()
     gFatesOnly = Settings.FFXIVMINION.gFatesOnly
     gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
     gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
-    gMaxMobLevel = Settings.FFXIVMINION.gMaxMobLevel
-    gMinMobLevel = Settings.FFXIVMINION.gMinMobLevel
     gRestInFates = Settings.FFXIVMINION.gRestInFates
-    gIgnoreGrindLvl = Settings.FFXIVMINION.gIgnoreGrindLvl
     gRestHP = Settings.FFXIVMINION.gRestHP
     gRestMP = Settings.FFXIVMINION.gRestMP
     gFleeHP = Settings.FFXIVMINION.gFleeHP
@@ -243,6 +287,24 @@ function ffxiv_task_grind.UIInit()
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
     ml_blacklist_mgr.AddInitUI("Fates",ffxiv_task_fate.BlacklistInitUI)
+	
+	ffxiv_task_grind.SetupMarkers()
+end
+
+function ffxiv_task_grind.SetupMarkers()
+    -- add marker templates for grinding
+    local grindMarker = ml_marker:Create("grindTemplate")
+	grindMarker:SetType(strings[gCurrentLanguage].grindMarker)
+	grindMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	grindMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
+    grindMarker:SetTime(300)
+    grindMarker:SetMinLevel(1)
+    grindMarker:SetMaxLevel(50)
+    ml_marker_mgr.AddMarkerTemplate(grindMarker)
+    
+    -- refresh the manager with the new templates
+    ml_marker_mgr.RefreshMarkerTypes()
+	ml_marker_mgr.RefreshMarkerNames()
 end
 
 function ffxiv_task_grind.UpdateBlacklistUI(tickcount)

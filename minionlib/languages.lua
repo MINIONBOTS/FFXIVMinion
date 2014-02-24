@@ -322,7 +322,17 @@ strings =
     TargetIsCasting           = "Target Casting",
     TargetCastingOnMe           = "Casting On Me",
     TargetCastingTime           = "Casting Time >",
-    
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
     },                                  
     ["cn"] =                            
     {                               
@@ -655,7 +665,17 @@ strings =
     TargetIsCasting           = "Target Casting",
     TargetCastingOnMe           = "Casting On",
     TargetCastingTime           = "Casting Time >",
-    
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
 	},
     ["jp"] =
     {
@@ -976,6 +996,17 @@ strings =
     TargetIsCasting           = "Target Casting",
     TargetCastingOnMe           = "Casting On",
     TargetCastingTime           = "Casting Time >",
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
 	},   
     ["de"] =
     {
@@ -1296,7 +1327,17 @@ strings =
     TargetIsCasting           = "Target Casting",
     TargetCastingOnMe           = "Casting On",
     TargetCastingTime           = "Casting Time >",
-      
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
 	},     
     ["fr"] =
     {
@@ -1617,7 +1658,17 @@ strings =
     TargetIsCasting           = "Target Casting",
     TargetCastingOnMe           = "Casting On",
     TargetCastingTime           = "Casting Time >",
-      
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
 	},       
     ["ru"] =
     {
@@ -1935,10 +1986,20 @@ strings =
 	    PartyLeader         = "Leader:",
 	    GetPartyLeader      = "Target->Leader",
 	    UseGamePartyLeader  = "Use Party Leader",	
-    TargetIsCasting           = "Target Casting",
-    TargetCastingOnMe           = "Casting On",
-    TargetCastingTime           = "Casting Time >",
-      
+        TargetIsCasting           = "Target Casting",
+        TargetCastingOnMe           = "Casting On",
+        TargetCastingTime           = "Casting Time >",
+        botanyMarker                    = "Botany Marker",
+        miningMarker                    = "Mining Marker",
+        grindMarker                     = "Grind Marker",
+        contentIDEquals                 = "ContentID=",
+        NOTcontentIDEquals              = "NOT ContentID=",
+		fishingMarker					= "Fishing Marker",
+		time							= "Time (s)",
+		name							= "Name",
+		minLevel						= "Min Level",
+		maxLevel						= "Max Level",
+		markerTime						= "Marker Time (s)",
 	},    	
 
 }
