@@ -19,6 +19,7 @@ function ffxiv_task_fish.Create()
     newinst.baitName = ""
     newinst.castFailTimer = 0
 	newinst.filterLevel = true
+    newinst.missingBait = false
     
     return newinst
 end
@@ -89,50 +90,41 @@ end
 c_setbait = inheritsFrom( ml_cause )
 e_setbait = inheritsFrom( ml_effect )
 function c_setbait:evaluate()
-    if (gGMactive == "1") then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-            local marker = ml_task_hub:CurrentTask().currentMarker
-            if (marker ~= nil and marker ~= false) then
-                local data = GatherMgr.GetMarkerData(marker)
-                if data[1] ~="None" and data[1] ~= ml_task_hub:CurrentTask().baitName then
-                    return true
-                end
-            end
-        end
+    if (ml_task_hub:CurrentTask().missingBait) then
+        return false
     end
-    return false
-end
-function e_setbait:execute()
-	ml_debug("Attempting to set bait for marker "..ml_task_hub:CurrentTask().currentMarker)
-    local marker = ml_task_hub:CurrentTask().currentMarker
-    if (marker ~= nil and marker ~= false) then
-        local data = GatherMgr.GetMarkerData(marker)
-        if (data ~= nil and data ~= 0) then
-            local _,bait = next(data)
-            if (bait ~= nil and bait ~= "") then
-				ml_debug("Looking for bait named "..bait)
-				local found = false
+    
+    local fs = tonumber(Player:GetFishingState())
+    if (fs == 0 or fs == 4) then
+        local marker = ml_task_hub:CurrentTask().currentMarker
+        if (marker ~= nil and marker ~= false) then
+            local baitName = marker:GetFieldValue(strings[gCurrentLanguage].baitName)
+            if (baitName ~="None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
+                --check to see if we have the bait in inventory
+                ml_debug("Looking for bait named "..bait)
                 for i = 0,4 do
                     local inventory = Inventory("type="..tostring(i))
                     if (inventory ~= nil and inventory ~= 0) then
                         for _,item in ipairs(inventory) do
                             if item.name == bait then
-                                Player:SetBait(item.id)
-                                ml_task_hub:CurrentTask().baitName = item.name
-								found = true
+                                e_setbait.bait = item
+								return true
                             end
                         end
                     end
                 end
-				
-				if not found then
-					ml_error("Could not find bait! Deactivating gather manager and attempting to use current bait")
-					gGMactive = "0"
-				end
+                
+                ml_error("Could not find bait! Attempting to use current bait")
+                
             end
         end
     end
+        
+    return false
+end
+function e_setbait:execute()
+    Player:SetBait(e_setbait.item.ID)
+    ml_task_hub:CurrentTask().baitName = e_setbait.item.name
 end
 
 c_nextfishingmarker = inheritsFrom( ml_cause )
@@ -176,6 +168,7 @@ function c_nextfishingmarker:evaluate()
         end
         
         if (ValidTable(marker)) then
+            ml_task_hub:CurrentTask().missingBait = false
             e_nextfishingmarker.marker = marker
             return true
         end

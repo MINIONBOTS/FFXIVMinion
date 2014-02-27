@@ -152,6 +152,7 @@ function mm.ReadMarkerList(meshname)
 			mm.ConvertMarkerList(infopath)
 		else
 			ml_marker_mgr.ReadMarkerFile(infopath)
+            ml_marker_mgr.DrawMarkerList()
 		end
 		
 		ml_marker_mgr.RefreshMarkerNames()
@@ -188,7 +189,7 @@ function mm.OldReadMarkerList(meshname)
                     table.insert(posTable, tonumber(coord))
                 end
                 if (TableSize(posTable) == 3) then
-                    mm.evacPoint = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
+                    ml_marker_mgr.markerList["evacPoint"] = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
                 end	
             elseif (tag == "version") then
                 version = tonumber(key)
@@ -555,7 +556,7 @@ function mm.ConvertMarkerList(path)
 				end
 			end
 		end
-		
+        
 		--save backup of original info file
 		os.rename(path, path..".old")
 		ml_marker_mgr.markerPath = path

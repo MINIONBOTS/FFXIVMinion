@@ -342,6 +342,21 @@ function ml_marker_mgr.ClearMarkerList()
 	RenderManager:RemoveAllObjects()
 end
 
+function ml_marker_mgr.DrawMarkerList()
+    ml_marker_mgr.renderList = {}
+    RenderManager:RemoveAllObjects()
+    
+    --only draw templated markers
+    for markerType, marker in pairs(ml_marker_mgr.templateList) do
+        local list = ml_marker_mgr.GetList(markerType)
+        if (ValidTable(list)) then
+            for name, marker in pairs(list) do
+                ml_marker_mgr.DrawMarker(marker)
+            end
+        end
+    end
+end
+
 --IO FUNCTIONS
 function ml_marker_mgr.ReadMarkerFile(path)
 	local markerList = persistence.load(path)
