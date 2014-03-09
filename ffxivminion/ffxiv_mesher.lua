@@ -138,6 +138,8 @@ function mm.ModuleInit()
     
     GUI_SizeWindow(mm.mainwindow.name,mm.mainwindow.w,mm.mainwindow.h)
     GUI_WindowVisible(mm.mainwindow.name,false)
+	
+	mm.SetupNavNodes()
 end
 
 function mm.ReadMarkerList(meshname)
@@ -560,6 +562,19 @@ function mm.ConvertMarkerList(path)
 		--save backup of original info file
 		os.rename(path, path..".old")
 		ml_marker_mgr.markerPath = path
+	end
+end
+
+function mm.SetupNavNodes()
+    for id, neighbors in pairs(ffxiv_nav_data) do
+		local node = ml_node:Create()
+		if (ValidTable(node)) then
+			node.id = id
+			for nid, posTable in pairs(neighbors) do
+				node:AddNeighbor(nid, posTable)
+			end
+			ml_nav_manager.AddNode(node)
+		end
 	end
 end
 
