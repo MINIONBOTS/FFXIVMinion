@@ -50,18 +50,6 @@ function ffxiv_task_killtarget:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_killtarget:OnSleep()
-
-end
-
-function ffxiv_task_killtarget:OnTerminate()
-
-end
-
-function ffxiv_task_killtarget:IsGoodToAbort()
-
-end
-
 function ffxiv_task_killtarget:task_complete_eval()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
@@ -133,6 +121,12 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
+	if (Quest:IsLoading() or
+		mm.reloadMeshPending )
+	then
+		return true
+	end
+
     if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
         local myPos = Player.pos
         local gotoPos = ml_task_hub:CurrentTask().pos
@@ -167,14 +161,35 @@ function ffxiv_task_movetopos:task_complete_execute()
     ml_task_hub:CurrentTask().completed = true
 end
 
-function ffxiv_task_movetopos:OnSleep()
+----------------------------------------------------------------------------------------------------------
 
+ffxiv_task_movetomap = inheritsFrom(ml_task)
+function ffxiv_task_movetomap.Create()
+    local newinst = inheritsFrom(ffxiv_task_movetomap)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetomap members
+    newinst.name = "MOVETOMAP"
+    newinst.destMapID = 0
+   
+    return newinst
 end
 
-function ffxiv_task_movetopos:OnTerminate()
-
+function ffxiv_task_movetomap:Init()
+    -- The parent needs to take care of checking and updating the position of this task!!	
+    local ke_moveToGate = ml_element:create( "MoveToGate", c_movetogate, e_movetogate, 10 )
+    self:add( ke_moveToGate, self.process_elements)
+    
+    self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_movetopos:IsGoodToAbort()
-
+function ffxiv_task_movetomap:task_complete_eval()
+    return Player.localmapid == ml_task_hub:CurrentTask().destMapID
 end

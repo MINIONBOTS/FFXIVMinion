@@ -238,6 +238,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
+		["Test"]								= ffxiv_task_test,
 	}
     
     -- setup parent window for minionlib modules

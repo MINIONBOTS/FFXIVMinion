@@ -249,6 +249,34 @@ function e_movetotarget:execute()
     end
 end
 
+---------------------------------------------------------------------------------------------
+--ADD_MOVETOMAP
+--Adds a MoveToGate task 
+---------------------------------------------------------------------------------------------
+c_movetogate = inheritsFrom( ml_cause )
+e_movetogate = inheritsFrom( ml_effect )
+function c_movetogate:evaluate()
+    if (ml_task_hub:CurrentTask().destMapID) then
+        return 	Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and
+				not Quest:IsLoading() and
+				not mm.reloadMeshPending
+	end
+end
+function e_movetogate:execute()
+    ml_debug( "Moving to gate for next map" )
+	
+	local pos = ml_nav_manager.GetNextPathPos(	Player.pos, 
+												Player.localmapid,
+												ml_task_hub:CurrentTask().destMapID	)
+	if (ValidTable(pos)) then
+		local newTask = ffxiv_task_movetopos.Create()
+		local newPos = GetPosFromDistanceHeading(pos, 1.0, pos.h)
+		newTask.pos = newPos
+		newTask.useFollowMovement = true
+		newTask.range = 0.5
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
 
 c_reactonleaderaction = inheritsFrom( ml_cause )
 e_reactonleaderaction= inheritsFrom( ml_effect )
@@ -280,7 +308,6 @@ function c_reactonleaderaction:evaluate()
     end
     return false
 end
-
 
 function e_reactonleaderaction:execute()
     if (c_reactonleaderaction.Reaction == 1) then
@@ -458,7 +485,14 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
-    if (gBotMode == "PVP") then
+    if (gBotMode == "PVP") or
+		Player.localmapid == 130 or
+		Player.localmapid == 131 or
+		Player.localmapid == 132 or
+		Player.localmapid == 133 or
+		Player.localmapid == 128 or
+		Player.localmapid == 129
+	then
         return false
     end
 
