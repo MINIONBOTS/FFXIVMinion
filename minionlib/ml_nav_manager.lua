@@ -15,20 +15,25 @@ function ml_nav_manager.GetNextPathPos(currPos, currID, destID)
         ml_nav_manager.SetNavPath(currID, destID)
     end
 	
-    for index, node in pairsByKeys(ml_nav_manager.currPath) do
-        if (node.id == currID) then
-            local nextNode = ml_nav_manager.currPath[index + 1]
-            if (ValidTable(nextNode)) then
-                local pos = node:GetClosestNeighborPos(currPos,nextNode.id)
-                if (ValidTable(pos)) then
-                    return pos
-                end
-            else
-                ml_debug("Already at last node in path")
-                return -1
-            end
-        end
-    end
+	if (ValidTable(ml_nav_manager.currPath)) then
+		ml_nav_manager.currID = currID
+		ml_nav_manager.destID = destID
+		
+		for index, node in pairsByKeys(ml_nav_manager.currPath) do
+			if (node.id == currID) then
+				local nextNode = ml_nav_manager.currPath[index + 1]
+				if (ValidTable(nextNode)) then
+					local pos = node:GetClosestNeighborPos(currPos,nextNode.id)
+					if (ValidTable(pos)) then
+						return pos
+					end
+				else
+					ml_debug("Already at last node in path")
+					return -1
+				end
+			end
+		end
+	end
 end
 
 function ml_nav_manager.AddNode(node)
@@ -86,7 +91,6 @@ function ml_nav_manager.GetPath(source, dest)
  
 		--calculate a new score for each neighbour
 		for id, neighbor in pairs(best:Neighbors()) do
-			--provided it's not already in the closed set
 			if open[id] then
 				local newdist = data[best.id].distance + best:DistanceTo(id)
 				if newdist < data[id].distance then
