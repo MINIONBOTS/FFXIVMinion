@@ -562,6 +562,9 @@ function mm.ConvertMarkerList(path)
 		--save backup of original info file
 		os.rename(path, path..".old")
 		ml_marker_mgr.markerPath = path
+		
+		--save new markers
+		ml_marker_mgr.WriteMarkerFile(path)
 	end
 end
 
