@@ -126,21 +126,19 @@ end
 
 function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
     if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
-        if (ValidTable(ml_marker_mgr.currentMarker)) then
-            if (ml_marker_mgr.currentMarker:GetType() == markerType) then
-                return ml_marker_mgr.currentMarker
-            else
-                local markerName = Settings.minionlib.lastSelectedMarker[markerType]
-                if (markerName) then
-                    local marker = ml_marker_mgr.GetMarker(markerName)
-                    if (marker) then
-                        ml_marker_mgr.currentMarker = marker
-                        return marker
-                    end
-                else
-                    ml_debug("Error in GetNextMarker_SingleMode - nil entry for last marker of type "..markerType)
-                end
-            end
+        if (ValidTable(ml_marker_mgr.currentMarker) and
+			ml_marker_mgr.currentMarker:GetType() ~= markerType) 
+		then
+			local markerName = Settings.minionlib.lastSelectedMarker[markerType]
+			if (markerName) then
+				local marker = ml_marker_mgr.GetMarker(markerName)
+				if (marker) then
+					ml_marker_mgr.currentMarker = marker
+					return marker
+				end
+			else
+				ml_debug("Error in GetNextMarker_SingleMode - nil entry for last marker of type "..markerType)
+			end
         else
             local marker = ml_marker_mgr.GetMarker(gMarkerMgrName)
             if (marker) then
@@ -570,6 +568,8 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 				Settings.minionlib.lastSelectedMarker[gMarkerMgrType] = gMarkerMgrName
 				Settings.minionlib.lastSelectedMarker = Settings.minionlib.lastSelectedMarker
 			end
+		elseif (k == "gMarkerMgrMode") then
+			Settings.minionlib.gMarkerMgrMode = v
 		end
 	end
 end

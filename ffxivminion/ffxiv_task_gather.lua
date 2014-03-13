@@ -61,11 +61,11 @@ function e_findgatherable:execute()
     ml_debug( "Getting new gatherable target" )
     local minlevel = 1
     local maxlevel = 50
-    if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-        if ValidTable(markerInfo) then
-            minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
-            maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
-        end
+    if (ValidTable(ml_task_hub:CurrentTask().currentMarker) and
+		gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) 
+	then
+		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+		maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
     end
     
     local gatherable = GetNearestGatherable(minlevel,maxlevel)
@@ -165,6 +165,10 @@ function c_nextgathermarker:evaluate()
     if (list ~= nil) then
         return false
     end
+	
+	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+		ml_task_hub:CurrentTask().filterLevel = false
+	end
     
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
