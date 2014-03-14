@@ -24,7 +24,7 @@ function ffxiv_task_test:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_fish.UIInit()
+function ffxiv_task_test.UIInit()
 	GUI_NewField(ml_global_information.MainWindow.Name, "MapID:", "gTestMapID","NavTest")
 	GUI_UnFoldGroup(ml_global_information.MainWindow.Name, "NavTest")
 end
