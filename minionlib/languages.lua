@@ -333,6 +333,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
     },                                  
     ["cn"] =                            
     {                               
@@ -676,6 +677,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
 	},
     ["jp"] =
     {
@@ -1007,6 +1009,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
 	},   
     ["de"] =
     {
@@ -1338,6 +1341,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
 	},     
     ["fr"] =
     {
@@ -1669,6 +1673,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
 	},       
     ["ru"] =
     {
@@ -2000,6 +2005,7 @@ strings =
 		minLevel						= "Min Level",
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
+		useAetherytes					= "Use Aetherytes",
 	},    	
 
 }

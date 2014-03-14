@@ -265,17 +265,56 @@ end
 function e_movetogate:execute()
     ml_debug( "Moving to gate for next map" )
 	
-	local pos = ml_nav_manager.GetNextPathPos(	Player.pos, 
+	local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 												Player.localmapid,
 												ml_task_hub:CurrentTask().destMapID	)
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
-		local newPos = GetPosFromDistanceHeading(pos, 1.0, pos.h)
+		local newPos = GetPosFromDistanceHeading(pos, 1.5, pos.h)
 		newTask.pos = newPos
-		newTask.useFollowMovement = true
-		newTask.range = 0.5
+		--newTask.useFollowMovement = true
+		--newTask.range = 0.5
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
+end
+
+c_teleporttomap = inheritsFrom( ml_cause )
+e_teleporttomap = inheritsFrom( ml_effect )
+function c_teleporttomap:evaluate()
+	if (gUseAetherytes == "0") then
+		return false
+	end
+
+    if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
+        local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
+                                                    Player.localmapid,
+                                                    ml_task_hub:CurrentTask().destMapID	)
+    
+        if (ValidTable(ml_nav_manager.currPath)) then
+            local aethid = nil
+            for _, node in pairsByKeys(ml_nav_manager.currPath) do
+                if (node.id ~= Player.localmapid) then
+                    aethid = GetAetheryteByMapID(node.id)
+                end
+            end
+            
+            if (aethid) then
+                e_teleporttomap.aethid = aethid
+                return true
+            end
+        end
+    end
+    
+    ml_task_hub:CurrentTask().tryTP = false
+    return false
+end
+function e_teleporttomap:execute()
+    ml_global_information.UnstuckTimer = ml_global_information.Now
+    Player:Stop()
+    Dismount()
+    ml_task_hub:ToggleRun()
+    d("Teleporting to aetheryte at index "..tostring(e_teleporttomap.aethid))
+    Player:Teleport(e_teleporttomap.aethid)
 end
 
 c_reactonleaderaction = inheritsFrom( ml_cause )

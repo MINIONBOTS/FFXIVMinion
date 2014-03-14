@@ -166,6 +166,10 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
     
+	if (Settings.FFXIVMINION.gUseAetherytes == nil) then
+		Settings.FFXIVMINION.gUseAetherytes = "0"
+	end
+	
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -177,6 +181,7 @@ function ffxivminion.HandleInit()
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
@@ -226,6 +231,7 @@ function ffxivminion.HandleInit()
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
+	gUseAetherytes = Settings.FFXIVMINION.gUseAetherytes
 	
 	ffxivminion.modes =
 	{
@@ -238,7 +244,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
-		["Test"]								= ffxiv_task_test,
+		["NavTest"]								= ffxiv_task_test,
 	}
     
     -- setup parent window for minionlib modules

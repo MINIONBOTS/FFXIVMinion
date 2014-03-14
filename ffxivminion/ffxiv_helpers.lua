@@ -679,6 +679,17 @@ function GetLocalAetheryte()
     return nil
 end
 
+function GetAetheryteByMapID(id)
+    local list = Player:GetAetheryteList()
+    for index,aetheryte in ipairs(list) do
+        if (aetheryte.territory == id) then
+            return aetheryte.id
+        end
+    end
+    
+    return nil
+end
+
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
     local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)

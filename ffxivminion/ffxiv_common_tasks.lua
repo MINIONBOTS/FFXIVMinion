@@ -178,12 +178,15 @@ function ffxiv_task_movetomap.Create()
     --ffxiv_task_movetomap members
     newinst.name = "MOVETOMAP"
     newinst.destMapID = 0
+    newinst.tryTP = true
    
     return newinst
 end
 
 function ffxiv_task_movetomap:Init()
-    -- The parent needs to take care of checking and updating the position of this task!!	
+    local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
+    self:add( ke_teleportToMap, self.process_elements)
+
     local ke_moveToGate = ml_element:create( "MoveToGate", c_movetogate, e_movetogate, 10 )
     self:add( ke_moveToGate, self.process_elements)
     

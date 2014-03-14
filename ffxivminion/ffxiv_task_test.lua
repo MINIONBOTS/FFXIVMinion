@@ -24,13 +24,20 @@ function ffxiv_task_test:Init()
     self:AddTaskCheckCEs()
 end
 
+function ffxiv_task_fish.UIInit()
+	GUI_NewField(ml_global_information.MainWindow.Name, "MapID:", "gTestMapID","NavTest")
+	GUI_UnFoldGroup(ml_global_information.MainWindow.Name, "NavTest")
+end
+
 function ffxiv_task_test:Process()
-	local mapID = 130
-	if(Player.localMapID ~= mapID) then
-		local task = ffxiv_task_movetomap.Create()
-		task.destMapID = mapID
-		ml_task_hub:CurrentTask():AddSubTask(task)
-	end
+	local mapID = tonumber(gTestMapID)
+    if (mapID and mapID > 0) then
+        if(Player.localMapID ~= mapID) then
+            local task = ffxiv_task_movetomap.Create()
+            task.destMapID = mapID
+            ml_task_hub:CurrentTask():AddSubTask(task)
+        end
+    end
 	
 	if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
