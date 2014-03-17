@@ -334,6 +334,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
     },                                  
     ["cn"] =                            
     {                               
@@ -678,6 +679,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
 	},
     ["jp"] =
     {
@@ -1010,6 +1012,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
 	},   
     ["de"] =
     {
@@ -1342,6 +1345,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
 	},     
     ["fr"] =
     {
@@ -1674,6 +1678,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
 	},       
     ["ru"] =
     {
@@ -2006,6 +2011,7 @@ strings =
 		maxLevel						= "Max Level",
 		markerTime						= "Marker Time (s)",
 		useAetherytes					= "Use Aetherytes",
+		resetDutyTimer 					= "Reset Timer: ",
 	},    	
 
 }

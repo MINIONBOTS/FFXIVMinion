@@ -1,5 +1,5 @@
-ffxiv_task_quest = inheritsFrom(ml_profile_task)
-ffxiv_task_quest.name = "LT_QUEST"
+ffxiv_task_quest = inheritsFrom(ml_task)
+ffxiv_task_quest.name = "LT_QUEST_ENGINE"
 ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]]
 
 function ffxiv_task_quest.Create()
@@ -12,17 +12,10 @@ function ffxiv_task_quest.Create()
     newinst.auxiliary = false
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
-    newinst.name = "LT_PROFILE"
+    newinst.name = "LT_QUEST_ENGINE"
     
-    --ml_profile_task members
-    newinst.currentStep = {}
-	newinst.currentStepCompleted = true
-    newinst.currentStepIndex = 0
-    newinst.profileData = {}
+	newinst.profileCompleted = false
     newinst.profilePath = ""
-    newinst.profileCompleted = false
-    
-    
     
     return newinst
 end
@@ -68,4 +61,14 @@ function ffxiv_task_quest.UpdateProfiles()
     gQuestProfile_listitems = profiles
     gQuestProfile = found
 	ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gQuestProfile..".info")
+end
+
+function ffxiv_task_quest.LoadProfile(profilePath)
+    if (profilePath ~= "" and file_exists(profilePath)) then
+        self.profileData = persistence.load(profilePath)
+        local luaPath = profilePath:sub(1,profilePath:find(".info")).."lua"
+        if (file_exists(luaPath)) then
+            dofile(luaPath)
+        end
+    end
 end

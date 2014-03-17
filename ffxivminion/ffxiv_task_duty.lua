@@ -174,7 +174,7 @@ function e_joinduty:execute()
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 	else
-        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + 300000
+        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + tonumber(gResetDutyTimer)
 		PressDutyJoin()
 	end
 end
@@ -324,6 +324,7 @@ function ffxiv_task_duty.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gDutyTeleport",strings[gCurrentLanguage].dutyMode)
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enterDutyTimer,"gEnterDutyTimer",strings[gCurrentLanguage].dutyMode)
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].leaveDutyTimer,"gLeaveDutyTimer",strings[gCurrentLanguage].dutyMode)
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode)
 
     --init combo boxes
 	if (Settings.FFXIVMINION.gDutyLeader == nil) then
@@ -346,6 +347,10 @@ function ffxiv_task_duty.UIInit()
         Settings.FFXIVMINION.gLeaveDutyTimer = "25000"
     end
 	
+	if (Settings.FFXIVMINION.gResetDutyTimer == nil) then
+        Settings.FFXIVMINION.gResetDutyTimer = "300000"
+    end
+	
 	ffxiv_task_duty.UpdateProfiles()
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
@@ -355,6 +360,7 @@ function ffxiv_task_duty.UIInit()
     gDutyTeleport = Settings.FFXIVMINION.gDutyTeleport
 	gEnterDutyTimer = Settings.FFXIVMINION.gEnterDutyTimer
 	gLeaveDutyTimer = Settings.FFXIVMINION.gLeaveDutyTimer
+	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
 end
 
 function ffxiv_task_duty.UpdateProfiles()
@@ -423,7 +429,8 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gDutyLeader" or
 				k == "gDutyAssist" or
 				k == "gEnterDutyTimer" or
-				k == "gLeaveDutyTimer")
+				k == "gLeaveDutyTimer" or
+				k == "gResetDutyTimer")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
