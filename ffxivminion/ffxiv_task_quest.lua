@@ -1,6 +1,7 @@
 ffxiv_task_quest = inheritsFrom(ml_task)
 ffxiv_task_quest.name = "LT_QUEST_ENGINE"
 ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]]
+ffxiv_task_quest.questList = {}
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -64,11 +65,65 @@ function ffxiv_task_quest.UpdateProfiles()
 end
 
 function ffxiv_task_quest.LoadProfile(profilePath)
+	local profileData = {}
     if (profilePath ~= "" and file_exists(profilePath)) then
-        self.profileData = persistence.load(profilePath)
+        profileData = persistence.load(profilePath)
         local luaPath = profilePath:sub(1,profilePath:find(".info")).."lua"
         if (file_exists(luaPath)) then
             dofile(luaPath)
         end
     end
+	
+	if (ValidTable(profileData)) then
+		--create quest objects for each quest in the profile
+		local quests = profileData.quests
+		if (ValidTable(quests)) then
+			for id, questTable in pairs(quests) do
+				local quest = ffxiv_quest.Create()
+				quest.id = id
+				quest.level = questTable.level
+				quest.prereqs = questTable.prereqs
+				quest.steps = questTable.steps
+				
+				ffxiv_task_quest.questList[id] = quest
+			end
+		end
+	else
+		ml_error("Error reading quest profile")
+	end
 end
+
+c_nextquest = inheritsFrom( ml_cause )
+e_nextquest = inheritsFrom( ml_effect )
+function c_nextquest:evaluate()
+	for id, quest in pairs(ml_task_hub:CurrentTask().questList) do
+		if (quest:canStart()) then
+			e_nextquest.quest = quest
+			return true
+		end
+	end
+	
+	return false
+end
+function e_nextquest:execute()
+	local quest = e_nextquest.quest
+	if (ValidTable(quest)) then
+		local task = quest:CreateTask()
+		ml_task_hub:CurrentTask():AddSubTask(task)
+	end
+end
+
+function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
+    for k,v in pairs(NewVals) do
+		if (	k == "gQuestProfile" ) then
+			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
+			Settings.FFXIVMINION["gLastDutyProfile"] = v
+        elseif (k == "gQuestTeleport")
+        then
+            Settings.FFXIVMINION[tostring(k)] = v
+        end
+    end
+    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+end
+
+RegisterEventHandler("GUI.Update",ffxiv_task_quest.GUIVarUpdate)

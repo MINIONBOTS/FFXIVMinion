@@ -34,7 +34,7 @@ function ml_task_hub:Update()
 			prevQueue = ml_task_hub.queues[prevQueueId]
 		end
 		local currQueueId = 0
-		local didUpate = false
+		local didUpdate = false
 		for index, queue in pairs(ml_task_hub.queues)  do
 			ml_task_hub:HandlePending( queue, prevQueue )
 			if ( queue:HasOrders() ) then

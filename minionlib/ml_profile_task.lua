@@ -34,10 +34,10 @@ function ml_profile_task:Process()
 	end
     
     --then load the next step task and pass it control
-    if (not self:hasCompleted()) then
+	if (not self:hasCompleted()) then
         self:NextStep()
         self:CreateStepTask()
-    end
+	end
     
     return false
 end

@@ -362,10 +362,11 @@ function ml_marker_mgr.ReadMarkerFile(path)
 		ml_marker_mgr.markerList = markerList
 		for type, list in pairs(ml_marker_mgr.markerList) do
 			local templateMarker = ml_marker_mgr.templateList[type]
-			for name, marker in pairs(list) do
-				-- set marker class metatable for each marker
-				setmetatable(marker, {__index = ml_marker})
-				if (ValidTable(templateMarker)) then
+			if (ValidTable(templateMarker)) then
+				for name, marker in pairs(list) do
+					-- set marker class metatable for each marker
+					setmetatable(marker, {__index = ml_marker})
+					
 					for name, fieldTable in pairs(templateMarker.fields) do
 						if (not marker:HasField(name)) then
 							marker:AddField(templateMarker:GetFieldType(name), name, templateMarker:GetFieldValue(name))
