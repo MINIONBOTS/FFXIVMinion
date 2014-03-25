@@ -947,3 +947,62 @@ function e_stealth:execute()
     end
 end
 
+c_roll = inheritsFrom( ml_cause )
+e_roll = inheritsFrom( ml_effect )
+function c_roll:evaluate()	
+	if (Inventory:HasLoot() == false) then
+		return false
+	end
+	
+	local loot = Inventory:GetLootList()
+	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
+		return true
+	end
+    
+    return false
+end
+function e_roll:execute()
+	local loot = Inventory:GetLootList()
+	if (loot) then
+		local i,e = next(loot)
+		while (i~=nil and e~=nil) do    
+			if (ml_task_hub:CurrentTask().rollstate == "Need") then
+				e:Need()
+				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+				ml_task_hub:CurrentTask().rollstate = "Greed"
+			end
+			if (ml_task_hub:CurrentTask().rollstate == "Greed" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
+				e:Greed()
+				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+				ml_task_hub:CurrentTask().rollstate = "Pass"
+			end
+			if (ml_task_hub:CurrentTask().rollstate == "Pass" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
+				e:Pass()
+				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+				ml_task_hub:CurrentTask().rollstate = "Complete"
+			end
+			i,e = next (loot,i)
+		end  
+	end
+end
+
+c_loot = inheritsFrom( ml_cause )
+e_loot = inheritsFrom( ml_effect )
+c_loot.chestid = nil
+function c_loot:evaluate()
+	if (Inventory:HasLoot() == false) then
+		local chest = nil
+		chest = EntityList("type=4,chartype=0,maxdistance=3")
+		if ( chest ) then
+			local i,e = next(chest)
+			if (i~=nil and e~=nil) then
+				c_loot.chestid = e.id
+				return true
+			end
+		end
+	end
+    return false
+end
+function e_loot:execute()
+	Player:Interact(c_loot.chestid)
+end
