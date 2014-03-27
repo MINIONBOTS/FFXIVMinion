@@ -196,3 +196,46 @@ end
 function ffxiv_task_movetomap:task_complete_eval()
     return Player.localmapid == ml_task_hub:CurrentTask().destMapID
 end
+
+ffxiv_task_loot = inheritsFrom(ml_task)
+function ffxiv_task_loot.Create()
+    local newinst = inheritsFrom(ffxiv_task_loot)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+   
+    newinst.name = "LT_LOOT"
+	newinst.lastroll = nil
+	newinst.rollstate = "Need"
+    
+    return newinst
+end
+
+function ffxiv_task_loot:Init() 	
+	local ke_lootroll = ml_element:create( "Roll", c_roll, e_roll, 10 )
+    self:add(ke_lootroll, self.process_elements)
+	
+    local ke_loot = ml_element:create( "Loot", c_loot, e_loot, 5 )
+    self:add(ke_loot, self.process_elements)
+	
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_loot:task_complete_eval()	
+	if (ml_task_hub:CurrentTask().rollstate == "Complete" and
+		Inventory:HasLoot() == false) then
+		return true
+	end
+
+	return false
+end
+
+function ffxiv_task_loot:task_complete_execute()
+    self.completed = true
+	ml_task_hub:CurrentTask():ParentTask().encounterCompleted = true
+end

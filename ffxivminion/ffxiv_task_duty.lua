@@ -201,6 +201,20 @@ function e_leaveduty:execute()
     end
 end
 
+c_lootcheck = inheritsFrom( ml_cause )
+e_lootcheck = inheritsFrom( ml_effect )
+function c_lootcheck:evaluate()
+    if (IsDutyLeader() or Inventory:HasLoot()==false) then
+        return false
+    end	
+	
+    return true
+end
+function e_lootcheck:execute()     
+	local newTask = ffxiv_task_loot.Create()
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 function ffxiv_task_duty:Process()
 	if (IsDutyLeader() and ml_global_information.Now < ml_task_hub:CurrentTask().timer and not Player.incombat) then
 		return false
@@ -294,25 +308,24 @@ function ffxiv_task_duty:Init()
     --init Process() cnes
 	local ke_pressConfirm = ml_element:create( "PressConfirm", c_pressconfirm, e_pressconfirm, 10 )
     self:add(ke_pressConfirm, self.process_elements)
-	
+
     local ke_leaveDuty = ml_element:create( "LeaveDuty", c_leaveduty, e_leaveduty, 15 )
     self:add(ke_leaveDuty, self.process_elements)
-	
+
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements)
 	
+	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 20 )--minion only
+    self:add( ke_lootcheck, self.process_elements)
+
     local ke_assistleaderduty = ml_element:create( "AssistLeader", c_assistleaderduty, e_assistleaderduty, 20 )--minion only
     self:add( ke_assistleaderduty, self.overwatch_elements)
 
     local ke_followleaderduty = ml_element:create( "FollowLeader", c_followleaderduty, e_followleaderduty, 25 )--minion only
     self:add( ke_followleaderduty, self.overwatch_elements)
-
-    local ke_respawning = ml_element:create( "Respawning", c_respawning, e_respawning, 30 )--minion only
-    self:add( ke_respawning, self.overwatch_elements)
-
 	
 	local ke_deadDuty = ml_element:create( "Dead", c_deadduty, e_deadduty, 35 )
-    self:add( ke_deadDuty, self.overwatch_elements)
+    self:add( ke_deadDuty, self.overwatch_elements)	
   
     self:AddTaskCheckCEs()
 end
