@@ -106,6 +106,8 @@ function mm.ModuleInit()
     RegisterEventHandler("deleteoffMeshEvent", mm.DeleteOMC)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].biDirOffMesh,"gBiDirOffMesh",strings[gCurrentLanguage].editor)
     
+    GUI_NewButton(mm.mainwindow.name,"CreateSingleCell","createSingleCell",strings[gCurrentLanguage].editor)
+    RegisterEventHandler("createSingleCell", mm.CreateSingleCell)
     
     gShowMesh = "0"
     gShowRealMesh = "0"
@@ -580,6 +582,14 @@ function mm.SetupNavNodes()
 		end
 	end
 end
+
+function mm.CreateSingleCell()
+	d("Creating a single cell outside the raster!")
+	local pPos = Player.pos
+	local newVertexCenter = { x=pPos.x, y=pPos.y, z=pPos.z }
+	d(MeshManager:CreateSingleCell(newVertexCenter))
+end
+
 
 RegisterEventHandler("ToggleMeshmgr", mm.ToggleMenu)
 RegisterEventHandler("GUI.Update",mm.GUIVarUpdate)
