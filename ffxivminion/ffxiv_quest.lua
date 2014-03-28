@@ -20,9 +20,19 @@ function ffxiv_quest:CreateTask()
 end
 
 function ffxiv_quest:canStart()
-	for _, questid in pairs(prereqs) do
-		if (not Quest:IsQuestCompleted(questid)) then
-			return false
+	if (not ValidTable(self.prereqs)) then
+		return true
+	end
+	
+	for jobid, questids in pairsByKeys(self.prereqs) do
+		if (jobid == tostring(Player.job) or
+			jobid == "0") 
+		then
+			for _, questid in pairs(questids) do
+				if (not Quest:IsQuestCompleted(questid)) then
+					return false
+				end
+			end
 		end
 	end
 	
@@ -54,7 +64,8 @@ function ffxiv_quest:GetCompleteTask()
 end
 
 function ffxiv_quest:GetStepTask(stepIndex)
-	local params = quest.steps[stepIndex+1]
+	local params = self.steps[stepIndex+1]
+	d(params)
 	local task = ffxiv_quest.tasks[params.type]
 	task.params = params
 	
@@ -68,8 +79,8 @@ end
 
 ffxiv_quest.tasks = 
 {
-	["start"] 		= ffxiv_quest_start,
-	["complete"] 	= ffxiv_quest_complete,
+	--["start"] 		= ffxiv_quest_start,
+	--["complete"] 	= ffxiv_quest_complete,
 	["interact"] 	= ffxiv_quest_interact,
-	["killmobs"]	= ffxiv_quest_kill,
+	--["killmobs"]	= ffxiv_quest_kill,
 }

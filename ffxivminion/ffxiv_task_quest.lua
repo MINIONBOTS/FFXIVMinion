@@ -65,9 +65,11 @@ function ffxiv_task_quest.UpdateProfiles()
 end
 
 function ffxiv_task_quest.LoadProfile(profilePath)
+	d("Loading quest profile from "..profilePath)
 	local profileData = {}
+	local e = nil
     if (profilePath ~= "" and file_exists(profilePath)) then
-        profileData = persistence.load(profilePath)
+        profileData, e = persistence.load(profilePath)
         local luaPath = profilePath:sub(1,profilePath:find(".info")).."lua"
         if (file_exists(luaPath)) then
             dofile(luaPath)
@@ -90,6 +92,7 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 		end
 	else
 		ml_error("Error reading quest profile")
+		ml_error(e)
 	end
 end
 
@@ -113,11 +116,17 @@ function e_nextquest:execute()
 	end
 end
 
+function ffxiv_task_quest:Init()
+    --init ProcessOverWatch cnes
+    local ke_nextQuest = ml_element:create( "NextQuest", c_nextquest, e_nextquest, 25 )
+    self:add( ke_nextQuest, self.process_elements)
+end
+
 function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gQuestProfile" ) then
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
-			Settings.FFXIVMINION["gLastDutyProfile"] = v
+			Settings.FFXIVMINION["gLastQuestProfile"] = v
         elseif (k == "gQuestTeleport")
         then
             Settings.FFXIVMINION[tostring(k)] = v

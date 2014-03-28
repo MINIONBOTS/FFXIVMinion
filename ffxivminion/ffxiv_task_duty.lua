@@ -162,7 +162,9 @@ function c_joinduty:evaluate()
 	if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and 
 		Player.localmapid ~= ffxiv_task_duty.mapID and
 		ml_global_information.Now > ml_task_hub:CurrentTask().joinTimer and
-        IsDutyLeader()) 
+        IsDutyLeader() and
+		(TableSize(EntityList.myparty) == 4 or
+		TableSize(EntityList.myparty) == 8)) 
 	then
 		return true
 	end
@@ -199,6 +201,33 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now
         PressYesNo(true)
     end
+end
+
+c_changeleader = inheritsFrom( ml_cause )
+e_changeleader = inheritsFrom( ml_effect )
+function c_changeleader:evaluate()
+	if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and not Quest:IsLoading()) then
+		local Plist = EntityList.myparty
+		if (TableSize(Plist) > 0 ) then
+			local i,member = next (Plist)
+			while (i~=nil and member~=nil ) do
+				if ( member.isleader ) then
+					if (member.name ~= gDutyLeader) then
+						e_changeleader.name = member.name
+						return true
+					else
+						return false
+					end
+				end
+				i,member = next (Plist,i)
+			end
+		end
+	end
+	
+	return false
+end
+function e_changeleader:execute()
+	gDutyLeader = e_changeleader.name
 end
 
 function ffxiv_task_duty:Process()
@@ -300,6 +329,9 @@ function ffxiv_task_duty:Init()
 	
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements)
+	
+	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 16 )
+    self:add(ke_changeLeader, self.process_elements)
 	
     local ke_assistleaderduty = ml_element:create( "AssistLeader", c_assistleaderduty, e_assistleaderduty, 20 )--minion only
     self:add( ke_assistleaderduty, self.overwatch_elements)

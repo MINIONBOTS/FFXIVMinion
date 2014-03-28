@@ -628,7 +628,8 @@ local obj1 = {
 	    [595] = {
 			["level"] = "4";
 			["prereq"] = {
-				[1] = 
+				[1] = "temp";
+			};
 			["steps"] = {
 				[1] = {
 					["type"] = "start";
@@ -803,7 +804,7 @@ local obj1 = {
 					};
 					["id"] = 1001455;
 					["itemturnin"] = true;
-					["itemturninid" = 2000199;
+					["itemturninid"] = 2000199;
 				};
 				[3] = {
 					["type"] = "complete";
@@ -815,7 +816,7 @@ local obj1 = {
 					};
 					["id"] = 1001541;
 					["itemturnin"] = true;
-					["itemturninid" = 2000238;
+					["itemturninid"] = 2000238;
 				};
 		[324] = {
 			["level"] = "7";
@@ -885,7 +886,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemturnin"] = true;
 					["itemrewardslot"] = 2;
-					["itemturninid" = 2000234;
+					["itemturninid"] = 2000234;
 				};
 		[305] = {
 			["level"] = "8";
@@ -927,7 +928,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemturnin"] = true;
 					["itemrewardslot"] = 3;
-					["itemturninid" = 2000168;
+					["itemturninid"] = 2000168;
 				};
 		[306] = {
 			["level"] = "8";
@@ -967,7 +968,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemturnin"] = true;
 					["itemrewardslot"] = 3;
-					["itemturninid" = 2000168;
+					["itemturninid"] = 2000168;
 				};
 	    [149] = {
 			["level"] = "1";
