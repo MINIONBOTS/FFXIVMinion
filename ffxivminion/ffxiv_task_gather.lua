@@ -19,6 +19,7 @@ function ffxiv_task_gather.Create()
     newinst.previousMarker = false
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
+	newinst.rareAttempts = 0
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
 	newinst.gatheredMap = false
 	newinst.gatheredGardening = false
@@ -68,8 +69,7 @@ function e_findgatherable:execute()
     if (gatherable ~= nil) then
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
-		ml_task_hub:CurrentTask().gatheredMap = false
-		ml_task_hub:CurrentTask().gatheredGardening = false
+		ml_task_hub:CurrentTask().rareAttempts = 0
         ml_task_hub:CurrentTask().gatherid = gatherable.id		
 				
 		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
@@ -286,32 +286,29 @@ function e_gather:execute()
         end
         -- first check to see if we have a gathermanager marker
 		
-		-- first try to get treasure maps
-		if (not ml_task_hub:CurrentTask().gatheredMap) then
-			for i, item in pairs(list) do
-				if 	item.id == 6692 or
-					item.id == 6688 or
-					item.id == 6691 or
-					item.id == 6690 or
-					item.id == 6689
-				then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatheredMap = true
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
+		if (ml_task_hub:CurrentTask().rareAttempts < 5) then
+			-- first try to get treasure maps
+			if (not ml_task_hub:CurrentTask().gatheredMap) then
+				for i, item in pairs(list) do
+					if 	(ffxiv_task_gather.maps[item.id]) then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().rareAttempts = ml_task_hub:CurrentTask().rareAttempts + 1
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
 				end
 			end
-		end
-		
-		-- second try to get gardening supplies
-		if (not ml_task_hub:CurrentTask().gatheredGardening) then
-			for i, item in pairs(list) do
-				if 	(ffxiv_task_gather.gardening[item.id])
-				then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatheredGardening = true
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
+			
+			-- second try to get gardening supplies
+			if (not ml_task_hub:CurrentTask().gatheredGardening) then
+				for i, item in pairs(list) do
+					if 	(ffxiv_task_gather.gardening[item.id])
+					then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().rareAttempts = ml_task_hub:CurrentTask().rareAttempts + 1
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
 				end
 			end
 		end
@@ -342,7 +339,10 @@ function e_gather:execute()
         
         -- otherwise just grab a random item 
         for i, item in pairs(list) do
-            if item.chance > 50 then
+            if 	item.chance > 50 and not 
+				ffxiv_task_gather.gardening[item.id] and not
+				ffxiv_task_gather.maps[item.id] 
+			then
                 Player:Gather(item.index)
                 ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
                 return
@@ -592,3 +592,12 @@ ffxiv_task_gather.gardening =
 	[7725] = true,
 	[7767] = true,
 }        
+
+ffxiv_task_gather.maps = 
+{
+	[6692] = true,
+	[6688] = true,
+	[6691] = true,
+	[6690] = true,
+	[6689] = true,
+}
