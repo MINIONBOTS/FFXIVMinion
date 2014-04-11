@@ -5,7 +5,7 @@ function ffxiv_quest.Create()
 	
 	quest.id = 0
 	quest.level = 0
-	quest.prereqs = {}
+	quest.prereq = {}
 	quest.steps = {}
 	
 	return quest
@@ -20,16 +20,19 @@ function ffxiv_quest:CreateTask()
 end
 
 function ffxiv_quest:canStart()
-	if (not ValidTable(self.prereqs)) then
-		return true
+	if (self:isComplete()) then
+		return false
+	end
+	if (not ValidTable(self.prereq)) then
+		return false
 	end
 	
-	for jobid, questids in pairsByKeys(self.prereqs) do
+	for jobid, questids in pairsByKeys(self.prereq) do
 		if (jobid == tostring(Player.job) or
 			jobid == "0") 
 		then
 			for _, questid in pairs(questids) do
-				if (not Quest:IsQuestCompleted(questid)) then
+				if (not ffxiv_task_quest.completedQuestIDs[questid]) then
 					return false
 				end
 			end
@@ -44,29 +47,26 @@ function ffxiv_quest:isStarted()
 end
 
 function ffxiv_quest:isComplete()
-	return Quest:IsQuestCompleted(self.id)
+	return ffxiv_task_quest.completedQuestIDs[self.id] ~= nil
 end
 
 function ffxiv_quest:GetStartTask()
 	local task = ffxiv_quest_start.Create()
-	task.params = quest.steps[1]
-	--task.quest = self
+	task.params = self.steps[1]
 	
 	return task
 end
 
 function ffxiv_quest:GetCompleteTask()
 	local task = ffxiv_quest_complete.Create()
-	task.params = quest.steps[TableSize(quest.steps)]
-	--task.quest = self
+	task.params = self.steps[TableSize(self.steps)]
 	
 	return task
 end
 
 function ffxiv_quest:GetStepTask(stepIndex)
-	local params = self.steps[stepIndex+1]
-	d(params)
-	local task = ffxiv_quest.tasks[params.type]
+	local params = self.steps[stepIndex]
+	local task = ffxiv_quest.tasks[params.type]()
 	task.params = params
 	
 	return task
@@ -79,8 +79,8 @@ end
 
 ffxiv_quest.tasks = 
 {
-	--["start"] 		= ffxiv_quest_start,
-	--["complete"] 	= ffxiv_quest_complete,
-	["interact"] 	= ffxiv_quest_interact,
-	--["killmobs"]	= ffxiv_quest_kill,
+	["start"] 		= ffxiv_quest_start.Create,
+	["complete"] 	= ffxiv_quest_complete.Create,
+	["interact"] 	= ffxiv_quest_interact.Create,
+	["kill"]		= ffxiv_quest_kill.Create,
 }

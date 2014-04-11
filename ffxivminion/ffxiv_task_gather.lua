@@ -20,6 +20,7 @@ function ffxiv_task_gather.Create()
 	newinst.gatherDistance = 1.5
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
 	newinst.gatheredMap = false
+	newinst.gatheredGardening = false
     newinst.idleTimer = 0
 	newinst.filterLevel = true
     
@@ -275,7 +276,7 @@ function e_gather:execute()
         end
 
 		-- first try to get treasure maps
-		if (gGatherMaps == "1" and not ml_task_hub:CurrentTask().gatheredMap) then
+		if (not ml_task_hub:CurrentTask().gatheredMap) then
 			for i, item in pairs(list) do
 				if 	item.id == 6692 or
 					item.id == 6688 or
@@ -285,6 +286,19 @@ function e_gather:execute()
 				then
 					Player:Gather(item.index)
 					ml_task_hub:CurrentTask().gatheredMap = true
+					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+					return
+				end
+			end
+		end
+		
+		-- second try to get gardening supplies
+		if (not ml_task_hub:CurrentTask().gatheredGardening) then
+			for i, item in pairs(list) do
+				if 	(ffxiv_task_gathering.gardening[item.id])
+				then
+					Player:Gather(item.index)
+					ml_task_hub:CurrentTask().gatheredGardening = true
 					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 					return
 				end
@@ -492,3 +506,60 @@ function ffxiv_task_gather.SetupMarkers()
     ml_marker_mgr.RefreshMarkerTypes()
 	ml_marker_mgr.RefreshMarkerNames()
 end
+
+ffxiv_task_gather.gardening =
+{
+	[7754] = true,
+	[7757] = true,
+	[7756] = true,
+	[7755] = true,
+	[7752] = true,
+	[7745] = true,
+	[7748] = true,
+	[7751] = true,
+	[7747] = true,
+	[7750] = true,
+	[7753] = true,
+	[7746] = true,
+	[7749] = true,
+	[7724] = true,
+	[7734] = true,
+	[7733] = true,
+	[7760] = true,
+	[7763] = true,
+	[7766] = true,
+	[7732] = true,
+	[7731] = true,
+	[7744] = true,
+	[7759] = true,
+	[7762] = true,
+	[7765] = true,
+	[7730] = true,
+	[7743] = true,
+	[7742] = true,
+	[7741] = true,
+	[7758] = true,
+	[7761] = true,
+	[7764] = true,
+	[7723] = true,
+	[7722] = true,
+	[7721] = true,
+	[7739] = true,
+	[7740] = true,
+	[7738] = true,
+	[7729] = true,
+	[7720] = true,
+	[7728] = true,
+	[7727] = true,
+	[7737] = true,
+	[7718] = true,
+	[7717] = true,
+	[7719] = true,
+	[7736] = true,
+	[7716] = true,
+	[7735] = true,
+	[7715] = true,
+	[7726] = true,
+	[7725] = true,
+	[7767] = true,
+}        

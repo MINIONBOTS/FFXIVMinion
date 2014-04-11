@@ -26,7 +26,6 @@ end
 
 function ffxiv_task_test.UIInit()
 	GUI_NewField(ml_global_information.MainWindow.Name, "MapID:", "gTestMapID","NavTest")
-	GUI_UnFoldGroup(ml_global_information.MainWindow.Name, "NavTest")
 end
 
 function ffxiv_task_test:Process()

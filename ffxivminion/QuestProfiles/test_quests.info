@@ -1,0 +1,43 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[149] = {
+			["level"] = 1;
+			["prereq"] = {
+				[1] = 568
+			};
+			["steps"] = {
+				[1] = {
+					["type"] = "start";
+					["mapid"] = 130;
+					["pos"] = {
+						["x"] = -68;
+						["y"] = 4;
+						["z"] = -126;
+					};
+					["id"] = 1001285;
+				};
+				[2] = {
+					["type"] = "complete";
+					["mapid"] = 130;
+					["pos"] = {
+						["x"] = -90;
+						["y"] = 2;
+						["z"] = -54;
+					};
+					["id"] = 1002278;
+					["itemreward"] = false;
+					["itemturnin"] = true;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						2000136
+					};
+				};
+			};
+		};
+	};	
+}
+return obj1

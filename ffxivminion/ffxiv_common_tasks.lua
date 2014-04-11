@@ -55,7 +55,6 @@ function ffxiv_task_killtarget:task_complete_eval()
     if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
         return true
     end
-    
     return false
 end
 

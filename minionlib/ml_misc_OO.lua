@@ -53,6 +53,19 @@ function inheritsFrom( baseClass )
         return b_isa
     end
 
+	-- Inherit variables
+	if (baseClass) then
+		for name,value in pairs(baseClass) do
+			if (type(value) == "table" or
+				type(value) == "string" or
+				type(value) == "number" or
+				type(value) == "boolean" )
+			then
+				new_class[name] = value
+			end
+		end
+	end
+	
     return new_class
 end
 

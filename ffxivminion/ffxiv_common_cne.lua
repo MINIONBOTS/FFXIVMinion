@@ -586,9 +586,7 @@ function e_sprint:execute()
     ActionList:Get(3):Cast()
 end
 
--- The movetotask in the killtask needs to always have up2date data since the targt is also moving away sometimes. Therefore giving the movetopos task the data and let 
--- it handle the (dynamic) movement of enemies is better than just doing a "is in range, terminate movetopos", since it doesnt account for moving enemies if I haven't missed 
--- stuff so far. Also this way we can terminate the killtask when the enemy died meanwhile.
+--minor abuse of the cne system here to update target pos
 c_updatetarget = inheritsFrom( ml_cause )
 e_updatetarget = inheritsFrom( ml_effect )
 function c_updatetarget:evaluate()	
@@ -597,18 +595,14 @@ function c_updatetarget:evaluate()
         if (target ~= nil) then
             if (target.alive and target.attackable) then
                 if (ml_task_hub:CurrentTask().name == "MOVETOPOS" ) then
-                    ml_task_hub:CurrentTask().pos = target.pos					
+					e_updatetarget.pos = target.pos				
                 end
-                return false
+				return false
             end
         end
     end	
-    -- our target which we moveto (in order to kill) is not there anymore/dead/not selectable, we can kill the current killtask
-    return true
 end
 function e_updatetarget:execute()
-    Player:Stop()
-    ml_task_hub:ThisTask():Terminate()
 end
 
 

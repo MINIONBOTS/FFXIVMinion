@@ -12,6 +12,8 @@ ml_task.auxiliary = false
 ml_task.process_elements = {}
 ml_task.overwatch_elements = {}
 ml_task.breakUpdate = false
+ml_task.delayTime = 0
+ml_task.delayTimer = 0
 
 -- These functions are NOT overwritten in derived tasks
 
@@ -104,7 +106,12 @@ function ml_task:Update()
         else
 			ml_debug(self.name.."->Process()")
 			gFFXIVMinionTask = self.name
-            continueUpdate = self:Process()
+			if(TimeSince(self.delayTime) > self.delayTimer) then
+				continueUpdate = self:Process()
+			else
+				ml_debug("Delaying Process for "..tostring(self.delayTimer - (ml_global_information.Now - self.delayTime)).."ms")
+				continueUpdate = false
+			end
         end
     end
 	ml_debug(self.name.."->Update() returning")
@@ -138,6 +145,17 @@ function ml_task:ProcessOverWatch()
 
 		ml_cne_hub.queue_to_execute()
 		return ml_cne_hub.execute()
+	end
+end
+
+function ml_task:SetDelay(delayTimer)
+	if(	type(delayTimer) == "number" and
+		delayTimer > 0)
+	then
+		self.delayTime = ml_global_information.Now
+		self.delayTimer = delayTimer
+	else
+		ml_error("Invalid delaytimer input")
 	end
 end
 
