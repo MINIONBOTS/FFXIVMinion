@@ -23,17 +23,16 @@ function ffxiv_quest:canStart()
 	if (self:isComplete()) then
 		return false
 	end
-	if (not ValidTable(self.prereq)) then
-		return false
-	end
 	
-	for jobid, questids in pairsByKeys(self.prereq) do
-		if (jobid == tostring(Player.job) or
-			jobid == "0") 
-		then
-			for _, questid in pairs(questids) do
-				if (not ffxiv_task_quest.completedQuestIDs[questid]) then
-					return false
+	if(ValidTable(self.prereq)) then
+		for jobid, questids in pairsByKeys(self.prereq) do
+			if (jobid == Player.job or
+				jobid == -1) 
+			then
+				for _, questid in pairs(questids) do
+					if (not Settings.FFXIVMINION.completedQuestIDs[questid]) then
+						return false
+					end
 				end
 			end
 		end
@@ -47,7 +46,7 @@ function ffxiv_quest:isStarted()
 end
 
 function ffxiv_quest:isComplete()
-	return ffxiv_task_quest.completedQuestIDs[self.id] ~= nil
+	return Settings.FFXIVMINION.completedQuestIDs[self.id] ~= nil
 end
 
 function ffxiv_quest:GetStartTask()

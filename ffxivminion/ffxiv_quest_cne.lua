@@ -21,8 +21,17 @@ end
 function e_questcanstart:execute()
 	local task = ml_task_hub:CurrentTask().quest:GetStartTask()
 	if (ValidTable(task)) then
+		if(task.params["meshname"] ~= nil) then
+			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
+				mm.ChangeNavMesh(task.params["meshname"])
+			end
+		end
+	
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
+		ml_task_hub:CurrentTask().currentStepIndex = 1
+		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().currentStepIndex)
+		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
 	end
 end
 
@@ -34,6 +43,12 @@ end
 function e_questiscomplete:execute()
 	local task = ml_task_hub:CurrentTask().quest:GetCompleteTask()
 	if (ValidTable(task)) then
+		if(task.params["meshname"] ~= nil) then
+			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
+				mm.ChangeNavMesh(task.params["meshname"])
+			end
+		end
+	
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 	end
@@ -54,11 +69,18 @@ function e_nextqueststep:execute()
 	ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
 	if (ValidTable(task)) then
+		if(task.params["meshname"] ~= nil) then
+			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
+				mm.ChangeNavMesh(task.params["meshname"])
+			end
+		end
+		
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
 		ml_task_hub:ThisTask().currentStepCompleted = false
 		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().currentStepIndex)
+		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
 	end
 end
 

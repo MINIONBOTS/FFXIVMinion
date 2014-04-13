@@ -52,6 +52,8 @@ function mm.ModuleInit()
 			[337] = "Wolves Den",
 			[336] = "Wolves Den",
 			[175] = "Wolves Den",
+			[130] = "Uldah",
+			[131] = "Uldah",
 		}
     end
     

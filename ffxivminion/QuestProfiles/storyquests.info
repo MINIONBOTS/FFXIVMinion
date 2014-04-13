@@ -6,7 +6,7 @@ local obj1 = {
 	["quests"] = {
 		[594] = {
 			["level"] = 1;
-			["prereq"] = "none";
+			["prereq"] = false;
 			["steps"] = {
 				[1] = {
 					["type"] = "start";
@@ -17,6 +17,7 @@ local obj1 = {
 						["z"] = -152;
 					};
 					["id"] = 1003987;
+					["meshname"] = "UlDah"
 				};
 				[2] = {
 					["type"] = "complete";
@@ -31,6 +32,7 @@ local obj1 = {
 					["itemturnin"] = false;
 					["itemrewardslot"] = 0;
 					["itemturninid"] = 0;
+					["meshname"] = "UlDah"
 				};
 			};
 		};
@@ -38,8 +40,10 @@ local obj1 = {
 			["level"] = 1;
 			["job"] = 1;
 			["prereq"] = {
-			    [1] = 598
-			    };	
+			    [-1] = {
+					[1] = 598;
+				};
+			};	
 			["steps"] = {
 				[1] = {
 					["type"] = "start";
@@ -50,6 +54,7 @@ local obj1 = {
 						["z"] = -78.900001525879;
 					};
 					["id"] = 1003988;
+					["meshname"] = "UlDah"
 				};
 				[2] = {
 					["type"] = "interact";
@@ -104,7 +109,9 @@ local obj1 = {
 	    [595] = {
 			["level"] = 4;
 			["prereq"] = {
-				[1] = 568;
+				[1] = {
+					[1] = 568;
+				};
 			};
 			["steps"] = {
 				[1] = {
@@ -136,8 +143,10 @@ local obj1 = {
 		[671] = {
 			["level"] = 5;
 			["prereq"] = {
-				[1] = 595;
+				[1] = {
+					[1] = 595;
 				};
+			};
 			["steps"] = {
 				[1] = {
 					["type"] = "start";

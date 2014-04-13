@@ -30,7 +30,8 @@ function ffxiv_quest_task:task_complete_eval()
 end
 
 function ffxiv_quest_task:task_complete_execute()
-	ffxiv_task_quest.completedQuestIDs[self.quest.id] = true
+	Settings.FFXIVMINION.completedQuestIDs[self.quest.id] = true
+	Settings.FFXIVMINION.completedQuestIDs = Settings.FFXIVMINION.completedQuestIDs
 	self.completed = true
 end
 
@@ -73,6 +74,10 @@ function ffxiv_quest_start.Create()
     return newinst
 end
 
+function ffxiv_quest_start:task_complete_eval()
+	return ffxiv_task_quest.currentQuest:isStarted()
+end
+
 function ffxiv_quest_start:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -90,7 +95,6 @@ function ffxiv_quest_start:Init()
 	local ke_questAccept = ml_element:create( "QuestAccept", c_questaccept, e_questaccept, 15 )
     self:add( ke_questAccept, self.process_elements)
 	
-	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

@@ -26,6 +26,10 @@ function randomize(val)
 	return 0
 end
 
+function TimeSince(previousTime)
+    return ml_global_information.Now - previousTime
+end
+
 function PathDistance(posTable)
 	if ( TableSize(posTable) > 0) then
 		local distance = 0

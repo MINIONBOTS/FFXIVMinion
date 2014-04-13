@@ -3,7 +3,6 @@ ffxiv_task_quest.name = "LT_QUEST_ENGINE"
 ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]]
 ffxiv_task_quest.questList = {}
 ffxiv_task_quest.currentQuest = {}
-ffxiv_task_quest.completedQuestIDs = {}
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -47,6 +46,14 @@ function ffxiv_task_quest.UIInit()
 	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
         Settings.FFXIVMINION.gCurrQuestStep = ""
     end
+	
+	if (Settings.FFXIVMINION.completedQuestIDs == nil) then
+		Settings.FFXIVMINION.completedQuestIDs = {}
+	end
+	
+	if (Settings.FFXIVMINION.currentQuestStep == nil) then
+		Settings.FFXIVMINION.currentQuestStep = 0
+	end
 	
 	ffxiv_task_quest.UpdateProfiles()
     
@@ -123,7 +130,7 @@ end
 c_testquest = inheritsFrom( ml_cause )
 e_testquest = inheritsFrom( ml_effect )
 function c_testquest:evaluate()
-	if(gCurrQuestID and tonumber(gCurrQuestID) > 0) then
+	if(gCurrQuestID ~= "" and tonumber(gCurrQuestID) > 0) then
 		return ValidTable(ffxiv_task_quest.questList[tonumber(gCurrQuestID)])
 	end
 end
@@ -131,7 +138,12 @@ function e_testquest:execute()
 	local quest = ffxiv_task_quest.questList[tonumber(gCurrQuestID)]
 	if (ValidTable(quest)) then
 		local task = quest:CreateTask()
-		task.currentStepIndex = tonumber(gCurrQuestStep-1) or 1
+		if(gCurrQuestStep ~= "") then
+			task.currentStepIndex = (tonumber(gCurrQuestStep)-1)
+		else
+			task.currentStepIndex = 1
+		end
+		
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		ffxiv_task_quest.currentQuest = quest
