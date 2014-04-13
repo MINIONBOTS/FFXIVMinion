@@ -138,7 +138,7 @@ function e_testquest:execute()
 	local quest = ffxiv_task_quest.questList[tonumber(gCurrQuestID)]
 	if (ValidTable(quest)) then
 		local task = quest:CreateTask()
-		if(gCurrQuestStep ~= "") then
+		if(gCurrQuestStep and gCurrQuestStep ~= "") then
 			task.currentStepIndex = (tonumber(gCurrQuestStep)-1)
 		else
 			task.currentStepIndex = 1
@@ -153,6 +153,14 @@ end
 c_nextquest = inheritsFrom( ml_cause )
 e_nextquest = inheritsFrom( ml_effect )
 function c_nextquest:evaluate()
+	if(	Settings.FFXIVMINION.currentQuestID ~= nil and 
+		Quest:HasQuest(Settings.FFXIVMINION.currentQuestID) and
+		ValidTable(ffxiv_task_quest.questList[Settings.FFXIVMINION.currentQuestID]))
+	then
+		e_nextquest.quest = ffxiv_task_quest.questList[Settings.FFXIVMINION.currentQuestID]
+		return true
+	end
+
 	for id, quest in pairs(ml_task_hub:CurrentTask().questList) do
 		if (quest:canStart()) then
 			e_nextquest.quest = quest
@@ -170,6 +178,7 @@ function e_nextquest:execute()
 		
 		ffxiv_task_quest.currentQuest = quest
 		gCurrQuestID = quest.id
+		Settings.FFXIVMINION.currentQuestID = tonumber(gCurrQuestID)
 	end
 end
 
@@ -178,8 +187,8 @@ function ffxiv_task_quest:Init()
     local ke_nextQuest = ml_element:create( "NextQuest", c_nextquest, e_nextquest, 20 )
     self:add( ke_nextQuest, self.process_elements)
 	
-	local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
-    self:add( ke_testQuest, self.process_elements)
+	--local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
+    --self:add( ke_testQuest, self.process_elements)
 	
 	--overwatch elements
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
@@ -190,7 +199,6 @@ function ffxiv_task_quest:Init()
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
     self:add( ke_rest, self.overwatch_elements)
-	
 	
 	self:AddTaskCheckCEs()
 end

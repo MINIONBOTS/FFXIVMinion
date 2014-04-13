@@ -41,7 +41,7 @@ local obj1 = {
 			["job"] = 1;
 			["prereq"] = {
 			    [-1] = {
-					[1] = 598;
+					[1] = 594;
 				};
 			};	
 			["steps"] = {
@@ -65,6 +65,7 @@ local obj1 = {
 						["z"] = -169.69999694824;
 					};
 					["id"] = 9;
+					["delay"] = 20000;
 				};
 				[3] = {
 					["type"] = "interact";
@@ -89,6 +90,7 @@ local obj1 = {
 					["itemturninid"] = {
 						2000386;
 					};
+					["delay"] = 20000;
 				};
 				[5] = {
 					["type"] = "complete";

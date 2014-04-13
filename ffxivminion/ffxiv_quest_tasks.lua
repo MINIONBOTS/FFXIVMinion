@@ -95,6 +95,15 @@ function ffxiv_quest_start:Init()
 	local ke_questAccept = ml_element:create( "QuestAccept", c_questaccept, e_questaccept, 15 )
     self:add( ke_questAccept, self.process_elements)
 	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.process_elements)
+	
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
@@ -120,6 +129,14 @@ function ffxiv_quest_complete.Create()
     return newinst
 end
 
+function ffxiv_quest_complete:task_complete_eval()
+	if(self:ParentTask().currentStepIndex == TableSize(ffxiv_task_quest.currentQuest.steps)) then
+		return not Quest:HasQuest(ffxiv_task_quest.currentQuest.id)
+	end
+	
+	return false
+end
+
 function ffxiv_quest_complete:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -140,7 +157,15 @@ function ffxiv_quest_complete:Init()
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)
 	
-	self.task_complete_eval = quest_step_complete_eval
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+	
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.process_elements)
+	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
@@ -183,6 +208,15 @@ function ffxiv_quest_interact:Init()
 	
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)
+	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+	
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.process_elements)
 
 	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
@@ -222,11 +256,60 @@ function ffxiv_quest_kill:Init()
 	local ke_questKill = ml_element:create( "QuestKill", c_questkill, e_questkill, 20 )
     self:add( ke_questKill, self.process_elements)
 	
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.process_elements)
+	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
 
 function ffxiv_quest_kill:task_complete_eval()
-	return 	(not self.params["killcount"] and self.killCount == 1) or
-			(self.params["killcount"] == self.killCount)
+	if((not self.params["killcount"] and self.killCount == 1) or
+		(self.params["killcount"] == self.killCount))
+	then
+		Settings.FFXIVMINION.questKillCount = nil
+		return true
+	end
+	
+	return false
+end
+
+ffxiv_quest_nav = inheritsFrom(ml_task)
+ffxiv_quest_nav.name = "QUEST_NAVIGATE"
+
+function ffxiv_quest_nav.Create()
+    local newinst = inheritsFrom(ffxiv_quest_nav)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_NAVIGATE"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_nav:task_complete_eval()
+	local myPos = Player.pos
+	local gotoPos = self.params["pos"]
+	local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+	
+	if (distance <= 1.0) then
+		return true
+	end
+end
+
+function ffxiv_quest_nav:Init()
+    --init ProcessOverWatch cnes
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+    self:add( ke_questMoveToPos, self.process_elements)
+
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
 end

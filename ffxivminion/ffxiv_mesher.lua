@@ -52,8 +52,6 @@ function mm.ModuleInit()
 			[337] = "Wolves Den",
 			[336] = "Wolves Den",
 			[175] = "Wolves Den",
-			[130] = "Uldah",
-			[131] = "Uldah",
 		}
     end
     
@@ -69,6 +67,15 @@ function mm.ModuleInit()
     if Settings.FFXIVMINION.Maps[175] == nil then
         Settings.FFXIVMINION.Maps[175] = "Wolves Den"
     end
+	
+	-- questing
+	if Settings.FFXIVMINION.Maps[130] == nil then
+		Settings.FFXIVMINION.Maps[130] = "Uldah"
+	end
+	
+	if Settings.FFXIVMINION.Maps[131] == nil then
+		Settings.FFXIVMINION.Maps[131] = "Uldah"
+	end
 
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
     GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)

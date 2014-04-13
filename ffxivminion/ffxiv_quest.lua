@@ -82,4 +82,5 @@ ffxiv_quest.tasks =
 	["complete"] 	= ffxiv_quest_complete.Create,
 	["interact"] 	= ffxiv_quest_interact.Create,
 	["kill"]		= ffxiv_quest_kill.Create,
+	["nav"]			= ffxiv_quest_nav.Create,
 }

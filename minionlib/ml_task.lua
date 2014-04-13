@@ -72,9 +72,11 @@ function ml_task:Update()
             return TS_FAILED
         end
         if ( self:hasCompleted() ) then
-			ml_debug(self.name.." has succeeded")
-            self:DeleteSubTasks()
-            return TS_SUCCEEDED
+			if(TimeSince(self.delayTime) > self.delayTimer) then
+				ml_debug(self.name.." has succeeded")
+				self:DeleteSubTasks()
+				return TS_SUCCEEDED
+			end
         end
         local taskRet = nil
 		

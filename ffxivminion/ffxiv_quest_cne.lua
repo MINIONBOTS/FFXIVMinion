@@ -6,7 +6,9 @@ end
 function quest_step_complete_execute()
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
-	
+	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
+		ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"])
+	end
 end
 
 c_questcanstart = inheritsFrom( ml_cause )
@@ -66,7 +68,15 @@ function c_nextqueststep:evaluate()
 	return ml_task_hub:CurrentTask().currentStepCompleted
 end
 function e_nextqueststep:execute()
-	ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
+	if (ml_task_hub:CurrentTask().currentStepIndex == 1 and
+		Settings.FFXIVMINION.currentQuestStep ~= nil and
+		Settings.FFXIVMINION.currentQuestStep > 1) 
+	then
+		ml_task_hub:CurrentTask().currentStepIndex = Settings.FFXIVMINION.currentQuestStep
+	else
+		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
+	end
+	
 	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
 	if (ValidTable(task)) then
 		if(task.params["meshname"] ~= nil) then
@@ -75,11 +85,17 @@ function e_nextqueststep:execute()
 			end
 		end
 		
+		if(task.params["type"] == "kill") then
+			if(Settings.FFXIVMINION.questKillCount ~= nil) then
+				task.killCount = Settings.FFXIVMINION.questKillCount
+			end
+		end
+		
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
 		ml_task_hub:ThisTask().currentStepCompleted = false
-		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().currentStepIndex)
+		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
 		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
 	end
 end
@@ -261,6 +277,7 @@ function e_questkill:execute()
 			else
 				ml_task_hub:CurrentTask():ParentTask().killCount = count + 1
 			end
+			Settings.FFXIVMINION.questKillCount = ml_task_hub:CurrentTask():ParentTask().killCount
 			ml_task_hub:CurrentTask().completed = true
 		end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -290,4 +307,32 @@ function c_atinteract:evaluate()
 end
 function e_atinteract:execute()
 	ml_task_hub:CurrentTask():Terminate()
+	ml_task_hub:CurrentTask():task_complete_execute()
+end
+
+c_indialog = inheritsFrom( ml_cause )
+e_indialog = inheritsFrom( ml_effect )
+function c_indialog:evaluate()
+	return Quest:IsInDialog()
+end
+function e_indialog:execute()
+	--do nothing, this is a blocking cne to avoid spamming
+end
+
+c_questyesno = inheritsFrom( ml_cause )
+e_questyesno = inheritsFrom( ml_effect )
+function c_questyesno:evaluate()
+	return ControlVisible("SelectYesno")
+end
+function e_questyesno:execute()
+	PressYesNo(true)
+end
+
+c_questisloading = inheritsFrom( ml_cause )
+e_questisloading = inheritsFrom( ml_effect )
+function c_questisloading:evaluate()
+	return Quest:IsLoading()
+end
+function e_questisloading:execute()
+	--do nothing, this is a blocking cne
 end
