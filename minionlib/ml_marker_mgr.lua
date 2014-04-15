@@ -552,16 +552,18 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 				end
 				
 				--handle special case when name field is changed
-				if (name == "name") then
+				if (name == "Name") then
 					local list = ml_marker_mgr.markerList[gMarkerMgrType]
 					if (list) then
-						d(list[ml_marker_mgr.currentEditMarker:GetFieldValue("name")])
-						list[ml_marker_mgr.currentEditMarker:GetFieldValue("name")] = nil
+						d(list[ml_marker_mgr.currentEditMarker:GetFieldValue("Name")])
+						list[ml_marker_mgr.currentEditMarker:GetFieldValue("Name")] = nil
 						list[value] = ml_marker_mgr.currentEditMarker
 					end
 				end
 				ml_marker_mgr.currentEditMarker:SetFieldValue(name, value)
-				if (name == "name") then ml_marker_mgr.RefreshMarkerNames() end
+				if (name == "Name") then 
+					ml_marker_mgr.RefreshMarkerNames() 
+				end
 				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 			end
 		elseif (k == "gMarkerMgrName") then
