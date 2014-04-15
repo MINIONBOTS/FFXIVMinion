@@ -541,6 +541,8 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if 	(k == "gMarkerMgrType") then
 			ml_marker_mgr.RefreshMarkerNames()
+			GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
+			ml_marker_mgr.currentEditMarker = nil
 		elseif (string.sub(k,1,6) == "Field_") then
 			local name = string.sub(k,7)
 			if (ValidTable(ml_marker_mgr.currentEditMarker)) then
