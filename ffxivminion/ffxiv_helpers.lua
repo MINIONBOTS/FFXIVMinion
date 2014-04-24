@@ -3,27 +3,20 @@
 -- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
 -- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
-    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
-    local el = nil
-    
-    local minLevel = ml_global_information.MarkerMinLevel 
+	local el = nil
+    local minLevel = ml_global_information.MarkerMinLevel
     local maxLevel = ml_global_information.MarkerMaxLevel
-   -- d(tostring(minLevel).. " "..tostring(maxLevel))
-    if (ValidTable(ml_task_hub:CurrentTask())) then
-		if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and ml_task_hub:CurrentTask().currentMarker ~= false) then
-            local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-            if (ValidTable(markerInfo)) then
-                minLevel = markerInfo.minlevel
-                maxLevel = markerInfo.maxlevel
-            end
-        end
-    end
+
+    local whitelist = GetWhitelistIDString()
+    local blacklist = GetBlacklistIDString()
     
-    if (excludeString) then
-        el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString)
-    else
+    if (whitelist and whitelist ~= "") then
+		el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,contentid="..whitelist)
+	elseif (blacklist and blacklist ~= "") then
+		el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..blacklist)
+	else
         el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0")
-    end
+	end
     
     if ( el ) then
         local i,e = next(el)
@@ -32,10 +25,12 @@ function GetNearestGrindAttackable()
         end
     end	
     
-    if (excludeString) then
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+    if (whitelist and whitelist ~= "") then
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0,contentid="..whitelist)
+    elseif (blacklist and blacklist ~= "") then
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0,exclude_contentid="..blacklist)
     else
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0")
     end
     
     if ( el ) then
@@ -45,10 +40,12 @@ function GetNearestGrindAttackable()
         end
     end
     
-    if (excludeString) then
-        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+    if (whitelist and whitelist ~= "") then
+        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0,contentid="..whitelist)
+    elseif (blacklist and blacklist ~= "") then
+        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0,exclude_contentid="..blacklist)
     else
-        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+        el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",fateid=0")
     end
     
     if ( el ) then
@@ -62,15 +59,20 @@ function GetNearestGrindAttackable()
 end
 
 function GetNearestFateAttackable()
-    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
-    local el = nil
+	local el = nil
+    local minLevel = ml_global_information.MarkerMinLevel
+    local maxLevel = ml_global_information.MarkerMaxLevel
+
+    local whitelist = GetWhitelistIDString()
+    local blacklist = GetBlacklistIDString()
 
     local myPos = Player.pos
     local fateID = GetClosestFateID(myPos, true, true)
     if (fateID ~= nil and fateID ~= 0) then
-        
-        if (excludeString) then
-            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+        if (whitelist and whitelist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",contentid="..whitelist)
+        elseif (blacklist and blacklist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
         else
             el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
         end
@@ -82,8 +84,10 @@ function GetNearestFateAttackable()
             end
         end	
     
-        if (excludeString) then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+        if (whitelist and whitelist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",contentid="..whitelist)
+        elseif (blacklist and blacklist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
         else    
             el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))            
         end    
@@ -102,10 +106,14 @@ end
 
 function GetNearestFateAttackableID(fateID)
     if (fateID ~= nil and fateID ~= 0) then
-        local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
         local el = nil
-        if (excludeString) then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..excludeString)
+        local whitelist = GetWhitelistIDString()
+        local blacklist = GetBlacklistIDString()
+        
+        if (whitelist and whitelist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",contentid="..whitelist)
+        elseif (blacklist and blacklist ~= "") then
+            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
         else
             el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))
         end
@@ -252,10 +260,14 @@ function GetNearestAggro()
 end
 
 function GetNearestGatherable(minlevel,maxlevel)
-    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].gatherMode)
     local el = nil
-    if (excludeString) then
-        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..excludeString)
+    local whitelist = GetWhitelistIDString()
+    local blacklist = GetBlacklistIDString()
+    
+    if (whitelist and whitelist ~= "") then
+        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+    elseif (blacklist and blacklist ~= "") then
+        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..blacklist)
     else
         el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
     end
@@ -323,6 +335,7 @@ function HasBuffsFromOwner(entity, buffIDs, ownerid)
     end
     return false
 end
+
 function HasBuffs(entity, buffIDs)
     local buffs = entity.buffs
     if (buffs == nil or TableSize(buffs) == 0) then return false end
@@ -344,6 +357,24 @@ function HasBuffs(entity, buffIDs)
       end
     end
     return false
+end
+
+function isCasting(entity, actionIDs , minCasttime , targetid) 
+  local ci = entity.castinginfo 
+  if ( ci == nil or ci.channelingid == 0) then return false end
+  if (minCasttime ~= nil and ci.channeltime < minCasttime) then return false end
+  
+  if (targetid ~= nil) then d(ci.channeltargetid .. "  == " .. targetid) end
+
+  
+  if (targetid ~= nil and ci.channeltargetid ~= targetid) then return false end
+  for _orids in StringSplit(actionIDs,",") do
+      if (tonumber(_orids) == ci.channelingid) then
+          d("is casting " .. ci.channelingid)
+          return true
+      end
+  end
+  return false
 end
 
 function IsBehind(entity)
@@ -387,7 +418,6 @@ end
 
 function GetPosFromDistanceHeading(startPos, distance, heading)
 	local head = ConvertHeading(heading)
-	d(head)
 	local newX = distance * math.sin(head) + startPos.x
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
@@ -454,17 +484,32 @@ function IsLeader()
 end
 
 function GetPartyLeader()
-    local Plist = EntityList.myparty
-    if (TableSize(Plist) > 0 ) then
-        local i,member = next (Plist)
-        while (i~=nil and member~=nil ) do
-            if ( member.isleader ) then
-                return member
-            end
-            i,member = next (Plist,i)
+    
+    if (gPartyGrindUsePartyLeader == "1") then
+      local Plist = EntityList.myparty
+      if (TableSize(Plist) > 0 ) then
+          local i,member = next (Plist)
+          while (i~=nil and member~=nil ) do
+              if ( member.isleader ) then
+                  return member , false
+              end
+              i,member = next (Plist,i)
+          end
+      end
+    else
+      if (gPartyLeaderName ~= "") then
+        local Plist = EntityList("type=1,name="..gPartyLeaderName)
+        if (TableSize(Plist) > 0 ) then
+          local i,member = next (Plist)
+          if (i~=nil and member~=nil ) then
+                 return member , true
+          end
         end
+      end
     end
+    
     return nil	
+    
 end
 
 function InCombatRange(targetid)
@@ -632,4 +677,32 @@ function GetLocalAetheryte()
     end
     
     return nil
+end
+
+function GetAetheryteByMapID(id)
+    local list = Player:GetAetheryteList()
+    for index,aetheryte in ipairs(list) do
+        if (aetheryte.territory == id) then
+            return aetheryte.id
+        end
+    end
+    
+    return nil
+end
+
+function GetBlacklistIDString()
+    -- otherwise first grab the global blacklist exclude string
+    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
+    
+    -- then add on any local contentIDs to exclude
+    if (ml_global_information.BlacklistContentID ~= "") then
+        excludeString = excludeString..";"..ml_global_information.BlacklistContentID
+    end
+    
+    return excludeString
+end
+
+function GetWhitelistIDString()
+    -- if we've whitelisted one or more contentIDs then only return those
+    return ml_global_information.WhitelistContentID
 end

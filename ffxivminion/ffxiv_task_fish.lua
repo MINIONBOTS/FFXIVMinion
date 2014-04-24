@@ -16,9 +16,10 @@ function ffxiv_task_fish.Create()
     newinst.castTimer = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
-    newinst.previousMarker = false
     newinst.baitName = ""
     newinst.castFailTimer = 0
+	newinst.filterLevel = true
+    newinst.missingBait = false
     
     return newinst
 end
@@ -89,50 +90,99 @@ end
 c_setbait = inheritsFrom( ml_cause )
 e_setbait = inheritsFrom( ml_effect )
 function c_setbait:evaluate()
-    if (gGMactive == "1") then
-        local fs = tonumber(Player:GetFishingState())
-        if (fs == 0 or fs == 4) then
-            local marker = ml_task_hub:CurrentTask().currentMarker
-            if (marker ~= nil and marker ~= false) then
-                local data = GatherMgr.GetMarkerData(marker)
-                if data[1] ~="None" and data[1] ~= ml_task_hub:CurrentTask().baitName then
-                    return true
-                end
-            end
-        end
+    if (ml_task_hub:CurrentTask().missingBait) then
+        return false
     end
-    return false
-end
-function e_setbait:execute()
-	ml_debug("Attempting to set bait for marker "..ml_task_hub:CurrentTask().currentMarker)
-    local marker = ml_task_hub:CurrentTask().currentMarker
-    if (marker ~= nil and marker ~= false) then
-        local data = GatherMgr.GetMarkerData(marker)
-        if (data ~= nil and data ~= 0) then
-            local _,bait = next(data)
-            if (bait ~= nil and bait ~= "") then
-				ml_debug("Looking for bait named "..bait)
-				local found = false
+    
+    local fs = tonumber(Player:GetFishingState())
+    if (fs == 0 or fs == 4) then
+        local marker = ml_task_hub:CurrentTask().currentMarker
+        if (marker ~= nil and marker ~= false) then
+            local baitName = marker:GetFieldValue(strings[gCurrentLanguage].baitName)
+            if (baitName ~="None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
+                --check to see if we have the bait in inventory
+                ml_debug("Looking for bait named "..bait)
                 for i = 0,4 do
                     local inventory = Inventory("type="..tostring(i))
                     if (inventory ~= nil and inventory ~= 0) then
                         for _,item in ipairs(inventory) do
                             if item.name == bait then
-                                Player:SetBait(item.id)
-                                ml_task_hub:CurrentTask().baitName = item.name
-								found = true
+                                e_setbait.bait = item
+								return true
                             end
                         end
                     end
                 end
-				
-				if not found then
-					ml_error("Could not find bait! Deactivating gather manager and attempting to use current bait")
-					gGMactive = "0"
-				end
+                
+                ml_error("Could not find bait! Attempting to use current bait")
+                
             end
         end
     end
+        
+    return false
+end
+function e_setbait:execute()
+    Player:SetBait(e_setbait.item.ID)
+    ml_task_hub:CurrentTask().baitName = e_setbait.item.name
+end
+
+c_nextfishingmarker = inheritsFrom( ml_cause )
+e_nextfishingmarker = inheritsFrom( ml_effect )
+function c_nextfishingmarker:evaluate()
+    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
+        local marker = nil
+        
+        -- first check to see if we have no initiailized marker
+        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
+            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
+        
+			if (marker == nil) then
+				ml_task_hub:CurrentTask().filterLevel = false
+				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
+			end	
+		end
+        
+        -- next check to see if our level is out of range
+        if (marker == nil) then
+            if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+                if 	(ml_task_hub:CurrentTask().filterLevel) and
+					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
+                    Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
+                then
+                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                end
+            end
+        end
+        
+        -- last check if our time has run out
+        if (marker == nil) then
+            local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
+			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
+				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
+                ml_debug("Getting Next Marker, TIME IS UP!")
+                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+            else
+                return false
+            end
+        end
+        
+        if (ValidTable(marker)) then
+            ml_task_hub:CurrentTask().missingBait = false
+            e_nextfishingmarker.marker = marker
+            return true
+        end
+    end
+    
+    return false
+end
+function e_nextfishingmarker:execute()
+    ml_task_hub:CurrentTask().currentMarker = e_nextfishingmarker.marker
+    ml_task_hub:CurrentTask().markerTime = ml_global_information.Now
+	ml_global_information.MarkerTime = ml_global_information.Now
+    ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+    ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
+	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
 end
 
 function ffxiv_task_fish:Init()
@@ -152,7 +202,7 @@ function ffxiv_task_fish:Init()
     self:add( ke_returnToMarker, self.process_elements)
     
     --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 20 )
     self:add( ke_nextMarker, self.process_elements)
     
     local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
@@ -182,14 +232,9 @@ end
 
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealthFish",strings[gCurrentLanguage].fishMode)
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
-    
-    if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreFishLvl = "0"
-    end
 	
 	if (Settings.FFXIVMINION.gUseMooch == nil) then
         Settings.FFXIVMINION.gUseMooch = "1"
@@ -199,17 +244,32 @@ function ffxiv_task_fish.UIInit()
         Settings.FFXIVMINION.gDoStealthFish = "0"
     end
     
-    gIgnoreFishLvl = Settings.FFXIVMINION.gIgnoreFishLvl
 	gUseMooch = Settings.FFXIVMINION.gUseMooch
 	gDoStealthFish = Settings.FFXIVMINION.gDoStealthFish
     
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
+	
+	ffxiv_task_fish.SetupMarkers()
+end
+
+function ffxiv_task_fish.SetupMarkers()
+    -- add marker templates for fishing
+    local fishingMarker = ml_marker:Create("fishingTemplate")
+	fishingMarker:SetType(strings[gCurrentLanguage].fishingMarker)
+	fishingMarker:AddField("string", strings[gCurrentLanguage].baitName, "")
+    fishingMarker:SetTime(300)
+    fishingMarker:SetMinLevel(1)
+    fishingMarker:SetMaxLevel(50)
+    ml_marker_mgr.AddMarkerTemplate(fishingMarker)
+	
+    -- refresh the manager with the new templates
+    ml_marker_mgr.RefreshMarkerTypes()
+	ml_marker_mgr.RefreshMarkerNames()
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if 	( k == "gIgnoreFishLvl" ) or
-			( k == "gUseMooch" ) or
+        if 	( k == "gUseMooch" ) or
             ( k == "gDoStealthFish" )
         then
             Settings.FFXIVMINION[tostring(k)] = v

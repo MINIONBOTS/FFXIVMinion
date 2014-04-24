@@ -5,9 +5,6 @@ ffxiv_task_party.evacPoint = {0, 0, 0}
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
 function c_partysyncfatelevel:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
-        return false
-    end 
     if ( IsLeader()) then
         return false
     end
@@ -92,6 +89,9 @@ function ffxiv_task_party:Init()
     local ke_followleader = ml_element:create( "FollowLeader", c_followleader, e_followleader, 20 )--minion only
     self:add( ke_followleader, self.process_elements)
 
+    local ke_reacttoleader = ml_element:create( "ReactToLeader", c_reactonleaderaction, e_reactonleaderaction, 20 )--minion only
+    self:add( ke_reacttoleader, self.process_elements)
+
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 ) --leader only
     self:add(ke_addKillTarget, self.process_elements)
     
@@ -115,8 +115,7 @@ end
 
 function ffxiv_task_party.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if ( 	k == "gBotMode"  )
-        then
+        if ( 	k == "gBotMode" or  k == "gPartyLeaderName" or k == "gPartyGrindUsePartyLeader") then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
@@ -127,13 +126,40 @@ function ffxiv_task_party.ButtonHandler(arg)
     d("Button :"..arg)
 end
 
+function ffxiv_task_party.SetLeaderFromTarget()
+   local t = Player:GetTarget()
+  if (t~=nil) then
+    if (t.type == 1) then
+      gPartyLeaderName = t.name
+      Settings.FFXIVMINION.gPartyLeaderName = gPartyLeaderName
+    end
+  else
+    gPartyLeaderName = ""
+    Settings.FFXIVMINION.gPartyLeaderName = ""
+  end
+end
 
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
-    --GUI_NewCheckbox(ml_global_information.MainWindow.Name, "Enabled", "gBotMode","Party")
-    --GUI_NewCheckbox(ml_global_information.MainWindow.Name, "PartyManager", "bGrabNames","Party")
-    --	RegisterEventHandler("bGrabNames",ffxiv_task_party.ButtonHandler)
+    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",strings[gCurrentLanguage].PartyGrind)
+    RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
+
+    GUI_NewField(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", strings[gCurrentLanguage].PartyGrind)
+
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",strings[gCurrentLanguage].PartyGrind)
     
+    if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
+        Settings.FFXIVMINION.gPartyLeaderName = ""
+    else
+      gPartyLeaderName = Settings.FFXIVMINION.gPartyLeaderName
+    end
+  
+    if (Settings.FFXIVMINION.gPartyGrindUsePartyLeader == nil) then
+        Settings.FFXIVMINION.gPartyGrindUsePartyLeader = "0"
+    else
+        gPartyGrindUsePartyLeader = Settings.FFXIVMINION.gPartyGrindUsePartyLeader
+    end
+  
         
     RegisterEventHandler("GUI.Update",ffxiv_task_party.GUIVarUpdate)
 end

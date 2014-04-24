@@ -11,6 +11,9 @@ ml_global_information.AttackRange = 2
 ml_global_information.TaskUIInit = false
 ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
+ml_global_information.BlacklistContentID = ""
+ml_global_information.WhitelistContentID = ""
+ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
@@ -61,6 +64,21 @@ function ml_global_information.OnUpdate( event, tickcount )
         if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
+		--update marker status
+		if (	gBotMode == strings[gCurrentLanguage].grindMode or
+				gBotMode == strings[gCurrentLanguage].gatherMode or
+				gBotMode == strings[gCurrentLanguage].fishMode) and (
+				ValidTable(GetCurrentMarker())) and
+				ml_task_hub.shouldRun
+		then
+			local timesince = TimeSince(ml_global_information.MarkerTime)
+			local timeleft = ((GetCurrentMarker():GetTime() * 1000) - timesince) / 1000
+			gStatusMarkerTime = tostring(round(timeleft, 1))
+		else
+			gStatusMarkerName = ""
+			gStatusMarkerTime = ""
+		end
+		
 		ffxivminion.CheckClass()
         
         if (not ml_task_hub:Update() and ml_task_hub.shouldRun) then
@@ -148,6 +166,10 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
     
+	if (Settings.FFXIVMINION.gUseAetherytes == nil) then
+		Settings.FFXIVMINION.gUseAetherytes = "0"
+	end
+	
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -157,6 +179,9 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
@@ -171,8 +196,9 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].clickToTravel,"gClickToTravel",strings[gCurrentLanguage].generalSettings );
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherManager, "ToggleGathermgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
+	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	--GUI_NewButton(ml_global_information.MainWindow.Name, GetString("questManager"), "QuestManager.toggle")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
@@ -205,6 +231,7 @@ function ffxivminion.HandleInit()
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
+	gUseAetherytes = Settings.FFXIVMINION.gUseAetherytes
 	
 	ffxivminion.modes =
 	{
@@ -215,21 +242,13 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
 		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty
+		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
+		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
+		--["NavTest"]								= ffxiv_task_test,
 	}
-	
-    -- setup bot mode
-    local botModes = "None"
-    if ( TableSize(ffxivminion.modes) > 0) then
-        local i,entry = next ( ffxivminion.modes)
-        while i and entry do
-            botModes = botModes..","..i
-            i,entry = next ( ffxivminion.modes,i)
-        end
-    end
     
     -- setup parent window for minionlib modules
-    --ml_marker_mgr.parentWindow = ml_global_information.MainWindow
+    ml_marker_mgr.parentWindow = ml_global_information.MainWindow
     ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
     
     -- setup/load blacklist tables
@@ -248,6 +267,21 @@ function ffxivminion.HandleInit()
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
     end
     
+	-- setup marker manager callbacks and vars
+	ml_marker_mgr.GetPosition = 	function () return Player.pos end
+	ml_marker_mgr.GetLevel = 		function () return Player.level end
+	ml_marker_mgr.DrawMarker =		mm.DrawMarker
+	
+	-- setup bot mode
+    local botModes = "None"
+    if ( TableSize(ffxivminion.modes) > 0) then
+        local i,entry = next ( ffxivminion.modes)
+        while i and entry do
+            botModes = botModes..","..i
+            i,entry = next ( ffxivminion.modes,i)
+        end
+    end
+	
     gBotMode_listitems = botModes
     
     gBotMode = Settings.FFXIVMINION.gBotMode

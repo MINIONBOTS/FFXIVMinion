@@ -34,18 +34,19 @@ c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate() 
     local myPos = Player.pos
-    local gotoPos = mm.evacPoint
+    local gotoPos = ml_marker_mgr.markerList["evacPoint"]
     return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
             Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 -- ? 
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos.Create()
-    local newPos = NavigationManager:GetRandomPointOnCircle(mm.evacPoint.x,mm.evacPoint.y,mm.evacPoint.z,1,5)
+    local evacPoint = ml_marker_mgr.markerList["evacPoint"]
+    local newPos = NavigationManager:GetRandomPointOnCircle(evacPoint.x,evacPoint.y,evacPoint.z,1,5)
     if (ValidTable(newPos)) then
         newTask.pos = {x = newPos.x, y = newPos.y, z = newPos.z}
     else
-        newTask.pos = {x = mm.evacPoint.x, y = mm.evacPoint.y, z = mm.evacPoint.z}
+        newTask.pos = {x = evacPoint.x, y = evacPoint.y, z = evacPoint.z}
     end
     
     ml_global_information.IsWaiting = true

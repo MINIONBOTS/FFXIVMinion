@@ -67,8 +67,16 @@ function mm.ModuleInit()
     if Settings.FFXIVMINION.Maps[175] == nil then
         Settings.FFXIVMINION.Maps[175] = "Wolves Den"
     end
+	
+	-- questing
+	if Settings.FFXIVMINION.Maps[130] == nil then
+		Settings.FFXIVMINION.Maps[130] = "Uldah"
+	end
+	
+	if Settings.FFXIVMINION.Maps[131] == nil then
+		Settings.FFXIVMINION.Maps[131] = "Uldah"
+	end
 
-    
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
     GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].activated,"gMeshMGR",strings[gCurrentLanguage].generalSettings)
@@ -107,6 +115,8 @@ function mm.ModuleInit()
     RegisterEventHandler("deleteoffMeshEvent", mm.DeleteOMC)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].biDirOffMesh,"gBiDirOffMesh",strings[gCurrentLanguage].editor)
     
+    GUI_NewButton(mm.mainwindow.name,"CreateSingleCell","createSingleCell",strings[gCurrentLanguage].editor)
+    RegisterEventHandler("createSingleCell", mm.CreateSingleCell)
     
     gShowMesh = "0"
     gShowRealMesh = "0"
@@ -137,257 +147,32 @@ function mm.ModuleInit()
     gnewmeshname = ""
     gMeshMGR = Settings.FFXIVMINION.gMeshMGR 
     
-    
-    GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].selectedMarker,"gSelectedMarker",strings[gCurrentLanguage].markers,"None")
-    GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerName",strings[gCurrentLanguage].markers)
-    GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].markerMinLevel,"gMarkerMinLevel",strings[gCurrentLanguage].markers,"1","50")
-    GUI_NewNumeric(mm.mainwindow.name,strings[gCurrentLanguage].markerMaxLevel,"gMarkerMaxLevel",strings[gCurrentLanguage].markers,"1","50")
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].selectClosestMarker,"selectClosestMarkerEvent",strings[gCurrentLanguage].markers)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].moveToMarker,"moveToMarkerEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("selectClosestMarkerEvent", mm.SelectClosestMarker)
-    RegisterEventHandler("moveToMarkerEvent", mm.MoveToMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addGrindSpot,"addGrindSpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("addGrindSpotEvent", mm.AddMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addFishingSpot,"addFishingSpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("addFishingSpotEvent", mm.AddMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addMiningSpot,"addMiningSpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("addMiningSpotEvent", mm.AddMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addBotanySpot,"addBotanySpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("addBotanySpotEvent", mm.AddMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].addNavSpot,"addNavSpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("addNavSpotEvent", mm.AddMarker)
-    GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].deleteMarker,"deleteSpotEvent",strings[gCurrentLanguage].markers)
-    RegisterEventHandler("deleteSpotEvent", mm.DeleteMarker)
-    
-    gMarkerMinLevel = "1"
-    gMarkerMaxLevel = "50"
-    
     GUI_SizeWindow(mm.mainwindow.name,mm.mainwindow.w,mm.mainwindow.h)
     GUI_WindowVisible(mm.mainwindow.name,false)
-end
-
--------------------------------------------
---Marker Stuff
--------------------------------------------
-function mm.UpdateMarkerList()
-    -- setup markers
-    local markers = "None"
-    for tag, posList in pairs(mm.MarkerList) do
-        for key, pos in pairs(posList) do
-            markers = markers..","..key
-        end
-    end
-
-    gSelectedMarker_listitems = markers
-    gMarkerName = ""
-    gMarkerMinLevel = "1"
-    gMarkerMaxLevel = "50"
-    gSelectedMarker = "None"
-    
-    -- call gathermanager update also
-    GatherMgr.UpdateMarkerLists()
-end
-
-function mm.GetMarkerInfo(markerName)
-    for tag, list in pairs(mm.MarkerList) do
-        for key, info in pairs(list) do
-            if (key == markerName) then
-                return info
-            end
-        end
-    end
-    
-    return nil
-end
-
-function mm.SetMarkerData(markerName, data)
-    for tag, list in pairs(mm.MarkerList) do
-        for key, info in pairs(list) do
-            if (key == markerName) then
-                info.data = data
-                mm.WriteMarkerList(gmeshname)
-                return true
-            end
-        end
-    end
-    
-    return false
-end
-
-function mm.SetMarkerTime(markerName, time)
-    for tag, list in pairs(mm.MarkerList) do
-        for key, info in pairs(list) do
-            if (key == markerName) then
-                info.time = time
-                mm.WriteMarkerList(gmeshname)
-                return true
-            end
-        end
-    end
-    
-    return false
-end
-
-function mm.GetMarkerType(marker)
-    for tag, posList in pairs(mm.MarkerList) do
-        if posList[marker] ~= nil then
-            return tag
-        end
-    end
-end
-
-function mm.SelectClosestMarker()
-    local closestDistance = 999999999
-    local closestMarker = nil
-    local closestTag = nil
-    for tag, posList in pairs(mm.MarkerList) do
-        for key, pos in pairs(posList) do
-            local myPos = Player.pos
-            local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
-            if (closestMarker == nil or distance < closestDistance) then
-                closestMarker = key
-                closestDistance = distance
-                closestTag = tag
-            end
-        end
-    end
-    
-    if (closestMarker ~= nil) then
-        mm.SelectMarker(closestMarker)
-    end
-    
-    return false
-end
-
-function mm.SelectMarker(markerName)
-    if (markerName ~= nil and markerName ~= "") then
-        gSelectedMarker = markerName
-        gMarkerName = markerName
-        local info = mm.GetMarkerInfo(markerName)
-        gMarkerMinLevel = tostring(info.minlevel)
-        gMarkerMaxLevel = tostring(info.maxlevel)
-        return true
-    end
-    
-    if (markerName == "None") then
-        gMarkerName = ""
-        gMarkerLevel = ""
-    end
-    return false
-end
-
-function mm.MoveToMarker()
-    local info = mm.GetMarkerInfo(gMarkerName)
-    if (info ~= nil and info ~= 0) then
-        local pos = {x = info.x, y = info.y, z = info.z}
-        if (NavigationManager:GetPointToMeshDistance(pos)<=3) then
-            Player:MoveTo(pos.x,pos.y,pos.z)
-        else
-            ml_debug("Currently selected marker is not on the currently loaded NavMesh or no mesh is loaded")
-        end
-    end
-end
-
-function mm.AddMarker(arg)
-    local markerType = ""
-    local markerData = {"None"}
-    if (arg == "addGrindSpotEvent") then
-        markerType = "grindSpot"
-        markerData = {""}
-    elseif (arg == "addFishingSpotEvent") then
-        markerType = "fishingSpot"
-        markerData = {"None"}
-    elseif (arg == "addMiningSpotEvent") then
-        markerType = "miningSpot"
-        markerData = {"None","None"}
-    elseif (arg == "addBotanySpotEvent") then
-        markerType = "botanySpot"
-        markerData = {"None","None"}
-    elseif (arg == "addNavSpotEvent") then
-        markerType = "navSpot"
-        markerData = {""}	
-    end
-    
-    -- all markers are accessed using MESH ONLY movement functions
-    -- allowing them to be created off mesh is not only useless its an invitation for bugs and user confusion
-    if(Player.onmesh) then
-        if (gMarkerName ~= "" and gMarkerName ~= "None") then
-            local p = nil
-            if (markerType == "fishingSpot") then
-                p = NavigationManager:GetClosestPointOnMesh(Player.pos)
-                p.h = Player.pos.h
-            else
-                p = Player.pos
-            end
-            
-            local newInfo = { 	x=tonumber(string.format("%.2f", p.x)), 
-                                y=tonumber(string.format("%.2f", p.y)), 
-                                z=tonumber(string.format("%.2f", p.z)), 
-                                h=tonumber(string.format("%.3f", p.h)), 
-                                minlevel=tonumber(gMarkerMinLevel),
-                                maxlevel=tonumber(gMarkerMaxLevel), 
-                                time=math.random(900,1800), --default to 15-30mins for markers 
-                                data=markerData }
-            local key = gMarkerName
-            local found = false
-            
-            -- enforce unique marker names
-            for tag, list in pairs(mm.MarkerList) do
-                for name, info in pairs(list) do
-                    if (key == name) then
-                        found = true
-                        if (tag == markerType) then
-                            if (mm.MarkerRenderList[key]) then
-                                RenderManager:RemoveObject(mm.MarkerRenderList[key])
-                            end
-                            mm.MarkerRenderList[key] = mm.DrawMarker( p, markerType )
-                            list[key] = newInfo
-                        else
-                            ml_debug("This marker name cannot be used as it conflicts with another marker of a different type")
-                        end
-                    end
-                end
-            end
-            
-            if (not found) then
-                local list = mm.MarkerList[markerType]
-                
-                -- First time we are creating this marker, so we create a new object to be drawn here
-                if ( list[key] == nil )	then
-                    mm.MarkerRenderList[key] = mm.DrawMarker( p, markerType )
-                end
-                list[key] = newInfo
-            end
-            
-        else
-            ml_debug("Must provide a name for marker")
-        end
-        
-        mm.WriteMarkerList(gmeshname)
-        mm.UpdateMarkerList()
-    else
-        ml_error("Current player position is not on a valid NavMesh or current NavMesh has not been saved. If you are building a new NavMesh please save the mesh and try again.")
-    end 
-end
-
-function mm.DeleteMarker()
-    -- since marker names are unique we can simply delete this marker wherever it exists
-    for tag, posList in pairs(mm.MarkerList) do
-        if (posList[gMarkerName] ~= nil) then            
-            posList[gMarkerName] = nil
-            --d("REMOVE MARKER ID "..tostring(mm.MarkerRenderList[gMarkerName]))
-            RenderManager:RemoveObject(mm.MarkerRenderList[gMarkerName])
-            mm.MarkerRenderList[gMarkerName] = nil
-            mm.WriteMarkerList(gmeshname)
-            mm.UpdateMarkerList()
-            return true
-        end
-    end
-   
-    return false
+	
+	mm.SetupNavNodes()
 end
 
 function mm.ReadMarkerList(meshname)
+	local infopath = mm.navmeshfilepath..meshname..".info"
+	
+	if (FileExists(infopath)) then
+		local lines = LinesFrom(infopath)
+		
+		--check for old marker file
+		if (lines[1] == "version=1") then
+			mm.OldReadMarkerList(meshname)
+			mm.ConvertMarkerList(infopath)
+		else
+			ml_marker_mgr.ReadMarkerFile(infopath)
+            ml_marker_mgr.DrawMarkerList()
+		end
+		
+		ml_marker_mgr.RefreshMarkerNames()
+	end
+end
+
+function mm.OldReadMarkerList(meshname)
     -- clear old lists for previous mesh
     for tag, list in pairs(mm.MarkerList) do
         mm.MarkerList[tag] = {}
@@ -398,8 +183,6 @@ function mm.ReadMarkerList(meshname)
     local version = 0
     if ( TableSize(lines) > 0) then
         for i, line in pairs(lines) do
-			
-		
             local sections = {}
             for section in StringSplit(line,":") do
                 table.insert(sections, section)
@@ -419,7 +202,7 @@ function mm.ReadMarkerList(meshname)
                     table.insert(posTable, tonumber(coord))
                 end
                 if (TableSize(posTable) == 3) then
-                    mm.evacPoint = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
+                    ml_marker_mgr.markerList["evacPoint"] = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
                 end	
             elseif (tag == "version") then
                 version = tonumber(key)
@@ -453,8 +236,6 @@ function mm.ReadMarkerList(meshname)
                     RenderManager:RemoveObject(mm.MarkerRenderList[key])
                 end
                 -- Draw this Marker
-                mm.MarkerRenderList[key] = mm.DrawMarker( {x=tonumber(posTable[1]),y=tonumber(posTable[2]),z=tonumber(posTable[3])}, tag )
-                
                 list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}
                                 
             end
@@ -462,65 +243,11 @@ function mm.ReadMarkerList(meshname)
     else
         ml_debug("NO INFO FILE FOR THAT MESH EXISTS")
     end
-    
-    -- Update the markerlist regardless so we clear the gather marker info in the gathermanager
-    mm.UpdateMarkerList()
-end
-
-function mm.WriteMarkerList(meshname)
-    
-    if ( meshname ~= "" and meshname ~= nil ) then
-        ml_debug("Generating .info file..")
-        local string2write = ""
-        string2write = string2write.."version="..tostring(mm.version).."\n"
-        -- Save the mapID first
-        string2write = string2write.."MapID="..Player.localmapid.."\n"
-        -- Write the evac point if it exists
-        if (mm.evacPoint ~= nil and mm.evacPoint ~= 0) then
-            local pos = mm.evacPoint
-            string2write = string2write.."evacPoint="..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z).."\n"
-        end
-        for tag, posList in pairs(mm.MarkerList) do  
-            if ( tag ~= "MapID" and tag ~= "version") then
-                for key, pos in pairs(posList) do
-                    --d(tag)
-                    string2write = string2write..tag.."="..key..":"..pos.x..","..pos.y..","..pos.z..","..pos.h..":"..pos.minlevel..":"..pos.maxlevel..":"..pos.time..":"
-                    for i,data in ipairs(pos.data) do
-                        string2write = string2write..data
-                        if (pos.data[i+1] ~= nil) then
-                            string2write = string2write..","
-                        else
-                            string2write = string2write.."\n"
-                        end
-                    end
-                end
-            end
-        end
-        filewrite(mm.navmeshfilepath..meshname..".info",string2write)
-    else
-        d("ERROR: No Meshname!")
-    end
-end
-
-function mm.GetClosestMarkerPos(startPos, tag)
-    destPos = nil
-    destDistance = 9999999
-    if (TableSize(mm.MarkerList[tostring(tag)]) > 0) then
-        for i, pos in pairs(mm.MarkerList[tostring(tag)]) do
-            local distance = Distance2D(startPos.x, startPos.z, pos.x, pos.z)
-            if ( distance < destDistance and distance > 2) then
-                destPos = pos
-                destDistance = distance
-            end
-        end
-    end    
-    return destPos
 end
 
 ---------
 --Mesh
 ---------
-
 
 function mm.ClearNavMesh()
     -- Unload old Mesh
@@ -528,17 +255,9 @@ function mm.ClearNavMesh()
         d("Unloading ".. NavigationManager:GetNavMeshName() .." NavMesh.")
         d("Result: "..tostring(NavigationManager:UnloadNavMesh()))	
     end
-    -- Remove Renderdata
-    RenderManager:RemoveAllObjects()
-    for key,e in pairs(mm.MarkerRenderList) do	
-        if ( key ~= nil ) then			
-            mm.MarkerRenderList[key] = nil
-        end
-    end
+	
     -- Delete Markers
-    for tag, list in pairs(mm.MarkerList) do
-        mm.MarkerList[tag] = {}
-    end
+    ml_marker_mgr.ClearMarkerList()
 end
 
 function mm.SaveMesh()
@@ -593,17 +312,12 @@ function mm.SaveMesh()
     end
 end
 
-
 function mm.ChangeNavMesh(newmesh)			
     -- Set the new mesh for the local map	
     if ( NavigationManager:GetNavMeshName() ~= newmesh and NavigationManager:GetNavMeshName() ~= "") then
         d("Unloading current Navmesh: "..tostring(NavigationManager:UnloadNavMesh()))		
-        RenderManager:RemoveAllObjects()
-        for key,e in pairs(mm.MarkerRenderList) do	
-            if ( key ~= nil ) then
-                mm.MarkerRenderList[key] = nil
-            end
-        end
+
+		ml_marker_mgr.ClearMarkerList()
         mm.reloadMeshPending = true
         mm.reloadMeshTmr = mm.lasttick
         mm.reloadMeshName = newmesh
@@ -631,7 +345,6 @@ function mm.ChangeNavMesh(newmesh)
     gMeshMGR = "1"
 end
 
-
 function mm.ToggleMenu()
     if (mm.visible) then
         GUI_WindowVisible(mm.mainwindow.name,false)	
@@ -644,12 +357,10 @@ function mm.ToggleMenu()
     end
 end
 
-
 function mm.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do		
         if ( k == "gmeshname") then
             mm.ChangeNavMesh(v)
-            mm.ReadMarkerList(v)
         elseif( k == "gShowRealMesh") then
             if (v == "1") then
                 NavigationManager:ShowNavMesh(true)
@@ -702,8 +413,6 @@ function mm.GUIVarUpdate(Event, NewVals, OldVals)
             end
         elseif( k == "gChangeAreaSize") then
             MeshManager:SetChangeToRadius(tonumber(gChangeAreaSize))
-        elseif( k == "gSelectedMarker") then
-            mm.SelectMarker(v)
         elseif( k == "gMeshMGR" or k == "gnewmeshname" ) then
             Settings.FFXIVMINION[tostring(k)] = v    
         end
@@ -761,21 +470,22 @@ function mm.OnUpdate( event, tickcount )
     end
 end
 
+function mm.DrawMarker(marker)
+	local markertype = marker:GetType()
+	local pos = marker:GetPosition()
 
-function mm.DrawMarker( pos, markertype )
     local color = 0
     local s = 1 -- size
     local h = 5 -- height
-    if ( markertype == "grindSpot" ) then
+	
+    if ( markertype == "Grind Marker" ) then
         color = 1 -- red
-    elseif ( markertype == "fishingSpot" ) then
+    elseif ( markertype == "Fishing Marker" ) then
         color = 4 --blue
-    elseif ( markertype == "miningSpot" ) then
+    elseif ( markertype == "Mining Marker" ) then
         color = 7 -- yellow	
-    elseif ( markertype == "botanySpot" ) then
+    elseif ( markertype == "Botany marker" ) then
         color = 8 -- orange
-    elseif ( markertype == "navSpot" ) then
-        color = 6 -- green
     end
     --Building the vertices for the object
     local t = { 
@@ -824,6 +534,69 @@ function mm.DeleteOMC()
     local pos = Player.pos
     MeshManager:DeleteOffMeshConnection(pos)
     mm.OMC = 0
+end
+
+function mm.ConvertMarkerList(path)
+	if (TableSize(mm.MarkerList) > 0) then
+		for type, list in pairs(mm.MarkerList) do
+			for name, marker in pairs(list) do
+				local newMarker = nil
+				if (type == "grindSpot") then 
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].grindMarker]:Copy()
+				elseif (type == "botanySpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].botanyMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
+				elseif (type == "miningSpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].miningMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
+				elseif (type == "fishingSpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].fishingMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].baitName, marker.data[1])
+				else
+					return
+				end
+				
+				if (ValidTable(newMarker)) then
+					newMarker:SetName(name)
+					newMarker:SetTime(marker.time)
+					local pos = {x = marker.x, y = marker.y, z = marker.z, h = marker.h}
+					newMarker:SetPosition(pos)
+					newMarker:SetMinLevel(marker.minlevel)
+					newMarker:SetMaxLevel(marker.maxlevel)
+					ml_marker_mgr.AddMarker(newMarker)
+				end
+			end
+		end
+        
+		--save backup of original info file
+		os.rename(path, path..".old")
+		ml_marker_mgr.markerPath = path
+		
+		--save new markers
+		ml_marker_mgr.WriteMarkerFile(path)
+	end
+end
+
+function mm.SetupNavNodes()
+    for id, neighbors in pairs(ffxiv_nav_data) do
+		local node = ml_node:Create()
+		if (ValidTable(node)) then
+			node.id = id
+			for nid, posTable in pairs(neighbors) do
+				node:AddNeighbor(nid, posTable)
+			end
+			ml_nav_manager.AddNode(node)
+		end
+	end
+end
+
+function mm.CreateSingleCell()
+	d("Creating a single cell outside the raster!")
+	local pPos = Player.pos
+	local newVertexCenter = { x=pPos.x, y=pPos.y, z=pPos.z }
+	d(MeshManager:CreateSingleCell(newVertexCenter))
 end
 
 
