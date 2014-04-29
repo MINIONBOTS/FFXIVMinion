@@ -243,7 +243,7 @@ function QM.Init()
 	QM.LoadTypeOptions()
 	
 	--Add the Button to FFXIVMINION window
-	GUI_NewButton("FFXIVMINION","Quest Manager","QMToggleMain")
+	GUI_NewButton(ml_global_information.MainWindow.Name,"Quest Manager","QMToggleMain")
 end
 --**************************************************************************************************************************************
 function QM.GUIVarUpdate(Event, NewVals, OldVals)
