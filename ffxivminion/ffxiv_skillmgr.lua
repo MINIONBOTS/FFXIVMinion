@@ -1005,7 +1005,7 @@ function SkillMgr.Cast( entity , prePVPCombat )
             for prio,skill in pairs(SkillMgr.SkillProfile) do
                 if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
                     local realskilldata = ActionList:Get(skill.id)
-                    if ( realskilldata and realskilldata.isready ) then 
+                    if ( realskilldata and realskilldata.isready and realskilldata.level <= Player.level) then 
                         
                         --reset our variables
                         target = entity
