@@ -92,7 +92,9 @@ function ffxiv_task_quest.UpdateProfiles()
     end
     gQuestProfile_listitems = profiles
     gQuestProfile = found
-	ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gQuestProfile..".info")
+	if (gQuestProfile ~= "" and gQuestProfile ~= "None") then
+		ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gQuestProfile..".info")
+	end
 end
 
 function ffxiv_task_quest.LoadProfile(profilePath)

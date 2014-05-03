@@ -557,7 +557,10 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 				if (name == "Name") then
 					local list = ml_marker_mgr.markerList[gMarkerMgrType]
 					if (list) then
-						d(list[ml_marker_mgr.currentEditMarker:GetFieldValue("Name")])
+						--if another marker with this name exists then don't allow the update
+						if(list[value] ~= nil) then
+							return
+						end
 						list[ml_marker_mgr.currentEditMarker:GetFieldValue("Name")] = nil
 						list[value] = ml_marker_mgr.currentEditMarker
 					end
