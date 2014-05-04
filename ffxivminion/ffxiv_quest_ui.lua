@@ -7,7 +7,7 @@ QM.Windows = {
 		x = 500, y = 40, width = 250, height = 520
 	},
 	QuestEditor = {visible = false, name = "Quest Editor", visibleDefault = false,
-		base = "Main", width = 250, height = 250
+		base = "Main", width = 250, height = 275
 	},
 	StepManager = {visible = false, name = "Step Manager", visibleDefault = false, onOpen = "QM.LoadTaskFields",
 		base = "QuestEditor", width = 250, height = 400
@@ -16,10 +16,10 @@ QM.Windows = {
 		base = "StepManager", width = 250, height = 300
 	},
 	TurnInEditor = {visible = false, name = "Turn-In Editor", visibleDefault = false, onOpen = "QM.LoadItemSlot;QM.RefreshTurnovers",
-		base = "StepManager", width = 250, height = 200
+		base = "StepManager", width = 250, height = 275
 	},
 	PreReqEditor = {visible = false, name = "Pre-Req Editor", visibleDefault = false, onOpen = "QM.RefreshPreReqs",
-		base = "QuestEditor", width = 250, height = 200
+		base = "QuestEditor", width = 250, height = 275
 	},
 }
 QM.Wrappers = {
@@ -50,22 +50,23 @@ QM.Variables = {
 	eQuestJob = 	{ default = "None", 	profile = "job", 			cast = "number"},
 	qQuestLevel = 	{ default = 1,	 		profile = "level", 			cast = "number"},
 	eQuestLevel = 	{ default = 1, 			profile = "level", 			cast = "number"},
-	qPreReqJob = 	{ default = "All",  	profile = "" , 				cast = "number"},
-	qPreReqID = 	{ default = 0,	 		profile = "" , 				cast = "number"},
-	qStepNum = 		{ default = 1, 			profile = "" , 				cast = "number"},
+	qPreReqJob = 	{ default = "All",  	profile = "" , 				cast = "string"},
+	qPreReqStep = 	{ default = 1, 			profile = "", 				cast = "number"},
+	qPreReqID = 	{ default = "",	 		profile = "" , 				cast = "number"},
+	qStepNum = 		{ default = "", 		profile = "" , 				cast = "number"},
 	qStepTask = 	{ default = "start",	profile = "type", 			cast = "string", onChange = "QM.LoadTaskFields"},
 	qTaskCustom = 	{ default = "", 		profile = "", 				cast = "string"},
 	qTaskMesh = 	{ default = "", 		profile = "meshname", 		cast = "string"},
 	qTaskMap = 		{ default = "", 		profile = "mapid", 			cast = "number"},
 	qTaskNPC = 		{ default = "", 		profile = "id", 			cast = "number"},
 	
-	qTaskKillTarget = 	{ default = "", 	profile = "id", 			cast = "number"},
-	qTaskKillCount = 	{ default = "", 	profile = "killcount", 		cast = "number"},
-	qTaskDelay = 		{ default = "", 	profile = "delay", 			cast = "number"},
+	qTaskKillTarget = 	{ default = "",		profile = "id", 			cast = "number"},
+	qTaskKillCount = 	{ default = 0, 		profile = "killcount", 		cast = "number"},
+	qTaskDelay = 		{ default = 0, 		profile = "delay", 			cast = "number"},
 	qTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},
 	
 	qTurnoverStep = 	{ default = 1, 		profile = "" , 				cast = "number"},
-	qTurnoverID = 		{ default = "", 	profile = "itemturninid", 	cast = "number"},
+	qTurnoverID = 		{ default = "",		profile = "itemturninid", 	cast = "number"},
 	qTurnoverSlot = 	{default = 1, 		profile = "", 				cast = "number", onChange = "QM.LoadItemSlot"},
 }
 
@@ -139,10 +140,11 @@ QM.Builds = {
 		[8] = {3, "GUI_NewButton",	QM.Windows.QuestEditor.name,"Edit Pre-Reqs",	"QMTogglePreReqEditor"},
 	},
 	PreReqEditor = {
-		[1] = {5, "GUI_NewComboBox",QM.Windows.PreReqEditor.name,"PreReq Job:",	"qPreReqJob",	 "New Pre-Req", QM.Strings.PreReqJobs},		
-		[2] = {4, "GUI_NewField",	QM.Windows.PreReqEditor.name,"PreReq ID:",	"qPreReqID",  	"New Pre-Req"},
-		[3] = {3, "GUI_NewButton", 	QM.Windows.PreReqEditor.name,"Clear All PreReqs",	"QM.ClearPreReqs"},
-		[4] = {3, "GUI_NewButton",	QM.Windows.PreReqEditor.name,"Add Pre-Req",			"QM.AddPreReq"},
+		[1] = {5, "GUI_NewComboBox",QM.Windows.PreReqEditor.name,"PreReq Job:",	"qPreReqJob",	"New Pre-Req", QM.Strings.PreReqJobs},		
+		[2] = {4, "GUI_NewField",	QM.Windows.PreReqEditor.name,"PreReq Step:","qPreReqStep", 	"New Pre-Req"},
+		[3] = {4, "GUI_NewField",	QM.Windows.PreReqEditor.name,"PreReq ID:",	"qPreReqID",  	"New Pre-Req"},
+		[4] = {3, "GUI_NewButton", 	QM.Windows.PreReqEditor.name,"Clear All PreReqs",	"QM.ClearPreReqs"},
+		[5] = {3, "GUI_NewButton",	QM.Windows.PreReqEditor.name,"Add Pre-Req",			"QM.AddPreReq"},
 	},
 	StepManager = {
 		[1] = {4, "GUI_NewField",	QM.Windows.StepManager.name,"Current Step:",	"qStepNum",		"New Step"},
@@ -235,10 +237,10 @@ function QM.Init()
 	
 	--Create Windows
 	QM.LoadWindows()
+	
 	--Pull starting values from settings file.
 	QM.LoadVariables()
 	
-	--QM.LoadProfile()
 	--Pull starting window fields for whichever type is selected.
 	QM.LoadTypeOptions()
 	
@@ -249,25 +251,13 @@ end
 function QM.GUIVarUpdate(Event, NewVals, OldVals)
 	
 	for k,v in pairs(NewVals) do
-		if (Settings.FFXIVMINION[tostring(k)] == nil) then
-			return
-		end
-
-		if (QM.Variables[tostring(k)].cast == "number") then
-			if (v ~= nil) then
-				Settings.FFXIVMINION[tostring(k)] = tonumber(v)
-			else
-				Settings.FFXIVMINION[tostring(k)] = 0
+		--d(tostring(k)..","..tostring(v)..","..tostring(type(v)))
+		local var = QM.Variables[tostring(k)]
+		if (var ~= nil) then
+			Settings.FFXIVMINION[k] = v
+			if (var.onChange ~= nil) then
+				QM.ExecuteFunction(var.onChange)
 			end
-		elseif (QM.Variables[tostring(k)].cast == "string") then
-			Settings.FFXIVMINION[tostring(k)] = tostring(v)
-		elseif (QM.Variables[tostring(k)].cast == "boolean") then
-			local bool = tostring(v) == "true" and true or false
-			Settings.FFXIVMINION[tostring(k)] = bool
-		end  
-		
-		if (QM.Variables[tostring(k)].onChange ~= nil) then
-			QM.ExecuteFunction(QM.Variables[tostring(k)].onChange)
 		end
 	end
 	
@@ -279,7 +269,11 @@ end
 function QM.LoadProfile()
 	
 	local info = {}
-
+	
+	if (qProfileName == "" or qProfileName == nil) then
+		return
+	end
+	
 	if (qProfileType == "Duty") then
 		info = persistence.load(QM.DutyPath..qProfileName..".info")
 		if (TableSize(info) > 0) then
@@ -312,8 +306,6 @@ function QM.CreateProfile()
 	
 	qProfileName = qProfileNew
 	qProfileNew = ""
-	
-	QM.PushVariables()
 end
 --**************************************************************************************************************************************
 function QM.SaveProfile()	
@@ -332,7 +324,7 @@ function QM.AddQuest()
 	local quest = {}
 	local k = tonumber(qQuestID)
 	quest.steps = {}
-	if (qQuestJob ~= "None") then quest.job = tonumber(FFXIV.JOBS[qQuestJob]) end
+	if (qQuestJob ~= "None") then quest.job = tonumber(FFXIV.JOBS[tonumber(qQuestJob)]) end
 	quest.level = tonumber(qQuestLevel)
 	quest.prereq = false
 	QM.Quests[k] = quest
@@ -405,52 +397,87 @@ end
 function QM.AddPreReq()
 	local id = tonumber(eQuestID)
 	
-	if (qPreReqJob ~= "None" and qPreReqID == nil) then 
+	if (qPreReqJob == "None" or qPreReqID == "") then 
 		return 
 	end
 	
-	if (qPreReqJob == "All") then
-		if (type(QM.Quests[id].prereq) == "boolean") then QM.Quests[id].prereq = {} end
-		QM.Quests[id].prereq[-1] = tonumber(qPreReqID)
-	else
-		if (type(QM.Quests[id].prereq) == "boolean") then QM.Quests[id].prereq = {} end
-		QM.Quests[id].prereq[FFXIV.JOBS[qPreReqJob]] = tonumber(qPreReqID)
+	local prID = tonumber(qPreReqID)
+	local prJob = qPreReqJob == "All" and -1 or tonumber(FFXIV.JOBS[qPreReqJob])
+	local prStep = tonumber(qPreReqStep)
+	
+	assert(type(prID) == "number", "PreReqID must be numeric.")
+	if (type(QM.Quests[id].prereq) == "boolean") then
+		if (prStep == 1) then
+			QM.Quests[id].prereq = nil
+			QM.Quests[id].prereq = {} 
+		else
+			d("Step is out of range.")
+			return
+		end
 	end
+
+	if (prStep > (TableSize(QM.Quests[id].prereq[prJob]) + 1)) then
+		d("Step is out of range.")
+		return
+	end
+	
+	if (TableSize(QM.Quests[id].prereq[prJob]) == 0) then QM.Quests[id].prereq[prJob] = {} end
+	
+	if (QM.Quests[id].prereq[prJob][prStep] ~= nil) then
+		QM.Quests[id].prereq[prJob] = QM.TableInsertSort(QM.Quests[id].prereq[prJob], prStep, prID)
+	else
+		QM.Quests[id].prereq[prJob][prStep] = prID
+	end
+	
 	QM.RefreshPreReqs()
 end
 --**************************************************************************************************************************************
 function QM.RemovePreReq(key)
 	local id = tonumber(eQuestID)
-	local key = tonumber(key)
 	
-	if (TableSize(QM.Quests[id].prereq) == 1) then
-		QM.Quests[id].prereq = nil
-		QM.Quests[id].prereq = false
+	local t = QM.StringToTable(key,";")
+	local prJob = tonumber(t[1])
+	local prStep = tonumber(t[2])
+	local tSize = TableSize(QM.Quests[id].prereq[prJob])
+	
+	if (tSize == 1) then
+		--Last entry for the job, just nix the table.
+		QM.Quests[id].prereq[prJob] = nil
+		
+		--If it was our only table, nix the prereqs completely.
+		if (TableSize(QM.Quests[id].prereq) == 0) then
+			QM.Quests[id].prereq = nil
+			QM.Quests[id].prereq = false
+		end
+	elseif (tSize == prStep) then
+		--Highest entry in the list, just nix the entry.
+		QM.Quests[id].prereq[prJob][prStep] = nil
 	else
-		QM.Quests[id].prereq[key] = nil
+		--Entry is somewhere in the middle, need to reorder it.
+		QM.Quests[id].prereq[prJob] = QM.TableRemoveSort(QM.Quests[id].prereq[prJob], prStep)
 	end
 	QM.RefreshPreReqs()
 end
 --**************************************************************************************************************************************
 function QM.RefreshPreReqs()
-
 	local id = tonumber(eQuestID)
 	
 	GUI_DeleteGroup(QM.Windows.PreReqEditor.name,"PreReqs")
 	local unfold = false
 	if (type(QM.Quests[id].prereq) ~= "boolean") then
-		for k,v in pairs(QM.Quests[id].prereq) do
-			GUI_NewButton(QM.Windows.PreReqEditor.name, tostring(v).."["..tostring(k).."]", "QMPreReqRemove"..tostring(k), "PreReqs")
-			unfold = true
+		for job,list in pairs(QM.Quests[id].prereq) do
+			if TableSize(list) > 0 then
+				for step, preReq in spairs(list) do
+					GUI_NewButton(QM.Windows.PreReqEditor.name, tostring(job).."["..tostring(step).."] - "..tostring(preReq), "QMPreReqRemove"..tostring(job)..";"..tostring(step), "PreReqs")
+					unfold = true
+				end
+			end 
 		end
 	end
 		
 	if (unfold) then
 		GUI_UnFoldGroup(QM.Windows.PreReqEditor.name,"PreReqs")
 	end
-	
-	qPreReqID = tonumber(QM.LastQuest)
-	Settings.FFXIVMINION.qPreReqID = qPreReqID
 	
 	local wnd = QM.Windows.PreReqEditor
 	GUI_SizeWindow(wnd.name,wnd.width,wnd.height)
@@ -498,7 +525,7 @@ function QM.RefreshTurnovers()
 				GUI_NewButton(QM.Windows.TurnInEditor.name, tostring(item).."["..tostring(k).."]["..tostring(i).."]", "QMTurnoverRemove"..tostring(item), "Turnovers")
 				unfold = true
 			end
-		elseif (QM.Quests[id].steps[k].itemturninid == 0) then
+		else
 			QM.Quests[id].steps[k].itemturnin = false
 		end
 	end
@@ -556,7 +583,7 @@ function QM.AddStep()
 		local value = _G[v[5]]
 		if (v[2] ~= "GUI_NewButton" and value ~= nil and value ~= "") then
 			local var = QM.Variables[v[5]]
-			if var.profile ~= "" then
+			if var.profile ~= "" and value ~= "" then
 				if var.cast == "number" then
 					task[var.profile] = tonumber(value)
 				elseif var.cast == "string" then
@@ -572,8 +599,6 @@ function QM.AddStep()
 		task.itemreward = false
 	end
 	
-	
-	
 	local pos = Player.pos
 	task.pos = {
 		["x"] = pos.x;
@@ -583,31 +608,50 @@ function QM.AddStep()
 	
 	local id = tonumber(eQuestID)
 	local step = tonumber(qStepNum)
-
-	if (QM.Quests[id].steps[step] == nil) then
+	
+	--If this is not the first step, and the previous step's map is the same, nix the mesh to prevent extra loading.
+	if (step > 1 and task.meshname ~= nil) then
+		if (QM.Quests[id].steps[step-1].mapid == task.mapid) then
+			task.meshname = nil
+		end
+	end	
+	
+	if (QM.Quests[id].steps[step] ~= nil) then
+		--If the task is nil and there's an itemturnin, add it in with the current task we are adding, and insert as-is.
+		if (QM.Quests[id].steps[step].task == nil) then
+			if (TableSize(QM.Quests[id].steps[step].itemturninid) > 0) then 
+				task.itemturninid = {}
+				task.itemturninid = QM.Quests[id].steps[step].itemturninid
+				task.itemturnin = true
+			end
+			QM.Quests[id].steps[step] = task
+		else
+			QM.Quests[id].steps = QM.TableInsertSort(QM.Quests[id].steps, step, task)
+		end
+	else
 		QM.Quests[id].steps[step] = {}
+		QM.Quests[id].steps[step] = task
 	end
-	
-	if (TableSize(QM.Quests[id].steps[step].itemturninid) > 0) then 
-		task.itemturninid = {}
-		task.itemturninid = QM.Quests[id].steps[step].itemturninid
-		task.itemturnin = true
-	end
-	
-	QM.Quests[id].steps[step] = task
-	
-	local orderedSteps = {}
-	for k,v in pairsByKeys(QM.Quests[id].steps) do
-		orderedSteps[k] = v
-	end
-	QM.Quests[id].steps = orderedSteps;
 	
 	QM.LoadTaskFields()
 end
 --**************************************************************************************************************************************
 function QM.RemoveStep(id)
-	local id = tonumber(id)
-    QM.Quests[tonumber(eQuestID)].steps[id] = nil	
+	local quest = tonumber(eQuestID)
+	local step = tonumber(id)
+	local tSize = TableSize(QM.Quests[quest].steps)
+	
+	--d(tostring(id)..","..tostring(TableSize(QM.Quests[id].steps)))
+	if (tSize == 1) then
+		--Last entry, nix the table.
+		QM.Quests[quest].steps = nil
+	elseif (tSize == step) then
+		--Highest entry, nix the entry.
+		QM.Quests[quest].steps[step] = nil
+	else
+		--Table needs to be reordered
+		QM.Quests[quest].steps = QM.TableRemoveSort(QM.Quests[quest].steps, step)
+	end
 	QM.LoadTaskFields()
 end
 --**************************************************************************************************************************************
@@ -675,8 +719,8 @@ function QM.LoadTypeOptions()
 end
 --**************************************************************************************************************************************
 function QM.LoadTaskFields()	
+
 	GUI_DeleteGroup(QM.Windows.StepManager.name,"New Step")
-	
 	local t = QM.Builds.QuestTasks[qStepTask]
 	for k,v in ipairs(t) do
 		local args = v[1]
@@ -697,6 +741,7 @@ function QM.LoadTaskFields()
 	
 	QM.LoadVariables()
 	QM.LoadCurrentValues()
+	
 	GUI_UnFoldGroup(QM.Windows.StepManager.name,"New Step")
 	
 	local id = tonumber(eQuestID)
@@ -709,7 +754,7 @@ function QM.LoadTaskFields()
 			if k > maxStep then maxStep = tonumber(k) end
 		end
 		GUI_UnFoldGroup(QM.Windows.StepManager.name,"Steps")
-	end
+	end	
 	
 	maxStep = maxStep + 1
 	qStepNum = maxStep
@@ -730,8 +775,8 @@ end
 --**************************************************************************************************************************************
 function QM.PushVariables()
 	for k,v in pairs(QM.Variables) do
-		if Settings.FFXIVMINION[k] ~= _G[k] then
-			Settings.FFXIVMINION[k] = _G[k]
+		if Settings.FFXIVMINION[tostring(k)] ~= _G[tostring(k)] then
+			Settings.FFXIVMINION[tostring(k)] = _G[tostring(k)]
 		end
 	end
 end
@@ -745,6 +790,8 @@ function QM.LoadCurrentValues()
 	qTaskMesh = tostring(gmeshname)
 	qTaskMap = Player.localmapid
 	qStepNum = QM.CurrentStep
+	
+	QM.PushVariables()
 end
 --**************************************************************************************************************************************
 function QM.LoadItemSlot()
@@ -785,6 +832,8 @@ function QM.LoadWindowFields(window)
 			unfoldGroups[v[6]] = true
 		end
 	end
+	
+	QM.LoadVariables()
 	
 	for k,v in pairs(unfoldGroups) do
 		GUI_UnFoldGroup(QM.Windows[window].name,tostring(k))
@@ -853,7 +902,7 @@ function QM.HandleButtons( Event, Button )
 		elseif (string.sub(Button,1,12) == "QMStepRemove") then
 			QM.RemoveStep(string.gsub(Button,"QMStepRemove",""))
 		elseif (string.sub(Button,1,14) == "QMPreReqRemove") then
-			QM.RemoveStep(string.gsub(Button,"QMPreReqRemove",""))
+			QM.RemovePreReq(string.gsub(Button,"QMPreReqRemove",""))
 		elseif (string.sub(Button,1,16) == "QMTurnoverRemove") then
 			QM.RemoveTurnover(string.gsub(Button,"QMTurnoverRemove",""))
 		elseif (string.sub(Button,1,8) == "QMToggle") then
@@ -905,6 +954,86 @@ function QM.StringToTable(str, delimiter)
 	end
 	
 	return t
+end
+
+function QM.TableInsertSort(tblSort, iInsertPoint, vInsertValue)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iInsertPoint) == "number", "Second parameter must be an integer insertion point.")
+	assert(vInsertValue ~= nil, "Third parameter must be a non-null variant to be inserted.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblSort
+	local p = iInsertPoint
+	
+	for k,v in pairsByKeys(t) do
+		if (tonumber(k) >= p) then
+			tempTable[tonumber(k)+1] = v
+		end
+	end
+		
+	local x = (TableSize(t) + 1)
+	for i=1,x do
+		if i < p then
+			orderedTable[i] = t[i]
+		elseif i == p then
+			orderedTable[i] = vInsertValue
+		elseif i > p then
+			orderedTable[i] = tempTable[i]
+		end
+	end
+	
+	return orderedTable
+end
+
+function QM.TableRemoveSort(tblSort, iRemovePoint)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iRemovePoint) == "number", "Second parameter must be an integer insertion point.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblToSort
+	local p = iRemovePoint
+	
+	for k,v in pairsByKeys(t) do
+		if tonumber(k) > p then
+			tempTable[tonumber(k)-1] = v
+		end
+	end
+	
+	local x = (TableSize(t) - 1)
+	for i=1,x do
+		if i < p then
+			orderedTable[i] = t[i]
+		elseif i >= p then
+			orderedTable[i] = tempTable[i]
+		end
+	end
+	
+	return orderedTable
+end
+
+function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
 end
 
 RegisterEventHandler("GUI.Item", QM.HandleButtons )

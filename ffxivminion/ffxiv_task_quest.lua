@@ -122,8 +122,7 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 			end
 		end
 	else
-		ml_error("Error reading quest profile")
-		ml_error(e)
+		d("Error reading quest profile"..tostring(e)) 
 	end
 end
 
