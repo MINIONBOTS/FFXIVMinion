@@ -147,10 +147,13 @@ end
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
-	if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and 
+	if (not Quest:IsLoading() and
+		ml_task_hub:CurrentTask().state == "DUTY_NEW" and 
 		Player.localmapid ~= ffxiv_task_duty.mapID and
 		ml_global_information.Now > ml_task_hub:CurrentTask().joinTimer and
-        IsDutyLeader()) 
+        IsDutyLeader() and
+		(TableSize(EntityList.myparty) == 4 or
+		TableSize(EntityList.myparty) == 8)) 
 	then
 		return true
 	end
@@ -162,7 +165,7 @@ function e_joinduty:execute()
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 	else
-        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + 300000
+        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + 30000
 		PressDutyJoin()
 	end
 end
@@ -170,7 +173,8 @@ end
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
-	return (DutyLeaderLeft() or (Player.localmapid == ffxiv_task_duty.mapID and ml_task_hub:CurrentTask().state == "DUTY_EXIT"))
+	return (DutyLeaderLeft() or (Player.localmapid == ffxiv_task_duty.mapID and ml_task_hub:CurrentTask().state == "DUTY_EXIT") or 
+			(TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8))
 			and not Player.incombat
 end
 function e_leaveduty:execute()
@@ -183,14 +187,42 @@ function e_leaveduty:execute()
         PressDutyJoin()
 	elseif ml_global_information.Now > ml_task_hub:CurrentTask().timer then
 		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
-        ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gLeaveDutyTimer)
+        --ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gLeaveDutyTimer)
 		ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now
         PressYesNo(true)
     end
 end
 
+c_changeleader = inheritsFrom( ml_cause )
+e_changeleader = inheritsFrom( ml_effect )
+function c_changeleader:evaluate()
+	if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and not Quest:IsLoading()) then
+		local Plist = EntityList.myparty
+		if (TableSize(Plist) > 0 ) then
+			local i,member = next (Plist)
+			while (i~=nil and member~=nil ) do
+				if ( member.isleader ) then
+					if (member.name ~= gDutyLeader and member.name ~= "") then
+						e_changeleader.name = member.name
+						return true
+					else
+						return false
+					end
+				end
+				i,member = next (Plist,i)
+			end
+		end
+	end
+	
+	return false
+end
+function e_changeleader:execute()
+	gDutyLeader = e_changeleader.name
+end
+
 function ffxiv_task_duty:Process()
-	if (IsDutyLeader() and ml_global_information.Now < ml_task_hub:CurrentTask().timer and not Player.incombat) then
+	if ((IsDutyLeader() and ml_global_information.Now < ml_task_hub:CurrentTask().timer and not Player.incombat)
+		or Quest:IsLoading()) then
 		return false
 	end
 	
@@ -268,7 +300,7 @@ function ffxiv_task_duty:Process()
 		ml_cne_hub.execute()
 		
 		if state ~= ml_task_hub:CurrentTask().state then
-			d(state)
+			--d(state)
 		end
 		
 		return false
@@ -282,12 +314,15 @@ function ffxiv_task_duty:Init()
     --init Process() cnes
 	local ke_pressConfirm = ml_element:create( "PressConfirm", c_pressconfirm, e_pressconfirm, 10 )
     self:add(ke_pressConfirm, self.process_elements)
-	
+
     local ke_leaveDuty = ml_element:create( "LeaveDuty", c_leaveduty, e_leaveduty, 15 )
     self:add(ke_leaveDuty, self.process_elements)
-	
+
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements)
+	
+	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 16 )
+    self:add(ke_changeLeader, self.process_elements)
 	
     local ke_assistleaderduty = ml_element:create( "AssistLeader", c_assistleaderduty, e_assistleaderduty, 20 )--minion only
     self:add( ke_assistleaderduty, self.overwatch_elements)
@@ -296,7 +331,7 @@ function ffxiv_task_duty:Init()
     self:add( ke_followleaderduty, self.overwatch_elements)
 	
 	local ke_deadDuty = ml_element:create( "Dead", c_deadduty, e_deadduty, 35 )
-    self:add( ke_deadDuty, self.overwatch_elements)
+    self:add( ke_deadDuty, self.overwatch_elements)	
   
     self:AddTaskCheckCEs()
 end
@@ -304,16 +339,8 @@ end
 -- UI settings
 function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gDutyProfile",strings[gCurrentLanguage].dutyMode,"")
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].dutyLeader,"gDutyLeader",strings[gCurrentLanguage].dutyMode,"")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gDutyTeleport",strings[gCurrentLanguage].dutyMode)
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enterDutyTimer,"gEnterDutyTimer",strings[gCurrentLanguage].dutyMode)
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].leaveDutyTimer,"gLeaveDutyTimer",strings[gCurrentLanguage].dutyMode)
 
-    --init combo boxes
-	if (Settings.FFXIVMINION.gDutyLeader == nil) then
-        Settings.FFXIVMINION.gDutyLeader = ""
-    end
-    
     if (Settings.FFXIVMINION.gDutyTeleport == nil) then
         Settings.FFXIVMINION.gDutyTeleport = "0"
     end
@@ -322,23 +349,12 @@ function ffxiv_task_duty.UIInit()
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
 	
-	if (Settings.FFXIVMINION.gEnterDutyTimer == nil) then
-        Settings.FFXIVMINION.gEnterDutyTimer = "15000"
-    end
-	
-	if (Settings.FFXIVMINION.gLeaveDutyTimer == nil) then
-        Settings.FFXIVMINION.gLeaveDutyTimer = "25000"
-    end
-	
 	ffxiv_task_duty.UpdateProfiles()
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
 	
 	gDutyProfile = Settings.FFXIVMINION.gLastDutyProfile
-	gDutyLeader = Settings.FFXIVMINION.gDutyLeader
     gDutyTeleport = Settings.FFXIVMINION.gDutyTeleport
-	gEnterDutyTimer = Settings.FFXIVMINION.gEnterDutyTimer
-	gLeaveDutyTimer = Settings.FFXIVMINION.gLeaveDutyTimer
 end
 
 function ffxiv_task_duty.UpdateProfiles()
@@ -368,29 +384,6 @@ function ffxiv_task_duty.UpdateProfiles()
 	d(loadfile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua"))
 end
 
-function ffxiv_task_duty.UpdateParty(ticks)
-	if (ticks - ffxiv_task_duty.updateTicks > 1000) then
-		ffxiv_task_duty.updateTicks = ticks
-		local partylist = ""
-
-		local partymemberlist= EntityList.myparty
-		if ( partymemberlist) then
-			local i,entity = next(partymemberlist)
-			while (i~=nil and entity ~=nil) do 
-				if (partylist == "") then
-					partylist = entity.name
-				else
-					partylist = partylist..","..entity.name
-				end
-				i,entity  = next(partymemberlist,i)
-			end  
-		end
-		
-		gDutyLeader_listitems = partylist
-		gDutyLeader = Settings.FFXIVMINION.gDutyLeader
-	end
-end
-
 function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gDutyProfile" ) then
@@ -401,10 +394,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			d(loadfile(ffxiv_task_duty.dutyPath..v..".lua"))
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
         elseif (k == "gDutyTeleport" or
-				k == "gDutyLeader" or
-				k == "gDutyAssist" or
-				k == "gEnterDutyTimer" or
-				k == "gLeaveDutyTimer")
+				k == "gDutyAssist")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -498,4 +488,3 @@ function e_deadduty:execute()
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)
-RegisterEventHandler("Gameloop.Update",ffxiv_task_duty.HandleUpdate)

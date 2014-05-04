@@ -705,7 +705,7 @@ function e_dead:execute()
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
-c_pressconfirm.throttle = 5000
+c_pressconfirm.throttle = 1000
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate() 
     return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
@@ -716,7 +716,7 @@ function e_pressconfirm:execute()
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
 		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
 	elseif (gBotMode == strings[gCurrentLanguage].dutyMode) then
-		ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gEnterDutyTimer)
+		--ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gEnterDutyTimer)
 		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
 	end
 end
