@@ -159,8 +159,8 @@ function c_joinduty:evaluate()
 		Player.localmapid ~= ffxiv_task_duty.mapID and
 		ml_global_information.Now > ml_task_hub:CurrentTask().joinTimer and
         IsDutyLeader() and
-		(GetPartySize() == 4 or
-		GetPartySize() == 8))
+		(TableSize(EntityList.myparty) == 4 or
+		TableSize(EntityList.myparty) == 8))
 	then
 		return true
 	end
@@ -181,7 +181,7 @@ c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
 	return (DutyLeaderLeft() or (Player.localmapid == ffxiv_task_duty.mapID and ml_task_hub:CurrentTask().state == "DUTY_EXIT") or 
-			(GetPartySize() ~= 4 and GetPartySize() ~= 8))
+			(TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8))
 			and not Player.incombat
 end
 function e_leaveduty:execute()
@@ -495,23 +495,6 @@ function e_deadduty:execute()
     if(PressOK()) then
       return
     end
-end
-
-function GetPartySize()
-	local count = 0
-	local party = EntityList.myparty
-	for _, entry in pairs(party) do
-		if (entry) then
-			local entity = EntityList:Get(entry.id)
-			if (entity) then
-				if (entity.chartype == 4) then
-					count = count + 1
-				end
-			end
-		end
-	end
-	
-	return count
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)
