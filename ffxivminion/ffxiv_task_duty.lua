@@ -9,6 +9,13 @@ if(Settings.FFXIVMINION.gDutyMapID == nil) then
 end
 ffxiv_task_duty.mapID = Settings.FFXIVMINION.gDutyMapID
 
+function file_exists(name)
+	if (name) then
+	   local f=io.open(name,"r")
+	   if f~=nil then io.close(f) return true else return false end
+	end
+end
+
 function ffxiv_task_duty.Create()
     local newinst = inheritsFrom(ffxiv_task_duty)
     
@@ -381,7 +388,10 @@ function ffxiv_task_duty.UpdateProfiles()
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 	end
-	d(loadfile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua"))
+	if (file_exists(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")) then
+		d("loading"..ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
+		dofile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
+	end
 end
 
 function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
