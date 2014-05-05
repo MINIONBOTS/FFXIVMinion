@@ -503,8 +503,10 @@ function GetPartySize()
 	for _, entry in pairs(party) do
 		if (entry) then
 			local entity = EntityList:Get(entry.id)
-			if (entity.chartype == 4) then
-				count = count + 1
+			if (entity) then
+				if (entity.chartype == 4) then
+					count = count + 1
+				end
 			end
 		end
 	end
