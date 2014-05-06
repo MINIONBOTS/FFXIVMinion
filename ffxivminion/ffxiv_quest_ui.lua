@@ -992,7 +992,7 @@ function QM.TableRemoveSort(tblSort, iRemovePoint)
 	
 	local orderedTable = {}
 	local tempTable = {}
-	local t = tblToSort
+	local t = tblSort
 	local p = iRemovePoint
 	
 	for k,v in pairsByKeys(t) do
