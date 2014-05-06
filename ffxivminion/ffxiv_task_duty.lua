@@ -4,6 +4,7 @@ ffxiv_task_duty.dutyInfo = {}
 ffxiv_task_duty.dutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles\]]
 ffxiv_task_duty.updateTicks = 0
 ffxiv_task_duty.respawnTime = 0
+ffxiv_task_duty.dutySet = false
 
 if(Settings.FFXIVMINION.gDutyMapID == nil) then
 	Settings.FFXIVMINION.gDutyMapID = 0
@@ -156,6 +157,31 @@ function e_assistleaderduty:execute()
     end
 end
 
+c_setduty = inheritsFrom( ml_cause )
+e_setduty = inheritsFrom( ml_effect )
+e_setduty.cleared = false
+function c_setduty:evaluate()
+	return not ffxiv_task_duty.dutySet and 
+		(TableSize(EntityList.myparty) == 4 or
+		TableSize(EntityList.myparty) == 8)
+end
+function e_setduty:execute()
+	if not ControlVisible("ContentsFinder") then
+		ActionList:Cast(33,0,10)
+		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
+		e_setduty.cleared = false
+	elseif (not e_setduty.cleared) then
+		Duty:ClearDutySelection()
+		e_setduty.cleared = true
+	else
+        local duty = GetDutyFromID(ffxiv_task_duty.mapID)
+		if(duty) then
+			Duty:SelectDuty(duty.DutySelectCode)
+			ffxiv_task_duty.dutySet = true
+		end
+	end
+end
+
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
@@ -185,9 +211,10 @@ end
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
-	return (DutyLeaderLeft() or (Player.localmapid == ffxiv_task_duty.mapID and ml_task_hub:CurrentTask().state == "DUTY_EXIT") or 
-			(TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8))
-			and not Player.incombat
+	return (	Player.localmapid == ffxiv_task_duty.mapID and not Player.incombat and
+				(DutyLeaderLeft() or 
+				ml_task_hub:CurrentTask().state == "DUTY_EXIT" or 
+				(TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8)))
 end
 function e_leaveduty:execute()
 	if not ControlVisible("ContentsFinder") then
@@ -347,7 +374,10 @@ function ffxiv_task_duty:Init()
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements)
 	
-	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 16 )
+	local ke_setDuty = ml_element:create( "SetDuty", c_setduty, e_setduty, 16 )
+    self:add(ke_setDuty, self.process_elements)
+	
+	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)
 	
 	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 20 )--minion only
@@ -414,6 +444,7 @@ function ffxiv_task_duty.UpdateProfiles()
     d("loading"..ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
     dofile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
   end
+  ffxiv_task_duty.dutySet = false
 end
 
 function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
@@ -425,6 +456,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			end
 			d(loadfile(ffxiv_task_duty.dutyPath..v..".lua"))
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
+			ffxiv_task_duty.dutySet = false
         elseif (k == "gDutyTeleport" or
 				k == "gDutyAssist")
         then
@@ -538,6 +570,5 @@ function e_respawning:execute()
     Player:SetFacingSynced(target.pos.x, target.pos.y, target.pos.z)
   end
 end
-
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)

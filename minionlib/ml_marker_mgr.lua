@@ -637,7 +637,8 @@ end
 
 function ml_marker_mgr.ToggleMenu()
     if (ml_marker_mgr.visible) then
-        GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)	
+        GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
+		GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
         ml_marker_mgr.visible = false
     else
         local wnd = GUI_GetWindowInfo(ml_marker_mgr.parentWindow.Name)
