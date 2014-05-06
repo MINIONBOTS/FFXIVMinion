@@ -161,7 +161,9 @@ c_setduty = inheritsFrom( ml_cause )
 e_setduty = inheritsFrom( ml_effect )
 e_setduty.cleared = false
 function c_setduty:evaluate()
-	return not ffxiv_task_duty.dutySet and 
+	return 
+		IsDutyLeader() and not 
+		ffxiv_task_duty.dutySet and 
 		(TableSize(EntityList.myparty) == 4 or
 		TableSize(EntityList.myparty) == 8)
 end
@@ -257,6 +259,9 @@ function c_changeleader:evaluate()
 end
 function e_changeleader:execute()
 	gDutyLeader = e_changeleader.name
+	if (Player.name == gDutyLeader) then
+		ffxiv_task_duty.dutySet = false
+	end
 end
 
 c_lootcheck = inheritsFrom( ml_cause )
