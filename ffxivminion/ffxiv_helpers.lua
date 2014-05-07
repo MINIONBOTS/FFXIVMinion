@@ -633,3 +633,14 @@ function GetLocalAetheryte()
     
     return nil
 end
+
+function GetDutyFromID(dutyID)
+	local dutyList = Duty:GetDutyList()
+	for _, duty in pairs(dutyList) do
+		if (duty.id == dutyID) then
+			return duty
+		end
+	end
+	
+	return ""
+end
