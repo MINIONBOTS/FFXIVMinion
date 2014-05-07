@@ -210,8 +210,7 @@ e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
 	return (	Player.localmapid == ffxiv_task_duty.mapID and not Player.incombat and
 				(DutyLeaderLeft() or 
-				ml_task_hub:CurrentTask().state == "DUTY_EXIT" or 
-				(TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8)))
+				ml_task_hub:CurrentTask().state == "DUTY_EXIT"))
 end
 function e_leaveduty:execute()
 	if not ControlVisible("ContentsFinder") then
@@ -223,7 +222,6 @@ function e_leaveduty:execute()
         PressDutyJoin()
 	elseif ml_global_information.Now > ml_task_hub:CurrentTask().timer then
 		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
-        --ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gLeaveDutyTimer)
 		ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now
         PressYesNo(true)
     end
