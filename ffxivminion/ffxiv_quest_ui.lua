@@ -222,7 +222,7 @@ function QM.Init()
 	if (Settings.FFXIVMINION.qmWindow == nil or Settings.FFXIVMINION.qmWindow == {}) then 
 		local windowInfo = {} 
 		windowInfo.width = 250
-		windowInfo.height = 400
+		windowInfo.height = 300
 		windowInfo.x = 200
 		windowInfo.y = 40
 		
@@ -244,7 +244,6 @@ function QM.Init()
 	QM.LoadTypeOptions()
 	
 	--Add the Button to FFXIVMINION window
-	d(ml_global_information.MainWindow.Name..","..strings[gCurrentLanguage].profileManager)
 	GUI_NewButton(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profileManager,"QMToggleMain")
 end
 --**************************************************************************************************************************************
@@ -546,7 +545,7 @@ function QM.RemoveTurnover(item)
 	local item = tonumber(item)
 	local tSize = 0
 	
-	for k,v in ipairs(QM.Quests[id].steps) do
+	for k,v in spairs(QM.Quests[id].steps) do
 		if (TableSize(v.itemturninid) > 0) then
 			tSize = TableSize(v.itemturninid)
 			for x,y in pairs(v.itemturninid) do
@@ -574,6 +573,7 @@ function QM.ClearTurnovers()
 	
 	QM.Quests[id].steps[step].itemturninid = nil
 	QM.Quests[id].steps[step].itemturninid = 0
+	QM.RefreshTurnovers()
 end
 --**************************************************************************************************************************************
 function QM.AddStep()
@@ -812,7 +812,7 @@ function QM.LoadWindowFields(window)
 	local t = QM.Builds[window]
 	
 	--Cycle through the GUI elements for this window and load them, and unfold any necessary groups.
-	for k,v in ipairs(t) do
+	for k,v in spairs(t) do
 		local args = v[1]
 		if (args == 2) then
 			_G[v[2]](v[3],v[4])
