@@ -28,3 +28,26 @@ function ml_error( text )
 	GUI_ToggleConsole(true)
 	d( "**ERROR**: " .. tostring( text ) )
 end
+
+ml_logstring = ""
+function ml_log( arg )	
+	if (type( arg ) == "boolean" and arg == true) then		
+		ml_logstring = ml_logstring.."("..tostring(arg)..")::"
+		return true
+	elseif (type( arg ) == "boolean" and arg == false) then		
+		ml_logstring = ml_logstring.."("..tostring(arg)..")::"
+		return false
+	elseif (type( arg ) == "string" and arg == "Running") then		
+		ml_logstring = ml_logstring.."("..arg..")::"
+		return "Running"
+	else	
+		ml_logstring = ml_logstring..arg
+	end
+	--d( debug.traceback())	
+end
+
+function ml_GetTraceString()
+	local t = ml_logstring
+	ml_logstring = ""
+	return t
+end

@@ -706,3 +706,29 @@ function GetWhitelistIDString()
     -- if we've whitelisted one or more contentIDs then only return those
     return ml_global_information.WhitelistContentID
 end
+
+function GetPartySize()
+	local count = 0
+	local party = EntityList.myparty
+	for _, entry in pairs(party) do
+		if (entry) then
+			local entity = EntityList:Get(entry.id)
+			if (entity.chartype == 4) then
+				count = count + 1
+			end
+		end
+	end
+	
+	return count
+end
+
+function GetDutyFromID(dutyID)
+	local dutyList = Duty:GetDutyList()
+	for _, duty in pairs(dutyList) do
+		if (duty.id == dutyID) then
+			return duty
+		end
+	end
+	
+	return ""
+end

@@ -87,6 +87,18 @@ function StringSplit(s,sep)
 	end
 end
 
+function StringContains(sString, item)
+
+    if (sString == nil) then return false end
+            
+    for _orids in StringSplit(sString,",") do
+        if (item == tonumber(_orids)) then 
+            return true
+        end        
+    end
+    return false
+end
+
 function ApproxEqual(num1, num2)
     return math.abs(math.abs(num1) - math.abs(num2)) < .000001
 end
