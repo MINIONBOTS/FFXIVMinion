@@ -3,7 +3,7 @@ QM = {}
 --baseY is used to tell the window to position itself below the specified window.
 --baseX is used to tell the window to position itself right of the specified window.
 QM.Windows = {
-	Main = {visible = false, name = "Quest Manager", visibleDefault = false, onOpen = "QM.LoadProfile",
+	Main = {visible = false, name = strings[gCurrentLanguage].profileManager, visibleDefault = false, onOpen = "QM.LoadProfile",
 		x = 500, y = 40, width = 250, height = 520
 	},
 	QuestEditor = {visible = false, name = strings[gCurrentLanguage].questEditor, visibleDefault = false,
@@ -115,7 +115,7 @@ QM.Builds = {
 		[1] = {QM.Windows.Main.name, strings[gCurrentLanguage].newEncounter},
 		[2] = {QM.Windows.Main.name, strings[gCurrentLanguage].newQuest},
 		[3] = {QM.Windows.Main.name, "Encounters"},
-		[4] = {QM.Windows.Main.name, "Quests"},
+		[4] = {QM.Windows.Main.name, strings[gCurrentLanguage].quests},
 	},
 	Duty = {
 		[1] = {5, "GUI_NewComboBox",QM.Windows.Main.name,strings[gCurrentLanguage].task,		"qDutyTask",	strings[gCurrentLanguage].newEncounter,		"Kill,Loot,Custom"},
@@ -153,9 +153,9 @@ QM.Builds = {
 		[4] = {3, "GUI_NewButton",	QM.Windows.StepManager.name,strings[gCurrentLanguage].questEditTurnovers,	"QMToggleTurnInEditor"},
 	},
 	TurnInEditor = {
-		[1] = {4, "GUI_NewField",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverStep,		"qTurnoverStep",strings[gCurrentLanguage].newQuestTurnover},
+		[1] = {4, "GUI_NewField",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverStep,"qTurnoverStep",strings[gCurrentLanguage].newQuestTurnover},
 		[2] = {4, "GUI_NewField",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverID,	"qTurnoverID",	strings[gCurrentLanguage].newQuestTurnover},
-		[3] = {4, "GUI_NewNumeric",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverSlot,	"qTurnoverSlot",strings[gCurrentLanguage].newQuestTurnover},
+		[3] = {4, "GUI_NewNumeric",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverSlot,"qTurnoverSlot",strings[gCurrentLanguage].newQuestTurnover},
 		[4] = {3, "GUI_NewButton", 	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverClear, "QM.ClearTurnovers"},
 		[5] = {3, "GUI_NewButton",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].questAddTurnover, 		"QM.AddTurnover"},
 	},
@@ -244,7 +244,8 @@ function QM.Init()
 	QM.LoadTypeOptions()
 	
 	--Add the Button to FFXIVMINION window
-	GUI_NewButton(ml_global_information.MainWindow.Name,"Quest Manager","QMToggleMain")
+	d(ml_global_information.MainWindow.Name..","..strings[gCurrentLanguage].profileManager)
+	GUI_NewButton(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profileManager,"QMToggleMain")
 end
 --**************************************************************************************************************************************
 function QM.GUIVarUpdate(Event, NewVals, OldVals)
@@ -377,12 +378,12 @@ function QM.DeleteQuest()
 end
 --**************************************************************************************************************************************
 function QM.RefreshQuests()
-	GUI_DeleteGroup(QM.Windows.Main.name,"Quests")
+	GUI_DeleteGroup(QM.Windows.Main.name,strings[gCurrentLanguage].quests)
 	if (TableSize(QM.Quests) > 0) then
 		for k,v in pairs(QM.Quests) do
-			GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), "Quests")
+			GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
 		end
-		GUI_UnFoldGroup(QM.Windows.Main.name,"Quests")
+		GUI_UnFoldGroup(QM.Windows.Main.name,strings[gCurrentLanguage].quests)
 	end
 	
 	GUI_SizeWindow(QM.Windows.Main.name,Settings.FFXIVMINION.qmWindow.width,Settings.FFXIVMINION.qmWindow.height)

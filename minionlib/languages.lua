@@ -369,11 +369,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
+		profileManager					= "Profile Manager",
     },                                  
     ["cn"] =                            
     {                               
@@ -753,11 +754,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
+		profileManager					= "Profile Manager",
 	},
     ["jp"] =
     {
@@ -1125,12 +1127,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
-		
+		profileManager					= "Profile Manager",
 	},   
     ["de"] =
     {
@@ -1500,11 +1502,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
+		profileManager					= "Profile Manager",
 	},     
     ["fr"] =
     {
@@ -1872,11 +1875,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
+		profileManager					= "Profile Manager",
 	},       
     ["ru"] =
     {
@@ -2244,11 +2248,12 @@ strings =
 		prereqJob						= "PreReq Job",
 		prereqStep						= "PreReq Step",
 		prereqID						= "PreReq ID",
-		prereqClear						= "Clear All PreReqs"
+		prereqClear						= "Clear All PreReqs",
 		turnoverStep					= "Step #:",
 		turnoverID						= "Turn-In ID",
 		turnoverSlot					= "Item Slot",
 		turnoverClear					= "Clear All Turn-Ins",
+		profileManager					= "Profile Manager",
 	},    	
 
 }
