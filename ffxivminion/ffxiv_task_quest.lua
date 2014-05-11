@@ -29,7 +29,7 @@ function ffxiv_task_quest.UIInit()
 	GUI_NewField(ml_global_information.MainWindow.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ml_global_information.MainWindow.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gQuestTeleport",strings[gCurrentLanguage].questMode)
-	GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
+	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
 
     if (Settings.FFXIVMINION.gDutyTeleport == nil) then
         Settings.FFXIVMINION.gDutyTeleport = "0"
