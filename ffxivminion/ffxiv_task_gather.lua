@@ -295,7 +295,7 @@ function e_gather:execute()
 		-- second try to get gardening supplies
 		if (not ml_task_hub:CurrentTask().gatheredGardening) then
 			for i, item in pairs(list) do
-				if 	(ffxiv_task_gathering.gardening[item.id])
+				if 	(ffxiv_task_gather.gardening[item.id])
 				then
 					Player:Gather(item.index)
 					ml_task_hub:CurrentTask().gatheredGardening = true
