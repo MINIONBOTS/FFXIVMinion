@@ -200,7 +200,7 @@ function e_joinduty:execute()
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 	else
-        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + 30000
+        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + tonumber(gResetDutyTimer)
 		PressDutyJoin()
 	end
 end
@@ -380,6 +380,7 @@ end
 function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gDutyProfile",strings[gCurrentLanguage].dutyMode,"")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gDutyTeleport",strings[gCurrentLanguage].dutyMode)
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode);	
 
     if (Settings.FFXIVMINION.gDutyTeleport == nil) then
         Settings.FFXIVMINION.gDutyTeleport = "0"
@@ -389,12 +390,17 @@ function ffxiv_task_duty.UIInit()
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
 	
+	if (Settings.FFXIVMINION.gResetDutyTimer == nil) then
+        Settings.FFXIVMINION.gResetDutyTimer = 60
+    end
+	
 	ffxiv_task_duty.UpdateProfiles()
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
 	
 	gDutyProfile = Settings.FFXIVMINION.gLastDutyProfile
     gDutyTeleport = Settings.FFXIVMINION.gDutyTeleport
+	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
 end
 
 function ffxiv_task_duty.UpdateProfiles()
@@ -439,7 +445,8 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
 			ffxiv_task_duty.dutySet = false
         elseif (k == "gDutyTeleport" or
-				k == "gDutyAssist")
+				k == "gDutyAssist" or
+				k == "gResetDutyTimer")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
