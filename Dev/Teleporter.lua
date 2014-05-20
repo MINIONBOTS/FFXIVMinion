@@ -1,31 +1,294 @@
 TP = { }
-TP.coordspath = GetStartupPath() .. [[\LuaMods\dev\Waypoint\]];
-TP.WinName = "Dev - TP"
-TP.lastticks = 0
-TP.MapID = 0
-TP.LoadID = 0
-TP.visicheck = 1
-TP.visicheckM = 0
-TP.TGName = ""
-TP.cPort = {}
-TP.cPortS = {} 
-TP.cSaveinf = 0
-TP.cDeleteinf = 0
-TP.cReplaceinf = 0
-TP.cInfocheck = 0
-TP.cRepID = 0
-TP.cDelID = 0
-TP.DelGRP = {}
-TP.halfticks = 0
-TP.isTraveling = false
-TP.TravelingStopingDistance = 10.0
-TP.key1 = {"NONE","Left Mouse","Right Mouse","Middle Mouse","BACKSPACE","TAB","ENTER","PAUSE","ESC","SPACEBAR","PAGE UP","PAGE DOWN","END","HOME","LEFT ARROW","UP ARROW","RIGHT ARROW","DOWN ARROW","PRINT","INS","DEL","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","NUM 0","NUM 1","NUM 2","NUM 3","NUM 4","NUM 5","NUM 6","NUM 7","NUM 8","NUM 9","Separator","Subtract","Decimal","Divide","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","SCROLL LOCK","Left SHIFT","Right SHIFT","Left CONTROL","Right CONTROL","Left ALT","Right ALT"}
-TP.key2 = {0,1,2,4,8,9,13,19,27,32,33,34,35,36,37,38,39,40,42,45,46,48,49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,96,97,98,99,100,101,102,103,104,105,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,145,160,161,162,163,164,165}
+TP.coordspath = GetStartupPath()..[[\LuaMods\dev\Waypoint\]];
+TP.WinNames = {
+	Main = "Dev - TP",
+	Save = "Teleporter Save",
+	Replace = "Teleporter Replace/Rename/Delete",
+	Info = "Info",
+}
+TP.WinName = TP.WinNames.Main
 
-TP.AutoList = { }
-TP.LastAutoList = 0
+TP.WindowTick = 0
+TP.ClickTPTick = 0
+TP.UpdateWaypointTick = 0
+TP.MapID = 0
+
+TP.Visible = {
+	Main = false,
+	Save = false,
+	Replace = false,
+	Info = false,
+}
+
+--cPort is the actual coord list format
+TP.cPort = {}
+--cPortS is the names
+TP.cPortS = {} 
+
+TP.ModifierKeys = {
+	["None"] = 0,
+	["Left SHIFT"] = 160,
+	["Right SHIFT"] = 161,
+	["Left CONTROL"] = 162,
+	["Right CONTROL"] = 163,
+	["Left ALT"] = 164,
+	["Right ALT"] = 165,
+}
+
+TP.ShortcutKeys = {
+["None"]=	0,
+["Left Mouse"]=	1,
+["Right Mouse"]=	2,
+["Middle Mouse"]=	4,
+["BACKSPACE"]=	8,
+["TAB"]=	9,
+["ENTER"]=	13,
+["PAUSE"]=	19,
+["ESC"]=	27,
+["SPACEBAR"]=	32,
+["PAGE UP"]=	33,
+["PAGE DOWN"]=	34,
+["END"]=	35,
+["HOME"]=	36,
+["LEFT ARROW"]=	37,
+["UP ARROW"]=	38,
+["RIGHT ARROW"]=	39,
+["DOWN ARROW"]=	40,
+["PRINT"]=	42,
+["INS"]=	45,
+["DEL"]=	46,
+["0"]=	48,
+["1"]=	49,
+["2"]=	50,
+["3"]=	51,
+["4"]=	52,
+["5"]=	53,
+["6"]=	54,
+["7"]=	55,
+["8"]=	56,
+["9"]=	57,
+["A"]=	65,
+["B"]=	66,
+["C"]=	67,
+["D"]=	68,
+["E"]=	69,
+["F"]=	70,
+["G"]=	71,
+["H"]=	72,
+["I"]=	73,
+["J"]=	74,
+["K"]=	75,
+["L"]=	76,
+["M"]=	77,
+["N"]=	78,
+["O"]=	79,
+["P"]=	80,
+["Q"]=	81,
+["R"]=	82,
+["S"]=	83,
+["T"]=	84,
+["U"]=	85,
+["V"]=	86,
+["W"]=	87,
+["X"]=	88,
+["Y"]=	89,
+["Z"]=	90,
+["NUM 0"]=	96,
+["NUM 1"]=	97,
+["NUM 2"]=	98,
+["NUM 3"]=	99,
+["NUM 4"]=	100,
+["NUM 5"]=	101,
+["NUM 6"]=	102,
+["NUM 7"]=	103,
+["NUM 8"]=	104,
+["NUM 9"]=	105,
+["Separator"]=	108,
+["Subtract"]=	109,
+["Decimal"]=	110,
+["Divide"]=	111,
+["F1"]=	112,
+["F2"]=	113,
+["F3"]=	114,
+["F4"]=	115,
+["F5"]=	116,
+["F6"]=	117,
+["F7"]=	118,
+["F8"]=	119,
+["F9"]=	120,
+["F10"]=	121,
+["F11"]=	122,
+["F12"]=	123,
+["SCROLL LOCK"]=	145,
+}
+
+TP.AutoList = {}
 TP.AutoListMapId = 0
 TP.AutoGroups={[5]="Aetheryte",[7]="Object",[3]="NPC" }
+
+function TP.Build()
+
+	if (Settings.Teleporter.TeleportWindow == nil or Settings.Teleporter.TeleportWindow == {}) then 
+		local windowInfo = {} 
+		windowInfo.width = 380
+		windowInfo.height = 520
+		windowInfo.x = 500
+		windowInfo.y = 40
+		
+		Settings.Teleporter.TeleportWindow = windowInfo
+	end
+	
+	local WI = Settings.Teleporter.TeleportWindow
+
+	if (Settings.Teleporter.gClickTeleport == nil) then
+		Settings.Teleporter.gClickTeleport = "None"
+	end
+	if (Settings.Teleporter.gClickName1 == nil) then
+		Settings.Teleporter.gClickName1 = "None"
+	end
+	if (Settings.Teleporter.gClickName2 == nil) then
+		Settings.Teleporter.gClickName2 = "None"
+	end
+	if (Settings.Teleporter.gAutoSync == nil) then
+		Settings.Teleporter.gAutoSync = "1"
+	end
+	if (Settings.Teleporter.gAutoRecord == nil) then
+		Settings.Teleporter.gAutoRecord = "0"
+	end
+	if (Settings.Teleporter.gMoveDist == nil) then
+		Settings.Teleporter.gMoveDist = "10"
+	end
+	
+	--Let's create all our windows at once, instead of all throughout the code.
+	local WinName = nil
+	
+	--Teleporter Replace/Rename/Delete Window
+	WinName = TP.WinNames.Replace
+	GUI_NewWindow	(WinName,WI.x,WI.y,WI.width,WI.height)
+	
+	GUI_NewComboBox (WinName,"Waypoint:","gRepPoint","Waypoint","")
+	GUI_NewField	(WinName,"New Name:","gRepName","Waypoint")
+	--GetTargetName
+	GUI_NewButton	(WinName,"Get Target Name","TP.GetTargetName","Waypoint")
+	RegisterEventHandler("TP.GetTargetName", TP.GetTargetName)
+	
+	GUI_NewButton	(WinName,"Delete Waypoint","TP.ChangeDelete")
+	RegisterEventHandler("TP.ChangeDelete", TP.Change)
+	GUI_NewButton	(WinName,"Rename Waypoint","TP.ChangeRename")
+	RegisterEventHandler("TP.ChangeRename", TP.Change)
+	GUI_NewButton	(WinName,"Replace to Target POS","TP.ChangeReplaceTPos")
+	RegisterEventHandler("TP.ChangeReplaceTPos", TP.Change)
+	GUI_NewButton	(WinName,"Replace to Player POS","TP.ChangeReplacePPos")
+	RegisterEventHandler("TP.ChangeReplacePPos", TP.Change)
+	
+	GUI_UnFoldGroup	(WinName,"Waypoint")
+	GUI_SizeWindow	(WinName,WI.width,200)
+	GUI_WindowVisible(WinName,TP.Visible.Replace)	
+	
+	--Teleporter Save Window
+	WinName = TP.WinNames.Save
+	GUI_NewWindow	(WinName,WI.x,WI.y,WI.width,100)
+	GUI_NewField	(WinName,"Name:","gSaveName","Save")
+	GUI_NewButton	(WinName,"Get Target Name","TP.GetTargetName","Save")
+	RegisterEventHandler("TP.GetTargetName", TP.GetTargetName)
+	
+	GUI_NewButton	(WinName,"Save Player POS","TP.save")
+	RegisterEventHandler("TP.save", TP.Save)
+	GUI_NewButton	(WinName,"Save Target POS","TP.saveTarget")
+	RegisterEventHandler("TP.saveTarget", TP.Save)
+	
+	GUI_UnFoldGroup	(WinName,"Save")
+	GUI_SizeWindow	(WinName,WI.width,130)
+	GUI_WindowVisible(WinName,TP.Visible.Save)			
+	
+	--Teleporter Main Window
+	WinName = TP.WinName
+	GUI_NewWindow	(WinName,WI.x,WI.y,WI.width,WI.height)
+    	GUI_NewField	(WinName,"Map - (id)","gMapName","Info")
+	GUI_NewField	(WinName," X | Y | Z | H","gPlayerPOS","Info")
+    	GUI_UnFoldGroup	(WinName,"Info")
+	
+	local teleKey1 = ""
+	local teleKey2 = ""
+	
+	local sort_func = function( t,a,b ) return t[a] < t[b] end
+	for k,v in spairs(TP.ModifierKeys,sort_func) do
+		teleKey1 = teleKey1..","..k
+	end
+	
+	for k,v in spairs(TP.ShortcutKeys,sort_func) do
+		teleKey2 = teleKey2..","..k
+	end
+	
+	GUI_NewCheckbox	(WinName,"Auto-Sync","gAutoSync","Setting")
+	GUI_NewCheckbox	(WinName,"Auto-Record","gAutoRecord","Setting")
+	--GUI_NewCheckbox	(TP.WinName,"Use Mesh Positions","tpPrefMeshPos","Setting")
+	GUI_NewComboBox	(WinName,"Port To:","gClickTeleport","Setting","None,Cursor,Target")
+	GUI_NewComboBox	(WinName,"Port Buttons","gClickName1","Setting",teleKey1)
+	GUI_NewComboBox	(WinName,"+","gClickName2","Setting",teleKey2)
+	
+	GUI_NewButton(WinName,"QS 1","TP.QuickSave1","Quick Save/Load")
+	RegisterEventHandler("TP.QuickSave1", TP.CorMove)
+	GUI_NewButton(WinName,"QL 1","TP.QuickLoad1","Quick Save/Load")
+	RegisterEventHandler("TP.QuickLoad1", TP.CorMove)
+	GUI_NewButton(WinName,"QS 2","TP.QuickSave2","Quick Save/Load")
+	RegisterEventHandler("TP.QuickSave2", TP.CorMove)
+	GUI_NewButton(WinName,"QL 2","TP.QuickLoad2","Quick Save/Load")
+	RegisterEventHandler("TP.QuickLoad2", TP.CorMove)
+
+	GUI_NewField	(WinName,"Distance","gMoveDist","Move")
+	GUI_NewButton	(WinName,"Forward",	"TP.MoveF","Move")
+	RegisterEventHandler("TP.MoveF", TP.CorMove)
+	GUI_NewButton	(WinName,"Back",	"TP.MoveB","Move")
+	RegisterEventHandler("TP.MoveB", TP.CorMove)
+	GUI_NewButton	(WinName,"Right",	"TP.MoveR","Move")
+	RegisterEventHandler("TP.MoveR", TP.CorMove)
+	GUI_NewButton	(WinName,"Left",	"TP.MoveL","Move")
+	RegisterEventHandler("TP.MoveL", TP.CorMove)
+	GUI_NewButton	(WinName,"Down",	"TP.MoveD","Move")
+	RegisterEventHandler("TP.MoveD", TP.CorMove)
+	GUI_NewButton	(WinName,"Up",		"TP.MoveU","Move")
+	RegisterEventHandler("TP.MoveU", TP.CorMove)
+	
+	GUI_NewButton(ml_global_information.MainWindow.Name,"Teleport","ToggleMain")
+	RegisterEventHandler("ToggleMain", TP.WindowToggle)	
+	
+	GUI_NewButton(TP.WinName,"Refresh","TP.Refresh")
+	RegisterEventHandler("TP.Refresh", TP.Refresh)
+	
+	GUI_NewButton(TP.WinName,"Replace / Rename / Delete", "ToggleReplace")
+	RegisterEventHandler("ToggleReplace", TP.WindowToggle)
+	
+	GUI_NewButton(TP.WinName,"Save","ToggleSave")
+	RegisterEventHandler("ToggleSave", TP.WindowToggle)
+	
+	GUI_SizeWindow(TP.WinName,WI.width,WI.height)
+	GUI_WindowVisible(TP.WinName, TP.Visible.Main)
+	
+	gAutoSync = Settings.Teleporter.gAutoSync
+	gAutoRecord = Settings.Teleporter.gAutoRecord	
+	gClickTeleport = Settings.Teleporter.gClickTeleport
+	gClickName1 = Settings.Teleporter.gClickName1
+    	gClickName2 = Settings.Teleporter.gClickName2
+	gMoveDist = Settings.Teleporter.gMoveDist
+end
+
+function TP.GUIVarUpdate(Event, NewVals, OldVals)
+	
+	for k,v in pairs(NewVals) do		
+		if (
+			k == "gAutoSync" or
+			k == "gAutoRecord" or
+			k == "gClickTeleport" or
+			k == "gClickName1" or
+			k == "gClickName2" or
+			k == "gMoveDist") then
+			Settings.Teleporter[tostring(k)] = v
+		end  
+	end
+
+	GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+end
 
 
 function spairs(t, order)
@@ -51,458 +314,202 @@ function spairs(t, order)
     end
 end
 
+--[[
 function CalculateTargetPosition( dest )
-  d(dest)
-   
-  local p,dist = NavigationManager:GetClosestPointOnMesh(dest)
-  d("mesh distance" .. dist)
-  if (tpPrefMeshPos == "0" or dist > 40) then
-    dist = tonumber(tpDistance)
-    if (dist == nil ) then dist = 0.0 end
-    local dirV = { x=math.sin(dest.h)*dist,z = math.cos(dest.h)*dist }
-    local pos = deepcopy(dest)
-    pos.x = dest.x + dirV.x
-    pos.z = dest.z + dirV.z
-    d("calculated pos " .. tostring(pos))
-    return pos
-  else
-    d("mesh pos " .. tostring(p))
-    return p
-  end
+	local p,dist = NavigationManager:GetClosestPointOnMesh(dest)
+
+	if (tpPrefMeshPos == "0" or dist > 40) then
+		dist = tonumber(tpDistance)
+		if (dist == nil ) then dist = 0.0 end
+		local dirV = { x=math.sin(dest.h)*dist,z = math.cos(dest.h)*dist }
+		local pos = deepcopy(dest)
+		pos.x = dest.x + dirV.x
+		pos.z = dest.z + dirV.z
+		return pos
+	else
+		return p
+	end
     
 end
-
-function TP.GUIItem( evnttype , event )
-  
-  local tokenlen = string.len("AutoListTP_")
-  
-  if (string.sub(event,1,tokenlen) == "AutoListTP_") then
-    d("handling teleport event " ..event)
-    local id = string.sub(event,tokenlen+1)
-    d("extracted id " .. id)
-    local obj = TP.AutoList[tonumber(id)]
-    if (obj ~= nil) then
-      
-      if (TP.isTraveling) then 
-        Player:Stop()
-        TP.isTraveling = false
-        return
-      end
-      
-      d("found obj " .. obj.NAME .. ", telporting ....")
-      if (tpMoveToMode == "1") then
-        ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
-        local PathSize = Player:MoveTo(tonumber(obj.POS.x),tonumber(obj.POS.y),tonumber(obj.POS.z),TP.TravelingStopingDistance, false,false)  
-        if (PathSize == 0) then
-          mt_error("ERROR: No route to target")
-          Player:Stop()
-          TP.isTraveling=false
-        else
-          TP.isTraveling=true
-          ml_debug( "traveling to destination")	
-        end
-      else
-        local dest = CalculateTargetPosition(obj.POS)
-        GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
-        Player:SetFacingSynced(obj.POS.x,obj.POS.y,obj.POS.z)
-      end
-    end
-  end
-end
+--]]
 
 function TP.UpdateAutoAddGUI()
-  GUI_DeleteGroup(TP.WinName,"Aetheryte")
-  GUI_DeleteGroup(TP.WinName,"NPC")
-  GUI_DeleteGroup(TP.WinName,"Object")
-  d("Setting up new groups")
-  
-  local sort_func = function( t,a,b ) return t[a].NAME < t[b].NAME end
-  
-  for oid,obj in spairs(TP.AutoList,sort_func) do 
-       --d("adding " .. obj.NAME)
-       GUI_NewButton(TP.WinName,obj.NAME .. " / " .. tostring(obj.ID),"AutoListTP_" .. tostring(obj.ID),TP.AutoGroups[obj.TYPE])
-  end
-  
+	GUI_DeleteGroup(TP.WinName,"Aetheryte")
+	GUI_DeleteGroup(TP.WinName,"NPC")
+	GUI_DeleteGroup(TP.WinName,"Object")
+
+	local sort_func = function( t,a,b ) return t[a].NAME < t[b].NAME end
+
+	for oid,obj in spairs(TP.AutoList,sort_func) do 
+		GUI_NewButton(TP.WinName,	obj.NAME.." / "..tostring(obj.ID),	"AutoListTP_"..tostring(obj.ID),	TP.AutoGroups[obj.TYPE])
+	end
 end
 
 function TP.DoAutoAdd()
     
     if (TP.AutoListMapId == 0 or TP.AutoListMapId ~= Player.localmapid) then
-      TP.AutoListMapId = Player.localmapid
-      d("loading autolist from " ..TP.coordspath..TP.AutoListMapId.."_auto"..".lua")
-      TP.AutoList = persistence.load(TP.coordspath..TP.AutoListMapId.."_auto"..".lua")
-      d("Autolist loaded " .. tostring(TP.AutoList ~= nil))
-      if (TP.AutoList == nil) then
-        TP.AutoList = { }  
-      else 
-        TP.UpdateAutoAddGUI()
-      end
-      d("Autolist size " .. TableSize(TP.AutoList))
-      
+		TP.AutoListMapId = Player.localmapid
+		TP.AutoList = persistence.load(TP.coordspath..TP.AutoListMapId.."_auto"..".lua")
+		
+		if (TP.AutoList == nil) then
+			TP.AutoList = { }  
+		else 
+			TP.UpdateAutoAddGUI()
+		end
     end
     
     if (tpAuto_Record == "1") then
-      local el = EntityList("")
-      local i,e = next(el)
-      local dirty = false
-      while (i~=nil and e ~= nil) do
-        if (e.targetable and (e.type == 3 or e.type==5 or e.type==7) and e.uniqueid ~= 0 ) then
-          --d(e.id .. ":" .. e.name .. " at " .. e.pos.x .. ",".. e.pos.y .. "," ..e.pos.z .. " type=".. e.type )
-          obj = { }
-          obj.ID = e.uniqueid
-          obj.CONTENTID = e.contentid
-          obj.TYPE = e.type
-          obj.POS = e.pos
-          obj.NAME = e.name
-          
-          if (TP.AutoList[obj.ID] == nil) then
-            d("adding " .. obj.NAME)
-            TP.AutoList[obj.ID] = obj
-            dirty = true
-          end
-        end
-        i,e = next(el,i)  
-      end
-      if (dirty) then
-        persistence.store(TP.coordspath..TP.AutoListMapId.."_auto"..".lua",TP.AutoList)
-        TP.UpdateAutoAddGUI()
-      end
-    end
-end
+		local el = EntityList("")
+		local i,e = next(el)
+		local dirty = false
+		while (i~=nil and e ~= nil) do
+			if (e.targetable and (e.type == 3 or e.type==5 or e.type==7) and e.uniqueid ~= 0 ) then
+				obj = { }
+				obj.ID = e.uniqueid
+				obj.CONTENTID = e.contentid
+				obj.TYPE = e.type
+				obj.POS = e.pos
+				obj.NAME = e.name
 
-
-function TP.Build()
-
-	if (Settings.Dev.check == nil) then
-		Settings.Dev.WinInfX = 790
-		Settings.Dev.WinInfY = 40
-		Settings.Dev.WinInfW = 380
-		Settings.Dev.WinInfH = 520
-		Settings.Dev.check = true
-	end
-	GUI_NewWindow(TP.WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-    GUI_NewField(TP.WinName,"Map - (id)","mapNAME","Info")
-    GUI_NewField(TP.WinName," X | Y | Z | H","tb_aPos","Info")
-    GUI_UnFoldGroup(TP.WinName,"Info")
-	
-	local B1 = "NONE,"
-	local B2 = ""
-	for k,v in pairs(TP.key1) do
-		if k > 84 then B1 = B1..v.."," end
-		if k > 1 and k < 85 then B2 = B2..v.."," end
-	end
-	if (Settings.Dev.checkM == nil) then
-		Settings.Dev.WinInfMX = 304
-		Settings.Dev.WinInfMY = 50
-		Settings.Dev.WinInfMW = 225
-		Settings.Dev.WinInfMH = 265
-		Settings.Dev.Click_ButtonNUM1 = 0
-		Settings.Dev.Click_ButtonNUM2 = 4
-		Settings.Dev.Distance = "10"
-		Settings.Dev.Click_Teleport = "0"
-		Settings.Dev.Click_Button1 = "Left CONTROL"
-		Settings.Dev.Click_Button2 = "Middle Mouse"
-		Settings.Dev.checkM = true
-        Settings.Dev.Auto_Sync = "1"
-	end
-    
-    if (Settings.Dev.Auto_Sync == nil) then
-        Settings.Dev.Auto_Sync = "1"
-    end
-	
-	if (Settings.Dev.Distance == nil) then
-		Settings.Dev.Distance = "10"
-	end
-  
-  if (Settings.Dev.Auto_Record == nil) then
-    Settings.Dev.Auto_Record = "0"
-  end
-  
-  if (Settings.Dev.tpDistance == nil) then
-    Settings.Dev.tpDistance = "0.0"
-  end
-  
-  if (Settings.Dev.tpMoveToMode == nil) then
-    Settings.Dev.tpMoveToMode = "0"
-  end
-  
-  if (Settings.Dev.tpPrefMeshPos == nil) then
-    Settings.Dev.tpPrefMeshPos = "1"
-  end
-    
-  
-	--
-  GUI_NewCheckbox(TP.WinName,"Auto-Sync","tpAuto_Sync","Setting")
-	tpAuto_Sync = Settings.Dev.Auto_Sync
-  GUI_NewCheckbox(TP.WinName,"Auto-Record","tpAuto_Record","Setting")
-	tpAuto_Record = Settings.Dev.Auto_Record
-  GUI_NewField(TP.WinName,"Distance","tpDistance","Setting")
-	tpDistance = Settings.Dev.tpDistance
-  GUI_NewCheckbox(TP.WinName,"Move To Mode","tpMoveToMode","Setting")
-	tpMoveToMode = Settings.Dev.tpMoveToMode
-  GUI_NewCheckbox(TP.WinName,"Use Mesh Positions","tpPrefMeshPos","Setting")
-	tpPrefMeshPos = Settings.Dev.tpPrefMeshPos
-	GUI_NewCheckbox(TP.WinName,"Port 2 Cursor","tpClick_Tele","Setting")
-	tpClick_Tele = Settings.Dev.Click_Teleport
-	GUI_NewComboBox(TP.WinName,"Port Buttons","tpClick_Button1","Setting",B1)
-	tpClick_Button1 = Settings.Dev.Click_Button1
-	GUI_NewComboBox(TP.WinName,"+","tpClick_Button2","Setting",B2)
-    tpClick_Button2 = Settings.Dev.Click_Button2
-	--
-	GUI_NewButton(TP.WinName,"QS 1","TP.QuickSave1","Quick Save/Load")
-	RegisterEventHandler("TP.QuickSave1", TP.CorMove)
-	GUI_NewButton(TP.WinName,"QL 1","TP.QuickLoad1","Quick Save/Load")
-	RegisterEventHandler("TP.QuickLoad1", TP.CorMove)
-	GUI_NewButton(TP.WinName,"QS 2","TP.QuickSave2","Quick Save/Load")
-	RegisterEventHandler("TP.QuickSave2", TP.CorMove)
-	GUI_NewButton(TP.WinName,"QL 2","TP.QuickLoad2","Quick Save/Load")
-	RegisterEventHandler("TP.QuickLoad2", TP.CorMove)
-	--
-	GUI_NewField(TP.WinName,"Distance","tpMove_Dist","Move")
-	tpMove_Dist = Settings.Dev.Distance
-	GUI_NewButton(TP.WinName,"Forward","TP.MoveF","Move")
-	RegisterEventHandler("TP.MoveF", TP.CorMove)
-	GUI_NewButton(TP.WinName,"Back","TP.MoveB","Move")
-	RegisterEventHandler("TP.MoveB", TP.CorMove)
-	GUI_NewButton(TP.WinName,"Right","TP.MoveR","Move")
-	RegisterEventHandler("TP.MoveR", TP.CorMove)
-	GUI_NewButton(TP.WinName,"Left","TP.MoveL","Move")
-	RegisterEventHandler("TP.MoveL", TP.CorMove)
-	GUI_NewButton(TP.WinName,"Down","TP.MoveD","Move")
-	RegisterEventHandler("TP.MoveD", TP.CorMove)
-	GUI_NewButton(TP.WinName,"Up","TP.MoveU","Move")
-	RegisterEventHandler("TP.MoveU", TP.CorMove)
-	
-	GUI_NewButton(ml_global_information.MainWindow.Name,"Teleport","TP.StartTP")
-	RegisterEventHandler("TP.StartTP", TP.StartTPs)	
-	GUI_NewButton(TP.WinName,"Refresh","TP.Refresh")
-	RegisterEventHandler("TP.Refresh", TP.Refreshing)
-	GUI_NewButton(TP.WinName,"Replace / Rename / Delete","TP.Change_Open")
-	RegisterEventHandler("TP.Change_Open", TP.Change)
-	GUI_NewButton(TP.WinName,"Save","TP.saveOpen")
-	RegisterEventHandler("TP.saveOpen", TP.Save)
-	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-	GUI_WindowVisible(TP.WinName, false)
-end
---**************************************************************************************************************************************
-function TP.StartTPs(dir)
-	if (dir == "TP.StartTP") then
-		if (TP.visicheck == 1) then
-			GUI_WindowVisible(TP.WinName,false)
-			TP.visicheck = 0
-		else
-			GUI_WindowVisible(TP.WinName,true)
-			TP.visicheck = 1
-		end	
-		
-
-	elseif (dir == "TP.StartTPM") then
-		if (TP.visicheckM == 1) then
-			GUI_WindowVisible(TP.Move_Winname,false)
-			TP.visicheckM = 0
-		else
-			GUI_WindowVisible(TP.Move_Winname,true)
-			TP.visicheckM = 1
+				if (TP.AutoList[obj.ID] == nil) then
+					TP.AutoList[obj.ID] = obj
+					dirty = true
+				end
+			end
+			i,e = next(el,i)  
 		end
-		
-	end
-	
-	
-	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+		if (dirty) then
+			persistence.store(TP.coordspath..TP.AutoListMapId.."_auto"..".lua",TP.AutoList)
+			TP.UpdateAutoAddGUI()
+		end
+    end
 end
+
+
 --**************************************************************************************************************************************
 function TP.Change(dir)
-	local p = Player.pos
-	local PG = Player:GetTarget()
-	local Tcheck = 0
+	local ppos = Player.pos
+	local target = Player:GetTarget()
 	local WinName = "Teleporter Replace/Rename/Delete"
-	if (dir == "TP.Change_Open") then
-		if (TP.cReplaceinf == 0) then
-			TP.cReplaceinf = 1
-			GUI_NewWindow(WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-			GUI_NewButton(WinName,"Delete Waypoint","TP.WPOiNTdelete")
-			RegisterEventHandler("TP.WPOiNTdelete", TP.Change)
-			GUI_NewButton(WinName,"Rename Waypoint","TP.WPOiNTrename")
-			RegisterEventHandler("TP.WPOiNTrename", TP.Change)
-			GUI_NewButton(WinName,"Replace to Target POS","TP.WPOiNTreplaceT")
-			RegisterEventHandler("TP.WPOiNTreplaceT", TP.Change)
-			GUI_NewButton(WinName,"Replace to Player POS","TP.WPOiNTreplaceP")
-			RegisterEventHandler("TP.WPOiNTreplaceP", TP.Change)
-			GUI_NewField(WinName,"Name:","repNAME","Waypoint Name")
-			GUI_NewButton(WinName,"Get Target Name","TP.WTargetName","Waypoint Name")
-			RegisterEventHandler("TP.WTargetName", TP.Change)
+	local oldPoint = gRepPoint
+	local newPoint = gRepName
+	local saveString = ""
+	
+	if (dir == "TP.ChangeReplacePPos") then
+		if (oldPoint == nil or oldPoint == "") then
+			ml_error("No valid waypoint selected.")
+			return
 		end
-			GUI_MoveWindow(WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY)
-			GUI_WindowVisible("Save",false)	
-			GUI_UnFoldGroup(WinName,"Waypoint Name")
-			
-			for i,e in pairs(TP.GRPName) do
-				GUI_DeleteGroup(WinName,e[1])
-				GUI_UnFoldGroup(WinName,e[1])
+		for _,v in pairs(TP.cPort) do
+			if (v[1] == oldPoint) then
+				v[2] = ppos.x
+				v[3] = ppos.z
+				v[4] = ppos.y
+				v[5] = ppos.h
+				break
 			end
-			for i,e in pairs(TP.cPort) do
-				bb = 0
-				for v,k in pairs(TP.GRPName) do
-					if (k[1] == TP.StdWPName) then cc = v end
-					ll = string.len(k[2])
-					if (ll == 0) then ll = 3 end
-					if (string.upper(string.sub(e[1],1,ll)) == k[2]) then
-						GUI_NewButton(WinName,e[1],"PTR_"..i,k[1])
-						TP.DelGRP[v] = 1
-						bb = 1
-					end
+		end
+	elseif (dir == "TP.ChangeReplaceTPos") then
+		if (target ~= nil) then
+			if (oldPoint == nil or oldPoint == "") then
+				ml_error("No valid waypoint selected.")
+				return
+			end
+			for _,v in pairs(TP.cPort) do
+				if (v[1] == oldPoint) then
+					v[2] = tpos.x
+					v[3] = tpos.z
+					v[4] = tpos.y
+					v[5] = ppos.h
+					break
 				end
-				if (bb == 0) then 
-					GUI_NewButton(WinName,e[1],"PTR_"..i,TP.GRPName[cc][1])
-					TP.DelGRP[cc] = 1
-				end
-				RegisterEventHandler("PTR_"..i, TP.Change)
 			end
-			TP.DelGroups(WinName)
-			GUI_SizeWindow(WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-			GUI_WindowVisible(WinName,true)
-			--------------------------------------------------------------------------------------------	
-	elseif (string.sub(dir,1,15) == "TP.WPOiNT") then
-		if (repNAME ~= nil or repNAME ~= "") then
-			local saveK = ""
-			local Tcheck = 0
-			if (dir == "TP.WPOiNTreplaceP") then
-				TP.cPort[tonumber(TP.cRepID)][2] = p.x
-				TP.cPort[tonumber(TP.cRepID)][3] = p.z
-				TP.cPort[tonumber(TP.cRepID)][4] = p.y
-				TP.cPort[tonumber(TP.cRepID)][5] = p.h
-			elseif (dir == "TP.WPOiNTreplaceT") then
-			if (PG ~= nil) then
-				TP.cPort[tonumber(TP.cRepID)][2] = PG.pos.x 
-				TP.cPort[tonumber(TP.cRepID)][3] = PG.pos.z
-				TP.cPort[tonumber(TP.cRepID)][4] = PG.pos.y
-				TP.cPort[tonumber(TP.cRepID)][5] = p.h
-			else
-				Tcheck = 1
-			end
-			elseif (dir == "TP.WPOiNTrename") then
-				TP.cPort[tonumber(TP.cRepID)][1] = tostring(repNAME)
-			elseif (dir == "TP.WPOiNTdelete") then	
-				table.remove(TP.cPort, tonumber(TP.cRepID))
-			end
-			if (Tcheck == 0) then
-			for k,v in pairs(TP.cPort) do
-				if (v[5] == nil) then v[5] = "0.01" end
-				saveK = saveK..v[1]..":"..string.format("%f",v[2])..":"..string.format("%f",v[3])..":"..string.format("%f",v[4])..":"..string.format("%f",v[5]).."\n"
-			end
-				filewrite(TP.coordspath..TP.MapID..".lua",saveK)
-				d("Teleport::Save Waypoint to -> "..TP.MapID..".lua")
-				repNAME = ""	
-				TP.MapID = 0
-				GUI_WindowVisible(WinName,false)
-			else
-				if (TP.cInfocheck == 0) then 
-					TP.cInfocheck = 1
-					GUI_NewWindow("Info",Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,55)
-					GUI_NewButton("Info","NO TARGET SET!"," ")
-					GUI_SizeWindow("Info",Settings.Dev.WinInfW,55)
-				else
-					GUI_WindowVisible("Info",true)
-				end
-				Tcheck = 0
+		else
+			ml_error("No valid target.")
+			return
+		end
+	elseif (dir == "TP.ChangeRename") then
+		if (newPoint == nil or newPoint == "") then
+			ml_error("No valid save name entered.")
+			return
+		end
+		for _,v in pairs(TP.cPort) do
+			if (v[1] == oldPoint) then
+				v[1] = newPoint
+				break
 			end
 		end
-	elseif (dir == "TP.WTargetName") then
-		if (PG ~= nil) then
-			repNAME = PG.name
+	elseif (dir == "TP.ChangeDelete") then
+		for _,v in pairs(TP.cPort) do
+			if (v[1] == oldPoint) then
+				v = nil
+				break
+			end
 		end
-	else
-		TP.cRepID = string.gsub(dir,"PTR_","")
-		for i,e in pairs(TP.cPort) do
-			if (i == tonumber(TP.cRepID)) then repNAME = e[1] end	
-		end
-		GUI_RefreshWindow(WinName)
-		--TP.Change("TP.Change_Open")
-	end	
-    
-    GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+	end
+	
+	for k,v in pairs(TP.cPort) do
+		if (v[5] == nil) then v[5] = "0.01" end
+		saveString = saveString..v[1]..":"..string.format("%f",v[2])..":"..string.format("%f",v[3])..":"..string.format("%f",v[4])..":"..string.format("%f",v[5]).."\n"
+	end
+	filewrite(TP.coordspath..TP.MapID..".lua",saveString)
+	GUI_WindowVisible(WinName,false)
+	TP.Refresh()
 end
 --**************************************************************************************************************************************
 function TP.Save(dir)
-	local Pp = Player.pos
-	local PG = Player:GetTarget()
-	local saveK = ""
-	local Tcheck = 0
+	local ppos = Player.pos
+	local target = Player:GetTarget()
+	local saveString = ""
 	local WinName = "Teleporter Save"
-	if (dir == "TP.saveOpen") then
-		local WinY = Settings.Dev.WinInfY
-		--GUI_MoveWindow(TP.WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY+130)
-		--GUI_MoveWindow(WinName,Settings.Dev.WinInfX,WinY)
-		if (TP.cSaveinf == 0) then
-			TP.cSaveinf = 1
-			GUI_NewWindow(WinName,Settings.Dev.WinInfX,WinY,0,0)
-			GUI_NewField(WinName,"Waypoint Name:","cSaveName"," ")
-			GUI_NewButton(WinName,"Get Target Name","TP.GetTargetName"," ")
-			RegisterEventHandler("TP.GetTargetName", TP.Save)
-			GUI_NewButton(WinName,"Save Player POS","TP.save")
-			RegisterEventHandler("TP.save", TP.Save)
-			GUI_NewButton(WinName,"Save Target POS","TP.saveTarget")
-			RegisterEventHandler("TP.saveTarget", TP.Save)
-		end
-		GUI_UnFoldGroup(WinName," ")
-		GUI_SizeWindow(WinName,Settings.Dev.WinInfW,130)
-		GUI_WindowVisible(WinName,true)	
-	elseif (string.sub(dir,1,13) == "TP.save") then
+	local savePos = {}
+	
+	if (string.sub(dir,1,13) == "TP.save") then
+	
 		if (dir == "TP.saveTarget") then
-			if (PG  ~= nil) then	
-				PsX = PG.pos.x
-				PsY = PG.pos.y
-				PsZ = PG.pos.z
-			else
-				Tcheck = 1
+			if (target ~= nil) then
+				local tpos = target.pos
+				savePos.x = tpos.x
+				savePos.y = tpos.y
+				savePos.z = tpos.z
 			end
 		else
-			PsX = Pp.x
-			PsY = Pp.y
-			PsZ = Pp.z
+			savePos.x = ppos.x
+			savePos.y = ppos.y
+			savePos.z = ppos.z
 		end
-		if (cSaveName ~= "") then
-			if (Tcheck == 0) then
+		
+		if (gSaveName ~= "") then
 			for k,v in pairs(TP.cPort) do
 				if (v[5] == nil) then v[5] = "0.01" end
-				saveK = saveK..v[1]..":"..v[2]..":"..v[3]..":"..v[4]..":"..v[5].."\n"
+				saveString = saveString..v[1]..":"..v[2]..":"..v[3]..":"..v[4]..":"..v[5].."\n"
 			end
-			saveK = saveK..cSaveName..":"..string.format("%f",PsX)..":"..string.format("%f",PsZ)..":"..string.format("%f",PsY)..":"..string.format("%f",Pp.h).."\n"	
-				filewrite(TP.coordspath..TP.MapID..".lua",saveK)
-				d("Teleport::Save Waypoint to -> "..TP.MapID..".lua")
-				TP.MapID = 0
-				GUI_WindowVisible(WinName,false)
-			else
-				if (TP.cInfocheck == 0) then 
-					TP.cInfocheck = 1
-					GUI_NewWindow("Info",Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,55)
-					GUI_NewButton("Info","NO TARGET SET!"," ")
-					GUI_SizeWindow("Info",Settings.Dev.WinInfW,55)
-				else
-					GUI_WindowVisible("Info",true)
-				end
-				Tcheck = 0
-			end	
+			
+			saveString = saveString..gSaveName..":"..string.format("%.3f",savePos.x)..":"..string.format("%.3f",savePos.z)..":"..string.format("%.3f",savePos.y)..":"..string.format("%.2f",ppos.h).."\n"	
+			filewrite(TP.coordspath..TP.MapID..".lua",saveString)
+			GUI_WindowVisible(WinName,false)
+			TP.Refresh()
 		end
-	elseif (dir == "TP.GetTargetName") then
-		if (PG  ~= nil) then
-			cSaveName = PG.name	
-		end
+	end
+end
+--**************************************************************************************************************************************
+function TP.GetTargetName()
+	local target = Player:GetTarget()
+	if (target ~= nil) then
+		gSaveName = target.name
+		ggRepName = target.name
 	end
 end
 --**************************************************************************************************************************************
 function TP.ReadMAP(cMID)
 	local aelist = Player:GetAetheryteList()
 	local b = " "
-	--local saveK = ""
 	if (aelist) then 
-		for k,v in pairs(aelist) do
-		--saveK=saveK..v.territory.."-"..v.name.."\n"				
+		for k,v in pairs(aelist) do				
 			if(v.territory == tonumber(cMID)) then
 				b = v.name
 			end
-		end	
-		--d(filewrite(TP.coordspath.."MapID.inf",saveK))		
+		end		
 	end
 	return b
 end
@@ -518,84 +525,62 @@ function TP.PortTO(event)
 			SavedL = v[5]
 		end
 	end
-	TP.cSaveName = str
-  if (TP.isTraveling) then 
-    Player:Stop()
-    TP.isTraveling = false
-    return
-  end
-      
-  if (tpMoveToMode == "1") then
-    ml_debug( "Moving to ("..tostring(obj.POS.x)..","..tostring(obj.POS.y)..","..tostring(obj.POS.z)..")")	
-    local PathSize = Player:MoveTo(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY),TP.TravelingStopingDistance, false,false)  
-    if (PathSize == 0) then
-      mt_error("ERROR: No route to target")
-      Player:Stop()
-      TP.isTraveling=false
-    else
-      TP.isTraveling=true
-      ml_debug( "traveling to destination")	
-    end
-  else
-    GameHacks:TeleportToXYZ(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY))
-    Player:SetFacingSynced(tonumber(SavedL))
-  end	
+	TP.gSaveName = str
+	GameHacks:TeleportToXYZ(tonumber(SavedX),tonumber(SavedZ),tonumber(SavedY))
+	Player:SetFacingSynced(tonumber(SavedL))
 end
 --**************************************************************************************************************************************
 function TP.UpdateWaypoints()
-  mapID = tostring(Player.localmapid)
-  if (TP.MapID ~= mapID) then
-		local cName = TP.ReadMAP(mapID)
-		TP.MapID = mapID
-		mapNAME = cName.." - ("..mapID..")"
-		for i,e in pairs(TP.GRPName) do
-			GUI_DeleteGroup(TP.WinName,e[1])
-			if (e[4] == 1) then GUI_UnFoldGroup(TP.WinName,e[1]) else GUI_FoldGroup(TP.WinName,e[1]) end
-		end
-		TP.cPort = {}
-		TP.cPortS = {}
-		local profile = fileread(TP.coordspath..mapID..".lua")
-		d("Teleport::Load Waypoint from -> "..TP.MapID..".lua")
-		if (profile) then
-			for i,e in pairs(profile) do
-				if (e ~= "") then
-					table.insert (TP.cPort,i,TP.split(e,":"))
-					table.insert (TP.cPortS,i,TP.cPort[i][1])
-				end
-			end
-			table.sort(TP.cPortS)
-			for i,e in pairs(TP.cPortS) do
-				bb = 0
-				for v,k in pairs(TP.GRPName) do
-					if (k[1] == TP.StdWPName) then cc = v end
-					ll = string.len(k[2])
-					if (ll == 0) then ll=3 end
-					if (string.upper(string.sub(e,1,ll)) == k[2]) then
-						GUI_NewButton(TP.WinName,k[3]..string.sub(e,ll+1),"PT_"..e,k[1])
-						TP.DelGRP[v] = 1
-						bb = 1
-					end
-				end
-				if (bb == 0) then 
-					GUI_NewButton(TP.WinName,e,"PT_"..e,TP.GRPName[cc][1])
-					TP.DelGRP[cc] = 1
-				end
-				RegisterEventHandler("PT_"..e, TP.PortTO)	
-			end
-		end
-		TP.DelGroups(TP.WinName)
+	local mapID = Player.localmapid
+	local cName = TP.ReadMAP(mapID)
+	local unfoldList = {}
+	TP.MapID = mapID
+	gMapName = cName.." - ("..tostring(mapID)..")"
 		
-		
+	for _,e in pairs(TP.GRPName) do
+		GUI_DeleteGroup(TP.WinName,e[1])
 	end
+		
+	TP.cPort = {}
+	TP.cPortS = {}
+		
+	local profile = fileread(TP.coordspath..tostring(mapID)..".lua")
+	if (profile) then
+		for i,e in pairs(profile) do
+			if (e ~= "") then
+				table.insert (TP.cPort,i,TP.split(e,":"))
+				table.insert (TP.cPortS,i,TP.cPort[i][1])
+			end
+		end
+			
+		table.sort(TP.cPortS)
+		for i,e in pairs(TP.cPortS) do
+			local matched = false
+			-- k[1] is the name, v is the index
+			for v,k in pairs(TP.GRPName) do
+				matchLen = string.len(k[2])
+				if (matchLen == 0) then matchLen = 3 end
+				if (string.upper(string.sub(e,1,matchLen)) == k[2]) then
+					GUI_NewButton(TP.WinName,k[3]..string.sub(e,matchLen+1),"PT_"..e,k[1])
+					if (k[4] == 1) then	unfoldList[k[1]] = true end
+					matched = true
+				end
+			end
+			if (not matched) then 
+				GUI_NewButton(TP.WinName,e,"PT_"..e,TP.StdWPName)
+			end
+			RegisterEventHandler("PT_"..e, TP.PortTO)	
+		end
+	end
+	
+	for k,v in pairs(unfoldList) do
+		if (v) then 
+			GUI_UnFoldGroup	(TP.WinName,k) 
+		end
+	end
+	
 	local p = Player.pos
-	tb_aPos = string.format("%f",p.x).." | "..string.format("%f",p.z).." | "..string.format("%f",p.y).." | "..string.format("%f",p.h)
-end
---**************************************************************************************************************************************
-function TP.DelGroups(WNAME)
-	for i,e in pairs(TP.GRPName) do
-		if (TP.DelGRP[i] == nil) then GUI_DeleteGroup(WNAME,e[1]) end
-	end
-	TP.DelGRP = {}
+	gPlayerPOS = string.format("%.2f",p.x).." | "..string.format("%.2f",p.z).." | "..string.format("%.2f",p.y).." | "..string.format("%.2f",p.h)
 end
 --**************************************************************************************************************************************
 function TP.split(str, pat)
@@ -618,95 +603,83 @@ function TP.split(str, pat)
 	return t
 end
 --**************************************************************************************************************************************
-function TP.Refreshing()  
-	TP.MapID = 0
-	TP.AutoListMapId = 0
+function TP.Refresh()  
+	TP.DoAutoAdd()
+	TP.UpdateWaypoints()
+	GUI_SizeWindow(TP.WinName,Settings.Teleporter.TeleportWindow.width,Settings.Teleporter.TeleportWindow.height)
+	GUI_RefreshWindow(TP.WinName)
 end
 --**************************************************************************************************************************************
-function TP.WindowsHandler()
-local W = GUI_GetWindowInfo(TP.WinName)
-	if (Settings.Dev.WinInfY ~= W.y) then Settings.Dev.WinInfY = W.y end
-	if (Settings.Dev.WinInfX ~= W.x) then Settings.Dev.WinInfX = W.x end
-	if (Settings.Dev.WinInfW ~= W.width) then Settings.Dev.WinInfW = W.width end
-	if (Settings.Dev.WinInfH ~= W.height) then Settings.Dev.WinInfH = W.height end
-local WM = GUI_GetWindowInfo(TP.WinName)
-	if (Settings.Dev.WinInfMY ~= WM.y) then Settings.Dev.WinInfMY = WM.y end
-	if (Settings.Dev.WinInfMX ~= WM.x) then Settings.Dev.WinInfMX = WM.x end
-	if (Settings.Dev.WinInfMW ~= WM.width) then Settings.Dev.WinInfMW = WM.width end
-	if (Settings.Dev.WinInfMH ~= WM.height) then Settings.Dev.WinInfMH = WM.height end
-	if (Settings.Dev.Distance ~= tpMove_Dist) then Settings.Dev.Distance = tpMove_Dist end
-	if (Settings.Dev.Click_Teleport ~= tpClick_Tele) then Settings.Dev.Click_Teleport = tpClick_Tele end
-	if (Settings.Dev.Click_Button1 ~= tpClick_Button1) then 
-		Settings.Dev.Click_Button1 = tpClick_Button1 
-		Settings.Dev.Click_ButtonNUM1 = TP.KeySelect(tpClick_Button1)
-	end
-	if (Settings.Dev.Click_Button2 ~= tpClick_Button2) then 
-		Settings.Dev.Click_Button2 = tpClick_Button2 
-		Settings.Dev.Click_ButtonNUM2 = TP.KeySelect(tpClick_Button2)
-	end
-    if (Settings.Dev.Auto_Sync ~= tpAuto_Sync) then
-        Settings.Dev.Auto_Sync = tpAuto_Sync
-    end
-	 if (Settings.Dev.Auto_Record ~= tpAuto_Record ) then
-        Settings.Dev.Auto_Record  = tpAuto_Record 
-   end
-	 if (Settings.Dev.tpDistance ~= tpDistance ) then
-        Settings.Dev.tpDistance  = tpDistance 
-   end
-	 if ( Settings.Dev.tpMoveToMode ~= tpMoveToMode ) then
-        Settings.Dev.tpMoveToMode  = tpMoveToMode 
-   end
-  
-  
-  
-end
+function TP.WindowUpdate()	
+	
+	local WI = Settings.Teleporter.TeleportWindow
+	local W = GUI_GetWindowInfo(TP.WinName)
+	local WindowInfo = {}
+	
+	if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
+	if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
+	if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
+	if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
 
+	if (WindowInfo ~= nil and WindowInfo ~= WI) then Settings.Teleporter.TeleportWindow = WindowInfo end
+end
 --**************************************************************************************************************************************
 function TP.OnUpdateHandler( Event, ticks ) 	
-	if ( ticks - TP.lastticks > 500 ) then
-		TP.lastticks = ticks
-		if ( tpClick_Tele == "1") then
+	if (TimeSince(TP.ClickTPTick) > 50 ) then
+		TP.ClickTPTick = ticks
+		if ( gClickTeleport ~= "None") then
 			TP.TargetPort()
 		end
-		TP.halfticks = TP.halfticks + 0.5
-		if (TP.halfticks == 1) then
-			TP.WindowsHandler()
-			TP.halfticks = 0
-		end
-		if (TP.LoadID == 2) then
-			TP.UpdateWaypoints()
-		else
-			if (TP.LoadID <= 2) then
-				TP.LoadID = TP.LoadID + 1
-			end
-		end	
 	end
-  if (TP.LastAutoList == 0) then
-    TP.LastAutoList = ticks
-  elseif (ticks - TP.LastAutoList > 2000) then
-    TP.LastAutoList = ticks
-    TP.DoAutoAdd()
-  end
+	
+	if (TimeSince(TP.WindowTick) > 10000) then
+		TP.WindowTick = ticks
+		TP.WindowUpdate()
+	end
+	
+	if (TimeSince(TP.UpdateWaypointTick) > 5000) then
+		TP.UpdateWaypointTick = ticks
+		if (TP.MapID == 0 or TP.MapID ~= Player.localmapid) then
+			TP.Refresh()
+		end
+	end
 end
-
+--**************************************************************************************************************************************
 function TP.TargetPort()
-	if (Settings.Dev.Click_ButtonNUM1 == 0) then
-		if (MeshManager:IsKeyPressed(Settings.Dev.Click_ButtonNUM2)) then
-			GameHacks:TeleportToCursorPosition()
+	local target = Player:GetTarget()
+	if (gClickTeleport ~= "None") then
+	
+		local value1, value2 = 0
+		for k,v in pairs(TP.ModifierKeys) do
+			if k == gClickName1 then 
+				value1 = v 
+			end
 		end
-	elseif (Settings.Dev.Click_ButtonNUM2 == 0) then
-		if (MeshManager:IsKeyPressed(Settings.Dev.Click_ButtonNUM1)) then
-			GameHacks:TeleportToCursorPosition()
+		for k,v in pairs(TP.ShortcutKeys) do
+			if k == gClickName2 then 
+				value2 = v 
+			end
 		end
-	else
-		if (MeshManager:IsKeyPressed(Settings.Dev.Click_ButtonNUM1) and MeshManager:IsKeyPressed(Settings.Dev.Click_ButtonNUM2)) then
-			GameHacks:TeleportToCursorPosition()
+		
+		if (gClickTeleport == "Target" and target ~= nil) then
+			local tpos = target.pos
+			if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+				(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+				(not (value1 == 0 and value2 == 0))) then
+				GameHacks:TeleportToXYZ(tpos.x,tpos.y,tpos.z)
+				Player:SetFacingSynced(tpos.h)
+			end
+		else
+			if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+				(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+				(not (value1 == 0 and value2 == 0))) then
+				GameHacks:TeleportToCursorPosition()
+			end
 		end
 	end
 end
 --**************************************************************************************************************************************
 function TP.CorMove(dir)
-	d("test")
 	local p = Player.pos
 	local SavedX,SavedY,SavedZ,SavedH
 	SavedX = p.x
@@ -714,7 +687,7 @@ function TP.CorMove(dir)
 	SavedZ = p.z
 	SavedH = p.h
 	local h = ConvertHeading(p.h)
-	local dist = tonumber(tpMove_Dist)
+	local dist = tonumber(gMoveDist)
 	local theta_right = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
 	local theta_left = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
 	local theta_back = ConvertHeading((h - (math.pi)))%(2*math.pi)
@@ -729,46 +702,65 @@ function TP.CorMove(dir)
 		elseif (dir == "TP.MoveD") then newPos = {x = SavedX, y = p.y - dist, z = SavedZ}
 		end
         GameHacks:TeleportToXYZ(newPos.x,newPos.y,newPos.z)
-        if (tpAuto_Sync == "1") then
+        if (gAutoSync == "1") then
             Player:SetFacingSynced(p.h)
         else
             Player:SetFacing(p.h)
         end
-    
 	else
 		if (dir == "TP.QuickSave1") then
-			Settings.Dev.QuickSave1 = {p.x,p.z,p.y,p.h}
+			Settings.Teleporter.QuickSave1 = {p.x,p.z,p.y,p.h}
 		elseif (dir == "TP.QuickSave2") then 
-			Settings.Dev.QuickSave2 = {p.x,p.z,p.y,p.h}
+			Settings.Teleporter.QuickSave2 = {p.x,p.z,p.y,p.h}
 		elseif (dir == "TP.QuickLoad1") then
-			GameHacks:TeleportToXYZ(tonumber(Settings.Dev.QuickSave1[1]),tonumber(Settings.Dev.QuickSave1[3]),tonumber(Settings.Dev.QuickSave1[2]))
-            if (tpAuto_Sync == "1") then
-                Player:SetFacingSynced(Settings.Dev.QuickSave1[4])
+			GameHacks:TeleportToXYZ(tonumber(Settings.Teleporter.QuickSave1[1]),tonumber(Settings.Teleporter.QuickSave1[3]),tonumber(Settings.Teleporter.QuickSave1[2]))
+            if (gAutoSync == "1") then
+                Player:SetFacingSynced(Settings.Teleporter.QuickSave1[4])
             else
-                Player:SetFacing(Settings.Dev.QuickSave1[4])
+                Player:SetFacing(Settings.Teleporter.QuickSave1[4])
             end
 		elseif (dir == "TP.QuickLoad2") then 
-			GameHacks:TeleportToXYZ(tonumber(Settings.Dev.QuickSave2[1]),tonumber(Settings.Dev.QuickSave2[3]),tonumber(Settings.Dev.QuickSave2[2]))
-            if (tpAuto_Sync == "1") then
-                Player:SetFacingSynced(Settings.Dev.QuickSave2[4])
+			GameHacks:TeleportToXYZ(tonumber(Settings.Teleporter.QuickSave2[1]),tonumber(Settings.Teleporter.QuickSave2[3]),tonumber(Settings.Teleporter.QuickSave2[2]))
+            if (gAutoSync == "1") then
+                Player:SetFacingSynced(Settings.Teleporter.QuickSave2[4])
             else
-                Player:SetFacing(Settings.Dev.QuickSave2[4])
+                Player:SetFacing(Settings.Teleporter.QuickSave2[4])
             end
 		end
 	end
 end
 --**************************************************************************************************************************************
-function TP.KeySelect(sKEY)
-	for k,v in pairs(TP.key1) do
-		if (v == sKEY) then
-			return TP.key2[k]
+function TP.UpdateWaypointList()
+	local list = ""
+	if (TableSize(TP.cPortS) == 0) then
+		local profile = fileread(TP.coordspath..mapID..".lua")
+		if (profile) then
+			for i,e in pairs(profile) do
+				if (e ~= "") then
+					table.insert (TP.cPort,i,TP.split(e,":"))
+					table.insert (TP.cPortS,i,TP.cPort[i][1])
+				end
+			end	
+			table.sort(TP.cPortS)
 		end
 	end
-end	
-
-
+	
+	if (TableSize(TP.cPortS) > 0) then
+		for _,v in pairs(TP.cPortS) do
+			list = list..","..tostring(v)
+		end
+	end
+	gRepPoint_listitems = list
+end
+--**************************************************************************************************************************************
+function TP.WindowToggle(event)
+	local window = string.gsub(event,"Toggle","")
+	
+	if window == "Replace" then TP.UpdateWaypointList() end
+	GUI_WindowVisible(TP.WinNames[window],not TP.Visible[window])
+	TP.Visible[window] = not TP.Visible[window]
+end
 
 RegisterEventHandler("Module.Initalize",TP.Build)
 RegisterEventHandler("Gameloop.Update", TP.OnUpdateHandler)
-RegisterEventHandler("GUI.Item",TP.GUIItem)
-
+RegisterEventHandler("GUI.Update",TP.GUIVarUpdate)
