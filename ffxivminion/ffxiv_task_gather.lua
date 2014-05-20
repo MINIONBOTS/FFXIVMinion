@@ -258,7 +258,9 @@ function c_gather:evaluate()
 	ml_global_information.IsWaiting = false
     return false
 end
-function e_gather:execute()    
+function e_gather:execute()
+	Dismount()
+	
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
 		ml_global_information.IsWaiting = true
@@ -269,72 +271,102 @@ function e_gather:execute()
         end
     
         if ( gSMactive == "1") then
+			if (ActionList:IsCasting()) then return end
             if (SkillMgr.Gather() ) then
 				ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
                 return
             end
         end
 
-		-- first try to get treasure maps
-		if (not ml_task_hub:CurrentTask().gatheredMap) then
-			for i, item in pairs(list) do
-				if 	item.id == 6692 or
-					item.id == 6688 or
-					item.id == 6691 or
-					item.id == 6690 or
-					item.id == 6689
-				then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatheredMap = true
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
-				end
-			end
-		end
-		
-		-- second try to get gardening supplies
-		if (not ml_task_hub:CurrentTask().gatheredGardening) then
-			for i, item in pairs(list) do
-				if 	(ffxiv_task_gather.gardening[item.id])
-				then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatheredGardening = true
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
-				end
-			end
-		end
-		
-        if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-            -- do 2 loops to allow prioritization of first item
-			local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem1)
-            local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem2)
-            
-            if (item1 ~= "") then
-				for i, item in pairs(list) do
-					if (item.name == item1) then
-						Player:Gather(item.index)
-						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-						return
+		if (TimeSince(ml_task_hub:CurrentTask().interactTimer) > 1000) then
+			-- first try to get treasure maps
+			if (gGatherMaps == "1") then
+				local hasMap = false
+				for x=0,3 do
+					local inv = Inventory("type="..tostring(x))
+					local i, item = next(inv)
+					while (i) do
+						if (IsMap(item.id)) then
+							hasMap = true
+							break
+						end
+						i,item = next(inv, i)
 					end
 				end
-			elseif (item2 ~= "") then
+				
+				if not hasMap then
+					for i, item in pairs(list) do
+						if (IsMap(item.id)) then
+							Player:Gather(item.index)
+							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+							return
+						end
+					end
+				end
+			end
+			
+			-- second try to get gardening supplies
+			if (not ml_task_hub:CurrentTask().gatheredGardening) then
 				for i, item in pairs(list) do
-					if (item.name == item2) then
+					if 	(IsGardening(item.id))
+					then
 						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatheredGardening = true
 						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 						return
 					end
 				end
 			end
-        end
-		
-		-- just grab a random item otherwise
-		for i, item in pairs(list) do
-			if item.chance > 50 then
-				Player:Gather(item.index)
-				ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-				return
+			
+			if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+				-- do 2 loops to allow prioritization of first item
+				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem1)
+				local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem2)
+				
+				if (item1 ~= "") then
+					for i, item in pairs(list) do
+						local n = tonumber(item1)
+						if (n ~= nil) then
+							if (item.index == (n-1) and item.id ~= nil) then
+								Player:Gather(n-1)
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
+							end
+						else						
+							if (item.name == item1) then
+								Player:Gather(item.index)
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
+							end
+						end
+					end
+				elseif (item2 ~= "") then
+					for i, item in pairs(list) do
+						local n = tonumber(item2)
+						if (n ~= nil) then
+							if (item.index == (n-1) and item.id ~= nil) then
+								Player:Gather(n-1)
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
+							end
+						else						
+							if (item.name == item2) then
+								Player:Gather(item.index)
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
+							end
+						end
+					end
+				end
+			end
+			
+			-- just grab a random item otherwise
+			for i, item in pairs(list) do
+				if item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) then
+					Player:Gather(item.index)
+					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+					return
+				end
 			end
 		end
     else
@@ -345,7 +377,9 @@ function e_gather:execute()
             if ( (target ~=nil and target.id ~= node.id) or target == nil or target == {} ) then
                 Player:SetTarget(node.id)
             else
+				--Eat()
                 Player:Interact(node.id)
+				ml_task_hub:CurrentTask().interactTimer = ml_global_information.Now
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
                     ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now
@@ -360,7 +394,7 @@ function e_gather:execute()
                 Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
             end
         else
-            ml_error(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
+            --ml_debug(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
         end
     end
 end

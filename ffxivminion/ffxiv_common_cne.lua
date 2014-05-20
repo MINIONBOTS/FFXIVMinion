@@ -23,6 +23,18 @@ function c_add_killtarget:evaluate()
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
         return false
     end
+	
+	-- check and see if we need to fight aggro's first
+	if ((gKillAggroEnemies == "1" or gKillAggroAlways == "1") and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then    
+		local target = GetNearestAggro()
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+				c_add_killtarget.targetid = target.id
+				return true
+			end
+		end
+	end
+	
     -- block killtarget for fates when user has specified a fate completion % to start
     if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
         if (ml_task_hub:CurrentTask().fateid ~= nil) then
@@ -37,6 +49,7 @@ function c_add_killtarget:evaluate()
             end
         end
     end
+	
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
@@ -51,13 +64,10 @@ function c_add_killtarget:evaluate()
     
     return false
 end
-function e_add_killtarget:execute()
-    --just in case
-    Dismount()
-    
+function e_add_killtarget:execute()    
     local newTask = ffxiv_task_killtarget.Create()
+	Player:SetTarget(c_add_killtarget.targetid)
     newTask.targetid = c_add_killtarget.targetid
-    newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -173,11 +183,14 @@ function c_add_combat:evaluate()
     return false
 end
 function e_add_combat:execute()
+	Dismount()
+	
     if ( gSMactive == "1" ) then
         local newTask = ffxiv_task_skillmgrAttack.Create()
         newTask.targetid = ml_task_hub:CurrentTask().targetid
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     else
+		ml_debug("Skill manager is not active, defaulting to class routine.")
         local newTask = ml_global_information.CurrentClass.Create()
         newTask.targetid = ml_task_hub:CurrentTask().targetid
         ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -219,6 +232,131 @@ function e_add_fate:execute()
     newTask.fateid = GetClosestFateID(myPos, true, true)
     newTask.fateTimer = ml_global_information.Now
     ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_nextatma = inheritsFrom( ml_cause )
+e_nextatma = inheritsFrom( ml_effect )
+e_nextatma.atma = nil
+function c_nextatma:evaluate()	
+	if (gAtma == "0" or gDoFates == "0") then
+		return false
+	end
+	
+	--[[
+	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0)
+	local minute = os.date("!%M")
+	local estTime = hour .. ":" .. minute
+	d(estTime)
+	--]]
+	
+	local map = Player.localmapid
+	local mapFound = false
+	local mapItem = nil
+	local itemFound = false
+	local getNext = false
+	local jst = tonumber(os.date("!%I")) + (os.date("*t").isdst == true and 1 or 0) + 9
+	local minute = tonumber(os.date("!%M"))
+	
+	--Check to see if we need the best atma for the current time.
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		if ((tonumber(atma.hour) == tonumber(jst) and minute <= 55) or
+			(tonumber(atma.hour) == (tonumber(jst) - 1) and minute > 55)) then
+			local foundBest = false
+			local bestAtma = a
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x)..",category=16")
+				local i, item = next(inv)
+				while (i ~= nil and item ~= nil) do
+					if (item.id == atma.item) then
+						foundBest = true
+					end
+					i,item = next(inv, i)
+				end
+			end
+		
+			if (not foundBest) then
+				if (ffxiv_task_grind.atmas[a].map == map) then
+					--We're already on the map with the most appropriate atma and we don't have it
+					return false
+				else
+					--We need the best atma, and it's not on this map, so move to it.
+					e_nextatma.atma = atma
+					return true
+				end
+			end
+		end
+	end
+	
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		if (atma.map == map) then
+			mapFound = true
+			mapItem = atma.item
+		end
+	end
+	
+	if mapFound then
+		for x=0,3 do
+			local inv = Inventory("type="..tostring(x)..",category=16")
+			local i, item = next(inv)
+			while (i ~= nil and item ~= nil) do
+				if (item.id == mapItem) then
+					itemFound = true
+				end
+				i,item = next(inv, i)
+			end
+		end
+	else
+		--Map does not contain an atma, get the next one.
+		getNext = true
+	end
+	
+	--Map contains an atma, but we have the item, get the next one.
+	if itemFound then
+		getNext = true
+	end
+	
+	if getNext then
+		for a, atma in pairs(ffxiv_task_grind.atmas) do
+			local found = false
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x)..",category=16")
+				local i, item = next(inv)
+				while (i) do
+					if (item.id == atma.item) then
+						found = true
+						break
+					end
+					i,item = next(inv, i)
+				end	
+			end
+			
+			if not found then
+				e_nextatma.atma = atma
+				return true
+			end
+			
+		end
+	end
+	
+	return false
+end
+function e_nextatma:execute()
+	--ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP) REACTIVE_GOAL or IMMEDIATE_GOAL
+	local atma = e_nextatma.atma
+	Player:Stop()
+	Dismount()
+	
+	if (Player.ismounted) then
+		return
+	end
+	
+	Player:Teleport(atma.tele)
+	if (Player.castinginfo.channelingid == 5) then
+		local newTask = ffxiv_task_teleport.Create()
+		newTask.mapID = atma.map
+		newTask.mesh = atma.mesh
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -489,7 +627,7 @@ end
 -- Checks for a better target while we are engaged in fighting an enemy and switches to it
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
-function c_bettertargetsearch:evaluate()	
+function c_bettertargetsearch:evaluate()        
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
@@ -498,22 +636,23 @@ function c_bettertargetsearch:evaluate()
     if (Player.hp.percent < tonumber(gRestHP) or Player.mp.percent < tonumber(gRestMP)) then
         return false
     end
+	
+	if ( gClaimFirst == "0" ) then
+		return false
+	end
     
-    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then		
-        local bettertarget = ml_task_hub:ThisTask().targetFunction()
+    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0) then  
+        local bettertarget = GetNearestGrindPriority()
         if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
             ml_task_hub:ThisTask().targetid = bettertarget.id
             Player:SetTarget(bettertarget.id)
-            return true			
-        end		
-    end	
+            return true                        
+        end                
+    end        
     return false
 end
 function e_bettertargetsearch:execute()
-    Player:Stop()	
-    d("Switching Target to better target")
-    
-    --ml_task_hub:ThisTask():Terminate()
+    --Player:Stop()        
 end
 
 
@@ -524,27 +663,26 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 function c_mount:evaluate()
-    if (gBotMode == "PVP") or
+    if (gBotMode == strings[gCurrentLanguage].pvpMode  or
 		Player.localmapid == 130 or
 		Player.localmapid == 131 or
 		Player.localmapid == 132 or
 		Player.localmapid == 133 or
 		Player.localmapid == 128 or
-		Player.localmapid == 129
-	then
+		Player.localmapid == 129) then
         return false
     end
-
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1" ) then
-        if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
-            local myPos = Player.pos
-            local gotoPos = ml_task_hub:CurrentTask().pos
-            local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-        
-            if (distance > tonumber(gMountDist)) then
-                return true
-            end
-        end
+	
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
+		if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
+			local myPos = Player.pos
+			local gotoPos = ml_task_hub:CurrentTask().pos
+			local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		
+			if (distance > tonumber(gMountDist)) then
+				return true
+			end
+		end
     end
     
     return false
@@ -552,6 +690,84 @@ end
 function e_mount:execute()
     Player:Stop()
     Mount()
+end
+
+c_companion = inheritsFrom( ml_cause )
+e_companion = inheritsFrom( ml_effect )
+function c_companion:evaluate()
+    if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+        return false
+    end
+
+    if (((gChoco == strings[gCurrentLanguage].grindMode or gChoco == strings[gCurrentLanguage].any) and (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode)) or
+		((gChoco == strings[gCurrentLanguage].assistMode or gChoco == strings[gCurrentLanguage].any) and gBotMode == strings[gCurrentLanguage].assistMode)) then
+		if (not Player.ismounted and not ActionList:IsCasting()) then
+			local al = ActionList("type=6")
+			local dismiss = al[2]
+			local acDismiss = ActionList:Get(dismiss.id,6)
+			local item = Inventory:Get(4868)
+
+			if (item == nil) then
+				return false
+			end
+
+			if ( not acDismiss.isready and item.isready) then
+				return true
+			end
+		end
+    end
+
+    return false
+end
+
+function e_companion:execute()
+	local item = Inventory:Get(4868)
+	Player:Stop()
+	item:Use()
+	
+	if (not item.isready) then
+		local newTask = ffxiv_task_summonchoco.Create()
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+	end
+end
+
+c_stance = inheritsFrom( ml_cause )
+e_stance = inheritsFrom( ml_effect )
+function c_stance:evaluate()
+    if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+        return false
+    end
+	
+	local eval = {
+		[strings[gCurrentLanguage].grindMode] = true,
+		[strings[gCurrentLanguage].partyMode] = true,
+		[strings[gCurrentLanguage].assistMode] = true,
+	}
+
+    if ( gChoco ~= "Off" and eval[tostring(gBotMode)]) then
+
+		local al = ActionList("type=6")
+		local dismiss = al[2]
+		local acDismiss = ActionList:Get(dismiss.id,6)
+
+		if ( acDismiss.isready) then
+			if ( stanceTick == 0 and ((ml_global_information.Now - summonTick) >= 5000 or summonTick == 0) ) then
+				return true
+			elseif ( (ml_global_information.Now - stanceTick) >= 60000 ) then
+				return true
+			end
+		end
+    end
+    
+    return false
+end
+
+function e_stance:execute()
+	local stanceList = ActionList("type=6")
+	local stance = stanceList[ChocoStance[gChocoStance]]
+    local acStance = ActionList:Get(stance.id,6)		
+	acStance:Cast(Player.id)
+	stanceTick = ml_global_information.Now
 end
 
 -----------------------------------------------------------------------------------------------
@@ -733,32 +949,27 @@ function c_rest:evaluate()
    
 	if ( TableSize(EntityList("shortestpath,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
         if (e_rest.resting or 		
-            Player.hp.percent < tonumber(gRestHP) or
-            Player.mp.percent < tonumber(gRestMP))
+            ( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+            ( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
         then
             ml_global_information.IsWaiting = true
             return true
         end
     end
     
+    ml_global_information.IsWaiting = false
     return false
 end
-function e_rest:execute()
-    --[[if ( gSMactive == "1" and Player.hp.percent < tonumber(gRestHP)) then
-        local newTask = ffxiv_task_skillmgrHeal.Create()
-        newTask.targetid = Player.id
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    end]] --have to fix that
-    
+function e_rest:execute()    
     if (e_rest.resting == true) then
-        if (Player.hp.percent == 100) and (Player.mp.percent == 100)  then
+        if (Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)  then
             e_rest.resting = false
             ml_global_information.IsWaiting = false
             return
         end
     else
-        if (Player.hp.percent < tonumber(gRestHP) or
-            Player.mp.percent < tonumber(gRestMP)) 
+        if ((tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+            (tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP))) 
         then
             ml_global_information.IsWaiting = true
             Player:Stop()
@@ -830,7 +1041,10 @@ end
 c_pressconfirm = inheritsFrom( ml_cause )
 c_pressconfirm.throttle = 1000
 e_pressconfirm = inheritsFrom( ml_effect )
-function c_pressconfirm:evaluate() 
+function c_pressconfirm:evaluate()
+	if (gBotMode == strings[gCurrentLanguage].assistMode) then
+		return (gConfirmDuty == "1" and true or false)
+	end
     return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
 end
 function e_pressconfirm:execute()

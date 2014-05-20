@@ -255,8 +255,8 @@ function ffxivminion.HandleInit()
     ml_blacklist_mgr.path = GetStartupPath() .. [[\LuaMods\ffxivminion\blacklist.info]]
     ml_blacklist_mgr.ReadBlacklistFile(ml_blacklist_mgr.path)
     
-    if not ml_blacklist.BlacklistExists("Fates") then
-        ml_blacklist.CreateBlacklist("Fates")
+    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].fates) then
+        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].fates)
     end
     
     if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].monsters) then
@@ -266,7 +266,12 @@ function ffxivminion.HandleInit()
     if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].gatherMode) then
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
     end
-    
+	
+	if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].huntMonsters) then
+		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].huntMonsters)
+	end
+	
+
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end

@@ -4,6 +4,21 @@ ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0
 
+ffxiv_task_grind.atmas = {
+	["Maiden"] = { name = "Maiden", 			hour = 1,	tele = 3, 	map = 148, item = 7851, mesh = "Central Shroud"},
+	["Scorpion"] = { name = "Scorpion", 		hour = 2,	tele = 20, 	map = 146, item = 7852, mesh = "Southern Thanalan"},
+	["Waterbearer"] = { name = "Waterbearer",	hour = 3, 	tele = 15, 	map = 139, item = 7853, mesh = "Upper La Noscea - Right"},
+	["Goat"] = { name = "Goat", 				hour = 4, 	tele = 4, 	map = 152, item = 7854, mesh = "East Shroud"},
+	["Bull"] = { name = "Bull", 				hour = 5, 	tele = 18, 	map = 145, item = 7855, mesh = "Eastern Thanalan"},
+	["Ram"] = { name = "Ram", 					hour = 6, 	tele = 52, 	map = 134, item = 7856, mesh = "Middle La Noscea"},
+	["Twins"] = { name = "Twins", 				hour = 7, 	tele = 17, 	map = 140, item = 7857, mesh = "Western Thanalan"},
+	["Lion"] = { name = "Lion", 				hour = 8, 	tele = 16, 	map = 180, item = 7858, mesh = "Outer La Noscea"},
+	["Fish"] = { name = "Fish", 				hour = 9, 	tele = 10, 	map = 135, item = 7859, mesh = "Lower La Noscea"},
+	["Archer"] = { name = "Archer", 			hour = 10, 	tele = 7, 	map = 154, item = 7860, mesh = "North Shroud"},
+	["Scales"] = { name = "Scales", 			hour = 11, 	tele = 53, 	map = 141, item = 7861, mesh = "Central Thanalan"},
+	["Crab"] = { name = "Crab", 				hour = 12, 	tele = 14, 	map = 138, item = 7862, mesh = "Western La Noscea"},
+}
+
 function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
     
@@ -94,33 +109,33 @@ end
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
     
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
-    self:add( ke_dead, self.overwatch_elements)
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
+    self:add(ke_dead, self.overwatch_elements)
+	
+	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 20 )
+    self:add(ke_atma, self.overwatch_elements)
+	
+	--local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 19)
+	--self:add(ke_avoid, self.overwatch_elements)
     
     local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
-    self:add( ke_flee, self.overwatch_elements)
+    self:add(ke_flee, self.overwatch_elements)
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
-    self:add( ke_rest, self.overwatch_elements)
+    self:add(ke_rest, self.overwatch_elements)
     
     local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 )
     self:add(ke_addFate, self.overwatch_elements)
-    
-    --not sure if we need this, taking it out for now
-    --init Process() cnes
-    --local ke_mobAggro = ml_element:create( "MobAggro", c_mobaggro, e_mobaggro, 35 )
-    --self:add(ke_mobAggro, self.process_elements)
 
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
-    self:add( ke_returnToMarker, self.process_elements)
+    self:add(ke_returnToMarker, self.process_elements)
     
-    --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 20 )
-    self:add( ke_nextMarker, self.process_elements)
-    
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+    self:add(ke_nextMarker, self.process_elements)
+	
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
-       
+	
     local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
     self:add(ke_fateWait, self.process_elements)
   
@@ -152,7 +167,12 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFateWaitPercent" or
                 k == "gFateBLTimer" or
                 k == "gRestInFates" or
-                k == "gCombatRangePercent" )
+                k == "gCombatRangePercent" or
+				k == "gAtma" or
+				k == "AlwaysKillAggro" or
+				k == "gClaimFirst" or
+				k == "gClaimRange" or
+				k == "gClaimed" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -180,9 +200,9 @@ end
 function ffxiv_task_grind.BlacklistFate(arg)
     if (gFateName ~= "") then
         if (arg == "gBlacklistFateAddEvent") then
-            ml_blacklist.AddBlacklistEntry("Fates", tonumber(gFateID), gFateName, true)
+            ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].fates, tonumber(gFateID), gFateName, true)
         elseif (arg == "gBlacklistFateRemEvent") then
-            ml_blacklist.DeleteEntry("Fates", tonumber(gFateID))
+            ml_blacklist.DeleteEntry(strings[gCurrentLanguage].fates, tonumber(gFateID))
         end
     else
         ml_debug("No valid fate selected")
@@ -195,9 +215,26 @@ function ffxiv_task_grind.BlacklistInitUI()
     RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
 end
 
+function ffxiv_task_grind.HuntingUI()
+	GUI_NewField	(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName,"gTargetName", 		strings[gCurrentLanguage].addEntry)
+	GUI_NewButton	(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].hunt, 	"ffxivminion.huntTarget",strings[gCurrentLanguage].addEntry)
+	RegisterEventHandler("ffxivminion.huntTarget",ffxiv_task_grind.HuntTarget)
+end
+
+function ffxiv_task_grind.HuntTarget()
+	local target = Player:GetTarget()
+	if ValidTable(target) then
+		ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].huntMonsters, target.contentid, target.name, true)
+	end
+end
+
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
     -- Grind
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].alwaysKillAggro,"gKillAggroAlways",strings[gCurrentLanguage].grindMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",strings[gCurrentLanguage].grindMode)
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].claimRange, "gClaimRange", 	strings[gCurrentLanguage].grindMode, "0", "50")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].attackClaimed, "gClaimed",	strings[gCurrentLanguage].grindMode)
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restHP, "gRestHP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restMP, "gRestMP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
@@ -207,14 +244,15 @@ function ffxiv_task_grind.UIInit()
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
     -- Fates
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates","Fates")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly","Fates")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates","Fates")
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies","Fates")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", "Fates", "0", "50")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", "Fates", "0", "50")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", "Fates", "0", "99")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", "Fates", "30","600")
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doAtma, "gAtma",strings[gCurrentLanguage].fates)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates",strings[gCurrentLanguage].fates)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",strings[gCurrentLanguage].fates)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates",strings[gCurrentLanguage].fates)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies",strings[gCurrentLanguage].fates)
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", strings[gCurrentLanguage].fates, "0", "50")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", strings[gCurrentLanguage].fates, "0", "50")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", strings[gCurrentLanguage].fates, "0", "99")
+    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", strings[gCurrentLanguage].fates, "30","600")
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -249,6 +287,26 @@ function ffxiv_task_grind.UIInit()
     if (Settings.FFXIVMINION.gFleeMP == nil) then
         Settings.FFXIVMINION.gFleeMP = "0"
     end
+
+	if (Settings.FFXIVMINION.gAtma == nil) then
+        Settings.FFXIVMINION.gAtma = "0"
+    end
+	
+	if (Settings.FFXIVMINION.gClaimFirst == nil) then
+        Settings.FFXIVMINION.gClaimFirst = "0"
+    end
+	
+	if (Settings.FFXIVMINION.gClaimRange == nil) then
+        Settings.FFXIVMINION.gClaimRange = "20"
+    end
+	
+	if (Settings.FFXIVMINION.gClaimed == nil) then
+        Settings.FFXIVMINION.gClaimed = "0"
+    end
+	
+	if (Settings.FFXIVMINION.gAlwaysKillAggro == nil) then
+        Settings.FFXIVMINION.gAlwaysKillAggro = "0"
+    end
     
    if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
         Settings.FFXIVMINION.gCombatRangePercent = "75"
@@ -270,6 +328,11 @@ function ffxiv_task_grind.UIInit()
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
 	
+	gAlwaysKillAggro = Settings.FFXIVMINION.gAlwaysKillAggro
+	gAtma = Settings.FFXIVMINION.gAtma
+	gClaimFirst = Settings.FFXIVMINION.gClaimFirst
+	gClaimRange = Settings.FFXIVMINION.gClaimRange
+	gClaimed = Settings.FFXIVMINION.gClaimed
     gDoFates = Settings.FFXIVMINION.gDoFates
     gFatesOnly = Settings.FFXIVMINION.gFatesOnly
     gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
@@ -286,7 +349,8 @@ function ffxiv_task_grind.UIInit()
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
-    ml_blacklist_mgr.AddInitUI("Fates",ffxiv_task_fate.BlacklistInitUI)
+	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].huntMonsters,ffxiv_task_grind.HuntingUI)
+    ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].fates,ffxiv_task_fate.BlacklistInitUI)
 	
 	ffxiv_task_grind.SetupMarkers()
 end

@@ -65,7 +65,7 @@ end
 function e_pressleave:execute()
 	-- reset pvp task state since it doesn't get terminated/reinstantiated
     if (gPVPDelayLeave == "1" and ml_task_hub:CurrentTask().leaveTimer == 0) then
-        ml_task_hub:CurrentTask().leaveTimer = ml_global_information.Now + math.random(15000,25000)
+        ml_task_hub:CurrentTask().leaveTimer = ml_global_information.Now + math.random(8000,13000)
     elseif (gPVPDelayLeave == "0" or ml_global_information.Now > ml_task_hub:CurrentTask().leaveTimer) then
         ml_task_hub:CurrentTask().state = "COMBAT_ENDED"
         ml_task_hub:CurrentTask().targetid = 0
@@ -200,39 +200,26 @@ end
 c_afkmove = inheritsFrom( ml_cause )
 e_afkmove = inheritsFrom( ml_effect )
 function c_afkmove:evaluate()
-	return 	gAFKMove == "1" and 
+	return 	(gAFKMove == "1" and 
 			ml_global_information.Now > ml_task_hub:CurrentTask().afkTimer and
+			( Player.localmapid == 337 or Player.localmapid == 175 or Player.localmapid == 336) and
 			(TableSize(ml_task_hub:CurrentTask().lastPos) == 0 or
-			Distance2D(Player.pos.x, Player.pos.y, ml_task_hub:CurrentTask().lastPos.x, ml_task_hub:CurrentTask().lastPos.y) < 1)
+			Distance2D(Player.pos.x, Player.pos.y, ml_task_hub:CurrentTask().lastPos.x, ml_task_hub:CurrentTask().lastPos.y) < 1))
 end
 function e_afkmove:execute()
 	local myPos = Player.pos
 	local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,0.5,1)
+	local betterPos,dist = NavigationManager:GetClosestPointOnMesh(newPos)
 	
-	if (ValidTable(newPos)) then
-		Player:MoveTo(newPos.x, newPos.y, newPos.z, 0.5)
-	
-		if ml_task_hub:CurrentTask().state == "WAITING_FOR_DUTY" then
-			ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(300000,600000)
-		elseif ml_task_hub:CurrentTask().state == "DUTY_STARTED" then
-			ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
-		end
-		
-		ml_task_hub:CurrentTask().lastPos = newPos
+	if (ValidTable(betterPos) and dist <= 5) then
+		Player:MoveTo(betterPos.x, betterPos.y, betterPos.z, 0.5)
+		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(15000,25000)
+		ml_task_hub:CurrentTask().lastPos = betterPos
 	end
 end
 
 function ffxiv_task_pvp:Init()
-    --init Process() cnes
-	--local ke_fleePVP = ml_element:create( "FleePVP", c_fleepvp, e_fleepvp, 20 )
-    --self:add(ke_fleePVP, self.process_elements)
-	
-    local ke_atTargetPVP = ml_element:create( "AtTarget", c_attargetpvp, e_attargetpvp, 15 )
-    self:add(ke_atTargetPVP, self.process_elements)
-    
-    local ke_moveToTargetPVP = ml_element:create( "MoveToTargetPVP", c_movetotargetpvp, e_movetotargetpvp, 10 )
-    self:add(ke_moveToTargetPVP, self.process_elements)
-	
+    --init Process() cnes	
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 10 )
     self:add(ke_pressConfirm, self.process_elements)
 	
@@ -263,45 +250,74 @@ function ffxiv_task_pvp:Process()
 			if (HasBuff(Player.id,3) or HasBuff(Player.id,280) or HasBuff(Player.id,13)) then
 				Player:Stop()
 			end
-		
+
           -- first check for an optimal target
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 			if (	TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000 or
 					ml_task_hub:CurrentTask().targetid == 0 or
-					(target ~= nil and (not target.alive or HasBuff(target.id,3)))) 
+					(target ~= nil and (not target.alive or HasBuff(target.id,3) or HasBuff(target.id,390) or HasBuff(397)))) 
 			then
 				local newTarget = GetPVPTarget()
 				if ValidTable(newTarget) and newTarget.id ~= ml_task_hub:CurrentTask().targetid then
-					-- only switch to a new target if it has less hp percent than our current target
-					if 	(target and target.alive and (target.hp.percent > newTarget.hp.percent) and
-						(target.hp.percent - newTarget.hp.percent > 20)) or (not target) or not (target.alive)
-					then
-						if not HasBuff(Player.id,3) then
-							local pos = newTarget.pos
-							Player:SetFacing(pos.x,pos.y,pos.z)
-							ml_task_hub:CurrentTask().targetid = newTarget.id
-							Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-						end
-					end
+					ml_task_hub:CurrentTask().targetid = newTarget.id
 				end
 				ml_task_hub:CurrentTask().targetTimer = ml_global_information.Now
 			end
-                 -- second try to cast if we're within range or a healer
-				 
+			
+            -- second try to cast if we're within range or a healer
+			local maxRange = GetMaxAttackRange()
 			target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-          if ((InCombatRange(ml_task_hub:CurrentTask().targetid) or Player.role == 4) and ValidTable(target)) then
-            
-            local cast = false
-        
-            if (Player.hp.percent < 75 )then
-                cast = SkillMgr.Cast( Player )
-            end
-            if not cast then			
-                SkillMgr.Cast( target )
-            end	
-          end
+			if ValidTable(target) then
+				local pos = target.pos
+				Player:SetTarget(target.id)
+				Player:SetFacing(pos.x,pos.y,pos.z)
+				SkillMgr.Cast( target )
+				
+				if Player.role ~= 4 then
+					local dist = Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z)
+					if (ml_global_information.AttackRange > 5) then
+						if InCombatRange(target.id) then
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							SkillMgr.Cast( target )
+						else
+							if (Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) > 1) then
+								local PathSize = Player:MoveTo(pos.x,pos.y,pos.z, 1, false, false)
+							end
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							SkillMgr.Cast( target )
+						end
+					else
+						if (dist > 10 or target.los) then
+							local path = Player:MoveTo(pos.x,pos.y,pos.z, 1, false, false)
+						elseif (dist > 1) then
+							local PathSize = Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
+						end
+						Player:SetFacing(pos.x,pos.y,pos.z)
+						SkillMgr.Cast( target )
+					end
+				else
+					if InCombatRange(target.id) then
+						local cast = false
+						if (Player.hp.percent < 75 ) then
+							cast = SkillMgr.Cast( Player, false, true )
+						end
+						if not cast then		
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							SkillMgr.Cast( target )
+						end
+					else
+						if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > maxRange) then
+							local PathSize = Player:MoveTo( tonumber(pos.x),tonumber(pos.y),tonumber(pos.z),tonumber(maxRange * .90),false,gRandomPaths=="0")
+						else
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							SkillMgr.Cast(Player)
+						end
+					end
+				end
+			elseif Player.role == 4 then
+				SkillMgr.Cast( Player )
+			end
         else
-           -- cast precombat actions
            SkillMgr.Cast( Player , true )
         end
     end
@@ -338,15 +354,24 @@ end
 function ffxiv_task_pvp.UIInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",strings[gCurrentLanguage].pvpMode,"")
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",strings[gCurrentLanguage].pvpMode,"")
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",strings[gCurrentLanguage].pvpMode,"")
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
 	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].pvpFlee, "gPVPFlee",strings[gCurrentLanguage].pvpMode)
 
     --init combo boxes
-    local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank..","..strings[gCurrentLanguage].nearest..","..strings[gCurrentLanguage].lowestHealth
-    gPVPTargetOne_listitems = targetTypeList
+    local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank
+	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].sleeper..","..strings[gCurrentLanguage].caster..","..strings[gCurrentLanguage].ranged
+	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].nearDead..","..strings[gCurrentLanguage].nearest..","..strings[gCurrentLanguage].lowestHealth
+    
+	gPVPTargetOne_listitems = targetTypeList
     gPVPTargetTwo_listitems = targetTypeList
+	gPVPTargetThree_listitems = targetTypeList
+	gPVPTargetFour_listitems = targetTypeList
+	gPVPTargetFive_listitems = targetTypeList
     
     if (Settings.FFXIVMINION.gPVPTargetOne == nil) then
         Settings.FFXIVMINION.gPVPTargetOne = "Healer"
@@ -354,6 +379,18 @@ function ffxiv_task_pvp.UIInit()
     
     if (Settings.FFXIVMINION.gPVPTargetTwo == nil) then
         Settings.FFXIVMINION.gPVPTargetTwo = "Lowest Health"
+    end
+	
+	if (Settings.FFXIVMINION.gPVPTargetThree == nil) then
+        Settings.FFXIVMINION.gPVPTargetThree = "Lowest Health"
+    end
+	
+	if (Settings.FFXIVMINION.gPVPTargetFour == nil) then
+        Settings.FFXIVMINION.gPVPTargetFour = "Lowest Health"
+    end
+	
+	if (Settings.FFXIVMINION.gPVPTargetFive == nil) then
+        Settings.FFXIVMINION.gPVPTargetFive = "Lowest Health"
     end
     
     if (Settings.FFXIVMINION.gPrioritizeRanged == nil) then
@@ -376,6 +413,9 @@ function ffxiv_task_pvp.UIInit()
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
+	gPVPTargetThree = Settings.FFXIVMINION.gPVPTargetThree
+	gPVPTargetFour = Settings.FFXIVMINION.gPVPTargetFour
+	gPVPTargetFive = Settings.FFXIVMINION.gPVPTargetFive
     gPrioritizeRanged = Settings.FFXIVMINION.gPrioritizeRanged
     gAFKMove = Settings.FFXIVMINION.gAFKMove
     gPVPDelayLeave = Settings.FFXIVMINION.gPVPDelayLeave
@@ -386,6 +426,9 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gPVPTargetOne" or
                 k == "gPVPTargetTwo" or
+				k == "gPVPTargetThree" or
+				k == "gPVPTargetFour" or
+				k == "gPVPTargetFive" or
                 k == "gPrioritizeRanged" or
                 k == "gAFKMove" or
                 k == "gPVPFlee" or

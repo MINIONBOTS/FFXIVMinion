@@ -29,25 +29,30 @@ function ffxiv_task_killtarget.Create()
 end
 
 function ffxiv_task_killtarget:Init()
-    --init ProcessOverWatch() cnes
-    
-    local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
-    self:add( ke_attarget, self.overwatch_elements)
-    
-    --local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
-    --self:add( ke_bettertargetsearch, self.overwatch_elements)
-    
-    local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
-    self:add( ke_updateTarget, self.overwatch_elements)
-        
-    --Process() cnes		    
-    local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
-    self:add( ke_moveToTarget, self.process_elements)
-    
-    local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
-    self:add( ke_combat, self.process_elements)
-    
-    self:AddTaskCheckCEs()
+	
+	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
+	self:add( ke_attarget, self.overwatch_elements)
+	
+	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	self:add( ke_bettertargetsearch, self.overwatch_elements)
+	
+	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
+	self:add( ke_updateTarget, self.overwatch_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 3 )
+    self:add( ke_companion, self.overwatch_elements)
+	
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 1 )
+    self:add( ke_stance, self.overwatch_elements)
+		
+	--Process() cnes		    
+	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
+	self:add( ke_moveToTarget, self.process_elements)
+	
+	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
+	self:add( ke_combat, self.process_elements)
+	
+	self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_killtarget:task_complete_eval()
@@ -55,6 +60,7 @@ function ffxiv_task_killtarget:task_complete_eval()
     if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
         return true
     end
+    
     return false
 end
 
@@ -119,6 +125,32 @@ function ffxiv_task_movetopos:Init()
     self:AddTaskCheckCEs()
 end
 
+function ffxiv_task_movetopos:Process()
+	--d(tostring(ml_task_hub:ThisTask():ParentTask().name))
+	if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then
+		local target = Player:GetTarget()
+		
+		if 	( target and target.alive ) then
+			if (target.type < 3 and not Player.ismounted) then
+				SkillMgr.Cast( target )
+			end
+		end
+	end
+	
+	if (TableSize(self.process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(self.process_elements)
+		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
+				ml_cne_hub.eval_elements(self:superClass().process_elements)
+		end
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
+	else
+		ml_debug("no elements in process table")
+	end
+end
+
 function ffxiv_task_movetopos:task_complete_eval()
 	if (Quest:IsLoading() or
 		mm.reloadMeshPending )
@@ -149,13 +181,18 @@ end
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
     
-    if (not ml_task_hub:CurrentTask().remainMounted) then
-        Dismount()
-    end
-    
     if (ml_task_hub:CurrentTask().doFacing) then
         Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
     end
+	
+	if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then
+		local target = Player:GetTarget()
+		
+		if 	( target and target.alive ) then
+			local tpos = target.pos
+			Player:SetFacing(tpos.x, tpos.y, tpos.z)
+		end
+	end
     
     ml_task_hub:CurrentTask().completed = true
 end
@@ -237,4 +274,114 @@ end
 function ffxiv_task_loot:task_complete_execute()
     self.completed = true
 	ml_task_hub:CurrentTask():ParentTask().encounterCompleted = true
+end
+
+ffxiv_task_summonchoco = inheritsFrom(ml_task)
+function ffxiv_task_summonchoco.Create()
+    local newinst = inheritsFrom(ffxiv_task_summonchoco)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_killtarget members
+    newinst.name = "LT_SUMMON_CHOCOBO"
+    
+    return newinst
+end
+
+function ffxiv_task_summonchoco:Init()    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_summonchoco:task_complete_eval()	
+	local al = ActionList("type=6")
+	local dismiss = al[2]
+	local acDismiss = ActionList:Get(dismiss.id,6)
+	local item = Inventory:Get(4868)	
+	
+	if ( acDismiss.isready or item.isready) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_task_summonchoco:task_complete_execute()
+    self.completed = true
+	summonTick = ml_global_information.Now
+end
+
+ffxiv_task_teleport = inheritsFrom(ml_task)
+function ffxiv_task_teleport.Create()
+    local newinst = inheritsFrom(ffxiv_task_teleport)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    newinst.name = "TELEPORT"
+    newinst.mapID = 0
+	newinst.mesh = nil
+    newinst.loadTime = 14000
+	newinst.landTime = 0
+    newinst.started = ml_global_information.Now
+    
+    return newinst
+end
+
+function ffxiv_task_teleport:Init()    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_teleport:task_complete_eval()		
+	if (	(TableSize(Player.castinginfo) == 0 or 
+			Player.castinginfo.channelingid ~= 5) 
+				and ml_task_hub:ThisTask().landTime == 0 
+				and Player.localmapid == ml_task_hub:ThisTask().mapID) then
+			ml_task_hub:CurrentTask().landTime = ml_global_information.Now
+	end
+	
+	local ppos = Player.pos
+	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
+		TimeSince(ml_task_hub:CurrentTask().landTime) > ml_task_hub:CurrentTask().loadTime and
+		not NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z) and
+		gmeshname ~= ml_task_hub:CurrentTask().mesh) then
+		ml_debug("Landed in a new zone, but the default mesh is wrong, attempting to correct.")
+		gmeshname = ml_task_hub:CurrentTask().mesh
+		ml_task_hub:CurrentTask().landTime = ml_global_information.Now
+	end
+	
+	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
+		TimeSince(ml_task_hub:CurrentTask().landTime) > ml_task_hub:CurrentTask().loadTime and
+		NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z)) then
+		return true
+	end
+	
+	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
+		TimeSince(ml_task_hub:CurrentTask().landTime) > (ml_task_hub:CurrentTask().loadTime * 2) and
+		not NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z) and
+		gmeshname == ml_task_hub:CurrentTask().mesh) then
+		ml_error("Attempted to load a proper navmesh for you, but something went wrong.")
+		ml_error("You will need to verify your navmeshes and re-start the bot.")
+		return true
+	end
+	
+	if (TimeSince(ml_task_hub:ThisTask().started) > 30000) then
+		return true
+	end
+	
+    return false
+end
+
+function ffxiv_task_teleport:task_complete_execute()  
+	self.completed = true
 end

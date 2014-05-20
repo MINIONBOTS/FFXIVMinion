@@ -188,6 +188,30 @@ function pairsByKeys (t, f)
   return iter
 end
 
+function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+		--table.sort(keys, function(a,b) return t[a].name < t[b].name end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
+end
+
 function GetRandomTableEntry(t)
     if (ValidTable(t)) then
         local i = math.random(1,TableSize(t))
@@ -202,6 +226,79 @@ function GetRandomTableEntry(t)
     end
     
     ml_debug("Error in GetRandomTableEntry()")
+end
+
+function TableInsertSort(tblSort, iInsertPoint, vInsertValue)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iInsertPoint) == "number", "Second parameter must be an integer insertion point.")
+	assert(vInsertValue ~= nil, "Third parameter must be a non-null variant to be inserted.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblSort
+	local p = iInsertPoint
+	local size = TableSize(t)
+	
+	if (size < p) then
+		t[p] = vInsertValue
+		orderedTable = t
+	else
+		d("Size was not less than p.")
+		for k,v in spairs(t) do
+			if (tonumber(k) >= p) then
+				tempTable[tonumber(k)+1] = v
+			end
+		end
+			
+		local x = (TableSize(t) + 1)
+		for i=1,x do
+			if i < p then
+				orderedTable[i] = t[i]
+			elseif i == p then
+				orderedTable[i] = vInsertValue
+			elseif i > p then
+				orderedTable[i] = tempTable[i]
+			end
+		end
+	end
+	return orderedTable
+end
+
+function TableRemoveSort(tblSort, iRemovePoint)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iRemovePoint) == "number", "Second parameter must be an integer insertion point.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblSort
+	local p = iRemovePoint
+	local size = TableSize(t)
+	
+	assert(not(p > size or p < 1), "Removal point is out of range.")
+	
+	if (size == p) then
+		d("Entry was highest on list, remove it and return.")
+		t[p] = nil
+		orderedTable = t
+	else
+		d("Entry was not highest on list.")
+		for k,v in spairs(t) do
+			if tonumber(k) > p then
+				tempTable[tonumber(k)-1] = v
+			end
+		end
+		
+		local x = (TableSize(t) - 1)
+		
+		for i=1,x do
+			if i < p then
+				orderedTable[i] = t[i]
+			elseif i >= p then
+				orderedTable[i] = tempTable[i]
+			end
+		end
+	end
+	return orderedTable
 end
 
 --psuedo enum values for task classes
