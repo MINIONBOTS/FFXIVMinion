@@ -200,7 +200,7 @@ function e_joinduty:execute()
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 	else
-        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + tonumber(gResetDutyTimer)
+        ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + (tonumber(gResetDutyTimer) * 1000)
 		PressDutyJoin()
 	end
 end
