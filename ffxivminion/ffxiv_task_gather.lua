@@ -340,7 +340,9 @@ function e_gather:execute()
 							end
 						end
 					end
-				elseif (item2 ~= "") then
+				end
+				
+				if (item2 ~= "") then
 					for i, item in pairs(list) do
 						local n = tonumber(item2)
 						if (n ~= nil) then

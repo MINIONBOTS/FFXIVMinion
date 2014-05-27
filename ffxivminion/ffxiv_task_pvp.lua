@@ -255,7 +255,7 @@ function ffxiv_task_pvp:Process()
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 			if (	TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000 or
 					ml_task_hub:CurrentTask().targetid == 0 or
-					(target ~= nil and (not target.alive or HasBuff(target.id,3) or HasBuff(target.id,390) or HasBuff(397)))) 
+					(target ~= nil and (not target.alive or HasBuff(target.id,3)))) 
 			then
 				local newTarget = GetPVPTarget()
 				if ValidTable(newTarget) and newTarget.id ~= ml_task_hub:CurrentTask().targetid then
@@ -287,7 +287,7 @@ function ffxiv_task_pvp:Process()
 							SkillMgr.Cast( target )
 						end
 					else
-						if (dist > 10 or target.los) then
+						if (dist > 6 or not target.los) then
 							local path = Player:MoveTo(pos.x,pos.y,pos.z, 1, false, false)
 						elseif (dist > 1) then
 							local PathSize = Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)

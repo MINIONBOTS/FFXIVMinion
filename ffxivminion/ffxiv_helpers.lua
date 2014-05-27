@@ -481,9 +481,22 @@ function GetPVPTarget()
 	local enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
     if (ValidTable(enemyParty)) then
         local id, entity = next(enemyParty)
-        while (id ~= nil and entity ~= nil) do			
-            if (not HasBuff(entity.id, 3) and not HasBuff(entity.id, 390) and not HasBuff(entity.id,397) 
-				and entity.chartype ~= 2 and entity.alive and entity.attackable) then -- get sleep buff id
+        while (id ~= nil and entity ~= nil) do	
+			local beingSlept = false
+			for i,teammate in pairs(EntityList.myparty) do
+				if (TableSize(teammate.castinginfo) > 0) then
+					if (teammate.castinginfo.channeltargetid == entity.id and 
+						(teammate.castinginfo.channelingid == 128 or
+						teammate.castinginfo.channelingid == 145)) then
+						beingSlept = true
+					end
+				end
+				if beingSlept then
+					break
+				end
+			end
+			
+            if (not HasBuff(entity.id, 3) and entity.chartype ~= 2 and not beingSlept) then -- get sleep buff id
 				local role = GetRoleString(entity.job)
                 if role == strings[gCurrentLanguage].healer then
                     targets[strings[gCurrentLanguage].healer] = entity
@@ -536,7 +549,7 @@ function GetPVPTarget()
 					targets[strings[gCurrentLanguage].nearDead] = nil
 				end
 				
-				if entity.hp.percent < 30 and entity.distance < 25 then
+				if entity.hp.percent < 20 and entity.pathdistance < 20 then
 					targets[strings[gCurrentLanguage].nearDead] = entity
 				end
 					
@@ -770,6 +783,7 @@ end
 
 function isCasting(entity, actionIDs , minCasttime , targetid) 
 	local ci = entity.castinginfo 
+	minCasttime = minCasttime or 0
 	
 	if ( ci == nil or ci.channelingid == 0 ) then return false end
 	

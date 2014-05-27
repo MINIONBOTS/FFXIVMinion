@@ -1403,22 +1403,22 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 						--if (skill.name == "Arm of the Destroyer") then d("Castable before casting check:"..tostring(castable)) end
 						-- CASTING
-						if (castable and tonumber(skill.tcasttime) > 0) then
-							local casttime = tonumber(skill.tcasttime)
-							if (casttime ~= nil) then 
-								if (TableSize(target.castinginfo) == 0) then
+						local casttime = tonumber(skill.tcasttime)
+						if casttime == nil then casttime = 0 end
+						
+						if (castable and ( casttime > 0 or skill.tcastids ~= "")) then
+							if (TableSize(target.castinginfo) == 0) then
+								castable = false
+							elseif target.castinginfo.channeltime == 0 then
+								castable = false
+							elseif (skill.tcastids == "" and casttime ~= nil) then
+								if target.castinginfo.channeltime < casttime then
 									castable = false
-								elseif target.castinginfo.channeltime == 0 then
+								end
+							elseif (skill.tcastids ~= "") then								
+								local ctid = (skill.tcastonme =="1" and Player.id or nil)
+								if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
 									castable = false
-								elseif (skill.tcastids == "" or skill.tcastids == nil) then
-									if target.castinginfo.channeltime < casttime then
-										castable = false
-									end
-								elseif (skill.tcastids ~= "") then								
-									local ctid = (skill.tcastonme =="1" and Player.id or nil)
-									if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
-										castable = false
-									end
 								end
 							end
 						end
