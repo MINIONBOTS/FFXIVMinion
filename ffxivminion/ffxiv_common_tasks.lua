@@ -313,7 +313,7 @@ end
 
 function ffxiv_task_summonchoco:task_complete_execute()
     self.completed = true
-	summonTick = ml_global_information.Now
+	ml_global_information.summonTimer = ml_global_information.Now
 end
 
 ffxiv_task_teleport = inheritsFrom(ml_task)

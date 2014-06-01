@@ -17,6 +17,15 @@ ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
+ml_global_information.stanceTimer = 0
+ml_global_information.summonTimer = 0
+ml_global_information.chocoStance = {
+	[strings[gCurrentLanguage].stFollow] = 3,
+	[strings[gCurrentLanguage].stFree] = 4,
+	[strings[gCurrentLanguage].stDefender] = 5,
+	[strings[gCurrentLanguage].stAttacker] = 6,
+	[strings[gCurrentLanguage].stHealer] = 7,
+}
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -170,6 +179,18 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gUseAetherytes = "0"
 	end
 	
+	if (Settings.FFXIVMINION.gChoco == nil) then
+		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
+	end
+	
+	if (Settings.FFXIVMINION.gMount == nil) then
+		Settings.FFXIVMINION.gMount = strings[gCurrentLanguage].none
+	end
+    
+    if (Settings.FFXIVMINION.gChocoStance == nil) then
+		Settings.FFXIVMINION.gChocoStance = strings[gCurrentLanguage].stFree
+	end
+	
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -183,9 +204,14 @@ function ffxivminion.HandleInit()
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].companion, "gChoco",strings[gCurrentLanguage].generalSettings,"")
+	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].stance,"gChocoStance",strings[gCurrentLanguage].generalSettings,"")
+	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",strings[gCurrentLanguage].generalSettings );	
@@ -232,6 +258,9 @@ function ffxivminion.HandleInit()
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
 	gUseAetherytes = Settings.FFXIVMINION.gUseAetherytes
+	gChoco = Settings.FFXIVMINION.gChoco
+	gChocoStance = Settings.FFXIVMINION.gChocoStance
+	gMount = Settings.FFXIVMINION.gMount
 	
 	ffxivminion.modes =
 	{
@@ -348,7 +377,10 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gStartCombat" or
 			k == "gConfirmDuty" or
             k == "gDoUnstuck" or
-            k == "gRandomPaths" )			
+            k == "gRandomPaths" or
+			k == "gChoco" or
+			k == "gChocoStance" or
+			k == "gMount")			
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then

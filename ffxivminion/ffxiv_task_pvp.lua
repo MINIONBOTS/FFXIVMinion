@@ -42,6 +42,7 @@ c_joinqueuepvp = inheritsFrom( ml_cause )
 e_joinqueuepvp = inheritsFrom( ml_effect )
 function c_joinqueuepvp:evaluate() 
     return ((   Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and 
+				(IsLeader() or TableSize(EntityList.myparty) == 0) and
                 TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(30000,35000) and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
@@ -72,7 +73,7 @@ function e_pressleave:execute()
         ml_task_hub:CurrentTask().startTimer = 0
         ml_task_hub:CurrentTask().leaveTimer = 0
         ml_task_hub:CurrentTask().lastPos = {}
-        ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(300000,600000)
+        ml_task_hub:CurrentTask().afkTimer = 0
         ml_task_hub:CurrentTask().queueTimer = ml_global_information.Now
         Player:Stop()
         PressLeaveColosseum()
@@ -123,49 +124,6 @@ function e_startcombat:execute()
     ml_task_hub:CurrentTask().state = "COMBAT_STARTED"
 end
 
-c_movetotargetpvp = inheritsFrom( ml_cause )
-e_movetotargetpvp = inheritsFrom( ml_effect )
-function c_movetotargetpvp:evaluate()
-    if (ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 
-		and Player.alive and not ml_task_hub:CurrentTask().fleeing and not HasBuff(Player.id,3)
-		and not HasBuff(Player.id,280) and not HasBuff(Player.id,13))
-	then
-        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        return ValidTable(target) and not InCombatRange(target.id)
-    end
-    
-    return false
-end
-function e_movetotargetpvp:execute()
-    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if ValidTable(target) then
-        local gotoPos = target.pos
-        ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-        local PathSize = Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, 
-                                        true,gRandomPaths=="1")
-    end
-end
-
-c_attargetpvp = inheritsFrom( ml_cause )
-e_attargetpvp = inheritsFrom( ml_effect )
-function c_attargetpvp:evaluate()
-    if (Player:IsMoving() and not ml_task_hub:CurrentTask().fleeing) then
-        if ml_global_information.AttackRange > 20 then
-            local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
-            if ValidTable(target) then
-                local rangePercent = tonumber(gCombatRangePercent) * 0.01
-                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * rangePercent)
-            end
-        else
-            return InCombatRange(ml_task_hub:ThisTask().targetid)
-        end
-    end
-    return false
-end
-function e_attargetpvp:execute()
-    Player:Stop()
-end
-
 c_fleepvp = inheritsFrom( ml_cause )
 e_fleepvp = inheritsFrom( ml_effect )
 function c_fleepvp:evaluate()
@@ -203,18 +161,21 @@ function c_afkmove:evaluate()
 	return 	(gAFKMove == "1" and 
 			ml_global_information.Now > ml_task_hub:CurrentTask().afkTimer and
 			( Player.localmapid == 337 or Player.localmapid == 175 or Player.localmapid == 336) and
-			(TableSize(ml_task_hub:CurrentTask().lastPos) == 0 or
-			Distance2D(Player.pos.x, Player.pos.y, ml_task_hub:CurrentTask().lastPos.x, ml_task_hub:CurrentTask().lastPos.y) < 1))
+			TableSize(ml_task_hub:CurrentTask().lastPos) == 0)
 end
 function e_afkmove:execute()
-	local myPos = Player.pos
-	local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,0.5,1)
-	local betterPos,dist = NavigationManager:GetClosestPointOnMesh(newPos)
-	
-	if (ValidTable(betterPos) and dist <= 5) then
-		Player:MoveTo(betterPos.x, betterPos.y, betterPos.z, 0.5)
-		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(15000,25000)
-		ml_task_hub:CurrentTask().lastPos = betterPos
+	if (ml_task_hub:CurrentTask().afkTimer == 0) then
+		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(25000,30000)
+		return
+	elseif (ml_global_information.Now > ml_task_hub:CurrentTask().afkTimer) then	
+		local myPos = Player.pos
+		local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x, myPos.y, myPos.z,2,1)
+		local betterPos,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+		
+		if (ValidTable(betterPos) and dist <= 5) then
+			Player:MoveTo(betterPos.x, betterPos.y, betterPos.z, 0.5)
+			ml_task_hub:CurrentTask().lastPos = betterPos
+		end
 	end
 end
 
@@ -247,7 +208,7 @@ function ffxiv_task_pvp:Process()
     if ((Player.localmapid == 337 or Player.localmapid == 336 or Player.localmapid == 175) and Player.alive) then
         if (ml_task_hub:CurrentTask().state == "COMBAT_STARTED") then
 			-- if we got slept then stop any current movement attempts
-			if (HasBuff(Player.id,3) or HasBuff(Player.id,280) or HasBuff(Player.id,13)) then
+			if (HasBuff(Player.id,3) or HasBuff(Player.id,2) or HasBuff(Player.id,149) or HasBuff(Player.id,397) or HasBuff(Player.id,280) or HasBuff(Player.id,13)) then
 				Player:Stop()
 			end
 
@@ -255,7 +216,7 @@ function ffxiv_task_pvp:Process()
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 			if (	TimeSince(ml_task_hub:CurrentTask().targetTimer) > 1000 or
 					ml_task_hub:CurrentTask().targetid == 0 or
-					(target ~= nil and (not target.alive or HasBuff(target.id,3)))) 
+					(target ~= nil and (not target.alive or HasBuff(target.id,3) or HasBuff(target.id,397)))) 
 			then
 				local newTarget = GetPVPTarget()
 				if ValidTable(newTarget) and newTarget.id ~= ml_task_hub:CurrentTask().targetid then

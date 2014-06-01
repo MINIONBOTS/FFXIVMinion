@@ -496,7 +496,7 @@ function GetPVPTarget()
 				end
 			end
 			
-            if (not HasBuff(entity.id, 3) and entity.chartype ~= 2 and not beingSlept) then -- get sleep buff id
+            if (not HasBuff(entity.id, 3) and not HasBuff(entity.id, 397) and entity.chartype ~= 2 and not beingSlept) then -- get sleep buff id
 				local role = GetRoleString(entity.job)
                 if role == strings[gCurrentLanguage].healer then
                     targets[strings[gCurrentLanguage].healer] = entity
@@ -549,7 +549,7 @@ function GetPVPTarget()
 					targets[strings[gCurrentLanguage].nearDead] = nil
 				end
 				
-				if entity.hp.percent < 20 and entity.pathdistance < 20 then
+				if entity.hp.percent < 30 and entity.pathdistance < 15 then
 					targets[strings[gCurrentLanguage].nearDead] = entity
 				end
 					
@@ -1098,28 +1098,59 @@ function InCombatRange(targetid)
 	return ((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
 end
 
+function GetMounts()
+	local MountsList = "None"
+	local eq = ActionList("type=13")
+	for k,v in pairs(eq) do
+		MountsList = MountsList..","..v.name
+	end
+	
+	return MountsList
+end
+
 function Mount()
-    if not(Player.ismounted) then
-        local mounts = ActionList("type=13")
-		local mount = mounts[1]
-		if ( mount ) then
-			local acMount = ActionList:Get(mount.id,13)
-			if (acMount.isready) then
-				acMount:Cast()
+	local mountID
+	local mountIndex
+	
+	if not(Player.ismounted) then
+	    local mountlist = ActionList("type=13")
+		for k,mount in pairs(mountlist) do
+			if (gMount == mount.name) then
+				mountID = mount.id
+				mountIndex = k
 			end
 		end
-    end
+		
+		if (mountIndex ~= 1) then
+			local al = ActionList("type=6")
+			local dismiss = al[2]
+			local acDismiss = ActionList:Get(dismiss.id,6)
+			if (acDismiss.isready) then
+				acDismiss:Cast()
+			end
+		end
+	
+		local acMount = ActionList:Get(mountID,13)
+		if (acMount.isready) then
+			acMount:Cast()
+		end
+	end
 end
 
 function Dismount()
-    if (Player.ismounted) then
-        local mounts = ActionList("type=13")
-        local mount = mounts[1]
-        local acMount = ActionList:Get(mount.id,13)
-        if (acMount.isready) then
-            acMount:Cast()
-        end
-    end
+	if (Player.ismounted) then
+		local mountlist = ActionList("type=13")
+		for k,mount in pairs(mountlist) do
+			if (gMount == mount.name) then
+				mountID = mount.id
+			end
+		end
+	
+		local acMount = ActionList:Get(mountID,13)
+		if (acMount.isready) then
+			acMount:Cast()
+		end
+	end
 end
 
 function NodeHasItem(itemName)

@@ -744,16 +744,16 @@ function c_stance:evaluate()
 		[strings[gCurrentLanguage].assistMode] = true,
 	}
 
-    if ( gChoco ~= "Off" and eval[tostring(gBotMode)]) then
+    if ( gChoco ~= strings[gCurrentLanguage].none and eval[tostring(gBotMode)]) then
 
 		local al = ActionList("type=6")
 		local dismiss = al[2]
 		local acDismiss = ActionList:Get(dismiss.id,6)
 
 		if ( acDismiss.isready) then
-			if ( stanceTick == 0 and ((ml_global_information.Now - summonTick) >= 5000 or summonTick == 0) ) then
+			if ( ml_global_information.stanceTimer == 0 and TimeSince(ml_global_information.summonTimer) >= 6000 ) then
 				return true
-			elseif ( (ml_global_information.Now - stanceTick) >= 60000 ) then
+			elseif ( TimeSince(ml_global_information.stanceTimer) >= 30000 ) then
 				return true
 			end
 		end
@@ -764,10 +764,10 @@ end
 
 function e_stance:execute()
 	local stanceList = ActionList("type=6")
-	local stance = stanceList[ChocoStance[gChocoStance]]
+	local stance = stanceList[ml_global_information.chocoStance[gChocoStance]]
     local acStance = ActionList:Get(stance.id,6)		
 	acStance:Cast(Player.id)
-	stanceTick = ml_global_information.Now
+	ml_global_information.stanceTimer = ml_global_information.Now
 end
 
 -----------------------------------------------------------------------------------------------
