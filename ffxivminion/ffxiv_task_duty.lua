@@ -224,6 +224,7 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
 		ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now
         PressYesNo(true)
+		ffxiv_task_duty.dutySet = false
     end
 end
 
