@@ -774,6 +774,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
+c_stealth.throttle = 1000 -- else it perma-toggles it on/off due to ffxiv data not beeiung updated fast enough
 function c_stealth:evaluate()
     if  (Player.ismounted or
         (gBotMode == strings[gCurrentLanguage].gatherMode and gDoStealth == "0") or
@@ -791,8 +792,8 @@ function c_stealth:evaluate()
     end
     
     if (action and action.isready) then
-    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=25")
-        if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
+    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=25")        
+		if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
         then
             return true
