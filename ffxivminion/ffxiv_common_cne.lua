@@ -1111,6 +1111,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
+c_stealth.throttle = 1000
 function c_stealth:evaluate()
     if  (Player.ismounted or
         (gBotMode == strings[gCurrentLanguage].gatherMode and gDoStealth == "0") or
