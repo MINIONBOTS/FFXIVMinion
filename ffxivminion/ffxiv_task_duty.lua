@@ -178,7 +178,7 @@ function e_setduty:execute()
 	else
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
-			Duty:SelectDuty(duty.DutySelectCode)
+			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
 		end
 	end
@@ -230,6 +230,7 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
         --ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gLeaveDutyTimer)
 		ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now
+		ffxiv_task_duty.dutySet = false
         PressYesNo(true)
     end
 end
