@@ -173,7 +173,7 @@ function e_setduty:execute()
 	else
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
-			Duty:SelectDuty(duty.DutySelectCode)
+			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
 		end
 	end
@@ -359,8 +359,8 @@ function ffxiv_task_duty:Init()
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements)
 	
-	--local ke_setDuty = ml_element:create( "SetDuty", c_setduty, e_setduty, 16 )
-    --self:add(ke_setDuty, self.process_elements)
+	local ke_setDuty = ml_element:create( "SetDuty", c_setduty, e_setduty, 16 )
+    self:add(ke_setDuty, self.process_elements)
 	
 	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)
