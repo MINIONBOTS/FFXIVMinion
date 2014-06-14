@@ -169,6 +169,7 @@ function e_setduty:execute()
 		e_setduty.cleared = false
 	elseif (not e_setduty.cleared) then
 		Duty:ClearDutySelection()
+		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 		e_setduty.cleared = true
 	else
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
