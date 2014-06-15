@@ -154,7 +154,7 @@ end
 
 c_setduty = inheritsFrom( ml_cause )
 e_setduty = inheritsFrom( ml_effect )
-e_setduty.cleared = false
+e_setduty.cleared = true
 function c_setduty:evaluate()
 	return
 		ml_task_hub:CurrentTask().state == "DUTY_NEW" and not 
@@ -165,7 +165,7 @@ function c_setduty:evaluate()
 		TableSize(EntityList.myparty) == 8)
 end
 function e_setduty:execute()
-	if (not ControlVisible("ContentsFinder") and e_setduty.cleared) then
+	if (not ControlVisible("ContentsFinder")) then
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 		e_setduty.cleared = false
