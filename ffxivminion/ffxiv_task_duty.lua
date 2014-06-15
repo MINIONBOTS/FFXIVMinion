@@ -154,7 +154,6 @@ end
 
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
-e_joinduty.cleared = true
 function c_joinduty:evaluate()
 	if (not Quest:IsLoading() and
 		ml_task_hub:CurrentTask().state == "DUTY_NEW" and 
@@ -170,22 +169,18 @@ function c_joinduty:evaluate()
 	return false
 end
 function e_joinduty:execute()
-	if not ControlVisible("ContentsFinder") then
+	if (not ControlVisible("ContentsFinder")) then
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 		e_joinduty.cleared = false
-	elseif (ControlVisible("ContentsFinder") and not e_joinduty.cleared) then
-		Duty:ClearDutySelection()
-		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(1000,2000)
-		e_joinduty.cleared = true
-	elseif (ControlVisible("ContentsFinder") and e_joinduty.cleared) then
+	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet) then
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
 			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
 			ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(1000,2000)
 		end
-	elseif (fxiv_task_duty.dutySet) then
+	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
         ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + (tonumber(gResetDutyTimer) * 1000)
 		PressDutyJoin()
 	end
