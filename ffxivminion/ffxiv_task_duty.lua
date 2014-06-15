@@ -169,7 +169,7 @@ function e_setduty:execute()
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 		e_setduty.cleared = false
-	elseif (ControlVisible("ContentsFinder") not e_setduty.cleared) then
+	elseif (ControlVisible("ContentsFinder") and not e_setduty.cleared) then
 		Duty:ClearDutySelection()
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 		e_setduty.cleared = true
