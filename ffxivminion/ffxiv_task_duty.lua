@@ -173,7 +173,7 @@ function e_setduty:execute()
 		Duty:ClearDutySelection()
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 		e_setduty.cleared = true
-	elseif (ControlVisible("ContentsFinder") and e_setduty.cleared)
+	elseif (ControlVisible("ContentsFinder") and e_setduty.cleared) then
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
 			Duty:SelectDuty(duty.DutyListIndex)
