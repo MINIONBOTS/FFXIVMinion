@@ -176,6 +176,7 @@ function e_joinduty:execute()
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet) then
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
+			Duty:ClearDutySelection()
 			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
 			ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(1000,2000)
