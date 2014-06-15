@@ -183,6 +183,7 @@ function e_joinduty:execute()
 	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
         ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + (tonumber(gResetDutyTimer) * 1000)
 		PressDutyJoin()
+		ffxiv_task_duty.dutySet = false
 	end
 end
 			
