@@ -156,22 +156,24 @@ c_setduty = inheritsFrom( ml_cause )
 e_setduty = inheritsFrom( ml_effect )
 e_setduty.cleared = false
 function c_setduty:evaluate()
-	return 
+	return
+		ml_task_hub:CurrentTask().state == "DUTY_NEW" and not 
+		Quest:IsLoading() and
 		IsDutyLeader() and not 
 		ffxiv_task_duty.dutySet and 
 		(TableSize(EntityList.myparty) == 4 or
 		TableSize(EntityList.myparty) == 8)
 end
 function e_setduty:execute()
-	if not ControlVisible("ContentsFinder") then
+	if (not ControlVisible("ContentsFinder") and e_setduty.cleared) then
 		ActionList:Cast(33,0,10)
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(4000,5000)
 		e_setduty.cleared = false
-	elseif (not e_setduty.cleared) then
+	elseif (ControlVisible("ContentsFinder") not e_setduty.cleared) then
 		Duty:ClearDutySelection()
 		ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 		e_setduty.cleared = true
-	else
+	elseif (ControlVisible("ContentsFinder") and e_setduty.cleared)
         local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if(duty) then
 			Duty:SelectDuty(duty.DutyListIndex)
