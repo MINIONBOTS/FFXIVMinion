@@ -30,6 +30,8 @@ end
 ---------------------------------------------------------------------------------------------
 --FATEWAIT: If (detect new aggro) Then (kill mob)
 ---------------------------------------------------------------------------------------------
+
+--[[
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate() 
@@ -53,10 +55,12 @@ function e_fatewait:execute()
     newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
+--]]
 
 ---------------------------------------------------------------------------------------------
 --FATEQUIT: If (completion % has not changed over timer) Then (temporarily blacklist)
 ---------------------------------------------------------------------------------------------
+--[[
 c_fatequit = inheritsFrom( ml_cause )
 e_fatequit = inheritsFrom( ml_effect )
 function c_fatequit:evaluate()
@@ -86,6 +90,7 @@ function e_fatequit:execute()
         ml_task_hub:CurrentTask():Terminate()
     end
 end
+--]]
 
 ---------------------------------------------------------------------------------------------
 --BETTERFATESEARCH: If (fate with < distance than current target exists) Then (select new fate)
@@ -100,10 +105,12 @@ function c_betterfatesearch:evaluate()
     end
     
     local myPos = Player.pos
-    local fateID = GetClosestFateID(myPos,true,true)
-    if (fateID ~= ml_task_hub:ThisTask().fateid) then
-        return true	
-    end
+    local fate = GetClosestFate(myPos)
+	if (fate ~= nil) then
+		if (fate.id ~= ml_task_hub:ThisTask().fateid) then
+			return true	
+		end
+	end
     
     return false
 end
@@ -111,6 +118,52 @@ function e_betterfatesearch:execute()
     ml_debug( "Closer fate found" )
     ml_task_hub:ThisTask():Terminate()
     ml_debug("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+end
+
+c_teletofate = inheritsFrom( ml_cause )
+e_teletofate = inheritsFrom( ml_effect )
+c_teletofate.pos = nil
+c_teletofate.lastTele = 0
+function c_teletofate:evaluate()
+	local nearbyPlayers = TableSize(EntityList("type=1,maxdistance=30"))
+	if nearbyPlayers > 0 then
+		d("Can't teleport, nearby players = "..tostring(nearbyPlayers))
+		return false
+	end
+	
+	if tonumber(gFateTeleportPercent) == 0 then
+		d("Can't teleport, it's turned off.")
+		return false
+	end
+	
+	if TimeSince(c_teletofate.lastTele) < 10000 then
+		d("Can't teleport, it's been too soon off.")
+		return false
+	end
+	
+    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
+        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+        if (fate ~= nil and TableSize(fate) > 0) then
+			if fate.completion > tonumber(gFateTeleportPercent) then
+				
+				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
+				
+				if dist > (fate.radius * 2) then
+					c_teletofate.pos = dest
+					return true
+				end
+			end
+        end
+    end
+    
+	d("Can't teleport, some other reason.")
+    return false
+end
+function e_teletofate:execute()
+	local dest = c_teletofate.pos
+	GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+	c_teletofate.lastTele = Now()
 end
 
 -----------------------------------------------------------------------------------------------
@@ -122,6 +175,7 @@ e_movetofate = inheritsFrom( ml_effect )
 function c_movetofate:evaluate()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+		
         if (fate ~= nil and TableSize(fate) > 0) then
             local myPos = Player.pos
             local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
@@ -135,6 +189,7 @@ function c_movetofate:evaluate()
                 end
             end
         end
+		
     end
     
     return false
@@ -142,12 +197,12 @@ end
 function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
-        ml_debug( "Moving to location of fate: "..fate.name )
+        d( "Moving to location of fate: "..fate.name )
         local newTask = ffxiv_task_movetopos.Create()
 
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
         if ( ml_task_hub:CurrentTask().moving) then
-            newTask.range = math.random(5, fate.radius/2)
+            newTask.range = math.random(2, fate.radius/4)
         else
             newTask.range = math.random(fate.radius * .9, fate.radius)
         end
@@ -173,7 +228,7 @@ function c_atfate:evaluate()
                 if ( el ) then
                     local i,e = next(el)
                     if (i~=nil and e~=nil) then
-                        return fate.completion > tonumber(gFateWaitPercent) and ValidTable(e)
+                        return ValidTable(e)
                     end
                 end	
             end
@@ -182,7 +237,7 @@ function c_atfate:evaluate()
     return false
 end
 function e_atfate:execute()
-    Player:Stop()
+    --Player:Stop()
     -- call the complete logic so that bot will dismount
     -- stay mounted since we have a target and we want to continue running to it
     ml_task_hub:CurrentTask().remainMounted = true
@@ -201,25 +256,22 @@ function c_syncfatelevel:evaluate()
         return false
     end
     
-    local myPos = Player.pos
-    local fateID = GetClosestFateID(myPos,true,true)
-    if (fateID == ml_task_hub:ThisTask().fateid) then
-        local fate = GetFateByID(fateID)
-        if ( fate and TableSize(fate)) then
-            local plevel = Player.level
-            if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
-                local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
-                if (distance < fate.radius) then				
-                    return true
-                end
-            end
-        end
-    end
+	local fateID = ml_task_hub:ThisTask().fateid
+	local fate = GetFateByID(fateID)
+	if ( fate and TableSize(fate)) then
+		local plevel = Player.level
+		if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
+			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+			if (distance < fate.radius) then				
+				return true
+			end
+		end
+	end
     return false
 end
 function e_syncfatelevel:execute()
-    ml_debug( "Curren Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
-    ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))
+    ml_debug( "Current Sync Fate level: "..tostring(Player:GetSyncLevel() ))
+    ml_debug( "Syncing Fate level Result: "..tostring(Player:SyncLevel()))
 end
 
 c_movingfate = inheritsFrom( ml_cause )
@@ -268,14 +320,17 @@ function ffxiv_task_fate:Init()
     local ke_movingFate = ml_element:create( "SetFateMovingFlag", c_movingfate, e_movingfate, 30 )
     self:add( ke_movingFate, self.process_elements)
     
-    local ke_quitFate = ml_element:create( "QuitFate", c_fatequit, e_fatequit, 25 )
-    self:add( ke_quitFate, self.process_elements)
+    --local ke_quitFate = ml_element:create( "QuitFate", c_fatequit, e_fatequit, 25 )
+    --self:add( ke_quitFate, self.process_elements)
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 20 )
     self:add( ke_rest, self.process_elements)
         
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
+	
+	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 6 )
+    self:add( ke_teleToFate, self.process_elements)
     
     local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
     self:add( ke_moveToFate, self.process_elements)

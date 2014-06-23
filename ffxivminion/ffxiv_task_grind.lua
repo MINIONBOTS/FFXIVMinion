@@ -36,6 +36,7 @@ function ffxiv_task_grind.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	newinst.filterLevel = true
+	newinst.startMap = Player.localmapid
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
@@ -130,14 +131,14 @@ function ffxiv_task_grind:Init()
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add(ke_returnToMarker, self.process_elements)
     
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 20 )
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 20 )
     self:add(ke_nextMarker, self.process_elements)
 	
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
 	
-    local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
-    self:add(ke_fateWait, self.process_elements)
+    --local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
+    --self:add(ke_fateWait, self.process_elements)
   
     self:AddTaskCheckCEs()
 end
@@ -165,6 +166,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFleeHP" or
                 k == "gFleeMP" or
                 k == "gFateWaitPercent" or
+				k == "gFateTeleportPercent" or
                 k == "gFateBLTimer" or
                 k == "gRestInFates" or
                 k == "gCombatRangePercent" or
@@ -231,7 +233,7 @@ end
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
     -- Grind
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].alwaysKillAggro,"gKillAggroAlways",strings[gCurrentLanguage].grindMode)
+	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].alwaysKillAggro,"gKillAggroAlways",strings[gCurrentLanguage].grindMode)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",strings[gCurrentLanguage].grindMode)
 	GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].claimRange, "gClaimRange", 	strings[gCurrentLanguage].grindMode, "0", "50")
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].attackClaimed, "gClaimed",	strings[gCurrentLanguage].grindMode)
@@ -240,6 +242,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
+	
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",strings[gCurrentLanguage].grindMode)
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
@@ -248,11 +251,12 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates",strings[gCurrentLanguage].fates)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",strings[gCurrentLanguage].fates)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].restInFates, "gRestInFates",strings[gCurrentLanguage].fates)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies",strings[gCurrentLanguage].fates)
+	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies",strings[gCurrentLanguage].fates)
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", strings[gCurrentLanguage].fates, "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", strings[gCurrentLanguage].fates, "0", "50")
     GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", strings[gCurrentLanguage].fates, "0", "99")
-    GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", strings[gCurrentLanguage].fates, "30","600")
+	GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", strings[gCurrentLanguage].fates, "0", "99")
+    --GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", strings[gCurrentLanguage].fates, "30","600")
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -319,6 +323,10 @@ function ffxiv_task_grind.UIInit()
     if (Settings.FFXIVMINION.gFateWaitPercent == nil) then
         Settings.FFXIVMINION.gFateWaitPercent = "0"
     end
+	
+	if (Settings.FFXIVMINION.gFateTeleportPercent == nil) then
+        Settings.FFXIVMINION.gFateTeleportPercent = "0"
+    end
     
     if (Settings.FFXIVMINION.gFateBLTimer == nil) then
         Settings.FFXIVMINION.gFateBLTimer = "120"
@@ -344,6 +352,7 @@ function ffxiv_task_grind.UIInit()
     gFleeMP = Settings.FFXIVMINION.gFleeMP
     gCombatRangePercent = Settings.FFXIVMINION.gCombatRangePercent
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
+	gFateTeleportPercent = Settings.FFXIVMINION.gFateTeleportPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
     

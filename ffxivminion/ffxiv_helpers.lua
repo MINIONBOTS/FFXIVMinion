@@ -3,23 +3,13 @@
 -- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
 -- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
-	local huntString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].huntMonsters)
-	local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
+	local huntString = GetWhitelistIDString()
+	local excludeString = GetBlacklistIDString()
 	local el = nil
 	local nearestGrind = nil
 	local nearestDistance = 9999
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
-  
-	if (ValidTable(ml_task_hub:CurrentTask())) then
-		if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and ml_task_hub:CurrentTask().currentMarker ~= false) then
-		  local markerInfo = mm.GetMarkerInfo(ml_task_hub:CurrentTask().currentMarker)
-		  if (ValidTable(markerInfo)) then
-			  minLevel = markerInfo.minlevel
-			  maxLevel = markerInfo.maxlevel
-		  end
-		end
-	end
 	
 	if gClaimFirst	== "1" then		
 		if (huntString) then
@@ -36,45 +26,42 @@ function GetNearestGrindAttackable()
 	end	
     
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
+	if (excludeString) then
+		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString) 
+	else
+		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0") 
+	end
 	
-	if (gKillAggroAlways == "1") then
-		if (excludeString) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString) 
-		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0") 
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			return e
 		end
-		
-		if ( el ) then
-			local i,e = next(el)
-			if (i~=nil and e~=nil) then
-				return e
+	end	
+
+	--ml_debug("Grind failed check #1")
+
+	--Lowest health with aggro on anybody in player's party, non-fate mobs.
+	--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
+	local partymemberlist = EntityList.myparty
+	if ( partymemberlist) then
+	   local i,entity = next(partymemberlist)
+	   while ( i~=nil and entity~=nil ) do 
+			if (excludeString) then
+				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
 			end
-		end	
-	
-		--ml_debug("Grind failed check #1")
-	
-		--Lowest health with aggro on anybody in player's party, non-fate mobs.
-		--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
-		local partymemberlist = EntityList("myparty")
-		if ( partymemberlist) then
-		   local i,entity = next(partymemberlist)
-		   while ( i~=nil and entity~=nil ) do 
-				if (excludeString) then
-					el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0,exclude_contentid="..excludeString)
-				else
-					el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
+			
+			if ( el ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					--d("Lowest health with aggro on party member.")
+					return e
 				end
-				
-				if ( el ) then
-					local i,e = next(el)
-					if (i~=nil and e~=nil) then
-						d("Lowest health with aggro on party member.")
-						return e
-					end
-				end
-				i,entity  = next(partymemberlist,i)  
-		   end  
-		end
+			end
+			i,entity  = next(partymemberlist,i)  
+	   end  
 	end
 	
 	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
@@ -97,6 +84,7 @@ function GetNearestGrindAttackable()
 			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 		end
 		
+		
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
@@ -118,13 +106,13 @@ function GetNearestGrindAttackable()
 		end
 	end
 	
-    --ml_debug("GetNearestGrindAttackable() failed with no entity found matching params")
+    --d("GetNearestGrindAttackable() failed with no entity found matching params")
     return nil
 end
 
 function GetNearestGrindPriority()
-	local huntString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].huntMonsters)
-	local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
+	local huntString = GetWhitelistIDString
+	local excludeString = GetBlacklistIDString
 	local el = nil
 	
 	if (gClaimFirst	== "1") then
@@ -145,23 +133,12 @@ end
 
 function GetNearestFateAttackable()
 	local el = nil
-    local minLevel = ml_global_information.MarkerMinLevel
-    local maxLevel = ml_global_information.MarkerMaxLevel
-
-    local whitelist = GetWhitelistIDString()
-    local blacklist = GetBlacklistIDString()
-
     local myPos = Player.pos
-    local fateID = GetClosestFateID(myPos, true, true)
-    if (fateID ~= nil and fateID ~= 0) then
-        if (whitelist and whitelist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",contentid="..whitelist)
-        elseif (blacklist and blacklist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
-        else
-            el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fateID))
-        end
-        
+    local fate = GetClosestFate(myPos)
+	
+    if (fate ~= nil) then
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -169,13 +146,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        if (whitelist and whitelist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",contentid="..whitelist)
-        elseif (blacklist and blacklist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
-        else    
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))            
-        end    
+        el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fate.id))            
             
         if ( el ) then
             local i,e = next(el)
@@ -185,33 +156,7 @@ function GetNearestFateAttackable()
         end
     end
     
-    ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
-    return nil
-end
-
-function GetNearestFateAttackableID(fateID)
-    if (fateID ~= nil and fateID ~= 0) then
-        local el = nil
-        local whitelist = GetWhitelistIDString()
-        local blacklist = GetBlacklistIDString()
-        
-        if (whitelist and whitelist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",contentid="..whitelist)
-        elseif (blacklist and blacklist ~= "") then
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID)..",exclude_contentid="..blacklist)
-        else
-            el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fateID))
-        end
-         
-        if ( el ) then
-            local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                return e
-            end
-        end
-    end
-    
-    ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
+    --ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
     return nil
 end
 
@@ -455,7 +400,7 @@ function GetBestRevive( party, role)
 		if (role ~= "Any") then
 			local i,e = next(el)
 			while (i~=nil and e~=nil) do
-				if (e.job ~= nil and GetRoleString(e.job) == role and not HasBuffs(e, "148,149")) then
+				if (e.job ~= nil and GetRoleString(e.job) == role and not HasBuffs(e, "148")) then
 					return e
 				end
 				i,e = next(el,i)  
@@ -463,7 +408,7 @@ function GetBestRevive( party, role)
 		else
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
-				if (not HasBuffs(e, "148,149")) then
+				if (not HasBuffs(e, "148")) then
 					return e
 				end
 			end  
@@ -514,6 +459,28 @@ function GetPVPTarget()
                 else
                     targets[strings[gCurrentLanguage].tank] = entity
                 end 
+				
+				if role == strings[gCurrentLanguage].healer then
+					local eid = entity.id
+					local untargeted = true
+                    for i,teammate in pairs(EntityList.myparty) do
+						if (teammate.targetid == eid and teammate.id ~= Player.id and entity.hp.percent > 40) then
+							untargeted = false
+						end
+						if not untargeted then
+							break
+						end
+					end
+					if untargeted then
+						targets[strings[gCurrentLanguage].unattendedHealer] = entity
+					else
+						targets[strings[gCurrentLanguage].unattendedHealer] = nil
+					end
+				end
+				
+				if IsMeleeDPS(entity.job) then
+					targets[strings[gCurrentLanguage].meleeDPS] = entity				
+				end
 				
 				if IsCasterDPS(entity.job) then
 					if (targets[strings[gCurrentLanguage].caster] ~= nil) then
@@ -587,6 +554,37 @@ function GetPVPTarget()
 	end
 	
 	ml_error("Bad, we shouldn't have gotten to this point!")
+end
+
+function GetDutyTarget()
+	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() and ml_task_hub:CurrentTask().encounterData.bossIDs ~= nil) then
+        return nil
+    end
+	
+	if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
+		if (ml_task_hub:CurrentTask().encounterData.prioritize) then
+			for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
+				local el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+				if (ValidTable(el)) then
+					local id, target = next(el)
+					if (target.targetable and target.los) then
+						return target
+					end
+				end		
+			end
+		end
+	end
+	
+	
+	local el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (target.targetable and target.los) then
+			return target
+		end
+	end	
+	      
+    return nil
 end
 
 function GetNearestAggro()
@@ -901,6 +899,80 @@ function ConvertHeading(heading)
 	end
 end
 
+ function AngleFromPos(pos1, pos2)
+	if ( TableSize(pos1) < 3 or TableSize(pos2) < 3 ) then
+		return nil
+	else		
+		local angle = math.deg(math.atan2((pos1.x-pos2.x),(pos1.z-pos2.z)))
+		if angle < 0 then
+		  angle = 360+angle
+		end
+
+		return angle
+	end
+end
+
+function FindPointOnCircle(pos, angle, radius)
+	local angleMin = angle - 20
+	local angleMax = angle + 20
+	local anew
+
+	if angleMin < 0 then
+		angleMin = 360 + angleMin
+	elseif angleMax > 360 then
+		angleMax = angleMax - 360
+	end
+
+	if angleMin > angleMax then
+		angleMin = math.random(angleMin, 360)
+		angleMax = math.random(0, angleMax)
+		anew = (math.random(0,1) == 0 and angleMin or angleMax)
+	else
+		anew = math.random(angleMin, angleMax)
+	end
+
+	local ReturnAngle = {}
+	ReturnAngle.x = math.sin(math.rad(anew))*radius + pos.x
+	ReturnAngle.y = pos.y
+	ReturnAngle.z = math.cos(math.rad(anew))*radius + pos.z
+	return ReturnAngle
+end 
+
+function FindPointLeftRight(pos, angle, radius, relative)
+	
+	relative = relative or true
+	local angleMin
+	local angleMax
+	
+	--if relative then
+		angleMin = angle-math.random(90,100)
+		angleMax = angle+math.random(90,100)
+	--else
+		--angleMin = angle-math.random(90,)
+		--angleMax = angle+math.random(45,60)
+	--end
+	
+
+	if angleMin < 0 then
+		angleMin = 360 + angleMin
+	elseif angleMax > 360 then
+		angleMax = angleMax - 360
+	end
+
+	local ReturnAngle1 = {}
+	ReturnAngle1.x = math.sin(math.rad(angleMin))*radius + pos.x
+	ReturnAngle1.y = pos.y
+	ReturnAngle1.z = math.cos(math.rad(angleMin))*radius + pos.z
+
+	local ReturnAngle2 = {}
+	ReturnAngle2.x = math.sin(math.rad(angleMax))*radius + pos.x
+	ReturnAngle2.y = pos.y
+	ReturnAngle2.z = math.cos(math.rad(angleMax))*radius + pos.z
+
+	local ReturnAngle = (math.random(0,1) == 0 and ReturnAngle1 or ReturnAngle2)
+	return ReturnAngle
+end
+
 function GetPosFromDistanceHeading(startPos, distance, heading)
 	local head = ConvertHeading(heading)
 	local newX = distance * math.sin(head) + startPos.x
@@ -924,46 +996,45 @@ function GetFateByID(fateID)
     return fate
 end
 
-function GetClosestFateID(pos, levelcheck, meshCheck)
+function GetClosestFate(pos)
     local fateList = MapObject:GetFateList()
-    if (fateList ~= nil and fateList ~= 0) then
+    if (TableSize(fateList) > 0) then
         local nearestFate = nil
         local nearestDistance = 99999999
         local level = Player.level
 		local myPos = Player.pos
 		
-		local _, fate = next(fateList)
-        while (_ ~= nil and fate ~= nil) do
+		for k, fate in pairs(fateList) do
+		
 			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
-			(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 20))) then
-                if ( not levelcheck or 
-					(levelcheck and (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
-					(tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))))) then
-                    --d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-                    
-					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					
-					if (not meshCheck or 
-					(meshCheck and (Distance3D(p.x, p.y, p.z, fate.x, fate.y, fate.z) <= 5))) then
-						--d("Fate meshCheck:"..tostring(Distance3D(p.x, p.y, p.z, fate.x, fate.y, fate.z) <= 5))
-                        local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
-                        if (nearestFate == nil or distance < nearestDistance) then
-                            nearestFate = fate
-                            nearestDistance = distance
-                        end
-                    end
-					
-                end
+				(fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
+				and fate.completion > tonumber(gFateWaitPercent)) then	
+				
+					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
+						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
+						--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
+						
+						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+						if (Distance3D(p.x, p.y, p.z, fate.x, fate.y, fate.z) <= 5) then
+							local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
+							if (nearestFate == nil or distance < nearestDistance) then
+								nearestFate = fate
+								nearestDistance = distance
+							end
+						end
+						
+					end
             end
-            _, fate = next(fateList, _)
         end
     
         if (nearestFate ~= nil) then
-            return nearestFate.id
+			--local fate = nearestFate
+			--d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
+            return nearestFate
         end
     end
     
-    return 0
+    return nil
 end
 
 function IsLeader()
@@ -1024,11 +1095,9 @@ function InCombatRange(targetid)
 	end
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
-	local rootTask = ml_task_queue.rootTask
-	if (rootTask ~= nil) then
-		if (rootTask == "LT_DUTY") then
-			return true
-		end
+	--d(ml_task_queue.rootTask)
+	if (gBotMode == strings[gCurrentLanguage].dutyMode) then
+		return true
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
@@ -1153,6 +1222,15 @@ function Dismount()
 	end
 end
 
+function Repair()
+	local eq = Inventory("type=1000")
+	for i,e in pairs(eq) do
+		if (e.condition <= 10) then
+			e:Repair()
+		end
+	end
+end
+
 function NodeHasItem(itemName)
     local list = Player:GetGatherableSlotList()
     if (ValidTable(list)) then
@@ -1176,10 +1254,6 @@ function IsGardening(itemid)
 	return (tonumber(itemid) ~= nil and
 		tonumber(itemid) >= 7715 and
 		tonumber(itemid) <= 7767)
-end
-
-function TimeSince(previousTime)
-    return ml_global_information.Now - previousTime
 end
 
 function GetRoleString(jobID)
@@ -1210,6 +1284,13 @@ function GetRoleString(jobID)
     then
         return strings[gCurrentLanguage].tank
     end
+end
+
+function IsMeleeDPS(jobID)
+	return 	jobID == FFXIV.JOBS.MONK or
+			jobID == FFXIV.JOBS.PUGILIST or
+			jobID == FFXIV.JOBS.DRAGOON or
+			jobID == FFXIV.JOBS.LANCER
 end
 
 function IsRangedDPS(jobID)
@@ -1303,8 +1384,7 @@ function GetBlacklistIDString()
     return excludeString
 end
 
-function GetWhitelistIDString()
-    -- if we've whitelisted one or more contentIDs then only return those
+function GetWhitelistIDString()	
     return ml_global_information.WhitelistContentID
 end
 

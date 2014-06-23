@@ -24,36 +24,30 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	-- check and see if we need to fight aggro's first
-	if ((gKillAggroEnemies == "1" or gKillAggroAlways == "1") and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then    
-		local target = GetNearestAggro()
-		if (ValidTable(target)) then
-			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-				c_add_killtarget.targetid = target.id
-				return true
-			end
-		end
+	local currentTask = ml_task_hub:CurrentTask().name or "empty"
+	local parentTask = "empty"
+	if ml_task_hub:CurrentTask():ParentTask() ~= nil then
+		parentTask = ml_task_hub:CurrentTask():ParentTask().name
 	end
 	
-    -- block killtarget for fates when user has specified a fate completion % to start
-    if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if (ml_task_hub:CurrentTask().fateid ~= nil) then
-            local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-            if ValidTable(fate) then
-                if (fate.completion < tonumber(gFateWaitPercent)) then
-                    ml_global_information.IsWaiting = true
-                    return false
-                else
-                    ml_global_information.IsWaiting = false
-                end
-            end
-        end
-    end
+	d("Current Task="..currentTask..", Parent Task="..parentTask)
+	if not (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask():ParentTask().name == "LT_FATE") then
+		local aggro = GetNearestAggro()
+		if ValidTable(aggro) then
+			if(aggro.hp.current > 0 and aggro.id ~= nil and aggro.id ~= 0) then
+				ml_global_information.IsWaiting = false
+				c_add_killtarget.targetid = aggro.id
+				return true
+			end
+		end 
+	end
 	
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
     
+	if (ml_global_information.IsWaiting) then return false end
+	
     local target = ml_task_hub:CurrentTask().targetFunction()
     if (ValidTable(target)) then
         if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
@@ -72,32 +66,12 @@ function e_add_killtarget:execute()
 end
 
 
-
 c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 function c_killaggrotarget:evaluate()
     if ( gKillAggroEnemies == "0" ) then
 		return false
 	end
-	
-	
-	-- I'll take these out, I dont see any reason why the bot should not defend itself against aggroed enemies while waiting in a fate
-    
-	--[[ block killtarget for grinding when user has specified "Fates Only"	
-	if ( (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
-		return false
-	end]]	
-	--[[ block killtarget for fates when user has specified a fate completion % to start
-    if (ml_task_hub:CurrentTask().name == "LT_FATE" or ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if (ml_task_hub:CurrentTask().fateid ~= nil) then
-            local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-            if ValidTable(fate) then
-                if (fate.completion < tonumber(gFateWaitPercent)) then
-                    return false
-                end
-            end
-        end
-    end]]
     
     local target = GetNearestAggro()
 	if (ValidTable(target)) then
@@ -203,23 +177,18 @@ end
 ---------------------------------------------------------------------------------------------
 c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
+c_add_fate.id = nil
 function c_add_fate:evaluate()    
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
     end
     
-    if (gDoFates == "1") then
+    if (gDoFates == "1" and not Player.incombat) then
         if (ml_task_hub:ThisTask().subtask == nil or ml_task_hub:ThisTask().subtask.name ~= "LT_FATE") then
-            local myPos = Player.pos
-            local fateID = GetClosestFateID(myPos, true, true)
-            if (fateID ~= 0) then
-                local fate = GetFateByID(fateID)
-                if (fate ~= nil and TableSize(fate) > 0) then
-					if (fate.status == 2 ) or (fate.status == 7 and Distance2D(myPos.x, myPos.y, fate.x, fate.y) < 50) then
-                        ml_global_information.IsWaiting = false
-                        return true
-                    end
-                end
+            local fate = GetClosestFate(Player.pos)
+            if (fate ~= nil) then
+				c_add_fate.id = fate.id
+				return true
             end
         end
     end
@@ -229,7 +198,7 @@ end
 function e_add_fate:execute()
     local newTask = ffxiv_task_fate.Create()
     local myPos = Player.pos
-    newTask.fateid = GetClosestFateID(myPos, true, true)
+    newTask.fateid = c_add_fate.id
     newTask.fateTimer = ml_global_information.Now
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -382,7 +351,7 @@ function e_movetotarget:execute()
         local newTask = ffxiv_task_movetopos.Create()
         newTask.pos = target.pos
         newTask.targetid = target.id
-        newTask.useFollowMovement = true
+        newTask.useFollowMovement = false
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
 end
@@ -600,12 +569,12 @@ function c_walktopos:evaluate()
         local gotoPos = ml_task_hub:CurrentTask().pos
         -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference     
         local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-        ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
-        ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-        ml_debug("Current Distance: "..tostring(distance))
-        ml_debug("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
+        --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
+        --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+        --d("Current Distance: "..tostring(distance))
+        --d("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
         
-        if (distance > ml_task_hub:CurrentTask().range) then		
+        if (distance > ml_task_hub:CurrentTask().range) then
             c_walktopos.pos = gotoPos
             return true
         end
@@ -615,10 +584,12 @@ end
 function e_walktopos:execute()
     if ( c_walktopos.pos ~= 0) then
         local gotoPos = c_walktopos.pos
-        ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
+        --d("Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
+		--d("Move To vars"..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..","..tostring(ml_task_hub:CurrentTask().range *0.75)..","..tostring(ml_task_hub:CurrentTask().useFollowMovement or false)..","..tostring(gRandomPaths=="1"))
         local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub:CurrentTask().range *0.75), ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+		--d(tostring(PathSize))
     else
-        mt_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
+        ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
     end
     c_walktopos.pos = 0
 end
@@ -943,26 +914,33 @@ function c_rest:evaluate()
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
         if  (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") or (gFatesOnly == "1") then
+			ml_global_information.IsWaiting = false
             return false
         end
     end
-   
-	if ( TableSize(EntityList("shortestpath,alive,incombat,targetingme") == 0 ) and not Player.incombat) then
-        if (e_rest.resting or 		
-            ( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
-            ( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
-        then
-            ml_global_information.IsWaiting = true
-            return true
-        end
-    end
+	
+	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) or
+		Player.hasaggro or Player.incombat ) then
+		e_rest.resting = false
+		ml_global_information.IsWaiting = false
+		return false
+	end
+	
+	if (e_rest.resting or 		
+		( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
+	then
+		ml_global_information.IsWaiting = true
+		return true
+	end
     
+	e_rest.resting = false
     ml_global_information.IsWaiting = false
     return false
 end
 function e_rest:execute()    
     if (e_rest.resting == true) then
-        if (Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)  then
+        if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
             e_rest.resting = false
             ml_global_information.IsWaiting = false
             return
@@ -994,7 +972,7 @@ function c_flee:evaluate()
     
     return false
 end
-function e_flee:execute()
+function e_flee:execute()	
     if (e_flee.fleeing) then
         if (not Player.hasaggro) then
             Player:Stop()
@@ -1030,20 +1008,19 @@ function e_dead:execute()
     ml_debug("Respawning...")
 	-- try raise first
     if(PressYesNo(true)) then
-      return
+		return
     end
 	-- press ok
     if(PressOK()) then
-      return
+		return
     end
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
-c_pressconfirm.throttle = 1000
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == strings[gCurrentLanguage].assistMode) then
-		return (gConfirmDuty == "1" and true or false)
+		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm"))
 	end
     return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
 end
@@ -1051,9 +1028,7 @@ function e_pressconfirm:execute()
 	PressDutyConfirm(true)
 	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
-		ml_task_hub:CurrentTask().afkTimer = ml_global_information.Now + math.random(30000,60000)
 	elseif (gBotMode == strings[gCurrentLanguage].dutyMode) then
-		--ml_task_hub:CurrentTask().timer = ml_global_information.Now + tonumber(gEnterDutyTimer)
 		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
 	end
 end
@@ -1080,9 +1055,15 @@ function c_returntomarker:evaluate()
         local myPos = Player.pos
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
-        if  (gBotMode == strings[gCurrentLanguage].grindMode and distance > 200) or
-			(gBotMode == strings[gCurrentLanguage].partyMode and distance > 200) or
-			(gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
+		
+		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
+			local target = ml_task_hub:CurrentTask().targetFunction()
+			if (distance > 200 or target == nil) then
+				return true
+			end
+		end
+		
+        if  (gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
 			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
@@ -1155,62 +1136,44 @@ function e_stealth:execute()
     end
 end
 
-c_roll = inheritsFrom( ml_cause )
-e_roll = inheritsFrom( ml_effect )
-function c_roll:evaluate()	
-	if (Inventory:HasLoot() == false) then
+c_acceptquest = inheritsFrom( ml_cause )
+e_acceptquest = inheritsFrom( ml_effect )
+function c_acceptquest:evaluate()
+	if (gQuestHelpers == "0") then
 		return false
 	end
-	
-	local loot = Inventory:GetLootList()
-	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
-		return true
-	end
-    
-    return false
+	return Quest:IsQuestAcceptDialogOpen()
 end
-function e_roll:execute()
-	local loot = Inventory:GetLootList()
-	if (loot) then
-		local i,e = next(loot)
-		while (i~=nil and e~=nil) do    
-			if (ml_task_hub:CurrentTask().rollstate == "Need") then
-				e:Need()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
-				ml_task_hub:CurrentTask().rollstate = "Greed"
-			end
-			if (ml_task_hub:CurrentTask().rollstate == "Greed" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
-				e:Greed()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
-				ml_task_hub:CurrentTask().rollstate = "Pass"
-			end
-			if (ml_task_hub:CurrentTask().rollstate == "Pass" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
-				e:Pass()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
-				ml_task_hub:CurrentTask().rollstate = "Complete"
-			end
-			i,e = next (loot,i)
-		end  
-	end
+function e_acceptquest:execute()
+	Quest:AcceptQuest()
 end
 
-c_loot = inheritsFrom( ml_cause )
-e_loot = inheritsFrom( ml_effect )
-c_loot.chestid = nil
-function c_loot:evaluate()
-	if (Inventory:HasLoot() == false) then
-		local chest = nil
-		chest = EntityList("type=4,chartype=0,maxdistance=3")
-		if ( chest ) then
-			local i,e = next(chest)
-			if (i~=nil and e~=nil) then
-				c_loot.chestid = e.id
-				return true
-			end
-		end
+c_handoverquest = inheritsFrom( ml_cause )
+e_handoverquest = inheritsFrom( ml_effect )
+function c_handoverquest:evaluate()
+	if (gQuestHelpers == "0") then
+		return false
 	end
-    return false
+	return Quest:IsRequestDialogOpen()
 end
-function e_loot:execute()
-	Player:Interact(c_loot.chestid)
+function e_handoverquest:execute()
+	local inv = Inventory("type=2004")
+
+	for id, item in pairs(inv) do 
+		item:HandOver() 
+	end			
+	Quest:RequestHandOver()
 end
+
+c_completequest = inheritsFrom( ml_cause )
+e_completequest = inheritsFrom( ml_effect )
+function c_completequest:evaluate()
+	if (gQuestHelpers == "0") then
+		return false
+	end
+	return Quest:IsQuestRewardDialogOpen()
+end
+function e_completequest:execute()
+	Quest:CompleteQuestReward(1)
+end
+

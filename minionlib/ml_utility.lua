@@ -30,6 +30,41 @@ function TimeSince(previousTime)
     return ml_global_information.Now - previousTime
 end
 
+function Now()
+	return ml_global_information.Now
+end
+
+function MultiComp(search, criteria)
+	--Use, multiple OR's in one line, returns true or false
+	--search can be either a number or string
+	--criteria should be (,)-separated for OR's, (+)-separated for AND's
+	
+	--ctype should be 1 for strings, 2 for numbers.
+	local ctype = 1
+	if tonumber(search) ~= nil then
+		ctype = 2
+	end
+	
+	for _orids in StringSplit(criteria,",") do
+		local found = false
+		for _andid in StringSplit(_orids,"+") do
+			found = false
+			if ctype == 1 then
+				if search == _andid then found = true end
+			elseif ctype == 2 then
+				if search == tonumber(_andid) then found = true end
+			end
+			if (not found) then 
+				break
+			end
+		end
+		if (found) then 
+			return true 
+		end
+	end
+	return false
+end
+
 function PathDistance(posTable)
 	if ( TableSize(posTable) > 0) then
 		local distance = 0
@@ -84,6 +119,50 @@ function StringSplit(s,sep)
 		if v == nil then done = true return s:sub(lasti) end
 		lasti = i
 		return v
+	end
+end
+
+function StringToTable(str, delimiter)
+    local t = {}
+    local search = "(.-)" .. delimiter
+	local last_char = 1
+	local i = 1
+	str = string.gsub(str,"\r","")
+	
+	local index, char, data = str:find(search,1)
+	while index do
+		if data ~= "" then
+			t[i] = data
+		end
+		last_char = char+1
+		index, char, data = str:find(search, last_char)
+		i = i + 1
+	end
+	
+	if last_char <= #str then
+		data = str:sub(last_char)
+		t[i] = data
+	end
+	
+	return t
+end
+
+function ExecuteFunctions(strFunction)
+	--Pass a (;) separated string, execute all functions in order.
+	if strFunction == nil then
+		return
+	end
+	
+	local t = StringToTable(strFunction,";")
+	local start = 1
+	local finish = TableSize(t)
+	
+	for x = start,finish do
+		local f = _G
+		for v in t[x]:gmatch("[^%.]+") do
+			f=f[v]
+		end
+		f()
 	end
 end
 

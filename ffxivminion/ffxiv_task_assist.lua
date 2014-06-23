@@ -24,6 +24,18 @@ function ffxiv_task_assist:Init()
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	
+	local ke_acceptQuest = ml_element:create( "AcceptQuest", c_acceptquest, e_acceptquest, 23 )
+    self:add(ke_acceptQuest, self.process_elements)
+	
+	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 23 )
+    self:add(ke_handoverQuest, self.process_elements)
+	
+	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
+    self:add(ke_completeQuest, self.process_elements)
+	
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
+    self:add(ke_yesnoQuest, self.process_elements)
+	
 	--local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
 	--self:add(ke_avoid, self.process_elements)
 	
@@ -105,18 +117,14 @@ function ffxiv_task_assist:Process()
         local pos = target.pos
         
         --Player:SetFacing(pos.x,pos.y,pos.z)
-        Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-        local cast = false
-        
-        if (Player.hp.percent < 75 )then
-            cast = SkillMgr.Cast( Player )
-        end
-        if not cast then			
-            SkillMgr.Cast( target )
-        end	
+        Player:SetTarget(ml_task_hub:CurrentTask().targetid)      			
+        SkillMgr.Cast( target )
+		
     end
 	
-	    -- last run the regular cne elements
+	if ( target == nil ) then
+		SkillMgr.Cast( Player, true)
+	end
 
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()

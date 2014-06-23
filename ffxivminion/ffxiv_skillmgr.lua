@@ -17,7 +17,20 @@ SkillMgr.prevSkillID = ""
 SkillMgr.nextSkillID = ""
 SkillMgr.nextFailedTimer = 0
 SkillMgr.prevFailedTimer = 0
+SkillMgr.teleCastTimer = 0
+SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
+
+SkillMgr.teleCastSkills = {
+	[FFXIV.JOBS.GLADIATOR] = 9,
+    [FFXIV.JOBS.MARAUDER] = 31,
+	[FFXIV.JOBS.PALADIN] = 9,
+	[FFXIV.JOBS.WARRIOR] = 31,
+	[FFXIV.JOBS.MONK] = 53,
+	[FFXIV.JOBS.PUGILIST] = 53,
+	[FFXIV.JOBS.DRAGOON] = 75,
+	[FFXIV.JOBS.LANCER] = 75,
+}
 
 SkillMgr.Variables = {
 	SKM_NAME = { default = "", cast = "string", profile = "name", section = "main"},
@@ -98,6 +111,7 @@ SkillMgr.Variables = {
 	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
+	SKM_OFFGCD = { default = "0", cast = "string", profile = "offgcd", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
@@ -130,6 +144,10 @@ function SkillMgr.ModuleInit()
     if (Settings.FFXIVMINION.gSMlastprofile == nil) then
         Settings.FFXIVMINION.gSMlastprofile = "None"
     end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles = {}
+	end
 	
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
@@ -172,6 +190,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCBreak,"SKM_CBreak",strings[gCurrentLanguage].basicDetails)
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmGCD,"SKM_OFFGCD",strings[gCurrentLanguage].basicDetails)
 	--GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	--GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
@@ -326,7 +345,9 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		end
 		
 		if (SkillMgr.Variables[tostring(k)] ~= nil and SKM_Prio ~= nil and SKM_Prio > 0) then	
-			if (SkillMgr.Variables[k].cast == "string") then
+			if (v == nil) then
+				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = SkillMgr.Variables[tostring(k)].default
+			elseif (SkillMgr.Variables[k].cast == "string") then
 				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = v
 			elseif (SkillMgr.Variables[k].cast == "number") then
 				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = tonumber(v)
@@ -1083,7 +1104,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end						
 						end
-						
+							
 						-- Player BUFFS
 						if ( castable ) then 							
 							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
@@ -1107,7 +1128,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end						
 							end							
 						end
-
+											
 						-- Party Buffs - Cast-On-Self
 						if ( castable ) then
 							if ( skill.trg == "Player" ) then								
@@ -1416,7 +1437,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									castable = false
 								end
 							elseif (skill.tcastids ~= "") then								
-								local ctid = (skill.tcastonme =="1" and Player.id or nil)
+								local ctid = (skill.tcastonme == "1" and Player.id or nil)
 								if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
 									castable = false
 								end
@@ -2334,6 +2355,17 @@ function SkillMgr.TryCast( entity , testprio )
 	end
 end
 
+function SkillMgr.IsGCDReady()
+	local castable = false
+	local action = ActionList:Get(SkillMgr.teleCastSkills[Player.job])
+	
+	if (action.cd - action.cdmax) <= .3 then
+		castable = true
+	end
+	
+	return castable
+end
+
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
 function ffxiv_task_skillmgrAttack.Create()
@@ -2362,14 +2394,29 @@ function ffxiv_task_skillmgrAttack:Process()
         local pos = target.pos
         Player:SetFacing(pos.x,pos.y,pos.z)
         Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-        local cast = false
-        
-        if (Player.hp.percent < 70 )then
-            cast = SkillMgr.Cast( Player )
-        end
-        if not cast then			
-            SkillMgr.Cast( target )
-        end
+			
+		if (ml_global_information.AttackRange < 5 and
+			gBotMode == strings[gCurrentLanguage].dutyMode and
+			gDutyTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()) then
+			ml_task_hub:ThisTask().suppressFollow = true
+			SkillMgr.teleBack = Player.pos
+			GameHacks:TeleportToXYZ(pos.x+1, pos.y, pos.z)
+			Player:SetFacing(pos.x,pos.y,pos.z)
+			Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+			SkillMgr.teleCastTimer = Now()
+		end
+		
+		if (SkillMgr.Cast( target )) then
+			SkillMgr.teleCastTimer = Now()
+		end
+		
+		if (TableSize(SkillMgr.teleBack) > 0 and TimeSince(SkillMgr.teleCastTimer) >= 1800 and not ActionList:IsCasting()) then
+			local back = SkillMgr.teleBack
+			GameHacks:TeleportToXYZ(back.x+1, back.y, back.z)
+			SkillMgr.teleBack = {}
+			SkillMgr.teleCastTimer = 0
+			ml_task_hub:ThisTask().suppressFollow = false
+		end
     else
         self.targetid = 0
         self.completed = true
@@ -2391,6 +2438,7 @@ end
 function ffxiv_task_skillmgrAttack:task_complete_eval()
     local target = Player:GetTarget()
     if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and Player.castinginfo.channelingid == nil)) then
+		d("Ending out of skillmanager attack.")
         return true
     end
     

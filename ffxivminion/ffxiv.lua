@@ -19,6 +19,8 @@ ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
 ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
+ml_global_information.repairTimer = 0
+
 ml_global_information.chocoStance = {
 	[strings[gCurrentLanguage].stFollow] = 3,
 	[strings[gCurrentLanguage].stFree] = 4,
@@ -40,6 +42,11 @@ function ml_global_information.OnUpdate( event, tickcount )
         ml_task_hub:ToggleRun()
         ml_global_information.UnstuckTimer = 0
     end
+	
+	if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
+		ml_global_information.repairTimer = tickcount
+		Repair()
+	end
     
     -- Mesher.lua
     mm.OnUpdate( event, tickcount )
@@ -191,6 +198,14 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gChocoStance = strings[gCurrentLanguage].stFree
 	end
 	
+	if (Settings.FFXIVMINION.gRepair == nil) then
+		Settings.FFXIVMINION.gRepair = "1"
+	end
+	
+	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
+		Settings.FFXIVMINION.gQuestHelpers = "0"
+	end
+	
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
     GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
@@ -203,6 +218,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].repair,"gRepair",strings[gCurrentLanguage].generalSettings)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
     GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
@@ -229,7 +245,8 @@ function ffxivminion.HandleInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
-    
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
+	
     GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
     
     gFFXIVMINIONTask = ""
@@ -261,6 +278,8 @@ function ffxivminion.HandleInit()
 	gChoco = Settings.FFXIVMINION.gChoco
 	gChocoStance = Settings.FFXIVMINION.gChocoStance
 	gMount = Settings.FFXIVMINION.gMount
+	gRepair = Settings.FFXIVMINION.gRepair
+	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
 	
 	ffxivminion.modes =
 	{
@@ -385,6 +404,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then
             ml_task_hub.ToggleRun()
+			if (v == "0") then
+				Player:Stop()
+			end
 		elseif ( k == "gDisableDrawing" ) then
 			if ( v == "1" ) then
 				GameHacks:Disable3DRendering(true)

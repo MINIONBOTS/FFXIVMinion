@@ -23,58 +23,47 @@ mm.reloadMeshTmr = 0
 mm.reloadMeshName = ""
 mm.FateBlacklist = {}
 mm.OMC = 0
+mm.defaultMaps = {
+	[134] = "Middle La Noscea",
+	[135] = "Lower La Noscea",
+	[137] = "Eastern La Noscea - Costa Del Sol",
+	[138] = "Western La Noscea",
+	[139] = "Upper La Noscea - Left",
+	[140] = "Western Thanalan",
+	[141] = "Central Thanalan",
+	[145] = "Eastern Thanalan",
+	[146] = "Southern Thanalan",
+	[147] = "Northern Thanalan",
+	[148] = "Central Shroud",
+	[152] = "East Shroud",
+	[153] = "South Shroud",
+	[154] = "North Shroud",
+	[155] = "Coerthas",
+	[156] = "Mor Dhona",
+	[180] = "Outer La Noscea",
+	[337] = "Wolves Den",
+	[336] = "Wolves Den",
+	[175] = "Wolves Den",
+	[352] = "Wolves Den",
+}
 
 function mm.ModuleInit() 	
         
     if (Settings.FFXIVMINION.gMeshMGR == nil) then
         Settings.FFXIVMINION.gMeshMGR = "1"
     end
+	
 	-- make sure to do set the default meshes even when Settings.FFXIVMINION.Maps ~= nil
     if (Settings.FFXIVMINION.Maps == nil) then
-        Settings.FFXIVMINION.Maps = {
-			[134] = "Middle La Noscea",
-			[135] = "Lower La Noscea",
-			[137] = "Eastern La Noscea - Costa Del Sol",
-			[138] = "Western La Noscea",
-			[139] = "Upper La Noscea - Left",
-			[140] = "Western Thanalan",
-			[141] = "Central Thanalan",
-			[145] = "Eastern Thanalan",
-			[146] = "Southern Thanalan",
-			[147] = "Northern Thanalan",
-			[148] = "Central Shroud",
-			[152] = "East Shroud",
-			[153] = "South Shroud",
-			[154] = "North Shroud",
-			[155] = "Coerthas",
-			[156] = "Mor Dhona",
-			[180] = "Outer La Noscea",
-			[337] = "Wolves Den",
-			[336] = "Wolves Den",
-			[175] = "Wolves Den",
-		}
-    end
-    
-    -- for wolves den
-    if Settings.FFXIVMINION.Maps[336] == nil then
-        Settings.FFXIVMINION.Maps[336] = "Wolves Den"
+        Settings.FFXIVMINION.Maps = mm.defaultMaps
     end
 	
-    if Settings.FFXIVMINION.Maps[337] == nil then
-        Settings.FFXIVMINION.Maps[337] = "Wolves Den"
-    end
-    
-    if Settings.FFXIVMINION.Maps[175] == nil then
-        Settings.FFXIVMINION.Maps[175] = "Wolves Den"
-    end
-	
-	-- questing
-	if Settings.FFXIVMINION.Maps[130] == nil then
-		Settings.FFXIVMINION.Maps[130] = "Uldah"
-	end
-	
-	if Settings.FFXIVMINION.Maps[131] == nil then
-		Settings.FFXIVMINION.Maps[131] = "Uldah"
+	if (Settings.FFXIVMINION.Maps ~= nil) then
+		for k,map in pairs(mm.defaultMaps) do
+			if Settings.FFXIVMINION.Maps[k] == nil then
+				Settings.FFXIVMINION.Maps[k] = map
+			end
+		end
 	end
 
     local wnd = GUI_GetWindowInfo("FFXIVMinion")
@@ -83,6 +72,7 @@ function mm.ModuleInit()
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].navmesh ,"gmeshname",strings[gCurrentLanguage].generalSettings,"")
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].showrealMesh,"gShowRealMesh",strings[gCurrentLanguage].generalSettings)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].showPath,"gShowPath",strings[gCurrentLanguage].generalSettings)
+	
     --Grab all meshfiles in our Navigation directory
     local count = 0
     local meshlist = "none"
@@ -100,6 +90,7 @@ function mm.ModuleInit()
     if (Settings.FFXIVMINION.gnewmeshname == nil) then
         Settings.FFXIVMINION.gnewmeshname = ""
     end
+	
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].showMesh,"gShowMesh",strings[gCurrentLanguage].editor)	
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].newMeshName,"gnewmeshname",strings[gCurrentLanguage].editor)
     GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].newMesh,"newMeshEvent",strings[gCurrentLanguage].editor)
@@ -153,7 +144,7 @@ function mm.ModuleInit()
 	mm.SetupNavNodes()
 end
 
-function mm.ReadMarkerList(meshname)
+function mm.ReadMarkerList(meshname)			
 	local infopath = mm.navmeshfilepath..meshname..".info"
 	
 	if (FileExists(infopath)) then
@@ -169,6 +160,7 @@ function mm.ReadMarkerList(meshname)
 		end
 		
 		ml_marker_mgr.RefreshMarkerNames()
+		d("Markers for ["..meshname.."] were loaded.")
 	end
 end
 
@@ -299,6 +291,7 @@ function mm.SaveMesh()
     elseif (gmeshname ~= nil and gmeshname ~= "" and gmeshname ~= "none") then
         filename = gmeshname		
     end	
+	
     if ( filename ~= "" and filename ~= "none" ) then
         d("SAVING UNDER: "..tostring(filename))
         d("Result: "..tostring(NavigationManager:SaveNavMesh(filename)))
@@ -312,34 +305,43 @@ function mm.SaveMesh()
     end
 end
 
-function mm.ChangeNavMesh(newmesh)			
-    -- Set the new mesh for the local map	
-    if ( NavigationManager:GetNavMeshName() ~= newmesh and NavigationManager:GetNavMeshName() ~= "") then
-        d("Unloading current Navmesh: "..tostring(NavigationManager:UnloadNavMesh()))		
+function mm.ChangeNavMesh(newmesh, auto)
+	auto = auto == true and true or false
 
-		ml_marker_mgr.ClearMarkerList()
-        mm.reloadMeshPending = true
-        mm.reloadMeshTmr = mm.lasttick
-        mm.reloadMeshName = newmesh
-        return
-    else
-        -- Load the mesh for our Map
-        if (newmesh ~= nil and newmesh ~= "" and newmesh ~= "none") then				
-            d("Loading Navmesh " ..newmesh)
-            if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..newmesh)) then
-                d("Error loading Navmesh: "..path)
-            else
-                mm.reloadMeshPending = false
-                mm.ReadMarkerList(newmesh)				
-                local mapid = Player.localmapid
-                if ( mapid ~= nil and mapid~=0 ) then
-                    d("Setting default Mesh for this Zone..(ID :"..tostring(mapid).." Meshname: "..newmesh)
-                    Settings.FFXIVMINION.Maps[mapid] = newmesh
-                    mm.mapID = mapid
-                end				
-            end
-        end
-    end
+	--Unload the current mesh
+	if (newmesh == nil or newmesh == "") then
+		return
+	end
+	
+	local currentMesh = NavigationManager:GetNavMeshName()
+	local currentMeshByPath = currentMesh:gsub(GetStartupPath(), "")
+	
+	if (currentMesh ~= "") then
+		d("Unloading current mesh ["..tostring(currentMeshByPath).."]. Successful = "..tostring(NavigationManager:UnloadNavMesh()))
+	end
+	ml_marker_mgr.ClearMarkerList()
+	
+	if (newmesh ~= "none") then
+		d("Loading Navmesh " ..newmesh)
+        if (not NavigationManager:LoadNavMesh(mm.navmeshfilepath..newmesh)) then
+			d("Error loading Navmesh: "..path)
+		else 
+			mm.reloadMeshPending = true
+			mm.reloadMeshTmr = ml_global_information.Now
+			mm.reloadMeshName = newmesh
+		end
+	end
+	
+	local mapid = Player.localmapid
+	if ( mapid ~= nil and mapid~=0 ) then
+		if (not auto) then
+			d("Setting default Mesh for this Zone..(ID :"..tostring(mapid).." Meshname: "..newmesh)
+			Settings.FFXIVMINION.Maps[mapid] = newmesh
+			Settings.FFXIVMINION.Maps = Settings.FFXIVMINION.Maps
+		end
+		mm.mapID = mapid
+	end	
+	
     gmeshname = newmesh
     Settings.FFXIVMINION.gmeshname = newmesh
     gMeshMGR = "1"
@@ -360,7 +362,7 @@ end
 function mm.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do		
         if ( k == "gmeshname") then
-            mm.ChangeNavMesh(v)
+            mm.ChangeNavMesh(v, false)
         elseif( k == "gShowRealMesh") then
             if (v == "1") then
                 NavigationManager:ShowNavMesh(true)
@@ -436,35 +438,38 @@ function mm.OnUpdate( event, tickcount )
                 MeshManager:RecSize(2*gRecAreaSize)
             else
                 MeshManager:RecSize(gRecAreaSize)
-            end
-            
-                        
+            end  
         end
         
-        
-        -- 18 + 2 = ALT + VK_RBUTTON Delete Triangles under mouse
-            if ( MeshManager:IsKeyPressed(18) and MeshManager:IsKeyPressed(2)) then
-                local mousepos = MeshManager:GetMousePos()
-                d("Deleting cell "..tostring(mousepos.x).." "..tostring(mousepos.z).. " "..tostring(mousepos.y))
-                if ( TableSize(mousepos) > 0 ) then					
-                    d("Deleting cell result: "..tostring(MeshManager:DeleteRasterTriangle(mousepos)))
-                end
-            end	
-            
-        -- (re-)Loading Navmesh
-        if (mm.reloadMeshPending and mm.lasttick - mm.reloadMeshTmr > 2000 and mm.reloadMeshName ~= "") then
-            mm.reloadMeshTmr = mm.lasttick
-            mm.ChangeNavMesh(mm.reloadMeshName)
-        end
+        -- 164 + 2 = ALT + VK_RBUTTON Delete Triangles under mouse
+		if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
+			local mousepos = MeshManager:GetMousePos()
+			d("Deleting cell "..tostring(mousepos.x).." "..tostring(mousepos.z).. " "..tostring(mousepos.y))
+			if ( TableSize(mousepos) > 0 ) then					
+				d("Deleting cell result: "..tostring(MeshManager:DeleteRasterTriangle(mousepos)))
+			end
+		end	
+		
+		if (mm.reloadMeshPending and TimeSince(mm.reloadMeshTmr) > 30000) then
+			d("There was an error loading the mesh. Aborting attempt.")
+			mm.reloadMeshPending = false
+		end
+		
+		if (mm.reloadMeshPending) then
+			if (TimeSince(mm.reloadMeshTmr) > 1000) then
+				if mm.IsValidMesh() then
+					mm.reloadMeshPending = false
+					mm.ReadMarkerList(mm.reloadMeshName)
+				end
+			end
+		end
         
         -- Check if we switched maps
         local mapid = Player.localmapid
-        if ( not mm.reloadMeshPending and mapid ~= nil and mm.mapID ~= mapid ) then			
+        if ( not mm.reloadMeshPending and mapid ~= nil and mm.mapID ~= mapid and not Quest:IsLoading()) then			
             if (Settings.FFXIVMINION.Maps[mapid] ~= nil) then
                 d("Autoloading Navmesh for this Zone: "..Settings.FFXIVMINION.Maps[mapid])
-                mm.reloadMeshPending = true
-                mm.reloadMeshTmr = mm.lasttick
-                mm.reloadMeshName = Settings.FFXIVMINION.Maps[mapid]				
+				mm.ChangeNavMesh(Settings.FFXIVMINION.Maps[mapid], true)			
             end
         end
     end
@@ -576,6 +581,15 @@ function mm.ConvertMarkerList(path)
 		
 		--save new markers
 		ml_marker_mgr.WriteMarkerFile(path)
+	end
+end
+
+function mm.IsValidMesh()
+	local pos,dist = NavigationManager:GetClosestPointOnMesh(Player.pos)
+	if not (dist == 0 and pos.x == 0 and pos.y == 0 and pos.z == 0) then
+		return true
+	else
+		return false
 	end
 end
 

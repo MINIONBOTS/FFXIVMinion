@@ -153,6 +153,7 @@ function GatherMgr.WriteMarkerInfo(markerType, markerName)
 end
 
 function GatherMgr.GetNextMarker(currentMarker, previousMarker)
+	ml_error("GetNextMarker - current="..currentMarker..",previous="..previousMarker)
     local markerType
     if (currentMarker ~= nil) then
         for tag, posList in pairs(mm.MarkerList) do
@@ -172,6 +173,7 @@ function GatherMgr.GetNextMarker(currentMarker, previousMarker)
         end
     end
     
+	ml_error(markerType)
     local list = {}
     
     if (markerType == "miningSpot" and gChangeJobs) then

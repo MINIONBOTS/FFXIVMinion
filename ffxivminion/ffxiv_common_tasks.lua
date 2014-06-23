@@ -99,7 +99,7 @@ function ffxiv_task_movetopos.Create()
     --ffxiv_task_movetopos members
     newinst.name = "MOVETOPOS"
     newinst.pos = 0
-    newinst.range = 1.0
+    newinst.range = 1.5
     newinst.doFacing = false
     newinst.pauseTimer = 0
     newinst.gatherRange = 0.0
@@ -126,15 +126,42 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:Process()
-	--d(tostring(ml_task_hub:ThisTask():ParentTask().name))
 	if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then
 		local target = Player:GetTarget()
 		
 		if 	( target and target.alive ) then
+			if (not target.los or not InCombatRange(target.id)) then
+				ml_task_hub:ThisTask().useFollowMovement = false
+			else
+				ml_task_hub:ThisTask().useFollowMovement = true
+			end
 			if (target.type < 3 and not Player.ismounted) then
 				SkillMgr.Cast( target )
 			end
+		else
+			ml_task_hub:ThisTask().useFollowMovement = false
 		end
+	end
+	
+	if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE") then
+		NavigationManager:ClearAvoidanceAreas()
+		local el = EntityList("attackable,aggressive,notincombat,maxdistance=200,fateid=0")
+		
+		local dirty = false
+		local obst = {}
+		local count = 1
+	  
+		for i,e in pairs(el) do
+			if (e.targetable) then
+				local pos = deepcopy(e.pos);
+				pos.r = 15.0
+				pos.y = pos.y
+				obst[count] = pos
+				--d("added " .. e.name .. " id=" .. e.id)
+				count = count +1
+			end
+		end
+		NavigationManager:SetAvoidanceAreas(obst)
 	end
 	
 	if (TableSize(self.process_elements) > 0) then
@@ -173,13 +200,14 @@ function ffxiv_task_movetopos:task_complete_eval()
             return true
         end
     else
-        mt_error(" ERROR: no valid position in ffxiv_task_movetopos ")
+        ml_error(" ERROR: no valid position in ffxiv_task_movetopos ")
     end    
     return false
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
+	NavigationManager:ClearAvoidanceAreas()
     
     if (ml_task_hub:CurrentTask().doFacing) then
         Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
@@ -231,49 +259,6 @@ end
 
 function ffxiv_task_movetomap:task_complete_eval()
     return Player.localmapid == ml_task_hub:CurrentTask().destMapID
-end
-
-ffxiv_task_loot = inheritsFrom(ml_task)
-function ffxiv_task_loot.Create()
-    local newinst = inheritsFrom(ffxiv_task_loot)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-   
-    newinst.name = "LT_LOOT"
-	newinst.lastroll = nil
-	newinst.rollstate = "Need"
-    
-    return newinst
-end
-
-function ffxiv_task_loot:Init() 	
-	local ke_lootroll = ml_element:create( "Roll", c_roll, e_roll, 10 )
-    self:add(ke_lootroll, self.process_elements)
-	
-    local ke_loot = ml_element:create( "Loot", c_loot, e_loot, 5 )
-    self:add(ke_loot, self.process_elements)
-	
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_loot:task_complete_eval()	
-	if (ml_task_hub:CurrentTask().rollstate == "Complete" and
-		Inventory:HasLoot() == false) then
-		return true
-	end
-
-	return false
-end
-
-function ffxiv_task_loot:task_complete_execute()
-    self.completed = true
-	ml_task_hub:CurrentTask():ParentTask().encounterCompleted = true
 end
 
 ffxiv_task_summonchoco = inheritsFrom(ml_task)
