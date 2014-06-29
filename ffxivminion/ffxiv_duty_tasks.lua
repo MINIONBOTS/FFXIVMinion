@@ -23,7 +23,7 @@ function ffxiv_duty_kill_task.Create()
 end
 
 function ffxiv_duty_kill_task:Process()
-	if( not IsDutyLeader() ) then
+	if ( not IsDutyLeader() ) then
 		return
 	end
 	
@@ -35,20 +35,6 @@ function ffxiv_duty_kill_task:Process()
 	end
 	
 	local entity = GetDutyTarget()
-
-	--[[
-	local target = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
-	local id, entity = nil
-	if (ValidTable(target)) then
-		id, entity = next(target)
-	end
-	
-	local oldTarget = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",targetingme")
-	local oldEntity = nil
-	if (ValidTable(oldTarget)) then
-		id, oldEntity = next(oldTarget)
-	end
-	--]]
 	
 	local myPos = Player.pos
 	local fightPos = nil
@@ -74,7 +60,7 @@ function ffxiv_duty_kill_task:Process()
 			end
 		elseif (
 			ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
-			ml_task_hub:CurrentTask().encounterData.doKill == false) 
+			ml_task_hub:CurrentTask().encounterData.doKill == false ) 
 		then
 			Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 			Player:SetTarget(entity.id)

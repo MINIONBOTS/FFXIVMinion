@@ -206,9 +206,9 @@ function e_leaveduty:execute()
         ActionList:Cast(33,0,10)
     elseif ControlVisible("ContentsFinder") and not ControlVisible("SelectYesno") then
         PressDutyJoin()
-	elseif ControlVisible("SelectYesno") then
-		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
+	elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
         PressYesNo(true)
+		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
 		ml_task_hub:CurrentTask().joinTimer = 0
 		ml_task_hub:CurrentTask().joinAttempts = 0
     end

@@ -1002,16 +1002,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							castable = false
 						end
 						
-						if (skill.name == "Blood for Blood") then
-							d("Castable for b4b = "..tostring(castable))
-						end
-						
-						if ( skill.offgcd == "1" and SkillMgr.IsGCDReady()) then
-							castable = false
-						end
-						
-						if (skill.name == "Blood for Blood") then
-							d("Castable for b4b (after IsGCDReady) = "..tostring(castable))
+						if ( skill.offgcd == "1" ) then
+							if (SkillMgr.IsGCDReady()) then
+								castable = false
+							end
 						end
 						
 						-- Next Skill Check
@@ -2404,6 +2398,7 @@ function ffxiv_task_skillmgrAttack.Create()
     --ffxiv_task_grind members
     newinst.name = "LT_SM_KILLTARGET"
     newinst.targetid = 0
+	newinst.suppressFollow = false
     
     return newinst
 end
