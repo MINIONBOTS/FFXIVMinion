@@ -34,6 +34,7 @@ FFXIVMINION.SKILLS = {}
 
 ffxivminion = {}
 ffxivminion.modes = {}
+ffxivminion.settingsVisible = false
 
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
@@ -154,6 +155,10 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gStartCombat = "1"
     end
 	
+	if (Settings.FFXIVMINION.gTeleport == nil) then
+        Settings.FFXIVMINION.gTeleport = "0"
+    end
+	
     if (Settings.FFXIVMINION.gConfirmDuty == nil) then
         Settings.FFXIVMINION.gConfirmDuty = "0"
     end
@@ -207,10 +212,17 @@ function ffxivminion.HandleInit()
 	end
 	
     GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
-    GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	local wnd = GUI_GetWindowInfo(ml_global_information.MainWindow.Name)
+	GUI_NewWindow(GetString("advancedSettings"),wnd.x+wnd.width,wnd.y,210,300)
+    GUI_NewButton(ml_global_information.MainWindow.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
+	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
+	GUI_WindowVisible(GetString("advancedSettings"), false)
+	
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
+	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].settings);	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
@@ -218,24 +230,25 @@ function ffxivminion.HandleInit()
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
 	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].repair,"gRepair",strings[gCurrentLanguage].generalSettings)
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
-    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
+    GUI_NewNumeric(GetString("advancedSettings"),strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
-    GUI_NewNumeric(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
+    GUI_NewNumeric(GetString("advancedSettings"),strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].companion, "gChoco",strings[gCurrentLanguage].generalSettings,"")
 	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].stance,"gChocoStance",strings[gCurrentLanguage].generalSettings,"")
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",strings[gCurrentLanguage].generalSettings );
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",strings[gCurrentLanguage].generalSettings );	
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",GetString("hacks"));
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gTeleport",GetString("hacks"));
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",GetString("hacks") );	
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",GetString("hacks") );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].clickToTravel,"gClickToTravel",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",GetString("hacks"));
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTravel,"gClickToTravel",GetString("hacks"));
 	GUI_NewButton(ml_global_information.MainWindow.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
@@ -244,12 +257,13 @@ function ffxivminion.HandleInit()
 	--GUI_NewButton(ml_global_information.MainWindow.Name, GetString("questManager"), "QuestManager.toggle")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
 	
     GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
-    
+
+	
     gFFXIVMINIONTask = ""
     gBotRunning = "0"
     
@@ -281,6 +295,7 @@ function ffxivminion.HandleInit()
 	gMount = Settings.FFXIVMINION.gMount
 	gRepair = Settings.FFXIVMINION.gRepair
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
+	gTeleport = Settings.FFXIVMINION.gTeleport
 	
 	ffxivminion.modes =
 	{
@@ -400,7 +415,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gRandomPaths" or
 			k == "gChoco" or
 			k == "gChocoStance" or
-			k == "gMount")			
+			k == "gMount" or
+			k == "gTeleport")			
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then
@@ -464,6 +480,15 @@ function ffxivminion.SetMode(mode)
         else
             Player:EnableUnstuckJump(true)
         end
+		
+		if (gBotMode == GetString("dutyMode")) then
+			ffxiv_task_duty.UpdateProfiles()
+		elseif (gBotMode == GetString("questMode")) then
+			ffxiv_task_quest.UpdateProfiles()
+		else
+			gProfile_listitems = "NA"
+			gProfile = "NA"
+		end
     end
 end
 
@@ -556,6 +581,18 @@ function ml_global_information.Stop()
     
     if (Player:IsMoving()) then
         Player:Stop()
+    end
+end
+
+function ffxivminion.ToggleAdvancedSettings()
+    if (ffxivminion.settingsVisible) then
+        GUI_WindowVisible(GetString("advancedSettings"),false)	
+        ffxivminion.settingsVisible = false
+    else
+        local wnd = GUI_GetWindowInfo(ml_global_information.MainWindow.Name)	
+        GUI_MoveWindow( GetString("advancedSettings"), wnd.x+wnd.width,wnd.y) 
+        GUI_WindowVisible(GetString("advancedSettings"),true)	
+        ffxivminion.settingsVisible = true
     end
 end
 

@@ -126,7 +126,11 @@ e_teletofate = inheritsFrom( ml_effect )
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
 function c_teletofate:evaluate()
-	local nearbyPlayers = TableSize(EntityList("type=1,maxdistance=40"))
+	if (gTeleport == "0") then
+		return false
+	end
+
+	local nearbyPlayers = TableSize(EntityList("type=1,maxdistance=30"))
 	if nearbyPlayers > 0 then
 		ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
 		return false

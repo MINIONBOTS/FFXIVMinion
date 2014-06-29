@@ -2415,7 +2415,7 @@ function ffxiv_task_skillmgrAttack:Process()
 			
 		if (ml_global_information.AttackRange < 5 and
 			gBotMode == strings[gCurrentLanguage].dutyMode and
-			gDutyTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
+			gTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
 			ml_task_hub:ThisTask().suppressFollow = true
 			SkillMgr.teleBack = Player.pos

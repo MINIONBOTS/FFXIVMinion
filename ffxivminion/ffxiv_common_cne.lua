@@ -1094,8 +1094,7 @@ e_stealth = inheritsFrom( ml_effect )
 c_stealth.throttle = 1000
 function c_stealth:evaluate()
     if  (Player.ismounted or
-        (gBotMode == strings[gCurrentLanguage].gatherMode and gDoStealth == "0") or
-        (gBotMode == strings[gCurrentLanguage].fishMode and gDoStealthFish == "0"))
+         gDoStealth == "0") 
     then
         return false
     end

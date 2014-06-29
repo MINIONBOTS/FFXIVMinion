@@ -67,7 +67,7 @@ function c_followleaderduty:evaluate()
 			local myPos = Player.pos				
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
 			if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
-				(distance > 1 and gDutyTeleport == "1")) 
+				(distance > 1 and gTeleport == "1")) 
 			then				
 				c_followleaderduty.leader = leader
 				return true
@@ -80,7 +80,7 @@ function e_followleaderduty:execute()
     if ( c_followleaderduty.leader ~= nil) then
 		local leader = c_followleaderduty.leader
 		
-        if ( leader.onmesh and Player.onmesh and gDutyTeleport == "0") then
+        if ( leader.onmesh and Player.onmesh and gTeleport == "0") then
             local lpos = c_followleaderduty.leader.pos
             local myPos = Player.pos
             local distance = Distance2D(myPos.x, myPos.z, lpos.x, lpos.z)
@@ -96,9 +96,11 @@ function e_followleaderduty:execute()
         else
 			local lpos = leader.pos
             local myPos = Player.pos
-			if (gDutyTeleport == "1") then
+			if (gTeleport == "1") then
 				Player:Stop()
 				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+			else
+				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
 			end
         end
     end
@@ -140,7 +142,7 @@ function e_assistleaderduty:execute()
 			ml_task_hub:CurrentTask():Terminate()
 		end
 		
-        if (gDutyTeleport == "1") then
+        if (gTeleport == "1") then
             local newTask = ffxiv_task_skillmgrAttack.Create()
             newTask.targetid = c_assistleaderduty.targetid
             ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -291,7 +293,7 @@ function ffxiv_task_duty:Process()
 			local myPos = Player.pos
 			local posRadius = (ml_task_hub:CurrentTask().encounter.positionRadius ~= nil and ml_task_hub:CurrentTask().encounter.positionRadius or ml_task_hub:CurrentTask().encounter.radius)
 			if (Distance2D(myPos.x, myPos.z, pos.x, pos.z) < posRadius or
-				(gDutyTeleport == "1" and Distance2D(myPos.x, myPos.z, pos.x, pos.z) < 3)) then
+				(gTeleport == "1" and Distance2D(myPos.x, myPos.z, pos.x, pos.z) < 3)) then
 				ml_task_hub:CurrentTask().state = "DUTY_DOENCOUNTER"
 				local encounterTask = findfunction(ml_task_hub:CurrentTask().encounter.taskFunction)()
 				encounterTask.encounterData = ml_task_hub:CurrentTask().encounter
@@ -301,7 +303,7 @@ function ffxiv_task_duty:Process()
 			else
 				local gotoPos = pos
 				if ValidTable(gotoPos) then
-					if (gDutyTeleport == "1") then
+					if (gTeleport == "1") then
 						GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 						Player:SetFacingSynced(tonumber(gotoPos.h))
 					else
@@ -381,14 +383,8 @@ end
 
 -- UI settings
 function ffxiv_task_duty.UIInit()
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gDutyProfile",strings[gCurrentLanguage].dutyMode,"")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gDutyTeleport",strings[gCurrentLanguage].dutyMode)
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode);
+	GUI_NewField(GetString("advancedSettings"),strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode);
 
-    if (Settings.FFXIVMINION.gDutyTeleport == nil) then
-        Settings.FFXIVMINION.gDutyTeleport = "0"
-    end
-	
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
@@ -397,12 +393,12 @@ function ffxiv_task_duty.UIInit()
         Settings.FFXIVMINION.gResetDutyTimer = 60
     end
 	
-	ffxiv_task_duty.UpdateProfiles()
+	if(gBotMode == GetString("dutyMode")) then
+		ffxiv_task_duty.UpdateProfiles()
+	end
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
 	
-	gDutyProfile = Settings.FFXIVMINION.gLastDutyProfile
-    gDutyTeleport = Settings.FFXIVMINION.gDutyTeleport
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
 end
 
@@ -424,22 +420,22 @@ function ffxiv_task_duty.UpdateProfiles()
     else
         d("No duty profiles found")
     end
-    gDutyProfile_listitems = profiles
-    gDutyProfile = found
-	ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..gDutyProfile..".info")
+    gProfile_listitems = profiles
+    gProfile = found
+	ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..gProfile..".info")
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 	end
-  if (file_exists(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")) then
-    d("loading"..ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
-    dofile(ffxiv_task_duty.dutyPath..gDutyProfile..".lua")
+  if (file_exists(ffxiv_task_duty.dutyPath..gProfile..".lua")) then
+    d("loading"..ffxiv_task_duty.dutyPath..gProfile..".lua")
+    dofile(ffxiv_task_duty.dutyPath..gProfile..".lua")
   end
   ffxiv_task_duty.dutySet = false
 end
 
 function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-		if (	k == "gDutyProfile" ) then
+		if (	k == "gProfile" and gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..v..".info")
 			if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 				ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
@@ -447,9 +443,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			d(loadfile(ffxiv_task_duty.dutyPath..v..".lua"))
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
 			ffxiv_task_duty.dutySet = false
-        elseif (k == "gDutyTeleport" or
-				k == "gDutyAssist" or
-				k == "gResetDutyTimer")
+        elseif (k == "gResetDutyTimer")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -511,7 +505,7 @@ function e_deadduty:execute()
 	ml_task_hub:ThisTask().state = "DUTY_NEXTENCOUNTER"
     local leader = GetDutyLeader()
 	local lpos = leader.pos
-	if (gDutyTeleport == "1") then
+	if (gTeleport == "1") then
 		--d("dead, stay close")
 		if (not IsDutyLeader()) then
 			GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)

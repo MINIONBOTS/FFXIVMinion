@@ -147,7 +147,7 @@ function e_movetogatherable:execute()
 
     local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
-        if (gGatherTP == "1") then
+        if (gTeleport == "1") then
             GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
         else
             local newTask = ffxiv_task_movetopos.Create()
@@ -280,27 +280,25 @@ function e_gather:execute()
 
 		if (TimeSince(ml_task_hub:CurrentTask().interactTimer) > 1000) then
 			-- first try to get treasure maps
-			if (gGatherMaps == "1") then
-				local hasMap = false
-				for x=0,3 do
-					local inv = Inventory("type="..tostring(x))
-					local i, item = next(inv)
-					while (i) do
-						if (IsMap(item.id)) then
-							hasMap = true
-							break
-						end
-						i,item = next(inv, i)
+			local hasMap = false
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x))
+				local i, item = next(inv)
+				while (i) do
+					if (IsMap(item.id)) then
+						hasMap = true
+						break
 					end
+					i,item = next(inv, i)
 				end
-				
-				if not hasMap then
-					for i, item in pairs(list) do
-						if (IsMap(item.id)) then
-							Player:Gather(item.index)
-							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							return
-						end
+			end
+			
+			if not hasMap then
+				for i, item in pairs(list) do
+					if (IsMap(item.id)) then
+						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
 					end
 				end
 			end
@@ -392,7 +390,7 @@ function e_gather:execute()
 				end
             end
 
-            if (gGatherTP == "1") then
+            if (gTeleport == "1") then
                 Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
             end
         else
@@ -468,9 +466,7 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
             end
         end
         if ( 	k == "gDoStealth" or
-                k == "gGatherPS" or
-                k == "gGatherTP" or
-				k == "gGatherMaps" ) then
+                k == "gGatherPS" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
@@ -479,10 +475,8 @@ end
 
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].teleport, "gGatherTP",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",strings[gCurrentLanguage].gatherMode)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].gatherMaps, "gGatherMaps",strings[gCurrentLanguage].gatherMode)
+    GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
+    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
     
@@ -490,27 +484,13 @@ function ffxiv_task_gather.UIInit()
         Settings.FFXIVMINION.gDoStealth = "0"
     end
     
-    if (Settings.FFXIVMINION.gChangeJobs == nil) then
-        Settings.FFXIVMINION.gChangeJobs = "0"
-    end
-    
-    if (Settings.FFXIVMINION.gGatherTP == nil) then
-        Settings.FFXIVMINION.gGatherTP = "0"
-    end
     
     if (Settings.FFXIVMINION.gGatherPS == nil) then
         Settings.FFXIVMINION.gGatherPS = "0"
     end
-	
-	if (Settings.FFXIVMINION.gGatherMaps == nil) then
-        Settings.FFXIVMINION.gGatherMaps = "1"
-    end
     
     gDoStealth = Settings.FFXIVMINION.gDoStealth
-    gChangeJobs = Settings.FFXIVMINION.gChangeJobs
-    gGatherTP = Settings.FFXIVMINION.gGatherTP
     gGatherPS = Settings.FFXIVMINION.gGatherPS
-    gGatherMaps = Settings.FFXIVMINION.gGatherMaps
     if(gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
     end

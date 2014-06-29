@@ -23,17 +23,11 @@ function ffxiv_task_quest.Create()
 end
 
 function ffxiv_task_quest.UIInit()
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gQuestProfile",strings[gCurrentLanguage].questMode,"")
 	GUI_NewButton(ml_global_information.MainWindow.Name,"SetQuest","ffxiv_task_quest.SetQuest",strings[gCurrentLanguage].questMode)
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
 	GUI_NewField(ml_global_information.MainWindow.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ml_global_information.MainWindow.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gQuestTeleport",strings[gCurrentLanguage].questMode)
 	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
-
-    if (Settings.FFXIVMINION.gDutyTeleport == nil) then
-        Settings.FFXIVMINION.gDutyTeleport = "0"
-    end
 	
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
         Settings.FFXIVMINION.gLastQuestProfile = ""
@@ -55,12 +49,12 @@ function ffxiv_task_quest.UIInit()
 		Settings.FFXIVMINION.currentQuestStep = 0
 	end
 	
-	ffxiv_task_quest.UpdateProfiles()
+	if(gBotMode == GetString("questMode")) then
+		ffxiv_task_quest.UpdateProfiles()
+	end
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
 	
-	gQuestProfile = Settings.FFXIVMINION.gLastQuestProfile
-    gQuestTeleport = Settings.FFXIVMINION.gQuestTeleport
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID
 	gCurrQuestStep = Settings.FFXIVMINION.gCurrQuestStep
 end
@@ -90,10 +84,10 @@ function ffxiv_task_quest.UpdateProfiles()
     else
         d("No quest profiles found")
     end
-    gQuestProfile_listitems = profiles
-    gQuestProfile = found
-	if (gQuestProfile ~= "" and gQuestProfile ~= "None") then
-		ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gQuestProfile..".info")
+    gProfile_listitems = profiles
+    gProfile = found
+	if (gProfile ~= "" and gProfile ~= "None") then
+		ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gProfile..".info")
 	end
 end
 
@@ -207,11 +201,10 @@ end
 
 function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-		if (	k == "gQuestProfile" ) then
+		if (	k == "gProfile" and gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
 			Settings.FFXIVMINION["gLastQuestProfile"] = v
-        elseif (k == "gQuestTeleport" or
-				k == "gCurrQuestID" or
+        elseif (k == "gCurrQuestID" or
 				k == "gCurrQuestStep" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
