@@ -96,29 +96,7 @@ function ffxiv_duty_kill_task:Process()
 				local pos = entity.pos
 				Player:SetFacing(pos.x,pos.y,pos.z)
 				Player:SetTarget(entity.id)
-					
-				if (ml_global_information.AttackRange < 5 and
-					gBotMode == strings[gCurrentLanguage].dutyMode and
-					gDutyTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()) then
-					ml_task_hub:CurrentTask().suppressFollow = true
-					SkillMgr.teleBack = Player.pos
-					GameHacks:TeleportToXYZ(pos.x+1, pos.y, pos.z)
-					Player:SetFacing(pos.x,pos.y,pos.z)
-					Player:SetTarget(entity.id)
-					SkillMgr.teleCastTimer = Now()
-				end
-				
-				if (SkillMgr.Cast( target )) then
-					SkillMgr.teleCastTimer = Now()
-				end
-				
-				if (TableSize(SkillMgr.teleBack) > 0 and TimeSince(SkillMgr.teleCastTimer) >= 1800 and not ActionList:IsCasting()) then
-					local back = SkillMgr.teleBack
-					GameHacks:TeleportToXYZ(back.x+1, back.y, back.z)
-					SkillMgr.teleBack = {}
-					SkillMgr.teleCastTimer = 0
-					ml_task_hub:CurrentTask().suppressFollow = false
-				end
+				SkillMgr.Cast( entity )
 			end
 			return false
 		end

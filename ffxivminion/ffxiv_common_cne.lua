@@ -30,7 +30,6 @@ function c_add_killtarget:evaluate()
 		parentTask = ml_task_hub:CurrentTask():ParentTask().name
 	end
 	
-	d("Current Task="..currentTask..", Parent Task="..parentTask)
 	if not (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask():ParentTask().name == "LT_FATE") then
 		local aggro = GetNearestAggro()
 		if ValidTable(aggro) then
@@ -186,7 +185,7 @@ function c_add_fate:evaluate()
     if (gDoFates == "1" and not Player.incombat) then
         if (ml_task_hub:ThisTask().subtask == nil or ml_task_hub:ThisTask().subtask.name ~= "LT_FATE") then
             local fate = GetClosestFate(Player.pos)
-            if (fate ~= nil) then
+            if (ValidTable(fate)) then
 				c_add_fate.id = fate.id
 				return true
             end
@@ -1022,7 +1021,7 @@ function c_pressconfirm:evaluate()
 	if (gBotMode == strings[gCurrentLanguage].assistMode) then
 		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm"))
 	end
-    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336) and ControlVisible("ContentsFinderConfirm"))
+    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336 and Player.localmpaid ~= 352) and ControlVisible("ContentsFinderConfirm"))
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)

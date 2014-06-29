@@ -105,6 +105,7 @@ function ffxiv_task_movetopos.Create()
     newinst.gatherRange = 0.0
     newinst.remainMounted = false
     newinst.useFollowMovement = false
+	newinst.obstacleTimer = 0
     
     return newinst
 end
@@ -143,25 +144,24 @@ function ffxiv_task_movetopos:Process()
 		end
 	end
 	
-	if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE") then
+	if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and TimeSince(ml_task_hub:ThisTask().obstacleTimer) > 5000) then
 		NavigationManager:ClearAvoidanceAreas()
-		local el = EntityList("attackable,aggressive,notincombat,maxdistance=200,fateid=0")
+		local el = EntityList("attackable,aggressive,notincombat,maxdistance=100,fateid=0")
 		
 		local dirty = false
 		local obst = {}
 		local count = 1
 	  
 		for i,e in pairs(el) do
-			if (e.targetable) then
+			if (e.targetable and e.level >= Player.level) then
 				local pos = deepcopy(e.pos);
 				pos.r = 15.0
-				pos.y = pos.y
 				obst[count] = pos
-				--d("added " .. e.name .. " id=" .. e.id)
 				count = count +1
 			end
 		end
 		NavigationManager:SetAvoidanceAreas(obst)
+		ml_task_hub:ThisTask().obstacleTimer = Now()
 	end
 	
 	if (TableSize(self.process_elements) > 0) then

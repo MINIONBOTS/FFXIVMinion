@@ -11,8 +11,8 @@ function GetNearestGrindAttackable()
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
 	
-	if gClaimFirst	== "1" then		
-		if (huntString) then
+	if (gClaimFirst	== "1") then		
+		if (not IsNullString(huntString)) then
 			local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
 			if ( el ) then
 				local i,e = next(el)
@@ -26,7 +26,7 @@ function GetNearestGrindAttackable()
 	end	
     
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
-	if (excludeString) then
+	if (not IsNullString(excludeString)) then
 		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString) 
 	else
 		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0") 
@@ -47,7 +47,7 @@ function GetNearestGrindAttackable()
 	if ( partymemberlist) then
 	   local i,entity = next(partymemberlist)
 	   while ( i~=nil and entity~=nil ) do 
-			if (excludeString) then
+			if (not IsNullString(excludeString)) then
 				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0,exclude_contentid="..excludeString)
 			else
 				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
@@ -65,7 +65,7 @@ function GetNearestGrindAttackable()
 	end
 	
 	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
-	if (huntString) then
+	if (not IsNullString(huntString)) then
 		el = EntityList("shortestpath,contentid="..huntString..",alive,attackable,onmesh")
 		
 		if ( el ) then
@@ -77,8 +77,8 @@ function GetNearestGrindAttackable()
 	end
 	
 	--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
-	if (not huntString or huntString == "" or huntString == nil) then
-		if (excludeString) then
+	if (IsNullString(huntString)) then
+		if (not IsNullString(excludeString)) then
 			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 		else
 			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
@@ -92,7 +92,7 @@ function GetNearestGrindAttackable()
 			end
 		end
 	
-		if (excludeString) then
+		if (not IsNullString(excludeString)) then
 			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 		else
 			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
@@ -116,7 +116,7 @@ function GetNearestGrindPriority()
 	local el = nil
 	
 	if (gClaimFirst	== "1") then
-		if (huntString) then
+		if (not IsNullString(huntString)) then
 			local el = EntityList("shortestpath,contentid="..tostring(huntString)..",targeting=0,notincombat,alive,attackable,onmesh")
 			if ( el ) then
 				local i,e = next(el)
@@ -432,7 +432,8 @@ function GetPVPTarget()
 				if (TableSize(teammate.castinginfo) > 0) then
 					if (teammate.castinginfo.channeltargetid == entity.id and 
 						(teammate.castinginfo.channelingid == 128 or
-						teammate.castinginfo.channelingid == 145)) then
+						teammate.castinginfo.channelingid == 145) and
+						teammate.id ~= Player.id) then
 						beingSlept = true
 					end
 				end
@@ -564,7 +565,12 @@ function GetDutyTarget()
 	if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
 		if (ml_task_hub:CurrentTask().encounterData.prioritize) then
 			for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
-				local el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+				local el = nil
+				if Player.incombat then
+					el = EntityList("lowesthealth,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+				else
+					el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+				end
 				if (ValidTable(el)) then
 					local id, target = next(el)
 					if (target.targetable and target.los) then
@@ -575,8 +581,12 @@ function GetDutyTarget()
 		end
 	end
 	
-	
-	local el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	local el = nil
+	if Player.incombat then
+		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	else
+		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	end
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (target.targetable and target.los) then
@@ -1038,7 +1048,14 @@ function GetClosestFate(pos)
 end
 
 function IsLeader()
-	local leader = GetPartyLeader()
+	local leader = nil
+	for i,m in pairs(EntityList.myparty) do
+		if m.isleader then
+			--d("Name:"..tostring(m.name)..", ID:"..tostring(m.id))
+			leader = m
+		end
+	end
+	
 	if ( leader ) then
 		if ( leader.id == Player.id ) then
 			return true
@@ -1049,32 +1066,30 @@ function IsLeader()
 end
 
 function GetPartyLeader()
+  
+	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
+		if (gPartyLeaderName ~= "") then
+		local party = EntityList("type=1,name="..gPartyLeaderName)
+			if (ValidTable(party)) then
+				local i,member = next (party)
+				if (i and member) then
+					return member
+				end
+			end
+		end
+	else
+		local party = EntityList.myparty
+		if (ValidTable(party)) then
+			for i,m in pairs(party) do
+				if m.isleader then
+					--d("Name:"..tostring(m.name)..", ID:"..tostring(m.id))
+					return m
+				end
+			end
+		end
+	end 
     
-    if (gPartyGrindUsePartyLeader == "1") then
-      local Plist = EntityList.myparty
-      if (TableSize(Plist) > 0 ) then
-          local i,member = next (Plist)
-          while (i~=nil and member~=nil ) do
-              if ( member.isleader ) then
-                  return member , false
-              end
-              i,member = next (Plist,i)
-          end
-      end
-    else
-      if (gPartyLeaderName ~= "") then
-        local Plist = EntityList("type=1,name="..gPartyLeaderName)
-        if (TableSize(Plist) > 0 ) then
-          local i,member = next (Plist)
-          if (i~=nil and member~=nil ) then
-                 return member , true
-          end
-        end
-      end
-    end
-    
-    return nil	
-    
+    return nil	    
 end
 
 function InCombatRange(targetid)
@@ -1164,6 +1179,7 @@ function InCombatRange(targetid)
 		return ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
 	end
 	
+	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
 	return ((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
 end
 

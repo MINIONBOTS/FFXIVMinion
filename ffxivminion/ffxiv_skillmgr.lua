@@ -30,6 +30,8 @@ SkillMgr.teleCastSkills = {
 	[FFXIV.JOBS.PUGILIST] = 53,
 	[FFXIV.JOBS.DRAGOON] = 75,
 	[FFXIV.JOBS.LANCER] = 75,
+	[FFXIV.JOBS.ARCHER] = 97,
+	[FFXIV.JOBS.BARD] = 97,
 }
 
 SkillMgr.Variables = {
@@ -250,7 +252,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTBuffOwner,"SKM_TBuffOwner",strings[gCurrentLanguage].targetBuffs, "Player,Any")
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
     GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)	
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
     
@@ -802,7 +804,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
 			local newskillprio = table.maxn(SkillMgr.SkillProfile)+1
             local bevent = tostring(newskillprio)
 			
-			GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname, "SKMEditSkill"..bevent,"ProfileSkills")
+			GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname.."["..tostring(skID).."]", "SKMEditSkill"..tostring(bevent),"ProfileSkills")
 			
             SkillMgr.SkillProfile[newskillprio] = {	id = skID, prio = newskillprio, name = skname, used = "1" }
 			if (job >= 8 and job <= 15) then
@@ -902,7 +904,6 @@ function SkillMgr.ToggleMenu()
         GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)	
         SkillMgr.visible = false
     else	 
-    
         GUI_WindowVisible(SkillMgr.skillbook.name,true)
         GUI_WindowVisible(SkillMgr.mainwindow.name,true)	
         SkillMgr.visible = true
@@ -999,6 +1000,18 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff == "1" and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now) ) then 
 							castable = false
+						end
+						
+						if (skill.name == "Blood for Blood") then
+							d("Castable for b4b = "..tostring(castable))
+						end
+						
+						if ( skill.offgcd == "1" and SkillMgr.IsGCDReady()) then
+							castable = false
+						end
+						
+						if (skill.name == "Blood for Blood") then
+							d("Castable for b4b (after IsGCDReady) = "..tostring(castable))
 						end
 						
 						-- Next Skill Check
@@ -1760,6 +1773,10 @@ function SkillMgr.TryCast( entity , testprio )
 								failsection = "buffCooldown"
 							end
 							
+							if ( skill.offgcd == "1" and SkillMgr.IsGCDReady()) then
+								castable = false
+							end
+							
 							-- Next Skill Check
 							if ( castable and SkillMgr.nextSkillID ~= "" and SkillMgr.nextFailedTimer ~= 0 and TimeSince(SkillMgr.nextFailedTimer) < 5000 ) then
 								if ( SkillMgr.nextSkillID ~= tostring(skill.id) ) then
@@ -2357,10 +2374,15 @@ end
 
 function SkillMgr.IsGCDReady()
 	local castable = false
-	local action = ActionList:Get(SkillMgr.teleCastSkills[Player.job])
+	local actionID = SkillMgr.teleCastSkills[Player.job]
 	
-	if (action.cd - action.cdmax) <= .3 then
-		castable = true
+	if (actionID) then
+		local action = ActionList:Get(actionID)
+		
+		d("Action cooldown is:"..(tostring(action.cd - action.cdmax)))
+		if (action.cd - action.cdmax) <= .5	then
+			castable = true
+		end
 	end
 	
 	return castable
@@ -2394,24 +2416,33 @@ function ffxiv_task_skillmgrAttack:Process()
         local pos = target.pos
         Player:SetFacing(pos.x,pos.y,pos.z)
         Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+		
 			
 		if (ml_global_information.AttackRange < 5 and
 			gBotMode == strings[gCurrentLanguage].dutyMode and
-			gDutyTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()) then
+			gDutyTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
+			and target.targetid ~= Player.id) then
 			ml_task_hub:ThisTask().suppressFollow = true
 			SkillMgr.teleBack = Player.pos
-			GameHacks:TeleportToXYZ(pos.x+1, pos.y, pos.z)
+			Player:Stop()
+			GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
 			Player:SetFacing(pos.x,pos.y,pos.z)
 			Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+			Player:MoveToStraight(pos.x,pos.y,pos.z,1)
 			SkillMgr.teleCastTimer = Now()
+		end
+		
+		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 900 or Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
+			Player:Stop()
 		end
 		
 		if (SkillMgr.Cast( target )) then
 			SkillMgr.teleCastTimer = Now()
 		end
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and TimeSince(SkillMgr.teleCastTimer) >= 1800 and not ActionList:IsCasting()) then
+		if (TableSize(SkillMgr.teleBack) > 0 and TimeSince(SkillMgr.teleCastTimer) >= 1800) then
 			local back = SkillMgr.teleBack
+			Player:Stop()
 			GameHacks:TeleportToXYZ(back.x+1, back.y, back.z)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
@@ -2438,7 +2469,7 @@ end
 function ffxiv_task_skillmgrAttack:task_complete_eval()
     local target = Player:GetTarget()
     if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and Player.castinginfo.channelingid == nil)) then
-		d("Ending out of skillmanager attack.")
+		ml_task_hub:CurrentTask().suppressFollow = false
         return true
     end
     
