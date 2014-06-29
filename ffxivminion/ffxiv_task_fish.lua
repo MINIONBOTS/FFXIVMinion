@@ -38,7 +38,7 @@ function c_cast:evaluate()
 end
 function e_cast:execute()
     local mooch = ActionList:Get(297,1)
-    if (mooch) and gUseMooch == "1" and Player.level > 24 and (mooch.isready) then
+    if (mooch) and Player.level > 24 and (mooch.isready) then
         mooch:Cast()
     else
         local cast = ActionList:Get(289,1)
@@ -232,23 +232,6 @@ end
 
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useStealth, "gDoStealthFish",strings[gCurrentLanguage].fishMode)
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
-	
-	if (Settings.FFXIVMINION.gUseMooch == nil) then
-        Settings.FFXIVMINION.gUseMooch = "1"
-    end
-    
-    if (Settings.FFXIVMINION.gDoStealthFish == nil) then
-        Settings.FFXIVMINION.gDoStealthFish = "0"
-    end
-    
-	gUseMooch = Settings.FFXIVMINION.gUseMooch
-	gDoStealthFish = Settings.FFXIVMINION.gDoStealthFish
-    
-    RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
-	
 	ffxiv_task_fish.SetupMarkers()
 end
 
@@ -268,12 +251,5 @@ function ffxiv_task_fish.SetupMarkers()
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
-    for k,v in pairs(NewVals) do
-        if 	( k == "gUseMooch" ) or
-            ( k == "gDoStealthFish" )
-        then
-            Settings.FFXIVMINION[tostring(k)] = v
-        end
-    end
     GUI_RefreshWindow(ml_global_information.MainWindow.Name)
 end

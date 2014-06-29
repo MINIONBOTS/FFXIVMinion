@@ -407,10 +407,10 @@ function ffxiv_task_pvp.UIInit()
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",strings[gCurrentLanguage].pvpMode,"")
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",strings[gCurrentLanguage].pvpMode,"")
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",strings[gCurrentLanguage].pvpMode,"")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",strings[gCurrentLanguage].pvpMode)
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
+    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",strings[gCurrentLanguage].pvpMode)
 
     --init combo boxes
     local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank
