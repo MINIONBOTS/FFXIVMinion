@@ -10,23 +10,20 @@ function c_partysyncfatelevel:evaluate()
     end
     
     local myPos = Player.pos
-    local fateID = GetClosestFateID(myPos,true,true)
-    if (fateID) then
-        local fate = GetFateByID(fateID)
-        if ( fate and TableSize(fate)) then
-            local plevel = Player.level
-            if ( ( fate.level > plevel +5 or fate.level < plevel - 5) and Player:GetSyncLevel() == 0 )then
-                local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
-                if (distance < fate.radius) then				
-                    return true
-                end
-            end
-        end
-    end
+    local fate = GetClosestFate(myPos)
+	if ( fate and TableSize(fate)) then
+		local plevel = Player.level
+		if ( ( fate.level > plevel +5 or fate.level < plevel - 5) and Player:GetSyncLevel() == 0 )then
+			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+			if (distance < fate.radius) then				
+				return true
+			end
+		end
+	end
     return false
 end
 function e_partysyncfatelevel:execute()
-    ml_debug( "Curren Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
+    ml_debug( "Current Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
     ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
 end
 

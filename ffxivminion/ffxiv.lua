@@ -249,6 +249,7 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",GetString("hacks"));
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTravel,"gClickToTravel",GetString("hacks"));
+	GUI_NewButton(ml_global_information.MainWindow.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")

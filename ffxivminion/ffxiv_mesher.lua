@@ -160,7 +160,7 @@ function mm.ReadMarkerList(meshname)
 		end
 		
 		ml_marker_mgr.RefreshMarkerNames()
-		d("Markers for ["..meshname.."] were loaded.")
+		--d("Markers for ["..meshname.."] were loaded.")
 	end
 end
 
@@ -244,8 +244,8 @@ end
 function mm.ClearNavMesh()
     -- Unload old Mesh
     if (NavigationManager:GetNavMeshName() ~= "") then
-        d("Unloading ".. NavigationManager:GetNavMeshName() .." NavMesh.")
-        d("Result: "..tostring(NavigationManager:UnloadNavMesh()))	
+        --d("Unloading ".. NavigationManager:GetNavMeshName() .." NavMesh.")
+        --d("Result: "..tostring(NavigationManager:UnloadNavMesh()))	
     end
 	
     -- Delete Markers

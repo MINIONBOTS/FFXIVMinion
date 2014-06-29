@@ -98,16 +98,17 @@ end
 ---------------------------------------------------------------------------------------------
 c_betterfatesearch = inheritsFrom( ml_cause )
 e_betterfatesearch = inheritsFrom( ml_effect )
-c_betterfatesearch.throttle = 1000
+c_betterfatesearch.timer = 0
 function c_betterfatesearch:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS" or TimeSince(c_betterfatesearch.timer) < 10000) then
         return false
     end
     
     local myPos = Player.pos
     local fate = GetClosestFate(myPos)
-	if (fate ~= nil) then
+	if (ValidTable(fate)) then
 		if (fate.id ~= ml_task_hub:ThisTask().fateid) then
+			c_betterfatesearch.timer = Now()
 			return true	
 		end
 	end
@@ -115,9 +116,9 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
-    ml_debug( "Closer fate found" )
+    d( "Closer fate found" )
     ml_task_hub:ThisTask():Terminate()
-    ml_debug("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+    d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
 end
 
 c_teletofate = inheritsFrom( ml_cause )
@@ -131,17 +132,17 @@ function c_teletofate:evaluate()
 
 	local nearbyPlayers = TableSize(EntityList("type=1,maxdistance=30"))
 	if nearbyPlayers > 0 then
-		d("Can't teleport, nearby players = "..tostring(nearbyPlayers))
+		ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
 		return false
 	end
 	
 	if tonumber(gFateTeleportPercent) == 0 then
-		d("Can't teleport, it's turned off.")
+		ml_debug("Can't teleport, it's turned off.")
 		return false
 	end
 	
 	if TimeSince(c_teletofate.lastTele) < 10000 then
-		d("Can't teleport, it's been too soon off.")
+		ml_debug("Can't teleport, it's been too soon off.")
 		return false
 	end
 	
@@ -150,10 +151,11 @@ function c_teletofate:evaluate()
         if (fate ~= nil and TableSize(fate) > 0) then
 			if fate.completion > tonumber(gFateTeleportPercent) then
 				
+				local myPos = Player.pos
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
 				
-				if dist > (fate.radius * 2) then
+				if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 					c_teletofate.pos = dest
 					return true
 				end
@@ -161,7 +163,7 @@ function c_teletofate:evaluate()
         end
     end
     
-	d("Can't teleport, some other reason.")
+	ml_debug("Can't teleport, some other reason.")
     return false
 end
 function e_teletofate:execute()

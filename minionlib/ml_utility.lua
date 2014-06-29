@@ -30,6 +30,10 @@ function TimeSince(previousTime)
     return ml_global_information.Now - previousTime
 end
 
+function IsNullString( test ) 
+	return (test == "" or not test)
+end
+
 function Now()
 	return ml_global_information.Now
 end
@@ -322,7 +326,7 @@ function TableInsertSort(tblSort, iInsertPoint, vInsertValue)
 		t[p] = vInsertValue
 		orderedTable = t
 	else
-		d("Size was not less than p.")
+		--d("Size was not less than p.")
 		for k,v in spairs(t) do
 			if (tonumber(k) >= p) then
 				tempTable[tonumber(k)+1] = v
@@ -356,11 +360,11 @@ function TableRemoveSort(tblSort, iRemovePoint)
 	assert(not(p > size or p < 1), "Removal point is out of range.")
 	
 	if (size == p) then
-		d("Entry was highest on list, remove it and return.")
+		--d("Entry was highest on list, remove it and return.")
 		t[p] = nil
 		orderedTable = t
 	else
-		d("Entry was not highest on list.")
+		--d("Entry was not highest on list.")
 		for k,v in spairs(t) do
 			if tonumber(k) > p then
 				tempTable[tonumber(k)-1] = v

@@ -23,7 +23,7 @@ c_repair = inheritsFrom( ml_cause )
 e_repair = inheritsFrom( ml_effect )
 c_repair.throttle = 30000
 function c_repair:evaluate()
-	d("Checking items for needed repair..")
+	--d("Checking items for needed repair..")
 	local eq = Inventory("type=1000")
 	if (eq) then
 		local i,e = next (eq)
@@ -37,7 +37,7 @@ function c_repair:evaluate()
     return false
 end
 function e_repair:execute()
-	d("Repairing items ..")
+	--d("Repairing items ..")
     local eq = Inventory("type=1000")
 	if (eq) then
 		local i,e = next (eq)

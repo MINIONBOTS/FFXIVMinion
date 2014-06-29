@@ -8,6 +8,7 @@ ffxiv_task_duty.leader = ""
 ffxiv_task_duty.leaderSet = false
 ffxiv_task_duty.dutySet = false
 ffxiv_task_duty.dutyCleared = false
+ffxiv_task_duty.joinAttempts = 0
 
 if(Settings.FFXIVMINION.gDutyMapID == nil) then
 	Settings.FFXIVMINION.gDutyMapID = 0
@@ -97,6 +98,7 @@ function e_followleaderduty:execute()
             local myPos = Player.pos
             if ( not Player:IsMoving() ) then
                 if (gTeleport == "1") then
+		    Player:Stop()
                     GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
                 else
                     ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
@@ -152,7 +154,7 @@ function e_assistleaderduty:execute()
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         end
     else
-        wt_debug("Ohboy, something went really wrong : e_assistleaderduty")
+        ml_debug("Ohboy, something went really wrong : e_assistleaderduty")
     end
 end
 
@@ -177,16 +179,17 @@ function e_joinduty:execute()
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 		Duty:ClearDutySelection()
 		ffxiv_task_duty.dutyCleared = true
-		ml_task_hub:CurrentTask().timer = Now() + 1000
+		ml_task_hub:CurrentTask().timer = Now() + 1500 + (1500 * ml_task_hub:CurrentTask().joinAttempts)
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared and Now() > ml_task_hub:CurrentTask().timer) then
 		local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if (duty) then
 			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
-			ml_task_hub:CurrentTask().timer = Now() + 1000
+			ml_task_hub:CurrentTask().timer = Now() + 1500 + (1500 * ml_task_hub:CurrentTask().joinAttempts)
 		end
 	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet and Now() > ml_task_hub:CurrentTask().timer) then
         ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + (tonumber(gResetDutyTimer) * 1000)
+		ml_task_hub:CurrentTask().joinAttempts = ml_task_hub:CurrentTask().joinAttempts + 1
 		PressDutyJoin()
 		ffxiv_task_duty.dutyCleared = false
 		ffxiv_task_duty.dutySet = false
@@ -211,6 +214,7 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().state = "DUTY_NEW" 
         PressYesNo(true)
 		ml_task_hub:CurrentTask().joinTimer = 0
+		ml_task_hub:CurrentTask().joinAttempts = 0
     end
 end
 
@@ -330,8 +334,6 @@ function ffxiv_task_duty:Process()
 			end
 		end
 	end
-	
-	--d("Current Encounter Index:"..tostring(ml_task_hub:CurrentTask().encounterIndex))
 
 	if (TableSize(ml_task_hub:CurrentTask().process_elements) > 0) then
 		ml_cne_hub.clear_queue()
@@ -351,7 +353,6 @@ function ffxiv_task_duty:Process()
 		ml_debug("no elements in process table")
 	end
 end
-
 
 function ffxiv_task_duty:Init()
     --init Process() cnes

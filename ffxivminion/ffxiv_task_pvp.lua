@@ -44,7 +44,6 @@ e_joinqueuepvp = inheritsFrom( ml_effect )
 function c_joinqueuepvp:evaluate() 
     return ((   not MultiComp(Player.localmapid, "337,175,336,352")) and 
 				(IsLeader() or TableSize(EntityList.myparty) == 0) and
-                TimeSince(ml_task_hub:CurrentTask().queueTimer) > math.random(10000,25000) and
 				not Quest:IsLoading() and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
@@ -52,8 +51,8 @@ end
 function e_joinqueuepvp:execute()
     if not ControlVisible("ContentsFinder") then
         ActionList:Cast(33,0,10)
-        ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now
-    elseif (TimeSince(ml_task_hub:CurrentTask().windowTimer) > math.random(4000,5000)) then
+        ml_task_hub:CurrentTask().windowTimer = ml_global_information.Now + 1500
+    elseif ( Now() > ml_task_hub:CurrentTask().windowTimer ) then
         PressDutyJoin()
         ml_task_hub:CurrentTask().state = "WAITING_FOR_DUTY"
     end
@@ -103,6 +102,20 @@ e_startcombat = inheritsFrom( ml_effect )
 function c_startcombat:evaluate()	
 	-- make sure we don't go back into combat state after the leave button is pressed
 	if ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or ml_task_hub:CurrentTask().state == "COMBAT_STARTED" then return false end
+	
+	if (Player.localmapid == 352 and ml_task_hub:CurrentTask().state == "WAITING_FOR_COMBAT") then
+		if (gPVPSpeedMatchPartner and gPVPSpeedMatchPartner ~= "") then
+			local enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+			for i,enemy in pairs(enemyParty) do
+				if (enemy.name == gPVPSpeedMatchPartner) then
+					local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
+					GameHacks:TeleportToXYZ(p.x,p.y,p.z)
+					return true
+				end
+			end
+		
+		end
+	end
 	
     -- just in case we restart lua while in pvp combat
     if ((MultiComp(Player.localmapid,"337,175,336,352")) and (Player.incombat or InCombatRange(ml_task_hub:CurrentTask().targetid))) then
@@ -221,7 +234,7 @@ function c_pvpavoid:evaluate()
 				local spelltarget = e.castinginfo.channeltargetid
 				
 				if (MultiComp(spell, "145,128,146") and spelltarget == Player.id) then
-					d("Detected enemy spell ["..tostring(spell).."] @"..tostring(spelltarget).." at distance "..tostring(distance))
+					--d("Detected enemy spell ["..tostring(spell).."] @"..tostring(spelltarget).." at distance "..tostring(distance))
 				end
 				
 				if (MultiComp(spell, "145,128,146")) then
@@ -262,6 +275,26 @@ function e_pvpavoid:execute()
 		newTask.maxTime = tonumber(target.castinginfo.casttime - target.castinginfo.channeltime)
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 	end
+end
+
+
+c_confirmEnterPVP = inheritsFrom( ml_cause )
+e_confirmEnterPVP = inheritsFrom( ml_effect )
+
+function c_confirmEnterPVP:evaluate()
+	if (ControlVisible("ContentsFinderConfirm")) then
+		if (gMultiBotEnabled == "1") then
+			mb.BroadcastQueueStatus( true )
+			return mb.QueueReady()
+		else
+			return (Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336 and Player.localmpaid ~= 352)
+		end
+	end
+end
+function e_confirmEnterPVP:execute()
+	PressDutyConfirm(true)
+	mb.BroadcastQueueStatus( false )
+	ml_task_hub:CurrentTask().state = "DUTY_STARTED"
 end
 
 function ffxiv_task_pvp:Init()
@@ -314,13 +347,13 @@ function ffxiv_task_pvp:Process()
 				end
 				
 				-- second try to cast if we're within range or a healer
-				local maxRange = GetMaxAttackRange()
 				target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 				if ValidTable(target) then
 					local pos = target.pos
 					Player:SetTarget(target.id)
 					Player:SetFacing(pos.x,pos.y,pos.z)
 					SkillMgr.Cast( target )
+					local maxRange = GetMaxAttackRange()
 					
 					if Player.role ~= 4 then
 						local dist = Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z)
@@ -346,14 +379,9 @@ function ffxiv_task_pvp:Process()
 						end
 					else
 						if InCombatRange(target.id) then
-							local cast = false
-							if (Player.hp.percent < 75 ) then
-								cast = SkillMgr.Cast( Player, false, true )
-							end
-							if not cast then		
-								Player:SetFacing(pos.x,pos.y,pos.z)
-								SkillMgr.Cast( target )
-							end
+							local cast = false		
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							SkillMgr.Cast( target )
 						else
 							if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > maxRange) then
 								local PathSize = Player:MoveTo( tonumber(pos.x),tonumber(pos.y),tonumber(pos.z),tonumber(maxRange * .90),false,gRandomPaths=="0")
@@ -400,6 +428,14 @@ function ffxiv_task_pvp:IsGoodToAbort()
 
 end
 
+function GetPVPTargetTypes()
+	local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank
+	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].sleeper..","..strings[gCurrentLanguage].caster..","..strings[gCurrentLanguage].ranged..","..strings[gCurrentLanguage].meleeDPS
+	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].nearDead..","..strings[gCurrentLanguage].nearest..","..strings[gCurrentLanguage].lowestHealth..","..strings[gCurrentLanguage].unattendedHealer
+	
+	return targetTypeList
+end
+
 -- UI settings etc
 function ffxiv_task_pvp.UIInit()
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
@@ -411,11 +447,9 @@ function ffxiv_task_pvp.UIInit()
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",strings[gCurrentLanguage].pvpMode)
-
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpSpeedMatchPartner, "gPVPSpeedMatchPartner",strings[gCurrentLanguage].pvpMode)
     --init combo boxes
-    local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank
-	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].sleeper..","..strings[gCurrentLanguage].caster..","..strings[gCurrentLanguage].ranged..","..strings[gCurrentLanguage].meleeDPS
-	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].nearDead..","..strings[gCurrentLanguage].nearest..","..strings[gCurrentLanguage].lowestHealth..","..strings[gCurrentLanguage].unattendedHealer
+    local targetTypeList = GetPVPTargetTypes()
     
 	gPVPTargetOne_listitems = targetTypeList
     gPVPTargetTwo_listitems = targetTypeList
@@ -458,6 +492,10 @@ function ffxiv_task_pvp.UIInit()
 	if (Settings.FFXIVMINION.gPVPAvoid == nil) then
         Settings.FFXIVMINION.gPVPAvoid = "0"
     end
+	
+	if (Settings.FFXIVMINION.gPVPSpeedMatchPartner == nil) then
+        Settings.FFXIVMINION.gPVPSpeedMatchPartner = ""
+    end
     
     GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
 	
@@ -470,6 +508,7 @@ function ffxiv_task_pvp.UIInit()
     gAFKMove = Settings.FFXIVMINION.gAFKMove
     gPVPDelayLeave = Settings.FFXIVMINION.gPVPDelayLeave
 	gPVPAvoid = Settings.FFXIVMINION.gPVPAvoid
+	gPVPSpeedMatchPartner = Settings.FFXIVMINION.gPVPSpeedMatchPartner
 end
 
 function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
@@ -482,7 +521,8 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gPrioritizeRanged" or
                 k == "gAFKMove" or
                 k == "gPVPAvoid" or
-                k == "gPVPDelayLeave")
+                k == "gPVPDelayLeave" or 
+				k == "gPVPSpeedMatchPartner")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
