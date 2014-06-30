@@ -31,7 +31,6 @@ end
 --FATEWAIT: If (detect new aggro) Then (kill mob)
 ---------------------------------------------------------------------------------------------
 
---[[
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate() 
@@ -55,7 +54,6 @@ function e_fatewait:execute()
     newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
---]]
 
 ---------------------------------------------------------------------------------------------
 --FATEQUIT: If (completion % has not changed over timer) Then (temporarily blacklist)
@@ -267,6 +265,7 @@ function c_syncfatelevel:evaluate()
 	if ( fate and TableSize(fate)) then
 		local plevel = Player.level
 		if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
+			local myPos = Player.pos
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance < fate.radius) then				
 				return true
