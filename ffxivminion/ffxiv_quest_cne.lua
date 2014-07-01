@@ -182,7 +182,7 @@ function c_questinteract:evaluate()
 			local id, entity = next(el)
 			if(entity) then
 				if 	(entity.type == 5 and entity.distance2d < 6) or
-					(entity.distance < 3) 
+					(entity.distance < 6) 
 				then
 					e_questinteract.entity = entity
 					return true
@@ -335,4 +335,32 @@ function c_questisloading:evaluate()
 end
 function e_questisloading:execute()
 	--do nothing, this is a blocking cne
+end
+
+c_questgrind = inheritsFrom( ml_cause )
+e_questgrind = inheritsFrom( ml_effect )
+function c_questgrind:evaluate()
+	local params = ml_task_hub:CurrentTask().params
+	local level = params["stoplevel"]
+	local mapid = params["mapid"]
+	
+	return Player.level < level and Player.localmapid == mapid
+end
+function e_questgrind:execute()
+	--set fate variables properly
+	if(Player.level < 5) then
+		gDoFates = false
+	else
+		gDoFates = true
+		gMinFateLevel = "5"
+		gMaxFateLevel = "5"
+	end
+	
+	local newTask = ffxiv_task_grind.Create()
+	newTask.task_complete_eval = 
+		function()
+			return Player.level >= ml_task_hub:CurrentTask().params["stoplevel"]
+		end
+	--start grind task
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end

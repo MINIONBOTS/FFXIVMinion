@@ -108,6 +108,22 @@ function ffxiv_quest_start:Init()
 	self:AddTaskCheckCEs()
 end
 
+--quest_accept is the same as quest_start except it checks a passed in quest id 
+--instead of the current quest id to verify completion
+--we'll still inherit from ml_task in case we want to change stuff later
+ffxiv_quest_accept = inheritsFrom(ml_task)
+ffxiv_quest_accept.name = "QUEST_ACCEPT"
+
+function ffxiv_quest_accept.Create()
+	local newTask = ffxiv_quest_start.Create()
+	newTask.name = "QUEST_ACCEPT"
+	newTask.task_complete_eval = 
+		function ()
+			return Quest:HasQuest(ml_task_hub:CurrentTask().params["questid"])
+		end
+	return newTask
+end
+
 ffxiv_quest_complete = inheritsFrom(ml_task)
 ffxiv_quest_complete.name = "QUEST_COMPLETE"
 
@@ -223,6 +239,10 @@ function ffxiv_quest_interact:Init()
 	self:AddTaskCheckCEs()
 end
 
+------------------------------------------------------
+--kill quest
+------------------------------------------------------
+
 ffxiv_quest_kill = inheritsFrom(ml_task)
 ffxiv_quest_kill.name = "QUEST_KILL"
 
@@ -274,6 +294,10 @@ function ffxiv_quest_kill:task_complete_eval()
 	return false
 end
 
+------------------------------------------------------
+--nav helper
+------------------------------------------------------
+
 ffxiv_quest_nav = inheritsFrom(ml_task)
 ffxiv_quest_nav.name = "QUEST_NAVIGATE"
 
@@ -309,6 +333,46 @@ function ffxiv_quest_nav:Init()
     --init ProcessOverWatch cnes
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
     self:add( ke_questMoveToPos, self.process_elements)
+
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+------------------------------------------------------
+--grind helper
+------------------------------------------------------
+ffxiv_quest_grind = inheritsFrom(ml_task)
+ffxiv_quest_grind.name = "QUEST_GRIND"
+
+function ffxiv_quest_grind.Create()
+    local newinst = inheritsFrom(ffxiv_quest_grind)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_GRIND"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_grind:task_complete_eval()
+	return self.params["stoplevel"] <= Player.level
+end
+
+function ffxiv_quest_grind:Init()
+    --init ProcessOverWatch cnes
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questGrind = ml_element:create( "QuestGrind", c_questgrind, e_questgrind, 20 )
+    self:add( ke_questGrind, self.process_elements)
 
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
