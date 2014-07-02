@@ -83,6 +83,6 @@ ffxiv_quest.tasks =
 	["interact"] 	= ffxiv_quest_interact.Create,
 	["kill"]		= ffxiv_quest_kill.Create,
 	["nav"]			= ffxiv_quest_nav.Create,
-	["grind"]		= ffxiv_quest_grind.Create,
 	["accept"]		= ffxiv_quest_accept.Create,
+	["dutykill"]	= ffxiv_quest_dutykill.Create,
 }

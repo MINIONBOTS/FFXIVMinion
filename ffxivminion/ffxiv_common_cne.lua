@@ -378,8 +378,8 @@ function e_movetogate:execute()
 		local newTask = ffxiv_task_movetopos.Create()
 		local newPos = GetPosFromDistanceHeading(pos, 1.5, pos.h)
 		newTask.pos = newPos
+		newTask.range = 0.5
 		--newTask.useFollowMovement = true
-		--newTask.range = 0.5
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end

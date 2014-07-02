@@ -1429,3 +1429,56 @@ function GetDutyFromID(dutyID)
 	
 	return ""
 end
+
+function GetBestGrindMap()
+	local mapid = Player.localmapid
+	local level = Player.level
+	
+	local inthanalan = 	mapid == 140 or
+						mapid == 141 or
+						mapid == 145 or
+						mapid == 146 or
+						mapid == 147 or
+						mapid == 140 or
+						mapid == 141 or
+						mapid == 130 or
+						mapid == 131
+						
+	local inshroud =	mapid == 148 or
+						mapid == 152 or
+						mapid == 153 or
+						mapid == 154 or
+						mapid == 132 or --new gridania
+						mapid == 133 --old gridania
+						
+	local inlanoscea = 	mapid == 129 or --upper limsa
+						mapid == 128 or --lower limsa
+						mapid == 134 or
+						mapid == 135 or
+						mapid == 137 or
+						mapid == 138 or
+						mapid == 139 or
+						mapid == 180
+						
+	if (level < 15) then
+		if (inthanalan) then
+			return 140
+		elseif (inshroud) then
+			return 148
+		elseif (inlanoscea) then
+			return 134
+		end
+	elseif (level >= 15 and level < 20) then
+		return 152
+	elseif (level >= 20 and level < 25) then
+		return 152
+	elseif (level >= 20 and level < 30) then
+		return 146
+	elseif (level >= 30 and level < 35) then
+		return 146
+	elseif (level >= 35 and level < 40) then
+		return 139
+	else
+		return 180
+	end
+end

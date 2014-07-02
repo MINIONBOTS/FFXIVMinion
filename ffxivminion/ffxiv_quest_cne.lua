@@ -23,12 +23,6 @@ end
 function e_questcanstart:execute()
 	local task = ml_task_hub:CurrentTask().quest:GetStartTask()
 	if (ValidTable(task)) then
-		if(task.params["meshname"] ~= nil) then
-			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
-				mm.ChangeNavMesh(task.params["meshname"])
-			end
-		end
-	
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 		ml_task_hub:CurrentTask().currentStepIndex = 1
@@ -45,12 +39,6 @@ end
 function e_questiscomplete:execute()
 	local task = ml_task_hub:CurrentTask().quest:GetCompleteTask()
 	if (ValidTable(task)) then
-		if(task.params["meshname"] ~= nil) then
-			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
-				mm.ChangeNavMesh(task.params["meshname"])
-			end
-		end
-	
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 	end
@@ -78,13 +66,7 @@ function e_nextqueststep:execute()
 	end
 	
 	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
-	if (ValidTable(task)) then
-		if(task.params["meshname"] ~= nil) then
-			if(task.params["meshname"] ~= NavigationManager:GetNavMeshName()) then
-				mm.ChangeNavMesh(task.params["meshname"])
-			end
-		end
-		
+	if (ValidTable(task)) then	
 		if(task.params["type"] == "kill") then
 			if(Settings.FFXIVMINION.questKillCount ~= nil) then
 				task.killCount = Settings.FFXIVMINION.questKillCount
@@ -283,6 +265,40 @@ function e_questkill:execute()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
+c_questprioritykill = inheritsFrom( ml_cause )
+e_questprioritykill = inheritsFrom( ml_effect )
+function c_questprioritykill:evaluate()
+	local ids = ml_task_hub:CurrentTask().params["ids"]
+    if (ValidTable(ids)) then
+		for prio, id in pairsByKeys(ids) do
+			--don't bother checking for targets lower or equal priority vs our current
+			local currPrio = ml_task_hub:ThisTask().currentPrio
+			if ((currPrio > 0 and prio < currPrio) or not Player.incombat) then
+				local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
+				if(ValidTable(el)) then
+					local id, entity = next(el)
+					if(entity) then
+						e_questprioritykill.id = id
+						return true
+					end
+				end
+			end
+		end
+    end
+	
+	return false
+end
+function e_questprioritykill:execute()
+	local newTask = ffxiv_task_killtarget.Create()
+	newTask.targetid = e_questprioritykill.id
+	newTask.task_complete_execute = 
+		function()
+			ml_task_hub:CurrentTask():ParentTask().currentPrio = 0
+			ml_task_hub:CurrentTask().completed = true
+		end
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 c_atinteract = inheritsFrom( ml_cause )
 e_atinteract = inheritsFrom( ml_effect )
 function c_atinteract:evaluate()
@@ -340,11 +356,7 @@ end
 c_questgrind = inheritsFrom( ml_cause )
 e_questgrind = inheritsFrom( ml_effect )
 function c_questgrind:evaluate()
-	local params = ml_task_hub:CurrentTask().params
-	local level = params["stoplevel"]
-	local mapid = params["mapid"]
-	
-	return Player.level < level and Player.localmapid == mapid
+	return true
 end
 function e_questgrind:execute()
 	--set fate variables properly
@@ -359,8 +371,27 @@ function e_questgrind:execute()
 	local newTask = ffxiv_task_grind.Create()
 	newTask.task_complete_eval = 
 		function()
-			return Player.level >= ml_task_hub:CurrentTask().params["stoplevel"]
+			return c_nextquest:evaluate()
 		end
 	--start grind task
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_changenavmesh = inheritsFrom( ml_cause )
+e_changenavmesh = inheritsFrom( ml_effect )
+function c_changenavmesh:evaluate()
+	local step = ml_task_hub:ThisTask().currentStep.params
+	if(ValidTable(step)) then
+		if(step.params["meshname"] ~= nil) then
+			if(	step.params["meshname"] ~= NavigationManager:GetNavMeshName() and
+				Player.localmapid == step.params["mapid"]) 
+			then
+				e_changenavmesh.meshname = step.params["meshname"]
+				return true
+			end
+		end
+	end
+end
+function e_changenavmesh:execute()
+	mm.ChangeNavMesh(step.params["meshname"])
 end

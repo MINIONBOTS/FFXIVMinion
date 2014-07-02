@@ -84,7 +84,8 @@ function ml_global_information.OnUpdate( event, tickcount )
 		--update marker status
 		if (	gBotMode == strings[gCurrentLanguage].grindMode or
 				gBotMode == strings[gCurrentLanguage].gatherMode or
-				gBotMode == strings[gCurrentLanguage].fishMode) and (
+				gBotMode == strings[gCurrentLanguage].fishMode or
+				gBotMode == strings[gCurrentLanguage].questMode) and (
 				ValidTable(GetCurrentMarker())) and
 				ml_task_hub.shouldRun
 		then

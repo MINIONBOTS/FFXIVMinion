@@ -48,7 +48,8 @@ c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
     if ((gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) or
-		 gDoFates == "1" and gFatesOnly == "1") 
+		(gDoFates == "1" and gFatesOnly == "1") or
+		(not ml_marker_mgr.markersLoaded)) 
 	then
         return false
     end

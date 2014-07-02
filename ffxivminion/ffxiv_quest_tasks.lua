@@ -50,6 +50,12 @@ function ffxiv_quest_task:Init()
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 20 )
     self:add( ke_questIsComplete, self.process_elements)
 	
+	local ke_changeNavMesh = ml_element:create( "ChangeNavMesh", c_changenavmesh, e_changenavmesh, 100 )
+    self:add( ke_changeNavMesh, self.overwatch_elements)
+	
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 105 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+	
 	self:AddTaskCheckCEs()
 end
 
@@ -295,6 +301,63 @@ function ffxiv_quest_kill:task_complete_eval()
 end
 
 ------------------------------------------------------
+--dutykill quest
+--this is a general purpose quest task for fights
+--where multiple mobs need to be prioritized 
+------------------------------------------------------
+
+ffxiv_quest_dutykill = inheritsFrom(ml_task)
+ffxiv_quest_dutykill.name = "QUEST_DUTYKILL"
+
+function ffxiv_quest_dutykill.Create()
+    local newinst = inheritsFrom(ffxiv_quest_dutykill)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_DUTYKILL"
+	newinst.currentPrio = 0
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_dutykill:Init()
+    --priority kill runs in overwatch so it can switch targets when necessary
+	local ke_questPriorityKill = ml_element:create( "QuestPriorityKill", c_questprioritykill, e_questprioritykill, 20 )
+    self:add( ke_questPriorityKill, self.overwatch_elements)
+	
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.process_elements)
+	
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_quest_dutykill:task_complete_eval()
+	local ids = self.params["ids"]
+	local idstring = ""
+	for prio, id in pairsByKeys(ids) do
+		idstring = idstring..tostring(id)..";"
+	end
+	idstring = TrimString(idstring, 1)
+
+	return TableSize(EntityList("onmesh,alive,attackable,contentid="..idstring)) == 0
+end
+
+------------------------------------------------------
 --nav helper
 ------------------------------------------------------
 
@@ -360,10 +423,6 @@ function ffxiv_quest_grind.Create()
 	newinst.stepCompleted = false
     
     return newinst
-end
-
-function ffxiv_quest_grind:task_complete_eval()
-	return self.params["stoplevel"] <= Player.level
 end
 
 function ffxiv_quest_grind:Init()

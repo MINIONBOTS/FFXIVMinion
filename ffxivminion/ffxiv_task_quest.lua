@@ -157,7 +157,7 @@ function c_nextquest:evaluate()
 		return true
 	end
 
-	for id, quest in pairs(ml_task_hub:CurrentTask().questList) do
+	for id, quest in pairs(ffxiv_task_quest.questList) do
 		if (quest:canStart()) then
 			e_nextquest.quest = quest
 			return true
@@ -178,10 +178,32 @@ function e_nextquest:execute()
 	end
 end
 
+c_questaddgrind = inheritsFrom( ml_cause )
+e_questaddgrind = inheritsFrom( ml_effect )
+function c_questaddgrind:evaluate()
+	-- we should always go grind if we can't find a quest to do
+	-- might need to tweak this later?
+	return true
+end
+function e_questaddgrind:execute()
+	local grindmap = GetBestGrindMap()
+	
+	local newTask = ffxiv_quest_grind.Create()
+	newTask.task_complete_eval = 
+		function()
+			return c_nextquest:evaluate()
+		end
+	newTask.params["mapid"] = grindmap
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 function ffxiv_task_quest:Init()
 	--process elements
     local ke_nextQuest = ml_element:create( "NextQuest", c_nextquest, e_nextquest, 20 )
     self:add( ke_nextQuest, self.process_elements)
+	
+	local ke_questAddGrind = ml_element:create( "QuestAddGrind", c_questaddgrind, e_questaddgrind, 15 )
+    self:add( ke_questAddGrind, self.process_elements)
 	
 	--local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
     --self:add( ke_testQuest, self.process_elements)
@@ -195,6 +217,11 @@ function ffxiv_task_quest:Init()
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
     self:add( ke_rest, self.overwatch_elements)
+	
+	--CANNOT use blocking cnes for overwatch on high level tasks - it badly breaks the framework timing
+	--I'm leaving this here as a warning to anyone else to thinks about adding an isloading check here
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.overwatch_elements)
 	
 	self:AddTaskCheckCEs()
 end
