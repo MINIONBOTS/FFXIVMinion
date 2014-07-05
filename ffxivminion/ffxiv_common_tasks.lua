@@ -106,6 +106,7 @@ function ffxiv_task_movetopos.Create()
     newinst.remainMounted = false
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
+	newinst.use3d = false
     
     return newinst
 end
@@ -186,8 +187,14 @@ function ffxiv_task_movetopos:task_complete_eval()
     if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
         local myPos = Player.pos
         local gotoPos = ml_task_hub:CurrentTask().pos
-        -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference     
-        local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		local distance = 0.0
+		
+		if(ml_task_hub:CurrentTask().use3d) then
+			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		else
+			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		end 
+		
         ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         ml_debug("Task Range: "..tostring(self.range))

@@ -320,7 +320,7 @@ function ffxiv_quest_dutykill.Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     newinst.name = "QUEST_DUTYKILL"
-	newinst.currentPrio = 0
+	newinst.currentPrio = 999
     
     newinst.params = {}
 	newinst.stepCompleted = false
@@ -347,14 +347,8 @@ function ffxiv_quest_dutykill:Init()
 end
 
 function ffxiv_quest_dutykill:task_complete_eval()
-	local ids = self.params["ids"]
-	local idstring = ""
-	for prio, id in pairsByKeys(ids) do
-		idstring = idstring..tostring(id)..";"
-	end
-	idstring = TrimString(idstring, 1)
-
-	return TableSize(EntityList("onmesh,alive,attackable,contentid="..idstring)) == 0
+	local mapid = self.params["mapid"]
+	return Player.localmapid ~= mapid
 end
 
 ------------------------------------------------------

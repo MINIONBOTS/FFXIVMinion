@@ -1018,7 +1018,7 @@ function GetClosestFate(pos)
 		
 			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
 				(fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
-				and fate.completion > tonumber(gFateWaitPercent)) then	
+				and fate.completion >= tonumber(gFateWaitPercent)) then	
 				
 					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
 						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
@@ -1462,23 +1462,23 @@ function GetBestGrindMap()
 						
 	if (level < 15) then
 		if (inthanalan) then
-			return 140
+			return 140 --western than
 		elseif (inshroud) then
-			return 148
+			return 148 --central shroud
 		elseif (inlanoscea) then
-			return 134
+			return 134 --middle la noscea
 		end
 	elseif (level >= 15 and level < 20) then
-		return 152
+		return 152 --east shroud
 	elseif (level >= 20 and level < 25) then
-		return 152
+		return 152 --east shroud
 	elseif (level >= 20 and level < 30) then
-		return 146
+		return 146 --southern than
 	elseif (level >= 30 and level < 35) then
-		return 146
+		return 146 --southern than
 	elseif (level >= 35 and level < 40) then
-		return 139
+		return 139 --upper la noscea
 	else
-		return 180
+		return 180 --outer la noscea
 	end
 end

@@ -76,6 +76,7 @@ function e_nextqueststep:execute()
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
+		ffxiv_task_quest.currentStepParams = task.params
 		ml_task_hub:ThisTask().currentStepCompleted = false
 		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
 		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
@@ -108,7 +109,8 @@ function c_questmovetopos:evaluate()
     if (mapID and mapID > 0) then
         if(Player.localmapid == mapID) then
 			local pos = ml_task_hub:CurrentTask().params["pos"]
-			return Distance2D(Player.pos.x, Player.pos.z, pos.x, pos.z) > 2
+			--return Distance2D(Player.pos.x, Player.pos.z, pos.x, pos.z) > 2
+			return Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > 2
         end
     end
 	
@@ -119,6 +121,7 @@ function e_questmovetopos:execute()
 	local task = ffxiv_task_movetopos.Create()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
+	newTask.use3d = true
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -268,17 +271,18 @@ end
 c_questprioritykill = inheritsFrom( ml_cause )
 e_questprioritykill = inheritsFrom( ml_effect )
 function c_questprioritykill:evaluate()
-	local ids = ml_task_hub:CurrentTask().params["ids"]
+	local ids = ml_task_hub:ThisTask().params["ids"]
     if (ValidTable(ids)) then
 		for prio, id in pairsByKeys(ids) do
 			--don't bother checking for targets lower or equal priority vs our current
-			local currPrio = ml_task_hub:ThisTask().currentPrio
-			if ((currPrio > 0 and prio < currPrio) or not Player.incombat) then
+			local currentPrio = ml_task_hub:ThisTask().currentPrio
+			if ((currentPrio > 0 and prio < currentPrio) or currentPrio == 0) then
 				local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
 				if(ValidTable(el)) then
 					local id, entity = next(el)
 					if(entity) then
 						e_questprioritykill.id = id
+						ml_task_hub:ThisTask().currentPrio = prio
 						return true
 					end
 				end
@@ -296,7 +300,9 @@ function e_questprioritykill:execute()
 			ml_task_hub:CurrentTask():ParentTask().currentPrio = 0
 			ml_task_hub:CurrentTask().completed = true
 		end
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ml_task_hub:ThisTask():DeleteSubTasks()
+	ml_task_hub:ThisTask():AddSubTask(newTask)
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_atinteract = inheritsFrom( ml_cause )
@@ -342,6 +348,7 @@ function c_questyesno:evaluate()
 end
 function e_questyesno:execute()
 	PressYesNo(true)
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_questisloading = inheritsFrom( ml_cause )
@@ -350,7 +357,8 @@ function c_questisloading:evaluate()
 	return Quest:IsLoading()
 end
 function e_questisloading:execute()
-	--do nothing, this is a blocking cne
+	--do nothing, this is a blocking cne\
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_questgrind = inheritsFrom( ml_cause )
@@ -361,9 +369,9 @@ end
 function e_questgrind:execute()
 	--set fate variables properly
 	if(Player.level < 5) then
-		gDoFates = false
+		gDoFates = "0"
 	else
-		gDoFates = true
+		gDoFates = "1"
 		gMinFateLevel = "5"
 		gMaxFateLevel = "5"
 	end
@@ -380,18 +388,20 @@ end
 c_changenavmesh = inheritsFrom( ml_cause )
 e_changenavmesh = inheritsFrom( ml_effect )
 function c_changenavmesh:evaluate()
-	local step = ml_task_hub:ThisTask().currentStep.params
+	local step = ffxiv_task_quest.currentStepParams
 	if(ValidTable(step)) then
-		if(step.params["meshname"] ~= nil) then
-			if(	step.params["meshname"] ~= NavigationManager:GetNavMeshName() and
-				Player.localmapid == step.params["mapid"]) 
+		if(step["meshname"] ~= nil and mm.navmeshfilepath ~= nil) then
+			local meshname = mm.navmeshfilepath..step["meshname"]
+			if(	meshname ~= NavigationManager:GetNavMeshName() and
+				Player.localmapid == step["mapid"]) 
 			then
-				e_changenavmesh.meshname = step.params["meshname"]
+				e_changenavmesh.meshname = step["meshname"]
 				return true
 			end
 		end
 	end
 end
 function e_changenavmesh:execute()
-	mm.ChangeNavMesh(step.params["meshname"])
+	mm.ChangeNavMesh(e_changenavmesh.meshname)
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end

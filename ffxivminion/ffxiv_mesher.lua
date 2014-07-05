@@ -167,6 +167,9 @@ function mm.ReadMarkerList(meshname)
 		
 		ml_marker_mgr.RefreshMarkerNames()
 		--d("Markers for ["..meshname.."] were loaded.")
+	else
+		--need to set the new marker path
+		ml_marker_mgr.markerPath = infopath
 	end
 end
 

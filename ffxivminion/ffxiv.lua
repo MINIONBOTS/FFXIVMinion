@@ -219,12 +219,12 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ml_global_information.MainWindow.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
 	GUI_WindowVisible(GetString("advancedSettings"), false)
-	
+		
     GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
 	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
+	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
-    GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
     GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
     GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
@@ -268,7 +268,7 @@ function ffxivminion.HandleInit()
     gFFXIVMINIONTask = ""
     gBotRunning = "0"
     
-    --GUI_FoldGroup(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botStatus );
+    GUI_UnFoldGroup(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botStatus );
     GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].settings)
     
     gEnableLog = Settings.FFXIVMINION.gEnableLog
@@ -486,6 +486,8 @@ function ffxivminion.SetMode(mode)
 			ffxiv_task_duty.UpdateProfiles()
 		elseif (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
+			gSkipCutscene = "1"
+			gSkipDialogue = "1"
 		else
 			gProfile_listitems = "NA"
 			gProfile = "NA"

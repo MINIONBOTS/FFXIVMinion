@@ -563,11 +563,17 @@ function c_walktopos:evaluate()
         if (ActionList:IsCasting()) then
             return false
         end
-        
+		
         local myPos = Player.pos
         local gotoPos = ml_task_hub:CurrentTask().pos
-        -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference     
-        local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		
+        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
+		local distance = 0.0
+		if(ml_task_hub:CurrentTask().use3d) then
+			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		else
+			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		end
         --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         --d("Current Distance: "..tostring(distance))

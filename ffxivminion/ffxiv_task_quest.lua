@@ -3,6 +3,7 @@ ffxiv_task_quest.name = "LT_QUEST_ENGINE"
 ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]]
 ffxiv_task_quest.questList = {}
 ffxiv_task_quest.currentQuest = {}
+ffxiv_task_quest.currentStepParams = {}
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -27,6 +28,7 @@ function ffxiv_task_quest.UIInit()
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
 	GUI_NewField(ml_global_information.MainWindow.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ml_global_information.MainWindow.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
+	GUI_NewCheckbox(ml_global_information.MainWindow.Name,"TestQuest","gTestQuest",strings[gCurrentLanguage].botStatus );
 	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
 	
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
@@ -49,6 +51,10 @@ function ffxiv_task_quest.UIInit()
 		Settings.FFXIVMINION.currentQuestStep = 0
 	end
 	
+	if (Settings.FFXIVMINION.gTestQuest == nil) then
+        Settings.FFXIVMINION.gTestQuest = "0"
+    end
+	
 	if(gBotMode == GetString("questMode")) then
 		ffxiv_task_quest.UpdateProfiles()
 	end
@@ -57,6 +63,7 @@ function ffxiv_task_quest.UIInit()
 	
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID
 	gCurrQuestStep = Settings.FFXIVMINION.gCurrQuestStep
+	gTestQuest = Settings.FFXIVMINION.gTestQuest
 end
 
 function ffxiv_task_quest.SetQuest()
@@ -126,7 +133,7 @@ end
 c_testquest = inheritsFrom( ml_cause )
 e_testquest = inheritsFrom( ml_effect )
 function c_testquest:evaluate()
-	if(gCurrQuestID ~= "" and tonumber(gCurrQuestID) > 0) then
+	if(gCurrQuestID ~= "" and tonumber(gCurrQuestID) > 0 and gTestQuest == "1") then
 		return ValidTable(ffxiv_task_quest.questList[tonumber(gCurrQuestID)])
 	end
 end
@@ -205,8 +212,8 @@ function ffxiv_task_quest:Init()
 	local ke_questAddGrind = ml_element:create( "QuestAddGrind", c_questaddgrind, e_questaddgrind, 15 )
     self:add( ke_questAddGrind, self.process_elements)
 	
-	--local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
-    --self:add( ke_testQuest, self.process_elements)
+	local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
+    self:add( ke_testQuest, self.process_elements)
 	
 	--overwatch elements
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
@@ -220,8 +227,8 @@ function ffxiv_task_quest:Init()
 	
 	--CANNOT use blocking cnes for overwatch on high level tasks - it badly breaks the framework timing
 	--I'm leaving this here as a warning to anyone else to thinks about adding an isloading check here
-	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    --self:add( ke_questIsLoading, self.overwatch_elements)
+	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    self:add( ke_questIsLoading, self.overwatch_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -232,7 +239,8 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
 			Settings.FFXIVMINION["gLastQuestProfile"] = v
         elseif (k == "gCurrQuestID" or
-				k == "gCurrQuestStep" )
+				k == "gCurrQuestStep" or
+				k == "gTestQuest" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end

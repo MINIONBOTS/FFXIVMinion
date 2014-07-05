@@ -62,6 +62,7 @@ function c_nextgrindmarker:evaluate()
             marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
         
 			if (marker == nil) then
+				d("test2")
 				ml_task_hub:CurrentTask().filterLevel = false
 				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
 			end	
@@ -248,6 +249,7 @@ function ffxiv_task_grind.UIInit()
 	
     GUI_NewButton(mm.mainwindow.name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",GetString("editor"))
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
+	GUI_SizeWindow(mm.mainwindow.name,mm.mainwindow.w,mm.mainwindow.h)
     
     -- Fates
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doAtma, "gAtma",GetString("grindMode"))

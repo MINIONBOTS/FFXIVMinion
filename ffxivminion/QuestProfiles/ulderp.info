@@ -343,8 +343,9 @@ local obj1 = {
 					["type"] = "complete";
 					["itemturnin"] = true;
 					["itemrewardslot"] = 0;
-					["id"] = 1001455;
+					["id"] = 1001541;
 					["itemreward"] = false;
+					["meshname"] = "Central Thanalan";
 					["mapid"] = 141;
 					["pos"] = {
 						["y"] = -11.35000038147;
@@ -355,6 +356,97 @@ local obj1 = {
 			};
 			["level"] = 5;
 			["prereq"] = false;
+		};
+		[324] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 141;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1001541;
+					["itemreward"] = false;
+					["meshname"] = "Central Thanalan";
+					["pos"] = {
+						["y"] = -11.35000038147;
+						["x"] = -96.835586547852;
+						["z"] = -41.831562042236;
+					};
+				};
+				[2] = {
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["mapid"] = 141;
+					["id"] = 1001462;
+					["itemreward"] = false;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = -11.35000038147;
+						["x"] = -94.161270141602;
+						["z"] = -43.533920288086;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["mapid"] = 141;
+					["id"] = 1001466;
+					["itemreward"] = false;
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -11.39999961853;
+						["x"] = -89.800003051758;
+						["z"] = -51.599998474121;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["mapid"] = 141;
+					["id"] = 1001465;
+					["itemreward"] = false;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = -11.5;
+						["x"] = -90.099998474121;
+						["z"] = -53.700000762939;
+					};
+				};
+				[5] = {
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["mapid"] = 141;
+					["id"] = 1001463;
+					["itemreward"] = false;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = 14.699999809265;
+						["x"] = -94;
+						["z"] = -47.200000762939;
+					};
+				};
+				[6] = {
+					["itemturninid"] = {
+						[1] = 2000234;
+					};
+					["mapid"] = 141;
+					["type"] = "complete";
+					["itemturnin"] = true;
+					["id"] = 1001541;
+					["itemreward"] = false;
+					["meshname"] = "Central Thanalan";
+					["pos"] = {
+						["y"] = -11.35000038147;
+						["x"] = -96.835586547852;
+						["z"] = -41.831562042236;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[-1] = {
+					[1] = 303;
+				};
+			};
 		};
 		[306] = {
 			["steps"] = {
