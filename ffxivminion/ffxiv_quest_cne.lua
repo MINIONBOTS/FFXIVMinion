@@ -28,6 +28,7 @@ function e_questcanstart:execute()
 		ml_task_hub:CurrentTask().currentStepIndex = 1
 		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().currentStepIndex)
 		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
+		ffxiv_task_quest.currentStepParams = task.params
 	end
 end
 

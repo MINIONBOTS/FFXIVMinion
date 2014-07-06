@@ -4,6 +4,7 @@ function ffxiv_quest.Create()
 	local quest = inheritsFrom(ffxiv_quest)
 	
 	quest.id = 0
+	quest.job = 0
 	quest.level = 0
 	quest.prereq = {}
 	quest.steps = {}
@@ -21,6 +22,10 @@ end
 
 function ffxiv_quest:canStart()
 	if (self:isComplete()) then
+		return false
+	end
+	
+	if(self.job ~= 0 and Player.job ~= self.job) then
 		return false
 	end
 	
