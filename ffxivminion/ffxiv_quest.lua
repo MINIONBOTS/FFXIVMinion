@@ -25,7 +25,7 @@ function ffxiv_quest:canStart()
 		return false
 	end
 	
-	if(self.job ~= 0 and Player.job ~= self.job) then
+	if(self.job ~= -1 and Player.job ~= self.job) then
 		return false
 	end
 	

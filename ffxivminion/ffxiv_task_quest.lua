@@ -120,7 +120,12 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 				quest.level = questTable.level
 				quest.prereq = questTable.prereq
 				quest.steps = questTable.steps
-				quest.job = questTable.job
+				
+				if(questTable.job ~= nil) then
+					quest.job = questTable.job
+				else
+					quest.job = -1
+				end
 				
 				ffxiv_task_quest.questList[id] = quest
 			end
