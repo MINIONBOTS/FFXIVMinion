@@ -1,0 +1,101 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[40] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -3.9201908111572;
+						["x"] = -76.525634765625;
+						["z"] = 51.152671813965;
+					};
+				};
+				[2] = {
+					["type"] = "textcommand";
+					["commandstring"] = /bow;
+					["id"] = 1000161;
+					["itemreward"] = false;
+					["mapid"] = 132;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -3.4136574268341;
+						["x"] = -77.495300292969;
+						["z"] = 40.309078216553;
+					};
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 0;
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -3.8929038047791;
+						["x"] = -76.867431640625;
+						["z"] = 52.745281219482;
+					};
+				};
+				[4] = {
+					["type"] = "textcommand";
+					["commandstring"] = /joy;
+					["id"] = 1000161;
+					["mapid"] = 132;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = -3.3701128959656;
+						["x"] = -77.609245300293;
+						["z"] = 39.830451965332;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 0;
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -3.6860589981079;
+						["x"] = -77.525260925293;
+						["z"] = 52.119216918945;
+					};
+				};
+				[6] = {
+					["type"] = "textcommand";
+					["commandstring"] = /dance;
+					["id"] = 1000161;
+					["itemreward"] = false;
+					["mapid"] = 132;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = -3.3514738082886;
+						["x"] = -77.365615844727;
+						["z"] = 38.982490539551;
+					};
+				};
+				[7] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -3.8144431114197;
+						["x"] = -77.067001342773;
+						["z"] = 52.406387329102;
+					};
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = false;
+		};
+	};
+}
+return obj1

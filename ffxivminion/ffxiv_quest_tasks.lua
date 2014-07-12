@@ -104,11 +104,11 @@ function ffxiv_quest_start:Init()
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
-	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    self:add( ke_questIsLoading, self.process_elements)
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
 	
-	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
-    self:add( ke_questYesNo, self.overwatch_elements)
+	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    --self:add( ke_questYesNo, self.overwatch_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -182,11 +182,11 @@ function ffxiv_quest_complete:Init()
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
-	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
-    self:add( ke_questYesNo, self.overwatch_elements)
+	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    --self:add( ke_questYesNo, self.overwatch_elements)
 	
-	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    self:add( ke_questIsLoading, self.process_elements)
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -234,11 +234,11 @@ function ffxiv_quest_interact:Init()
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
-	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
-    self:add( ke_questYesNo, self.overwatch_elements)
+	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    --self:add( ke_questYesNo, self.overwatch_elements)
 	
-	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    self:add( ke_questIsLoading, self.process_elements)
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
 
 	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
@@ -282,8 +282,8 @@ function ffxiv_quest_kill:Init()
 	local ke_questKill = ml_element:create( "QuestKill", c_questkill, e_questkill, 20 )
     self:add( ke_questKill, self.process_elements)
 	
-	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    self:add( ke_questIsLoading, self.process_elements)
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -339,8 +339,8 @@ function ffxiv_quest_dutykill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
-	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    self:add( ke_questIsLoading, self.process_elements)
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -427,6 +427,98 @@ function ffxiv_quest_grind:Init()
 	local ke_questGrind = ml_element:create( "QuestGrind", c_questgrind, e_questgrind, 20 )
     self:add( ke_questGrind, self.process_elements)
 
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+ffxiv_quest_textcommand = inheritsFrom(ml_task)
+ffxiv_quest_textcommand.name = "QUEST_TEXTCOMMAND"
+
+function ffxiv_quest_textcommand.Create()
+    local newinst = inheritsFrom(ffxiv_quest_textcommand)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_TEXTCOMMAND"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_textcommand:Init()
+    --init ProcessOverWatch cnes
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 20 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questTextCommand = ml_element:create( "QuestTextCommand", c_questtextcommand, e_questtextcommand, 15 )
+    self:add( ke_questTextCommand, self.process_elements)
+	
+	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    --self:add( ke_questYesNo, self.overwatch_elements)
+	
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
+
+	self.task_complete_eval = quest_step_complete_eval
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+ffxiv_quest_useitem = inheritsFrom(ml_task)
+ffxiv_quest_useitem.name = "QUEST_INTERACT"
+
+function ffxiv_quest_useitem.Create()
+    local newinst = inheritsFrom(ffxiv_quest_useitem)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_USEITEM"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_useitem:Init()
+    --init ProcessOverWatch cnes
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questUseItem = ml_element:create( "QuestUseItem", c_questuseitem, e_questuseitem, 10 )
+    self:add( ke_questUseItem, self.process_elements)
+	
+	local ke_questAtInteract = ml_element:create( "QuestUseItem", c_atinteract, e_atinteract, 10 )
+    self:add( ke_questAtInteract, self.overwatch_elements)
+	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
+    --self:add( ke_questYesNo, self.overwatch_elements)
+	
+	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
+    --self:add( ke_questIsLoading, self.process_elements)
+
+	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

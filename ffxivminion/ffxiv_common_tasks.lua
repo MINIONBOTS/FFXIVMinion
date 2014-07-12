@@ -107,6 +107,7 @@ function ffxiv_task_movetopos.Create()
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
 	newinst.use3d = false
+	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
     
     return newinst
 end
@@ -123,6 +124,9 @@ function ffxiv_task_movetopos:Init()
     -- The parent needs to take care of checking and updating the position of this task!!	
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
     self:add( ke_walkToPos, self.process_elements)
+	
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 10 )
+    self:add( ke_teleportToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

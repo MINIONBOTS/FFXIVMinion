@@ -379,6 +379,10 @@ function e_movetogate:execute()
 		local newPos = GetPosFromDistanceHeading(pos, 1.5, pos.h)
 		newTask.pos = newPos
 		newTask.range = 0.5
+		
+		if(gTeleport == "1") then
+			newTask.useTeleport = true
+		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
@@ -1182,3 +1186,49 @@ function e_completequest:execute()
 	Quest:CompleteQuestReward(1)
 end
 
+c_teleporttopos = inheritsFrom( ml_cause )
+e_teleporttopos = inheritsFrom( ml_effect )
+c_teleporttopos.pos = 0
+function c_teleporttopos:evaluate()
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
+        if (ActionList:IsCasting()) then
+            return false
+        end
+		
+		if (not ml_task_hub:CurrentTask().useTeleport) then
+			return false
+		end
+		
+        local myPos = Player.pos
+        local gotoPos = ml_task_hub:CurrentTask().pos
+		
+        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
+		local distance = 0.0
+		if(ml_task_hub:CurrentTask().use3d) then
+			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		else
+			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		end
+        --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
+        --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+        --d("Current Distance: "..tostring(distance))
+        --d("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
+        
+        if (distance > ml_task_hub:CurrentTask().range) then
+            c_teleporttopos.pos = gotoPos
+            return true
+        end
+    end
+    return false
+end
+function e_teleporttopos:execute()
+    if ( c_teleporttopos.pos ~= 0) then
+        local gotoPos = c_teleporttopos.pos
+        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+		Player:SetFacingSynced(math.random())
+		--d(tostring(PathSize))
+    else
+        ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
+    end
+    c_teleporttopos.pos = 0
+end

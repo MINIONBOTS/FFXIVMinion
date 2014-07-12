@@ -123,6 +123,11 @@ function e_questmovetopos:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.use3d = true
+	
+	if(gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -405,4 +410,68 @@ end
 function e_changenavmesh:execute()
 	mm.ChangeNavMesh(e_changenavmesh.meshname)
 	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_questtextcommand = inheritsFrom( ml_cause )
+e_questtextcommand = inheritsFrom( ml_effect )
+function c_questtextcommand:evaluate()
+	local textstring = ml_task_hub:ThisTask().params["commandstring"]
+	if(textstring == nil) then
+		return false
+	end
+
+	local id = ml_task_hub:ThisTask().params["id"]
+    if (id and id > 0) then
+		local el = EntityList("contentid="..tostring(id))
+		if(ValidTable(el)) then
+			local id, entity = next(el)
+			if(entity) then
+				if (entity.distance < 6) 
+				then
+					e_questtextcommand.id = id
+					return true
+				else
+					return false
+				end
+			end
+        end
+    end
+	
+	return true
+end
+function e_questtextcommand:execute()
+	if(e_questtextcommand.id) then
+		Player:Target(e_questtextcommand.id)
+	end
+	
+	SendTextCommand(ml_task_hub:ThisTask().params["commandstring"])
+	ml_task_hub:ThisTask().stepCompleted = true
+end
+
+c_questuseitem = inheritsFrom( ml_cause )
+e_questuseitem = inheritsFrom( ml_effect )
+function c_questuseitem:evaluate()
+	if(ml_task_hub:CurrentTask().params["itemid"]) then
+		local id = ml_task_hub:CurrentTask().params["itemid"]
+		local item = Inventory:Get(id)
+		if(ValidTable(item)) then
+			return true
+		else
+			ml_error("No item with specified ID found in inventory")
+			return false
+		end
+	else
+		ml_error("No itemid found in profile")
+		return false
+	end
+end
+function e_questuseitem:execute()
+	local item = Inventory:Get(ml_task_hub:CurrentTask().params["itemid"])
+	if(ml_task_hub:CurrentTask().params["id"]) then
+		item:Use(ml_task_hub:CurrentTask().params["id"])
+	else
+		item:Use()
+	end
+		
+	ml_task_hub:ThisTask().stepCompleted = true
 end
