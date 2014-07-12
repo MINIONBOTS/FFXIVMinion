@@ -90,4 +90,6 @@ ffxiv_quest.tasks =
 	["nav"]			= ffxiv_quest_nav.Create,
 	["accept"]		= ffxiv_quest_accept.Create,
 	["dutykill"]	= ffxiv_quest_dutykill.Create,
+	["textcommand"] = ffxiv_quest_textcommand.Create,
+	["useitem"] 	= ffxiv_quest_useitem.Create,
 }
