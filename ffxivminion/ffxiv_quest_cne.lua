@@ -229,6 +229,11 @@ function e_questhandover:execute()
 					Quest:RequestHandOver()
 					if (ml_task_hub:CurrentTask().params["type"] == "interact") then
 						ml_task_hub:CurrentTask().stepCompleted = true
+						-- if using teleport the bot teleports and desyncs from the npc before the handover 
+						-- exchange is completed with the server - need to delay it a bit to be safe
+						if (gTeleport == "1") then
+							ml_task_hub:CurrentTask():SetDelay(2000)
+						end
 					end
 				end
 			end
@@ -245,7 +250,7 @@ e_questkill = inheritsFrom( ml_effect )
 function c_questkill:evaluate()
 	local id = ml_task_hub:CurrentTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
+		local el = EntityList("shortestpath,onmesh,notincombat,alive,attackable,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(entity) then
@@ -314,6 +319,11 @@ end
 c_atinteract = inheritsFrom( ml_cause )
 e_atinteract = inheritsFrom( ml_effect )
 function c_atinteract:evaluate()
+	-- if the current task is under delay then don't break it
+	if (ml_task_hub:CurrentTask():IsDelayed()) then
+		return false
+	end
+
 	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 		local id = ml_task_hub:ThisTask().params["id"]
 		if (id and id > 0) then
@@ -441,7 +451,7 @@ function c_questtextcommand:evaluate()
 end
 function e_questtextcommand:execute()
 	if(e_questtextcommand.id) then
-		Player:Target(e_questtextcommand.id)
+		Player:SetTarget(e_questtextcommand.id)
 	end
 	
 	SendTextCommand(ml_task_hub:ThisTask().params["commandstring"])

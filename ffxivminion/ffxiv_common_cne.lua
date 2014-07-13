@@ -376,8 +376,9 @@ function e_movetogate:execute()
 												ml_task_hub:CurrentTask().destMapID	)
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
-		local newPos = GetPosFromDistanceHeading(pos, 1.5, pos.h)
-		newTask.pos = newPos
+		local newPos = GetPosFromDistanceHeading(pos, 5, pos.h)
+		newTask.pos = pos
+		newTask.gatePos = newPos
 		newTask.range = 0.5
 		
 		if(gTeleport == "1") then
@@ -569,7 +570,15 @@ function c_walktopos:evaluate()
         end
 		
         local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos
+        local gotoPos
+		
+		-- if we're doing map navigation then we have extended the moveto pos beyond the gate to 
+		-- make sure the bot runs through it...use the gatePos instead of the original position
+		if(ml_task_hub:CurrentTask().gatePos) then
+			gotoPos = ml_task_hub:CurrentTask().gatePos
+		else
+			gotoPos = ml_task_hub:CurrentTask().pos
+		end
 		
         -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
 		local distance = 0.0
@@ -1209,12 +1218,8 @@ function c_teleporttopos:evaluate()
 		else
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end
-        --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
-        --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-        --d("Current Distance: "..tostring(distance))
-        --d("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
         
-        if (distance > ml_task_hub:CurrentTask().range) then
+        if (distance > 10) then
             c_teleporttopos.pos = gotoPos
             return true
         end
@@ -1224,8 +1229,10 @@ end
 function e_teleporttopos:execute()
     if ( c_teleporttopos.pos ~= 0) then
         local gotoPos = c_teleporttopos.pos
+		Player:Stop()
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		Player:SetFacingSynced(math.random())
+		ml_task_hub:CurrentTask():SetDelay(1500)
 		--d(tostring(PathSize))
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")

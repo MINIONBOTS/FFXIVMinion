@@ -166,6 +166,10 @@ function ml_task:SetDelay(delayTimer)
 	end
 end
 
+function ml_task:IsDelayed()
+	return TimeSince(self.delayTime) < self.delayTimer
+end
+
 --These functions ARE overwritten in derived tasks
 
 -- Place all element init for the element lists here, it will be called when the task is added

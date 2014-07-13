@@ -1883,24 +1883,12 @@ local obj1 = {
 		[307] = {
 			["steps"] = {
 				[2] = {
-					["type"] = "interact";
-					["itemturnin"] = true;
-					["mapid"] = 141;
-					["id"] = 2000268;
-					["itemreward"] = false;
-					["delay"] = 0;
-					["pos"] = {
-						["y"] = 13;
-						["x"] = 25.569385528564;
-						["z"] = 49.508972167969;
-					};
-				};
-				[3] = {
 					["type"] = "useitem";
 					["itemturnin"] = false;
 					["mapid"] = 141;
-					["id"] = 2000212;
+					["itemid"] = 2000212;
 					["itemreward"] = false;
+					["id"] = 2000268;
 					["delay"] = 0;
 					["pos"] = {
 						["y"] = 13;
@@ -1921,7 +1909,7 @@ local obj1 = {
 						["z"] = -147.8729095459;
 					};
 				};
-				[4] = {
+				[3] = {
 					["mapid"] = 141;
 					["type"] = "kill";
 					["id"] = 575;
@@ -1933,7 +1921,7 @@ local obj1 = {
 						["z"] = 49.887340545654;
 					};
 				};
-				[5] = {
+				[4] = {
 					["mapid"] = 141;
 					["type"] = "complete";
 					["id"] = 1001447;

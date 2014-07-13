@@ -190,7 +190,14 @@ function ffxiv_task_movetopos:task_complete_eval()
 
     if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
         local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos
+		
+		local gotoPos
+		if(ml_task_hub:CurrentTask().gatePos) then
+			gotoPos = ml_task_hub:CurrentTask().gatePos
+		else
+			gotoPos = ml_task_hub:CurrentTask().pos
+		end
+		
 		local distance = 0.0
 		
 		if(ml_task_hub:CurrentTask().use3d) then

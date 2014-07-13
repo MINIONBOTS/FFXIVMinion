@@ -231,10 +231,11 @@ function ffxiv_task_quest:Init()
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
     self:add( ke_rest, self.overwatch_elements)
 	
-	--CANNOT use blocking cnes for overwatch on high level tasks - it badly breaks the framework timing
-	--I'm leaving this here as a warning to anyone else to thinks about adding an isloading check here
 	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
     self:add( ke_questIsLoading, self.overwatch_elements)
+	
+	local ke_questInDialog = ml_element:create( "QuestInDialog", c_questindialog, e_questindialog, 105 )
+    self:add( ke_questInDialog, self.overwatch_elements)
 	
 	self:AddTaskCheckCEs()
 end
