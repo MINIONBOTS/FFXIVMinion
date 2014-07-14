@@ -23,11 +23,11 @@ function ffxiv_task_quest.Create()
 end
 
 function ffxiv_task_quest.UIInit()
-	GUI_NewButton(ml_global_information.MainWindow.Name,"SetQuest","ffxiv_task_quest.SetQuest",strings[gCurrentLanguage].questMode)
+	GUI_NewButton(ffxivminion.Windows.Main.Name,"SetQuest","ffxiv_task_quest.SetQuest",strings[gCurrentLanguage].questMode)
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
-	GUI_NewField(ml_global_information.MainWindow.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
-	GUI_NewField(ml_global_information.MainWindow.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
-	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
+	GUI_NewField(ffxivminion.Windows.Main.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
+	GUI_NewField(ffxivminion.Windows.Main.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
+	--GUI_UnFoldGroup(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].questMode)
 	
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
         Settings.FFXIVMINION.gLastQuestProfile = ""
@@ -53,7 +53,7 @@ function ffxiv_task_quest.UIInit()
 		ffxiv_task_quest.UpdateProfiles()
 	end
     
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,178,357)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,178,357)
 	
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID
 	gCurrQuestStep = Settings.FFXIVMINION.gCurrQuestStep
@@ -210,7 +210,7 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_quest.GUIVarUpdate)

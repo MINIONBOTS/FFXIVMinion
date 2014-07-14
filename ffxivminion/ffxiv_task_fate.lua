@@ -125,6 +125,9 @@ c_teletofate = inheritsFrom( ml_cause )
 e_teletofate = inheritsFrom( ml_effect )
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
+c_teletofate.initiatemove = false
+c_teletofate.stopmove = false
+c_teletofate.movethrottle = 0
 function c_teletofate:evaluate()
 	if (gTeleport == "0") then
 		return false
@@ -141,9 +144,15 @@ function c_teletofate:evaluate()
 		return false
 	end
 	
-	if TimeSince(c_teletofate.lastTele) < 10000 then
-		ml_debug("Can't teleport, it's been too soon off.")
-		return false
+	if Now() < c_teletofate.lastTele then
+		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
+			return true
+		elseif (c_teletofate.initiatemove and not c_teletofate.stopmove and Now() > c_teletofate.movethrottle) then
+			return true
+		elseif (c_teletofate.initiatemove and c_teletofate.stopmove) then
+			ml_debug("Can't teleport, it's been too soon off.")
+			return false
+		end
 	end
 	
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
@@ -155,9 +164,11 @@ function c_teletofate:evaluate()
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
 				
-				if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
-					c_teletofate.pos = dest
-					return true
+				if (dist < 1) then
+					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
+						c_teletofate.pos = dest
+						return true
+					end
 				end
 			end
         end
@@ -167,9 +178,24 @@ function c_teletofate:evaluate()
     return false
 end
 function e_teletofate:execute()
-	local dest = c_teletofate.pos
-	GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
-	c_teletofate.lastTele = Now()
+	if (Now() > c_teletofate.lastTele) then
+		local dest = c_teletofate.pos
+		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+		Player:SetFacingSynced(dest.x,dest.y,dest.z)
+		c_teletofate.lastTele = Now() + 10000
+		c_teletofate.initiatemove = false
+		c_teletofate.stopmove = false
+	else
+		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
+			local pos = c_teletofate.pos
+			Player:MoveToStraight(pos.x+2,pos.y,pos.z,1)
+			c_teletofate.initiatemove = true
+			c_teletofate.movethrottle = Now() + 500
+		elseif (c_teletofate.initiatemove and not c_teletofate.stopmove) then
+			Player:Stop()
+			c_teletofate.stopmove = true
+		end
+	end
 end
 
 -----------------------------------------------------------------------------------------------
@@ -261,7 +287,7 @@ function c_syncfatelevel:evaluate()
     if (ml_task_hub:CurrentTask().name == "MOVETOPOS" or Player:GetSyncLevel() ~= 0) then
         return false
     end
-    
+    local myPos = Player.pos
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
 	if ( fate and TableSize(fate)) then
@@ -282,7 +308,6 @@ end
 
 c_movingfate = inheritsFrom( ml_cause )
 e_movingfate = inheritsFrom( ml_effect )
-c_movingfate.throttle = 1000
 function c_movingfate:evaluate()
     if ( ml_task_hub:CurrentTask().moving) then
         return false
@@ -313,6 +338,9 @@ end
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
+	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 16 )
+    self:add( ke_teleToFate, self.overwatch_elements)
+	
     local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
     self:add( ke_betterFate, self.overwatch_elements)
             
@@ -334,9 +362,6 @@ function ffxiv_task_fate:Init()
         
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
-	
-	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 6 )
-    self:add( ke_teleToFate, self.process_elements)
     
     local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
     self:add( ke_moveToFate, self.process_elements)

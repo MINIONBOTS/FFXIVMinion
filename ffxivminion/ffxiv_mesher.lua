@@ -91,6 +91,8 @@ function mm.ModuleInit()
         Settings.FFXIVMINION.gnewmeshname = ""
     end
 	
+	GUI_NewButton(mm.mainwindow.name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",GetString("editor"))
+    RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].showMesh,"gShowMesh",strings[gCurrentLanguage].editor)	
     GUI_NewField(mm.mainwindow.name,strings[gCurrentLanguage].newMeshName,"gnewmeshname",strings[gCurrentLanguage].editor)
     GUI_NewButton(mm.mainwindow.name,strings[gCurrentLanguage].newMesh,"newMeshEvent",strings[gCurrentLanguage].editor)

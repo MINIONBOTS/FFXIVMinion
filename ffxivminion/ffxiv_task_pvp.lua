@@ -22,6 +22,8 @@ function ffxiv_task_pvp.Create()
 	newinst.fleeing = false
 	newinst.targetPrio = ""
     newinst.leaveTimer = 0
+	newinst.multibotJoin = false
+	newinst.multibotWithdraw = false
 	
 	-- set the correct starting state in case we're already in a pvp map and reload lua
 	if MultiComp(Player.localmapid, "337,175,336,352") then
@@ -44,7 +46,7 @@ e_joinqueuepvp = inheritsFrom( ml_effect )
 function c_joinqueuepvp:evaluate() 
     return ((   not MultiComp(Player.localmapid, "337,175,336,352")) and 
 				(IsLeader() or TableSize(EntityList.myparty) == 0) and
-				not Quest:IsLoading() and
+				not Quest:IsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3 and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
 end
@@ -113,7 +115,6 @@ function c_startcombat:evaluate()
 					return true
 				end
 			end
-		
 		end
 	end
 	
@@ -278,20 +279,37 @@ end
 
 c_confirmEnterPVP = inheritsFrom( ml_cause )
 e_confirmEnterPVP = inheritsFrom( ml_effect )
+e_confirmEnterPVP.confirm = true
 function c_confirmEnterPVP:evaluate()
 	if (ControlVisible("ContentsFinderConfirm")) then
 		if (gMultiBotEnabled == "1") then
-			mb.BroadcastQueueStatus( true )
-			return mb.QueueReady()
+			if ( not ml_task_hub:CurrentTask().multibotWithdraw and not ml_task_hub:CurrentTask().multibotJoin) then
+				mb.BroadcastQueueStatus( true )
+				return false
+			elseif ( ml_task_hub:CurrentTask().multibotWithdraw ) then
+				e_confirmEnterPVP.confirm = false
+				return true
+			elseif ( ml_task_hub:CurrentTask().multibotJoin ) then
+				e_confirmEnterPVP.confirm = true
+				return true
+			end
 		else
 			return (Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336 and Player.localmpaid ~= 352)
 		end
 	end
 end
 function e_confirmEnterPVP:execute()
-	PressDutyConfirm(true)
-	mb.BroadcastQueueStatus( false )
-	ml_task_hub:CurrentTask().state = "DUTY_STARTED"
+	if (gMultiBotEnabled == "1") then
+		local confirm = e_confirmEnterPVP.confirm
+		PressDutyConfirm(confirm)
+		mb.BroadcastQueueStatus( false )
+		if (not confirm ) then
+			ml_task_hub:CurrentTask().state = ""
+		end
+	else
+		PressDutyConfirm(true)
+		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
+	end
 end
 
 function ffxiv_task_pvp:Init()
@@ -402,9 +420,6 @@ function ffxiv_task_pvp:Process()
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
-		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
-			ml_cne_hub.eval_elements(self:superClass().process_elements)
-		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -435,16 +450,16 @@ end
 
 -- UI settings etc
 function ffxiv_task_pvp.UIInit()
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",strings[gCurrentLanguage].pvpMode,"")
+    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
+    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",strings[gCurrentLanguage].pvpMode,"")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",strings[gCurrentLanguage].pvpMode,"")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",strings[gCurrentLanguage].pvpMode,"")
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",strings[gCurrentLanguage].pvpMode)
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pvpSpeedMatchPartner, "gPVPSpeedMatchPartner",strings[gCurrentLanguage].pvpMode)
+	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpSpeedMatchPartner, "gPVPSpeedMatchPartner",strings[gCurrentLanguage].pvpMode)
     --init combo boxes
     local targetTypeList = GetPVPTargetTypes()
     
@@ -494,7 +509,7 @@ function ffxiv_task_pvp.UIInit()
         Settings.FFXIVMINION.gPVPSpeedMatchPartner = ""
     end
     
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
@@ -524,7 +539,7 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 ffxiv_task_pvpavoid = inheritsFrom(ml_task)

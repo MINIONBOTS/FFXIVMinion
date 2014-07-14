@@ -116,7 +116,7 @@ function ffxiv_task_party.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 function ffxiv_task_party.ButtonHandler(arg)
@@ -138,12 +138,12 @@ end
 
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",strings[gCurrentLanguage].PartyGrind)
+    GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",strings[gCurrentLanguage].PartyGrind)
     RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
 
-    GUI_NewField(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", strings[gCurrentLanguage].PartyGrind)
+    GUI_NewField(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", strings[gCurrentLanguage].PartyGrind)
 
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",strings[gCurrentLanguage].PartyGrind)
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",strings[gCurrentLanguage].PartyGrind)
     
     if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
         Settings.FFXIVMINION.gPartyLeaderName = ""

@@ -470,15 +470,15 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
     
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
     
     if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"

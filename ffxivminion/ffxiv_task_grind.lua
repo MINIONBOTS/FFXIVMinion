@@ -47,6 +47,7 @@ end
 c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
+
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
@@ -179,7 +180,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 function ffxiv_task_grind.SetEvacPoint()
@@ -233,7 +234,7 @@ end
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
     -- Grind
-	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].alwaysKillAggro,"gKillAggroAlways",strings[gCurrentLanguage].grindMode)
+	--GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].alwaysKillAggro,"gKillAggroAlways",strings[gCurrentLanguage].grindMode)
 	GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",strings[gCurrentLanguage].grindMode)
 	GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].claimRange, "gClaimRange", 	strings[gCurrentLanguage].grindMode, "0", "50")
 	GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].attackClaimed, "gClaimed",	strings[gCurrentLanguage].grindMode)
@@ -242,23 +243,20 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
-	
-    GUI_NewButton(mm.mainwindow.name, strings[gCurrentLanguage].setEvacPoint, "setEvacPointEvent",GetString("editor"))
-    RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
     
     -- Fates
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doAtma, "gAtma",GetString("grindMode"))
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].doFates, "gDoFates",GetString("grindMode"))
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",GetString("grindMode"))
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].doAtma, "gAtma",GetString("grindMode"))
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].doFates, "gDoFates",GetString("grindMode"))
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",GetString("grindMode"))
     GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].restInFates, "gRestInFates",strings[gCurrentLanguage].fates)
-	--GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies",strings[gCurrentLanguage].fates)
+	--GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].killaggrononfateenemies, "gKillAggroEnemies",strings[gCurrentLanguage].fates)
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", strings[gCurrentLanguage].fates, "0", "50")
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", strings[gCurrentLanguage].fates, "0", "50")
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", strings[gCurrentLanguage].fates, "0", "99")
 	GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", strings[gCurrentLanguage].fates, "0", "99")
-    --GUI_NewNumeric(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", strings[gCurrentLanguage].fates, "30","600")
+    --GUI_NewNumeric(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].blacklistTimer, "gFateBLTimer", strings[gCurrentLanguage].fates, "30","600")
     
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
     
     if (Settings.FFXIVMINION.gDoFates == nil) then
         Settings.FFXIVMINION.gDoFates = "0"

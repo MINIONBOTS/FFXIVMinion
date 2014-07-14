@@ -78,6 +78,7 @@ SkillMgr.Variables = {
 	SKM_PAGB = { default = 0, cast = "number", profile = "pagb", section = "fighting"   },
 	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"   },
 	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"   },
+	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
 	SKM_PTHPL = { default = 0, cast = "number", profile = "pthpl", section = "fighting"   },
 	SKM_PTHPB = { default = 0, cast = "number", profile = "pthpb", section = "fighting"   },
 	SKM_PTMPL = { default = 0, cast = "number", profile = "ptmpl", section = "fighting"   },
@@ -97,6 +98,7 @@ SkillMgr.Variables = {
 	SKM_TECount2 = { default = 0, cast = "number", profile = "tecount2", section = "fighting"   },
 	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting"   },
 	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", section = "fighting"  },
+	--SKM_TESource = { default = "Target", cast = "string", profile = "tesource", section = "fighting"  },
 	SKM_TACount = { default = 0, cast = "number", profile = "tacount", section = "fighting"   },
 	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting"   },
 	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", section = "fighting"   },
@@ -211,12 +213,13 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLock,"SKM_MPLock",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLocked,"SKM_MPLocked",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLockPer,"SKM_MPLockPer",strings[gCurrentLanguage].playerHPMPTP)
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTCount,"SKM_PTCount",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPL,"SKM_PTHPL",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPB,"SKM_PTHPB",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTMPL,"SKM_PTMPL",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTMPB,"SKM_PTMPB",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPL,"SKM_PTTPL",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPB,"SKM_PTTPB",strings[gCurrentLanguage].party)
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPB,"SKM_PTTPB",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
@@ -709,18 +712,18 @@ function SkillMgr.RefreshSkillBook()
 	local job = Player.job
 	
     local SkillList = ActionList("type=1,minlevel=1")
-    if ( TableSize( SkillList ) > 0 ) then
+    if ( ValidTable( SkillList ) ) then
 		for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
-			SkillMgr.CreateNewSkillBookEntry(skill)
+			SkillMgr.CreateNewSkillBookEntry(i)
 		end
     end
 	
 	local SkillList = ActionList("type=1,level=0")
 	--local SkillList = ActionList("type=1")
-    if ( TableSize( SkillList ) > 0 ) then
+    if ( ValidTable( SkillList ) ) then
 		for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 			if (skill.level == 0) then
-				SkillMgr.CreateNewSkillBookEntry(skill, "MiscSkills")
+				SkillMgr.CreateNewSkillBookEntry(i, 1, "MiscSkills")
 			end
 		end
     end
@@ -728,12 +731,12 @@ function SkillMgr.RefreshSkillBook()
 	--summoning pet skills
 	if ( job >= 26 ) then
 		SkillList = ActionList("type=11")
-		if ( TableSize( SkillList) > 0 ) then
+		if ( ValidTable( SkillList) ) then
 			for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 				local actionlvl = skill.level
 				if (actionlvl == nil or actionlvl < 0) then actionlvl = 0 end
 				if (Player.level >= actionlvl) then
-					SkillMgr.CreateNewSkillBookEntry(skill)
+					SkillMgr.CreateNewSkillBookEntry(i, 11)
 				end
 			end
 		end	
@@ -741,42 +744,40 @@ function SkillMgr.RefreshSkillBook()
 	
 	--craftingskills
     if ( job >= 8 and job <=15 ) then
-        SkillList = ActionList("type=9")
-        if ( TableSize( SkillList ) > 0 ) then
-            local i,s = next ( SkillList )
-            while i and s and s.id do
-                SkillMgr.CreateNewSkillBookEntry(s)
-                i,s = next ( SkillList , i )
-            end
-        end
+		local SkillList = ActionList("type=9")
+		if ( ValidTable( SkillList ) ) then
+			for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
+				SkillMgr.CreateNewSkillBookEntry(i, 9)
+			end
+		end
     end
 
     GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
 end
 
 
-function SkillMgr.CreateNewSkillBookEntry(skill, group)
-    if (skill ~= nil ) then
-	
-        local skname = skill.name
-        local skID = skill.id	
+function SkillMgr.CreateNewSkillBookEntry(id, actiontype, group)
+	actiontype = actiontype or 1
+	local action = ActionList:Get(id,actiontype)
+	if (ValidTable(action)) then
+		local skName = action.name
+		local skID = tostring(action.id)	 
 		
-        if ( skname and skname ~= "" and skID ) then			
+		if (group) then
+			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", "SKMAddSkill"..skID, group)
+		else
+			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", "SKMAddSkill"..skID, "AvailableSkills")
+		end
 		
-			if (group == nil) then
-				GUI_NewButton(SkillMgr.skillbook.name, skname.." ["..skID.."]", "SKMAddSkill"..skname,"AvailableSkills")
-			else
-				GUI_NewButton(SkillMgr.skillbook.name, skname.." ["..skID.."]", "SKMAddSkill"..skname, group)
-			end
-			
-            SkillMgr.SkillBook[skname] = skill
-        end		
-    end
+		SkillMgr.SkillBook[skID] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}	
+	else
+		ml_error("Action ID:"..tostring(id)..", Type:"..tostring(actiontype).." is not valid and could not be retrieved.")
+	end
 end
 
 -- Button Handler for Skillbook-skill-buttons
 function SkillMgr.AddSkillToProfile(event)
-    if (SkillMgr.SkillBook[event]) then
+    if (ValidTable(SkillMgr.SkillBook[event])) then
         SkillMgr.CreateNewSkillEntry(SkillMgr.SkillBook[event])
     end
 end
@@ -795,39 +796,38 @@ end
 function SkillMgr.CreateNewSkillEntry(skill)
 	assert(type(skill) == "table", "CreateNewSkillEntry was called with a non-table value.")
 	
-    if (skill ~= nil ) then
-        local skname = skill.name
-        local skID = skill.id
-        local job = Player.job
-		
-        if (skname ~= "" and skID ) then
-			local newskillprio = table.maxn(SkillMgr.SkillProfile)+1
-            local bevent = tostring(newskillprio)
-			
-			GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname.."["..tostring(skID).."]", "SKMEditSkill"..tostring(bevent),"ProfileSkills")
-			
-            SkillMgr.SkillProfile[newskillprio] = {	id = skID, prio = newskillprio, name = skname, used = "1" }
-			if (job >= 8 and job <= 15) then
-				for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "crafting") then
-						SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
-					end
-				end
-			elseif (job >=16 and job <=17) then
-				for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "gathering") then
-						SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
-					end
-				end
-			else
-				for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "fighting") then
-						SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
-					end
-				end
+	if (not skill.name or not skill.id or not skill.type) then
+		return false
+	end
+	
+	local skname = skill.name
+	local skID = skill.id
+	local job = Player.job
+	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
+	local bevent = tostring(newskillprio)
+	
+	GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname.."["..tostring(skID).."]", "SKMEditSkill"..tostring(bevent),"ProfileSkills")
+	
+	SkillMgr.SkillProfile[newskillprio] = {	id = skID, prio = newskillprio, name = skname, used = "1" }
+	if (job >= 8 and job <= 15) then
+		for k,v in pairs(SkillMgr.Variables) do
+			if (v.section == "crafting") then
+				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
 			end
-		end			
-    end
+		end
+	elseif (job >=16 and job <=17) then
+		for k,v in pairs(SkillMgr.Variables) do
+			if (v.section == "gathering") then
+				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+			end
+		end
+	else
+		for k,v in pairs(SkillMgr.Variables) do
+			if (v.section == "fighting") then
+				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+			end
+		end
+	end		
 end	
 
 --+	Button Handler for ProfileList Skills
@@ -996,6 +996,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						tbuffs = ebuffs
 					
 						local castable = true
+						
+						if (skill.name == "Purify" and HasBuffs(Player,"2,3,13,14,280")) then
+							d("Castable of purify before any check = "..tostring(castable))
+						end
 				
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff == "1" and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now) ) then 
@@ -1079,15 +1083,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						-- Party TP/MP checks.
 						if ( castable ) then
 							if ( skill.pthpl ~= 0 or skill.pthpb ~= 0 ) then
-								if ( skill.npc == "1" ) then
-									allyHP = GetLowestHPParty( true, skill.maxRange )
-								else
-									allyHP = GetLowestHPParty( false, skill.maxRange )
-								end
+								allyHP = GetLowestHPParty( skill )
 								
-								if ( allyHP ~= nil ) then
+								if ( skill.ptcount == 0 and allyHP ~= nil ) then
 									if (( skill.pthpl > 0 and skill.pthpl > allyHP.hp.percent ) or
 										( skill.pthpb > 0 and skill.pthpb < allyHP.hp.percent )) then castable = false end
+								elseif (skill.ptcount > 0 and not allyHP) then
+									castable = false
 								else
 									castable = false
 								end
@@ -1111,7 +1113,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end						
 						end
-							
+						
 						-- Player BUFFS
 						if ( castable ) then 							
 							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
@@ -1210,11 +1212,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										castable = false
 									end
 								else
-									if ( skill.npc == "1" ) then
-										ally = GetLowestHPParty( true )
-									else
-										ally = GetLowestHPParty( false )
-									end
+									ally = GetLowestHPParty( skill )
 
 									if ( ally ~= nil ) then
 										target = ally
@@ -1466,7 +1464,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						local tlistAE
 						local attackTable
 						if ( castable and (skill.tecount > 0 or skill.tecount2 > 0) and skill.terange > 0 ) then
-							tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..target.id)
+							tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..TID)
 							attackTable = TableSize(tlistAE)
 			  
 							if ( skill.tecount > 0 and ( attackTable < skill.tecount) ) then
@@ -1491,7 +1489,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 						-- ALLY AE CHECK
 						if ( castable and skill.tacount > 0 and skill.tarange > 0) then
-							plistAE = EntityList("alive,myparty,maxdistance="..skill.tarange..",distanceto="..target.id)
+							plistAE = EntityList("alive,myparty,maxdistance="..skill.tarange..",distanceto="..TID)
 							if (TableSize(plistAE) < skill.tacount) then castable = false end
 						end
 						
@@ -1566,6 +1564,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											SkillMgr.nextSkillID = tostring(skill.nskill)
 											SkillMgr.nextFailedTimer = ml_global_information.Now
 										end
+										return true
 									end					
 								end
 							end
@@ -2373,7 +2372,7 @@ function SkillMgr.IsGCDReady()
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		
-		d("Action cooldown is:"..(tostring(action.cd - action.cdmax)))
+		--d("Action cooldown is:"..(tostring(action.cd - action.cdmax)))
 		if (action.cd - action.cdmax) <= .5	then
 			castable = true
 		end
@@ -2399,10 +2398,20 @@ function ffxiv_task_skillmgrAttack.Create()
     newinst.name = "LT_SM_KILLTARGET"
     newinst.targetid = 0
 	newinst.suppressFollow = false
+	newinst.suppressFollowTimer = 0
     
     return newinst
 end
 
+function ffxiv_task_skillmgrAttack:Init() 	
+	local ke_resetSuppress = ml_element:create( "ResetSuppress", c_resetsuppressions, e_resetsuppressions, 10 )
+    self:add(ke_resetSuppress, self.process_elements)
+	
+	local ke_triggerSuppress = ml_element:create( "TriggerSuppress", c_triggersuppressions, e_triggersuppressions, 5 )
+    self:add(ke_triggerSuppress, self.process_elements)
+	
+    self:AddTaskCheckCEs()
+end
 
 function ffxiv_task_skillmgrAttack:Process()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
@@ -2414,20 +2423,22 @@ function ffxiv_task_skillmgrAttack:Process()
 		
 			
 		if (ml_global_information.AttackRange < 5 and
-			gBotMode == strings[gCurrentLanguage].dutyMode and
+			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
-			ml_task_hub:ThisTask().suppressFollow = true
+			ml_task_hub:CurrentTask().suppressFollow = true
+			ml_task_hub:CurrentTask().suppressFollowTimer = Now() + 2500
 			SkillMgr.teleBack = Player.pos
 			Player:Stop()
-			GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
-			Player:SetFacing(pos.x,pos.y,pos.z)
+			--GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
+			GameHacks:TeleportToXYZ(pos.x + 1, pos.y, pos.z)
+			Player:SetFacingSynced(pos.x,pos.y,pos.z)
 			Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-			Player:MoveToStraight(pos.x,pos.y,pos.z,1)
+			--Player:MoveToStraight(pos.x,pos.y,pos.z,1)
 			SkillMgr.teleCastTimer = Now()
 		end
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 900 or Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
+		if (TableSize(SkillMgr.teleBack) > 0 and (Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
 			Player:Stop()
 		end
 		
@@ -2435,30 +2446,18 @@ function ffxiv_task_skillmgrAttack:Process()
 			SkillMgr.teleCastTimer = Now()
 		end
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and TimeSince(SkillMgr.teleCastTimer) >= 1800) then
+		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 1800 or target.castinginfo.channelingid ~= 0)) then
 			local back = SkillMgr.teleBack
 			Player:Stop()
 			GameHacks:TeleportToXYZ(back.x+1, back.y, back.z)
+			Player:SetFacingSynced(pos.x,pos.y,pos.z)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
-			ml_task_hub:ThisTask().suppressFollow = false
 		end
     else
         self.targetid = 0
         self.completed = true
     end
-end
-
-function ffxiv_task_skillmgrAttack:OnSleep()
-
-end
-
-function ffxiv_task_skillmgrAttack:OnTerminate()
-
-end
-
-function ffxiv_task_skillmgrAttack:IsGoodToAbort()
-
 end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
@@ -2476,67 +2475,39 @@ function ffxiv_task_skillmgrAttack:task_complete_execute()
     self.completed = true
 end
 
--- SkillMgr Heal Task
-ffxiv_task_skillmgrHeal = inheritsFrom(ml_task)
-function ffxiv_task_skillmgrHeal.Create()
-    local newinst = inheritsFrom(ffxiv_task_skillmgrHeal)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_grind members
-    newinst.name = "LT_SM_HEAL"
-    newinst.targetid = 0
-    
-    return newinst
-end
 
-
-function ffxiv_task_skillmgrHeal:Process()
-    
-    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
-        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target ~= nil and target.alive and target.hp.percent < 95 and target.distance2d <= ml_global_information.AttackRange) then
-            
-            SkillMgr.Cast( target )
-            
-        end
-    end
-    -- test if these 2 are needed or if eval complete does the job ...
-    self.targetid = 0
-    self.completed = true
-end
-
-function ffxiv_task_skillmgrHeal:OnSleep()
-
-end
-
-function ffxiv_task_skillmgrHeal:OnTerminate()
-
-end
-
-function ffxiv_task_skillmgrHeal:IsGoodToAbort()
-
-end
-
-function ffxiv_task_skillmgrHeal:task_complete_eval()
-    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (target == nil or not target.alive or target.hp.percent > 95 or target.distance2d > ml_global_information.AttackRange) then
-        return true
-    end
-    
+c_triggersuppressions = inheritsFrom( ml_cause )
+e_triggersuppressions = inheritsFrom( ml_effect )
+function c_triggersuppressions:evaluate()
+	if (gBotMode ~= GetString("dutyMode")) then
+		return false
+	end
+	
+	if (not IsDutyLeader() and OnDutyMap() and not Quest:IsLoading() and Player.incombat and not ml_task_hub:CurrentTask().suppressFollow) then
+		local leader = GetDutyLeader()
+		if leader.dead then
+			return true
+		end
+	end
     return false
 end
-
-function ffxiv_task_skillmgrHeal:task_complete_execute()
-    self.targetid = 0
-    self.completed = true
+function e_triggersuppressions:execute()
+	ml_task_hub:CurrentTask().suppressFollow = true
+	ml_task_hub:CurrentTask().suppressFollowTimer = Now() + 15000
 end
+
+c_resetsuppressions = inheritsFrom( ml_cause )
+e_resetsuppressions = inheritsFrom( ml_effect )
+function c_resetsuppressions:evaluate()
+	if (ml_task_hub:CurrentTask().suppressFollow and Now() > ml_task_hub:CurrentTask().suppressFollowTimer) then
+		return true
+	end
+    return false
+end
+function e_resetsuppressions:execute()
+	ml_task_hub:CurrentTask().suppressFollow = false
+end
+
 
 --RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
 RegisterEventHandler("GUI.Item",SkillMgr.ButtonHandler)

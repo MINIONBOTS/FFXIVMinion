@@ -15,6 +15,7 @@ function ffxiv_duty_kill_task.Create()
 	newinst.syncTimer = 0
 	newinst.encounterData = {}
 	newinst.suppressFollow = false
+	newinst.suppressFollowTimer = 0
 	newinst.suppressAssist = false
 	newinst.sceneTimer = 0
 	newinst.hasScene = false
@@ -91,9 +92,6 @@ function ffxiv_duty_kill_task:Process()
 	if (TableSize(ml_task_hub:CurrentTask().process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(ml_task_hub:CurrentTask().process_elements)
-		if (ml_task_hub:CurrentTask():superClass() and TableSize(ml_task_hub:CurrentTask():superClass().process_elements) > 0) then
-			ml_cne_hub.eval_elements(ml_task_hub:CurrentTask():superClass().process_elements)
-		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -127,7 +125,7 @@ function ffxiv_duty_kill_task:task_complete_execute()
 end
 
 function ffxiv_duty_kill_task:Init()
-    --init Process() cnes
+    --init Process() cnes	
     self:AddTaskCheckCEs()
 end
 
@@ -288,32 +286,39 @@ function c_roll:evaluate()
 	end
 	
 	local loot = Inventory:GetLootList()
-	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
+	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete" and Now() > ml_task_hub:CurrentTask().rollTimer) then
 		return true
 	end
     
     return false
 end
 function e_roll:execute()
-	local items = Inventory:GetLootList()
-	if (TableSize(items) > 0) then
-		for i, loot in pairs(items) do   
+	local loot = Inventory:GetLootList()
+	if (loot) then
+		local i,e = next(loot)
+		while (i~=nil and e~=nil) do    
 			if (ml_task_hub:CurrentTask().rollstate == "Need") then
-				loot:Need()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+				if (gLootOption == "Need" or gLootOption == "Any") then 
+					e:Need() 
+					ml_task_hub:CurrentTask().rollTimer = Now() + 1500
+				end
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
-			if (ml_task_hub:CurrentTask().rollstate == "Greed" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
-				loot:Greed()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
+				if (gLootOption == "Greed" or gLootOption == "Any") then 
+					e:Greed() 
+					ml_task_hub:CurrentTask().rollTimer = Now() + 1500
+				end
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
-			if (ml_task_hub:CurrentTask().rollstate == "Pass" and TimeSince(ml_task_hub:CurrentTask().lastroll) >= 1000) then
-				loot:Pass()
-				ml_task_hub:CurrentTask().lastroll = ml_global_information.Now
+			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
+				if (gLootOption == "Pass" or gLootOption == "Any") then 
+					e:Pass() 
+				end
 				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
-		end
+			i,e = next (loot,i)
+		end  
 	end
 end
 
@@ -323,13 +328,29 @@ c_loot.chest = {}
 function c_loot:evaluate()
 	if (IsDutyLeader()) then
 		if (Inventory:HasLoot() == false) then
-			local chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
-			for i, chest in pairs(chests) do
-				if chest.uniqueid == ml_task_hub:CurrentTask().encounterData.lootid then
-					if (chest.targetable) then
-						Player:SetTarget(chest.id)
-						c_loot.chest = chest
-						return true
+			local chests = nil
+			if (not ml_task_hub:CurrentTask().encounterData.lootid) then
+				chests = EntityList("nearest,type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+			else
+				chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+			end
+			
+			if ( ValidTable(chests) ) then
+				for i, chest in pairs(chests) do
+					if (not ml_task_hub:CurrentTask().encounterData.lootid) then
+						if (chest.targetable) then
+							Player:SetTarget(chest.id)
+							c_loot.chest = chest
+							return true
+						end
+					else 
+						if (chest.uniqueid == ml_task_hub:CurrentTask().encounterData.lootid) then
+							if (chest.targetable) then
+								Player:SetTarget(chest.id)
+								c_loot.chest = chest
+								return true
+							end
+						end
 					end
 				end
 			end
@@ -354,11 +375,12 @@ function ffxiv_task_loot.Create()
     newinst.auxiliary = false
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
+	newinst.encounterData = {}
    
     newinst.name = "LT_LOOT"
-	newinst.lastroll = nil
+	newinst.rollTimer = 0
 	newinst.rollstate = "Need"
-	newinst.failTimer = Now() + 10000
+	newinst.failTimer = Now() + 15000
     
     return newinst
 end
@@ -376,6 +398,10 @@ end
 function ffxiv_task_loot:task_complete_eval()	
 	if (ml_task_hub:CurrentTask().rollstate == "Complete" and
 		Inventory:HasLoot() == false) then
+		return true
+	end
+	
+	if (not IsDutyLeader() and not Inventory:HasLoot()) then
 		return true
 	end
 	

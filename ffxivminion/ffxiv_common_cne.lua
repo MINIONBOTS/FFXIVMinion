@@ -17,7 +17,7 @@
 ---------------------------------------------------------------------------------------------
 c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
-
+c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
@@ -45,7 +45,21 @@ function c_add_killtarget:evaluate()
         return false
     end
     
-	if (ml_global_information.IsWaiting) then return false end
+	if (ml_global_information.IsWaiting) then 
+		return false 
+	end
+	
+	if (SkillMgr.Cast( Player, true)) then
+		d("Using out of combat skills.")
+		c_add_killtarget.oocCastTimer = Now() + 1500
+		d("IsCasting="..tostring(ActionList:IsCasting())..",oocTimer="..tostring(c_add_killtarget.oocCastTimer))
+		return false
+	end
+	
+	d("IsCasting="..tostring(ActionList:IsCasting())..",oocTimer="..tostring(c_add_killtarget.oocCastTimer))
+	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+		return false
+	end
 	
     local target = ml_task_hub:CurrentTask().targetFunction()
     if (ValidTable(target)) then
@@ -602,23 +616,37 @@ function c_bettertargetsearch:evaluate()
         return false
     end
     
+	if (ml_global_information.IsWaiting) then 
+		return false 
+	end
+	
+	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+		return false
+	end
+    
     -- this breaks rest because we never finish the current target
     if (Player.hp.percent < tonumber(gRestHP) or Player.mp.percent < tonumber(gRestMP)) then
         return false
     end
-	
-	if ( gClaimFirst == "0" ) then
-		return false
-	end
     
-    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0) then  
-        local bettertarget = GetNearestGrindPriority()
-        if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:ThisTask().targetid ) then
-            ml_task_hub:ThisTask().targetid = bettertarget.id
-            Player:SetTarget(bettertarget.id)
-            return true                        
-        end                
-    end        
+	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:CurrentTask():ParentTask() == "LT_GRIND") then
+		if (not Player.incombat and Player.hasaggro) then
+			local bettertarget = GetNearestGrindAttackable()
+			if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
+				ml_task_hub:CurrentTask().targetid = bettertarget.id
+				Player:SetTarget(bettertarget.id)
+				return true                        
+			end
+		end
+	elseif (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET" and gClaimFirst == "1") then
+		local bettertarget = GetNearestGrindPriority()
+		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
+			ml_task_hub:CurrentTask().targetid = bettertarget.id
+			Player:SetTarget(bettertarget.id)
+			return true                        
+		end
+	end
+     
     return false
 end
 function e_bettertargetsearch:execute()
@@ -939,6 +967,7 @@ function c_rest:evaluate()
 end
 function e_rest:execute()    
     if (e_rest.resting == true) then
+		SkillMgr.Cast( Player, true)
         if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
             e_rest.resting = false
             ml_global_information.IsWaiting = false
@@ -950,6 +979,7 @@ function e_rest:execute()
         then
             ml_global_information.IsWaiting = true
             Player:Stop()
+			SkillMgr.Cast( Player, true)
             e_rest.resting = true
             return
         end
@@ -1019,15 +1049,16 @@ c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == strings[gCurrentLanguage].assistMode) then
-		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm"))
+		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not Quest:IsLoading())
 	end
-    return ((Player.localmapid ~= 337 and Player.localmapid ~= 175 and Player.localmapid ~= 336 and Player.localmpaid ~= 352) and ControlVisible("ContentsFinderConfirm"))
+	
+    return (ControlVisible("ContentsFinderConfirm") and not Quest:IsLoading() and Player.revivestate ~=2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)
 	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
 		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
-	elseif (gBotMode == strings[gCurrentLanguage].dutyMode) then
+	elseif (gBotMode == strings[gCurrentLanguage].dutyMode and IsDutyLeader()) then
 		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
 	end
 end
