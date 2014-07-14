@@ -94,7 +94,8 @@ function ml_global_information.OnUpdate( event, tickcount )
 		--update marker status
 		if (	gBotMode == strings[gCurrentLanguage].grindMode or
 				gBotMode == strings[gCurrentLanguage].gatherMode or
-				gBotMode == strings[gCurrentLanguage].fishMode) and (
+				gBotMode == strings[gCurrentLanguage].fishMode or
+				gBotMode == strings[gCurrentLanguage].questMode) and (
 				ValidTable(GetCurrentMarker())) and
 				ml_task_hub.shouldRun
 		then
@@ -230,7 +231,7 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
 	GUI_WindowVisible(GetString("advancedSettings"), false)
-	
+
 	GUI_NewButton(ffxivminion.Windows.Main.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
     GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
@@ -243,6 +244,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
 	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
+
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
     GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
@@ -498,6 +500,8 @@ function ffxivminion.SetMode(mode)
 			ffxiv_task_duty.UpdateProfiles()
 		elseif (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
+			gSkipCutscene = "1"
+			gSkipDialogue = "1"
 		else
 			gProfile_listitems = "NA"
 			gProfile = "NA"

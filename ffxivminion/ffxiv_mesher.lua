@@ -45,6 +45,12 @@ mm.defaultMaps = {
 	[336] = "Wolves Den",
 	[175] = "Wolves Den",
 	[352] = "Wolves Den",
+	[130] = "Ul'dah - Steps of Nald",
+	[131] = "Ul'dah - Steps of Thal",
+	[129] = "Limsa (Upper)",
+	[128] = "Limsa (Lower)",
+	[132] = "New Gridania",
+	[133] = "Old Gridania"
 }
 
 function mm.ModuleInit() 	
@@ -163,6 +169,9 @@ function mm.ReadMarkerList(meshname)
 		
 		ml_marker_mgr.RefreshMarkerNames()
 		--d("Markers for ["..meshname.."] were loaded.")
+	else
+		--need to set the new marker path
+		ml_marker_mgr.markerPath = infopath
 	end
 end
 

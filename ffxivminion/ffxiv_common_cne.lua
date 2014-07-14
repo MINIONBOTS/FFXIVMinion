@@ -390,10 +390,15 @@ function e_movetogate:execute()
 												ml_task_hub:CurrentTask().destMapID	)
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
-		local newPos = GetPosFromDistanceHeading(pos, 1.5, pos.h)
-		newTask.pos = newPos
+		local newPos = GetPosFromDistanceHeading(pos, 5, pos.h)
+		newTask.pos = pos
+		newTask.gatePos = newPos
+		newTask.range = 0.5
+		
+		if(gTeleport == "1") then
+			newTask.useTeleport = true
+		end
 		--newTask.useFollowMovement = true
-		--newTask.range = 0.5
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
@@ -577,11 +582,25 @@ function c_walktopos:evaluate()
         if (ActionList:IsCasting()) then
             return false
         end
-        
+		
         local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos
-        -- switching to 2d for now, since c++ uses 2d and the movement to points with a small stopping distance just cant work with that 2d-3d difference     
-        local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+        local gotoPos
+		
+		-- if we're doing map navigation then we have extended the moveto pos beyond the gate to 
+		-- make sure the bot runs through it...use the gatePos instead of the original position
+		if(ml_task_hub:CurrentTask().gatePos) then
+			gotoPos = ml_task_hub:CurrentTask().gatePos
+		else
+			gotoPos = ml_task_hub:CurrentTask().pos
+		end
+		
+        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
+		local distance = 0.0
+		if(ml_task_hub:CurrentTask().use3d) then
+			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		else
+			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		end
         --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         --d("Current Distance: "..tostring(distance))
@@ -1207,3 +1226,47 @@ function e_completequest:execute()
 	Quest:CompleteQuestReward(1)
 end
 
+c_teleporttopos = inheritsFrom( ml_cause )
+e_teleporttopos = inheritsFrom( ml_effect )
+c_teleporttopos.pos = 0
+function c_teleporttopos:evaluate()
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
+        if (ActionList:IsCasting()) then
+            return false
+        end
+		
+		if (not ml_task_hub:CurrentTask().useTeleport) then
+			return false
+		end
+		
+        local myPos = Player.pos
+        local gotoPos = ml_task_hub:CurrentTask().pos
+		
+        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
+		local distance = 0.0
+		if(ml_task_hub:CurrentTask().use3d) then
+			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		else
+			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		end
+        
+        if (distance > 10) then
+            c_teleporttopos.pos = gotoPos
+            return true
+        end
+    end
+    return false
+end
+function e_teleporttopos:execute()
+    if ( c_teleporttopos.pos ~= 0) then
+        local gotoPos = c_teleporttopos.pos
+		Player:Stop()
+        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+		Player:SetFacingSynced(math.random())
+		ml_task_hub:CurrentTask():SetDelay(1500)
+		--d(tostring(PathSize))
+    else
+        ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
+    end
+    c_teleporttopos.pos = 0
+end

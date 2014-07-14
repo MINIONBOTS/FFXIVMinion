@@ -48,7 +48,10 @@ c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
 
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+    if ((gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) or
+		(gDoFates == "1" and gFatesOnly == "1") or
+		(not ml_marker_mgr.markersLoaded)) 
+	then
         return false
     end
     
@@ -138,8 +141,8 @@ function ffxiv_task_grind:Init()
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
 	
-    --local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
-    --self:add(ke_fateWait, self.process_elements)
+    local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
+    self:add(ke_fateWait, self.process_elements)
   
     self:AddTaskCheckCEs()
 end

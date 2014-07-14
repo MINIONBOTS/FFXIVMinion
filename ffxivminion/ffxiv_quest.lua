@@ -4,6 +4,7 @@ function ffxiv_quest.Create()
 	local quest = inheritsFrom(ffxiv_quest)
 	
 	quest.id = 0
+	quest.job = 0
 	quest.level = 0
 	quest.prereq = {}
 	quest.steps = {}
@@ -21,6 +22,10 @@ end
 
 function ffxiv_quest:canStart()
 	if (self:isComplete()) then
+		return false
+	end
+	
+	if(self.job ~= -1 and Player.job ~= self.job) then
 		return false
 	end
 	
@@ -83,4 +88,8 @@ ffxiv_quest.tasks =
 	["interact"] 	= ffxiv_quest_interact.Create,
 	["kill"]		= ffxiv_quest_kill.Create,
 	["nav"]			= ffxiv_quest_nav.Create,
+	["accept"]		= ffxiv_quest_accept.Create,
+	["dutykill"]	= ffxiv_quest_dutykill.Create,
+	["textcommand"] = ffxiv_quest_textcommand.Create,
+	["useitem"] 	= ffxiv_quest_useitem.Create,
 }

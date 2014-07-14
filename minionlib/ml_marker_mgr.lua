@@ -15,6 +15,7 @@ ml_marker_mgr.markerList = {}
 ml_marker_mgr.renderList = {}
 ml_marker_mgr.currentMarker = {}		--current marker selected by the GetNextMarker() function
 ml_marker_mgr.currentEditMarker = {}	--current marker displayed in the edit window
+ml_marker_mgr.markersLoaded = false
 --CREATE THIS LIST IN GAME IMPLEMENTATION
 ml_marker_mgr.templateList = {}			--list of marker templates for defining marker types and creating new markers
 --SET THIS PATH IN GAME IMPLEMENTATION
@@ -338,6 +339,7 @@ function ml_marker_mgr.ClearMarkerList()
 	ml_marker_mgr.markerList = {}
 	ml_marker_mgr.renderList = {}
 	RenderManager:RemoveAllObjects()
+	ml_marker_mgr.markersLoaded = false
 end
 
 function ml_marker_mgr.DrawMarkerList()
@@ -377,6 +379,7 @@ function ml_marker_mgr.ReadMarkerFile(path)
 		end
 		
 		ml_marker_mgr.markerPath = path
+		ml_marker_mgr.markersLoaded = true
 	else
 		ml_debug("Invalid path specified for marker file")
 	end

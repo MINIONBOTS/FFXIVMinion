@@ -1,0 +1,122 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[127] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000461;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 289.63034057617;
+						["z"] = -30.453952789307;
+					};
+				};
+				[2] = {
+					["type"] = "useitem";
+					["itemturnin"] = false;
+					["mapid"] = 148;
+					["itemid"] = 2000061;
+					["id"] = 2000018;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.235897064209;
+						["x"] = 310.85302734375;
+						["z"] = 23.651756286621;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = -6.3649835586548;
+						["x"] = 310.42645263672;
+						["z"] = 22.842735290527;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["killcount"] = 1;
+				};
+				[4] = {
+					["type"] = "useitem";
+					["itemturnin"] = false;
+					["mapid"] = 148;
+					["itemid"] = 2000061;
+					["mapid"] = 148;
+					["id"] = 2000017;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.8448510169983;
+						["x"] = 288.4674987793;
+						["z"] = 30.2203540802;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = -6.9004106521606;
+						["x"] = 289.51034545898;
+						["z"] = 29.867986679077;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["killcount"] = 1;
+				};
+				[6] = {
+					["type"] = "useitem";
+					["itemturnin"] = false;
+					["mapid"] = 148;
+					["itemid"] = 2000061;
+					["mapid"] = 148;
+					["id"] = 2000016;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.5611248016357;
+						["x"] = 263.90625;
+						["z"] = 1.6976399421692;
+					};
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -6.5611248016357;
+						["x"] = 263.90625;
+						["z"] = 1.6976399421692;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["killcount"] = 1;
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 288.46746826172;
+						["z"] = -29.881441116333;
+					};
+					["id"] = 1000461;
+					["itemreward"] = true;
+					["itemrewardslot"] = 2;
+				};
+			};
+			["level"] = 8;
+			["prereq"] = false;
+		};
+	};
+}
+return obj1

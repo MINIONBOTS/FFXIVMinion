@@ -14,6 +14,7 @@ ml_task.overwatch_elements = {}
 ml_task.breakUpdate = false
 ml_task.delayTime = 0
 ml_task.delayTimer = 0
+ml_task.preserveSubtasks = false
 
 -- These functions are NOT overwritten in derived tasks
 
@@ -86,13 +87,18 @@ function ml_task:Update()
 		end
 		
 		if(self:ProcessOverWatch()) then
-			ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
-			--process overwatch element requested to break update loop
-			--only delete subtask if we didn't just add it via our overwatch cne
-			if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
-				self:DeleteSubTasks()
+			if (not self.preserveSubtasks) then
+				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
+				--process overwatch element requested to break update loop
+				--only delete subtask if we didn't just add it via our overwatch cne
+				if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
+					self:DeleteSubTasks()
+				end
+				break
+			else
+				self.preserveSubtasks = false
 			end
-			break
+			
 		end
 		
         if ( self.subtask ~= nil ) then
@@ -151,14 +157,17 @@ function ml_task:ProcessOverWatch()
 end
 
 function ml_task:SetDelay(delayTimer)
-	if(	type(delayTimer) == "number" and
-		delayTimer > 0)
-	then
+	--ignore 0 case
+	if(	type(delayTimer) == "number" and delayTimer > 0) then
 		self.delayTime = ml_global_information.Now
 		self.delayTimer = delayTimer
-	else
-		ml_error("Invalid delaytimer input")
+	elseif(	type(delayTimer) == "number" and delayTimer < 0) then
+		ml_error("Invalid delaytimer input - negative number")
 	end
+end
+
+function ml_task:IsDelayed()
+	return TimeSince(self.delayTime) < self.delayTimer
 end
 
 --These functions ARE overwritten in derived tasks
