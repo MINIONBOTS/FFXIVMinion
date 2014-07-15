@@ -138,11 +138,10 @@ end
 
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
+
     GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",strings[gCurrentLanguage].PartyGrind)
     RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
-
     GUI_NewField(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", strings[gCurrentLanguage].PartyGrind)
-
     GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",strings[gCurrentLanguage].PartyGrind)
     
     if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
@@ -156,7 +155,6 @@ function ffxiv_task_party.UIInit()
     else
         gPartyGrindUsePartyLeader = Settings.FFXIVMINION.gPartyGrindUsePartyLeader
     end
-  
-        
-    RegisterEventHandler("GUI.Update",ffxiv_task_party.GUIVarUpdate)
 end
+
+RegisterEventHandler("GUI.Update",ffxiv_task_party.GUIVarUpdate)
