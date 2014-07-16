@@ -265,6 +265,56 @@ function Dev.ModuleInit()
 	GUI_NewButton("Dev","PressDutyConfirm","Dev.DConf","DutyInfo")
 	GUI_NewButton("Dev","PressLeaveColosseum","Dev.PressLeaveColosseum","DutyInfo")
 	
+	--QuestInfo
+	GUI_NewNumeric("Dev","Quest","QIindex","QuestInfo","0","200");
+	GUI_NewField("Dev","ID","QIID","QuestInfo")
+	GUI_NewField("Dev","Name","QIName","QuestInfo")
+	GUI_NewField("Dev","Step","QIStep","QuestInfo")
+	GUI_NewField("Dev","QuestI8A","QuestI8A","QuestInfo")
+	GUI_NewField("Dev","QuestI8B","QuestI8B","QuestInfo")
+	GUI_NewField("Dev","QuestI8C","QuestI8C","QuestInfo")
+	GUI_NewField("Dev","QuestI8D","QuestI8D","QuestInfo")
+	GUI_NewField("Dev","QuestI8E","QuestI8E","QuestInfo")
+	GUI_NewField("Dev","QuestI8F","QuestI8F","QuestInfo")
+	
+	GUI_NewField("Dev","QuestI8AH","QuestI8AH","QuestInfo")
+	GUI_NewField("Dev","QuestI8BH","QuestI8BH","QuestInfo")
+	GUI_NewField("Dev","QuestI8CH","QuestI8CH","QuestInfo")
+	GUI_NewField("Dev","QuestI8DH","QuestI8DH","QuestInfo")
+	GUI_NewField("Dev","QuestI8EH","QuestI8EH","QuestInfo")
+	GUI_NewField("Dev","QuestI8FH","QuestI8FH","QuestInfo")
+	
+	GUI_NewField("Dev","QuestI8AL","QuestI8AL","QuestInfo")
+	GUI_NewField("Dev","QuestI8BL","QuestI8BL","QuestInfo")
+	GUI_NewField("Dev","QuestI8CL","QuestI8CL","QuestInfo")
+	GUI_NewField("Dev","QuestI8DL","QuestI8DL","QuestInfo")
+	GUI_NewField("Dev","QuestI8EL","QuestI8EL","QuestInfo")
+	GUI_NewField("Dev","QuestI8FL","QuestI8FL","QuestInfo")
+	
+	GUI_NewField("Dev","QuestI16A","QuestI16A","QuestInfo")
+	GUI_NewField("Dev","QuestI16B","QuestI16B","QuestInfo")
+	GUI_NewField("Dev","QuestI16C","QuestI16C","QuestInfo")
+	
+	GUI_NewField("Dev","QuestBit8","QuestBit8","QuestInfo")
+	GUI_NewField("Dev","QuestBit16","QuestBit16","QuestInfo")
+	GUI_NewField("Dev","QuestBit24","QuestBit24","QuestInfo")
+	GUI_NewField("Dev","QuestBit32","QuestBit32","QuestInfo")
+	GUI_NewField("Dev","QuestBit40","QuestBit40","QuestInfo")
+	GUI_NewField("Dev","QuestBit48","QuestBit48","QuestInfo")
+	
+	
+	GUI_NewButton("Dev","AcceptQuest","Dev.QuestAQ","QuestInfo")
+	GUI_NewButton("Dev","DeclineQuest","Dev.QuestDQ","QuestInfo")	
+	GUI_NewField("Dev","IsQuestAcceptDialogOpen","QIIsQADO","QuestInfo")
+	GUI_NewButton("Dev","RequestHandOver","Dev.QuestRHO","QuestInfo")
+	GUI_NewButton("Dev","RequestCancel","Dev.QuestRC","QuestInfo")	
+	GUI_NewField("Dev","IsQuestRewardDialogOpen","QIIsQRDO","QuestInfo")
+	GUI_NewButton("Dev","CompleteQuestReward","Dev.QuestCQR","QuestInfo")
+	GUI_NewButton("Dev","DeclineQuestReward","Dev.QuestDQR","QuestInfo")	
+	GUI_NewField("Dev","IsLoading","QIIsLoading","QuestInfo")
+	GUI_NewField("Dev","IsInDialog","QIIsDialog","QuestInfo")
+	QIindex = 0
+	
 	-- General Functions
 	GUI_NewField("Dev","Text Command","general_sendtextcommand","General Functions")
 	GUI_NewButton("Dev","Send Text Command","Dev.SendTextCommand","General Functions")
@@ -282,7 +332,19 @@ end
 
 function Dev.HandleButtons( Event, arg )	
 	if ( Event == "GUI.Item" ) then
-		if ( arg == "Dev.Interact") then
+		if ( arg == "Dev.QuestCQR") then
+			d(Quest:CompleteQuestReward())
+		elseif ( arg == "Dev.QuestDQR") then
+			d(Quest:DeclineQuestReward())
+		elseif ( arg == "Dev.QuestRHO") then
+			d(Quest:RequestHandOver())
+		elseif ( arg == "Dev.QuestRC") then
+			d(Quest:RequestCancel())
+		elseif ( arg == "Dev.QuestAQ") then
+			d(Quest:AcceptQuest())
+		elseif ( arg == "Dev.QuestDQ") then
+			d(Quest:DeclineQuest())
+		elseif ( arg == "Dev.Interact") then
 			local t = Player:GetTarget()
 			if ( t ) then
 				Player:Interact(t.id)
@@ -956,6 +1018,71 @@ function Dev.UpdateWindow()
 	else
 		duty_taskencounter = ""
 	end
+	
+	
+	-- QuestInfo
+	local QList = Quest:GetQuestList()
+	local quest,qid = nil
+	if ( TableSize(QList) > 0 ) then
+		qid,quest = next ( QList )
+		local idx = 0
+		while ( qid and quest ) do
+			if ( idx == tonumber(QIindex) ) then
+				break
+			end
+			idx = idx + 1
+			qid,quest = next ( QList, qid )
+		end	
+	end
+	
+	if ( quest ) then
+		QIID = quest.id
+		QIName = quest.name
+		QIStep = quest.step
+		QuestI8A = quest.I8A
+		QuestI8B = quest.I8B
+		QuestI8C = quest.I8C
+		QuestI8D = quest.I8D
+		QuestI8E = quest.I8E
+		QuestI8F = quest.I8F
+		
+		QuestI8AH = quest.I8AH
+		QuestI8BH = quest.I8BH
+		QuestI8CH = quest.I8CH
+		QuestI8DH = quest.I8DH
+		QuestI8EH = quest.I8EH
+		QuestI8FH = quest.I8FH
+		
+		QuestI8AL = quest.I8AL
+		QuestI8BL = quest.I8BL
+		QuestI8CL = quest.I8CL
+		QuestI8DL = quest.I8DL
+		QuestI8EL = quest.I8EL
+		QuestI8FL = quest.I8FL
+		
+		QuestI16A = quest.I16A
+		QuestI16B = quest.I16B
+		QuestI16C = quest.I16C
+		
+		QuestBit8 = tostring(quest.Bit8)
+		QuestBit16 = tostring(quest.Bit16)
+		QuestBit24 = tostring(quest.Bit24)
+		QuestBit32 = tostring(quest.Bit32)
+		QuestBit40 = tostring(quest.Bit40)
+		QuestBit48 = tostring(quest.Bit48)
+		
+	else
+		QIID = 0
+		QIName = ""
+		QIStep = 0
+		QuestI8A = 0
+		QuestI8B = 0
+	end
+	
+	QIIsQADO = tostring(Quest:IsQuestAcceptDialogOpen())
+	QIIsQRDO = tostring(Quest:IsQuestRewardDialogOpen())
+	QIIsLoading = tostring(Quest:IsLoading())
+	QIIsDialog = tostring(Quest:IsInDialog())
 	
 end
 
