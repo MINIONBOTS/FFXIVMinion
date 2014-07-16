@@ -35,7 +35,12 @@ function ffxiv_duty_kill_task:Process()
 		return
 	end
 	
-	local entity = GetDutyTarget()
+	
+	local killPercent = nil
+	if ( ml_task_hub:CurrentTask().encounterData["killto%"]) then
+		killPercent = tonumber(ml_task_hub:CurrentTask().encounterData["killto%"])
+	end
+	local entity = GetDutyTarget(killPercent)
 	
 	local myPos = Player.pos
 	local fightPos = nil
@@ -43,49 +48,36 @@ function ffxiv_duty_kill_task:Process()
 		fightPos = ml_task_hub:CurrentTask().encounterData.fightPos["General"]
 	end
 	
-	if (ValidTable(entity)) then
+	if (ValidTable(entity)) then		
 		if (fightPos) then
 			if (ml_task_hub:CurrentTask().timer == 0) then
-				Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 				Player:SetTarget(entity.id)
+				Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 				SkillMgr.Cast( entity )
 				ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 			elseif (ml_global_information.Now > ml_task_hub:CurrentTask().timer or Player.incombat) then
 				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
+				Player:SetFacingSynced(fightPos.x, fightPos.y, fightPos.z)
 				Player:SetTarget(entity.id)
+				Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				local newTask = ffxiv_task_skillmgrAttack.Create()
 				newTask.targetid = entity.id
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
-				return false
 			end
-		elseif (
-			ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
-			ml_task_hub:CurrentTask().encounterData.doKill == false ) 
-		then
-			Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
-			Player:SetTarget(entity.id)
-			SkillMgr.Cast( entity )
+		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
+				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
+					Player:SetTarget(entity.id)
+					Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
+					SkillMgr.Cast( entity )
 			--return false
-		elseif (
-			ml_task_hub:CurrentTask().encounterData.doKill == nil or
-			ml_task_hub:CurrentTask().encounterData.doKill == true)
-		then
-			--[[
-			Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-			Player:SetTarget(entity.id)
-			local newTask = ffxiv_task_skillmgrAttack.Create()
-			newTask.targetid = entity.id
-			ml_task_hub:CurrentTask():AddSubTask(newTask)
-			--]]
-			if (entity ~= nil and entity.alive and InCombatRange(entity.id)) then
-				
-				local pos = entity.pos
-				Player:SetFacing(pos.x,pos.y,pos.z)
-				Player:SetTarget(entity.id)
-				SkillMgr.Cast( entity )
-			end
-			return false
+		elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
+				ml_task_hub:CurrentTask().encounterData.doKill == true) then
+					if (entity ~= nil and entity.alive and InCombatRange(entity.id)) then
+						local pos = entity.pos
+						Player:SetTarget(entity.id)
+						Player:SetFacingSynced(pos.x,pos.y,pos.z)
+						SkillMgr.Cast( entity )
+					end
 		end
 	end
 	
@@ -105,20 +97,23 @@ function ffxiv_duty_kill_task:task_complete_eval()
 		return false
 	end
 	
-	local target = GetDutyTarget()
 	if (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and ml_task_hub:CurrentTask().encounterData.doKill == false) then
 		if (Player.incombat) then
 			return true
 		end
 	end
 	
-	if (ValidTable(target)) then
-		return not targetattackable
+	local killPercent = nil
+	if ( ml_task_hub:CurrentTask().encounterData["killto%"]) then
+		killPercent = tonumber(ml_task_hub:CurrentTask().encounterData["killto%"])
 	end
-    
-    return true
+	local entity = GetDutyTarget(killPercent)
+	if (not entity) then
+		return true
+	end
+	
+    return false
 end
-
 function ffxiv_duty_kill_task:task_complete_execute()
     ml_task_hub:CurrentTask().completed = true
 	ml_task_hub:CurrentTask():ParentTask().encounterCompleted = true
@@ -206,7 +201,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------
 function e_interact:execute()
 	local pos = c_interact.object.pos
-	Player:SetFacing(pos.x,pos.y,pos.z)
+	Player:SetFacingSynced(pos.x,pos.y,pos.z)
 	Player:Interact(c_interact.object.id)
 end
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -360,7 +355,7 @@ function c_loot:evaluate()
 end
 function e_loot:execute()
 	local pos = c_loot.chest.pos
-	Player:SetFacing(pos.x,pos.y,pos.z)
+	Player:SetFacingSynced(pos.x,pos.y,pos.z)
 	Player:Interact(c_loot.chest.id)
 end
 

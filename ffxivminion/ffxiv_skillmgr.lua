@@ -10,8 +10,6 @@ SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_g
 SkillMgr.lasttick = 0
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
-SkillMgr.UIRefreshPending = false
-SkillMgr.UIRefreshTmr = 0
 SkillMgr.StoopidEventAlreadyRegisteredList = {}
 SkillMgr.prevSkillID = ""
 SkillMgr.nextSkillID = ""
@@ -23,15 +21,22 @@ SkillMgr.copiedSkill = {}
 
 SkillMgr.teleCastSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
-    [FFXIV.JOBS.MARAUDER] = 31,
 	[FFXIV.JOBS.PALADIN] = 9,
+    [FFXIV.JOBS.MARAUDER] = 31,
 	[FFXIV.JOBS.WARRIOR] = 31,
-	[FFXIV.JOBS.MONK] = 53,
 	[FFXIV.JOBS.PUGILIST] = 53,
-	[FFXIV.JOBS.DRAGOON] = 75,
+	[FFXIV.JOBS.MONK] = 53,
 	[FFXIV.JOBS.LANCER] = 75,
+	[FFXIV.JOBS.DRAGOON] = 75,
 	[FFXIV.JOBS.ARCHER] = 97,
 	[FFXIV.JOBS.BARD] = 97,
+	[FFXIV.JOBS.CONJURER] = 119,
+	[FFXIV.JOBS.WHITEMAGE] = 119,
+	[FFXIV.JOBS.THAUMATURGE] = 142,
+	[FFXIV.JOBS.BLACKMAGE] = 142,
+	[FFXIV.JOBS.ARCANIST] = 163,
+	[FFXIV.JOBS.SUMMONER] = 163,
+	[FFXIV.JOBS.SCHOLAR] = 163,
 }
 
 SkillMgr.Variables = {
@@ -256,7 +261,14 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
-    GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)	
+    GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)
+	
+    GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
+    GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
+    GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow.name,"COPY","SKMCopySkill")
+    GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
     
     -- Crafting EDITOR WINDOW
@@ -281,6 +293,13 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_CPBuff",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHasNot,"SKM_CPNBuff",strings[gCurrentLanguage].skillDetails);
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].iqstack,"SKM_IQSTACK",strings[gCurrentLanguage].skillDetails);
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].skillDetails)
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
+    GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
+    GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
     
     -- Gathering EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
@@ -294,14 +313,7 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
-	
-    GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].skillDetails)
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
-    GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
-    GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
-    
+
     GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skillDetails)
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
@@ -309,15 +321,7 @@ function SkillMgr.ModuleInit()
     GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
     GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
     
-    GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)
-    GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
-    GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
-    GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
-	GUI_NewButton(SkillMgr.editwindow.name,"PASTE","SKMPasteSkill")
-	GUI_NewButton(SkillMgr.editwindow.name,"COPY","SKMCopySkill")
-    GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
-	
-    GUI_WindowVisible(SkillMgr.editwindow.name,false)
+   
 
     SkillMgr.SkillBook = {}
 	SkillMgr.UpdateProfiles()
@@ -367,18 +371,6 @@ function SkillMgr.OnUpdate( event, tick )
     if ( gSMactive == "1" ) then		
         if	( tick - SkillMgr.lasttick > 150 ) then
             SkillMgr.lasttick = tick
-            
-        end
-    end
-    
-    -- Needed because the UI cant handle clearing + rebuilding of all stuff in the same frame
-    if ( SkillMgr.UIRefreshPending ) then			
-        if ( SkillMgr.UIRefreshTmr == 0 ) then		
-            SkillMgr.UIRefreshTmr = tick			
-        elseif( tick - SkillMgr.UIRefreshTmr > 250 ) then		
-            SkillMgr.UIRefreshTmr = 0			
-            SkillMgr.RefreshSkillList()	
-            SkillMgr.UIRefreshPending = false			
         end
     end
 end
@@ -484,7 +476,8 @@ function SkillMgr.SetDefaultProfile()
         gSMprofile = default
 		gSMDefaultProfile = "1"
         GUI_WindowVisible(SkillMgr.editwindow.name,false)
-        GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
+        GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
+		GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
         GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
         SkillMgr.SkillProfile = {}
         SkillMgr.UpdateCurrentProfileData()
@@ -2418,9 +2411,7 @@ function ffxiv_task_skillmgrAttack:Process()
     if (target ~= nil and target.alive and InCombatRange(target.id)) then
         
         local pos = target.pos
-        Player:SetFacing(pos.x,pos.y,pos.z)
-        Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-		
+        Player:SetTarget(target.id)
 			
 		if (ml_global_information.AttackRange < 5 and
 			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo.channelingid == 0 and
@@ -2432,24 +2423,26 @@ function ffxiv_task_skillmgrAttack:Process()
 			Player:Stop()
 			--GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
 			GameHacks:TeleportToXYZ(pos.x + 1, pos.y, pos.z)
-			Player:SetFacingSynced(pos.x,pos.y,pos.z)
 			Player:SetTarget(ml_task_hub:CurrentTask().targetid)
 			--Player:MoveToStraight(pos.x,pos.y,pos.z,1)
 			SkillMgr.teleCastTimer = Now()
 		end
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and (Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
-			Player:Stop()
-		end
+		--if (TableSize(SkillMgr.teleBack) > 0 and (Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
+			--Player:Stop()
+		--end
 		
-		if (SkillMgr.Cast( target )) then
-			SkillMgr.teleCastTimer = Now()
-		end
+		Player:SetFacingSynced(pos.x,pos.y,pos.z)
+		SkillMgr.Cast( target )
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 1800 or target.castinginfo.channelingid ~= 0)) then
+		--if (SkillMgr.Cast( target )) then
+			--SkillMgr.teleCastTimer = Now()
+		--end
+		
+		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 1200 or target.castinginfo.channelingid ~= 0)) then
 			local back = SkillMgr.teleBack
-			Player:Stop()
-			GameHacks:TeleportToXYZ(back.x+1, back.y, back.z)
+			--Player:Stop()
+			GameHacks:TeleportToXYZ(back.x, back.y, back.z)
 			Player:SetFacingSynced(pos.x,pos.y,pos.z)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0

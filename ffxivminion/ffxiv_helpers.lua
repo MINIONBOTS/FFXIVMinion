@@ -602,7 +602,8 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 
-function GetDutyTarget()
+function GetDutyTarget( maxHP )
+	maxHP = maxHP or nil
 	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
         return nil
     end
@@ -634,16 +635,20 @@ function GetDutyTarget()
 	end
 	if (ValidTable(el)) then
 		local id, target = next(el)
-		if (target.targetable and target.los) then
-			return target
+		if (target.attackable and target.los) then
+			if (not maxHP or target.hp.percent > maxHP) then
+				return target
+			end
 		end
 	end	
 	
 	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
-			if (target.targetable and target.los) then
-				return target
+			if (target.attackable and target.los) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
 			end
 		end
 	end	
@@ -1122,7 +1127,6 @@ function IsLeader()
 end
 
 function GetPartyLeader()
-  
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 		local party = EntityList("type=1,name="..gPartyLeaderName)
@@ -1138,7 +1142,6 @@ function GetPartyLeader()
 		if (ValidTable(party)) then
 			for i,m in pairs(party) do
 				if m.isleader then
-					--d("Name:"..tostring(m.name)..", ID:"..tostring(m.id))
 					return m
 				end
 			end

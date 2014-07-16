@@ -5,6 +5,7 @@ ffxiv_task_duty.dutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles
 ffxiv_task_duty.updateTicks = 0
 ffxiv_task_duty.respawnTime = 0
 ffxiv_task_duty.leader = ""
+ffxiv_task_duty.leaderLastPos = {}
 ffxiv_task_duty.leaderSet = false
 ffxiv_task_duty.dutySet = false
 ffxiv_task_duty.dutyCleared = false
@@ -43,11 +44,7 @@ function ffxiv_task_duty.Create()
 	newinst.joinTimer = 0
 	newinst.leaveTimer = 0
 	newinst.suppressFollowTimer = 0
-	if (Player.localmapid == ffxiv_task_duty.mapID and IsDutyLeader()) then
-		newinst.state = "DUTY_ENTER"
-	else
-		newinst.state = ""
-	end
+	newinst.state = ""
 	newinst.pos = {}
     
     return newinst
@@ -56,16 +53,16 @@ end
 c_followleaderduty = inheritsFrom( ml_cause )
 e_followleaderduty = inheritsFrom( ml_effect )
 c_followleaderduty.rrange = math.random(5,15)
-e_followleaderduty.leader = nil
+c_followleaderduty.leader = nil
 function c_followleaderduty:evaluate()
     if (IsDutyLeader() or Player.localmapid ~= ffxiv_task_duty.mapID or ml_task_hub:CurrentTask().suppressFollow) then
         return false
     end
     
     local leader = GetDutyLeader()
-    if ( leader ~= nil ) then
+    if ( leader ) then
 		c_followleaderduty.leaderpos = leader.pos
-		if ( c_followleaderduty.leaderpos.x ~= -1000 ) then 			
+		if ( c_followleaderduty.leaderpos.x ~= -1000 ) then 
 			local myPos = Player.pos				
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
 			if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
@@ -76,6 +73,7 @@ function c_followleaderduty:evaluate()
 			end
 		end
 	end 
+	
     return false
 end
 function e_followleaderduty:execute()
@@ -101,6 +99,7 @@ function e_followleaderduty:execute()
 			if (gTeleport == "1") then
 				Player:Stop()
 				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+				Player:SetFacingSynced(lpos.x+1, lpos.y, lpos.z)
 			else
 				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
 			end
@@ -112,25 +111,25 @@ c_assistleaderduty= inheritsFrom( ml_cause )
 e_assistleaderduty = inheritsFrom( ml_effect )
 c_assistleaderduty.targetid = nil
 function c_assistleaderduty:evaluate()
-    if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET"
-		or Player.localmapid ~= ffxiv_task_duty.mapID) then
+    if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or Player.localmapid ~= ffxiv_task_duty.mapID) then
         return false
     end
     
     local leader = GetDutyLeader()
-    if (leader ~= nil) then
-        local entity = EntityList:Get(leader.id)
-        if ( entity ~= nil and entity ~= 0 ) then
-            local leadtarget = entity.targetid
-            if ( leadtarget ~= nil and leadtarget ~= 0 ) then
-                local target = EntityList:Get(leadtarget)
-                if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
+    if (leader) then
+		local leaderEntity = EntityList:Get(leader.id)
+		if (leaderEntity) then
+			local leadtarget = leaderEntity.targetid
+			if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET" and ml_task_hub:CurrentTask().targetid == leadtarget) then
+				return false
+			end
+			if ( leadtarget and leadtarget ~= 0 ) then			
+				local target = EntityList:Get(leadtarget)
+				if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
 					c_assistleaderduty.targetid = target.id
 					return true
-                end
-            end
-		else
-			Player:SetFacingSynced(leader.pos.x, leader.pos.y, leader.pos.z)
+				end
+			end
 		end
     end
     
@@ -140,6 +139,7 @@ function e_assistleaderduty:execute()
     if ( c_assistleaderduty.targetid ) then
 		local entity = EntityList:Get(c_assistleaderduty.targetid)
 		Player:SetFacingSynced(entity.pos.x,entity.pos.y,entity.pos.z)
+		
 		if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
 			ml_task_hub:CurrentTask():Terminate()
 		end
@@ -190,13 +190,12 @@ end
 
 c_readyduty = inheritsFrom( ml_cause )
 e_readyduty = inheritsFrom( ml_effect )
-function c_readyduty:evaluate()	
-	if (not Quest:IsLoading() and Player.localmapid ~= ffxiv_task_duty.mapID and IsDutyLeader() and 
+function c_readyduty:evaluate()		
+	if (not Quest:IsLoading() and not OnDutyMap() and IsDutyLeader() and 
 		Player.revivestate ~= 2 and Player.revivestate ~= 3 and 
 		(ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "")) then
 		local party = EntityList.myparty
-		local psize = TableSize(party)
-		if ValidTable(party) and (psize == 4 or psize == 8) then
+		if ValidTable(party) and IsFullParty() then
 			for i,member in pairs(party) do
 				if member.mapid == ffxiv_task_duty.mapID or member.mapid == 0 then
 					return false
@@ -221,8 +220,8 @@ c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
 	if ( Player.localmapid == ffxiv_task_duty.mapID and not PartyInCombat() and Now() > ml_task_hub:CurrentTask().leaveTimer) then
-		if	(DutyLeaderLeft() or ml_task_hub:CurrentTask().state == "DUTY_EXIT" or
-			(IsDutyLeader() and (TableSize(EntityList.myparty) ~= 4 and TableSize(EntityList.myparty) ~= 8))) then
+		if	(DutyLeaderLeft() or
+			(IsDutyLeader() and (ml_task_hub:CurrentTask().state == "DUTY_EXIT"))) then
 			return true
 		end
 	end
@@ -247,23 +246,25 @@ end
 
 c_changeleader = inheritsFrom( ml_cause )
 e_changeleader = inheritsFrom( ml_effect )
+e_changeleader.name = ""
 function c_changeleader:evaluate()
-	if (((ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "" and not OnDutyMap()) or 
-		ffxiv_task_duty.leader == "") and
-		not Quest:IsLoading()) then
-		local Plist = EntityList.myparty
-		if (TableSize(Plist) > 0 ) then
-			local i,member = next (Plist)
-			while (i~=nil and member~=nil ) do
-				if ( member.isleader ) then
-					if (member.name ~= ffxiv_task_duty.leader and member.name ~= "") then
-						e_changeleader.name = member.name
-						return true
-					else
-						return false
-					end
-				end
-				i,member = next (Plist,i)
+	local party = EntityList.myparty
+	if (not ValidTable(party)) then
+		return false
+	end
+	
+	if (OnDutyMap()) then
+		local properLeader = GetDutyLeader()
+		if (ffxiv_task_duty.leader == "") then
+			e_changeleader.name = properLeader.name
+			return true
+		end
+	else
+		if ((ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "") and not Quest:IsLoading()) then
+			local properLeader = GetPartyLeader()
+			if (ffxiv_task_duty.leader ~= properLeader.name) then
+				e_changeleader.name = properLeader.name
+				return true
 			end
 		end
 	end
@@ -272,7 +273,7 @@ function c_changeleader:evaluate()
 end
 function e_changeleader:execute()
 	ffxiv_task_duty.leader = e_changeleader.name
-	if (IsDutyLeader()) then
+	if (ffxiv_task_duty.leader == Player.name) then
 		if (not OnDutyMap()) then
 			ml_task_hub:CurrentTask().state = ""
 		elseif (OnDutyMap()) then
@@ -341,7 +342,7 @@ function ffxiv_task_duty:Process()
 				if ValidTable(gotoPos) then
 					if (gTeleport == "1") then
 						GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
-						Player:SetFacingSynced(tonumber(gotoPos.h))
+						Player:SetFacingSynced(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 					else
 						ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
 						Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, 
@@ -374,11 +375,6 @@ function ffxiv_task_duty:Process()
 		ml_cne_hub.eval_elements(ml_task_hub:CurrentTask().process_elements)
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
-		
-		if state ~= ml_task_hub:CurrentTask().state then
-			--d(state)
-		end
-		
 		return false
 	else
 		ml_debug("no elements in process table")
@@ -494,11 +490,20 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function IsDutyLeader()
-	if (ffxiv_task_duty.leader == "") then
-		if c_changeleader:evaluate() then e_changeleader:execute() end
+	local leader = GetDutyLeader()
+	if (leader) then
+		return Player.name == leader.name
+	end
+	return false
+end
+
+function IsFullParty()
+	local party = EntityList.myparty
+	if (ValidTable(party)) then
+		return (TableSize(party) == 4 or TableSize(party) == 8)
 	end
 	
-	return Player.name == ffxiv_task_duty.leader
+	return false
 end
 
 function OnDutyMap()
@@ -506,15 +511,21 @@ function OnDutyMap()
 end
 
 function PartyInCombat()
+	if (Player.hasaggro) then
+		return true
+	end
+	
 	local party = EntityList.myparty
-	for i, member in pairs(party) do
-		if member.incombat then 
-			return true 
-		end
-		
-		local el = EntityList("alive,attackable,onmesh,targeting="..tostring(member.id))
-		if (ValidTable(el)) then
-			return true
+	if (ValidTable(party)) then
+		for i, member in pairs(party) do
+			if member.incombat then 
+				return true 
+			end
+			
+			local el = EntityList("alive,attackable,onmesh,targeting="..tostring(member.id))
+			if (ValidTable(el)) then
+				return true
+			end
 		end
 	end
 	
@@ -522,77 +533,92 @@ function PartyInCombat()
 end
 
 function DutyLeaderLeft()
-	if (ffxiv_task_duty.leader == "" or IsDutyLeader() or not OnDutyMap()) then
+	if (IsDutyLeader() or not OnDutyMap()) then
 		return false
 	end
 	
-	local partymemberlist= EntityList.myparty
-	if ( partymemberlist) then
-		local i,entity = next(partymemberlist)
-		while (i~=nil and entity ~=nil) do
-			if (entity.name == ffxiv_task_duty.leader) then
-				return false
+	local party = EntityList.myparty
+	if (party and TableSize(party) > 1 ) then
+		local leader = GetDutyLeader()
+		if (leader) then
+			for i, member in pairs(party) do
+				if member.name == leader.name then
+					return false
+				end
 			end
-			i,entity  = next(partymemberlist,i)
 		end
     end
 
 	return true
 end
 
-function GetDutyLeader()	
-	local partymemberlist= EntityList.myparty
-        if ( partymemberlist) then
-        local i,entity = next(partymemberlist)
-        while (i~=nil and entity ~=nil) do 
-			if (entity.name == ffxiv_task_duty.leader) then
-				return entity
+function GetDutyLeader()
+	local party = EntityList.myparty
+	if (ValidTable(party)) then
+		if (ffxiv_task_duty.leader ~= "") then
+			for i, member in pairs(party) do
+				if (member.name == ffxiv_task_duty.leader) then
+					return member
+				end
 			end
-            i,entity  = next(partymemberlist,i)
-        end  
-    end
+		else
+			return GetPartyLeader()
+		end
+	end  
 	
 	return nil
 end
 
 c_deadduty = inheritsFrom( ml_cause )
 e_deadduty = inheritsFrom( ml_effect )
+e_deadduty.justRevived = false
 function c_deadduty:evaluate()
-    if (Player.revivestate == 2 or Player.revivestate == 3 and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+    if (((Player.revivestate == 2 or Player.revivestate == 3) or e_deadduty.justRevived) and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
         return true
     end 
     return false
 end
 function e_deadduty:execute()
-	ml_task_hub:ThisTask().state = "DUTY_NEXTENCOUNTER"
     local leader = GetDutyLeader()
 	if (not leader) then
 		if c_changeleader:evaluate() then e_changeleader:execute() end
 		leader = GetDutyLeader()
 	end
-	local lpos = leader.pos
-	if (gTeleport == "1") then
-		--d("dead, stay close")
-		if (not IsDutyLeader()) then
-			GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
-		else
-			GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
+	
+	if (Player.revivestate == 2 or Player.revivestate == 3) then
+		-- try raise first
+		if(PressYesNo(true)) then
+			if (IsDutyLeader()) then
+				ffxiv_task_duty.leaderLastPos = Player.pos
+			end
+			e_deadduty.justRevived = true
+			return
+		end
+		-- press ok
+		if(PressOK()) then
+			if (IsDutyLeader()) then
+				ffxiv_task_duty.leaderLastPos = Player.pos
+			end
+			e_deadduty.justRevived = true
+			return
 		end
 	end
 	
-	local target = EntityList:Get(leadtarget)
-	if (target~=nil) then
-		Player:SetFacingSynced(target.pos.x, target.pos.y, target.pos.z)
+	if (e_deadduty.justRevived) then
+		if (gTeleport == "1") then
+			--d("dead, stay close")
+			if (not IsDutyLeader()) then
+				local lpos = leader.pos
+				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+				Player:SetFacingSynced(lpos.x+1, lpos.y, lpos.z)
+			else
+				local lpos = ffxiv_task_duty.leaderLastPos
+				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
+				Player:SetFacingSynced(lpos.x, lpos.y, lpos.z)
+				ffxiv_task_duty.leaderLastPos = {}
+			end
+		end
 	end
-
-	-- try raise first
-    if(PressYesNo(true)) then
-		return
-    end
-	-- press ok
-    if(PressOK()) then
-		return
-    end
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)
