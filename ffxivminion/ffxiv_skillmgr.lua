@@ -144,6 +144,8 @@ SkillMgr.Variables = {
 	SKM_GAttempts = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
+	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"  },
+	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"  },
 }
 
 function SkillMgr.ModuleInit() 	
@@ -302,16 +304,17 @@ function SkillMgr.ModuleInit()
     GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
     
     -- Gathering EDITOR WINDOW
-    GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)		
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME",strings[gCurrentLanguage].skillDetails)
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID",strings[gCurrentLanguage].skillDetails)
-    GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
+	-- Fixed buffs with new variable
+	GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h)
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME",strings[gCurrentLanguage].skillDetails)
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID",strings[gCurrentLanguage].skillDetails)
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
 
     GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skillDetails)
@@ -1667,47 +1670,61 @@ function SkillMgr.Craft()
 	return false
 end
 
-function SkillMgr.Gather( )
-    
-    local node = Player:GetTarget()
-    if ( ValidTable(node) and node.cangather and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
-        
+function SkillMgr.Gather()
+
+	local node = Player:GetTarget()
+	if ( ValidTable(node) and node.cangather and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
+
 		for prio,skill in pairs(SkillMgr.SkillProfile) do
-            if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-                
-                local realskilldata = ActionList:Get(skill.id)
-                if ( realskilldata and realskilldata.isready ) then 
-                    if ( realskilldata.isready ) then
-                        local castable = true
+			if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target
+
+				local realskilldata = ActionList:Get(skill.id)
+				if ( realskilldata and realskilldata.isready ) then
+					if ( realskilldata.isready ) then
+						local castable = true
                         
-						if ( skill.gsecspassed > 0 and (skill.lastcast ~= nil and TimeSince(skill.lastcast) < (skill.gsecspassed * 1000))) then 
-							castable = false 
+						-- trying this due to TimeSince can't take a nil value first run of skill.lastcast will be nil
+						if ( skill.lastcast == nil) then
+						d("says lastcast is nil maybe first time so ignoring secs passed this time")
+						elseif ( skill.gsecspassed > 0 and (skill.lastcast ~= nil and TimeSince(skill.lastcast) < (skill.gsecspassed * 1000))) then
+							castable = false
+							end
+
+						--these first two conditionals here look retarded due to poor naming but they are correct
+						-- removed player buff checks as they was nil forcing a fail
+						if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
+						(skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
+						(skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
+						(skill.hasitem ~= "" and not NodeHasItem(skill.hasitem)))
+						then castable = false
 						end
-						
-                        --these first two conditionals here look retarded due to poor naming but they are correct
-                        if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
-                            (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.pbuff ~= "" and not HasBuffs(Player,skill.pbuff)) or
-                            (skill.pnbuff ~= "" and HasBuffs(Player,skill.pnbuff)) or
-                            (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
-                            (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
-                            then castable = false 
-                        end
-                             
-                        if ( castable ) then
-                            d("CASTING (gathering) : "..tostring(skill.name))								
-                            if ( ActionList:Cast(skill.id,0) ) then									
-                                skill.lastcast = ml_global_information.Now
-                                SkillMgr.prevSkillID = tostring(skill.id)
-                                return true
-                            end	
-                        end					
-                    end
-                end
-            end
-        end
-    end
-    return false
+						-- inline with the crafting function added buff checks here and added own variables for player buffs to profile for checking
+						-- the pbuff and pnbuff didn't save in crafting profile due to them being saved in fighting category causing error in string function from being nil when loading profile
+
+					    if ( skill.gpbuff ~= "" ) then
+						local gbfound = HasBuffs(Player,skill.gpbuff)
+						if not gbfound then castable = false end
+					    end
+
+					    if (skill.gpnbuff ~= "" ) then
+						local gtbfound = HasBuffs(Player,skill.gpnbuff)
+						if gtbfound then castable = false end
+					    end
+					
+						if ( castable ) then
+							d("CASTING (gathering) : "..tostring(skill.name))
+							if ( ActionList:Cast(skill.id,0) ) then
+								skill.lastcast = ml_global_information.Now
+								SkillMgr.prevSkillID = tostring(skill.id)
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
 end
 
 function SkillMgr.TryCast( entity , testprio )
