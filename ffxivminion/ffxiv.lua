@@ -440,7 +440,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gChoco" or
 			k == "gChocoStance" or
 			k == "gMount" or
-			k == "gTeleport"
+			k == "gTeleport" or
 			k == "gQuestHelpers" or
 			k == "gRepair")				
         then
