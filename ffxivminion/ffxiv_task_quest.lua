@@ -28,6 +28,7 @@ function ffxiv_task_quest.UIInit()
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
 	GUI_NewField(ml_global_information.MainWindow.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ml_global_information.MainWindow.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
+	GUI_NewField(ml_global_information.MainWindow.Name, "ObjectiveIndex:", "gCurrQuestObjective",strings[gCurrentLanguage].botStatus)
 	GUI_NewCheckbox(ml_global_information.MainWindow.Name,"TestQuest","gTestQuest",strings[gCurrentLanguage].botStatus );
 	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
 	
@@ -49,6 +50,10 @@ function ffxiv_task_quest.UIInit()
 	
 	if (Settings.FFXIVMINION.currentQuestStep == nil) then
 		Settings.FFXIVMINION.currentQuestStep = 0
+	end
+	
+	if (Settings.FFXIVMINION.currentQuestObjective == nil) then
+		Settings.FFXIVMINION.currentQuestObjective = 0
 	end
 	
 	if (Settings.FFXIVMINION.gTestQuest == nil) then
