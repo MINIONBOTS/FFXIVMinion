@@ -117,6 +117,7 @@ function Dev.ModuleInit()
 	GUI_NewComboBox("Dev","Inventory","invinv","InventoryInfo","0,1,2,3,1000,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500,10000,10001,10002,10003,10004,10005,10006,11000,12000,12001,12002");	
 	GUI_NewNumeric("Dev","SlotNumber","invSelSlot","InventoryInfo","1","199");
 	GUI_NewField("Dev","Ptr","invptr","InventoryInfo")
+	GUI_NewField("Dev","Ptr2","invptr2","InventoryInfo")
 	GUI_NewField("Dev","ID","invid","InventoryInfo")
 	GUI_NewField("Dev","Name/Desc","invname","InventoryInfo")
 	GUI_NewField("Dev","InvType","invtype","InventoryInfo")
@@ -124,6 +125,9 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Stackcount","invcount","InventoryInfo")
 	GUI_NewField("Dev","MaxStackcount","invmaxcount","InventoryInfo")
 	GUI_NewField("Dev","Condition","invcond","InventoryInfo")
+	GUI_NewField("Dev","Level","invlvl","InventoryInfo")
+	GUI_NewField("Dev","RequiredLevel","invreqlvl","InventoryInfo")
+	
 	invSelSlot = 0
 	invinv = "0"
 	
@@ -796,6 +800,7 @@ function Dev.UpdateWindow()
 		if ( item ) then
 			found = true
 			invptr = string.format( "%x",tonumber(item.ptr ))
+			invptr2 = string.format( "%x",tonumber(item.ptr2 ))
 			invid = item.id
 			invname = item.name
 			invtype = item.type
@@ -803,6 +808,8 @@ function Dev.UpdateWindow()
 			invcount = item.count
 			invmaxcount = item.max
 			invcond = item.condition
+			invlvl = item.level
+			invreqlvl = item.requiredlevel
 		end
 	end
 	if (not found) then
