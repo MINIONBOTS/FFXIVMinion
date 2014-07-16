@@ -21,7 +21,7 @@ function GetNearestGrindAttackable()
 				if (i~=nil and e~=nil and 
 					(e.targetid == 0 or e.targetid == Player.id) and
 					e.pathdistance <= tonumber(gClaimRange)) then
-					d("Grind returned, using block:"..tostring(block))
+					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
 			end
@@ -31,15 +31,15 @@ function GetNearestGrindAttackable()
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
 	block = 2
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange)) 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
 	else
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxdistance="..tostring(ml_global_information.AttackRange)) 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxdistance=30") 
 	end
 	
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
-			d("Grind returned, using block:"..tostring(block))
+			--d("Grind returned, using block:"..tostring(block))
 			return e
 		end
 	end	
@@ -54,16 +54,15 @@ function GetNearestGrindAttackable()
 		for i, member in pairs(party) do
 			if (member.id and member.id ~= 0) then
 				if (not IsNullString(excludeString)) then
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 				else
-					--el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
 				end
 				
 				if ( el ) then
 					local i,e = next(el)
 					if (i~=nil and e~=nil) then
-						d("Grind returned, using block:"..tostring(block))
+						--d("Grind returned, using block:"..tostring(block))
 						return e
 					end
 				end
@@ -83,7 +82,7 @@ function GetNearestGrindAttackable()
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
-				d("Grind returned, using block:"..tostring(block))
+				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -97,7 +96,7 @@ function GetNearestGrindAttackable()
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil and (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1")) then
-				d("Grind returned, using block:"..tostring(block))
+				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -115,7 +114,7 @@ function GetNearestGrindAttackable()
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
-				d("Grind returned, using block:"..tostring(block))
+				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -130,7 +129,7 @@ function GetNearestGrindAttackable()
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
-				d("Grind returned, using block:"..tostring(block))
+				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -657,15 +656,41 @@ function GetDutyTarget( maxHP )
 end
 
 function GetNearestAggro()
-    local el = EntityList("nearest,alive,attackable,onmesh,targetingme")
-    if ( el ) then
-        local i,e = next(el)
-        if (i~=nil and e~=nil) then
-            return e
-        end
-    end
+	if (not IsNullString(excludeString)) then
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+	else
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,maxdistance=30") 
+	end
+	
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			--d("Grind returned, using block:"..tostring(block))
+			return e
+		end
+	end
+	
+	local party = EntityList.myparty
+	if ( party ) then
+		for i, member in pairs(party) do
+			if (member.id and member.id ~= 0) then
+				if (not IsNullString(excludeString)) then
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+				else
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+				end
+				
+				if ( el ) then
+					local i,e = next(el)
+					if (i~=nil and e~=nil) then
+						--d("Grind returned, using block:"..tostring(block))
+						return e
+					end
+				end
+			end
+		end
+	end
     
-    ml_debug("GetNearestAggro() failed with no entity found matching params")
     return nil
 end
 
