@@ -1679,9 +1679,11 @@ function SkillMgr.Gather( )
                 if ( realskilldata and realskilldata.isready ) then 
                     if ( realskilldata.isready ) then
                         local castable = true
-                        
-						if ( skill.gsecspassed > 0 and (skill.lastcast ~= nil and TimeSince(skill.lastcast) < (skill.gsecspassed * 1000))) then 
-							castable = false 
+						
+						if ( skill.gsecspassed > 0 and skill.lastcast ) then
+							if (TimeSince(skill.lastcast) < (skill.gsecspassed * 1000)) then 
+								castable = false
+							end
 						end
 						
                         --these first two conditionals here look retarded due to poor naming but they are correct

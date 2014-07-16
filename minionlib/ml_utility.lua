@@ -27,6 +27,7 @@ function randomize(val)
 end
 
 function TimeSince(previousTime)
+	previousTime = previousTime or 0
     return ml_global_information.Now - previousTime
 end
 

@@ -406,7 +406,6 @@ function ffxivminion.HandleInit()
 		GameHacks:SetClickToTravel(true)
 	end
     
-	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
 end
@@ -441,7 +440,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gChoco" or
 			k == "gChocoStance" or
 			k == "gMount" or
-			k == "gTeleport")			
+			k == "gTeleport"
+			k == "gQuestHelpers" or
+			k == "gRepair")				
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then

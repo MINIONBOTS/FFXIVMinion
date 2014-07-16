@@ -1188,7 +1188,7 @@ end
 c_acceptquest = inheritsFrom( ml_cause )
 e_acceptquest = inheritsFrom( ml_effect )
 function c_acceptquest:evaluate()
-	if (gQuestHelpers == "0") then
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
 		return false
 	end
 	return Quest:IsQuestAcceptDialogOpen()
@@ -1200,7 +1200,7 @@ end
 c_handoverquest = inheritsFrom( ml_cause )
 e_handoverquest = inheritsFrom( ml_effect )
 function c_handoverquest:evaluate()
-	if (gQuestHelpers == "0") then
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
 		return false
 	end
 	return Quest:IsRequestDialogOpen()
@@ -1217,7 +1217,7 @@ end
 c_completequest = inheritsFrom( ml_cause )
 e_completequest = inheritsFrom( ml_effect )
 function c_completequest:evaluate()
-	if (gQuestHelpers == "0") then
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
 		return false
 	end
 	return Quest:IsQuestRewardDialogOpen()

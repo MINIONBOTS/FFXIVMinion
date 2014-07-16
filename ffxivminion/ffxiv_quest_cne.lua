@@ -360,6 +360,9 @@ end
 c_questyesno = inheritsFrom( ml_cause )
 e_questyesno = inheritsFrom( ml_effect )
 function c_questyesno:evaluate()
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
+		return false
+	end
 	return ControlVisible("SelectYesno")
 end
 function e_questyesno:execute()
