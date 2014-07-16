@@ -2414,7 +2414,7 @@ function ffxiv_task_skillmgrAttack:Process()
         
         local pos = target.pos
         Player:SetTarget(target.id)
-			
+		
 		if (ml_global_information.AttackRange < 5 and
 			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
@@ -2424,8 +2424,9 @@ function ffxiv_task_skillmgrAttack:Process()
 			SkillMgr.teleBack = Player.pos
 			Player:Stop()
 			--GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
-			GameHacks:TeleportToXYZ(pos.x + 1, pos.y, pos.z)
-			Player:SetTarget(ml_task_hub:CurrentTask().targetid)
+			GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+			Player:SetFacingSynced(pos.x,pos.y,pos.z)
+			Player:SetTarget(target.id)
 			--Player:MoveToStraight(pos.x,pos.y,pos.z,1)
 			SkillMgr.teleCastTimer = Now()
 		end
@@ -2434,14 +2435,14 @@ function ffxiv_task_skillmgrAttack:Process()
 			--Player:Stop()
 		--end
 		
-		Player:SetFacingSynced(pos.x,pos.y,pos.z)
+		Player:SetFacing(pos.x,pos.y,pos.z)
 		SkillMgr.Cast( target )
 		
 		--if (SkillMgr.Cast( target )) then
 			--SkillMgr.teleCastTimer = Now()
 		--end
 		
-		if (TableSize(SkillMgr.teleBack) > 0 and (TimeSince(SkillMgr.teleCastTimer) >= 1200 or target.castinginfo.channelingid ~= 0)) then
+		if (TableSize(SkillMgr.teleBack) > 0 and gBotMode == strings[gCurrentLanguage].dutyMode and (TimeSince(SkillMgr.teleCastTimer) >= 1200 or target.castinginfo.channelingid ~= 0)) then
 			local back = SkillMgr.teleBack
 			--Player:Stop()
 			GameHacks:TeleportToXYZ(back.x, back.y, back.z)

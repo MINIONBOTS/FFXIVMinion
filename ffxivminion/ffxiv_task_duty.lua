@@ -571,19 +571,28 @@ end
 
 c_deadduty = inheritsFrom( ml_cause )
 e_deadduty = inheritsFrom( ml_effect )
+c_deadduty.leader = {}
 e_deadduty.justRevived = false
 function c_deadduty:evaluate()
+	local leader = GetDutyLeader()
+	if (not leader) then
+		if c_changeleader:evaluate() then e_changeleader:execute() end
+		leader = GetDutyLeader()
+	end
+	
+	if (not leader) then
+		return false
+	else
+		c_deadduty.leader = leader
+	end
+	
     if (((Player.revivestate == 2 or Player.revivestate == 3) or e_deadduty.justRevived) and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
         return true
     end 
     return false
 end
 function e_deadduty:execute()
-    local leader = GetDutyLeader()
-	if (not leader) then
-		if c_changeleader:evaluate() then e_changeleader:execute() end
-		leader = GetDutyLeader()
-	end
+    local leader = c_deadduty.leader
 	
 	if (Player.revivestate == 2 or Player.revivestate == 3) then
 		-- try raise first
@@ -616,6 +625,7 @@ function e_deadduty:execute()
 				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
 				Player:SetFacingSynced(lpos.x, lpos.y, lpos.z)
 				ffxiv_task_duty.leaderLastPos = {}
+				ml_task_hub:CurrentTask().state = "DUTY_NEXTENCOUNTER"
 			end
 		end
 	end

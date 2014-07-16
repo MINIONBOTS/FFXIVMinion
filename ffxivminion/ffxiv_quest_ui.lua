@@ -1065,7 +1065,6 @@ function QM.LoadCurrentValues(strWindow)
 		end
 		qTaskMesh = tostring(gmeshname)
 		qTaskMap = Player.localmapid
-		qStepNum = QM.CurrentStep
 	elseif (strWindow == "edit") then
 		local target = Player:GetTarget()
 		if (target ~= nil) then
