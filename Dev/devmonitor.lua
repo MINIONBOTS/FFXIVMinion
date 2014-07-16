@@ -127,7 +127,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Condition","invcond","InventoryInfo")
 	GUI_NewField("Dev","Level","invlvl","InventoryInfo")
 	GUI_NewField("Dev","RequiredLevel","invreqlvl","InventoryInfo")
-	
+	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
 	invSelSlot = 0
 	invinv = "0"
 	
@@ -348,6 +348,19 @@ function Dev.HandleButtons( Event, arg )
 			d(Quest:AcceptQuest())
 		elseif ( arg == "Dev.QuestDQ") then
 			d(Quest:DeclineQuest())
+		elseif ( arg == "Dev.UseItem") then	
+			local inv = Inventory("type="..invinv)
+			if ( inv ) then
+				local item = inv[tonumber(invSelSlot)]
+				if ( item ) then
+					local tar = Player:GetTarget()
+					if ( tar ) then
+						d(item:Use(tar.id))
+					else
+						d(item:Use())
+					end					
+				end
+			end			
 		elseif ( arg == "Dev.Interact") then
 			local t = Player:GetTarget()
 			if ( t ) then
