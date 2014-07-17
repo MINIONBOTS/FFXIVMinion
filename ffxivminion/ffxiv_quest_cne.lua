@@ -43,10 +43,14 @@ end
 c_questiscomplete = inheritsFrom( ml_cause )
 e_questiscomplete = inheritsFrom( ml_effect )
 function c_questiscomplete:evaluate()
-	return ml_task_hub:CurrentTask().quest:isComplete()
+	if(ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "QUEST_COMPLETE") then
+		return false
+	end
+	
+	return ffxiv_task_quest.currentQuest:isComplete()
 end
 function e_questiscomplete:execute()
-	local task = ml_task_hub:CurrentTask().quest:GetCompleteTask()
+	local task = ffxiv_task_quest.currentQuest:GetCompleteTask()
 	if (ValidTable(task)) then
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
@@ -275,7 +279,7 @@ e_questkill = inheritsFrom( ml_effect )
 function c_questkill:evaluate()
 	local id = ml_task_hub:CurrentTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("shortestpath,onmesh,notincombat,alive,attackable,contentid="..tostring(id))
+		local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(entity) then
