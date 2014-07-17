@@ -56,7 +56,7 @@ function ffxiv_quest_task:Init()
     self:add( ke_questCanStart, self.process_elements)
 	
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 20 )
-    self:add( ke_questIsComplete, self.overwatch_elements)
+    self:add( ke_questIsComplete, self.process_elements)
 	
 	local ke_changeNavMesh = ml_element:create( "ChangeNavMesh", c_changenavmesh, e_changenavmesh, 100 )
     self:add( ke_changeNavMesh, self.overwatch_elements)
@@ -483,7 +483,7 @@ function ffxiv_quest_useitem:Init()
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
     self:add( ke_questMoveToMap, self.process_elements)
 	
-	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
 	local ke_questUseItem = ml_element:create( "QuestUseItem", c_questuseitem, e_questuseitem, 10 )
