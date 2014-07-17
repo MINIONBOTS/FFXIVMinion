@@ -1713,14 +1713,14 @@ function SkillMgr.Gather( )
                         end
 						
 						if ( skill.gpbuff and skill.gpbuff ~= "" ) then
- +							local gbfound = HasBuffs(Player,skill.gpbuff)
- +							if not gbfound then castable = false end
- +					    end
- +
- +					    if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
- +							local gtbfound = HasBuffs(Player,skill.gpnbuff)
- +							if gtbfound then castable = false end
- +					    end
+							local gbfound = HasBuffs(Player,skill.gpbuff)
+							if not gbfound then castable = false end
+						end
+
+						if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
+							local gtbfound = HasBuffs(Player,skill.gpnbuff)
+							if gtbfound then castable = false end
+						end
                              
                         if ( castable ) then
                             --d("CASTING (gathering) : "..tostring(skill.name))								
