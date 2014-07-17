@@ -245,6 +245,14 @@ function ffxivminion.HandleInit()
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings)
 	
+	--BotStatus
+    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
+    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
+	
 	--General Settings
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
@@ -262,14 +270,6 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
 	GUI_NewButton(ffxivminion.Windows.Main.Name,"Cast Prevention","CastPrevention.toggle",strings[gCurrentLanguage].generalSettings)
-	
-	--BotStatus
-    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
-    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
-	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
-	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
 	
 	--Hacks
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
@@ -293,7 +293,7 @@ function ffxivminion.HandleInit()
     gFFXIVMINIONTask = ""
     gBotRunning = "0"
     
-    --GUI_FoldGroup(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botStatus );
+    GUI_UnFoldGroup(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botStatus );
     GUI_UnFoldGroup(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].settings)
     
     gEnableLog = Settings.FFXIVMINION.gEnableLog

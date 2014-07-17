@@ -21,7 +21,7 @@ function ffxiv_quest:CreateTask()
 end
 
 function ffxiv_quest:canStart()
-	if (self:isComplete()) then
+	if (self:hasBeenCompleted()) then
 		return false
 	end
 	
@@ -35,7 +35,7 @@ function ffxiv_quest:canStart()
 				jobid == -1) 
 			then
 				for _, questid in pairs(questids) do
-					if (not Settings.FFXIVMINION.completedQuestIDs[questid]) then
+					if (not Quest:IsQuestCompleted(questid)) then
 						return false
 					end
 				end
@@ -50,8 +50,42 @@ function ffxiv_quest:isStarted()
 	return Quest:HasQuest(self.id)
 end
 
+--checks to see if all quest objectives have been met
 function ffxiv_quest:isComplete()
-	return Settings.FFXIVMINION.completedQuestIDs[self.id] ~= nil
+	return Quest:GetQuestCurrentStep(self.id) == 255
+end
+
+--checks to see if quest has been previously completed
+function ffxiv_quest:hasBeenCompleted()
+	return Quest:IsQuestCompleted(self.id)
+end
+
+function ffxiv_quest:currentObjectiveIndex()
+	return Quest:GetQuestCurrentStep(self.id)
+end
+
+function ffxiv_quest:currentStepIndex()
+	return GetStepIndexForObjective(self:currentObjectiveIndex())
+end
+
+function ffxiv_quest:GetStepIndexForObjective(objectiveIndex)
+	if(objectiveIndex <= 0 or objectiveIndex >= TableSize(self.steps)) then
+		ml_error("Quest:GetStepIndexForObjectove - Invalid objective index")
+	end
+
+	local stepIndex = 1
+	for index,step in pairsByKeys(self.steps) do
+		if(index ~= 1 and index ~= TableSize(self.steps) and not step["nonquestobjective"]) then
+			if (stepIndex == objectiveIndex) then
+				stepIndex = index
+				break
+			else
+				stepIndex = stepIndex + 1
+			end
+		end
+	end
+	
+	return stepIndex
 end
 
 function ffxiv_quest:GetStartTask()
@@ -68,12 +102,18 @@ function ffxiv_quest:GetCompleteTask()
 	return task
 end
 
+--returns a task for the given step index
 function ffxiv_quest:GetStepTask(stepIndex)
 	local params = self.steps[stepIndex]
 	local task = ffxiv_quest.tasks[params.type]()
 	task.params = params
 	
 	return task
+end
+
+--finds the task for the step matching the objective index and returns it
+function ffxiv_quest:GetObjectiveTask(objectiveIndex)
+	return self:GetStepTask(self:GetStepIndexForObjective(objectiveIndex))
 end
 
 function ffxiv_quest:GetNearestEntity()
@@ -92,4 +132,5 @@ ffxiv_quest.tasks =
 	["dutykill"]	= ffxiv_quest_dutykill.Create,
 	["textcommand"] = ffxiv_quest_textcommand.Create,
 	["useitem"] 	= ffxiv_quest_useitem.Create,
+	["useaction"]	= ffxiv_quest_useaction.Create,
 }

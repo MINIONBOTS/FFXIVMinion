@@ -1,6 +1,11 @@
 --must be called from a quest step task where the parent task is a ffxiv_quest_task object
 function quest_step_complete_eval()
-	return ml_task_hub:CurrentTask().stepCompleted
+	--if(ml_task_hub:CurrentTask().params["nonquestobjective"]) then
+		return ml_task_hub:CurrentTask().stepCompleted
+	--else
+	--	local objectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
+	--	return ml_task_hub:CurrentTask():ParentTask().currentObjectiveIndex ~= objectiveIndex
+	--end
 end
 
 function quest_step_complete_execute()
@@ -14,9 +19,12 @@ end
 c_questcanstart = inheritsFrom( ml_cause )
 e_questcanstart = inheritsFrom( ml_effect )
 function c_questcanstart:evaluate()
+	d("test3")
 	if (TimeSince(ml_task_hub:CurrentTask().startTimer) > 1000) then
+		d("test1")
 		return not ml_task_hub:CurrentTask().quest:isStarted()
 	else
+		d("test2")
 		return false
 	end
 end
@@ -35,16 +43,22 @@ end
 c_questiscomplete = inheritsFrom( ml_cause )
 e_questiscomplete = inheritsFrom( ml_effect )
 function c_questiscomplete:evaluate()
-	return ml_task_hub:CurrentTask().quest:isComplete()
+	if(ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "QUEST_COMPLETE") then
+		return false
+	end
+	
+	return ffxiv_task_quest.currentQuest:isComplete()
 end
 function e_questiscomplete:execute()
-	local task = ml_task_hub:CurrentTask().quest:GetCompleteTask()
+	local task = ffxiv_task_quest.currentQuest:GetCompleteTask()
 	if (ValidTable(task)) then
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 	end
 end
 
+--nextqueststep finds the appropriate step when a quest is restarted and iterates through the steps
+--when the quest engine is running
 c_nextqueststep = inheritsFrom( ml_cause )
 e_nextqueststep = inheritsFrom( ml_effect )
 function c_nextqueststep:evaluate()
@@ -57,11 +71,22 @@ function c_nextqueststep:evaluate()
 	return ml_task_hub:CurrentTask().currentStepCompleted
 end
 function e_nextqueststep:execute()
+	local quest = ffxiv_task_quest.currentQuest
+	local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
+	local currentStepIndex = Settings.FFXIVMINION.currentQuestStep
+	
 	if (ml_task_hub:CurrentTask().currentStepIndex == 1 and
 		Settings.FFXIVMINION.currentQuestStep ~= nil and
 		Settings.FFXIVMINION.currentQuestStep > 1) 
 	then
-		ml_task_hub:CurrentTask().currentStepIndex = Settings.FFXIVMINION.currentQuestStep
+		--if the saved step index is less than the objective step index then it represents a 
+		--non quest objective step and we need to restart from it
+		--otherwise we restart from the step index that matches the current quest objective
+		--if (currentStepIndex <= objectiveStepIndex) then
+			ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
+		--else
+			--ml_task_hub:CurrentTask().currentStepIndex = objectiveStepIndex
+		--end
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
@@ -74,12 +99,14 @@ function e_nextqueststep:execute()
 			end
 		end
 		
+		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
 		ffxiv_task_quest.currentStepParams = task.params
 		ml_task_hub:ThisTask().currentStepCompleted = false
 		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
+		gCurrQuestObjective = tostring(ml_task_hub:ThisTask().currentObjectiveIndex)
 		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
 	end
 end
@@ -119,13 +146,15 @@ function c_questmovetopos:evaluate()
 end
 function e_questmovetopos:execute()
 	local pos = ml_task_hub:CurrentTask().params["pos"]
-	local task = ffxiv_task_movetopos.Create()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.use3d = true
 	
 	if(gTeleport == "1") then
+		--have to add a general delay before teleporting because it breaks lots of quest logic 
+		--if the bot teleports before the server updates the client with updated quest data
 		newTask.useTeleport = true
+		newTask:SetDelay(3000)
 	end
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -250,7 +279,7 @@ e_questkill = inheritsFrom( ml_effect )
 function c_questkill:evaluate()
 	local id = ml_task_hub:CurrentTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("shortestpath,onmesh,notincombat,alive,attackable,contentid="..tostring(id))
+		local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(entity) then
@@ -468,6 +497,15 @@ function c_questuseitem:evaluate()
 		local id = ml_task_hub:CurrentTask().params["itemid"]
 		local item = Inventory:Get(id)
 		if(ValidTable(item)) then
+			if(ml_task_hub:CurrentTask().params["id"]) then
+				local list = EntityList("contentid="..tostring(ml_task_hub:CurrentTask().params["id"]))
+				if(ValidTable(list)) then
+					id, entity = next(list)
+					if(id ~= nil) then
+						e_questuseitem.id = id
+					end
+				end
+			end
 			return true
 		else
 			ml_error("No item with specified ID found in inventory")
@@ -480,11 +518,103 @@ function c_questuseitem:evaluate()
 end
 function e_questuseitem:execute()
 	local item = Inventory:Get(ml_task_hub:CurrentTask().params["itemid"])
-	if(ml_task_hub:CurrentTask().params["id"]) then
-		item:Use(ml_task_hub:CurrentTask().params["id"])
+	if(e_questuseitem.id ~= nil) then
+		item:Use(e_questuseitem.id)
 	else
 		item:Use()
 	end
 		
 	ml_task_hub:ThisTask().stepCompleted = true
+end
+
+c_questuseaction = inheritsFrom( ml_cause )
+e_questuseaction = inheritsFrom( ml_effect )
+function c_questuseaction:evaluate()
+	if(ml_task_hub:CurrentTask().params["actionid"]) then
+		local actionid = ml_task_hub:CurrentTask().params["actionid"]
+		local actiontype = ml_task_hub:CurrentTask().params["actiontype"]
+
+		local action = nil
+		if(actiontype) then
+			action = ActionList:Get(actionid,actiontype)
+		else
+			action = ActionList:Get(actionid)
+		end
+			
+		if(ValidTable(action)) then
+			e_questuseaction.action = action
+			return true
+		else
+			ml_error("No action with specified id and type found")
+			return false
+		end
+	else
+		ml_error("No actionid found in profile")
+		return false
+	end
+end
+function e_questuseaction:execute()
+	if(ml_task_hub:CurrentTask().params["id"]) then
+		Player:SetTarget(ml_task_hub:CurrentTask().params["actionid"])
+	end
+	
+	e_questuseaction.action:Cast()
+	ml_task_hub:ThisTask().stepCompleted = true
+end
+
+c_questmovetohealer = inheritsFrom( ml_cause )
+e_questmovetohealer = inheritsFrom( ml_effect )
+function c_questmovetohealer:evaluate()
+	if(ml_task_hub:CurrentTask().params["healderid"] and Player.hp.percent < 50) then
+		local healer = EntityList:Get(ml_task_hub:CurrentTask().params["healderid"])
+		if(ValidTable(healer) and healer.distance > 5) then
+			e_questmovetohealer.pos = healer.pos
+			return true
+		end
+	end
+	
+	return false
+end
+function e_questmovetohealer:execute()
+	local pos = e_questmovetohealer.pos
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = pos
+	newTask.use3d = true
+	
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_questmovetoactionrange = inheritsFrom( ml_cause )
+e_questmovetoactionrange = inheritsFrom( ml_effect )
+function c_questmovetoactionrange:evaluate()
+    if ( ml_task_hub:CurrentTask().params["id"] ) then
+        local list = EntityList:Get("shortestpath,contentid="..ml_task_hub:CurrentTask().params["id"])
+		if(ValidTable(list)) then
+			local id, entity = next(list)
+			if(ValidTable(entity)) then
+				e_questmovetoactionrange.id = entity.id
+				
+				local actionid = ml_task_hub:CurrentTask().params["actionid"]
+				local actiontype = ml_task_hub:CurrentTask().params["actiontype"]
+
+				if(actiontype) then
+					return not ActionList:CanCast(actionid,actiontype,entity.id)
+				else
+					return not ActionList:CanCast(actionid,entity.id)
+				end
+			end
+        end
+    end
+    
+    return false
+end
+function e_questmovetoactionrange:execute()
+    ml_debug( "Moving within action range of target" )
+    local target = EntityList:Get(e_questmovetoactionrange.id)
+    if (target ~= nil and target.pos ~= nil) then
+        local newTask = ffxiv_task_movetopos.Create()
+        newTask.pos = target.pos
+        newTask.useFollowMovement = false
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
+    end
 end
