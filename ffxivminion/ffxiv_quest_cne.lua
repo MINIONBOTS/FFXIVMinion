@@ -43,10 +43,6 @@ end
 c_questiscomplete = inheritsFrom( ml_cause )
 e_questiscomplete = inheritsFrom( ml_effect )
 function c_questiscomplete:evaluate()
-	if(ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "QUEST_COMPLETE") then
-		return false
-	end
-	
 	return ffxiv_task_quest.currentQuest:isComplete()
 end
 function e_questiscomplete:execute()
