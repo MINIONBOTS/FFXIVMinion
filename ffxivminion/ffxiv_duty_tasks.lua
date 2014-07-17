@@ -19,8 +19,9 @@ function ffxiv_duty_kill_task.Create()
 	newinst.suppressAssist = false
 	newinst.sceneTimer = 0
 	newinst.hasScene = false
-	newinst.hasSynced = false
-    
+	newinst.syncRequired = true
+    newinst.syncTimer = Now() + 1000
+	
     return newinst
 end
 
@@ -29,9 +30,10 @@ function ffxiv_duty_kill_task:Process()
 		return
 	end
 	
-	if (not self.hasSynced) then
+	if (ml_task_hub:ThisTask().syncRequired and Now() > ml_task_hub:ThisTask().syncTimer) then
 		Player:SetFacingSynced(Player.pos.x, Player.pos.y, Player.pos.z)
-		self.hasSynced = true
+		Player:SetFacingSynced(Player.pos.x, Player.pos.y, Player.pos.z)
+		ml_task_hub:ThisTask().syncRequired = false
 	end
 	
 	if (ml_task_hub:CurrentTask().sceneTimer == 0 and ml_task_hub:CurrentTask().encounterData.doWait) then
@@ -52,17 +54,20 @@ function ffxiv_duty_kill_task:Process()
 	if (ml_task_hub:CurrentTask().encounterData.fightPos) then
 		fightPos = ml_task_hub:CurrentTask().encounterData.fightPos["General"]
 	end
+	local startPos = nil
+	if (ml_task_hub:CurrentTask().encounterData.startPos) then
+		startPos = ml_task_hub:CurrentTask().encounterData.startPos["General"]
+	end
 	
 	if (ValidTable(entity)) then		
 		if (fightPos) then
 			if (ml_task_hub:CurrentTask().timer == 0) then
 				Player:SetTarget(entity.id)
-				Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 				SkillMgr.Cast( entity )
 				ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 			elseif (ml_global_information.Now > ml_task_hub:CurrentTask().timer or Player.incombat) then
 				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(Player.pos.x,Player.pos.y,Player.pos.z)
 				Player:SetTarget(entity.id)
 				Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				local newTask = ffxiv_task_skillmgrAttack.Create()
@@ -72,16 +77,43 @@ function ffxiv_duty_kill_task:Process()
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					Player:SetTarget(entity.id)
-					Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+					Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 					SkillMgr.Cast( entity )
 			--return false
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
 				ml_task_hub:CurrentTask().encounterData.doKill == true) then
 					if (entity ~= nil and entity.alive and InCombatRange(entity.id)) then
-						local pos = entity.pos
 						Player:SetTarget(entity.id)
-						Player:SetFacing(pos.x,pos.y,pos.z)
+						local pos = entity.pos
+						
+						if (ml_global_information.AttackRange < 5 and
+							gBotMode == strings[gCurrentLanguage].dutyMode and entity.castinginfo.channelingid == 0 and
+							gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
+							and entity.targetid ~= Player.id) then
+							
+							ml_task_hub:CurrentTask().suppressFollow = true
+							ml_task_hub:CurrentTask().suppressFollowTimer = Now() + 2500
+							
+							SkillMgr.teleBack = startPos
+							GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+							Player:SetFacingSynced(pos.x,pos.y,pos.z)
+							Player:SetTarget(entity.id)
+							SkillMgr.teleCastTimer = Now() + 1600
+						end
+						
+						Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
 						SkillMgr.Cast( entity )
+						
+						if (TableSize(SkillMgr.teleBack) > 0 and 
+							gBotMode == strings[gCurrentLanguage].dutyMode and 
+							(Now() > SkillMgr.teleCastTimer or entity.castinginfo.channelingid ~= 0)) then
+							local back = SkillMgr.teleBack
+							--Player:Stop()
+							GameHacks:TeleportToXYZ(back.x, back.y, back.z)
+							Player:SetFacingSynced(back.x, back.y, back.z)
+							SkillMgr.teleBack = {}
+							SkillMgr.teleCastTimer = 0
+						end
 					end
 		end
 	end

@@ -38,7 +38,7 @@ ffxivminion.modes = {}
 ffxivminion.settingsVisible = false
 
 ffxivminion.Windows = {
-	Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 }
+	Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 },
 }
 
 function ml_global_information.OnUpdate( event, tickcount )
@@ -231,7 +231,7 @@ function ffxivminion.HandleInit()
     GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
 	GUI_WindowVisible(GetString("advancedSettings"), false)
-
+	
 	--Buttons
 	GUI_NewButton(ffxivminion.Windows.Main.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
@@ -243,7 +243,7 @@ function ffxivminion.HandleInit()
 	--Settings
     GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings)
 	
 	--General Settings
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
@@ -261,6 +261,7 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
+	GUI_NewButton(ffxivminion.Windows.Main.Name,"Cast Prevention","CastPrevention.toggle",strings[gCurrentLanguage].generalSettings)
 	
 	--BotStatus
     GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	

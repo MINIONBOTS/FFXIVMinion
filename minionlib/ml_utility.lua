@@ -114,7 +114,6 @@ function LinesFrom(file)
   return cleanedLines 
 end
 
-
 function StringSplit(s,sep)
 	local lasti, done, g = 1, false, s:gmatch('(.-)'..sep..'()')
 	return function()
