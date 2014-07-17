@@ -70,6 +70,15 @@ function ml_task_hub:CurrentTask()
 	end
 end
 
+function ml_task_hub:RootTask()
+    if (ml_task_hub.prevQueueId ~= nil) then
+		local task = ml_task_hub.queues[ml_task_hub.prevQueueId].rootTask
+		return task
+	end
+	
+	return nil
+end
+
 -- ThisTask() returns the task which is currently in its Update() function
 -- It is set in the Update() function by whatever task enters it
 function ml_task_hub:ThisTask()

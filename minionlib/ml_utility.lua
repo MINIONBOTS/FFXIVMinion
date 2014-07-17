@@ -27,6 +27,7 @@ function randomize(val)
 end
 
 function TimeSince(previousTime)
+	previousTime = previousTime or 0
     return ml_global_information.Now - previousTime
 end
 
@@ -151,22 +152,41 @@ function StringToTable(str, delimiter)
 	return t
 end
 
-function ExecuteFunctions(strFunction)
-	--Pass a (;) separated string, execute all functions in order.
-	if strFunction == nil then
+function ExecuteFunction(args)
+	if args == nil then
 		return
 	end
 	
-	local t = StringToTable(strFunction,";")
-	local start = 1
-	local finish = TableSize(t)
+	if (type(args) == "function") then
+		args()
+	elseif (type(args) == "string") then
 	
-	for x = start,finish do
+		local t = StringToTable(args,";")
+		local start = 1
+		local finish = TableSize(t)
+		
+		for x = start,finish do
+			local f = _G
+			for v in t[x]:gmatch("[^%.]+") do
+				f=f[v]
+			end
+			f()
+		end
+	
+	elseif (type(args) == "table") then
+		local numArgs = TableSize(args) - 1
 		local f = _G
-		for v in t[x]:gmatch("[^%.]+") do
+		for v in args[1]:gmatch("[^%.]+") do
 			f=f[v]
 		end
-		f()
+		
+		if (numArgs == 1) then
+			f(args[2])
+		elseif (numArgs == 2) then
+			f(args[2],args[3])
+		elseif (numArgs == 3) then
+			f(args[2],args[3],args[4])
+		end
 	end
 end
 

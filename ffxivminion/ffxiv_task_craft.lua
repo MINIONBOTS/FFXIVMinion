@@ -104,8 +104,8 @@ end
 function ffxiv_task_craft:Init()
     --init Process() cnes
     	
-	local ke_repair = ml_element:create( "RepairingGear", c_repair, e_repair, 20 )
-    self:add(ke_repair, self.process_elements)
+	--local ke_repair = ml_element:create( "RepairingGear", c_repair, e_repair, 20 )
+    --self:add(ke_repair, self.process_elements)
 
 	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 15 )
     self:add(ke_opencraftlog, self.process_elements)		
@@ -133,9 +133,9 @@ end
 
 --[[ UI settings etc
 function ffxiv_task_craft.UIInit()
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,250,400)
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
     
     if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
         Settings.FFXIVMINION.gIgnoreFishLvl = "0"
@@ -157,5 +157,5 @@ function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end]]

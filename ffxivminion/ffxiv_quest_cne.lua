@@ -78,11 +78,11 @@ function e_nextqueststep:execute()
 		--if the saved step index is less than the objective step index then it represents a 
 		--non quest objective step and we need to restart from it
 		--otherwise we restart from the step index that matches the current quest objective
-		if (currentStepIndex <= objectiveStepIndex) then
+		--if (currentStepIndex <= objectiveStepIndex) then
 			ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
-		else
-			ml_task_hub:CurrentTask().currentStepIndex = objectiveStepIndex
-		end
+		--else
+			--ml_task_hub:CurrentTask().currentStepIndex = objectiveStepIndex
+		--end
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
@@ -385,6 +385,9 @@ end
 c_questyesno = inheritsFrom( ml_cause )
 e_questyesno = inheritsFrom( ml_effect )
 function c_questyesno:evaluate()
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
+		return false
+	end
 	return ControlVisible("SelectYesno")
 end
 function e_questyesno:execute()

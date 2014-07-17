@@ -267,7 +267,7 @@ function TP.Build()
 	GUI_NewButton(TP.WinName,"Up","TP.MoveU","Move")
 	RegisterEventHandler("TP.MoveU", TP.CorMove)
 	
-	GUI_NewButton(ml_global_information.MainWindow.Name,"Teleport","TP.StartTP")
+	GUI_NewButton(ffxivminion.Windows.Main.Name,"Teleport","TP.StartTP")
 	RegisterEventHandler("TP.StartTP", TP.StartTPs)	
 	GUI_NewButton(TP.WinName,"Refresh","TP.Refresh")
 	RegisterEventHandler("TP.Refresh", TP.Refreshing)

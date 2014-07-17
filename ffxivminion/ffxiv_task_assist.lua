@@ -113,7 +113,7 @@ function ffxiv_task_assist:Process()
         end
     end	
 
-    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance2d <= 30 ) then
+    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 30 ) then
         local pos = target.pos
         
         --Player:SetFacing(pos.x,pos.y,pos.z)
@@ -122,16 +122,13 @@ function ffxiv_task_assist:Process()
 		
     end
 	
-	if ( target == nil ) then
+	if ( target == nil and not ActionList:IsCasting()) then
 		SkillMgr.Cast( Player, true)
 	end
 
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
-		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
-			ml_cne_hub.eval_elements(self:superClass().process_elements)
-		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false

@@ -251,5 +251,5 @@ function ffxiv_task_fish.SetupMarkers()
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end

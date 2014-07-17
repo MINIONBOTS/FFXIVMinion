@@ -5,12 +5,14 @@
 function GetNearestGrindAttackable()
 	local huntString = GetWhitelistIDString()
 	local excludeString = GetBlacklistIDString()
+	local block = 0
 	local el = nil
 	local nearestGrind = nil
 	local nearestDistance = 9999
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
 	
+	block = 1
 	if (gClaimFirst	== "1") then		
 		if (not IsNullString(huntString)) then
 			local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
@@ -19,6 +21,7 @@ function GetNearestGrindAttackable()
 				if (i~=nil and e~=nil and 
 					(e.targetid == 0 or e.targetid == Player.id) and
 					e.pathdistance <= tonumber(gClaimRange)) then
+					d("Grind returned, using block:"..tostring(block))
 					return e
 				end
 			end
@@ -26,15 +29,17 @@ function GetNearestGrindAttackable()
 	end	
     
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
+	block = 2
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString) 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange)) 
 	else
-		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0") 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxdistance="..tostring(ml_global_information.AttackRange)) 
 	end
 	
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
+			d("Grind returned, using block:"..tostring(block))
 			return e
 		end
 	end	
@@ -43,34 +48,56 @@ function GetNearestGrindAttackable()
 
 	--Lowest health with aggro on anybody in player's party, non-fate mobs.
 	--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
-	local partymemberlist = EntityList.myparty
-	if ( partymemberlist) then
-	   local i,entity = next(partymemberlist)
-	   while ( i~=nil and entity~=nil ) do 
-			if (not IsNullString(excludeString)) then
-				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0,exclude_contentid="..excludeString)
-			else
-				el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
-			end
-			
-			if ( el ) then
-				local i,e = next(el)
-				if (i~=nil and e~=nil) then
-					--d("Lowest health with aggro on party member.")
-					return e
+	block = 3
+	local party = EntityList.myparty
+	if ( party ) then
+		for i, member in pairs(party) do
+			if (member.id and member.id ~= 0) then
+				if (not IsNullString(excludeString)) then
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+				else
+					--el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
+					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+				end
+				
+				if ( el ) then
+					local i,e = next(el)
+					if (i~=nil and e~=nil) then
+						d("Grind returned, using block:"..tostring(block))
+						return e
+					end
 				end
 			end
-			i,entity  = next(partymemberlist,i)  
-	   end  
+		end
+	end
+	
+	block = 4
+	if (ValidTable(Player.pet)) then
+		if (not IsNullString(excludeString)) then
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Playet.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+		else
+			--el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+		end
+		
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				d("Grind returned, using block:"..tostring(block))
+				return e
+			end
+		end
 	end
 	
 	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
+	block = 5
 	if (not IsNullString(huntString)) then
-		el = EntityList("shortestpath,contentid="..huntString..",alive,attackable,onmesh")
+		el = EntityList("contentid="..huntString..",shortestpath,alive,attackable,onmesh")
 		
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil and (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1")) then
+				d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -84,10 +111,11 @@ function GetNearestGrindAttackable()
 			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 		end
 		
-		
+		block = 6
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
+				d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -98,9 +126,11 @@ function GetNearestGrindAttackable()
 			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 		end
 		
+		block = 7
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
+				d("Grind returned, using block:"..tostring(block))
 				return e
 			end
 		end
@@ -249,39 +279,54 @@ function GetLowestMPParty()
     return nil
 end
 
-function GetLowestHPParty( npc, range )
-    npc = npc or false
-	range = range or ml_global_information.AttackRange
+function GetLowestHPParty( skill )
+    npc = skill.npc == "1" and true or false
+	range = skill.range or ml_global_information.AttackRange
+	count = skill.ptcount or 0
+	minHP = skill.pthpb or 0
 	
 	local lowest = nil
 	local lowestHP = 101
 	local el = nil
+	local memCount = 0
 	
-	if (not npc) then
-		el = EntityList("myparty,type=1,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("myparty,targetable,maxdistance="..tostring(range))
-	end
-	
-    if ( el ) then
-        local i,e = next(el)
-        while (i~=nil and e~=nil) do
-			if (e.hp.percent ~= nil and e.hp.percent > 0 and e.hp.percent < lowestHP) then
-				lowest = e
-				lowestHP = e.hp.percent
+	if (count ~= 0 and minHP > 0) then
+		local party = EntityList.myparty
+		for i, member in pairs(party) do
+			if (((not npc and member.type == 1) or npc) and	member.id ~= 0 and member.targetable and member.distance <= range and member.hp.percent <= minHP) then
+				memCount = memCount + 1
 			end
-			i,e  = next(el,i) 
-        end
-    end
-	
-	if (Player.hp.percent > 0 and Player.hp.percent < lowestHP) then
-		lowest = Player
-		lowestHP = Player.hp.percent
-	end
-	
-	if (lowest ~= nil and lowest.hp.percent ~= 0) then
-		if (lowest.chartype == 4 or (lowest.chartype == 0 and (lowest.type == 2 or lowest.type == 3 or lowest.type == 5)) or (lowest.chartype == 3 and lowest.type == 2))  then
-			return lowest
+			if (memCount >= skill.ptcount) then
+				return true
+			end
+		end
+	else
+		if (not npc) then
+			el = EntityList("myparty,type=1,targetable,maxdistance="..tostring(range))
+		else
+			el = EntityList("myparty,targetable,maxdistance="..tostring(range))
+		end
+		
+		if ( el ) then
+			local i,e = next(el)
+			while (i~=nil and e~=nil) do
+				if (e.hp.percent ~= nil and e.hp.percent > 0 and e.hp.percent < lowestHP) then
+					lowest = e
+					lowestHP = e.hp.percent
+				end
+				i,e  = next(el,i) 
+			end
+		end
+		
+		if (Player.hp.percent > 0 and Player.hp.percent < lowestHP) then
+			lowest = Player
+			lowestHP = Player.hp.percent
+		end
+		
+		if (lowest ~= nil and lowest.hp.percent ~= 0) then
+			if (lowest.chartype == 4 or (lowest.chartype == 0 and (lowest.type == 2 or lowest.type == 3 or lowest.type == 5)) or (lowest.chartype == 3 and lowest.type == 2))  then
+				return lowest
+			end
 		end
 	end
 	
@@ -557,8 +602,9 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 
-function GetDutyTarget()
-	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() and ml_task_hub:CurrentTask().encounterData.bossIDs ~= nil) then
+function GetDutyTarget( maxHP )
+	maxHP = maxHP or nil
+	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
         return nil
     end
 	
@@ -589,8 +635,21 @@ function GetDutyTarget()
 	end
 	if (ValidTable(el)) then
 		local id, target = next(el)
-		if (target.targetable and target.los) then
-			return target
+		if (target.attackable and target.los) then
+			if (not maxHP or target.hp.percent > maxHP) then
+				return target
+			end
+		end
+	end	
+	
+	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (ValidTable(el)) then
+		for id, target in pairs(el) do
+			if (target.attackable and target.los) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
+			end
 		end
 	end	
 	      
@@ -787,6 +846,10 @@ function HasBuffs(entity, buffIDs)
       end
     end
     return false
+end
+
+function ActionList:IsCasting()
+	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
 end
 
 function isCasting(entity, actionIDs , minCasttime , targetid) 
@@ -1015,7 +1078,6 @@ function GetClosestFate(pos)
 		local myPos = Player.pos
 		
 		for k, fate in pairs(fateList) do
-		
 			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
 				(fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
 				and fate.completion >= tonumber(gFateWaitPercent)) then	
@@ -1023,9 +1085,8 @@ function GetClosestFate(pos)
 					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
 						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
 						--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-						
 						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-						if (Distance3D(p.x, p.y, p.z, fate.x, fate.y, fate.z) <= 5) then
+						if (dist <= 5) then
 							local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
 							if (nearestFate == nil or distance < nearestDistance) then
 								nearestFate = fate
@@ -1066,7 +1127,6 @@ function IsLeader()
 end
 
 function GetPartyLeader()
-  
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 		local party = EntityList("type=1,name="..gPartyLeaderName)
@@ -1082,7 +1142,6 @@ function GetPartyLeader()
 		if (ValidTable(party)) then
 			for i,m in pairs(party) do
 				if m.isleader then
-					--d("Name:"..tostring(m.name)..", ID:"..tostring(m.id))
 					return m
 				end
 			end
@@ -1162,6 +1221,8 @@ function InCombatRange(targetid)
 					--d(tostring(skillID).."skill not charge type, but used anyway")
 					if ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
+							local pos = target.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
 							return true
 						end
 					end
@@ -1169,6 +1230,8 @@ function InCombatRange(targetid)
 					--d(tostring(skillID).."skill was charge type")
 					if ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
+							local pos = target.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
 							return true
 						end
 					end

@@ -20,6 +20,7 @@ ml_global_information.UnstuckTimer = 0
 ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
 ml_global_information.repairTimer = 0
+ml_global_information.windowTimer = 0
 
 ml_global_information.chocoStance = {
 	[strings[gCurrentLanguage].stFollow] = 3,
@@ -36,6 +37,10 @@ ffxivminion = {}
 ffxivminion.modes = {}
 ffxivminion.settingsVisible = false
 
+ffxivminion.Windows = {
+	Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 }
+}
+
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
     
@@ -44,9 +49,14 @@ function ml_global_information.OnUpdate( event, tickcount )
         ml_global_information.UnstuckTimer = 0
     end
 	
-	if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
+	if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
 		ml_global_information.repairTimer = tickcount
 		Repair()
+	end
+	
+	if (TimeSince(ml_global_information.windowTimer) > 10000) then
+		ml_global_information.windowTimer = tickcount
+		ffxivminion.SaveWindows()
 	end
     
     -- Mesher.lua
@@ -108,6 +118,8 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()	
     GUI_SetStatusBar("Initalizing ffxiv Module...")
+	
+	ffxivminion.CreateWindows()
     
     if (Settings.FFXIVMINION.version == nil ) then
         Settings.FFXIVMINION.version = 1.0
@@ -212,64 +224,76 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gQuestHelpers = "0"
 	end
 	
-    GUI_NewWindow(ml_global_information.MainWindow.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
-	GUI_NewButton(ml_global_information.MainWindow.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	local wnd = GUI_GetWindowInfo(ml_global_information.MainWindow.Name)
+    --GUI_NewWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
+	
+	local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)
 	GUI_NewWindow(GetString("advancedSettings"),wnd.x+wnd.width,wnd.y,210,300)
-    GUI_NewButton(ml_global_information.MainWindow.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
+    GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
 	GUI_WindowVisible(GetString("advancedSettings"), false)
-		
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
-    GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
-	GUI_NewField(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
+
+	--Buttons
+	GUI_NewButton(ffxivminion.Windows.Main.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
+    GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
+    GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
+	GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	
+	
+	--Settings
+    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
+	
+	--BotStatus
+    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].enableLog,"gEnableLog",strings[gCurrentLanguage].botStatus );
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].logCNE,"gLogCNE",strings[gCurrentLanguage].botStatus );
+    GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerName,"gStatusMarkerName",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",strings[gCurrentLanguage].botStatus );
+	
+	--General Settings
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].autoStartBot,"gAutoStart",strings[gCurrentLanguage].generalSettings);	
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useMount,"gUseMount",strings[gCurrentLanguage].generalSettings );
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].mount, "gMount",strings[gCurrentLanguage].generalSettings,GetMounts())
     GUI_NewNumeric(GetString("advancedSettings"),strings[gCurrentLanguage].mountDist,"gMountDist",strings[gCurrentLanguage].generalSettings );
-    GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
+    GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useSprint,"gUseSprint",strings[gCurrentLanguage].generalSettings );
     GUI_NewNumeric(GetString("advancedSettings"),strings[gCurrentLanguage].sprintDist,"gSprintDist",strings[gCurrentLanguage].generalSettings );
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].companion, "gChoco",strings[gCurrentLanguage].generalSettings,"")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].companion, "gChoco",strings[gCurrentLanguage].generalSettings,"")
 	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
-	GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].stance,"gChocoStance",strings[gCurrentLanguage].generalSettings,"")
+	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].stance,"gChocoStance",strings[gCurrentLanguage].generalSettings,"")
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].randomPaths,"gRandomPaths",strings[gCurrentLanguage].generalSettings );	
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",GetString("hacks"));
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].teleport,"gTeleport",GetString("hacks"));
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
+	GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
+	
+	--Hacks
+	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",GetString("hacks"));
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].teleport,"gTeleport",GetString("hacks"));
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",GetString("hacks") );	
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",GetString("hacks") );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",strings[gCurrentLanguage].generalSettings );
-	GUI_NewCheckbox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",GetString("hacks"));
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTravel,"gClickToTravel",GetString("hacks"));
-	GUI_NewButton(ml_global_information.MainWindow.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
-    GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
-	GUI_NewButton(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
-	--GUI_NewButton(ml_global_information.MainWindow.Name, GetString("questManager"), "QuestManager.toggle")
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
-    GUI_NewComboBox(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
+	
+    --Assist
+    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
+    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
 	
-    GUI_SizeWindow(ml_global_information.MainWindow.Name,210,300)
+    GUI_SizeWindow(ffxivminion.Windows.Main.Name,210,300)
 
 	
     gFFXIVMINIONTask = ""
     gBotRunning = "0"
     
-    GUI_UnFoldGroup(ml_global_information.MainWindow.Name,strings[gCurrentLanguage].botStatus );
-    GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].settings)
+    GUI_UnFoldGroup(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botStatus );
+    GUI_UnFoldGroup(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].settings)
     
     gEnableLog = Settings.FFXIVMINION.gEnableLog
     gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
@@ -382,7 +406,6 @@ function ffxivminion.HandleInit()
 		GameHacks:SetClickToTravel(true)
 	end
     
-	
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
 end
@@ -417,7 +440,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gChoco" or
 			k == "gChocoStance" or
 			k == "gMount" or
-			k == "gTeleport")			
+			k == "gTeleport" or
+			k == "gQuestHelpers" or
+			k == "gRepair")				
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then
@@ -468,7 +493,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ml_global_information.MainWindow.Name)
+    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 function ffxivminion.SetMode(mode)
@@ -573,6 +598,43 @@ function ffxivminion.CheckMode()
     end
 end
 
+function ffxivminion.CreateWindows()
+	for i,window in pairs(ffxivminion.Windows) do
+		local winTable = "AutoWindow"..window.Name
+		if (Settings.FFXIVMINION[winTable] == nil) then
+			Settings.FFXIVMINION[winTable] = {}
+		end
+		
+		settings = {}			
+		settings.width = Settings.FFXIVMINION[winTable].width or window.width
+		settings.height = Settings.FFXIVMINION[winTable].height or window.height
+		settings.y = Settings.FFXIVMINION[winTable].y or window.y
+		settings.x = Settings.FFXIVMINION[winTable].x or window.x		
+
+		if (ValidTable(settings)) then Settings.FFXIVMINION[winTable] = settings end
+		local wi = Settings.FFXIVMINION[winTable]		
+		local wname = window.Name
+		
+		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
+	end
+end
+
+function ffxivminion.SaveWindows()
+	for i,window in pairs(ffxivminion.Windows) do
+		local tableName = "AutoWindow"..window.Name
+		local WI = Settings.FFXIVMINION[tableName]
+		local W = GUI_GetWindowInfo(window.Name)
+		local WindowInfo = {}
+		
+		if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
+		if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
+		if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
+		if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
+			
+		if (TableSize(WindowInfo) > 0 and WindowInfo ~= WI) then Settings.FFXIVMINION[tableName] = WindowInfo end
+	end
+end
+
 function ml_global_information.Reset()
     --TODO: Figure out what state needs to be reset and add calls here
     ml_task_hub:ClearQueues()
@@ -592,7 +654,7 @@ function ffxivminion.ToggleAdvancedSettings()
         GUI_WindowVisible(GetString("advancedSettings"),false)	
         ffxivminion.settingsVisible = false
     else
-        local wnd = GUI_GetWindowInfo(ml_global_information.MainWindow.Name)	
+        local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)	
         GUI_MoveWindow( GetString("advancedSettings"), wnd.x+wnd.width,wnd.y) 
         GUI_WindowVisible(GetString("advancedSettings"),true)	
         ffxivminion.settingsVisible = true
