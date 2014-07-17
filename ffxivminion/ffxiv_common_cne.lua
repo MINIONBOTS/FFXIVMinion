@@ -20,20 +20,19 @@ e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
-	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
+	if ((gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode ) and gFatesOnly == "1") then
         return false
     end
 	
-	local currentTask = ml_task_hub:CurrentTask().name or "empty"
-	local parentTask = "empty"
-	if ml_task_hub:CurrentTask():ParentTask() ~= nil then
+	local parentTask = ""
+	if (ml_task_hub:CurrentTask():ParentTask()) then
 		parentTask = ml_task_hub:CurrentTask():ParentTask().name
 	end
 	
-	if not (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask():ParentTask().name == "LT_FATE") then
+	if not (ml_task_hub:CurrentTask().name == "MOVETOPOS" and parentTask == "LT_FATE") then
 		local aggro = GetNearestAggro()
 		if ValidTable(aggro) then
-			if(aggro.hp.current > 0 and aggro.id ~= nil and aggro.id ~= 0) then
+			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
 				ml_global_information.IsWaiting = false
 				c_add_killtarget.targetid = aggro.id
 				return true
@@ -50,13 +49,10 @@ function c_add_killtarget:evaluate()
 	end
 	
 	if (SkillMgr.Cast( Player, true)) then
-		d("Using out of combat skills.")
 		c_add_killtarget.oocCastTimer = Now() + 1500
-		d("IsCasting="..tostring(ActionList:IsCasting())..",oocTimer="..tostring(c_add_killtarget.oocCastTimer))
 		return false
 	end
 	
-	d("IsCasting="..tostring(ActionList:IsCasting())..",oocTimer="..tostring(c_add_killtarget.oocCastTimer))
 	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
@@ -77,7 +73,6 @@ function e_add_killtarget:execute()
     newTask.targetid = c_add_killtarget.targetid
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
-
 
 c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )

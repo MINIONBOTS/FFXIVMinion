@@ -19,6 +19,7 @@ function ffxiv_duty_kill_task.Create()
 	newinst.suppressAssist = false
 	newinst.sceneTimer = 0
 	newinst.hasScene = false
+	newinst.hasSynced = false
     
     return newinst
 end
@@ -28,13 +29,17 @@ function ffxiv_duty_kill_task:Process()
 		return
 	end
 	
+	if (not self.hasSynced) then
+		Player:SetFacingSynced(Player.pos.x, Player.pos.y, Player.pos.z)
+		self.hasSynced = true
+	end
+	
 	if (ml_task_hub:CurrentTask().sceneTimer == 0 and ml_task_hub:CurrentTask().encounterData.doWait) then
 		ml_task_hub:CurrentTask().sceneTimer = ml_global_information.Now + tonumber(ml_task_hub:CurrentTask().encounterData.waitTime)
 		return
 	elseif (ml_global_information.Now < ml_task_hub:CurrentTask().sceneTimer and not Player.incombat) then
 		return
 	end
-	
 	
 	local killPercent = nil
 	if ( ml_task_hub:CurrentTask().encounterData["killto%"]) then
@@ -52,12 +57,12 @@ function ffxiv_duty_kill_task:Process()
 		if (fightPos) then
 			if (ml_task_hub:CurrentTask().timer == 0) then
 				Player:SetTarget(entity.id)
-				Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
+				Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				SkillMgr.Cast( entity )
 				ml_task_hub:CurrentTask().timer = ml_global_information.Now + math.random(2000,3000)
 			elseif (ml_global_information.Now > ml_task_hub:CurrentTask().timer or Player.incombat) then
 				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(fightPos.x, fightPos.y, fightPos.z)
+				Player:SetFacingSynced(Player.pos.x,Player.pos.y,Player.pos.z)
 				Player:SetTarget(entity.id)
 				Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				local newTask = ffxiv_task_skillmgrAttack.Create()
@@ -67,7 +72,7 @@ function ffxiv_duty_kill_task:Process()
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					Player:SetTarget(entity.id)
-					Player:SetFacingSynced(entity.pos.x, entity.pos.y, entity.pos.z)
+					Player:SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 					SkillMgr.Cast( entity )
 			--return false
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
@@ -75,7 +80,7 @@ function ffxiv_duty_kill_task:Process()
 					if (entity ~= nil and entity.alive and InCombatRange(entity.id)) then
 						local pos = entity.pos
 						Player:SetTarget(entity.id)
-						Player:SetFacingSynced(pos.x,pos.y,pos.z)
+						Player:SetFacing(pos.x,pos.y,pos.z)
 						SkillMgr.Cast( entity )
 					end
 		end
