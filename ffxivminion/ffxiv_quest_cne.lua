@@ -19,12 +19,9 @@ end
 c_questcanstart = inheritsFrom( ml_cause )
 e_questcanstart = inheritsFrom( ml_effect )
 function c_questcanstart:evaluate()
-	d("test3")
 	if (TimeSince(ml_task_hub:CurrentTask().startTimer) > 1000) then
-		d("test1")
 		return not ml_task_hub:CurrentTask().quest:isStarted()
 	else
-		d("test2")
 		return false
 	end
 end
@@ -96,6 +93,7 @@ function e_nextqueststep:execute()
 		end
 		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
+		d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
@@ -147,10 +145,20 @@ function e_questmovetopos:execute()
 	newTask.use3d = true
 	
 	if(gTeleport == "1") then
+		newTask.useTeleport = true
 		--have to add a general delay before teleporting because it breaks lots of quest logic 
 		--if the bot teleports before the server updates the client with updated quest data
-		newTask.useTeleport = true
-		newTask:SetDelay(3000)
+		--have to do a distance check here that matches the same distance check in the teleport cne
+		--because we don't want to do a delay unless the bot will teleport
+		
+		local myPos = Player.pos
+		local gotoPos = newTask.pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+        
+        if (distance > 10) then
+            newTask:SetDelay(2000)
+        end
+		
 	end
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -275,7 +283,18 @@ e_questkill = inheritsFrom( ml_effect )
 function c_questkill:evaluate()
 	local id = ml_task_hub:CurrentTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
+		local el = nil
+		local pos = ml_task_hub:CurrentTask().params["pos"]
+		--if we're close to the kill position then check for any aggro mobs
+		if(Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) < 10) then
+			el = EntityList("shortestpath,onmesh,alive,attackable,targetingme")
+		end
+	
+		--otherwise check for mobs not incombat so we get credit for kill
+		if(not ValidTable(el)) then
+			el = EntityList("shortestpath,onmesh,alive,attackable,notincombat,contentid="..tostring(id))
+		end
+		
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(entity) then

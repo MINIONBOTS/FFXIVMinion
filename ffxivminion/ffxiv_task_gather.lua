@@ -478,7 +478,7 @@ function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
     GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
     
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
+    ffxivminion.ResizeWindow()
     
     if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"

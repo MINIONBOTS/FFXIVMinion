@@ -392,7 +392,7 @@ function e_movetogate:execute()
 		
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
-			newTask:SetDelay(3000)
+			newTask:SetDelay(2000)
 		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)

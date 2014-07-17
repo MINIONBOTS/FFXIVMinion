@@ -279,12 +279,22 @@ function ffxiv_quest_kill:Init()
 end
 
 function ffxiv_quest_kill:task_complete_eval()
-	if((not self.params["killcount"] and self.killCount == 1) or
-		(self.params["killcount"] == self.killCount))
-	then
-		Settings.FFXIVMINION.questKillCount = nil
-		return true
-	end
+	--if(self.params["nonquestobjective"]) then
+		if((not self.params["killcount"] and self.killCount == 1) or
+			(self.params["killcount"] == self.killCount))
+		then
+			Settings.FFXIVMINION.questKillCount = nil
+			return true
+		end
+	--else
+		--d("test1")
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
+		--d("test2")
+		--d(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+	--	return 	ffxiv_task_quest.currentQuest:isComplete() or 
+	--			ml_task_hub:ThisTask():ParentTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex()
+	--end
 	
 	return false
 end

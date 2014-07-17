@@ -2,7 +2,7 @@ ml_global_information = {}
 --ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
-ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=210, height=300 }
+ml_global_information.MainWindow = { Name = "FFXIVMinion", x=50, y=50 , width=250, height=450 }
 ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
 ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
 ml_global_information.CurrentClass = nil
@@ -226,24 +226,24 @@ function ffxivminion.HandleInit()
 	
     --GUI_NewWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 	
-	local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)
-	GUI_NewWindow(GetString("advancedSettings"),wnd.x+wnd.width,wnd.y,210,300)
-    GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
-	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
-	GUI_WindowVisible(GetString("advancedSettings"), false)
-
 	--Buttons
 	GUI_NewButton(ffxivminion.Windows.Main.Name, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
     GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
 	GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
 	
-	
 	--Settings
     GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botMode,"gBotMode",strings[gCurrentLanguage].settings,"None")
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profile,"gProfile",strings[gCurrentLanguage].settings,"None")
     GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].botEnabled,"gBotRunning",strings[gCurrentLanguage].settings);
+	
+	--Advanced Settings
+	local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)
+	GUI_NewWindow(GetString("advancedSettings"),wnd.x+wnd.width,wnd.y,210,300)
+	RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
+	GUI_WindowVisible(GetString("advancedSettings"), false)
 	
 	--BotStatus
     GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",strings[gCurrentLanguage].botStatus );	
@@ -286,7 +286,7 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
 	
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,210,300)
+    ffxivminion.ResizeWindow()
 
 	
     gFFXIVMINIONTask = ""
@@ -659,6 +659,10 @@ function ffxivminion.ToggleAdvancedSettings()
         GUI_WindowVisible(GetString("advancedSettings"),true)	
         ffxivminion.settingsVisible = true
     end
+end
+
+function ffxivminion.ResizeWindow()
+	GUI_SizeWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 end
 
 -- Register Event Handlers

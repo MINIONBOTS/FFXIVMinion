@@ -509,7 +509,7 @@ function ffxiv_task_pvp.UIInit()
         Settings.FFXIVMINION.gPVPSpeedMatchPartner = ""
     end
     
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
+    ffxivminion.ResizeWindow()
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
