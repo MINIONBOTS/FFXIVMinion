@@ -144,6 +144,8 @@ SkillMgr.Variables = {
 	SKM_GAttempts = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
+	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"  },
+	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"  },
 }
 
 function SkillMgr.ModuleInit() 	
@@ -308,8 +310,8 @@ function SkillMgr.ModuleInit()
     GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
@@ -1703,18 +1705,25 @@ function SkillMgr.Gather( )
 							end
 						end
 						
-                        --these first two conditionals here look retarded due to poor naming but they are correct
                         if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
                             (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.pbuff ~= "" and not HasBuffs(Player,skill.pbuff)) or
-                            (skill.pnbuff ~= "" and HasBuffs(Player,skill.pnbuff)) or
                             (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
                             (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
                             then castable = false 
                         end
+						
+						if ( skill.gpbuff and skill.gpbuff ~= "" ) then
+ +							local gbfound = HasBuffs(Player,skill.gpbuff)
+ +							if not gbfound then castable = false end
+ +					    end
+ +
+ +					    if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
+ +							local gtbfound = HasBuffs(Player,skill.gpnbuff)
+ +							if gtbfound then castable = false end
+ +					    end
                              
                         if ( castable ) then
-                            d("CASTING (gathering) : "..tostring(skill.name))								
+                            --d("CASTING (gathering) : "..tostring(skill.name))								
                             if ( ActionList:Cast(skill.id,0) ) then									
                                 skill.lastcast = ml_global_information.Now
                                 SkillMgr.prevSkillID = tostring(skill.id)
