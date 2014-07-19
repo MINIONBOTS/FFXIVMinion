@@ -530,7 +530,7 @@ function e_movetogate:execute()
 		
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
-			newTask:SetDelay(3000)
+			newTask:SetDelay(2000)
 		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -1118,7 +1118,7 @@ function c_rest:evaluate()
     ml_global_information.IsWaiting = false
     return false
 end
-function e_rest:execute()    
+function e_rest:execute()
     if (e_rest.resting == true) then
 		SkillMgr.Cast( Player, true)
         if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
@@ -1154,7 +1154,7 @@ function c_flee:evaluate()
     
     return false
 end
-function e_flee:execute()	
+function e_flee:execute()
     if (e_flee.fleeing) then
         if (not Player.hasaggro) then
             Player:Stop()

@@ -256,7 +256,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", strings[gCurrentLanguage].fates, "0", "99")
 	GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", strings[gCurrentLanguage].fates, "0", "99")
     
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
+    ffxivminion.ResizeWindow()
     
     if (Settings.FFXIVMINION.gDoFates == nil) then
         Settings.FFXIVMINION.gDoFates = "0"

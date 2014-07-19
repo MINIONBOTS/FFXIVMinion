@@ -265,26 +265,39 @@ end
 
 function ffxiv_quest_kill:Init()
     --init ProcessOverWatch cnes
-    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 30 )
     self:add( ke_questMoveToMap, self.process_elements)
 	
-	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
-    self:add( ke_questMoveToPos, self.process_elements)
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 25 )
+    self:add( ke_rest, self.process_elements)
 	
 	local ke_questKill = ml_element:create( "QuestKill", c_questkill, e_questkill, 20 )
     self:add( ke_questKill, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
+    self:add( ke_questMoveToPos, self.process_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
 
 function ffxiv_quest_kill:task_complete_eval()
-	if((not self.params["killcount"] and self.killCount == 1) or
-		(self.params["killcount"] == self.killCount))
-	then
-		Settings.FFXIVMINION.questKillCount = nil
-		return true
-	end
+	--if(self.params["nonquestobjective"]) then
+		if((not self.params["killcount"] and self.killCount == 1) or
+			(self.params["killcount"] == self.killCount))
+		then
+			Settings.FFXIVMINION.questKillCount = nil
+			return true
+		end
+	--else
+		--d("test1")
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
+		--d("test2")
+		--d(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+	--	return 	ffxiv_task_quest.currentQuest:isComplete() or 
+	--			ml_task_hub:ThisTask():ParentTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex()
+	--end
 	
 	return false
 end

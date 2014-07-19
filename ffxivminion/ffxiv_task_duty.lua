@@ -451,7 +451,7 @@ function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(ffxivminion.Windows.Main.Name,"Loot Option","gLootOption",strings[gCurrentLanguage].dutyMode,"Any,Need,Greed,Pass")
 	GUI_NewField(GetString("advancedSettings"),strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode)
 	
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,178,357)
+    ffxivminion.ResizeWindow()
 	
 	gLootOption = Settings.FFXIVMINION.gLootOption
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
