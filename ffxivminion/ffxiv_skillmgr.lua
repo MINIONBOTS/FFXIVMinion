@@ -144,6 +144,8 @@ SkillMgr.Variables = {
 	SKM_GAttempts = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
+	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"  },
+	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"  },
 }
 
 function SkillMgr.ModuleInit() 	
@@ -308,8 +310,8 @@ function SkillMgr.ModuleInit()
     GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_PBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_PNBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
@@ -952,18 +954,23 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		local allyTP = nil
 		local plistAE = nil
 				
-		
 		--Check for current target cast preventions first.
-		--[[
 		local cp = Settings.FFXIVMINION.cpOptions
-		for k,v in pairs(cp) do
-			if ( v.tcastids ~="" and isCasting(entity, v.tcastids, nil, nil ) ) then
-				return false
-			elseif (v.tbuffs ~= "" and HasBuffs(entity, v.tbuffs)) then
-				return false
+		local target = Player:GetTarget()
+		if (target) then
+			for k,v in pairs(cp) do
+				if ( v.castids and v.castids ~= "" ) then
+					d("Checking isCasting() for v.castids ="..tostring(v.castids))
+					if (isCasting(target, v.castids, nil, nil )) then
+						return false
+					end
+				elseif (v.tbuffs and v.tbuffs ~= "" ) then
+					if (HasBuffs(target, v.tbuffs)) then
+						return false
+					end
+				end
 			end
 		end
-		--]]
 		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 ) then
 			for prio,skill in spairs(SkillMgr.SkillProfile) do
@@ -1006,9 +1013,44 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						end
 						
 						-- Next Skill Check
-						if ( castable and SkillMgr.nextSkillID ~= "" and SkillMgr.nextFailedTimer ~= 0 and TimeSince(SkillMgr.nextFailedTimer) < 5000 ) then
-							if ( SkillMgr.nextSkillID ~= tostring(skill.id) ) then
+						--Reset nextSkillID if too much time has passed
+						if (Now() > SkillMgr.nextFailedTimer) then
+							SkillMgr.nextSkillID = ""
+						end
+						
+						if ( castable and SkillMgr.nextSkillID ~= "" ) then
+							if ( tonumber(SkillMgr.nextSkillID) ~= tonumber(skill.id) ) then
 								castable = false
+							end
+						end
+						
+						--Reset prevSkillID if too much time has passed.
+						if (Now() > SkillMgr.prevFailedTimer) then
+							SkillMgr.prevSkillID = ""
+						end
+						
+						-- PREVIOUS SKILL
+						if ( castable and skill.pskill ~= "") then
+							castable = false
+							if (SkillMgr.prevSkillID ~= "") then
+								for i in skill.pskill:gmatch("%S+") do
+									if ( SkillMgr.prevSkillID == i) then
+										castable = true
+										break
+									end
+								end
+							end
+						end
+						
+						-- PREVIOUS SKILL NOT
+						if ( castable and skill.npskill ~= "") then
+							if (SkillMgr.prevSkillID ~= "") then
+								for i in skill.npskill:gmatch("%S+") do
+									if ( SkillMgr.prevSkillID == i) then
+										castable = false
+										break
+									end
+								end
 							end
 						end
 							
@@ -1499,29 +1541,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							
 							if count < skill.tacount then castable = false end
 						end
-						
-						-- PREVIOUS SKILL
-						if ( castable and SkillMgr.prevSkillID ~= "" and skill.pskill ~= "" ) then
-							castable = false
-							for i in skill.pskill:gmatch("%S+") do --custom
-								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
-								if ( SkillMgr.prevSkillID == i and TimeSince(SkillMgr.prevFailedTimer) < 8000) then
-									castable = true
-									break
-								end
-							end
-						end
-						
-						-- PREVIOUS SKILL NOT
-						if ( castable and SkillMgr.prevSkillID ~= "" and skill.npskill ~= "" ) then
-							for i in skill.npskill:gmatch("%S+") do --custom
-								--d("id:"..i..">"..SkillMgr.prevSkillID.."!!")
-								if ( SkillMgr.prevSkillID == i) then
-									castable = false
-									break
-								end
-							end
-						end
 												
 						-- ISMOVING CHECK
 						if( castable) then
@@ -1551,11 +1570,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										skill.lastcast = ml_global_information.Now
 										if skill.cbreak == "0" then 
 											SkillMgr.prevSkillID = tostring(skill.id) 
-											SkillMgr.prevFailedTimer = ml_global_information.Now
+											SkillMgr.prevFailedTimer = Now() + 4000
 										end
 										if (skill.nskill ~= "") then
 											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextFailedTimer = ml_global_information.Now
+											SkillMgr.nextFailedTimer = Now() + 4000
 										end
 										return true
 									end					
@@ -1686,18 +1705,25 @@ function SkillMgr.Gather( )
 							end
 						end
 						
-                        --these first two conditionals here look retarded due to poor naming but they are correct
                         if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
                             (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.pbuff ~= "" and not HasBuffs(Player,skill.pbuff)) or
-                            (skill.pnbuff ~= "" and HasBuffs(Player,skill.pnbuff)) or
                             (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
                             (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
                             then castable = false 
                         end
+						
+						if ( skill.gpbuff and skill.gpbuff ~= "" ) then
+							local gbfound = HasBuffs(Player,skill.gpbuff)
+							if not gbfound then castable = false end
+						end
+
+						if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
+							local gtbfound = HasBuffs(Player,skill.gpnbuff)
+							if gtbfound then castable = false end
+						end
                              
                         if ( castable ) then
-                            d("CASTING (gathering) : "..tostring(skill.name))								
+                            --d("CASTING (gathering) : "..tostring(skill.name))								
                             if ( ActionList:Cast(skill.id,0) ) then									
                                 skill.lastcast = ml_global_information.Now
                                 SkillMgr.prevSkillID = tostring(skill.id)
@@ -2394,6 +2420,7 @@ function ffxiv_task_skillmgrAttack.Create()
     newinst.targetid = 0
 	newinst.suppressFollow = false
 	newinst.suppressFollowTimer = 0
+	newinst.safePos = {}
     
     return newinst
 end
@@ -2414,39 +2441,40 @@ function ffxiv_task_skillmgrAttack:Process()
         
         local pos = target.pos
         Player:SetTarget(target.id)
-		
+		--[[
+		d("Condition1:"..tostring(ml_global_information.AttackRange < 5))
+		d("Condition2:"..tostring(gBotMode == strings[gCurrentLanguage].dutyMode))
+		d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
+		d("Condition4:"..tostring(gTeleport == "1"))
+		d("Condition5:"..tostring(not IsDutyLeader() or ffxiv_task_duty.independentMode))
+		d("Condition6:"..tostring(SkillMgr.teleCastTimer == 0))
+		d("Condition7:"..tostring(SkillMgr.IsGCDReady()))
+		d("Condition8:"..tostring(target.targetid ~= Player.id))
+		--]]
 		if (ml_global_information.AttackRange < 5 and
 			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo.channelingid == 0 and
-			gTeleport == "1" and not IsDutyLeader() and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
+			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
+			
 			ml_task_hub:CurrentTask().suppressFollow = true
 			ml_task_hub:CurrentTask().suppressFollowTimer = Now() + 2500
-			SkillMgr.teleBack = Player.pos
+			
+			SkillMgr.teleBack = SkillMgr.safePos
 			Player:Stop()
-			--GameHacks:TeleportToXYZ((pos.x+target.hitradius + 3), pos.y, pos.z)
 			GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
 			Player:SetFacingSynced(pos.x,pos.y,pos.z)
-			Player:SetTarget(target.id)
-			--Player:MoveToStraight(pos.x,pos.y,pos.z,1)
-			SkillMgr.teleCastTimer = Now()
+			SkillMgr.teleCastTimer = Now() + 1600
 		end
-		
-		--if (TableSize(SkillMgr.teleBack) > 0 and (Distance2D(Player.pos.x,Player.pos.z,pos.x,pos.z) < 3)) then
-			--Player:Stop()
-		--end
 		
 		Player:SetFacing(pos.x,pos.y,pos.z)
 		SkillMgr.Cast( target )
 		
-		--if (SkillMgr.Cast( target )) then
-			--SkillMgr.teleCastTimer = Now()
-		--end
-		
-		if (TableSize(SkillMgr.teleBack) > 0 and gBotMode == strings[gCurrentLanguage].dutyMode and (TimeSince(SkillMgr.teleCastTimer) >= 1200 or target.castinginfo.channelingid ~= 0)) then
+		if (TableSize(SkillMgr.teleBack) > 0 and 
+			gBotMode == strings[gCurrentLanguage].dutyMode and 
+			(Now() > SkillMgr.teleCastTimer or target.castinginfo.channelingid ~= 0)) then
 			local back = SkillMgr.teleBack
-			--Player:Stop()
 			GameHacks:TeleportToXYZ(back.x, back.y, back.z)
-			Player:SetFacingSynced(pos.x,pos.y,pos.z)
+			Player:SetFacingSynced(back.x, back.y, back.z)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
 		end

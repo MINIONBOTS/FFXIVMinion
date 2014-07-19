@@ -10,6 +10,7 @@ ffxiv_task_duty.leaderSet = false
 ffxiv_task_duty.dutySet = false
 ffxiv_task_duty.dutyCleared = false
 ffxiv_task_duty.joinAttempts = 0
+ffxiv_task_duty.independentMode = false
 
 if (Settings.FFXIVMINION.gDutyMapID == nil) then
 	Settings.FFXIVMINION.gDutyMapID = 0
@@ -147,6 +148,13 @@ function e_assistleaderduty:execute()
         if (gTeleport == "1") then
             local newTask = ffxiv_task_skillmgrAttack.Create()
             newTask.targetid = c_assistleaderduty.targetid
+			local startPos = nil
+			if (ml_task_hub:CurrentTask().encounterData.startPos) then
+				startPos = ml_task_hub:CurrentTask().encounterData.startPos["General"]
+			end
+			if (startPos) then
+				newTask.safePos = startPos
+			end
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         else        
             local newTask = ffxiv_task_killtarget.Create()
@@ -161,7 +169,8 @@ end
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
-	return( 	ml_task_hub:CurrentTask().state == "DUTY_NEW" and
+	return( 	IsPartyLeader() and 
+				ml_task_hub:CurrentTask().state == "DUTY_NEW" and
 				Now() > ml_task_hub:CurrentTask().joinTimer )
 end
 function e_joinduty:execute()
@@ -254,7 +263,12 @@ function c_changeleader:evaluate()
 	end
 	
 	if (OnDutyMap()) then
-		local properLeader = GetDutyLeader()
+		local properLeader = nil
+		if (ffxiv_task_duty.independentMode) then
+			properLeader = Player
+		else
+			properLeader = GetDutyLeader()
+		end
 		if (ffxiv_task_duty.leader == "") then
 			e_changeleader.name = properLeader.name
 			return true
@@ -462,6 +476,9 @@ function ffxiv_task_duty.UpdateProfiles()
 	ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..gProfile..".info")
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
+		if (ffxiv_task_duty.dutyInfo.Independent) then
+			ffxiv_task_duty.independentMode = true
+		end
 	end
   if (file_exists(ffxiv_task_duty.dutyPath..gProfile..".lua")) then
     d("loading"..ffxiv_task_duty.dutyPath..gProfile..".lua")
@@ -490,9 +507,21 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function IsDutyLeader()
+	if (ffxiv_task_duty.independentMode) then
+		return true
+	end
+	
 	local leader = GetDutyLeader()
 	if (leader) then
 		return Player.name == leader.name
+	end
+	return false
+end
+
+function IsPartyLeader()
+	local partyLeader = GetPartyLeader()
+	if (partyLeader) then
+		return partyLeader.name == Player.name
 	end
 	return false
 end

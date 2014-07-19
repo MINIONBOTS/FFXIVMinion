@@ -633,3 +633,64 @@ function e_questmovetoactionrange:execute()
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
 end
+
+c_questflee = inheritsFrom( ml_cause )
+e_questflee = inheritsFrom( ml_effect )
+e_questflee.fleeing = false
+function c_questflee:evaluate()
+    if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)))) or e_flee.fleeing
+    then
+        return true
+    end
+    
+    return false
+end
+function e_questflee:execute()
+	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
+		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
+		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+	end
+	
+    if (e_questflee.fleeing) then
+        if (not Player.hasaggro) then
+            Player:Stop()
+            e_questflee.fleeing = false
+            return
+        end
+    else
+        local fleePos = ml_marker_mgr.markerList["evacPoint"]
+        if (fleePos ~= nil and fleePos ~= 0) then
+            ml_debug( "Fleeing combat" )
+            ml_task_hub:ThisTask():DeleteSubTasks()
+            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z, 1.5, false, gRandomPaths=="1")
+            e_questflee.fleeing = true
+        else
+            ml_error( "Need to flee combat but no evacPoint set!!")
+        end
+    end
+end
+
+c_questdead = inheritsFrom( ml_cause )
+e_questdead = inheritsFrom( ml_effect )
+function c_questdead:evaluate()
+    if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+        return true
+    end 
+    return false
+end
+function e_questdead:execute()
+	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
+		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
+		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+	end
+
+    ml_debug("Respawning...")
+	-- try raise first
+    if(PressYesNo(true)) then
+		return
+    end
+	-- press ok
+    if(PressOK()) then
+		return
+    end
+end

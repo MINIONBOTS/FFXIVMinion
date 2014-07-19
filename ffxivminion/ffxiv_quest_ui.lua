@@ -15,7 +15,7 @@ QM.Windows = {
 	StepEditor = {visible = false, name = strings[gCurrentLanguage].questStepEditor, visibleDefault = false,
 		base = "StepManager", width = 250, height = 300
 	},
-	TurnInEditor = {visible = false, name = strings[gCurrentLanguage].questTurnoverEditor, visibleDefault = false, onOpen = "QM.LoadItemSlot;QM.RefreshTurnovers",
+	TurnInEditor = {visible = false, name = strings[gCurrentLanguage].questTurnoverEditor, visibleDefault = false, onOpen = "QM.PullTurnoverItem;QM.RefreshTurnovers",
 		base = "StepManager", width = 250, height = 275
 	},
 	PreReqEditor = {visible = false, name = strings[gCurrentLanguage].questPreReqEditor, visibleDefault = false, onOpen = "QM.RefreshPreReqs",

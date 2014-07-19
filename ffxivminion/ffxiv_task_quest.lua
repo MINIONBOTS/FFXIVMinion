@@ -224,8 +224,8 @@ function ffxiv_task_quest:Init()
 	local ke_questAddGrind = ml_element:create( "QuestAddGrind", c_questaddgrind, e_questaddgrind, 15 )
     self:add( ke_questAddGrind, self.process_elements)
 	
-	local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
-    self:add( ke_testQuest, self.process_elements)
+	--local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
+    --self:add( ke_testQuest, self.process_elements)
 	
 	--overwatch elements
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
@@ -233,9 +233,6 @@ function ffxiv_task_quest:Init()
     
     local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
     self:add( ke_flee, self.overwatch_elements)
-    
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
-    self:add( ke_rest, self.overwatch_elements)
 	
 	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
     self:add( ke_questIsLoading, self.overwatch_elements)
@@ -252,8 +249,7 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
 			Settings.FFXIVMINION["gLastQuestProfile"] = v
         elseif (k == "gCurrQuestID" or
-				k == "gCurrQuestStep" or
-				k == "gTestQuest" )
+				k == "gCurrQuestStep" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
