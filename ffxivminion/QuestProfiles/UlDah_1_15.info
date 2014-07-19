@@ -828,7 +828,7 @@ local obj1 = {
 					["type"] = "interact";
 					["id"] = 1002955;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["delay"] = 20000;
 					["pos"] = {
 						["y"] = -31.202840805054;
 						["x"] = -228.09928894043;
@@ -848,6 +848,7 @@ local obj1 = {
 						["x"] = -223.73066711426;
 						["z"] = 114.48432922363;
 					};
+					["restartatstep"] = 8;
 				};
 				[5] = {
 					["itemturninid"] = {
@@ -2236,6 +2237,7 @@ local obj1 = {
 						["x"] = 141.43244934082;
 						["z"] = 228.3091583252;
 					};
+					["restartatstep"] = 12;
 				};
 				[7] = {
 					["mapid"] = 130;
@@ -2438,6 +2440,7 @@ local obj1 = {
 						["x"] = 154.90707397461;
 						["z"] = 201.76368713379;
 					};
+					["restartatstep"] = 10;
 				};
 			};
 			["level"] = 5;
@@ -2590,7 +2593,7 @@ local obj1 = {
 					["mapid"] = 140;
 					["type"] = "textcommand";
 					["commandstring"] = "/doubt";
-					["delay"] = 4000;
+					["delay"] = 8000;
 					["id"] = 1003682;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
@@ -2604,7 +2607,7 @@ local obj1 = {
 					["mapid"] = 140;
 					["type"] = "textcommand";
 					["commandstring"] = "/doubt";
-					["delay"] = 4000;
+					["delay"] = 8000;
 					["id"] = 1003684;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
@@ -2630,7 +2633,7 @@ local obj1 = {
 					["mapid"] = 140;
 					["type"] = "textcommand";
 					["commandstring"] = "/doubt";
-					["delay"] = 4000;
+					["delay"] = 8000;
 					["id"] = 1003681;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
@@ -2644,7 +2647,7 @@ local obj1 = {
 					["mapid"] = 140;
 					["type"] = "textcommand";
 					["commandstring"] = "/doubt";
-					["delay"] = 4000;
+					["delay"] = 8000;
 					["id"] = 1003683;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
@@ -3731,6 +3734,7 @@ local obj1 = {
 					["itemrewardslot"] = 0;
 					["id"] = 1003995;
 					["itemreward"] = false;
+					["healerid"] = 1377;
 					["meshname"] = "Central Thanalan";
 					["pos"] = {
 						["y"] = 2.1357016563416;
@@ -3752,6 +3756,7 @@ local obj1 = {
 						["x"] = 176.34008789063;
 						["z"] = 549.73126220703;
 					};
+					["restartatstep"] = 2;
 				};
 			};
 			["level"] = 4;

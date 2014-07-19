@@ -48,6 +48,9 @@ end
 
 function ffxiv_quest_task:Init()
     --init ProcessOverWatch cnes
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 35 )
+    self:add( ke_rest, self.process_elements)
+	
     local ke_nextQuestStep = ml_element:create( "NextQuestStep", c_nextqueststep, e_nextqueststep, 15 )
     self:add( ke_nextQuestStep, self.process_elements)
 	
@@ -57,6 +60,9 @@ function ffxiv_quest_task:Init()
 	
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 20 )
     self:add( ke_questIsComplete, self.process_elements)
+	
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 25 )
+    self:add( ke_autoEquip, self.process_elements)
 	
 	local ke_changeNavMesh = ml_element:create( "ChangeNavMesh", c_changenavmesh, e_changenavmesh, 100 )
     self:add( ke_changeNavMesh, self.overwatch_elements)
@@ -287,6 +293,7 @@ function ffxiv_quest_kill:task_complete_eval()
 			(self.params["killcount"] == self.killCount))
 		then
 			Settings.FFXIVMINION.questKillCount = nil
+			gQuestKillCount = ""
 			return true
 		end
 	--else

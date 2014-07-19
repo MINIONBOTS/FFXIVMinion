@@ -32,7 +32,8 @@ function e_questcanstart:execute()
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 		ml_task_hub:CurrentTask().currentStepIndex = 1
 		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().currentStepIndex)
-		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
+		gQuestStepType = task.params["type"]
+		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
 		ffxiv_task_quest.currentStepParams = task.params
 	end
 end
@@ -45,6 +46,7 @@ end
 function e_questiscomplete:execute()
 	local task = ffxiv_task_quest.currentQuest:GetCompleteTask()
 	if (ValidTable(task)) then
+		gQuestStepType = task.params["type"]
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		ml_task_hub:CurrentTask().currentStepCompleted = false
 	end
@@ -66,11 +68,11 @@ end
 function e_nextqueststep:execute()
 	local quest = ffxiv_task_quest.currentQuest
 	local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
-	local currentStepIndex = Settings.FFXIVMINION.currentQuestStep
+	local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep)
 	
 	if (ml_task_hub:CurrentTask().currentStepIndex == 1 and
-		Settings.FFXIVMINION.currentQuestStep ~= nil and
-		Settings.FFXIVMINION.currentQuestStep > 1) 
+		Settings.FFXIVMINION.gCurrQuestStep ~= nil and
+		tonumber(Settings.FFXIVMINION.gCurrQuestStep) > 1) 
 	then
 		--if the saved step index is less than the objective step index then it represents a 
 		--non quest objective step and we need to restart from it
@@ -89,6 +91,7 @@ function e_nextqueststep:execute()
 		if(task.params["type"] == "kill") then
 			if(Settings.FFXIVMINION.questKillCount ~= nil) then
 				task.killCount = Settings.FFXIVMINION.questKillCount
+				gQuestKillCount = task.killCount
 			end
 		end
 		
@@ -101,7 +104,8 @@ function e_nextqueststep:execute()
 		ml_task_hub:ThisTask().currentStepCompleted = false
 		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
 		gCurrQuestObjective = tostring(ml_task_hub:ThisTask().currentObjectiveIndex)
-		Settings.FFXIVMINION.currentQuestStep = tonumber(gCurrQuestStep)
+		gQuestStepType = task.params["type"]
+		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
 	end
 end
 
@@ -187,6 +191,7 @@ function c_questcomplete:evaluate()
 end
 function e_questcomplete:execute()
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
+		ffxiv_task_quest.armoryTable = GetArmoryIDsTable()
 		Quest:CompleteQuestReward(ml_task_hub:CurrentTask().params["itemrewardslot"])
 	else
 		Quest:CompleteQuestReward()
@@ -206,7 +211,7 @@ function c_questinteract:evaluate()
 			local id, entity = next(el)
 			if(entity) then
 				if 	(entity.type == 5 and entity.distance2d < 6) or
-					(entity.distance < 6) 
+					(entity.distance < 4) 
 				then
 					e_questinteract.entity = entity
 					return true
@@ -287,7 +292,7 @@ function c_questkill:evaluate()
 		local pos = ml_task_hub:CurrentTask().params["pos"]
 		--if we're close to the kill position then check for any aggro mobs
 		if(Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) < 10) then
-			el = EntityList("shortestpath,onmesh,alive,attackable,targetingme")
+			el = EntityList("shortestpath,onmesh,alive,attackable,targetingme,contentid="..tostring(id))
 		end
 	
 		--otherwise check for mobs not incombat so we get credit for kill
@@ -318,7 +323,13 @@ function e_questkill:execute()
 				ml_task_hub:CurrentTask():ParentTask().killCount = count + 1
 			end
 			Settings.FFXIVMINION.questKillCount = ml_task_hub:CurrentTask():ParentTask().killCount
+			gQuestKillCount = ml_task_hub:CurrentTask():ParentTask().killCount
 			ml_task_hub:CurrentTask().completed = true
+		end
+	newTask.task_fail_evaluate = 
+		function()
+			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+			return target.incombat and not target.targetid == Player.id
 		end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -376,7 +387,7 @@ function c_atinteract:evaluate()
 				local id, entity = next(el)
 				if(entity) then
 					if 	(entity.type == 5 and entity.distance2d < 6) or
-						(entity.distance < 3) 
+						(entity.distance < 4) 
 					then
 						return true
 					end
@@ -580,11 +591,14 @@ end
 c_questmovetohealer = inheritsFrom( ml_cause )
 e_questmovetohealer = inheritsFrom( ml_effect )
 function c_questmovetohealer:evaluate()
-	if(ml_task_hub:CurrentTask().params["healderid"] and Player.hp.percent < 50) then
-		local healer = EntityList:Get(ml_task_hub:CurrentTask().params["healderid"])
-		if(ValidTable(healer) and healer.distance > 5) then
-			e_questmovetohealer.pos = healer.pos
-			return true
+	if(ml_task_hub:ThisTask().params["healderid"] and Player.hp.percent < 50) then
+		local list = EntityList("contentid="..tostring(ml_task_hub:ThisTask().params["healderid"]))
+		if(ValidTable(list)) then
+			local id, healer = next(list)
+			if(ValidTable(healer) and healer.distance > 5) then
+				e_questmovetohealer.pos = healer.pos
+				return true
+			end
 		end
 	end
 	
@@ -693,4 +707,33 @@ function e_questdead:execute()
     if(PressOK()) then
 		return
     end
+end
+
+--equip new items one per pulse
+c_equipnewitems = inheritsFrom( ml_cause )
+e_equipnewitems = inheritsFrom( ml_effect )
+function c_equipnewitems:evaluate()
+	return ffxiv_task_quest.armoryTable ~= nil
+end
+function e_equipnewitems:execute()
+	local oldIDs = ffxiv_task_quest.armoryTable
+	local currentIDs = GetArmoryIDsTable()
+	local newIDs = {}
+	for id, item in pairs(currentIDs) do
+		if(oldIDs[id] == nil) then
+			newIDs[id] = item
+		end
+	end
+	
+	if(TableSize(newIDs) > 0) then
+		local id, item = next(newIDs)
+		EquipItem(id)
+		newIDs[id] = nil
+	end
+	
+	if(TableSize(newIDs) == 0) then
+		ffxiv_task_quest.armoryTable = nil
+	else
+		ffxiv_task_quest.armoryTable = GetArmoryIDsTable()
+	end
 end

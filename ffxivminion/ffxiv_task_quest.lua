@@ -28,9 +28,10 @@ function ffxiv_task_quest.UIInit()
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
 
 	GUI_NewField(ffxivminion.Windows.Main.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
-        GUI_NewField(ffxivminion.Windows.Main.Name, "ObjectiveIndex:", "gCurrQuestObjective",strings[gCurrentLanguage].botStatus)
+	GUI_NewField(ffxivminion.Windows.Main.Name, "ObjectiveIndex:", "gCurrQuestObjective",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ffxivminion.Windows.Main.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
-	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,"TestQuest","gTestQuest",strings[gCurrentLanguage].botStatus );
+	GUI_NewField(ffxivminion.Windows.Main.Name, "StepType:", "gQuestStepType",strings[gCurrentLanguage].botStatus)
+	GUI_NewField(ffxivminion.Windows.Main.Name, "KillCount:", "gQuestKillCount",strings[gCurrentLanguage].botStatus)
 	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
 	
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
@@ -45,12 +46,16 @@ function ffxiv_task_quest.UIInit()
         Settings.FFXIVMINION.gCurrQuestStep = ""
     end
 	
+	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
+        Settings.FFXIVMINION.gCurrQuestStep = ""
+    end
+	
 	if (Settings.FFXIVMINION.completedQuestIDs == nil) then
 		Settings.FFXIVMINION.completedQuestIDs = {}
 	end
 	
-	if (Settings.FFXIVMINION.currentQuestStep == nil) then
-		Settings.FFXIVMINION.currentQuestStep = 0
+	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
+		Settings.FFXIVMINION.gCurrQuestStep = 0
 	end
 	
 	if (Settings.FFXIVMINION.currentQuestObjective == nil) then
@@ -142,37 +147,14 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 	end
 end
 
-c_testquest = inheritsFrom( ml_cause )
-e_testquest = inheritsFrom( ml_effect )
-function c_testquest:evaluate()
-	if(gCurrQuestID ~= "" and tonumber(gCurrQuestID) > 0 and gTestQuest == "1") then
-		return ValidTable(ffxiv_task_quest.questList[tonumber(gCurrQuestID)])
-	end
-end
-function e_testquest:execute()
-	local quest = ffxiv_task_quest.questList[tonumber(gCurrQuestID)]
-	if (ValidTable(quest)) then
-		local task = quest:CreateTask()
-		if(gCurrQuestStep and gCurrQuestStep ~= "") then
-			task.currentStepIndex = (tonumber(gCurrQuestStep)-1)
-		else
-			task.currentStepIndex = 1
-		end
-		
-		ml_task_hub:CurrentTask():AddSubTask(task)
-		
-		ffxiv_task_quest.currentQuest = quest
-	end
-end
-
 c_nextquest = inheritsFrom( ml_cause )
 e_nextquest = inheritsFrom( ml_effect )
 function c_nextquest:evaluate()
-	if(	Settings.FFXIVMINION.currentQuestID ~= nil and 
-		Quest:HasQuest(Settings.FFXIVMINION.currentQuestID) and
-		ValidTable(ffxiv_task_quest.questList[Settings.FFXIVMINION.currentQuestID]))
+	if(	Settings.FFXIVMINION.gCurrQuestID ~= nil and 
+		Quest:HasQuest(Settings.FFXIVMINION.gCurrQuestID) and
+		ValidTable(ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]))
 	then
-		e_nextquest.quest = ffxiv_task_quest.questList[Settings.FFXIVMINION.currentQuestID]
+		e_nextquest.quest = ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]
 		return true
 	end
 
@@ -193,7 +175,7 @@ function e_nextquest:execute()
 		
 		ffxiv_task_quest.currentQuest = quest
 		gCurrQuestID = quest.id
-		Settings.FFXIVMINION.currentQuestID = tonumber(gCurrQuestID)
+		Settings.FFXIVMINION.gCurrQuestID = tonumber(gCurrQuestID)
 	end
 end
 
@@ -224,9 +206,6 @@ function ffxiv_task_quest:Init()
 	local ke_questAddGrind = ml_element:create( "QuestAddGrind", c_questaddgrind, e_questaddgrind, 15 )
     self:add( ke_questAddGrind, self.process_elements)
 	
-	--local ke_testQuest = ml_element:create( "TestQuest", c_testquest, e_testquest, 25 )
-    --self:add( ke_testQuest, self.process_elements)
-	
 	--overwatch elements
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
     self:add( ke_dead, self.overwatch_elements)
@@ -251,7 +230,7 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
         elseif (k == "gCurrQuestID" or
 				k == "gCurrQuestStep" )
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            Settings.FFXIVMINION[k] = v
         end
     end
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)

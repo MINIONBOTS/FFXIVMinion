@@ -1404,3 +1404,75 @@ function e_teleporttopos:execute()
     end
     c_teleporttopos.pos = 0
 end
+
+c_autoequip = inheritsFrom( ml_cause )
+e_autoequip = inheritsFrom( ml_effect )
+function c_autoequip:evaluate()
+	if (ValidTable(e_autoequip.equipIDs)) then
+		return true
+	end
+
+	local equipSlots = 
+	{
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+	}
+	
+	local equipIDs = {}
+	
+	for key, slot in pairs(equipSlots) do
+		local bestItem = nil
+		local armoryItemList = Inventory("type="..tostring(key))
+		if(ValidTable(armoryItemList)) then
+			local currItemList = Inventory("type=1000")
+			local currItem = nil
+			for id, item in pairs(currItemList) do
+				if(item.slot == slot) then
+					currItem = item
+					break
+				end
+			end
+			
+			for id, item in pairs(armoryItemList) do
+
+				if(	currItem == nil or item.level > currItem.level ) and
+				  ( bestItem == nil or item.level > bestItem.level ) and
+					Player.level >= item.requiredlevel
+				then
+					bestItem = item
+				end
+			end
+			
+			if(ValidTable(bestItem)) then
+				equipIDs[bestItem.id] = bestItem
+			end
+		end
+	end
+	
+	if (TableSize(equipIDs) > 0) then
+		e_autoequip.equipIDs = equipIDs
+		return true
+	end
+	
+	return false
+end
+function e_autoequip:execute()
+	local id, item = next(e_autoequip.equipIDs)
+	if(id) then
+		EquipItem(id)
+		e_autoequip.equipIDs[id] = nil
+	else
+		e_autoequip.equipIDs = nil
+	end
+end

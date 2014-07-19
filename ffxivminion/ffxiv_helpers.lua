@@ -1637,3 +1637,61 @@ function GetBestGrindMap()
 		return 180 --outer la noscea
 	end
 end
+
+function EquipItem(itemID)
+	local item = Inventory:Get(itemID)
+	if(ValidTable(item)) then
+		local equipSlot = 
+		{
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
+			[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+		}
+		item:Move(1000,equipSlot[item.type])
+	end
+end
+
+function EquipBestItem(slot)
+	
+end
+
+function GetArmoryIDsTable()
+	local equipSlot = 
+	{
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+	}
+	
+	local ids = {}
+	for key,_ in pairs(equipSlot) do
+		local itemlist = Inventory("type="..tostring(key))
+		if(ValidTable(itemlist)) then
+			for id, item in pairs(itemlist) do
+				ids[item.id] = item
+			end
+		end
+	end
+	
+	return ids
+end
