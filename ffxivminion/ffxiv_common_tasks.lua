@@ -24,7 +24,12 @@ function ffxiv_task_killtarget.Create()
     --ffxiv_task_killtarget members
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
-    
+	newinst.targetRank = ""
+	newinst.failTimer = nil
+	newinst.waitTimer = Now()
+	newinst.canEngage = true
+    newinst.safeDistance = 30
+	
     return newinst
 end
 
@@ -45,9 +50,15 @@ function ffxiv_task_killtarget:Init()
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 1 )
     self:add( ke_stance, self.overwatch_elements)
 		
-	--Process() cnes		    
+	--Process() cnes
+	local ke_moveToTargetSafe = ml_element:create( "MoveToTargetSafe", c_movetotargetsafe, e_movetotargetsafe, 11 )
+	self:add( ke_moveToTargetSafe, self.process_elements)
+	
 	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
 	self:add( ke_moveToTarget, self.process_elements)
+	
+	local ke_huntQuit = ml_element:create( "HuntQuit", c_huntquit, e_huntquit, 9 )
+	self:add( ke_huntQuit, self.process_elements)
 	
 	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
 	self:add( ke_combat, self.process_elements)
@@ -55,10 +66,11 @@ function ffxiv_task_killtarget:Init()
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_killtarget:task_complete_eval()
+function ffxiv_task_killtarget:task_complete_eval()	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
-        return true
+        d("Kill target exiting in the eval()")
+		return true
     end
     
     return false
@@ -66,6 +78,8 @@ end
 
 function ffxiv_task_killtarget:task_complete_execute()
     self.completed = true
+	d("Task_Complete:Setting hasTarget to false.")
+	ffxiv_task_hunt.hasTarget = false
 end
 
 
@@ -108,10 +122,10 @@ function ffxiv_task_movetopos.Create()
 	newinst.obstacleTimer = 0
 	newinst.use3d = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
+	newinst.reason = ""
     
     return newinst
 end
-
 
 
 function ffxiv_task_movetopos:Init()
@@ -350,6 +364,7 @@ function ffxiv_task_teleport:task_complete_eval()
 			ml_task_hub:CurrentTask().landTime = ml_global_information.Now
 	end
 	
+	
 	local ppos = Player.pos
 	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
 		TimeSince(ml_task_hub:CurrentTask().landTime) > ml_task_hub:CurrentTask().loadTime and
@@ -384,4 +399,71 @@ end
 
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
+end
+
+--=======================AVOID TASK=========================-
+
+ffxiv_task_avoid = inheritsFrom(ml_task)
+function ffxiv_task_avoid.Create()
+    local newinst = inheritsFrom(ffxiv_task_avoid)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "AVOID"
+    newinst.pos = 0
+    newinst.range = 1.5
+	newinst.maxTime = 0
+    newinst.started = ml_global_information.Now
+    
+    return newinst
+end
+
+function ffxiv_task_avoid:Init()
+
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+    self:add( ke_walkToPos, self.process_elements)
+    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_avoid:task_complete_eval()
+	if TimeSince(ml_task_hub:ThisTask().started) > (ml_task_hub:ThisTask().maxTime * 1000) then
+		return true
+	end
+	
+	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then
+		return true
+	end
+	
+    if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
+        local myPos = Player.pos
+        local gotoPos = ml_task_hub:CurrentTask().pos  
+        local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+        
+        if (distance <= self.range) then
+            return true
+        end
+    else
+        ml_debug(" ERROR: no valid position in ffxiv_task_movetopos ")
+    end    
+    return false
+end
+
+function ffxiv_task_avoid:task_complete_execute()
+	self.completed = true
+	
+    Player:Stop()
+    
+	local target = Player:GetTarget()
+	if (target ~= nil) then
+		local pos = target.pos
+		Player:SetFacing(pos.x,pos.y,pos.z)
+	end
 end

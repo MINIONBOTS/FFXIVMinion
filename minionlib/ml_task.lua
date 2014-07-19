@@ -29,6 +29,11 @@ function ml_task:isValid()
 	return self.valid
 end
 
+function ml_task:Invalidate()
+	ml_debug(self.name.."->Invalidate(Fail)()")
+	self.valid = false
+end
+
 function ml_task:hasCompleted()
 	return self.completed
 end
@@ -91,14 +96,15 @@ function ml_task:Update()
 				ml_debug(self.name.."->ProcessOverWatch executed an effect, breaking loop")
 				--process overwatch element requested to break update loop
 				--only delete subtask if we didn't just add it via our overwatch cne
+
 				if (self.subtask ~= nil and (currentSubtaskName ~= nil or self.subtask.name == currentSubtaskName)) then
 					self:DeleteSubTasks()
 				end
+				
 				break
 			else
 				self.preserveSubtasks = false
 			end
-			
 		end
 		
         if ( self.subtask ~= nil ) then

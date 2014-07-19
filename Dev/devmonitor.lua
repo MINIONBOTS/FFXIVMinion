@@ -264,6 +264,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsLoading","duty_IsLoading","DutyInfo")
 	GUI_NewField("Dev","TaskName","duty_taskname","DutyInfo")
 	GUI_NewField("Dev","TaskState","duty_taskstate","DutyInfo")
+	GUI_NewField("Dev","Leader","duty_leader","DutyInfo")
 	GUI_NewField("Dev","Encounter","duty_taskencounter","DutyInfo")
 	
 	GUI_NewButton("Dev","PressDutyConfirm","Dev.DConf","DutyInfo")
@@ -1033,6 +1034,7 @@ function Dev.UpdateWindow()
 	duty_IsLoading = tostring(Quest:IsLoading())
 	duty_taskname = ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name or ""
 	duty_taskstate = ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().state or ""
+	duty_leader = ffxiv_task_duty.leader or ""
 	if (gBotMode == GetString("dutyMode")) then
 		duty_taskencounter = ml_task_hub:RootTask() ~= nil and ml_task_hub:RootTask().encounterIndex or ""
 	else

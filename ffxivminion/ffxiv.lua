@@ -95,7 +95,8 @@ function ml_global_information.OnUpdate( event, tickcount )
 		if (	gBotMode == strings[gCurrentLanguage].grindMode or
 				gBotMode == strings[gCurrentLanguage].gatherMode or
 				gBotMode == strings[gCurrentLanguage].fishMode or
-				gBotMode == strings[gCurrentLanguage].questMode) and (
+				gBotMode == strings[gCurrentLanguage].questMode or
+				gBotMode == strings[gCurrentLanguage].huntMode) and (
 				ValidTable(GetCurrentMarker())) and
 				ml_task_hub.shouldRun
 		then
@@ -270,6 +271,7 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].useHQMats,"gUseHQMats",strings[gCurrentLanguage].generalSettings );
 	GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("multiManager"), "MultiBotManager.toggle", strings[gCurrentLanguage].generalSettings)
 	GUI_NewButton(ffxivminion.Windows.Main.Name,"Cast Prevention","CastPrevention.toggle",strings[gCurrentLanguage].generalSettings)
+	GUI_NewButton(ffxivminion.Windows.Main.Name,"Hunt Manager","HuntManager.toggle",strings[gCurrentLanguage].generalSettings)
 	
 	--Hacks
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
@@ -333,6 +335,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
+		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
 		--["NavTest"]								= ffxiv_task_test,
 	}
     

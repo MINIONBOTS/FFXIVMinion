@@ -2441,40 +2441,46 @@ function ffxiv_task_skillmgrAttack:Process()
         
         local pos = target.pos
         Player:SetTarget(target.id)
+		
 		--[[
 		d("Condition1:"..tostring(ml_global_information.AttackRange < 5))
 		d("Condition2:"..tostring(gBotMode == strings[gCurrentLanguage].dutyMode))
 		d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
 		d("Condition4:"..tostring(gTeleport == "1"))
 		d("Condition5:"..tostring(not IsDutyLeader() or ffxiv_task_duty.independentMode))
+		d("not IsDutyLeader():"..tostring(not IsDutyLeader()))
+		d("independent:"..tostring(ffxiv_task_duty.independentMode))
 		d("Condition6:"..tostring(SkillMgr.teleCastTimer == 0))
+		d("Now():"..tostring(Now()))
+		d("castTimer:"..tostring(SkillMgr.teleCastTimer))
 		d("Condition7:"..tostring(SkillMgr.IsGCDReady()))
 		d("Condition8:"..tostring(target.targetid ~= Player.id))
 		--]]
+		
 		if (ml_global_information.AttackRange < 5 and
-			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo.channelingid == 0 and
+			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
 			
 			ml_task_hub:CurrentTask().suppressFollow = true
 			ml_task_hub:CurrentTask().suppressFollowTimer = Now() + 2500
 			
-			SkillMgr.teleBack = SkillMgr.safePos
+			SkillMgr.teleBack = self.safePos
 			Player:Stop()
 			GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-			Player:SetFacingSynced(pos.x,pos.y,pos.z)
+			Player:SetFacingSynced(pos.h)
 			SkillMgr.teleCastTimer = Now() + 1600
 		end
 		
-		Player:SetFacing(pos.x,pos.y,pos.z)
+		SetFacing(pos.x,pos.y,pos.z)
 		SkillMgr.Cast( target )
 		
 		if (TableSize(SkillMgr.teleBack) > 0 and 
 			gBotMode == strings[gCurrentLanguage].dutyMode and 
-			(Now() > SkillMgr.teleCastTimer or target.castinginfo.channelingid ~= 0)) then
+			(Now() > SkillMgr.teleCastTimer or (target.castinginfo and target.castinginfo.channelingid ~= 0))) then
 			local back = SkillMgr.teleBack
 			GameHacks:TeleportToXYZ(back.x, back.y, back.z)
-			Player:SetFacingSynced(back.x, back.y, back.z)
+			Player:SetFacingSynced(back.h)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
 		end

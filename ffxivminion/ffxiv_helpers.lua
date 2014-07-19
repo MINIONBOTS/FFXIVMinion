@@ -189,6 +189,49 @@ function GetNearestFateAttackable()
     return nil
 end
 
+function GetHuntTarget()
+	local excludeString = GetBlacklistIDString()
+	local el = nil
+	
+	if (excludeString) then
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+	else
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
+	end
+	if (el) then
+		local i,e = next(el)
+		if (i and e) then
+			return "S", e
+		end
+	end
+	
+	if (excludeString) then
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+	else
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
+	end
+	if (el) then
+		local i,e = next(el)
+		if (i and e) then
+			return "A", e
+		end
+	end
+	
+	if (excludeString) then
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+	else
+		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
+	end
+	if (el) then
+		local i,e = next(el)
+		if (i and e) then
+			return "B", e
+		end
+	end
+	
+	return nil
+end
+
 function GetBestTankHealTarget( range )
 	range = range or ml_global_information.AttackRange
     local pID = Player.id
@@ -603,6 +646,7 @@ end
 
 function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
+	
 	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
         return nil
     end
@@ -618,8 +662,13 @@ function GetDutyTarget( maxHP )
 				end
 				if (ValidTable(el)) then
 					local id, target = next(el)
+					--d("Prioritize target was found.")
+					--d("Condition1:"..tostring(target.targetable and target.los))
+					--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
 					if (target.targetable and target.los) then
-						return target
+						if (not maxHP or target.hp.percent > maxHP) then
+							return target
+						end
 					end
 				end		
 			end
@@ -634,7 +683,10 @@ function GetDutyTarget( maxHP )
 	end
 	if (ValidTable(el)) then
 		local id, target = next(el)
-		if (target.attackable and target.los) then
+		--d("Lowest/nearest target was found.")
+		--d("Condition1:"..tostring(target.targetable and target.los))
+		--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
+		if (target.targetable and target.los) then
 			if (not maxHP or target.hp.percent > maxHP) then
 				return target
 			end
@@ -644,14 +696,17 @@ function GetDutyTarget( maxHP )
 	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
-			if (target.attackable and target.los) then
+			--d("Fallback target was found.")
+			--d("Condition1:"..tostring(target.targetable and target.los))
+			--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
+			if (target.targetable and target.los) then
 				if (not maxHP or target.hp.percent > maxHP) then
 					return target
 				end
 			end
 		end
 	end	
-	      
+	
     return nil
 end
 
@@ -875,6 +930,18 @@ end
 
 function ActionList:IsCasting()
 	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
+end
+
+function SetFacing( posX, posY, posZ)
+	posX = tonumber(posX) or 0
+	posY = tonumber(posY) or 0
+	posZ = tonumber(posZ) or 0
+	
+	if (posX == 0 and posY == 0 and posZ == 0) then
+		posY = .5
+	end
+	
+	Player:SetFacing(posX, posY, posZ)
 end
 
 function isCasting(entity, actionIDs , minCasttime , targetid) 
@@ -1481,7 +1548,7 @@ function GetBlacklistIDString()
     local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
     
     -- then add on any local contentIDs to exclude
-    if (ml_global_information.BlacklistContentID ~= "") then
+    if (ml_global_information.BlacklistContentID and ml_global_information.BlacklistContentID ~= "") then
         excludeString = excludeString..";"..ml_global_information.BlacklistContentID
     end
     

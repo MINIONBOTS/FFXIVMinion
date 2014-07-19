@@ -47,6 +47,8 @@ function ffxiv_task_duty.Create()
 	newinst.suppressFollowTimer = 0
 	newinst.state = ""
 	newinst.pos = {}
+	
+	ffxiv_task_duty.leader = ""
     
     return newinst
 end
@@ -148,13 +150,8 @@ function e_assistleaderduty:execute()
         if (gTeleport == "1") then
             local newTask = ffxiv_task_skillmgrAttack.Create()
             newTask.targetid = c_assistleaderduty.targetid
-			local startPos = nil
-			if (ml_task_hub:CurrentTask().encounterData.startPos) then
-				startPos = ml_task_hub:CurrentTask().encounterData.startPos["General"]
-			end
-			if (startPos) then
-				newTask.safePos = startPos
-			end
+			local pos = {x = Player.pos.x, y = Player.pos.y, z = Player.pos.z, h = Player.pos.h}
+			newTask.safePos = pos
             ml_task_hub:CurrentTask():AddSubTask(newTask)
         else        
             local newTask = ffxiv_task_killtarget.Create()
@@ -199,7 +196,7 @@ end
 
 c_readyduty = inheritsFrom( ml_cause )
 e_readyduty = inheritsFrom( ml_effect )
-function c_readyduty:evaluate()		
+function c_readyduty:evaluate()
 	if (not Quest:IsLoading() and not OnDutyMap() and IsDutyLeader() and 
 		Player.revivestate ~= 2 and Player.revivestate ~= 3 and 
 		(ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "")) then
@@ -263,14 +260,8 @@ function c_changeleader:evaluate()
 	end
 	
 	if (OnDutyMap()) then
-		local properLeader = nil
-		if (ffxiv_task_duty.independentMode) then
-			properLeader = Player
-		else
-			properLeader = GetDutyLeader()
-		end
-		if (ffxiv_task_duty.leader == "") then
-			e_changeleader.name = properLeader.name
+		if (ml_task_hub:CurrentTask().state == "" and ffxiv_task_duty.leader == "") then
+			e_changeleader.name = Player.name
 			return true
 		end
 	else
@@ -303,7 +294,7 @@ end
 c_lootcheck = inheritsFrom( ml_cause )
 e_lootcheck = inheritsFrom( ml_effect )
 function c_lootcheck:evaluate()
-    if (IsDutyLeader() or Inventory:HasLoot()==false) then
+    if (not Inventory:HasLoot()) then
         return false
     end	
 	
@@ -315,71 +306,84 @@ function e_lootcheck:execute()
 end
 	
 function ffxiv_task_duty:Process()
-	if ((IsDutyLeader() and ml_global_information.Now < ml_task_hub:CurrentTask().timer and not Player.incombat)
-		or Quest:IsLoading()) then
+	if (Quest:IsLoading()) then
 		return false
 	end
-	
-	local state = ml_task_hub:CurrentTask().state
-	
+
 	if (IsDutyLeader()) then
-		if (state == "DUTY_ENTER" and OnDutyMap()) then
+		if (self.state == "DUTY_ENTER" and OnDutyMap()) then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			if (ValidTable(encounters)) then
 				if ( ffxiv_task_duty.dutyInfo["EncounterIndex"] == 0 ) then
-					ml_task_hub:CurrentTask().encounter = encounters[1]
+					self.encounter = encounters[1]
 					ffxiv_task_duty.dutyInfo["EncounterIndex"] = 1
-					ml_task_hub:CurrentTask().encounterIndex = 1
+					self.encounterIndex = 1
 					persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo)
 				else
-					ml_task_hub:CurrentTask().encounter = encounters[ffxiv_task_duty.dutyInfo["EncounterIndex"]]
-					ml_task_hub:CurrentTask().encounterIndex = ffxiv_task_duty.dutyInfo["EncounterIndex"]
+					self.encounterIndex = ffxiv_task_duty.dutyInfo["EncounterIndex"]
+					self.encounter = encounters[self.encounterIndex]
 				end
 				
-				ml_task_hub:CurrentTask().state = "DUTY_NEXTENCOUNTER"
-				ml_task_hub:CurrentTask().encounterCompleted = false
+				self.state = "DUTY_NEXTENCOUNTER"
+				self.encounterCompleted = false
 			end
-		elseif (state == "DUTY_NEXTENCOUNTER" and not ml_task_hub:CurrentTask().encounterCompleted) then
-			local pos = ml_task_hub:CurrentTask().encounter.startPos["General"]
+		elseif (self.state == "DUTY_NEXTENCOUNTER" and not self.encounterCompleted) then
+			--Pull the positions, and the acceptable radius.
+			local pos = self.encounter.startPos["General"]
 			local myPos = Player.pos
-			local posRadius = (ml_task_hub:CurrentTask().encounter.positionRadius or ml_task_hub:CurrentTask().encounter.radius)
-			if (Distance2D(myPos.x, myPos.z, pos.x, pos.z) < posRadius or
-				(gTeleport == "1" and Distance2D(myPos.x, myPos.z, pos.x, pos.z) < 3)) then
-				ml_task_hub:CurrentTask().state = "DUTY_DOENCOUNTER"
-				local encounterTask = findfunction(ml_task_hub:CurrentTask().encounter.taskFunction)()
-				encounterTask.encounterData = ml_task_hub:CurrentTask().encounter
+			
+			--Check if we need to teleport.  Changed the distance and made the non-teleport option explicit.
+			if ((gTeleport == "0" and Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z) < 6) or
+				(gTeleport == "1" and Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z) < 3)) then
+				
+				
+				--Set state to "DO_ENCOUNTER".
+				self.state = "DUTY_DOENCOUNTER"
+				
+				--Pull the taskFunction from the encounter.
+				local encounterData = self.encounter
+				local encounterTask = findfunction(encounterData.taskFunction)()
+				encounterTask.encounterData = encounterData
+				
 				ml_task_hub:CurrentTask():AddSubTask(encounterTask)
-				ml_task_hub:CurrentTask().timer = ml_global_information.Now + 3000
-				return false
+				
+				--Moved the delay processing here so that any future tasks don't have to explicitly handle this.
+				local delay = 0
+				if (encounterData.waitTime and encounterData.waitTime > 0) then
+					delay = encounterData.waitTime
+				end
+				
+				self:SetDelay(delay)
 			else
+				d("We're too far away, need to teleport.")
 				local gotoPos = pos
 				if ValidTable(gotoPos) then
 					if (gTeleport == "1") then
 						GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
-						Player:SetFacingSynced(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+						Player:SetFacingSynced(tonumber(gotoPos.h))
 					else
 						ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
-						Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, 
-						ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+						Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, false, false)
 					end
 				end
 			end
-		elseif (ml_task_hub:CurrentTask().state == "DUTY_DOENCOUNTER" and ml_task_hub:CurrentTask().encounterCompleted) then
+		elseif (self.state == "DUTY_DOENCOUNTER" and self.encounterCompleted) then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
-			ml_task_hub:CurrentTask().encounterIndex = ml_task_hub:CurrentTask().encounterIndex + 1
-			local encounter = encounters[ml_task_hub:CurrentTask().encounterIndex]
+			self.encounterIndex = self.encounterIndex + 1
+			ffxiv_task_duty.dutyInfo["EncounterIndex"] = self.encounterIndex
+			local encounter = encounters[self.encounterIndex]
+			
+			d("Encounter marked as completed.")
 			if (ValidTable(encounter)) then
-				ml_task_hub:CurrentTask().state = "DUTY_NEXTENCOUNTER"
-				ml_task_hub:CurrentTask().encounter = encounter
-				ffxiv_task_duty.dutyInfo["EncounterIndex"] = ml_task_hub:CurrentTask().encounterIndex
+				d("Encounter is valid")
+				self.state = "DUTY_NEXTENCOUNTER"
+				self.encounter = encounter
 				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
-				ml_task_hub:CurrentTask().encounterCompleted = false
+				self.encounterCompleted = false
 			else
-				if (IsDutyLeader()) then
-					ffxiv_task_duty.dutyInfo["EncounterIndex"] = 0
-					persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
-					ml_task_hub:CurrentTask().state = "DUTY_EXIT"
-				end
+				ffxiv_task_duty.dutyInfo["EncounterIndex"] = 0
+				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
+				self.state = "DUTY_EXIT"
 			end
 		end
 	end
@@ -480,10 +484,10 @@ function ffxiv_task_duty.UpdateProfiles()
 			ffxiv_task_duty.independentMode = true
 		end
 	end
-  if (file_exists(ffxiv_task_duty.dutyPath..gProfile..".lua")) then
-    d("loading"..ffxiv_task_duty.dutyPath..gProfile..".lua")
-    dofile(ffxiv_task_duty.dutyPath..gProfile..".lua")
-  end
+	if (file_exists(ffxiv_task_duty.dutyPath..gProfile..".lua")) then
+		d("loading"..ffxiv_task_duty.dutyPath..gProfile..".lua")
+		dofile(ffxiv_task_duty.dutyPath..gProfile..".lua")
+	end
   ffxiv_task_duty.dutySet = false
 end
 
@@ -582,6 +586,10 @@ function DutyLeaderLeft()
 end
 
 function GetDutyLeader()
+	if (ffxiv_task_duty.leader == "") then
+		if c_changeleader:evaluate() then e_changeleader:execute() end
+	end
+	
 	local party = EntityList.myparty
 	if (ValidTable(party)) then
 		if (ffxiv_task_duty.leader ~= "") then
@@ -590,8 +598,6 @@ function GetDutyLeader()
 					return member
 				end
 			end
-		else
-			return GetPartyLeader()
 		end
 	end  
 	
@@ -604,14 +610,7 @@ c_deadduty.leader = {}
 e_deadduty.justRevived = false
 function c_deadduty:evaluate()
 	local leader = GetDutyLeader()
-	if (not leader) then
-		if c_changeleader:evaluate() then e_changeleader:execute() end
-		leader = GetDutyLeader()
-	end
-	
-	if (not leader) then
-		return false
-	else
+	if (leader) then
 		c_deadduty.leader = leader
 	end
 	
