@@ -20,7 +20,7 @@ e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
-	if ((gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode ) and gFatesOnly == "1") then
+	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
         return false
     end
 	
@@ -57,7 +57,7 @@ function c_add_killtarget:evaluate()
 		return false
 	end
 	
-    local target = ml_task_hub:CurrentTask().targetFunction()
+	local target = ml_task_hub:CurrentTask().targetFunction()
     if (ValidTable(target)) then
         if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
             c_add_killtarget.targetid = target.id
@@ -158,9 +158,39 @@ c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if target ~= nil and target ~= 0 then
-        return InCombatRange(target.id) and target.alive
-    end
+	
+	--Do some special checking here for hunts.
+	if (target) then
+		if (ml_task_hub:RootTask().name == "LT_HUNT") then
+			if (ml_task_hub:CurrentTask().rank == "S") then
+				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
+				if ((target.hp.percent > tonumber(gHuntSRankHP)) and (not allies or TableSize(allies) < tonumber(gHuntSRankAllies))) then
+					return false
+				end
+			elseif (ml_task_hub:CurrentTask().rank == "A") then
+				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
+				if ((target.hp.percent > tonumber(gHuntARankHP)) and (not allies or TableSize(allies) < tonumber(gHuntARankAllies))) then
+					return false
+				end
+			elseif (ml_task_hub:CurrentTask().rank == "B") then
+				if (Now() < ml_task_hub:CurrentTask().waitTimer and target.targetid == 0) then
+					return false
+				end
+			else
+				d("Something went wrong.")
+				return false
+			end
+		end
+	end
+	
+	--If we made it this far without stopping, assume the target can be safely engaged.
+	if (not ml_task_hub:CurrentTask().canEngage) then
+		ml_task_hub:CurrentTask().canEngage = true
+	end
+	
+	if (target and target.id ~= 0) then
+		return InCombatRange(target.id) and target.alive
+	end
         
     return false
 end
@@ -191,14 +221,12 @@ function c_add_fate:evaluate()
 		return false
     end
     
-    if (gDoFates == "1" and not Player.incombat) then
-        if (ml_task_hub:ThisTask().subtask == nil or ml_task_hub:ThisTask().subtask.name ~= "LT_FATE") then
-            local fate = GetClosestFate(Player.pos)
-            if (ValidTable(fate)) then
-				c_add_fate.id = fate.id
-				return true
-            end
-        end
+    if (gDoFates == "1" and ml_task_hub:CurrentTask().name == "LT_GRIND") then
+		local fate = GetClosestFate(Player.pos)
+		if (ValidTable(fate)) then
+			c_add_fate.id = fate.id
+			return true
+		end
     end
     
     return false
@@ -336,6 +364,79 @@ function e_nextatma:execute()
 	end
 end
 
+--=======Avoidance============
+
+c_avoid = inheritsFrom( ml_cause )
+e_avoid = inheritsFrom( ml_effect )
+c_avoid.target = nil
+function c_avoid:evaluate()	
+	if (gAvoid == "0") then
+		return false
+	end
+	
+	-- Check for nearby enemies casting things on us.
+	local el = EntityList("attackable,onmesh,maxdistance=15")
+	if (el) then
+		while (i~=nil and e~=nil) do
+			if (TableSize(e.castinginfo) > 0) then
+				local distance = Distance2D(Player.pos.x, Player.pos.z, e.pos.x, e.pos.z)
+				if not (e.castinginfo.casttime < 1.5 
+					or (distance > 15 and e.castinginfo.channeltargetid == e.id) 
+					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)) then
+					c_avoid.target = e
+					return true
+				end
+			end
+		end
+	end
+	
+	-- If we don't have a target, we obviously can't avoid anything.
+	local target = Player:GetTarget()
+	if (target == nil or TableSize(target.castinginfo) == 0) then
+		return false
+	end
+	
+	local distance = Distance2D(Player.pos.x, Player.pos.z, target.pos.x, target.pos.z)
+	
+	--Check to see if our current target is casting on us.
+    if (target.castinginfo.casttime < 1.5 
+		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
+		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) then
+        return false
+    end
+
+	c_avoid.target = target
+    return true
+end
+
+function e_avoid:execute() 
+	local target = c_avoid.target
+	local pos = Player.pos
+	local epos = target.pos
+	local angle = AngleFromPos(pos, epos)
+	local angle2 = AngleFromPos(epos, pos)
+	local onMesh = false
+	local attempt = 0
+	local escapePoint
+	
+	
+	if (target.castinginfo.channeltargetid == target.id) then
+		-- If the casting target is the entity's own ID, it is a self-centered aoe, so either run away or move very far left and right.
+		escapePoint = (math.random(0,1) == 0 and FindPointOnCircle(epos, angle, (target.hitradius + 13)) or FindPointLeftRight(epos, angle2, (target.hitradius + 13), false))
+	else
+		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
+		escapePoint = FindPointLeftRight(pos, angle, 8, true)
+	end
+	
+	local p,dist = NavigationManager:GetClosestPointOnMesh(escapePoint)
+	if (p ~= nil and dist <= 25) then
+		local newTask = ffxiv_task_avoid.Create()
+		newTask.pos = p
+		newTask.maxTime = tonumber(target.castinginfo.casttime)
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 --ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
 --Adds a MoveToTarget task 
@@ -343,6 +444,10 @@ end
 c_movetotarget = inheritsFrom( ml_cause )
 e_movetotarget = inheritsFrom( ml_effect )
 function c_movetotarget:evaluate()
+	if ( not ml_task_hub:CurrentTask().canEngage ) then
+		return false
+	end
+	
     if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         if (target ~= nil and target ~= 0 and target.alive) then
@@ -357,6 +462,39 @@ function e_movetotarget:execute()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (target ~= nil and target.pos ~= nil) then
         local newTask = ffxiv_task_movetopos.Create()
+        newTask.pos = target.pos
+        newTask.targetid = target.id
+        newTask.useFollowMovement = false
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
+    end
+end
+
+c_movetotargetsafe = inheritsFrom( ml_cause )
+e_movetotargetsafe = inheritsFrom( ml_effect )
+function c_movetotargetsafe:evaluate()
+	if ( ml_task_hub:CurrentTask().canEngage ) then
+		return false
+	end
+	
+    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+        if (target and target.id ~= 0 and target.alive) then
+			local tpos = target.pos
+			local pos = Player.pos
+			if (Distance2D(tpos.x,tpos.z,pos.x,pos.z) > (ml_task_hub:CurrentTask().safeDistance + 2)) then
+				return true
+			end
+        end
+    end
+    
+    return false
+end
+function e_movetotargetsafe:execute()
+    ml_debug( "Moving within safe distance of target" )
+    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+    if (target ~= nil and target.pos ~= nil) then
+        local newTask = ffxiv_task_movetopos.Create()
+		newTask.range = ml_task_hub:CurrentTask().safeDistance
         newTask.pos = target.pos
         newTask.targetid = target.id
         newTask.useFollowMovement = false
@@ -626,6 +764,7 @@ end
 -- Checks for a better target while we are engaged in fighting an enemy and switches to it
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
+c_bettertargetsearch.targetid = 0
 function c_bettertargetsearch:evaluate()        
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
@@ -644,28 +783,27 @@ function c_bettertargetsearch:evaluate()
         return false
     end
     
-	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:CurrentTask():ParentTask() == "LT_GRIND") then
+	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:RootTask().name == "LT_GRIND") then
 		if (not Player.incombat and Player.hasaggro) then
 			local bettertarget = GetNearestGrindAttackable()
 			if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
-				ml_task_hub:CurrentTask().targetid = bettertarget.id
-				Player:SetTarget(bettertarget.id)
+				c_bettertargetsearch.targetid = bettertarget.id
 				return true                        
 			end
 		end
 	elseif (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET" and gClaimFirst == "1") then
 		local bettertarget = GetNearestGrindPriority()
 		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
-			ml_task_hub:CurrentTask().targetid = bettertarget.id
-			Player:SetTarget(bettertarget.id)
-			return true                        
+			c_bettertargetsearch.targetid = bettertarget.id
+			return true                      
 		end
 	end
      
     return false
 end
 function e_bettertargetsearch:execute()
-    --Player:Stop()        
+    ml_task_hub:CurrentTask().targetid = c_bettertargetsearch.targetid
+	Player:SetTarget(c_bettertargetsearch.targetid)        
 end
 
 
@@ -1101,7 +1239,7 @@ function c_returntomarker:evaluate()
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 		
-		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
+		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode or gBotMode == strings[gCurrentLanguage].huntMode) then
 			local target = ml_task_hub:CurrentTask().targetFunction()
 			if (distance > 200 or target == nil) then
 				return true

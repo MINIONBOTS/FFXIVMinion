@@ -28,7 +28,7 @@ mm.defaultMaps = {
 	[135] = "Lower La Noscea",
 	[137] = "Eastern La Noscea - Costa Del Sol",
 	[138] = "Western La Noscea",
-	[139] = "Upper La Noscea - Left",
+	[139] = "Upper La Noscea - Right",
 	[140] = "Western Thanalan",
 	[141] = "Central Thanalan",
 	[145] = "Eastern Thanalan",
@@ -489,19 +489,21 @@ end
 function mm.DrawMarker(marker)
 	local markertype = marker:GetType()
 	local pos = marker:GetPosition()
-
+	
     local color = 0
     local s = 1 -- size
     local h = 5 -- height
 	
-    if ( markertype == "Grind Marker" ) then
+    if ( markertype == GetString("grindMarker") ) then
         color = 1 -- red
-    elseif ( markertype == "Fishing Marker" ) then
+    elseif ( markertype == GetString("fishingMarker") ) then
         color = 4 --blue
-    elseif ( markertype == "Mining Marker" ) then
+    elseif ( markertype == GetString("miningMarker") ) then
         color = 7 -- yellow	
-    elseif ( markertype == "Botany marker" ) then
+    elseif ( markertype == GetString("botanyMarker") ) then
         color = 8 -- orange
+	elseif ( markertype == GetString("huntMarker") ) then
+		color = 2
     end
     --Building the vertices for the object
     local t = { 
