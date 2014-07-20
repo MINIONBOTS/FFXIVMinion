@@ -164,7 +164,7 @@ function c_nexthuntmarker:evaluate()
     if (not ml_marker_mgr.markersLoaded) then
         return false
     end
-    
+	
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
         
@@ -185,7 +185,7 @@ function c_nexthuntmarker:evaluate()
 					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
                     Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
                 end
             end
         end
@@ -195,7 +195,7 @@ function c_nexthuntmarker:evaluate()
             local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
 			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
                 ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
             else
                 return false
             end
@@ -296,9 +296,7 @@ c_nexthuntlocation = inheritsFrom( ml_cause )
 e_nexthuntlocation = inheritsFrom( ml_effect )
 c_nexthuntlocation.location = {}
 c_nexthuntlocation.locationIndex = 0
-function c_nexthuntlocation:evaluate()	
-	d(ffxiv_task_hunt.locationTimer - Now())
-	
+function c_nexthuntlocation:evaluate()		
 	local locations = gHuntLocations
 	--First check to see if we are on a valid starting map, and if we are, start here.
 	if (ffxiv_task_hunt.locationIndex == 0 and ffxiv_task_hunt.location == 0) then
@@ -316,8 +314,9 @@ function c_nexthuntlocation:evaluate()
 		end
 	end
 	
-	if (Now() > ffxiv_task_hunt.locationTimer and not ffxiv_task_hunt.hasTarget) then
-		local maxLocation = TableSize(locations)
+	local maxLocation = TableSize(locations)
+	if (Now() > ffxiv_task_hunt.locationTimer and not ffxiv_task_hunt.hasTarget and maxLocation > 1) then
+		
 		local newLocation = {}
 		
 		if (ffxiv_task_hunt.locationIndex == maxLocation and maxLocation > 1) then
@@ -536,7 +535,7 @@ function ffxiv_task_hunt.SetupMarkers()
 	huntMarker:SetType(strings[gCurrentLanguage].huntMarker)
 	--huntMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
 	--huntMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
-    huntMarker:SetTime(300)
+    huntMarker:SetTime(5)
     huntMarker:SetMinLevel(1)
     huntMarker:SetMaxLevel(50)
 	--huntMarker:SetColor({r = 70, g = 240, b = 10})

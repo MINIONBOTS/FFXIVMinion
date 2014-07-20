@@ -176,9 +176,6 @@ function c_add_combat:evaluate()
 				if (Now() < ml_task_hub:CurrentTask().waitTimer and target.targetid == 0) then
 					return false
 				end
-			else
-				d("Something went wrong.")
-				return false
 			end
 		end
 	end
