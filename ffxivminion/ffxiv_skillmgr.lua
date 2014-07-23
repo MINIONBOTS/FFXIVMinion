@@ -18,6 +18,10 @@ SkillMgr.prevFailedTimer = 0
 SkillMgr.teleCastTimer = 0
 SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
+SkillMgr.mplock = false
+SkillMgr.mplockPercent = 0
+SkillMgr.mplockTimer = 0
+
 
 SkillMgr.teleCastSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
@@ -50,6 +54,7 @@ SkillMgr.Variables = {
 	SKM_DOBUFF = { default = "0", cast = "string", profile = "dobuff", section = "fighting" },
 	SKM_DOPREV = { default = "0", cast = "string", profile = "doprev", section = "fighting"  },
 	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting"   },
+	SKM_LevelMax = { default = 0, cast = "number", profile = "levelmax", section = "fighting"   },
 	SKM_Combat = { default = "In Combat", cast = "string", profile = "combat", section = "fighting"  },
 	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
 	SKM_OnlySolo = { default = "0", cast = "string", profile = "onlysolo", section = "fighting"  },
@@ -121,6 +126,10 @@ SkillMgr.Variables = {
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
 	SKM_OFFGCD = { default = "0", cast = "string", profile = "offgcd", section = "fighting" },
+	
+	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
+	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting" },
+	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
@@ -194,7 +203,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCHARGE,"SKM_CHARGE",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMin,"SKM_LevelMin",strings[gCurrentLanguage].basicDetails) -- Needs a string
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMax,"SKM_LevelMax",strings[gCurrentLanguage].basicDetails)
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMin,"SKM_LevelMin",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID",strings[gCurrentLanguage].basicDetails)
@@ -207,6 +217,11 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlyParty,"SKM_OnlyParty",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed",strings[gCurrentLanguage].basicDetails)
+	
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isReady,"SKM_SKREADY",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isNotReady,"SKM_SKNREADY",strings[gCurrentLanguage].skillChecks)
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmSTYPE,"SKM_SKTYPE",strings[gCurrentLanguage].skillChecks,"Action,Pet")
+	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPLT,"SKM_PHPB",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerGT,"SKM_PPowL",strings[gCurrentLanguage].playerHPMPTP)
@@ -538,6 +553,7 @@ function SkillMgr.PasteSkill()
 			if v.profile == conditional then 
 				if v.section ~= "main" then
 					_G[tostring(k)] = source[conditional]
+					Settings.FFXIVMINION[tostring(k)] = _G[tostring(k)]
 				end
 			end
 		end
@@ -960,7 +976,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		if (target) then
 			for k,v in pairs(cp) do
 				if ( v.castids and v.castids ~= "" ) then
-					d("Checking isCasting() for v.castids ="..tostring(v.castids))
 					if (isCasting(target, v.castids, nil, nil )) then
 						return false
 					end
@@ -996,18 +1011,31 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						tbuffs = ebuffs
 					
 						local castable = true
-						
-						if (skill.name == "Purify" and HasBuffs(Player,"2,3,13,14,280")) then
-							d("Castable of purify before any check = "..tostring(castable))
-						end
 				
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff == "1" and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now) ) then 
 							castable = false
 						end
 						
+						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
 						if ( skill.offgcd == "1" ) then
 							if (SkillMgr.IsGCDReady()) then
+								castable = false
+							end
+						end
+						
+						--Check that the other skill is ready.
+						if ( skill.skready ~= "") then
+							local actiontype = (skill.sktype == "Action") and 1 or 11
+							if ( not SkillMgr.IsReady( tonumber(skready), actiontype)) then
+								castable = false
+							end
+						end
+						
+						--Check that the other skill is not ready.
+						if ( skill.sknready ~= "") then
+							local actiontype = (skill.sktype == "Action") and 1 or 11
+							if ( SkillMgr.IsReady( tonumber(sknready), actiontype)) then
 								castable = false
 							end
 						end
@@ -1077,24 +1105,39 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							) then castable = false end
 						
 						-- SECOND SINCE LAST CAST
-						if ( skill.secspassed > 0 and skill.lastcast ~= nil and ( ml_global_information.Now - skill.lastcast < skill.secspassed*1000 )) then castable = false end
+						if ( skill.secspassed > 0 and skill.lastcast and ( ml_global_information.Now - skill.lastcast < skill.secspassed*1000 )) then castable = false end
 						
 						-- CHECK FOR MP LOCKS						
-						if ( mplock == "1") then
-							if ( Player.mp.percent >= tonumber(mplockper) ) then
-								mplock = "0"
-								mplockper = 0
+						if ( SkillMgr.mplock ) then
+							if ( (Player.mp.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
+								SkillMgr.mplock = false
+								SkillMgr.mplockPercent = 0
 							else
 								if ( skill.mplocked == "1" ) then
 									castable = false
 								end
 							end
 						end
-							
+						
+						--Player level
+						if (castable) then
+							if (skill.levelmin > 0 and 
+								((skill.levelmin > Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmin > Player:GetSyncLevel()))))
+							then
+								castable = false
+							elseif (skill.levelmax > 0 and
+								((skill.levelmax < Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmax < Player:GetSyncLevel()))))
+							then
+								castable = false
+							end
+			
+						end
+
+						
 						-- Player HP/TP
 						if ( castable and (
-							(skill.levelmin > 0 and ((skill.levelmin > Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmin > Player:GetSyncLevel())))) --custom
-							or (skill.phpl > 0 and skill.phpl > Player.hp.percent)
+							 --custom
+							(skill.phpl > 0 and skill.phpl > Player.hp.percent)
 							or (skill.phpb > 0 and skill.phpb < Player.hp.percent)					
 							or (skill.ptpl > 0 and skill.ptpl > Player.tp)
 							or (skill.ptpb > 0 and skill.ptpb < Player.tp)	
@@ -1106,8 +1149,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								(skill.pmppl > 0 and skill.pmppl > Player.mp.percent)
 								) then castable = false
 								if (skill.mplock == "1" ) then
-									mplock = "1"
-									mplockper = tonumber(skill.mplockper)
+									SkillMgr.mplock = true
+									SkillMgr.mplockTimer = Now() + 10000
+									SkillMgr.mplockPercent = tonumber(skill.mplockper)
 								end
 							elseif ((skill.ppowb > 0 and skill.ppowb < Player.mp.current) or
 									(skill.pmppb > 0 and skill.pmppb < Player.mp.percent)
@@ -1151,25 +1195,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 						-- Player BUFFS
 						if ( castable ) then 							
-							-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
 							if (skill.pbuff ~= "" ) then
-								if ( tonumber(skill.pbuffdura) ~= nil and tonumber(skill.pbuffdura) > 0 ) then
-									local tbfound = HasBuffsDura(Player, skill.pbuff, skill.pbuffdura)
-									if not tbfound then castable = false end 
-								else
-									local tbfound = HasBuffs(Player, skill.pbuff)
-									if not tbfound then castable = false end
-								end	
+								local duration = skill.pbuffdura or 0
+								if not HasBuffs(Player, skill.pbuff, duration) then castable = false end 
 							end
-							-- dont cast this spell when we have aony of the BuffIDs in the skill.pnbuff list
 							if (skill.pnbuff ~= "" ) then
-								if ( skill.pnbuffdura ~= nil and skill.pnbuffdura ~= 0 ) then
-									local tbfound = HasBuffsDura(Player, skill.pnbuff, skill.pnbuffdura)
-									if tbfound then castable = false end 
-								else
-									local tbfound = HasBuffs(Player, skill.pnbuff)
-									if tbfound then castable = false end                                                                  
-								end						
+								local duration = skill.pnbuffdura or 0
+								if not MissingBuffs(Player, skill.pnbuff, duration) then castable = false end 
 							end							
 						end
 											
@@ -1190,7 +1222,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									end
 									
 									if ( 	(skill.ptbuff=="" or not HasBuffs(Player,skill.ptbuff)) and
-											(skill.ptnbuff=="" or HasBuffs(Player,skill.ptnbuff)) ) then
+											(skill.ptnbuff=="" or MissingBuffs(Player,skill.ptnbuff)) ) then
 										castable = false
 									end	
 								end
@@ -1428,41 +1460,19 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							)) then castable = false end			
 
 						
-						-- TARGET BUFFS
+						-- TARGET BUFFS						
 						if ( castable ) then 							
-							-- dont cast this spell when the target has not at least one of the BuffIDs in the skill.tbuff list
 							if (skill.tbuff ~= "" ) then
-								if ( skill.tbuffowner == "Player" ) then
-									local tbfound = HasBuffsFromOwner(target, skill.tbuff, PID)
-									if not tbfound then castable = false end
-								else
-									local tbfound = HasBuffs(target, skill.tbuff)
-									if not tbfound then castable = false end
-								end
+								local owner = (skill.tbuffowner == "Player") and PID or nil
+								if not HasBuffs(target, skill.tbuff, nil, owner) then castable = false end 
 							end
-							-- dont cast this spell when the target has any of the BuffIDs in the skill.tnbuff list
 							if (skill.tnbuff ~= "" ) then
-								if ( skill.tnbuffdura ~= nil and skill.tnbuffdura ~= 0 ) then
-									if ( skill.tbuffowner == "Player" ) then
-										local tbfound = HasBuffsFromOwnerDura(target, skill.tnbuff, PID, skill.tnbuffdura)
-										if tbfound then castable = false end 
-									else
-										local tbfound = HasBuffsDura(target, skill.tnbuff, skill.tnbuffdura)
-										if tbfound then castable = false end
-									end
-								else
-									if (skill.tbuffowner == "Player" ) then
-										local tbfound = HasBuffsFromOwner(target, skill.tnbuff, PID)
-										if tbfound then castable = false end 
-									else
-										local tbfound = HasBuffs(target, skill.tnbuff)
-										if tbfound then castable = false end
-									end
-								end
+								local owner = (skill.tbuffowner == "Player") and PID or nil
+								local duration = skill.tnbuffdura or 0
+								if not MissingBuffs(target, skill.tnbuff, duration, owner) then castable = false end 
 							end							
 						end
 						
-						--if (skill.name == "Arm of the Destroyer") then d("Castable before casting check:"..tostring(castable)) end
 						-- CASTING
 						local casttime = tonumber(skill.tcasttime)
 						if casttime == nil then casttime = 0 end
@@ -1483,7 +1493,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						end
-						--if (skill.name == "Arm of the Destroyer") then d("Castable after casting check:"..tostring(castable)) end
 						
 						-- CONTENT ID
 						if (castable) then
@@ -1566,15 +1575,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									--If PVP, forceStop a healer to allow them to cast on self.
 									if forceStop then Player:Stop() end
 									
-									if ( ActionList:Cast(skill.id,TID) ) then									
-										skill.lastcast = ml_global_information.Now
+									if ( ActionList:Cast(skill.id,TID) ) then	
+										skill.lastcast = Now()
 										if skill.cbreak == "0" then 
 											SkillMgr.prevSkillID = tostring(skill.id) 
-											SkillMgr.prevFailedTimer = Now() + 4000
+											SkillMgr.prevFailedTimer = Now() + 5500
 										end
 										if (skill.nskill ~= "") then
 											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextFailedTimer = Now() + 4000
+											SkillMgr.nextFailedTimer = Now() + 5500
 										end
 										return true
 									end					
@@ -1586,8 +1595,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						if (realskilldata.cost == nil) then
 							--d("Skill:"..skill.name.." shows as having nil cost.")
 						elseif ( (realskilldata.cost > Player.mp.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > Player.mp.current) ) then
-							mplock = "1"
-							mplockper = tonumber(skill.mplockper)
+							SkillMgr.mplock = true
+							SkillMgr.mplockTimer = Now() + 10000
+							SkillMgr.mplockPercent = tonumber(skill.mplockper)
 						end
 					end
 					
@@ -1738,8 +1748,9 @@ function SkillMgr.Gather( )
     return false
 end
 
+
 function SkillMgr.TryCast( entity , testprio )
-	
+--[[	
 	local castable = true
 	local failsection = ""
 	
@@ -1930,7 +1941,7 @@ function SkillMgr.TryCast( entity , testprio )
 								-- dont cast this spell when we have not at least one of the BuffIDs in the skill.pbuff list
 								if (skill.pbuff ~= "" ) then
 									if ( tonumber(skill.pbuffdura) ~= nil and tonumber(skill.pbuffdura) > 0 ) then
-										local tbfound = HasBuffsDura(Player, skill.pbuff, skill.pbuffdura)
+										local tbfound = HasBuffs(Player, skill.pbuff, skill.pbuffdura)
 										if not tbfound then castable = false end 
 									else
 										local tbfound = HasBuffs(Player, skill.pbuff)
@@ -1940,7 +1951,7 @@ function SkillMgr.TryCast( entity , testprio )
 								-- dont cast this spell when we have aony of the BuffIDs in the skill.pnbuff list
 								if (skill.pnbuff ~= "" ) then
 									if ( skill.pnbuffdura ~= nil and skill.pnbuffdura ~= 0 ) then
-										local tbfound = HasBuffsDura(Player, skill.pnbuff, skill.pnbuffdura)
+										local tbfound = HasBuffs(Player, skill.pnbuff, skill.pnbuffdura)
 										if tbfound then castable = false end 
 									else
 										local tbfound = HasBuffs(Player, skill.pnbuff)
@@ -2240,7 +2251,7 @@ function SkillMgr.TryCast( entity , testprio )
 											local tbfound = HasBuffsFromOwnerDura(target, skill.tnbuff, PID, skill.tnbuffdura)
 											if tbfound then castable = false end 
 										else
-											local tbfound = HasBuffsDura(target, skill.tnbuff, skill.tnbuffdura)
+											local tbfound = HasBuffs(target, skill.tnbuff, skill.tnbuffdura)
 											if tbfound then castable = false end
 										end
 									else
@@ -2384,6 +2395,9 @@ function SkillMgr.TryCast( entity , testprio )
 	else
 		return "succeeds"
 	end
+	--]]
+	
+	return "not in use"
 end
 
 function SkillMgr.IsGCDReady()
@@ -2400,6 +2414,26 @@ function SkillMgr.IsGCDReady()
 	end
 	
 	return castable
+end
+
+function SkillMgr.IsReady( actionid, actiontype )
+	actiontype = actiontype or 1
+	local action = ActionList:Get(actionid)
+	if not action.isready then
+		return false 
+	end		
+end
+
+function SkillMgr.Use( actionid, targetid, actiontype )
+	actiontype = actiontype or 1
+	local tid = targetid or Player.id
+	
+	if (ActionList:CanCast(actionid, tonumber(tid))) then
+		local action = ActionList:Get(actionid)
+		if (action) then
+			action:Cast(tid)
+		end
+	end
 end
 
 -- Skillmanager Task for the mainbot & assistmode

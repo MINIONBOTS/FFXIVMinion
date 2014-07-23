@@ -447,7 +447,7 @@ function c_movetotarget:evaluate()
 	
     if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target ~= nil and target ~= 0 and target.alive) then
+        if (target and target.id ~= 0 and target.alive) then
             return not InCombatRange(target.id)
         end
     end
@@ -457,13 +457,11 @@ end
 function e_movetotarget:execute()
     ml_debug( "Moving within combat range of target" )
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (target ~= nil and target.pos ~= nil) then
-        local newTask = ffxiv_task_movetopos.Create()
-        newTask.pos = target.pos
-        newTask.targetid = target.id
-        newTask.useFollowMovement = false
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    end
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = target.pos
+	newTask.targetid = target.id
+	newTask.useFollowMovement = false
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_movetotargetsafe = inheritsFrom( ml_cause )
@@ -473,12 +471,12 @@ function c_movetotargetsafe:evaluate()
 		return false
 	end
 	
-    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+    if ( ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
         if (target and target.id ~= 0 and target.alive) then
 			local tpos = target.pos
 			local pos = Player.pos
-			if (Distance2D(tpos.x,tpos.z,pos.x,pos.z) > (ml_task_hub:CurrentTask().safeDistance + 2)) then
+			if (Distance3D(tpos.x,tpos.y,tpos.z,pos.x,pos.y,pos.z) > (ml_task_hub:CurrentTask().safeDistance + 2)) then
 				return true
 			end
         end
@@ -487,16 +485,13 @@ function c_movetotargetsafe:evaluate()
     return false
 end
 function e_movetotargetsafe:execute()
-    ml_debug( "Moving within safe distance of target" )
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (target ~= nil and target.pos ~= nil) then
-        local newTask = ffxiv_task_movetopos.Create()
-		newTask.range = ml_task_hub:CurrentTask().safeDistance
-        newTask.pos = target.pos
-        newTask.targetid = target.id
-        newTask.useFollowMovement = false
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    end
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.range = ml_task_hub:CurrentTask().safeDistance
+	newTask.pos = target.pos
+	newTask.targetid = target.id
+	newTask.useFollowMovement = false
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -766,6 +761,10 @@ function c_bettertargetsearch:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
         return false
     end
+	
+	if (gBotMode == GetString("huntMode")) then
+		return false
+	end
     
 	if (ml_global_information.IsWaiting) then 
 		return false 

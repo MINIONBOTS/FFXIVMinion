@@ -19,11 +19,17 @@ function ffxiv_duty_kill_task.Create()
 	newinst.suppressFollowTimer = 0
 	newinst.suppressAssist = false
 	newinst.pullHandled = false
+	newinst.hasSynced = false
 	
     return newinst
 end
 
 function ffxiv_duty_kill_task:Process()	
+	
+	if (not self.hasSynced) then
+		Player:SetFacingSynced(Player.pos.h)
+		self.hasSynced = true
+	end
 	
 	local killPercent = nil
 	if ( self.encounterData["killto%"]) then
@@ -31,6 +37,9 @@ function ffxiv_duty_kill_task:Process()
 	end
 
 	local entity = GetDutyTarget(killPercent)
+	if (entity) then
+		--d(entity.name)
+	end
 	
 	local myPos = Player.pos
 	local fightPos = nil
@@ -46,28 +55,41 @@ function ffxiv_duty_kill_task:Process()
 	if (ValidTable(entity)) then
 		if (fightPos and not self.pullHandled) then
 			--fightPos is for handling pull situations
-			if (self.timer == 0) then
-				--if we haven't pulled yet, attack the proper entity and tack on a few seconds of wait time
-				Player:SetFacingSynced(entity.pos.h)
+			if (entity.targetid == 0) then
 				Player:SetTarget(entity.id)
-				SetFacing(entity.pos.x,entity,pos.y,entity.pos.z)
-				SkillMgr.Cast( entity )
-				self.timer = Now() + math.random(3000,4000)
-				self.hasFailed = false
-			elseif (Now() <= self.timer) then
-				SetFacing(entity.pos.x,entity,pos.y,entity.pos.z)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				SkillMgr.Cast( entity )
 				self.hasFailed = false
-			elseif (Now() > self.timer and Player.incombat) then
-				--after we wait enough time, move to the proper fightPos
+			else
 				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(fightPos.h)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				self.pullHandled = true
 			end
+			
+			
+				--[[
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				Player:SetTarget(entity.id)
+				SkillMgr.Cast( entity )
+				self.timer = Now() + math.random(3000,5000)
+				self.hasFailed = false
+				
+			elseif (Now() <= self.timer) then
+				Player:SetTarget(entity.id)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				SkillMgr.Cast( entity )
+				self.hasFailed = false
+				
+			elseif (Now() > self.timer and Player.incombat) then
+				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+				Player:SetFacingSynced(Player.pos.h)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				self.pullHandled = true
+			end
+			--]]
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					if (entity.targetid == 0) then
-						--Player:SetFacingSynced(entity.pos.h)
 						Player:SetTarget(entity.id)
 						SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 						SkillMgr.Cast( entity )
@@ -82,7 +104,6 @@ function ffxiv_duty_kill_task:Process()
 					
 					local pos = entity.pos
 					
-					SetFacing(pos.x, pos.y, pos.z)
 					Player:SetTarget(entity.id)
 					
 					--Telecasting, teleport to mob portion.
@@ -95,10 +116,12 @@ function ffxiv_duty_kill_task:Process()
 						
 						SkillMgr.teleBack = startPos
 						GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-						Player:SetFacingSynced(pos.h)
+						TurnAround()
+						--Player:SetFacing(pos.h)
 						SkillMgr.teleCastTimer = Now() + 1600
 					end
 					
+					SetFacing(pos.x, pos.y, pos.z)
 					SkillMgr.Cast( entity )
 					
 					--Telecasting, teleport back to spot portion.
@@ -108,6 +131,7 @@ function ffxiv_duty_kill_task:Process()
 						--Player:Stop()
 						GameHacks:TeleportToXYZ(back.x, back.y, back.z)
 						Player:SetFacingSynced(back.h)
+						--Player:SetFacing(back.h)
 						SkillMgr.teleBack = {}
 						SkillMgr.teleCastTimer = 0
 					end

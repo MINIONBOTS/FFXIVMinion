@@ -50,7 +50,8 @@ mm.defaultMaps = {
 	[129] = "Limsa (Upper)",
 	[128] = "Limsa (Lower)",
 	[132] = "New Gridania",
-	[133] = "Old Gridania"
+	[133] = "Old Gridania",
+	[376] = "Frontlines",
 }
 
 function mm.ModuleInit() 	

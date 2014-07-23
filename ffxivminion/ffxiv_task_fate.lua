@@ -179,7 +179,7 @@ function e_teletofate:execute()
 	if (Now() > c_teletofate.lastTele) then
 		local dest = c_teletofate.pos
 		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
-		Player:SetFacingSynced(dest.x,dest.y,dest.z)
+		Player:SetFacingSynced(Player.pos.h)
 		c_teletofate.lastTele = Now() + 10000
 		c_teletofate.initiatemove = false
 		c_teletofate.stopmove = false

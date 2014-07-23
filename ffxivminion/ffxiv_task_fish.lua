@@ -150,7 +150,7 @@ function c_nextfishingmarker:evaluate()
 					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
                     Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
                 end
             end
         end
@@ -161,7 +161,7 @@ function c_nextfishingmarker:evaluate()
 			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
 				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
                 ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
             else
                 return false
             end

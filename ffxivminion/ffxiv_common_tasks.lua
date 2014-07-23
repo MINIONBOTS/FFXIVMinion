@@ -25,7 +25,7 @@ function ffxiv_task_killtarget.Create()
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
 	newinst.targetRank = ""
-	newinst.failTimer = nil
+	newinst.failTimer = 0
 	newinst.waitTimer = Now()
 	newinst.canEngage = true
     newinst.safeDistance = 30
@@ -68,7 +68,10 @@ end
 
 function ffxiv_task_killtarget:task_complete_eval()	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
+    if 	(not target or not target.attackable or 
+		(target and not target.alive) or 
+		(target and not target.onmesh and not InCombatRange(target.id) and ml_task_hub:CurrentTask().canEngage)) 
+	then
         d("Kill target exiting in the eval()")
 		return true
     end
@@ -239,7 +242,8 @@ function ffxiv_task_movetopos:task_complete_execute()
 	NavigationManager:ClearAvoidanceAreas()
     
     if (ml_task_hub:CurrentTask().doFacing) then
-        Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
+		SetFacing(ml_task_hub:CurrentTask().pos.h)
+        Player:SetFacingSynced(Player.pos.h)
     end
 	
 	if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then

@@ -55,7 +55,7 @@ end
 
 c_followleaderduty = inheritsFrom( ml_cause )
 e_followleaderduty = inheritsFrom( ml_effect )
-c_followleaderduty.rrange = math.random(5,15)
+c_followleaderduty.rrange = 8
 c_followleaderduty.leader = nil
 function c_followleaderduty:evaluate()
     if (IsDutyLeader() or Player.localmapid ~= ffxiv_task_duty.mapID or ml_task_hub:CurrentTask().suppressFollow) then
@@ -69,7 +69,7 @@ function c_followleaderduty:evaluate()
 			local myPos = Player.pos				
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
 			if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
-				(distance > 1 and gTeleport == "1")) 
+				(distance > 3 and gTeleport == "1")) 
 			then				
 				c_followleaderduty.leader = leader
 				return true
@@ -91,9 +91,9 @@ function e_followleaderduty:execute()
             ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.rrange))))
             if ( not Player:IsMoving()) then
                 if ( ml_global_information.AttackRange < 5 ) then
-					c_followleaderduty.rrange = math.random(4,8)
+					c_followleaderduty.rrange = math.random(4,6)
                 else
-					c_followleaderduty.rrange = math.random(8,20)
+					c_followleaderduty.rrange = math.random(4,6)
                 end
             end
         else
@@ -102,7 +102,8 @@ function e_followleaderduty:execute()
 			if (gTeleport == "1") then
 				Player:Stop()
 				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
-				Player:SetFacingSynced(lpos.x+1, lpos.y, lpos.z)
+				local lead = EntityList:Get(lead.id)
+				Player:SetFacingSynced(lead.pos.h)
 			else
 				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
 			end
@@ -141,7 +142,8 @@ end
 function e_assistleaderduty:execute()
     if ( c_assistleaderduty.targetid ) then
 		local entity = EntityList:Get(c_assistleaderduty.targetid)
-		Player:SetFacingSynced(entity.pos.x,entity.pos.y,entity.pos.z)
+		SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+		SetFacingSynced(Player.pos.h)
 		
 		if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
 			ml_task_hub:CurrentTask():Terminate()
@@ -294,7 +296,7 @@ end
 c_lootcheck = inheritsFrom( ml_cause )
 e_lootcheck = inheritsFrom( ml_effect )
 function c_lootcheck:evaluate()
-    if (not Inventory:HasLoot()) then
+    if (not Inventory:HasLoot() or ml_task_hub:CurrentTask().name == "LT_LOOT") then
         return false
     end	
 	
@@ -303,6 +305,15 @@ end
 function e_lootcheck:execute()     
 	local newTask = ffxiv_task_loot.Create()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_syncfix = inheritsFrom( ml_cause )
+e_syncfix = inheritsFrom( ml_effect)
+function c_syncfix:evaluate()
+
+end
+function e_syncfix:execute()
+
 end
 	
 function ffxiv_task_duty:Process()
@@ -336,7 +347,6 @@ function ffxiv_task_duty:Process()
 			if ((gTeleport == "0" and Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z) < 6) or
 				(gTeleport == "1" and Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z) < 3)) then
 				
-				
 				--Set state to "DO_ENCOUNTER".
 				self.state = "DUTY_DOENCOUNTER"
 				
@@ -348,14 +358,14 @@ function ffxiv_task_duty:Process()
 				ml_task_hub:CurrentTask():AddSubTask(encounterTask)
 				
 				--Moved the delay processing here so that any future tasks don't have to explicitly handle this.
-				local delay = 0
+				local delay = 1500
 				if (encounterData.waitTime and encounterData.waitTime > 0) then
 					delay = encounterData.waitTime
 				end
 				
-				self:SetDelay(delay)
+				--d("CurrentTask is: "..tostring(ml_task_hub:CurrentTask().name))
+				ml_task_hub:CurrentTask():SetDelay(delay)
 			else
-				d("We're too far away, need to teleport.")
 				local gotoPos = pos
 				if ValidTable(gotoPos) then
 					if (gTeleport == "1") then
@@ -373,9 +383,7 @@ function ffxiv_task_duty:Process()
 			ffxiv_task_duty.dutyInfo["EncounterIndex"] = self.encounterIndex
 			local encounter = encounters[self.encounterIndex]
 			
-			d("Encounter marked as completed.")
 			if (ValidTable(encounter)) then
-				d("Encounter is valid")
 				self.state = "DUTY_NEXTENCOUNTER"
 				self.encounter = encounter
 				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
@@ -410,8 +418,8 @@ function ffxiv_task_duty:Init()
 	local ke_assistleaderduty = ml_element:create( "AssistLeader", c_assistleaderduty, e_assistleaderduty, 20 )--minion only
     self:add( ke_assistleaderduty, self.overwatch_elements)
 	
-	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 20 )--minion only
-    self:add( ke_lootcheck, self.process_elements)
+	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 19 )--minion only
+    self:add( ke_lootcheck, self.overwatch_elements)
 	
 	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)
@@ -614,15 +622,19 @@ function c_deadduty:evaluate()
 		c_deadduty.leader = leader
 	end
 	
-    if (((Player.revivestate == 2 or Player.revivestate == 3) or e_deadduty.justRevived) and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+    if ((Player.revivestate == 2) and not e_deadduty.justRevived and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
         return true
     end 
+	
+	if ((Player.revivestate ~=2 and Player.revivestate ~=3) and e_deadduty.justRevived and not Quest:IsLoading()) then
+		return true
+	end
     return false
 end
 function e_deadduty:execute()
     local leader = c_deadduty.leader
 	
-	if (Player.revivestate == 2 or Player.revivestate == 3) then
+	if (Player.revivestate == 2) then
 		-- try raise first
 		if(PressYesNo(true)) then
 			if (IsDutyLeader()) then
@@ -647,11 +659,13 @@ function e_deadduty:execute()
 			if (not IsDutyLeader()) then
 				local lpos = leader.pos
 				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
-				Player:SetFacingSynced(lpos.x+1, lpos.y, lpos.z)
+				Player:SetFacingSynced(Player.pos.h)
+				e_deadduty.justRevived = false
 			else
 				local lpos = ffxiv_task_duty.leaderLastPos
 				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
-				Player:SetFacingSynced(lpos.x, lpos.y, lpos.z)
+				Player:SetFacingSynced(lpos.h)
+				e_deadduty.justRevived = false
 				ffxiv_task_duty.leaderLastPos = {}
 				ml_task_hub:CurrentTask().state = "DUTY_NEXTENCOUNTER"
 			end
