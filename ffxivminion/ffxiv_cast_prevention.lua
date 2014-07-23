@@ -16,7 +16,7 @@ function cp.ModuleInit()
 		Settings.FFXIVMINION.cpTBuffs = ""
 	end
 	
-	GUI_NewWindow(cp.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.w,cp.mainwindow.name.h)
+	GUI_NewWindow(cp.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.width,cp.mainwindow.height)
     GUI_NewField(cp.mainwindow.name,"Option Name:",			"cpOption","New Option")
 	GUI_NewField(cp.mainwindow.name,"Target Has Buffs:",		"cpTBuffs","New Option")
 	GUI_NewField(cp.mainwindow.name,"Target Casting IDs:",		"cpTCastIDS","New Option")
@@ -51,7 +51,7 @@ function cp.AddCastPrevention()
 	--Check to make sure that something hasn't gone wrong with the index and reindex the table if necessary.
 	if (list[key]) then
 		local newKey = 1
-		local newList = {}}
+		local newList = {}
 		for k,v in spairs(list) do
 			newList[newKey] = v
 			newKey = newKey + 1

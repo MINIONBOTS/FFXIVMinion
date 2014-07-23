@@ -3,7 +3,7 @@ ffxiv_task_hunt.rankS = "2953;2954;2955;2956;2957;2958;2959;2960;2961;2962;2963;
 ffxiv_task_hunt.rankA = "2936;2937;2938;2939;2940;2941;2942;2943;2944;2945;2946;2947;2948;2949;2950;2951;2952"
 ffxiv_task_hunt.rankB = "2919;2920;2921;2922;2923;2924;2925;2926;2927;2928;2929;2930;2931;2932;2933;2934;2935"
 
-ffxiv_task_hunt.mainwindow = { name = "Hunt Manager", x = 50, y = 50, width = 250, height = 230}
+ffxiv_task_hunt.mainwindow = { name = "Hunt Manager", x = 50, y = 50, width = 250, height = 300}
 
 ffxiv_task_hunt.multiTargetID = 0
 ffxiv_task_hunt.multiTargetMapID = 0
@@ -586,7 +586,7 @@ function ffxiv_task_hunt.UIInit()
 		Settings.FFXIVMINION.gHuntBRankSound = "0"
 	end
 	
-	GUI_NewWindow(ffxiv_task_hunt.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.w,ffxiv_task_hunt.mainwindow.name.h)
+	GUI_NewWindow(ffxiv_task_hunt.mainwindow.name,ffxiv_task_hunt.mainwindow.x,ffxiv_task_hunt.mainwindow.y,ffxiv_task_hunt.mainwindow.width,ffxiv_task_hunt.mainwindow.height)
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"HP % <=",			"gHuntSRankHP",		"S-Rank Hunt")
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Max Wait (s)",		"gHuntSRankMaxWait", "S-Rank Hunt")
@@ -613,9 +613,6 @@ function ffxiv_task_hunt.UIInit()
 	GUI_WindowVisible(ffxiv_task_hunt.mainwindow.name, false)
 	
 	gHuntLocations = Settings.FFXIVMINION.gHuntLocations
-	for k,v in spairs(gHuntLocations) do
-		d("k="..tostring(k)..",v="..tostring(v.mapid))
-	end
 	gHuntMapID = Settings.FFXIVMINION.gHuntMapID
 	gHuntMapTimer = Settings.FFXIVMINION.gHuntMapTimer
 	gHuntMarkerStyle = Settings.FFXIVMINION.gHuntMarkerStyle
@@ -657,7 +654,7 @@ function ffxiv_task_hunt.AddHuntLocation()
 	--Check to make sure that something hasn't gone wrong with the index and reindex the table if necessary.
 	if (list[key]) then
 		local newKey = 1
-		local newList = {}}
+		local newList = {}
 		for k,v in spairs(list) do
 			newList[newKey] = v
 			newKey = newKey + 1
