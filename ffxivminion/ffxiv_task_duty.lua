@@ -102,8 +102,7 @@ function e_followleaderduty:execute()
 			if (gTeleport == "1") then
 				Player:Stop()
 				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
-				local lead = EntityList:Get(lead.id)
-				Player:SetFacingSynced(lead.pos.h)
+				Player:SetFacingSynced(Player.pos.h)
 			else
 				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
 			end
@@ -143,7 +142,7 @@ function e_assistleaderduty:execute()
     if ( c_assistleaderduty.targetid ) then
 		local entity = EntityList:Get(c_assistleaderduty.targetid)
 		SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-		SetFacingSynced(Player.pos.h)
+		Player:SetFacingSynced(Player.pos.h)
 		
 		if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
 			ml_task_hub:CurrentTask():Terminate()
