@@ -52,7 +52,18 @@ end
 
 --checks to see if all quest objectives have been met
 function ffxiv_quest:isComplete()
-	return Quest:GetQuestCurrentStep(self.id) == 255
+	local currStep = tonumber(gCurrQuestStep) or 1
+	
+	if (Quest:GetQuestCurrentStep(self.id) == 255 and
+		TableSize(self.steps) <= currStep) then
+		return true
+	else
+		return false
+	end
+	
+	--Changed this to prevent it from skipping ahead to the complete task, leaving important objectives unfulfilled.
+	--Leaving the original data here.
+	--return Quest:GetQuestCurrentStep(self.id) == 255
 end
 
 --checks to see if quest has been previously completed

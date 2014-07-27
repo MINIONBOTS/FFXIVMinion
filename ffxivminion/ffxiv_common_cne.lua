@@ -498,6 +498,46 @@ end
 --ADD_MOVETOMAP
 --Adds a MoveToGate task 
 ---------------------------------------------------------------------------------------------
+c_interactgate = inheritsFrom( ml_cause )
+e_interactgate = inheritsFrom( ml_effect )
+c_interactgate.lastInteract = 0
+e_interactgate.id = 0
+function c_interactgate:evaluate()
+    if (ml_task_hub:CurrentTask().destMapID) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not Quest:IsLoading() and not mm.reloadMeshPending) then
+			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
+
+			if (ValidTable(pos) and pos.g) then
+				local interacts = EntityList("type=7,chartype=0,maxdistance=3")
+				for i, interactable in pairs(interacts) do
+					if interactable.uniqueid == tonumber(pos.g) then
+						if (interactable.targetable) then
+							if (c_interactgate.lastInteract == 0 or Now() > c_interactgate.lastInteract) then
+								Player:SetTarget(interactable.id)
+								e_interactgate.id = interactable.id
+								c_interactgate.lastInteract = Now() + 1000
+								return true
+							else
+								return false
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+function e_interactgate:execute()
+	Player:Stop()
+	
+	local gate = EntityList:Get(e_interactgate.id)
+	local pos = gate.pos
+	SetFacing(pos.x,pos.y,pos.z)
+	Player:Interact(gate.id)
+end
+
 c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 function c_movetogate:evaluate()
@@ -509,7 +549,6 @@ function c_movetogate:evaluate()
 end
 function e_movetogate:execute()
     ml_debug( "Moving to gate for next map" )
-	
 	local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 												Player.localmapid,
 												ml_task_hub:CurrentTask().destMapID	)
@@ -517,7 +556,11 @@ function e_movetogate:execute()
 		local newTask = ffxiv_task_movetopos.Create()
 		local newPos = GetPosFromDistanceHeading(pos, 5, pos.h)
 		newTask.pos = pos
-		newTask.gatePos = newPos
+		
+		if (not pos.g) then
+			newTask.gatePos = newPos
+		end
+		
 		newTask.range = 0.5
 		
 		if(gTeleport == "1") then
@@ -535,17 +578,20 @@ function c_teleporttomap:evaluate()
 	if (gUseAetherytes == "0") then
 		return false
 	end
-
+	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
                                                     ml_task_hub:CurrentTask().destMapID	)
-    
+
         if (ValidTable(ml_nav_manager.currPath)) then
             local aethid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do
                 if (node.id ~= Player.localmapid) then
-                    aethid = GetAetheryteByMapID(node.id)
+					local aeth = GetAetheryteByMapID(node.id)
+                    if (aeth) then
+						aethid = aeth
+					end
                 end
             end
             
@@ -1257,8 +1303,12 @@ function e_returntomarker:execute()
     local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
     newTask.pos = markerPos
     newTask.range = math.random(5,25)
-    if (markerType == "Fishing Marker") then
+	if (markerType == GetString("huntMarker")) then
+		newTask.remainMounted = true
+	end
+    if (markerType == GetString("fishingMarker")) then
         newTask.pos.h = markerPos.h
+		d("h value of :"..tostring(markerPos.h).." was used")
         newTask.range = 0.5
         newTask.doFacing = true
     end
@@ -1404,6 +1454,10 @@ end
 c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
 function c_autoequip:evaluate()
+	if (gQuestAutoEquip == "0") then
+		return false
+	end
+	
 	if (ValidTable(e_autoequip.equipIDs)) then
 		return true
 	end

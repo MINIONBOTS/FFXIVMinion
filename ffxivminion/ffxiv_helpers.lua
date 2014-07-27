@@ -1376,10 +1376,12 @@ function Dismount()
 end
 
 function Repair()
-	local eq = Inventory("type=1000")
-	for i,e in pairs(eq) do
-		if (e.condition <= 10) then
-			e:Repair()
+	if (gRepair == "1") then
+		local eq = Inventory("type=1000")
+		for i,e in pairs(eq) do
+			if (e.condition <= 10) then
+				e:Repair()
+			end
 		end
 	end
 end
