@@ -124,6 +124,7 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 	if (ValidTable(profileData)) then
 		--create quest objects for each quest in the profile
 		local quests = profileData.quests
+		ffxiv_task_quest.questList = {}
 		if (ValidTable(quests)) then
 			for id, questTable in pairs(quests) do
 				local quest = ffxiv_quest.Create()
