@@ -166,6 +166,7 @@ function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
 			-- compress the list indices so that we can iterate through them properly
             local counter = 1
             for order, marker in pairsByKeys(list) do
+				--d("Order:"..tostring(order)..",Counter:"..tostring(counter)..",Marker:"..tostring(marker:GetName()))
                 list[counter] = marker
                 counter = counter + 1
             end
@@ -174,28 +175,35 @@ function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
 			
             if (ValidTable(ml_marker_mgr.currentMarker)) then
                 if (ml_marker_mgr.currentMarker:GetType() == markerType) then
+					--d("Marker Type:"..tostring(markerType))
                     --get the next marker in the sequence
 					local nextMarker = nil
 					for index, marker in pairsByKeys(list) do
+						--d("Current Order:"..tostring(ml_marker_mgr.currentMarker.order))
 						if (marker.order == ml_marker_mgr.currentMarker.order) then
+							d("Returning index:"..tostring(index+1))
 							nextMarker = list[index+1]
 							break
 						end
 					end
                     if (nextMarker) then
+						--d("nextMarker exists, return it:"..tostring(nextMarker:GetName()))
                         ml_marker_mgr.currentMarker = nextMarker
                         return nextMarker
                     else
                         ml_debug("GetNextMarker end of list - returning first marker for type "..markerType)
+						--d("nextMarker doesnt exist, return first:"..tostring(firstMarker:GetName()))
                         ml_marker_mgr.currentMarker = firstMarker
                         return firstMarker
                     end
                 else
                     ml_debug("Type "..markerType.." is not the same as current marker type. Returning first marker in list")
+					--d("markerType is not equal, return first:"..tostring(firstMarker:GetName()))
                     ml_marker_mgr.currentMarker = firstMarker
                     return firstMarker
                 end
             else
+				--d("Returning first marker"..firstMarker:GetName())
                 ml_marker_mgr.currentMarker = firstMarker
                 return firstMarker
             end
@@ -418,7 +426,7 @@ end
 
 function ml_marker_mgr.RefreshMarkerNames()
 	if (ValidTable(ml_marker_mgr.markerList)) then
-		local list = ml_marker_mgr.GetList(gMarkerMgrType, true)
+		local list = ml_marker_mgr.GetList(gMarkerMgrType, false)
 		if (ValidTable(list)) then
 			local markerNameList = GetComboBoxList(list)
 			local namestring = ""

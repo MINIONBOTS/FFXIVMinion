@@ -132,6 +132,24 @@ function mb.BroadcastQueueStatus( ready )
 	end
 end
 
+function mb.BroadcastHuntStatus( targetid, mapid, pos )
+	
+	mapid = tonumber(mapid) or 0
+	posX = tonumber(pos.x) or 0
+	posY = tonumber(pos.y) or 0
+	posZ = tonumber(pos.z) or 0
+	posH = tonumber(pos.h) or 0
+	
+	if (mapid == 0) then
+		return false
+	end
+	
+	if (posX == 0 and posY == 0 and posZ == 0) then
+		return false
+	end
+	MultiBotSend(("6;"..tostring(targetid)..":"..tostring(mapid)..":"..tostring(posX)..":"..tostring(posY)..":"..tostring(posZ)..":"..tostring(posH)), gMultiChannel )
+end
+
 function mb.QueueReady()
 	return mb.queueStatus
 end
@@ -150,9 +168,6 @@ function HandleMultiBotMessages( event, message, channel )
 				local msg = message:sub(delimiter+1)
 				if (tonumber(msgID) ~= nil and msg ~= nil ) then
 				
-					--d("msgID:" .. msgID)
-					--d("msg:" .. msg)
-
 					if ( tonumber(msgID) == 1 and msg ~= "" and msg ~= Player.name and IsLeader()) then
                         mb.queueStatus = true
 					elseif ( tonumber(msgID) == 2 and msg ~= "" and msg == GetPartyLeader().name) then
@@ -164,6 +179,23 @@ function HandleMultiBotMessages( event, message, channel )
 						ml_task_hub:CurrentTask().multibotJoin = false
 					end
 					
+					if (tonumber(msgID) == 6) then
+						--d("Received hunt message.")
+						local newLocation = {}
+						local counter = 1
+						for _, part in StringSplit(msg,":") do
+							if (counter == 1) then
+								ffxiv_task_hunt.multiTargetID = tonumber(part)
+							elseif (counter == 2) then
+								ffxiv_task_hunt.multiTargetMapID = tonumber(part)
+							else
+								newLocation[counter] = tonumber(part)
+								counter = counter + 1
+							end
+						end
+						ffxiv_task_hunt.multiTargetLocation = newLocation
+						ffxiv_task_hunt.multiHasTarget = true
+					end
 				end
 			end
 		end

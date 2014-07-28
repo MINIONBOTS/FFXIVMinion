@@ -73,9 +73,8 @@ function GetNearestGrindAttackable()
 	block = 4
 	if (ValidTable(Player.pet)) then
 		if (not IsNullString(excludeString)) then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Playet.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 		else
-			--el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
 			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
 		end
 		
@@ -816,81 +815,20 @@ function HasBuff(targetid, buffID)
     return false
 end
 
-function HasBuffFrom(targetID, buffID, ownerID)
-    local target = EntityList:Get(targetID)
-    if (target ~= nil and target ~= 0) then
-        local buffs = target.buffs
-        if (buffs ~= nil and TableSize(buffs) > 0) then
-            for i, buff in pairs(buffs) do
-                if (buff.id == buffID and buff.ownerid == ownerID) then
-                    return true
-                end
-            end
-        end
-    end
-end
-function HasBuffsFromOwner(entity, buffIDs, ownerid)
-    local buffs = entity.buffs
-    if (buffs == nil or TableSize(buffs) == 0) then return false end
-    for _orids in StringSplit(buffIDs,",") do
-      local found = false
-      for _andid in StringSplit(_orids,"+") do
-          found = false
-          for i, buff in pairs(buffs) do
-            if (buff.id == tonumber(_andid)and buff.ownerid == ownerid) then 
-              found = true 
-            end
-          end
-          if (not found) then 
-            break
-          end
-      end
-      if (found) then 
-        return true 
-      end
-    end
-    return false
-end
 
-function HasBuffsFromOwnerDura(entity, buffIDs, ownerid, duration)
-	duration = tonumber(duration) or 0
+function HasBuffs(entity, buffIDs, dura, ownerid)
+	local duration = dura or 0
+	local owner = ownerid or 0
 	
     local buffs = entity.buffs
-    if (buffs == nil or TableSize(buffs) == 0) then return false end
-	
-    for _orids in StringSplit(buffIDs,",") do
-		local found = false
-		for _andid in StringSplit(_orids,"+") do
-			found = false
-			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) and buff.ownerid == ownerid 
-					and ( duration == 0 or buff.duration > duration)) then 
-					found = true 
-				end
-			end
-			if (not found) then 
-				break
-			end
-		end
-		if (found) then 
-			return true 
-		end
-    end
-    return false
-end
-
-
-function HasBuffsDura(entity, buffIDs, duration)
-	duration = tonumber(duration) or 0
-	local buffs = entity.buffs
 	if (buffs == nil or TableSize(buffs) == 0) then return false end
-	
 	for _orids in StringSplit(buffIDs,",") do
 		local found = false
 		for _andid in StringSplit(_orids,"+") do
 			found = false
 			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) and ( duration == 0 or buff.duration > duration)) then 
+				if (buff.id == tonumber(_andid) and (duration == 0 or buff.duration > duration) 
+					and (owner == 0 or buff.ownerid == owner)) then 
 					found = true 
 				end
 			end
@@ -905,28 +843,39 @@ function HasBuffsDura(entity, buffIDs, duration)
 	return false
 end
 
-function HasBuffs(entity, buffIDs)
+function MissingBuffs(entity, buffIDs, dura, ownerid)
+	local duration = dura or 0
+	local owner = ownerid or 0
+	
+	--If we have no buffs, we are missing everything.
     local buffs = entity.buffs
-    if (buffs == nil or TableSize(buffs) == 0) then return false end
-    for _orids in StringSplit(buffIDs,",") do
-      local found = false
-      for _andid in StringSplit(_orids,"+") do
-          found = false
-          for i, buff in pairs(buffs) do
-            if (buff.id == tonumber(_andid)) then 
-              found = true 
-            end
-          end
-          if (not found) then 
-            break
-          end
-      end
-      if (found) then 
-        return true 
-      end
+    if (buffs == nil or TableSize(buffs) == 0) then 
+    	return true
     end
+    
+    --Start by assuming we have no buffs, so they are missing.
+    local missing = true
+    for _orids in StringSplit(buffIDs,",") do
+    	missing = true
+		for _andid in StringSplit(_orids,"+") do
+			for i, buff in pairs(buffs) do
+				if (buff.id == tonumber(_andid) and (duration == 0 or buff.duration > duration)
+					and (owner == 0 or buff.ownerid == owner)) then 
+					missing = false 
+				end
+			end
+			if (not missing) then 
+				break
+			end
+		end
+		if (missing) then 
+			return true
+		end
+    end
+    
     return false
 end
+
 
 function ActionList:IsCasting()
 	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
@@ -999,16 +948,14 @@ function IsCaster(jobID)
 end
 
 function IsReviveSkill(skillID)
-    if (	skillID == 173 or skillID == 125) then
+    if (skillID == 173 or skillID == 125) then
         return true
     end
     return false
 end
  
  function IsFlanking(entity)
-	if entity.id == Player.id or entity == nil then
-		return false
-	end
+	if not entity or entity.id == Player.id then return false end
 	
     if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
         local entityHeading = nil
@@ -1035,7 +982,9 @@ end
 end
 
 function IsBehind(entity)
-     if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
+	if not entity or entity.id == Player.id then return false end
+	
+    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -1056,11 +1005,43 @@ function IsBehind(entity)
     end
     return false
 end
+
 function ConvertHeading(heading)
 	if (heading < 0) then
 		return heading + 2 * math.pi
 	else
 		return heading
+	end
+end
+
+function HeadingToRadians(heading)
+	return heading + math.pi
+end
+
+function RadiansToHeading(radians)
+	return radians - math.pi
+end
+
+function DegreesToHeading(degrees)
+	return RadiansToHeading(math.rad(degrees))
+end
+
+function HeadingToDegrees(heading)
+	return math.deg(HeadingToRadians(heading))
+end
+
+function TurnAround(sync)	
+	local sync = sync or false
+	local newHeading = HeadingToDegrees(Player.pos.h)
+	newHeading = newHeading + 180
+	if (newHeading > 360) then
+		newHeading = newHeading - 360
+	end
+	newHeading = DegreesToHeading(newHeading)	
+	if (sync) then
+		Player:SetFacingSync(newHeading)
+	else
+		Player:SetFacing(newHeading)
 	end
 end
 
@@ -1134,7 +1115,7 @@ function FindPointLeftRight(pos, angle, radius, relative)
 	ReturnAngle2.y = pos.y
 	ReturnAngle2.z = math.cos(math.rad(angleMax))*radius + pos.z
 
-	local ReturnAngle = (math.random(0,1) == 0 and ReturnAngle1 or ReturnAngle2)
+	local ReturnAngle = math.random(0,1) == 0 and ReturnAngle1 or ReturnAngle2
 	return ReturnAngle
 end
 
@@ -1309,21 +1290,21 @@ function InCombatRange(targetid)
 	if ( ml_global_information.AttackRange < 5 ) then
 		if (skillID ~= nil) then
 			if (highestRange > 5) then
-				if ((target.targetid == 0 or target.targetid == nil) and rootTask ~= "LT_PVP") then
+				if ((target.targetid == 0 or target.targetid == nil) and ml_task_hub:RootTask().name ~= "LT_PVP") then
 					--d(tostring(skillID).."skill not charge type, but used anyway")
-					if ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
+					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
 							local pos = target.pos
-							Player:SetFacing(pos.x,pos.y,pos.z)
+							SetFacing(pos.x,pos.y,pos.z)
 							return true
 						end
 					end
 				elseif (charge) then
 					--d(tostring(skillID).."skill was charge type")
-					if ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
+					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
 							local pos = target.pos
-							Player:SetFacing(pos.x,pos.y,pos.z)
+							SetFacing(pos.x,pos.y,pos.z)
 							return true
 						end
 					end
@@ -1331,11 +1312,11 @@ function InCombatRange(targetid)
 			end
 		end
 	else
-		return ((target.distance2d - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
+		return ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
 	end
 	
 	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
-	return ((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
+	return ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
 end
 
 function GetMounts()
@@ -1394,10 +1375,12 @@ function Dismount()
 end
 
 function Repair()
-	local eq = Inventory("type=1000")
-	for i,e in pairs(eq) do
-		if (e.condition <= 10) then
-			e:Repair()
+	if (gRepair == "1") then
+		local eq = Inventory("type=1000")
+		for i,e in pairs(eq) do
+			if (e.condition <= 10) then
+				e:Repair()
+			end
 		end
 	end
 end
@@ -1489,13 +1472,12 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	if (maxdistance==nil or maxdistance == "") then
 		maxdistance = 30
 	end
+	
 	local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
-	local i,e = next(el)
-	while (i~=nil and e ~= nil) do
-		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not HasBuffs(e,hasnot)) ) then
+	for i,e in pairs(el) do	
+		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
 			return e
-		end
-		i,e = next(el,i)
+		end						
 	end
 	
 	return nil
@@ -1504,17 +1486,14 @@ end
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
-	local el = EntityList("myparty,maxdistance="..tostring(maxdistance)..",targetable,los")
-	local i,e = next(el)
- 
-	while (i~=nil and e ~= nil) do
-		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not HasBuffs(e,hasnot)) ) then
+	local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
+	for i,e in pairs(el) do	
+		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
 			return e
-		end
-		i,e = next(el,i)
-	end  
+		end						
+	end
 
-	if ( (hasbuffs=="" or HasBuffs(Player,hasbuffs)) and (hasnot=="" or not HasBuffs(Player,hasnot)) ) then
+	if ( (hasbuffs=="" or HasBuffs(Player,hasbuffs)) and (hasnot=="" or not MissingBuffs(Player,hasnot)) ) then
         return Player
     end
 	

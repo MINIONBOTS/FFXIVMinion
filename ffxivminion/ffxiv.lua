@@ -445,7 +445,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gMount" or
 			k == "gTeleport" or
 			k == "gQuestHelpers" or
-			k == "gRepair")				
+			k == "gRepair" or 
+			k == "gUseAetherytes")				
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then

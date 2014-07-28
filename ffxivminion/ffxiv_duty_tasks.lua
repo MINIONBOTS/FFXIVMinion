@@ -19,11 +19,17 @@ function ffxiv_duty_kill_task.Create()
 	newinst.suppressFollowTimer = 0
 	newinst.suppressAssist = false
 	newinst.pullHandled = false
+	newinst.hasSynced = false
 	
     return newinst
 end
 
 function ffxiv_duty_kill_task:Process()	
+	
+	if (not self.hasSynced) then
+		Player:SetFacingSynced(Player.pos.h)
+		self.hasSynced = true
+	end
 	
 	local killPercent = nil
 	if ( self.encounterData["killto%"]) then
@@ -31,6 +37,9 @@ function ffxiv_duty_kill_task:Process()
 	end
 
 	local entity = GetDutyTarget(killPercent)
+	if (entity) then
+		--d(entity.name)
+	end
 	
 	local myPos = Player.pos
 	local fightPos = nil
@@ -46,28 +55,41 @@ function ffxiv_duty_kill_task:Process()
 	if (ValidTable(entity)) then
 		if (fightPos and not self.pullHandled) then
 			--fightPos is for handling pull situations
-			if (self.timer == 0) then
-				--if we haven't pulled yet, attack the proper entity and tack on a few seconds of wait time
-				Player:SetFacingSynced(entity.pos.h)
+			if (entity.targetid == 0) then
 				Player:SetTarget(entity.id)
-				SetFacing(entity.pos.x,entity,pos.y,entity.pos.z)
-				SkillMgr.Cast( entity )
-				self.timer = Now() + math.random(3000,4000)
-				self.hasFailed = false
-			elseif (Now() <= self.timer) then
-				SetFacing(entity.pos.x,entity,pos.y,entity.pos.z)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				SkillMgr.Cast( entity )
 				self.hasFailed = false
-			elseif (Now() > self.timer and Player.incombat) then
-				--after we wait enough time, move to the proper fightPos
+			else
 				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(fightPos.h)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				self.pullHandled = true
 			end
+			
+			
+				--[[
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				Player:SetTarget(entity.id)
+				SkillMgr.Cast( entity )
+				self.timer = Now() + math.random(3000,5000)
+				self.hasFailed = false
+				
+			elseif (Now() <= self.timer) then
+				Player:SetTarget(entity.id)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				SkillMgr.Cast( entity )
+				self.hasFailed = false
+				
+			elseif (Now() > self.timer and Player.incombat) then
+				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+				Player:SetFacingSynced(Player.pos.h)
+				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+				self.pullHandled = true
+			end
+			--]]
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					if (entity.targetid == 0) then
-						--Player:SetFacingSynced(entity.pos.h)
 						Player:SetTarget(entity.id)
 						SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 						SkillMgr.Cast( entity )
@@ -82,7 +104,6 @@ function ffxiv_duty_kill_task:Process()
 					
 					local pos = entity.pos
 					
-					SetFacing(pos.x, pos.y, pos.z)
 					Player:SetTarget(entity.id)
 					
 					--Telecasting, teleport to mob portion.
@@ -95,10 +116,12 @@ function ffxiv_duty_kill_task:Process()
 						
 						SkillMgr.teleBack = startPos
 						GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-						Player:SetFacingSynced(pos.h)
+						TurnAround()
+						--Player:SetFacing(pos.h)
 						SkillMgr.teleCastTimer = Now() + 1600
 					end
 					
+					SetFacing(pos.x, pos.y, pos.z)
 					SkillMgr.Cast( entity )
 					
 					--Telecasting, teleport back to spot portion.
@@ -108,6 +131,7 @@ function ffxiv_duty_kill_task:Process()
 						--Player:Stop()
 						GameHacks:TeleportToXYZ(back.x, back.y, back.z)
 						Player:SetFacingSynced(back.h)
+						--Player:SetFacing(back.h)
 						SkillMgr.teleBack = {}
 						SkillMgr.teleCastTimer = 0
 					end
@@ -177,8 +201,7 @@ function c_dutyAtInteract:evaluate()
 				tpos = interactable.pos
 				ppos = Player.pos
 				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
-				--d("Distance to target = "..tostring(dist))
-				if (dist <= 5) then
+				if (dist <= 4) then
 					return true
 				end
 			end
@@ -214,45 +237,37 @@ end
 
 c_interact = inheritsFrom( ml_cause )
 e_interact = inheritsFrom( ml_effect )
-c_interact.object = {}
-c_interact.lastInteract = 0
+c_interact.id = 0
 function c_interact:evaluate()
 	if (not ml_task_hub:CurrentTask().attarget) then
 		return false
 	end
 	
+	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
+		return false
+	end
+	ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
+	
 	local interacts = EntityList("type=7,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 	for i, interactable in pairs(interacts) do
 		if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
 			if (interactable.targetable) then
-				if (c_interact.lastInteract == 0 or Now() > c_interact.lastInteract) then
-					Player:SetTarget(interactable.id)
-					c_interact.object = interactable
-					c_interact.lastInteract = Now() + 1000
-					return true
-				else
-					return false
-				end
+				c_interact.id = interactable.id
+				return true
 			end
 		end
 	end
 	
-	--Couldn't find the interactable, terminate the task.
-	if (ml_task_hub:CurrentTask().throttle == 0) then
-		ml_task_hub:CurrentTask().throttle = Now() + 1500
-	end
-	
-	if (Now() > ml_task_hub:CurrentTask().throttle) then
-		ml_task_hub:CurrentTask():Terminate()
-	end
-	
+	ml_task_hub:CurrentTask().hasInteract = false
     return false
 end
 ----------------------------------------------------------------------------------------------------------------------------------------
 function e_interact:execute()
-	local pos = c_interact.object.pos
+	local interact = EntityList:Get(c_interact.id)
+	Player:SetTarget(interact.id)
+	local pos = interact.pos
 	SetFacing(pos.x,pos.y,pos.z)
-	Player:Interact(c_interact.object.id)
+	Player:Interact(interact.id)
 end
 ----------------------------------------------------------------------------------------------------------------------------------------
 ffxiv_task_interact = inheritsFrom(ml_task)
@@ -267,18 +282,16 @@ function ffxiv_task_interact.Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
    
+	newinst.name = "LT_INTERACT"
 	newinst.encounterData = {}
 	newinst.failTimer = 0
-    newinst.name = "LT_INTERACT"
+	
 	newinst.repositioned = false
 	newinst.attarget = false
-	newinst.throttle = 0
-	
-	if (newinst.encounterData.maxTime and newinst.encounterData.maxTime > 0) then
-		newinst.maxTime = Now() + newinst.encounterData.maxTime
-	else
-		newinst.maxTime = Now() + 5000
-	end
+	newinst.latencyTimer = 0
+	newinst.hasInteract = true
+	newinst.isComplete = false
+	newinst.maxTime = 0
 	
     return newinst
 end
@@ -297,6 +310,14 @@ function ffxiv_task_interact:Init()
 end
 
 function ffxiv_task_interact:task_complete_eval()
+	if (self.maxTime == 0) then
+		if (self.encounterData.maxTime and self.encounterData.maxTime > 0) then
+			self.maxTime = Now() + self.encounterData.maxTime
+		else
+			self.maxTime = Now() + 10000
+		end
+	end
+	
 	if (Player.castinginfo.channelingid == 24) then
 		return false
 	end
@@ -304,14 +325,33 @@ function ffxiv_task_interact:task_complete_eval()
 	if (Now() > self.maxTime) then
 		return true
 	end
+	
+	if (not ml_task_hub:CurrentTask().hasInteract and not self.isComplete) then
+		self.isComplete = true
+		if (self.encounterData.failTime and self.encounterData.failTime > 0) then
+			self.failTimer = Now() + self.encounterData.failTime
+		else
+			self.failTimer = Now() + 1000
+		end
+		return false
+	end
+	
+	-- If the task had started counting down, but is no longer failing, reset the state.
+	if (not self.isComplete and self.failTimer ~= 0) then
+		self.failTimer = 0
+		return false
+	end
+	
+	-- If the failTimer is not 0 (starting value) and we've exceeded the time, end the task.
+	if (self.failTimer > 0 and Now() > self.failTimer) then
+		return true
+	end
+	
+	return false
 end
 
 function ffxiv_task_interact:task_complete_execute()
 	self.completed = true
-	self:ParentTask().encounterCompleted = true
-end
-
-function ffxiv_task_interact:OnTerminate()
 	self:ParentTask().encounterCompleted = true
 end
 
@@ -322,12 +362,20 @@ end
 c_roll = inheritsFrom( ml_cause )
 e_roll = inheritsFrom( ml_effect )
 function c_roll:evaluate()
+	ml_debug("C_Roll, Inventory:HasLoot():"..tostring(Inventory:HasLoot()))
 	if (not Inventory:HasLoot()) then
 		return false	
 	end
 	
+	ml_debug("C_Roll, Now():"..tostring(Now()))
+	ml_debug("C_Roll, latencyTimer:"..tostring(ml_task_hub:CurrentTask().latencyTimer))
+	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
+		return false
+	end
+	ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+	
 	local loot = Inventory:GetLootList()
-	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete" and Now() > ml_task_hub:CurrentTask().rollTimer) then
+	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
 		return true
 	end
     
@@ -342,20 +390,21 @@ function e_roll:execute()
 			if (ml_task_hub:CurrentTask().rollstate == "Need") then
 				if (gLootOption == "Need" or gLootOption == "Any") then 
 					e:Need() 
-					ml_task_hub:CurrentTask().rollTimer = Now() + 1500
+					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
 				end
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
 				if (gLootOption == "Greed" or gLootOption == "Any") then 
 					e:Greed() 
-					ml_task_hub:CurrentTask().rollTimer = Now() + 1500
+					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
 				end
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
 				if (gLootOption == "Pass" or gLootOption == "Any") then 
-					e:Pass() 
+					e:Pass()
+					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
 				end
 				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
@@ -366,16 +415,22 @@ end
 
 c_loot = inheritsFrom( ml_cause )
 e_loot = inheritsFrom( ml_effect )
-c_loot.chest = {}
-c_loot.lastCheck = 0
+c_loot.chestid = 0
 function c_loot:evaluate()
-	if (Now() < c_loot.lastCheck) then
+	ml_debug("C_Loot, Now():"..tostring(Now()))
+	ml_debug("C_Loot, latencyTimer:"..tostring(ml_task_hub:CurrentTask().latencyTimer))
+	
+	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
 		return false
 	end
-	c_loot.lastCheck = Now() + 500
-
+	ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+	
+	ml_debug("C_Loot, condition1:"..tostring(IsDutyLeader()))
+	ml_debug("C_Loot, condition2:"..tostring(ml_task_hub:CurrentTask().hasChest))
+	
 	if (IsDutyLeader() and ml_task_hub:CurrentTask().hasChest) then
-		if (Inventory:HasLoot() == false) then
+		ml_debug("C_Loot, condition3:"..tostring(not Inventory:HasLoot()))
+		if (not Inventory:HasLoot()) then
 			local chests = nil
 			if (not ml_task_hub:CurrentTask().encounterData.lootid) then
 				chests = EntityList("nearest,type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
@@ -383,19 +438,19 @@ function c_loot:evaluate()
 				chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 			end
 			
+			ml_debug("C_Loot, condition4:"..tostring(ValidTable(chests)))
 			if ( ValidTable(chests) ) then
 				for i, chest in pairs(chests) do
+					ml_debug("C_Loot, condition5:"..tostring(chest.targetable))
 					if (not ml_task_hub:CurrentTask().encounterData.lootid) then
 						if (chest.targetable) then
-							Player:SetTarget(chest.id)
-							c_loot.chest = chest
+							c_loot.chestid = chest.id
 							return true
 						end
 					else 
 						if (chest.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.lootid)) then
 							if (chest.targetable) then
-								Player:SetTarget(chest.id)
-								c_loot.chest = chest
+								c_loot.chestid = chest.id
 								return true
 							end
 						end
@@ -410,9 +465,13 @@ function c_loot:evaluate()
 end
 function e_loot:execute()
 	ml_task_hub:CurrentTask().isComplete = false
-	local pos = c_loot.chest.pos
+	
+	local chest = EntityList:Get(c_loot.chestid)
+	Player:SetTarget(chest.id)
+	local pos = chest.pos
 	SetFacing(pos.x,pos.y,pos.z)
-	Player:Interact(c_loot.chest.id)
+	Player:Interact(chest.id)
+	ml_task_hub:CurrentTask().latencyTimer = Now() + 2000
 end
 
 ffxiv_task_loot = inheritsFrom(ml_task)
@@ -429,16 +488,12 @@ function ffxiv_task_loot.Create()
 	newinst.encounterData = {}
    
     newinst.name = "LT_LOOT"
-	newinst.rollTimer = 0
 	newinst.rollstate = "Need"
 	newinst.hasChest = true
 	newinst.failTimer = 0
-	newinst.maxTime = Now() + 10000
 	newinst.isComplete = false
-	
-	if (newinst.encounterData.maxTime and newinst.encounterData.maxTime > 0) then
-		newinst.maxTime = Now() + newinst.encounterData.maxTime
-	end
+	newinst.latencyTimer = 0
+	newinst.maxTime = 0
     
     return newinst
 end
@@ -454,22 +509,36 @@ function ffxiv_task_loot:Init()
 end
 
 function ffxiv_task_loot:task_complete_eval()
+	if (self.maxTime == 0) then
+		if (self.encounterData.maxTime and self.encounterData.maxTime > 0) then
+			self.maxTime = Now() + self.encounterData.maxTime
+		else
+			self.maxTime = Now() + 10000
+		end
+	end
+	
+	if (Now() > self.maxTime) then
+		return true
+	end
+	
 	if (not IsDutyLeader() and not Inventory:HasLoot()) then
 		return true
 	end
 	
-	if (not ml_task_hub:CurrentTask().hasChest and not Inventory:HasLoot()) then
+	if (not ml_task_hub:CurrentTask().hasChest and not Inventory:HasLoot() and not self.isComplete) then
 		self.isComplete = true
 		if (self.encounterData.failTime and self.encounterData.failTime > 0) then
 			self.failTimer = Now() + self.encounterData.failTime
 		else
-			self.failTimer = Now() + 500
+			self.failTimer = Now() + 1000
 		end
+		return false
 	end
 	
 	-- If the task had started counting down, but is no longer failing, reset the state.
 	if (not self.isComplete and self.failTimer ~= 0) then
 		self.failTimer = 0
+		return false
 	end
 	
 	-- If the failTimer is not 0 (starting value) and we've exceeded the time, end the task.
@@ -477,10 +546,6 @@ function ffxiv_task_loot:task_complete_eval()
 		return true
 	end
 	
-	if (Now() > ml_task_hub:CurrentTask().maxTime) then
-		return true
-	end
-
 	return false
 end
 

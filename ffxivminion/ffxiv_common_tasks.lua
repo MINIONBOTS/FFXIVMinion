@@ -25,7 +25,7 @@ function ffxiv_task_killtarget.Create()
     newinst.name = "LT_KILLTARGET"
     newinst.targetid = 0
 	newinst.targetRank = ""
-	newinst.failTimer = nil
+	newinst.failTimer = 0
 	newinst.waitTimer = Now()
 	newinst.canEngage = true
     newinst.safeDistance = 30
@@ -68,7 +68,10 @@ end
 
 function ffxiv_task_killtarget:task_complete_eval()	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
+    if 	(not target or not target.attackable or 
+		(target and not target.alive) or 
+		(target and not target.onmesh and not InCombatRange(target.id) and ml_task_hub:CurrentTask().canEngage)) 
+	then
         d("Kill target exiting in the eval()")
 		return true
     end
@@ -236,13 +239,18 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
+	if (not self.remainMounted) then
+		Dismount()
+	end
 	NavigationManager:ClearAvoidanceAreas()
     
-    if (ml_task_hub:CurrentTask().doFacing) then
-        Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
+    if (self.doFacing) then
+		--SetFacing(ml_task_hub:CurrentTask().pos.h)
+		--d("h value of "..tostring(self.pos.h).." was used in movetopos.")
+        Player:SetFacingSynced(self.pos.h)
     end
 	
-	if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then
+	if (self:ParentTask().name == "LT_KILLTARGET") then
 		local target = Player:GetTarget()
 		
 		if 	( target and target.alive ) then
@@ -279,6 +287,9 @@ end
 function ffxiv_task_movetomap:Init()
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
     self:add( ke_teleportToMap, self.process_elements)
+	
+	local ke_interactGate = ml_element:create( "InteractGate", c_interactgate, e_interactgate, 11 )
+    self:add( ke_interactGate, self.process_elements)
 
     local ke_moveToGate = ml_element:create( "MoveToGate", c_movetogate, e_movetogate, 10 )
     self:add( ke_moveToGate, self.process_elements)

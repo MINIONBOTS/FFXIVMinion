@@ -50,7 +50,8 @@ mm.defaultMaps = {
 	[129] = "Limsa (Upper)",
 	[128] = "Limsa (Lower)",
 	[132] = "New Gridania",
-	[133] = "Old Gridania"
+	[133] = "Old Gridania",
+	[376] = "Frontlines",
 }
 
 function mm.ModuleInit() 	
@@ -461,7 +462,7 @@ function mm.OnUpdate( event, tickcount )
 			end
 		end	
 		
-		if (mm.reloadMeshPending and TimeSince(mm.reloadMeshTmr) > 30000) then
+		if (mm.reloadMeshPending and TimeSince(mm.reloadMeshTmr) > 45000) then
 			d("There was an error loading the mesh. Aborting attempt.")
 			mm.reloadMeshPending = false
 		end

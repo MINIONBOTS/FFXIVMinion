@@ -16,7 +16,7 @@ function cp.ModuleInit()
 		Settings.FFXIVMINION.cpTBuffs = ""
 	end
 	
-	GUI_NewWindow(cp.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.w,cp.mainwindow.name.h)
+	GUI_NewWindow(cp.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.width,cp.mainwindow.height)
     GUI_NewField(cp.mainwindow.name,"Option Name:",			"cpOption","New Option")
 	GUI_NewField(cp.mainwindow.name,"Target Has Buffs:",		"cpTBuffs","New Option")
 	GUI_NewField(cp.mainwindow.name,"Target Casting IDs:",		"cpTCastIDS","New Option")
@@ -48,6 +48,18 @@ function cp.AddCastPrevention()
 	local list = Settings.FFXIVMINION.cpOptions
 	local key = TableSize(list) + 1
 	
+	--Check to make sure that something hasn't gone wrong with the index and reindex the table if necessary.
+	if (list[key]) then
+		local newKey = 1
+		local newList = {}
+		for k,v in spairs(list) do
+			newList[newKey] = v
+			newKey = newKey + 1
+		end
+		list = newList
+		key = TableSize(list) + 1
+	end
+	
 	local option = {
 		name = cpOption,
 		tbuffs = cpTBuffs,
@@ -64,11 +76,9 @@ function cp.RemoveCastPrevention(key)
 	local newList = {}
 	local newKey = 1
 	
-	--Rebuild the list without the unwanted key, rather than actually remove it, to retain the integer index.
+	list[key] = nil
 	for k,v in pairs(list) do
-		if (k ~= key and k == tostring(newKey)) then
-			newList[tostring(newKey)] = v
-		end
+		newList[tostring(newKey)] = v
 		newKey = newKey + 1
 	end
 

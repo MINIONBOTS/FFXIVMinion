@@ -67,12 +67,11 @@ function c_nextqueststep:evaluate()
 end
 function e_nextqueststep:execute()
 	local quest = ffxiv_task_quest.currentQuest
-	local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
-	local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep)
+	--local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
+	local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep) or 1
 	
 	if (ml_task_hub:CurrentTask().currentStepIndex == 1 and
-		Settings.FFXIVMINION.gCurrQuestStep ~= nil and
-		tonumber(Settings.FFXIVMINION.gCurrQuestStep) > 1) 
+		currentStepIndex > 1) 
 	then
 		--if the saved step index is less than the objective step index then it represents a 
 		--non quest objective step and we need to restart from it
@@ -96,7 +95,7 @@ function e_nextqueststep:execute()
 		end
 		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-		d(ml_task_hub:ThisTask().currentObjectiveIndex)
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
@@ -170,8 +169,9 @@ end
 
 c_questaccept = inheritsFrom( ml_cause )
 e_questaccept = inheritsFrom( ml_effect )
-function c_questaccept:evaluate()
-	local id = ffxiv_task_quest.currentQuest.id
+function c_questaccept:evaluate()	
+	--local id = ffxiv_task_quest.currentQuest.id
+	local id = ml_task_hub:CurrentTask().params["questid"] or ffxiv_task_quest.currentQuest.id
     if (id and id > 0) then
 		return Quest:IsQuestAcceptDialogOpen(id)
     end
@@ -338,13 +338,32 @@ c_questprioritykill = inheritsFrom( ml_cause )
 e_questprioritykill = inheritsFrom( ml_effect )
 function c_questprioritykill:evaluate()
 	local ids = ml_task_hub:ThisTask().params["ids"]
+	
+	local priority = 0
+	for uniqueid in StringSplit(ids,";") do
+		priority = priority + 1
+		local currentPrio = ml_task_hub:ThisTask().currentPrio
+		if ((currentPrio > 0 and priority < currentPrio) or currentPrio == 0) then
+			local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..uniqueid)
+			if (ValidTable(el)) then
+				local id, target = next(el)
+				if (target) then
+					e_questprioritykill.id = target.id
+					ml_task_hub:ThisTask().currentPrio = priority
+					return true
+				end
+			end	
+		end
+	end
+	
+	--[[
     if (ValidTable(ids)) then
 		for prio, id in pairsByKeys(ids) do
 			--don't bother checking for targets lower or equal priority vs our current
 			local currentPrio = ml_task_hub:ThisTask().currentPrio
 			if ((currentPrio > 0 and prio < currentPrio) or currentPrio == 0) then
 				local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
-				if(ValidTable(el)) then
+				if (ValidTable(el)) then
 					local id, entity = next(el)
 					if(entity) then
 						e_questprioritykill.id = id
@@ -355,6 +374,7 @@ function c_questprioritykill:evaluate()
 			end
 		end
     end
+	--]]
 	
 	return false
 end

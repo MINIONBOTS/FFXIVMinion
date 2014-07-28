@@ -26,7 +26,8 @@ end
 function ffxiv_task_quest.UIInit()
 	GUI_NewButton(ffxivminion.Windows.Main.Name,"SetQuest","ffxiv_task_quest.SetQuest",strings[gCurrentLanguage].questMode)
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
-
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,"Perform Auto-Equip","gQuestAutoEquip",strings[gCurrentLanguage].questMode)
+	
 	GUI_NewField(ffxivminion.Windows.Main.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ffxivminion.Windows.Main.Name, "ObjectiveIndex:", "gCurrQuestObjective",strings[gCurrentLanguage].botStatus)
 	GUI_NewField(ffxivminion.Windows.Main.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
@@ -40,14 +41,6 @@ function ffxiv_task_quest.UIInit()
 	
 	if (Settings.FFXIVMINION.gCurrQuestID == nil) then
         Settings.FFXIVMINION.gCurrQuestID = ""
-    end
-	
-	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
-        Settings.FFXIVMINION.gCurrQuestStep = ""
-    end
-	
-	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
-        Settings.FFXIVMINION.gCurrQuestStep = ""
     end
 	
 	if (Settings.FFXIVMINION.completedQuestIDs == nil) then
@@ -66,6 +59,10 @@ function ffxiv_task_quest.UIInit()
         Settings.FFXIVMINION.gTestQuest = "0"
     end
 	
+	if (Settings.FFXIVMINION.gQuestAutoEquip == nil) then
+		Settings.FFXIVMINION.gQuestAutoEquip = "1"
+	end
+	
 	if(gBotMode == GetString("questMode")) then
 		ffxiv_task_quest.UpdateProfiles()
 	end
@@ -75,6 +72,7 @@ function ffxiv_task_quest.UIInit()
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID
 	gCurrQuestStep = Settings.FFXIVMINION.gCurrQuestStep
 	gTestQuest = Settings.FFXIVMINION.gTestQuest
+	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 end
 
 function ffxiv_task_quest.SetQuest()
@@ -138,7 +136,6 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 				else
 					quest.job = -1
 				end
-				
 				ffxiv_task_quest.questList[id] = quest
 			end
 		end
@@ -151,11 +148,13 @@ end
 c_nextquest = inheritsFrom( ml_cause )
 e_nextquest = inheritsFrom( ml_effect )
 function c_nextquest:evaluate()
-	if(	Settings.FFXIVMINION.gCurrQuestID ~= nil and 
-		Quest:HasQuest(Settings.FFXIVMINION.gCurrQuestID) and
-		ValidTable(ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]))
+	local currQuest = tonumber(Settings.FFXIVMINION.gCurrQuestID)
+
+	if (currQuest ~= nil and 
+		Quest:HasQuest(currQuest) and
+		ValidTable(ffxiv_task_quest.questList[currQuest]))
 	then
-		e_nextquest.quest = ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]
+		e_nextquest.quest = ffxiv_task_quest.questList[currQuest]
 		return true
 	end
 
@@ -229,7 +228,8 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
 			Settings.FFXIVMINION["gLastQuestProfile"] = v
         elseif (k == "gCurrQuestID" or
-				k == "gCurrQuestStep" )
+				k == "gCurrQuestStep" or
+				k == "gQuestAutoEquip" )
         then
             Settings.FFXIVMINION[k] = v
         end

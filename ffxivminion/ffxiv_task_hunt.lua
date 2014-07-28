@@ -3,8 +3,13 @@ ffxiv_task_hunt.rankS = "2953;2954;2955;2956;2957;2958;2959;2960;2961;2962;2963;
 ffxiv_task_hunt.rankA = "2936;2937;2938;2939;2940;2941;2942;2943;2944;2945;2946;2947;2948;2949;2950;2951;2952"
 ffxiv_task_hunt.rankB = "2919;2920;2921;2922;2923;2924;2925;2926;2927;2928;2929;2930;2931;2932;2933;2934;2935"
 
-ffxiv_task_hunt.mainwindow = { name = "Hunt Manager", x = 50, y = 50, width = 250, height = 230}
+ffxiv_task_hunt.mainwindow = { name = "Hunt Manager", x = 50, y = 50, width = 250, height = 300}
 
+ffxiv_task_hunt.multiTargetID = 0
+ffxiv_task_hunt.multiTargetMapID = 0
+ffxiv_task_hunt.multiHasTarget = false
+ffxiv_task_hunt.multiTargetLocation = {}
+ffxiv_task_hunt.multiReturnMap = 0
 ffxiv_task_hunt.hasTarget = false
 ffxiv_task_hunt.location = 0
 ffxiv_task_hunt.locationIndex = 0
@@ -30,6 +35,9 @@ function ffxiv_task_hunt.Create()
 	newinst.startMap = Player.localmapid
     newinst.atMarker = false
 	
+	ffxiv_task_hunt.multiHasTarget = false
+	ffxiv_task_hunt.multiTrackingTarget = false
+	ffxiv_task_hunt.multiTargetLocation = {}
 	ffxiv_task_hunt.hasTarget = false
 	ffxiv_task_hunt.locationTimer = 0
 	ffxiv_task_hunt.location = 0
@@ -46,6 +54,10 @@ c_add_hunttarget.name = ""
 c_add_hunttarget.pos = {}
 c_add_hunttarget.oocCastTimer = 0
 function c_add_hunttarget:evaluate()
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+		return false
+	end
+	
 	if (ffxiv_task_hunt.hasTarget or ml_task_hub:CurrentTask().name == "LT_KILLTARGET") then
 		return false
 	end
@@ -82,18 +94,18 @@ function c_add_hunttarget:evaluate()
 	
     local rank, target = GetHuntTarget()
     if (ValidTable(target)) then
-        if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-			c_add_hunttarget.name = target.name
-			c_add_hunttarget.pos = target.pos
-			c_add_hunttarget.rank = rank
-            c_add_hunttarget.targetid = target.id
-            return true
-        end
+		c_add_hunttarget.name = target.name
+		c_add_hunttarget.pos = target.pos
+		c_add_hunttarget.rank = rank
+		c_add_hunttarget.targetid = target.id
+		return true
     end
     
     return false
 end
 function e_add_hunttarget:execute()	
+	Player:Stop()
+	ml_task_hub:CurrentTask().atMarker = true
 	ffxiv_task_hunt.hasTarget = true
 	
 	if (c_add_hunttarget.rank ~= "" and c_add_hunttarget.name ~= "") then
@@ -149,6 +161,13 @@ function e_add_hunttarget:execute()
 		newTask.canEngage = true
 	end
 	
+	d("Kill task being added.")
+	--Communicate using the multibot server engine, if in use.
+	if (gMultiBotEnabled == "1") then
+		mb.BroadcastHuntStatus( Player.localmapid, c_add_hunttarget.pos )
+	end
+	
+	--Reset the variables, just in case.
 	c_add_hunttarget.targetid = 0
 	c_add_hunttarget.rank = ""
 	c_add_hunttarget.name = ""
@@ -161,10 +180,14 @@ c_nexthuntmarker = inheritsFrom( ml_cause )
 e_nexthuntmarker = inheritsFrom( ml_effect )
 function c_nexthuntmarker:evaluate()
 
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+		return false
+	end
+
     if (not ml_marker_mgr.markersLoaded) then
         return false
     end
-    
+	
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
         
@@ -185,7 +208,7 @@ function c_nexthuntmarker:evaluate()
 					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
                     Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
                 end
             end
         end
@@ -195,7 +218,7 @@ function c_nexthuntmarker:evaluate()
             local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
 			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
                 ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(ml_task_hub:CurrentTask().currentMarker:GetType(), ml_task_hub:CurrentTask().filterLevel)
+                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
             else
                 return false
             end
@@ -226,14 +249,19 @@ function e_nexthuntmarker:execute()
     local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
     local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
     newTask.pos = markerPos
-    newTask.range = math.random(5,25)
+    newTask.range = math.random(5,15)
 	newTask.reason = "MOVE_HUNT_MARKER"
+	newTask.use3d = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_athuntmarker = inheritsFrom( ml_cause )
 e_athuntmarker = inheritsFrom( ml_effect )
 function c_athuntmarker:evaluate()
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+		return false
+	end
+	
     if (ml_task_hub:CurrentTask().atMarker) then
         return false
     end
@@ -241,9 +269,9 @@ function c_athuntmarker:evaluate()
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
         local myPos = Player.pos
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-        local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
+        local distance = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
 		
-		if (distance < math.random(5,25)) then
+		if (distance <= 25) then
 			return true
 		end
     end
@@ -254,27 +282,28 @@ function e_athuntmarker:execute()
 	ml_task_hub:CurrentTask().markerTime = Now()
 	ml_global_information.MarkerTime = Now()
 	ml_task_hub:CurrentTask().atMarker = true
-	ffxiv_task_hunt.hasTarget = false
 end
 
 c_huntquit = inheritsFrom( ml_cause )
 e_huntquit = inheritsFrom( ml_effect )
 function c_huntquit:evaluate()
-    if ( ml_task_hub:RootTask().name == "LT_HUNT" and ml_task_hub:CurrentTask().name == "LT_KILLTARGET" ) then		
+    if ( ml_task_hub:RootTask().name == "LT_HUNT" and ml_task_hub:RootTask().subtask and ml_task_hub:RootTask().subtask.name == "LT_KILLTARGET" ) then		
 		local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 		if (ml_task_hub:CurrentTask().failTimer and ml_task_hub:CurrentTask().failTimer ~= 0 and Now() > ml_task_hub:CurrentTask().failTimer) then
-			if (not target or not target.attackable or (target and not target.alive) or (target and not target.onmesh and not InCombatRange(target.id))) then
+			if 	(not target or not target.attackable or 
+				(target and not target.alive) or 
+				(target and not target.onmesh and not target.los)) then
 				return true
-			end
-		elseif (ml_task_hub:CurrentTask().rank == "S") then
-			local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
-			if ((target.hp.percent >= tonumber(gHuntSRankHP)) and (not allies or TableSize(allies) < tonumber(gHuntSRankAllies))) then
-				return true
-			end
-		elseif (ml_task_hub:CurrentTask().rank == "A") then
-			local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
-			if ((target.hp.percent >= tonumber(gHuntARankHP)) and (not allies or TableSize(allies) < tonumber(gHuntARankAllies))) then
-				return true
+			elseif (ml_task_hub:CurrentTask().rank == "S") then
+				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
+				if ((target.hp.percent >= tonumber(gHuntSRankHP)) and (not allies or TableSize(allies) < tonumber(gHuntSRankAllies))) then
+					return true
+				end
+			elseif (ml_task_hub:CurrentTask().rank == "A") then
+				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
+				if ((target.hp.percent >= tonumber(gHuntARankHP)) and (not allies or TableSize(allies) < tonumber(gHuntARankAllies))) then
+					return true
+				end
 			end
 		end
     end
@@ -282,11 +311,11 @@ function c_huntquit:evaluate()
     return false
 end
 function e_huntquit:execute()
-    if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+    if ( ml_task_hub:CurrentTask().targetid and ml_task_hub:CurrentTask().targetid ~= 0 ) then
         -- blacklist hunt target for 5 minutes and terminate task
         local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 		ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].monsters, target.contentid, target.name, Now() + 300*1000)
-        ml_debug("Blacklisted "..target.name)
+        d("Temporarily blacklisted:"..target.name)
         ml_task_hub:CurrentTask():Terminate()
 		ffxiv_task_hunt.hasTarget = false
     end
@@ -296,8 +325,11 @@ c_nexthuntlocation = inheritsFrom( ml_cause )
 e_nexthuntlocation = inheritsFrom( ml_effect )
 c_nexthuntlocation.location = {}
 c_nexthuntlocation.locationIndex = 0
-function c_nexthuntlocation:evaluate()	
-	d(ffxiv_task_hunt.locationTimer - Now())
+function c_nexthuntlocation:evaluate()		
+	--If we are tracking a multibot target, don't run this.
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+		return false
+	end
 	
 	local locations = gHuntLocations
 	--First check to see if we are on a valid starting map, and if we are, start here.
@@ -316,8 +348,9 @@ function c_nexthuntlocation:evaluate()
 		end
 	end
 	
-	if (Now() > ffxiv_task_hunt.locationTimer and not ffxiv_task_hunt.hasTarget) then
-		local maxLocation = TableSize(locations)
+	local maxLocation = TableSize(locations)
+	if (Now() > ffxiv_task_hunt.locationTimer and not ffxiv_task_hunt.hasTarget and maxLocation > 1) then
+		
 		local newLocation = {}
 		
 		if (ffxiv_task_hunt.locationIndex == maxLocation and maxLocation > 1) then
@@ -371,6 +404,75 @@ function e_nexthuntlocation:execute()
 		newTask.mesh = mm.defaultMaps[location.mapid]
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 	end
+end
+
+c_multibotdetect = inheritsFrom( ml_cause )
+e_multibotdetect = inheritsFrom( ml_effect )
+function c_multibotdetect:evaluate()	
+	if (gMultiBotEnabled == "0") then
+		return false
+	end
+	
+	--Don't run this if we're currently already tracking a target.
+	if ( ml_task_hub:RootTask().name == "LT_HUNT" and ml_task_hub:RootTask().subtask and ml_task_hub:RootTask().subtask.name == "LT_KILLTARGET" ) then
+		return false
+	end
+	
+	--At this point, we should be free to kill a new target.
+	--Last check is to make sure we can teleport to the given location.
+	if (ffxiv_task_hunt.multiHasTarget) then
+		if (Player.localmapid ~= ffxiv_task_hunt.multiTargetMapID) then
+			local newLocation = {}
+			local aetherytes = Player:GetAetheryteList()
+			for i, aetheryte in pairs(aetherytes) do
+				if tonumber(aetheryte.territory) == ffxiv_task_hunt.multiTargetMapID then
+					newLocation.mapid = ffxiv_task_hunt.multiTargetMapID
+					newLocation.teleport = aetheryte.id
+					newLocation.x = ffxiv_task_hunt.multiTargetLocation[3]
+					newLocation.y = ffxiv_task_hunt.multiTargetLocation[4]
+					newLocation.z = ffxiv_task_hunt.multiTargetLocation[5]
+					newLocation.h = ffxiv_task_hunt.multiTargetLocation[6]
+					newLocation.targetid = ffxiv_task_hunt.multiTargetID
+					
+					c_nexthuntlocation.location = newLocation
+					return true
+				end
+			end		
+		end
+	end
+	
+	return false
+end
+function e_multibotdetect:execute()
+	--ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP) REACTIVE_GOAL or IMMEDIATE_GOAL
+	local location = c_nexthuntlocation.location
+	
+	if (Player.localmapid ~= ffxiv_task_hunt.multiTargetMapID) then
+		Player:Stop()
+		Dismount()
+		ffxiv_task_hunt.multiReturnMap = Player.localmapid
+		
+		if (Player.ismounted) then
+			return
+		end
+		
+		if (Player.castinginfo.channelingid ~= 5) then
+			Player:Teleport(location.teleport)
+		elseif (Player.castinginfo.channelingid == 5) then
+			ffxiv_task_hunt.location = location.mapid
+					
+			local newTask = ffxiv_task_teleport.Create()
+			newTask.mapID = location.mapid
+			newTask.mesh = mm.defaultMaps[location.mapid]
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+		end
+	else
+		
+		ffxiv_task_hunt.multiTrackingTarget = true
+		ffxiv_task_hunt.multiHasTarget = false
+	end
+	
+	
 end
 
 function ffxiv_task_hunt:Init()    
@@ -484,7 +586,7 @@ function ffxiv_task_hunt.UIInit()
 		Settings.FFXIVMINION.gHuntBRankSound = "0"
 	end
 	
-	GUI_NewWindow(ffxiv_task_hunt.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.w,ffxiv_task_hunt.mainwindow.name.h)
+	GUI_NewWindow(ffxiv_task_hunt.mainwindow.name,ffxiv_task_hunt.mainwindow.x,ffxiv_task_hunt.mainwindow.y,ffxiv_task_hunt.mainwindow.width,ffxiv_task_hunt.mainwindow.height)
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"HP % <=",			"gHuntSRankHP",		"S-Rank Hunt")
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")
 	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Max Wait (s)",		"gHuntSRankMaxWait", "S-Rank Hunt")
@@ -536,7 +638,7 @@ function ffxiv_task_hunt.SetupMarkers()
 	huntMarker:SetType(strings[gCurrentLanguage].huntMarker)
 	--huntMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
 	--huntMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
-    huntMarker:SetTime(300)
+    huntMarker:SetTime(5)
     huntMarker:SetMinLevel(1)
     huntMarker:SetMaxLevel(50)
 	--huntMarker:SetColor({r = 70, g = 240, b = 10})
@@ -546,9 +648,21 @@ function ffxiv_task_hunt.SetupMarkers()
 end
 
 function ffxiv_task_hunt.AddHuntLocation()
-	local list = gHuntLocations
+	local list = Settings.FFXIVMINION.gHuntLocations
 	local key = TableSize(list) + 1
 	
+	--Check to make sure that something hasn't gone wrong with the index and reindex the table if necessary.
+	if (list[key]) then
+		local newKey = 1
+		local newList = {}
+		for k,v in spairs(list) do
+			newList[newKey] = v
+			newKey = newKey + 1
+		end
+		list = newList
+		key = TableSize(list) + 1
+	end
+		
 	local location = {
 		mapid = gHuntMapID,
 		timer = gHuntMapTimer,
@@ -562,15 +676,14 @@ function ffxiv_task_hunt.AddHuntLocation()
 end
 
 function ffxiv_task_hunt.RemoveHuntLocation(key)
-	local list = gHuntLocations
+	local list = Settings.FFXIVMINION.gHuntLocations
 	local newList = {}
 	local newKey = 1
 	
 	--Rebuild the list without the unwanted key, rather than actually remove it, to retain the integer index.
+	list[key] = nil
 	for k,v in spairs(list) do
-		if (k ~= key and k == tostring(newKey)) then
-			newList[tostring(newKey)] = v
-		end
+		newList[tostring(newKey)] = v
 		newKey = newKey + 1
 	end
 	
@@ -583,7 +696,7 @@ end
 function ffxiv_task_hunt.RefreshHuntLocations()
 	local winName = ffxiv_task_hunt.mainwindow.name
 	local tabName = "Locations"
-	local list = gHuntLocations
+	local list = Settings.FFXIVMINION.gHuntLocations
 	
 	GUI_DeleteGroup(winName,tabName)
 	if (TableSize(list) > 0) then
