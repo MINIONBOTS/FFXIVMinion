@@ -43,6 +43,8 @@ function e_cast:execute()
         local cast = ActionList:Get(289,1)
         if (cast and cast.isready) then			
             cast:Cast()
+		else
+			-- not facing the damn water ...
         end
     end
 end

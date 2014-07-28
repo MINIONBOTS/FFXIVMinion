@@ -29,7 +29,7 @@ e_heavyswing = inheritsFrom( ml_effect )
 function c_heavyswing:evaluate()
     --this is the beginning of a combo so only use it if we are starting a new rotation
     if(ml_task_hub:CurrentTask().newRotation) then
-        if(ActionList:CanCast(FFXIVMINION.SKILLS.HEAVYSWING)) then
+        if(ActionList:CanCast(FFXIVMINION.SKILLS.HEAVYSWING,ml_task_hub:CurrentTask().targetid)) then
             return true
         end
     end
@@ -58,7 +58,7 @@ e_skullsunder = inheritsFrom( ml_effect )
 function c_skullsunder:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.SKULLSUNDER) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.SKULLSUNDER].level) then
-			if(ActionList:CanCast(FFXIVMINION.SKILLS.SKULLSUNDER)) then
+			if(ActionList:CanCast(FFXIVMINION.SKILLS.SKULLSUNDER,ml_task_hub:CurrentTask().targetid)) then
 				return true
 			end
 		end
@@ -86,7 +86,7 @@ e_fracture = inheritsFrom( ml_effect )
 function c_fracture:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.FRACTURE].level) then
         if(ml_task_hub:CurrentTask().prevSkillID ~= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.FRACTURE]) then
-            if(ActionList:CanCast(FFXIVMINION.SKILLS.FRACTURE)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.FRACTURE,ml_task_hub:CurrentTask().targetid)) then
                 return true
             end
         end
@@ -114,7 +114,7 @@ e_overpower = inheritsFrom( ml_effect )
 function c_overpower:evaluate()
 	if(IsBehind(EntityList:Get(ml_task_hub:CurrentTask().targetid)) and ml_task_hub:CurrentTask().prevSkillID ~= FFXIVMINION.SKILLS.OVERPOWER) then
 		if(ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.OVERPOWER].level) then
-			if(ActionList:CanCast(FFXIVMINION.SKILLS.OVERPOWER)) then
+			if(ActionList:CanCast(FFXIVMINION.SKILLS.OVERPOWER,ml_task_hub:CurrentTask().targetid)) then
 				return true
 			end
 		end
@@ -143,7 +143,7 @@ e_maim = inheritsFrom( ml_effect )
 function c_maim:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.MAIM].level) then
         if(ml_task_hub:CurrentTask().prevSkillID ~= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.MAIM]) then
-            if(ActionList:CanCast(FFXIVMINION.SKILLS.MAIM)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.MAIM,ml_task_hub:CurrentTask().targetid)) then
                 return true
             end
         end
@@ -171,7 +171,7 @@ e_brutalswing = inheritsFrom( ml_effect )
 function c_brutalswing:evaluate()
     if(not ml_task_hub:CurrentTask().newRotation and Player.level >= ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.BRUTALSWING].level) then
         if(ml_task_hub:CurrentTask().prevSkillID == ffxiv_combat_marauder.skills[FFXIVMINION.SKILLS.BRUTALSWING]) then
-            if(ActionList:CanCast(FFXIVMINION.SKILLS.BRUTALSWING)) then
+            if(ActionList:CanCast(FFXIVMINION.SKILLS.BRUTALSWING,ml_task_hub:CurrentTask().targetid)) then
                 return true
             end
         end
