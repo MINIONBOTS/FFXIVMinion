@@ -2445,11 +2445,14 @@ function SkillMgr.IsGCDReady()
 end
 
 function SkillMgr.IsReady( actionid, actiontype )
+	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	local action = ActionList:Get(actionid)
-	if not action.isready then
-		return false 
-	end		
+	if (action) then
+		return action.isready
+	end
+	
+	return false
 end
 
 function SkillMgr.Use( actionid, targetid, actiontype )

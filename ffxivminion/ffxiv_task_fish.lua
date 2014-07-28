@@ -218,20 +218,34 @@ function ffxiv_task_fish:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_fish:OnSleep()
-
-end
-
-function ffxiv_task_fish:OnTerminate()
-
-end
-
-function ffxiv_task_fish:IsGoodToAbort()
-
-end
-
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
+	ffxivminion.Windows.Fish = { Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
+
+	--if ( Settings.FFXIVMINION.gPlaceholder == nil ) then
+        --Settings.FFXIVMINION.gPlaceholder = 0
+	--end
+	
+	local winName = GetString("craftMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	local group = GetString("settings")
+    --GUI_NewField(winName,"SomeVar","gPlaceholder",group)
+	
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
+	
+	--gPlaceholder = Settings.FFXIVMINION.gPlaceholder
+    
+    RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
+	
 	ffxiv_task_fish.SetupMarkers()
 end
 
@@ -251,5 +265,5 @@ function ffxiv_task_fish.SetupMarkers()
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("fishMode"))
 end

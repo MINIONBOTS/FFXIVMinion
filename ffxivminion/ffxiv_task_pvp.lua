@@ -428,88 +428,82 @@ function ffxiv_task_pvp:Process()
 	end
 end
 
-function ffxiv_task_pvp:OnSleep()
-
-end
-
-function ffxiv_task_pvp:OnTerminate()
-
-end
-
-function ffxiv_task_pvp:IsGoodToAbort()
-
-end
-
 function GetPVPTargetTypes()
 	local targetTypeList = strings[gCurrentLanguage].healer..","..strings[gCurrentLanguage].dps..","..strings[gCurrentLanguage].tank
 	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].sleeper..","..strings[gCurrentLanguage].caster..","..strings[gCurrentLanguage].ranged..","..strings[gCurrentLanguage].meleeDPS
 	targetTypeList = targetTypeList..","..strings[gCurrentLanguage].nearDead..","..strings[gCurrentLanguage].nearest..","..strings[gCurrentLanguage].lowestHealth..","..strings[gCurrentLanguage].unattendedHealer
-	
+
 	return targetTypeList
 end
 
 -- UI settings etc
 function ffxiv_task_pvp.UIInit()
-    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",strings[gCurrentLanguage].pvpMode,"")
-    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",strings[gCurrentLanguage].pvpMode,"")
-	GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",strings[gCurrentLanguage].pvpMode,"")
-    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",strings[gCurrentLanguage].pvpMode)
-	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].antiAFKMove, "gAFKMove",strings[gCurrentLanguage].pvpMode)
-    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",strings[gCurrentLanguage].pvpMode)
-	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",strings[gCurrentLanguage].pvpMode)
-	GUI_NewField(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].pvpSpeedMatchPartner, "gPVPSpeedMatchPartner",strings[gCurrentLanguage].pvpMode)
-    --init combo boxes
-    local targetTypeList = GetPVPTargetTypes()
-    
+	--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.PVP = { Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.PVP)
+
+	if (Settings.FFXIVMINION.gPVPTargetOne == nil) then
+        Settings.FFXIVMINION.gPVPTargetOne = "Healer"
+    end
+    if (Settings.FFXIVMINION.gPVPTargetTwo == nil) then
+        Settings.FFXIVMINION.gPVPTargetTwo = "Lowest Health"
+    end
+	if (Settings.FFXIVMINION.gPVPTargetThree == nil) then
+        Settings.FFXIVMINION.gPVPTargetThree = "Lowest Health"
+    end
+	if (Settings.FFXIVMINION.gPVPTargetFour == nil) then
+        Settings.FFXIVMINION.gPVPTargetFour = "Lowest Health"
+    end
+	if (Settings.FFXIVMINION.gPVPTargetFive == nil) then
+        Settings.FFXIVMINION.gPVPTargetFive = "Lowest Health"
+    end
+    if (Settings.FFXIVMINION.gPrioritizeRanged == nil) then
+        Settings.FFXIVMINION.gPrioritizeRanged = "0"
+    end
+	if (Settings.FFXIVMINION.gAFKMove == nil) then
+        Settings.FFXIVMINION.gAFKMove = "1"
+    end
+    if (Settings.FFXIVMINION.gPVPDelayLeave == nil) then
+        Settings.FFXIVMINION.gPVPDelayLeave = "0"
+    end
+	if (Settings.FFXIVMINION.gPVPAvoid == nil) then
+        Settings.FFXIVMINION.gPVPAvoid = "0"
+    end
+	if (Settings.FFXIVMINION.gPVPSpeedMatchPartner == nil) then
+        Settings.FFXIVMINION.gPVPSpeedMatchPartner = ""
+    end
+	
+	local winName = GetString("pvpMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	
+	local group = GetString("settings")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].pvpTargetOne,"gPVPTargetOne",group,"")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].pvpTargetTwo,"gPVPTargetTwo",group,"")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].pvpTargetThree,"gPVPTargetThree",group,"")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].pvpTargetFour,"gPVPTargetFour",group,"")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].pvpTargetFive,"gPVPTargetFive",group,"")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].prioritizeRanged, "gPrioritizeRanged",group)
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].antiAFKMove, "gAFKMove",group)
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].delayLeave, "gPVPDelayLeave",group)
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].pvpAvoid, "gPVPAvoid",group)
+	GUI_NewField(winName,strings[gCurrentLanguage].pvpSpeedMatchPartner, "gPVPSpeedMatchPartner",group)
+	
+	local targetTypeList = GetPVPTargetTypes()
 	gPVPTargetOne_listitems = targetTypeList
     gPVPTargetTwo_listitems = targetTypeList
 	gPVPTargetThree_listitems = targetTypeList
 	gPVPTargetFour_listitems = targetTypeList
 	gPVPTargetFive_listitems = targetTypeList
-    
-    if (Settings.FFXIVMINION.gPVPTargetOne == nil) then
-        Settings.FFXIVMINION.gPVPTargetOne = "Healer"
-    end
-    
-    if (Settings.FFXIVMINION.gPVPTargetTwo == nil) then
-        Settings.FFXIVMINION.gPVPTargetTwo = "Lowest Health"
-    end
 	
-	if (Settings.FFXIVMINION.gPVPTargetThree == nil) then
-        Settings.FFXIVMINION.gPVPTargetThree = "Lowest Health"
-    end
-	
-	if (Settings.FFXIVMINION.gPVPTargetFour == nil) then
-        Settings.FFXIVMINION.gPVPTargetFour = "Lowest Health"
-    end
-	
-	if (Settings.FFXIVMINION.gPVPTargetFive == nil) then
-        Settings.FFXIVMINION.gPVPTargetFive = "Lowest Health"
-    end
-    
-    if (Settings.FFXIVMINION.gPrioritizeRanged == nil) then
-        Settings.FFXIVMINION.gPrioritizeRanged = "0"
-    end
-	
-	if (Settings.FFXIVMINION.gAFKMove == nil) then
-        Settings.FFXIVMINION.gAFKMove = "1"
-    end
-    
-    if (Settings.FFXIVMINION.gPVPDelayLeave == nil) then
-        Settings.FFXIVMINION.gPVPDelayLeave = "0"
-    end
-	
-	if (Settings.FFXIVMINION.gPVPAvoid == nil) then
-        Settings.FFXIVMINION.gPVPAvoid = "0"
-    end
-	
-	if (Settings.FFXIVMINION.gPVPSpeedMatchPartner == nil) then
-        Settings.FFXIVMINION.gPVPSpeedMatchPartner = ""
-    end
-    
-    ffxivminion.ResizeWindow()
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne
     gPVPTargetTwo = Settings.FFXIVMINION.gPVPTargetTwo
@@ -521,6 +515,8 @@ function ffxiv_task_pvp.UIInit()
     gPVPDelayLeave = Settings.FFXIVMINION.gPVPDelayLeave
 	gPVPAvoid = Settings.FFXIVMINION.gPVPAvoid
 	gPVPSpeedMatchPartner = Settings.FFXIVMINION.gPVPSpeedMatchPartner
+	
+	RegisterEventHandler("GUI.Update",ffxiv_task_pvp.GUIVarUpdate)
 end
 
 function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
@@ -539,7 +535,7 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("pvpMode"))
 end
 
 ffxiv_task_pvpavoid = inheritsFrom(ml_task)
@@ -601,5 +597,3 @@ function ffxiv_task_pvpavoid:task_complete_execute()
 		Player:SetFacing(pos.x,pos.y,pos.z)
 	end
 end
-
-RegisterEventHandler("GUI.Update",ffxiv_task_pvp.GUIVarUpdate)

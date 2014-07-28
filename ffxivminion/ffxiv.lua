@@ -39,6 +39,15 @@ ffxivminion.settingsVisible = false
 
 ffxivminion.Windows = {
 	Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 },
+	--Assist = { Name = GetString("assistMode"), x=50, y=50, width=210, height=300 },
+	Quest = { Name = GetString("questMode"), x=50, y=50, width=210, height=300 },
+	--Duty = { Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 },
+	Grind = { Name = GetString("grindMode"), x=50, y=50, width=210, height=300 },
+	--Craft = { Name = GetString("craftMode"), x=50, y=50, width=210, height=300 },
+	Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 },
+	--Fish = { Name = GetString("fishMode"), x=50, y=50, width=210, height=300 },
+	Hunt = { Name = GetString("huntMode"), x=50, y=50, width=210, height=300 },
+	--PVP = { Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 },
 }
 
 function ml_global_information.OnUpdate( event, tickcount )
@@ -150,12 +159,7 @@ function ffxivminion.HandleInit()
     if ( Settings.FFXIVMINION.gSprintDist == nil ) then
         Settings.FFXIVMINION.gSprintDist = "50"
     end
-    if ( Settings.FFXIVMINION.gAssistMode == nil ) then
-        Settings.FFXIVMINION.gAssistMode = "None"
-    end
-    if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
-        Settings.FFXIVMINION.gAssistPriority = "Damage"
-    end
+    
     if ( Settings.FFXIVMINION.gRandomPaths == nil ) then
         Settings.FFXIVMINION.gRandomPaths = "0"
 	end	
@@ -165,18 +169,9 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAutoStart == nil ) then
 		Settings.FFXIVMINION.gAutoStart = "0"
 	end	
-    if (Settings.FFXIVMINION.gStartCombat == nil) then
-        Settings.FFXIVMINION.gStartCombat = "1"
-    end
-	
 	if (Settings.FFXIVMINION.gTeleport == nil) then
         Settings.FFXIVMINION.gTeleport = "0"
     end
-	
-    if (Settings.FFXIVMINION.gConfirmDuty == nil) then
-        Settings.FFXIVMINION.gConfirmDuty = "0"
-    end
-    
     if (Settings.FFXIVMINION.gSkipCutscene == nil) then
         Settings.FFXIVMINION.gSkipCutscene = "0"
     end
@@ -221,9 +216,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gRepair = "1"
 	end
 	
-	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
-		Settings.FFXIVMINION.gQuestHelpers = "0"
-	end
+	
 	
     --GUI_NewWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.x,ml_global_information.MainWindow.y,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 
@@ -283,11 +276,7 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTravel,"gClickToTravel",GetString("hacks"));
 	
     --Assist
-    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].assistMode,"gAssistMode",strings[gCurrentLanguage].assist,"None,LowestHealth,Closest")
-    GUI_NewComboBox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].assistPriority,"gAssistPriority",strings[gCurrentLanguage].assist,"Damage,Healer")
-    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].startCombat,"gStartCombat",strings[gCurrentLanguage].assist)
-    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",strings[gCurrentLanguage].assist) 
-    GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].questHelpers,"gQuestHelpers",strings[gCurrentLanguage].assist) 
+     
 	
     ffxivminion.ResizeWindow()
 	
@@ -304,12 +293,8 @@ function ffxivminion.HandleInit()
     gMountDist = Settings.FFXIVMINION.gMountDist
     gSprintDist = Settings.FFXIVMINION.gSprintDist
     gRandomPaths = Settings.FFXIVMINION.gRandomPaths
-    gAssistMode = Settings.FFXIVMINION.gAssistMode
-    gAssistPriority = Settings.FFXIVMINION.gAssistPriority
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
     gAutoStart = Settings.FFXIVMINION.gAutoStart
-    gStartCombat = Settings.FFXIVMINION.gStartCombat
-    gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
     gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
     gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
@@ -321,7 +306,6 @@ function ffxivminion.HandleInit()
 	gChocoStance = Settings.FFXIVMINION.gChocoStance
 	gMount = Settings.FFXIVMINION.gMount
 	gRepair = Settings.FFXIVMINION.gRepair
-	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
 	gTeleport = Settings.FFXIVMINION.gTeleport
 	
 	ffxivminion.modes =
@@ -621,6 +605,25 @@ function ffxivminion.CreateWindows()
 		
 		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
 	end
+end
+
+function ffxivminion.CreateWindow(window)
+	local winTable = "AutoWindow"..window.name
+	if (Settings.FFXIVMINION[winTable] == nil) then
+		Settings.FFXIVMINION[winTable] = {}
+	end
+	
+	settings = {}			
+	settings.width = Settings.FFXIVMINION[winTable].width or window.width
+	settings.height = Settings.FFXIVMINION[winTable].height or window.height
+	settings.y = Settings.FFXIVMINION[winTable].y or window.y
+	settings.x = Settings.FFXIVMINION[winTable].x or window.x		
+
+	if (ValidTable(settings)) then Settings.FFXIVMINION[winTable] = settings end
+	local wi = Settings.FFXIVMINION[winTable]		
+	local wname = window.Name
+	
+	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
 end
 
 function ffxivminion.SaveWindows()

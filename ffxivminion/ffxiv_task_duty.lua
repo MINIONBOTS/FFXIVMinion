@@ -441,6 +441,9 @@ end
 -- UI settings
 function ffxiv_task_duty.UIInit()
 	
+	ffxivminion.Windows.Duty = { Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Duty)
+
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
@@ -450,15 +453,25 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gLootOption == nil) then
         Settings.FFXIVMINION.gLootOption = "All"
     end
-	
-	if(gBotMode == GetString("dutyMode")) then
+	if (gBotMode == GetString("dutyMode")) then
 		ffxiv_task_duty.UpdateProfiles()
 	end
+
+	local winName = GetString("dutyMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	
-	GUI_NewComboBox(ffxivminion.Windows.Main.Name,"Loot Option","gLootOption",strings[gCurrentLanguage].dutyMode,"Any,Need,Greed,Pass")
-	GUI_NewField(GetString("advancedSettings"),strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",strings[gCurrentLanguage].dutyMode)
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	local group = GetString("settings")
+    GUI_NewComboBox(winNamee,"Loot Option","gLootOption",group,"Any,Need,Greed,Pass")
+	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
 	
-    ffxivminion.ResizeWindow()
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
 	
 	gLootOption = Settings.FFXIVMINION.gLootOption
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
@@ -514,7 +527,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("dutyMode"))
 end
 
 function IsDutyLeader()
