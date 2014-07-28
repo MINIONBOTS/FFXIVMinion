@@ -246,7 +246,7 @@ function ffxiv_task_movetopos:task_complete_execute()
     
     if (self.doFacing) then
 		--SetFacing(ml_task_hub:CurrentTask().pos.h)
-		d("h value of "..tostring(self.pos.h).." was used in movetopos.")
+		--d("h value of "..tostring(self.pos.h).." was used in movetopos.")
         Player:SetFacingSynced(self.pos.h)
     end
 	

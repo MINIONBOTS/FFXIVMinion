@@ -16,6 +16,7 @@ function ml_nav_manager.GetNextPathPos(currPos, currID, destID)
     end
 	
 	if (ValidTable(ml_nav_manager.currPath)) then
+
 		ml_nav_manager.currID = currID
 		ml_nav_manager.destID = destID
 		

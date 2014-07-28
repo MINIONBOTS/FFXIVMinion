@@ -73,9 +73,8 @@ function GetNearestGrindAttackable()
 	block = 4
 	if (ValidTable(Player.pet)) then
 		if (not IsNullString(excludeString)) then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Playet.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 		else
-			--el = EntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(entity.id)..",fateid=0")
 			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
 		end
 		

@@ -95,7 +95,7 @@ function e_nextqueststep:execute()
 		end
 		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-		d(ml_task_hub:ThisTask().currentObjectiveIndex)
+		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		--update quest step state
@@ -169,8 +169,9 @@ end
 
 c_questaccept = inheritsFrom( ml_cause )
 e_questaccept = inheritsFrom( ml_effect )
-function c_questaccept:evaluate()
-	local id = ffxiv_task_quest.currentQuest.id
+function c_questaccept:evaluate()	
+	--local id = ffxiv_task_quest.currentQuest.id
+	local id = ml_task_hub:CurrentTask().params["questid"] or ffxiv_task_quest.currentQuest.id
     if (id and id > 0) then
 		return Quest:IsQuestAcceptDialogOpen(id)
     end

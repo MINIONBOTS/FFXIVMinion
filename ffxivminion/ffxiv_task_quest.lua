@@ -135,7 +135,6 @@ function ffxiv_task_quest.LoadProfile(profilePath)
 				else
 					quest.job = -1
 				end
-				
 				ffxiv_task_quest.questList[id] = quest
 			end
 		end
@@ -148,11 +147,13 @@ end
 c_nextquest = inheritsFrom( ml_cause )
 e_nextquest = inheritsFrom( ml_effect )
 function c_nextquest:evaluate()
-	if(	Settings.FFXIVMINION.gCurrQuestID ~= nil and 
-		Quest:HasQuest(Settings.FFXIVMINION.gCurrQuestID) and
-		ValidTable(ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]))
+	local currQuest = tonumber(Settings.FFXIVMINION.gCurrQuestID)
+
+	if (currQuest ~= nil and 
+		Quest:HasQuest(currQuest) and
+		ValidTable(ffxiv_task_quest.questList[currQuest]))
 	then
-		e_nextquest.quest = ffxiv_task_quest.questList[Settings.FFXIVMINION.gCurrQuestID]
+		e_nextquest.quest = ffxiv_task_quest.questList[currQuest]
 		return true
 	end
 
