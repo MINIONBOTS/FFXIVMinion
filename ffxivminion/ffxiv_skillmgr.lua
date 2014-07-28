@@ -21,9 +21,10 @@ SkillMgr.copiedSkill = {}
 SkillMgr.mplock = false
 SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
+SkillMgr.lastOFFCD = false
 
 
-SkillMgr.teleCastSkills = {
+SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
 	[FFXIV.JOBS.PALADIN] = 9,
     [FFXIV.JOBS.MARAUDER] = 31,
@@ -69,6 +70,7 @@ SkillMgr.Variables = {
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
 	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting"  },
+	SKM_PGTRG = { default = "Enemy", cast = "string", profile = "ptrg", section = "fighting"  },
 	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting"  },
 	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting"  },
 	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
@@ -235,6 +237,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLock,"SKM_MPLock",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLocked,"SKM_MPLocked",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLockPer,"SKM_MPLockPer",strings[gCurrentLanguage].playerHPMPTP)
+	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTCount,"SKM_PTCount",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPL,"SKM_PTHPL",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPB,"SKM_PTHPB",strings[gCurrentLanguage].party)
@@ -244,10 +247,12 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPB,"SKM_PTTPB",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRGTYPE,"SKM_TRGTYPE",strings[gCurrentLanguage].target,"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNPC,"SKM_NPC",strings[gCurrentLanguage].target)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTRG,"SKM_PTRG",strings[gCurrentLanguage].target,"Any,Enemy,Player")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPGTRG,"SKM_PGTRG",strings[gCurrentLanguage].target,"Enemy,Player")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPPos,"SKM_PPos",strings[gCurrentLanguage].target,"None,Flanking,Behind")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB",strings[gCurrentLanguage].target)
@@ -255,6 +260,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCB,"SKM_THPCB",strings[gCurrentLanguage].target)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCONTIDS,"SKM_TCONTIDS",strings[gCurrentLanguage].target)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTNCONTIDS,"SKM_TNCONTIDS",strings[gCurrentLanguage].target)
+	
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTID,"SKM_TCASTID",strings[gCurrentLanguage].casting)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTM,"SKM_TCASTTM",strings[gCurrentLanguage].casting)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTIME,"SKM_TCASTTIME",strings[gCurrentLanguage].casting)
@@ -1019,7 +1025,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
 						if ( skill.offgcd == "1" ) then
-							if (SkillMgr.IsGCDReady()) then
+							if (SkillMgr.IsGCDReady() or SkillMgr.lastOFFCD) then
 								castable = false
 							end
 						end
@@ -1570,12 +1576,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									attempt = attempt + 1
 								end			
 							else
-								if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
-									--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
-									--If PVP, forceStop a healer to allow them to cast on self.
-									if forceStop then Player:Stop() end
+								if (skill.trg == "Ground Target") then
+									local action = ActionList:Get(skill.id)
+									local tpos = EntityList:Get(TID).pos
 									
-									if ( ActionList:Cast(skill.id,TID) ) then	
+									if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 										skill.lastcast = Now()
 										if skill.cbreak == "0" then 
 											SkillMgr.prevSkillID = tostring(skill.id) 
@@ -1586,7 +1591,32 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											SkillMgr.nextFailedTimer = Now() + 5500
 										end
 										return true
-									end					
+									end
+								else
+									if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
+										--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
+										--If PVP, forceStop a healer to allow them to cast on self.
+										if forceStop then Player:Stop() end
+
+										local action = ActionList:Get(skill.id)
+										if (action:Cast(TID)) then
+											if (skill.offgcd == "1") then
+												SkillMgr.lastOFFCD = true
+											else
+												SkillMgr.lastOFFCD = false
+											end
+											skill.lastcast = Now()
+											if skill.cbreak == "0" then 
+												SkillMgr.prevSkillID = tostring(skill.id) 
+												SkillMgr.prevFailedTimer = Now() + 5500
+											end
+											if (skill.nskill ~= "") then
+												SkillMgr.nextSkillID = tostring(skill.nskill)
+												SkillMgr.nextFailedTimer = Now() + 5500
+											end
+											return true
+										end
+									end
 								end
 							end
 						end
@@ -1605,7 +1635,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
             end
         end
     end
-	
 end
 
 SkillMgr.lastquality = 0
@@ -2402,12 +2431,11 @@ end
 
 function SkillMgr.IsGCDReady()
 	local castable = false
-	local actionID = SkillMgr.teleCastSkills[Player.job]
+	local actionID = SkillMgr.GCDSkills[Player.job]
 	
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		
-		--d("Action cooldown is:"..(tostring(action.cd - action.cdmax)))
 		if (action.cd - action.cdmax) <= .5	then
 			castable = true
 		end
