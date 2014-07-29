@@ -245,9 +245,7 @@ function ffxiv_task_movetopos:task_complete_execute()
 	NavigationManager:ClearAvoidanceAreas()
     
     if (self.doFacing) then
-		--SetFacing(ml_task_hub:CurrentTask().pos.h)
-		--d("h value of "..tostring(self.pos.h).." was used in movetopos.")
-        Player:SetFacingSynced(self.pos.h)
+        Player:SetFacing(self.pos.h)
     end
 	
 	if (self:ParentTask().name == "LT_KILLTARGET") then
