@@ -1609,24 +1609,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									local action = ActionList:Get(skill.id)
 									local tpos = EntityList:Get(TID).pos
 									
-									action:Cast(tpos.x, tpos.y, tpos.z)
-									skill.lastcast = Now()
-									if skill.cbreak == "0" then 
-										SkillMgr.prevSkillID = tostring(skill.id) 
-										SkillMgr.prevFailedTimer = Now() + 5500
-									end
-									if (skill.nskill ~= "") then
-										SkillMgr.nextSkillID = tostring(skill.nskill)
-										SkillMgr.nextFailedTimer = Now() + 5500
-									end
-									return true
-								else
-									if ( ActionList:CanCast(tonumber(skill.id), tonumber(TID))) then -- takes care of los, range, facing target and valid target								
-										--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
-										--If PVP, forceStop a healer to allow them to cast on self.
-										if forceStop then Player:Stop() end
-										
-										ActionList:Cast(tonumber(skill.id), tonumber(TID))
+									if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 										skill.lastcast = Now()
 										if skill.cbreak == "0" then 
 											SkillMgr.prevSkillID = tostring(skill.id) 
@@ -1637,6 +1620,25 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											SkillMgr.nextFailedTimer = Now() + 5500
 										end
 										return true
+									end
+								else
+									if ( ActionList:CanCast(tonumber(skill.id), tonumber(TID))) then							
+										--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
+										--If PVP, forceStop a healer to allow them to cast on self.
+										if forceStop then Player:Stop() end
+										
+										if (ActionList:Cast(tonumber(skill.id), tonumber(TID))) then
+											skill.lastcast = Now()
+											if skill.cbreak == "0" then 
+												SkillMgr.prevSkillID = tostring(skill.id) 
+												SkillMgr.prevFailedTimer = Now() + 5500
+											end
+											if (skill.nskill ~= "") then
+												SkillMgr.nextSkillID = tostring(skill.nskill)
+												SkillMgr.nextFailedTimer = Now() + 5500
+											end
+											return true
+										end
 									end
 								end
 							end
