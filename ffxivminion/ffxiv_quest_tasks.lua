@@ -58,7 +58,7 @@ function ffxiv_quest_task:Init()
 	local ke_questCanStart = ml_element:create( "QuestCanStart", c_questcanstart, e_questcanstart, 20 )
     self:add( ke_questCanStart, self.process_elements)
 	
-	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 20 )
+	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 14 )
     self:add( ke_questIsComplete, self.process_elements)
 	
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 25 )
@@ -283,6 +283,9 @@ function ffxiv_quest_kill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
+	local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
+    self:add( ke_questAvoidance, self.overwatch_elements)
+	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
@@ -350,6 +353,9 @@ function ffxiv_quest_dutykill:Init()
 	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
+    self:add( ke_questAvoidance, self.overwatch_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()

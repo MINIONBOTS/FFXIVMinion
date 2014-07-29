@@ -430,6 +430,9 @@ function e_avoid:execute()
 		local newTask = ffxiv_task_avoid.Create()
 		newTask.pos = p
 		newTask.maxTime = tonumber(target.castinginfo.casttime)
+		-- set preserveSubtasks = true so that the current kill task is not deleted
+		-- we want it to complete normally after the avoid task completes
+		ml_task_hub:ThisTask().preserveSubtasks = true
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 	end
 end
@@ -1430,7 +1433,7 @@ function c_teleporttopos:evaluate()
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end
         
-        if (distance > 10) then
+        if (distance > 20) then
             c_teleporttopos.pos = gotoPos
             return true
         end
