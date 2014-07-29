@@ -526,11 +526,13 @@ function ffxiv_task_hunt.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxiv_task_hunt.mainwindow.name)
+    GUI_RefreshWindow(GetString("huntMode"))
 end
 
 function ffxiv_task_hunt.UIInit()
-	
+	ffxivminion.Windows.Hunt = { Name = GetString("huntMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Hunt)
+
 	if (Settings.FFXIVMINION.gHuntLocations == nil) then
 		Settings.FFXIVMINION.gHuntLocations = {}
 	end
@@ -543,7 +545,6 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntMarkerStyle == nil ) then
 		Settings.FFXIVMINION.gHuntMarkerStyle = "Marker List"
 	end
-	
 	if ( Settings.FFXIVMINION.gHuntSRankHP == nil ) then
 		Settings.FFXIVMINION.gHuntSRankHP = 1
 	end
@@ -559,7 +560,6 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntSRankSound == nil ) then
 		Settings.FFXIVMINION.gHuntSRankSound = "0"
 	end
-	
 	if ( Settings.FFXIVMINION.gHuntARankHP == nil ) then
 		Settings.FFXIVMINION.gHuntARankHP = 1
 	end
@@ -575,7 +575,6 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntARankSound == nil ) then
 		Settings.FFXIVMINION.gHuntARankSound = "0"
 	end
-	
 	if ( Settings.FFXIVMINION.gHuntBRankWaitTime == nil ) then
 		Settings.FFXIVMINION.gHuntBRankWaitTime = 0
 	end
@@ -586,31 +585,40 @@ function ffxiv_task_hunt.UIInit()
 		Settings.FFXIVMINION.gHuntBRankSound = "0"
 	end
 	
-	GUI_NewWindow(ffxiv_task_hunt.mainwindow.name,ffxiv_task_hunt.mainwindow.x,ffxiv_task_hunt.mainwindow.y,ffxiv_task_hunt.mainwindow.width,ffxiv_task_hunt.mainwindow.height)
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"HP % <=",			"gHuntSRankHP",		"S-Rank Hunt")
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Max Wait (s)",		"gHuntSRankMaxWait", "S-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Play Sound",		"gHuntSRankSound", "S-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Perform Shout",	"gHuntSRankShout", "S-Rank Hunt")
+	local winName = GetString("huntMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"HP % <=",			"gHuntARankHP",		"A-Rank Hunt")
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Nearby Allies >",	"gHuntARankAllies", "A-Rank Hunt")
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Max Wait (s)",		"gHuntARankMaxWait", "A-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Play Sound",		"gHuntARankSound", "A-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Perform Shout",	"gHuntARankShout", "A-Rank Hunt")
-	
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Wait Time",			"gHuntBRankWaitTime","B-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Play Sound",		"gHuntBRankSound", "B-Rank Hunt")
-	GUI_NewCheckbox(ffxiv_task_hunt.mainwindow.name,"Perform Shout",	"gHuntBRankShout", "B-Rank Hunt")
-	
-    GUI_NewField(ffxiv_task_hunt.mainwindow.name,"Map ID",				"gHuntMapID","New Location")
-	GUI_NewNumeric(ffxiv_task_hunt.mainwindow.name,"Map Time (minutes)","gHuntMapTimer","New Location")
-	GUI_NewComboBox(ffxiv_task_hunt.mainwindow.name,"Map Marker Style",	"gHuntMarkerStyle","New Location", "Marker List,Randomize")	
-	GUI_NewButton(ffxiv_task_hunt.mainwindow.name,"Add Location",		"ffxiv_huntAddLocation",	"New Location")
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 
-	GUI_UnFoldGroup(ffxiv_task_hunt.mainwindow.name,"New Location" )
-	GUI_SizeWindow(ffxiv_task_hunt.mainwindow.name,ffxiv_task_hunt.mainwindow.width,ffxiv_task_hunt.mainwindow.height)
-	GUI_WindowVisible(ffxiv_task_hunt.mainwindow.name, false)
+    GUI_NewNumeric(winName,"HP % <=",			"gHuntSRankHP",		"S-Rank Hunt")
+	GUI_NewNumeric(winName,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")
+	GUI_NewNumeric(winName,"Max Wait (s)",		"gHuntSRankMaxWait", "S-Rank Hunt")
+	GUI_NewCheckbox(winName,"Play Sound",		"gHuntSRankSound", "S-Rank Hunt")
+	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntSRankShout", "S-Rank Hunt")
+
+	GUI_NewNumeric(winName,"HP % <=",			"gHuntARankHP",		"A-Rank Hunt")
+	GUI_NewNumeric(winName,"Nearby Allies >",	"gHuntARankAllies", "A-Rank Hunt")
+	GUI_NewNumeric(winName,"Max Wait (s)",		"gHuntARankMaxWait", "A-Rank Hunt")
+	GUI_NewCheckbox(winName,"Play Sound",		"gHuntARankSound", "A-Rank Hunt")
+	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntARankShout", "A-Rank Hunt")
+	
+	GUI_NewNumeric(winName,"Wait Time",			"gHuntBRankWaitTime","B-Rank Hunt")
+	GUI_NewCheckbox(winName,"Play Sound",		"gHuntBRankSound", "B-Rank Hunt")
+	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntBRankShout", "B-Rank Hunt")
+	
+    GUI_NewField(winName,"Map ID",				"gHuntMapID","New Location")
+	GUI_NewNumeric(winName,"Map Time (minutes)","gHuntMapTimer","New Location")
+	GUI_NewComboBox(winName,"Map Marker Style",	"gHuntMarkerStyle","New Location", "Marker List,Randomize")	
+	GUI_NewButton(winName,"Add Location",		"ffxiv_huntAddLocation",	"New Location")
+	
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_UnFoldGroup(winName,"New Location" )
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
 	
 	gHuntLocations = Settings.FFXIVMINION.gHuntLocations
 	gHuntMapID = Settings.FFXIVMINION.gHuntMapID

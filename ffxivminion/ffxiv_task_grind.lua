@@ -183,7 +183,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("grindMode"))
 end
 
 function ffxiv_task_grind.SetEvacPoint()
@@ -236,103 +236,99 @@ end
 
 -- UI settings etc
 function ffxiv_task_grind.UIInit()
-    -- Grind
-	GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].doAtma, "gAtma",GetString("grindMode"))
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].doFates, "gDoFates",GetString("grindMode"))
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",GetString("grindMode"))
 	
-	GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",strings[gCurrentLanguage].grindMode)
-	GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].claimRange, "gClaimRange", 	strings[gCurrentLanguage].grindMode, "0", "50")
-	GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].attackClaimed, "gClaimed",	strings[gCurrentLanguage].grindMode)
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].restHP, "gRestHP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].restMP, "gRestMP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fleeHP, "gFleeHP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fleeMP, "gFleeMP", strings[gCurrentLanguage].grindMode, "0", "100")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", strings[gCurrentLanguage].grindMode, "1", "100")
-	
-    GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].restInFates, "gRestInFates",strings[gCurrentLanguage].fates)
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", strings[gCurrentLanguage].fates, "0", "50")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", strings[gCurrentLanguage].fates, "0", "50")
-    GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", strings[gCurrentLanguage].fates, "0", "99")
-	GUI_NewNumeric(GetString("advancedSettings"), strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", strings[gCurrentLanguage].fates, "0", "99")
-    
-    ffxivminion.ResizeWindow()
-    
-    if (Settings.FFXIVMINION.gDoFates == nil) then
+	--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.Grind = { Name = GetString("grindMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Grind)
+
+	if (Settings.FFXIVMINION.gDoFates == nil) then
         Settings.FFXIVMINION.gDoFates = "0"
     end
-    
     if (Settings.FFXIVMINION.gFatesOnly == nil) then
         Settings.FFXIVMINION.gFatesOnly = "0"
     end
-    
     if (Settings.FFXIVMINION.gMaxFateLevel == nil) then
         Settings.FFXIVMINION.gMaxFateLevel = "5"
     end
-    
     if (Settings.FFXIVMINION.gMinFateLevel == nil) then
         Settings.FFXIVMINION.gMinFateLevel = "0"
     end
-    
     if (Settings.FFXIVMINION.gRestHP == nil) then
         Settings.FFXIVMINION.gRestHP = "70"
     end
-    
     if (Settings.FFXIVMINION.gRestMP == nil) then
         Settings.FFXIVMINION.gRestMP = "0"
     end
-    
     if (Settings.FFXIVMINION.gFleeHP == nil) then
         Settings.FFXIVMINION.gFleeHP = "20"
     end
-    
     if (Settings.FFXIVMINION.gFleeMP == nil) then
         Settings.FFXIVMINION.gFleeMP = "0"
     end
-
 	if (Settings.FFXIVMINION.gAtma == nil) then
         Settings.FFXIVMINION.gAtma = "0"
     end
-	
 	if (Settings.FFXIVMINION.gClaimFirst == nil) then
         Settings.FFXIVMINION.gClaimFirst = "0"
     end
-	
 	if (Settings.FFXIVMINION.gClaimRange == nil) then
         Settings.FFXIVMINION.gClaimRange = "20"
     end
-	
 	if (Settings.FFXIVMINION.gClaimed == nil) then
         Settings.FFXIVMINION.gClaimed = "0"
     end
-	
 	if (Settings.FFXIVMINION.gAlwaysKillAggro == nil) then
         Settings.FFXIVMINION.gAlwaysKillAggro = "0"
     end
-    
-   if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
+    if (Settings.FFXIVMINION.gCombatRangePercent == nil) then
         Settings.FFXIVMINION.gCombatRangePercent = "75"
     end
-    
     if (Settings.FFXIVMINION.gRestInFates == nil) then
         Settings.FFXIVMINION.gRestInFates = "1"
     end
-    
     if (Settings.FFXIVMINION.gFateWaitPercent == nil) then
         Settings.FFXIVMINION.gFateWaitPercent = "0"
     end
-	
 	if (Settings.FFXIVMINION.gFateTeleportPercent == nil) then
         Settings.FFXIVMINION.gFateTeleportPercent = "0"
     end
-    
     if (Settings.FFXIVMINION.gFateBLTimer == nil) then
         Settings.FFXIVMINION.gFateBLTimer = "120"
     end
-    
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
+	
+	local winName = GetString("grindMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	local group = GetString("settings")
+	GUI_NewCheckbox(winName, strings[gCurrentLanguage].doAtma, "gAtma",group)
+    GUI_NewCheckbox(winName, strings[gCurrentLanguage].doFates, "gDoFates",group)
+    GUI_NewCheckbox(winName, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",group)
+	GUI_NewCheckbox(winName, strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",group)
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].claimRange, "gClaimRange", 	group, "0", "50")
+	GUI_NewCheckbox(winName, strings[gCurrentLanguage].attackClaimed, "gClaimed",	group)
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", group, "1", "100")
+	local group = GetString("fates")
+    GUI_NewCheckbox(winName, strings[gCurrentLanguage].restInFates, "gRestInFates",group)
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", group, "0", "50")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", group, "0", "50")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", group, "0", "99")
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", group, "0", "99")
+	
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
 	
 	gAlwaysKillAggro = Settings.FFXIVMINION.gAlwaysKillAggro
 	gAtma = Settings.FFXIVMINION.gAtma

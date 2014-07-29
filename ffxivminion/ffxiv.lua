@@ -40,13 +40,13 @@ ffxivminion.settingsVisible = false
 ffxivminion.Windows = {
 	Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 },
 	--Assist = { Name = GetString("assistMode"), x=50, y=50, width=210, height=300 },
-	Quest = { Name = GetString("questMode"), x=50, y=50, width=210, height=300 },
+	--Quest = { Name = GetString("questMode"), x=50, y=50, width=210, height=300 },
 	--Duty = { Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 },
 	Grind = { Name = GetString("grindMode"), x=50, y=50, width=210, height=300 },
 	--Craft = { Name = GetString("craftMode"), x=50, y=50, width=210, height=300 },
-	Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 },
+	--Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 },
 	--Fish = { Name = GetString("fishMode"), x=50, y=50, width=210, height=300 },
-	Hunt = { Name = GetString("huntMode"), x=50, y=50, width=210, height=300 },
+	--Hunt = { Name = GetString("huntMode"), x=50, y=50, width=210, height=300 },
 	--PVP = { Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 },
 }
 
@@ -215,6 +215,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gRepair == nil) then
 		Settings.FFXIVMINION.gRepair = "1"
 	end
+	if (Settings.FFXIVMINION.gGatherPS == nil) then
+		Settings.FFXIVMINION.gGatherPS = "0" 
+	end
 	
 	
 	
@@ -267,9 +270,11 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(ffxivminion.Windows.Main.Name,"Hunt Manager","HuntManager.toggle",strings[gCurrentLanguage].generalSettings)
 	
 	--Hacks
+	
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].repair,"gRepair",GetString("hacks"))
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",GetString("hacks"));
 	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].teleport,"gTeleport",GetString("hacks"));
+	GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
     GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",GetString("hacks") );	
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",GetString("hacks") );
 	GUI_NewCheckbox(GetString("advancedSettings"),strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",GetString("hacks"));
@@ -307,6 +312,10 @@ function ffxivminion.HandleInit()
 	gMount = Settings.FFXIVMINION.gMount
 	gRepair = Settings.FFXIVMINION.gRepair
 	gTeleport = Settings.FFXIVMINION.gTeleport
+	gGatherPS = Settings.FFXIVMINION.gGatherPS
+	if (gGatherPS == "1") then
+        GameHacks:SetPermaSprint(true)
+    end
 	
 	ffxivminion.modes =
 	{
@@ -479,6 +488,13 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 				Crafting:UseHQMats(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gGatherPS" ) then
+            if ( v == "1") then
+                GameHacks:SetPermaSprint(true)
+            else
+                GameHacks:SetPermaSprint(false)
+            end
+			Settings.FFXIVMINION[tostring(k)] = v
         end
     end
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)

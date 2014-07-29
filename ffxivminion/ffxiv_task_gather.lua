@@ -444,57 +444,43 @@ function ffxiv_task_gather:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_gather:OnSleep()
-
-end
-
-function ffxiv_task_gather:OnTerminate()
-
-end
-
-function ffxiv_task_gather:IsGoodToAbort()
-
-end
-
 function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if (	k == "gGatherPS"	) then
-            if (v == "1") then
-                GameHacks:SetPermaSprint(true)
-            else
-                GameHacks:SetPermaSprint(false)
-            end
-        end
-        if ( 	k == "gDoStealth" or
-                k == "gGatherPS" ) then
+        if ( 	k == "gDoStealth" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("gatherMode"))
 end
 
 -- UI settings etc
 function ffxiv_task_gather.UIInit()
-    GUI_NewCheckbox(GetString("advancedSettings"), strings[gCurrentLanguage].useStealth, "gDoStealth",strings[gCurrentLanguage].gatherMode)
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].permaSprint, "gGatherPS",GetString("hacks"))
-    
-    ffxivminion.ResizeWindow()
-    
-    if (Settings.FFXIVMINION.gDoStealth == nil) then
+	
+	--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Gather)
+
+	 if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"
     end
-    
-    
-    if (Settings.FFXIVMINION.gGatherPS == nil) then
-        Settings.FFXIVMINION.gGatherPS = "0"
-    end
-    
-    gDoStealth = Settings.FFXIVMINION.gDoStealth
-    gGatherPS = Settings.FFXIVMINION.gGatherPS
-    if(gGatherPS == "1") then
-        GameHacks:SetPermaSprint(true)
-    end
-    
+	
+	local winName = GetString("gatherMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	local group = GetString("settings")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].useStealth, "gDoStealth",group)
+	
+	local wnd = GUI_GetWindowInfo(winName)
+	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	GUI_WindowVisible(winName, false)
+	
+	gDoStealth = Settings.FFXIVMINION.gDoStealth
+	
     ffxiv_task_gather.SetupMarkers()
     
     RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
