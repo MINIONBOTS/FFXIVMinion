@@ -132,6 +132,7 @@ function ffxiv_task_craft.UIInit()
 	
 	local winName = GetString("craftMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
@@ -140,9 +141,8 @@ function ffxiv_task_craft.UIInit()
 	local group = GetString("settings")
     GUI_NewField(winName,"Minimum CP","gCraftMinCP",group)
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gCraftMinCP = Settings.FFXIVMINION.gCraftMinCP

@@ -478,6 +478,7 @@ function ffxiv_task_pvp.UIInit()
 	
 	local winName = GetString("pvpMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
@@ -503,9 +504,8 @@ function ffxiv_task_pvp.UIInit()
 	gPVPTargetFour_listitems = targetTypeList
 	gPVPTargetFive_listitems = targetTypeList
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
     gPVPTargetOne = Settings.FFXIVMINION.gPVPTargetOne

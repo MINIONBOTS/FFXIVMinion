@@ -463,6 +463,7 @@ function ffxiv_task_duty.UIInit()
 
 	local winName = GetString("dutyMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
@@ -472,9 +473,8 @@ function ffxiv_task_duty.UIInit()
     GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
 	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gLootOption = Settings.FFXIVMINION.gLootOption

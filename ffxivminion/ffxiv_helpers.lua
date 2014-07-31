@@ -1418,6 +1418,21 @@ function Repair()
 	end
 end
 
+function Eat()
+	local foodID
+	
+	if (gFoodHQ ~= "None") then
+		foodID = foodsHQ[gFoodHQ]
+	elseif (gFood ~= "None") then
+		foodID = foods[gFood]
+	end
+			
+	local food = Inventory:Get(foodID)
+	if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+		food:Use()
+	end
+end
+
 function NodeHasItem(itemName)
     local list = Player:GetGatherableSlotList()
     if (ValidTable(list)) then

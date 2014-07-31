@@ -473,24 +473,25 @@ function ffxiv_task_gather.UIInit()
 	ffxivminion.Windows.Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Gather)
 
-	 if (Settings.FFXIVMINION.gDoStealth == nil) then
+	if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"
     end
 	
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"")
+	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	local group = GetString("settings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].useStealth, "gDoStealth",group)
-	
-	local wnd = GUI_GetWindowInfo(winName)
+
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
+
 	
 	gDoStealth = Settings.FFXIVMINION.gDoStealth
 	

@@ -55,6 +55,8 @@ function ffxiv_task_quest.UIInit()
 	
 	local winName = GetString("questMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
+	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
@@ -69,9 +71,8 @@ function ffxiv_task_quest.UIInit()
 	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
 	GUI_NewCheckbox(winName,"Perform Auto-Equip","gQuestAutoEquip",group)
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID

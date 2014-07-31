@@ -587,6 +587,7 @@ function ffxiv_task_hunt.UIInit()
 	
 	local winName = GetString("huntMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
@@ -614,10 +615,9 @@ function ffxiv_task_hunt.UIInit()
 	GUI_NewComboBox(winName,"Map Marker Style",	"gHuntMarkerStyle","New Location", "Marker List,Randomize")	
 	GUI_NewButton(winName,"Add Location",		"ffxiv_huntAddLocation",	"New Location")
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,"New Location" )
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gHuntLocations = Settings.FFXIVMINION.gHuntLocations

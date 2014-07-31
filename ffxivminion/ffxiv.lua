@@ -21,6 +21,11 @@ ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
 ml_global_information.repairTimer = 0
 ml_global_information.windowTimer = 0
+ml_global_information.filterTimer1 = 0
+ml_global_information.filterTimer2 = 0
+ml_global_information.onOffTimer = 0
+ml_global_information.updateFoodTimer = 0
+ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
 
 ml_global_information.chocoStance = {
@@ -31,16 +36,60 @@ ml_global_information.chocoStance = {
 	[strings[gCurrentLanguage].stHealer] = 7,
 }
 
+
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
 
 ffxivminion = {}
-ffxivminion.modes = {}
-ffxivminion.settingsVisible = false
+ffxivminion.modes =	{
+		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
+		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
+		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
+		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
+		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
+		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
+		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
+		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
+		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
+		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
+		--["NavTest"]								= ffxiv_task_test,
+}
 
---ffxivminion.Windows = {
-	--Main = { Name = "FFXIVMinion", x=50, y=50, width=210, height=300 },
---}
+ffxivminion.foods = {}
+ffxivminion.foodsHQ = {}
+
+ffxivminion.Strings = {
+	BotModes = 
+		function ()
+			local botModes = "None"
+			if ( TableSize(ffxivminion.modes) > 0) then
+				local i,entry = next (ffxivminion.modes)
+				while i and entry do
+					botModes = botModes..","..i
+					i,entry = next (ffxivminion.modes,i)
+				end
+			end
+			return botModes
+		end,
+	SKMProfiles = 
+		function () return SkillMgr.UpdateProfiles() end,
+	Mounts = 
+		function ()
+			local MountsList = "None"
+			local eq = ActionList("type=13")
+			for k,v in pairs(eq) do
+				MountsList = MountsList..","..v.name
+			end
+			return MountsList
+		end,
+	Meshes = 
+		function ()
+			local meshes = gmeshname_listitems ~= nil and gmeshname_listitems or ""
+			return meshes
+		end,
+}
+
+ffxivminion.settingsVisible = false
 
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
@@ -58,6 +107,60 @@ function ml_global_information.OnUpdate( event, tickcount )
 	if (TimeSince(ml_global_information.windowTimer) > 10000) then
 		ml_global_information.windowTimer = tickcount
 		ffxivminion.SaveWindows()
+	end
+	
+	local CC = {}
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 1"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+			(not (value1 == 0 and value2 == 0)) and
+			TimeSince(ml_global_information.filterTimer1) >= 750) then
+		if ( gPrimaryFilter == "0" ) then
+			gPrimaryFilter = "1"
+		else
+			gPrimaryFilter = "0"
+		end
+		ml_global_information.filterTimer1 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 2"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+			(not (value1 == 0 and value2 == 0)) and
+			TimeSince(ml_global_information.filterTimer2) >= 750) then
+		if ( gSecondaryFilter == "0" ) then
+			gSecondaryFilter = "1"
+		else
+			gSecondaryFilter = "0"
+		end
+		ml_global_information.filterTimer2 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Start/Stop"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+			(not (value1 == 0 and value2 == 0)) and
+			TimeSince(ml_global_information.onOffTimer) >= 1000) then
+			ml_task_hub.ToggleRun()
+			ml_global_information.onOffTimer = tickcount
+	end	
+	
+	if ( TimeSince(ml_global_information.updateFoodTimer > 15000) then
+		ml_global_information.updateFoodTimer = tickcount
+		ffxivminion.UpdateFoodOptions()
+	end
+	
+	if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
+		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted) then
+			ml_global_information.foodCheckTimer = tickcount
+			Eat()
+		end
 	end
     
     -- Mesher.lua
@@ -226,11 +329,14 @@ function ffxivminion.HandleInit()
 	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].stance,"gChocoStance",group,"")
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
+	GUI_NewComboBox(winName,"Food", 	"gFood", group, "None")
+	GUI_NewComboBox(winName,"HQ Food", 	"gFoodHQ", group, "None")
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
 	GUI_NewButton(winName, GetString("multiManager"), "MultiBotManager.toggle", group)
 	GUI_NewButton(winName,"Cast Prevention","CastPrevention.toggle",group)
+	GUI_NewButton(winName,"Shortcut Manager","ShortcutManager.toggle",group)
 	
 	local group = GetString("hacks")
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].repair,"gRepair",group)
@@ -245,13 +351,19 @@ function ffxivminion.HandleInit()
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
+	if (not ml_global_information.TaskUIInit) then
+		-- load task UIs
+		for i, task in pairs(ffxivminion.modes) do
+			task.UIInit()
+		end
+		ml_global_information.TaskUIInit = true
+	end
 	
-	--Advanced Settings
-	--local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)
-	--GUI_NewWindow(GetString("advancedSettings"),wnd.x+wnd.width,wnd.y,210,300)
-	--RegisterEventHandler("ToggleAdvancedSettings", ffxivminion.ToggleAdvancedSettings)
-	--GUI_WindowVisible(GetString("advancedSettings"), false)   
-    
+	local botModes = ffxivminion.Strings.BotModes()
+	gBotMode_listitems = botModes
+	gBotMode = Settings.FFXIVMINION.gBotMode
+	ffxivminion.SetMode(gBotMode)
+	
     gEnableLog = Settings.FFXIVMINION.gEnableLog
     gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
     gUseMount = Settings.FFXIVMINION.gUseMount
@@ -277,30 +389,7 @@ function ffxivminion.HandleInit()
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
-	
-	ffxivminion.modes =
-	{
-		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
-		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
-		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
-		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
-		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
-		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
-		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
-		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
-		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		--["NavTest"]								= ffxiv_task_test,
-	}
-	
-	if (not ml_global_information.TaskUIInit) then
-		-- load task UIs
-		for i, task in pairs(ffxivminion.modes) do
-			task.UIInit()
-		end
-		ml_global_information.TaskUIInit = true
-		d("settings TaskUIInit to true.")
-	end
+	ml_global_information.lastMode = gBotMode
     
     -- setup parent window for minionlib modules
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
@@ -330,22 +419,7 @@ function ffxivminion.HandleInit()
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
-	ml_marker_mgr.DrawMarker =		mm.DrawMarker
-	
-	-- setup bot mode
-    local botModes = "None"
-    if ( TableSize(ffxivminion.modes) > 0) then
-        local i,entry = next ( ffxivminion.modes)
-        while i and entry do
-            botModes = botModes..","..i
-            i,entry = next ( ffxivminion.modes,i)
-        end
-    end
-	
-    gBotMode_listitems = botModes
-    gBotMode = Settings.FFXIVMINION.gBotMode
-	ml_global_information.lastMode = gBotMode
-    ffxivminion.SetMode(gBotMode)
+	ml_marker_mgr.DrawMarker =		mm.DrawMarker	
     
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
@@ -469,13 +543,24 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxivminion.SetMode(mode)
-	GUI_WindowVisible(ml_global_information.lastMode, false)
-	ml_global_information.lastMode = mode
+	local wnd = nil
+	if (ml_global_information.lastMode ~= mode) then
+		wnd = GUI_GetWindowInfo(ml_global_information.lastMode)
+		GUI_WindowVisible(ml_global_information.lastMode, false)
+	end
+	
+	if (wnd) then
+		GUI_MoveWindow(mode, wnd.x, wnd.y)
+	end
+	ffxivminion.SizeWindow(mode)
 	GUI_WindowVisible(mode, true)
+	ml_global_information.lastMode = mode
+	
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
         ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
 		gBotMode = mode
+		Settings.FFXIVMINION.gBotMode = gBotMode
         if (gBotMode == strings[gCurrentLanguage].pvpMode) then
             Player:EnableUnstuckJump(false)
         else
@@ -528,6 +613,14 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
     }
+	
+	if (ml_global_information.CurrentClass == nil) then
+		ml_global_information.CurrentClass = classes[Player.job]
+		ml_global_information.CurrentClassID = Player.job
+		ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		SkillMgr.SetDefaultProfile()
+		return
+	end
     
     --TODO check which class we are currently using and modify globals appropriately
     if (ml_global_information.CurrentClass == nil or ml_global_information.CurrentClassID ~= Player.job) then
@@ -553,9 +646,7 @@ function ffxivminion.CheckClass()
 				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)				
 			end
             
-            -- set default sm profile
             SkillMgr.SetDefaultProfile()
-			
         else
             ml_global_information.AttackRange = 3
         end
@@ -600,13 +691,21 @@ function ffxivminion.CreateWindow(window)
 		Settings.FFXIVMINION[winTable] = {}
 	end
 	
-	settings = {}			
+	--d("windowName="..tostring(window.Name))
+	settings = {}
 	settings.width = Settings.FFXIVMINION[winTable].width or window.width
+	--d("usedWidth="..tostring(settings.width)..",savedWidth="..tostring(Settings.FFXIVMINION[winTable].width)..",windowWidth="..tostring(window.width))
 	settings.height = Settings.FFXIVMINION[winTable].height or window.height
+	--d("usedHeight="..tostring(settings.height)..",savedHeight="..tostring(Settings.FFXIVMINION[winTable].height)..",windowHeight="..tostring(window.height))
 	settings.y = Settings.FFXIVMINION[winTable].y or window.y
-	settings.x = Settings.FFXIVMINION[winTable].x or window.x		
+	--d("usedY="..tostring(settings.y)..",savedY="..tostring(Settings.FFXIVMINION[winTable].y)..",windowY="..tostring(window.y))
+	settings.x = Settings.FFXIVMINION[winTable].x or window.x
+	--d("usedX="..tostring(settings.x)..",savedX="..tostring(Settings.FFXIVMINION[winTable].x)..",windowX="..tostring(window.x))	
 
-	if (ValidTable(settings)) then Settings.FFXIVMINION[winTable] = settings end
+	if (ValidTable(settings)) then 
+		Settings.FFXIVMINION[winTable] = settings 
+	end
+	
 	local wi = Settings.FFXIVMINION[winTable]
 	local wname = window.Name
 	
@@ -645,6 +744,42 @@ function ffxivminion.OpenSettings()
 	local winTable = Settings.FFXIVMINION[winTableName]
 	GUI_SizeWindow(winName,wnd.width,winTable.height)
 	GUI_WindowVisible(winName,true)
+end
+
+function ffxivminion.UpdateFood(var)
+	if (var == "gFood") then
+		gFoodHQ = "None"
+		Settings.FFXIVMINION.gFoodHQ = gFoodHQ
+	elseif (var == "gFoodHQ") then
+		gFood = "None"
+		Settings.FFXIVMINION.gFood = gFood
+	end		
+end
+
+function ffxivminion.UpdateFoodOptions()
+    
+	local foodlistHQ = "None"
+    local foodlist = "None"	
+	for x = 0, 3 do
+		local inv = Inventory("category=5,type="..tostring(x))
+		if ( inv ) then
+			local i,item = next(inv)
+			while (i~=nil and item~=nil) do
+				if (item.id > 10000) then
+					ffxivminion.foodsHQ[item.name] = item.id  
+					foodlistHQ = foodlistHQ..","..item.name
+				else
+					ffxivminion.foods[item.name] = item.id
+					foodlist = foodlist..","..item.name
+				end
+				i,item = next(inv,i)  
+			end  
+		end
+	end
+	
+    gFood_listitems = foodlist
+	gFoodHQ_listitems = foodlistHQ
+	GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
 function ml_global_information.Reset()
