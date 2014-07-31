@@ -42,6 +42,8 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.ARCANIST] = 163,
 	[FFXIV.JOBS.SUMMONER] = 163,
 	[FFXIV.JOBS.SCHOLAR] = 163,
+	[FFXIV.JOBS.BOTANIST] = 218,
+	[FFXIV.JOBS.MINER] = 235,
 }
 
 SkillMgr.Variables = {
@@ -1762,7 +1764,8 @@ function SkillMgr.Gather( )
 						end
                              
                         if ( castable ) then
-                            --d("CASTING (gathering) : "..tostring(skill.name))								
+                            --d("CASTING (gathering) : "..tostring(skill.name))
+							
                             if ( ActionList:Cast(skill.id,0) ) then									
                                 skill.lastcast = ml_global_information.Now
                                 SkillMgr.prevSkillID = tostring(skill.id)

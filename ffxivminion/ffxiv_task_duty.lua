@@ -441,8 +441,12 @@ end
 -- UI settings
 function ffxiv_task_duty.UIInit()
 	
+	if ( not ffxivminion.Windows) then
+		ffxivminion.Windows = {}
+	end
 	ffxivminion.Windows.Duty = { Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Duty)
+	
 
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
@@ -465,7 +469,7 @@ function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	local group = GetString("settings")
-    GUI_NewComboBox(winNamee,"Loot Option","gLootOption",group,"Any,Need,Greed,Pass")
+    GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
 	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
 	
 	local wnd = GUI_GetWindowInfo(winName)

@@ -815,6 +815,31 @@ function HasBuff(targetid, buffID)
     return false
 end
 
+function HasSkill( skillids )
+	local skills = SkillMgr.SkillProfile
+	--for prio,skill in spairs(SkillMgr.SkillProfile)
+	
+	if (not ValidTable(skills)) then return false end
+	
+	for _orids in StringSplit(skillids,",") do
+		local found = false
+		for _andid in StringSplit(_orids,"+") do
+			found = false
+			for i, skill in pairs(skills) do
+				if (tonumber(skill.id) == tonumber(_andid) and (skill.used == "1")) then 
+					found = true 
+				end
+			end
+			if (not found) then 
+				break
+			end
+		end
+		if (found) then 
+			return true 
+		end
+	end
+	return false
+end
 
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
@@ -1245,6 +1270,14 @@ function InCombatRange(targetid)
 	--d(ml_task_queue.rootTask)
 	if (gBotMode == strings[gCurrentLanguage].dutyMode) then
 		return true
+	end
+	
+	if (gBotMode == strings[gCurrentLanguage].gatherMode) then
+		local node = EntityList:Get(targetid)
+		if (node and node.distance2d < 4) then
+			return true
+		end
+		return false
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.

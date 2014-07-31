@@ -23,6 +23,7 @@ function ffxiv_task_gather.Create()
 	newinst.gatheredGardening = false
     newinst.idleTimer = 0
 	newinst.filterLevel = true
+	newinst.swingCount = 0
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -272,33 +273,37 @@ function e_gather:execute()
     
         if ( gSMactive == "1") then
 			if (ActionList:IsCasting()) then return end
-            if (SkillMgr.Gather() ) then
+            if (SkillMgr.Gather()) then
 				ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
                 return
             end
         end
 
-		if (TimeSince(ml_task_hub:CurrentTask().interactTimer) > 1000) then
+		if (Now > ml_task_hub:CurrentTask().interactTimer) then
 			-- first try to get treasure maps
-			local hasMap = false
-			for x=0,3 do
-				local inv = Inventory("type="..tostring(x))
-				local i, item = next(inv)
-				while (i) do
-					if (IsMap(item.id)) then
-						hasMap = true
-						break
+			if (not ml_task_hub:CurrentTask().gatheredMap) then
+				local hasMap = false
+				for x=0,3 do
+					local inv = Inventory("type="..tostring(x))
+					local i, item = next(inv)
+					while (i) do
+						if (IsMap(item.id)) then
+							hasMap = true
+							break
+						end
+						i,item = next(inv, i)
 					end
-					i,item = next(inv, i)
 				end
-			end
-			
-			if not hasMap then
-				for i, item in pairs(list) do
-					if (IsMap(item.id)) then
-						Player:Gather(item.index)
-						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-						return
+				
+				if not hasMap then
+					for i, item in pairs(list) do
+						if (IsMap(item.id)) then
+							Player:Gather(item.index)
+							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+							ml_task_hub:CurrentTask().gatheredMap = true
+							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+							return
+						end
 					end
 				end
 			end
@@ -309,6 +314,7 @@ function e_gather:execute()
 					if 	(IsGardening(item.id))
 					then
 						Player:Gather(item.index)
+						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 						ml_task_hub:CurrentTask().gatheredGardening = true
 						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 						return
@@ -327,12 +333,14 @@ function e_gather:execute()
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
 								Player:Gather(n-1)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 								return
 							end
 						else						
 							if (item.name == item1) then
 								Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 								return
 							end
@@ -346,12 +354,14 @@ function e_gather:execute()
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
 								Player:Gather(n-1)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 								return
 							end
 						else						
 							if (item.name == item2) then
 								Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 								return
 							end
@@ -379,12 +389,15 @@ function e_gather:execute()
             else
 				--Eat()
                 Player:Interact(node.id)
-				ml_task_hub:CurrentTask().interactTimer = ml_global_information.Now
+				ml_task_hub:CurrentTask().interactTimer = Now() + 1000
+				ml_task_hub:CurrentTask().gatheredGardening = false
+				ml_task_hub:CurrentTask().gatheredMap = false
+				ml_task_hub:CurrentTask().swingCount = 0
                 -- start fail timer
                 if (ml_task_hub:CurrentTask().failedTimer == 0) then
-                    ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now
-                elseif (TimeSince(ml_task_hub:CurrentTask().failedTimer) > 12000) then
-					ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].gatherMode, node.id, node.name, ml_global_information.Now + 1800*1000)
+                    ml_task_hub:CurrentTask().failedTimer = Now() + 12000
+                elseif (Now() > ml_task_hub:CurrentTask().failedTimer) then
+					ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].gatherMode, node.id, node.name, Now() + 300*1000)
 					ml_task_hub:CurrentTask().gatherid = 0
 					ml_task_hub:CurrentTask().failedTimer = 0
 				end

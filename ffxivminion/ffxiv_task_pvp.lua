@@ -439,6 +439,9 @@ end
 -- UI settings etc
 function ffxiv_task_pvp.UIInit()
 	--Add it to the main tracking table, so that we can save positions for it.
+	if ( not ffxivminion.Windows) then
+		ffxivminion.Windows = {}
+	end
 	ffxivminion.Windows.PVP = { Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.PVP)
 

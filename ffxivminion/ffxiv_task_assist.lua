@@ -173,9 +173,8 @@ function ffxiv_task_assist.UIInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",group) 
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",group)
 	
-	local wnd = GUI_GetWindowInfo(winName)
 	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_SizeWindow(winName,wnd.width,wnd.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gAssistMode = Settings.FFXIVMINION.gAssistMode

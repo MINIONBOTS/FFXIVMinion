@@ -73,7 +73,7 @@ function mm.ModuleInit()
 		end
 	end
 
-    local wnd = GUI_GetWindowInfo("FFXIVMinion")
+    local wnd = GUI_GetWindowInfo(GetString("settings"))
     GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].activated,"gMeshMGR",strings[gCurrentLanguage].generalSettings)
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].navmesh ,"gmeshname",strings[gCurrentLanguage].generalSettings,"")

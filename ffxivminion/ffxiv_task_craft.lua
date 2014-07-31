@@ -120,6 +120,9 @@ function ffxiv_task_craft:Init()
 end
 
 function ffxiv_task_craft.UIInit()
+	if ( not ffxivminion.Windows) then
+		ffxivminion.Windows = {}
+	end
     ffxivminion.Windows.Craft = { Name = GetString("craftMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Craft)
 
