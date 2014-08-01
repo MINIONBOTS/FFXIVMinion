@@ -593,6 +593,8 @@ function ffxiv_task_hunt.UIInit()
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 
     GUI_NewNumeric(winName,"HP % <=",			"gHuntSRankHP",		"S-Rank Hunt")
 	GUI_NewNumeric(winName,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")

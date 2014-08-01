@@ -24,6 +24,7 @@ function ffxiv_task_gather.Create()
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.swingCount = 0
+	newinst.interactTimer = 0
     
     -- for blacklisting nodes
     newinst.failedTimer = 0
@@ -279,7 +280,7 @@ function e_gather:execute()
             end
         end
 
-		if (Now > ml_task_hub:CurrentTask().interactTimer) then
+		if (Now() > ml_task_hub:CurrentTask().interactTimer) then
 			-- first try to get treasure maps
 			if (not ml_task_hub:CurrentTask().gatheredMap) then
 				local hasMap = false
@@ -476,9 +477,9 @@ function ffxiv_task_gather.UIInit()
 	if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"
     end
-	if (Settings.FFXIVMINION.gGatherThrottle == nil) then
-		Settings.FFXIVMINION.gGatherThrottle = 0
-	end
+	--if (Settings.FFXIVMINION.gGatherThrottle == nil) then
+		--Settings.FFXIVMINION.gGatherThrottle = 0
+	--end
 	
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -487,16 +488,18 @@ function ffxiv_task_gather.UIInit()
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	local group = GetString("settings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].useStealth, "gDoStealth",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].throttle,"gGatherThrottle",group)
+	--GUI_NewField(winName,strings[gCurrentLanguage].throttle,"gGatherThrottle",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 
 	gDoStealth = Settings.FFXIVMINION.gDoStealth
-	gGatherThrottle = Settings.FFXIVMINION.gGatherThrottle
+	--gGatherThrottle = Settings.FFXIVMINION.gGatherThrottle
 	
     ffxiv_task_gather.SetupMarkers()
     

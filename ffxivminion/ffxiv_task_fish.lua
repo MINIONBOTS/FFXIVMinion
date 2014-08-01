@@ -236,8 +236,9 @@ function ffxiv_task_fish.UIInit()
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	local group = GetString("settings")
     --GUI_NewField(winName,"SomeVar","gPlaceholder",group)
 	
