@@ -240,7 +240,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or gDoFates == "0") then
+	if (gAtma == "0" or gDoFates == "0" or Player.incombat or ffxiv_task_grind.inFate) then
 		return false
 	end
 	
