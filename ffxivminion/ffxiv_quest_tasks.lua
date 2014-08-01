@@ -229,17 +229,15 @@ function ffxiv_quest_interact:Init()
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)
 	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 20 )
+    self:add( ke_killAggroTarget, self.process_elements)
+	
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
-	
-	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 100 )
-    --self:add( ke_questYesNo, self.overwatch_elements)
-	
-	--local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
-    --self:add( ke_questIsLoading, self.process_elements)
 
 	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
+	--self.task_fail_eval = function() return c_killaggrotarget:evaluate() end
 	self:AddTaskCheckCEs()
 end
 
@@ -283,32 +281,26 @@ function ffxiv_quest_kill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
-	local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
-    self:add( ke_questAvoidance, self.overwatch_elements)
+	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 20 )
+    self:add( ke_incrementKillCount, self.overwatch_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
+	
+	ffxiv_task_quest.questFlags = 0
 end
 
 function ffxiv_quest_kill:task_complete_eval()
-	--if(self.params["nonquestobjective"]) then
-		if((not self.params["killcount"] and self.killCount == 1) or
-			(self.params["killcount"] == self.killCount))
-		then
-			Settings.FFXIVMINION.questKillCount = nil
-			gQuestKillCount = ""
-			return true
-		end
-	--else
-		--d("test1")
-		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
-		--d("test2")
-		--d(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
-		--d(ml_task_hub:ThisTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex())
-	--	return 	ffxiv_task_quest.currentQuest:isComplete() or 
-	--			ml_task_hub:ThisTask():ParentTask().currentObjectiveIndex ~= ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-	--end
-	
+	if((not self.params["killcount"] and ffxiv_task_quest.killCount == 1) or
+		(self.params["killcount"] == ffxiv_task_quest.killCount))
+	then
+		Settings.FFXIVMINION.questKillCount = nil
+		gQuestKillCount = ""
+		ffxiv_task_quest.questFlags = 0
+		ffxiv_task_quest.killCount = 0
+		return true
+	end
+
 	return false
 end
 
@@ -354,9 +346,10 @@ function ffxiv_quest_dutykill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
-	local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
-    self:add( ke_questAvoidance, self.overwatch_elements)
+	--local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
+    --self:add( ke_questAvoidance, self.overwatch_elements)
 	
+	ml_global_information.disableFlee = true
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

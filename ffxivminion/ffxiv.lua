@@ -21,6 +21,7 @@ ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
 ml_global_information.repairTimer = 0
 ml_global_information.windowTimer = 0
+ml_global_information.disableFlee = false
 
 ml_global_information.chocoStance = {
 	[strings[gCurrentLanguage].stFollow] = 3,
@@ -511,15 +512,19 @@ function ffxivminion.SetMode(mode)
             Player:EnableUnstuckJump(true)
         end
 		
-		if (gBotMode == GetString("dutyMode")) then
-			ffxiv_task_duty.UpdateProfiles()
-		elseif (gBotMode == GetString("questMode")) then
+		if (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
-			gSkipCutscene = "1"
-			gSkipDialogue = "1"
+			GameHacks:SkipCutscene(true)
+			GameHacks:SkipDialogue(true)
 		else
-			gProfile_listitems = "NA"
-			gProfile = "NA"
+			GameHacks:SkipCutscene(Settings.FFXIVMINION.SkipCutscene == "1")
+			GameHacks:SkipDialogue(Settings.FFXIVMINION.SkipDialogue == "1")
+			if (gBotMode == GetString("dutyMode")) then
+				ffxiv_task_duty.UpdateProfiles()
+			else
+				gProfile_listitems = "NA"
+				gProfile = "NA"
+			end
 		end
     end
 end

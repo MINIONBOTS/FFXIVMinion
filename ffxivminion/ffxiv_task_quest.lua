@@ -4,6 +4,10 @@ ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestPro
 ffxiv_task_quest.questList = {}
 ffxiv_task_quest.currentQuest = {}
 ffxiv_task_quest.currentStepParams = {}
+ffxiv_task_quest.killCount = 0
+ffxiv_task_quest.backupKillCount = 0
+ffxiv_task_quest.questFlags = 0
+ffxiv_task_quest.killTaskCompleted = false
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)

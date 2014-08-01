@@ -34,6 +34,8 @@ function ffxiv_task_killtarget.Create()
 end
 
 function ffxiv_task_killtarget:Init()
+	local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
+    self:add( ke_avoidance, self.overwatch_elements)
 	
 	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
 	self:add( ke_attarget, self.overwatch_elements)

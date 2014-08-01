@@ -77,10 +77,6 @@ end
 c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 function c_killaggrotarget:evaluate()
-    if ( gKillAggroEnemies == "0" ) then
-		return false
-	end
-    
     local target = GetNearestAggro()
 	if (ValidTable(target)) then
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
@@ -97,7 +93,7 @@ function e_killaggrotarget:execute()
 	
 	local newTask = ffxiv_task_killtarget.Create()
     newTask.targetid = c_killaggrotarget.targetid
-	newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
+	Player:SetTarget(c_killaggrotarget.targetid)
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 ---------------------------------------------------------------------------------------------
