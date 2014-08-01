@@ -1,4 +1,8 @@
 sck = {}
+sck.filterTime1 = 0
+sck.filterTime2 = 0
+sck.onOffTimer = 0
+
 sck.mainwindow = { name = "Shortcut Manager", x = 50, y = 50, width = 250, height = 200}
 sck.Shortcuts = {
 	["Filter 1"] = true,
@@ -46,14 +50,12 @@ function sck.ModuleInit()
 	if ( Settings.FFXIVMINION.gModifierKey == nil ) then
 		Settings.FFXIVMINION.gModifierKey = "None"
 	end
+	if ( Settings.FFXIVMINION.gModifierKey2 == nil ) then
+		Settings.FFXIVMINION.gModifierKey2 = "None"
+	end
 	if ( Settings.FFXIVMINION.gShortcut == nil ) then
 		Settings.FFXIVMINION.gShortcut = "Start/Stop"
 	end
-	
-	ClickCombo = 		{ default = {}, 		cast = "table"},
-	gShortcutKey = 		{ default = "None",		cast = "string", onChange = {"ffxivminion.UpdateShortcut", "gShortcutKey"}},
-	gModifierKey = 		{ default = "None",		cast = "string", onChange = {"ffxivminion.UpdateShortcut", "gModifierKey"}},
-	gShortcut = 		{ default = "Start/Stop",cast = "string", onChange = "ffxivminion.UpdateShortcutChoice"},
 	
 	local winName = sck.mainwindow.name
 	GUI_NewWindow(winName,sck.mainwindow.x,sck.mainwindow.y,sck.mainwindow.width,sck.mainwindow.height)
@@ -63,18 +65,20 @@ function sck.ModuleInit()
     GUI_NewComboBox(winName,"Shortcut:",	"gShortcut",group,funcString)
 	funcString = ffxivminion.Strings.ModKeys()
 	GUI_NewComboBox(winName,"Modifier Key:","gModifierKey",group,funcString)
+	funcString = ffxivminion.Strings.ModKeys()
+	GUI_NewComboBox(winName,"Modifier Key:","gModifierKey2",group,funcString)
 	funcString = ffxivminion.Strings.SCKeys()
 	GUI_NewComboBox(winName,"Shortcut Key:","gShortcutKey",group,funcString)
 	GUI_UnFoldGroup(winName,group )
 	GUI_SizeWindow(winName,200,200)
 	GUI_WindowVisible(winName, false)
 	
-	cpOptions = Settings.FFXIVMINION.cpOptions
-	cpOption = Settings.FFXIVMINION.cpOption
-	cpTCastIDs = Settings.FFXIVMINION.cpTCastIDs
-	cpTBuffs = Settings.FFXIVMINION.cpTBuffs
+	gShortcut = Settings.FFXIVMINION.gShortcut
+	gModifierKey = Settings.FFXIVMINION.gModifierKey
+	gModifierKey2 = Settings.FFXIVMINION.gModifierKey2
+	gShortcutKey = Settings.FFXIVMINION.gShortcutKey
 	
-	sck.UpdateShortcutOptions
+	sck.UpdateShortcutOptions()
 end
 
 function sck.GUIVarUpdate(Event, NewVals, OldVals)
@@ -83,12 +87,16 @@ function sck.GUIVarUpdate(Event, NewVals, OldVals)
 			sck.UpdateShortcutChoice()
             Settings.FFXIVMINION[tostring(k)] = v
 		end
-		 if (k == "gShortcutKey") then			
+		if (k == "gShortcutKey") then			
 			sck.UpdateShortcut("skey")
             Settings.FFXIVMINION[tostring(k)] = v
 		end
-		 if (k == "gModifierKey") then			
+		if (k == "gModifierKey") then			
 			sck.UpdateShortcut("mkey")
+            Settings.FFXIVMINION[tostring(k)] = v
+		end
+		if (k == "gModifierKey2") then			
+			sck.UpdateShortcut("mkey2")
             Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
@@ -106,6 +114,8 @@ function sck.UpdateShortcutOptions()
 			combo.value1 = 0
 			combo.key2 = "None"
 			combo.value2 = 0
+			combo.key3 = "None"
+			combo.value3 = 0
 			
 			Settings.FFXIVMINION.ClickCombo[k] = combo
 		end
@@ -114,7 +124,7 @@ end
 
 function sck.UpdateShortcut(key)
 	if ( key == "mkey" ) then
-		local v = Settings.FFXIVMINION.gModifierKey
+		local v = gModifierKey
 		local CC = Settings.FFXIVMINION.ClickCombo
 		CC[gShortcut].key1 = v
 		for key,value in pairs(sck.ModifierKeys) do
@@ -123,25 +133,36 @@ function sck.UpdateShortcut(key)
 			end
 		end
 		Settings.FFXIVMINION.ClickCombo = CC
-	elseif ( key == "skey" ) then
-		local v = Settings.FFXIVMINION.gShortcutKey
+	elseif ( key == "mkey2" ) then
+		local v = gModifierKey2
 		local CC = Settings.FFXIVMINION.ClickCombo
 		CC[gShortcut].key2 = v
-		for key,value in pairs(sck.ShortcutKeys) do
+		for key,value in pairs(sck.ModifierKeys) do
 			if key == v then 
 				CC[gShortcut].value2 = value 
+			end
+		end
+		Settings.FFXIVMINION.ClickCombo = CC
+	elseif ( key == "skey" ) then
+		local v = gShortcutKey
+		local CC = Settings.FFXIVMINION.ClickCombo
+		CC[gShortcut].key3 = v
+		for key,value in pairs(sck.ShortcutKeys) do
+			if key == v then 
+				CC[gShortcut].value3 = value 
 			end
 		end
 		Settings.FFXIVMINION.ClickCombo = CC
 	end
 end
 
-function ffxivminion.UpdateShortcutChoice()
+function sck.UpdateShortcutChoice()
 	local CC = Settings.FFXIVMINION.ClickCombo[gShortcut]
 	
 	if (CC ~= nil) then
 		gModifierKey = CC.key1
-		gShortcutKey = CC.key2
+		gModifierKey2 = CC.key2
+		gShortcutKey = CC.key3
 	end
 end
 
@@ -150,6 +171,53 @@ function sck.ShowMenu()
     GUI_MoveWindow( sck.mainwindow.name, wnd.x+wnd.width,wnd.y) 
     GUI_WindowVisible( sck.mainwindow.name, true)	
 	sck.UpdateShortcutChoice()
+end
+
+function sck.OnUpdate( event, tickcount )
+	local CC = {}
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 1"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.filterTime1) >= 750) then
+		if ( gPrimaryFilter == "0" ) then
+			gPrimaryFilter = "1"
+		else
+			gPrimaryFilter = "0"
+		end
+		sck.filterTime1 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 2"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.filterTime2) >= 750) then
+		if ( gSecondaryFilter == "0" ) then
+			gSecondaryFilter = "1"
+		else
+			gSecondaryFilter = "0"
+		end
+		sck.filterTime2 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Start/Stop"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.onOffTimer) >= 1000) then
+			ml_task_hub.ToggleRun()
+			sck.onOffTimer = tickcount
+	end	
 end
 
 sck.ModifierKeys = {
@@ -250,5 +318,6 @@ sck.ShortcutKeys = {
 }
 
 RegisterEventHandler("ShortcutManager.toggle", sck.ShowMenu)
+RegisterEventHandler("Gameloop.Update",sck.OnUpdate)
 RegisterEventHandler("Module.Initalize",sck.ModuleInit)
 RegisterEventHandler("GUI.Update",sck.GUIVarUpdate)

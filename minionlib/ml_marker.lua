@@ -5,14 +5,22 @@ ml_marker = inheritsFrom(nil)
 function ml_marker:AddField(fieldType, fieldName, defaultValue)
 	if (self.fields[fieldName] == nil) then
 		local fieldTable = self:GetLastField()
+		
 		local nextOrder = 1
 		if (fieldTable) then
 			nextOrder = fieldTable["order"] + 1
 		end
-		
 		self.fields[fieldName] = {type = fieldType, name = fieldName, value = defaultValue, order = nextOrder}
 	else
 		ml_error("Cannot add field "..fieldName.." another field with same name already exists")
+	end
+end
+
+function ml_marker:ClearFields()
+	for k,v in pairs(self.fields) do
+		if (v.order > 12) then
+			k = nil
+		end
 	end
 end
 

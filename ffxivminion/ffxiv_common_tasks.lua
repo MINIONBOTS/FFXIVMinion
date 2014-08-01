@@ -239,16 +239,13 @@ end
 
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
+	if (self.doFacing) then
+        Player:SetFacing(self.pos.h)
+    end
 	if (not self.remainMounted) then
 		Dismount()
 	end
 	NavigationManager:ClearAvoidanceAreas()
-    
-    if (self.doFacing) then
-		--SetFacing(ml_task_hub:CurrentTask().pos.h)
-		--d("h value of "..tostring(self.pos.h).." was used in movetopos.")
-        Player:SetFacingSynced(self.pos.h)
-    end
 	
 	if (self:ParentTask().name == "LT_KILLTARGET") then
 		local target = Player:GetTarget()

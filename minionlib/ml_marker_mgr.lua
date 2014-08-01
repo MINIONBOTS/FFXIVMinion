@@ -492,12 +492,18 @@ function ml_marker_mgr.CreateEditWindow(marker)
 					GUI_NewField(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				elseif (fieldType == "int") then
 					GUI_NewNumeric(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+				elseif (fieldType == "button") then
+					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				end
-				_G["Field_"..name] = marker:GetFieldValue(name)
+				
+				if (fieldType ~= "button") then
+					_G["Field_"..name] = marker:GetFieldValue(name)
+				end
 			end
 		end
 		
 		GUI_UnFoldGroup(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].markerFields)
+		GUI_SizeWindow(ml_marker_mgr.editwindow.name,ml_marker_mgr.editwindow.w,ml_marker_mgr.editwindow.h)
 		GUI_WindowVisible(ml_marker_mgr.editwindow.name, true)
 	end
 end

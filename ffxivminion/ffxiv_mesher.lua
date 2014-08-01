@@ -364,7 +364,7 @@ function mm.ToggleMenu()
         GUI_WindowVisible(mm.mainwindow.name,false)	
         mm.visible = false
     else
-        local wnd = GUI_GetWindowInfo("FFXIVMinion")	
+        local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)	
         GUI_MoveWindow( mm.mainwindow.name, wnd.x+wnd.width,wnd.y) 
         GUI_WindowVisible(mm.mainwindow.name,true)	
         mm.visible = true

@@ -21,9 +21,6 @@ ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
 ml_global_information.repairTimer = 0
 ml_global_information.windowTimer = 0
-ml_global_information.filterTimer1 = 0
-ml_global_information.filterTimer2 = 0
-ml_global_information.onOffTimer = 0
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
@@ -109,49 +106,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ffxivminion.SaveWindows()
 	end
 	
-	local CC = {}
-	CC = Settings.FFXIVMINION.ClickCombo["Filter 1"]
-	local value1 = CC.value1
-	local value2 = CC.value2
-	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
-		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
-			(not (value1 == 0 and value2 == 0)) and
-			TimeSince(ml_global_information.filterTimer1) >= 750) then
-		if ( gPrimaryFilter == "0" ) then
-			gPrimaryFilter = "1"
-		else
-			gPrimaryFilter = "0"
-		end
-		ml_global_information.filterTimer1 = tickcount
-	end
-	
-	CC = Settings.FFXIVMINION.ClickCombo["Filter 2"]
-	local value1 = CC.value1
-	local value2 = CC.value2
-	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
-		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
-			(not (value1 == 0 and value2 == 0)) and
-			TimeSince(ml_global_information.filterTimer2) >= 750) then
-		if ( gSecondaryFilter == "0" ) then
-			gSecondaryFilter = "1"
-		else
-			gSecondaryFilter = "0"
-		end
-		ml_global_information.filterTimer2 = tickcount
-	end
-	
-	CC = Settings.FFXIVMINION.ClickCombo["Start/Stop"]
-	local value1 = CC.value1
-	local value2 = CC.value2
-	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
-		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
-			(not (value1 == 0 and value2 == 0)) and
-			TimeSince(ml_global_information.onOffTimer) >= 1000) then
-			ml_task_hub.ToggleRun()
-			ml_global_information.onOffTimer = tickcount
-	end	
-	
-	if ( TimeSince(ml_global_information.updateFoodTimer > 15000) then
+	if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
 		ml_global_information.updateFoodTimer = tickcount
 		ffxivminion.UpdateFoodOptions()
 	end
@@ -300,6 +255,12 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gGatherPS == nil) then
 		Settings.FFXIVMINION.gGatherPS = "0" 
 	end
+	if (Settings.FFXIVMINION.gFoodHQ == nil) then
+		Settings.FFXIVMINION.gFoodHQ = "None" 
+	end
+	if (Settings.FFXIVMINION.gFood == nil) then
+		Settings.FFXIVMINION.gFood = "None" 
+	end
 	
 	local winName = GetString("settings")
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -386,6 +347,8 @@ function ffxivminion.HandleInit()
 	gRepair = Settings.FFXIVMINION.gRepair
 	gTeleport = Settings.FFXIVMINION.gTeleport
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
+	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
+	gFood = Settings.FFXIVMINION.gFood
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"

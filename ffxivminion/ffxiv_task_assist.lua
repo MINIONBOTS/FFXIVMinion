@@ -161,14 +161,15 @@ function ffxiv_task_assist.UIInit()
 	
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,"Active Profile","gSMprofile",group,Strings.SKMProfiles)
+	GUI_NewComboBox(winName,"Active Profile","gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	GUI_NewCheckbox(winName,"Filter 1","gPrimaryFilter",group)
 	GUI_NewCheckbox(winName,"Filter 2","gSecondaryFilter",group)
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+    
 	local group = GetString("settings")
     GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
     GUI_NewComboBox(winName,strings[gCurrentLanguage].assistPriority,"gAssistPriority",group,"Damage,Healer")

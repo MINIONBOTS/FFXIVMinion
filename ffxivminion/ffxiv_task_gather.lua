@@ -476,24 +476,27 @@ function ffxiv_task_gather.UIInit()
 	if (Settings.FFXIVMINION.gDoStealth == nil) then
         Settings.FFXIVMINION.gDoStealth = "0"
     end
+	if (Settings.FFXIVMINION.gGatherThrottle == nil) then
+		Settings.FFXIVMINION.gGatherThrottle = 0
+	end
 	
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, "Open Settings", "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"")
-	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	local group = GetString("settings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].useStealth, "gDoStealth",group)
-
+	GUI_NewField(winName,strings[gCurrentLanguage].throttle,"gGatherThrottle",group)
+	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 
-	
 	gDoStealth = Settings.FFXIVMINION.gDoStealth
+	gGatherThrottle = Settings.FFXIVMINION.gGatherThrottle
 	
     ffxiv_task_gather.SetupMarkers()
     
@@ -504,24 +507,65 @@ function ffxiv_task_gather.SetupMarkers()
     -- add marker templates for gathering
     local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(strings[gCurrentLanguage].botanyMarker)
+	botanyMarker:ClearFields()
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	botanyMarker:AddField("button", "Whitelist Gatherable", "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
     botanyMarker:SetMaxLevel(50)
     ml_marker_mgr.AddMarkerTemplate(botanyMarker)
 	
-	local miningMarker = botanyMarker:Copy()
-	miningMarker:SetName("miningTemplate")
+	local miningMarker = ml_marker:Create("miningTemplate")
 	miningMarker:SetType(strings[gCurrentLanguage].miningMarker)
+	miningMarker:ClearFields()
+	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
+	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
+	miningMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	miningMarker:AddField("button", "Whitelist Gatherable", "")
+	miningMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
+    miningMarker:SetTime(300)
+    miningMarker:SetMinLevel(1)
+    miningMarker:SetMaxLevel(50)
     ml_marker_mgr.AddMarkerTemplate(miningMarker)
+	
     
     -- refresh the manager with the new templates
     ml_marker_mgr.RefreshMarkerTypes()
 	ml_marker_mgr.RefreshMarkerNames()
 end
+
+function ffxiv_task_gather.WhitelistGatherable()
+	local target = Player:GetTarget()
+	if (target) then
+		local whitelistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+		if (whitelistGlobal ~= "") then
+			whitelistGlobal = whitelistGlobal..";"..tostring(target.contentid)
+		else
+			whitelistGlobal = tostring(target.contentid)
+		end
+		_G["Field_"..strings[gCurrentLanguage].contentIDEquals] = whitelistGlobal
+		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
+		
+		
+		local name = strings[gCurrentLanguage].contentIDEquals
+		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+		end
+	end
+end
+
+function ffxiv_task_gather.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" ) then
+		if (Button == "Field_Whitelist Gatherable") then
+			ffxiv_task_gather.WhitelistGatherable()
+		end
+	end
+end
+RegisterEventHandler("GUI.Item",		ffxiv_task_gather.HandleButtons)
 
 ffxiv_task_gather.gardening =
 {
