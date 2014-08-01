@@ -194,6 +194,7 @@ function e_teletofate:execute()
 			c_teletofate.stopmove = true
 		end
 	end
+	ffxiv_task_grind.inFate = true
 end
 
 -----------------------------------------------------------------------------------------------
@@ -227,7 +228,6 @@ end
 function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
-        d( "Moving to location of fate: "..fate.name )
         local newTask = ffxiv_task_movetopos.Create()
 
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
@@ -273,6 +273,7 @@ function e_atfate:execute()
     ml_task_hub:CurrentTask().remainMounted = true
     ml_task_hub:CurrentTask():task_complete_execute()
     ml_task_hub:CurrentTask():Terminate()
+	ffxiv_task_grind.inFate = true
 end
 
 ---------------------------------------------------------------------------------------------
@@ -384,27 +385,9 @@ end
 
 function ffxiv_task_fate:task_complete_execute()
     self.completed = true
+	ffxiv_task_grind.inFate = false
 end
 
-function ffxiv_task_fate:task_fail_eval()
-
-end
-
-function ffxiv_task_fate:task_fail_execute()
-    self.valid = false
-end
-
-function ffxiv_task_fate:OnSleep()
-
-end
-
-function ffxiv_task_fate:OnTerminate()
-
-end
-
-function ffxiv_task_fate:IsGoodToAbort()
-
-end
 
 function ffxiv_task_fate.BlacklistInitUI()
     GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateIndex,"gFateIndex",strings[gCurrentLanguage].addEntry,"1","5")

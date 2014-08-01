@@ -514,7 +514,7 @@ function ffxiv_task_gather.SetupMarkers()
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	botanyMarker:AddField("button", "Whitelist Gatherable", "")
+	botanyMarker:AddField("button", "Whitelist Target", "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
@@ -527,7 +527,7 @@ function ffxiv_task_gather.SetupMarkers()
 	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	miningMarker:AddField("button", "Whitelist Gatherable", "")
+	miningMarker:AddField("button", "Whitelist Target", "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
@@ -539,36 +539,6 @@ function ffxiv_task_gather.SetupMarkers()
     ml_marker_mgr.RefreshMarkerTypes()
 	ml_marker_mgr.RefreshMarkerNames()
 end
-
-function ffxiv_task_gather.WhitelistGatherable()
-	local target = Player:GetTarget()
-	if (target) then
-		local whitelistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].contentIDEquals])
-		if (whitelistGlobal ~= "") then
-			whitelistGlobal = whitelistGlobal..";"..tostring(target.contentid)
-		else
-			whitelistGlobal = tostring(target.contentid)
-		end
-		_G["Field_"..strings[gCurrentLanguage].contentIDEquals] = whitelistGlobal
-		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
-		
-		
-		local name = strings[gCurrentLanguage].contentIDEquals
-		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
-			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].contentIDEquals])
-			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
-		end
-	end
-end
-
-function ffxiv_task_gather.HandleButtons( Event, Button )	
-	if ( Event == "GUI.Item" ) then
-		if (Button == "Field_Whitelist Gatherable") then
-			ffxiv_task_gather.WhitelistGatherable()
-		end
-	end
-end
-RegisterEventHandler("GUI.Item",		ffxiv_task_gather.HandleButtons)
 
 ffxiv_task_gather.gardening =
 {

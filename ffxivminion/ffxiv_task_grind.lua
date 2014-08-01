@@ -1,5 +1,6 @@
 ffxiv_task_grind = inheritsFrom(ml_task)
 ffxiv_task_grind.name = "LT_GRIND"
+ffxiv_task_grind.inFate = false
 ffxiv_task_grind.ticks = 0
 ffxiv_task_grind.blTicks = 0
 gFateID = 0

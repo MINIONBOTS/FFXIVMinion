@@ -784,8 +784,20 @@ function ffxivminion.ResizeWindow()
 	GUI_SizeWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 end
 
+
+function ffxiv_task_gather.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" ) then
+		if (Button == "Field_Whitelist Target") then
+			WhitelistTarget()
+		elseif (Button == "Field_Blacklist Target") then
+			BlacklistTarget()
+		end
+	end
+end
+
 -- Register Event Handlers
 RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)
 RegisterEventHandler("Gameloop.Update",ml_global_information.OnUpdate)
 RegisterEventHandler("GUI.Update",ffxivminion.GUIVarUpdate)
 RegisterEventHandler("ffxivminion.OpenSettings", ffxivminion.OpenSettings)
+RegisterEventHandler("GUI.Item",		ffxiv_task_gather.HandleButtons)

@@ -1371,7 +1371,7 @@ function Mount()
 		for k,mount in pairs(mountlist) do
 			if (gMount == mount.name) then
 				mountID = mount.id
-				mountIndex = k
+				mountIndex = tonumber(k)
 			end
 		end
 		
@@ -1399,7 +1399,7 @@ function Dismount()
 				mountID = mount.id
 			end
 		end
-	
+		
 		local acMount = ActionList:Get(mountID,13)
 		if (acMount.isready) then
 			acMount:Cast()
@@ -1444,6 +1444,46 @@ function NodeHasItem(itemName)
     end
     
     return false
+end
+
+function WhitelistTarget()
+	local target = Player:GetTarget()
+	if (target) then
+		local whitelistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+		if (whitelistGlobal ~= "") then
+			whitelistGlobal = whitelistGlobal..";"..tostring(target.contentid)
+		else
+			whitelistGlobal = tostring(target.contentid)
+		end
+		_G["Field_"..strings[gCurrentLanguage].contentIDEquals] = whitelistGlobal
+		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
+		
+		local name = strings[gCurrentLanguage].contentIDEquals
+		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+		end
+	end
+end
+
+function BlacklistTarget()
+	local target = Player:GetTarget()
+	if (target) then
+		local blacklistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals])
+		if (blacklistGlobal ~= "") then
+			blacklistGlobal = blacklistGlobal..";"..tostring(target.contentid)
+		else
+			blacklistGlobal = tostring(target.contentid)
+		end
+		_G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals] = blacklistGlobal
+		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
+		
+		local name = strings[gCurrentLanguage].NOTcontentIDEquals
+		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals])
+			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+		end
+	end
 end
 
 function IsMap(itemid)
