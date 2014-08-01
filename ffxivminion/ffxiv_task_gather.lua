@@ -388,7 +388,7 @@ function e_gather:execute()
             if ( (target ~=nil and target.id ~= node.id) or target == nil or target == {} ) then
                 Player:SetTarget(node.id)
             else
-				--Eat()
+				Eat()
                 Player:Interact(node.id)
 				ml_task_hub:CurrentTask().interactTimer = Now() + 1000
 				ml_task_hub:CurrentTask().gatheredGardening = false

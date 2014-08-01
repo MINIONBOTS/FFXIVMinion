@@ -1422,9 +1422,9 @@ function Eat()
 	local foodID
 	
 	if (gFoodHQ ~= "None") then
-		foodID = foodsHQ[gFoodHQ]
+		foodID = ffxivminion.foodsHQ[gFoodHQ]
 	elseif (gFood ~= "None") then
-		foodID = foods[gFood]
+		foodID = ffxivminion.foods[gFood]
 	end
 			
 	local food = Inventory:Get(foodID)

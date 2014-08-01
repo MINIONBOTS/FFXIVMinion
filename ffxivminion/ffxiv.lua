@@ -111,13 +111,15 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ffxivminion.UpdateFoodOptions()
 	end
 	
-	if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
-		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted) then
-			ml_global_information.foodCheckTimer = tickcount
-			Eat()
+	if (gBotRunning == "1") then
+		if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
+			if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
+				ml_global_information.foodCheckTimer = tickcount
+				Eat()
+			end
 		end
-	end
-    
+    end
+	
     -- Mesher.lua
     mm.OnUpdate( event, tickcount )
     
@@ -444,7 +446,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gTeleport" or
 			k == "gQuestHelpers" or
 			k == "gRepair" or 
-			k == "gUseAetherytes")				
+			k == "gUseAetherytes" or
+			k == "gFood" or
+			k == "gFoodHQ" )				
         then
             Settings.FFXIVMINION[tostring(k)] = v
         elseif ( k == "gBotRunning" ) then
@@ -505,7 +509,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
-function ffxivminion.SetMode(mode)
+function ffxivminion.SetMode(mode)	
 	local wnd = nil
 	if (ml_global_information.lastMode ~= mode) then
 		wnd = GUI_GetWindowInfo(ml_global_information.lastMode)
