@@ -119,43 +119,42 @@ function ffxiv_task_craft:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_craft:OnSleep()
-
-end
-
-function ffxiv_task_craft:OnTerminate()
-
-end
-
-function ffxiv_task_craft:IsGoodToAbort()
-
-end
-
---[[ UI settings etc
 function ffxiv_task_craft.UIInit()
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].ignoreMarkerLevels, "gIgnoreFishLvl",strings[gCurrentLanguage].fishMode)
-	GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].useMooch, "gUseMooch",strings[gCurrentLanguage].fishMode)
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,250,400)
-    
-    if (Settings.FFXIVMINION.gIgnoreFishLvl == nil) then
-        Settings.FFXIVMINION.gIgnoreFishLvl = "0"
+	if ( not ffxivminion.Windows) then
+		ffxivminion.Windows = {}
+	end
+    ffxivminion.Windows.Craft = { Name = GetString("craftMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Craft)
+
+	if ( Settings.FFXIVMINION.gCraftMinCP == nil ) then
+        Settings.FFXIVMINION.gCraftMinCP = 0
     end
 	
-	if (Settings.FFXIVMINION.gUseMooch == nil) then
-        Settings.FFXIVMINION.gUseMooch = "1"
-    end
-    gIgnoreFishLvl = Settings.FFXIVMINION.gIgnoreFishLvl
-	gUseMooch = Settings.FFXIVMINION.gUseMooch
+	local winName = GetString("craftMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	local group = GetString("settings")
+    GUI_NewField(winName,"Minimum CP","gCraftMinCP",group)
+	
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gCraftMinCP = Settings.FFXIVMINION.gCraftMinCP
     
     RegisterEventHandler("GUI.Update",ffxiv_task_craft.GUIVarUpdate)
 end
 
 function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if 	( k == "gIgnoreFishLvl" ) or
-			( k == "gUseMooch" )then
+        if 	( k == "gCraftMinCP" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
-end]]
+    GUI_RefreshWindow(GetString("craftMode"))
+end

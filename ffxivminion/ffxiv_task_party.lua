@@ -112,11 +112,14 @@ end
 
 function ffxiv_task_party.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if ( 	k == "gBotMode" or  k == "gPartyLeaderName" or k == "gPartyGrindUsePartyLeader") then
+        if ( 	k == "gBotMode" or  
+				k == "gPartyLeaderName" or 
+				k == "gPartyGrindUsePartyLeader") 
+		then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end
-    GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
+    GUI_RefreshWindow(GetString("partyMode"))
 end
 
 function ffxiv_task_party.ButtonHandler(arg)
@@ -139,22 +142,42 @@ end
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
 
-    GUI_NewButton(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",strings[gCurrentLanguage].PartyGrind)
-    RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
-    GUI_NewField(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", strings[gCurrentLanguage].PartyGrind)
-    GUI_NewCheckbox(ffxivminion.Windows.Main.Name, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",strings[gCurrentLanguage].PartyGrind)
-    
-    if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
+	ffxivminion.Windows.Party = { Name = GetString("partyMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Party)
+
+	if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
         Settings.FFXIVMINION.gPartyLeaderName = ""
     else
-      gPartyLeaderName = Settings.FFXIVMINION.gPartyLeaderName
+		gPartyLeaderName = Settings.FFXIVMINION.gPartyLeaderName
     end
-  
     if (Settings.FFXIVMINION.gPartyGrindUsePartyLeader == nil) then
         Settings.FFXIVMINION.gPartyGrindUsePartyLeader = "0"
     else
         gPartyGrindUsePartyLeader = Settings.FFXIVMINION.gPartyGrindUsePartyLeader
     end
+	
+	local winName = GetString("partyMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	
+	local group = GetString("settings")
+	GUI_NewButton(winName, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",group)
+    RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
+    GUI_NewField(winName, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", group)
+    GUI_NewCheckbox(winName, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",group)
+
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gPartyLeaderName = Settings.FFXIVMINION.gPartyLeaderName
+	gPartyGrindUsePartyLeader = gPartyGrindUsePartyLeader
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_party.GUIVarUpdate)

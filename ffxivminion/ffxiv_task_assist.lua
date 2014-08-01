@@ -137,14 +137,68 @@ function ffxiv_task_assist:Process()
 	end
 end
 
-function ffxiv_task_assist:OnSleep()
+function ffxiv_task_assist.UIInit()
+	
+	--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.Assist = { Name = GetString("assistMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Assist)
 
+	if ( Settings.FFXIVMINION.gAssistMode == nil ) then
+        Settings.FFXIVMINION.gAssistMode = "None"
+    end
+    if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
+        Settings.FFXIVMINION.gAssistPriority = "Damage"
+    end
+	if (Settings.FFXIVMINION.gStartCombat == nil) then
+        Settings.FFXIVMINION.gStartCombat = "1"
+    end
+	 if (Settings.FFXIVMINION.gConfirmDuty == nil) then
+        Settings.FFXIVMINION.gConfirmDuty = "0"
+    end
+	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
+		Settings.FFXIVMINION.gQuestHelpers = "0"
+	end
+	
+	local winName = GetString("assistMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,"Active Profile","gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewCheckbox(winName,"Filter 1","gPrimaryFilter",group)
+	GUI_NewCheckbox(winName,"Filter 2","gSecondaryFilter",group)
+    
+	local group = GetString("settings")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistPriority,"gAssistPriority",group,"Damage,Healer")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].startCombat,"gStartCombat",group)
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",group) 
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",group)
+	
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gAssistMode = Settings.FFXIVMINION.gAssistMode
+    gAssistPriority = Settings.FFXIVMINION.gAssistPriority
+	gStartCombat = Settings.FFXIVMINION.gStartCombat
+	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
+	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
+	
+	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
 
-function ffxiv_task_assist:OnTerminate()
-
-end
-
-function ffxiv_task_assist:IsGoodToAbort()
-
+function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
+    for k,v in pairs(NewVals) do
+        if 	( 	k == "gAssistMode" or
+				k == "gAssistPriority" or
+				k == "gStartCombat" or
+				k == "gConfirmDuty" or
+				k == "gQuestHelpers" ) then
+            Settings.FFXIVMINION[tostring(k)] = v
+        end
+    end
+    GUI_RefreshWindow(GetString("assistMode"))
 end

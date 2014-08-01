@@ -28,50 +28,56 @@ function ffxiv_task_quest.Create()
 end
 
 function ffxiv_task_quest.UIInit()
-	GUI_NewButton(ffxivminion.Windows.Main.Name,"SetQuest","ffxiv_task_quest.SetQuest",strings[gCurrentLanguage].questMode)
-	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
-	GUI_NewCheckbox(ffxivminion.Windows.Main.Name,"Perform Auto-Equip","gQuestAutoEquip",strings[gCurrentLanguage].questMode)
-	
-	GUI_NewField(ffxivminion.Windows.Main.Name, "QuestID:", "gCurrQuestID",strings[gCurrentLanguage].botStatus)
-	GUI_NewField(ffxivminion.Windows.Main.Name, "ObjectiveIndex:", "gCurrQuestObjective",strings[gCurrentLanguage].botStatus)
-	GUI_NewField(ffxivminion.Windows.Main.Name, "StepIndex:", "gCurrQuestStep",strings[gCurrentLanguage].botStatus)
-	GUI_NewField(ffxivminion.Windows.Main.Name, "StepType:", "gQuestStepType",strings[gCurrentLanguage].botStatus)
-	GUI_NewField(ffxivminion.Windows.Main.Name, "KillCount:", "gQuestKillCount",strings[gCurrentLanguage].botStatus)
-	--GUI_UnFoldGroup(ml_global_information.MainWindow.Name, strings[gCurrentLanguage].questMode)
+--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.Quest = { Name = GetString("questMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Quest)
 	
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
         Settings.FFXIVMINION.gLastQuestProfile = ""
     end
-	
 	if (Settings.FFXIVMINION.gCurrQuestID == nil) then
         Settings.FFXIVMINION.gCurrQuestID = ""
     end
-	
 	if (Settings.FFXIVMINION.completedQuestIDs == nil) then
 		Settings.FFXIVMINION.completedQuestIDs = {}
 	end
-	
-	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
-		Settings.FFXIVMINION.gCurrQuestStep = 0
-	end
-	
 	if (Settings.FFXIVMINION.currentQuestObjective == nil) then
 		Settings.FFXIVMINION.currentQuestObjective = 0
 	end
-	
+	if (Settings.FFXIVMINION.gCurrQuestStep == nil) then
+		Settings.FFXIVMINION.gCurrQuestStep = 0
+	end
 	if (Settings.FFXIVMINION.gTestQuest == nil) then
         Settings.FFXIVMINION.gTestQuest = "0"
     end
-	
 	if (Settings.FFXIVMINION.gQuestAutoEquip == nil) then
 		Settings.FFXIVMINION.gQuestAutoEquip = "1"
 	end
-	
 	if(gBotMode == GetString("questMode")) then
 		ffxiv_task_quest.UpdateProfiles()
 	end
-    
-    GUI_SizeWindow(ffxivminion.Windows.Main.Name,178,357)
+	
+	local winName = GetString("questMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewField(winName, "QuestID:", "gCurrQuestID",group)
+	GUI_NewField(winName, "ObjectiveIndex:", "gCurrQuestObjective",group)
+	GUI_NewField(winName, "StepIndex:", "gCurrQuestStep",group)
+	GUI_NewField(winName, "StepType:", "gQuestStepType",group)
+	GUI_NewField(winName, "KillCount:", "gQuestKillCount",group)
+	local group = GetString("settings")
+    GUI_NewButton(winName,"SetQuest","ffxiv_task_quest.SetQuest",group)
+	RegisterEventHandler("ffxiv_task_quest.SetQuest",ffxiv_task_quest.SetQuest)
+	GUI_NewCheckbox(winName,"Perform Auto-Equip","gQuestAutoEquip",group)
+	
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
 	
 	gCurrQuestID = Settings.FFXIVMINION.gCurrQuestID
 	gCurrQuestStep = Settings.FFXIVMINION.gCurrQuestStep

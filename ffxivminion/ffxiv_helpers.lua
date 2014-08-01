@@ -756,7 +756,7 @@ function GetNearestGatherable(minlevel,maxlevel)
     if (whitelist and whitelist ~= "") then
         el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
     elseif (blacklist and blacklist ~= "") then
-        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude="..blacklist)
+        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
     else
         el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
     end
@@ -815,6 +815,31 @@ function HasBuff(targetid, buffID)
     return false
 end
 
+function HasSkill( skillids )
+	local skills = SkillMgr.SkillProfile
+	--for prio,skill in spairs(SkillMgr.SkillProfile)
+	
+	if (not ValidTable(skills)) then return false end
+	
+	for _orids in StringSplit(skillids,",") do
+		local found = false
+		for _andid in StringSplit(_orids,"+") do
+			found = false
+			for i, skill in pairs(skills) do
+				if (tonumber(skill.id) == tonumber(_andid) and (skill.used == "1")) then 
+					found = true 
+				end
+			end
+			if (not found) then 
+				break
+			end
+		end
+		if (found) then 
+			return true 
+		end
+	end
+	return false
+end
 
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
@@ -1247,6 +1272,14 @@ function InCombatRange(targetid)
 		return true
 	end
 	
+	if (gBotMode == strings[gCurrentLanguage].gatherMode) then
+		local node = EntityList:Get(targetid)
+		if (node and node.distance2d < 4) then
+			return true
+		end
+		return false
+	end
+	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
 	if ( Player.castinginfo.channelingid ~= nil and Player.castinginfo.channeltargetid == targetid) then
 		return true
@@ -1382,6 +1415,21 @@ function Repair()
 				e:Repair()
 			end
 		end
+	end
+end
+
+function Eat()
+	local foodID
+	
+	if (gFoodHQ ~= "None") then
+		foodID = ffxivminion.foodsHQ[gFoodHQ]
+	elseif (gFood ~= "None") then
+		foodID = ffxivminion.foods[gFood]
+	end
+			
+	local food = Inventory:Get(foodID)
+	if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+		food:Use()
 	end
 end
 

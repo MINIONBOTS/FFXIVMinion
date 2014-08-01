@@ -405,9 +405,6 @@ function QM.Init()
 	
 	--Pull starting window fields for whichever type is selected.
 	QM.LoadTypeOptions()
-	
-	--Add the Button to FFXIVMINION window
-	GUI_NewButton(ffxivminion.Windows.Main.Name,strings[gCurrentLanguage].profileManager,"QMToggleMain")
 end
 --**************************************************************************************************************************************
 function QM.GUIVarUpdate(Event, NewVals, OldVals)

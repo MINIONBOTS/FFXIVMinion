@@ -972,7 +972,7 @@ function c_sprint:evaluate()
         return false
     end
 
-    if not HasBuff(Player.id, 50) and not Player.ismounted then
+    if not HasBuff(Player.id, 50) and not Player.ismounted and Player:IsMoving() then
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill.isready) then
@@ -1307,7 +1307,6 @@ function e_returntomarker:execute()
 	end
     if (markerType == GetString("fishingMarker")) then
         newTask.pos.h = markerPos.h
-		d("h value of :"..tostring(markerPos.h).." was used")
         newTask.range = 0.5
         newTask.doFacing = true
     end

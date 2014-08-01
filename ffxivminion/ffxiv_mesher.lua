@@ -73,7 +73,7 @@ function mm.ModuleInit()
 		end
 	end
 
-    local wnd = GUI_GetWindowInfo("FFXIVMinion")
+    local wnd = GUI_GetWindowInfo(GetString("settings"))
     GUI_NewWindow(mm.mainwindow.name,wnd.x+wnd.width,wnd.y,mm.mainwindow.w,mm.mainwindow.h)
     GUI_NewCheckbox(mm.mainwindow.name,strings[gCurrentLanguage].activated,"gMeshMGR",strings[gCurrentLanguage].generalSettings)
     GUI_NewComboBox(mm.mainwindow.name,strings[gCurrentLanguage].navmesh ,"gmeshname",strings[gCurrentLanguage].generalSettings,"")
@@ -364,7 +364,7 @@ function mm.ToggleMenu()
         GUI_WindowVisible(mm.mainwindow.name,false)	
         mm.visible = false
     else
-        local wnd = GUI_GetWindowInfo("FFXIVMinion")	
+        local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)	
         GUI_MoveWindow( mm.mainwindow.name, wnd.x+wnd.width,wnd.y) 
         GUI_WindowVisible(mm.mainwindow.name,true)	
         mm.visible = true
