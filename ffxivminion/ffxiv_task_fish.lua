@@ -89,6 +89,8 @@ end
 
 c_setbait = inheritsFrom( ml_cause )
 e_setbait = inheritsFrom( ml_effect )
+e_setbait.baitid = 0
+e_setbait.baitname = ""
 function c_setbait:evaluate()
     if (ml_task_hub:CurrentTask().missingBait) then
         return false
@@ -99,7 +101,7 @@ function c_setbait:evaluate()
         local marker = ml_task_hub:CurrentTask().currentMarker
         if (marker ~= nil and marker ~= false) then
             local baitName = marker:GetFieldValue(strings[gCurrentLanguage].baitName)
-            if (baitName ~="None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
+            if (baitName ~= "None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
                 --check to see if we have the bait in inventory
                 ml_debug("Looking for bait named "..baitName)
                 for i = 0,4 do
@@ -107,7 +109,8 @@ function c_setbait:evaluate()
                     if (inventory ~= nil and inventory ~= 0) then
                         for _,item in ipairs(inventory) do
                             if item.name == baitName then
-                                e_setbait.bait = item
+                                e_setbait.baitid = item.id
+								e_setbait.baitname = item.name
 								return true
                             end
                         end
@@ -123,8 +126,8 @@ function c_setbait:evaluate()
     return false
 end
 function e_setbait:execute()
-    Player:SetBait(e_setbait.bait.ID)
-    ml_task_hub:CurrentTask().baitName = e_setbait.bait.name
+    Player:SetBait(e_setbait.baitid)
+    ml_task_hub:CurrentTask().baitName = e_setbait.baitname
 end
 
 c_nextfishingmarker = inheritsFrom( ml_cause )

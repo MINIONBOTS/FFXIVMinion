@@ -838,9 +838,7 @@ local obj1 = {
 				[9] = {
 					["mapid"] = 248;
 					["type"] = "dutykill";
-					["ids"] = {
-						[1] = 30;
-					};
+					["ids"] = "30";
 					["itemreward"] = false;
 					["meshname"] = "Central Thanalan";
 					["pos"] = {
@@ -933,173 +931,6 @@ local obj1 = {
 				};
 			};
 		};
-		[321] = {
-			["steps"] = {
-				[6] = {
-					["mapid"] = 141;
-					["type"] = "interact";
-					["delay"] = 4000;
-					["id"] = 2000374;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = 1.4387242794037;
-						["x"] = 60.456619262695;
-						["z"] = 240.48075866699;
-					};
-				};
-				[2] = {
-					["mapid"] = 141;
-					["type"] = "interact";
-					["delay"] = 4000;
-					["id"] = 2000372;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = 1.0785630941391;
-						["x"] = 58.064872741699;
-						["z"] = 247.3106842041;
-					};
-				};
-				[8] = {
-					["mapid"] = 141;
-					["type"] = "complete";
-					["pos"] = {
-						["y"] = 0.938720703125;
-						["x"] = 66.974784851074;
-						["z"] = 254.9400177002;
-					};
-					["id"] = 1001457;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["itemrewardslot"] = 0;
-				};
-				[3] = {
-					["mapid"] = 141;
-					["type"] = "kill";
-					["pos"] = {
-						["y"] = 1.0785630941391;
-						["x"] = 58.064872741699;
-						["z"] = 247.3106842041;
-					};
-					["id"] = 574;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["killcount"] = 1;
-				};
-				[1] = {
-					["mapid"] = 141;
-					["type"] = "start";
-					["id"] = 1001457;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = 0.938720703125;
-						["x"] = 67.245620727539;
-						["z"] = 255.04840087891;
-					};
-				};
-				[4] = {
-					["mapid"] = 141;
-					["type"] = "interact";
-					["delay"] = 4000;
-					["id"] = 2000373;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = 1.3019992113113;
-						["x"] = 66.89599609375;
-						["z"] = 245.73809814453;
-					};
-				};
-				[5] = {
-					["mapid"] = 141;
-					["type"] = "kill";
-					["pos"] = {
-						["y"] = 1.3019992113113;
-						["x"] = 66.89599609375;
-						["z"] = 245.73809814453;
-					};
-					["id"] = 574;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["killcount"] = 1;
-				};
-				[7] = {
-					["mapid"] = 141;
-					["type"] = "kill";
-					["pos"] = {
-						["y"] = 1.4387241601944;
-						["x"] = 60.456619262695;
-						["z"] = 240.48075866699;
-					};
-					["id"] = 574;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["killcount"] = 1;
-				};
-			};
-			["level"] = 6;
-			["prereq"] = {
-				[1] = {
-					[1] = 550;
-				};
-			};
-		};
-		[322] = {
-			["steps"] = {
-				[1] = {
-					["mapid"] = 141;
-					["type"] = "start";
-					["itemturnin"] = false;
-					["id"] = 1001457;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = 0.938720703125;
-						["x"] = 66.974784851074;
-						["z"] = 254.9400177002;
-					};
-				};
-				[2] = {
-					["mapid"] = 141;
-					["type"] = "kill";
-					["itemturnin"] = false;
-					["pos"] = {
-						["y"] = -7;
-						["x"] = 3.1691491603851;
-						["z"] = 162.73960876465;
-					};
-					["id"] = 308;
-					["itemreward"] = false;
-					["meshname"] = "Central Thanalan";
-					["killcount"] = 4;
-				};
-				[3] = {
-					["type"] = "complete";
-					["id"] = 1001460;
-					["itemreward"] = true;
-					["itemrewardslot"] = 0;
-					["itemturninid"] = {
-						[1] = 2000214;
-					};
-					["itemturnin"] = true;
-					["mapid"] = 141;
-					["meshname"] = "Central Thanalan";
-					["pos"] = {
-						["y"] = -11.35000038147;
-						["x"] = -96.346397399902;
-						["z"] = -48.117191314697;
-					};
-				};
-			};
-			["level"] = 7;
-			["prereq"] = {
-				[1] = {
-					[1] = 321;
-				};
-			};
-		};
 		[594] = {
 			["steps"] = {
 				[1] = {
@@ -1151,7 +982,7 @@ local obj1 = {
 					["type"] = "interact";
 					["id"] = 1003817;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["delay"] = 45000;
 					["pos"] = {
 						["y"] = 2.0000050067902;
 						["x"] = -75.885833740234;
@@ -1731,16 +1562,7 @@ local obj1 = {
 				[6] = {
 					["mapid"] = 271;
 					["type"] = "dutykill";
-					["ids"] = {
-						[6] = 949;
-						[2] = 974;
-						[8] = 617;
-						[3] = 971;
-						[1] = 973;
-						[4] = 972;
-						[5] = 945;
-						[7] = 980;
-					};
+					["ids"] = "973;974;971;972;945;949;980";
 					["itemreward"] = false;
 					["meshname"] = "Central Thanalan";
 					["pos"] = {
@@ -3424,11 +3246,7 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 273;
 					["type"] = "dutykill";
-					["ids"] = {
-						[1] = 1277;
-						[2] = 1380;
-						[3] = 1381;
-					};
+					["ids"] = "1277;1380;1381";
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
@@ -3745,10 +3563,7 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 270;
 					["type"] = "dutykill";
-					["ids"] = {
-						[1] = 942;
-						[2] = 945;
-					};
+					["ids"] = "942;945";
 					["itemreward"] = false;
 					["meshname"] = "Central Thanalan";
 					["pos"] = {

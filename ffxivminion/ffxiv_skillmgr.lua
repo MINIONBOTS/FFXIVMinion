@@ -21,7 +21,6 @@ SkillMgr.copiedSkill = {}
 SkillMgr.mplock = false
 SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
-SkillMgr.lastOFFCD = false
 
 
 SkillMgr.GCDSkills = {
@@ -42,8 +41,6 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.ARCANIST] = 163,
 	[FFXIV.JOBS.SUMMONER] = 163,
 	[FFXIV.JOBS.SCHOLAR] = 163,
-	[FFXIV.JOBS.BOTANIST] = 218,
-	[FFXIV.JOBS.MINER] = 235,
 }
 
 SkillMgr.Variables = {
@@ -131,9 +128,13 @@ SkillMgr.Variables = {
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
 	SKM_OFFGCD = { default = "0", cast = "string", profile = "offgcd", section = "fighting" },
 	
-	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
-	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting" },
+	SKM_SKID = { default = "", cast = "string", profile = "skID", section = "fighting" },
+	SKM_SKREADY = { default = "0", cast = "string", profile = "skready", section = "fighting" },
+	SKM_SKNREADY = { default = "0", cast = "string", profile = "sknready", section = "fighting" },
+	SKM_SKCDGTE =  { default = 0, cast = "number", profile = "skcdgte", section = "fighting" },
+	SKM_SKCDLTE =  { default = 0, cast = "number", profile = "skcdlte", section = "fighting" },
 	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
+	
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
@@ -216,14 +217,17 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCBreak,"SKM_CBreak",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmGCD,"SKM_OFFGCD",strings[gCurrentLanguage].basicDetails)
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	--GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	--GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlyParty,"SKM_OnlyParty",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed",strings[gCurrentLanguage].basicDetails)
 	
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isReady,"SKM_SKREADY",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isNotReady,"SKM_SKNREADY",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].checkSkill,"SKM_SKID",strings[gCurrentLanguage].skillChecks)
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].isReady,"SKM_SKREADY",strings[gCurrentLanguage].skillChecks)
+	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].isNotReady,"SKM_SKNREADY",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cooldownRemainingGTE,"SKM_SKCDGTE",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cooldownRemainingLTE,"SKM_SKCDLTE",strings[gCurrentLanguage].skillChecks)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmSTYPE,"SKM_SKTYPE",strings[gCurrentLanguage].skillChecks,"Action,Pet")
 	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL",strings[gCurrentLanguage].playerHPMPTP)
@@ -1027,24 +1031,47 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
 						if ( skill.offgcd == "1" ) then
-							if (SkillMgr.IsGCDReady() or SkillMgr.lastOFFCD) then
+							if (SkillMgr.IsGCDReady()) then
 								castable = false
 							end
 						end
 						
-						--Check that the other skill is ready.
-						if ( skill.skready ~= "") then
-							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( not SkillMgr.IsReady( tonumber(skready), actiontype)) then
-								castable = false
-							end
-						end
+						-- Other skill checks
 						
-						--Check that the other skill is not ready.
-						if ( skill.sknready ~= "") then
+						if (castable and skill.skID ~= "") then
+							
+							local skID = tonumber(skill.skID)
 							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( SkillMgr.IsReady( tonumber(sknready), actiontype)) then
-								castable = false
+							
+							--Check that the other skill is ready.
+							if ( skill.skready == "1") then
+								if ( not SkillMgr.IsReady( skID, actiontype)) then
+									castable = false
+								end
+							end
+							
+							--Check that the other skill is not ready.
+							if ( skill.sknready == "1") then
+								if ( SkillMgr.IsReady( skID, actiontype)) then
+									castable = false
+								end
+							end
+							
+							local cdRemaining = SkillMgr.CooldownRemaining(skID, actiontype)
+							--Check that the cd remaining is >= the skcdgte
+							local cdGTE = tonumber(skill.skcdgte) or 0
+							if ( cdGTE > 0) then
+								if ( cdRemaining < cdGTE ) then
+									castable = false
+								end
+							end
+							
+							--Check that the other skill is not ready.
+							local cdLTE = tonumber(skill.skcdlte) or 0
+							if ( cdLTE > 0 ) then
+								if ( cdRemaining > cdLTE ) then
+									castable = false
+								end
 							end
 						end
 						
@@ -1065,12 +1092,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							SkillMgr.prevSkillID = ""
 						end
 						
-						-- PREVIOUS SKILL
+						-- PREVIOUS SKILL						
 						if ( castable and skill.pskill ~= "") then
 							castable = false
 							if (SkillMgr.prevSkillID ~= "") then
 								for i in skill.pskill:gmatch("%S+") do
-									if ( SkillMgr.prevSkillID == i) then
+									if ( tonumber(SkillMgr.prevSkillID) == tonumber(i)) then
 										castable = true
 										break
 									end
@@ -1082,7 +1109,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						if ( castable and skill.npskill ~= "") then
 							if (SkillMgr.prevSkillID ~= "") then
 								for i in skill.npskill:gmatch("%S+") do
-									if ( SkillMgr.prevSkillID == i) then
+									if ( tonumber(SkillMgr.prevSkillID) == tonumber(i)) then
 										castable = false
 										break
 									end
@@ -1595,18 +1622,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										return true
 									end
 								else
-									if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
+									if ( ActionList:CanCast(tonumber(skill.id), tonumber(TID))) then							
 										--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
 										--If PVP, forceStop a healer to allow them to cast on self.
 										if forceStop then Player:Stop() end
-
-										local action = ActionList:Get(skill.id)
-										if (action:Cast(TID)) then
-											if (skill.offgcd == "1") then
-												SkillMgr.lastOFFCD = true
-											else
-												SkillMgr.lastOFFCD = false
-											end
+										
+										if (ActionList:Cast(tonumber(skill.id), tonumber(TID))) then
 											skill.lastcast = Now()
 											if skill.cbreak == "0" then 
 												SkillMgr.prevSkillID = tostring(skill.id) 
@@ -1764,8 +1785,7 @@ function SkillMgr.Gather( )
 						end
                              
                         if ( castable ) then
-                            --d("CASTING (gathering) : "..tostring(skill.name))
-							
+                            --d("CASTING (gathering) : "..tostring(skill.name))								
                             if ( ActionList:Cast(skill.id,0) ) then									
                                 skill.lastcast = ml_global_information.Now
                                 SkillMgr.prevSkillID = tostring(skill.id)
@@ -2448,9 +2468,8 @@ function SkillMgr.IsGCDReady()
 end
 
 function SkillMgr.IsReady( actionid, actiontype )
-	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
-	local action = ActionList:Get(actionid)
+	local action = ActionList:Get(actionid, actiontype)
 	if (action) then
 		return action.isready
 	end
@@ -2458,12 +2477,22 @@ function SkillMgr.IsReady( actionid, actiontype )
 	return false
 end
 
+function SkillMgr.CooldownRemaining( actionid, actiontype)
+	actiontype = actiontype or 1
+	local action = ActionList:Get(actionid, actiontype)
+	if (action) then
+		return (action.cd - action.cdmax)
+	end
+	
+	return 9999
+end
+
 function SkillMgr.Use( actionid, targetid, actiontype )
 	actiontype = actiontype or 1
 	local tid = targetid or Player.id
 	
 	if (ActionList:CanCast(actionid, tonumber(tid))) then
-		local action = ActionList:Get(actionid)
+		local action = ActionList:Get(actionid, actiontype)
 		if (action) then
 			action:Cast(tid)
 		end

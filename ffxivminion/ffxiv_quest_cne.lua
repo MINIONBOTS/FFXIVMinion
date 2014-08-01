@@ -158,7 +158,7 @@ function e_questmovetopos:execute()
 		local gotoPos = newTask.pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
         
-        if (distance > 10) then
+        if (distance > 20) then
             newTask:SetDelay(2000)
         end
 		
@@ -291,9 +291,9 @@ function c_questkill:evaluate()
 		local el = nil
 		local pos = ml_task_hub:CurrentTask().params["pos"]
 		--if we're close to the kill position then check for any aggro mobs
-		if(Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) < 10) then
-			el = EntityList("shortestpath,onmesh,alive,attackable,targetingme,contentid="..tostring(id))
-		end
+		--if(Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) < 10) then
+			el = EntityList("onmesh,alive,attackable,targetingme,contentid="..tostring(id))
+		--end
 	
 		--otherwise check for mobs not incombat so we get credit for kill
 		if(not ValidTable(el)) then
