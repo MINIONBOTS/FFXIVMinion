@@ -81,8 +81,17 @@ ffxivminion.Strings = {
 		end,
 	Meshes = 
 		function ()
-			local meshes = gmeshname_listitems ~= nil and gmeshname_listitems or ""
-			return meshes
+			local count = 0
+			local meshlist = "none"
+			local meshfilelist = dirlist(mm.navmeshfilepath,".*obj")
+			if ( ValidTable(meshfilelist)) then
+				for i, meshname in pairs(meshfilelist) do
+					meshname = string.gsub(meshname, ".obj", "")
+					meshlist = meshlist..","..meshname
+				end
+			end
+			
+			return meshlist
 		end,
 }
 
@@ -264,7 +273,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gFood = "None" 
 	end
 	
-	local winName = GetString("settings")
+	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	GUI_NewButton(winName, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
@@ -314,20 +323,7 @@ function ffxivminion.HandleInit()
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
-	if (not ml_global_information.TaskUIInit) then
-		-- load task UIs
-		for i, task in pairs(ffxivminion.modes) do
-			task.UIInit()
-		end
-		ml_global_information.TaskUIInit = true
-	end
-	
-	local botModes = ffxivminion.Strings.BotModes()
-	gBotMode_listitems = botModes
-	gBotMode = Settings.FFXIVMINION.gBotMode
-	ffxivminion.SetMode(gBotMode)
-	
-    gEnableLog = Settings.FFXIVMINION.gEnableLog
+	gEnableLog = Settings.FFXIVMINION.gEnableLog
     gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
     gUseMount = Settings.FFXIVMINION.gUseMount
     gUseSprint = Settings.FFXIVMINION.gUseSprint
@@ -351,6 +347,19 @@ function ffxivminion.HandleInit()
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
+	
+	if (not ml_global_information.TaskUIInit) then
+		-- load task UIs
+		for i, task in pairs(ffxivminion.modes) do
+			task.UIInit()
+		end
+		ml_global_information.TaskUIInit = true
+	end
+	
+	local botModes = ffxivminion.Strings.BotModes()
+	gBotMode_listitems = botModes
+	gBotMode = Settings.FFXIVMINION.gBotMode
+	ffxivminion.SetMode(gBotMode)
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
@@ -417,6 +426,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( k == "gBotMode" ) then
             ffxivminion.CheckMode()
+			Settings.FFXIVMINION[tostring(k)] = v
         end
         if (k == "gEnableLog") then
             if ( v == "1" ) then
@@ -451,53 +461,71 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gFoodHQ" )				
         then
             Settings.FFXIVMINION[tostring(k)] = v
-        elseif ( k == "gBotRunning" ) then
+		end
+		
+        if ( k == "gBotRunning" ) then
             ml_task_hub.ToggleRun()
 			if (v == "0") then
 				Player:Stop()
 			end
-		elseif ( k == "gDisableDrawing" ) then
+		end
+		
+		if ( k == "gDisableDrawing" ) then
 			if ( v == "1" ) then
 				GameHacks:Disable3DRendering(true)
 			else
 				GameHacks:Disable3DRendering(false)
 			end
-		elseif ( k == "gSkipCutscene" ) then
+		end
+		
+		if ( k == "gSkipCutscene" ) then
+			d("skipDialogue was changed. new value = "..tostring(v))
 			if ( v == "1" ) then
 				GameHacks:SkipCutscene(true)
 			else
 				GameHacks:SkipCutscene(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
-		elseif ( k == "gSkipDialogue" ) then
+		end
+		
+		if ( k == "gSkipDialogue" ) then
+			d("skipDialogue was changed. new value = "..tostring(v))
 			if ( v == "1" ) then
 				GameHacks:SkipDialogue(true)
 			else
 				GameHacks:SkipDialogue(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
-        elseif ( k == "gClickToTeleport" ) then
+		end
+		
+        if ( k == "gClickToTeleport" ) then
 			if ( v == "1" ) then
 				GameHacks:SetClickToTeleport(true)
 			else
 				GameHacks:SetClickToTeleport(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
-        elseif ( k == "gClickToTravel" ) then
+		end
+		
+        if ( k == "gClickToTravel" ) then
 			if ( v == "1" ) then
 				GameHacks:SetClickToTravel(true)
 			else
 				GameHacks:SetClickToTravel(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
-		elseif ( k == "gUseHQMats" ) then
+		end
+		
+		if ( k == "gUseHQMats" ) then
 			if ( v == "1" ) then
 				Crafting:UseHQMats(true)
 			else
 				Crafting:UseHQMats(false)
 			end
             Settings.FFXIVMINION[tostring(k)] = v
-		elseif ( k == "gGatherPS" ) then
+		end
+		
+		if ( k == "gGatherPS" ) then
             if ( v == "1") then
                 GameHacks:SetPermaSprint(true)
             else
@@ -527,7 +555,6 @@ function ffxivminion.SetMode(mode)
     if (task ~= nil) then
         ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
 		gBotMode = mode
-		Settings.FFXIVMINION.gBotMode = gBotMode
         if (gBotMode == strings[gCurrentLanguage].pvpMode) then
             Player:EnableUnstuckJump(false)
         else
@@ -536,10 +563,16 @@ function ffxivminion.SetMode(mode)
 		
 		if (gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.UpdateProfiles()
+			gSkipCutscene = "1"
+			GameHacks:SkipCutscene(true)
+			gSkipDialogue = "1"
+			GameHacks:SkipDialogue(true)
 		elseif (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
+			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
+			GameHacks:SkipDialogue(true)
 		else
 			gProfile_listitems = "NA"
 			gProfile = "NA"
@@ -781,7 +814,7 @@ end
 
 
 function ffxiv_task_gather.HandleButtons( Event, Button )	
-	if ( Event == "GUI.Item" ) then
+	if ( Event == "GUI.Item" and string.find(Button,"Field)") ~= nil ) then
 		if (Button == "Field_Whitelist Target") then
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then

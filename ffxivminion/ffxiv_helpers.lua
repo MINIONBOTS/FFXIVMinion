@@ -1762,3 +1762,60 @@ function GetArmoryIDsTable()
 	
 	return ids
 end
+
+function EorzeaTime()
+    
+	local et = {}
+    local ratioRealToGame = (1440 / 70)	
+	
+	local jpTime = {}
+	jpTime.year = os.date("!%Y")
+	jpTime.month = os.date("!%m")
+	jpTime.day = os.date("!%d")
+	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0) + 9
+	if (hour >= 24) then
+		jpTime.day = utc.date + 1
+		hour = hour - 24
+	end
+	jpTime.hour = hour
+	jpTime.min = os.date("!%M")
+	jpTime.sec = os.date("!%S")
+	local jpSecs = os.time(jpTime)
+	
+	local epoch = { year = 2010, month = 6, day = 12, hour = 0, min = 0, sec = 0 }
+	local epochSecs = os.time(epoch)
+	
+	local diffTime = (jpSecs - epochSecs) - 90000 
+	
+	local delta = (diffTime * ratioRealToGame)
+	
+	local gameSecond = (delta % 60) or 0
+	delta = delta - gameSecond
+	delta = delta / 60
+	et.second = gameSecond
+
+	local gameMinute = (delta % 60) or 0
+	delta = delta - gameMinute
+	delta = delta / 60
+	et.minute = gameMinute
+
+	local gameHour = (delta % 24) or 0
+	delta = delta - gameHour
+	delta = delta / 24
+	et.hour = gameHour
+	
+	local gameDay = (delta % 32) or 0
+	delta = delta - gameDay
+	delta = delta / 32
+	et.day = gameDay
+	
+	local gameMonth = (delta % 12) or 0
+	delta = delta - gameMonth
+	delta = delta / 12
+	et.month = gameMonth
+	
+	local gameYear = delta or 0
+	et.year = gameYear
+	
+	return et
+end

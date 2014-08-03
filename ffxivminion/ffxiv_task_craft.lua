@@ -136,7 +136,7 @@ function ffxiv_task_craft.UIInit()
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	--GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	local group = GetString("settings")
     GUI_NewField(winName,"Minimum CP","gCraftMinCP",group)

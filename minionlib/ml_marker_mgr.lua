@@ -320,6 +320,9 @@ function ml_marker_mgr.AddMarkerToList()
 		if (ValidTable(lastMarker)) then
 			marker.order = lastMarker.order + 1
 			ml_marker_mgr.RefreshMarkerNames()
+		else
+			marker.order = 1
+			ml_marker_mgr.RefreshMarkerNames()
 		end
 	end
 end
