@@ -363,7 +363,7 @@ c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
 c_avoid.target = nil
 function c_avoid:evaluate()	
-	if (gAvoid == "0") then
+	if (gAvoidAOE == "0") then
 		return false
 	end
 	
@@ -375,7 +375,8 @@ function c_avoid:evaluate()
 				local distance = Distance2D(Player.pos.x, Player.pos.z, e.pos.x, e.pos.z)
 				if not (e.castinginfo.casttime < 1.5 
 					or (distance > 15 and e.castinginfo.channeltargetid == e.id) 
-					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)) then
+					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
+					or (e.level ~= nil and e.level ~= 0 and Player.level > e.level + 5)) then
 					c_avoid.target = e
 					return true
 				end
@@ -385,7 +386,7 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (target == nil or TableSize(target.castinginfo) == 0) then
+	if (target == nil or TableSize(target.castinginfo) == 0 or (Player.level > target.level + 5)) then
 		return false
 	end
 	

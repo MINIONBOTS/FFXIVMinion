@@ -387,14 +387,18 @@ function e_roll:execute()
 			if (ml_task_hub:CurrentTask().rollstate == "Need") then
 				if (gLootOption == "Need" or gLootOption == "Any") then 
 					e:Need()
+					ml_task_hub:CurrentTask().rollstate = "Greed"
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
+					return
 				end
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
 				if (gLootOption == "Greed" or gLootOption == "Any") then 
-					e:Greed() 
+					e:Greed()
+					ml_task_hub:CurrentTask().rollstate = "Pass"					
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
+					return
 				end
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end

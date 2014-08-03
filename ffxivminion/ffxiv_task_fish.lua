@@ -20,15 +20,56 @@ function ffxiv_task_fish.Create()
     newinst.castFailTimer = 0
 	newinst.filterLevel = true
     newinst.missingBait = false
+	newinst.networkLatency = 0
+	newinst.requiresAdjustment = false
     
     return newinst
+end
+
+c_precastbuff = inheritsFrom( ml_cause )
+e_precastbuff = inheritsFrom( ml_effect )
+e_precastbuff.id = 0
+function c_precastbuff:evaluate()
+	local fs = tonumber(Player:GetFishingState())
+	if (fs == 0 or fs == 4) then	
+		local foodID = 0
+		if (gFoodHQ ~= "None") then
+			foodID = ffxivminion.foodsHQ[gFoodHQ]
+		elseif (gFood ~= "None") then
+			foodID = ffxivminion.foods[gFood]
+		end
+		
+		if foodID ~= 0 then
+			local food = Inventory:Get(foodID)
+			if (ValidTable(food) and not HasBuffs(Player,"48")) then
+				e_precastbuff.id = foodID
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_precastbuff:execute()
+	local finishcast = ActionList:Get(299,1)
+    if (finishcast and finishcast.isready) then
+        finishcast:Cast()
+		ml_task_hub:CurrentTask().networkLatency = Now() + 1000
+    end
+	if (Now() > ml_task_hub:CurrentTask().networkLatency) then
+		local food = Inventory:Get(e_precastbuff.id)
+		if (food) then
+			food:Use()
+			ml_task_hub:CurrentTask().networkLatency = Now() + 1000
+		end
+	end	
 end
 
 c_cast = inheritsFrom( ml_cause )
 e_cast = inheritsFrom( ml_effect )
 function c_cast:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (ml_global_information.Now > castTimer) then
+    if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
             return true
@@ -40,10 +81,13 @@ function e_cast:execute()
     local mooch = ActionList:Get(297,1)
     if (mooch) and Player.level > 24 and (mooch.isready) then
         mooch:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
     else
         local cast = ActionList:Get(289,1)
-        if (cast and cast.isready) then			
+        if (cast and cast.isready) then	
+			Player:SetFacing(Player.pos.h)
             cast:Cast()
+			ml_task_hub:CurrentTask().castTimer = Now() + 1500
         end
     end
 end
@@ -71,13 +115,10 @@ end
 c_bite = inheritsFrom( ml_cause )
 e_bite = inheritsFrom( ml_effect )
 function c_bite:evaluate()
-    local castTimer = ml_task_hub:CurrentTask().castTimer
-    if (ml_global_information.Now > castTimer) then
-        local fs = tonumber(Player:GetFishingState())
-        if( fs == 5 ) then -- FISHSTATE_BITE
-            return true
-        end
-    end
+	local fs = tonumber(Player:GetFishingState())
+	if( fs == 5 ) then -- FISHSTATE_BITE
+		return true
+	end
     return false
 end
 function e_bite:execute()
@@ -186,6 +227,61 @@ function e_nextfishingmarker:execute()
     ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
 	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
+	ml_task_hub:CurrentTask().requiresAdjustment = true
+end
+
+c_syncadjust = inheritsFrom( ml_cause )
+e_syncadjust = inheritsFrom( ml_effect )
+function c_syncadjust:evaluate()
+	local fs = tonumber(Player:GetFishingState())
+	if( fs == 0 and ml_task_hub:CurrentTask().requiresAdjustment ) then -- FISHSTATE_BITE
+		return true
+	end
+    return false
+end
+function e_syncadjust:execute()
+    local newTask = ffxiv_task_syncadjust.Create()
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+ffxiv_task_syncadjust = inheritsFrom(ml_task)
+function ffxiv_task_syncadjust.Create()
+    local newinst = inheritsFrom(ffxiv_task_syncadjust)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_killtarget members
+    newinst.name = "SYNC_ADJUSTMENT"
+	newinst.timer = 0
+    
+    return newinst
+end
+
+function ffxiv_task_syncadjust:Init()   
+	Player:Move(FFXIV.MOVEMENT.FORWARD)
+	self.timer = Now() + 500
+	
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_syncadjust:task_complete_eval()		
+	if ( Now() > self.timer) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_task_syncadjust:task_complete_execute()
+    Player:Stop()
+	self:ParentTask().requiresAdjustment = false
+	self.completed = true
 end
 
 function ffxiv_task_fish:Init()
@@ -210,6 +306,12 @@ function ffxiv_task_fish:Init()
     
     local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
     self:add(ke_setbait, self.process_elements)
+	
+	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 8)
+	self:add(ke_syncadjust, self.process_elements)
+	
+	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 7 )
+    self:add(ke_precast, self.process_elements)
     
     local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 5 )
     self:add(ke_cast, self.process_elements)

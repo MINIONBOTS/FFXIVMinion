@@ -240,16 +240,14 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
-	if (self.doFacing) then
-        Player:SetFacing(self.pos.h)
-    end
     Player:Stop()
 	if (self.doFacing) then
         Player:SetFacing(self.pos.h)
     end
+	
 	if (not self.remainMounted) then
 		Dismount()
-	end
+	end	
 	NavigationManager:ClearAvoidanceAreas()
 	
 	if (self:ParentTask().name == "LT_KILLTARGET") then

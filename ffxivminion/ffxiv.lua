@@ -273,6 +273,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gFood == nil) then
 		Settings.FFXIVMINION.gFood = "None" 
 	end
+	if (Settings.FFXIVMINION.gAvoidAOE == nil) then
+		Settings.FFXIVMINION.gAvoidAOE = "0" 
+	end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -304,6 +307,7 @@ function ffxivminion.HandleInit()
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
 	GUI_NewComboBox(winName,"Food", 	"gFood", group, "None")
 	GUI_NewComboBox(winName,"HQ Food", 	"gFoodHQ", group, "None")
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].avoidAOE, "gAvoidAOE",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
@@ -335,6 +339,7 @@ function ffxivminion.HandleInit()
     gAutoStart = Settings.FFXIVMINION.gAutoStart
     gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
     gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
@@ -459,7 +464,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gRepair" or 
 			k == "gUseAetherytes" or
 			k == "gFood" or
-			k == "gFoodHQ" )				
+			k == "gFoodHQ" or 
+			k == "gAvoidAOE" )				
         then
             Settings.FFXIVMINION[tostring(k)] = v
 		end
@@ -578,9 +584,11 @@ function ffxivminion.SetMode(mode)
 			gSkipDialogue = "1"
 			Settings.FFXIVMINION.gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
+			gAvoidAOE = "1"
 		else
 			GameHacks:SkipCutscene(Settings.FFXIVMINION.gSkipCutscene == "1")
 			GameHacks:SkipDialogue(Settings.FFXIVMINION.gSkipDialogue == "1")
+			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gProfile_listitems = "NA"
 			gProfile = "NA"
 		end

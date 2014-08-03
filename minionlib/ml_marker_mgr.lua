@@ -275,6 +275,7 @@ function ml_marker_mgr.DeleteMarker(oldMarker)
 				list[name] = nil
 				RenderManager:RemoveObject(ml_marker_mgr.renderList[name])
 				ml_marker_mgr.renderList[name] = nil
+				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				return true
 			end
 		end
@@ -332,17 +333,28 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
     local list = ml_marker_mgr.GetList(markerType, true)
     if (ValidTable(list)) then
         local orderedList = {}
+		
         for name, marker in pairs(list) do
             orderedList[marker.order] = marker
         end
         
         if (ValidTable(orderedList)) then
             local counter = 1
-            for order, marker in pairsByKeys(orderedList) do
+            for order, marker in spairs(orderedList) do
                 marker.order = counter
                 counter = counter + 1
             end
         end
+	
+		for name, marker in pairs(ml_marker_mgr.markerList[markerType]) do
+			for order, modMarker in pairs(orderedList) do
+				if modMarker.name == name then
+					marker.order = order
+				end
+			end
+		end
+		
+		ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
     end
 end
 
@@ -429,6 +441,8 @@ end
 
 function ml_marker_mgr.RefreshMarkerNames()
 	if (ValidTable(ml_marker_mgr.markerList)) then
+		ml_marker_mgr.CleanMarkerOrder(gMarkerMgrType)
+		
 		local list = ml_marker_mgr.GetList(gMarkerMgrType, false)
 		if (ValidTable(list)) then
 			local markerNameList = GetComboBoxList(list)
@@ -460,6 +474,9 @@ end
 
 function ml_marker_mgr.RefreshMarkerList()
 	if (ValidTable(ml_marker_mgr.markerList)) then
+	
+		ml_marker_mgr.CleanMarkerOrder(gMarkerMgrType)
+		
 		local window = GUI_GetWindowInfo(ml_marker_mgr.mainwindow.name)
 		GUI_DeleteGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
 		
