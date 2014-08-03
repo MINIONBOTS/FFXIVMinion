@@ -1819,3 +1819,14 @@ function EorzeaTime()
 	
 	return et
 end
+
+function GetQuestByID(questID)
+	local list = Quest:GetQuestList()
+	if(ValidTable(list)) then
+		for id, quest in pairs(list) do
+			if(id == questID) then
+				return quest
+			end
+		end
+	end
+end

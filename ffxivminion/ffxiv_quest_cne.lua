@@ -9,6 +9,10 @@ function quest_step_complete_eval()
 end
 
 function quest_step_complete_execute()
+	if (ml_global_information.disableFlee) then
+		ml_global_information.disableFlee = false
+	end
+
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
 	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
@@ -316,15 +320,10 @@ function e_questkill:execute()
 	newTask.targetid = e_questkill.id
 	newTask.task_complete_execute = 
 		function()
-			local count = ml_task_hub:CurrentTask():ParentTask().killCount
-			if(not count) then
-				ml_task_hub:CurrentTask():ParentTask().killCount = 1
-			else
-				ml_task_hub:CurrentTask():ParentTask().killCount = count + 1
-			end
-			Settings.FFXIVMINION.questKillCount = ml_task_hub:CurrentTask():ParentTask().killCount
-			gQuestKillCount = ml_task_hub:CurrentTask():ParentTask().killCount
+			ffxiv_task_quest.killTaskCompleted = true
 			ml_task_hub:CurrentTask().completed = true
+			--set a delay to give the inckillcount cne time to check quest flag update from server
+			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 	newTask.task_fail_evaluate = 
 		function()
@@ -355,26 +354,6 @@ function c_questprioritykill:evaluate()
 			end	
 		end
 	end
-	
-	--[[
-    if (ValidTable(ids)) then
-		for prio, id in pairsByKeys(ids) do
-			--don't bother checking for targets lower or equal priority vs our current
-			local currentPrio = ml_task_hub:ThisTask().currentPrio
-			if ((currentPrio > 0 and prio < currentPrio) or currentPrio == 0) then
-				local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..tostring(id))
-				if (ValidTable(el)) then
-					local id, entity = next(el)
-					if(entity) then
-						e_questprioritykill.id = id
-						ml_task_hub:ThisTask().currentPrio = prio
-						return true
-					end
-				end
-			end
-		end
-    end
-	--]]
 	
 	return false
 end
@@ -601,7 +580,13 @@ function c_questuseaction:evaluate()
 end
 function e_questuseaction:execute()
 	if(ml_task_hub:CurrentTask().params["id"]) then
-		Player:SetTarget(ml_task_hub:CurrentTask().params["actionid"])
+		local list = EntityList("contentid="..tostring(ml_task_hub:ThisTask().params["id"]))
+		if(ValidTable(list)) then
+			local id, target = next(list)
+			if(ValidTable(target)) then
+				Player:SetTarget(target.id)
+			end
+		end
 	end
 	
 	e_questuseaction.action:Cast()
@@ -672,6 +657,10 @@ c_questflee = inheritsFrom( ml_cause )
 e_questflee = inheritsFrom( ml_effect )
 e_questflee.fleeing = false
 function c_questflee:evaluate()
+	if (ml_global_information.disableFlee) then
+		return false
+	end
+	
     if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)))) or e_flee.fleeing
     then
         return true
@@ -756,4 +745,37 @@ function e_equipnewitems:execute()
 	else
 		ffxiv_task_quest.armoryTable = GetArmoryIDsTable()
 	end
+end
+
+--increment killcount
+c_inckillcount = inheritsFrom( ml_cause )
+e_inckillcount = inheritsFrom( ml_effect )
+function c_inckillcount:evaluate()
+	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
+	if(ValidTable(questTable)) then
+		local questFlags = questTable.I16A + questTable.I16B + questTable.I16C
+		
+		if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.questFlags ~= questFlags) then
+			e_inckillcount.questFlags = questFlags
+			return true
+		elseif(ffxiv_task_quest.backupKillCount > 5) then
+			--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
+			--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
+			return true
+		elseif(ffxiv_task_quest.killTaskCompleted) then
+			ffxiv_task_quest.backupKillCount = ffxiv_task_quest.backupKillCount + 1
+		end
+	end
+	
+	return false
+end
+function e_inckillcount:execute()
+	ffxiv_task_quest.killCount = ffxiv_task_quest.killCount + 1
+	ffxiv_task_quest.backupKillCount = 0
+	ffxiv_task_quest.killTaskCompleted = false
+	ffxiv_task_quest.questFlags = e_inckillcount.questFlags
+	
+	Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
+	gQuestKillCount = ffxiv_task_quest.killCount
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end

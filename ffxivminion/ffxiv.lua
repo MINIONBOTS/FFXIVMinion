@@ -21,6 +21,7 @@ ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
 ml_global_information.repairTimer = 0
 ml_global_information.windowTimer = 0
+ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
@@ -564,16 +565,22 @@ function ffxivminion.SetMode(mode)
 		if (gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
+			Settings.FFXIVMINION.gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
+			Settings.FFXIVMINION.gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 		elseif (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
+			Settings.FFXIVMINION.gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
+			Settings.FFXIVMINION.gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 		else
+			GameHacks:SkipCutscene(Settings.FFXIVMINION.gSkipCutscene == "1")
+			GameHacks:SkipDialogue(Settings.FFXIVMINION.gSkipDialogue == "1")
 			gProfile_listitems = "NA"
 			gProfile = "NA"
 		end
@@ -812,9 +819,8 @@ function ffxivminion.ResizeWindow()
 	GUI_SizeWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 end
 
-
-function ffxiv_task_gather.HandleButtons( Event, Button )	
-	if ( Event == "GUI.Item" and string.find(Button,"Field)") ~= nil ) then
+function ffxivminion.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" and string.find(Button,"Field_") ~= nil ) then
 		if (Button == "Field_Whitelist Target") then
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then
@@ -828,4 +834,4 @@ RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)
 RegisterEventHandler("Gameloop.Update",ml_global_information.OnUpdate)
 RegisterEventHandler("GUI.Update",ffxivminion.GUIVarUpdate)
 RegisterEventHandler("ffxivminion.OpenSettings", ffxivminion.OpenSettings)
-RegisterEventHandler("GUI.Item",		ffxiv_task_gather.HandleButtons)
+RegisterEventHandler("GUI.Item",		ffxivminion.HandleButtons)
