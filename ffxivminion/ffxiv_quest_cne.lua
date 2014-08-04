@@ -150,8 +150,9 @@ function e_questmovetopos:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.use3d = true
+	newTask.postDelay = 1500
 	
-	if(gTeleport == "1") then
+	if (gTeleport == "1") then
 		newTask.useTeleport = true
 		--have to add a general delay before teleporting because it breaks lots of quest logic 
 		--if the bot teleports before the server updates the client with updated quest data
@@ -518,6 +519,10 @@ end
 c_questuseitem = inheritsFrom( ml_cause )
 e_questuseitem = inheritsFrom( ml_effect )
 function c_questuseitem:evaluate()
+	if (ml_task_hub:CurrentTask():IsDelayed()) then
+		return false
+	end
+	
 	if(ml_task_hub:CurrentTask().params["itemid"]) then
 		local id = ml_task_hub:CurrentTask().params["itemid"]
 		local item = Inventory:Get(id)

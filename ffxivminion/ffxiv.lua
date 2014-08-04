@@ -571,24 +571,22 @@ function ffxivminion.SetMode(mode)
 		if (gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
-			Settings.FFXIVMINION.gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
-			Settings.FFXIVMINION.gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 		elseif (gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
-			Settings.FFXIVMINION.gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
-			Settings.FFXIVMINION.gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
 		else
-			GameHacks:SkipCutscene(Settings.FFXIVMINION.gSkipCutscene == "1")
-			GameHacks:SkipDialogue(Settings.FFXIVMINION.gSkipDialogue == "1")
+			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+			GameHacks:SkipCutscene(gSkipDialogue == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gProfile_listitems = "NA"
 			gProfile = "NA"
 		end

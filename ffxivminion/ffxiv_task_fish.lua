@@ -78,8 +78,10 @@ function c_cast:evaluate()
     return false
 end
 function e_cast:execute()
+	local marker = ml_task_hub:CurrentTask().currentMarker
+	local useMooch = marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1" and true or false
     local mooch = ActionList:Get(297,1)
-    if (mooch) and Player.level > 24 and (mooch.isready) then
+    if (mooch) and Player.level > 24 and (mooch.isready) and useMooch then
         mooch:Cast()
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
     else
@@ -343,7 +345,7 @@ function ffxiv_task_fish.UIInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	local group = GetString("settings")
-    --GUI_NewField(winName,"SomeVar","gPlaceholder",group)
+    --GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
@@ -361,6 +363,8 @@ function ffxiv_task_fish.SetupMarkers()
     local fishingMarker = ml_marker:Create("fishingTemplate")
 	fishingMarker:SetType(strings[gCurrentLanguage].fishingMarker)
 	fishingMarker:AddField("string", strings[gCurrentLanguage].baitName, "")
+	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useMooch, "0")
+	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)
     fishingMarker:SetMaxLevel(50)

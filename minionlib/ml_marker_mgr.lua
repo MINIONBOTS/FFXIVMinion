@@ -502,8 +502,15 @@ end
 function ml_marker_mgr.CreateEditWindow(marker)
 	if (ValidTable(marker)) then
 		ml_marker_mgr.currentEditMarker = marker
+		
+		local templateMarker = ml_marker_mgr.templateList[gMarkerMgrType]
+		for fieldName, fieldTable in pairs(templateMarker.fields) do
+			if not (marker:HasField(fieldName)) then
+				marker:AddField(marker:GetFieldType(fieldName), fieldName, marker:GetFieldValue(fieldName))
+			end
+		end
+		
 		GUI_DeleteGroup(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].markerFields)
-
 		local fieldNames = marker:GetFieldNames()
 		if (ValidTable(fieldNames)) then
 			for _, name in pairsByKeys(fieldNames) do
@@ -514,6 +521,8 @@ function ml_marker_mgr.CreateEditWindow(marker)
 					GUI_NewNumeric(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				elseif (fieldType == "button") then
 					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+				elseif (fieldType == "checkbox") then
+					GUI_NewCheckbox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				end
 				
 				if (fieldType ~= "button") then
@@ -581,11 +590,15 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 			ml_marker_mgr.currentEditMarker = nil
 		elseif (string.sub(k,1,6) == "Field_") then
+			d("edited field = "..tostring(string.sub(k,7)))
 			local name = string.sub(k,7)
 			if (ValidTable(ml_marker_mgr.currentEditMarker)) then
 				local value = nil
 				if (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "string") then
 					value = v
+				elseif (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "checkbox") then
+					d("value is a checkbox type, v ="..tostring(v))
+					value = tostring(v)
 				else
 					value = tonumber(v)
 				end
