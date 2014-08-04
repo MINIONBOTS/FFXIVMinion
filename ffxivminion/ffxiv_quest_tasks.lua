@@ -229,7 +229,7 @@ function ffxiv_quest_interact:Init()
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)
 	
-	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 20 )
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
     self:add( ke_killAggroTarget, self.process_elements)
 	
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
@@ -237,7 +237,6 @@ function ffxiv_quest_interact:Init()
 
 	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
-	--self.task_fail_eval = function() return c_killaggrotarget:evaluate() end
 	self:AddTaskCheckCEs()
 end
 

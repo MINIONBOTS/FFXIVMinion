@@ -378,7 +378,7 @@ function c_atinteract:evaluate()
 		return false
 	end
 
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and not ml_task_hub:CurrentTask():ParentTask().name == "LT_KILLTARGET") then
 		local id = ml_task_hub:ThisTask().params["id"]
 		if (id and id > 0) then
 			local el = EntityList("contentid="..tostring(id))
@@ -778,4 +778,30 @@ function e_inckillcount:execute()
 	Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
 	gQuestKillCount = ffxiv_task_quest.killCount
 	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_questkillaggrotarget = inheritsFrom( ml_cause )
+e_questkillaggrotarget = inheritsFrom( ml_effect )
+function c_questkillaggrotarget:evaluate()
+	local el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+				c_questkillaggrotarget.targetid = target.id
+				return true
+			end
+		end
+	end
+    
+    return false
+end
+function e_questkillaggrotarget:execute()
+	--just in case
+	Dismount()
+	
+	local newTask = ffxiv_task_killtarget.Create()
+    newTask.targetid = c_questkillaggrotarget.targetid
+	Player:SetTarget(c_questkillaggrotarget.targetid)
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
