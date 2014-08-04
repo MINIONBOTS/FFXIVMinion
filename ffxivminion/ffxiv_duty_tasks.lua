@@ -362,13 +362,10 @@ end
 c_roll = inheritsFrom( ml_cause )
 e_roll = inheritsFrom( ml_effect )
 function c_roll:evaluate()
-	ml_debug("C_Roll, Inventory:HasLoot():"..tostring(Inventory:HasLoot()))
 	if (not Inventory:HasLoot()) then
 		return false	
 	end
 	
-	ml_debug("C_Roll, Now():"..tostring(Now()))
-	ml_debug("C_Roll, latencyTimer:"..tostring(ml_task_hub:CurrentTask().latencyTimer))
 	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
 		return false
 	end
@@ -389,15 +386,19 @@ function e_roll:execute()
 		while (i~=nil and e~=nil) do    
 			if (ml_task_hub:CurrentTask().rollstate == "Need") then
 				if (gLootOption == "Need" or gLootOption == "Any") then 
-					e:Need() 
+					e:Need()
+					ml_task_hub:CurrentTask().rollstate = "Greed"
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
+					return
 				end
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
 				if (gLootOption == "Greed" or gLootOption == "Any") then 
-					e:Greed() 
+					e:Greed()
+					ml_task_hub:CurrentTask().rollstate = "Pass"					
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
+					return
 				end
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
@@ -416,20 +417,13 @@ end
 c_loot = inheritsFrom( ml_cause )
 e_loot = inheritsFrom( ml_effect )
 c_loot.chestid = 0
-function c_loot:evaluate()
-	ml_debug("C_Loot, Now():"..tostring(Now()))
-	ml_debug("C_Loot, latencyTimer:"..tostring(ml_task_hub:CurrentTask().latencyTimer))
-	
+function c_loot:evaluate()	
 	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
 		return false
 	end
 	ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 	
-	ml_debug("C_Loot, condition1:"..tostring(IsDutyLeader()))
-	ml_debug("C_Loot, condition2:"..tostring(ml_task_hub:CurrentTask().hasChest))
-	
 	if (IsDutyLeader() and ml_task_hub:CurrentTask().hasChest) then
-		ml_debug("C_Loot, condition3:"..tostring(not Inventory:HasLoot()))
 		if (not Inventory:HasLoot()) then
 			local chests = nil
 			if (not ml_task_hub:CurrentTask().encounterData.lootid) then
@@ -438,7 +432,6 @@ function c_loot:evaluate()
 				chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 			end
 			
-			ml_debug("C_Loot, condition4:"..tostring(ValidTable(chests)))
 			if ( ValidTable(chests) ) then
 				for i, chest in pairs(chests) do
 					ml_debug("C_Loot, condition5:"..tostring(chest.targetable))
@@ -471,7 +464,7 @@ function e_loot:execute()
 	local pos = chest.pos
 	SetFacing(pos.x,pos.y,pos.z)
 	Player:Interact(chest.id)
-	ml_task_hub:CurrentTask().latencyTimer = Now() + 2000
+	ml_task_hub:CurrentTask().latencyTimer = Now() + 500
 end
 
 ffxiv_task_loot = inheritsFrom(ml_task)

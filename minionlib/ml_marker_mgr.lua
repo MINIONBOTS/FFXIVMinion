@@ -275,6 +275,7 @@ function ml_marker_mgr.DeleteMarker(oldMarker)
 				list[name] = nil
 				RenderManager:RemoveObject(ml_marker_mgr.renderList[name])
 				ml_marker_mgr.renderList[name] = nil
+				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				return true
 			end
 		end
@@ -320,6 +321,9 @@ function ml_marker_mgr.AddMarkerToList()
 		if (ValidTable(lastMarker)) then
 			marker.order = lastMarker.order + 1
 			ml_marker_mgr.RefreshMarkerNames()
+		else
+			marker.order = 1
+			ml_marker_mgr.RefreshMarkerNames()
 		end
 	end
 end
@@ -329,17 +333,28 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
     local list = ml_marker_mgr.GetList(markerType, true)
     if (ValidTable(list)) then
         local orderedList = {}
+		
         for name, marker in pairs(list) do
             orderedList[marker.order] = marker
         end
         
         if (ValidTable(orderedList)) then
             local counter = 1
-            for order, marker in pairsByKeys(orderedList) do
+            for order, marker in spairs(orderedList) do
                 marker.order = counter
                 counter = counter + 1
             end
         end
+	
+		for name, marker in pairs(ml_marker_mgr.markerList[markerType]) do
+			for order, modMarker in pairs(orderedList) do
+				if modMarker.name == name then
+					marker.order = order
+				end
+			end
+		end
+		
+		ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
     end
 end
 
@@ -426,6 +441,8 @@ end
 
 function ml_marker_mgr.RefreshMarkerNames()
 	if (ValidTable(ml_marker_mgr.markerList)) then
+		ml_marker_mgr.CleanMarkerOrder(gMarkerMgrType)
+		
 		local list = ml_marker_mgr.GetList(gMarkerMgrType, false)
 		if (ValidTable(list)) then
 			local markerNameList = GetComboBoxList(list)
@@ -457,6 +474,9 @@ end
 
 function ml_marker_mgr.RefreshMarkerList()
 	if (ValidTable(ml_marker_mgr.markerList)) then
+	
+		ml_marker_mgr.CleanMarkerOrder(gMarkerMgrType)
+		
 		local window = GUI_GetWindowInfo(ml_marker_mgr.mainwindow.name)
 		GUI_DeleteGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
 		
@@ -482,8 +502,15 @@ end
 function ml_marker_mgr.CreateEditWindow(marker)
 	if (ValidTable(marker)) then
 		ml_marker_mgr.currentEditMarker = marker
+		
+		local templateMarker = ml_marker_mgr.templateList[gMarkerMgrType]
+		for fieldName, fieldTable in pairs(templateMarker.fields) do
+			if not (marker:HasField(fieldName)) then
+				marker:AddField(marker:GetFieldType(fieldName), fieldName, marker:GetFieldValue(fieldName))
+			end
+		end
+		
 		GUI_DeleteGroup(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].markerFields)
-
 		local fieldNames = marker:GetFieldNames()
 		if (ValidTable(fieldNames)) then
 			for _, name in pairsByKeys(fieldNames) do
@@ -494,6 +521,8 @@ function ml_marker_mgr.CreateEditWindow(marker)
 					GUI_NewNumeric(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				elseif (fieldType == "button") then
 					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+				elseif (fieldType == "checkbox") then
+					GUI_NewCheckbox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				end
 				
 				if (fieldType ~= "button") then
@@ -561,11 +590,15 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 			ml_marker_mgr.currentEditMarker = nil
 		elseif (string.sub(k,1,6) == "Field_") then
+			d("edited field = "..tostring(string.sub(k,7)))
 			local name = string.sub(k,7)
 			if (ValidTable(ml_marker_mgr.currentEditMarker)) then
 				local value = nil
 				if (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "string") then
 					value = v
+				elseif (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "checkbox") then
+					d("value is a checkbox type, v ="..tostring(v))
+					value = tostring(v)
 				else
 					value = tonumber(v)
 				end

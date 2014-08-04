@@ -127,7 +127,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.obstacleTimer = 0
 	newinst.use3d = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
-	newinst.reason = ""
+	newinst.postDelay = 0
     
     return newinst
 end
@@ -240,16 +240,14 @@ function ffxiv_task_movetopos:task_complete_eval()
 end
 
 function ffxiv_task_movetopos:task_complete_execute()
-	if (self.doFacing) then
-        Player:SetFacing(self.pos.h)
-    end
     Player:Stop()
 	if (self.doFacing) then
-        Player:SetFacing(self.pos.h)
+        Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
     end
+	
 	if (not self.remainMounted) then
 		Dismount()
-	end
+	end	
 	NavigationManager:ClearAvoidanceAreas()
 	
 	if (self:ParentTask().name == "LT_KILLTARGET") then
@@ -260,8 +258,10 @@ function ffxiv_task_movetopos:task_complete_execute()
 			Player:SetFacing(tpos.x, tpos.y, tpos.z)
 		end
 	end
-    
     ml_task_hub:CurrentTask().completed = true
+	if (self.postDelay > 0) then
+		self:ParentTask():SetDelay(self.postDelay)
+	end
 end
 
 ----------------------------------------------------------------------------------------------------------
