@@ -426,6 +426,8 @@ function ffxivminion.HandleInit()
     
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
+	
+	ffxivminion.UpdateFoodOptions()
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)	
@@ -776,22 +778,32 @@ function ffxivminion.UpdateFoodOptions()
 	for x = 0, 3 do
 		local inv = Inventory("category=5,type="..tostring(x))
 		if ( inv ) then
-			local i,item = next(inv)
-			while (i~=nil and item~=nil) do
+			for i, item in pairs(inv) do
 				if (item.id > 10000) then
-					ffxivminion.foodsHQ[item.name] = item.id  
+					if (ffxivminion.foodsHQ[item.name] ~= item.id) then
+						ffxivminion.foodsHQ[item.name] = item.id 
+					end
 					foodlistHQ = foodlistHQ..","..item.name
 				else
-					ffxivminion.foods[item.name] = item.id
+					if (ffxivminion.foods[item.name] ~= item.id) then
+						ffxivminion.foods[item.name] = item.id
+					end
 					foodlist = foodlist..","..item.name
 				end
-				i,item = next(inv,i)  
-			end  
+			end
 		end
 	end
 	
     gFood_listitems = foodlist
 	gFoodHQ_listitems = foodlistHQ
+	
+	if (ffxivminion.foodsHQ[gFoodHQ] == nil) then
+		gFoodHQ = "None"
+	end
+	if (ffxivminion.foods[gFood] == nil) then
+		gFood = "None"
+	end
+	
 	GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 

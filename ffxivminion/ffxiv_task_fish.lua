@@ -31,6 +31,7 @@ e_precastbuff = inheritsFrom( ml_effect )
 e_precastbuff.id = 0
 function c_precastbuff:evaluate()
 	local fs = tonumber(Player:GetFishingState())
+	
 	if (fs == 0 or fs == 4) then	
 		local foodID = 0
 		if (gFoodHQ ~= "None") then
@@ -38,10 +39,10 @@ function c_precastbuff:evaluate()
 		elseif (gFood ~= "None") then
 			foodID = ffxivminion.foods[gFood]
 		end
-		
+
 		if foodID ~= 0 then
 			local food = Inventory:Get(foodID)
-			if (ValidTable(food) and not HasBuffs(Player,"48")) then
+			if (ValidTable(food) and MissingBuffs(Player,"48")) then
 				e_precastbuff.id = foodID
 				return true
 			end
@@ -68,6 +69,10 @@ end
 c_cast = inheritsFrom( ml_cause )
 e_cast = inheritsFrom( ml_effect )
 function c_cast:evaluate()
+	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
+		return false
+	end
+	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
@@ -101,7 +106,7 @@ function c_finishcast:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
-        if (fs ~= 0 and c_returntomarker:evaluate()) then
+        if (fs ~= 4 and c_returntomarker:evaluate()) then
             return true
         end
     end
@@ -160,7 +165,7 @@ function c_setbait:evaluate()
                     end
                 end
                 
-                ml_error("Could not find bait! Attempting to use current bait")
+                ml_debug("Could not find bait! Attempting to use current bait")
                 
             end
         end
@@ -296,8 +301,8 @@ function ffxiv_task_fish:Init()
     self:add( ke_stealth, self.overwatch_elements)
   
     --init Process() cnes
-    local ke_finishcast = ml_element:create( "FinishingCast", c_finishcast, e_finishcast, 30 )
-    self:add(ke_finishcast, self.process_elements)
+    --local ke_finishcast = ml_element:create( "FinishingCast", c_finishcast, e_finishcast, 30 )
+    --self:add(ke_finishcast, self.process_elements)
     
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add( ke_returnToMarker, self.process_elements)

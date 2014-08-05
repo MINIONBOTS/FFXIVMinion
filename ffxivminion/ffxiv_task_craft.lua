@@ -14,6 +14,7 @@ function ffxiv_task_craft.Create()
     
     --ffxiv_task_craft members
     e_opencraftwnd.CraftStart = ml_global_information.Now
+	newinst.networkLatency = 0
     
     return newinst
 end
@@ -69,6 +70,10 @@ c_selectitem = inheritsFrom( ml_cause )
 e_selectitem = inheritsFrom( ml_effect )
 c_selectitem.throttle = 1000
 function c_selectitem:evaluate()
+	if (Now() < ml_task_hub:CurrentTask().networkLatency or Player.cp.current < tonumber(gCraftMinCP)) then
+		return false
+	end
+	
     local synth = Crafting:SynthInfo()
 	if ( not synth and Crafting:IsCraftingLogOpen()) then
 		d("Can craft selected Item? : "..tostring(Crafting:CanCraftSelectedItem()))
@@ -79,11 +84,51 @@ function c_selectitem:evaluate()
     return false
 end
 function e_selectitem:execute()
-  Crafting:CraftSelectedItem()
+	Crafting:CraftSelectedItem()
 	Crafting:ToggleCraftingLog()
 	e_opencraftwnd.CraftStart = ml_global_information.Now
-  SkillMgr.currentIQStack = 0 
+	SkillMgr.currentIQStack = 0 
 	SkillMgr.lastquality = 0
+end
+
+c_precraftbuff = inheritsFrom( ml_cause )
+e_precraftbuff = inheritsFrom( ml_effect )
+e_precraftbuff.id = 0
+function c_precraftbuff:evaluate()
+	local synth = Crafting:SynthInfo()	
+	if (not synth) then	
+		local foodID = 0
+		if (gFoodHQ ~= "None") then
+			foodID = ffxivminion.foodsHQ[gFoodHQ]
+		elseif (gFood ~= "None") then
+			foodID = ffxivminion.foods[gFood]
+		end
+
+		if foodID ~= 0 then
+			local food = Inventory:Get(foodID)
+			if (ValidTable(food) and MissingBuffs(Player,"48")) then
+				e_precraftbuff.id = foodID
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_precraftbuff:execute()
+	if ( Crafting:IsCraftingLogOpen()) then
+		Crafting:ToggleCraftingLog()
+		ml_task_hub:CurrentTask().networkLatency = Now() + 1500
+		return
+	end
+	
+	if (Now() > ml_task_hub:CurrentTask().networkLatency) then
+		local food = Inventory:Get(e_precraftbuff.id)
+		if (food) then
+			food:Use()
+			ml_task_hub:CurrentTask().networkLatency = Now() + 1500
+		end	
+	end
 end
 
 
@@ -104,8 +149,8 @@ end
 function ffxiv_task_craft:Init()
     --init Process() cnes
     	
-	--local ke_repair = ml_element:create( "RepairingGear", c_repair, e_repair, 20 )
-    --self:add(ke_repair, self.process_elements)
+	local ke_precraftbuff = ml_element:create( "PreCraftBuff", c_precraftbuff, e_precraftbuff, 20 )
+    self:add(ke_precraftbuff, self.process_elements)
 
 	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 15 )
     self:add(ke_opencraftlog, self.process_elements)		

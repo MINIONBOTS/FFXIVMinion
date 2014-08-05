@@ -1298,6 +1298,17 @@ function c_returntomarker:evaluate()
     return false
 end
 function e_returntomarker:execute()
+	if (gBotMode == GetString("fishMode")) then
+		local fs = tonumber(Player:GetFishingState())
+		if (fs ~= 0) then
+			local finishcast = ActionList:Get(299,1)
+			if (finishcast and finishcast.isready) then
+				finishcast:Cast()
+			end
+			return
+		end
+	end
+	
     local newTask = ffxiv_task_movetopos.Create()
     local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
     local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
