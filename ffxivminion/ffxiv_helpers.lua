@@ -661,10 +661,7 @@ function GetDutyTarget( maxHP )
 				end
 				if (ValidTable(el)) then
 					local id, target = next(el)
-					--d("Prioritize target was found.")
-					--d("Condition1:"..tostring(target.targetable and target.los))
-					--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-					if (target.targetable and target.los) then
+					if (target.targetable) then
 						if (not maxHP or target.hp.percent > maxHP) then
 							return target
 						end
@@ -675,30 +672,51 @@ function GetDutyTarget( maxHP )
 	end
 	
 	local el = nil
-	if Player.incombat then
-		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	else
-		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	end
-	if (ValidTable(el)) then
-		local id, target = next(el)
-		--d("Lowest/nearest target was found.")
-		--d("Condition1:"..tostring(target.targetable and target.los))
-		--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-		if (target.targetable and target.los) then
-			if (not maxHP or target.hp.percent > maxHP) then
-				return target
+	--First, try to get the best AOE target if we are killing the mobs.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("lowesthealth,alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (target.targetable) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
 			end
-		end
-	end	
+		end	
+	end
 	
+	--Second, try to get the lowesthealth, if we are killing the mobs.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (target.targetable) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
+			end
+		end	
+	end
+	
+	--Third, if we are only pulling, get one with no target.
+	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
+		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+		if (ValidTable(el)) then
+			for id, target in pairs(el) do
+				if (target.targetable and target.targetid == 0) then
+					if (not maxHP or target.hp.percent > maxHP) then
+						return target
+					end
+				end
+			end
+		end	
+	end
+	
+	--Lastly, fall back and just get what we can.
 	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
-			--d("Fallback target was found.")
-			--d("Condition1:"..tostring(target.targetable and target.los))
-			--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-			if (target.targetable and target.los) then
+			if (target.targetable) then
 				if (not maxHP or target.hp.percent > maxHP) then
 					return target
 				end

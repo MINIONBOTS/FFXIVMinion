@@ -367,6 +367,8 @@ function c_avoid:evaluate()
 		return false
 	end
 	
+	local plevel = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
+	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("attackable,onmesh,maxdistance=15")
 	if (el) then
@@ -376,7 +378,7 @@ function c_avoid:evaluate()
 				if not (e.castinginfo.casttime < 1.5 
 					or (distance > 15 and e.castinginfo.channeltargetid == e.id) 
 					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-					or (e.level ~= nil and e.level ~= 0 and Player.level > e.level + 5)) then
+					or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 5)) then
 					c_avoid.target = e
 					return true
 				end
@@ -386,7 +388,7 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (target == nil or TableSize(target.castinginfo) == 0 or (Player.level > target.level + 5)) then
+	if (target == nil or TableSize(target.castinginfo) == 0 or (plevel > target.level + 5)) then
 		return false
 	end
 	
@@ -1333,11 +1335,17 @@ c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 c_stealth.throttle = 1000
 function c_stealth:evaluate()
-    if  (Player.ismounted or
-         gDoStealth == "0") 
-    then
+	local marker = ml_task_hub:RootTask().currentMarker
+	if (not marker) then
+		return false
+	end
+	
+	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
+	
+    if  (Player.ismounted or not useStealth) then
         return false
     end
+	
     local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then
         action = ActionList:Get(212)
@@ -1348,7 +1356,7 @@ function c_stealth:evaluate()
     end
     
     if (action and action.isready) then
-    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=25")
+    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=30")
         if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
           (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
         then
