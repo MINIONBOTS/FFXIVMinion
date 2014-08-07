@@ -399,8 +399,9 @@ function ffxivminion.HandleInit()
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
-	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker	
-
+	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
+	ml_marker_mgr.markerPath = ml_global_information.path.. [[\Navigation\]]
+	
 
 -- setup meshmanager
 	if ( ml_mesh_mgr ) then
