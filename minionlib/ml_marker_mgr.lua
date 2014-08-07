@@ -294,6 +294,11 @@ function ml_marker_mgr.AddMarkerTemplate(templateMarker)
 end
 
 function ml_marker_mgr.DeleteMarker(oldMarker)
+	if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+		d("ml_marker_mgr.DeleteMarker: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+		return false
+	end
+	
 	if type(oldMarker) == "string" then
 		oldMarker = ml_marker_mgr.GetMarker(oldMarker)
 	end
@@ -393,7 +398,10 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
 				end
 			end
 		end
-		
+		if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+			d("ml_marker_mgr.CleanMarkerOrder: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+			return false
+		end
 		ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
     end
 end
@@ -424,7 +432,11 @@ end
 function ml_marker_mgr.ReadMarkerFile(path)
 	local markerList = persistence.load(path)
 
-	
+	-- needs to be set, else the whole markermanager breaks when a mesh without a .info file is beeing loaded
+	if ( ValidString(path) ) then
+		ml_marker_mgr.markerPath = path
+	end
+
 	if (ValidTable(markerList)) then
 		ml_marker_mgr.markerList = markerList
 		for type, list in pairs(ml_marker_mgr.markerList) do
@@ -443,7 +455,6 @@ function ml_marker_mgr.ReadMarkerFile(path)
 			end
 		end
 		
-		ml_marker_mgr.markerPath = path
 		ml_marker_mgr.markersLoaded = true
 	else
 		ml_debug("Invalid path specified for marker file")
@@ -451,6 +462,10 @@ function ml_marker_mgr.ReadMarkerFile(path)
 end
 
 function ml_marker_mgr.WriteMarkerFile(path)
+	if ( path == "" ) then
+		d("ml_marker_mgr.WriteMarkerFile: Invalid Path : "..path)
+		return false
+	end
 	persistence.store(path, ml_marker_mgr.markerList)
 end
 
@@ -661,7 +676,11 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 				if (name == "Name") then 
 					ml_marker_mgr.RefreshMarkerNames() 
 				end
-				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+				if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+					d("ml_marker_mgr.GUIVarUpdate: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+				else
+					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+				end				
 			end
 		elseif (k == "gMarkerMgrName") then
 			if (v ~= "") then
