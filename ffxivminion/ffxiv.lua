@@ -1,5 +1,5 @@
 ml_global_information = {}
---ml_global_information.path = GetStartupPath()
+ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
 ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
@@ -400,7 +400,7 @@ function ffxivminion.HandleInit()
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
-	ml_marker_mgr.markerPath = ml_global_information.path.. [[\Navigation\]]
+	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
 	
 
 -- setup meshmanager
