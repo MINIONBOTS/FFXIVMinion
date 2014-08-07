@@ -94,12 +94,12 @@ QM.Strings = {
 	Meshes = 
 		function()
 			local meshlist = "none"
-			local meshfilelist = dirlist(mm.navmeshfilepath,".*obj")
+			local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
 			if ( TableSize(meshfilelist) > 0) then
 				local i,meshname = next ( meshfilelist)
 				while i and meshname do
 					meshname = string.gsub(meshname, ".obj", "")
-					table.insert(mm.meshfiles, meshname)
+					--table.insert(mm.meshfiles, meshname) not needed anymore with new ml_mesh_mgr.lua
 					meshlist = meshlist..","..meshname
 					i,meshname = next ( meshfilelist,i)
 				end
