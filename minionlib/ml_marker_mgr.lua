@@ -385,7 +385,7 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
         
         if (ValidTable(orderedList)) then
             local counter = 1
-            for order, marker in spairs(orderedList) do
+            for order, marker in pairs(orderedList) do
                 marker.order = counter
                 counter = counter + 1
             end
