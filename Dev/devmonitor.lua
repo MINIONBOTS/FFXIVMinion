@@ -128,6 +128,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Condition","invcond","InventoryInfo")
 	GUI_NewField("Dev","Level","invlvl","InventoryInfo")
 	GUI_NewField("Dev","RequiredLevel","invreqlvl","InventoryInfo")
+	GUI_NewField("Dev","Category","invcategory","InventoryInfo")
+	GUI_NewField("Dev","Class","invclass","InventoryInfo")	
 	GUI_NewField("Dev","CanEquip","invequipable","InventoryInfo")
 	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
 	invSelSlot = 0
@@ -826,7 +828,10 @@ function Dev.UpdateWindow()
 			invcond = item.condition
 			invlvl = item.level
 			invreqlvl = item.requiredlevel
+			invcategory = item.category
+			invclass = item.class
 			invequipable = tostring(item.canequip)
+			
 		end
 	end
 	if (not found) then
@@ -838,6 +843,8 @@ function Dev.UpdateWindow()
 		invcount = 0
 		invmaxcount = 0
 		invcond = 0
+		invcategory = 0
+		invclass = 0
 		invequipable = false
 	end	
 	
