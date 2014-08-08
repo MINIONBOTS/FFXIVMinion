@@ -516,7 +516,7 @@ c_interactgate.lastInteract = 0
 e_interactgate.id = 0
 function c_interactgate:evaluate()
     if (ml_task_hub:CurrentTask().destMapID) then
-		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not Quest:IsLoading() and not mm.reloadMeshPending) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not Quest:IsLoading() and not ml_mesh_mgr.loadingMesh) then
 			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
 
 			if (ValidTable(pos) and pos.g) then
@@ -556,7 +556,7 @@ function c_movetogate:evaluate()
     if (ml_task_hub:CurrentTask().destMapID) then
         return 	Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and
 				not Quest:IsLoading() and
-				not mm.reloadMeshPending
+				not ml_mesh_mgr.loadingMesh
 	end
 end
 function e_movetogate:execute()

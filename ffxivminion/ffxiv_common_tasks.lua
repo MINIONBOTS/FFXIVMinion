@@ -201,7 +201,7 @@ end
 
 function ffxiv_task_movetopos:task_complete_eval()
 	if (Quest:IsLoading() or
-		mm.reloadMeshPending )
+		ml_mesh_mgr.loadingMesh )
 	then
 		return true
 	end

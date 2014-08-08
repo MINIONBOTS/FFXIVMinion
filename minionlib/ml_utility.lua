@@ -218,6 +218,10 @@ function ValidTable(table)
     return table ~= nil and TableSize(table) > 0
 end
 
+function ValidString(string)
+	return type(string) == "string" and #string > 0
+end
+
 function TrimString(new_string, count)
 	return new_string:sub(1,new_string:len() - count)
 end

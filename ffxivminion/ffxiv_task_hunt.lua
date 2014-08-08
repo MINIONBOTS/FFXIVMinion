@@ -401,7 +401,7 @@ function e_nexthuntlocation:execute()
 				
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = location.mapid
-		newTask.mesh = mm.defaultMaps[location.mapid]
+		newTask.mesh = Settings.minionlib.DefaultMaps[location.mapid]
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 	end
 end
@@ -463,7 +463,7 @@ function e_multibotdetect:execute()
 					
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.mapID = location.mapid
-			newTask.mesh = mm.defaultMaps[location.mapid]
+			newTask.mesh = Settings.minionlib.DefaultMaps[location.mapid]
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 		end
 	else
