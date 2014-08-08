@@ -15,6 +15,9 @@ QM.Windows = {
 	StepEditor = {visible = false, name = strings[gCurrentLanguage].questStepEditor, visibleDefault = false,
 		base = "StepManager", width = 250, height = 300
 	},
+	EncounterEditor = {visible = false, name = strings[gCurrentLanguage].dutyEncounterEditor, visibleDefault = false,
+		base = "QuestManager", width = 250, height = 300
+	},
 	TurnInEditor = {visible = false, name = strings[gCurrentLanguage].questTurnoverEditor, visibleDefault = false, onOpen = "QM.PullTurnoverItem;QM.RefreshTurnovers",
 		base = "StepManager", width = 250, height = 275
 	},
@@ -85,6 +88,9 @@ QM.Variables = {
 	qTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},
 	eTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},
 	
+	qEncounterName = 	{ default = "", 	profile = "", 			cast = "string"},
+	qEncounterType = 	{ default = "kill",	profile = "", 			cast = "string", onChange = "QM.LoadEncounterFields"},
+	
 	qTurnoverStep = 	{ default = 1, 		profile = "" , 				cast = "number"},
 	qTurnoverID = 		{ default = "",		profile = "itemturninid", 	cast = "number"},
 	qTurnoverSlot = 	{default = 1, 		profile = "", 				cast = "number", onChange = "QM.PullTurnoverItem"},
@@ -119,6 +125,7 @@ QM.Strings = {
 			return questlist
 		end,
 	QuestTasks = "start,accept,nav,interact,kill,dutykill,textcommand,useitem,useaction,complete",
+	DutyTasks = "kill,loot,interact",
 	QuestJobs = "None,ARCANIST,ARCHER,BARD,BLACKMAGE,CONJURER,DRAGOON,GLADIATOR,LANCER,MARAUDER,MONK,PALADIN,PUGILIST,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
 	PreReqJobs = "All,ARCANIST,ARCHER,BARD,BLACKMAGE,CONJURER,DRAGOON,GLADIATOR,LANCER,MARAUDER,MONK,PALADIN,PUGILIST,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
 }
@@ -138,9 +145,9 @@ QM.Builds = {
 		[4] = {QM.Windows.Main.name, strings[gCurrentLanguage].quests},
 	},
 	Duty = {
-		[1] = {5, "GUI_NewComboBox",QM.Windows.Main.name,strings[gCurrentLanguage].task,		"qDutyTask",	strings[gCurrentLanguage].newEncounter,		"Kill,Loot,Custom"},
-		[2] = {4, "GUI_NewField",	QM.Windows.Main.name,strings[gCurrentLanguage].customTask,	"qDutyCustom",	strings[gCurrentLanguage].newEncounter},
-		[3] = {4, "GUI_NewButton", 	QM.Windows.Main.name,strings[gCurrentLanguage].addEncounter, "QM.AddEncounter", strings[gCurrentLanguage].newEncounter},
+		--[1] = {5, "GUI_NewComboBox",QM.Windows.Main.name,strings[gCurrentLanguage].task,		"qDutyTask",	strings[gCurrentLanguage].newEncounter, QM.Strings.DutyTasks},
+		[1] = {4, "GUI_NewField",	QM.Windows.Main.name,strings[gCurrentLanguage].questName,	"qEncounterName",	strings[gCurrentLanguage].newEncounter},
+		[2] = {4, "GUI_NewButton", 	QM.Windows.Main.name,strings[gCurrentLanguage].addEncounter, "QM.AddEncounter", strings[gCurrentLanguage].newEncounter},
 	},
 	Quest = {
 		[1] = {4, "GUI_NewField",	QM.Windows.Main.name,strings[gCurrentLanguage].questID,		"qQuestID",		strings[gCurrentLanguage].newQuest},
@@ -434,14 +441,14 @@ function QM.LoadProfile()
 	
 	if (qProfileType == "Duty") then
 		info = persistence.load(QM.DutyPath..qProfileName..".info")
-		if (TableSize(info) > 0) then
-			QM.Encounters = info
+		if (ValidTable(info.Encounters)) then
+			QM.Encounters = info.Encounters
 		else
 			QM.Encounters = {}
 		end
 	else
 		info = persistence.load(QM.QuestPath..qProfileName..".info")
-		if (TableSize(info) > 0) then
+		if (ValidTable(info.quests)) then
 			QM.Quests = info.quests
 		else
 			QM.Quests = {}
@@ -549,7 +556,47 @@ function QM.RefreshQuests()
 end
 --**************************************************************************************************************************************
 function QM.AddEncounter()
-
+	local newEncounterIndex = TableSize(QM.Encounters) + 1
+	QM.Encounters[newEncounterIndex] = { name = qEncounterName }
+	QM.RefreshEncounters()
+end
+--**************************************************************************************************************************************
+function QM.RefreshEncounters()
+	GUI_DeleteGroup(QM.Windows.Main.name,strings[gCurrentLanguage].dutyEncounters)
+	if (TableSize(QM.Encounters) > 0) then
+		for k,v in spairs(QM.Encounters) do
+			GUI_NewButton(QM.Windows.Main.name, tostring(k).."("..v.name..")", "QMEncounterEdit"..tostring(k), strings[gCurrentLanguage].dutyEncounters)
+		end
+		GUI_UnFoldGroup(QM.Windows.Main.name,strings[gCurrentLanguage].dutyEncounters)
+	end
+	
+	GUI_SizeWindow(QM.Windows.Main.name,Settings.FFXIVMINION.qmWindow.width,Settings.FFXIVMINION.qmWindow.height)
+	GUI_RefreshWindow(QM.Windows.Main.name)
+end
+--**************************************************************************************************************************************
+function QM.EditEncounter(id)
+	local encounterid = tonumber(id)
+	local encounter = QM.Encounters[encounterid]
+	
+    local wnd = GUI_GetWindowInfo(QM.Windows.EncounterEditor.name)	
+	
+	QM.LoadTaskEditFields(step.type)
+	GUI_MoveWindow( QM.Windows.StepEditor.name, wnd.x+wnd.width,wnd.y)
+    
+	eStepNum = stepid
+	Settings.FFXIVMINION.eStepNum = eStepNum
+	
+	for task,fields in ipairs (QM.Builds.QuestTasksEdit[step.type]) do
+		if (fields[2] ~= "GUI_NewButton") then
+			local varName = fields[5]
+			local varSetup = QM.Variables[varName]
+			local profileString = varSetup.profile
+			_G[varName] = step[profileString] or varSetup.default
+			Settings.FFXIVMINION[varName] = _G[varName]
+		end
+	end
+	
+	GUI_WindowVisible(QM.Windows.StepEditor.name,true)
 end
 --**************************************************************************************************************************************
 function QM.AddPreReq()
@@ -1224,8 +1271,10 @@ end
 --**************************************************************************************************************************************
 function QM.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" ) then
-		if (string.sub(Button,1,11) == "QMQuestEdit") then
+		if (string.find(Button,"QMQuestEdit") ~= nil) then
 			QM.EditQuest(string.gsub(Button,"QMQuestEdit",""))
+		elseif (string.find(Button,"QMEncounterEdit") ~= nil) then
+			QM.EditEncounter(string.gsub(Button,"QMEncounterEdit",""))
 		elseif (string.sub(Button,1,10) == "QMStepEdit") then
 			QM.EditStep(string.gsub(Button,"QMStepEdit",""))
 		elseif (string.sub(Button,1,12) == "QMStepRemove") then

@@ -416,9 +416,9 @@ function GetBestHealTarget( npc, range )
 	local el = nil
 	
 	if (not npc) then
-		el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	else
-		el = EntityList("lowesthealth,friendly,myparty,targetable,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,friendly,targetable,maxdistance="..tostring(range))
 	end
 
 	if ( el ) then
@@ -429,22 +429,7 @@ function GetBestHealTarget( npc, range )
 			end
 		end
 	end
-    
-	if (not npc) then
-		el = EntityList("lowesthealth,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("lowesthealth,friendly,targetable,maxdistance="..tostring(range))
-	end
-	
-	if ( el ) then
-		local i,e = next(el)
-		if (i~=nil and e~=nil) then
-			if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-				return e
-			end
-		end
-	end
-	
+   
     ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
@@ -1244,6 +1229,7 @@ end
 
 function GetPartyLeader()
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
+	
 		if (gPartyLeaderName ~= "") then
 		local party = EntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(party)) then

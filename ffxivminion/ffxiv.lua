@@ -571,12 +571,14 @@ function ffxivminion.SetMode(mode)
         end
 		
 		if (gBotMode == GetString("dutyMode")) then
+			gTeleport = "1"
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 		elseif (gBotMode == GetString("questMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
@@ -584,6 +586,9 @@ function ffxivminion.SetMode(mode)
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
 		else
+			if (gBotMode == GetString("gatherMode")) then
+				gTeleport = "0"
+			end
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
