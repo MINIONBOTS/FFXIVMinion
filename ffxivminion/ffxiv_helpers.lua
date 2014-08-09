@@ -239,15 +239,13 @@ function GetBestTankHealTarget( range )
 	
     local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
     if ( el ) then
-        local i,e = next(el)
-        while (i~=nil and e~=nil) do
+		for i,e in pairs(el) do
 			if (e.job == 1 or e.job == 19 or e.job == 3 or e.job == 21) then
 				if (e.hp.percent < lowestHP ) then
 					lowest = e
 					lowestHP = e.hp.percent
 				end
 			end
-            i,e = next(el, i)
         end
     end
 	
@@ -414,18 +412,22 @@ function GetBestHealTarget( npc, range )
 	range = range or ml_global_information.AttackRange
 	
 	local el = nil
-	
-	if (not npc) then
-		el = EntityList("lowesthealth,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("lowesthealth,friendly,targetable,maxdistance="..tostring(range))
-	end
-
+	el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
-			if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-				return e
+			return e
+		end
+	end
+	
+	if (npc) then
+		el = EntityList("lowesthealth,alive,friendly,targetable,maxdistance="..tostring(range))
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				if ((e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
+					return e
+				end
 			end
 		end
 	end
