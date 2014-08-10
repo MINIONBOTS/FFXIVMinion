@@ -299,11 +299,12 @@ function e_gather:execute()
 				if not hasMap then
 					for i, item in pairs(list) do
 						if (IsMap(item.id)) then
-							Player:Gather(item.index)
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatheredMap = true
-							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							return
+							if (Player:Gather(item.index)) then
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatheredMap = true
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
+							end
 						end
 					end
 				end
@@ -314,11 +315,12 @@ function e_gather:execute()
 				for i, item in pairs(list) do
 					if 	(IsGardening(item.id))
 					then
-						Player:Gather(item.index)
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatheredGardening = true
-						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-						return
+						if (Player:Gather(item.index)) then
+							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+							ml_task_hub:CurrentTask().gatheredGardening = true
+							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+							return
+						end
 					end
 				end
 			end
@@ -333,17 +335,19 @@ function e_gather:execute()
 						local n = tonumber(item1)
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
-								Player:Gather(n-1)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-								return
+								if (Player:Gather(n-1)) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									return
+								end
 							end
 						else						
 							if (item.name == item1) then
-								Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-								return
+								if (Player:Gather(item.index)) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									return
+								end
 							end
 						end
 					end
@@ -354,17 +358,19 @@ function e_gather:execute()
 						local n = tonumber(item2)
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
-								Player:Gather(n-1)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-								return
+								if (Player:Gather(n-1)) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									return
+								end
 							end
 						else						
 							if (item.name == item2) then
-								Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-								return
+								if (Player:Gather(item.index)) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									return
+								end
 							end
 						end
 					end
@@ -374,9 +380,10 @@ function e_gather:execute()
 			-- just grab a random item otherwise
 			for i, item in pairs(list) do
 				if item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) then
-					Player:Gather(item.index)
-					ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-					return
+					if (Player:Gather(item.index)) then
+						ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+						return
+					end
 				end
 			end
 		end
@@ -518,6 +525,7 @@ function ffxiv_task_gather.SetupMarkers()
 	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
 	botanyMarker:AddField("button", "Whitelist Target", "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
+	botanyMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
     botanyMarker:SetMaxLevel(50)
@@ -531,6 +539,7 @@ function ffxiv_task_gather.SetupMarkers()
 	miningMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
 	miningMarker:AddField("button", "Whitelist Target", "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
+	miningMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
     miningMarker:SetMaxLevel(50)

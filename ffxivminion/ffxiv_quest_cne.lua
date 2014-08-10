@@ -464,8 +464,8 @@ e_changenavmesh = inheritsFrom( ml_effect )
 function c_changenavmesh:evaluate()
 	local step = ffxiv_task_quest.currentStepParams
 	if(ValidTable(step)) then
-		if(step["meshname"] ~= nil and mm.navmeshfilepath ~= nil) then
-			local meshname = mm.navmeshfilepath..step["meshname"]
+		if(step["meshname"] ~= nil and ml_mesh_mgr.navmeshfilepath ~= nil) then
+			local meshname = ml_mesh_mgr.navmeshfilepath..step["meshname"]
 			if(	meshname ~= NavigationManager:GetNavMeshName() and
 				Player.localmapid == step["mapid"]) 
 			then
@@ -476,7 +476,7 @@ function c_changenavmesh:evaluate()
 	end
 end
 function e_changenavmesh:execute()
-	mm.ChangeNavMesh(e_changenavmesh.meshname)
+	ml_mesh_mgr.LoadNavMesh( e_changenavmesh.meshname)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 

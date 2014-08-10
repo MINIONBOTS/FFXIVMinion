@@ -3,8 +3,6 @@ ffxiv_task_hunt.rankS = "2953;2954;2955;2956;2957;2958;2959;2960;2961;2962;2963;
 ffxiv_task_hunt.rankA = "2936;2937;2938;2939;2940;2941;2942;2943;2944;2945;2946;2947;2948;2949;2950;2951;2952"
 ffxiv_task_hunt.rankB = "2919;2920;2921;2922;2923;2924;2925;2926;2927;2928;2929;2930;2931;2932;2933;2934;2935"
 
-ffxiv_task_hunt.mainwindow = { name = "Hunt Manager", x = 50, y = 50, width = 250, height = 300}
-
 ffxiv_task_hunt.multiTargetID = 0
 ffxiv_task_hunt.multiTargetMapID = 0
 ffxiv_task_hunt.multiHasTarget = false
@@ -124,15 +122,12 @@ function e_add_hunttarget:execute()
 		end
 		
 		--Using /tell to self for now, for testing.
-		if (c_add_hunttarget.rank == "S" and gHuntSRankShout == "1") then
-			d("[/say FOUND ["..c_add_hunttarget.name.."] @ <pos>]")
-			--SendTextCommand("/say "..
-		elseif (c_add_hunttarget.rank == "A" and gHuntARankShout == "1") then
-			d("[/say FOUND ["..c_add_hunttarget.name.."] @ <pos>]")
-			--GameHacks:PlaySound(10)
-		elseif (c_add_hunttarget.rank == "B" and gHuntBRankShout == "1") then
-			d("[/say FOUND ["..c_add_hunttarget.name.."] @ <pos>]")
-			--GameHacks:PlaySound(20)
+		if (c_add_hunttarget.rank == "S" and gHuntSRankDoCommand == "1") then
+			SendTextCommand(gHuntSRankCommandString)
+		elseif (c_add_hunttarget.rank == "A" and gHuntARankDoCommand == "1") then
+			SendTextCommand(gHuntARankCommandString)
+		elseif (c_add_hunttarget.rank == "B" and gHuntBRankDoCommand == "1") then
+			SendTextCommand(gHuntBRankCommandString)
 		end
 	end
 	
@@ -161,7 +156,6 @@ function e_add_hunttarget:execute()
 		newTask.canEngage = true
 	end
 	
-	d("Kill task being added.")
 	--Communicate using the multibot server engine, if in use.
 	if (gMultiBotEnabled == "1") then
 		mb.BroadcastHuntStatus( Player.localmapid, c_add_hunttarget.pos )
@@ -249,7 +243,7 @@ function e_nexthuntmarker:execute()
     local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
     local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
     newTask.pos = markerPos
-    newTask.range = math.random(5,15)
+    newTask.range = math.random(10,15)
 	newTask.reason = "MOVE_HUNT_MARKER"
 	newTask.use3d = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -401,7 +395,7 @@ function e_nexthuntlocation:execute()
 				
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = location.mapid
-		newTask.mesh = mm.defaultMaps[location.mapid]
+		newTask.mesh = Settings.minionlib.DefaultMaps[location.mapid]
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 	end
 end
@@ -463,7 +457,7 @@ function e_multibotdetect:execute()
 					
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.mapID = location.mapid
-			newTask.mesh = mm.defaultMaps[location.mapid]
+			newTask.mesh = Settings.minionlib.DefaultMaps[location.mapid]
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 		end
 	else
@@ -512,15 +506,15 @@ function ffxiv_task_hunt.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gHuntSRankHP" or
 				k == "gHuntSRankAllies" or
 				k == "gHuntSRankMaxWait" or
-				k == "gHuntSRankShout" or
+				k == "gHuntSRankDoCommand" or
 				k == "gHuntSRankSound" or
 				k == "gHuntARankHP" or
 				k == "gHuntARankAllies" or
 				k == "gHuntARankMaxWait" or
-				k == "gHuntARankShout" or
+				k == "gHuntARankDoCommand" or
 				k == "gHuntARankSound" or
 				k == "gHuntBRankWaitTime" or
-				k == "gHuntBRankShout" or
+				k == "gHuntBRankDoCommand" or
 				k == "gHuntBRankSound" )
 		then
             Settings.FFXIVMINION[tostring(k)] = v
@@ -554,8 +548,11 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntSRankMaxWait == nil ) then
 		Settings.FFXIVMINION.gHuntSRankMaxWait = 120
 	end
-	if ( Settings.FFXIVMINION.gHuntSRankShout == nil ) then
-		Settings.FFXIVMINION.gHuntSRankShout = "0"
+	if ( Settings.FFXIVMINION.gHuntSRankDoCommand == nil ) then
+		Settings.FFXIVMINION.gHuntSRankDoCommand = "0"
+	end
+	if ( Settings.FFXIVMINION.gHuntSRankCommandString == nil ) then
+		Settings.FFXIVMINION.gHuntSRankCommandString = ""
 	end
 	if ( Settings.FFXIVMINION.gHuntSRankSound == nil ) then
 		Settings.FFXIVMINION.gHuntSRankSound = "0"
@@ -569,8 +566,11 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntARankMaxWait == nil ) then
 		Settings.FFXIVMINION.gHuntARankMaxWait = 120
 	end
-	if ( Settings.FFXIVMINION.gHuntARankShout == nil ) then
-		Settings.FFXIVMINION.gHuntARankShout = "0"
+	if ( Settings.FFXIVMINION.gHuntARankDoCommand == nil ) then
+		Settings.FFXIVMINION.gHuntARankDoCommand = "0"
+	end
+	if ( Settings.FFXIVMINION.gHuntARankCommandString == nil ) then
+		Settings.FFXIVMINION.gHuntARankCommandString = ""
 	end
 	if ( Settings.FFXIVMINION.gHuntARankSound == nil ) then
 		Settings.FFXIVMINION.gHuntARankSound = "0"
@@ -578,11 +578,14 @@ function ffxiv_task_hunt.UIInit()
 	if ( Settings.FFXIVMINION.gHuntBRankWaitTime == nil ) then
 		Settings.FFXIVMINION.gHuntBRankWaitTime = 0
 	end
-	if ( Settings.FFXIVMINION.gHuntBRankShout == nil ) then
-		Settings.FFXIVMINION.gHuntBRankShout = "0"
+	if ( Settings.FFXIVMINION.gHuntBRankDoCommand == nil ) then
+		Settings.FFXIVMINION.gHuntBRankDoCommand = "0"
+	end
+	if ( Settings.FFXIVMINION.gHuntBRankCommandString == nil ) then
+		Settings.FFXIVMINION.gHuntBRankCommandString = "0"
 	end
 	if ( Settings.FFXIVMINION.gHuntBRankSound == nil ) then
-		Settings.FFXIVMINION.gHuntBRankSound = "0"
+		Settings.FFXIVMINION.gHuntBRankSound = ""
 	end
 	
 	local winName = GetString("huntMode")
@@ -601,17 +604,20 @@ function ffxiv_task_hunt.UIInit()
 	GUI_NewNumeric(winName,"Nearby Allies >",	"gHuntSRankAllies", "S-Rank Hunt")
 	GUI_NewNumeric(winName,"Max Wait (s)",		"gHuntSRankMaxWait", "S-Rank Hunt")
 	GUI_NewCheckbox(winName,"Play Sound",		"gHuntSRankSound", "S-Rank Hunt")
-	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntSRankShout", "S-Rank Hunt")
-
+	GUI_NewCheckbox(winName,"Perform Command",	"gHuntSRankDoCommand", "S-Rank Hunt")
+	GUI_NewField(winName,"Text Command",		"gHuntSRankCommandString", "S-Rank Hunt")
+	
 	GUI_NewNumeric(winName,"HP % <=",			"gHuntARankHP",		"A-Rank Hunt")
 	GUI_NewNumeric(winName,"Nearby Allies >",	"gHuntARankAllies", "A-Rank Hunt")
 	GUI_NewNumeric(winName,"Max Wait (s)",		"gHuntARankMaxWait", "A-Rank Hunt")
 	GUI_NewCheckbox(winName,"Play Sound",		"gHuntARankSound", "A-Rank Hunt")
-	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntARankShout", "A-Rank Hunt")
+	GUI_NewCheckbox(winName,"Perform Command",	"gHuntARankDoCommand", "A-Rank Hunt")
+	GUI_NewField(winName,"Text Command",		"gHuntARankCommandString", "A-Rank Hunt")
 	
 	GUI_NewNumeric(winName,"Wait Time",			"gHuntBRankWaitTime","B-Rank Hunt")
 	GUI_NewCheckbox(winName,"Play Sound",		"gHuntBRankSound", "B-Rank Hunt")
-	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntBRankShout", "B-Rank Hunt")
+	GUI_NewCheckbox(winName,"Perform Shout",	"gHuntBRankDoCommand", "B-Rank Hunt")
+	GUI_NewField(winName,"Text Command",		"gHuntBRankCommandString", "B-Rank Hunt")
 	
     GUI_NewField(winName,"Map ID",				"gHuntMapID","New Location")
 	GUI_NewNumeric(winName,"Map Time (minutes)","gHuntMapTimer","New Location")
@@ -630,15 +636,18 @@ function ffxiv_task_hunt.UIInit()
 	gHuntSRankHP = Settings.FFXIVMINION.gHuntSRankHP
 	gHuntSRankAllies = Settings.FFXIVMINION.gHuntSRankAllies
 	gHuntSRankMaxWait = Settings.FFXIVMINION.gHuntSRankMaxWait
-	gHuntSRankShout = Settings.FFXIVMINION.gHuntSRankShout
+	gHuntSRankDoCommand = Settings.FFXIVMINION.gHuntSRankDoCommand
+	gHuntSRankCommandString = Settings.FFXIVMINION.gHuntSRankCommandString
 	gHuntSRankSound = Settings.FFXIVMINION.gHuntSRankSound
 	gHuntARankHP = Settings.FFXIVMINION.gHuntARankHP
 	gHuntARankAllies = Settings.FFXIVMINION.gHuntARankAllies
 	gHuntARankMaxWait = Settings.FFXIVMINION.gHuntARankMaxWait
-	gHuntARankShout = Settings.FFXIVMINION.gHuntARankShout
+	gHuntARankDoCommand = Settings.FFXIVMINION.gHuntARankDoCommand
+	gHuntARankCommandString = Settings.FFXIVMINION.gHuntARankCommandString
 	gHuntARankSound = Settings.FFXIVMINION.gHuntARankSound
 	gHuntBRankWaitTime = Settings.FFXIVMINION.gHuntBRankWaitTime
-	gHuntBRankShout = Settings.FFXIVMINION.gHuntBRankShout
+	gHuntBRankDoCommand = Settings.FFXIVMINION.gHuntBRankDoCommand
+	gHuntBRankCommandString = Settings.FFXIVMINION.gHuntBRankCommandString
 	gHuntBRankSound = Settings.FFXIVMINION.gHuntBRankSound
 	
 	ffxiv_task_hunt.SetupMarkers()
@@ -647,9 +656,7 @@ end
 function ffxiv_task_hunt.SetupMarkers()
     local huntMarker = ml_marker:Create("huntTemplate")
 	huntMarker:SetType(strings[gCurrentLanguage].huntMarker)
-	--huntMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	--huntMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
-    huntMarker:SetTime(5)
+    huntMarker:SetTime(0)
     huntMarker:SetMinLevel(1)
     huntMarker:SetMaxLevel(50)
 	--huntMarker:SetColor({r = 70, g = 240, b = 10})
@@ -705,7 +712,7 @@ end
 
 
 function ffxiv_task_hunt.RefreshHuntLocations()
-	local winName = ffxiv_task_hunt.mainwindow.name
+	local winName = ffxivminion.Windows.Hunt.Name
 	local tabName = "Locations"
 	local list = Settings.FFXIVMINION.gHuntLocations
 	
@@ -717,16 +724,8 @@ function ffxiv_task_hunt.RefreshHuntLocations()
 		GUI_UnFoldGroup(winName,tabName)
 	end
 	
-	GUI_SizeWindow(winName,ffxiv_task_hunt.mainwindow.width,ffxiv_task_hunt.mainwindow.height)
+	GUI_SizeWindow(winName,ffxivminion.Windows.Hunt.width,ffxivminion.Windows.Hunt.height)
 	GUI_RefreshWindow(winName)
-end
-
-function ffxiv_task_hunt.ShowMenu()
-	local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Main.Name)	
-    GUI_MoveWindow( ffxiv_task_hunt.mainwindow.name, wnd.x+wnd.width,wnd.y) 
-    GUI_WindowVisible( ffxiv_task_hunt.mainwindow.name,true)	
-	ffxiv_task_hunt.RefreshHuntLocations()
-	gHuntMapID = Player.localmapid
 end
 
 function ffxiv_task_hunt.HandleButtons( Event, Button )	
@@ -742,5 +741,4 @@ function ffxiv_task_hunt.HandleButtons( Event, Button )
 	end
 end
 RegisterEventHandler("GUI.Item",		ffxiv_task_hunt.HandleButtons)
-RegisterEventHandler("HuntManager.toggle", ffxiv_task_hunt.ShowMenu)
 RegisterEventHandler("GUI.Update",ffxiv_task_hunt.GUIVarUpdate)

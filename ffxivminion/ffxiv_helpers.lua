@@ -239,15 +239,13 @@ function GetBestTankHealTarget( range )
 	
     local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
     if ( el ) then
-        local i,e = next(el)
-        while (i~=nil and e~=nil) do
+		for i,e in pairs(el) do
 			if (e.job == 1 or e.job == 19 or e.job == 3 or e.job == 21) then
 				if (e.hp.percent < lowestHP ) then
 					lowest = e
 					lowestHP = e.hp.percent
 				end
 			end
-            i,e = next(el, i)
         end
     end
 	
@@ -414,37 +412,26 @@ function GetBestHealTarget( npc, range )
 	range = range or ml_global_information.AttackRange
 	
 	local el = nil
-	
-	if (not npc) then
-		el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("lowesthealth,friendly,myparty,targetable,maxdistance="..tostring(range))
-	end
-
+	el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
-			if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-				return e
-			end
-		end
-	end
-    
-	if (not npc) then
-		el = EntityList("lowesthealth,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("lowesthealth,friendly,targetable,maxdistance="..tostring(range))
-	end
-	
-	if ( el ) then
-		local i,e = next(el)
-		if (i~=nil and e~=nil) then
-			if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-				return e
-			end
+			return e
 		end
 	end
 	
+	if (npc) then
+		el = EntityList("lowesthealth,alive,friendly,targetable,maxdistance="..tostring(range))
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				if ((e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
+					return e
+				end
+			end
+		end
+	end
+   
     ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
@@ -661,10 +648,7 @@ function GetDutyTarget( maxHP )
 				end
 				if (ValidTable(el)) then
 					local id, target = next(el)
-					--d("Prioritize target was found.")
-					--d("Condition1:"..tostring(target.targetable and target.los))
-					--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-					if (target.targetable and target.los) then
+					if (target.targetable) then
 						if (not maxHP or target.hp.percent > maxHP) then
 							return target
 						end
@@ -675,30 +659,51 @@ function GetDutyTarget( maxHP )
 	end
 	
 	local el = nil
-	if Player.incombat then
-		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	else
-		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	end
-	if (ValidTable(el)) then
-		local id, target = next(el)
-		--d("Lowest/nearest target was found.")
-		--d("Condition1:"..tostring(target.targetable and target.los))
-		--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-		if (target.targetable and target.los) then
-			if (not maxHP or target.hp.percent > maxHP) then
-				return target
+	--First, try to get the best AOE target if we are killing the mobs.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("lowesthealth,alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (target.targetable) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
 			end
-		end
-	end	
+		end	
+	end
 	
+	--Second, try to get the lowesthealth, if we are killing the mobs.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (target.targetable) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
+			end
+		end	
+	end
+	
+	--Third, if we are only pulling, get one with no target.
+	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
+		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+		if (ValidTable(el)) then
+			for id, target in pairs(el) do
+				if (target.targetable and target.targetid == 0) then
+					if (not maxHP or target.hp.percent > maxHP) then
+						return target
+					end
+				end
+			end
+		end	
+	end
+	
+	--Lastly, fall back and just get what we can.
 	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
-			--d("Fallback target was found.")
-			--d("Condition1:"..tostring(target.targetable and target.los))
-			--d("Condition2:"..tostring(not maxHP or target.hp.percent > maxHP))
-			if (target.targetable and target.los) then
+			if (target.targetable) then
 				if (not maxHP or target.hp.percent > maxHP) then
 					return target
 				end
@@ -1226,6 +1231,7 @@ end
 
 function GetPartyLeader()
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
+	
 		if (gPartyLeaderName ~= "") then
 		local party = EntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(party)) then

@@ -201,7 +201,7 @@ end
 
 function ffxiv_task_movetopos:task_complete_eval()
 	if (Quest:IsLoading() or
-		mm.reloadMeshPending )
+		ml_mesh_mgr.loadingMesh )
 	then
 		return true
 	end
@@ -242,7 +242,8 @@ end
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
 	if (self.doFacing) then
-        Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
+        --Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
+		Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
     end
 	
 	if (not self.remainMounted) then

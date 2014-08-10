@@ -214,6 +214,40 @@ function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
     
     ml_debug("Error in ml_marker_mgr.GetNextMarker()")       
 end
+function ml_marker_mgr.GetClosestMarker( x, y, z, radius, markertype)
+    		
+	local closestmarker
+	local closestmarkerdistance
+	if ( TableSize(ml_marker_mgr.markerList) > 0 ) then
+		for mtype,_ in pairs(ml_marker_mgr.markerList) do
+			
+			if ( not markertype or mtype == markertype ) then
+				
+				local markerlist = ml_marker_mgr.GetList(mtype, false)
+				
+				if ( TableSize(markerlist) > 0 ) then
+				
+					for name, marker in pairs(markerlist) do
+						if ( type(marker) == "table" ) then
+							mpos = marker:GetPosition()
+							if (TableSize(mpos)>0) then
+								local dist = Distance3D ( mpos.x, mpos.y, mpos.z, x, y, z) 
+								if ( dist < radius and ( closestmarkerdistance == nil or closestmarkerdistance > dist ) ) then
+									closestmarkerdistance = dist
+									closestmarker = marker				
+								end
+							end
+						else
+							d("Error in ml_marker_mgr.GetClosestMarker, type(marker) != table")
+						end
+					end
+				end
+			end
+		end
+	end
+    
+    return closestmarker
+end
 
 --LIST MODIFICATION FUNCTIONS
 function ml_marker_mgr.AddMarker(newMarker)
@@ -260,6 +294,11 @@ function ml_marker_mgr.AddMarkerTemplate(templateMarker)
 end
 
 function ml_marker_mgr.DeleteMarker(oldMarker)
+	if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+		d("ml_marker_mgr.DeleteMarker: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+		return false
+	end
+	
 	if type(oldMarker) == "string" then
 		oldMarker = ml_marker_mgr.GetMarker(oldMarker)
 	end
@@ -273,9 +312,11 @@ function ml_marker_mgr.DeleteMarker(oldMarker)
 		for name, marker in pairs(list) do
 			if (name == oldMarker:GetName()) then
 				list[name] = nil
-				RenderManager:RemoveObject(ml_marker_mgr.renderList[name])
+				--RenderManager:RemoveObject(ml_marker_mgr.renderList[name]) -- this does not work out of some magically unknown reason
 				ml_marker_mgr.renderList[name] = nil
 				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+				GUI_WindowVisible(ml_marker_mgr.editwindow.name, false)
+				ml_marker_mgr.DrawMarkerList() -- added this for now to refresh the drawn markers after deleting one..seems to do the job fine
 				return true
 			end
 		end
@@ -291,8 +332,12 @@ function ml_marker_mgr.NewMarker()
 		newMarker = templateMarker:Copy()
 	else
         templateMarker = ml_marker_mgr.templateList[gMarkerMgrType]
-		newMarker = templateMarker:Copy()
-		newMarker:SetName(newMarker:GetType())
+		if (ValidTable(templateMarker)) then
+			newMarker = templateMarker:Copy()
+			newMarker:SetName(newMarker:GetType())
+		else
+			ml_error("No Marker Types defined!")			
+		end
 	end
 	
 	if (ValidTable(newMarker)) then
@@ -353,7 +398,10 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
 				end
 			end
 		end
-		
+		if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+			d("ml_marker_mgr.CleanMarkerOrder: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+			return false
+		end
 		ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
     end
 end
@@ -383,6 +431,12 @@ end
 --IO FUNCTIONS
 function ml_marker_mgr.ReadMarkerFile(path)
 	local markerList = persistence.load(path)
+
+	-- needs to be set, else the whole markermanager breaks when a mesh without a .info file is beeing loaded
+	if ( ValidString(path) ) then
+		ml_marker_mgr.markerPath = path
+	end
+
 	if (ValidTable(markerList)) then
 		ml_marker_mgr.markerList = markerList
 		for type, list in pairs(ml_marker_mgr.markerList) do
@@ -401,7 +455,6 @@ function ml_marker_mgr.ReadMarkerFile(path)
 			end
 		end
 		
-		ml_marker_mgr.markerPath = path
 		ml_marker_mgr.markersLoaded = true
 	else
 		ml_debug("Invalid path specified for marker file")
@@ -409,6 +462,10 @@ function ml_marker_mgr.ReadMarkerFile(path)
 end
 
 function ml_marker_mgr.WriteMarkerFile(path)
+	if ( path == "" ) then
+		d("ml_marker_mgr.WriteMarkerFile: Invalid Path : "..path)
+		return false
+	end
 	persistence.store(path, ml_marker_mgr.markerList)
 end
 
@@ -619,7 +676,11 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 				if (name == "Name") then 
 					ml_marker_mgr.RefreshMarkerNames() 
 				end
-				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+				if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
+					d("ml_marker_mgr.GUIVarUpdate: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
+				else
+					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+				end				
 			end
 		elseif (k == "gMarkerMgrName") then
 			if (v ~= "") then

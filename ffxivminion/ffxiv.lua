@@ -1,5 +1,5 @@
 ml_global_information = {}
---ml_global_information.path = GetStartupPath()
+ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
 ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
@@ -84,7 +84,7 @@ ffxivminion.Strings = {
 		function ()
 			local count = 0
 			local meshlist = "none"
-			local meshfilelist = dirlist(mm.navmeshfilepath,".*obj")
+			local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
 			if ( ValidTable(meshfilelist)) then
 				for i, meshname in pairs(meshfilelist) do
 					meshname = string.gsub(meshname, ".obj", "")
@@ -131,7 +131,7 @@ function ml_global_information.OnUpdate( event, tickcount )
     end
 	
     -- Mesher.lua
-    mm.OnUpdate( event, tickcount )
+    ml_mesh_mgr.OnUpdate( tickcount )
     
     -- skillmgr.lua
     SkillMgr.OnUpdate( event, tickcount )
@@ -280,7 +280,7 @@ function ffxivminion.HandleInit()
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	GUI_NewButton(winName, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
-    GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshmgr")
+    GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshManager")
     GUI_NewButton(winName, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
 	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
 	GUI_NewButton(winName,strings[gCurrentLanguage].profileManager,"QMToggleMain")
@@ -399,8 +399,52 @@ function ffxivminion.HandleInit()
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
-	ml_marker_mgr.DrawMarker =		mm.DrawMarker	
-    
+	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
+	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
+	
+
+-- setup meshmanager
+	if ( ml_mesh_mgr ) then
+		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
+		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
+		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
+		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
+		ml_mesh_mgr.averagegameunitsize = 1
+		
+	-- Set default meshes SetDefaultMesh(mapid, filename)
+		ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(135, "Lower La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(137, "Eastern La Noscea - Costa Del Sol")
+		ml_mesh_mgr.SetDefaultMesh(138, "Western La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(139, "Upper La Noscea - Right")
+		ml_mesh_mgr.SetDefaultMesh(140, "Western Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(141, "Central Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(145, "Eastern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(146, "Southern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(147, "Northern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(148, "Central Shroud")
+		ml_mesh_mgr.SetDefaultMesh(152, "East Shroud")
+		ml_mesh_mgr.SetDefaultMesh(153, "South Shroud")
+		ml_mesh_mgr.SetDefaultMesh(154, "North Shroud")
+		ml_mesh_mgr.SetDefaultMesh(155, "Coerthas")
+		ml_mesh_mgr.SetDefaultMesh(156, "Mor Dhona")
+		ml_mesh_mgr.SetDefaultMesh(180, "Outer La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(337, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(130, "Ul'dah - Steps of Nald")
+		ml_mesh_mgr.SetDefaultMesh(131, "Ul'dah - Steps of Thal")
+		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Upper)")
+		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Lower)")
+		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
+		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
+		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
+				
+		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
+	end
+	
+	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
 		ml_task_hub.ToggleRun()		
@@ -426,6 +470,8 @@ function ffxivminion.HandleInit()
     
     ml_debug("GUI Setup done")
     GUI_SetStatusBar("Ready...")
+	
+	ffxivminion.UpdateFoodOptions()
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)	
@@ -569,12 +615,14 @@ function ffxivminion.SetMode(mode)
         end
 		
 		if (gBotMode == GetString("dutyMode")) then
+			gTeleport = "1"
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 		elseif (gBotMode == GetString("questMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
 			GameHacks:SkipCutscene(true)
@@ -582,6 +630,9 @@ function ffxivminion.SetMode(mode)
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
 		else
+			if (gBotMode == GetString("gatherMode")) then
+				gTeleport = "0"
+			end
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
@@ -776,22 +827,32 @@ function ffxivminion.UpdateFoodOptions()
 	for x = 0, 3 do
 		local inv = Inventory("category=5,type="..tostring(x))
 		if ( inv ) then
-			local i,item = next(inv)
-			while (i~=nil and item~=nil) do
+			for i, item in pairs(inv) do
 				if (item.id > 10000) then
-					ffxivminion.foodsHQ[item.name] = item.id  
+					if (ffxivminion.foodsHQ[item.name] ~= item.id) then
+						ffxivminion.foodsHQ[item.name] = item.id 
+					end
 					foodlistHQ = foodlistHQ..","..item.name
 				else
-					ffxivminion.foods[item.name] = item.id
+					if (ffxivminion.foods[item.name] ~= item.id) then
+						ffxivminion.foods[item.name] = item.id
+					end
 					foodlist = foodlist..","..item.name
 				end
-				i,item = next(inv,i)  
-			end  
+			end
 		end
 	end
 	
     gFood_listitems = foodlist
 	gFoodHQ_listitems = foodlistHQ
+	
+	if (ffxivminion.foodsHQ[gFoodHQ] == nil) then
+		gFoodHQ = "None"
+	end
+	if (ffxivminion.foods[gFood] == nil) then
+		gFood = "None"
+	end
+	
 	GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
@@ -834,6 +895,52 @@ function ffxivminion.HandleButtons( Event, Button )
 		end
 	end
 end
+
+
+-- Dont know where else to put this
+function ffxivminion.DrawMarker(marker)
+	local markertype = marker:GetType()
+	local pos = marker:GetPosition()
+	
+    local color = 0
+    local s = 1 -- size
+    local h = 5 -- height
+	
+    if ( markertype == GetString("grindMarker") ) then
+        color = 1 -- red
+    elseif ( markertype == GetString("fishingMarker") ) then
+        color = 4 --blue
+    elseif ( markertype == GetString("miningMarker") ) then
+        color = 7 -- yellow	
+    elseif ( markertype == GetString("botanyMarker") ) then
+        color = 8 -- orange
+	elseif ( markertype == GetString("huntMarker") ) then
+		color = 2
+    end
+    --Building the vertices for the object
+    local t = { 
+        [1] = { pos.x-s, pos.y+s+h, pos.z-s, color },
+        [2] = { pos.x+s, pos.y+s+h, pos.z-s, color  },	
+        [3] = { pos.x,   pos.y-s+h,   pos.z, color  },
+        
+        [4] = { pos.x+s, pos.y+s+h, pos.z-s, color },
+        [5] = { pos.x+s, pos.y+s+h, pos.z+s, color  },	
+        [6] = { pos.x,   pos.y-s+h,   pos.z, color  },
+        
+        [7] = { pos.x+s, pos.y+s+h, pos.z+s, color },
+        [8] = { pos.x-s, pos.y+s+h, pos.z+s, color  },	
+        [9] = { pos.x,   pos.y-s+h,   pos.z, color  },
+        
+        [10] = { pos.x-s, pos.y+s+h, pos.z+s, color },
+        [11] = { pos.x-s, pos.y+s+h, pos.z-s, color  },	
+        [12] = { pos.x,   pos.y-s+h,   pos.z, color  },
+    }
+    
+    local id = RenderManager:AddObject(t)	
+    return id
+end
+
+
 
 -- Register Event Handlers
 RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)
