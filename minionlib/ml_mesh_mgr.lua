@@ -18,7 +18,6 @@
 -- ml_mesh_mgr.RemoveDefaultMesh(mapid) -> removes the default for the mapid
  
  
- 
  -- Default empty mesh data "class"
 ml_mesh = {
 	MapID = 0,
@@ -38,7 +37,7 @@ ml_mesh_mgr.GetMapID = function () return 0 end -- Needs to get re-set
 ml_mesh_mgr.GetMapName = function () return "NoName" end -- Needs to get re-set
 ml_mesh_mgr.GetPlayerPos = function () return { x=0, y=0, z=0, h=0 } end -- Needs to get re-set
 ml_mesh_mgr.nextNavMesh = nil -- Holds the navmeshfilename that should get loaded
-ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+ml_mesh_mgr.currentMesh = ml_mesh
 ml_mesh_mgr.loadingMesh = false
 ml_mesh_mgr.averagegameunitsize = 50
 ml_mesh_mgr.OMC = 0
@@ -261,7 +260,16 @@ function ml_mesh_mgr.SwitchNavmesh()
 				ml_marker_mgr.ClearMarkerList()
 				
 				if (FileExists(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")) then					
-					ml_marker_mgr.ReadMarkerFile(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")					
+					-- REMOVE THIS OLD COMPATIBILITY SHIT AFTER SOME MONTHS WHEN EVERYTHING IS CONVERTED:
+						local lines = LinesFrom(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")		
+						d("LINE 1 : "..tostring(lines[1]))
+						if (lines[1] == "version=1") then --check for old marker file
+							d("Loading old info file...")
+							ml_mesh_mgr.ConvertOldMarkerInfoFileToFancyNewOne(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info") -- reads in and converts the ol info files
+						else
+							ml_marker_mgr.ReadMarkerFile(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")            
+						end					
+					
 					ml_marker_mgr.DrawMarkerList()
 					ml_marker_mgr.RefreshMarkerNames()					
 				else
@@ -273,7 +281,8 @@ function ml_mesh_mgr.SwitchNavmesh()
 				if (FileExists(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")) then					
 					ml_mesh_mgr.currentMesh = persistence.load(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")
 					if (not ValidTable(ml_mesh_mgr.currentMesh)) then
-						ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+						--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+						ml_mesh_mgr.ResetCurrentMeshData()
 						d("WARNING: while loading meshdata-file from "..ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")					
 						ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
 						ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
@@ -287,7 +296,8 @@ function ml_mesh_mgr.SwitchNavmesh()
 					end
 				else
 					d("WARNING: ml_mesh_mgr.SwitchNavmesh: No Data-file exist : "..ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")
-					ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+					--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+					ml_mesh_mgr.ResetCurrentMeshData()
 					ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
 					ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
 				end				
@@ -527,6 +537,18 @@ function ml_mesh_mgr.SaveMeshData(filename)
 	
 end
 
+-- (Re-)Inits the ml_mesh_mgr.currentMesh table
+function ml_mesh_mgr.ResetCurrentMeshData()
+	ml_mesh_mgr.currentMesh = {
+		MapID = 0,
+		Name = "",
+		MarkerList = {},
+		Obstacles = {},
+		AvoidanceAreas = {},
+		LastPlayerPosition = { x=0, y=0, z=0, h=0, hx=0, hy=0, hz=0},
+		
+	}
+end
 
 -- Deletes the current meshdata and resets the meshmanagerdata
 function ml_mesh_mgr.ClearNavMesh()
@@ -538,7 +560,8 @@ function ml_mesh_mgr.ClearNavMesh()
 	ml_marker_mgr.RefreshMarkerNames()
 						
 	-- Create Default Meshdata
-	ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+	--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
+	ml_mesh_mgr.ResetCurrentMeshData()
 	ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
 	ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
 	gnewmeshname = ml_mesh_mgr.currentMesh.Name
@@ -715,6 +738,123 @@ function ml_mesh_mgr.SetupNavNodes()
 		end
 	end
 end
+
+
+
+-- old compatibilityshit, remove that at some point in the near future!
+function ml_mesh_mgr.ConvertOldMarkerInfoFileToFancyNewOne(meshname)
+   
+	local OldShitList = {}
+	
+    -- helper functions located in ml_utility.lua
+    local lines = LinesFrom(meshname)
+    local version = 0
+    if ( TableSize(lines) > 0) then
+        for i, line in pairs(lines) do
+            local sections = {}
+            for section in StringSplit(line,":") do
+                table.insert(sections, section)
+            end
+            local tag = nil
+            local key = nil
+            local mark = string.find(sections[1], "=")
+            if (mark ~= nil) then
+                tag = sections[1]:sub(0,mark-1)
+                key = sections[1]:sub(mark+1)
+            end
+            if ( tag == "MapID" ) then
+                ml_mesh_mgr.currentMesh.MapID = tonumber(key)
+            elseif (tag == "evacPoint") then
+                local posTable = {}
+                for coord in StringSplit(key,",") do
+                    table.insert(posTable, tonumber(coord))
+                end
+                if (TableSize(posTable) == 3) then
+                    ml_marker_mgr.markerList["evacPoint"] = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
+                end	
+            elseif (tag == "version") then
+                version = tonumber(key)
+            else
+                local posTable = {}
+                for coord in StringSplit(sections[2],",") do
+                    table.insert(posTable, tonumber(coord))
+                end
+                local i = 4
+                local markerMinLevel = 1
+                local markerMaxLevel = 50
+                if (version == 1) then
+                    markerMinLevel = tonumber(sections[3])
+                    markerMaxLevel = tonumber(sections[4])
+                    i = 5
+                else
+                    markerMinLevel = tonumber(sections[3])
+                    markerMaxLevel = tonumber(sections[3])
+                end
+                
+                local markerTime = tonumber(sections[i])
+                local dataTable = {}
+                for data in StringSplit(sections[i+1],",") do
+                    table.insert(dataTable, data)
+                end
+                
+                -- add the marker to the list
+                if ( not OldShitList[tag] ) then
+					OldShitList[tag] = {}
+				end
+				local list = OldShitList[tag]
+
+                -- Draw this Marker (?? whaaat?, fx)
+                list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}
+                                
+            end
+        end
+    else
+        ml_debug("NO INFO FILE FOR THAT MESH EXISTS")
+    end
+	
+	-- convert the ol shit
+	if (TableSize(OldShitList) > 0) then
+		for type, list in pairs(OldShitList) do
+			for name, marker in pairs(list) do
+				local newMarker = nil
+				if (type == "grindSpot") then 
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].grindMarker]:Copy()
+				elseif (type == "botanySpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].botanyMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
+				elseif (type == "miningSpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].miningMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
+					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
+				elseif (type == "fishingSpot") then
+					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].fishingMarker]:Copy()
+					newMarker:SetFieldValue(strings[gCurrentLanguage].baitName, marker.data[1])
+				else
+					return
+				end
+				
+				if (ValidTable(newMarker)) then
+					newMarker:SetName(name)
+					newMarker:SetTime(marker.time)
+					local pos = {x = marker.x, y = marker.y, z = marker.z, h = marker.h}
+					newMarker:SetPosition(pos)
+					newMarker:SetMinLevel(marker.minlevel)
+					newMarker:SetMaxLevel(marker.maxlevel)
+					ml_marker_mgr.AddMarker(newMarker)
+				end
+			end
+		end
+
+		if ( ValidString(meshname) ) then
+			ml_marker_mgr.markerPath = meshname
+		end
+		d("save converted marker info file")
+		--save new markers
+		ml_marker_mgr.WriteMarkerFile(meshname)
+	end	
+end
+
 
 RegisterEventHandler("ToggleMeshManager", ml_mesh_mgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",ml_mesh_mgr.GUIVarUpdate)
