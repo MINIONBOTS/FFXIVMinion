@@ -21,7 +21,7 @@ SkillMgr.copiedSkill = {}
 SkillMgr.mplock = false
 SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
-SkillMgr.lastOFFCD = false
+SkillMgr.bestAOE = 0
 
 
 SkillMgr.GCDSkills = {
@@ -250,7 +250,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRGTYPE,"SKM_TRGTYPE",strings[gCurrentLanguage].target,"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNPC,"SKM_NPC",strings[gCurrentLanguage].target)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTRG,"SKM_PTRG",strings[gCurrentLanguage].target,"Any,Enemy,Player")
@@ -345,8 +345,6 @@ function SkillMgr.ModuleInit()
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
     GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
     GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
-    
-   
 
     SkillMgr.SkillBook = {}
 	SkillMgr.UpdateProfiles()
@@ -539,31 +537,37 @@ function SkillMgr.UpdateProfiles()
 end
 
 function SkillMgr.CopySkill()
+	d("COPYING SKILL #:"..tostring(SKM_Prio))
 	local source = SkillMgr.SkillProfile[tonumber(SKM_Prio)]
 	SkillMgr.copiedSkill = {}
 	local temp = {}
 	for k,v in pairs(SkillMgr.Variables) do
-		if (v.section ~= "main") then
-			temp[v.profile] = source[v.profile]
+		if (v.section == "fighting") then
+			d("V.PROFILE="..tostring(v.profile)..",GLOBAL="..tostring(k)..",VALUE="..tostring(_G[tostring(k)]))
+			temp[v.profile] = _G[tostring(k)]
 		end
 	end
 	SkillMgr.copiedSkill = temp
 end
 
 function SkillMgr.PasteSkill()
+	d("PASTING INTO SKILL #:"..tostring(SKM_Prio))
 	local source = SkillMgr.copiedSkill
 	for conditional,value in pairs(SkillMgr.SkillProfile[tonumber(SKM_Prio)]) do
-		local section = nil
 		for k,v in pairs(SkillMgr.Variables) do
-			if v.profile == conditional then 
-				if v.section ~= "main" then
+			if v.profile == conditional and v.section == "fighting" then 
+				d("SETTING GLOBAL:"..tostring(k)..", VALUE="..tostring(source[conditional]))
+				if (v.cast == "string") then
 					_G[tostring(k)] = source[conditional]
-					Settings.FFXIVMINION[tostring(k)] = _G[tostring(k)]
+					conditional = source[conditional]
+				else
+					_G[tostring(k)] = tonumber(source[conditional])
+					conditional = tonumber(source[conditional])
 				end
 			end
 		end
 	end
-	GUI_RefreshWindow(SkillMgr.editwindow.name)
+	--GUI_RefreshWindow(SkillMgr.editwindow.name)
 end
 
 --+
@@ -1341,6 +1345,24 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									target = EntityList:Get(ci.channeltargetid)
 									TID = ci.channeltargetid
 									tbuffs = target.buffs
+								else
+									castable = false
+								end
+							elseif ( skill.trg == "SMN DoT" ) then
+								local newtarget = GetBestDoTTarget()
+								if (ValidTable(newtarget)) then
+									target = newtarget
+									TID = newtarget.id
+									tbuffs = newtarget.buffs
+								else
+									castable = false
+								end
+							elseif ( skill.trg == "SMN Bane" ) then
+								local newtarget = GetBestBaneTarget()
+								if (ValidTable(newtarget)) then
+									target = newtarget
+									TID = newtarget.id
+									tbuffs = newtarget.buffs
 								else
 									castable = false
 								end

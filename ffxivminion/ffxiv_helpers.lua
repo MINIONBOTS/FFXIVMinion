@@ -267,11 +267,8 @@ function GetBestPartyHealTarget( npc, range )
 	npc = npc or false
 	range = range or ml_global_information.AttackRange
 	
-	if ( not npc ) then
-		el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	else
-		el = EntityList("lowesthealth,friendly,myparty,targetable,maxdistance="..tostring(range))
-	end
+	local el = nil
+	el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
 	
     if ( el ) then
         local i,e = next(el)
@@ -281,6 +278,28 @@ function GetBestPartyHealTarget( npc, range )
 			end
         end
     end
+	
+	if (npc) then
+		el = EntityList("lowesthealth,friendly,myparty,targetable,maxdistance="..tostring(range))
+		if ( el ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
+					return e
+				end
+			end
+		end
+	end
+	
+	if (gBotMode == GetString("partyMode") and not IsLeader()) then
+		local leader = GetPartyLeader()
+		if (leader and leader.id ~= 0) then
+			local leaderentity = EntityList:Get(leader.id)
+			if (leaderentity and leaderentity.distance <= range) then
+				return leaderentity
+			end
+		end
+	end
 	
     return nil
 end
@@ -436,6 +455,69 @@ function GetBestHealTarget( npc, range )
     return nil
 end
 
+function GetBestBaneTarget()
+	local bestTarget = nil
+	local party = EntityList.myparty
+	local el = nil
+	
+	--Check the original diseased target, make sure it has all the required buffs, and that they're all 3 or more, blow it up, reset the best dot target.
+	if (SkillMgr.bestAOE ~= 0) then
+		local e = EntityList:Get(SkillMgr.bestAOE)
+		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player)) then
+			SkillMgr.bestAOE = 0
+			return e
+		end
+	end
+	
+	--If the original target is not found, check the best target with clustered, blow it up, reset the best dot target.
+	for i,member in pairs(party) do
+		if (member.id ~= 0) then
+			local el = EntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
+			if ( el ) then
+				for k,e in pairs(el) do
+					if HasBuffs(e, "179+180+189", 3, Player) then
+						SkillMgr.bestAOE = 0
+						return e
+					end
+				end
+			end
+		end
+	end
+	
+    return nil
+end
+
+function GetBestDoTTarget()
+	local bestTarget = nil
+	local party = EntityList.myparty
+	local el = nil
+	
+	--Check for the original DoT target, if it exists, and is still missing debuffs, keep using it.
+	if (SkillMgr.bestAOE ~= 0) then
+		local e = EntityList:Get(SkillMgr.bestAOE)
+		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player)) then
+			return e
+		end
+	end
+	
+	--Check for a new target that is clustered and missing all 3 buffs
+	for i,member in pairs(party) do
+		if (member.id ~= 0) then
+			local el = EntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
+			if ( el ) then
+				for k,e in pairs(el) do
+					if MissingBuffs(e, "179+180+189", 3, Player) then
+						SkillMgr.bestAOE = e.id
+						return e
+					end
+				end
+			end
+		end
+	end
+	
+    return nil
+end
+
 function GetClosestHealTarget()
     local pID = Player.id
     local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
@@ -487,6 +569,18 @@ function GetBestRevive( party, role)
 			end  
 		end
 	end
+	
+	if (gBotMode == GetString("partyMode") and not IsLeader()) then
+		local leader = GetPartyLeader()
+		if (leader and leader.id ~= 0) then
+			local leaderentity = EntityList:Get(leader.id)
+			if (leaderentity and leaderentity.distance <= range and not leader.alive and not HasBuffs(leaderentity, "148")) then
+				return leaderentity
+			end
+		end
+	end
+	
+	
 	return nil
 end
 
@@ -659,25 +753,33 @@ function GetDutyTarget( maxHP )
 	end
 	
 	local el = nil
+	local highestHP = 1
+	local bestAOE = nil
 	--First, try to get the best AOE target if we are killing the mobs.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("alive,los,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (target.targetable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
+			
+			for id, target in pairs(el) do
+				if (target.hp.current > highestHP and target.attackable) then
+					if (not maxHP or target.hp.percent > maxHP) then
+						bestAOE = target
+					end
+				end			
+			end
+			
+			if (ValidTable(bestAOE)) then
+				return bestAOE
 			end
 		end	
 	end
 	
 	--Second, try to get the lowesthealth, if we are killing the mobs.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("lowesthealth,alive,los,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			local id, target = next(el)
-			if (target.targetable) then
+			if (target.attackable) then
 				if (not maxHP or target.hp.percent > maxHP) then
 					return target
 				end
@@ -685,12 +787,45 @@ function GetDutyTarget( maxHP )
 		end	
 	end
 	
-	--Third, if we are only pulling, get one with no target.
-	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
-		el = EntityList("nearest,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+	highestHP = 1
+	bestAOE = nil
+	--Third, try to get the best AOE target if we are killing the mobs, los ignored.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
-				if (target.targetable and target.targetid == 0) then
+				if (target.hp.current > highestHP and target.attackable) then
+					if (not maxHP or target.hp.percent > maxHP) then
+						bestAOE = target
+					end
+				end			
+			end
+			
+			if (ValidTable(bestAOE)) then
+				return bestAOE
+			end
+		end	
+	end
+	
+	--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
+	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (target.attackable) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
+			end
+		end	
+	end
+	
+	--Fifth, if we are only pulling, get one with no target.
+	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
+		el = EntityList("nearest,alive,targeting=0,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+		if (ValidTable(el)) then
+			for id, target in pairs(el) do
+				if (target.attackable and target.targetid == 0) then
 					if (not maxHP or target.hp.percent > maxHP) then
 						return target
 					end
@@ -703,7 +838,7 @@ function GetDutyTarget( maxHP )
 	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
-			if (target.targetable) then
+			if (target.attackable) then
 				if (not maxHP or target.hp.percent > maxHP) then
 					return target
 				end

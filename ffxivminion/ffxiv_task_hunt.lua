@@ -246,6 +246,7 @@ function e_nexthuntmarker:execute()
     newTask.range = math.random(10,15)
 	newTask.reason = "MOVE_HUNT_MARKER"
 	newTask.use3d = true
+	newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
