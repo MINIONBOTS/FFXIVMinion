@@ -189,42 +189,71 @@ function GetNearestFateAttackable()
 end
 
 function GetHuntTarget()
+	local nearest = nil
+	local nearestDistance = 9999
 	local excludeString = GetBlacklistIDString()
 	local el = nil
 	
 	if (excludeString) then
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 	else
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
+		el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
 	end
-	if (el) then
-		local i,e = next(el)
-		if (i and e) then
-			return "S", e
+	if (ValidTable(el)) then
+		for i,e in pairs(el) do
+			local myPos = Player.pos
+			local tpos = e.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+			if (distance < nearestDistance) then
+				nearest = e
+				nearestDistance = distance
+			end
+		end
+		
+		if (ValidTable(nearest)) then
+			return "S", nearest
 		end
 	end
 	
 	if (excludeString) then
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 	else
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
+		el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
 	end
-	if (el) then
-		local i,e = next(el)
-		if (i and e) then
-			return "A", e
+	if (ValidTable(el)) then
+		for i,e in pairs(el) do
+			local myPos = Player.pos
+			local tpos = e.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+			if (distance < nearestDistance) then
+				nearest = e
+				nearestDistance = distance
+			end
+		end
+		
+		if (ValidTable(nearest)) then
+			return "A", nearest
 		end
 	end
 	
 	if (excludeString) then
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 	else
-		el = EntityList("nearest,contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
+		el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
 	end
-	if (el) then
-		local i,e = next(el)
-		if (i and e) then
-			return "B", e
+	if (ValidTable(el)) then
+		for i,e in pairs(el) do
+			local myPos = Player.pos
+			local tpos = e.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+			if (distance < nearestDistance) then
+				nearest = e
+				nearestDistance = distance
+			end
+		end
+		
+		if (ValidTable(nearest)) then
+			return "B", nearest
 		end
 	end
 	

@@ -1257,12 +1257,18 @@ function c_returntomarker:evaluate()
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 		
-		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode or gBotMode == strings[gCurrentLanguage].huntMode) then
+		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
 			local target = ml_task_hub:CurrentTask().targetFunction()
 			if (distance > 200 or target == nil) then
 				return true
 			end
 		end
+		
+		if (gBotMode == strings[gCurrentLanguage].huntMode) then
+			if (distance > 15) then
+				return true
+			end
+		end		
 		
         if  (gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
 			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
