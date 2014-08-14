@@ -525,7 +525,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
     },                                  
     ["cn"] =                            
     {                               
@@ -1051,6 +1052,8 @@ strings =
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
 		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
 	},
     ["jp"] =
     {
@@ -1563,7 +1566,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
 	},   
     ["de"] =
     {
@@ -2077,6 +2081,8 @@ strings =
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
 		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
 	},     
     ["fr"] =
     {
@@ -2626,7 +2632,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
 	},       
     ["ru"] =
     {
@@ -3139,7 +3146,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		specialNode						= "Special Node",
+		newLocation						= "New Location",
 	},    	
 
 }

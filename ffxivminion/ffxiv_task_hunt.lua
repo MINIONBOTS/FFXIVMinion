@@ -519,10 +519,6 @@ function ffxiv_task_hunt.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gHuntMapID" or
 				k == "gHuntMapTimer" or
-				k == "gHuntMarkerRandomize" or 
-				k == "gHuntLocations" or
-				k == "gHuntMapID" or
-				k == "gHuntMapTimer" or
 				k == "gHuntMarkerStyle" or
 				k == "gHuntSRankHP" or
 				k == "gHuntSRankAllies" or
@@ -732,7 +728,6 @@ function ffxiv_task_hunt.RemoveHuntLocation(key)
 	ffxiv_task_hunt.RefreshHuntLocations()
 end
 
-
 function ffxiv_task_hunt.RefreshHuntLocations()
 	local winName = ffxivminion.Windows.Hunt.Name
 	local tabName = "Locations"
@@ -762,5 +757,5 @@ function ffxiv_task_hunt.HandleButtons( Event, Button )
 		end
 	end
 end
-RegisterEventHandler("GUI.Item",		ffxiv_task_hunt.HandleButtons)
+RegisterEventHandler("GUI.Item",ffxiv_task_hunt.HandleButtons)
 RegisterEventHandler("GUI.Update",ffxiv_task_hunt.GUIVarUpdate)

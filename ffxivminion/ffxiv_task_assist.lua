@@ -138,7 +138,6 @@ function ffxiv_task_assist:Process()
 end
 
 function ffxiv_task_assist.UIInit()
-	
 	--Add it to the main tracking table, so that we can save positions for it.
 	ffxivminion.Windows.Assist = { Name = GetString("assistMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Assist)
@@ -152,11 +151,17 @@ function ffxiv_task_assist.UIInit()
 	if (Settings.FFXIVMINION.gStartCombat == nil) then
         Settings.FFXIVMINION.gStartCombat = "1"
     end
-	 if (Settings.FFXIVMINION.gConfirmDuty == nil) then
+	if (Settings.FFXIVMINION.gConfirmDuty == nil) then
         Settings.FFXIVMINION.gConfirmDuty = "0"
     end
 	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
 		Settings.FFXIVMINION.gQuestHelpers = "0"
+	end
+	if (Settings.FFXIVMINION.gPrimaryFilter == nil) then
+        Settings.FFXIVMINION.gPrimaryFilter = "0"
+    end
+	if (Settings.FFXIVMINION.gSecondaryFilter == nil) then
+		Settings.FFXIVMINION.gSecondaryFilter = "0"
 	end
 	
 	local winName = GetString("assistMode")
@@ -187,6 +192,8 @@ function ffxiv_task_assist.UIInit()
 	gStartCombat = Settings.FFXIVMINION.gStartCombat
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
+	gPrimaryFilter = Settings.FFXIVMINION.gPrimaryFilter
+	gSecondaryFilter = Settings.FFXIVMINION.gSecondaryFilter
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
@@ -197,7 +204,9 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gAssistPriority" or
 				k == "gStartCombat" or
 				k == "gConfirmDuty" or
-				k == "gQuestHelpers" ) then
+				k == "gQuestHelpers" or
+				k == "gPrimaryFilter" or
+				k == "gSecondaryFilter" ) then
             Settings.FFXIVMINION[tostring(k)] = v
         end
     end

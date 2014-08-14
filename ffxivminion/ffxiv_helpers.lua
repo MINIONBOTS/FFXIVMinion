@@ -31,9 +31,9 @@ function GetNearestGrindAttackable()
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
 	block = 2
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
 	else
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxpathdistance=30") 
 	end
 	
 	if ( el ) then
@@ -755,6 +755,7 @@ end
 
 function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
+	local el = nil
 	
 	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
         return nil
@@ -781,7 +782,6 @@ function GetDutyTarget( maxHP )
 		end
 	end
 	
-	local el = nil
 	local highestHP = 1
 	local bestAOE = nil
 	--First, try to get the best AOE target if we are killing the mobs.
@@ -880,9 +880,9 @@ end
 
 function GetNearestAggro()
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,exclude_contentid="..excludeString..",maxpathdistance=30") 
 	else
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,maxdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,maxpathdistance=30") 
 	end
 	
 	if ( el ) then
@@ -937,6 +937,20 @@ function GetNearestGatherable(minlevel,maxlevel)
         end
     end
     ml_debug("GetNearestGatherable() failed with no entity found matching params")
+    return nil
+end
+
+function GetNearestUnspoiled(class)
+	local contentID = (class == FFXIV.JOBS.MINER) and 5 or 6
+    local el = EntityList("shortestpath,onmesh,gatherable,contentid="..contentID)
+    
+    if ( el ) then
+        local i,e = next(el)
+        if (i~=nil and e~=nil) then
+            return e
+        end
+    end
+	
     return nil
 end
 
@@ -1934,7 +1948,6 @@ function GetArmoryIDsTable()
 end
 
 function EorzeaTime()
-    
 	local et = {}
     local ratioRealToGame = (1440 / 70)	
 	

@@ -312,6 +312,7 @@ function ml_mesh_mgr.SwitchNavmesh()
 		end
 		ml_mesh_mgr.nextNavMesh = nil
 	end
+	
 	return false
 end
 
@@ -332,22 +333,28 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 	
 	local navstate = NavigationManager:GetNavMeshState()
 		
-	if ( ml_mesh_mgr.loadingMesh or navstate == GLOBAL.MESHSTATE.MESHBUILDING or ml_mesh_mgr.GetMapID() == nil or ml_mesh_mgr.GetMapID() == 0 or ml_mesh_mgr.SwitchNavmesh() == true ) then return end
+	if ( ml_mesh_mgr.loadingMesh or 
+		navstate == GLOBAL.MESHSTATE.MESHBUILDING or 
+		ml_mesh_mgr.GetMapID() == nil or 
+		ml_mesh_mgr.GetMapID() == 0 or 
+		ml_mesh_mgr.SwitchNavmesh() == true ) 
+	then 
+		return 
+	end
 	
 	-- Log Info
 	if ( navstate == GLOBAL.MESHSTATE.MESHEMPTY ) then
-		ml_log("WARNING: NO NAVMESH LOADED! -> SELECT A NAVMESH IN THE MESHMANAGER FOR THIS ZONE")
+		ml_debug("WARNING: NO NAVMESH LOADED! -> SELECT A NAVMESH IN THE MESHMANAGER FOR THIS ZONE")
 	elseif ( navstate == GLOBAL.MESHSTATE.MESHREADY ) then
 		if ( not Player.onmesh ) then			
-			ml_log("WARNING: PLAYER IS NOT STANDING ON THE NAVMESH! ")
+			ml_debug("WARNING: PLAYER IS NOT STANDING ON THE NAVMESH! ")
 		end
 	end
 	
 	-- Init default mesh	
 	if ( ml_mesh_mgr.currentMesh.MapID == 0 ) then
-				
+		d("MapID for current mesh is 0. Attempting to load navmesh.")
 		ml_mesh_mgr.LoadNavMeshForCurrentMap()		
-		
 	else
 	-- Check for changed MapID
 		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() ) then
@@ -396,7 +403,8 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 			
 		else			
 			-- update currentmeshdata position
-			if ( TableSize(ml_mesh_mgr.GetPlayerPos()) > 0 and ml_mesh_mgr.GetPlayerPos().x > 0 ) then
+			local myPos = ml_mesh_mgr.GetPlayerPos()
+			if (ValidTable(myPos)) then
 				
 				--[[if ( gMeshrec == "1" and ml_mesh_mgr.currentMesh.LastPlayerPosition.x > 0 ) then
 					-- check if we moved beyond the transitionpoint distance, like when we were walking though a portal or door but are still in the same map
@@ -411,11 +419,11 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 				end --]]
 				
 				-- Update last position
-				ml_mesh_mgr.currentMesh.LastPlayerPosition = { 
-					x= ml_mesh_mgr.GetPlayerPos().x, 
-					y= ml_mesh_mgr.GetPlayerPos().y, 
-					z= ml_mesh_mgr.GetPlayerPos().z, 
-					h= ml_mesh_mgr.GetPlayerPos().h 
+				ml_mesh_mgr.currentMesh.LastPlayerPosition = {				
+					x = myPos.x, 
+					y = myPos.y, 
+					z = myPos.z, 
+					h = myPos.h 
 				}
 			end
 			
@@ -425,10 +433,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 				
 				
 				--TODO: REC MESH DATA STUFF N SAVE IT IN THE INFO FILE
-				
-				
-				
-				
+
 				-- Key-Input-Handler
 				-- 162 = Left CTRL + Left Mouse
 				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
@@ -534,7 +539,6 @@ end
 -- Saves the additional mesh data into to the data file
 function ml_mesh_mgr.SaveMeshData(filename)
 	persistence.store(ml_mesh_mgr.navmeshfilepath..filename..".data", ml_mesh_mgr.currentMesh)
-	
 end
 
 -- (Re-)Inits the ml_mesh_mgr.currentMesh table
@@ -546,7 +550,6 @@ function ml_mesh_mgr.ResetCurrentMeshData()
 		Obstacles = {},
 		AvoidanceAreas = {},
 		LastPlayerPosition = { x=0, y=0, z=0, h=0, hx=0, hy=0, hz=0},
-		
 	}
 end
 
@@ -861,4 +864,3 @@ RegisterEventHandler("GUI.Update",ml_mesh_mgr.GUIVarUpdate)
 RegisterEventHandler("Module.Initalize",ml_mesh_mgr.ModuleInit)
 RegisterEventHandler("Gameloop.MeshReady",ml_mesh_mgr.NavMeshUpdate)
 RegisterEventHandler("Gameloop.OffMeshConnectionReached",ml_mesh_mgr.HandleOMC)
-RegisterEventHandler("ChangeMeshDepth", function() RenderManager:ChangeMeshDepth() end)
