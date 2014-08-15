@@ -1957,7 +1957,7 @@ function EorzeaTime()
 	jpTime.day = os.date("!%d")
 	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0) + 9
 	if (hour >= 24) then
-		jpTime.day = utc.date + 1
+		jpTime.day = jpTime.day + 1
 		hour = hour - 24
 	end
 	jpTime.hour = hour
