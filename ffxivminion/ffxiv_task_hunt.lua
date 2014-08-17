@@ -103,8 +103,7 @@ function c_add_hunttarget:evaluate()
 end
 function e_add_hunttarget:execute()	
 	Player:Stop()
-	ml_task_hub:CurrentTask().atMarker = true
-	ffxiv_task_hunt.hasTarget = true
+	ml_task_hub:RootTask().atMarker = false
 	
 	if (c_add_hunttarget.rank ~= "" and c_add_hunttarget.name ~= "") then
 		if (c_add_hunttarget.rank == "S" and gHuntSRankSound == "1") then
@@ -168,114 +167,133 @@ function e_add_hunttarget:execute()
 	c_add_hunttarget.pos = ""
 	
     ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ffxiv_task_hunt.hasTarget = true
 end
 
 c_nexthuntmarker = inheritsFrom( ml_cause )
 e_nexthuntmarker = inheritsFrom( ml_effect )
 function c_nexthuntmarker:evaluate()
 
-	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget or ffxiv_task_hunt.hasTarget) then
+		--d("Exiting hunt marker in condition 1.")
 		return false
 	end
 
     if (not ml_marker_mgr.markersLoaded) then
+		--d("Exiting hunt marker in condition 1.")
         return false
     end
 	
-    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
+    if ( ml_task_hub:RootTask().currentMarker ~= nil and ml_task_hub:RootTask().currentMarker ~= 0 ) then
         local marker = nil
         
         -- first check to see if we have no initiailized marker
-        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
+        if (ml_task_hub:RootTask().currentMarker == false) then --default init value
+            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:RootTask().filterLevel)
         
 			if (marker == nil) then
-				ml_task_hub:CurrentTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
+				ml_task_hub:RootTask().filterLevel = false
+				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:RootTask().filterLevel)
 			end	
 		end
         
         -- next check to see if our level is out of range
         if (marker == nil) then
-            if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-                if 	(ml_task_hub:CurrentTask().filterLevel) and
-					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
-                    Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
+            if (ValidTable(ml_task_hub:RootTask().currentMarker)) then
+                if 	(ml_task_hub:RootTask().filterLevel) and
+					(Player.level < ml_task_hub:RootTask().currentMarker:GetMinLevel() or 
+                    Player.level > ml_task_hub:RootTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:RootTask().filterLevel)
                 end
             end
         end
         
         -- last check if our time has run out
-        if (marker == nil and ml_task_hub:CurrentTask().atMarker) then
-            local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
-			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
-                ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
-            else
-                return false
-            end
+        if (marker == nil) then
+			if (ValidTable(ml_task_hub:RootTask().currentMarker)) then
+				local time = ml_task_hub:RootTask().currentMarker:GetTime() or 0
+				if (time == 0 or (TimeSince(ml_task_hub:RootTask().markerTime) > time * 1000 and ml_task_hub:RootTask().atMarker)) then
+					local myPos = Player.pos
+					local pos = ml_task_hub:RootTask().currentMarker:GetPosition()
+					local distance = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+					
+					if (distance <= 30) then
+						marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].huntMarker, ml_task_hub:CurrentTask().filterLevel)
+					end
+				else
+					--d("Exiting hunt marker in condition 3.")
+					return false
+				end
+			end
         end
-        
+		
         if (ValidTable(marker)) then
             e_nexthuntmarker.marker = marker
             return true
         end
     end
     
+	--d("Exiting hunt marker in condition 4.")
     return false
 end
 function e_nexthuntmarker:execute()
 	--If we find a new marker, set it as current marker, and immediately move to it.
 	--Set atMarker to false until we get there so that the timer does not count down until we arrive at the marker.
-	ml_task_hub:CurrentTask().atMarker = false
-    ml_task_hub:CurrentTask().currentMarker = e_nexthuntmarker.marker
-    ml_task_hub:CurrentTask().markerTime = Now()
+	ml_task_hub:RootTask().atMarker = false
+    ml_task_hub:RootTask().currentMarker = e_nexthuntmarker.marker
+    ml_task_hub:RootTask().markerTime = Now()
 	ml_global_information.MarkerTime = Now()
-    ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
-    ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
-    ml_global_information.BlacklistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
-    ml_global_information.WhitelistContentID = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
-	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
+    ml_global_information.MarkerMinLevel = ml_task_hub:RootTask().currentMarker:GetMinLevel()
+    ml_global_information.MarkerMaxLevel = ml_task_hub:RootTask().currentMarker:GetMaxLevel()
+    ml_global_information.BlacklistContentID = ml_task_hub:RootTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
+    ml_global_information.WhitelistContentID = ml_task_hub:RootTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
+	gStatusMarkerName = ml_task_hub:RootTask().currentMarker:GetName()
 	
+	local markerPos = ml_task_hub:RootTask().currentMarker:GetPosition()
 	local newTask = ffxiv_task_movetopos.Create()
-    local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-    local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
-    newTask.pos = markerPos
-    newTask.range = math.random(10,15)
+	newTask.pos = markerPos
+	newTask.range = math.random(10,15)
 	newTask.reason = "MOVE_HUNT_MARKER"
 	newTask.use3d = true
-    ml_task_hub:CurrentTask():AddSubTask(newTask)
+	newTask.remainMounted = true
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_athuntmarker = inheritsFrom( ml_cause )
 e_athuntmarker = inheritsFrom( ml_effect )
 function c_athuntmarker:evaluate()
-	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget) then
+	if (ffxiv_task_hunt.multiTrackingTarget or ffxiv_task_hunt.multiHasTarget or ffxiv_task_hunt.hasTarget) then
 		return false
 	end
 	
-    if (ml_task_hub:CurrentTask().atMarker) then
+    if (ml_task_hub:RootTask().atMarker) then
         return false
     end
     
-    if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
-        local myPos = Player.pos
-        local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-        local distance = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
-		
-		if (distance <= 25) then
-			return true
+    if (ml_task_hub:RootTask().currentMarker ~= false and ml_task_hub:RootTask().currentMarker ~= nil) then
+		if (ValidTable(ml_task_hub:RootTask().currentMarker)) then
+			local time = ml_task_hub:RootTask().currentMarker:GetTime() or 0
+			if (time == 0) then
+				return false
+			end
+			
+			local myPos = Player.pos
+			local pos = ml_task_hub:RootTask().currentMarker:GetPosition()
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+			
+			if (distance <= 15) then
+				return true
+			end
 		end
     end
     
     return false
 end
 function e_athuntmarker:execute()
-	ml_task_hub:CurrentTask().markerTime = Now()
+	ml_task_hub:RootTask().markerTime = Now()
 	ml_global_information.MarkerTime = Now()
-	ml_task_hub:CurrentTask().atMarker = true
+	ml_task_hub:RootTask().atMarker = true
 end
 
 c_huntquit = inheritsFrom( ml_cause )
@@ -488,8 +506,11 @@ function ffxiv_task_hunt:Init()
 	local ke_atMarker = ml_element:create( "AtMarker", c_athuntmarker, e_athuntmarker, 10 )
     self:add(ke_atMarker, self.overwatch_elements)
 	
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nexthuntmarker, e_nexthuntmarker, 20 )
-    self:add(ke_nextMarker, self.process_elements)
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nexthuntmarker, e_nexthuntmarker, 9 )
+    self:add(ke_nextMarker, self.overwatch_elements)
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
+    self:add(ke_returnToMarker, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
@@ -497,10 +518,6 @@ end
 function ffxiv_task_hunt.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gHuntMapID" or
-				k == "gHuntMapTimer" or
-				k == "gHuntMarkerRandomize" or 
-				k == "gHuntLocations" or
-				k == "gHuntMapID" or
 				k == "gHuntMapTimer" or
 				k == "gHuntMarkerStyle" or
 				k == "gHuntSRankHP" or
@@ -630,7 +647,7 @@ function ffxiv_task_hunt.UIInit()
 	GUI_WindowVisible(winName, false)
 	
 	gHuntLocations = Settings.FFXIVMINION.gHuntLocations
-	gHuntMapID = Settings.FFXIVMINION.gHuntMapID
+	gHuntMapID = Player.localmapid
 	gHuntMapTimer = Settings.FFXIVMINION.gHuntMapTimer
 	gHuntMarkerStyle = Settings.FFXIVMINION.gHuntMarkerStyle
 	gHuntSRankHP = Settings.FFXIVMINION.gHuntSRankHP
@@ -650,6 +667,7 @@ function ffxiv_task_hunt.UIInit()
 	gHuntBRankCommandString = Settings.FFXIVMINION.gHuntBRankCommandString
 	gHuntBRankSound = Settings.FFXIVMINION.gHuntBRankSound
 	
+	ffxiv_task_hunt.RefreshHuntLocations()
 	ffxiv_task_hunt.SetupMarkers()
 end
 
@@ -683,7 +701,7 @@ function ffxiv_task_hunt.AddHuntLocation()
 		
 	local location = {
 		mapid = gHuntMapID,
-		timer = gHuntMapTimer,
+		timer = tonumber(gHuntMapTimer) or 1,
 		randomize = gHuntMarkerStyle,
 	}
 	
@@ -710,7 +728,6 @@ function ffxiv_task_hunt.RemoveHuntLocation(key)
 	ffxiv_task_hunt.RefreshHuntLocations()
 end
 
-
 function ffxiv_task_hunt.RefreshHuntLocations()
 	local winName = ffxivminion.Windows.Hunt.Name
 	local tabName = "Locations"
@@ -724,7 +741,7 @@ function ffxiv_task_hunt.RefreshHuntLocations()
 		GUI_UnFoldGroup(winName,tabName)
 	end
 	
-	GUI_SizeWindow(winName,ffxivminion.Windows.Hunt.width,ffxivminion.Windows.Hunt.height)
+	ffxivminion.SizeWindow(winName)
 	GUI_RefreshWindow(winName)
 end
 
@@ -740,5 +757,5 @@ function ffxiv_task_hunt.HandleButtons( Event, Button )
 		end
 	end
 end
-RegisterEventHandler("GUI.Item",		ffxiv_task_hunt.HandleButtons)
+RegisterEventHandler("GUI.Item",ffxiv_task_hunt.HandleButtons)
 RegisterEventHandler("GUI.Update",ffxiv_task_hunt.GUIVarUpdate)

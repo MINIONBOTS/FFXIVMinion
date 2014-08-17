@@ -31,6 +31,7 @@ strings =
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "Map",
         navmesh                         = "Navmesh",
         waypoint                        = "Waypoint",
@@ -473,6 +474,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -524,7 +527,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
     },                                  
     ["cn"] =                            
     {                               
@@ -556,6 +560,7 @@ strings =
         -- mesher.lua
         meshManager                     = "网格脚本管理器",
 		activated                       = "激活",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "地图",
         navmesh                         = "网格脚本",
         waypoint                        = "坐标",
@@ -997,6 +1002,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -1049,6 +1056,8 @@ strings =
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
 		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
 	},
     ["jp"] =
     {
@@ -1079,6 +1088,7 @@ strings =
         -- mesher.lua
         meshManager                     = "３Dメッシュ管理", 	
 		activated                       = "実行中",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "地図",
         navmesh                         = "３Dメッシュナビ",
         waypoint                        = "中間地点",
@@ -1509,6 +1519,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -1560,7 +1572,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
 	},   
     ["de"] =
     {
@@ -1591,6 +1604,7 @@ strings =
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "Map",
         navmesh                         = "Navmesh",
         waypoint                        = "Waypoint",
@@ -2021,6 +2035,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -2073,6 +2089,8 @@ strings =
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
 		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
 	},     
     ["fr"] =
     {
@@ -2097,49 +2115,13 @@ strings =
 		depositItems					= "Deposer Objets",
 		checkChat						= "Alerte Chat",
 		randomfarmspot 					= "Utiliser FarmSpot Aléatoire",
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		disabledrawing 					= "Désactiver Rendering",
 		killaggrononfateenemies 		= "Tuer aggros non présent dans les fates",
 		avoidAOE						 = "Avoid AOE",
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activer",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "Carte",
         navmesh                         = "Navmesh",
         waypoint                        = "Waypoint",
@@ -2570,6 +2552,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -2621,7 +2605,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
 	},       
     ["ru"] =
     {
@@ -2652,6 +2637,7 @@ strings =
         -- mesher.lua
         meshManager                     = "MeshManager", 	
 		activated                       = "Activated",
+		noMeshLoad						= "No Mesh Load",
         mapName                         = "Map",
         navmesh                         = "Navmesh",
         waypoint                        = "Waypoint",
@@ -3082,6 +3068,8 @@ strings =
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
 		huntMarker						= "Hunt Marker",
+		pvpMarker						= "PVP Marker",
+		unspoiledMarker					= "Unspoiled Marker",
         contentIDEquals                 = "ContentID=",
         NOTcontentIDEquals              = "NOT ContentID=",
 		fishingMarker					= "Fishing Marker",
@@ -3133,7 +3121,8 @@ strings =
 		profileManager					= "Profile Manager",
 		advancedSettings				= "Advanced Settings",
 		hacks							= "Hacks",
-		teleport						= "Teleport",
+		newLocation						= "New Location",
+		minimumGP						= "Minimum GP",
 	},    	
 
 }

@@ -283,9 +283,10 @@ c_syncfatelevel = inheritsFrom( ml_cause )
 e_syncfatelevel = inheritsFrom( ml_effect )
 c_syncfatelevel.throttle = 1000
 function c_syncfatelevel:evaluate()
-    if (ml_task_hub:CurrentTask().name == "MOVETOPOS" or Player:GetSyncLevel() ~= 0) then
+    if (Player:GetSyncLevel() ~= 0) then
         return false
     end
+	
     local myPos = Player.pos
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
@@ -304,6 +305,7 @@ end
 function e_syncfatelevel:execute()
     ml_debug( "Current Sync Fate level: "..tostring(Player:GetSyncLevel() ))
     ml_debug( "Syncing Fate level Result: "..tostring(Player:SyncLevel()))
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_movingfate = inheritsFrom( ml_cause )

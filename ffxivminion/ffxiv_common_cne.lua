@@ -76,7 +76,24 @@ end
 
 c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
+c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
+	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
+        return false
+    end
+	
+	if (gBotMode == strings[gCurrentLanguage].partyMode) then
+		local leader = GetPartyLeader()	
+		if (leader and leader.id ~= 0) then
+			local entity = EntityList:Get(leader.id)
+			if ( entity  and entity.id ~= 0) then
+				if ((entity.incombat and entity.distance > 7) or (not entity.incombat and entity.distance > 10) or (entity.ismounted) or Player.ismounted) then
+					return false
+				end
+			end
+		end
+	end
+	
     local target = GetNearestAggro()
 	if (ValidTable(target)) then
 		if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
@@ -88,13 +105,10 @@ function c_killaggrotarget:evaluate()
     return false
 end
 function e_killaggrotarget:execute()
-	--just in case
-	Dismount()
-	
 	local newTask = ffxiv_task_killtarget.Create()
-    newTask.targetid = c_killaggrotarget.targetid
 	Player:SetTarget(c_killaggrotarget.targetid)
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+    newTask.targetid = c_killaggrotarget.targetid
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 ---------------------------------------------------------------------------------------------
 ---- minion attacks the target the leader has
@@ -628,7 +642,7 @@ end
 
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.range = math.random(6,12)
+c_followleader.range = math.random(6,10)
 c_followleader.id = nil
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
@@ -641,7 +655,7 @@ function c_followleader:evaluate()
     if (leader and leader.id ~= 0) then
 		local entity = EntityList:Get(leader.id)
         if ( entity  and entity.id ~= 0) then
-			if (((entity.incombat and entity.distance > 7) or (not entity.incombat and entity.distance > 10) or (entity.ismounted and not Player.ismounted)) and entity.onmesh) then
+			if (((entity.incombat and entity.distance > 6) or (not entity.incombat and entity.distance > 9) or (entity.ismounted and not Player.ismounted)) and entity.onmesh) then
 				c_followleader.id = entity.id
 				return true
 			end
@@ -696,7 +710,7 @@ function e_followleader:execute()
 			if ( ml_global_information.AttackRange < 5 ) then
 				c_followleader.range = math.random(4,6)
 			else
-				c_followleader.range = math.random(8,12)
+				c_followleader.range = math.random(6,10)
 			end
 		end
 		e_followleader.isFollowing = true
@@ -1174,9 +1188,19 @@ end
 ---------------------------------------------------------------------------------------------
 c_dead = inheritsFrom( ml_cause )
 e_dead = inheritsFrom( ml_effect )
+c_dead.timer = 0
 function c_dead:evaluate()
     if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
-        return true
+		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
+			if (c_dead.timer == 0) then
+				c_dead.timer = Now() + 20000
+			end
+			if (Now() > c_dead.timer or HasBuffs(Player, "148")) then
+				return true
+			end
+		else
+			return true
+		end
     end 
     return false
 end
@@ -1229,16 +1253,27 @@ function c_returntomarker:evaluate()
 	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
 	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
+		local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+		if (markerType == GetString("unspoiledMarker")) then
+			return false
+		end
+	
         local myPos = Player.pos
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 		
-		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode or gBotMode == strings[gCurrentLanguage].huntMode) then
+		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
 			local target = ml_task_hub:CurrentTask().targetFunction()
 			if (distance > 200 or target == nil) then
 				return true
 			end
 		end
+		
+		if (gBotMode == strings[gCurrentLanguage].huntMode) then
+			if (distance > 15) then
+				return true
+			end
+		end		
 		
         if  (gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
 			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)

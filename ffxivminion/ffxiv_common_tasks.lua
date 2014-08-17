@@ -74,7 +74,6 @@ function ffxiv_task_killtarget:task_complete_eval()
 		(target and not target.alive) or 
 		(target and not target.onmesh and not InCombatRange(target.id) and ml_task_hub:CurrentTask().canEngage)) 
 	then
-        d("Kill target exiting in the eval()")
 		return true
     end
     
@@ -83,7 +82,6 @@ end
 
 function ffxiv_task_killtarget:task_complete_execute()
     self.completed = true
-	d("Task_Complete:Setting hasTarget to false.")
 	ffxiv_task_hunt.hasTarget = false
 end
 
@@ -242,7 +240,6 @@ end
 function ffxiv_task_movetopos:task_complete_execute()
     Player:Stop()
 	if (self.doFacing) then
-        --Player:SetFacingSynced(ml_task_hub:CurrentTask().pos.h)
 		Player:SetFacing(ml_task_hub:CurrentTask().pos.h)
     end
 	

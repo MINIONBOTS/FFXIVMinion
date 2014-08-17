@@ -4,10 +4,6 @@ wt_radar = {}
 wt_radar.MainWindow = { Name = "Radar", x=250, y=200 , width=200, height=200 }
 wt_radar.visible = false
 
-function wt_radar.OnUpdate( event, tickcount )
-    
-end
-
 -- Module Event Handler
 function wt_radar.HandleInit()	
     GUI_SetStatusBar("Initalizing FFXIV Radar...")

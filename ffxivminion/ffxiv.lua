@@ -99,59 +99,11 @@ ffxivminion.Strings = {
 ffxivminion.settingsVisible = false
 
 function ml_global_information.OnUpdate( event, tickcount )
+
     ml_global_information.Now = tickcount
-    
-    if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 15000) then
-        ml_task_hub:ToggleRun()
-        ml_global_information.UnstuckTimer = 0
-    end
-	
-	if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
-		ml_global_information.repairTimer = tickcount
-		Repair()
-	end
-	
-	if (TimeSince(ml_global_information.windowTimer) > 10000) then
-		ml_global_information.windowTimer = tickcount
-		ffxivminion.SaveWindows()
-	end
-	
-	if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
-		ml_global_information.updateFoodTimer = tickcount
-		ffxivminion.UpdateFoodOptions()
-	end
-	
-	if (gBotRunning == "1") then
-		if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
-			if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
-				ml_global_information.foodCheckTimer = tickcount
-				Eat()
-			end
-		end
-    end
-	
-    -- Mesher.lua
-    ml_mesh_mgr.OnUpdate( tickcount )
-    
-    -- skillmgr.lua
-    SkillMgr.OnUpdate( event, tickcount )
-    
-    -- ffxiv_task_fate.lua
-    ffxiv_task_grind.UpdateBlacklistUI(tickcount)
-    
-    -- ml_blacklist.lua
-    ml_blacklist.ClearBlacklists()
-    
-    -- ml_blacklist_mgr.lua
-    ml_blacklist_mgr.UpdateEntryTime()
-    ml_blacklist_mgr.UpdateEntries(tickcount)
-    
-    --ffxiv_unstuck.lua
-    ffxiv_unstuck.HandleUpdate(tickcount)
-    
-    gFFXIVMiniondeltaT = tostring(tickcount - ml_global_information.lastrun)
-    if (tickcount - ml_global_information.lastrun > tonumber(gFFXIVMINIONPulseTime)) then
+    if (TimeSince(ml_global_information.lastrun) > tonumber(gFFXIVMINIONPulseTime)) then
         ml_global_information.lastrun = tickcount
+		
         if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
@@ -172,7 +124,54 @@ function ml_global_information.OnUpdate( event, tickcount )
 			gStatusMarkerTime = ""
 		end
 		
+		-- Mesher.lua
+		ml_mesh_mgr.OnUpdate( tickcount )
+		
+		-- skillmgr.lua
+		SkillMgr.OnUpdate( event, tickcount )
+		
+		-- ffxiv_task_fate.lua
+		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
+		
+		-- ml_blacklist.lua
+		ml_blacklist.ClearBlacklists()
+		
+		-- ml_blacklist_mgr.lua
+		ml_blacklist_mgr.UpdateEntryTime()
+		ml_blacklist_mgr.UpdateEntries(tickcount)
+		
+		--ffxiv_unstuck.lua
 		ffxivminion.CheckClass()
+		
+		ffxiv_unstuck.HandleUpdate(tickcount)
+		if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 15000) then
+			ml_task_hub:ToggleRun()
+			ml_global_information.UnstuckTimer = 0
+		end
+		
+		if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
+			ml_global_information.repairTimer = tickcount
+			Repair()
+		end
+		
+		if (TimeSince(ml_global_information.windowTimer) > 10000) then
+			ml_global_information.windowTimer = tickcount
+			ffxivminion.SaveWindows()
+		end
+		
+		if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
+			ml_global_information.updateFoodTimer = tickcount
+			ffxivminion.UpdateFoodOptions()
+		end
+		
+		if (gBotRunning == "1") then
+			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
+				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
+					ml_global_information.foodCheckTimer = tickcount
+					Eat()
+				end
+			end
+		end
         
         if (not ml_task_hub:Update() and ml_task_hub.shouldRun) then
             ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
@@ -600,6 +599,7 @@ function ffxivminion.SetMode(mode)
 	if (wnd) then
 		GUI_MoveWindow(mode, wnd.x, wnd.y)
 	end
+	
 	ffxivminion.SizeWindow(mode)
 	GUI_WindowVisible(mode, true)
 	ml_global_information.lastMode = mode
@@ -776,6 +776,12 @@ function ffxivminion.CreateWindow(window)
 	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
 end
 
+function ffxivminion.GetWindowSize(strName)
+	local winTableName = "AutoWindow"..strName
+	local winTable = Settings.FFXIVMINION[winTableName]
+	return winTable
+end
+
 function ffxivminion.SizeWindow(strName)
 	local winTableName = "AutoWindow"..strName
 	local winTable = Settings.FFXIVMINION[winTableName]
@@ -863,8 +869,6 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-    --TODO: Do anything here for bot stopping
-    
     if (Player:IsMoving()) then
         Player:Stop()
     end
@@ -895,7 +899,6 @@ function ffxivminion.HandleButtons( Event, Button )
 		end
 	end
 end
-
 
 -- Dont know where else to put this
 function ffxivminion.DrawMarker(marker)
