@@ -941,9 +941,14 @@ function GetNearestGatherable(minlevel,maxlevel)
 end
 
 function GetNearestUnspoiled(class)
-	local contentID = (class == FFXIV.JOBS.MINER) and 5 or 6
-    local el = EntityList("shortestpath,onmesh,gatherable,contentid="..contentID)
+	--Rocky Outcrop = 6
+	--Mining Node = 5
+	--Mature Tree = 7
+	--Vegetation = 8
+	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
+    local el = EntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
     
+	d("checking nearest unspoiled."..tostring(ValidTable(el)))
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -1792,6 +1797,51 @@ function GetAetheryteByMapID(id)
     end
     
     return nil
+end
+
+function GetBestAetheryte(mapid, p)
+	local pos = p
+	
+	sharedMaps = {
+		[153] = { name = "South Shroud",
+			[1] = { name = "Quarrymill", id = 5, x = 177, z = -65},
+			[2] = { name = "Camp Tranquil", id = 6, x = -229, z = 352},
+		},
+		[137] = {name = "Eastern La Noscea",
+			[1] = { name = "Costa Del Sol", id = 11, x = 0, z = 0},
+			[2] = { name = "Wineport", id = 12, x = 0, z = 0},
+		},
+		[138] = {name = "Western La Noscea",
+			[1] = { name = "Swiftperch", id = 13, x = 652, z = -507},
+			[2] = { name = "Aleport", id = 14, x = 261, z = 223},
+		},
+		[146] = {name = "Southern Thanalan",
+			[1] = { name = "Little Ala Mhigo", id = 19, x = -152, z = -419},
+			[2] = { name = "Forgotten Springs", id = 20, x = 330, z = 405},
+		},
+		[147] = {name = "Northern Thanalan",
+			[1] = { name = "Bluefog", id = 21, x = 24, z = 452},
+			[2] = { name = "Ceruleum", id = 22, x = -33, z = -32},
+		},
+	}
+	
+	local list = Player:GetAetheryteList()
+	if (sharedMaps[mapid] == nil) then
+		for index,aetheryte in ipairs(list) do
+			if (aetheryte.territory == mapid) then
+				return aetheryte.id
+			end
+		end
+	else
+		local map = sharedMaps[mapid]
+		if (mapid == 153 or mapid == 138 or mapid == 146 or mapid == 147) then
+			local distance1 = Distance2D(pos.x, pos.z, map[1].x, map[1].z)
+			local distance2 = Distance2D(pos.x, pos.z, map[2].x, map[2].z)
+			return ((distance1 < distance2) and map[1].id) or map[2].id
+		elseif (mapid == 137) then
+			return ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
+		end
+	end
 end
 
 function GetBlacklistIDString()

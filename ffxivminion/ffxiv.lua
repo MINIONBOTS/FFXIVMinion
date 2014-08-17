@@ -776,6 +776,12 @@ function ffxivminion.CreateWindow(window)
 	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
 end
 
+function ffxivminion.GetWindowSize(strName)
+	local winTableName = "AutoWindow"..strName
+	local winTable = Settings.FFXIVMINION[winTableName]
+	return winTable
+end
+
 function ffxivminion.SizeWindow(strName)
 	local winTableName = "AutoWindow"..strName
 	local winTable = Settings.FFXIVMINION[winTableName]

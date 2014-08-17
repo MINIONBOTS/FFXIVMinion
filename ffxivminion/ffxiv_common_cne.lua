@@ -1253,6 +1253,11 @@ function c_returntomarker:evaluate()
 	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
 	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
+		local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+		if (markerType == GetString("unspoiledMarker")) then
+			return false
+		end
+	
         local myPos = Player.pos
         local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)

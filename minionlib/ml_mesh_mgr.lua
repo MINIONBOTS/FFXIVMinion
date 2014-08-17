@@ -50,9 +50,11 @@ function ml_mesh_mgr.ModuleInit()
 	if (Settings.minionlib.DefaultMaps == nil) then
 		Settings.minionlib.DefaultMaps = { }
 	end
+	Settings.minionlib.gNoMeshLoad = Settings.minionlib.gNoMeshLoad or "0"
 	
 	GUI_NewWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.x,ml_mesh_mgr.mainwindow.y,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h,"",true)
 	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("navmesh"),"gmeshname",GetString("generalSettings"),"")
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("noMeshLoad"),"gNoMeshLoad",GetString("generalSettings"))
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showrealMesh"),"gShowRealMesh",GetString("generalSettings"))
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showMesh"),"gShowMesh",GetString("generalSettings"))
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showPath"),"gShowPath",GetString("generalSettings"))
@@ -91,6 +93,7 @@ function ml_mesh_mgr.ModuleInit()
 	GUI_SizeWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h)
 	GUI_WindowVisible(ml_mesh_mgr.mainwindow.name,false)
 	
+	gNoMeshLoad = Settings.minionlib.gNoMeshLoad
 	gShowRealMesh = "0"
 	gShowPath = "0"
 	gShowMesh = "0"
@@ -353,11 +356,10 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 	
 	-- Init default mesh	
 	if ( ml_mesh_mgr.currentMesh.MapID == 0 ) then
-		d("MapID for current mesh is 0. Attempting to load navmesh.")
 		ml_mesh_mgr.LoadNavMeshForCurrentMap()		
 	else
 	-- Check for changed MapID
-		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() ) then
+		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() and gNoMeshLoad == "0") then
 			d("MAP CHANGED")
 			
 			-- save old meshdata if meshrecorder is active			
