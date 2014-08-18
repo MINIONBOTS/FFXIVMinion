@@ -60,7 +60,6 @@ function ml_mesh_mgr.ModuleInit()
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showPath"),"gShowPath",GetString("generalSettings"))
 	GUI_UnFoldGroup(ml_mesh_mgr.mainwindow.name,GetString("generalSettings"))	
 	
-	--TODO: replace this function to make it independend from ffxiv
 	GUI_NewButton(ml_mesh_mgr.mainwindow.name, GetString("setEvacPoint"), "setEvacPointEvent",GetString("recoder"))
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
 	
@@ -232,10 +231,15 @@ function ml_mesh_mgr.RemoveDefaultMesh(mapid)
 end
 
 -- Use this to load a new / wanted navmesh
+-- Use this to load a new / wanted navmesh
 function ml_mesh_mgr.LoadNavMesh( meshname )
 	if ( meshname ~= nil and meshname ~= 0 and type(meshname) == "string") then
-		ml_mesh_mgr.nextNavMesh = meshname
-		return true
+		if ( ml_mesh_mgr.loadingMesh == false ) then
+			ml_mesh_mgr.nextNavMesh = meshname
+			return true
+		else
+			d("Meshloading still in progress, cannot switch to new navmesh yet..")
+		end		
 	end
 	return false
 end
