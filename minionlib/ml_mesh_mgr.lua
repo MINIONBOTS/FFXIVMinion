@@ -242,6 +242,10 @@ end
 
 -- Handles the loading of navmeshes and markerdata when switching maps/meshes, gets called on each OnUpdate()
 function ml_mesh_mgr.SwitchNavmesh()
+
+	if (gNoMeshLoad == "1") then
+		return false
+	end
 	
 	if ( ml_mesh_mgr.nextNavMesh ~= nil and ml_mesh_mgr.nextNavMesh ~= "" ) then
 		
@@ -333,9 +337,8 @@ end
 
 -- Main loop
 function ml_mesh_mgr.OnUpdate( tickcount )
-	
 	local navstate = NavigationManager:GetNavMeshState()
-		
+	
 	if ( ml_mesh_mgr.loadingMesh or 
 		navstate == GLOBAL.MESHSTATE.MESHBUILDING or 
 		ml_mesh_mgr.GetMapID() == nil or 
@@ -360,6 +363,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 	else
 	-- Check for changed MapID
 		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() and gNoMeshLoad == "0") then
+			
 			d("MAP CHANGED")
 			
 			-- save old meshdata if meshrecorder is active			
@@ -401,26 +405,13 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 			end
 						
 			-- load new mesh
+			
 			ml_mesh_mgr.LoadNavMeshForCurrentMap()			
 			
 		else			
 			-- update currentmeshdata position
 			local myPos = ml_mesh_mgr.GetPlayerPos()
 			if (ValidTable(myPos)) then
-				
-				--[[if ( gMeshrec == "1" and ml_mesh_mgr.currentMesh.LastPlayerPosition.x > 0 ) then
-					-- check if we moved beyond the transitionpoint distance, like when we were walking though a portal or door but are still in the same map
-					
-					local dist = Distance3D ( ml_mesh_mgr.currentMesh.LastPlayerPosition.x, ml_mesh_mgr.currentMesh.LastPlayerPosition.y, ml_mesh_mgr.currentMesh.LastPlayerPosition.z, ml_mesh_mgr.GetPlayerPos().x, ml_mesh_mgr.GetPlayerPos().y, ml_mesh_mgr.GetPlayerPos().z) 
-					if ( dist > ml_mesh_mgr.transitionthreshold ) then
-						-- TODO auto place an OMC here? be sure to check for player moved manually outside & back into the mesh, turning on and off rec and other fuckups
-						-- d("A larger movement was detected ( "..tostring(dist).." adding an OMC ")
-						
-						
-					end
-				end --]]
-				
-				-- Update last position
 				ml_mesh_mgr.currentMesh.LastPlayerPosition = {				
 					x = myPos.x, 
 					y = myPos.y, 
@@ -428,7 +419,6 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 					h = myPos.h 
 				}
 			end
-			
 			
 			-- Record Mesh & Gamedata
 			if ( gMeshrec == "1" or gMeshChange == "1") then
@@ -584,7 +574,6 @@ function ml_mesh_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				ml_mesh_mgr.ClearNavMesh()
 			end
-			
 		elseif( k == "gShowRealMesh") then
 			if (v == "1") then
 				NavigationManager:ShowNavMesh(true)
@@ -639,6 +628,8 @@ function ml_mesh_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			MeshManager:SetChangeToRadius(tonumber(gChangeAreaSize))
 		elseif( k == "gnewmeshname" ) then
 			ml_mesh_mgr.currentMesh.Name = v
+		elseif( k == "gNoMeshLoad" ) then
+			Settings.FFXIVMINION[tostring(k)] = v
 		end
 	end
 end

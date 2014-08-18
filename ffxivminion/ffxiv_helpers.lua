@@ -948,7 +948,6 @@ function GetNearestUnspoiled(class)
 	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
     local el = EntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
     
-	d("checking nearest unspoiled."..tostring(ValidTable(el)))
     if ( el ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -1676,15 +1675,13 @@ function BlacklistTarget()
 end
 
 function IsMap(itemid)
-	return (tonumber(itemid) ~= nil and
-		tonumber(itemid) >= 6687 and
-		tonumber(itemid) <= 6692)
+	itemid = itemid or 0
+	return (itemid >= 6687 and itemid <= 6692)
 end
 
 function IsGardening(itemid)
-	return (tonumber(itemid) ~= nil and
-		tonumber(itemid) >= 7715 and
-		tonumber(itemid) <= 7767)
+	itemid = itemid or 0
+	return (itemid >= 7715 and itemid <= 7767)
 end
 
 function GetRoleString(jobID)
@@ -1799,7 +1796,7 @@ function GetAetheryteByMapID(id)
     return nil
 end
 
-function GetBestAetheryte(mapid, p)
+function GetClosestAetheryteToMapIDPos(mapid, p)
 	local pos = p
 	
 	sharedMaps = {

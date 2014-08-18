@@ -39,7 +39,19 @@ end
 -- ACCESSORS
 -- Global function to get current marker
 function GetCurrentMarker()
-    return ml_marker_mgr.currentMarker
+	if (ValidTable(ml_task_hub:CurrentTask())) then
+		if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+			return ml_task_hub:CurrentTask().currentMarker
+		end
+	end
+	
+	if (ValidTable(ml_task_hub:RootTask())) then
+		if (ValidTable(ml_task_hub:RootTask().currentMarker)) then
+			return ml_task_hub:RootTask().currentMarker
+		end
+	end
+	
+    return nil
 end
 
 function ml_marker_mgr.GetList(markerType, filterEnabled, filterLevel)
