@@ -18,16 +18,19 @@
 -- ml_mesh_mgr.RemoveDefaultMesh(mapid) -> removes the default for the mapid
  
  
- -- Default empty mesh data "class"
-ml_mesh = {
-	MapID = 0,
-	Name = "",
-	MarkerList = {},
-	Obstacles = {},
-	AvoidanceAreas = {},
-	LastPlayerPosition = { x=0, y=0, z=0, h=0, hx=0, hy=0, hz=0},
-	
-	}
+ -- Default mesh "class" that holds all relevant mesh data
+ml_mesh = inheritsFrom(nil)
+function ml_mesh.Create()
+	local newinst = inheritsFrom( ml_mesh )
+	newinst.MapID = 0					-- holds the current MapID
+	newinst.AllowedMapIDs = {}			-- holds a list of MapIDs where this mesh is allowed to be used
+	newinst.Name = ""					-- meshname / filename
+	newinst.MarkerList = {}				-- not used yet, in future for holding the mesh marker data
+	newinst.Obstacles = {}				-- not used yet, in future for holding the mesh obstacles
+	newinst.AvoidanceAreas = {}			-- not used yet, in future for holding the mesh avoidanceareas
+	newinst.LastPlayerPosition = { x=0, y=0, z=0, h=0, hx=0, hy=0, hz=0}	-- for autorecording markers n such
+	return newinst
+end
 
 ml_mesh_mgr = { }
 ml_mesh_mgr.navmeshfilepath = GetStartupPath() .. [[\Navigation\]];
@@ -37,7 +40,7 @@ ml_mesh_mgr.GetMapID = function () return 0 end -- Needs to get re-set
 ml_mesh_mgr.GetMapName = function () return "NoName" end -- Needs to get re-set
 ml_mesh_mgr.GetPlayerPos = function () return { x=0, y=0, z=0, h=0 } end -- Needs to get re-set
 ml_mesh_mgr.nextNavMesh = nil -- Holds the navmeshfilename that should get loaded
-ml_mesh_mgr.currentMesh = ml_mesh
+ml_mesh_mgr.currentMesh = ml_mesh.Create()
 ml_mesh_mgr.loadingMesh = false
 ml_mesh_mgr.averagegameunitsize = 50
 ml_mesh_mgr.OMC = 0
@@ -199,6 +202,7 @@ function ml_mesh_mgr.UpdateMeshfiles()
 end
 
 --Sets this mapname as default for the mapid if there is nothing set yet
+--Automatically adds the mapid to the AllowedMapIDs[] in the .data file, so multiple maps/zones can use the same meshfile
 function ml_mesh_mgr.SetDefaultMesh(mapid,mapname)
 	if (tonumber(mapid) ~= nil and tonumber(mapid) ~= 0 and mapname ~= "" and mapname ~= "none" and mapname ~= "None" ) then
 		if ( Settings.minionlib.DefaultMaps[mapid] == nil or Settings.minionlib.DefaultMaps[mapid] == "" or Settings.minionlib.DefaultMaps[mapid] == "none" or Settings.minionlib.DefaultMaps[mapid] == "None") then
@@ -206,6 +210,43 @@ function ml_mesh_mgr.SetDefaultMesh(mapid,mapname)
 			Settings.minionlib.DefaultMaps = Settings.minionlib.DefaultMaps -- trigger saving of settings
 			d( "New DEFAULT mesh "..mapname.." set for mapID "..tostring(mapid))
 		end
+		
+		-- Updating the .data file
+		if ( ml_mesh_mgr.navmeshfilepath ~= nil and ml_mesh_mgr.navmeshfilepath ~= "" ) then
+			
+			if (FileExists(ml_mesh_mgr.navmeshfilepath..mapname..".data")) then					
+				local tmpMesh = ml_mesh.Create()
+				tmpMesh = persistence.load(ml_mesh_mgr.navmeshfilepath..mapname..".data")
+				if (not ValidTable(tmpMesh)) then
+					d("Error setting default mesh, no valid ml_mesh table in loaded .data file!")					
+				
+				else
+					-- have to add the new table to existing "old" ml_mesh table
+					if ( not tmpMesh.AllowedMapIDs ) then
+						tmpMesh.AllowedMapIDs = {}
+					end
+					-- adding the mapid to the allowedmapid table and saving it
+					if ( tmpMesh.AllowedMapIDs[mapid] == nil ) then						
+						tmpMesh.AllowedMapIDs[mapid] = mapid
+						persistence.store(ml_mesh_mgr.navmeshfilepath..mapname..".data", tmpMesh)
+						d(" Added MapID "..tostring(mapid).." to the AllowedMapIDs table of "..mapname) 
+					end
+				end
+			else
+				-- creating a new .data file since it doesnt exist
+				d( "WARNING: no .data file found for setting the default mesh: "..mapname.." with mapID: "..tostring(mapid))				
+				local tmpMesh = ml_mesh.Create()
+				tmpMesh.AllowedMapIDs[mapid] = mapid
+				tmpMesh.MapID = mapid
+				tmpMesh.Name = mapname				
+				persistence.store(ml_mesh_mgr.navmeshfilepath..mapname..".data", tmpMesh)
+				d( "Info: Created new default .data file for setting the default mesh: "..mapname.." with mapID: "..tostring(mapid))
+			end
+		else
+		
+			d( "Error setting default mesh: navmeshfilepath is nil or empty!")
+		end
+		
 	else
 		d( "Error setting default mesh, mapID or name invalid! : "..tostring(mapid).." / "..mapname)
 	end	
@@ -292,24 +333,36 @@ function ml_mesh_mgr.SwitchNavmesh()
 				if (FileExists(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")) then					
 					ml_mesh_mgr.currentMesh = persistence.load(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")
 					if (not ValidTable(ml_mesh_mgr.currentMesh)) then
-						--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
-						ml_mesh_mgr.ResetCurrentMeshData()
+						ml_mesh_mgr.currentMesh = ml_mesh.Create()						
 						d("WARNING: while loading meshdata-file from "..ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")					
 						ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
+						ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID						
 						ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
+						
 					else
-						-- check if the loaded mapdata.mapID fits to our current map
-						if ( ml_mesh_mgr.currentMesh.MapID == 0 or ml_mesh_mgr.currentMesh.MapID ~= tonumber(ml_mesh_mgr.GetMapID()) ) then
-							ml_error(" Loaded Navmesh.MapID ~= current MapID "..tostring(ml_mesh_mgr.currentMesh.MapID).." / "..tostring(ml_mesh_mgr.GetMapID()))
+						-- check if the loaded currentMesh.mapID is good 
+						if ( ml_mesh_mgr.currentMesh.MapID == 0 ) then
+							ml_error("WARNING: Loaded Navmesh has no MapID:"..tostring(ml_mesh_mgr.currentMesh.MapID))
 							d(" Removing the default mesh for this zone from our Defaultmap-list")
 							ml_mesh_mgr.RemoveDefaultMesh(ml_mesh_mgr.GetMapID())
 						end
+						
+						-- check if ml_mesh_mgr.currentMesh.MapID is our mapID
+						if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() ) then
+							ml_debug("WARNING: Loaded Navmesh MapID ~= current MapID() -> wrong NavMesh for this zone loaded ?")
+						end
+						
+						-- check if the loaded ml_mesh_mgr.currentMesh.AllowedMapIDs contains our current mapID which we are in
+						if ( ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.GetMapID()] == nil ) then
+							ml_debug("WARNING: Loaded Navmesh AllowedMapIDs dont contain current MapID -> wrong NavMesh for this zone loaded ?")
+						end
+						
 					end
 				else
 					d("WARNING: ml_mesh_mgr.SwitchNavmesh: No Data-file exist : "..ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".data")
-					--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
-					ml_mesh_mgr.ResetCurrentMeshData()
+					ml_mesh_mgr.currentMesh = ml_mesh.Create()					
 					ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
+					ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
 					ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
 				end				
 				
@@ -366,9 +419,9 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 		ml_mesh_mgr.LoadNavMeshForCurrentMap()		
 	else
 	-- Check for changed MapID
-		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() and gNoMeshLoad == "0") then
-			
-			d("MAP CHANGED")
+		if ( ml_mesh_mgr.currentMesh.MapID ~= ml_mesh_mgr.GetMapID() and ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.GetMapID()] == nil and gNoMeshLoad == "0") then
+										
+			d("MAP/ZONE CHANGED")
 			
 			-- save old meshdata if meshrecorder is active			
 			if ( gMeshrec == "1" ) then
@@ -385,7 +438,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 					local newMarker = ml_marker:Create("MapMarker")
 					newMarker:SetType(GetString("mapMarker"))
 					newMarker:AddField("int", "Target MapID", ml_mesh_mgr.GetMapID())
-					newMarker:SetName(tostring(ml_mesh_mgr.currentMesh.MapID).."to"..tostring(ml_mesh_mgr.GetMapID()))
+					newMarker:SetName(tostring(ml_mesh_mgr.currentMesh.Name).." to "..tostring(ml_mesh_mgr.GetMapName()))
 					if ( ml_marker_mgr.GetMarker(newMarker:GetName()) ~= nil ) then
 						--add a random number onto the name until the string is unique
 						local name = ""
@@ -468,6 +521,7 @@ function ml_mesh_mgr.SaveMesh()
 	if ( ml_mesh_mgr.loadingMesh == false ) then
 		
 		d("Preparing to save NavMesh...")	
+		local rec = gMeshrec
 		gMeshrec = "0"
 		gMeshChange = "0"		
 		MeshManager:Record(false)
@@ -509,17 +563,22 @@ function ml_mesh_mgr.SaveMesh()
 			d("Saving NavMesh : "..filename)		
 			if (NavigationManager:SaveNavMesh(filename)) then
 								
-				-- Saving of Default Mesh
+				-- Saving of Default Mesh				
 				ml_mesh_mgr.UpdateDefaultMesh(ml_mesh_mgr.currentMesh.MapID,filename)
 				
-				-- Save MeshData				
-				d("Saving MeshData..")
-				ml_mesh_mgr.SaveMeshData(filename)
-									
-							
-				-- Update UI
-				gmeshname = ml_mesh_mgr.nextNavMesh
+				-- Updating mapIDs (this has to be seperated, else the allowedmapids will get the map of the new zone when zoning while recording is on nad the "old" mesh is autosaved
+				if ( rec == "1" ) then
+					ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
+				else
+					ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.GetMapID()] = ml_mesh_mgr.GetMapID()
+				end
 				
+				-- Save MeshData				
+				d("Saving MeshData..")				
+				ml_mesh_mgr.SaveMeshData(filename)
+				
+				-- Update UI
+				gmeshname = ml_mesh_mgr.nextNavMesh				
 				ml_mesh_mgr.currentMesh.MapID = 0 -- triggers the reloading of the default mesh
 				
 			else
@@ -537,18 +596,6 @@ function ml_mesh_mgr.SaveMeshData(filename)
 	persistence.store(ml_mesh_mgr.navmeshfilepath..filename..".data", ml_mesh_mgr.currentMesh)
 end
 
--- (Re-)Inits the ml_mesh_mgr.currentMesh table
-function ml_mesh_mgr.ResetCurrentMeshData()
-	ml_mesh_mgr.currentMesh = {
-		MapID = 0,
-		Name = "",
-		MarkerList = {},
-		Obstacles = {},
-		AvoidanceAreas = {},
-		LastPlayerPosition = { x=0, y=0, z=0, h=0, hx=0, hy=0, hz=0},
-	}
-end
-
 -- Deletes the current meshdata and resets the meshmanagerdata
 function ml_mesh_mgr.ClearNavMesh()
 	-- Unload old Mesh
@@ -559,9 +606,9 @@ function ml_mesh_mgr.ClearNavMesh()
 	ml_marker_mgr.RefreshMarkerNames()
 						
 	-- Create Default Meshdata
-	--ml_mesh_mgr.currentMesh = inheritsFrom(ml_mesh)
-	ml_mesh_mgr.ResetCurrentMeshData()
+	ml_mesh_mgr.currentMesh = ml_mesh.Create()
 	ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
+	ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
 	ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
 	gnewmeshname = ml_mesh_mgr.currentMesh.Name
 	gmeshname = "none"
@@ -764,6 +811,7 @@ function ml_mesh_mgr.ConvertOldMarkerInfoFileToFancyNewOne(meshname)
             end
             if ( tag == "MapID" ) then
                 ml_mesh_mgr.currentMesh.MapID = tonumber(key)
+				ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
             elseif (tag == "evacPoint") then
                 local posTable = {}
                 for coord in StringSplit(key,",") do
