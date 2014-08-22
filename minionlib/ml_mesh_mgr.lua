@@ -229,7 +229,13 @@ function ml_mesh_mgr.SetDefaultMesh(mapid,mapname)
 					if ( tmpMesh.AllowedMapIDs[mapid] == nil ) then						
 						tmpMesh.AllowedMapIDs[mapid] = mapid
 						persistence.store(ml_mesh_mgr.navmeshfilepath..mapname..".data", tmpMesh)
-						d(" Added MapID "..tostring(mapid).." to the AllowedMapIDs table of "..mapname) 
+						d(" Added MapID "..tostring(mapid).." to the AllowedMapIDs table of "..mapname)
+						
+						-- if the mapid is our current mapid then the current mesh table needs to be updated 
+						-- otherwise it will double load the mesh
+						if (tmpMesh.Name == ml_mesh_mgr.currentMesh.Name) then
+							ml_mesh_mgr.currentMesh = tmpMesh
+						end
 					end
 				end
 			else
@@ -355,6 +361,7 @@ function ml_mesh_mgr.SwitchNavmesh()
 						-- check if the loaded ml_mesh_mgr.currentMesh.AllowedMapIDs contains our current mapID which we are in
 						if ( ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.GetMapID()] == nil ) then
 							ml_debug("WARNING: Loaded Navmesh AllowedMapIDs dont contain current MapID -> wrong NavMesh for this zone loaded ?")
+							ml_mesh_mgr.SetDefaultMesh(ml_mesh_mgr.GetMapID(), ml_mesh_mgr.nextNavMesh)
 						end
 						
 					end

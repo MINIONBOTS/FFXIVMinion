@@ -61,8 +61,7 @@ end
 c_nextqueststep = inheritsFrom( ml_cause )
 e_nextqueststep = inheritsFrom( ml_effect )
 function c_nextqueststep:evaluate()
-	if (not ml_task_hub:CurrentTask().quest:isStarted() or
-		ml_task_hub:CurrentTask().quest:isComplete())
+	if (not ml_task_hub:CurrentTask().quest:isStarted())
 	then
 		return false
 	end

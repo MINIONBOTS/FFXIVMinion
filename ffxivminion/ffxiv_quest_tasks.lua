@@ -551,3 +551,49 @@ function ffxiv_quest_useaction:Init()
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
+
+ffxiv_quest_vendor = inheritsFrom(ml_task)
+ffxiv_quest_vendor.name = "QUEST_VENDOR"
+
+function ffxiv_quest_vendor.Create()
+    local newinst = inheritsFrom(ffxiv_quest_vendor)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_VENDOR"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_vendor:Init()
+    --init ProcessOverWatch cnes
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 10 )
+    self:add( ke_questInteract, self.process_elements)
+	
+	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
+    self:add( ke_questAtInteract, self.overwatch_elements)
+	
+	local ke_questAccept = ml_element:create( "QuestAccept", c_questaccept, e_questaccept, 15 )
+    self:add( ke_questAccept, self.process_elements)
+	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	self.task_complete_eval = quest_step_complete_eval
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end

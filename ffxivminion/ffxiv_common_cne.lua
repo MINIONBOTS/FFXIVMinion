@@ -1499,9 +1499,9 @@ function c_autoequip:evaluate()
 			
 			for id, item in pairs(armoryItemList) do
 
-				if(	currItem == nil or item.level > currItem.level ) and
+				if(	currItem == nil or item.level > currItem.level and item.class == currItem.class) and
 				  ( bestItem == nil or item.level > bestItem.level ) and
-					Player.level >= item.requiredlevel
+				  (	Player.level >= item.requiredlevel )
 				then
 					bestItem = item
 				end
