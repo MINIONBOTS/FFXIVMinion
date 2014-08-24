@@ -358,9 +358,19 @@ function ml_mesh_mgr.SwitchNavmesh()
 							ml_debug("WARNING: Loaded Navmesh MapID ~= current MapID() -> wrong NavMesh for this zone loaded ?")
 						end
 						
+						-- adding the AllowedMapIDs table to "old" .info files
+						if ( not ml_mesh_mgr.currentMesh.AllowedMapIDs ) then
+							ml_mesh_mgr.currentMesh.AllowedMapIDs = {}
+							if ( ml_mesh_mgr.currentMesh.MapID ~= 0 ) then
+								ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
+							end
+						end
+												
 						-- check if the loaded ml_mesh_mgr.currentMesh.AllowedMapIDs contains our current mapID which we are in
 						if ( ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.GetMapID()] == nil ) then
 							ml_debug("WARNING: Loaded Navmesh AllowedMapIDs dont contain current MapID -> wrong NavMesh for this zone loaded ?")
+							
+							-- This can cause a "allowed" for each wrong selected meshfile in the mesh-dropdown field.
 							ml_mesh_mgr.SetDefaultMesh(ml_mesh_mgr.GetMapID(), ml_mesh_mgr.nextNavMesh)
 						end
 						
