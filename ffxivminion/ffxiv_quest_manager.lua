@@ -46,7 +46,7 @@ function ffxiv_task_quest:Process()
 			self.currentScript = t[3]		
 			
 		else
-			ml_log("No QuestProfile loaded or Profile completed!")			
+			d("No QuestProfile loaded or Profile completed!")			
 		end
 	else
 		

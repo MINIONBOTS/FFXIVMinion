@@ -2,7 +2,6 @@
 --TASK_FATE: Longterm Goal - Complete a fate event successfully
 ---------------------------------------------------------------------------------------------
 ffxiv_task_fate = inheritsFrom(ml_task)
-
 function ffxiv_task_fate.Create()
     local newinst = inheritsFrom(ffxiv_task_fate)
     
@@ -254,7 +253,7 @@ function c_atfate:evaluate()
                 end
                 
                 -- check for fate targets within combat range and stop if we find one instead of running into fate
-                local el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+                local el = EntityList("shortestpath,alive,attackable,onmesh,maxpathdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
                 if ( el ) then
                     local i,e = next(el)
                     if (i~=nil and e~=nil) then
@@ -294,7 +293,7 @@ function c_syncfatelevel:evaluate()
 		local plevel = Player.level
 		if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
 			local myPos = Player.pos
-			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance < fate.radius) then				
 				return true
 			end

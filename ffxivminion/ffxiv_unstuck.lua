@@ -10,14 +10,20 @@ ffxiv_unstuck.State = {
 }
 
 function ffxiv_unstuck.Update()
+	if (gDoUnstuck == "0") then
+		return
+	end
+	
 	if 	(ffxiv_unstuck.lastpos == nil) or
 		(ffxiv_unstuck.lastpos and type(ffxiv_unstuck.lastpos) ~= "table")
 	then
 		ffxiv_unstuck.lastpos = Player.pos
 	end
-	ffxiv_unstuck.diffX = math.abs(Player.pos.x - ffxiv_unstuck.lastpos.x)
-	ffxiv_unstuck.diffY = math.abs(Player.pos.y - ffxiv_unstuck.lastpos.y)
-	ffxiv_unstuck.diffZ = math.abs(Player.pos.z - ffxiv_unstuck.lastpos.z)
+	local currentPos = Player.pos
+	ffxiv_unstuck.diffX = math.abs(currentPos.x - ffxiv_unstuck.lastpos.x)
+	ffxiv_unstuck.diffY = math.abs(currentPos.y - ffxiv_unstuck.lastpos.y)
+	ffxiv_unstuck.diffZ = math.abs(currentPos.z - ffxiv_unstuck.lastpos.z)
+	
 	ffxiv_unstuck.lastpos = Player.pos
 	
 	if ffxiv_unstuck.IsStuck() then
@@ -41,9 +47,9 @@ function ffxiv_unstuck.Update()
 end
 
 function ffxiv_unstuck.IsStuck()
-	return 	ffxiv_unstuck.diffX > 0 and ffxiv_unstuck.diffX <= 5 and
-			ffxiv_unstuck.diffY > 0 and ffxiv_unstuck.diffY <= 5 and
-			ffxiv_unstuck.diffZ > 0 and ffxiv_unstuck.diffZ <= 5 and
+	return 	ffxiv_unstuck.diffX > 0 and ffxiv_unstuck.diffX <= 3 and
+			ffxiv_unstuck.diffY > 0 and ffxiv_unstuck.diffY <= 3 and
+			ffxiv_unstuck.diffZ > 0 and ffxiv_unstuck.diffZ <= 3 and
 			not ActionList:IsCasting() and
 			not Player.incombat and
             not ml_global_information.IsWaiting
@@ -81,26 +87,38 @@ function ffxiv_unstuck.CheckStuck()
 				d(state.name..tostring(state.ticks).." EXCEEDED")
                 d(ml_task_hub:CurrentTask().name)
                 d(Player.hp.percent)
-				if not ffxiv_unstuck.task then
-					ffxiv_unstuck.State.STUCK.ticks = 0
-					ffxiv_unstuck.State.OFFMESH.ticks = 0
-					ffxiv_unstuck.State.IDLE.ticks = 0
-					ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
-					if (gDoUnstuck == "1") then
-						local id = GetLocalAetheryte()
-						if (id) then
-							ml_global_information.UnstuckTimer = ml_global_information.Now
-							Player:Stop()
-							Dismount()
-							ml_task_hub:ToggleRun()
-							d("Teleporting to aetheryte at index "..tostring(id))
+
+				ffxiv_unstuck.State.STUCK.ticks = 0
+				ffxiv_unstuck.State.OFFMESH.ticks = 0
+				ffxiv_unstuck.State.IDLE.ticks = 0
+				ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
+				
+				if (gDoUnstuck == "1") then
+					local id = GetLocalAetheryte()
+					if (id) then
+						d("Teleporting to aetheryte at index "..tostring(id))
+						ml_global_information.UnstuckTimer = ml_global_information.Now
+						ffxiv_unstuck.count = ffxiv_unstuck.count + 1
+						ffxiv_unstuck.laststuck = ml_global_information.Now
+						
+						Player:Stop()
+						Dismount()
+						
+						--Changing this to perform the teleport task, since it's safer.
+						if (Player.castinginfo.channelingid ~= 5) then
 							Player:Teleport(id)
-							ffxiv_unstuck.count = ffxiv_unstuck.count + 1
-							ffxiv_unstuck.laststuck = ml_global_information.Now
+						elseif (Player.castinginfo.channelingid == 5) then										
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.mapID = Player.localmapid
+							newTask.mesh = Settings.minionlib.DefaultMaps[Player.localmapid]
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
 						end
+					else
+						--If we couldn't find an aetheryte, just stop the bot.
+						ml_task_hub.ToggleRun()
 					end
-					break
 				end
+				break
 			else
 				--d(state.name..tostring(state.ticks))
 			end

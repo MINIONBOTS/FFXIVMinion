@@ -6,9 +6,14 @@ ffxiv_task_party.isPL = false
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
 function c_partysyncfatelevel:evaluate()
-    if ( IsLeader()) then
+    if ( IsLeader() ) then
         return false
     end
+	
+	local leader = GetPartyLeader()
+	if (not leader or not IsInParty(leader.id)) then
+		return false
+	end
     
     local myPos = Player.pos
     local fate = GetClosestFate(myPos)
@@ -25,7 +30,8 @@ function c_partysyncfatelevel:evaluate()
 end
 function e_partysyncfatelevel:execute()
     ml_debug( "Current Sync Fatelevel: "..tostring(Player:GetSyncLevel() ))
-    ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel()))    
+    ml_debug( "Syncing Fatelevel Result: "..tostring(Player:SyncLevel())) 
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 function ffxiv_task_party.Create()
@@ -84,6 +90,9 @@ function ffxiv_task_party:Init()
 
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 ) --leader only
     self:add(ke_addKillTarget, self.process_elements)
+	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 13 ) --minion only
+    self:add(ke_killAggroTarget, self.process_elements)
     
     self:AddTaskCheckCEs()
 end

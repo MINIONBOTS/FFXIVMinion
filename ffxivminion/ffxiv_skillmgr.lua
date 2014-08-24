@@ -7,10 +7,10 @@ SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, 
 SkillMgr.editwindow = { name = strings[gCurrentLanguage].skillEditor, w = 250, h = 550}
 SkillMgr.editwindow_crafting = { name = strings[gCurrentLanguage].skillEditor_craft, w = 250, h = 550}
 SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_gather, w = 250, h = 550}
-SkillMgr.lasttick = 0
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.prevSkillID = ""
+SkillMgr.prevSkillList = {}
 SkillMgr.nextSkillID = ""
 SkillMgr.nextFailedTimer = 0
 SkillMgr.prevFailedTimer = 0
@@ -155,14 +155,15 @@ SkillMgr.Variables = {
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttempts = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
+	SKM_UNSP = { default = "0", cast = "string", profile = "isunspoiled", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
-	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"  },
-	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"  },
+	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
+	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 }
 
 function SkillMgr.ModuleInit() 	
     if (Settings.FFXIVMINION.gSMactive == nil) then
-        Settings.FFXIVMINION.gSMactive = "0"
+        Settings.FFXIVMINION.gSMactive = "1"
     end
     if (Settings.FFXIVMINION.gSMlastprofile == nil) then
         Settings.FFXIVMINION.gSMlastprofile = "None"
@@ -194,7 +195,7 @@ function SkillMgr.ModuleInit()
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     GUI_WindowVisible(SkillMgr.mainwindow.name,false)		
                         
-    gSMactive = Settings.FFXIVMINION.gSMactive
+    gSMactive = "1"
     gSMnewname = ""
     
     -- EDITOR WINDOW
@@ -336,6 +337,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skmUnspoiled,"SKM_UNSP",strings[gCurrentLanguage].skillDetails)
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
 
     GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skillDetails)
@@ -387,16 +389,16 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     end
 end
 
-
-function SkillMgr.OnUpdate( event, tick )
-    
-    if ( gSMactive == "1" ) then		
-        if	( tick - SkillMgr.lasttick > 150 ) then
-            SkillMgr.lasttick = tick
-        end
-    end
+function SkillMgr.UseProfile(strName)
+	gSMprofile = strName
+    gSMactive = "1"					
+	GUI_WindowVisible(SkillMgr.editwindow.name,false)
+	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
+	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+	SkillMgr.SkillProfile = {}
+	SkillMgr.UpdateCurrentProfileData()
+	Settings.FFXIVMINION.gSMlastprofile = strName
 end
-
 
 function SkillMgr.ButtonHandler(event, Button)
     gSMRecactive = "0"
@@ -1325,6 +1327,8 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									ally = GetBestRevive( false, skill.trgtype )
 								end 
 								
+								--d("Dead party returned:"..tostring(ally))
+								
 								if ( ally ~= nil and ally.id ~= PID ) then
 									if IsReviveSkill(skill.id) then
 										target = ally
@@ -1620,11 +1624,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 
 										local action = ActionList:Get(skill.id)
 										if (action:Cast(TID)) then
-											if (skill.offgcd == "1") then
-												SkillMgr.lastOFFCD = true
-											else
-												SkillMgr.lastOFFCD = false
-											end
 											skill.lastcast = Now()
 											if skill.cbreak == "0" then 
 												SkillMgr.prevSkillID = tostring(skill.id) 
@@ -1746,51 +1745,56 @@ function SkillMgr.Craft()
 end
 
 function SkillMgr.Gather( )
-    
     local node = Player:GetTarget()
     if ( ValidTable(node) and node.cangather and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
         
 		for prio,skill in pairs(SkillMgr.SkillProfile) do
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-                
-                local realskilldata = ActionList:Get(skill.id)
+                local realskilldata = ActionList:Get(skill.id, 1)
                 if ( realskilldata and realskilldata.isready ) then 
-                    if ( realskilldata.isready ) then
-                        local castable = true
-						
-						if ( skill.gsecspassed > 0 and skill.lastcast ) then
-							if (TimeSince(skill.lastcast) < (skill.gsecspassed * 1000)) then 
-								castable = false
-							end
+					local castable = true
+					
+					if ( skill.gsecspassed > 0 and skill.lastcast ) then
+						if (TimeSince(skill.lastcast) < (skill.gsecspassed * 1000)) then 
+							castable = false
 						end
-						
-                        if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
-                            (skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
-                            (skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
-                            (skill.hasitem ~="" and not NodeHasItem(skill.hasitem)))
-                            then castable = false 
-                        end
-						
-						if ( skill.gpbuff and skill.gpbuff ~= "" ) then
-							local gbfound = HasBuffs(Player,skill.gpbuff)
-							if not gbfound then castable = false end
-						end
+					end
+					
+					if ((skill.gpmin > 0 and Player.gp.current > skill.gpmin) or
+						(skill.gpmax > 0 and Player.gp.current < skill.gpmax) or
+						(skill.gatherattempts > 0 and node.gatherattempts <= skill.gatherattempts) or
+						(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)) or
+						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
+						then castable = false 
+					end
+					
+					if ( skill.gpbuff and skill.gpbuff ~= "" ) then
+						local gbfound = HasBuffs(Player,skill.gpbuff)
+						if not gbfound then castable = false end
+					end
 
-						if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
-							local gtbfound = HasBuffs(Player,skill.gpnbuff)
-							if gtbfound then castable = false end
-						end
-                             
-                        if ( castable ) then
-                            --d("CASTING (gathering) : "..tostring(skill.name))
-							
-                            if ( ActionList:Cast(skill.id,0) ) then									
-                                skill.lastcast = ml_global_information.Now
-                                SkillMgr.prevSkillID = tostring(skill.id)
-                                return true
-                            end	
-                        end					
-                    end
+					if ( skill.gpnbuff and skill.gpnbuff ~= "" ) then
+						local gtbfound = HasBuffs(Player,skill.gpnbuff)
+						if gtbfound then castable = false end
+					end
+					
+					if (SkillMgr.prevSkillList[skill.id]) then
+						castable = false
+					end
+					
+					if ( castable ) then
+						if ( ActionList:Cast(skill.id,Player.id)) then	
+							--d("CASTING (gathering) : "..tostring(skill.name))
+							skill.lastcast = ml_global_information.Now
+							SkillMgr.prevSkillID = tostring(skill.id)
+							--After a skill is used here, mark it unusable for the rest of the duration of the node.
+							SkillMgr.prevSkillList[skill.id] = true
+							if IsUncoverSkill(skill.id) then
+								ml_task_hub:CurrentTask().itemsUncovered = true
+							end
+							return true
+						end	
+					end					
                 end
             end
         end

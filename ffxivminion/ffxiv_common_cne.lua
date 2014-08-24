@@ -24,7 +24,7 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
         return false
     end
 	
@@ -853,6 +853,10 @@ function c_mount:evaluate()
         return false
     end
 	
+	if (HasBuffs(Player,"47")) then
+		return false
+	end
+	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
 		if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
 			local myPos = Player.pos
@@ -1193,7 +1197,7 @@ function c_dead:evaluate()
     if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
 		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			if (c_dead.timer == 0) then
-				c_dead.timer = Now() + 20000
+				c_dead.timer = Now() + 120000
 			end
 			if (Now() > c_dead.timer or HasBuffs(Player, "148")) then
 				return true
@@ -1208,10 +1212,12 @@ function e_dead:execute()
     ml_debug("Respawning...")
 	-- try raise first
     if(PressYesNo(true)) then
+		c_dead.timer = 0
 		return
     end
 	-- press ok
     if(PressOK()) then
+		c_dead.timer = 0
 		return
     end
 end
@@ -1253,6 +1259,7 @@ function c_returntomarker:evaluate()
 	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
 	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
+	
 		local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
 		if (markerType == GetString("unspoiledMarker")) then
 			return false
@@ -1318,18 +1325,29 @@ end
 ---------------------------------------------------------------------------------------------
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
-c_stealth.throttle = 1000
-function c_stealth:evaluate()
+function c_stealth:evaluate()	
 	local marker = ml_task_hub:RootTask().currentMarker
 	if (not marker) then
 		return false
 	end
 	
-	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
+	if (ml_task_hub:CurrentTask().name == "LT_STEALTH") then
+		return false
+	end
 	
-    if  (Player.ismounted or not useStealth) then
-        return false
+	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
+    if  (not useStealth) then
+		if (HasBuff(Player.id, 47)) then
+			return true
+		else
+			return false
+		end
     end
+	
+	local list = Player:GetGatherableSlotList()
+	if (ValidTable(list)) then
+		return false
+	end
 	
     local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then
@@ -1340,32 +1358,52 @@ function c_stealth:evaluate()
         action = ActionList:Get(298)
     end
     
-    if (action and action.isready) then
-    local mobList = EntityList("attackable,aggressive,notincombat,maxdistance=30")
-        if(TableSize(mobList) > 0 and not HasBuff(Player.id, 47)) or
-          (TableSize(mobList) == 0 and HasBuff(Player.id, 47)) 
-        then
-            return true
-        end
+    if (action and not action.isoncd) then
+		if (gBotMode == GetString("gatherMode")) then
+			if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
+				local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+				if (gatherable and (gatherable.distance < 15)) then
+					if (not HasBuff(Player.id, 47)) then
+						return true
+					else
+						return false
+					end
+				end
+			end
+		elseif (gBotMode == GetString("fishMode")) then
+			local destPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+			local myPos = Player.pos
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+			if (distance <= 5) then
+				if (not HasBuff(Player.id, 47)) then
+					return true
+				else
+					return false
+				end
+			end
+		end
+			
+		local addMobList = EntityList("attackable,aggressive,maxdistance=30")
+		local removeMobList = EntityList("attackable,aggressive,maxdistance=40")
+		
+		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
+		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
+		then
+			return true
+		end	
     end
  
     return false
 end
 function e_stealth:execute()
-    local action = nil
-    if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = ActionList:Get(212)
-    elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = ActionList:Get(229)
-    elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = ActionList:Get(298)
-    end
-    if(action and action.isready) then
-        if HasBuff(Player.id, 47) then
-            Player:Stop()
-        end
-        action:Cast()
-    end
+	local newTask = ffxiv_task_stealth.Create()
+	if (HasBuffs(Player,"47")) then
+		newTask.droppingStealth = true
+	else
+		newTask.addingStealth = true
+	end
+	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_acceptquest = inheritsFrom( ml_cause )

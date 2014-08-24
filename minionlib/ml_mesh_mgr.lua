@@ -420,22 +420,28 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 				}
 			end
 			
+			--Left Alt + Right Mouse
+			if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
+				local mousepos = MeshManager:GetMousePos()
+				if ( TableSize(mousepos) > 0 ) then	
+					if (MeshManager:DeleteRasterTriangle(mousepos)) then
+						d("Deletion was successful.")
+					end
+				end
+			end	
+			
 			-- Record Mesh & Gamedata
 			if ( gMeshrec == "1" or gMeshChange == "1") then
-				
-				
-				--TODO: REC MESH DATA STUFF N SAVE IT IN THE INFO FILE
-
 				-- Key-Input-Handler
 				-- 162 = Left CTRL + Left Mouse
-				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
+				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
 					MeshManager:RecForce(true)
 				else
 					MeshManager:RecForce(false)
 				end			
 				
 				-- 162 = Left CTRL 
-				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
+				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
 					-- show the mesh if it issnt shown
 					if ( gShowMesh == "0" ) then
 						MeshManager:ShowTriMesh(true)

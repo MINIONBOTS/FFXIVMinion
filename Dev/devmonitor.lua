@@ -717,73 +717,53 @@ function Dev.UpdateWindow()
 		end
 	end
 	
-	--ActionList	
+	--ActionList		
+	local spellTypes = {
+		["Actions"] = 1,
+		["Pet"] = 11,
+		["General"] = 5,
+		["Maincommands"] = 10,
+		["Crafting"] = 9,
+	}
 	
-	local spelllist
-	local sfound = false
-	if  sbSelHotbar == "Actions"  then
-		spelllist = ActionList("type=1")	
-	elseif  sbSelHotbar == "Pet"  then
-		spelllist = ActionList("type=11")
-	elseif  sbSelHotbar == "General"  then
-		spelllist = ActionList("type=5")	
-	elseif  sbSelHotbar == "Maincommands"  then
-		spelllist = ActionList("type=10")	
-	elseif  sbSelHotbar == "Crafting"  then
-		spelllist = ActionList("type=9")
-	end
-		
-	
-	if ( TableSize(spelllist) > 0 ) then
-		local i,spell = next (spelllist)
-		local counter = 0
-		while i~=nil and spell~=nil do
-			if ( counter == tonumber(sbSelSlot) ) then
-				sfound = true
-				break
-			end
-			counter = counter + 1
-			i,spell = next (spelllist,i)
+	local spell = ActionList:Get(tonumber(sbSelSlot),spellTypes[sbSelHotbar])
+	if (ValidTable(spell)) then
+		sbiscast = spell.iscasting
+		sbname = spell.name
+		sbdesc = spell.description
+		sbid = spell.id
+		sbready = tostring(spell.isready)
+		sbtype = spell.type
+		sbjobtype = tostring(spell.job)
+		sblevel = spell.level
+		sbcost = spell.cost
+		sbcd = spell.cd
+		sbcdmax = spell.cdmax
+		sbisoncd = tostring(spell.isoncd)
+		sbran = spell.range
+		sbrad = spell.radius
+		sbct = spell.casttime
+		sbrct = spell.recasttime
+		sbt1 = spell.t1
+		sbt2 = spell.t2		
+		sbt4 = spell.t4
+		sbt5 = spell.t5	
+		mytarget = Player:GetTarget() 
+		if (mytarget  ~= nil) then
+			sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id))
+		else
+			sbcancast = "No Target"
 		end
-		if (spell and sfound) then
-			sbiscast = spell.iscasting
-			sbname = spell.name
-			sbdesc = spell.description
-			sbid = spell.id
-			sbready = tostring(spell.isready)
-			sbtype = spell.type
-			sbjobtype = tostring(spell.job)
-			sblevel = spell.level
-			sbcost = spell.cost
-			sbcd = spell.cd
-			sbcdmax = spell.cdmax
-			sbisoncd = tostring(spell.isoncd)
-			sbran = spell.range
-			sbrad = spell.radius
-			sbct = spell.casttime
-			sbrct = spell.recasttime
-			sbt1 = spell.t1
-			sbt2 = spell.t2		
-			sbt4 = spell.t4
-			sbt5 = spell.t5	
-			mytarget = Player:GetTarget() 
-			if (mytarget  ~= nil) then
-				sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id))
+		sbcanc = tostring(ActionList:CanCast(spell.id,0))
+		if ( sbpendingcast) then
+			sbpendingcast = false
+			if ( mytarget  ~= nil ) then
+				spell:Cast(mytarget.id)
 			else
-				sbcancast = "No Target"
-			end
-			sbcanc = tostring(ActionList:CanCast(spell.id,0))
-			if ( sbpendingcast) then
-				sbpendingcast = false
-				if ( mytarget  ~= nil ) then
-					spell:Cast(mytarget.id)
-				else
-					spell:Cast()
-				end
+				spell:Cast()
 			end
 		end
-	end
-	if ( not sfound ) then
+	else
 		sbiscast = "false"
 		sbname = "NoSpellFound..."
 		sbdesc = ""
@@ -808,7 +788,6 @@ function Dev.UpdateWindow()
 		sbcancast = "No skill"
 		sbcanc = "false"
 	end
-	--]]
 	
 	--Inventory/ItemList
 	local inv = Inventory("type="..invinv)

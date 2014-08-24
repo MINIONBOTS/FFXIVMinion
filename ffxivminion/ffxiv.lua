@@ -127,9 +127,6 @@ function ml_global_information.OnUpdate( event, tickcount )
 		-- Mesher.lua
 		ml_mesh_mgr.OnUpdate( tickcount )
 		
-		-- skillmgr.lua
-		SkillMgr.OnUpdate( event, tickcount )
-		
 		-- ffxiv_task_fate.lua
 		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 		
@@ -144,6 +141,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ffxivminion.CheckClass()
 		
 		ffxiv_unstuck.HandleUpdate(tickcount)
+		
 		if (ml_global_information.UnstuckTimer ~= 0 and TimeSince(ml_global_information.UnstuckTimer) > 15000) then
 			ml_task_hub:ToggleRun()
 			ml_global_information.UnstuckTimer = 0
@@ -645,6 +643,10 @@ function ffxivminion.SetMode(mode)
 end
 
 function ffxivminion.CheckClass()
+	if (gBotRunning == "1") then
+		return
+	end
+	
     local classes = 
     {
         [FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
@@ -776,17 +778,17 @@ function ffxivminion.CreateWindow(window)
 	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
 end
 
-function ffxivminion.GetWindowSize(strName)
-	local winTableName = "AutoWindow"..strName
-	local winTable = Settings.FFXIVMINION[winTableName]
-	return winTable
-end
-
 function ffxivminion.SizeWindow(strName)
 	local winTableName = "AutoWindow"..strName
 	local winTable = Settings.FFXIVMINION[winTableName]
 	
 	GUI_SizeWindow(strName,winTable.width,winTable.height)
+end
+
+function ffxivminion.GetWindowSize(strName)
+	local winTableName = "AutoWindow"..strName
+	local winTable = Settings.FFXIVMINION[winTableName]
+	return winTable
 end
 
 function ffxivminion.SaveWindows()

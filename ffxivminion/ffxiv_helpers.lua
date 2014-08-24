@@ -1090,7 +1090,7 @@ end
 
 
 function ActionList:IsCasting()
-	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
+	return (Player.castinginfo.channelingid ~= 0)
 end
 
 function SetFacing( posX, posY, posZ)
@@ -1164,6 +1164,10 @@ function IsReviveSkill(skillID)
         return true
     end
     return false
+end
+
+function IsUncoverSkill(skillID)
+	return (skillID == 214 or skillID == 231)
 end
  
  function IsFlanking(entity)
@@ -1255,6 +1259,17 @@ function TurnAround(sync)
 	else
 		Player:SetFacing(newHeading)
 	end
+end
+
+function PosIsEqual(pos1, pos2)
+	if (type(pos1) == "table" and type(pos2) == "table") then
+		if (pos1.x and pos1.y and pos1.z and pos2.x and pos2.y and pos2.z) then
+			if (tonumber(pos1.x) == tonumber(pos2.x) and tonumber(pos1.y) == tonumber(pos2.y) and tonumber(pos1.z) == tonumber(pos2.z)) then
+				return true
+			end
+		end
+	end
+	return false
 end
 
  function AngleFromPos(pos1, pos2)
@@ -1435,6 +1450,19 @@ function GetPartyLeader()
 	end 
     
     return nil	    
+end
+
+function IsInParty(id)
+	local found = false
+	local party = EntityList.myparty
+	if (ValidTable(party)) then
+		for i, member in pairs(party) do
+			if member.id == id then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 function InCombatRange(targetid)
@@ -1682,6 +1710,11 @@ end
 function IsGardening(itemid)
 	itemid = itemid or 0
 	return (itemid >= 7715 and itemid <= 7767)
+end
+
+function IsUnspoiled(contentid)
+	return contentid == 5 or contentid == 6 or 
+			contentid == 7 or contentid == 8
 end
 
 function GetRoleString(jobID)
@@ -1963,6 +1996,25 @@ function EquipBestItem(slot)
 	
 end
 
+function CountItemsByID(id, includeHQ)
+	includeHQ = includeHQ or false
+	
+	local count = 0
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (item.id == id) then
+				count = count + item.count
+			end
+			--TODO: FIX INCLUDEHQ
+			--if (includeHQ) then
+				--if (item.id
+			--end
+		end
+	end
+	return count
+end
+
 function GetArmoryIDsTable()
 	local equipSlot = 
 	{
@@ -1992,6 +2044,24 @@ function GetArmoryIDsTable()
 	end
 	
 	return ids
+end
+
+function SubtractHours(start, value)
+	start = tonumber(start) or 0
+	local newHour = start - value
+	if newHour < 0 then
+		newHour = newHour + 24
+	end
+	return newHour	
+end
+
+function AddHours(start, value)
+	start = tonumber(start) or 0
+	local newHour = start + value
+	if newHour > 23 then
+		newHour = newHour - 24
+	end
+	return newHour	
 end
 
 function EorzeaTime()

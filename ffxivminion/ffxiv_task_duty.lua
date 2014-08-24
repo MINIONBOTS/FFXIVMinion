@@ -101,7 +101,7 @@ function e_followleaderduty:execute()
             local myPos = Player.pos
 			if (gTeleport == "1") then
 				Player:Stop()
-				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
 				Player:SetFacingSynced(Player.pos.h)
 			else
 				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
@@ -128,7 +128,7 @@ function c_assistleaderduty:evaluate()
 			end
 			if ( leadtarget and leadtarget ~= 0 ) then			
 				local target = EntityList:Get(leadtarget)
-				if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
+				if ( ValidTable(target) and target.alive and target.attackable and target.chartype == 5 and (target.onmesh or InCombatRange(target.id))) then
 					c_assistleaderduty.targetid = target.id
 					return true
 				end
@@ -144,9 +144,10 @@ function e_assistleaderduty:execute()
 		SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 		Player:SetFacingSynced(Player.pos.h)
 		
-		if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
-			ml_task_hub:CurrentTask():Terminate()
-		end
+		--Should auto-terminate because it's an overwatch.
+		--if (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET") then
+			--ml_task_hub:CurrentTask():Terminate()
+		--end
 		
         if (gTeleport == "1") then
             local newTask = ffxiv_task_skillmgrAttack.Create()
@@ -295,7 +296,7 @@ end
 c_lootcheck = inheritsFrom( ml_cause )
 e_lootcheck = inheritsFrom( ml_effect )
 function c_lootcheck:evaluate()
-    if (not Inventory:HasLoot() or ml_task_hub:CurrentTask().name == "LT_LOOT") then
+    if (not Inventory:HasLoot() or IsDutyLeader()) then
         return false
     end	
 	
@@ -304,15 +305,6 @@ end
 function e_lootcheck:execute()     
 	local newTask = ffxiv_task_loot.Create()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
-end
-
-c_syncfix = inheritsFrom( ml_cause )
-e_syncfix = inheritsFrom( ml_effect)
-function c_syncfix:evaluate()
-
-end
-function e_syncfix:execute()
-
 end
 	
 function ffxiv_task_duty:Process()
@@ -418,7 +410,7 @@ function ffxiv_task_duty:Init()
     self:add( ke_assistleaderduty, self.overwatch_elements)
 	
 	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 19 )--minion only
-    self:add( ke_lootcheck, self.overwatch_elements)
+    self:add( ke_lootcheck, self.process_elements)
 	
 	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)

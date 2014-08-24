@@ -574,8 +574,12 @@ function ml_marker_mgr.CreateEditWindow(marker)
 		
 		local templateMarker = ml_marker_mgr.templateList[gMarkerMgrType]
 		for fieldName, fieldTable in pairs(templateMarker.fields) do
+			local choiceString = templateMarker:GetFieldChoices(fieldName)
 			if not (marker:HasField(fieldName)) then
-				marker:AddField(marker:GetFieldType(fieldName), fieldName, marker:GetFieldValue(fieldName))
+				marker:AddField(marker:GetFieldType(fieldName), fieldName, marker:GetFieldValue(fieldName), choiceString)
+			end
+			if (marker:GetFieldChoices(fieldName) ~= choiceString) then
+				marker:SetFieldChoices(fieldName, choiceString)
 			end
 		end
 		
@@ -584,6 +588,7 @@ function ml_marker_mgr.CreateEditWindow(marker)
 		if (ValidTable(fieldNames)) then
 			for _, name in pairsByKeys(fieldNames) do
 				local fieldType = marker:GetFieldType(name)
+				
 				if (fieldType == "float" or fieldType == "string") then
 					GUI_NewField(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				elseif (fieldType == "int") then
@@ -592,6 +597,9 @@ function ml_marker_mgr.CreateEditWindow(marker)
 					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
 				elseif (fieldType == "checkbox") then
 					GUI_NewCheckbox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+				elseif (fieldType == "combobox") then
+					local choiceString = marker:GetFieldChoices(name)
+					GUI_NewComboBox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields, choiceString)
 				end
 				
 				if (fieldType ~= "button") then
@@ -659,15 +667,15 @@ function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 			ml_marker_mgr.currentEditMarker = nil
 		elseif (string.sub(k,1,6) == "Field_") then
-			d("edited field = "..tostring(string.sub(k,7)))
 			local name = string.sub(k,7)
 			if (ValidTable(ml_marker_mgr.currentEditMarker)) then
 				local value = nil
 				if (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "string") then
 					value = v
 				elseif (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "checkbox") then
-					d("value is a checkbox type, v ="..tostring(v))
-					value = tostring(v)
+					value = v
+				elseif (ml_marker_mgr.currentEditMarker:GetFieldType(name) == "combobox") then
+					value = v
 				else
 					value = tonumber(v)
 				end

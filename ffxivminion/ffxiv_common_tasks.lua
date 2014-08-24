@@ -101,7 +101,6 @@ end
 --that this movetopos task has up2date positions and is still valid.
 ---------------------------------------------------------------------------------------------
 ffxiv_task_movetopos = inheritsFrom(ml_task)
-
 function ffxiv_task_movetopos.Create()
     local newinst = inheritsFrom(ffxiv_task_movetopos)
     
@@ -124,14 +123,15 @@ function ffxiv_task_movetopos.Create()
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
 	newinst.use3d = false
+	newinst.usePathDistance = false
+	newinst.objectid = 0
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.postDelay = 0
     
     return newinst
 end
 
-
-function ffxiv_task_movetopos:Init()
+function ffxiv_task_movetopos:Init()	
     local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
     self:add( ke_mount, self.process_elements)
     
@@ -222,15 +222,30 @@ function ffxiv_task_movetopos:task_complete_eval()
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end 
 		
+		local pathdistance = 0
+		if (self.usePathDistance and self.objectid ~= 0) then
+			local object = EntityList:Get(self.objectid)
+			if (ValidTable(object)) then
+				pathdistance = object.pathdistance
+			end
+		end
+		
         ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         ml_debug("Task Range: "..tostring(self.range))
         ml_debug("Current Distance: "..tostring(distance))
+		ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
-        
-        if (distance <= self.range + self.gatherRange) then
-            return true
-        end
+
+		if (self.usePathDistance) then
+			if (distance <= (self.range + self.gatherRange) and pathdistance < 10) then
+				return true
+			end
+		else
+			if (distance <= (self.range + self.gatherRange)) then
+				return true
+			end
+		end
     else
         ml_error(" ERROR: no valid position in ffxiv_task_movetopos ")
     end    
@@ -245,7 +260,7 @@ function ffxiv_task_movetopos:task_complete_execute()
 	
 	if (not self.remainMounted) then
 		Dismount()
-	end	
+	end
 	NavigationManager:ClearAvoidanceAreas()
 	
 	if (self:ParentTask().name == "LT_KILLTARGET") then
@@ -263,7 +278,6 @@ function ffxiv_task_movetopos:task_complete_execute()
 end
 
 ----------------------------------------------------------------------------------------------------------
-
 ffxiv_task_movetomap = inheritsFrom(ml_task)
 function ffxiv_task_movetomap.Create()
     local newinst = inheritsFrom(ffxiv_task_movetomap)
@@ -300,6 +314,8 @@ end
 function ffxiv_task_movetomap:task_complete_eval()
     return Player.localmapid == ml_task_hub:CurrentTask().destMapID
 end
+
+--=======================SUMMON CHOCO TASK=========================-
 
 ffxiv_task_summonchoco = inheritsFrom(ml_task)
 function ffxiv_task_summonchoco.Create()
@@ -341,6 +357,8 @@ function ffxiv_task_summonchoco:task_complete_execute()
 	ml_global_information.summonTimer = ml_global_information.Now
 end
 
+--=======================TELEPORT TASK=========================-
+
 ffxiv_task_teleport = inheritsFrom(ml_task)
 function ffxiv_task_teleport.Create()
     local newinst = inheritsFrom(ffxiv_task_teleport)
@@ -356,8 +374,6 @@ function ffxiv_task_teleport.Create()
     newinst.name = "TELEPORT"
     newinst.mapID = 0
 	newinst.mesh = nil
-    newinst.loadTime = 14000
-	newinst.landTime = 0
     newinst.started = ml_global_information.Now
     
     return newinst
@@ -369,36 +385,19 @@ end
 
 function ffxiv_task_teleport:task_complete_eval()		
 	if (	(TableSize(Player.castinginfo) == 0 or 
-			Player.castinginfo.channelingid ~= 5) 
-				and ml_task_hub:ThisTask().landTime == 0 
-				and Player.localmapid == ml_task_hub:ThisTask().mapID) then
-			ml_task_hub:CurrentTask().landTime = ml_global_information.Now
-	end
-	
-	
-	local ppos = Player.pos
-	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
-		TimeSince(ml_task_hub:CurrentTask().landTime) > ml_task_hub:CurrentTask().loadTime and
-		not NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z) and
-		gmeshname ~= ml_task_hub:CurrentTask().mesh) then
-		ml_debug("Landed in a new zone, but the default mesh is wrong, attempting to correct.")
-		gmeshname = ml_task_hub:CurrentTask().mesh
-		ml_task_hub:CurrentTask().landTime = ml_global_information.Now
-	end
-	
-	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
-		TimeSince(ml_task_hub:CurrentTask().landTime) > ml_task_hub:CurrentTask().loadTime and
-		NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z)) then
-		return true
-	end
-	
-	if (ml_task_hub:CurrentTask().landTime ~= 0 and 
-		TimeSince(ml_task_hub:CurrentTask().landTime) > (ml_task_hub:CurrentTask().loadTime * 2) and
-		not NavigationManager:IsOnMesh(ppos.x,ppos.y,ppos.z) and
-		gmeshname == ml_task_hub:CurrentTask().mesh) then
-		ml_error("Attempted to load a proper navmesh for you, but something went wrong.")
-		ml_error("You will need to verify your navmeshes and re-start the bot.")
-		return true
+			Player.castinginfo.channelingid ~= 5) and
+			not ml_mesh_mgr.loadingMesh	and 
+			Player.localmapid == self.mapID and 
+			not Quest:IsLoading()) 
+	then
+		if (Player.onmesh) then
+			return true
+		else
+			if (gmeshname ~= self.mesh) then
+				gmeshname = self.mesh
+			end
+			return false
+		end
 	end
 	
 	if (TimeSince(ml_task_hub:ThisTask().started) > 30000) then
@@ -410,6 +409,137 @@ end
 
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
+	self:ParentTask().changingLocations = false
+end
+
+--=======================STEALTH TASK=========================-
+--This is a blocking task to prevent anything else from happening
+--while stealth is being added or removed.
+
+ffxiv_task_stealth = inheritsFrom(ml_task)
+function ffxiv_task_stealth.Create()
+    local newinst = inheritsFrom(ffxiv_task_stealth)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_killtarget members
+    newinst.name = "LT_STEALTH"
+	newinst.droppingStealth = false
+	newinst.addingStealth = false
+	newinst.timer = 0
+    
+    return newinst
+end
+
+function ffxiv_task_stealth:Init()    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_stealth:task_complete_eval()
+	if (self.droppingStealth) then
+		if (Player:IsMoving()) then
+			Player:Stop()
+			return false
+		end
+	end
+	
+	if (self.addingStealth) then
+		if (Player.ismounted) then
+			Player:Stop()
+			Dismount()
+			return false
+		end
+	end
+	
+	local action = nil
+    if (Player.job == FFXIV.JOBS.BOTANIST) then
+        action = ActionList:Get(212)
+    elseif (Player.job == FFXIV.JOBS.MINER) then
+        action = ActionList:Get(229)
+    elseif (Player.job == FFXIV.JOBS.FISHER) then
+        action = ActionList:Get(298)
+    end
+
+	if (self.droppingStealth) then
+		if (MissingBuffs(Player,"47")) then
+			return true
+		end
+	end
+	
+	if (self.addingStealth) then
+		if (HasBuffs(Player,"47")) then
+			return true
+		end
+	end
+	
+	if (action and not action.isoncd and Now() > self.timer) then
+        action:Cast()
+		self.timer = Now() + 1000
+    end
+	
+	return false
+end
+
+function ffxiv_task_stealth:task_complete_execute()
+    self.completed = true
+end
+
+--=======================USEITEM TASK=========================-
+
+ffxiv_task_useitem = inheritsFrom(ml_task)
+function ffxiv_task_useitem.Create()
+    local newinst = inheritsFrom(ffxiv_task_useitem)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_killtarget members
+    newinst.name = "LT_USEITEM"
+	newinst.itemid = 0
+	newinst.timer = 0
+	newinst.useTime = 0
+    
+    return newinst
+end
+
+function ffxiv_task_useitem:Init()    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_useitem:task_complete_eval()
+	if (Player.ismounted) then
+		Dismount()
+		return false
+	end
+	
+	if (self.timer == 0) then
+		local item = Inventory:Get(itemid)
+		if (item and item.isready) then
+			cordial:Use()
+			self.timer = (newinst.useTime > 0) and newinst.useTime or 1500
+		end
+	end
+	
+	if (self.timer > 0 and Now() > self.timer) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_task_useitem:task_complete_execute()
+    self.completed = true
 end
 
 --=======================AVOID TASK=========================-
