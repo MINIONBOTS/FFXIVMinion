@@ -627,6 +627,7 @@ function ffxivminion.SetMode(mode)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
+			SendTextCommand("/busy")
 		else
 			if (gBotMode == GetString("gatherMode")) then
 				gTeleport = "0"

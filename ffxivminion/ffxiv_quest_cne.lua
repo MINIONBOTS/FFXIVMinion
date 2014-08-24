@@ -61,8 +61,7 @@ end
 c_nextqueststep = inheritsFrom( ml_cause )
 e_nextqueststep = inheritsFrom( ml_effect )
 function c_nextqueststep:evaluate()
-	if (not ml_task_hub:CurrentTask().quest:isStarted() or
-		ml_task_hub:CurrentTask().quest:isComplete())
+	if (not ml_task_hub:CurrentTask().quest:isStarted())
 	then
 		return false
 	end
@@ -91,10 +90,22 @@ function e_nextqueststep:execute()
 	
 	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
 	if (ValidTable(task)) then	
+	
+		-- initialize task vars for some step types here
+		-- this could really be handled more elegantly than a giant ifelse but
+		-- that will have to come later
 		if(task.params["type"] == "kill") then
 			if(Settings.FFXIVMINION.questKillCount ~= nil) then
 				task.killCount = Settings.FFXIVMINION.questKillCount
 				gQuestKillCount = task.killCount
+			end
+		elseif(task.params["type"] == "vendor") then
+			local itemid = tonumber(task.params["itemid"])
+			if(itemid) then
+				local item = Inventory:Get(itemid)
+				if(ValidTable(item)) then
+					task.startingCount = item.count
+				end
 			end
 		end
 		
@@ -196,8 +207,15 @@ function c_questcomplete:evaluate()
 end
 function e_questcomplete:execute()
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
-		ffxiv_task_quest.armoryTable = GetArmoryIDsTable()
-		Quest:CompleteQuestReward(ml_task_hub:CurrentTask().params["itemrewardslot"])
+		local reward = ml_task_hub:CurrentTask().params["itemrewardslot"]
+		local rewardslot
+		if(type(reward) == "table") then
+			rewardslot = reward[Player.job] or reward[-1]
+		else
+			rewardslot = tonumber(reward)
+		end
+		
+		Quest:CompleteQuestReward(rewardslot)
 	else
 		Quest:CompleteQuestReward()
 	end
@@ -379,7 +397,7 @@ function c_atinteract:evaluate()
 		return false
 	end
 
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and not ml_task_hub:CurrentTask():ParentTask().name == "LT_KILLTARGET") then
 		local id = ml_task_hub:ThisTask().params["id"]
 		if (id and id > 0) then
 			local el = EntityList("contentid="..tostring(id))
@@ -783,4 +801,72 @@ function e_inckillcount:execute()
 	Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
 	gQuestKillCount = ffxiv_task_quest.killCount
 	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_questkillaggrotarget = inheritsFrom( ml_cause )
+e_questkillaggrotarget = inheritsFrom( ml_effect )
+function c_questkillaggrotarget:evaluate()
+	local el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+				c_questkillaggrotarget.targetid = target.id
+				return true
+			end
+		end
+	end
+    
+    return false
+end
+function e_questkillaggrotarget:execute()
+	--just in case
+	Dismount()
+	
+	local newTask = ffxiv_task_killtarget.Create()
+    newTask.targetid = c_questkillaggrotarget.targetid
+	Player:SetTarget(c_questkillaggrotarget.targetid)
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_questbuy = inheritsFrom( ml_cause )
+e_questbuy = inheritsFrom( ml_effect )
+function c_questbuy:evaluate()	
+	--check for vendor window open
+	if (not ControlVisible("Shop")) then
+		return false
+	end
+	
+	local itemtable = ml_task_hub:CurrentTask().params["itemid"]
+	if(ValidTable(itemtable))then
+		local itemid = itemtable[Player.job] or itemtable[-1]
+		if(itemid) then
+			e_questbuy.itemid = tonumber(itemid)
+			return true
+		end
+	end
+	
+	return false
+	
+end
+function e_questbuy:execute()
+	local buyamount = ml_task_hub:CurrentTask().params["buyamount"] or 1
+	Inventory:BuyShopItem(e_questbuy.itemid,buyamount)
+	
+	--set a delay on the current task to give the server time to update the item count
+	--so the task completion check will be valid
+	ml_task_hub:CurrentTask():SetDelay(1000)
+end
+
+c_questselectconvindex = inheritsFrom( ml_cause )
+e_questselectconvindex = inheritsFrom( ml_effect )
+function c_questselectconvindex:evaluate()	
+	--check for vendor window open
+	local index = ml_task_hub:CurrentTask().params["conversationindex"]
+	return index and ControlVisible("SelectIconString")
+end
+function e_questselectconvindex:execute()
+	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().params["conversationindex"]))
+	--delay to allow conversation to update
+	ml_task_hub:CurrentTask():SetDelay(1500)
 end
