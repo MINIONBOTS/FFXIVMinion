@@ -1457,7 +1457,7 @@ end
 c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
 function c_autoequip:evaluate()
-	if (gQuestAutoEquip == "0") then
+	if (gQuestAutoEquip == "0" or ControlVisible("Shop")) then
 		return false
 	end
 	

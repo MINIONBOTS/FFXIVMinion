@@ -61,6 +61,8 @@ function ffxiv_quest_task:Init()
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 14 )
     self:add( ke_questIsComplete, self.process_elements)
 	
+	--its tempting to make autoequip an overwatch cne but there are too many states 
+	--when the client does not allow gear changes
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 25 )
     self:add( ke_autoEquip, self.process_elements)
 	
@@ -111,6 +113,9 @@ function ffxiv_quest_start:Init()
 	
 	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
     self:add( ke_questAtInteract, self.overwatch_elements)
+	
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
 	
 	local ke_questAccept = ml_element:create( "QuestAccept", c_questaccept, e_questaccept, 15 )
     self:add( ke_questAccept, self.process_elements)
@@ -177,6 +182,9 @@ function ffxiv_quest_complete:Init()
 	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
     self:add( ke_questAtInteract, self.overwatch_elements)
 	
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
+	
 	local ke_questComplete = ml_element:create( "QuestComplete", c_questcomplete, e_questcomplete, 15 )
     self:add( ke_questComplete, self.process_elements)
 	
@@ -225,6 +233,9 @@ function ffxiv_quest_interact:Init()
 	
 	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
     self:add( ke_questAtInteract, self.overwatch_elements)
+	
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
 	
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)
@@ -569,8 +580,31 @@ function ffxiv_quest_vendor.Create()
     
     newinst.params = {}
 	newinst.stepCompleted = false
+	newinst.startingCount = 0
     
     return newinst
+end
+
+function ffxiv_quest_vendor:task_complete_eval()
+	local itemtable = self.params["itemid"]
+	local itemid = itemtable[Player.job] or itemtable[-1]
+	local amount = tonumber(self.params["buyamount"])
+	local item = Inventory:Get(itemid)
+	if(ValidTable(item)) then
+		local buycomplete = false
+		if(amount) then
+			buycomplete = item.count == self.startingCount + amount
+		else
+			buycomplete = item.count > self.startingCount
+		end
+		
+		if(buycomplete) then
+			Inventory:CloseShopWindow()
+			return true
+		end
+	end
+	
+	return false
 end
 
 function ffxiv_quest_vendor:Init()
@@ -587,13 +621,15 @@ function ffxiv_quest_vendor:Init()
 	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
     self:add( ke_questAtInteract, self.overwatch_elements)
 	
-	local ke_questAccept = ml_element:create( "QuestAccept", c_questaccept, e_questaccept, 15 )
-    self:add( ke_questAccept, self.process_elements)
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
+	
+	local ke_questBuy = ml_element:create( "QuestBuy", c_questbuy, e_questbuy, 15 )
+    self:add( ke_questBuy, self.process_elements)
 	
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
-	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

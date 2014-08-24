@@ -144,4 +144,5 @@ ffxiv_quest.tasks =
 	["textcommand"] = ffxiv_quest_textcommand.Create,
 	["useitem"] 	= ffxiv_quest_useitem.Create,
 	["useaction"]	= ffxiv_quest_useaction.Create,
+	["vendor"]		= ffxiv_quest_vendor.Create,
 }
