@@ -545,6 +545,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
     },                                  
     ["cn"] =                            
     {                               
@@ -1090,6 +1094,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
 	},
     ["jp"] =
     {
@@ -1622,6 +1630,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
 	},   
     ["de"] =
     {
@@ -2155,6 +2167,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
 	},     
     ["fr"] =
     {
@@ -2687,6 +2703,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
 	},       
     ["ru"] =
     {
@@ -3219,6 +3239,10 @@ strings =
 		hour							= "Hour",
 		class							= "Class",
 		isIdle							= "Is Idle",
+		objectiveIndex					= "Objective Index",
+		stepIndex						= "Step Index",
+		killCount					 	= "Kill Count",
+		autoEquip					 	= "Auto-Equip",
 	},    	
 
 }
