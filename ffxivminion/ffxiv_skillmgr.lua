@@ -685,6 +685,18 @@ function SkillMgr.UpdateCurrentProfileData()
 									end
 								end
 							end
+							
+							-- try to update the names 
+							local realskilldata = nil
+							if (newskill.stype == "Pet") then 
+								realskilldata = ActionList:Get(newskill.id,11) 
+							else 
+								realskilldata = ActionList:Get(newskill.id) 
+							end
+							if ( TableSize(realskilldata) > 0 and realskilldata.name ~= "") then
+								newskill.name = realskilldata.name
+							end							
+							
 							sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
                             newskill = {}
 						elseif (SkillMgr.Variables["SKM_"..key] ~= nil) then
