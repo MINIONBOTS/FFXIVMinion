@@ -73,7 +73,7 @@ function ffxiv_task_quest.UIInit()
 	GUI_NewField(winName, GetString("stepTask"), "gQuestStepType",group)
 	GUI_NewField(winName, GetString("killCount"), "gQuestKillCount",group)
 	local group = GetString("settings")
-	GUI_NewCheckbox(winName,"autoEquip","gQuestAutoEquip",group)
+	GUI_NewCheckbox(winName,GetString("autoEquip"),"gQuestAutoEquip",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
