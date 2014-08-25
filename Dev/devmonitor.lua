@@ -91,7 +91,7 @@ function Dev.ModuleInit()
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
 	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting");
-	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","0","999");		
+	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
 	GUI_NewField("Dev","Name","sbname","ActionListInfo")
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
 	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
@@ -110,7 +110,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","CanCast","sbcanc","ActionListInfo")
 	GUI_NewField("Dev","CanCastOnTarget","sbcancast","ActionListInfo")
 	GUI_NewButton("Dev","Cast","Dev.Cast","ActionListInfo")
-	sbSelSlot = 0		
+	sbSelSlot = 1		
 	sbSelHotbar = "Actions"
 	sbpendingcast = false
 	
