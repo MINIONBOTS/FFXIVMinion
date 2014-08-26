@@ -436,7 +436,7 @@ function ffxiv_task_duty.UIInit()
 	if ( not ffxivminion.Windows) then
 		ffxivminion.Windows = {}
 	end
-	ffxivminion.Windows.Duty = { Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Duty = { id = strings["us"].dutyMode, Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Duty)
 	
 

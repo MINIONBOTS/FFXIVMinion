@@ -138,6 +138,7 @@ strings =
 		
 		
 		--new SKM stuff
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",
@@ -692,6 +693,7 @@ strings =
 		AutoRezz						= "复活敌方",
 		Fightstyle						= "战斗风格",
 		
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",
@@ -1225,6 +1227,7 @@ strings =
 		AdvancedSettings				= "高度設定",
 		Fightstyle						= "戦闘スタイル",
 		
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",
@@ -1481,7 +1484,7 @@ strings =
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
 		confirmDuty						= "Auto-Confirm Duty",
-		antiAFKup						= "Anti-AFK Move",
+		antiAFKMove						= "Anti-AFK Move",
 		pvpFlee							= "Ranged Flee",
         skipCutscene                    = "Skip Cutscenes",
         skipDialogue                    = "Skip Dialogues",
@@ -1757,6 +1760,7 @@ strings =
 		AdvancedSettings				= "Advanced Settings",
 		Fightstyle						= "Fightstyle",
 		
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",
@@ -2290,6 +2294,7 @@ strings =
 		AdvancedSettings				= "Configuration Avancé",
 		Fightstyle						= "Fightstyle",
 		
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",
@@ -2822,6 +2827,7 @@ strings =
 		AdvancedSettings				= "Advanced Settings",
 		Fightstyle						= "Fightstyle",
 		
+		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
 		skmGCD							= "Off GCD",

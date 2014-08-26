@@ -241,7 +241,7 @@ end
 function ffxiv_task_grind.UIInit()
 	
 	--Add it to the main tracking table, so that we can save positions for it.
-	ffxivminion.Windows.Grind = { Name = GetString("grindMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Grind = { id = strings["us"].grindMode, Name = GetString("grindMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Grind)
 
 	if (Settings.FFXIVMINION.gDoFates == nil) then

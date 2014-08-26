@@ -193,7 +193,7 @@ function c_findunspoilednode:evaluate()
 
 	if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0) then
 		local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-		if (gatherable and gatherable.cangather and (gatherable.distance2d > 2 or gatherable.pathdistance > 10)) then
+		if (gatherable and gatherable.cangather and (gatherable.distance2d > 3 or gatherable.pathdistance > 10)) then
 			if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 				if (PosIsEqual(ml_task_hub:CurrentTask().pos, gatherable.pos)) then
 					return false
@@ -659,18 +659,22 @@ function c_gather:evaluate()
 						newTask.itemid = 6141
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
+					d("c_gather failed block 1.")
 					return false
 				else
+					d("c_gather succeeded block 1.")
 					return true
 				end
 			else
+				d("c_gather succeeded block 2.")
 				return true
 			end
 		else
+			d("c_gather succeeded block 3.")
 			return true
 		end
     end
-
+	
 	ml_global_information.IsWaiting = false
     return false
 end
@@ -956,7 +960,7 @@ end
 function ffxiv_task_gather.UIInit()
 	
 	--Add it to the main tracking table, so that we can save positions for it.
-	ffxivminion.Windows.Gather = { Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Gather = { id = strings["us"].gatherMode, Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Gather)
 
 	if (Settings.FFXIVMINION.gGatherUnspoiled == nil) then

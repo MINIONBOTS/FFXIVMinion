@@ -168,7 +168,7 @@ function ffxiv_task_craft.UIInit()
 	if ( not ffxivminion.Windows) then
 		ffxivminion.Windows = {}
 	end
-    ffxivminion.Windows.Craft = { Name = GetString("craftMode"), x=50, y=50, width=210, height=300 }
+    ffxivminion.Windows.Craft = { id = strings["us"].craftMode, Name = GetString("craftMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Craft)
 
 	if ( Settings.FFXIVMINION.gCraftMinCP == nil ) then

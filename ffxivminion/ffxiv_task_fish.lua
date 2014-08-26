@@ -332,7 +332,7 @@ end
 
 -- UI settings etc
 function ffxiv_task_fish.UIInit()
-	ffxivminion.Windows.Fish = { Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
 
 	--if ( Settings.FFXIVMINION.gPlaceholder == nil ) then

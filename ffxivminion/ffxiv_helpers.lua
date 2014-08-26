@@ -237,9 +237,9 @@ function GetHuntTarget()
 	end
 	
 	if (excludeString) then
-		el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 	else
-		el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
+		el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
 	end
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do

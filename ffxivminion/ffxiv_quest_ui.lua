@@ -441,14 +441,14 @@ function QM.LoadProfile()
 	
 	if (qProfileType == "Duty") then
 		info = persistence.load(QM.DutyPath..qProfileName..".info")
-		if (ValidTable(info.Encounters)) then
+		if (ValidTable(info) and ValidTable(info.Encounters)) then
 			QM.Encounters = info.Encounters
 		else
 			QM.Encounters = {}
 		end
 	else
 		info = persistence.load(QM.QuestPath..qProfileName..".info")
-		if (ValidTable(info.quests)) then
+		if (ValidTable(info) and ValidTable(info.quests)) then
 			QM.Quests = info.quests
 		else
 			QM.Quests = {}

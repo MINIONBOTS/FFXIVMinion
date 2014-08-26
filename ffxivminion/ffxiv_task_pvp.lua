@@ -612,9 +612,10 @@ function ffxiv_task_pvp.UIInit()
 	if ( not ffxivminion.Windows) then
 		ffxivminion.Windows = {}
 	end
-	ffxivminion.Windows.PVP = { Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 }
-	ffxivminion.CreateWindow(ffxivminion.Windows.PVP)
 
+	ffxivminion.Windows.PVP = { id = strings["us"].pvpMode, Name = GetString("pvpMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.PVP)
+	
 	if (Settings.FFXIVMINION.gPVPTargetOne == nil) then
         Settings.FFXIVMINION.gPVPTargetOne = "Healer"
     end
@@ -691,7 +692,6 @@ function ffxiv_task_pvp.UIInit()
 	gPVPSpeedMatchPartner = Settings.FFXIVMINION.gPVPSpeedMatchPartner
 	
 	ffxiv_task_pvp.SetupMarkers()
-	
 	RegisterEventHandler("GUI.Update",ffxiv_task_pvp.GUIVarUpdate)
 end
 

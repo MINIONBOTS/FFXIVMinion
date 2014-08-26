@@ -2,9 +2,6 @@ ml_global_information = {}
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
-ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
-ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
 ml_global_information.AttackRange = 2
@@ -25,7 +22,6 @@ ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
-
 ml_global_information.chocoStance = {
 	[strings[gCurrentLanguage].stFollow] = 3,
 	[strings[gCurrentLanguage].stFree] = 4,
@@ -39,33 +35,21 @@ FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
 
 ffxivminion = {}
-ffxivminion.modes =	{
-		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
-		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
-		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
-		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
-		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
-		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
-		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
-		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
-		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		--["NavTest"]								= ffxiv_task_test,
-}
-
 ffxivminion.foods = {}
 ffxivminion.foodsHQ = {}
 
 ffxivminion.Strings = {
 	BotModes = 
 		function ()
-			local botModes = "None"
+			local botModes = ""
 			if ( TableSize(ffxivminion.modes) > 0) then
-				local i,entry = next (ffxivminion.modes)
-				while i and entry do
-					botModes = botModes..","..i
-					i,entry = next (ffxivminion.modes,i)
-				end
+				for i, entry in pairs(ffxivminion.modes) do
+					if (botModes == "") then
+						botModes = i
+					else
+						botModes = botModes..","..i
+					end
+				end				
 			end
 			return botModes
 		end,
@@ -181,11 +165,29 @@ end
 function ffxivminion.HandleInit()	
     GUI_SetStatusBar("Initalizing FFXIV Module...")
 	
+	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
+	ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
+	ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
+	
+	ffxivminion.modes =	{
+		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
+		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
+		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
+		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
+		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
+		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
+		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
+		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
+		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
+		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
+		--["NavTest"]								= ffxiv_task_test,
+}
+	
 	if ( not ffxivminion.Windows) then
 		ffxivminion.Windows = {}
 	end
 	
-	ffxivminion.Windows.Main = { Name = GetString("settings"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
 
 	if (Settings.FFXIVMINION.version == nil ) then
@@ -362,7 +364,21 @@ function ffxivminion.HandleInit()
 	local botModes = ffxivminion.Strings.BotModes()
 	gBotMode_listitems = botModes
 	gBotMode = Settings.FFXIVMINION.gBotMode
-	ffxivminion.SetMode(gBotMode)
+	local modeFound = false
+	for i, entry in pairs(ffxivminion.modes) do
+		if (i == gBotMode) then
+			modeFound = true
+			break
+		end
+	end
+	
+	if (modeFound) then
+		ffxivminion.SetMode(gBotMode)
+	else
+		gBotMode = GetString("grindMode")
+		Settings.FFXIVMINION.gBotMode = gBotMode
+		ffxivminion.SetMode(gBotMode)
+	end
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
@@ -733,7 +749,7 @@ end
 
 function ffxivminion.CreateWindows()
 	for i,window in pairs(ffxivminion.Windows) do
-		local winTable = "AutoWindow"..window.Name
+		local winTable = "AutoWindow"..window.id
 		if (Settings.FFXIVMINION[winTable] == nil) then
 			Settings.FFXIVMINION[winTable] = {}
 		end
@@ -753,7 +769,7 @@ function ffxivminion.CreateWindows()
 end
 
 function ffxivminion.CreateWindow(window)
-	local winTable = "AutoWindow"..window.Name
+	local winTable = "AutoWindow"..window.id
 	if (Settings.FFXIVMINION[winTable] == nil) then
 		Settings.FFXIVMINION[winTable] = {}
 	end
@@ -780,21 +796,36 @@ function ffxivminion.CreateWindow(window)
 end
 
 function ffxivminion.SizeWindow(strName)
-	local winTableName = "AutoWindow"..strName
+	local window = nil
+	for i, wnd in pairs(ffxivminion.Windows) do
+		if (wnd.Name == strName) then
+			window = wnd
+		end
+	end
+	
+	local winTableName = "AutoWindow"..window.id
 	local winTable = Settings.FFXIVMINION[winTableName]
 	
 	GUI_SizeWindow(strName,winTable.width,winTable.height)
 end
 
 function ffxivminion.GetWindowSize(strName)
-	local winTableName = "AutoWindow"..strName
+	
+	local window = nil
+	for i, wnd in pairs(ffxivminion.Windows) do
+		if (wnd.Name == strName) then
+			window = wnd
+		end
+	end
+	
+	local winTableName = "AutoWindow"..window.id
 	local winTable = Settings.FFXIVMINION[winTableName]
 	return winTable
 end
 
 function ffxivminion.SaveWindows()
 	for i,window in pairs(ffxivminion.Windows) do
-		local tableName = "AutoWindow"..window.Name
+		local tableName = "AutoWindow"..window.id
 		local WI = Settings.FFXIVMINION[tableName]
 		local W = GUI_GetWindowInfo(window.Name)
 		local WindowInfo = {}
@@ -813,8 +844,7 @@ function ffxivminion.OpenSettings()
 	local winName = ffxivminion.Windows.Main.Name
 	
 	GUI_MoveWindow(winName, wnd.x,wnd.y+wnd.height)
-	local winTableName = "AutoWindow"..winName
-	local winTable = Settings.FFXIVMINION[winTableName]
+	local winTable = ffxivminion.GetWindowSize(winName)
 	GUI_SizeWindow(winName,wnd.width,winTable.height)
 	GUI_WindowVisible(winName,true)
 end

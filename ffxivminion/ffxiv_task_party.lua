@@ -149,7 +149,7 @@ end
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
 
-	ffxivminion.Windows.Party = { Name = GetString("partyMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Party = { id = strings["us"].partyMode, Name = GetString("partyMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Party)
 
 	if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
