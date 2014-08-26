@@ -84,10 +84,12 @@ end
 function ml_blacklist.GetExcludeString(blacklistName)
     local excludeString = ""
 	local blacklist = ml_blacklist.blacklist[blacklistName]
-    for id, entry in pairs(blacklist) do
-        excludeString = excludeString .. id .. ";"
+    if ( blacklist ) then
+		for id, entry in pairs(blacklist) do
+			excludeString = excludeString .. id .. ";"
+		end
     end
-    
+	
     if (excludeString ~= "") then
         -- strip off trailing comma
         return excludeString:sub(1,excludeString:len() - 1) 

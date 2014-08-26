@@ -17,6 +17,7 @@ TP.cRepID = 0
 TP.cDelID = 0
 TP.DelGRP = {}
 TP.halfticks = 0
+TP.updateTicks = 0
 TP.isTraveling = false
 TP.TravelingStopingDistance = 10.0
 TP.key1 = {"NONE","Left Mouse","Right Mouse","Middle Mouse","BACKSPACE","TAB","ENTER","PAUSE","ESC","SPACEBAR","PAGE UP","PAGE DOWN","END","HOME","LEFT ARROW","UP ARROW","RIGHT ARROW","DOWN ARROW","PRINT","INS","DEL","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","NUM 0","NUM 1","NUM 2","NUM 3","NUM 4","NUM 5","NUM 6","NUM 7","NUM 8","NUM 9","Separator","Subtract","Decimal","Divide","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","SCROLL LOCK","Left SHIFT","Right SHIFT","Left CONTROL","Right CONTROL","Left ALT","Right ALT"}
@@ -172,25 +173,6 @@ end
 
 
 function TP.Build()
-
-	if (Settings.Dev.check == nil) then
-		Settings.Dev.WinInfX = 790
-		Settings.Dev.WinInfY = 40
-		Settings.Dev.WinInfW = 380
-		Settings.Dev.WinInfH = 520
-		Settings.Dev.check = true
-	end
-	GUI_NewWindow(TP.WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
-    GUI_NewField(TP.WinName,"Map - (id)","mapNAME","Info")
-    GUI_NewField(TP.WinName," X | Y | Z | H","tb_aPos","Info")
-    GUI_UnFoldGroup(TP.WinName,"Info")
-	
-	local B1 = "NONE,"
-	local B2 = ""
-	for k,v in pairs(TP.key1) do
-		if k > 84 then B1 = B1..v.."," end
-		if k > 1 and k < 85 then B2 = B2..v.."," end
-	end
 	if (Settings.Dev.checkM == nil) then
 		Settings.Dev.WinInfMX = 304
 		Settings.Dev.WinInfMY = 50
@@ -204,6 +186,19 @@ function TP.Build()
 		Settings.Dev.Click_Button2 = "Middle Mouse"
 		Settings.Dev.checkM = true
         Settings.Dev.Auto_Sync = "1"
+	end
+
+	GUI_NewWindow(TP.WinName,Settings.Dev.WinInfMX,Settings.Dev.WinInfMY,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
+
+    GUI_NewField(TP.WinName,"Map - (id)","mapNAME","Info")
+    GUI_NewField(TP.WinName," X | Y | Z | H","tb_aPos","Info")
+    GUI_UnFoldGroup(TP.WinName,"Info")
+	
+	local B1 = "NONE,"
+	local B2 = ""
+	for k,v in pairs(TP.key1) do
+		if k > 84 then B1 = B1..v.."," end
+		if k > 1 and k < 85 then B2 = B2..v.."," end
 	end
     
     if (Settings.Dev.Auto_Sync == nil) then
@@ -230,7 +225,6 @@ function TP.Build()
     Settings.Dev.tpPrefMeshPos = "1"
   end
     
-  
 	--
   GUI_NewCheckbox(TP.WinName,"Auto-Sync","tpAuto_Sync","Setting")
 	tpAuto_Sync = Settings.Dev.Auto_Sync
@@ -273,15 +267,22 @@ function TP.Build()
 	GUI_NewButton(TP.WinName,"Up","TP.MoveU","Move")
 	RegisterEventHandler("TP.MoveU", TP.CorMove)
 	
-	GUI_NewButton(ml_global_information.MainWindow.Name,"Teleport","TP.StartTP")
-	RegisterEventHandler("TP.StartTP", TP.StartTPs)	
+	--GUI_NewButton(ffxivminion.Windows.Main.Name,"Teleport","TP.StartTP")
+	--RegisterEventHandler("TP.StartTP", TP.StartTPs)	
 	GUI_NewButton(TP.WinName,"Refresh","TP.Refresh")
 	RegisterEventHandler("TP.Refresh", TP.Refreshing)
 	GUI_NewButton(TP.WinName,"Replace / Rename / Delete","TP.Change_Open")
 	RegisterEventHandler("TP.Change_Open", TP.Change)
 	GUI_NewButton(TP.WinName,"Save","TP.saveOpen")
 	RegisterEventHandler("TP.saveOpen", TP.Save)
-	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+  
+	GUI_NewButton(TP.WinName,"Save Duty List","TP.SaveDutyList")
+	GUI_NewButton(TP.WinName,"Clear Duty List","TP.ClearDutyList")
+	GUI_NewButton(TP.WinName,"Add to Duty List","TP.AddDutyList")
+	RegisterEventHandler("TP.SaveDutyList", TP.SaveCurrentDutyList)
+	RegisterEventHandler("TP.ClearDutyList", TP.ClearCurrentDutyList)
+	RegisterEventHandler("TP.AddDutyList", TP.AddCurrentPositionToDutyList)
+	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
 	GUI_WindowVisible(TP.WinName, false)
 end
 --**************************************************************************************************************************************
@@ -307,8 +308,7 @@ function TP.StartTPs(dir)
 		
 	end
 	
-	
-	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
 end
 --**************************************************************************************************************************************
 function TP.Change(dir)
@@ -316,10 +316,11 @@ function TP.Change(dir)
 	local PG = Player:GetTarget()
 	local Tcheck = 0
 	local WinName = "Teleporter Replace/Rename/Delete"
-	if (dir == "TP.Change_Open") then
+	d("TpChange" ..tostring(dir))
+  if (dir == "TP.Change_Open") then
 		if (TP.cReplaceinf == 0) then
 			TP.cReplaceinf = 1
-			GUI_NewWindow(WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+			GUI_NewWindow(WinName,Settings.Dev.WinInfMX,Settings.Dev.WinInfMY,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
 			GUI_NewButton(WinName,"Delete Waypoint","TP.WPOiNTdelete")
 			RegisterEventHandler("TP.WPOiNTdelete", TP.Change)
 			GUI_NewButton(WinName,"Rename Waypoint","TP.WPOiNTrename")
@@ -332,7 +333,7 @@ function TP.Change(dir)
 			GUI_NewButton(WinName,"Get Target Name","TP.WTargetName","Waypoint Name")
 			RegisterEventHandler("TP.WTargetName", TP.Change)
 		end
-			GUI_MoveWindow(WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY)
+			GUI_MoveWindow(WinName,Settings.Dev.WinInfMX,Settings.Dev.WinInfMY)
 			GUI_WindowVisible("Save",false)	
 			GUI_UnFoldGroup(WinName,"Waypoint Name")
 			
@@ -359,10 +360,10 @@ function TP.Change(dir)
 				RegisterEventHandler("PTR_"..i, TP.Change)
 			end
 			TP.DelGroups(WinName)
-			GUI_SizeWindow(WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
+			GUI_SizeWindow(WinName,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
 			GUI_WindowVisible(WinName,true)
 			--------------------------------------------------------------------------------------------	
-	elseif (string.sub(dir,1,15) == "TP.WPOiNT") then
+	elseif (string.sub(dir,1,9) == "TP.WPOiNT") then
 		if (repNAME ~= nil or repNAME ~= "") then
 			local saveK = ""
 			local Tcheck = 0
@@ -381,7 +382,8 @@ function TP.Change(dir)
 				Tcheck = 1
 			end
 			elseif (dir == "TP.WPOiNTrename") then
-				TP.cPort[tonumber(TP.cRepID)][1] = tostring(repNAME)
+				d("renaming")
+        TP.cPort[tonumber(TP.cRepID)][1] = tostring(repNAME)
 			elseif (dir == "TP.WPOiNTdelete") then	
 				table.remove(TP.cPort, tonumber(TP.cRepID))
 			end
@@ -398,9 +400,9 @@ function TP.Change(dir)
 			else
 				if (TP.cInfocheck == 0) then 
 					TP.cInfocheck = 1
-					GUI_NewWindow("Info",Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,55)
+					GUI_NewWindow("Info",Settings.Dev.WinInfMX,Settings.Dev.WinInfMY,Settings.Dev.WinInfMW,55)
 					GUI_NewButton("Info","NO TARGET SET!"," ")
-					GUI_SizeWindow("Info",Settings.Dev.WinInfW,55)
+					GUI_SizeWindow("Info",Settings.Dev.WinInfMW,55)
 				else
 					GUI_WindowVisible("Info",true)
 				end
@@ -419,8 +421,6 @@ function TP.Change(dir)
 		GUI_RefreshWindow(WinName)
 		--TP.Change("TP.Change_Open")
 	end	
-    
-    GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfW,Settings.Dev.WinInfH)
 end
 --**************************************************************************************************************************************
 function TP.Save(dir)
@@ -430,12 +430,12 @@ function TP.Save(dir)
 	local Tcheck = 0
 	local WinName = "Teleporter Save"
 	if (dir == "TP.saveOpen") then
-		local WinY = Settings.Dev.WinInfY
-		--GUI_MoveWindow(TP.WinName,Settings.Dev.WinInfX,Settings.Dev.WinInfY+130)
-		--GUI_MoveWindow(WinName,Settings.Dev.WinInfX,WinY)
+		local WinY = Settings.Dev.WinInfMY
+		--GUI_MoveWindow(TP.WinName,Settings.Dev.WinInfMX,Settings.Dev.WinInfMY+130)
+		--GUI_MoveWindow(WinName,Settings.Dev.WinInfMX,WinY)
 		if (TP.cSaveinf == 0) then
 			TP.cSaveinf = 1
-			GUI_NewWindow(WinName,Settings.Dev.WinInfX,WinY,0,0)
+			GUI_NewWindow(WinName,Settings.Dev.WinInfMX,WinY,0,0)
 			GUI_NewField(WinName,"Waypoint Name:","cSaveName"," ")
 			GUI_NewButton(WinName,"Get Target Name","TP.GetTargetName"," ")
 			RegisterEventHandler("TP.GetTargetName", TP.Save)
@@ -445,9 +445,9 @@ function TP.Save(dir)
 			RegisterEventHandler("TP.saveTarget", TP.Save)
 		end
 		GUI_UnFoldGroup(WinName," ")
-		GUI_SizeWindow(WinName,Settings.Dev.WinInfW,130)
+		GUI_SizeWindow(WinName,Settings.Dev.WinInfMW,130)
 		GUI_WindowVisible(WinName,true)	
-	elseif (string.sub(dir,1,13) == "TP.save") then
+	elseif (string.sub(dir,1,7) == "TP.save") then
 		if (dir == "TP.saveTarget") then
 			if (PG  ~= nil) then	
 				PsX = PG.pos.x
@@ -475,9 +475,9 @@ function TP.Save(dir)
 			else
 				if (TP.cInfocheck == 0) then 
 					TP.cInfocheck = 1
-					GUI_NewWindow("Info",Settings.Dev.WinInfX,Settings.Dev.WinInfY,Settings.Dev.WinInfW,55)
+					GUI_NewWindow("Info",Settings.Dev.WinInfMX,Settings.Dev.WinInfMY,Settings.Dev.WinInfMW,55)
 					GUI_NewButton("Info","NO TARGET SET!"," ")
-					GUI_SizeWindow("Info",Settings.Dev.WinInfW,55)
+					GUI_SizeWindow("Info",Settings.Dev.WinInfMW,55)
 				else
 					GUI_WindowVisible("Info",true)
 				end
@@ -589,6 +589,7 @@ function TP.UpdateWaypoints()
 	end
 	local p = Player.pos
 	tb_aPos = string.format("%f",p.x).." | "..string.format("%f",p.z).." | "..string.format("%f",p.y).." | "..string.format("%f",p.h)
+	GUI_SizeWindow(TP.WinName,Settings.Dev.WinInfMW,Settings.Dev.WinInfMH)
 end
 --**************************************************************************************************************************************
 function TP.DelGroups(WNAME)
@@ -624,11 +625,6 @@ function TP.Refreshing()
 end
 --**************************************************************************************************************************************
 function TP.WindowsHandler()
-local W = GUI_GetWindowInfo(TP.WinName)
-	if (Settings.Dev.WinInfY ~= W.y) then Settings.Dev.WinInfY = W.y end
-	if (Settings.Dev.WinInfX ~= W.x) then Settings.Dev.WinInfX = W.x end
-	if (Settings.Dev.WinInfW ~= W.width) then Settings.Dev.WinInfW = W.width end
-	if (Settings.Dev.WinInfH ~= W.height) then Settings.Dev.WinInfH = W.height end
 local WM = GUI_GetWindowInfo(TP.WinName)
 	if (Settings.Dev.WinInfMY ~= WM.y) then Settings.Dev.WinInfMY = WM.y end
 	if (Settings.Dev.WinInfMX ~= WM.x) then Settings.Dev.WinInfMX = WM.x end
@@ -706,7 +702,6 @@ function TP.TargetPort()
 end
 --**************************************************************************************************************************************
 function TP.CorMove(dir)
-	d("test")
 	local p = Player.pos
 	local SavedX,SavedY,SavedZ,SavedH
 	SavedX = p.x
@@ -767,8 +762,52 @@ function TP.KeySelect(sKEY)
 end	
 
 
+function TP.ClearCurrentDutyList()
+  TP.currentDutyListCount = 0
+  TP.currentDutyList = {
+    ["MapID"] = Player.localmapid;
+    ["Encounters"] = { };
+    ["EncounterIndex"] = 1;
+  }
+end
+
+function TP.SaveCurrentDutyList()
+  TP.currentDutyList.MapID = Player.localmapid
+  persistence.store(TP.coordspath..TP.AutoListMapId.."_dummy"..".info",TP.currentDutyList)
+end
+
+function TP.AddCurrentPositionToDutyList()
+  local newEntry = {}
+  newEntry.doWait = true;
+  newEntry.doKill = true;
+	newEntry.taskFunction = "ffxiv_duty_kill_task.Create";
+	newEntry.waitTime = 3000;
+  newEntry.radius = 25;
+  newEntry["startPos"] = {
+				["General"] = {
+					["x"] = Player.pos.x;
+					["y"] = Player.pos.y;
+					["z"] = Player.pos.z;
+					["h"] = Player.pos.h;
+          };
+	};
+  TP.currentDutyListCount = TP.currentDutyListCount + 1
+  
+  local el = EntityList("alive,attackable,maxdistance="..tostring(newEntry.radius))
+  local i,e = next(el)
+  local cidset = { }
+  while (i~=nil and e ~= nil) do
+        cidset[e.contentid] = true
+        i,e = next(el,i) 
+  end
+  
+  newEntry.bossIDs = ""
+  for k in pairs(cidset) do newEntry.bossIDs = newEntry.bossIDs .. tostring(k) .. ";" end
+  TP.currentDutyList.Encounters[TP.currentDutyListCount] = newEntry
+
+end
 
 RegisterEventHandler("Module.Initalize",TP.Build)
 RegisterEventHandler("Gameloop.Update", TP.OnUpdateHandler)
 RegisterEventHandler("GUI.Item",TP.GUIItem)
-
+TP.ClearCurrentDutyList()

@@ -34,7 +34,7 @@ function ml_task_hub:Update()
 			prevQueue = ml_task_hub.queues[prevQueueId]
 		end
 		local currQueueId = 0
-		local didUpate = false
+		local didUpdate = false
 		for index, queue in pairs(ml_task_hub.queues)  do
 			ml_task_hub:HandlePending( queue, prevQueue )
 			if ( queue:HasOrders() ) then
@@ -68,6 +68,15 @@ function ml_task_hub:CurrentTask()
 		
 		return currTask
 	end
+end
+
+function ml_task_hub:RootTask()
+    if (ml_task_hub.prevQueueId ~= nil) then
+		local task = ml_task_hub.queues[ml_task_hub.prevQueueId].rootTask
+		return task
+	end
+	
+	return nil
 end
 
 -- ThisTask() returns the task which is currently in its Update() function

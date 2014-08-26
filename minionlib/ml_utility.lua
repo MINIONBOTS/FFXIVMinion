@@ -26,6 +26,50 @@ function randomize(val)
 	return 0
 end
 
+function TimeSince(previousTime)
+	previousTime = previousTime or 0
+    return ml_global_information.Now - previousTime
+end
+
+function IsNullString( test ) 
+	return (test == "" or not test)
+end
+
+function Now()
+	return ml_global_information.Now
+end
+
+function MultiComp(search, criteria)
+	--Use, multiple OR's in one line, returns true or false
+	--search can be either a number or string
+	--criteria should be (,)-separated for OR's, (+)-separated for AND's
+	
+	--ctype should be 1 for strings, 2 for numbers.
+	local ctype = 1
+	if tonumber(search) ~= nil then
+		ctype = 2
+	end
+	
+	for _orids in StringSplit(criteria,",") do
+		local found = false
+		for _andid in StringSplit(_orids,"+") do
+			found = false
+			if ctype == 1 then
+				if search == _andid then found = true end
+			elseif ctype == 2 then
+				if search == tonumber(_andid) then found = true end
+			end
+			if (not found) then 
+				break
+			end
+		end
+		if (found) then 
+			return true 
+		end
+	end
+	return false
+end
+
 function PathDistance(posTable)
 	if ( TableSize(posTable) > 0) then
 		local distance = 0
@@ -70,7 +114,6 @@ function LinesFrom(file)
   return cleanedLines 
 end
 
-
 function StringSplit(s,sep)
 	local lasti, done, g = 1, false, s:gmatch('(.-)'..sep..'()')
 	return function()
@@ -81,6 +124,81 @@ function StringSplit(s,sep)
 		lasti = i
 		return v
 	end
+end
+
+function StringToTable(str, delimiter)
+    local t = {}
+    local search = "(.-)" .. delimiter
+	local last_char = 1
+	local i = 1
+	str = string.gsub(str,"\r","")
+	
+	local index, char, data = str:find(search,1)
+	while index do
+		if data ~= "" then
+			t[i] = data
+		end
+		last_char = char+1
+		index, char, data = str:find(search, last_char)
+		i = i + 1
+	end
+	
+	if last_char <= #str then
+		data = str:sub(last_char)
+		t[i] = data
+	end
+	
+	return t
+end
+
+function ExecuteFunction(args)
+	if args == nil then
+		return
+	end
+	
+	if (type(args) == "function") then
+		args()
+	elseif (type(args) == "string") then
+	
+		local t = StringToTable(args,";")
+		local start = 1
+		local finish = TableSize(t)
+		
+		for x = start,finish do
+			local f = _G
+			for v in t[x]:gmatch("[^%.]+") do
+				f=f[v]
+			end
+			f()
+		end
+	
+	elseif (type(args) == "table") then
+		local numArgs = TableSize(args) - 1
+		local f = _G
+		for v in args[1]:gmatch("[^%.]+") do
+			f=f[v]
+		end
+		
+		if (numArgs == 1) then
+			f(args[2])
+		elseif (numArgs == 2) then
+			f(args[2],args[3])
+		elseif (numArgs == 3) then
+			f(args[2],args[3],args[4])
+		end
+	end
+end
+
+function StringContains(sString, item)
+
+    if (sString == nil) then return false end
+            
+    for _orids in StringSplit(sString,",") do
+        if (item == tonumber(_orids)) then 
+            return true
+        end        
+    end
+    return false
 end
 
 function ApproxEqual(num1, num2)
@@ -98,6 +216,10 @@ end
 
 function ValidTable(table)
     return table ~= nil and TableSize(table) > 0
+end
+
+function ValidString(string)
+	return type(string) == "string" and #string > 0
 end
 
 function TrimString(new_string, count)
@@ -136,6 +258,153 @@ end
 
 function round(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+end
+
+function findfunction(x)
+  assert(type(x) == "string")
+  local f=_G
+  for v in x:gmatch("[^%.]+") do
+    if type(f) ~= "table" then
+       return nil, "looking for '"..v.."' expected table, not "..type(f)
+    end
+    f=f[v]
+  end
+  if type(f) == "function" then
+    return f
+  else
+    return nil, "expected function, not "..type(f)
+  end
+end
+
+function table_merge(t1, t2)
+    for k,v in pairs(t2) do t1[k] = v end
+end
+
+function pairsByKeys (t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+	i = i + 1
+	if a[i] == nil then return nil
+	else return a[i], t[a[i]]
+	end
+  end
+  return iter
+end
+
+function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+		--table.sort(keys, function(a,b) return t[a].name < t[b].name end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
+end
+
+function GetRandomTableEntry(t)
+    if (ValidTable(t)) then
+        local i = math.random(1,TableSize(t))
+        local counter = 1
+        for key, value in pairs(t) do
+            if (counter == i) then
+                return value
+            else
+                counter = counter + 1
+            end
+        end
+    end
+    
+    ml_debug("Error in GetRandomTableEntry()")
+end
+
+function TableInsertSort(tblSort, iInsertPoint, vInsertValue)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iInsertPoint) == "number", "Second parameter must be an integer insertion point.")
+	assert(vInsertValue ~= nil, "Third parameter must be a non-null variant to be inserted.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblSort
+	local p = iInsertPoint
+	local size = TableSize(t)
+	
+	if (size < p) then
+		t[p] = vInsertValue
+		orderedTable = t
+	else
+		--d("Size was not less than p.")
+		for k,v in spairs(t) do
+			if (tonumber(k) >= p) then
+				tempTable[tonumber(k)+1] = v
+			end
+		end
+			
+		local x = (TableSize(t) + 1)
+		for i=1,x do
+			if i < p then
+				orderedTable[i] = t[i]
+			elseif i == p then
+				orderedTable[i] = vInsertValue
+			elseif i > p then
+				orderedTable[i] = tempTable[i]
+			end
+		end
+	end
+	return orderedTable
+end
+
+function TableRemoveSort(tblSort, iRemovePoint)
+	assert(type(tblSort) == "table", "First parameter must be the table to sort.")
+	assert(type(iRemovePoint) == "number", "Second parameter must be an integer insertion point.")
+	
+	local orderedTable = {}
+	local tempTable = {}
+	local t = tblSort
+	local p = iRemovePoint
+	local size = TableSize(t)
+	
+	assert(not(p > size or p < 1), "Removal point is out of range.")
+	
+	if (size == p) then
+		--d("Entry was highest on list, remove it and return.")
+		t[p] = nil
+		orderedTable = t
+	else
+		--d("Entry was not highest on list.")
+		for k,v in spairs(t) do
+			if tonumber(k) > p then
+				tempTable[tonumber(k)-1] = v
+			end
+		end
+		
+		local x = (TableSize(t) - 1)
+		
+		for i=1,x do
+			if i < p then
+				orderedTable[i] = t[i]
+			elseif i >= p then
+				orderedTable[i] = tempTable[i]
+			end
+		end
+	end
+	return orderedTable
 end
 
 --psuedo enum values for task classes

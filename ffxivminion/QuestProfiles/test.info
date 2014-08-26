@@ -1,0 +1,42 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[594] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 182;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["type"] = "start";
+					["id"] = 1003987;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = 4;
+						["x"] = 34.375526428223;
+						["z"] = -151.44004821777;
+					};
+				};
+				[2] = {
+					["mapid"] = 182;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["type"] = "complete";
+					["id"] = 1003988;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = 6.9999961853027;
+						["x"] = 21.373117446899;
+						["z"] = -80.652297973633;
+					};
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = false;
+			["job"] = 1;
+		};
+
+	};
+}
+return obj1

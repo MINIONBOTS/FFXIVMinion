@@ -21,8 +21,29 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
-	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 10 )
+	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
+	
+	local ke_acceptQuest = ml_element:create( "AcceptQuest", c_acceptquest, e_acceptquest, 23 )
+    self:add(ke_acceptQuest, self.process_elements)
+	
+	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 23 )
+    self:add(ke_handoverQuest, self.process_elements)
+	
+	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
+    self:add(ke_completeQuest, self.process_elements)
+	
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
+    self:add(ke_yesnoQuest, self.process_elements)
+	
+	--local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
+	--self:add(ke_avoid, self.process_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 18 )
+    self:add( ke_companion, self.process_elements)
+	
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
+    self:add( ke_stance, self.process_elements)
   
     self:AddTaskCheckCEs()
 end
@@ -92,29 +113,22 @@ function ffxiv_task_assist:Process()
         end
     end	
 
-    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance2d <= 30 ) then
+    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 30 ) then
         local pos = target.pos
         
         --Player:SetFacing(pos.x,pos.y,pos.z)
-        Player:SetTarget(ml_task_hub:CurrentTask().targetid)
-        local cast = false
-        
-        if (Player.hp.percent < 75 )then
-            cast = SkillMgr.Cast( Player )
-        end
-        if not cast then			
-            SkillMgr.Cast( target )
-        end	
+        Player:SetTarget(ml_task_hub:CurrentTask().targetid)      			
+        SkillMgr.Cast( target )
+		
     end
 	
-	    -- last run the regular cne elements
+	if ( target == nil and not ActionList:IsCasting()) then
+		SkillMgr.Cast( Player, true)
+	end
 
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
-		if (self:superClass() and TableSize(self:superClass().process_elements) > 0) then
-			ml_cne_hub.eval_elements(self:superClass().process_elements)
-		end
 		ml_cne_hub.queue_to_execute()
 		ml_cne_hub.execute()
 		return false
@@ -123,14 +137,78 @@ function ffxiv_task_assist:Process()
 	end
 end
 
-function ffxiv_task_assist:OnSleep()
+function ffxiv_task_assist.UIInit()
+	--Add it to the main tracking table, so that we can save positions for it.
+	ffxivminion.Windows.Assist = { id = strings["us"].assistMode, Name = GetString("assistMode"), x=50, y=50, width=210, height=300 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.Assist)
 
+	if ( Settings.FFXIVMINION.gAssistMode == nil ) then
+        Settings.FFXIVMINION.gAssistMode = "None"
+    end
+    if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
+        Settings.FFXIVMINION.gAssistPriority = "Damage"
+    end
+	if (Settings.FFXIVMINION.gStartCombat == nil) then
+        Settings.FFXIVMINION.gStartCombat = "1"
+    end
+	if (Settings.FFXIVMINION.gConfirmDuty == nil) then
+        Settings.FFXIVMINION.gConfirmDuty = "0"
+    end
+	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
+		Settings.FFXIVMINION.gQuestHelpers = "0"
+	end
+	if (Settings.FFXIVMINION.gPrimaryFilter == nil) then
+        Settings.FFXIVMINION.gPrimaryFilter = "0"
+    end
+	if (Settings.FFXIVMINION.gSecondaryFilter == nil) then
+		Settings.FFXIVMINION.gSecondaryFilter = "0"
+	end
+	
+	local winName = GetString("assistMode")
+	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	
+	local group = GetString("status")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewCheckbox(winName,"Filter 1","gPrimaryFilter",group)
+	GUI_NewCheckbox(winName,"Filter 2","gSecondaryFilter",group)
+    
+	local group = GetString("settings")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
+    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistPriority,"gAssistPriority",group,"Damage,Healer")
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].startCombat,"gStartCombat",group)
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",group) 
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",group)
+	
+	GUI_UnFoldGroup(winName,GetString("status"))
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gAssistMode = Settings.FFXIVMINION.gAssistMode
+    gAssistPriority = Settings.FFXIVMINION.gAssistPriority
+	gStartCombat = Settings.FFXIVMINION.gStartCombat
+	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
+	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
+	gPrimaryFilter = Settings.FFXIVMINION.gPrimaryFilter
+	gSecondaryFilter = Settings.FFXIVMINION.gSecondaryFilter
+	
+	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
 
-function ffxiv_task_assist:OnTerminate()
-
-end
-
-function ffxiv_task_assist:IsGoodToAbort()
-
+function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
+    for k,v in pairs(NewVals) do
+        if 	( 	k == "gAssistMode" or
+				k == "gAssistPriority" or
+				k == "gStartCombat" or
+				k == "gConfirmDuty" or
+				k == "gQuestHelpers" or
+				k == "gPrimaryFilter" or
+				k == "gSecondaryFilter" ) then
+            Settings.FFXIVMINION[tostring(k)] = v
+        end
+    end
+    GUI_RefreshWindow(GetString("assistMode"))
 end
