@@ -1197,9 +1197,10 @@ function c_dead:evaluate()
     if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
 		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			if (c_dead.timer == 0) then
-				c_dead.timer = Now() + 120000
+				c_dead.timer = Now() + 30000
 			end
 			if (Now() > c_dead.timer or HasBuffs(Player, "148")) then
+				ffxiv_task_grind.inFate = false
 				return true
 			end
 		else
@@ -1360,8 +1361,8 @@ function c_stealth:evaluate()
     
     if (action and not action.isoncd) then
 		if (gBotMode == GetString("gatherMode")) then
-			if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
-				local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+			if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
+				local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
 				if (gatherable and (gatherable.distance < 15)) then
 					if (not HasBuff(Player.id, 47)) then
 						return true
@@ -1371,7 +1372,7 @@ function c_stealth:evaluate()
 				end
 			end
 		elseif (gBotMode == GetString("fishMode")) then
-			local destPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+			local destPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
 			if (distance <= 5) then
@@ -1383,8 +1384,8 @@ function c_stealth:evaluate()
 			end
 		end
 			
-		local addMobList = EntityList("attackable,aggressive,maxdistance=30")
-		local removeMobList = EntityList("attackable,aggressive,maxdistance=40")
+		local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
+		local removeMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=40")
 		
 		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
 		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 

@@ -22,13 +22,6 @@ ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
-ml_global_information.chocoStance = {
-	[strings[gCurrentLanguage].stFollow] = 3,
-	[strings[gCurrentLanguage].stFree] = 4,
-	[strings[gCurrentLanguage].stDefender] = 5,
-	[strings[gCurrentLanguage].stAttacker] = 6,
-	[strings[gCurrentLanguage].stHealer] = 7,
-}
 
 
 FFXIVMINION = {}
@@ -168,6 +161,14 @@ function ffxivminion.HandleInit()
 	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
 	ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
 	ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
+	
+	ml_global_information.chocoStance = {
+		[strings[gCurrentLanguage].stFollow] = 3,
+		[strings[gCurrentLanguage].stFree] = 4,
+		[strings[gCurrentLanguage].stDefender] = 5,
+		[strings[gCurrentLanguage].stAttacker] = 6,
+		[strings[gCurrentLanguage].stHealer] = 7,
+	}
 	
 	ffxivminion.modes =	{
 		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
