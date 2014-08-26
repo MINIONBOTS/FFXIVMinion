@@ -22,7 +22,6 @@ SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
 SkillMgr.bestAOE = 0
 
-
 SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
 	[FFXIV.JOBS.PALADIN] = 9,
@@ -43,6 +42,29 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.SCHOLAR] = 163,
 	[FFXIV.JOBS.BOTANIST] = 218,
 	[FFXIV.JOBS.MINER] = 235,
+}
+
+SkillMgr.StartingProfiles = 
+{
+	[FFXIV.JOBS.GLADIATOR] = "Gladiator",
+	[FFXIV.JOBS.PALADIN] = "Paladin",
+    [FFXIV.JOBS.MARAUDER] = "Marauder",
+	[FFXIV.JOBS.WARRIOR] = "Warrior",
+	[FFXIV.JOBS.PUGILIST] = "Pugilist",
+	[FFXIV.JOBS.MONK] = "Monk",
+	[FFXIV.JOBS.LANCER] = "Lancer",
+	[FFXIV.JOBS.DRAGOON] = "Dragoon",
+	[FFXIV.JOBS.ARCHER] = "Archer",
+	[FFXIV.JOBS.BARD] = "Bard",
+	[FFXIV.JOBS.CONJURER] = "Conjurer",
+	[FFXIV.JOBS.WHITEMAGE] = "White Mage",
+	[FFXIV.JOBS.THAUMATURGE] = "Thaumaturge",
+	[FFXIV.JOBS.BLACKMAGE] = "Black Mage",
+	[FFXIV.JOBS.ARCANIST] = "Arcanist",
+	[FFXIV.JOBS.SUMMONER] = "Summoner",
+	[FFXIV.JOBS.SCHOLAR] = "Scholar",
+	[FFXIV.JOBS.BOTANIST] = "Botanist",
+	[FFXIV.JOBS.MINER] = "Miner"
 }
 
 SkillMgr.Variables = {
@@ -172,6 +194,78 @@ function SkillMgr.ModuleInit()
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles = {}
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Pugilist"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Marauder"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] = "Lancer"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Archer"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Conjurer"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Thaumaturge"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] = "Monk"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White Mage"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black Mage"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Arcanist"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
 	end
 	
     -- Skillbook
@@ -501,6 +595,12 @@ end
 function SkillMgr.SetDefaultProfile()
     local default = Settings.FFXIVMINION.SMDefaultProfiles[Player.job]
     if (default) then
+		local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
+		if(not ValidTable(profile)) then
+			local starterDefault = SkillMgr.StartingProfiles[Player.job]
+			d("Default profile "..tostring(default).." not found. Switching to starter profile "..tostring(starterDefault))
+			default = starterDefault
+		end
         gSMprofile = default
 		gSMDefaultProfile = "1"
         GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -735,6 +835,7 @@ function SkillMgr.UpdateCurrentProfileData()
 			end
         else
             d("Profile is empty..")
+			SkillMgr.SetDefaultProfile()
         end		
     else
         d("No new SkillProfile selected!")		

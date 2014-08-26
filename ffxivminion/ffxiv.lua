@@ -458,7 +458,6 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
 	
-	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
 		ml_task_hub.ToggleRun()		
