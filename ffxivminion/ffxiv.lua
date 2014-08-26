@@ -660,9 +660,6 @@ function ffxivminion.SetMode(mode)
 end
 
 function ffxivminion.CheckClass()
-	if (gBotRunning == "1") then
-		return
-	end
 	
     local classes = 
     {
@@ -713,20 +710,23 @@ function ffxivminion.CheckClass()
             ml_global_information.AttackRange = ml_global_information.CurrentClass.range
 			
 			-- autosetting the correct botmode
-			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist ) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].gatherMode)
-			elseif ( ml_global_information.CurrentClass == ffxiv_gather_miner ) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].gatherMode)
+			local newModeName = ""
+			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
+				newModeName = strings[gCurrentLanguage].gatherMode
 			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].fishMode)
+				newModeName = strings[gCurrentLanguage].fishMode
 			elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
 					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
 					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
 					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].craftMode)
+				newModeName = strings[gCurrentLanguage].craftMode
 			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
 			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode or gBotMode == strings[gCurrentLanguage].craftMode) then
-				ffxivminion.SetMode(strings[gCurrentLanguage].grindMode)				
+				newModeName = strings[gCurrentLanguage].grindMode				
+			end
+			
+			if (gBotMode ~= newModeName and newModeName ~= "") then
+				ffxivminion.SetMode(newModeName)
 			end
             
             SkillMgr.SetDefaultProfile()
