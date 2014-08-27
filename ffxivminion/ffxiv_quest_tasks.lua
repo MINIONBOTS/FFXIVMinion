@@ -1,14 +1,38 @@
---the most complex part of the questing engine to understand is that it is using two different types of task/step
---verification. if a quest step represents an objective from the quest client data then the engine will attempt
---to use client data for safer verification that the quest steps are being completed properly. otherwise if the
---["nonquestobjective"] param is true for the step then the quest engine will use a backup explicit step increment
---where the completion variable is simply set to true by the step task without verifying that the quest objective
---index has changed in the client. this is the only way to allow non quest objective steps to be included in the
---profiles while still making the best attempt to verify that quests are being completed properly. 
 --the main quest task (ffxiv_quest_task) will always have two separate indexes running simultaneously,
 --currentStepIndex and currentObjectiveIndex, and these will never match since the start step is not considered
 --an objective by the client.
 
+--the tricky part to understand for quest step tasks is how they are completed. some tasks which we have
+--good client data for have their own task_complete_eval() checks where they verify this data before
+--completing. other tasks have to use an explicit "stepcompleted" flag check, which is set by the cne
+--in the task that is the final cne for the step behavior. it should be obvious that this is not a very
+--safe or clean way to verify that a quest objective has actually be completed - as we get more data in
+--the quest objective flags we will try to get rid of this strategy. 
+
+--default step complete eval/execute functions
+--must be called from a quest step task where the parent task is a ffxiv_quest_task object
+--these cnes will be used for all quest step tasks which do not overwrite the default eval or execute
+--function with custom checks
+function quest_step_complete_eval()
+	--if(ml_task_hub:CurrentTask().params["nonquestobjective"]) then
+		return ml_task_hub:CurrentTask().stepCompleted
+	--else
+	--	local objectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
+	--	return ml_task_hub:CurrentTask():ParentTask().currentObjectiveIndex ~= objectiveIndex
+	--end
+end
+
+function quest_step_complete_execute()
+	if (ml_global_information.disableFlee) then
+		ml_global_information.disableFlee = false
+	end
+
+	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
+	ml_task_hub:CurrentTask().completed = true
+	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
+		ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"])
+	end
+end
 
 ffxiv_quest_task = inheritsFrom(ml_task)
 ffxiv_quest_task.name = "LT_QUEST"
@@ -219,7 +243,13 @@ function ffxiv_quest_interact.Create()
     return newinst
 end
 
-
+--interact step will "complete" based on the following cne priority
+--(1) QuestHandover
+--(2) QuestSelectConvIndex
+--(3) QuestInteract
+--what this means is that if ["itemturnin"] exists in the param then the task will
+--not set the "complete" flag for the step until this cne is executed. same
+--idea for ["conversationindex"] but at a lower priority
 function ffxiv_quest_interact:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -587,20 +617,22 @@ end
 
 function ffxiv_quest_vendor:task_complete_eval()
 	local itemtable = self.params["itemid"]
-	local itemid = itemtable[Player.job] or itemtable[-1]
-	local amount = tonumber(self.params["buyamount"])
-	local item = Inventory:Get(itemid)
-	if(ValidTable(item)) then
-		local buycomplete = false
-		if(amount) then
-			buycomplete = item.count == self.startingCount + amount
-		else
-			buycomplete = item.count > self.startingCount
-		end
-		
-		if(buycomplete) then
-			Inventory:CloseShopWindow()
-			return true
+	if(ValidTable(itemtable)) then
+		local itemid = itemtable[Player.job] or itemtable[-1]
+		local amount = tonumber(self.params["buyamount"])
+		local item = Inventory:Get(itemid)
+		if(ValidTable(item)) then
+			local buycomplete = false
+			if(amount) then
+				buycomplete = item.count == self.startingCount + amount
+			else
+				buycomplete = item.count > self.startingCount
+			end
+			
+			if(buycomplete) then
+				Inventory:CloseShopWindow()
+				return true
+			end
 		end
 	end
 	

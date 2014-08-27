@@ -1,24 +1,9 @@
---must be called from a quest step task where the parent task is a ffxiv_quest_task object
-function quest_step_complete_eval()
-	--if(ml_task_hub:CurrentTask().params["nonquestobjective"]) then
-		return ml_task_hub:CurrentTask().stepCompleted
-	--else
-	--	local objectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-	--	return ml_task_hub:CurrentTask():ParentTask().currentObjectiveIndex ~= objectiveIndex
-	--end
-end
-
-function quest_step_complete_execute()
-	if (ml_global_information.disableFlee) then
-		ml_global_information.disableFlee = false
-	end
-
-	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
-	ml_task_hub:CurrentTask().completed = true
-	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
-		ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"])
-	end
-end
+--IMPORTANT
+--see e_questinteract:execute for specifics of how to use the interact cne
+--for new tasks. you must add an exclusion for any tasks with a higher priority
+--"completion cne" that use the standard quest_step_eval:evaluate() function.
+--otherwise the task will complete as soon as the interact completes without 
+--waiting for the higher priority cne to run
 
 c_questcanstart = inheritsFrom( ml_cause )
 e_questcanstart = inheritsFrom( ml_effect )
@@ -100,11 +85,14 @@ function e_nextqueststep:execute()
 				gQuestKillCount = task.killCount
 			end
 		elseif(task.params["type"] == "vendor") then
-			local itemid = tonumber(task.params["itemid"])
-			if(itemid) then
-				local item = Inventory:Get(itemid)
-				if(ValidTable(item)) then
-					task.startingCount = item.count
+			local itemtable = tonumber(task.params["itemid"])
+			if(ValidTable(itemtable)) then
+				local itemid = itemtable[Player.job] or itemtable[-1]
+				if(itemid) then
+					local item = Inventory:Get(itemid)
+					if(ValidTable(item)) then
+						task.startingCount = item.count
+					end
 				end
 			end
 		end
@@ -214,7 +202,7 @@ function e_questcomplete:execute()
 		else
 			rewardslot = tonumber(reward)
 		end
-		
+		d("Selecting reward from slot "..tostring(rewardslot))
 		Quest:CompleteQuestReward(rewardslot)
 	else
 		Quest:CompleteQuestReward()
@@ -249,8 +237,11 @@ function e_questinteract:execute()
 	local entity = e_questinteract.entity
 	if (entity) then
 		Player:Interact(entity.id)
+		--vendor uses interact too but has a custom task_complete_eval() check
+		--so we can ignore it
 		if(	ml_task_hub:ThisTask().params["type"] == "interact"  and not
-			ml_task_hub:ThisTask().params["itemturnin"] )
+			ml_task_hub:ThisTask().params["itemturnin"] and not
+			ml_task_hub:ThisTask().params["conversationindex"])
 			then
 			ml_task_hub:ThisTask().stepCompleted = true
 		end
@@ -867,6 +858,9 @@ function c_questselectconvindex:evaluate()
 end
 function e_questselectconvindex:execute()
 	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().params["conversationindex"]))
+	if (ml_task_hub:CurrentTask().params["type"] == "interact") then
+		ml_task_hub:CurrentTask().stepCompleted = true
+	end
 	--delay to allow conversation to update
 	ml_task_hub:CurrentTask():SetDelay(1500)
 end

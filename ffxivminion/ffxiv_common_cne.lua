@@ -1540,7 +1540,8 @@ function c_autoequip:evaluate()
 
 				if(	currItem == nil or item.level > currItem.level and item.class == currItem.class) and
 				  ( bestItem == nil or item.level > bestItem.level ) and
-				  (	Player.level >= item.requiredlevel )
+				  (	Player.level >= item.requiredlevel ) and
+				  ( item.canequip )
 				then
 					bestItem = item
 				end
