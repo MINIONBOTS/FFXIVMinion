@@ -67,6 +67,19 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.MINER] = "Miner"
 }
 
+SkillMgr.ActionTypes = 
+{
+	ACTIONS = 1,
+	ITEM = 2,
+	GENERAL = 5,
+	COMPANION = 6,
+	MINIONS = 8,
+	CRAFT = 9,
+	MAINCOMMANDS = 10,
+	PET = 11,
+	MOUNT = 13,
+}
+
 SkillMgr.Variables = {
 	SKM_NAME = { default = "", cast = "string", profile = "name", section = "main"},
 	SKM_ID = { default = 0, cast = "number", profile = "id", section = "main"},
@@ -791,14 +804,13 @@ function SkillMgr.UpdateCurrentProfileData()
 							
 							-- try to update the names 
 							local realskilldata = nil
-							if (newskill.stype == "Pet") then 
-								realskilldata = ActionList:Get(newskill.id,11) 
-							else 
-								realskilldata = ActionList:Get(newskill.id) 
-							end
-							if ( TableSize(realskilldata) > 0 and realskilldata.name ~= "") then
-								newskill.name = realskilldata.name
-							end							
+							for i, actiontype in pairsByKeys(SkillMgr.ActionTypes) do
+								realskilldata = ActionList:Get(newskill.id,actiontype) 
+								if ( realskilldata and realskilldata.name and realskilldata.name ~= "") then
+									newskill.name = realskilldata.name
+									break
+								end
+							end				
 							
 							sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
                             newskill = {}
