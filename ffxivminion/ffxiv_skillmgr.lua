@@ -803,14 +803,20 @@ function SkillMgr.UpdateCurrentProfileData()
 							end
 							
 							-- try to update the names 
-							local realskilldata = nil
+							local found = false
 							for i, actiontype in pairsByKeys(SkillMgr.ActionTypes) do
-								realskilldata = ActionList:Get(newskill.id,actiontype) 
-								if ( realskilldata and realskilldata.name and realskilldata.name ~= "") then
-									newskill.name = realskilldata.name
+								local actionlist = ActionList("type="..tostring(actiontype))
+								for k, action in pairs(actionlist) do
+									if (action.id == newskill.id and action.name and action.name ~= "") then
+										newskill.name = action.name
+										found = true
+										break
+									end
+								end
+								if (found) then
 									break
 								end
-							end				
+							end
 							
 							sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
                             newskill = {}

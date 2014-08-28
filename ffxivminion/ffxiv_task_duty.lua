@@ -114,7 +114,7 @@ c_assistleaderduty= inheritsFrom( ml_cause )
 e_assistleaderduty = inheritsFrom( ml_effect )
 c_assistleaderduty.targetid = nil
 function c_assistleaderduty:evaluate()
-    if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or Player.localmapid ~= ffxiv_task_duty.mapID) then
+    if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or Player.localmapid ~= ffxiv_task_duty.mapID or ActionList:IsCasting()) then
         return false
     end
     
