@@ -22,6 +22,7 @@ ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
+ml_global_information.itemIDsToEquip = {}
 
 
 FFXIVMINION = {}

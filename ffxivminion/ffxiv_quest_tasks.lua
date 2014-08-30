@@ -87,8 +87,8 @@ function ffxiv_quest_task:Init()
 	
 	--its tempting to make autoequip an overwatch cne but there are too many states 
 	--when the client does not allow gear changes
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 25 )
-    self:add( ke_autoEquip, self.process_elements)
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
 	
 	local ke_changeNavMesh = ml_element:create( "ChangeNavMesh", c_changenavmesh, e_changenavmesh, 100 )
     self:add( ke_changeNavMesh, self.overwatch_elements)
@@ -662,6 +662,45 @@ function ffxiv_quest_vendor:Init()
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+ffxiv_quest_equip = inheritsFrom(ml_task)
+ffxiv_quest_equip.name = "QUEST_EQUIP"
+
+function ffxiv_quest_equip.Create()
+    local newinst = inheritsFrom(ffxiv_quest_equip)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_EQUIP"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_equip:Init()
+    --equip is the cne that actually equips items in the equip queue (ml_global_information.itemIDsToEquip)
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
+	
+	--questEquip checks the step params and adds any non-equipped itemids to the queue
+    local ke_questEquip = ml_element:create( "QuestEquip", c_questequip, e_questequip, 20 )
+    self:add( ke_questEquip, self.process_elements)
+	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	--the questequip cne checks to see if we have equipped all requested items so its also a valid completion eval
+	self.task_complete_eval = function() return not c_questequip:evaluate() end
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

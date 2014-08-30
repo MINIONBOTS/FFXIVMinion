@@ -1569,3 +1569,55 @@ function e_autoequip:execute()
 		e_autoequip.equipIDs = nil
 	end
 end
+
+c_equip = inheritsFrom( ml_cause )
+c_equip.throttle = 5000
+e_equip = inheritsFrom( ml_effect )
+function c_equip:evaluate()
+	if(ActionList:IsCasting()) then
+		return false
+	end
+
+	if(ValidTable(e_equip.itemids)) then
+		return true
+	end
+
+	local itemids = {}
+	if(TableSize(ml_global_information.itemIDsToEquip) > 0) then
+		for id,_ in pairs(ml_global_information.itemIDsToEquip) do
+			local item = Inventory:Get(id)
+			if(ValidTable(item) and item.canequip) then
+				--transfer the id to the temp list for equipping and remove from the global list
+				itemids[id] = true
+				ml_global_information.itemIDsToEquip[id] = nil
+			end
+		end
+	end
+	
+	if(TableSize(itemids) > 0) then
+		e_equip.itemids = itemids
+		return true
+	end
+	
+	return false
+end
+function e_equip:execute()
+	d("test1")
+	local id, _ = next(e_equip.itemids)
+	if(id) then
+		d("test2")
+		local newItem = Inventory:Get(id)
+		if(ValidTable(newItem)) then
+			d("test4")
+			--grab the current item in that slot
+			local currItem = GetItemInSlot(newItem.slot)
+			
+			if(currItem and currItem.level <= newItem.level) then
+				EquipItem(id)
+				e_equip.itemids[id] = nil
+				--set a small delay to avoid spamming equip
+				ml_task_hub:ThisTask():SetDelay(1000)
+			end
+		end
+	end
+end

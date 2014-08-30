@@ -184,6 +184,16 @@ function c_questaccept:evaluate()
 end
 function e_questaccept:execute()
 	Quest:AcceptQuest()
+	--backup check here to clear Kill Count if its already set from previous bad run
+	if(ml_task_hub:CurrentTask().params["type"] and ml_task_hub:CurrentTask().params["type"] == "kill")then
+		ffxiv_task_quest.killCount = 0
+		ffxiv_task_quest.backupKillCount = 0
+		ffxiv_task_quest.killTaskCompleted = false
+		
+		Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
+		gQuestKillCount = ffxiv_task_quest.killCount
+	end
+	
 	ml_task_hub:CurrentTask():ParentTask().startTimer = ml_global_information.Now
 	ml_task_hub:CurrentTask().stepCompleted = true
 end
@@ -195,6 +205,11 @@ function c_questcomplete:evaluate()
 end
 function e_questcomplete:execute()
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			d("test questcomplete1")
+			ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
+		end
+		
 		local reward = ml_task_hub:CurrentTask().params["itemrewardslot"]
 		local rewardslot
 		if(type(reward) == "table") then
@@ -202,8 +217,13 @@ function e_questcomplete:execute()
 		else
 			rewardslot = tonumber(reward)
 		end
-		d("Selecting reward from slot "..tostring(rewardslot))
+		--d("Selecting reward from slot "..tostring(rewardslot))
 		Quest:CompleteQuestReward(rewardslot)
+		
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			--delay the task a bit so that the inventory will update
+			ml_task_hub:CurrentTask():SetDelay(1500)
+		end
 	else
 		Quest:CompleteQuestReward()
 	end
@@ -415,7 +435,7 @@ end
 c_indialog = inheritsFrom( ml_cause )
 e_indialog = inheritsFrom( ml_effect )
 function c_indialog:evaluate()
-	return Quest:IsInDialog()
+	return Quest:IsInDialog() and not ControlVisible("SelectIconString")
 end
 function e_indialog:execute()
 	--do nothing, this is a blocking cne to avoid spamming
@@ -599,11 +619,13 @@ function e_questuseaction:execute()
 			local id, target = next(list)
 			if(ValidTable(target)) then
 				Player:SetTarget(target.id)
+				e_questuseaction.action:Cast(target.id)
 			end
 		end
+	else
+		e_questuseaction.action:Cast()
 	end
 	
-	e_questuseaction.action:Cast()
 	ml_task_hub:ThisTask().stepCompleted = true
 end
 
@@ -842,7 +864,11 @@ function c_questbuy:evaluate()
 end
 function e_questbuy:execute()
 	local buyamount = ml_task_hub:CurrentTask().params["buyamount"] or 1
-	Inventory:BuyShopItem(e_questbuy.itemid,buyamount)
+	if(Inventory:BuyShopItem(e_questbuy.itemid,buyamount)) then
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			ml_global_information.itemIDsToEquip[e_questbuy.itemid] = true
+		end
+	end
 	
 	--set a delay on the current task to give the server time to update the item count
 	--so the task completion check will be valid
@@ -863,4 +889,59 @@ function e_questselectconvindex:execute()
 	end
 	--delay to allow conversation to update
 	ml_task_hub:CurrentTask():SetDelay(1500)
+end
+
+--when we want to equip a new item from a reward we create a table of current ids before reward
+--then this cne kicks in and sees that the table was set, checks a diff, and equips anything new
+c_equipreward = inheritsFrom( ml_cause )
+e_equipreward = inheritsFrom( ml_effect )
+function c_equipreward:evaluate()	
+	return ValidTable(ffxiv_task_quest.lastArmoryIDs)
+end
+function e_equipreward:execute()
+	local newArmoryIDs = GetArmoryIDsTable()
+	for id, _ in pairs(newArmoryIDs) do
+		if(not ffxiv_task_quest.lastArmoryIDs[id]) then
+			ml_global_information.itemIDsToEquip[id] = true
+		end
+	end
+	ffxiv_task_quest.lastArmoryIDs = {}
+end
+
+c_questequip = inheritsFrom( ml_cause )
+e_questequip = inheritsFrom( ml_effect )
+function c_questequip:evaluate()
+	local itemid = ml_task_hub:CurrentTask().params["itemid"]
+	if(type(itemid) == "number") then
+		local item = Inventory:Get(itemid)
+		if(ValidTable(item)) then
+			local currItem = GetItemInSlot(item.slot)
+			return not currItem or (currItem.id ~= itemid)
+		end
+	elseif(type(itemid) == "table" and ValidTable(itemid)) then
+		local equipped = true
+		for _, id in pairs(itemid) do
+			local item = Inventory:Get(id)
+			if(ValidTable(item)) then
+				local currItem = GetItemInSlot(item.slot)
+				if (not currItem or currItem.id ~= item.id) then
+					equipped = false
+				end
+			end
+		end
+		
+		return equipped
+	end
+	
+	return false
+end
+function e_questequip:execute()
+	local itemid = ml_task_hub:CurrentTask().params["itemid"]
+	if(type(itemid) == "number") then
+		ml_global_information.itemIDsToEquip[itemid] = true
+	elseif(type(itemid) == "table" and ValidTable(itemid)) then
+		for _, id in pairs(itemid) do
+			ml_global_information.itemIDsToEquip[id] = true
+		end
+	end
 end

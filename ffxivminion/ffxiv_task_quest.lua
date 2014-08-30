@@ -210,6 +210,17 @@ end
 
 function ffxiv_task_quest:Init()
 	--process elements
+	--its tempting to add equip cnes to overwatch but there are too many states 
+	--when the client does not allow gear changes
+	
+	--equip reward checks if we just got an item we wanted to equip for the last quest reward
+	--and queues it for equip if so
+	local ke_equipReward = ml_element:create( "EquipReward", c_equipreward, e_equipreward, 30 )
+    self:add( ke_equipReward, self.process_elements)
+	
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
+	
     local ke_nextQuest = ml_element:create( "NextQuest", c_nextquest, e_nextquest, 20 )
     self:add( ke_nextQuest, self.process_elements)
 	

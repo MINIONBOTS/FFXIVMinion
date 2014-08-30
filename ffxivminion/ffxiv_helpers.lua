@@ -1992,8 +1992,13 @@ function EquipItem(itemID)
 	end
 end
 
-function EquipBestItem(slot)
-	
+function GetItemInSlot(equipSlot)
+	local currEquippedItems = Inventory("type=1000")
+	for id,item in pairs(currEquippedItems) do
+		if(item.slot == equipSlot) then
+			return item
+		end
+	end
 end
 
 function CountItemsByID(id, includeHQ)
@@ -2016,7 +2021,7 @@ function CountItemsByID(id, includeHQ)
 end
 
 function GetArmoryIDsTable()
-	local equipSlot = 
+	local invTypes = 
 	{
 		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
 		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
@@ -2034,11 +2039,11 @@ function GetArmoryIDsTable()
 	}
 	
 	local ids = {}
-	for key,_ in pairs(equipSlot) do
+	for key,_ in pairs(invTypes) do
 		local itemlist = Inventory("type="..tostring(key))
 		if(ValidTable(itemlist)) then
 			for id, item in pairs(itemlist) do
-				ids[item.id] = item
+				ids[item.id] = true
 			end
 		end
 	end
