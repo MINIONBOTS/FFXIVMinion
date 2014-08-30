@@ -86,11 +86,21 @@ function ffxiv_task_quest.UIInit()
 	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 end
 
-function ffxiv_task_quest.SetQuest()
-	local questid = Quest:GetSelectedJournalQuest()
-	if (questid and questid > 0) then
-		gCurrQuestID = questid
+function ffxiv_task_quest.SetQuestFlags()
+	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
+	if(ValidTable(questTable)) then
+		ffxiv_task_quest.questFlags = questTable.I16A + questTable.I16B + questTable.I16C
 	end
+end
+
+function ffxiv_task_quest.QuestFlagsChanged()
+	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
+	if(ValidTable(questTable)) then
+		local questFlags = questTable.I16A + questTable.I16B + questTable.I16C
+		return questFlags ~= ffxiv_task_quest.questFlags
+	end
+	
+	return false
 end
 
 function ffxiv_task_quest.UpdateProfiles()
@@ -117,6 +127,18 @@ function ffxiv_task_quest.UpdateProfiles()
 		ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gProfile..".info")
 	end
 end
+
+function ffxiv_task_quest.resetStep()
+	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
+		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
+		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+		Settings.FFXIVMINION.questKillCount = nil
+		gQuestKillCount = ""
+		ffxiv_task_quest.questFlags = 0
+		ffxiv_task_quest.killCount = 0
+	end
+end
+
 
 function ffxiv_task_quest.LoadProfile(profilePath)
 	d("Loading quest profile from "..profilePath)

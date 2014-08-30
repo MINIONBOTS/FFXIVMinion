@@ -164,13 +164,13 @@ function e_questmovetopos:execute()
 		--have to do a distance check here that matches the same distance check in the teleport cne
 		--because we don't want to do a delay unless the bot will teleport
 		
-		local myPos = Player.pos
-		local gotoPos = newTask.pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		--local myPos = Player.pos
+		--local gotoPos = newTask.pos
+		--local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
         
-        if (distance > 20) then
-            newTask:SetDelay(2000)
-        end
+        --if (distance > 20) then
+        --    newTask:SetDelay(2000)
+        --end
 		
 	end
 	
@@ -280,6 +280,7 @@ function c_questhandover:evaluate()
 	return Quest:IsRequestDialogOpen()
 end
 function e_questhandover:execute()
+	ffxiv_task_quest.SetQuestFlags()
 	if(ml_task_hub:CurrentTask().params["itemturnin"]) then
 		if(ml_task_hub:CurrentTask().params["itemturninid"]) then
 			if(not ml_task_hub:CurrentTask().idset) then
@@ -307,11 +308,6 @@ function e_questhandover:execute()
 					Quest:RequestHandOver()
 					if (ml_task_hub:CurrentTask().params["type"] == "interact") then
 						ml_task_hub:CurrentTask().stepCompleted = true
-						-- if using teleport the bot teleports and desyncs from the npc before the handover 
-						-- exchange is completed with the server - need to delay it a bit to be safe
-						if (gTeleport == "1") then
-							ml_task_hub:CurrentTask():SetDelay(2000)
-						end
 					end
 				end
 			end
@@ -441,7 +437,7 @@ end
 c_indialog = inheritsFrom( ml_cause )
 e_indialog = inheritsFrom( ml_effect )
 function c_indialog:evaluate()
-	return Quest:IsInDialog() and not ControlVisible("SelectIconString")
+	return Quest:IsInDialog() and not ControlVisible("SelectIconString") and not ControlVisible("SelectString")
 end
 function e_indialog:execute()
 	--do nothing, this is a blocking cne to avoid spamming
@@ -711,14 +707,7 @@ function c_questflee:evaluate()
     return false
 end
 function e_questflee:execute()
-	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
-		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
-		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
-		Settings.FFXIVMINION.questKillCount = nil
-		gQuestKillCount = ""
-		ffxiv_task_quest.questFlags = 0
-		ffxiv_task_quest.killCount = 0
-	end
+	ffxiv_task_quest.ResetStep()
 	
     if (e_questflee.fleeing) then
         if (not Player.hasaggro) then
@@ -750,14 +739,7 @@ end
 function e_questdead:execute()
 	--if we have to restart at a previous interact step etc to spawn mobs to kill
 	--then reset the step and all the kill state
-	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
-		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
-		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
-		Settings.FFXIVMINION.questKillCount = nil
-		gQuestKillCount = ""
-		ffxiv_task_quest.questFlags = 0
-		ffxiv_task_quest.killCount = 0
-	end
+	ffxiv_task_quest.ResetStep()
 
     ml_debug("Respawning...")
 	-- try raise first
@@ -803,20 +785,15 @@ end
 c_inckillcount = inheritsFrom( ml_cause )
 e_inckillcount = inheritsFrom( ml_effect )
 function c_inckillcount:evaluate()
-	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
-	if(ValidTable(questTable)) then
-		local questFlags = questTable.I16A + questTable.I16B + questTable.I16C
-		
-		if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.questFlags ~= questFlags) then
-			e_inckillcount.questFlags = questFlags
-			return true
-		elseif(ffxiv_task_quest.backupKillCount > 5) then
-			--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
-			--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
-			return true
-		elseif(ffxiv_task_quest.killTaskCompleted) then
-			ffxiv_task_quest.backupKillCount = ffxiv_task_quest.backupKillCount + 1
-		end
+	if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.QuestFlagsChanged()) then
+		e_inckillcount.questFlags = questFlags
+		return true
+	elseif(ffxiv_task_quest.backupKillCount > 5) then
+		--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
+		--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
+		return true
+	elseif(ffxiv_task_quest.killTaskCompleted) then
+		ffxiv_task_quest.backupKillCount = ffxiv_task_quest.backupKillCount + 1
 	end
 	
 	return false
@@ -896,7 +873,7 @@ e_questselectconvindex = inheritsFrom( ml_effect )
 function c_questselectconvindex:evaluate()	
 	--check for vendor window open
 	local index = ml_task_hub:CurrentTask().params["conversationindex"]
-	return index and ControlVisible("SelectIconString")
+	return index and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
 function e_questselectconvindex:execute()
 	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().params["conversationindex"]))

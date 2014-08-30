@@ -452,11 +452,12 @@ function e_avoid:execute()
 	if (p ~= nil and dist <= 25) then
 		local newTask = ffxiv_task_avoid.Create()
 		newTask.pos = p
+		newTask.interruptCasting = true
 		newTask.maxTime = tonumber(target.castinginfo.casttime)
 		-- set preserveSubtasks = true so that the current kill task is not deleted
 		-- we want it to complete normally after the avoid task completes
 		ml_task_hub:ThisTask().preserveSubtasks = true
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
 
@@ -591,7 +592,7 @@ function e_movetogate:execute()
 		
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
-			newTask:SetDelay(2000)
+			--newTask:SetDelay(2000)
 		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -738,7 +739,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting()) then
+        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
             return false
         end
 		

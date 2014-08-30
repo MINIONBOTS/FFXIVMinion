@@ -14,12 +14,13 @@
 --these cnes will be used for all quest step tasks which do not overwrite the default eval or execute
 --function with custom checks
 function quest_step_complete_eval()
-	--if(ml_task_hub:CurrentTask().params["nonquestobjective"]) then
-		return ml_task_hub:CurrentTask().stepCompleted
-	--else
-	--	local objectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-	--	return ml_task_hub:CurrentTask():ParentTask().currentObjectiveIndex ~= objectiveIndex
-	--end
+	--if we handed over an item then don't complete the step until the objective flags have changed
+	--this is to avoid bugging the quest
+	if(ml_task_hub:CurrentTask().params["itemturnin"]) then
+		return ml_task_hub:CurrentTask().stepCompleted and ffxiv_task_quest.QuestFlagsChanged()
+	end
+	
+	return ml_task_hub:CurrentTask().stepCompleted
 end
 
 function quest_step_complete_execute()
@@ -399,6 +400,15 @@ end
 function ffxiv_quest_dutykill:task_complete_eval()
 	local mapid = self.params["mapid"]
 	return Player.localmapid ~= mapid
+end
+
+function ffxiv_quest_dutykill:task_fail_eval()
+	return Player.hp.percent < 10
+end
+
+function ffxiv_quest_dutykill:task_fail_execute()
+	self:Invalidate()
+	ffxiv_task_quest.ResetStep()
 end
 
 ------------------------------------------------------
