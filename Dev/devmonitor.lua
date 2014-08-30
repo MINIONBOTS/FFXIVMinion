@@ -90,7 +90,7 @@ function Dev.ModuleInit()
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
-	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting");
+	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting,Items");
 	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
 	GUI_NewField("Dev","Name","sbname","ActionListInfo")
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
@@ -724,9 +724,26 @@ function Dev.UpdateWindow()
 		["General"] = 5,
 		["Maincommands"] = 10,
 		["Crafting"] = 9,
+		["Items"] = 2,
 	}
 	
-	local spell = ActionList:Get(tonumber(sbSelSlot),spellTypes[sbSelHotbar])
+	local spelllist = ActionList("type="..spellTypes[sbSelHotbar])
+	local spell = nil
+	local count = 0	
+	
+	if ( TableSize(spelllist) > 0 ) then
+		local ispell,espell = next ( spelllist )
+		while ( ispell~=nil and espell~=nil ) do
+		 
+			if ( count == tonumber(sbSelSlot)) then
+				spell = espell
+				break
+			end
+			count = count + 1		
+			ispell,espell = next (spelllist,ispell)
+		end	
+	end	
+		
 	if (ValidTable(spell)) then
 		sbiscast = spell.iscasting
 		sbname = spell.name

@@ -659,18 +659,14 @@ function c_gather:evaluate()
 						newTask.itemid = 6141
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
-					d("c_gather failed block 1.")
 					return false
 				else
-					d("c_gather succeeded block 1.")
 					return true
 				end
 			else
-				d("c_gather succeeded block 2.")
 				return true
 			end
 		else
-			d("c_gather succeeded block 3.")
 			return true
 		end
     end

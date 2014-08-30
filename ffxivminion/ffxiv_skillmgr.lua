@@ -293,7 +293,7 @@ function SkillMgr.ModuleInit()
     -- SelectedSkills/Main Window
     GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
     GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].activated,"gSMactive",strings[gCurrentLanguage].generalSettings)
-    GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].defaultProfile,"gSMDefaultProfile",strings[gCurrentLanguage].generalSettings)
+    --GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].defaultProfile,"gSMDefaultProfile",strings[gCurrentLanguage].generalSettings)
     GUI_NewComboBox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].profile,"gSMprofile",strings[gCurrentLanguage].generalSettings,"")
                 
     GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].saveProfile,"SMSaveEvent")
@@ -479,15 +479,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
             SkillMgr.SkillProfile = {}
             SkillMgr.UpdateCurrentProfileData()
             Settings.FFXIVMINION.gSMlastprofile = tostring(v)
-        elseif ( k == "gSMDefaultProfile" ) then
-            if ( v == "0" ) then
-                Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = nil
-            elseif ( v == "1" ) then
-                if (gSMprofile ~= "" and gSMprofile ~= "None") then
-                    Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = gSMprofile
-                end
-            end
-            Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles
+			SkillMgr.SetDefaultProfile()
 		end
 		
 		if (SkillMgr.Variables[tostring(k)] ~= nil and SKM_Prio ~= nil and SKM_Prio > 0) then	
@@ -608,6 +600,11 @@ function SkillMgr.CreateNewProfile()
 end
 
 function SkillMgr.SetDefaultProfile()
+	Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = gSMprofile
+	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles
+end
+
+function SkillMgr.UseDefaultProfile()
     local default = Settings.FFXIVMINION.SMDefaultProfiles[Player.job]
     if (default) then
 		local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
@@ -617,15 +614,12 @@ function SkillMgr.SetDefaultProfile()
 			default = starterDefault
 		end
         gSMprofile = default
-		gSMDefaultProfile = "1"
         GUI_WindowVisible(SkillMgr.editwindow.name,false)
         GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
 		GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
         GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
         SkillMgr.SkillProfile = {}
         SkillMgr.UpdateCurrentProfileData()
-    else
-		gSMDefaultProfile = "0"
 	end
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
@@ -855,7 +849,7 @@ function SkillMgr.UpdateCurrentProfileData()
 			end
         else
             d("Profile is empty..")
-			SkillMgr.SetDefaultProfile()
+			SkillMgr.UseDefaultProfile()
         end		
     else
         d("No new SkillProfile selected!")		
@@ -2031,7 +2025,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		d("Condition8:"..tostring(target.targetid ~= Player.id))
 		--]]
 		
-		if (ml_global_information.AttackRange < 5 and
+		if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and
 			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then

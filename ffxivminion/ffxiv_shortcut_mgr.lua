@@ -2,19 +2,28 @@ sck = {}
 sck.filterTime1 = 0
 sck.filterTime2 = 0
 sck.onOffTimer = 0
+sck.currentSpeed = 6
+sck.psTimer = 0
 
 sck.mainwindow = { name = "Shortcut Manager", x = 50, y = 50, width = 250, height = 200}
 sck.Shortcuts = {
-	["Filter 1"] = true,
-	["Filter 2"] = true,
-	["Start/Stop"] = true,
+	["Filter 1"] = 1,
+	["Filter 2"] = 2,
+	["Start/Stop"] = 3,
+	["Speed Hack"] = 4,
+	["PermaSprint"] = 5,
 }
 
 ffxivminion.Strings.Shortcuts = 
 	function ()
 		local shortcuts = ""
-		for k,v in pairs(sck.Shortcuts) do
-			shortcuts = shortcuts..","..k
+		local sort_func = function( t,a,b ) return t[a] < t[b] end
+		for k,v in spairs(sck.Shortcuts) do
+			if (shortcuts == "") then
+				shortcuts = k
+			else
+				shortcuts = shortcuts..","..k
+			end
 		end
 		return shortcuts
 	end
@@ -24,7 +33,11 @@ ffxivminion.Strings.ModKeys =
 		local modKey = ""
 		local sort_func = function( t,a,b ) return t[a] < t[b] end
 		for k,v in spairs(sck.ModifierKeys,sort_func) do
-			modKey = modKey..","..k
+			if (modKey == "") then
+				modKey = k
+			else
+				modKey = modKey..","..k
+			end
 		end
 		return modKey
 	end
@@ -34,7 +47,11 @@ ffxivminion.Strings.SCKeys =
 		local sKey = ""
 		local sort_func = function( t,a,b ) return t[a] < t[b] end
 		for k,v in spairs(sck.ShortcutKeys,sort_func) do
-			sKey = sKey..","..k
+			if (sKey == "") then
+				sKey = k
+			else
+				sKey = sKey..","..k
+			end
 		end
 		return sKey
 	end
@@ -105,8 +122,13 @@ end
 
 function sck.UpdateShortcutOptions()
 	local shortcuts = ""
-	for k,v in pairs(sck.Shortcuts) do
-		shortcuts = shortcuts..","..k
+	local sort_func = function( t,a,b ) return t[a] < t[b] end
+	for k,v in spairs(sck.Shortcuts) do
+		if (shortcuts == "") then
+			shortcuts = k
+		else
+			shortcuts = shortcuts..","..k
+		end
 		
 		if (Settings.FFXIVMINION.ClickCombo[k] == nil or Settings.FFXIVMINION.ClickCombo[k] == {}) then 
 			local combo = {} 
@@ -182,7 +204,8 @@ function sck.OnUpdate( event, tickcount )
 	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
 		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
-			TimeSince(sck.filterTime1) >= 750) then
+			TimeSince(sck.filterTime1) >= 750) 
+	then
 		if ( gPrimaryFilter == "0" ) then
 			gPrimaryFilter = "1"
 		else
@@ -198,7 +221,8 @@ function sck.OnUpdate( event, tickcount )
 	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
 		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
-			TimeSince(sck.filterTime2) >= 750) then
+			TimeSince(sck.filterTime2) >= 750) 
+	then
 		if ( gSecondaryFilter == "0" ) then
 			gSecondaryFilter = "1"
 		else
@@ -214,10 +238,52 @@ function sck.OnUpdate( event, tickcount )
 	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
 		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
-			TimeSince(sck.onOffTimer) >= 1000) then
+			TimeSince(sck.onOffTimer) >= 1000) 
+	then
 			ml_task_hub.ToggleRun()
 			sck.onOffTimer = tickcount
 	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Speed Hack"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			not Player.incombat) 
+	then
+		if ( Player.ismounted and sck.currentSpeed ~= 18 ) then
+			Player:SetSpeed(FFXIV.MOVEMENT.FORWARD, 18)
+			sck.currentSpeed = 15
+		elseif ( not Player.ismounted and sck.currentSpeed ~= 12) then
+			Player:SetSpeed(FFXIV.MOVEMENT.FORWARD, 12)
+			sck.currentSpeed = 12
+		end
+	else
+		if ( Player.ismounted and sck.currentSpeed ~= 9) then
+			Player:SetSpeed(FFXIV.MOVEMENT.FORWARD, 9)
+			sck.currentSpeed = 9
+		elseif ( not Player.ismounted and sck.currentSpeed ~= 6 ) then
+			Player:SetSpeed(FFXIV.MOVEMENT.FORWARD, 6)
+			sck.currentSpeed = 6
+		end
+	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["PermaSprint"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.psTimer) >= 500) 
+	then
+			GameHacks:SetPermaSprint(not GameHacks.permasprint)
+			SetGUIVar("gGatherPS", GameHacks.permasprint and "1" or "0")
+			sck.psTimer = tickcount
+	end	
+	
 end
 
 sck.ModifierKeys = {
@@ -235,6 +301,8 @@ sck.ShortcutKeys = {
 ["Left Mouse"]=	1,
 ["Right Mouse"]=	2,
 ["Middle Mouse"]=	4,
+["Mouse 4"] = 5,
+["Mouse 5"] = 6,
 ["BACKSPACE"]=	8,
 ["TAB"]=	9,
 ["ENTER"]=	13,
@@ -315,6 +383,12 @@ sck.ShortcutKeys = {
 ["F11"]=	122,
 ["F12"]=	123,
 ["SCROLL LOCK"]=	145,
+["Left SHIFT"] = 160,
+["Right SHIFT"] = 161,
+["Left CONTROL"] = 162,
+["Right CONTROL"] = 163,
+["Left ALT"] = 164,
+["Right ALT"] = 165,
 }
 
 RegisterEventHandler("ShortcutManager.toggle", sck.ShowMenu)
