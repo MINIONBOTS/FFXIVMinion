@@ -1607,13 +1607,17 @@ function e_equip:execute()
 		local newItem = Inventory:Get(id)
 		if(ValidTable(newItem)) then
 			--grab the current item in that slot
-			local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
-			if(currItem and currItem.id == newItem.id) then
+			if(newItem.type == FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 				--we equipped this successfully, remove it from the list
 				e_equip.itemids[id] = nil
-			elseif(not currItem or (currItem and currItem.level <= newItem.level)) then
-				EquipItem(id)
-				ml_task_hub:CurrentTask():SetDelay(500)
+			else
+				local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
+				if(not currItem or (currItem and currItem.level <= newItem.level)) then
+					EquipItem(id)
+					ml_task_hub:CurrentTask():SetDelay(500)
+				else
+					e_equip.itemids[id] = nil
+				end
 			end
 		end
 	end

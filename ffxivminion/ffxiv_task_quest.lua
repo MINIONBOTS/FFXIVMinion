@@ -128,7 +128,7 @@ function ffxiv_task_quest.UpdateProfiles()
 	end
 end
 
-function ffxiv_task_quest.resetStep()
+function ffxiv_task_quest.ResetStep()
 	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
 		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
 		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep

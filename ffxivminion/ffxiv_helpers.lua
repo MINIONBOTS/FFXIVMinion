@@ -1979,7 +1979,7 @@ end
 
 function EquipItem(itemID)
 	local item = Inventory:Get(itemID)
-	if(ValidTable(item)) then
+	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 		item:Move(1000,GetEquipSlotForItem(item))
 	end
 end

@@ -174,6 +174,10 @@ function e_questmovetopos:execute()
 		
 	end
 	
+	--add kill aggro target check
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
+    newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
+	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -648,6 +652,7 @@ function c_questmovetohealer:evaluate()
 	return false
 end
 function e_questmovetohealer:execute()
+	d("test move to healer")
 	local pos = e_questmovetohealer.pos
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
@@ -812,11 +817,25 @@ end
 c_questkillaggrotarget = inheritsFrom( ml_cause )
 e_questkillaggrotarget = inheritsFrom( ml_effect )
 function c_questkillaggrotarget:evaluate()
+	if(ml_task_hub:ThisTask().name == "MOVETOPOS") then
+		if(e_questflee.fleeing) then
+			return false
+		end
+		
+		local myPos = Player.pos
+		local gotoPos = ml_task_hub:ThisTask().pos
+		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		d(distance)
+		if(distance > 50) then
+			return false
+		end
+	end
+
 	local el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
-			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
 				c_questkillaggrotarget.targetid = target.id
 				return true
 			end
@@ -826,13 +845,18 @@ function c_questkillaggrotarget:evaluate()
     return false
 end
 function e_questkillaggrotarget:execute()
+	d("test target")
 	--just in case
 	Dismount()
 	
 	local newTask = ffxiv_task_killtarget.Create()
     newTask.targetid = c_questkillaggrotarget.targetid
 	Player:SetTarget(c_questkillaggrotarget.targetid)
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	
+	--add cnes for fleeing and death since we're working on another queue
+    newTask:add( ml_element:create( "Dead", c_questdead, e_questdead, 20 ), newTask.overwatch_elements)
+    newTask:add( ml_element:create( "Flee", c_questflee, e_questflee, 15 ), newTask.overwatch_elements)
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
 c_questbuy = inheritsFrom( ml_cause )
