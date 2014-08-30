@@ -98,11 +98,12 @@ function e_nextqueststep:execute()
 		
 		--if the new task is a complete step and the quest isn't complete then we fucked up somewhere
 		--try to restart at the second step of the quest and put up an error message
-		if(task.params["type"] == "complete" and not ffxiv_task_quest.currentQuest:isComplete())then
-			ffxiv_task_quest.restartStep = 2
-			ffxiv_task_quest.ResetStep()
-			return
-		end
+		--need to factor this out to a complete cne, it fucks up things here due to timing
+		--if(task.params["type"] == "complete" and not ffxiv_task_quest.currentQuest:isComplete())then
+		--	ffxiv_task_quest.restartStep = 2
+		--	ffxiv_task_quest.ResetStep()
+		--	return
+		--end
 		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
 		--d(ml_task_hub:ThisTask().currentObjectiveIndex)

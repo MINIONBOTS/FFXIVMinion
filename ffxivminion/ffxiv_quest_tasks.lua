@@ -355,7 +355,7 @@ end
 
 function ffxiv_quest_kill:task_complete_eval()
 	if((not self.params["killcount"] and ffxiv_task_quest.killCount == 1) or
-		(self.params["killcount"] == ffxiv_task_quest.killCount)) or
+		(self.params["killcount"] == ffxiv_task_quest.killCount))
 	then
 		Settings.FFXIVMINION.questKillCount = nil
 		gQuestKillCount = ""
