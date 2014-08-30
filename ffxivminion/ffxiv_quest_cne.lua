@@ -825,7 +825,6 @@ function c_questkillaggrotarget:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:ThisTask().pos
 		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		d(distance)
 		if(distance > 50) then
 			return false
 		end
@@ -845,8 +844,8 @@ function c_questkillaggrotarget:evaluate()
     return false
 end
 function e_questkillaggrotarget:execute()
-	d("test target")
 	--just in case
+	Player:Stop()
 	Dismount()
 	
 	local newTask = ffxiv_task_killtarget.Create()
