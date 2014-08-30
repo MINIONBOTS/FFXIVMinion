@@ -1090,7 +1090,7 @@ end
 
 
 function ActionList:IsCasting()
-	return (Player.castinginfo.channelingid ~= 0)
+	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castid == 4)
 end
 
 function SetFacing( posX, posY, posZ)
@@ -1604,6 +1604,14 @@ function Mount()
 		if (acMount.isready) then
 			acMount:Cast()
 		end
+	end
+end
+
+function SetGUIVar(strName, value)
+	strName = strName or ""
+	if (strName ~= "" and _G[strName] ~= nil) then
+		_G[strName] = value
+		Settings.FFXIVMINION[strName] = value
 	end
 end
 

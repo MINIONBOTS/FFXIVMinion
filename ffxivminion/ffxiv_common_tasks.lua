@@ -509,6 +509,7 @@ function ffxiv_task_useitem.Create()
 	newinst.itemid = 0
 	newinst.timer = 0
 	newinst.useTime = 0
+	newinst.dismountDelay = 0
     
     return newinst
 end
@@ -518,16 +519,26 @@ function ffxiv_task_useitem:Init()
 end
 
 function ffxiv_task_useitem:task_complete_eval()
-	if (Player.ismounted) then
-		Dismount()
+	
+	if (Now() < self.dismountDelay) then
 		return false
 	end
 	
+	if (Player.ismounted) then
+		Dismount()
+		self.dismountDelay = Now() + 2500
+		return false
+	end
+	
+	if (Player:IsMoving()) then
+		Player:Stop()
+	end
+	
 	if (self.timer == 0) then
-		local item = Inventory:Get(itemid)
+		local item = Inventory:Get(self.itemid)
 		if (item and item.isready) then
-			cordial:Use()
-			self.timer = (newinst.useTime > 0) and newinst.useTime or 1500
+			item:Use()
+			self.timer = (self.useTime > 0) and self.useTime or 1500
 		end
 	end
 	

@@ -38,6 +38,7 @@ function ffxiv_task_grind.Create()
     newinst.currentMarker = false
 	newinst.filterLevel = true
 	newinst.startMap = Player.localmapid
+	ffxiv_task_grind.inFate = false
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable

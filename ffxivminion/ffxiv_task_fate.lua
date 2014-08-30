@@ -22,6 +22,7 @@ function ffxiv_task_fate.Create()
     newinst.started = false
     newinst.moving = false
     newinst.fatePos = {}
+	ffxiv_task_grind.inFate = false
     
     return newinst
 end

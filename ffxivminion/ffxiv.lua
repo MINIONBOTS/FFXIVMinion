@@ -698,7 +698,7 @@ function ffxivminion.CheckClass()
 		ml_global_information.CurrentClass = classes[Player.job]
 		ml_global_information.CurrentClassID = Player.job
 		ml_global_information.AttackRange = ml_global_information.CurrentClass.range
-		SkillMgr.SetDefaultProfile()
+		SkillMgr.UseDefaultProfile()
 		return
 	end
     
@@ -729,7 +729,7 @@ function ffxivminion.CheckClass()
 				ffxivminion.SetMode(newModeName)
 			end
             
-            SkillMgr.SetDefaultProfile()
+            SkillMgr.UseDefaultProfile()
         else
             ml_global_information.AttackRange = 3
         end
