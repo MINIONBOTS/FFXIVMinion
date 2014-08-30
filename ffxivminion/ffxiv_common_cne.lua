@@ -1608,11 +1608,12 @@ function e_equip:execute()
 		if(ValidTable(newItem)) then
 			--grab the current item in that slot
 			local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
-			if(not currItem or (currItem and currItem.level <= newItem.level)) then
-				EquipItem(id)
+			if(currItem and currItem.id == newItem.id) then
+				--we equipped this successfully, remove it from the list
 				e_equip.itemids[id] = nil
-				--set a small delay to avoid spamming equip
-				ml_task_hub:ThisTask():SetDelay(1000)
+			elseif(not currItem or (currItem and currItem.level <= newItem.level)) then
+				EquipItem(id)
+				ml_task_hub:CurrentTask():SetDelay(500)
 			end
 		end
 	end
