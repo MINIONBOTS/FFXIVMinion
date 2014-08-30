@@ -246,6 +246,27 @@ function ffxiv_quest_interact.Create()
     return newinst
 end
 
+function ffxiv_quest_interact:task_complete_eval()
+	if(self.isQuestObject) then
+		if(Player.castinginfo.channeltime > 0) then
+			return false
+		end
+		
+		local id = ml_task_hub:ThisTask().params["id"]
+		if (id and id > 0) then
+			local el = EntityList("contentid="..tostring(id))
+			if(ValidTable(el)) then
+				local id, entity = next(el)
+				if(entity) then
+					return not entity.targetable
+				end
+			end
+		end
+	else
+		return ml_task_hub:CurrentTask().stepCompleted
+	end
+end
+
 --interact step will "complete" based on the following cne priority
 --(1) QuestHandover
 --(2) QuestSelectConvIndex
@@ -278,8 +299,7 @@ function ffxiv_quest_interact:Init()
 	
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
-
-	self.task_complete_eval = quest_step_complete_eval
+	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
@@ -335,7 +355,7 @@ end
 
 function ffxiv_quest_kill:task_complete_eval()
 	if((not self.params["killcount"] and ffxiv_task_quest.killCount == 1) or
-		(self.params["killcount"] == ffxiv_task_quest.killCount))
+		(self.params["killcount"] == ffxiv_task_quest.killCount)) or
 	then
 		Settings.FFXIVMINION.questKillCount = nil
 		gQuestKillCount = ""
