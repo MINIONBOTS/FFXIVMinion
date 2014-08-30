@@ -727,7 +727,23 @@ function Dev.UpdateWindow()
 		["Items"] = 2,
 	}
 	
-	local spell = ActionList:Get(tonumber(sbSelSlot),spellTypes[sbSelHotbar])
+	local spelllist = ActionList("type="..spellTypes[sbSelHotbar])
+	local spell = nil
+	local count = 0	
+	
+	if ( TableSize(spelllist) > 0 ) then
+		local ispell,espell = next ( spelllist )
+		while ( ispell~=nil and espell~=nil ) do
+		 
+			if ( count == tonumber(sbSelSlot)) then
+				spell = espell
+				break
+			end
+			count = count + 1		
+			ispell,espell = next (spelllist,ispell)
+		end	
+	end	
+		
 	if (ValidTable(spell)) then
 		sbiscast = spell.iscasting
 		sbname = spell.name
