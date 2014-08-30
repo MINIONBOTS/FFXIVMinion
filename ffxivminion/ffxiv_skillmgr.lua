@@ -2023,7 +2023,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		d("Condition8:"..tostring(target.targetid ~= Player.id))
 		--]]
 		
-		if (ml_global_information.AttackRange < 5 and
+		if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and
 			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then

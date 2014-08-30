@@ -107,7 +107,7 @@ function ffxiv_duty_kill_task:Process()
 					Player:SetTarget(entity.id)
 					
 					--Telecasting, teleport to mob portion.
-					if (ml_global_information.AttackRange < 5 and entity.castinginfo.channelingid == 0 and
+					if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and entity.castinginfo.channelingid == 0 and
 						gTeleport == "1" and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 						and entity.targetid ~= Player.id) then
 						

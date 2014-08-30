@@ -449,6 +449,9 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gLootOption == nil) then
         Settings.FFXIVMINION.gLootOption = "All"
     end
+	if (Settings.FFXIVMINION.gUseTelecast == nil) then
+        Settings.FFXIVMINION.gUseTelecast = "1"
+    end
 	if (gBotMode == GetString("dutyMode")) then
 		ffxiv_task_duty.UpdateProfiles()
 	end
@@ -464,6 +467,7 @@ function ffxiv_task_duty.UIInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	local group = GetString("settings")
     GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
+	GUI_NewCheckbox(winName,"Use Telecast",			"gUseTelecast",group)
 	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
@@ -471,6 +475,7 @@ function ffxiv_task_duty.UIInit()
 	GUI_WindowVisible(winName, false)
 	
 	gLootOption = Settings.FFXIVMINION.gLootOption
+	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
 end
 
@@ -519,7 +524,8 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
 			ffxiv_task_duty.dutySet = false
         elseif (k == "gResetDutyTimer" or
-				k == "gLootOption")
+				k == "gLootOption" or
+				k == "gUseTelecast")
         then
             Settings.FFXIVMINION[tostring(k)] = v
         end
