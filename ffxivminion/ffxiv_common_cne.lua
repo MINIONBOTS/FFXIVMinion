@@ -1571,7 +1571,6 @@ function e_autoequip:execute()
 end
 
 c_equip = inheritsFrom( ml_cause )
-c_equip.throttle = 5000
 e_equip = inheritsFrom( ml_effect )
 function c_equip:evaluate()
 	if(ActionList:IsCasting()) then
@@ -1602,17 +1601,13 @@ function c_equip:evaluate()
 	return false
 end
 function e_equip:execute()
-	d("test1")
 	local id, _ = next(e_equip.itemids)
 	if(id) then
-		d("test2")
 		local newItem = Inventory:Get(id)
 		if(ValidTable(newItem)) then
-			d("test4")
 			--grab the current item in that slot
-			local currItem = GetItemInSlot(newItem.slot)
-			
-			if(currItem and currItem.level <= newItem.level) then
+			local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
+			if(not currItem or (currItem and currItem.level <= newItem.level)) then
 				EquipItem(id)
 				e_equip.itemids[id] = nil
 				--set a small delay to avoid spamming equip

@@ -26,7 +26,9 @@ function quest_step_complete_execute()
 	if (ml_global_information.disableFlee) then
 		ml_global_information.disableFlee = false
 	end
-
+	
+	ffxiv_task_quest.restartStep = 0
+	
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
 	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then

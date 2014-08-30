@@ -97,6 +97,12 @@ function e_nextqueststep:execute()
 			end
 		end
 		
+		if(task.params["restartatstep"]) then
+			ffxiv_task_quest.restartStep = task.params["restartatstep"]
+		else
+			ffxiv_task_quest.restartStep = 0
+		end
+		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
 		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
@@ -705,9 +711,13 @@ function c_questflee:evaluate()
     return false
 end
 function e_questflee:execute()
-	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
-		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
+	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
+		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
 		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+		Settings.FFXIVMINION.questKillCount = nil
+		gQuestKillCount = ""
+		ffxiv_task_quest.questFlags = 0
+		ffxiv_task_quest.killCount = 0
 	end
 	
     if (e_questflee.fleeing) then
@@ -738,9 +748,15 @@ function c_questdead:evaluate()
     return false
 end
 function e_questdead:execute()
-	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
-		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
+	--if we have to restart at a previous interact step etc to spawn mobs to kill
+	--then reset the step and all the kill state
+	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
+		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
 		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+		Settings.FFXIVMINION.questKillCount = nil
+		gQuestKillCount = ""
+		ffxiv_task_quest.questFlags = 0
+		ffxiv_task_quest.killCount = 0
 	end
 
     ml_debug("Respawning...")

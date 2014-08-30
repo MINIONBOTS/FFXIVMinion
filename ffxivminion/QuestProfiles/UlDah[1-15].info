@@ -497,6 +497,10 @@ local obj1 = {
 					};
 				};
 				[2] = {
+					["type"] = "equip";
+					["itemid"] = 4196;
+				};
+				[3] = {
 					["mapid"] = 131;
 					["type"] = "interact";
 					["delay"] = 15000;
@@ -509,7 +513,7 @@ local obj1 = {
 						["z"] = 84.507431030273;
 					};
 				};
-				[4] = {
+				[5] = {
 					["mapid"] = 130;
 					["type"] = "complete";
 					["pos"] = {
@@ -522,7 +526,7 @@ local obj1 = {
 					["meshname"] = "Ul'dah - Steps of Nald";
 					["itemrewardslot"] = 0;
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 178;
 					["type"] = "interact";
 					["meshname"] = "Ul'dah - Inn";
@@ -1871,6 +1875,7 @@ local obj1 = {
 						["z"] = 49.887340545654;
 					};
 					["killcount"] = 3;
+					["restartatstep"] = 2;
 				};
 			};
 			["level"] = 6;
