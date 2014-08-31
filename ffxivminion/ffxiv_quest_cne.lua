@@ -58,17 +58,10 @@ function e_nextqueststep:execute()
 	--local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
 	local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep) or 1
 	
-	if (ml_task_hub:CurrentTask().currentStepIndex == 1 and
-		currentStepIndex > 1) 
+	if ((ml_task_hub:CurrentTask().currentStepIndex == 1 and currentStepIndex > 1) or 
+		ffxiv_task_quest.restartStep ~= 0) 
 	then
-		--if the saved step index is less than the objective step index then it represents a 
-		--non quest objective step and we need to restart from it
-		--otherwise we restart from the step index that matches the current quest objective
-		--if (currentStepIndex <= objectiveStepIndex) then
-			ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
-		--else
-			--ml_task_hub:CurrentTask().currentStepIndex = objectiveStepIndex
-		--end
+		ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
@@ -102,6 +95,15 @@ function e_nextqueststep:execute()
 		else
 			ffxiv_task_quest.restartStep = 0
 		end
+		
+		--if the new task is a complete step and the quest isn't complete then we fucked up somewhere
+		--try to restart at the second step of the quest and put up an error message
+		--need to factor this out to a complete cne, it fucks up things here due to timing
+		--if(task.params["type"] == "complete" and not ffxiv_task_quest.currentQuest:isComplete())then
+		--	ffxiv_task_quest.restartStep = 2
+		--	ffxiv_task_quest.ResetStep()
+		--	return
+		--end
 		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
 		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
@@ -143,8 +145,12 @@ function c_questmovetopos:evaluate()
     if (mapID and mapID > 0) then
         if(Player.localmapid == mapID) then
 			local pos = ml_task_hub:CurrentTask().params["pos"]
+			local threshold = 2
+			if(ml_task_hub:CurrentTask().params["type"] == "nav")then
+				threshold = 0.5
+			end
 			--return Distance2D(Player.pos.x, Player.pos.z, pos.x, pos.z) > 2
-			return Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > 2
+			return Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > threshold
         end
     end
 	
@@ -156,6 +162,9 @@ function e_questmovetopos:execute()
 	newTask.pos = pos
 	newTask.use3d = true
 	newTask.postDelay = 1500
+	if(ml_task_hub:CurrentTask().params["type"] == "nav")then
+		newTask.range = 0.5
+	end
 	
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
@@ -254,8 +263,17 @@ function c_questinteract:evaluate()
 				if 	(entity.type == 5 and entity.distance2d < 6) or
 					(entity.distance < 4) 
 				then
-					e_questinteract.entity = entity
-					return true
+					--if channeltime is > 0 then we're already interacting with a quest object
+					if(entity.type == 7) then
+						ml_task_hub:ThisTask().isQuestObject = true
+					end
+					
+					if(Player.castinginfo.channeltime > 0 or not entity.targetable) then
+						return false
+					else
+						e_questinteract.entity = entity
+						return true
+					end
 				end
 			end
         end
@@ -272,8 +290,12 @@ function e_questinteract:execute()
 		if(	ml_task_hub:ThisTask().params["type"] == "interact"  and not
 			ml_task_hub:ThisTask().params["itemturnin"] and not
 			ml_task_hub:ThisTask().params["conversationindex"])
-			then
-			ml_task_hub:ThisTask().stepCompleted = true
+		then
+			--if we're interacting with a quest object then we don't want to complete
+			--the step until the quest object is no longer targetable (we finished the interact)
+			if(entity.type ~= 7) then
+				ml_task_hub:ThisTask().stepCompleted = true
+			end
 		end
 	end
 end
@@ -825,12 +847,23 @@ function c_questkillaggrotarget:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:ThisTask().pos
 		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		if(distance > 50) then
+		if(distance > 30) then
 			return false
 		end
 	end
 
-	local el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
+	local el = EntityList("alive,attackable,onmesh,targetingme")
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
+				c_questkillaggrotarget.targetid = target.id
+				return true
+			end
+		end
+	end
+	
+	el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=5")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
@@ -852,9 +885,17 @@ function e_questkillaggrotarget:execute()
     newTask.targetid = c_questkillaggrotarget.targetid
 	Player:SetTarget(c_questkillaggrotarget.targetid)
 	
-	--add cnes for fleeing and death since we're working on another queue
-    newTask:add( ml_element:create( "Dead", c_questdead, e_questdead, 20 ), newTask.overwatch_elements)
-    newTask:add( ml_element:create( "Flee", c_questflee, e_questflee, 15 ), newTask.overwatch_elements)
+	--if our hp drops below flee rate then consider the task failed and gtfo
+	local c_killfail = inheritsFrom( ml_cause )
+	local e_killfail = inheritsFrom( ml_effect )
+	function c_killfail:evaluate()
+		return Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)
+	end
+	function e_killfail:execute()
+		ml_task_hub:ThisTask():Terminate()
+	end
+    newTask:add( ml_element:create( "KillAggroFail", c_killfail, e_killfail, 100 ), newTask.overwatch_elements)
+	ml_task_hub:ThisTask().preserveSubtasks = true
 	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
