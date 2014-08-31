@@ -32,7 +32,11 @@ function quest_step_complete_execute()
 	
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
-	ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"] or 1000)
+	local delay = ml_task_hub:CurrentTask().params["delay"]
+	if (delay == nil or delay == 0) then
+		delay = 1000
+	end
+	ml_task_hub:CurrentTask():SetDelay(delay)
 end
 
 ffxiv_quest_task = inheritsFrom(ml_task)
