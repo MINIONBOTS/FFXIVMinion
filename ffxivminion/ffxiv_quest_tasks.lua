@@ -14,19 +14,22 @@
 --these cnes will be used for all quest step tasks which do not overwrite the default eval or execute
 --function with custom checks
 function quest_step_complete_eval()
-	--if(ml_task_hub:CurrentTask().params["nonquestobjective"]) then
-		return ml_task_hub:CurrentTask().stepCompleted
-	--else
-	--	local objectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-	--	return ml_task_hub:CurrentTask():ParentTask().currentObjectiveIndex ~= objectiveIndex
-	--end
+	--if we handed over an item then don't complete the step until the objective flags have changed
+	--this is to avoid bugging the quest
+	if(ml_task_hub:CurrentTask().params["itemturnin"]) then
+		return ml_task_hub:CurrentTask().stepCompleted and ffxiv_task_quest.QuestFlagsChanged()
+	end
+	
+	return ml_task_hub:CurrentTask().stepCompleted
 end
 
 function quest_step_complete_execute()
 	if (ml_global_information.disableFlee) then
 		ml_global_information.disableFlee = false
 	end
-
+	
+	ffxiv_task_quest.restartStep = 0
+	
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
 	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
@@ -87,8 +90,8 @@ function ffxiv_quest_task:Init()
 	
 	--its tempting to make autoequip an overwatch cne but there are too many states 
 	--when the client does not allow gear changes
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 25 )
-    self:add( ke_autoEquip, self.process_elements)
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
 	
 	local ke_changeNavMesh = ml_element:create( "ChangeNavMesh", c_changenavmesh, e_changenavmesh, 100 )
     self:add( ke_changeNavMesh, self.overwatch_elements)
@@ -399,6 +402,15 @@ function ffxiv_quest_dutykill:task_complete_eval()
 	return Player.localmapid ~= mapid
 end
 
+function ffxiv_quest_dutykill:task_fail_eval()
+	return Player.hp.percent < 10
+end
+
+function ffxiv_quest_dutykill:task_fail_execute()
+	self:Invalidate()
+	ffxiv_task_quest.ResetStep()
+end
+
 ------------------------------------------------------
 --nav helper
 ------------------------------------------------------
@@ -662,6 +674,45 @@ function ffxiv_quest_vendor:Init()
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
+
+ffxiv_quest_equip = inheritsFrom(ml_task)
+ffxiv_quest_equip.name = "QUEST_EQUIP"
+
+function ffxiv_quest_equip.Create()
+    local newinst = inheritsFrom(ffxiv_quest_equip)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_EQUIP"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_equip:Init()
+    --equip is the cne that actually equips items in the equip queue (ml_global_information.itemIDsToEquip)
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
+	
+	--questEquip checks the step params and adds any non-equipped itemids to the queue
+    local ke_questEquip = ml_element:create( "QuestEquip", c_questequip, e_questequip, 20 )
+    self:add( ke_questEquip, self.process_elements)
+	
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+	--the questequip cne checks to see if we have equipped all requested items so its also a valid completion eval
+	self.task_complete_eval = function() return not c_questequip:evaluate() end
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

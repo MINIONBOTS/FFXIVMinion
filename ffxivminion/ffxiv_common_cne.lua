@@ -447,6 +447,7 @@ function e_avoid:execute()
 	if (p ~= nil and dist <= 25) then
 		local newTask = ffxiv_task_avoid.Create()
 		newTask.pos = p
+		newTask.interruptCasting = true
 		newTask.maxTime = tonumber(target.castinginfo.casttime)
 		-- set preserveSubtasks = true so that the current kill task is not deleted
 		-- we want it to complete normally after the avoid task completes
@@ -586,7 +587,7 @@ function e_movetogate:execute()
 		
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
-			newTask:SetDelay(2000)
+			--newTask:SetDelay(2000)
 		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -747,7 +748,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting()) then
+        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
             return false
         end
 		
@@ -1572,5 +1573,57 @@ function e_autoequip:execute()
 		e_autoequip.equipIDs[id] = nil
 	else
 		e_autoequip.equipIDs = nil
+	end
+end
+
+c_equip = inheritsFrom( ml_cause )
+e_equip = inheritsFrom( ml_effect )
+function c_equip:evaluate()
+	if(ActionList:IsCasting()) then
+		return false
+	end
+
+	if(ValidTable(e_equip.itemids)) then
+		return true
+	end
+
+	local itemids = {}
+	if(TableSize(ml_global_information.itemIDsToEquip) > 0) then
+		for id,_ in pairs(ml_global_information.itemIDsToEquip) do
+			local item = Inventory:Get(id)
+			if(ValidTable(item) and item.canequip) then
+				--transfer the id to the temp list for equipping and remove from the global list
+				itemids[id] = true
+				ml_global_information.itemIDsToEquip[id] = nil
+			end
+		end
+	end
+	
+	if(TableSize(itemids) > 0) then
+		e_equip.itemids = itemids
+		return true
+	end
+	
+	return false
+end
+function e_equip:execute()
+	local id, _ = next(e_equip.itemids)
+	if(id) then
+		local newItem = Inventory:Get(id)
+		if(ValidTable(newItem)) then
+			--grab the current item in that slot
+			if(newItem.type == FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
+				--we equipped this successfully, remove it from the list
+				e_equip.itemids[id] = nil
+			else
+				local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
+				if(not currItem or (currItem and currItem.level <= newItem.level)) then
+					EquipItem(id)
+					ml_task_hub:CurrentTask():SetDelay(500)
+				else
+					e_equip.itemids[id] = nil
+				end
+			end
+		end
 	end
 end

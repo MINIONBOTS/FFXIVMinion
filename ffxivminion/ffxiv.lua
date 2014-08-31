@@ -22,6 +22,7 @@ ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
+ml_global_information.itemIDsToEquip = {}
 
 
 FFXIVMINION = {}
@@ -449,8 +450,8 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(130, "Ul'dah - Steps of Nald")
 		ml_mesh_mgr.SetDefaultMesh(131, "Ul'dah - Steps of Thal")
-		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Upper)")
-		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Lower)")
+		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
+		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Lower)")
 		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")

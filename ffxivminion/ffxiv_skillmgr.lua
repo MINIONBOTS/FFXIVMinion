@@ -50,7 +50,7 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.PALADIN] = "Paladin",
     [FFXIV.JOBS.MARAUDER] = "Marauder",
 	[FFXIV.JOBS.WARRIOR] = "Warrior",
-	[FFXIV.JOBS.PUGILIST] = "Pugilist",
+	[FFXIV.JOBS.PUGILIST] = "Monk",
 	[FFXIV.JOBS.MONK] = "Monk",
 	[FFXIV.JOBS.LANCER] = "Lancer",
 	[FFXIV.JOBS.DRAGOON] = "Dragoon",
@@ -58,7 +58,7 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.BARD] = "Bard",
 	[FFXIV.JOBS.CONJURER] = "Conjurer",
 	[FFXIV.JOBS.WHITEMAGE] = "White Mage",
-	[FFXIV.JOBS.THAUMATURGE] = "Thaumaturge",
+	[FFXIV.JOBS.THAUMATURGE] = "Black Mage",
 	[FFXIV.JOBS.BLACKMAGE] = "Black Mage",
 	[FFXIV.JOBS.ARCANIST] = "Arcanist",
 	[FFXIV.JOBS.SUMMONER] = "Summoner",
@@ -213,8 +213,10 @@ function SkillMgr.ModuleInit()
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
 	end
 	
+	--switched the default for pugilist to monk since it contains the skills
+	--necessary for the pugilist quest line
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Pugilist"
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then

@@ -1,4 +1,4 @@
-itemid-- Persistent Data
+-- Persistent Data
 local multiRefObjects = {
 
 } -- multiRefObjects
@@ -156,32 +156,100 @@ local obj1 = {
 						["z"] = -81.087532043457;
 					};
 				};
-				[3] = {
-					["mapid"] = 131;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 2000;
-					["id"] = 1001854;
-					["itemreward"] = false;
-					["meshname"] = "Ul'dah - Steps of Thal";
-					["pos"] = {
-						["y"] = 34;
-						["x"] = -19.936540603638;
-						["z"] = -44.401821136475;
-					};
-				};
 				[4] = {
 					["mapid"] = 130;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["delay"] = 2000;
 					["id"] = 1004433;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["meshname"] = "Ul'dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 83.199989318848;
 						["x"] = -23.414447784424;
 						["z"] = -4.0578923225403;
+					};
+				};
+				[8] = {
+					["type"] = "interact";
+					["id"] = 1003597;
+					["itemreward"] = false;
+					["mapid"] = 128;
+					["itemturnin"] = false;
+					["conversationindex"] = 2;
+					["meshname"] = "Limsa (Upper)";
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 40.000339508057;
+						["x"] = 8.345986366272;
+						["z"] = 15.203169822693;
+					};
+				};
+				[16] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 2;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 2.2000005245209;
+						["x"] = 34.126598358154;
+						["z"] = 32.286842346191;
+					};
+				};
+				[17] = {
+					["type"] = "interact";
+					["id"] = 1000460;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000446;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 4.029552936554;
+						["x"] = -158.41311645508;
+						["z"] = -4.6325950622559;
+					};
+				};
+				[9] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Lower)";
+					["id"] = 1001029;
+					["itemturninid"] = {
+						[1] = 2000445;
+					};
+					["itemturnin"] = true;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 20.999563217163;
+						["x"] = 8.6719532012939;
+						["z"] = -13.834843635559;
+					};
+				};
+				[18] = {
+					["type"] = "complete";
+					["id"] = 1000460;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000446;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["delay"] = 5000;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 4.0284781455994;
+						["x"] = -158.99667358398;
+						["z"] = -5.2702355384827;
 					};
 				};
 				[5] = {
@@ -193,185 +261,137 @@ local obj1 = {
 					["itemreward"] = false;
 					["meshname"] = "Ul'dah - Steps of Nald";
 					["pos"] = {
-						["y"] = 92;
-						["x"] = -12.948090553284;
-						["z"] = 16.704078674316;
-					};
-				};
-				[6] = {
-					["mapid"] = 128;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 3000;
-					["id"] = 1002703;
-					["itemreward"] = false;
-					["meshname"] = "Limsa (Upper)";
-					["pos"] = {
-						["y"] = 20.999174118042;
-						["x"] = 11.055339813232;
-						["z"] = 12.580010414124;
-					};
-				};
-				[7] = {
-					["mapid"] = 128;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 3000;
-					["id"] = 1002693;
-					["itemreward"] = false;
-					["meshname"] = "Limsa (Upper)";
-					["pos"] = {
-						["y"] = 20.999174118042;
-						["x"] = 11.055339813232;
-						["z"] = 12.580010414124;
-					};
-				};
-				[8] = {
-					["mapid"] = 128;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 3000;
-					["id"] = 1003583;
-					["itemreward"] = false;
-					["meshname"] = "Limsa (Upper)";
-					["pos"] = {
-						["y"] = 20.999174118042;
-						["x"] = 11.055339813232;
-						["z"] = 12.580010414124;
-					};
-				};
-				[9] = {
-					["type"] = "interact";
-					["id"] = 1001029;
-					["itemreward"] = false;
-					["itemturninid"] = {
-						[1] = 2000445;
-					};
-					["itemturnin"] = true;
-					["mapid"] = 129;
-					["delay"] = 5000;
-					["meshname"] = "Limsa (Lower)";
-					["pos"] = {
-						["y"] = 20.999376296997;
-						["x"] = 9.1094150543213;
-						["z"] = -13.015742301941;
+						["y"] = 84;
+						["x"] = -43.423683166504;
+						["z"] = -0.80917644500732;
 					};
 				};
 				[10] = {
 					["mapid"] = 129;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["delay"] = 10000;
+					["meshname"] = "Limsa (Lower)";
 					["id"] = 8;
 					["itemreward"] = false;
-					["meshname"] = "Limsa (Lower)";
+					["delay"] = 10000;
 					["pos"] = {
-						["y"] = 18.900325775146;
-						["x"] = -80.22590637207;
-						["z"] = -1.2929304838181;
+						["y"] = 18.900327682495;
+						["x"] = -80.05883026123;
+						["z"] = 0.65593606233597;
 					};
 				};
 				[11] = {
-					["mapid"] = 129;
 					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 3000;
 					["id"] = 1003611;
 					["itemreward"] = false;
+					["mapid"] = 129;
+					["itemturnin"] = false;
+					["conversationindex"] = 1;
 					["meshname"] = "Limsa (Lower)";
+					["delay"] = 5000;
 					["pos"] = {
-						["y"] = 20.99934387207;
-						["x"] = 9.4016160964966;
-						["z"] = 13.565800666809;
+						["y"] = 20.999370574951;
+						["x"] = 9.2798519134521;
+						["z"] = 13.583794593811;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1001854;
+					["itemreward"] = false;
+					["mapid"] = 131;
+					["itemturnin"] = false;
+					["conversationindex"] = 1;
+					["meshname"] = "Ul'dah - Steps of Thal";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 34;
+						["x"] = -19.936540603638;
+						["z"] = -44.401821136475;
+					};
+				};
+				[6] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002703;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 91.499961853027;
+						["x"] = -14.050427436829;
+						["z"] = -1.201811671257;
 					};
 				};
 				[12] = {
 					["mapid"] = 128;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["delay"] = 3000;
+					["meshname"] = "Limsa (Upper)";
 					["id"] = 1002695;
 					["itemreward"] = false;
-					["meshname"] = "Limsa (Upper)";
+					["delay"] = 5000;
 					["pos"] = {
 						["y"] = 91.999969482422;
-						["x"] = -24.095111846924;
-						["z"] = -3.1149082183838;
+						["x"] = -23.917945861816;
+						["z"] = -3.5170483589172;
 					};
 				};
 				[13] = {
 					["mapid"] = 128;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["delay"] = 12000;
+					["meshname"] = "Limsa (Upper)";
 					["id"] = 2001670;
 					["itemreward"] = false;
-					["meshname"] = "Limsa (Upper)";
+					["delay"] = 9000;
 					["pos"] = {
-						["y"] = -21.970979690552;
-						["x"] = 10.403752326965;
-						["z"] = 124.05840301514;
+						["y"] = 92;
+						["x"] = -12.896120071411;
+						["z"] = 16.780282974243;
+					};
+				};
+				[7] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002693;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 91.499969482422;
+						["x"] = -8.0153226852417;
+						["z"] = -12.487204551697;
 					};
 				};
 				[14] = {
 					["mapid"] = 132;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["delay"] = 3000;
+					["meshname"] = "New Gridania";
 					["id"] = 1000109;
 					["itemreward"] = false;
-					["meshname"] = "New Gridania";
+					["delay"] = 5000;
 					["pos"] = {
 						["y"] = -19.000001907349;
-						["x"] = 30.1526222229;
-						["z"] = 116.14207458496;
+						["x"] = 28.731773376465;
+						["z"] = 116.48538208008;
 					};
 				};
 				[15] = {
 					["mapid"] = 132;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["delay"] = 3000;
+					["meshname"] = "New Gridania";
 					["id"] = 1002830;
 					["itemreward"] = false;
-					["meshname"] = "New Gridania";
+					["delay"] = 3000;
 					["pos"] = {
 						["y"] = -18.800003051758;
-						["x"] = 36.792617797852;
-						["z"] = 90.342231750488;
+						["x"] = 36.401630401611;
+						["z"] = 90.839851379395;
 					};
-				};
-				[16] = {
-					["mapid"] = 132;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 10000;
-					["id"] = 2;
-					["itemreward"] = false;
-					["meshname"] = "New Gridania";
-					["pos"] = {
-						["y"] = 2.2000005245209;
-						["x"] = 33.840740203857;
-						["z"] = 32.431827545166;
-					};
-				};
-				[17] = {
-					["itemturninid"] = {
-						[1] = 2000446;
-					};
-					["itemturnin"] = true;
-					["mapid"] = 133;
-					["type"] = "complete";
-					["pos"] = {
-						["y"] = 4.0284781455994;
-						["x"] = -158.99667358398;
-						["z"] = -5.2702355384827;
-					};
-					["delay"] = 5000;
-					["id"] = 1000460;
-					["itemreward"] = false;
-					["meshname"] = "Old Gridania";
-					["itemrewardslot"] = 0;
 				};
 			};
 			["level"] = 14;
@@ -477,9 +497,13 @@ local obj1 = {
 					};
 				};
 				[2] = {
+					["type"] = "equip";
+					["itemid"] = 4196;
+				};
+				[3] = {
 					["mapid"] = 131;
 					["type"] = "interact";
-					["delay"] = 8000;
+					["delay"] = 15000;
 					["id"] = 1001821;
 					["itemreward"] = false;
 					["meshname"] = "Ul'dah - Steps of Thal";
@@ -489,7 +513,7 @@ local obj1 = {
 						["z"] = 84.507431030273;
 					};
 				};
-				[4] = {
+				[5] = {
 					["mapid"] = 130;
 					["type"] = "complete";
 					["pos"] = {
@@ -502,13 +526,13 @@ local obj1 = {
 					["meshname"] = "Ul'dah - Steps of Nald";
 					["itemrewardslot"] = 0;
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 178;
 					["type"] = "interact";
 					["meshname"] = "Ul'dah - Inn";
 					["id"] = 2001011;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["delay"] = 4000;
 					["pos"] = {
 						["y"] = -5.0436419769539e-006;
 						["x"] = 0.039872620254755;
@@ -632,8 +656,14 @@ local obj1 = {
 				[4] = {
 					["mapid"] = 141;
 					["type"] = "complete";
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 1;
+						[7] = 1;
+					};
 					["id"] = 1001447;
-					["itemreward"] = false;
+					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Central Thanalan";
 					["pos"] = {
 						["y"] = -1.0332576036453;
@@ -644,18 +674,22 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 141;
 					["type"] = "vendor";
-					["itemid"] = {
-						[-1] = 3311;
-					};
+					["equip"] = true;
 					["conversationindex"] = 1;
-					["id"] = 1001564;
-					["itemreward"] = false;
-					["pos"] = {
-						["y"] = -2.1;
-						["x"] = -9.7;
-						["z"] = -145;
+					["itemid"] = {
+						[1] = 3311;
+						[2] = 3311;
+						[7] = 3312
 					};
+					["id"] = 1001564;
+					["buyamount"] = 1;
+					["itemreward"] = false;
 					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -2.048198223114;
+						["x"] = -12.132037162781;
+						["z"] = -145.7733001709;
+					};
 				};
 			};
 			["level"] = 6;
@@ -751,8 +785,13 @@ local obj1 = {
 				[3] = {
 					["type"] = "complete";
 					["id"] = 1001436;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000177;
 					};
@@ -815,6 +854,7 @@ local obj1 = {
 					};
 					["id"] = 1001605;
 					["itemreward"] = true;
+					["equip"] = true;
 					["mapid"] = 141;
 					["itemrewardslot"] = 2;
 				};
@@ -845,6 +885,7 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1002068;
 					["itemreward"] = true;
+					["equip"] = true;
 					["itemrewardslot"] = 3;
 					["pos"] = {
 						["y"] = 13.480674743652;
@@ -961,9 +1002,14 @@ local obj1 = {
 						["z"] = -147.66757202148;
 					};
 					["id"] = 1002069;
-					["itemreward"] = false;
+					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Western Thanalan";
-					["itemrewardslot"] = 0;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 1;
+						[7] = 2;
+					};
 				};
 				[3] = {
 					["mapid"] = 140;
@@ -1110,10 +1156,15 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 140;
 					["type"] = "complete";
-					["itemrewardslot"] = 3;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 1;
+						[7] = 2;
+					};
 					["meshname"] = "Western Thanalan";
 					["id"] = 1002066;
 					["itemreward"] = true;
+					["equip"] = true;
 					["delay"] = 0;
 					["pos"] = {
 						["y"] = 15.620938301086;
@@ -1154,8 +1205,8 @@ local obj1 = {
 					["meshname"] = "Ul'dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 6.9999961853027;
-						["x"] = 21.475873947144;
-						["z"] = -80.625045776367;
+						["x"] = 21.93628692627;
+						["z"] = -80.497520446777;
 					};
 				};
 				[1] = {
@@ -1241,8 +1292,13 @@ local obj1 = {
 				[3] = {
 					["type"] = "complete";
 					["id"] = 1001992;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000410;
 					};
@@ -1309,20 +1365,49 @@ local obj1 = {
 					};
 				};
 				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1000106;
+					["conversationindex"] = 2;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -19.000001907349;
+						["x"] = 29.429410934448;
+						["z"] = 103.57556152344;
+					};
+				};
+				[3] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1003583;
+					["conversationindex"] = 1;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["y"] = 91.5;
+						["x"] = -8.4984121322632;
+						["z"] = -15.2174243927;
+					};
+				};
+				[4] = {
 					["mapid"] = 128;
 					["type"] = "complete";
 					["pos"] = {
 						["y"] = 40.216011047363;
-						["x"] = 17.34373664856;
-						["z"] = -5.1272239685059;
+						["x"] = 17.849420547485;
+						["z"] = -6.0000023841858;
 					};
+					["delay"] = 5000;
 					["id"] = 1000972;
 					["itemreward"] = false;
 					["meshname"] = "Limsa (Upper)";
 					["itemrewardslot"] = 0;
 				};
 			};
-			["level"] = 15;
+			["level"] = 14;
 			["prereq"] = {
 				[-1] = {
 					[1] = 528;
@@ -1331,18 +1416,18 @@ local obj1 = {
 		};
 		[554] = {
 			["steps"] = {
-				[4] = {
-					["mapid"] = 130;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
-					["id"] = 2001281;
+				[15] = {
+					["mapid"] = 140;
+					["type"] = "kill";
+					["killcount"] = 1;
+					["meshname"] = "Western Thanalan";
+					["id"] = 113;
 					["itemreward"] = false;
 					["delay"] = 1000;
 					["pos"] = {
-						["y"] = 18;
-						["x"] = -253.49835205078;
-						["z"] = 68.435997009277;
+						["y"] = 52.753570556641;
+						["x"] = 225.11260986328;
+						["z"] = 78.373435974121;
 					};
 				};
 				[13] = {
@@ -1376,18 +1461,18 @@ local obj1 = {
 						["z"] = -42.614105224609;
 					};
 				};
-				[1] = {
-					["mapid"] = 130;
-					["type"] = "start";
-					["itemturnin"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
-					["id"] = 1003817;
+				[14] = {
+					["mapid"] = 140;
+					["type"] = "useaction";
+					["actionid"] = 53;
+					["meshname"] = "Western Thanalan";
+					["id"] = 2001541;
 					["itemreward"] = false;
-					["delay"] = 0;
+					["delay"] = 5000;
 					["pos"] = {
-						["y"] = 2.0000047683716;
-						["x"] = -75.141105651855;
-						["z"] = -42.909755706787;
+						["y"] = 51.456951141357;
+						["x"] = 225.18296813965;
+						["z"] = 80.307113647461;
 					};
 				};
 				[2] = {
@@ -1404,25 +1489,25 @@ local obj1 = {
 						["z"] = -60.076385498047;
 					};
 				};
-				[15] = {
-					["mapid"] = 140;
-					["type"] = "kill";
-					["killcount"] = 1;
-					["meshname"] = "Western Thanalan";
-					["id"] = 113;
+				[4] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 2001281;
 					["itemreward"] = false;
 					["delay"] = 1000;
 					["pos"] = {
-						["y"] = 52.753570556641;
-						["x"] = 225.11260986328;
-						["z"] = 78.373435974121;
+						["y"] = 18;
+						["x"] = -253.49835205078;
+						["z"] = 68.435997009277;
 					};
 				};
 				[8] = {
 					["mapid"] = 140;
 					["type"] = "useaction";
 					["actionid"] = 53;
-					["delay"] = 1000;
+					["delay"] = 5000;
 					["id"] = 2001544;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
@@ -1481,7 +1566,7 @@ local obj1 = {
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001543;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 5000;
 					["pos"] = {
 						["y"] = 51.433765411377;
 						["x"] = 224.26480102539;
@@ -1537,25 +1622,25 @@ local obj1 = {
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001542;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 5000;
 					["pos"] = {
 						["y"] = 51.395534515381;
 						["x"] = 245.24633789063;
 						["z"] = 58.883289337158;
 					};
 				};
-				[14] = {
-					["mapid"] = 140;
-					["type"] = "useaction";
-					["actionid"] = 53;
-					["meshname"] = "Western Thanalan";
-					["id"] = 2001541;
+				[1] = {
+					["mapid"] = 130;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1003817;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 0;
 					["pos"] = {
-						["y"] = 51.456951141357;
-						["x"] = 225.18296813965;
-						["z"] = 80.307113647461;
+						["y"] = 2.0000047683716;
+						["x"] = -75.141105651855;
+						["z"] = -42.909755706787;
 					};
 				};
 			};
@@ -1752,7 +1837,7 @@ local obj1 = {
 					["mapid"] = 141;
 					["type"] = "useitem";
 					["itemturnin"] = false;
-					["delay"] = 2000;
+					["delay"] = 4000;
 					["id"] = 2000268;
 					["itemreward"] = false;
 					["itemid"] = 2000212;
@@ -1767,7 +1852,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001447;
 					["itemreward"] = true;
-					["itemrewardslot"] = 2;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["pos"] = {
 						["y"] = -1.0332576036453;
 						["x"] = -32.053035736084;
@@ -1785,6 +1875,7 @@ local obj1 = {
 						["z"] = 49.887340545654;
 					};
 					["killcount"] = 3;
+					["restartatstep"] = 2;
 				};
 			};
 			["level"] = 6;
@@ -2103,7 +2194,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001447;
 					["itemreward"] = true;
-					["itemrewardslot"] = 2;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 1;
+						[2] = 2;
+						[7] = 3;
+					};
 					["pos"] = {
 						["y"] = -1.0332576036453;
 						["x"] = -32.120349884033;
@@ -2197,12 +2293,17 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001605;
 					["itemreward"] = true;
+					["equip"] = true;
 					["pos"] = {
 						["y"] = 0.34075272083282;
 						["x"] = 93.734527587891;
 						["z"] = -270.79925537109;
 					};
-					["itemrewardslot"] = 2;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 				};
 			};
 			["level"] = 10;
@@ -2277,6 +2378,7 @@ local obj1 = {
 					["itemrewardslot"] = 3;
 					["id"] = 1002071;
 					["itemreward"] = true;
+					["equip"] = true;
 					["mapid"] = 140;
 					["pos"] = {
 						["y"] = 17.583309173584;
@@ -2303,8 +2405,8 @@ local obj1 = {
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
 						["y"] = 45.145320892334;
-						["x"] = 58.784931182861;
-						["z"] = -209.39540100098;
+						["x"] = 55.718231201172;
+						["z"] = -208.12289428711;
 					};
 				};
 				[2] = {
@@ -2324,8 +2426,13 @@ local obj1 = {
 				[3] = {
 					["type"] = "complete";
 					["id"] = 1002056;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 1;
+						[2] = 1;
+						[7] = 2;
+					};
 					["itemturninid"] = {
 						[1] = 2000374;
 					};
@@ -2334,8 +2441,8 @@ local obj1 = {
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
 						["y"] = 45.145320892334;
-						["x"] = 59.178256988525;
-						["z"] = -208.95640563965;
+						["x"] = 55.718231201172;
+						["z"] = -208.12289428711;
 					};
 				};
 			};
@@ -2487,7 +2594,7 @@ local obj1 = {
 					};
 					["itemturnin"] = true;
 					["mapid"] = 140;
-					["delay"] = 10000;
+					["delay"] = 20000;
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
 						["y"] = 33.241458892822;
@@ -2515,9 +2622,9 @@ local obj1 = {
 					["itemreward"] = false;
 					["mapid"] = 140;
 					["itemturnin"] = false;
+					["itemid"] = 2000414;
 					["delay"] = 3000;
 					["meshname"] = "Western Thanalan";
-					["itemid"] = 2000414;
 					["pos"] = {
 						["y"] = 50.91828918457;
 						["x"] = -85.406135559082;
@@ -2620,9 +2727,14 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 131;
 					["type"] = "complete";
-					["itemrewardslot"] = 0;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["id"] = 1003896;
-					["itemreward"] = false;
+					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Ul'dah - Steps of Thal";
 					["pos"] = {
 						["y"] = 6.5999617576599;
@@ -2740,9 +2852,14 @@ local obj1 = {
 						["z"] = -165.91815185547;
 					};
 					["id"] = 1002070;
-					["itemreward"] = false;
+					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Western Thanalan";
-					["itemrewardslot"] = 0;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 2;
+					};
 				};
 			};
 			["level"] = 12;
@@ -3039,6 +3156,7 @@ local obj1 = {
 					["mapid"] = 129;
 					["type"] = "interact";
 					["id"] = 1000868;
+					["conversationindex"] = 1;
 					["itemreward"] = false;
 					["delay"] = 2000;
 					["pos"] = {
@@ -3125,7 +3243,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1003897;
 					["itemreward"] = true;
-					["itemrewardslot"] = 1;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000385;
 					};
@@ -3202,8 +3325,13 @@ local obj1 = {
 				[6] = {
 					["type"] = "complete";
 					["id"] = 1001460;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000211;
 					};
@@ -3302,7 +3430,7 @@ local obj1 = {
 					["meshname"] = "Central Thanalan";
 					["id"] = 2000753;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 3000;
 					["pos"] = {
 						["y"] = 16.608766555786;
 						["x"] = -224.94604492188;
@@ -3316,7 +3444,7 @@ local obj1 = {
 					["meshname"] = "Central Thanalan";
 					["id"] = 2000300;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 3000;
 					["pos"] = {
 						["y"] = 22.695190429688;
 						["x"] = -265.57543945313;
@@ -3343,7 +3471,7 @@ local obj1 = {
 					["meshname"] = "Central Thanalan";
 					["id"] = 2000754;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 3000;
 					["pos"] = {
 						["y"] = 27.999996185303;
 						["x"] = -261.70977783203;
@@ -3353,8 +3481,13 @@ local obj1 = {
 				[5] = {
 					["type"] = "complete";
 					["id"] = 1001439;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000216;
 					};
@@ -3394,6 +3527,7 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001353;
 					["itemreward"] = true;
+					["equip"] = true;
 					["itemrewardslot"] = 3;
 					["itemturninid"] = {
 						[1] = 2000396;
@@ -3422,7 +3556,7 @@ local obj1 = {
 					["type"] = "interact";
 					["id"] = 1002947;
 					["itemreward"] = false;
-					["delay"] = 10000;
+					["delay"] = 15000;
 					["pos"] = {
 						["y"] = -11.35000038147;
 						["x"] = -94.788719177246;
@@ -3568,8 +3702,13 @@ local obj1 = {
 					["meshname"] = "Ul'dah - Steps of Nald";
 					["id"] = 1001353;
 					["itemreward"] = true;
+					["equip"] = true;
 					["delay"] = 5000;
-					["itemrewardslot"] = 2;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 				};
 			};
 			["level"] = 9;
@@ -3616,7 +3755,7 @@ local obj1 = {
 					["itemturnin"] = false;
 					["id"] = 1001466;
 					["itemreward"] = false;
-					["delay"] = 1000;
+					["delay"] = 2000;
 					["pos"] = {
 						["y"] = -11.39999961853;
 						["x"] = -89.800003051758;
@@ -3831,9 +3970,14 @@ local obj1 = {
 				[4] = {
 					["mapid"] = 140;
 					["type"] = "complete";
-					["itemrewardslot"] = 3;
+					["itemrewardslot"] = {
+						[1] = 1;
+						[2] = 2;
+						[7] = 3;
+					};
 					["id"] = 1002058;
 					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
 						["y"] = 45;
@@ -3844,10 +3988,11 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 273;
 					["type"] = "dutykill";
-					["ids"] = "1277;1380;1381";
+					["ids"] = "1380;1277;1381";
+					["restartatstep"] = 2;
+					["delay"] = 20000;
 					["itemreward"] = false;
 					["meshname"] = "Western Thanalan";
-					["restartatstep"] = 2;
 					["pos"] = {
 						["y"] = 15.199498176575;
 						["x"] = -238.43051147461;
@@ -3861,6 +4006,151 @@ local obj1 = {
 					[1] = 335;
 				};
 			};
+		};
+		[348] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 2001498;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -35.019680023193;
+						["x"] = -367.50238037109;
+						["z"] = 291.93069458008;
+					};
+				};
+				[1] = {
+					["mapid"] = 130;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1001708;
+					["itemreward"] = false;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = 18;
+						["x"] = -249.42236328125;
+						["z"] = 81.45873260498;
+					};
+				};
+				[2] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1001710;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 18.779399871826;
+						["x"] = -239.58291625977;
+						["z"] = 86.752876281738;
+					};
+				};
+				[4] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1001710;
+					["conversationindex"] = 2;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 18.700000762939;
+						["x"] = -238.94990539551;
+						["z"] = 86.687393188477;
+					};
+				};
+				[8] = {
+					["type"] = "interact";
+					["id"] = 1001710;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000416;
+						[2] = 2000417;
+					};
+					["itemturnin"] = true;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["mapid"] = 130;
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = 18.700000762939;
+						["x"] = -239.01927185059;
+						["z"] = 86.664154052734;
+					};
+				};
+				[9] = {
+					["mapid"] = 130;
+					["type"] = "complete";
+					["itemrewardslot"] = 1;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1001708;
+					["itemreward"] = true;
+					["equip"] = true;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 18;
+						["x"] = -249.55242919922;
+						["z"] = 80.739768981934;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 2001511;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -34.984676361084;
+						["x"] = -367.1155090332;
+						["z"] = 292.71566772461;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["id"] = 289;
+					["itemreward"] = false;
+					["killcount"] = 8;
+					["mapid"] = 141;
+					["itemturnin"] = false;
+					["meshname"] = "Central Thanalan";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -4.2730193138123;
+						["x"] = 64.010330200195;
+						["z"] = -20.327026367188;
+					};
+				};
+				[6] = {
+					["type"] = "kill";
+					["id"] = 1177;
+					["itemreward"] = false;
+					["killcount"] = 2;
+					["mapid"] = 145;
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -35.162952423096;
+						["x"] = -366.75518798828;
+						["z"] = 290.65496826172;
+					};
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[7] = {
+					[1] = 347;
+				};
+			};
+			["job"] = 7;
 		};
 		[573] = {
 			["steps"] = {
@@ -3924,7 +4214,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001484;
 					["itemreward"] = true;
-					["itemrewardslot"] = 2;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["mapid"] = 141;
 					["itemturnin"] = true;
 					["itemturninid"] = {
@@ -4346,8 +4641,13 @@ local obj1 = {
 					};
 					["id"] = 1002061;
 					["itemreward"] = true;
+					["equip"] = true;
 					["mapid"] = 140;
-					["itemrewardslot"] = 2;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 				};
 			};
 			["level"] = 10;
@@ -4381,8 +4681,13 @@ local obj1 = {
 					};
 					["id"] = 1002065;
 					["itemreward"] = true;
+					["equip"] = true;
 					["meshname"] = "Western Thanalan";
-					["itemrewardslot"] = 2;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 				};
 			};
 			["level"] = 10;
@@ -4425,8 +4730,13 @@ local obj1 = {
 				[3] = {
 					["type"] = "complete";
 					["id"] = 1003814;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000376;
 					};
@@ -4480,7 +4790,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1003898;
 					["itemreward"] = true;
-					["itemrewardslot"] = 1;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["itemturninid"] = {
 						[1] = 2000138;
 					};
@@ -4946,9 +5261,14 @@ local obj1 = {
 					};
 					["type"] = "complete";
 					["itemturnin"] = true;
-					["itemrewardslot"] = 0;
+					["itemrewardslot"] = {
+						[1] = 0;
+						[2] = 0;
+						[7] = 1;
+					};
 					["id"] = 1002027;
-					["itemreward"] = false;
+					["itemreward"] = true;
+					["equip"] = true;
 					["mapid"] = 140;
 					["pos"] = {
 						["y"] = 33.239356994629;
@@ -5077,6 +5397,7 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1002066;
 					["itemreward"] = true;
+					["equip"] = true;
 					["itemrewardslot"] = 1;
 					["pos"] = {
 						["y"] = 15.622453689575;
@@ -5110,11 +5431,11 @@ local obj1 = {
 				[2] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
+					["delay"] = 5000;
 					["meshname"] = "Western Thanalan";
-					["itemid"] = 2000373;
 					["id"] = 2001376;
 					["itemreward"] = false;
-					["delay"] = 5000;
+					["itemid"] = 2000373;
 					["pos"] = {
 						["y"] = 49.139263153076;
 						["x"] = 114.94689178467;
@@ -5124,11 +5445,11 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
+					["delay"] = 5000;
 					["meshname"] = "Western Thanalan";
-					["itemid"] = 2000373;
 					["id"] = 2001375;
 					["itemreward"] = false;
-					["delay"] = 5000;
+					["itemid"] = 2000373;
 					["pos"] = {
 						["y"] = 49.157775878906;
 						["x"] = 111.28865814209;
@@ -5150,11 +5471,11 @@ local obj1 = {
 				[4] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
+					["delay"] = 5000;
 					["meshname"] = "Western Thanalan";
-					["itemid"] = 2000373;
 					["id"] = 2001377;
 					["itemreward"] = false;
-					["delay"] = 5000;
+					["itemid"] = 2000373;
 					["pos"] = {
 						["y"] = 49.340595245361;
 						["x"] = 106.80141448975;
@@ -5164,11 +5485,11 @@ local obj1 = {
 				[5] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
+					["delay"] = 5000;
 					["meshname"] = "Western Thanalan";
-					["itemid"] = 2000373;
 					["id"] = 2001374;
 					["itemreward"] = false;
-					["delay"] = 5000;
+					["itemid"] = 2000373;
 					["pos"] = {
 						["y"] = 49.36695098877;
 						["x"] = 102.08883666992;
@@ -5188,15 +5509,16 @@ local obj1 = {
 				[6] = {
 					["mapid"] = 271;
 					["type"] = "dutykill";
+					["restartatstep"] = 5;
 					["ids"] = "973;974;971;972;945;949;980;617";
-					["itemreward"] = false;
 					["meshname"] = "Central Thanalan";
+					["itemreward"] = false;
+					["delay"] = 5000;
 					["pos"] = {
 						["y"] = -17.576999664307;
 						["x"] = 247.73930358887;
 						["z"] = -131.33360290527;
 					};
-					["restartatstep"] = 5;
 				};
 				[2] = {
 					["mapid"] = 131;
@@ -5321,7 +5643,7 @@ local obj1 = {
 				[2] = {
 					["mapid"] = 130;
 					["type"] = "interact";
-					["delay"] = 10000;
+					["delay"] = 15000;
 					["id"] = 1001709;
 					["itemreward"] = false;
 					["meshname"] = "Ul'dah - Steps of Nald";
@@ -5455,8 +5777,13 @@ local obj1 = {
 				[5] = {
 					["type"] = "complete";
 					["id"] = 1002062;
-					["itemreward"] = false;
-					["itemrewardslot"] = 0;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 1;
+						[2] = 1;
+						[7] = 2;
+					};
 					["itemturninid"] = {
 						[1] = 2000370;
 						[2] = 2000371;
@@ -5514,7 +5841,12 @@ local obj1 = {
 					["type"] = "complete";
 					["id"] = 1001602;
 					["itemreward"] = true;
-					["itemrewardslot"] = 2;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[1] = 1;
+						[2] = 1;
+						[7] = 2;
+					};
 					["mapid"] = 141;
 					["itemturnin"] = true;
 					["itemturninid"] = {

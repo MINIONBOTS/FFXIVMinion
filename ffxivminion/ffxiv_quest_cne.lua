@@ -97,6 +97,12 @@ function e_nextqueststep:execute()
 			end
 		end
 		
+		if(task.params["restartatstep"]) then
+			ffxiv_task_quest.restartStep = task.params["restartatstep"]
+		else
+			ffxiv_task_quest.restartStep = 0
+		end
+		
 		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
 		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
@@ -158,15 +164,19 @@ function e_questmovetopos:execute()
 		--have to do a distance check here that matches the same distance check in the teleport cne
 		--because we don't want to do a delay unless the bot will teleport
 		
-		local myPos = Player.pos
-		local gotoPos = newTask.pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		--local myPos = Player.pos
+		--local gotoPos = newTask.pos
+		--local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
         
-        if (distance > 20) then
-            newTask:SetDelay(2000)
-        end
+        --if (distance > 20) then
+        --    newTask:SetDelay(2000)
+        --end
 		
 	end
+	
+	--add kill aggro target check
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
+    newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -184,6 +194,16 @@ function c_questaccept:evaluate()
 end
 function e_questaccept:execute()
 	Quest:AcceptQuest()
+	--backup check here to clear Kill Count if its already set from previous bad run
+	if(ml_task_hub:CurrentTask().params["type"] and ml_task_hub:CurrentTask().params["type"] == "kill")then
+		ffxiv_task_quest.killCount = 0
+		ffxiv_task_quest.backupKillCount = 0
+		ffxiv_task_quest.killTaskCompleted = false
+		
+		Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
+		gQuestKillCount = ffxiv_task_quest.killCount
+	end
+	
 	ml_task_hub:CurrentTask():ParentTask().startTimer = ml_global_information.Now
 	ml_task_hub:CurrentTask().stepCompleted = true
 end
@@ -195,6 +215,11 @@ function c_questcomplete:evaluate()
 end
 function e_questcomplete:execute()
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			d("test questcomplete1")
+			ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
+		end
+		
 		local reward = ml_task_hub:CurrentTask().params["itemrewardslot"]
 		local rewardslot
 		if(type(reward) == "table") then
@@ -202,8 +227,13 @@ function e_questcomplete:execute()
 		else
 			rewardslot = tonumber(reward)
 		end
-		d("Selecting reward from slot "..tostring(rewardslot))
+		--d("Selecting reward from slot "..tostring(rewardslot))
 		Quest:CompleteQuestReward(rewardslot)
+		
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			--delay the task a bit so that the inventory will update
+			ml_task_hub:CurrentTask():SetDelay(1500)
+		end
 	else
 		Quest:CompleteQuestReward()
 	end
@@ -254,6 +284,7 @@ function c_questhandover:evaluate()
 	return Quest:IsRequestDialogOpen()
 end
 function e_questhandover:execute()
+	ffxiv_task_quest.SetQuestFlags()
 	if(ml_task_hub:CurrentTask().params["itemturnin"]) then
 		if(ml_task_hub:CurrentTask().params["itemturninid"]) then
 			if(not ml_task_hub:CurrentTask().idset) then
@@ -281,11 +312,6 @@ function e_questhandover:execute()
 					Quest:RequestHandOver()
 					if (ml_task_hub:CurrentTask().params["type"] == "interact") then
 						ml_task_hub:CurrentTask().stepCompleted = true
-						-- if using teleport the bot teleports and desyncs from the npc before the handover 
-						-- exchange is completed with the server - need to delay it a bit to be safe
-						if (gTeleport == "1") then
-							ml_task_hub:CurrentTask():SetDelay(2000)
-						end
 					end
 				end
 			end
@@ -415,7 +441,7 @@ end
 c_indialog = inheritsFrom( ml_cause )
 e_indialog = inheritsFrom( ml_effect )
 function c_indialog:evaluate()
-	return Quest:IsInDialog()
+	return Quest:IsInDialog() and not ControlVisible("SelectIconString") and not ControlVisible("SelectString")
 end
 function e_indialog:execute()
 	--do nothing, this is a blocking cne to avoid spamming
@@ -599,11 +625,13 @@ function e_questuseaction:execute()
 			local id, target = next(list)
 			if(ValidTable(target)) then
 				Player:SetTarget(target.id)
+				e_questuseaction.action:Cast(target.id)
 			end
 		end
+	else
+		e_questuseaction.action:Cast()
 	end
 	
-	e_questuseaction.action:Cast()
 	ml_task_hub:ThisTask().stepCompleted = true
 end
 
@@ -624,6 +652,7 @@ function c_questmovetohealer:evaluate()
 	return false
 end
 function e_questmovetohealer:execute()
+	d("test move to healer")
 	local pos = e_questmovetohealer.pos
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
@@ -683,10 +712,7 @@ function c_questflee:evaluate()
     return false
 end
 function e_questflee:execute()
-	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
-		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
-		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
-	end
+	ffxiv_task_quest.ResetStep()
 	
     if (e_questflee.fleeing) then
         if (not Player.hasaggro) then
@@ -716,10 +742,9 @@ function c_questdead:evaluate()
     return false
 end
 function e_questdead:execute()
-	if(ml_task_hub:CurrentTask().params and ml_task_hub:CurrentTask().params["restartatstep"]) then
-		gCurrQuestStep = tostring(ml_task_hub:CurrentTask().params["restartatstep"])
-		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
-	end
+	--if we have to restart at a previous interact step etc to spawn mobs to kill
+	--then reset the step and all the kill state
+	ffxiv_task_quest.ResetStep()
 
     ml_debug("Respawning...")
 	-- try raise first
@@ -765,20 +790,15 @@ end
 c_inckillcount = inheritsFrom( ml_cause )
 e_inckillcount = inheritsFrom( ml_effect )
 function c_inckillcount:evaluate()
-	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
-	if(ValidTable(questTable)) then
-		local questFlags = questTable.I16A + questTable.I16B + questTable.I16C
-		
-		if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.questFlags ~= questFlags) then
-			e_inckillcount.questFlags = questFlags
-			return true
-		elseif(ffxiv_task_quest.backupKillCount > 5) then
-			--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
-			--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
-			return true
-		elseif(ffxiv_task_quest.killTaskCompleted) then
-			ffxiv_task_quest.backupKillCount = ffxiv_task_quest.backupKillCount + 1
-		end
+	if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.QuestFlagsChanged()) then
+		e_inckillcount.questFlags = questFlags
+		return true
+	elseif(ffxiv_task_quest.backupKillCount > 5) then
+		--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
+		--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
+		return true
+	elseif(ffxiv_task_quest.killTaskCompleted) then
+		ffxiv_task_quest.backupKillCount = ffxiv_task_quest.backupKillCount + 1
 	end
 	
 	return false
@@ -797,11 +817,24 @@ end
 c_questkillaggrotarget = inheritsFrom( ml_cause )
 e_questkillaggrotarget = inheritsFrom( ml_effect )
 function c_questkillaggrotarget:evaluate()
+	if(ml_task_hub:ThisTask().name == "MOVETOPOS") then
+		if(e_questflee.fleeing) then
+			return false
+		end
+		
+		local myPos = Player.pos
+		local gotoPos = ml_task_hub:ThisTask().pos
+		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		if(distance > 50) then
+			return false
+		end
+	end
+
 	local el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
-			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
 				c_questkillaggrotarget.targetid = target.id
 				return true
 			end
@@ -812,12 +845,17 @@ function c_questkillaggrotarget:evaluate()
 end
 function e_questkillaggrotarget:execute()
 	--just in case
+	Player:Stop()
 	Dismount()
 	
 	local newTask = ffxiv_task_killtarget.Create()
     newTask.targetid = c_questkillaggrotarget.targetid
 	Player:SetTarget(c_questkillaggrotarget.targetid)
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	
+	--add cnes for fleeing and death since we're working on another queue
+    newTask:add( ml_element:create( "Dead", c_questdead, e_questdead, 20 ), newTask.overwatch_elements)
+    newTask:add( ml_element:create( "Flee", c_questflee, e_questflee, 15 ), newTask.overwatch_elements)
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
 c_questbuy = inheritsFrom( ml_cause )
@@ -843,7 +881,11 @@ function c_questbuy:evaluate()
 end
 function e_questbuy:execute()
 	local buyamount = ml_task_hub:CurrentTask().params["buyamount"] or 1
-	Inventory:BuyShopItem(e_questbuy.itemid,buyamount)
+	if(Inventory:BuyShopItem(e_questbuy.itemid,buyamount)) then
+		if(ml_task_hub:CurrentTask().params["equip"]) then
+			ml_global_information.itemIDsToEquip[e_questbuy.itemid] = true
+		end
+	end
 	
 	--set a delay on the current task to give the server time to update the item count
 	--so the task completion check will be valid
@@ -855,7 +897,7 @@ e_questselectconvindex = inheritsFrom( ml_effect )
 function c_questselectconvindex:evaluate()	
 	--check for vendor window open
 	local index = ml_task_hub:CurrentTask().params["conversationindex"]
-	return index and ControlVisible("SelectIconString")
+	return index and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
 function e_questselectconvindex:execute()
 	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().params["conversationindex"]))
@@ -864,4 +906,59 @@ function e_questselectconvindex:execute()
 	end
 	--delay to allow conversation to update
 	ml_task_hub:CurrentTask():SetDelay(1500)
+end
+
+--when we want to equip a new item from a reward we create a table of current ids before reward
+--then this cne kicks in and sees that the table was set, checks a diff, and equips anything new
+c_equipreward = inheritsFrom( ml_cause )
+e_equipreward = inheritsFrom( ml_effect )
+function c_equipreward:evaluate()	
+	return ValidTable(ffxiv_task_quest.lastArmoryIDs)
+end
+function e_equipreward:execute()
+	local newArmoryIDs = GetArmoryIDsTable()
+	for id, _ in pairs(newArmoryIDs) do
+		if(not ffxiv_task_quest.lastArmoryIDs[id]) then
+			ml_global_information.itemIDsToEquip[id] = true
+		end
+	end
+	ffxiv_task_quest.lastArmoryIDs = {}
+end
+
+c_questequip = inheritsFrom( ml_cause )
+e_questequip = inheritsFrom( ml_effect )
+function c_questequip:evaluate()
+	local itemid = ml_task_hub:CurrentTask().params["itemid"]
+	if(type(itemid) == "number") then
+		local item = Inventory:Get(itemid)
+		if(ValidTable(item)) then
+			local currItem = GetItemInSlot(item.slot)
+			return not currItem or (currItem.id ~= itemid)
+		end
+	elseif(type(itemid) == "table" and ValidTable(itemid)) then
+		local equipped = true
+		for _, id in pairs(itemid) do
+			local item = Inventory:Get(id)
+			if(ValidTable(item)) then
+				local currItem = GetItemInSlot(item.slot)
+				if (not currItem or currItem.id ~= item.id) then
+					equipped = false
+				end
+			end
+		end
+		
+		return equipped
+	end
+	
+	return false
+end
+function e_questequip:execute()
+	local itemid = ml_task_hub:CurrentTask().params["itemid"]
+	if(type(itemid) == "number") then
+		ml_global_information.itemIDsToEquip[itemid] = true
+	elseif(type(itemid) == "table" and ValidTable(itemid)) then
+		for _, id in pairs(itemid) do
+			ml_global_information.itemIDsToEquip[id] = true
+		end
+	end
 end

@@ -1,0 +1,6197 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[123] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 6000;
+					["id"] = 1000197;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0;
+						["x"] = 198.83140563965;
+						["z"] = 43.640674591064;
+					};
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 23000;
+					["id"] = 2;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.2000005245209;
+						["x"] = 33.755401611328;
+						["z"] = 32.476184844971;
+					};
+				};
+				[1] = {
+					["mapid"] = 183;
+					["type"] = "start";
+					["id"] = 1001140;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.461893081665;
+						["z"] = 115.03784179688;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1000768;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000119;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["delay"] = 10000;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 171.40907287598;
+						["z"] = -90.579025268555;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.81849861145;
+						["z"] = 115.86698150635;
+					};
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[5] = {
+					[1] = 39;
+				};
+			};
+			["job"] = 5;
+		};
+		[124] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 23000;
+					["id"] = 2;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.2000005245209;
+						["x"] = 33.755401611328;
+						["z"] = 32.476184844971;
+					};
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000323;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -4.0000014305115;
+						["x"] = -234.78536987305;
+						["z"] = -8.4698963165283;
+					};
+				};
+				[1] = {
+					["mapid"] = 183;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1001140;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.461893081665;
+						["z"] = 115.03784179688;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1000768;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000120;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 170.69195556641;
+						["z"] = -89.578231811523;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.693012237549;
+						["z"] = 115.84561920166;
+					};
+				};
+				["job"] = 6;
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[6] = {
+					[1] = 39;
+				};
+			};
+		};
+		[125] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 2000011;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 31.824590682983;
+						["x"] = 508.08377075195;
+						["z"] = -61.026969909668;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["killcount"] = 6;
+					["id"] = 120;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 23.600086212158;
+						["x"] = 453.16812133789;
+						["z"] = -41.683605194092;
+					};
+				};
+				[8] = {
+					["type"] = "complete";
+					["id"] = 1000408;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["mapid"] = 148;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000071;
+					};
+					["meshname"] = "Central Shroud";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 107.46115875244;
+						["z"] = -76.120986938477;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 2000014;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 30.740758895874;
+						["x"] = 459.87847900391;
+						["z"] = -23.153018951416;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000685;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 287.86627197266;
+						["z"] = -31.360984802246;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 2000150;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 39.506011962891;
+						["x"] = 471.19253540039;
+						["z"] = -4.2025766372681;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 2000013;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 33.319145202637;
+						["x"] = 484.82412719727;
+						["z"] = -29.351762771606;
+					};
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 1000685;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 288.31784057617;
+						["z"] = -33.449897766113;
+					};
+				};
+			};
+			["level"] = 9;
+			["prereq"] = {
+				[-1] = {
+					[1] = 198;
+				};
+			};
+		};
+		[32] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000372;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 38.956104278564;
+						["z"] = 111.27388763428;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000311;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 10.212430953979;
+						["x"] = -195.52401733398;
+						["z"] = -97.795654296875;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000629;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[5] = 0;
+						[6] = 1;
+						[4] = 0;
+					};
+					["itemturninid"] = {
+						[1] = 2000029;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.5506706237793;
+						["x"] = 345.86480712891;
+						["z"] = 342.57580566406;
+					};
+				};
+			};
+			["level"] = 4;
+			["prereq"] = false;
+		};
+		[381] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000741;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000000298023;
+						["x"] = -65.626708984375;
+						["z"] = 11.459268569946;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2001006;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -15.517232894897;
+						["x"] = 99.080589294434;
+						["z"] = 192.0538482666;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -24;
+						["x"] = 48.825542449951;
+						["z"] = 228.0004119873;
+					};
+					["id"] = 1000491;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -14.897278785706;
+						["x"] = 98.268478393555;
+						["z"] = 190.19682312012;
+					};
+					["id"] = 590;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+			};
+			["level"] = 11;
+			["prereq"] = {
+				[-1] = {
+					[1] = 380;
+				};
+			};
+		};
+		[130] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000461;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 287.39358520508;
+						["z"] = -31.129344940186;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 1.2807729244232;
+						["x"] = 381.82150268555;
+						["z"] = -45.364864349365;
+					};
+					["id"] = 32;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 8;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -6;
+						["x"] = 269.58728027344;
+						["z"] = -10.059419631958;
+					};
+					["id"] = 1000455;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 127;
+				};
+			};
+		};
+		[34] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000370;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 36.80827331543;
+						["z"] = 113.45286560059;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1000408;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000080;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 107.41667938232;
+						["z"] = -75.785820007324;
+					};
+				};
+			};
+			["level"] = 4;
+			["prereq"] = false;
+		};
+		[37] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000195;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0.0022828355431557;
+						["x"] = 197.48457336426;
+						["z"] = 56.328372955322;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 0.7346431016922;
+						["x"] = 121.4722442627;
+						["z"] = -174.59405517578;
+					};
+					["id"] = 47;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 6;
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["killcount"] = 6;
+					["itemrewardslot"] = {
+						[5] = 0;
+						[6] = 1;
+						[4] = 0;
+					};
+					["id"] = 1000195;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0.0022543668746948;
+						["x"] = 196.92095947266;
+						["z"] = 56.258823394775;
+					};
+				};
+			};
+			["level"] = 4;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[38] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000218;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.69993019104;
+						["x"] = 163.09561157227;
+						["z"] = -59.241203308105;
+					};
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["id"] = 1000214;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.699949264526;
+						["x"] = 153.75743103027;
+						["z"] = -65.610481262207;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000768;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 170.63970947266;
+						["z"] = -91.32852935791;
+					};
+				};
+				[4] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000238;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.700000762939;
+						["x"] = 157.45666503906;
+						["z"] = -122.15330505371;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1000248;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000081;
+						[2] = 2000082;
+						[3] = 2000083;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 14.250359535217;
+						["x"] = 141.60018920898;
+						["z"] = -250.30960083008;
+					};
+				};
+			};
+			["level"] = 2;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[39] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 183;
+					["type"] = "start";
+					["id"] = 1001148;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -12.554936408997;
+						["x"] = 118.6036605835;
+						["z"] = 143.91763305664;
+					};
+				};
+				[2] = {
+					["mapid"] = 183;
+					["type"] = "complete";
+					["id"] = 1001140;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.629447937012;
+						["z"] = 115.62223052979;
+					};
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = false;
+		};
+		[156] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000470;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.01276745647192;
+						["x"] = -57.952518463135;
+						["z"] = 26.843765258789;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = -10.877870559692;
+						["x"] = 79.601409912109;
+						["z"] = 165.77119445801;
+					};
+					["id"] = 22;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 6;
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000470;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["itemturninid"] = {
+						[1] = 2000092;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.0095661878585815;
+						["x"] = -57.810615539551;
+						["z"] = 26.130847930908;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = {
+				[-1] = {
+					[1] = 380;
+				};
+			};
+		};
+		[40] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 132;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["meshname"] = "New Gridania";
+					["id"] = 1000161;
+					["itemreward"] = false;
+					["delay"] = 8000;
+					["pos"] = {
+						["y"] = -3.3419146537781;
+						["x"] = -77.947448730469;
+						["z"] = 39.165954589844;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "textcommand";
+					["commandstring"] = "/bow";
+					["meshname"] = "New Gridania";
+					["id"] = 1000161;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -3.3448388576508;
+						["x"] = -77.769470214844;
+						["z"] = 38.664726257324;
+					};
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["meshname"] = "New Gridania";
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.7429695129395;
+						["x"] = -77.662689208984;
+						["z"] = 52.937843322754;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -3.8066942691803;
+						["x"] = -77.490783691406;
+						["z"] = 53.193157196045;
+					};
+				};
+				[4] = {
+					["mapid"] = 132;
+					["type"] = "textcommand";
+					["commandstring"] = "/joy";
+					["meshname"] = "New Gridania";
+					["id"] = 1000161;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -3.3483657836914;
+						["x"] = -77.554801940918;
+						["z"] = 38.89111328125;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["meshname"] = "New Gridania";
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.699898481369;
+						["x"] = -77.633964538574;
+						["z"] = 52.471111297607;
+					};
+				};
+				[7] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000162;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -3.5881609916687;
+						["x"] = -78.06649017334;
+						["z"] = 51.648986816406;
+					};
+				};
+			};
+			["level"] = 2;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[160] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["itemid"] = 2000100;
+					["delay"] = 6000;
+					["id"] = 2000045;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -35.676067352295;
+						["x"] = -93.756225585938;
+						["z"] = 478.50485229492;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["itemid"] = 2000100;
+					["delay"] = 6000;
+					["id"] = 2000043;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.536487579346;
+						["x"] = -55.566844940186;
+						["z"] = 426.63259887695;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -24.00447845459;
+						["x"] = 49.311153411865;
+						["z"] = 221.33296203613;
+					};
+					["id"] = 1000494;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -31.471284866333;
+						["x"] = -54.064971923828;
+						["z"] = 421.39416503906;
+					};
+					["id"] = 188;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000494;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24.005306243896;
+						["x"] = 49.553386688232;
+						["z"] = 220.01065063477;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["itemid"] = 2000100;
+					["delay"] = 6000;
+					["id"] = 2000044;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -36.610572814941;
+						["x"] = -28.803016662598;
+						["z"] = 471.43667602539;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -36.401344299316;
+						["x"] = -28.543912887573;
+						["z"] = 467.57308959961;
+					};
+					["id"] = 188;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -35.997783660889;
+						["x"] = -92.491508483887;
+						["z"] = 479.92123413086;
+					};
+					["id"] = 188;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+			};
+			["level"] = 13;
+			["prereq"] = {
+				[-1] = {
+					[1] = 383;
+				};
+			};
+		};
+		[449] = {
+			["steps"] = {
+				[2] = {
+					["type"] = "equip";
+					["itemid"] = 2651;
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["meshname"] = "Old Gridania";
+					["id"] = 1000286;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 7.0954093933105;
+						["x"] = -51.875240325928;
+						["z"] = -118.81520843506;
+					};
+				};
+				[4] = {
+					["mapid"] = 179;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2000087;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.0463502349012e-006;
+						["x"] = 0.12195981293917;
+						["z"] = 7.0516242980957;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.453260421753;
+						["z"] = 117.22133636475;
+					};
+				};
+				[5] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000460;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 4.0442314147949;
+						["x"] = -159.54917907715;
+						["z"] = -4.8452925682068;
+					};
+				};
+				[6] = {
+					["mapid"] = 205;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -1.8050062656403;
+						["x"] = 5.3498730659485;
+						["z"] = 1.1364381313324;
+					};
+					["id"] = 1003027;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 448;
+				};
+			};
+		};
+		[42] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000024;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.5000004768372;
+						["x"] = -53.356803894043;
+						["z"] = -89.761894226074;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000022;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.8280868530273;
+						["x"] = -52.406139373779;
+						["z"] = -110.86098480225;
+					};
+				};
+				[8] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 7.2099161148071;
+						["x"] = -53.563762664795;
+						["z"] = -119.24324035645;
+					};
+					["id"] = 1000286;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000021;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.0893106460571;
+						["x"] = -38.697944641113;
+						["z"] = -102.79541015625;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["id"] = 1000286;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 7.0962409973145;
+						["x"] = -51.933013916016;
+						["z"] = -118.98819732666;
+					};
+				};
+				[4] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000020;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.9243674278259;
+						["x"] = -62.431262969971;
+						["z"] = -110.48120880127;
+					};
+				};
+				[5] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000025;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 5.7099075317383;
+						["x"] = -48.533061981201;
+						["z"] = -100.14940643311;
+					};
+				};
+				[7] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000023;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.4999742507935;
+						["x"] = -44.83532333374;
+						["z"] = -86.302047729492;
+					};
+				};
+			};
+			["level"] = 2;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[170] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["id"] = 1000629;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.5506706237793;
+						["x"] = 345.86480712891;
+						["z"] = 342.57580566406;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 6;
+					["id"] = 9;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -21.973583221436;
+						["x"] = 244.10960388184;
+						["z"] = 272.45904541016;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000629;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.5506715774536;
+						["x"] = 344.69049072266;
+						["z"] = 341.94479370117;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[-1] = {
+					[1] = 32;
+				};
+			};
+		};
+		[174] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000612;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = 8.934157371521;
+						["x"] = 358.94033813477;
+						["z"] = 214.48542785645;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 2;
+					["id"] = 194;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -26.736520767212;
+						["x"] = 260.20971679688;
+						["z"] = 220.02833557129;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 2;
+					["id"] = 192;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -26.736520767212;
+						["x"] = 260.20971679688;
+						["z"] = 220.02833557129;
+					};
+				};
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["id"] = 1000612;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = 8.934157371521;
+						["x"] = 358.61276245117;
+						["z"] = 214.60084533691;
+					};
+				};
+				[4] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 2;
+					["id"] = 193;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -25.596963882446;
+						["x"] = 226.23004150391;
+						["z"] = 243.97367858887;
+					};
+				};
+				[5] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["meshname"] = "North Shroud";
+					["id"] = 7;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -39.313812255859;
+						["x"] = -44.64208984375;
+						["z"] = 233.42152404785;
+					};
+				};
+			};
+			["level"] = 7;
+			["prereq"] = {
+				[-1] = {
+					[1] = 171;
+				};
+			};
+		};
+		[176] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.633390426636;
+						["z"] = 116.43312072754;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -0.0091109275817871;
+						["x"] = -57.556621551514;
+						["z"] = 26.029392242432;
+					};
+					["id"] = 1000470;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[-1] = {
+					[1] = 129;
+				};
+			};
+		};
+		[46] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000930;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -4.2332096099854;
+						["x"] = 69.529685974121;
+						["z"] = 91.189483642578;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.4199485778809e-005;
+						["x"] = 208.35006713867;
+						["z"] = 35.110092163086;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000925;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -2.5988960266113;
+						["x"] = 188.50512695313;
+						["z"] = 74.291717529297;
+					};
+				};
+				[4] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000931;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.5499172210693;
+						["x"] = 45.592514038086;
+						["z"] = 21.023263931274;
+					};
+				};
+				[8] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.8848648071289e-005;
+						["x"] = 208.38858032227;
+						["z"] = 35.044723510742;
+					};
+				};
+				[9] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -20.256391525269;
+						["x"] = 305.75149536133;
+						["z"] = 201.69960021973;
+					};
+					["id"] = 5;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["killcount"] = 8;
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000929;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -1.977876663208;
+						["x"] = 8.9678936004639;
+						["z"] = 37.944274902344;
+					};
+				};
+				[10] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -8.4768972396851;
+						["x"] = 306.63793945313;
+						["z"] = -11.557957649231;
+					};
+					["id"] = 32;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["killcount"] = 8;
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000926;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0.036905497312546;
+						["x"] = 110.07191467285;
+						["z"] = 63.043075561523;
+					};
+				};
+				[6] = {
+					["mapid"] = 132;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000927;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -1.9320975542068;
+						["x"] = 8.9141817092896;
+						["z"] = 31.099058151245;
+					};
+				};
+				[11] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 4.202127456665e-005;
+						["x"] = 208.32429504395;
+						["z"] = 34.666481018066;
+					};
+					["id"] = 1000200;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 4;
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[5] = {
+					[1] = 21;
+				};
+			};
+			["job"] = 5;
+		};
+		[47] = {
+			["steps"] = {
+				[13] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 12000;
+					["id"] = 1000251;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.500157356262;
+						["x"] = 160.7963104248;
+						["z"] = -280.84970092773;
+					};
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000915;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 3.0906693935394;
+						["x"] = 327.44360351563;
+						["z"] = 92.772041320801;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["id"] = 1000254;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.900379180908;
+						["x"] = 157.65631103516;
+						["z"] = -271.64065551758;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000230;
+					["id"] = 2000910;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -11.982098579407;
+						["x"] = 264.73138427734;
+						["z"] = -175.17936706543;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000230;
+					["id"] = 2000911;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -11.982098579407;
+						["x"] = 260.26895141602;
+						["z"] = -159.87467956543;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 2.9894416332245;
+						["x"] = 325.82507324219;
+						["z"] = 92.025276184082;
+					};
+					["delay"] = 5000;
+					["id"] = 201;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[9] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000914;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 1.4582872390747;
+						["x"] = 301.52963256836;
+						["z"] = 88.197265625;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -11.982098579407;
+						["x"] = 260.26895141602;
+						["z"] = -159.87467956543;
+					};
+					["delay"] = 5000;
+					["id"] = 603;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+				[10] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 1.4582872390747;
+						["x"] = 301.52963256836;
+						["z"] = 88.197265625;
+					};
+					["delay"] = 5000;
+					["id"] = 201;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[11] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000916;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 3.734694480896;
+						["x"] = 306.77563476563;
+						["z"] = 103.90300750732;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -11.982098579407;
+						["x"] = 263.70050048828;
+						["z"] = -175.04711914063;
+					};
+					["delay"] = 5000;
+					["id"] = 603;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 2;
+				};
+				[6] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 1000254;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.900373458862;
+						["x"] = 157.5700378418;
+						["z"] = -271.85131835938;
+					};
+				};
+				[12] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 3.2454137802124;
+						["x"] = 300.76977539063;
+						["z"] = 100.94983673096;
+					};
+					["delay"] = 5000;
+					["id"] = 592;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[14] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 15.900421142578;
+						["x"] = 158.4073638916;
+						["z"] = -271.79730224609;
+					};
+					["delay"] = 5000;
+					["id"] = 1000254;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Old Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[4] = {
+					[1] = 23;
+				};
+			};
+			["job"] = 4;
+		};
+		[374] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -0.011714458465576;
+						["x"] = -58.308380126953;
+						["z"] = 26.609172821045;
+					};
+					["id"] = 1000470;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 2000999;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.31822502613068;
+						["x"] = -40.460655212402;
+						["z"] = -27.757257461548;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000242;
+					["id"] = 2001000;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 0;
+						["x"] = -51.531555175781;
+						["z"] = 2.174458026886;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000470;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.010632112622261;
+						["x"] = -57.939971923828;
+						["z"] = 26.368236541748;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000242;
+					["id"] = 2001001;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 0;
+						["x"] = -57.486099243164;
+						["z"] = 2.4484565258026;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000242;
+					["id"] = 2001002;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 24.614978790283;
+						["z"] = 83.96849822998;
+					};
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[-1] = {
+					[1] = 176;
+				};
+			};
+		};
+		[378] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 4.1570310592651;
+						["x"] = -125.07423400879;
+						["z"] = -44.141212463379;
+					};
+					["id"] = 1000748;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2001084;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -2.5682046413422;
+						["x"] = -127.37020874023;
+						["z"] = -61.613636016846;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -2.5571436882019;
+						["x"] = -127.72106933594;
+						["z"] = -62.656673431396;
+					};
+					["id"] = 589;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000748;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.1572542190552;
+						["x"] = -124.9303894043;
+						["z"] = -44.265281677246;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2001083;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 41.92419052124;
+						["x"] = -183.52362060547;
+						["z"] = -128.30836486816;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 41.92419052124;
+						["x"] = -183.52362060547;
+						["z"] = -128.30836486816;
+					};
+					["id"] = 589;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[-1] = {
+					[1] = 376;
+				};
+			};
+		};
+		[382] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000491;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24;
+						["x"] = 48.825542449951;
+						["z"] = 228.0004119873;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -40;
+						["x"] = -71.234672546387;
+						["z"] = 311.92330932617;
+					};
+					["id"] = 20;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 4;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -24;
+						["x"] = 49.284641265869;
+						["z"] = 228.33760070801;
+					};
+					["id"] = 1000491;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 1;
+						[6] = 2;
+					};
+				};
+			};
+			["level"] = 12;
+			["prereq"] = {
+				[-1] = {
+					[1] = 381;
+				};
+			};
+		};
+		[49] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["id"] = 1000788;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 7.0720243453979;
+						["x"] = -43.393741607666;
+						["z"] = -135.40913391113;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 7.9982862472534;
+						["x"] = 55.216690063477;
+						["z"] = -131.63958740234;
+					};
+					["id"] = 1000429;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[196] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.270233154297;
+						["z"] = -78.967903137207;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 4;
+					["id"] = 196;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -12.298861503601;
+						["x"] = 223.73533630371;
+						["z"] = 2.7107186317444;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 1;
+						[6] = 2;
+					};
+					["id"] = 1000421;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.297470092773;
+						["z"] = -78.692756652832;
+					};
+				};
+			};
+			["level"] = 7;
+			["prereq"] = {
+				[-1] = {
+					[1] = 128;
+				};
+			};
+		};
+		[198] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000685;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 288.70181274414;
+						["z"] = -33.400436401367;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 26.777938842773;
+						["x"] = 420.83605957031;
+						["z"] = 95.015785217285;
+					};
+					["id"] = 195;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 6;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 287.86627197266;
+						["z"] = -31.360984802246;
+					};
+					["id"] = 1000685;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+			};
+			["level"] = 9;
+			["prereq"] = {
+				[-1] = {
+					[1] = 175;
+				};
+			};
+		};
+		[210] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000794;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -6.8870706558228;
+						["x"] = 113.48941802979;
+						["z"] = -102.09982299805;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000792;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -8.0413055419922;
+						["x"] = 101.49929046631;
+						["z"] = -36.404182434082;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000408;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 107.41667938232;
+						["z"] = -75.785820007324;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000793;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -7.5598821640015;
+						["x"] = 27.58130645752;
+						["z"] = -104.46781921387;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000408;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 107.09515380859;
+						["z"] = -77.330192565918;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[-1] = {
+					[1] = 34;
+				};
+			};
+		};
+		[446] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000001788139;
+						["x"] = -60.352603912354;
+						["z"] = 6.5267100334167;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1000100;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+					["itemturninid"] = {
+						[1] = 2000240;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 132;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.518613815308;
+						["z"] = 115.87534332275;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 161;
+				};
+			};
+		};
+		[674] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 131;
+					["type"] = "start";
+					["id"] = 1001821;
+					["itemreward"] = false;
+					["meshname"] = "Ul'dah - Steps of Thal";
+					["pos"] = {
+						["y"] = 38.000003814697;
+						["x"] = -23.696435928345;
+						["z"] = 84.24365234375;
+					};
+				};
+				[2] = {
+					["mapid"] = 128;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["y"] = 40.216011047363;
+						["x"] = 17.799825668335;
+						["z"] = -5.3544473648071;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 507;
+				};
+			};
+		};
+		[1] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000146;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -1.4495372772217;
+						["x"] = 50.122150421143;
+						["z"] = 52.549514770508;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 0.0022828578948975;
+						["x"] = 197.48457336426;
+						["z"] = 56.328372955322;
+					};
+					["id"] = 1000195;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[5] = {
+					[1] = 123;
+				};
+				[6] = {
+					[1] = 124;
+				};
+				[4] = {
+					[1] = 85;
+				};
+			};
+		};
+		[375] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000474;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0;
+						["x"] = -42.383598327637;
+						["z"] = 64.540519714355;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000476;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 26.867710113525;
+						["z"] = 13.357674598694;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000742;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.036319777369499;
+						["x"] = -56.157817840576;
+						["z"] = 39.630283355713;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000483;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -6.1947774887085;
+						["x"] = 86.840057373047;
+						["z"] = 65.956161499023;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -0.030519962310791;
+						["x"] = -54.834136962891;
+						["z"] = 41.230461120605;
+					};
+					["id"] = 1000742;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[-1] = {
+					[1] = 176;
+				};
+			};
+		};
+		[379] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000436;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 56.264671325684;
+						["x"] = -193.73829650879;
+						["z"] = -116.95896148682;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000748;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.1564836502075;
+						["x"] = -125.25373077393;
+						["z"] = -44.175430297852;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000748;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["itemturninid"] = {
+						[1] = 2000191;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.1562395095825;
+						["x"] = -125.36974334717;
+						["z"] = -44.120628356934;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000689;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 3.5818412303925;
+						["x"] = -95.940223693848;
+						["z"] = -150.6296081543;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = {
+				[-1] = {
+					[1] = 377;
+				};
+			};
+		};
+		[383] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 2;
+					["id"] = 591;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -23.251140594482;
+						["x"] = -141.99969482422;
+						["z"] = 350.5080871582;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1002946;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -32.229068756104;
+						["x"] = -39.726634979248;
+						["z"] = 337.75927734375;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1002946;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.219234466553;
+						["x"] = -39.980438232422;
+						["z"] = 337.92971801758;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["delay"] = 6000;
+					["meshname"] = "Central Shroud";
+					["id"] = 2001007;
+					["itemreward"] = false;
+					["itemid"] = 2000192;
+					["pos"] = {
+						["y"] = -22.025602340698;
+						["x"] = -96.15355682373;
+						["z"] = 313.60229492188;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000494;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24.007068634033;
+						["x"] = 50.069347381592;
+						["z"] = 220.54100036621;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["delay"] = 6000;
+					["meshname"] = "Central Shroud";
+					["id"] = 2001009;
+					["itemreward"] = false;
+					["itemid"] = 2000192;
+					["pos"] = {
+						["y"] = -22.711095809937;
+						["x"] = -147.71711730957;
+						["z"] = 264.74618530273;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "nav";
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -23.592161178589;
+						["x"] = -139.45710754395;
+						["z"] = 355.67758178711;
+					};
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["delay"] = 6000;
+					["meshname"] = "Central Shroud";
+					["id"] = 2001008;
+					["itemreward"] = false;
+					["itemid"] = 2000192;
+					["pos"] = {
+						["y"] = -22.798063278198;
+						["x"] = -143.57548522949;
+						["z"] = 355.25845336914;
+					};
+				};
+			};
+			["level"] = 12;
+			["prereq"] = {
+				[-1] = {
+					[1] = 380;
+				};
+			};
+		};
+		[387] = {
+			["steps"] = {
+				[6] = {
+					["type"] = "complete";
+					["id"] = 1000470;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+					["itemturninid"] = {
+						[1] = 2000237;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.012767612934113;
+						["x"] = -57.952518463135;
+						["z"] = 26.843765258789;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "nav";
+					["itemturnin"] = false;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -23.75260925293;
+						["x"] = 157.18856811523;
+						["z"] = 494.11221313477;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = -23.75260925293;
+						["x"] = 157.18856811523;
+						["z"] = 494.11221313477;
+					};
+					["id"] = 592;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000503;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.015338897705;
+						["x"] = 177.57113647461;
+						["z"] = 331.96142578125;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001016;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24.230104446411;
+						["x"] = 154.52491760254;
+						["z"] = 501.82455444336;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001018;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24.630523681641;
+						["x"] = 160.8962097168;
+						["z"] = 520.31408691406;
+					};
+				};
+			};
+			["level"] = 13;
+			["prereq"] = {
+				[-1] = {
+					[1] = 159;
+				};
+			};
+		};
+		[67] = {
+			["steps"] = {
+				[13] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 0.99998760223389;
+						["x"] = 211.16787719727;
+						["z"] = 35.547916412354;
+					};
+					["id"] = 1000200;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 1;
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000938;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 11.737632751465;
+						["x"] = -123.37804412842;
+						["z"] = -166.05430603027;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.3841857910156e-005;
+						["x"] = 208.39018249512;
+						["z"] = 35.162090301514;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000199;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 5.8911740779877e-005;
+						["x"] = 210.90327453613;
+						["z"] = 30.007286071777;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000940;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.4627491235733;
+						["x"] = -150.98207092285;
+						["z"] = -68.337196350098;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000937;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.25046181678772;
+						["x"] = -78.327835083008;
+						["z"] = -179.01445007324;
+					};
+				};
+				[9] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000199;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 4.0292739868164e-005;
+						["x"] = 211.01461791992;
+						["z"] = 29.450222015381;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2001173;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.4639434814453;
+						["x"] = -98.125877380371;
+						["z"] = -78.95337677002;
+					};
+				};
+				[10] = {
+					["mapid"] = 152;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 1.447780251503;
+						["x"] = -447.69787597656;
+						["z"] = 239.5553894043;
+					};
+					["id"] = 39;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["killcount"] = 8;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2001171;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.8193759918213;
+						["x"] = -114.33195495605;
+						["z"] = -63.096599578857;
+					};
+				};
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 2000;
+					["id"] = 2000939;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.4165534973145;
+						["x"] = -154.54621887207;
+						["z"] = -136.11471557617;
+					};
+				};
+				[12] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000199;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 5.7265162467957e-005;
+						["x"] = 209.98455810547;
+						["z"] = 29.460609436035;
+					};
+				};
+				[11] = {
+					["mapid"] = 152;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 10.424414634705;
+						["x"] = -509.39825439453;
+						["z"] = 108.7946395874;
+					};
+					["id"] = 12;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["killcount"] = 8;
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[5] = {
+					[1] = 67;
+				};
+			};
+			["job"] = 5;
+		};
+		[68] = {
+			["steps"] = {
+				[13] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 0.99998760223389;
+						["x"] = 211.16787719727;
+						["z"] = 35.547916412354;
+					};
+					["id"] = 1000200;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 0;
+				};
+				[7] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2000945;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 6.0956478118896;
+						["x"] = -368.62854003906;
+						["z"] = 294.97814941406;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["delay"] = 0;
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.6927719116211e-005;
+						["x"] = 208.39122009277;
+						["z"] = 35.32447052002;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 6000;
+					["id"] = 1000204;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.9999188184738;
+						["x"] = 225.76898193359;
+						["z"] = 29.441530227661;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2001179;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 0.36340796947479;
+						["x"] = -291.01651000977;
+						["z"] = 261.05743408203;
+					};
+				};
+				[8] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2000942;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 2.1429252624512;
+						["x"] = -392.38812255859;
+						["z"] = 265.86361694336;
+					};
+				};
+				[9] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 7000;
+					["id"] = 1000204;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.4646244049072;
+						["x"] = 223.92614746094;
+						["z"] = 29.008703231812;
+					};
+				};
+				[5] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2000943;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 0.87708842754364;
+						["x"] = -318.33309936523;
+						["z"] = 303.45565795898;
+					};
+				};
+				[10] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["delay"] = 15000;
+					["id"] = 2000962;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -11.618395805359;
+						["x"] = 288.0182800293;
+						["z"] = 53.594657897949;
+					};
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2000946;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 11.565533638;
+						["x"] = -256.84707641602;
+						["z"] = 242.65202331543;
+					};
+				};
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "useaction";
+					["actionid"] = 97;
+					["delay"] = 1000;
+					["id"] = 2000944;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 9.3007211685181;
+						["x"] = -334.111328125;
+						["z"] = 320.52728271484;
+					};
+				};
+				[12] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 3000;
+					["id"] = 1000204;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.4074832201004;
+						["x"] = 223.81211853027;
+						["z"] = 29.727317810059;
+					};
+				};
+				[11] = {
+					["mapid"] = 228;
+					["type"] = "dutykill";
+					["ids"] = "193;194;597";
+					["delay"] = 15000;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -11.618395805359;
+						["x"] = 288.01831054688;
+						["z"] = 53.594657897949;
+					};
+				};
+			};
+			["level"] = 15;
+			["prereq"] = {
+				[5] = {
+					[1] = 67;
+				};
+			};
+			["job"] = 5;
+		};
+		[675] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["meshname"] = "Limsa (Lower)";
+					["id"] = 1003621;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 0.99999070167542;
+						["x"] = -191.29635620117;
+						["z"] = 208.64395141602;
+					};
+				};
+				[3] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["id"] = 1000868;
+					["conversationindex"] = 1;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 0.99999070167542;
+						["x"] = -190.64923095703;
+						["z"] = 211.22106933594;
+					};
+				};
+				[1] = {
+					["mapid"] = 128;
+					["type"] = "start";
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["y"] = 40.216011047363;
+						["x"] = 17.660003662109;
+						["z"] = -5.2463302612305;
+					};
+				};
+				[4] = {
+					["mapid"] = 138;
+					["type"] = "interact";
+					["meshname"] = "Western La Noscea";
+					["id"] = 14;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -22.75;
+						["x"] = 260.58453369141;
+						["z"] = 222.59544372559;
+					};
+				};
+				[5] = {
+					["mapid"] = 138;
+					["type"] = "interact";
+					["id"] = 1004472;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.5480728149414;
+						["x"] = 335.97448730469;
+						["z"] = 17.700172424316;
+					};
+				};
+			};
+			["level"] = 15;
+			["prereq"] = {
+				[-1] = {
+					[1] = 674;
+				};
+			};
+		};
+		[20] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000705;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = -4.0000042915344;
+						["x"] = -242.58825683594;
+						["z"] = -8.5101003646851;
+					};
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "useitem";
+					["itemid"] = 2000101;
+					["delay"] = 4000;
+					["id"] = 2000071;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = -5.1811695098877;
+						["x"] = -255.68580627441;
+						["z"] = -15.225321769714;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["id"] = 1000786;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 6.5473790168762;
+						["x"] = -140.38882446289;
+						["z"] = -115.5665512085;
+					};
+				};
+				[4] = {
+					["mapid"] = 133;
+					["type"] = "useitem";
+					["itemid"] = 2000101;
+					["delay"] = 4000;
+					["id"] = 2000070;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = -5.1787390708923;
+						["x"] = -262.89694213867;
+						["z"] = -29.912857055664;
+					};
+				};
+				[5] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -4.0000047683716;
+						["x"] = -242.48500061035;
+						["z"] = -9.1060180664063;
+					};
+					["id"] = 1000705;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Old Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[159] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000503;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.016159057617;
+						["x"] = 177.76695251465;
+						["z"] = 332.32797241211;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000095;
+					["id"] = 2000042;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -32.01602935791;
+						["x"] = 377.30737304688;
+						["z"] = 439.6799621582;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -32.015338897705;
+						["x"] = 177.57113647461;
+						["z"] = 331.96142578125;
+					};
+					["id"] = 1000503;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -32.074592590332;
+						["x"] = 373.89987182617;
+						["z"] = 442.97296142578;
+					};
+					["id"] = 187;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 3;
+				};
+			};
+			["level"] = 13;
+			["prereq"] = {
+				[-1] = {
+					[1] = 384;
+				};
+			};
+		};
+		[161] = {
+			["steps"] = {
+				[7] = {
+					["type"] = "dutykill";
+					["ids"] = "186;185";
+					["healerid"] = 752;
+					["itemreward"] = false;
+					["mapid"] = 227;
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = -27.239059448242;
+						["x"] = -185.29098510742;
+						["z"] = 292.30529785156;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000001788139;
+						["x"] = -60.13013458252;
+						["z"] = 6.9358172416687;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 1000484;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -7.8574161529541;
+						["x"] = 1.7947840690613;
+						["z"] = -23.02907371521;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 1000483;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -6.1515655517578;
+						["x"] = 86.277305603027;
+						["z"] = 66.136283874512;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1003002;
+					["itemreward"] = false;
+					["delay"] = 15000;
+					["pos"] = {
+						["y"] = -26.730356216431;
+						["x"] = -188.95997619629;
+						["z"] = 295.65106201172;
+					};
+				};
+				[9] = {
+					["type"] = "interact";
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000096;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = 0.20000001788139;
+						["x"] = -60.352603912354;
+						["z"] = 6.5267100334167;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["delay"] = 30000;
+					["pos"] = {
+						["y"] = -27.415897369385;
+						["x"] = -182.57485961914;
+						["z"] = 295.38519287109;
+					};
+				};
+				[10] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+					["id"] = 1000471;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000001788139;
+						["x"] = -60.352603912354;
+						["z"] = 6.5267100334167;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 1000476;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 26.442848205566;
+						["z"] = 12.856742858887;
+					};
+				};
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1003002;
+					["itemreward"] = false;
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = -26.916875839233;
+						["x"] = -187.9090423584;
+						["z"] = 295.60241699219;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 387;
+					[2] = 156;
+				};
+			};
+		};
+		[21] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 4.4107437133789e-005;
+						["x"] = 208.38948059082;
+						["z"] = 34.690567016602;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 20000;
+					["id"] = 1000200;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.227855682373e-005;
+						["x"] = 208.16543579102;
+						["z"] = 35.181484222412;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 37;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 14.957715034485;
+						["x"] = 77.786491394043;
+						["z"] = -258.49035644531;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000197;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0;
+						["x"] = 198.39097595215;
+						["z"] = 43.397800445557;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 49;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 14.693641662598;
+						["x"] = 103.87139129639;
+						["z"] = -252.81271362305;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 47;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 1.742818236351;
+						["x"] = 126.02521514893;
+						["z"] = -176.74687194824;
+					};
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[5] = {
+					[1] = 123;
+				};
+			};
+			["job"] = 5;
+		};
+		[85] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 23000;
+					["id"] = 2;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 2.2000005245209;
+						["x"] = 33.755401611328;
+						["z"] = 32.476184844971;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1000768;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000074;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["delay"] = 10000;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 170.71043395996;
+						["z"] = -90.184989929199;
+					};
+				};
+				[1] = {
+					["mapid"] = 183;
+					["type"] = "start";
+					["id"] = 1001140;
+					["itemreward"] = false;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.461893081665;
+						["z"] = 115.03784179688;
+					};
+				};
+				[4] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 1000251;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 144.81858825684;
+						["z"] = -267.95309448242;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.81849861145;
+						["z"] = 115.86698150635;
+					};
+					["delay"] = 6000;
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[4] = {
+					[1] = 39;
+				};
+			};
+			["job"] = 4;
+		};
+		[171] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2000140;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -31.06763458252;
+						["x"] = 201.17533874512;
+						["z"] = 346.24871826172;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["id"] = 191;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 154;
+					["itemturnin"] = false;
+					["delay"] = 3000;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -31.122436523438;
+						["x"] = 200.98007202148;
+						["z"] = 346.42929077148;
+					};
+				};
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000629;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.5506706237793;
+						["x"] = 345.02984619141;
+						["z"] = 342.75131225586;
+					};
+				};
+				[4] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["pos"] = {
+						["y"] = -31.07010269165;
+						["x"] = 201.17762756348;
+						["z"] = 346.19137573242;
+					};
+					["delay"] = 4000;
+					["id"] = 2000142;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1000612;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000144;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = 8.934157371521;
+						["x"] = 359.16534423828;
+						["z"] = 214.58502197266;
+					};
+				};
+			};
+			["level"] = 6;
+			["prereq"] = {
+				[-1] = {
+					[1] = 170;
+				};
+			};
+		};
+		[173] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1000784;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -5.4823207855225;
+						["x"] = 312.47827148438;
+						["z"] = 377.15411376953;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2000146;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -5.5395722389221;
+						["x"] = 324.31234741211;
+						["z"] = 377.27719116211;
+					};
+				};
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000632;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.1062541007996;
+						["x"] = 328.15390014648;
+						["z"] = 323.05416870117;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1000764;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000140;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -28.247224807739;
+						["x"] = 219.66262817383;
+						["z"] = 338.76495361328;
+					};
+				};
+				[5] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000632;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.0535278320313;
+						["x"] = 328.31484985352;
+						["z"] = 322.46734619141;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = false;
+		};
+		[175] = {
+			["steps"] = {
+				[6] = {
+					["type"] = "complete";
+					["id"] = 1000685;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["itemturninid"] = {
+						[1] = 2000141;
+						[2] = 2000146;
+						[3] = 2000147;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 287.55545043945;
+						["z"] = -32.128128051758;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000141;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -10.959059715271;
+						["x"] = 180.12174987793;
+						["z"] = 98.925804138184;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000147;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -12;
+						["x"] = 168.35876464844;
+						["z"] = 120.20066833496;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000449;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -5.5838193893433;
+						["x"] = 201.19160461426;
+						["z"] = -106.71574401855;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000149;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -11.024085044861;
+						["x"] = 154.55688476563;
+						["z"] = 121.17303466797;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000148;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -12;
+						["x"] = 126.90802764893;
+						["z"] = 142.20755004883;
+					};
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 128;
+				};
+			};
+		};
+		[23] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000254;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 15.900393486023;
+						["x"] = 157.91871643066;
+						["z"] = -271.07977294922;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["meshname"] = "Old Gridania";
+					["id"] = 1000254;
+					["itemreward"] = false;
+					["delay"] = 26000;
+					["pos"] = {
+						["y"] = 15.900421142578;
+						["x"] = 158.40049743652;
+						["z"] = -271.55798339844;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 37;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 18.243518829346;
+						["x"] = 116.28897094727;
+						["z"] = -275.09924316406;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["id"] = 1000251;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 144.83772277832;
+						["z"] = -267.93765258789;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 49;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 14.856077194214;
+						["x"] = 106.60959625244;
+						["z"] = -255.61587524414;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 47;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 2.0307416915894;
+						["x"] = 127.32765197754;
+						["z"] = -176.79760742188;
+					};
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[4] = {
+					[1] = 85;
+				};
+			};
+			["job"] = 4;
+		};
+		[507] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 205;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1003027;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = -1.8050062656403;
+						["x"] = 5.3498730659485;
+						["z"] = 1.1364381313324;
+					};
+				};
+				[2] = {
+					["mapid"] = 205;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["id"] = 2001216;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.5826406478882;
+						["x"] = 46.024982452393;
+						["z"] = 47.417045593262;
+					};
+				};
+				[4] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 1000106;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -19.000001907349;
+						["x"] = 29.514108657837;
+						["z"] = 103.3337020874;
+					};
+				};
+				[8] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["conversationindex"] = 2;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1003583;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 91.5;
+						["x"] = -8.3649139404297;
+						["z"] = -15.370572090149;
+					};
+				};
+				[16] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1004339;
+					["conversationindex"] = 1;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 81.799995422363;
+						["x"] = -25.713928222656;
+						["z"] = -30.75023651123;
+					};
+				};
+				[17] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 9;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -3.1548881530762;
+						["x"] = -141.92967224121;
+						["z"] = -166.53883361816;
+					};
+				};
+				[9] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["meshname"] = "Limsa (Lower)";
+					["id"] = 8;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 18.900325775146;
+						["x"] = -80.370712280273;
+						["z"] = 1.6583527326584;
+					};
+				};
+				[18] = {
+					["type"] = "complete";
+					["id"] = 1001821;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000457;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 131;
+					["meshname"] = "Ul'dah - Steps of Thal";
+					["pos"] = {
+						["y"] = 38.000003814697;
+						["x"] = -23.696435928345;
+						["z"] = 84.24365234375;
+					};
+				};
+				[5] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 2001666;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -21.970985412598;
+						["x"] = 8.5915870666504;
+						["z"] = 124.02117156982;
+					};
+				};
+				[10] = {
+					["type"] = "interact";
+					["id"] = 1001029;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000456;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 129;
+					["meshname"] = "Limsa (Lower)";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 20.999271392822;
+						["x"] = 9.3690586090088;
+						["z"] = -14.258556365967;
+					};
+				};
+				[11] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Lower)";
+					["id"] = 1003611;
+					["conversationindex"] = 1;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 20.999340057373;
+						["x"] = 9.3691539764404;
+						["z"] = 13.636144638062;
+					};
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.60503578186;
+						["z"] = 116.52126312256;
+					};
+				};
+				[6] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002703;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 91.499961853027;
+						["x"] = -14.170291900635;
+						["z"] = -1.653080701828;
+					};
+				};
+				[12] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002695;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 91.999969482422;
+						["x"] = -23.513919830322;
+						["z"] = -3.0131993293762;
+					};
+				};
+				[13] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 2001669;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = 92;
+						["x"] = -12.027443885803;
+						["z"] = 16.747615814209;
+					};
+				};
+				[7] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002693;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 91.499969482422;
+						["x"] = -7.4761247634888;
+						["z"] = -12.525015830994;
+					};
+				};
+				[14] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1004434;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 83.199989318848;
+						["x"] = -26.978786468506;
+						["z"] = 4.1073250770569;
+					};
+				};
+				[15] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Ul'dah - Steps of Nald";
+					["id"] = 1004336;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 82.999755859375;
+						["x"] = -14.11404800415;
+						["z"] = 4.4218158721924;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 449;
+				};
+			};
+		};
+		[24] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000206;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -7.4505805969238e-009;
+						["x"] = 194.2522277832;
+						["z"] = 42.945171356201;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1000233;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000079;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 15.5;
+						["x"] = 167.12019348145;
+						["z"] = -95.037536621094;
+					};
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[380] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000748;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.1562395095825;
+						["x"] = -125.36974334717;
+						["z"] = -44.120628356934;
+					};
+				};
+				[2] = {
+					["type"] = "interact";
+					["id"] = 1001280;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000186;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -6.3893995285034;
+						["x"] = 87.929374694824;
+						["z"] = -121.52082061768;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000741;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["itemturninid"] = {
+						[1] = 2000188;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000004768372;
+						["x"] = -65.80965423584;
+						["z"] = 11.617188453674;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1000483;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000187;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -6.1254215240479;
+						["x"] = 85.936836242676;
+						["z"] = 65.858268737793;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = {
+				[-1] = {
+					[1] = 379;
+				};
+			};
+		};
+		[97] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["id"] = 1000640;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.9259185791016;
+						["x"] = 320.58694458008;
+						["z"] = -79.150093078613;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["meshname"] = "North Shroud";
+					["id"] = 2000008;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -5.4712977409363;
+						["x"] = 399.27526855469;
+						["z"] = 78.890846252441;
+					};
+				};
+				[4] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[5] = 0;
+						[6] = 1;
+						[4] = 0;
+					};
+					["id"] = 1000640;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.9193949699402;
+						["x"] = 320.49935913086;
+						["z"] = -78.996772766113;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 1;
+					["id"] = 190;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.7513952255249;
+						["x"] = 395.89828491211;
+						["z"] = 79.237731933594;
+					};
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 95;
+				};
+			};
+		};
+		[98] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000656;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.8230981826782;
+						["x"] = 399.77444458008;
+						["z"] = -106.54350280762;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["killcount"] = 4;
+					["id"] = 32;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -8.2534122467041;
+						["x"] = 311.8537902832;
+						["z"] = -20.878503799438;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000656;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[5] = 0;
+						[6] = 1;
+						[4] = 0;
+					};
+					["itemturninid"] = {
+						[1] = 2000077;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.8297262191772;
+						["x"] = 399.75100708008;
+						["z"] = -106.41219329834;
+					};
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 103;
+				};
+			};
+		};
+		[197] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000432;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 110.36793518066;
+						["z"] = -73.95378112793;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["killcount"] = 4;
+					["id"] = 197;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -12;
+						["x"] = 31.290538787842;
+						["z"] = -66.924842834473;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000411;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000142;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7;
+						["x"] = 135.17710876465;
+						["z"] = -67.491546630859;
+					};
+				};
+			};
+			["level"] = 7;
+			["prereq"] = false;
+		};
+		[199] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["id"] = 1000172;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = 8.934157371521;
+						["x"] = 358.67877197266;
+						["z"] = 229.80004882813;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["pos"] = {
+						["y"] = -25.618873596191;
+						["x"] = 282.68692016602;
+						["z"] = 160.52641296387;
+					};
+					["id"] = 2000144;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[4] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1000627;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.6194376945496;
+						["x"] = 301.35021972656;
+						["z"] = 322.66213989258;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["pos"] = {
+						["y"] = -15.46431350708;
+						["x"] = 299.49548339844;
+						["z"] = 294.04763793945;
+					};
+					["id"] = 2000143;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 6;
+			["prereq"] = false;
+		};
+		[201] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.671974182129;
+						["z"] = -79.500259399414;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 3;
+					["itemid"] = {
+						[4] = 2999;
+						[5] = 2999;
+						[6] = 3010;
+					};
+					["delay"] = 3000;
+					["id"] = 1000396;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7.9342241287231;
+						["x"] = 83.881484985352;
+						["z"] = -103.26551818848;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 3;
+					["itemid"] = {
+						[4] = 3530;
+						[5] = 3530;
+						[6] = 3531;
+					};
+					["delay"] = 3000;
+					["id"] = 1000396;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7.9342241287231;
+						["x"] = 83.881484985352;
+						["z"] = -103.26551818848;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 3;
+					["itemid"] = {
+						[4] = 3311;
+						[5] = 3311;
+						[6] = 3312;
+					};
+					["delay"] = 3000;
+					["id"] = 1000396;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7.9342241287231;
+						["x"] = 83.881484985352;
+						["z"] = -103.26551818848;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 3;
+					["itemid"] = {
+						[4] = 3762;
+						[5] = 3762;
+						[6] = 3764;
+					};
+					["delay"] = 3000;
+					["id"] = 1000396;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7.9342241287231;
+						["x"] = 83.881484985352;
+						["z"] = -103.26551818848;
+					};
+				};
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.591491699219;
+						["z"] = -79.541130065918;
+					};
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 28;
+				};
+			};
+		};
+		[195] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000671;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -6.1962375640869;
+						["x"] = 384.43768310547;
+						["z"] = -134.45281982422;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000145;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -8.6412105560303;
+						["x"] = 213.39970397949;
+						["z"] = 75.744575500488;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000671;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[5] = 0;
+						[6] = 1;
+						[4] = 0;
+					};
+					["itemturninid"] = {
+						[1] = 2000143;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -6.2441864013672;
+						["x"] = 384.25756835938;
+						["z"] = -134.37548828125;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = false;
+		};
+		[26] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000297;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 1.1948240995407;
+						["x"] = -234.55665588379;
+						["z"] = -184.90071105957;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1000315;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000028;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 4.1850619316101;
+						["x"] = -164.30120849609;
+						["z"] = -18.415403366089;
+					};
+				};
+			};
+			["level"] = 3;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[447] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 226;
+					["type"] = "dutykill";
+					["ids"] = "194;193;946;947;945;980;617";
+					["meshname"] = "Central Shroud";
+					["itemreward"] = false;
+					["delay"] = 15000;
+					["pos"] = {
+						["y"] = 20.991786956787;
+						["x"] = -294.68612670898;
+						["z"] = 162.22952270508;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000423;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.9999741315842;
+						["x"] = 231.35238647461;
+						["z"] = 44.549423217773;
+					};
+				};
+				[8] = {
+					["mapid"] = 204;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["id"] = 1003061;
+					["itemreward"] = false;
+					["meshname"] = "Gridania - First Bow";
+					["pos"] = {
+						["y"] = 0.50002473592758;
+						["x"] = 2.501148223877;
+						["z"] = -3.7687466144562;
+					};
+				};
+				[3] = {
+					["mapid"] = 204;
+					["type"] = "interact";
+					["itemturninid"] = {
+						[1] = 2000249;
+					};
+					["itemturnin"] = true;
+					["delay"] = 25000;
+					["id"] = 1003061;
+					["itemreward"] = false;
+					["meshname"] = "Gridania - First Bow";
+					["pos"] = {
+						["y"] = 0.50002473592758;
+						["x"] = 2.501148223877;
+						["z"] = -3.7687466144562;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.541191101074;
+						["z"] = 116.83390045166;
+					};
+				};
+				[4] = {
+					["mapid"] = 204;
+					["type"] = "interact";
+					["meshname"] = "Gridania - First Bow";
+					["id"] = 2001215;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 1.9754137611017e-005;
+						["x"] = -0.12024105340242;
+						["z"] = 8.17160987854;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 15000;
+					["id"] = 1000456;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 21.696723937988;
+						["x"] = -302.42260742188;
+						["z"] = 127.04476928711;
+					};
+				};
+				[7] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000423;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 1.9999935626984;
+						["x"] = 230.33512878418;
+						["z"] = 43.121562957764;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 446;
+				};
+			};
+		};
+		[445] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Central Shroud";
+					["id"] = 2000953;
+					["itemreward"] = false;
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = 0.32380372285843;
+						["x"] = 323.96307373047;
+						["z"] = -309.96588134766;
+					};
+				};
+				[3] = {
+					["mapid"] = 233;
+					["type"] = "dutykill";
+					["ids"] = "937;938;939";
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -1.2787531614304;
+						["x"] = 319.47424316406;
+						["z"] = -330.14389038086;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.591491699219;
+						["z"] = -79.541130065918;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Central Shroud";
+					["id"] = 2001194;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 0.32380384206772;
+						["x"] = 322.60131835938;
+						["z"] = -309.57974243164;
+					};
+				};
+				[5] = {
+					["itemturninid"] = {
+						[1] = 2000229;
+					};
+					["type"] = "complete";
+					["itemturnin"] = true;
+					["itemrewardslot"] = 0;
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["mapid"] = 148;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 97.293365478516;
+						["z"] = -79.599678039551;
+					};
+				};
+			};
+			["level"] = 5;
+			["prereq"] = {
+				[-1] = {
+					[1] = 201;
+				};
+			};
+		};
+		[103] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000627;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.6194376945496;
+						["x"] = 301.35021972656;
+						["z"] = 322.66213989258;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["killcount"] = 6;
+					["id"] = 5;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -18.638576507568;
+						["x"] = 311.56857299805;
+						["z"] = 175.48059082031;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000656;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000075;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.8230981826782;
+						["x"] = 399.77444458008;
+						["z"] = -106.54350280762;
+					};
+				};
+			};
+			["level"] = 6;
+			["prereq"] = {
+				[-1] = {
+					[1] = 199;
+				};
+			};
+		};
+		[129] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000516;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 21.517524719238;
+						["x"] = 286.75827026367;
+						["z"] = 186.39260864258;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 97.391357421875;
+						["z"] = -79.018333435059;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000465;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.9999980926514;
+						["x"] = 300.01388549805;
+						["z"] = 119.81609344482;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000513;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 16.064575195313;
+						["x"] = 301.5563659668;
+						["z"] = 160.08125305176;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000740;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 24;
+						["x"] = 260.43243408203;
+						["z"] = 191.77960205078;
+					};
+				};
+				[9] = {
+					["mapid"] = 225;
+					["type"] = "dutykill";
+					["ids"] = "30";
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 24.000022888184;
+						["x"] = 255.77139282227;
+						["z"] = 191.23789978027;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000514;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 15.999980926514;
+						["x"] = 296.23895263672;
+						["z"] = 170.50395202637;
+					};
+				};
+				[10] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000465;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.9999980926514;
+						["x"] = 298.73861694336;
+						["z"] = 118.08229064941;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000512;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 14.348143577576;
+						["x"] = 313.71835327148;
+						["z"] = 157.83549499512;
+					};
+				};
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000515;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = 19.891691207886;
+						["x"] = 290.58358764648;
+						["z"] = 174.35157775879;
+					};
+				};
+				[11] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+					["id"] = 1000100;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.925800323486;
+						["z"] = 115.91000366211;
+					};
+				};
+			};
+			["level"] = 9;
+			["prereq"] = {
+				[-1] = {
+					[1] = 125;
+					[2] = 196;
+				};
+			};
+		};
+		[41] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000030;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 8.096287727356;
+						["x"] = -218.48742675781;
+						["z"] = -167.5339050293;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000026;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 11.920684814453;
+						["x"] = -184.4401550293;
+						["z"] = -160.50807189941;
+					};
+				};
+				[8] = {
+					["type"] = "complete";
+					["id"] = 1000300;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000084;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 11.100738525391;
+						["x"] = -175.94647216797;
+						["z"] = -160.27279663086;
+					};
+				};
+				[3] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000027;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 12.81297492981;
+						["x"] = -190.30256652832;
+						["z"] = -159.912109375;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000300;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 11.072090148926;
+						["x"] = -175.6876373291;
+						["z"] = -160.41036987305;
+					};
+				};
+				[4] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000028;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 11.741912841797;
+						["x"] = -204.36567687988;
+						["z"] = -156.83839416504;
+					};
+				};
+				[5] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000029;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 11.006338119507;
+						["x"] = -209.10914611816;
+						["z"] = -158.08549499512;
+					};
+				};
+				[7] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000031;
+					["itemreward"] = false;
+					["meshname"] = "Old Gridania";
+					["pos"] = {
+						["y"] = 7.5434837341309;
+						["x"] = -219.07057189941;
+						["z"] = -170.60180664063;
+					};
+				};
+			};
+			["level"] = 2;
+			["prereq"] = {
+				[-1] = {
+					[1] = 1;
+				};
+			};
+		};
+		[128] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.461135864258;
+						["z"] = -78.258964538574;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["killcount"] = 8;
+					["id"] = 43;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -7.6741166114807;
+						["x"] = 200.66114807129;
+						["z"] = -66.644927978516;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000449;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000062;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -5.5838193893433;
+						["x"] = 201.19160461426;
+						["z"] = -106.71574401855;
+					};
+				};
+			};
+			["level"] = 6;
+			["prereq"] = {
+				[-1] = {
+					[1] = 445;
+				};
+			};
+		};
+		[158] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000501;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.114906311035;
+						["x"] = 181.29400634766;
+						["z"] = 321.9912109375;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = -33.050052642822;
+						["x"] = 178.78314208984;
+						["z"] = 381.86380004883;
+					};
+					["id"] = 54;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 4;
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000473;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+					["itemturninid"] = {
+						[1] = 2000094;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.73177766799927;
+						["x"] = -44.438407897949;
+						["z"] = -31.864040374756;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1000501;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000099;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.10684967041;
+						["x"] = 180.94473266602;
+						["z"] = 322.24609375;
+					};
+				};
+			};
+			["level"] = 12;
+			["prereq"] = {
+				[-1] = {
+					[1] = 386;
+				};
+			};
+		};
+		[28] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.62042427063;
+						["z"] = 115.59036254883;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 10000;
+					["id"] = 3;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -1.0305827856064;
+						["x"] = 14.774001121521;
+						["z"] = 37.688365936279;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 98.671974182129;
+						["z"] = -79.500259399414;
+					};
+					["id"] = 1000421;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 4;
+			["prereq"] = {
+				[5] = {
+					[1] = 123;
+				};
+			};
+		};
+		[377] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 56.264671325684;
+						["x"] = -193.73829650879;
+						["z"] = -116.95896148682;
+					};
+					["id"] = 1000436;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000750;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 14.802030563354;
+						["x"] = -152.11480712891;
+						["z"] = -73.258193969727;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000751;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 19.315998077393;
+						["x"] = -170.21839904785;
+						["z"] = -72.83861541748;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000435;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.1497249603271;
+						["x"] = -127.00619506836;
+						["z"] = -45.371677398682;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 2000749;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 23.692262649536;
+						["x"] = -164.83322143555;
+						["z"] = -87.33455657959;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 2000748;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 30.360864639282;
+						["x"] = -188.81521606445;
+						["z"] = -97.770172119141;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = {
+				[-1] = {
+					[1] = 376;
+				};
+			};
+		};
+		[448] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 204;
+					["type"] = "interact";
+					["meshname"] = "Gridania - First Bow";
+					["id"] = 2001215;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 1.9754137611017e-005;
+						["x"] = -0.12024105340242;
+						["z"] = 8.17160987854;
+					};
+				};
+				[3] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.547964096069;
+						["z"] = 115.33885192871;
+					};
+				};
+				[1] = {
+					["mapid"] = 204;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1003061;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = 0.50002479553223;
+						["x"] = 1.3426179885864;
+						["z"] = -4.3640055656433;
+					};
+				};
+				[4] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 1000153;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -1.2500182390213;
+						["x"] = -45.338737487793;
+						["z"] = 57.705799102783;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000250;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 132;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.768896102905;
+						["z"] = 115.63054656982;
+					};
+				};
+			};
+			["level"] = 14;
+			["prereq"] = {
+				[-1] = {
+					[1] = 447;
+				};
+			};
+		};
+		[127] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000061;
+					["id"] = 2000018;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.0109028816223;
+						["x"] = 311.59524536133;
+						["z"] = 24.831474304199;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000061;
+					["id"] = 2000016;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.4915051460266;
+						["x"] = 263.55514526367;
+						["z"] = 0.80137860774994;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 287.39358520508;
+						["z"] = -31.129344940186;
+					};
+					["id"] = 1000461;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -6.4915051460266;
+						["x"] = 263.55514526367;
+						["z"] = 0.80137860774994;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000461;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -3.2969923019409;
+						["x"] = 288.1178894043;
+						["z"] = -31.597988128662;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "useitem";
+					["meshname"] = "Central Shroud";
+					["itemid"] = 2000061;
+					["id"] = 2000017;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -6.8374462127686;
+						["x"] = 286.1852722168;
+						["z"] = 30.232574462891;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -6.8374462127686;
+						["x"] = 286.1852722168;
+						["z"] = 30.232574462891;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+				[7] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = -5.9708561897278;
+						["x"] = 312.07144165039;
+						["z"] = 23.437585830688;
+					};
+					["id"] = 141;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 1;
+				};
+			};
+			["level"] = 8;
+			["prereq"] = {
+				[-1] = {
+					[1] = 175;
+				};
+			};
+		};
+		[386] = {
+			["steps"] = {
+				[6] = {
+					["type"] = "interact";
+					["id"] = 1000507;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000247;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.003616333008;
+						["x"] = 177.87535095215;
+						["z"] = 313.78024291992;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001015;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.022163391113;
+						["x"] = 219.03135681152;
+						["z"] = 324.68667602539;
+					};
+				};
+				[8] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -32.114906311035;
+						["x"] = 181.29400634766;
+						["z"] = 321.9912109375;
+					};
+					["id"] = 1000501;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001014;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.037605285645;
+						["x"] = 221.14918518066;
+						["z"] = 325.37857055664;
+					};
+				};
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000501;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.100780487061;
+						["x"] = 180.5354309082;
+						["z"] = 321.95510864258;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001013;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.043655395508;
+						["x"] = 223.85577392578;
+						["z"] = 325.56509399414;
+					};
+				};
+				[5] = {
+					["type"] = "interact";
+					["id"] = 1000502;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000246;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.14395904541;
+						["x"] = 182.21556091309;
+						["z"] = 320.2861328125;
+					};
+				};
+				[7] = {
+					["type"] = "interact";
+					["id"] = 1000505;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000248;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["delay"] = 4000;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.043930053711;
+						["x"] = 199.47494506836;
+						["z"] = 301.49688720703;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = false;
+		};
+		[385] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000502;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.137577056885;
+						["x"] = 182.04452514648;
+						["z"] = 320.36544799805;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2000685;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.000400543213;
+						["x"] = 371.61465454102;
+						["z"] = 454.72561645508;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000502;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000185;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -32.136299133301;
+						["x"] = 182.0765838623;
+						["z"] = 320.42834472656;
+					};
+				};
+			};
+			["level"] = 12;
+			["prereq"] = false;
+		};
+		[384] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000491;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -24;
+						["x"] = 49.288452148438;
+						["z"] = 228.43020629883;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1002932;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -36.806785583496;
+						["x"] = -64.576080322266;
+						["z"] = 476.37353515625;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -32.016159057617;
+						["x"] = 177.76695251465;
+						["z"] = 332.32797241211;
+					};
+					["id"] = 1000503;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 1;
+						[5] = 1;
+						[6] = 2;
+					};
+				};
+			};
+			["level"] = 12;
+			["prereq"] = {
+				[-1] = {
+					[1] = 382;
+				};
+			};
+		};
+		[376] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["id"] = 1000470;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -0.011714428663254;
+						["x"] = -58.308380126953;
+						["z"] = 26.609172821045;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000748;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 4.156334400177;
+						["x"] = -125.20960998535;
+						["z"] = -44.3669090271;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 4.1572542190552;
+						["x"] = -124.9303894043;
+						["z"] = -44.265281677246;
+					};
+					["id"] = 1000748;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "Central Shroud";
+					["itemrewardslot"] = {
+						[4] = 0;
+						[5] = 0;
+						[6] = 1;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["pos"] = {
+						["y"] = 1.8285263776779;
+						["x"] = -200.85165405273;
+						["z"] = -73.186920166016;
+					};
+					["id"] = 218;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 4;
+				};
+			};
+			["level"] = 10;
+			["prereq"] = {
+				[-1] = {
+					[1] = 374;
+				};
+			};
+		};
+		[157] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 148;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000001788139;
+						["x"] = -60.461349487305;
+						["z"] = 6.2347526550293;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["itemturnin"] = false;
+					["pos"] = {
+						["y"] = 1.1158308982849;
+						["x"] = -68.723670959473;
+						["z"] = -146.74787902832;
+					};
+					["id"] = 10;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["killcount"] = 6;
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1000471;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["itemturninid"] = {
+						[1] = 2000093;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 148;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 0.20000004768372;
+						["x"] = -59.986602783203;
+						["z"] = 8.1001996994019;
+					};
+				};
+			};
+			["level"] = 11;
+			["prereq"] = false;
+		};
+		[95] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["id"] = 1000640;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -6.0249576568604;
+						["x"] = 321.56237792969;
+						["z"] = -78.977195739746;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 6;
+					["id"] = 118;
+					["itemreward"] = false;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -10.485629081726;
+						["x"] = 295.5715637207;
+						["z"] = 11.802739143372;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[5] = 1;
+						[6] = 2;
+						[4] = 0;
+					};
+					["id"] = 1000640;
+					["itemreward"] = true;
+					["equip"] = true;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -5.9460506439209;
+						["x"] = 320.66900634766;
+						["z"] = -79.048324584961;
+					};
+				};
+			};
+			["level"] = 7;
+			["prereq"] = false;
+		};
+		[22] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 133;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000692;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -5.774341583252;
+						["x"] = -257.72747802734;
+						["z"] = -25.95906829834;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["meshname"] = "Old Gridania";
+					["id"] = 1000692;
+					["itemreward"] = false;
+					["delay"] = 30000;
+					["pos"] = {
+						["y"] = -5.7743573188782;
+						["x"] = -258.33447265625;
+						["z"] = -26.088855743408;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 37;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 17.090688705444;
+						["x"] = 117.71826171875;
+						["z"] = -257.26748657227;
+					};
+				};
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000323;
+					["itemreward"] = false;
+					["delay"] = 0;
+					["pos"] = {
+						["y"] = -4;
+						["x"] = -234.28422546387;
+						["z"] = -8.4694852828979;
+					};
+				};
+				[4] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["id"] = 49;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = 11.939554214478;
+						["x"] = 80.364929199219;
+						["z"] = -243.4164276123;
+					};
+				};
+				[5] = {
+					["mapid"] = 148;
+					["type"] = "kill";
+					["killcount"] = 3;
+					["meshname"] = "Central Shroud";
+					["id"] = 47;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 2.3122527599335;
+						["x"] = 127.59609222412;
+						["z"] = -177.67504882813;
+					};
+				};
+			};
+			["level"] = 1;
+			["prereq"] = {
+				[6] = {
+					[1] = 124;
+				};
+			};
+			["job"] = 6;
+		};
+	};
+}
+return obj1

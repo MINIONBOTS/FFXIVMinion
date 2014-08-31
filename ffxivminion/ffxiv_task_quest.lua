@@ -8,6 +8,7 @@ ffxiv_task_quest.killCount = 0
 ffxiv_task_quest.backupKillCount = 0
 ffxiv_task_quest.questFlags = 0
 ffxiv_task_quest.killTaskCompleted = false
+ffxiv_task_quest.restartStep = 0
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -85,11 +86,21 @@ function ffxiv_task_quest.UIInit()
 	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 end
 
-function ffxiv_task_quest.SetQuest()
-	local questid = Quest:GetSelectedJournalQuest()
-	if (questid and questid > 0) then
-		gCurrQuestID = questid
+function ffxiv_task_quest.SetQuestFlags()
+	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
+	if(ValidTable(questTable)) then
+		ffxiv_task_quest.questFlags = questTable.I16A + questTable.I16B + questTable.I16C
 	end
+end
+
+function ffxiv_task_quest.QuestFlagsChanged()
+	local questTable = GetQuestByID(ffxiv_task_quest.currentQuest.id)
+	if(ValidTable(questTable)) then
+		local questFlags = questTable.I16A + questTable.I16B + questTable.I16C
+		return questFlags ~= ffxiv_task_quest.questFlags
+	end
+	
+	return false
 end
 
 function ffxiv_task_quest.UpdateProfiles()
@@ -116,6 +127,18 @@ function ffxiv_task_quest.UpdateProfiles()
 		ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..gProfile..".info")
 	end
 end
+
+function ffxiv_task_quest.ResetStep()
+	if(ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0) then
+		gCurrQuestStep = tostring(ffxiv_task_quest.restartStep)
+		Settings.FFXIVMINION.gCurrQuestStep = gCurrQuestStep
+		Settings.FFXIVMINION.questKillCount = nil
+		gQuestKillCount = ""
+		ffxiv_task_quest.questFlags = 0
+		ffxiv_task_quest.killCount = 0
+	end
+end
+
 
 function ffxiv_task_quest.LoadProfile(profilePath)
 	d("Loading quest profile from "..profilePath)
@@ -210,6 +233,17 @@ end
 
 function ffxiv_task_quest:Init()
 	--process elements
+	--its tempting to add equip cnes to overwatch but there are too many states 
+	--when the client does not allow gear changes
+	
+	--equip reward checks if we just got an item we wanted to equip for the last quest reward
+	--and queues it for equip if so
+	local ke_equipReward = ml_element:create( "EquipReward", c_equipreward, e_equipreward, 30 )
+    self:add( ke_equipReward, self.process_elements)
+	
+	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
+    self:add( ke_equip, self.process_elements)
+	
     local ke_nextQuest = ml_element:create( "NextQuest", c_nextquest, e_nextquest, 20 )
     self:add( ke_nextQuest, self.process_elements)
 	
@@ -217,10 +251,10 @@ function ffxiv_task_quest:Init()
     self:add( ke_questAddGrind, self.process_elements)
 	
 	--overwatch elements
-	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
+	local ke_dead = ml_element:create( "Dead", c_questdead, e_questdead, 20 )
     self:add( ke_dead, self.overwatch_elements)
     
-    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
+    local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 15 )
     self:add( ke_flee, self.overwatch_elements)
 	
 	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
