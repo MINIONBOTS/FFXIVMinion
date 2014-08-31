@@ -145,8 +145,12 @@ function c_questmovetopos:evaluate()
     if (mapID and mapID > 0) then
         if(Player.localmapid == mapID) then
 			local pos = ml_task_hub:CurrentTask().params["pos"]
+			local threshold = 2
+			if(ml_task_hub:CurrentTask().params["type"] == "nav")then
+				threshold = 0.5
+			end
 			--return Distance2D(Player.pos.x, Player.pos.z, pos.x, pos.z) > 2
-			return Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > 2
+			return Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > threshold
         end
     end
 	
@@ -158,6 +162,9 @@ function e_questmovetopos:execute()
 	newTask.pos = pos
 	newTask.use3d = true
 	newTask.postDelay = 1500
+	if(ml_task_hub:CurrentTask().params["type"] == "nav")then
+		newTask.range = 0.5
+	end
 	
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
@@ -881,10 +888,10 @@ function e_questkillaggrotarget:execute()
 	--if our hp drops below flee rate then consider the task failed and gtfo
 	local c_killfail = inheritsFrom( ml_cause )
 	local e_killfail = inheritsFrom( ml_effect )
-	function c_questflee:evaluate()
+	function c_killfail:evaluate()
 		return Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)
 	end
-	function e_questflee:execute()
+	function e_killfail:execute()
 		ml_task_hub:ThisTask():Terminate()
 	end
     newTask:add( ml_element:create( "KillAggroFail", c_killfail, e_killfail, 100 ), newTask.overwatch_elements)

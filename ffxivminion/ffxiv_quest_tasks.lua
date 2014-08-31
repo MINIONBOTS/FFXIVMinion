@@ -32,9 +32,7 @@ function quest_step_complete_execute()
 	
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
-	if (ml_task_hub:CurrentTask().params["delay"] ~= nil) then
-		ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"])
-	end
+	ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"] or 1000)
 end
 
 ffxiv_quest_task = inheritsFrom(ml_task)
@@ -461,7 +459,7 @@ function ffxiv_quest_nav:task_complete_eval()
 	local gotoPos = self.params["pos"]
 	local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 	
-	if (distance <= 1.0) then
+	if (distance <= 0.5) then
 		return true
 	end
 end
