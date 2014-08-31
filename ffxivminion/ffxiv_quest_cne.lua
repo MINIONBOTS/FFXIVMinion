@@ -1011,12 +1011,12 @@ end
 c_questidle = inheritsFrom( ml_cause )
 e_questidle = inheritsFrom( ml_effect )
 function c_questidle:evaluate()
-	return ml_global_information.idlePulseCount > 5000
+	return ml_global_information.idlePulseCount > 3000
 end
 function e_questidle:execute()
 	--something break because we haven't executed a cne in a long time
 	--try the next quest step
-	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." for quest "..cCurrQuestID.." on step "..gCurrQuestStep)
+	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." for quest "..gCurrQuestID.." on step "..gCurrQuestStep)
 	ml_error("Attempting to fix by moving to next quest step")
 	ml_task_hub:CurrentTask():task_complete_execute()
 end
