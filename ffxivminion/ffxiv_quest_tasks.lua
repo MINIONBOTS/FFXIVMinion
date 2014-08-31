@@ -32,7 +32,11 @@ function quest_step_complete_execute()
 	
 	ml_task_hub:CurrentTask():ParentTask().currentStepCompleted = true
 	ml_task_hub:CurrentTask().completed = true
-	ml_task_hub:CurrentTask():SetDelay(ml_task_hub:CurrentTask().params["delay"] or 1000)
+	local delay = ml_task_hub:CurrentTask().params["delay"]
+	if (delay == nil or delay == 0) then
+		delay = 1000
+	end
+	ml_task_hub:CurrentTask():SetDelay(delay)
 end
 
 ffxiv_quest_task = inheritsFrom(ml_task)
@@ -341,6 +345,9 @@ function ffxiv_quest_kill:Init()
 	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 10 )
+    self:add( ke_questIdle, self.process_elements)
 	
 	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 20 )
     self:add( ke_incrementKillCount, self.overwatch_elements)

@@ -31,6 +31,12 @@ end
 
 -- add a effect to be executed
 function ml_cne_hub.queue_to_execute( )
+	if(TableSize(ml_cne_hub.effect_queue) == 0) then
+		ml_global_information.idlePulseCount = ml_global_information.idlePulseCount + 1
+	else
+		ml_global_information.idlePulseCount = 0
+	end
+
 	local highestPriority = 0
 	-- Get the hightest priority in the effect_queue
 	for k, effect in pairs( ml_cne_hub.effect_queue ) do

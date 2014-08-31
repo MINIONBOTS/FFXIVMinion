@@ -812,8 +812,8 @@ end
 c_inckillcount = inheritsFrom( ml_cause )
 e_inckillcount = inheritsFrom( ml_effect )
 function c_inckillcount:evaluate()
-	if(ffxiv_task_quest.killTaskCompleted and ffxiv_task_quest.QuestFlagsChanged()) then
-		e_inckillcount.questFlags = questFlags
+	local disableFlagCheck = ml_task_hub:ThisTask().params["disableflagcheck"]
+	if(ffxiv_task_quest.killTaskCompleted and (disableFlagCheck or ffxiv_task_quest.QuestFlagsChanged())) then
 		return true
 	elseif(ffxiv_task_quest.backupKillCount > 5) then
 		--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
@@ -829,7 +829,7 @@ function e_inckillcount:execute()
 	ffxiv_task_quest.killCount = ffxiv_task_quest.killCount + 1
 	ffxiv_task_quest.backupKillCount = 0
 	ffxiv_task_quest.killTaskCompleted = false
-	ffxiv_task_quest.questFlags = e_inckillcount.questFlags
+	ffxiv_task_quest.SetQuestFlags()
 	
 	Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
 	gQuestKillCount = ffxiv_task_quest.killCount
@@ -839,6 +839,10 @@ end
 c_questkillaggrotarget = inheritsFrom( ml_cause )
 e_questkillaggrotarget = inheritsFrom( ml_effect )
 function c_questkillaggrotarget:evaluate()
+	if(Player.castinginfo.channeltime > 0) then
+		return false
+	end
+
 	if(ml_task_hub:ThisTask().name == "MOVETOPOS") then
 		if(e_questflee.fleeing) then
 			return false
@@ -1002,4 +1006,17 @@ function e_questequip:execute()
 			ml_global_information.itemIDsToEquip[id] = true
 		end
 	end
+end
+
+c_questidle = inheritsFrom( ml_cause )
+e_questidle = inheritsFrom( ml_effect )
+function c_questidle:evaluate()
+	return ml_global_information.idlePulseCount > 3000
+end
+function e_questidle:execute()
+	--something break because we haven't executed a cne in a long time
+	--try the next quest step
+	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." for quest "..gCurrQuestID.." on step "..gCurrQuestStep)
+	ml_error("Attempting to fix by moving to next quest step")
+	ml_task_hub:CurrentTask():task_complete_execute()
 end
