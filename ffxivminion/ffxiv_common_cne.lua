@@ -407,7 +407,7 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (not target == nil or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
+	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
 		return false
 	end
 	
