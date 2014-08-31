@@ -194,66 +194,72 @@ function GetHuntTarget()
 	local excludeString = GetBlacklistIDString()
 	local el = nil
 	
-	if (excludeString) then
-		el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-	else
-		el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
-	end
-	if (ValidTable(el)) then
-		for i,e in pairs(el) do
-			local myPos = Player.pos
-			local tpos = e.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-			if (distance < nearestDistance) then
-				nearest = e
-				nearestDistance = distance
-			end
+	if (gHuntSRankHunt == "1") then
+		if (excludeString) then
+			el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		else
+			el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
 		end
-		
-		if (ValidTable(nearest)) then
-			return "S", nearest
+		if (ValidTable(el)) then
+			for i,e in pairs(el) do
+				local myPos = Player.pos
+				local tpos = e.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+				if (distance < nearestDistance) then
+					nearest = e
+					nearestDistance = distance
+				end
+			end
+			
+			if (ValidTable(nearest)) then
+				return "S", nearest
+			end
 		end
 	end
 	
-	if (excludeString) then
-		el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-	else
-		el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
-	end
-	if (ValidTable(el)) then
-		for i,e in pairs(el) do
-			local myPos = Player.pos
-			local tpos = e.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-			if (distance < nearestDistance) then
-				nearest = e
-				nearestDistance = distance
-			end
+	if (gHuntARankHunt == "1") then
+		if (excludeString) then
+			el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		else
+			el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
 		end
-		
-		if (ValidTable(nearest)) then
-			return "A", nearest
+		if (ValidTable(el)) then
+			for i,e in pairs(el) do
+				local myPos = Player.pos
+				local tpos = e.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+				if (distance < nearestDistance) then
+					nearest = e
+					nearestDistance = distance
+				end
+			end
+			
+			if (ValidTable(nearest)) then
+				return "A", nearest
+			end
 		end
 	end
 	
-	if (excludeString) then
-		el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-	else
-		el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
-	end
-	if (ValidTable(el)) then
-		for i,e in pairs(el) do
-			local myPos = Player.pos
-			local tpos = e.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-			if (distance < nearestDistance) then
-				nearest = e
-				nearestDistance = distance
-			end
+	if (gHuntBRankHunt == "1" and gHuntBRankHuntID and gHuntBRankHuntID ~= "") then
+		if (excludeString) then
+			el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+		else
+			el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
 		end
-		
-		if (ValidTable(nearest)) then
-			return "B", nearest
+		if (ValidTable(el)) then
+			for i,e in pairs(el) do
+				local myPos = Player.pos
+				local tpos = e.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+				if (distance < nearestDistance) then
+					nearest = e
+					nearestDistance = distance
+				end
+			end
+			
+			if (ValidTable(nearest)) then
+				return "B", nearest
+			end
 		end
 	end
 	
@@ -1633,14 +1639,16 @@ end
 
 function Repair()
 	local list = Player:GetGatherableSlotList()
-	if (ValidTable(list)) then
+	local synth = Crafting:SynthInfo()	
+	
+	if (ValidTable(list) or ValidTable(synth)) then
 		return false
 	end
 	
 	if (gRepair == "1") then
 		local eq = Inventory("type=1000")
 		for i,e in pairs(eq) do
-			if (e.condition <= 25) then
+			if (e.condition <= 30) then
 				e:Repair()
 			end
 		end
