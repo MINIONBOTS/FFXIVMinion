@@ -383,7 +383,7 @@ function ffxiv_task_teleport:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_teleport:task_complete_eval()		
+function ffxiv_task_teleport:task_complete_eval()
 	if (	(TableSize(Player.castinginfo) == 0 or 
 			Player.castinginfo.channelingid ~= 5) and
 			not ml_mesh_mgr.loadingMesh	and 
@@ -393,14 +393,14 @@ function ffxiv_task_teleport:task_complete_eval()
 		if (Player.onmesh) then
 			return true
 		else
-			if (gmeshname ~= self.mesh) then
+			if (self.mesh and gmeshname ~= self.mesh) then
 				gmeshname = self.mesh
 			end
 			return false
 		end
 	end
 	
-	if (TimeSince(ml_task_hub:ThisTask().started) > 30000) then
+	if (TimeSince(ml_task_hub:ThisTask().started) > 25000) then
 		return true
 	end
 	

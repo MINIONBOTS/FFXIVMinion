@@ -494,6 +494,19 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     end
 end
 
+function SkillMgr.SetGUIVar(strName, value)
+	if (SkillMgr.Variables[strName] ~= nil and SKM_Prio ~= nil and SKM_Prio > 0) then	
+		skillVar = SkillMgr.Variables[strName]
+		if (value == nil) then
+			SkillMgr.SkillProfile[SKM_Prio][skillVar.profile] = skillVar.default
+		elseif (skillVar.cast == "string") then
+			SkillMgr.SkillProfile[SKM_Prio][skillVar.profile] = value
+		elseif (skillVar.cast == "number") then
+			SkillMgr.SkillProfile[SKM_Prio][skillVar.profile] = tonumber(value)
+		end
+	end
+end
+
 function SkillMgr.UseProfile(strName)
 	gSMprofile = strName
     gSMactive = "1"					
@@ -657,8 +670,7 @@ function SkillMgr.CopySkill()
 	local temp = {}
 	for k,v in pairs(SkillMgr.Variables) do
 		if (v.section == "fighting") then
-			d("V.PROFILE="..tostring(v.profile)..",GLOBAL="..tostring(k)..",VALUE="..tostring(_G[tostring(k)]))
-			temp[v.profile] = _G[tostring(k)]
+			temp[k] = _G[tostring(k)]
 		end
 	end
 	SkillMgr.copiedSkill = temp
@@ -667,21 +679,10 @@ end
 function SkillMgr.PasteSkill()
 	d("PASTING INTO SKILL #:"..tostring(SKM_Prio))
 	local source = SkillMgr.copiedSkill
-	for conditional,value in pairs(SkillMgr.SkillProfile[tonumber(SKM_Prio)]) do
-		for k,v in pairs(SkillMgr.Variables) do
-			if v.profile == conditional and v.section == "fighting" then 
-				d("SETTING GLOBAL:"..tostring(k)..", VALUE="..tostring(source[conditional]))
-				if (v.cast == "string") then
-					_G[tostring(k)] = source[conditional]
-					conditional = source[conditional]
-				else
-					_G[tostring(k)] = tonumber(source[conditional])
-					conditional = tonumber(source[conditional])
-				end
-			end
-		end
+	for k,v in pairs(SkillMgr.copiedSkill) do
+		_G[tostring(k)] = v
+		SkillMgr.SetGUIVar(tostring(k),v)
 	end
-	--GUI_RefreshWindow(SkillMgr.editwindow.name)
 end
 
 --+

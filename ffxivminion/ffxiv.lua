@@ -455,6 +455,7 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
+		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end

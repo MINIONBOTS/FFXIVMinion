@@ -36,8 +36,8 @@ function ffxiv_task_assist:Init()
 	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
     self:add(ke_yesnoQuest, self.process_elements)
 	
-	--local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
-	--self:add(ke_avoid, self.process_elements)
+	local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
+	self:add(ke_avoid, self.process_elements)
 	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 18 )
     self:add( ke_companion, self.process_elements)

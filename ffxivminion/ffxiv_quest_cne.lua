@@ -905,6 +905,7 @@ end
 
 c_questbuy = inheritsFrom( ml_cause )
 e_questbuy = inheritsFrom( ml_effect )
+
 function c_questbuy:evaluate()	
 	--check for vendor window open
 	if (not ControlVisible("Shop")) then
@@ -914,7 +915,7 @@ function c_questbuy:evaluate()
 	local itemtable = ml_task_hub:CurrentTask().params["itemid"]
 	if(ValidTable(itemtable))then
 		local itemid = itemtable[Player.job] or itemtable[-1]
-		if(itemid) then
+		if (itemid) then
 			e_questbuy.itemid = tonumber(itemid)
 			return true
 		end

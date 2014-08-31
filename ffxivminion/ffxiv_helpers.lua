@@ -1827,10 +1827,20 @@ function GetLocalAetheryte()
 end
 
 function GetAetheryteByMapID(id)
+	--Convert some special cases to other ID's, for cities.
+	local mapid = Player.localmapid
+	if (id == 133 and mapid ~= 132) then
+		id = 132
+	elseif (id == 128 and mapid ~= 129) then
+		id = 129
+	elseif (id == 131 and mapid ~= 130) then
+		id = 130
+	end
+	
     local list = Player:GetAetheryteList()
     for index,aetheryte in ipairs(list) do
         if (aetheryte.territory == id) then
-            return aetheryte.id
+            return id, aetheryte.id
         end
     end
     
