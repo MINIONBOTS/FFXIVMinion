@@ -1632,10 +1632,15 @@ function Dismount()
 end
 
 function Repair()
+	local list = Player:GetGatherableSlotList()
+	if (ValidTable(list)) then
+		return false
+	end
+	
 	if (gRepair == "1") then
 		local eq = Inventory("type=1000")
 		for i,e in pairs(eq) do
-			if (e.condition <= 10) then
+			if (e.condition <= 25) then
 				e:Repair()
 			end
 		end
