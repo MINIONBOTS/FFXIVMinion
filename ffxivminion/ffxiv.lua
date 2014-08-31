@@ -23,7 +23,7 @@ ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
 ml_global_information.lastMode = ""
 ml_global_information.itemIDsToEquip = {}
-
+ml_global_information.idlePulseCount = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}

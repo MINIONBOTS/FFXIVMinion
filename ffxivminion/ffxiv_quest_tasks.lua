@@ -342,6 +342,9 @@ function ffxiv_quest_kill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 10 )
+    self:add( ke_questIdle, self.process_elements)
+	
 	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 20 )
     self:add( ke_incrementKillCount, self.overwatch_elements)
 	
