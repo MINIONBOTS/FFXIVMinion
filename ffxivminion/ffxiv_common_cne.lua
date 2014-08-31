@@ -260,16 +260,9 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or gDoFates == "0" or Player.incombat or ffxiv_task_grind.inFate) then
+	if (gAtma == "0" or gDoFates == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading()) then
 		return false
 	end
-	
-	--[[
-	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0)
-	local minute = os.date("!%M")
-	local estTime = hour .. ":" .. minute
-	d(estTime)
-	--]]
 	
 	local map = Player.localmapid
 	local mapFound = false
@@ -363,7 +356,6 @@ function c_nextatma:evaluate()
 	return false
 end
 function e_nextatma:execute()
-	--ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP) REACTIVE_GOAL or IMMEDIATE_GOAL
 	local atma = e_nextatma.atma
 	Player:Stop()
 	Dismount()
@@ -372,12 +364,14 @@ function e_nextatma:execute()
 		return
 	end
 	
-	Player:Teleport(atma.tele)
-	if (Player.castinginfo.channelingid == 5) then
+	if (not ml_task_hub:CurrentTask().changingLocations) then
+		Player:Teleport(atma.tele)
+		ml_task_hub:CurrentTask().changingLocations = true
+							
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = atma.map
 		newTask.mesh = atma.mesh
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end
 
@@ -391,14 +385,15 @@ function c_avoid:evaluate()
 		return false
 	end
 	
+	local ppos = Player.pos
 	local plevel = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
-	
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("attackable,onmesh,maxdistance=15")
+	local el = EntityList("aggressive,onmesh,maxdistance=25")
 	if (el) then
-		while (i~=nil and e~=nil) do
-			if (TableSize(e.castinginfo) > 0) then
-				local distance = Distance2D(Player.pos.x, Player.pos.z, e.pos.x, e.pos.z)
+		for i,e in pairs(el) do
+			if (ValidTable(e.castinginfo) and e.castinginfo.channelingid ~= 0) then
+				local epos = e.pos
+				local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
 				if not (e.castinginfo.casttime < 1.5 
 					or (distance > 15 and e.castinginfo.channeltargetid == e.id) 
 					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
@@ -412,12 +407,12 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (target == nil or TableSize(target.castinginfo) == 0 or (plevel > target.level + 5)) then
+	if (not target == nil or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
 		return false
 	end
 	
-	local distance = Distance2D(Player.pos.x, Player.pos.z, target.pos.x, target.pos.z)
-	
+	local epos = target.pos
+	local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
 	--Check to see if our current target is casting on us.
     if (target.castinginfo.casttime < 1.5 
 		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
@@ -456,7 +451,7 @@ function e_avoid:execute()
 		-- set preserveSubtasks = true so that the current kill task is not deleted
 		-- we want it to complete normally after the avoid task completes
 		ml_task_hub:ThisTask().preserveSubtasks = true
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
 
@@ -600,6 +595,8 @@ end
 
 c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
+e_teleporttomap.aethid = 0
+e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
 	if (gUseAetherytes == "0") then
 		return false
@@ -612,16 +609,19 @@ function c_teleporttomap:evaluate()
 
         if (ValidTable(ml_nav_manager.currPath)) then
             local aethid = nil
+			local mapid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do
                 if (node.id ~= Player.localmapid) then
-					local aeth = GetAetheryteByMapID(node.id)
+					local map, aeth = GetAetheryteByMapID(node.id)
                     if (aeth) then
+						mapid = map
 						aethid = aeth
 					end
                 end
             end
             
             if (aethid) then
+				e_teleporttomap.destMap = mapid
                 e_teleporttomap.aethid = aethid
                 return true
             end
@@ -632,12 +632,21 @@ function c_teleporttomap:evaluate()
     return false
 end
 function e_teleporttomap:execute()
-    ml_global_information.UnstuckTimer = ml_global_information.Now
-    Player:Stop()
-    Dismount()
-    ml_task_hub:ToggleRun()
-    d("Teleporting to aetheryte at index "..tostring(e_teleporttomap.aethid))
-    Player:Teleport(e_teleporttomap.aethid)
+	Player:Stop()
+	Dismount()
+	
+	if (Player.ismounted) then
+		return
+	end
+	
+	if (not ml_task_hub:CurrentTask().changingLocations) then
+		Player:Teleport(e_teleporttomap.aethid)
+		ml_task_hub:CurrentTask().changingLocations = true
+							
+		local newTask = ffxiv_task_teleport.Create()
+		newTask.mapID = e_teleporttomap.destMap
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
 end
 
 c_followleader = inheritsFrom( ml_cause )
@@ -879,7 +888,7 @@ end
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM") then
         return false
     end
 
@@ -891,7 +900,7 @@ function c_companion:evaluate()
 			local acDismiss = ActionList:Get(dismiss.id,6)
 			local item = Inventory:Get(4868)
 
-			if (item == nil) then
+			if (not ValidTable(item)) then
 				return false
 			end
 
@@ -900,19 +909,15 @@ function c_companion:evaluate()
 			end
 		end
     end
-
+	
     return false
 end
 
 function e_companion:execute()
-	local item = Inventory:Get(4868)
-	Player:Stop()
-	item:Use()
-	
-	if (not item.isready) then
-		local newTask = ffxiv_task_summonchoco.Create()
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_ASAP)
-	end
+	local newTask = ffxiv_task_useitem.Create()
+	newTask.itemid = 4868
+	newTask.useTime = 3000
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_stance = inheritsFrom( ml_cause )

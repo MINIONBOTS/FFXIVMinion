@@ -15,6 +15,9 @@ QM.Windows = {
 	StepEditor = {visible = false, name = strings[gCurrentLanguage].questStepEditor, visibleDefault = false,
 		base = "StepManager", width = 250, height = 300
 	},
+	ItemEditor = {visible = false, name = strings[gCurrentLanguage].questItemEditor, visibleDefault = false, onOpen = "QM.RefreshStepItems",
+		base = "StepEditor", width = 250, height = 300
+	},
 	EncounterEditor = {visible = false, name = strings[gCurrentLanguage].dutyEncounterEditor, visibleDefault = false,
 		base = "QuestManager", width = 250, height = 300
 	},
@@ -87,6 +90,11 @@ QM.Variables = {
 	eTaskDelay = 		{ default = 0, 		profile = "delay", 			cast = "number"},
 	qTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},
 	eTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},
+	qTaskConvoIndex = 	{ default = 0,		profile = "conversationindex", cast = "number"},
+	eTaskConvoIndex = 	{ default = 0,		profile = "conversationindex", cast = "number"},
+	qTaskItemJobReq = 	{ default = -1, 	profile = ""				, cast = "number"},
+	qTaskItemAmount = 	{ default = 1, 		profile = "buyamount"		, cast = "number"},
+	eTaskItemAmount = 	{ default = 1, 		profile = "buyamount"		, cast = "number"},	
 	
 	qEncounterName = 	{ default = "", 	profile = "", 			cast = "string"},
 	qEncounterType = 	{ default = "kill",	profile = "", 			cast = "string", onChange = "QM.LoadEncounterFields"},
@@ -124,7 +132,7 @@ QM.Strings = {
 			end
 			return questlist
 		end,
-	QuestTasks = "start,accept,nav,interact,kill,dutykill,textcommand,useitem,useaction,complete",
+	QuestTasks = "start,accept,nav,interact,kill,dutykill,textcommand,useitem,useaction,vendor,complete",
 	DutyTasks = "kill,loot,interact",
 	QuestJobs = "None,ARCANIST,ARCHER,BARD,BLACKMAGE,CONJURER,DRAGOON,GLADIATOR,LANCER,MARAUDER,MONK,PALADIN,PUGILIST,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
 	PreReqJobs = "All,ARCANIST,ARCHER,BARD,BLACKMAGE,CONJURER,DRAGOON,GLADIATOR,LANCER,MARAUDER,MONK,PALADIN,PUGILIST,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
@@ -151,10 +159,10 @@ QM.Builds = {
 	},
 	Quest = {
 		[1] = {4, "GUI_NewField",	QM.Windows.Main.name,strings[gCurrentLanguage].questID,		"qQuestID",		strings[gCurrentLanguage].newQuest},
-		[2] = {4, "GUI_NewButton",	QM.Windows.Main.name,strings[gCurrentLanguage].questPullID, 	"QM.PullQuest",	strings[gCurrentLanguage].newQuest},
-		[3] = {5, "GUI_NewComboBox",QM.Windows.Main.name,strings[gCurrentLanguage].questJob,		"qQuestJob",	strings[gCurrentLanguage].newQuest, QM.Strings.QuestJobs},
+		[2] = {4, "GUI_NewButton",	QM.Windows.Main.name,strings[gCurrentLanguage].questPullID, "QM.PullQuest",	strings[gCurrentLanguage].newQuest},
+		[3] = {5, "GUI_NewComboBox",QM.Windows.Main.name,strings[gCurrentLanguage].questJob,	"qQuestJob",	strings[gCurrentLanguage].newQuest, QM.Strings.QuestJobs},
 		[4] = {4, "GUI_NewField",	QM.Windows.Main.name,strings[gCurrentLanguage].questLevel,	"qQuestLevel",	strings[gCurrentLanguage].newQuest},
-		[5] = {4, "GUI_NewButton",	QM.Windows.Main.name,strings[gCurrentLanguage].questAddQuest, 		"QM.AddQuest",  strings[gCurrentLanguage].newQuest},
+		[5] = {4, "GUI_NewButton",	QM.Windows.Main.name,strings[gCurrentLanguage].questAddQuest, "QM.AddQuest",  strings[gCurrentLanguage].newQuest},
 	},
 	QuestEditor = {
 		[1] = {4, "GUI_NewField",	QM.Windows.QuestEditor.name,strings[gCurrentLanguage].questID,		"eQuestID",		 strings[gCurrentLanguage].details},
@@ -186,6 +194,12 @@ QM.Builds = {
 		[4] = {3, "GUI_NewButton", 	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questStepDelete, 	"QM.RemoveStep"},
 		[5] = {3, "GUI_NewButton", 	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questDown, 	"QM.StepPriorityDown"},
 		[6] = {3, "GUI_NewButton", 	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questUp, 		"QM.StepPriorityUp"},
+	},
+	ItemEditor = {
+		[1] = {5, "GUI_NewComboBox",QM.Windows.ItemEditor.name,strings[gCurrentLanguage].questJob,			"qTaskItemJobReq",	strings[gCurrentLanguage].newItem, QM.Strings.QuestJobs},
+		[2] = {4, "GUI_NewField",	QM.Windows.ItemEditor.name,strings[gCurrentLanguage].stepItemID,		"qTaskItemID",		strings[gCurrentLanguage].newItem},
+		[3] = {3, "GUI_NewButton", 	QM.Windows.ItemEditor.name,strings[gCurrentLanguage].questClearItems, 	"QM.ClearStepItems"},
+		[4] = {3, "GUI_NewButton",	QM.Windows.ItemEditor.name,strings[gCurrentLanguage].questAddItem, 	"QM.AddStepItem"},
 	},
 	TurnInEditor = {
 		[1] = {4, "GUI_NewField",	QM.Windows.TurnInEditor.name,strings[gCurrentLanguage].turnoverStep,"qTurnoverStep",strings[gCurrentLanguage].newQuestTurnover},
@@ -289,6 +303,18 @@ QM.Builds = {
 			[8] = {4, "GUI_NewButton",	QM.Windows.StepManager.name,strings[gCurrentLanguage].questPullValues, "QM.LoadAddCurrentValues",strings[gCurrentLanguage].newQuestStep},
 			[9] = {4, "GUI_NewButton",	QM.Windows.StepManager.name,strings[gCurrentLanguage].questAddStep, "QM.AddStep",strings[gCurrentLanguage].newQuestStep},
 		},
+		["vendor"] = {
+			[1] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepCurrent,	"qStepNum",	strings[gCurrentLanguage].newQuestStep},
+			[2] = {5, "GUI_NewComboBox",QM.Windows.StepManager.name,strings[gCurrentLanguage].stepTask,	"qStepTask",strings[gCurrentLanguage].newQuestStep,	QM.Strings.QuestTasks},
+			[3] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepMap,"qTaskMap",strings[gCurrentLanguage].newQuestStep},
+			[4] = {5, "GUI_NewComboBox",QM.Windows.StepManager.name,strings[gCurrentLanguage].stepMesh,"qTaskMesh",strings[gCurrentLanguage].newQuestStep, QM.Strings.Meshes },
+			[5] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepTarget,"qTaskNPC",strings[gCurrentLanguage].newQuestStep},
+			[6] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].convoIndex,"qTaskConvoIndex", strings[gCurrentLanguage].newQuestStep},
+			[7] = {4, "GUI_NewNumeric",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepItemAmount,"qTaskItemAmount",	strings[gCurrentLanguage].newQuestStep},			
+			[8] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepDelay,"qTaskDelay",strings[gCurrentLanguage].newQuestStep},
+			[9] = {4, "GUI_NewButton",	QM.Windows.StepManager.name,strings[gCurrentLanguage].questPullValues, "QM.LoadAddCurrentValues",strings[gCurrentLanguage].newQuestStep},
+			[10] = {4, "GUI_NewButton",	QM.Windows.StepManager.name,strings[gCurrentLanguage].questAddStep, "QM.AddStep",strings[gCurrentLanguage].newQuestStep},
+		},
 		["complete"] = {
 			[1] = {4, "GUI_NewField",	QM.Windows.StepManager.name,strings[gCurrentLanguage].stepCurrent,	"qStepNum",	strings[gCurrentLanguage].newQuestStep},
 			[2] = {5, "GUI_NewComboBox",QM.Windows.StepManager.name,strings[gCurrentLanguage].stepTask,	"qStepTask",strings[gCurrentLanguage].newQuestStep,	QM.Strings.QuestTasks},
@@ -375,6 +401,17 @@ QM.Builds = {
 			[5] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepAction,"eTaskAction", strings[gCurrentLanguage].editQuestStep},
 			[6] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepDelay,"eTaskDelay",strings[gCurrentLanguage].editQuestStep},
 			[7] = {4, "GUI_NewButton",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questPullValues, "QM.LoadEditCurrentValues",strings[gCurrentLanguage].editQuestStep},
+		},
+		["vendor"] = {
+			[1] = {5, "GUI_NewComboBox",QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepTask,	"eStepTask",strings[gCurrentLanguage].editQuestStep,	QM.Strings.QuestTasks},
+			[2] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepMap,"eTaskMap",strings[gCurrentLanguage].editQuestStep},
+			[3] = {5, "GUI_NewComboBox",QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepMesh,"eTaskMesh",strings[gCurrentLanguage].editQuestStep, QM.Strings.Meshes },
+			[4] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepTarget,"eTaskNPC",strings[gCurrentLanguage].editQuestStep},
+			[5] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].convoIndex,"eTaskConvoIndex", strings[gCurrentLanguage].editQuestStep},
+			[6] = {4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepItemAmount,"eTaskItemAmount",	strings[gCurrentLanguage].editQuestStep},
+			[7] = {4, "GUI_NewField",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepDelay,"eTaskDelay",strings[gCurrentLanguage].editQuestStep},
+			[8] = {4, "GUI_NewButton",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questItemEditor, "QMToggleItemEditor",strings[gCurrentLanguage].editQuestStep},
+			[9] = {4, "GUI_NewButton",	QM.Windows.StepEditor.name,strings[gCurrentLanguage].questPullValues, "QM.LoadEditCurrentValues",strings[gCurrentLanguage].editQuestStep},
 		},
 		["complete"] = {
 			[1] = {5, "GUI_NewComboBox",QM.Windows.StepEditor.name,strings[gCurrentLanguage].stepTask,	"eStepTask",strings[gCurrentLanguage].editQuestStep,	QM.Strings.QuestTasks},
@@ -546,7 +583,20 @@ function QM.RefreshQuests()
 	GUI_DeleteGroup(QM.Windows.Main.name,strings[gCurrentLanguage].quests)
 	if (TableSize(QM.Quests) > 0) then
 		for k,v in spairs(QM.Quests) do
-			GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
+			--Check the quest list to see if we have it, tack on the quest name if we do.
+			local found = false
+			for id,quest in pairs(Quest:GetQuestList()) do
+				if (id == k) then
+					GUI_NewButton(QM.Windows.Main.name, tostring(k).."["..quest.name.."]", "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
+					found = true
+				end
+				if (found) then
+					break
+				end
+			end
+			if (not found) then
+				GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
+			end
 		end
 		GUI_UnFoldGroup(QM.Windows.Main.name,strings[gCurrentLanguage].quests)
 	end
@@ -694,6 +744,72 @@ function QM.ClearPreReqs()
 	QM.Quests[id].prereq = nil
 	QM.Quests[id].prereq = false
 	QM.RefreshPreReqs()
+end
+--**************************************************************************************************************************************
+function QM.AddStepItem()
+	local stepid = tonumber(eStepNum)
+	local quest = tonumber(eQuestID)
+	local step = QM.Quests[quest].steps[stepid]
+	
+	if (not ValidTable(step.itemid)) then
+		step.itemid = {}
+	end
+	
+	local job = qTaskItemJobReq == "None" and -1 or tonumber(FFXIV.JOBS[qTaskItemJobReq])
+	local item = tonumber(qTaskItemID)
+	
+	step.itemid[job] = item
+	
+	QM.Quests[quest].steps[stepid] = step
+	QM.RefreshStepItems()
+end
+--**************************************************************************************************************************************
+function QM.RefreshStepItems()
+	local stepid = tonumber(eStepNum)
+	local quest = tonumber(eQuestID)
+	local step = QM.Quests[quest].steps[stepid]
+	
+	GUI_DeleteGroup(QM.Windows.ItemEditor.name,GetString("items"))
+	
+	if (ValidTable(step.itemid)) then
+		for job,item in pairs(step.itemid) do
+			GUI_NewButton(QM.Windows.ItemEditor.name, tostring(item).."["..tostring(job).."]","QMItemRemove"..tostring(quest)..";"..tostring(stepid)..";"..tostring(job), GetString("items"))
+		end
+			
+		GUI_UnFoldGroup(QM.Windows.ItemEditor.name,GetString("items"))
+	end
+	
+	for k,v in pairs(QM.Quests[quest].steps[stepid]) do
+		d("k="..tostring(k)..",v="..tostring(v))
+	end
+	
+	local wnd = QM.Windows.ItemEditor
+	GUI_SizeWindow(wnd.name,wnd.width,wnd.height)
+	GUI_RefreshWindow(wnd.name)
+end
+--**************************************************************************************************************************************
+function QM.ClearStepItems()
+	local stepid = tonumber(eStepNum)
+	local quest = tonumber(eQuestID)
+	
+	QM.Quests[quest].steps[stepid].itemid = nil
+	QM.RefreshStepItems()
+end
+--**************************************************************************************************************************************
+function QM.RemoveStepItem(itemstring)
+	local i = 0
+	local components = {}
+	for _, component in StringSplit(itemstring,";") do
+		components[i] = tonumber(component)
+		i = i + 1
+	end
+	
+	local quest = components[0]
+	local stepid = components[1]
+	local job = components[2]
+	
+	QM.Quests[quest].steps[stepid].itemid[job] = nil
+	QM.RefreshStepItems()
 end
 --**************************************************************************************************************************************
 function QM.AddTurnover()
@@ -847,20 +963,19 @@ function QM.AddStep()
 end
 --**************************************************************************************************************************************
 function QM.SaveStep()
-	local task = {}
+	local id = tonumber(eQuestID)
+	local step = tonumber(eStepNum)
+	local task = QM.Quests[id].steps[step]
 	
 	for k,v in ipairs (QM.Builds.QuestTasksEdit[eStepTask]) do
 		local value = _G[v[5]]
 		if (v[2] ~= "GUI_NewButton" and value ~= nil and value ~= "") then
 			local var = QM.Variables[v[5]]
-			d("SaveStep Tracing: var="..tostring(v[5]))
 			if var.profile ~= "" and value ~= "" then
 				if var.cast == "number" then
 					task[var.profile] = tonumber(value)
-					d("SaveStep Tracing: numvar="..var.profile..",value="..tostring(value))
 				elseif var.cast == "string" then
 					task[var.profile] = tostring(value)
-					d("SaveStep Tracing: stringvar="..var.profile..",value="..tostring(value))
 				end
 			end
 		end
@@ -880,26 +995,10 @@ function QM.SaveStep()
 		["z"] = pos.z;
 	};
 	
-	local id = tonumber(eQuestID)
-	local step = tonumber(eStepNum)
-	
-	--If this is not the first step, and the previous step's map is the same, nix the mesh to prevent extra loading.
-	--[[
-	if (step > 1 and task.meshname ~= nil) then
-		if (QM.Quests[id].steps[step-1].mapid == task.mapid) then
-			task.meshname = nil
-		end
-	end	
-	--]]
-	
-	if (QM.Quests[id].steps[step]) then
-		--for k,v in pairs(task) do
-			--d("k="..tostring(k)..",v="..tostring(v))
-		--end
-		QM.Quests[id].steps[step] = task
-	end
+	QM.Quests[id].steps[step] = task
 	
 	QM.LoadTaskFields()
+	GUI_WindowVisible(QM.Windows.ItemEditor.name,false)
 	GUI_WindowVisible(QM.Windows.StepEditor.name,false)
 end
 --**************************************************************************************************************************************
@@ -1279,6 +1378,8 @@ function QM.HandleButtons( Event, Button )
 			QM.EditStep(string.gsub(Button,"QMStepEdit",""))
 		elseif (string.sub(Button,1,12) == "QMStepRemove") then
 			QM.RemoveStep(string.gsub(Button,"QMStepRemove",""))
+		elseif (string.sub(Button,1,12) == "QMItemRemove") then
+			QM.RemoveStepItem(string.gsub(Button,"QMItemRemove",""))
 		elseif (string.sub(Button,1,14) == "QMPreReqRemove") then
 			QM.RemovePreReq(string.gsub(Button,"QMPreReqRemove",""))
 		elseif (string.sub(Button,1,16) == "QMTurnoverRemove") then
