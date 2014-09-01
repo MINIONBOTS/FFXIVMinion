@@ -19,38 +19,6 @@ function ffxiv_task_craft.Create()
     return newinst
 end
 
--- repairs gear automatically
-c_repair = inheritsFrom( ml_cause )
-e_repair = inheritsFrom( ml_effect )
-c_repair.throttle = 30000
-function c_repair:evaluate()
-	--d("Checking items for needed repair..")
-	local eq = Inventory("type=1000")
-	if (eq) then
-		local i,e = next (eq)
-		while ( i and e ) do
-			if ( e.condition < math.random (1,50) ) then
-				return true
-			end
-			i,e = next (eq,i)
-		end		
-	end
-    return false
-end
-function e_repair:execute()
-	--d("Repairing items ..")
-    local eq = Inventory("type=1000")
-	if (eq) then
-		local i,e = next (eq)
-		while ( i and e ) do
-			if ( e.condition < 50 ) then
-				e:Repair()
-			end
-			i,e = next (eq,i)
-		end		
-	end
-end
-
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 c_opencraftwnd.throttle = 1500
