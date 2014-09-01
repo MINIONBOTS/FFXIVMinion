@@ -56,6 +56,9 @@ function ffxiv_unstuck.IsStuck()
 end
 
 function ffxiv_unstuck.IsOffMesh()
+	if (not gmeshname or gmeshname == "" or gmeshname == "none" or  ml_mesh_mgr.loadingMesh) then
+		return false
+	end
 	return not Player.onmesh and not ActionList:IsCasting()
 end
 
@@ -75,6 +78,7 @@ end
 function ffxiv_unstuck.CheckStuck()
 	if (gDoUnstuck == "0" or 
 		gBotMode == strings[gCurrentLanguage].pvpMode or
+		gBotMode == strings[gCurrentLanguage].craftMode or
 		gBotMode == strings[gCurrentLanguage].assistMode or 
 		gBotMode == strings[gCurrentLanguage].dutyMode or
 		gBotMode == strings[gCurrentLanguage].fishMode) 
