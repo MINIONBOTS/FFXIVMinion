@@ -805,7 +805,7 @@ function c_bettertargetsearch:evaluate()
         return false
     end
 	
-	if (gBotMode == GetString("huntMode")) then
+	if (gBotMode == GetString("huntMode") or gBotMode == GetString("questMode")) then
 		return false
 	end
     
