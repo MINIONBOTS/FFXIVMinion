@@ -70,14 +70,14 @@ SkillMgr.StartingProfiles =
 SkillMgr.ActionTypes = 
 {
 	ACTIONS = 1,
-	ITEM = 2,
-	GENERAL = 5,
-	COMPANION = 6,
-	MINIONS = 8,
+	--ITEM = 2,
+	--GENERAL = 5,
+	--COMPANION = 6,
+	--MINIONS = 8,
 	CRAFT = 9,
-	MAINCOMMANDS = 10,
+	--MAINCOMMANDS = 10,
 	PET = 11,
-	MOUNT = 13,
+	--MOUNT = 13,
 }
 
 SkillMgr.Variables = {
