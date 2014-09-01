@@ -34,7 +34,8 @@ function quest_step_complete_execute()
 	ml_task_hub:CurrentTask().completed = true
 	local delay = ml_task_hub:CurrentTask().params["delay"]
 	if (delay == nil or delay == 0) then
-		delay = 1000
+		--minimum delay to allow quest objective flags to update
+		delay = 2000
 	end
 	ml_task_hub:CurrentTask():SetDelay(delay)
 end
@@ -197,6 +198,20 @@ function ffxiv_quest_complete:task_complete_eval()
 	return ffxiv_task_quest.currentQuest:hasBeenCompleted()
 end
 
+function ffxiv_quest_complete:task_fail_eval()
+		--if the new task is a complete step and the quest isn't complete then we fucked up somewhere
+		--try to restart at the second step of the quest and put up an error message
+		return not ffxiv_task_quest.currentQuest:isComplete() and not ffxiv_task_quest.currentQuest:hasBeenCompleted()
+end
+
+function ffxiv_quest_complete:task_fail_execute()
+	ml_error("Quest "..gCurrQuestID.." cannot be completed because all quest objectives have not been met...something screwed up!")
+	ml_error("Attempting to restart quest objectives at step 2 of profile")
+	ffxiv_task_quest.restartStep = 2
+	ffxiv_task_quest.ResetStep()
+	self:Terminate()
+end
+
 function ffxiv_quest_complete:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -352,7 +367,6 @@ function ffxiv_quest_kill:Init()
 	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 20 )
     self:add( ke_incrementKillCount, self.overwatch_elements)
 	
-	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 	
 	ffxiv_task_quest.questFlags = 0
@@ -362,14 +376,19 @@ function ffxiv_quest_kill:task_complete_eval()
 	if((not self.params["killcount"] and ffxiv_task_quest.killCount == 1) or
 		(self.params["killcount"] == ffxiv_task_quest.killCount))
 	then
-		Settings.FFXIVMINION.questKillCount = nil
-		gQuestKillCount = ""
-		ffxiv_task_quest.questFlags = 0
-		ffxiv_task_quest.killCount = 0
 		return true
 	end
 
 	return false
+end
+
+function ffxiv_quest_kill:task_complete_execute()
+	Settings.FFXIVMINION.questKillCount = nil
+	gQuestKillCount = ""
+	ffxiv_task_quest.questFlags = 0
+	ffxiv_task_quest.killCount = 0
+	
+	quest_step_complete_execute()
 end
 
 ------------------------------------------------------
@@ -414,9 +433,6 @@ function ffxiv_quest_dutykill:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
-	--local ke_questAvoidance = ml_element:create( "QuestAvoidance", c_avoid, e_avoid, 15 )
-    --self:add( ke_questAvoidance, self.overwatch_elements)
-	
 	ml_global_information.disableFlee = true
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -424,7 +440,7 @@ end
 
 function ffxiv_quest_dutykill:task_complete_eval()
 	local mapid = self.params["mapid"]
-	return Player.localmapid ~= mapid
+	return Player.localmapid ~= mapid and ffxiv_task_quest.QuestObjectiveChanged()
 end
 
 function ffxiv_quest_dutykill:task_fail_eval()

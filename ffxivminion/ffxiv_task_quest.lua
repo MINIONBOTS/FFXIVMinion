@@ -103,6 +103,30 @@ function ffxiv_task_quest.QuestFlagsChanged()
 	return false
 end
 
+function ffxiv_task_quest.QuestObjectiveChanged()
+	if(ValidTable(ffxiv_task_quest.currentQuest)) then
+		return ffxiv_task_quest.currentQuest:currentObjectiveIndex() ~= tonumber(gCurrQuestObjective)
+	end
+end
+
+function ffxiv_task_quest.AddEquipItem(itemid)
+	local equipTable = ml_global_information.itemIDsToEquip[gProfile]
+	if(not equipTable) then
+		equipTable = {}
+	end
+	ml_global_information.itemIDsToEquip[gProfile] = equipTable
+	
+	local jobTable = equipTable[Player.job]
+	if(not jobTable) then
+		jobTable = {}
+	end
+	equipTable[Player.job] = jobTable
+	
+	jobTable[itemid] = true
+	Settings.FFXIVMINION.itemIDsToEquip = ml_global_information.itemIDsToEquip
+	Settings.FFXIVMINION.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
+end
+
 function ffxiv_task_quest.UpdateProfiles()
     local profiles = "None"
     local found = "None"	
@@ -138,7 +162,6 @@ function ffxiv_task_quest.ResetStep()
 		ffxiv_task_quest.killCount = 0
 	end
 end
-
 
 function ffxiv_task_quest.LoadProfile(profilePath)
 	d("Loading quest profile from "..profilePath)

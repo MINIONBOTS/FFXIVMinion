@@ -1587,20 +1587,32 @@ function c_equip:evaluate()
 		return true
 	end
 
+	local itemIDsToEquip = {}
+	if(gBotMode == GetString("questMode") and gProfile ~= "") then
+		local profileTable = ml_global_information.itemIDsToEquip[gProfile]
+		if(ValidTable(profileTable)) then
+			itemIDsToEquip = profileTable[Player.job]
+		end
+	end
+	
 	local itemids = {}
-	if(TableSize(ml_global_information.itemIDsToEquip) > 0) then
-		for id,_ in pairs(ml_global_information.itemIDsToEquip) do
+	if(ValidTable(itemIDsToEquip)) then
+		for id,_ in pairs(itemIDsToEquip) do
 			local item = Inventory:Get(id)
 			if(ValidTable(item) and item.canequip) then
 				--transfer the id to the temp list for equipping and remove from the global list
 				itemids[id] = true
-				ml_global_information.itemIDsToEquip[id] = nil
+				itemIDsToEquip[id] = nil
 			end
 		end
 	end
 	
 	if(TableSize(itemids) > 0) then
 		e_equip.itemids = itemids
+		
+		--write out changes to item equip table for settings
+		Settings.FFXIVMINION.itemIDsToEquip = ml_global_information.itemIDsToEquip
+		Settings.FFXIVMINION.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 		return true
 	end
 	

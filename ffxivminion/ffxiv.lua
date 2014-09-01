@@ -417,6 +417,11 @@ function ffxivminion.HandleInit()
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
 	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
 	
+	-- add requested equip items from previous sessions
+	if (Settings.FFXIVMINION.itemIDsToEquip == nil) then
+		Settings.FFXIVMINION.itemIDsToEquip = {}
+	end
+	ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 
 -- setup meshmanager
 	if ( ml_mesh_mgr ) then

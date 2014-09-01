@@ -35,9 +35,14 @@ end
 function e_questiscomplete:execute()
 	local task = ffxiv_task_quest.currentQuest:GetCompleteTask()
 	if (ValidTable(task)) then
-		gQuestStepType = task.params["type"]
 		ml_task_hub:CurrentTask():AddSubTask(task)
-		ml_task_hub:CurrentTask().currentStepCompleted = false
+		
+		ffxiv_task_quest.currentStepParams = task.params
+		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
+		gCurrQuestObjective = tostring(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+		gQuestStepType = task.params["type"]
+		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
+		ffxiv_task_quest.SetQuestFlags()
 	end
 end
 
@@ -51,7 +56,7 @@ function c_nextqueststep:evaluate()
 		return false
 	end
 	
-	return ml_task_hub:CurrentTask().currentStepCompleted
+	return ml_task_hub:CurrentTask().currentStepCompleted or (ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0)
 end
 function e_nextqueststep:execute()
 	local quest = ffxiv_task_quest.currentQuest
@@ -62,13 +67,20 @@ function e_nextqueststep:execute()
 		ffxiv_task_quest.restartStep ~= 0) 
 	then
 		ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
+		ffxiv_task_quest.restartStep = 0
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
 	
 	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
-	if (ValidTable(task)) then	
-	
+	if (ValidTable(task)) then
+		--update quest step state
+		ml_task_hub:ThisTask().currentStepCompleted = false
+		
+		if(task.params["type"] == "complete") then
+			--don't let nextqueststep queue a complete task, let the complete cne handle it
+			return
+		end
 		-- initialize task vars for some step types here
 		-- this could really be handled more elegantly than a giant ifelse but
 		-- that will have to come later
@@ -96,26 +108,14 @@ function e_nextqueststep:execute()
 			ffxiv_task_quest.restartStep = 0
 		end
 		
-		--if the new task is a complete step and the quest isn't complete then we fucked up somewhere
-		--try to restart at the second step of the quest and put up an error message
-		--need to factor this out to a complete cne, it fucks up things here due to timing
-		--if(task.params["type"] == "complete" and not ffxiv_task_quest.currentQuest:isComplete())then
-		--	ffxiv_task_quest.restartStep = 2
-		--	ffxiv_task_quest.ResetStep()
-		--	return
-		--end
-		
-		ml_task_hub:ThisTask().currentObjectiveIndex = ffxiv_task_quest.currentQuest:currentObjectiveIndex()
-		--d(ml_task_hub:ThisTask().currentObjectiveIndex)
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
-		--update quest step state
 		ffxiv_task_quest.currentStepParams = task.params
-		ml_task_hub:ThisTask().currentStepCompleted = false
 		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
-		gCurrQuestObjective = tostring(ml_task_hub:ThisTask().currentObjectiveIndex)
+		gCurrQuestObjective = tostring(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
 		gQuestStepType = task.params["type"]
 		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
+		ffxiv_task_quest.SetQuestFlags()	
 	end
 end
 
@@ -842,6 +842,13 @@ function c_questkillaggrotarget:evaluate()
 	if(Player.castinginfo.channeltime > 0) then
 		return false
 	end
+	
+	--if we still have the quest object targeted then the mob may have spawned
+	--don't start a kill aggro target task or we'll fuck up the next kill step
+	local target = Player:GetTarget()
+	if (ValidTable(target) and target.type == 7) then
+		return false
+	end
 
 	if(ml_task_hub:ThisTask().name == "MOVETOPOS") then
 		if(e_questflee.fleeing) then
@@ -900,7 +907,7 @@ function e_questkillaggrotarget:execute()
 	end
     newTask:add( ml_element:create( "KillAggroFail", c_killfail, e_killfail, 100 ), newTask.overwatch_elements)
 	ml_task_hub:ThisTask().preserveSubtasks = true
-	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
 c_questbuy = inheritsFrom( ml_cause )
@@ -928,7 +935,7 @@ function e_questbuy:execute()
 	local buyamount = ml_task_hub:CurrentTask().params["buyamount"] or 1
 	if(Inventory:BuyShopItem(e_questbuy.itemid,buyamount)) then
 		if(ml_task_hub:CurrentTask().params["equip"]) then
-			ml_global_information.itemIDsToEquip[e_questbuy.itemid] = true
+			ffxiv_task_quest.AddEquipItem(e_questbuy.itemid)
 		end
 	end
 	
@@ -964,7 +971,7 @@ function e_equipreward:execute()
 	local newArmoryIDs = GetArmoryIDsTable()
 	for id, _ in pairs(newArmoryIDs) do
 		if(not ffxiv_task_quest.lastArmoryIDs[id]) then
-			ml_global_information.itemIDsToEquip[id] = true
+			ffxiv_task_quest.AddEquipItem(id)
 		end
 	end
 	ffxiv_task_quest.lastArmoryIDs = {}
@@ -1000,10 +1007,10 @@ end
 function e_questequip:execute()
 	local itemid = ml_task_hub:CurrentTask().params["itemid"]
 	if(type(itemid) == "number") then
-		ml_global_information.itemIDsToEquip[itemid] = true
+		ffxiv_task_quest.AddEquipItem(itemid)
 	elseif(type(itemid) == "table" and ValidTable(itemid)) then
 		for _, id in pairs(itemid) do
-			ml_global_information.itemIDsToEquip[id] = true
+			ffxiv_task_quest.AddEquipItem(id)
 		end
 	end
 end
