@@ -464,6 +464,9 @@ function ffxivminion.HandleInit()
 	if ( gAutoStart == "1" ) then
 		ml_task_hub.ToggleRun()		
 	end
+	if (gDisableDrawing == "1" ) then
+		GameHacks:Disable3DRendering(true)
+	end
     if (gSkipCutscene == "1" ) then
         GameHacks:SkipCutscene(true)
     end
