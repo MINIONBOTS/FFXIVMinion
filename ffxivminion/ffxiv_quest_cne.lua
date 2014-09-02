@@ -762,6 +762,10 @@ function e_questflee:execute()
 			function ()
 				return not Player.hasaggro and Player.hp.percent > 90
 			end
+		newTask.task_fail_eval = 
+			function ()
+				return not Player.alive
+			end
 		ml_task_hub:ThisTask().preserveSubtasks = true
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
