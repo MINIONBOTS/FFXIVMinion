@@ -11,6 +11,7 @@ ffxiv_task_duty.dutySet = false
 ffxiv_task_duty.dutyCleared = false
 ffxiv_task_duty.joinAttempts = 0
 ffxiv_task_duty.independentMode = false
+ffxiv_task_duty.lastCompletion = 0
 
 if (Settings.FFXIVMINION.gDutyMapID == nil) then
 	Settings.FFXIVMINION.gDutyMapID = 0
@@ -168,9 +169,16 @@ end
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
-	return( 	IsPartyLeader() and 
-				ml_task_hub:CurrentTask().state == "DUTY_NEW" and
-				Now() > ml_task_hub:CurrentTask().joinTimer )
+	if (IsPartyLeader()) then
+		if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and
+			Now() > ml_task_hub:CurrentTask().joinTimer )
+		then
+			return true
+		end
+		
+	end
+	
+	return false
 end
 function e_joinduty:execute()
 	if (not ControlVisible("ContentsFinder")) then
@@ -189,6 +197,7 @@ function e_joinduty:execute()
 		end
 	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
         ml_task_hub:CurrentTask().joinTimer = ml_global_information.Now + (tonumber(gResetDutyTimer) * 1000)
+		d("Attempting to join duty, reset timer set to "..tostring(tonumber(gResetDutyTimer) * 1000).." seconds")
 		ml_task_hub:CurrentTask().joinAttempts = ml_task_hub:CurrentTask().joinAttempts + 1
 		PressDutyJoin()
 		ffxiv_task_duty.dutyCleared = false
@@ -199,7 +208,7 @@ end
 c_readyduty = inheritsFrom( ml_cause )
 e_readyduty = inheritsFrom( ml_effect )
 function c_readyduty:evaluate()
-	if (not Quest:IsLoading() and not OnDutyMap() and IsDutyLeader() and 
+	if (not Quest:IsLoading() and not ml_mesh_mgr.meshLoading and not OnDutyMap() and IsDutyLeader() and 
 		Player.revivestate ~= 2 and Player.revivestate ~= 3 and 
 		(ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "")) then
 		local party = EntityList.myparty
@@ -246,6 +255,8 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().leaveTimer = Now() + 1500
 	elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
         PressYesNo(true)
+	elseif (Quest:IsLoading()) then
+		ffxiv_task_duty.lastComplete = Now()
 		if (IsDutyLeader() and ml_task_hub:CurrentTask().state ~= "DUTY_EXIT") then
 			ml_task_hub:CurrentTask().state = "DUTY_EXIT"
 		end
@@ -257,7 +268,7 @@ e_changeleader = inheritsFrom( ml_effect )
 e_changeleader.name = ""
 function c_changeleader:evaluate()
 	local party = EntityList.myparty
-	if (not ValidTable(party)) then
+	if (not ValidTable(party) or not IsFullParty()) then
 		return false
 	end
 	
