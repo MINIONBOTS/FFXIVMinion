@@ -277,6 +277,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gAvoidAOE == nil) then
 		Settings.FFXIVMINION.gAvoidAOE = "0" 
 	end
+	if (Settings.FFXIVMINION.gDevDebug == nil) then
+		Settings.FFXIVMINION.gDevDebug = "0" 
+	end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -290,6 +293,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].enableLog,"gEnableLog",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].logCNE,"gLogCNE",group )
+	GUI_NewCheckbox(winName,"Dev Debug","gDevDebug",group)
     GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
@@ -330,6 +334,7 @@ function ffxivminion.HandleInit()
 	GUI_WindowVisible(winName, false)
 	
 	gEnableLog = Settings.FFXIVMINION.gEnableLog
+	gDevDebug = Settings.FFXIVMINION.gDevDebug
     gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
     gUseMount = Settings.FFXIVMINION.gUseMount
     gUseSprint = Settings.FFXIVMINION.gUseSprint
@@ -534,7 +539,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gUseAetherytes" or
 			k == "gFood" or
 			k == "gFoodHQ" or 
-			k == "gAvoidAOE" )				
+			k == "gAvoidAOE" or
+			k == "gDevDebug")				
         then
             Settings.FFXIVMINION[tostring(k)] = v
 		end
@@ -653,7 +659,7 @@ function ffxivminion.SetMode(mode)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
-			SendTextCommand("/busy")
+			SendTextCommand("/busy on")
 		else
 			if (gBotMode == GetString("gatherMode")) then
 				gTeleport = "0"

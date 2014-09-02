@@ -185,7 +185,9 @@ function e_questmovetopos:execute()
 	
 	--add kill aggro target check
 	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
-    newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
+	if(ml_task_hub:CurrentTask().params["killaggro"] or ml_task_hub:CurrentTask().params["type"] == "interact") then
+		newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
+	end
 	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -223,9 +225,14 @@ function c_questcomplete:evaluate()
 	return Quest:IsQuestRewardDialogOpen()
 end
 function e_questcomplete:execute()
+	if(not ml_task_hub:CurrentTask().delayComplete) then
+		ml_task_hub:CurrentTask():SetDelay(2000)
+		ml_task_hub:CurrentTask().delayComplete = true
+		return
+	end
+		
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
 		if(ml_task_hub:CurrentTask().params["equip"]) then
-			d("test questcomplete1")
 			ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
 		end
 		
@@ -332,6 +339,8 @@ function e_questhandover:execute()
 				
 				if(handoverDone) then
 					Quest:RequestHandOver()
+					--set a delay to allow the server to process the item handover
+					ml_task_hub:CurrentTask():SetDelay(2000)
 					if (ml_task_hub:CurrentTask().params["type"] == "interact") then
 						ml_task_hub:CurrentTask().stepCompleted = true
 					end
@@ -726,33 +735,38 @@ function c_questflee:evaluate()
 		return false
 	end
 	
-    if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)))) or e_flee.fleeing
-    then
-        return true
+    if (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
+		if(ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
+			return true
+		else
+			d("Need to flee but no evac position defined for current mesh - trying random position")
+			local myPos = Player.pos
+			local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x,myPos.y,myPos.z,50,100)
+			if(ValidTable(newPos)) then
+				ml_marker_mgr.markerList["evacPoint"] = newPos
+				return true
+			end
+        end
     end
     
     return false
 end
 function e_questflee:execute()
 	ffxiv_task_quest.ResetStep()
-	
-    if (e_questflee.fleeing) then
-        if (not Player.hasaggro) then
-            Player:Stop()
-            e_questflee.fleeing = false
-            return
-        end
-    else
-        local fleePos = ml_marker_mgr.markerList["evacPoint"]
-        if (fleePos ~= nil and fleePos ~= 0) then
-            ml_debug( "Fleeing combat" )
-            ml_task_hub:ThisTask():DeleteSubTasks()
-            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z, 1.5, false, gRandomPaths=="1")
-            e_questflee.fleeing = true
-        else
-            ml_error( "Need to flee combat but no evacPoint set!!")
-        end
-    end
+	local fleePos = ml_marker_mgr.markerList["evacPoint"]
+	if(ValidTable(fleePos)) then
+		local newTask = ffxiv_task_movetopos.Create()
+		newTask.pos = fleePos
+		newTask.useTeleport = gTeleport == "1"
+		newTask.task_complete_eval = 
+			function ()
+				return not Player.hasaggro and Player.hp.percent > 90
+			end
+		ml_task_hub:ThisTask().preserveSubtasks = true
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	else
+		ml_error("Need to flee but no evac position defined for this mesh!!")
+	end
 end
 
 c_questdead = inheritsFrom( ml_cause )
@@ -1018,7 +1032,7 @@ end
 c_questidle = inheritsFrom( ml_cause )
 e_questidle = inheritsFrom( ml_effect )
 function c_questidle:evaluate()
-	return ml_global_information.idlePulseCount > 3000
+	return ml_global_information.idlePulseCount > 1000
 end
 function e_questidle:execute()
 	--something break because we haven't executed a cne in a long time

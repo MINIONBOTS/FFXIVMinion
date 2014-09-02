@@ -91,6 +91,9 @@ function ffxiv_quest_task:Init()
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 14 )
     self:add( ke_questIsComplete, self.process_elements)
 	
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 10 )
+    self:add( ke_questIdle, self.process_elements)
+	
 	--its tempting to make autoequip an overwatch cne but there are too many states 
 	--when the client does not allow gear changes
 	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
@@ -590,6 +593,17 @@ function ffxiv_quest_useitem.Create()
     return newinst
 end
 
+function ffxiv_quest_useitem:task_complete_eval()
+	local target = Player:GetTarget()
+	if(target and target.type == 7) then
+		if(Player.castinginfo.channeltime > 0) then
+			return false
+		end
+	end
+	
+	return quest_step_complete_eval()
+end
+
 function ffxiv_quest_useitem:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -601,7 +615,6 @@ function ffxiv_quest_useitem:Init()
 	local ke_questUseItem = ml_element:create( "QuestUseItem", c_questuseitem, e_questuseitem, 10 )
     self:add( ke_questUseItem, self.process_elements)
 
-	self.task_complete_eval = quest_step_complete_eval
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end

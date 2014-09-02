@@ -1480,6 +1480,7 @@ function c_teleporttopos:evaluate()
         
         if (distance > 20) then
             c_teleporttopos.pos = gotoPos
+			c_teleporttopos.distance = distance
             return true
         end
     end
@@ -1489,6 +1490,18 @@ function e_teleporttopos:execute()
     if ( c_teleporttopos.pos ~= 0) then
         local gotoPos = c_teleporttopos.pos
 		Player:Stop()
+		
+		--if(gShortTeleport == "1") then
+		--	if(c_teleporttopos.distance and c_teleporttopos.distance > 50) then
+		--		Player:SetFacing(gotoPos.x, gotoPos.y, gotoPos.z)
+		--		local myPos = Player.pos
+		--		local newPos = GetPosFromDistanceHeading(myPos, 50, myPos.h)
+		--		if(ValidTable(newPos)) then
+		--			gotoPos = newPos
+		--		end
+		--	end
+		--end
+			
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		Player:SetFacingSynced(math.random())
 		ml_task_hub:CurrentTask():SetDelay(1500)

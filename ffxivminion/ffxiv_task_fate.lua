@@ -137,7 +137,7 @@ function c_teletofate:evaluate()
 		return false
 	end
 	
-	if tonumber(gFateTeleportPercent) == 0 then
+	if (tonumber(gFateTeleportPercent) == 0 and gTeleport == "0") then
 		ml_debug("Can't teleport, it's turned off.")
 		return false
 	end
@@ -156,8 +156,13 @@ function c_teletofate:evaluate()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
         if (fate ~= nil and TableSize(fate) > 0) then
-			if fate.completion > tonumber(gFateTeleportPercent) then
-				
+			local percent = tonumber(gFateTeleportPercent)
+			if(gTeleport == "1" and percent == 0) then
+				--use a default completion percentage to enable fate teleport to match checkbox
+				percent = 10
+			end
+			
+			if fate.completion > percent then
 				local myPos = Player.pos
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)

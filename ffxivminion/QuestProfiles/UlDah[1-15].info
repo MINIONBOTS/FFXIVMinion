@@ -653,7 +653,21 @@ local obj1 = {
 						["z"] = -164.20077514648;
 					};
 				};
-				[4] = {
+				[3] = {
+					["mapid"] = 141;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["id"] = 53;
+					["itemreward"] = false;
+					["conversationindex"] = 1;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -1.8784470558167;
+						["x"] = -18.385139465332;
+						["z"] = -164.20077514648;
+					};
+				};
+				[5] = {
 					["mapid"] = 141;
 					["type"] = "complete";
 					["itemrewardslot"] = {
@@ -671,7 +685,7 @@ local obj1 = {
 						["z"] = -148.10401916504;
 					};
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 141;
 					["type"] = "vendor";
 					["equip"] = true;

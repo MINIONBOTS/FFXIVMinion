@@ -226,6 +226,11 @@ end
 function e_nextquest:execute()
 	local quest = e_nextquest.quest
 	if (ValidTable(quest)) then
+		if(quest.id == 551 and gDevDebug == "1") then
+			ml_task_hub.ToggleRun()
+			ml_error("At quest for testing")
+			return
+		end
 		local task = quest:CreateTask()
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
@@ -252,6 +257,13 @@ function e_questaddgrind:execute()
 		end
 	newTask.params["mapid"] = grindmap
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	
+	--clear all the quest interface data so the user knows whats happening
+	gCurrQuestID = ""
+	gCurrQuestObjective = ""
+	gCurrQuestStep = ""
+	gQuestStepType = "grind"
+	gQuestKillCount = ""
 end
 
 function ffxiv_task_quest:Init()
