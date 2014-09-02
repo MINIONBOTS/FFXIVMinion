@@ -126,12 +126,14 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Stackcount","invcount","InventoryInfo")
 	GUI_NewField("Dev","MaxStackcount","invmaxcount","InventoryInfo")
 	GUI_NewField("Dev","Condition","invcond","InventoryInfo")
+	GUI_NewField("Dev","Spiritbond","invsprit","InventoryInfo")	
 	GUI_NewField("Dev","Level","invlvl","InventoryInfo")
 	GUI_NewField("Dev","RequiredLevel","invreqlvl","InventoryInfo")
 	GUI_NewField("Dev","Category","invcategory","InventoryInfo")
 	GUI_NewField("Dev","Class","invclass","InventoryInfo")	
 	GUI_NewField("Dev","CanEquip","invequipable","InventoryInfo")
 	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
+	GUI_NewField("Dev","IsHQ","invHQ","InventoryInfo")
 	invSelSlot = 0
 	invinv = "0"
 	
@@ -822,11 +824,13 @@ function Dev.UpdateWindow()
 			invcount = item.count
 			invmaxcount = item.max
 			invcond = item.condition
+			invsprit = item.spiritbond
 			invlvl = item.level
 			invreqlvl = item.requiredlevel
 			invcategory = item.category
 			invclass = item.class
 			invequipable = tostring(item.canequip)
+			invHQ = tostring(item.IsHQ)
 			
 		end
 	end
