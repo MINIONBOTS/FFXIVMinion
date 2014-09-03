@@ -178,13 +178,20 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFateBLTimer" or
                 k == "gRestInFates" or
                 k == "gCombatRangePercent" or
-				k == "gAtma" or
 				k == "AlwaysKillAggro" or
 				k == "gClaimFirst" or
 				k == "gClaimRange" or
 				k == "gClaimed" )
         then
             Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gAtma") then
+			if (v == "1") then
+				gDoFates = "1"
+				gFatesOnly = "1"
+			else
+				gDoFates = Settings.FFXIVMINION.gDoFates
+				gFatesOnly = Settings.FFXIVMINION.gFatesOnly
+			end			
         end
     end
     GUI_RefreshWindow(GetString("grindMode"))

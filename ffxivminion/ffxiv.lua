@@ -127,14 +127,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_blacklist_mgr.UpdateEntryTime()
 		ml_blacklist_mgr.UpdateEntries(tickcount)
 		
-		--ffxiv_unstuck.lua
 		ffxivminion.CheckClass()
-		
+	
 		ffxiv_unstuck.HandleUpdate(tickcount)		
-		if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
-			ml_global_information.repairTimer = tickcount
-			Repair()
-		end
 		
 		if (TimeSince(ml_global_information.windowTimer) > 10000) then
 			ml_global_information.windowTimer = tickcount
@@ -147,6 +142,18 @@ function ml_global_information.OnUpdate( event, tickcount )
 		end
 		
 		if (gBotRunning == "1") then
+			local list = Player:GetGatherableSlotList()
+			local synth = Crafting:SynthInfo()	
+	
+			if (ValidTable(list) or ValidTable(synth)) then
+				return false
+			end
+			
+			if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
+				ml_global_information.repairTimer = tickcount
+				Repair()
+			end
+	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					ml_global_information.foodCheckTimer = tickcount
@@ -380,11 +387,11 @@ function ffxivminion.HandleInit()
 	end
 	
 	if (modeFound) then
-		ffxivminion.SetMode(gBotMode)
+		ffxivminion.SwitchMode(gBotMode)
 	else
 		gBotMode = GetString("grindMode")
 		Settings.FFXIVMINION.gBotMode = gBotMode
-		ffxivminion.SetMode(gBotMode)
+		ffxivminion.SwitchMode(gBotMode)
 	end
 	
 	gFFXIVMINIONTask = ""
@@ -501,7 +508,7 @@ end
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)	
     for k,v in pairs(NewVals) do
         if ( k == "gBotMode" ) then
-            ffxivminion.CheckMode()
+            ffxivminion.SwitchMode(v)
 			Settings.FFXIVMINION[tostring(k)] = v
         end
         if (k == "gEnableLog") then
@@ -556,7 +563,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		end
 		
 		if ( k == "gSkipCutscene" ) then
-			d("skipDialogue was changed. new value = "..tostring(v))
 			if ( v == "1" ) then
 				GameHacks:SkipCutscene(true)
 			else
@@ -566,7 +572,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		end
 		
 		if ( k == "gSkipDialogue" ) then
-			d("skipDialogue was changed. new value = "..tostring(v))
 			if ( v == "1" ) then
 				GameHacks:SkipDialogue(true)
 			else
@@ -614,26 +619,33 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
 end
 
-function ffxivminion.SetMode(mode)	
-	local wnd = nil
-	if (ml_global_information.lastMode ~= mode) then
-		wnd = GUI_GetWindowInfo(ml_global_information.lastMode)
-		GUI_WindowVisible(ml_global_information.lastMode, false)
-	end
-	
-	if (wnd) then
-		GUI_MoveWindow(mode, wnd.x, wnd.y)
-	end
-	
-	ffxivminion.SizeWindow(mode)
-	GUI_WindowVisible(mode, true)
-	ml_global_information.lastMode = mode
-	
-    local task = ffxivminion.modes[mode]
+function ffxivminion.SwitchMode(mode)	
+	local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-        ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
-		gBotMode = mode
-        if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+		if (gBotMode ~= mode) then
+			gBotMode = mode
+			Settings.FFXIVMINION.gBotMode = gBotMode
+		end
+		
+		if (gBotRunning == "1") then
+			ml_task_hub.ToggleRun()
+		end
+	
+		local wnd = nil
+		if (ml_global_information.lastMode ~= mode and ml_global_information.lastMode ~= "") then
+			wnd = GUI_GetWindowInfo(ml_global_information.lastMode)
+			GUI_WindowVisible(ml_global_information.lastMode, false)
+		end
+		
+		if (wnd) then
+			GUI_MoveWindow(mode, wnd.x, wnd.y)
+		end
+		
+		ffxivminion.SizeWindow(mode)
+		GUI_WindowVisible(mode, true)
+		ml_global_information.lastMode = mode
+		
+		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
             Player:EnableUnstuckJump(false)
         else
             Player:EnableUnstuckJump(true)
@@ -667,11 +679,17 @@ function ffxivminion.SetMode(mode)
 			gProfile_listitems = "NA"
 			gProfile = "NA"
 		end
+	end
+end
+
+function ffxivminion.SetMode(mode)
+    local task = ffxivminion.modes[mode]
+    if (task ~= nil) then		
+		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
 end
 
 function ffxivminion.CheckClass()
-	
     local classes = 
     {
         [FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
@@ -705,6 +723,7 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
     }
 	
+	
 	if (ml_global_information.CurrentClass == nil) then
 		ml_global_information.CurrentClass = classes[Player.job]
 		ml_global_information.CurrentClassID = Player.job
@@ -735,9 +754,9 @@ function ffxivminion.CheckClass()
 			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode or gBotMode == strings[gCurrentLanguage].craftMode) then
 				newModeName = strings[gCurrentLanguage].grindMode				
 			end
-			
+						
 			if (gBotMode ~= newModeName and newModeName ~= "") then
-				ffxivminion.SetMode(newModeName)
+				ffxivminion.SwitchMode(newModeName)
 			end
             
             SkillMgr.UseDefaultProfile()
@@ -907,7 +926,6 @@ function ffxivminion.UpdateFoodOptions()
 end
 
 function ml_global_information.Reset()
-    --TODO: Figure out what state needs to be reset and add calls here
     ml_task_hub:ClearQueues()
     ffxivminion.CheckMode()
 end

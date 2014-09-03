@@ -170,6 +170,12 @@ c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
 	if (IsPartyLeader()) then
+		if (ml_task_hub:CurrentTask().state == "DUTY_ENTER" and 
+			not OnDutyMap() and Now() > ml_task_hub:CurrentTask().joinTimer) 
+		then
+			ml_task_hub:CurrentTask().state = "DUTY_NEW"
+		end
+		
 		if (ml_task_hub:CurrentTask().state == "DUTY_NEW" and
 			Now() > ml_task_hub:CurrentTask().joinTimer )
 		then
