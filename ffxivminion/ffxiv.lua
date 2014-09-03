@@ -142,21 +142,31 @@ function ml_global_information.OnUpdate( event, tickcount )
 		end
 		
 		if (gBotRunning == "1") then
-			local list = Player:GetGatherableSlotList()
-			local synth = Crafting:SynthInfo()	
-	
-			if (ValidTable(list) or ValidTable(synth)) then
-				return false
-			end
 			
-			if ( TimeSince(ml_global_information.repairTimer) > 30000 and gBotRunning == "1" ) then
+			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
 				ml_global_information.repairTimer = tickcount
+				
+				local list = Player:GetGatherableSlotList()
+				local synth = Crafting:SynthInfo()	
+		
+				if (ValidTable(list) or ValidTable(synth)) then
+					return false
+				end
+				
 				Repair()
 			end
 	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					ml_global_information.foodCheckTimer = tickcount
+					
+					local list = Player:GetGatherableSlotList()
+					local synth = Crafting:SynthInfo()	
+			
+					if (ValidTable(list) or ValidTable(synth)) then
+						return false
+					end
+					
 					Eat()
 				end
 			end
