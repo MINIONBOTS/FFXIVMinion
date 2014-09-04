@@ -2125,9 +2125,9 @@ end
 
 function GetJPTime()
 	local jpTime = {}
-	jpTime.year = os.date("!%Y")
-	jpTime.month = os.date("!%m")
-	jpTime.day = os.date("!%d")
+	jpTime.year = tonumber(os.date("!%Y"))
+	jpTime.month = tonumber(os.date("!%m"))
+	jpTime.day = tonumber(os.date("!%d"))
 	
 	local utcHour = tonumber(os.date("!%H"))
 	local jphour = tonumber(os.date("!%H")) + 9	
@@ -2136,8 +2136,8 @@ function GetJPTime()
 	end
 	
 	jpTime.hour = jphour
-	jpTime.minute = os.date("!%M")
-	jpTime.sec = os.date("!%S")
+	jpTime.minute = tonumber(os.date("!%M"))
+	jpTime.sec = tonumber(os.date("!%S"))
 	
 	return jpTime
 end

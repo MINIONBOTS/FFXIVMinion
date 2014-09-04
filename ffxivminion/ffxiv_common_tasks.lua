@@ -168,20 +168,21 @@ function ffxiv_task_movetopos:Process()
 			end
 		end
 		
-		if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and TimeSince(ml_task_hub:ThisTask().obstacleTimer) > 5000) then
+		if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and TimeSince(ml_task_hub:ThisTask().obstacleTimer) > 10000) then
 			NavigationManager:ClearAvoidanceAreas()
 			local el = EntityList("attackable,aggressive,notincombat,maxdistance=100,fateid=0")
-			
+	
 			local dirty = false
 			local obst = {}
 			local count = 1
+			local plvl = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
 		  
 			for i,e in pairs(el) do
-				if (e.targetable and e.level >= Player.level) then
-					local pos = deepcopy(e.pos);
+				if (e.level >= (plvl - 3)) then
+					local pos = shallowcopy(e.pos)
 					pos.r = 15.0
 					obst[count] = pos
-					count = count +1
+					count = count + 1
 				end
 			end
 			NavigationManager:SetAvoidanceAreas(obst)

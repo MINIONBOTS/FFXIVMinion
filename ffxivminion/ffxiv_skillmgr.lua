@@ -620,8 +620,8 @@ end
 function SkillMgr.UseDefaultProfile()
     local default = Settings.FFXIVMINION.SMDefaultProfiles[Player.job]
     if (default) then
-		local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
-		if(not ValidTable(profile)) then
+		local profile = fileread(SkillMgr.profilepath..default..".lua")
+		if (not ValidTable(profile)) then
 			local starterDefault = SkillMgr.StartingProfiles[Player.job]
 			d("Default profile "..tostring(default).." not found. Switching to starter profile "..tostring(starterDefault))
 			default = starterDefault
