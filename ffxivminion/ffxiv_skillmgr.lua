@@ -612,8 +612,9 @@ function SkillMgr.CreateNewProfile()
     gSMnewname = ""	
 end
 
-function SkillMgr.SetDefaultProfile()
-	Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = gSMprofile
+function SkillMgr.SetDefaultProfile(strName)
+	local profile = strName or gSMprofile
+	Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = profile
 	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles
 end
 
@@ -626,14 +627,21 @@ function SkillMgr.UseDefaultProfile()
 			d("Default profile "..tostring(default).." not found. Switching to starter profile "..tostring(starterDefault))
 			default = starterDefault
 		end
-        gSMprofile = default
-        GUI_WindowVisible(SkillMgr.editwindow.name,false)
-        GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
-		GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
-        GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-        SkillMgr.SkillProfile = {}
-        SkillMgr.UpdateCurrentProfileData()
+	else
+		local starterDefault = SkillMgr.StartingProfiles[Player.job]
+		d("No default profile set, using start default ["..tostring(starterDefault).."]")
+		SkillMgr.SetDefaultProfile(starterDefault)
+		default = starterDefault
 	end
+	
+	gSMprofile = default
+	GUI_WindowVisible(SkillMgr.editwindow.name,false)
+	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
+	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
+	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+	SkillMgr.SkillProfile = {}
+	SkillMgr.UpdateCurrentProfileData()
+		
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
 

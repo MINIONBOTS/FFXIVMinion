@@ -368,10 +368,9 @@ function e_nextatma:execute()
 		return
 	end
 	
-	if (not ml_task_hub:ThisTask().changingLocations) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT") then
 		Player:Teleport(atma.tele)
-		ml_task_hub:ThisTask().changingLocations = true
-							
+		
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
 		newTask.mapID = atma.map
@@ -1114,6 +1113,15 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
+	
+	local target = Player:GetTarget()
+	if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
+		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
+		if (TableSize(el) == 0) then
+			return false
+		end
+	end
+	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
         if  (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") or (gFatesOnly == "1") then
