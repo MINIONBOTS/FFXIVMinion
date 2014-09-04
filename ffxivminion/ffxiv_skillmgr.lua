@@ -861,7 +861,8 @@ function SkillMgr.UpdateCurrentProfileData()
 			SkillMgr.UseDefaultProfile()
         end		
     else
-        d("No new SkillProfile selected!")		
+        d("No new SkillProfile selected!")	
+		SkillMgr.UseDefaultProfile()		
     end
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 	GUI_RefreshWindow(SkillMgr.mainwindow.name)
