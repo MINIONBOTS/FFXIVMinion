@@ -205,16 +205,16 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
 		--["NavTest"]								= ffxiv_task_test,
-}
+	}
 	
-	if ( not ffxivminion.Windows) then
+	if ( not ffxivminion.Windows ) then
 		ffxivminion.Windows = {}
 	end
 	
 	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
 
-	if (Settings.FFXIVMINION.version == nil ) then
+	if ( Settings.FFXIVMINION.version == nil ) then
         Settings.FFXIVMINION.version = 1.0
         Settings.FFXIVMINION.gEnableLog = "0"
     end
@@ -251,52 +251,52 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAutoStart == nil ) then
 		Settings.FFXIVMINION.gAutoStart = "0"
 	end	
-	if (Settings.FFXIVMINION.gTeleport == nil) then
+	if ( Settings.FFXIVMINION.gTeleport == nil) then
         Settings.FFXIVMINION.gTeleport = "0"
     end
-    if (Settings.FFXIVMINION.gSkipCutscene == nil) then
+    if ( Settings.FFXIVMINION.gSkipCutscene == nil) then
         Settings.FFXIVMINION.gSkipCutscene = "0"
     end
-    if (Settings.FFXIVMINION.gSkipDialogue == nil) then
+    if ( Settings.FFXIVMINION.gSkipDialogue == nil) then
         Settings.FFXIVMINION.gSkipDialogue = "0"
     end
-    if (Settings.FFXIVMINION.gDoUnstuck == nil) then
+    if ( Settings.FFXIVMINION.gDoUnstuck == nil) then
         Settings.FFXIVMINION.gDoUnstuck = "0"
     end
-	if (Settings.FFXIVMINION.gUseHQMats == nil) then
+	if ( Settings.FFXIVMINION.gUseHQMats == nil) then
 		Settings.FFXIVMINION.gUseHQMats = "0"
 	end
-    if (Settings.FFXIVMINION.gClickToTeleport == nil) then
+    if ( Settings.FFXIVMINION.gClickToTeleport == nil) then
 		Settings.FFXIVMINION.gClickToTeleport = "0"
 	end
-    if (Settings.FFXIVMINION.gClickToTravel == nil) then
+    if ( Settings.FFXIVMINION.gClickToTravel == nil) then
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
-	if (Settings.FFXIVMINION.gUseAetherytes == nil) then
+	if ( Settings.FFXIVMINION.gUseAetherytes == nil) then
 		Settings.FFXIVMINION.gUseAetherytes = "0"
 	end
-	if (Settings.FFXIVMINION.gChoco == nil) then
+	if ( Settings.FFXIVMINION.gChoco == nil) then
 		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
 	end
-	if (Settings.FFXIVMINION.gMount == nil) then
+	if ( Settings.FFXIVMINION.gMount == nil) then
 		Settings.FFXIVMINION.gMount = strings[gCurrentLanguage].none
 	end
-    if (Settings.FFXIVMINION.gChocoStance == nil) then
+    if ( Settings.FFXIVMINION.gChocoStance == nil) then
 		Settings.FFXIVMINION.gChocoStance = strings[gCurrentLanguage].stFree
 	end
-	if (Settings.FFXIVMINION.gRepair == nil) then
+	if ( Settings.FFXIVMINION.gRepair == nil) then
 		Settings.FFXIVMINION.gRepair = "1"
 	end
-	if (Settings.FFXIVMINION.gGatherPS == nil) then
+	if ( Settings.FFXIVMINION.gGatherPS == nil) then
 		Settings.FFXIVMINION.gGatherPS = "0" 
 	end
-	if (Settings.FFXIVMINION.gFoodHQ == nil) then
+	if ( Settings.FFXIVMINION.gFoodHQ == nil) then
 		Settings.FFXIVMINION.gFoodHQ = "None" 
 	end
-	if (Settings.FFXIVMINION.gFood == nil) then
+	if ( Settings.FFXIVMINION.gFood == nil) then
 		Settings.FFXIVMINION.gFood = "None" 
 	end
-	if (Settings.FFXIVMINION.gAvoidAOE == nil) then
+	if ( Settings.FFXIVMINION.gAvoidAOE == nil) then
 		Settings.FFXIVMINION.gAvoidAOE = "0" 
 	end
 	
@@ -484,8 +484,7 @@ function ffxivminion.HandleInit()
 	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
-		ml_global_information.autoStartQueued = true
-		--ml_task_hub.ToggleRun()		
+		ml_global_information.autoStartQueued = true		
 	end
 	if (gDisableDrawing == "1" ) then
 		GameHacks:Disable3DRendering(true)

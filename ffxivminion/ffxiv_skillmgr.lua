@@ -604,7 +604,6 @@ function SkillMgr.ButtonHandler(event, Button)
 end
 
 function SkillMgr.CreateNewProfile()
-    
     -- Delete existing Skills
     GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     gSMprofile = "None"

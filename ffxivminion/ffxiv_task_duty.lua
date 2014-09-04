@@ -214,6 +214,15 @@ end
 c_readyduty = inheritsFrom( ml_cause )
 e_readyduty = inheritsFrom( ml_effect )
 function c_readyduty:evaluate()
+	if (not OnDutyMap() and not Quest:IsLoading() and 
+		(ml_task_hub:CurrentTask().state == "DUTY_NEXTENCOUNTER" or
+		ml_task_hub:CurrentTask().state == "DUTY_DOENCOUNTER"
+		))
+	then
+		ml_task_hub:CurrentTask().state = ""
+		
+	end
+	
 	if (not Quest:IsLoading() and not ml_mesh_mgr.meshLoading and not OnDutyMap() and IsDutyLeader() and 
 		Player.revivestate ~= 2 and Player.revivestate ~= 3 and 
 		(ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "")) then
@@ -261,11 +270,6 @@ function e_leaveduty:execute()
 		ml_task_hub:CurrentTask().leaveTimer = Now() + 1500
 	elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
         PressYesNo(true)
-	elseif (Quest:IsLoading()) then
-		ffxiv_task_duty.lastComplete = Now()
-		if (IsDutyLeader() and ml_task_hub:CurrentTask().state ~= "DUTY_EXIT") then
-			ml_task_hub:CurrentTask().state = "DUTY_EXIT"
-		end
     end
 end
 
@@ -274,7 +278,7 @@ e_changeleader = inheritsFrom( ml_effect )
 e_changeleader.name = ""
 function c_changeleader:evaluate()
 	local party = EntityList.myparty
-	if (not ValidTable(party) or not IsFullParty()) then
+	if (not ValidTable(party) or not IsFullParty() or Quest:IsLoading()) then
 		return false
 	end
 	
@@ -284,7 +288,7 @@ function c_changeleader:evaluate()
 			return true
 		end
 	else
-		if ((ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "") and not Quest:IsLoading()) then
+		if ((ml_task_hub:CurrentTask().state == "DUTY_EXIT" or ml_task_hub:CurrentTask().state == "")) then
 			local properLeader = GetPartyLeader()
 			if (ffxiv_task_duty.leader ~= properLeader.name) then
 				e_changeleader.name = properLeader.name
@@ -307,6 +311,8 @@ function e_changeleader:execute()
 		ffxiv_task_duty.leaderSet = true
 		ffxiv_task_duty.dutySet = false
 		ffxiv_task_duty.dutyCleared = false
+	else
+		ml_task_hub:CurrentTask().state = ""
 	end
 end
 
@@ -325,11 +331,11 @@ function e_lootcheck:execute()
 end
 	
 function ffxiv_task_duty:Process()
-	if (Quest:IsLoading()) then
+	if (Quest:IsLoading() or ml_mesh_mgr.meshLoading) then
 		return false
 	end
-
-	if (IsDutyLeader()) then
+	
+	if (IsDutyLeader() and OnDutyMap()) then
 		if (self.state == "DUTY_ENTER" and OnDutyMap()) then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			if (ValidTable(encounters)) then
@@ -346,7 +352,7 @@ function ffxiv_task_duty:Process()
 				self.state = "DUTY_NEXTENCOUNTER"
 				self.encounterCompleted = false
 			end
-		elseif (self.state == "DUTY_NEXTENCOUNTER" and not self.encounterCompleted) then
+		elseif (self.state == "DUTY_NEXTENCOUNTER" and not self.encounterCompleted and OnDutyMap()) then
 			--Pull the positions, and the acceptable radius.
 			local pos = self.encounter.startPos["General"]
 			local myPos = Player.pos
@@ -385,7 +391,7 @@ function ffxiv_task_duty:Process()
 					end
 				end
 			end
-		elseif (self.state == "DUTY_DOENCOUNTER" and self.encounterCompleted) then
+		elseif (self.state == "DUTY_DOENCOUNTER" and self.encounterCompleted and OnDutyMap()) then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			self.encounterIndex = self.encounterIndex + 1
 			ffxiv_task_duty.dutyInfo["EncounterIndex"] = self.encounterIndex
