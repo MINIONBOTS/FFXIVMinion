@@ -1599,16 +1599,32 @@ function Mount()
 		
 		if (mountIndex ~= 1) then
 			local al = ActionList("type=6")
-			local dismiss = al[2]
-			local acDismiss = ActionList:Get(dismiss.id,6)
-			if (acDismiss.isready) then
-				acDismiss:Cast()
+			if ( TableSize (al) > 1) then
+				local dismiss = al[2]
+				if ( dismiss ) then
+					local acDismiss = ActionList:Get(dismiss.id,6)
+					if ( acDismiss) then 
+						if (acDismiss.isready) then
+							acDismiss:Cast()
+						end
+					else
+						ml_error("in Mount() , acDismiss == nil")
+					end
+				else
+					ml_error("in Mount() , dismiss == nil")
+				end
+			else
+				ml_error("in Mount() , al is < 1 ")
 			end
 		end
 	
 		local acMount = ActionList:Get(mountID,13)
-		if (acMount.isready) then
-			acMount:Cast()
+		if ( acMount ) then
+			if (acMount.isready) then
+				acMount:Cast()
+			end
+		else
+			ml_error("You need to select a Mount in the Minion Settings!")
 		end
 	end
 end
@@ -1624,15 +1640,22 @@ end
 function Dismount()
 	if (Player.ismounted) then
 		local mountlist = ActionList("type=13")
-		for k,mount in pairs(mountlist) do
-			if (gMount == mount.name) then
-				mountID = mount.id
+		
+		if ( TableSize( mountlist) > 0 ) then
+			for k,mount in pairs(mountlist) do
+				if (gMount == mount.name) then
+					mountID = mount.id
+				end
 			end
 		end
 		
 		local acMount = ActionList:Get(mountID,13)
-		if (acMount.isready) then
-			acMount:Cast()
+		if ( acMount ) then
+			if (acMount.isready) then
+				acMount:Cast()
+			end
+		else
+			ml_error("You need to select a Mount in the Minion Settings!")
 		end
 	end
 end

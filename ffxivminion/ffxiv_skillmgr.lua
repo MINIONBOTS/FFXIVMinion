@@ -64,7 +64,9 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.SUMMONER] = "Summoner",
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
 	[FFXIV.JOBS.BOTANIST] = "Botanist",
-	[FFXIV.JOBS.MINER] = "Miner"
+	[FFXIV.JOBS.MINER] = "Miner",
+	[FFXIV.JOBS.CULINARIAN] = "Culinarian"	
+	
 }
 
 SkillMgr.ActionTypes = 
@@ -628,9 +630,14 @@ function SkillMgr.UseDefaultProfile()
 		end
 	else
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
-		d("No default profile set, using start default ["..tostring(starterDefault).."]")
-		SkillMgr.SetDefaultProfile(starterDefault)
-		default = starterDefault
+		if ( starterDefault ) then
+			d("No default profile set, using start default ["..tostring(starterDefault).."]")
+			SkillMgr.SetDefaultProfile(starterDefault)
+			default = starterDefault
+		else
+			d("There is NO Default Skillmanager profile for your current job")
+			default = "None"
+		end
 	end
 	
 	gSMprofile = default
@@ -639,8 +646,15 @@ function SkillMgr.UseDefaultProfile()
 	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 	SkillMgr.SkillProfile = {}
-	SkillMgr.UpdateCurrentProfileData()
-		
+	
+	-- You need to make sure that this profile is valid & can be loaded, else you are producing a never ending call loop here!! SkillMgr.UseDefaultProfile() -> SkillMgr.UpdateCurrentProfileData() -> SkillMgr.UseDefaultProfile() 
+	if ( gSMprofile ~= nil and gSMprofile ~= "" and gSMprofile ~= "None" ) then
+        local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
+	    if ( TableSize(profile) > 0) then
+			SkillMgr.UpdateCurrentProfileData()
+		end
+	end
+	
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
 
@@ -860,7 +874,8 @@ function SkillMgr.UpdateCurrentProfileData()
 			SkillMgr.UseDefaultProfile()
         end		
     else
-        d("No new SkillProfile selected!")		
+        d("No new SkillProfile selected!")	
+		SkillMgr.UseDefaultProfile()
     end
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 	GUI_RefreshWindow(SkillMgr.mainwindow.name)

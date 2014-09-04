@@ -508,8 +508,7 @@ function ffxivminion.HandleInit()
         GameHacks:SetPermaSprint(true)
     end
 	
-	ffxivminion.CheckClass()
-    ffxivminion.UpdateFoodOptions()
+	ffxivminion.UpdateFoodOptions()
 	
 	ml_global_information.initComplete = true
 end
@@ -736,7 +735,9 @@ function ffxivminion.CheckClass()
 	if (ml_global_information.CurrentClass == nil) then
 		ml_global_information.CurrentClass = classes[Player.job]
 		ml_global_information.CurrentClassID = Player.job
-		ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		if ( ml_global_information.CurrentClass.range ) then
+			ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+		end
 		SkillMgr.UseDefaultProfile()
 		return
 	end
@@ -746,7 +747,9 @@ function ffxivminion.CheckClass()
         ml_global_information.CurrentClass = classes[Player.job]
         ml_global_information.CurrentClassID = Player.job
         if ml_global_information.CurrentClass ~= nil then
-            ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+            if ( ml_global_information.CurrentClass.range ) then
+				ml_global_information.AttackRange = ml_global_information.CurrentClass.range
+			end
 			
 			-- autosetting the correct botmode
 			local newModeName = ""

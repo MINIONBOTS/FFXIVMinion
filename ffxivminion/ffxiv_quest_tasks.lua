@@ -267,6 +267,9 @@ function ffxiv_quest_interact.Create()
 end
 
 function ffxiv_quest_interact:task_complete_eval()
+	--self.isQuestObject should only be set after we interact with the object
+	--so if its not targetable or its gone (for doors that make you leave/enter rooms)
+	--then the task is complete
 	if(self.isQuestObject) then
 		if(Player.castinginfo.channeltime > 0) then
 			return false
@@ -280,6 +283,8 @@ function ffxiv_quest_interact:task_complete_eval()
 				if(entity) then
 					return not entity.targetable
 				end
+			else
+				return true
 			end
 		end
 	else
