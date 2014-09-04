@@ -260,7 +260,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading() or ml_task_hub:ThisTask().changingLocations) then
+	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading() or ml_task_hub:CurrentTask().name == "LT_TELEPORT") then
 		return false
 	end
 	
@@ -368,10 +368,9 @@ function e_nextatma:execute()
 		return
 	end
 	
-	if (not ml_task_hub:ThisTask().changingLocations) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT") then
 		Player:Teleport(atma.tele)
-		ml_task_hub:ThisTask().changingLocations = true
-							
+		
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
 		newTask.mapID = atma.map

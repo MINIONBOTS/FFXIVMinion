@@ -375,7 +375,7 @@ function ffxiv_task_teleport.Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     
-    newinst.name = "TELEPORT"
+    newinst.name = "LT_TELEPORT"
     newinst.mapID = 0
 	newinst.mesh = nil
     newinst.started = ml_global_information.Now
@@ -413,7 +413,6 @@ end
 
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
-	self:ParentTask().changingLocations = false
 end
 
 --=======================STEALTH TASK=========================-
