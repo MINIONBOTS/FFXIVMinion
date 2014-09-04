@@ -396,10 +396,10 @@ function ffxiv_task_teleport:task_complete_eval()
 		if (Player.onmesh) then
 			return true
 		else
-			if (self.mesh and gmeshname ~= self.mesh) then
-				gmeshname = self.mesh
+			if (NavigationManager:GetNavMeshName() ~= self.mesh) then
+				ml_mesh_mgr.LoadNavMesh(self.mesh)
+				return false
 			end
-			return false
 		end
 	end
 	

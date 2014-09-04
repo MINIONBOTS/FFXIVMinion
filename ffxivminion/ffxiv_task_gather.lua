@@ -1273,7 +1273,8 @@ function ffxiv_task_gather.EditGatherLocation(key)
 	local location = list[key]
 	if (ValidTable(location)) then
 		eGatherMapName = location.name
-		eGatherMapEnabled = (location.enabled == true or location.enabled == nil) and "1" or "0"
+		eGatherMapEnabled = (location.enabled == true) and "1" or "0"
+		eGatherMapIdle = (location.isIdle == true) and "1" or "0"
 		eGatherMapHour = location.hour
 		eGatherMapClass = (location.class == FFXIV.JOBS.MINER) and "MINER" or "BOTANIST"
 		eGatherMapMarker = location.marker

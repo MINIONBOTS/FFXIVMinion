@@ -260,7 +260,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or gDoFates == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading()) then
+	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading()) then
 		return false
 	end
 	
@@ -269,28 +269,31 @@ function c_nextatma:evaluate()
 	local mapItem = nil
 	local itemFound = false
 	local getNext = false
-	local jst = tonumber(os.date("!%I")) + (os.date("*t").isdst == true and 1 or 0) + 9
-	local minute = tonumber(os.date("!%M"))
+	local jpTime = GetJPTime()
 	
-	--Check to see if we need the best atma for the current time.
+	--First loop, check for best atma based on JP time theory.
 	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		if ((tonumber(atma.hour) == tonumber(jst) and minute <= 55) or
-			(tonumber(atma.hour) == (tonumber(jst) - 1) and minute > 55)) then
-			local foundBest = false
-			local bestAtma = a
+		if ((tonumber(atma.hour) == jpTime.hour and jpTime.minute <= 55) or
+			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.minute > 55)) then
+			local haveBest = false
+			--local bestAtma = a
 			for x=0,3 do
-				local inv = Inventory("type="..tostring(x)..",category=16")
-				local i, item = next(inv)
-				while (i ~= nil and item ~= nil) do
+				local inv = Inventory("type="..tostring(x))
+				for i, item in pairs(inv) do
 					if (item.id == atma.item) then
-						foundBest = true
+						haveBest = true
 					end
-					i,item = next(inv, i)
+					if (haveBest) then	
+						break
+					end
+				end
+				if (haveBest) then
+					break
 				end
 			end
 		
-			if (not foundBest) then
-				if (ffxiv_task_grind.atmas[a].map == map) then
+			if (not haveBest) then
+				if (atma.map == map) then
 					--We're already on the map with the most appropriate atma and we don't have it
 					return false
 				else
@@ -302,55 +305,56 @@ function c_nextatma:evaluate()
 		end
 	end
 	
+	--Second loop, check to see if we have this map's atma, and return false if we still don't have it yet.
 	for a, atma in pairs(ffxiv_task_grind.atmas) do
 		if (atma.map == map) then
-			mapFound = true
-			mapItem = atma.item
-		end
-	end
-	
-	if mapFound then
-		for x=0,3 do
-			local inv = Inventory("type="..tostring(x)..",category=16")
-			local i, item = next(inv)
-			while (i ~= nil and item ~= nil) do
-				if (item.id == mapItem) then
-					itemFound = true
-				end
-				i,item = next(inv, i)
-			end
-		end
-	else
-		--Map does not contain an atma, get the next one.
-		getNext = true
-	end
-	
-	--Map contains an atma, but we have the item, get the next one.
-	if itemFound then
-		getNext = true
-	end
-	
-	if getNext then
-		for a, atma in pairs(ffxiv_task_grind.atmas) do
-			local found = false
+			local haveClosest = false
+			
 			for x=0,3 do
-				local inv = Inventory("type="..tostring(x)..",category=16")
-				local i, item = next(inv)
-				while (i) do
+				local inv = Inventory("type="..tostring(x))
+				for i, item in pairs(inv) do
 					if (item.id == atma.item) then
-						found = true
+						haveClosest = true
+					end
+					if (haveClosest) then	
 						break
 					end
-					i,item = next(inv, i)
-				end	
+				end
+				if (haveClosest) then
+					break
+				end
 			end
 			
-			if not found then
-				e_nextatma.atma = atma
-				return true
+			if (not haveClosest) then
+				--We're already on the map with the most appropriate atma and we don't have it
+				return false
 			end
-			
 		end
+	end
+	
+	--Third loop, figure out which ones we do have, then go anywhere else.
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		local found = false
+		for x=0,3 do
+			local inv = Inventory("type="..tostring(x))
+			for i, item in pairs(inv) do
+				if (item.id == atma.item) then
+					found = true
+				end
+				if (found) then	
+					break
+				end
+			end
+			if (found) then
+				break
+			end
+		end
+		
+		if (not found) then
+			e_nextatma.atma = atma
+			return true
+		end
+		
 	end
 	
 	return false

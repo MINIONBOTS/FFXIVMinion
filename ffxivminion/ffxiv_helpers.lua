@@ -2096,6 +2096,15 @@ function SubtractHours(start, value)
 	return newHour	
 end
 
+function SubtractHours12(start, value)
+	start = tonumber(start) or 1
+	local newHour = start - value
+	if newHour < 1 then
+		newHour = newHour + 12
+	end
+	return newHour
+end
+
 function AddHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start + value
@@ -2103,6 +2112,34 @@ function AddHours(start, value)
 		newHour = newHour - 24
 	end
 	return newHour	
+end
+
+function AddHours12(start, value)
+	start = tonumber(start) or 1
+	local newHour = start + value
+	if newHour > 12 then
+		newHour = newHour - 12
+	end
+	return newHour	
+end
+
+function GetJPTime()
+	local jpTime = {}
+	jpTime.year = os.date("!%Y")
+	jpTime.month = os.date("!%m")
+	jpTime.day = os.date("!%d")
+	
+	local utcHour = tonumber(os.date("!%H"))
+	local jphour = tonumber(os.date("!%H")) + 9	
+	if ( utcHour >= 15 ) then
+		jpTime.day = jpTime.day + 1
+	end
+	
+	jpTime.hour = jphour
+	jpTime.minute = os.date("!%M")
+	jpTime.sec = os.date("!%S")
+	
+	return jpTime
 end
 
 function EorzeaTime()
@@ -2113,12 +2150,23 @@ function EorzeaTime()
 	jpTime.year = os.date("!%Y")
 	jpTime.month = os.date("!%m")
 	jpTime.day = os.date("!%d")
+	
+	--[[
 	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0) + 9
 	if (hour >= 24) then
 		jpTime.day = jpTime.day + 1
 		hour = hour - 24
 	end
 	jpTime.hour = hour
+	--]]
+	
+	local utcHour = tonumber(os.date("!%H"))
+	local jphour = tonumber(os.date("!%H")) + 9	+ (os.date("*t").isdst == true and 1 or 0)
+	if ( utcHour >= 15 ) then
+		jpTime.day = jpTime.day + 1
+	end
+	jpTime.hour = jphour
+	
 	jpTime.min = os.date("!%M")
 	jpTime.sec = os.date("!%S")
 	local jpSecs = os.time(jpTime)

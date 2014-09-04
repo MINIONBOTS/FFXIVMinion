@@ -84,7 +84,13 @@ function c_cast:evaluate()
 end
 function e_cast:execute()
 	local marker = ml_task_hub:CurrentTask().currentMarker
-	local useMooch = marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1" and true or false
+	local useMooch = false
+	if (ValidTable(marker)) then
+		useMooch = marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1" and true or false
+	elseif (gFishNoMarker == "1") then
+		useMooch = gUseMooch == "1" and true or false
+	end
+	
     local mooch = ActionList:Get(297,1)
     if (mooch) and Player.level > 24 and (mooch.isready) and useMooch then
         mooch:Cast()
@@ -92,7 +98,6 @@ function e_cast:execute()
     else
         local cast = ActionList:Get(289,1)
         if (cast and cast.isready) then	
-			Player:SetFacing(Player.pos.h)
             cast:Cast()
 			ml_task_hub:CurrentTask().castTimer = Now() + 1500
         end
@@ -140,7 +145,7 @@ e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
 e_setbait.baitname = ""
 function c_setbait:evaluate()
-    if (ml_task_hub:CurrentTask().missingBait) then
+    if (ml_task_hub:CurrentTask().missingBait or gFishNoMarker == "1") then
         return false
     end
     
@@ -152,7 +157,7 @@ function c_setbait:evaluate()
             if (baitName ~= "None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
                 --check to see if we have the bait in inventory
                 ml_debug("Looking for bait named "..baitName)
-                for i = 0,4 do
+                for i = 0,3 do
                     local inventory = Inventory("type="..tostring(i))
                     if (inventory ~= nil and inventory ~= 0) then
                         for _,item in ipairs(inventory) do
@@ -164,9 +169,7 @@ function c_setbait:evaluate()
                         end
                     end
                 end
-                
                 ml_debug("Could not find bait! Attempting to use current bait")
-                
             end
         end
     end
@@ -181,6 +184,10 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
+	if (gFishNoMarker == "1") then	
+		return false
+	end
+	
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
         
@@ -335,9 +342,12 @@ function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
 
-	--if ( Settings.FFXIVMINION.gPlaceholder == nil ) then
-        --Settings.FFXIVMINION.gPlaceholder = 0
-	--end
+	if ( Settings.FFXIVMINION.gFishNoMarker == nil ) then
+        Settings.FFXIVMINION.gFishNoMarker = "0"
+	end
+	if ( Settings.FFXIVMINION.gUseMooch == nil ) then
+		Settings.FFXIVMINION.gUseMooch = "1"
+	end
 	
 	local winName = GetString("fishMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -350,13 +360,15 @@ function ffxiv_task_fish.UIInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	local group = GetString("settings")
-    --GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+    GUI_NewCheckbox(winName,strings[gCurrentLanguage].noMarker,"gFishNoMarker",group)
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useMooch,"gUseMooch",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
-	--gPlaceholder = Settings.FFXIVMINION.gPlaceholder
+	gUseMooch = Settings.FFXIVMINION.gUseMooch
+	gFishNoMarker = Settings.FFXIVMINION.gFishNoMarker
     
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 	
@@ -368,7 +380,7 @@ function ffxiv_task_fish.SetupMarkers()
     local fishingMarker = ml_marker:Create("fishingTemplate")
 	fishingMarker:SetType(strings[gCurrentLanguage].fishingMarker)
 	fishingMarker:AddField("string", strings[gCurrentLanguage].baitName, "")
-	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useMooch, "0")
+	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useMooch, "1")
 	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)
@@ -381,5 +393,11 @@ function ffxiv_task_fish.SetupMarkers()
 end
 
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
+	 for k,v in pairs(NewVals) do
+		if ( 	k == "gUseMooch" or
+				k == "gFishNoMarker" ) then
+            Settings.FFXIVMINION[tostring(k)] = v
+        end
+    end
     GUI_RefreshWindow(GetString("fishMode"))
 end
