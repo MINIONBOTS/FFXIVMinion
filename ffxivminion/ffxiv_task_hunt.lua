@@ -398,9 +398,9 @@ function e_nexthuntlocation:execute()
 		return
 	end
 	
-	if (Player.castinginfo.channelingid ~= 5) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(location.teleport)
-	elseif (Player.castinginfo.channelingid == 5) then
+	
 		ffxiv_task_hunt.location = location.mapid
 		ffxiv_task_hunt.locationIndex = c_nexthuntlocation.locationIndex
 		ffxiv_task_hunt.locationTimer = Now() + (tonumber(location.timer) * 60 * 1000) + 15000 -- Add on 15 seconds for teleport time.

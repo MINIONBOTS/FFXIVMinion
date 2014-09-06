@@ -207,9 +207,21 @@ function c_dutyAtInteract:evaluate()
 			end
 		end
 		
+		local chests = EntityList("type=4,chartype=0")
+		for i, interactable in pairs(chests) do
+			if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
+				tpos = interactable.pos
+				ppos = Player.pos
+				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
+				if (dist <= 4) then
+					return true
+				end
+			end
+		end
+		
 		if (not ml_task_hub:CurrentTask().repositioned) then
 			GameHacks:TeleportToXYZ(tpos.x,tpos.y,tpos.z)
-			Player:SetFacingSynced(tpos.h)
+			Player:SetFacingSynced(tpos.x,tpos.y,tpos.z)
 			ml_task_hub:CurrentTask().repositioned = true
 			--[[ Need a mesh to make this work.
 			local ppos = Player.pos
@@ -250,6 +262,16 @@ function c_interact:evaluate()
 	
 	local interacts = EntityList("type=7,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 	for i, interactable in pairs(interacts) do
+		if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
+			if (interactable.targetable) then
+				c_interact.id = interactable.id
+				return true
+			end
+		end
+	end
+	
+	local chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+	for i, interactable in pairs(chests) do
 		if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
 			if (interactable.targetable) then
 				c_interact.id = interactable.id

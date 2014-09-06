@@ -625,7 +625,7 @@ function e_nextgatherlocation:execute()
 			return
 		end
 		
-		if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT") then
+		if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 			Player:Teleport(location.teleport)
 								
 			local newTask = ffxiv_task_teleport.Create()

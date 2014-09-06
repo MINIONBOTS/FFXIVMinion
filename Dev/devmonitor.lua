@@ -24,6 +24,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","pos.z","Player_posZ","PlayerInfo")
 	GUI_NewField("Dev","pos.h","player_posH","PlayerInfo")
 	GUI_NewField("Dev","onmesh","player_onmesh","PlayerInfo")
+	GUI_NewField("Dev","ismounted","player_ismounted","PlayerInfo")
+	GUI_NewField("Dev","ismounting","player_ismounting","PlayerInfo")
 	GUI_NewField("Dev","hp","player_hp","PlayerInfo")
 	GUI_NewField("Dev","mp","player_mp","PlayerInfo")
 	GUI_NewField("Dev","tp","player_tp","PlayerInfo")
@@ -90,7 +92,7 @@ function Dev.ModuleInit()
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
-	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,General,Maincommands,Crafting,Items");
+	GUI_NewComboBox("Dev","TypeFilter","sbSelHotbar","ActionListInfo","Actions,Pet,Mounts,Minions,General,Maincommands,Crafting,Items");
 	GUI_NewNumeric("Dev","Spell","sbSelSlot","ActionListInfo","1","999");		
 	GUI_NewField("Dev","Name","sbname","ActionListInfo")
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
@@ -636,6 +638,8 @@ function Dev.UpdateWindow()
 	Player_posZ = ppos.z
 	player_posH = ppos.h
 	player_onmesh = tostring(p.onmesh)
+	player_ismounted = tostring(p.ismounted)
+	player_ismounting = tostring(IsMounting())
 	player_hp = tostring(tostring(p.hp.current).." / "..tostring(p.hp.max).." / "..tostring(p.hp.percent).."%")	
 	player_mp = tostring(tostring(p.mp.current).." / "..tostring(p.mp.max).." / "..tostring(p.mp.percent).."%")
 	player_tp = tostring(p.tp)
@@ -724,9 +728,11 @@ function Dev.UpdateWindow()
 		["Actions"] = 1,
 		["Pet"] = 11,
 		["General"] = 5,
+		["Minions"] = 6,
 		["Maincommands"] = 10,
 		["Crafting"] = 9,
 		["Items"] = 2,
+		["Mounts"] = 13,
 	}
 	
 	local spelllist = ActionList("type="..spellTypes[sbSelHotbar])
@@ -734,6 +740,17 @@ function Dev.UpdateWindow()
 	local count = 0	
 	
 	if ( TableSize(spelllist) > 0 ) then
+		local condensedList = {}
+		local count = 1
+		for i,spell in pairsByKeys(spelllist) do
+			if (spell.id and spell.name and spell.id ~= 0 and spell.name ~= "") then
+				condensedList[count] = spell
+				count = count + 1
+			end
+		end
+		local condensedSpell = condensedList[tonumber(sbSelSlot)]
+		spell = ActionList:Get(condensedSpell.id,spellTypes[sbSelHotbar])
+		--[[
 		local ispell,espell = next ( spelllist )
 		while ( ispell~=nil and espell~=nil ) do
 		 
@@ -744,6 +761,7 @@ function Dev.UpdateWindow()
 			count = count + 1		
 			ispell,espell = next (spelllist,ispell)
 		end	
+		--]]
 	end	
 		
 	if (ValidTable(spell)) then

@@ -1584,49 +1584,85 @@ function GetMounts()
 	return MountsList
 end
 
-function Mount()
-	local mountID
-	local mountIndex
+function IsMounting()
+	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castid == 4)
+end
+
+function HasAction(id, category)
+	id = tonumber(id) or 0
+	category = category or 1
 	
-	if not(Player.ismounted) then
-	    local mountlist = ActionList("type=13")
-		for k,mount in pairs(mountlist) do
-			if (gMount == mount.name) then
-				mountID = mount.id
-				mountIndex = tonumber(k)
-			end
-		end
-		
-		if (mountIndex ~= 1) then
-			local al = ActionList("type=6")
-			if ( TableSize (al) > 1) then
-				local dismiss = al[2]
-				if ( dismiss ) then
-					local acDismiss = ActionList:Get(dismiss.id,6)
-					if ( acDismiss) then 
-						if (acDismiss.isready) then
-							acDismiss:Cast()
-						end
-					else
-						ml_error("in Mount() , acDismiss == nil")
-					end
-				else
-					ml_error("in Mount() , dismiss == nil")
+	if (id ~= 0) then
+		local actions = ActionList("type="..tostring(category))
+		if (ValidTable(actions)) then
+			for k,v in pairsByKeys(actions) do
+				if (v.id == id) then
+					return true
 				end
-			else
-				ml_error("in Mount() , al is < 1 ")
 			end
-		end
-	
-		local acMount = ActionList:Get(mountID,13)
-		if ( acMount ) then
-			if (acMount.isready) then
-				acMount:Cast()
-			end
-		else
-			ml_error("You need to select a Mount in the Minion Settings!")
 		end
 	end
+	return false			
+end
+
+function ActionIsReady(id, category)
+	id = tonumber(id) or 0
+	category = category or 1
+	
+	if (HasAction(id, category)) then
+		local action = ActionList:Get(id,category)
+		if (action and action.isready) then
+			return true
+		end
+	end
+	return false
+end
+
+function Mount(id)
+	local mountID = id or 0
+	local actions = nil
+	
+	if (Player.ismounted or IsMounting()) then
+		ml_debug("Cannot mount while mounted or mounting.")
+		return
+	end
+	
+	--If we weren't passed an id (party-grind), look it up.
+	if (mountID == 0) then
+		actions = ActionList("type=13")
+		for k,v in pairsByKeys(actions) do
+			if (v.name == gMount) then
+				mountID = v.id
+			end
+		end
+	end
+		
+	--Check to see if the mountID is not 1, in which case the chocobo companion needs to be dismissed first.
+	if (mountID ~= 1) then
+		actions = ActionList("type=6")
+		if (ValidTable(actions)) then
+			for k,v in pairsByKeys(actions) do
+				if (v.id == 2) then
+					local acDismiss = ActionList:Get(2,6)
+					if (acDismiss and acDismiss.isready) then
+						acDismiss:Cast()
+					end
+				end
+			end
+		end
+	end
+	
+	if (mountID ~= 0) then
+		actions = ActionList("type=13")
+		for k,v in pairsByKeys(actions) do
+			if (v.id == mountID) then
+				local acMount = ActionList:Get(mountID,13)
+				if (acMount and acMount.isready) then
+					acMount:Cast() 
+				end
+			end
+		end
+	end			
 end
 
 function SetGUIVar(strName, value)
@@ -1873,12 +1909,19 @@ function GetAetheryteByMapID(id)
 		id = 130
 	end
 	
-    local list = Player:GetAetheryteList()
-    for index,aetheryte in ipairs(list) do
-        if (aetheryte.territory == id) then
-            return id, aetheryte.id
-        end
-    end
+	if 	(mapid == 131 and id == 130) or
+		(mapid == 128 and id == 129) or
+		(mapid == 133 and id == 133)
+	then
+		return nil
+	end
+	
+	local list = Player:GetAetheryteList()
+	for index,aetheryte in ipairs(list) do
+		if (aetheryte.territory == id) then
+			return id, aetheryte.id
+		end
+	end
     
     return nil
 end

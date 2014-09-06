@@ -368,7 +368,7 @@ function e_nextatma:execute()
 		return
 	end
 	
-	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT") then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(atma.tele)
 		
 		local newTask = ffxiv_task_teleport.Create()
@@ -607,6 +607,11 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
+	local teleport = ActionList:Get(5)
+	if (not teleport or not teleport.isready) then
+		return false
+	end
+	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
@@ -644,9 +649,8 @@ function e_teleporttomap:execute()
 		return
 	end
 	
-	if (not ml_task_hub:CurrentTask().changingLocations) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(e_teleporttomap.aethid)
-		ml_task_hub:CurrentTask().changingLocations = true
 							
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = e_teleporttomap.destMap
@@ -856,6 +860,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
+e_mount.id = 0
 function c_mount:evaluate()
     if (gBotMode == strings[gCurrentLanguage].pvpMode  or
 		Player.localmapid == 130 or
@@ -872,13 +877,42 @@ function c_mount:evaluate()
 	end
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
-		if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
+		if (not Player.ismounted and not ActionList:IsCasting() and not IsMounting() and not Player.incombat) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		
 			if (distance > tonumber(gMountDist)) then
-				return true
+				--Added mount verifications here.
+				--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
+				local mountID
+				local mountIndex
+				local mountlist = ActionList("type=13")
+				
+				if (ValidTable(mountlist)) then
+					--First pass, look for our named mount.
+					for k,v in pairsByKeys(mountlist) do
+						if (v.name == gMount) then
+							local acMount = ActionList:Get(v.id,13)
+							if (acMount and acMount.isready) then
+								e_mount.id = v.id
+								return true
+							end
+						end
+					end
+					
+					--Second pass, look for any mount as backup.
+					if (gMount == strings[gCurrentLanguage].none) then
+						for k,v in pairsByKeys(mountlist) do
+							local acMount = ActionList:Get(v.id,13)
+							if (acMount and acMount.isready) then
+								SetGUIVar("gMount", v.name)
+								e_mount.id = v.id
+								return true
+							end
+						end		
+					end
+				end
 			end
 		end
     end
@@ -887,7 +921,7 @@ function c_mount:evaluate()
 end
 function e_mount:execute()
     Player:Stop()
-    Mount()
+    Mount(e_mount.id)
 end
 
 c_companion = inheritsFrom( ml_cause )

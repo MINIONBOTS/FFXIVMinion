@@ -25,7 +25,6 @@ ml_global_information.lastMode = ""
 ml_global_information.itemIDsToEquip = {}
 ml_global_information.idlePulseCount = 0
 ml_global_information.autoStartQueued = false
-ml_global_information.initComplete = false
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -81,10 +80,6 @@ ffxivminion.settingsVisible = false
 function ml_global_information.OnUpdate( event, tickcount )
 
     ml_global_information.Now = tickcount
-	
-	if (not ml_global_information.initComplete) then
-		return false
-	end
 	
 	if (ml_global_information.autoStartQueued) then
 		ml_global_information.autoStartQueued = false
@@ -273,7 +268,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
 	if ( Settings.FFXIVMINION.gUseAetherytes == nil) then
-		Settings.FFXIVMINION.gUseAetherytes = "0"
+		Settings.FFXIVMINION.gUseAetherytes = "1"
 	end
 	if ( Settings.FFXIVMINION.gChoco == nil) then
 		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
@@ -509,11 +504,16 @@ function ffxivminion.HandleInit()
     end
 	
 	ffxivminion.UpdateFoodOptions()
-	
-	ml_global_information.initComplete = true
 end
 
-function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)	
+function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
+	local backupVals = {}
+	for k,v in pairs(OldVals) do
+		if ( k == "gMount") then
+			backupVals.gMount = v
+		end
+	end
+	
     for k,v in pairs(NewVals) do
         if ( k == "gBotMode" ) then
             ffxivminion.SwitchMode(v)
@@ -530,7 +530,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or
             k == "gBotMode" or 
-            k == "gUseMount" or
             k == "gUseSprint" or
             k == "gMountDist" or
             k == "gAssistMode" or
@@ -553,13 +552,61 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAvoidAOE" )				
         then
             Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gMount" ) then
+			if ( v == strings[gCurrentLanguage].none and Player.ismounted and gBotRunning == "1" ) then
+				ml_error("Cannot change mounts while mounted.")
+				SetGUIVar("gMount",backupVals.gMount)
+			else
+				Settings.FFXIVMINION[tostring(k)] = v
+			end
+		elseif ( k == "gUseMount" )	then
+			if ( v == "1") then
+				local mountFound = false
+				local mountlist = ActionList("type=13")
+				if (ValidTable(mountlist)) then
+					--Check to see that the mount we have selected is valid first.
+					if (gMount ~= strings[gCurrentLanguage].none) then
+						for k,v in pairsByKeys(mountlist) do
+							if (v.name == gMount) then
+								local acMount = ActionList:Get(v.id,13)
+								if (acMount and acMount.isready) then
+									mountFound = true
+								end
+							end
+							if (mountFound) then
+								break
+							end
+						end
+					end
+					
+					--If it's not valid, pick the first available mount that we do have.
+					if (not mountFound) then
+						for k,v in pairsByKeys(mountlist) do
+							local acMount = ActionList:Get(v.id,13)
+							if (acMount and acMount.isready) then
+								mountFound = true
+								SetGUIVar("gMount", v.name)
+							end
+							if (mountFound) then
+								break
+							end
+						end		
+					end
+				end
+				--If we still haven't found a mount, disable mount usage so it doesn't cause nav issues.
+				if (not mountFound) then
+					ml_error("No usable mounts found, disabling mount for now.")
+					SetGUIVar("gUseMount","0")
+				else
+					Settings.FFXIVMINION[tostring(k)] = v
+				end
+			else
+				Settings.FFXIVMINION[tostring(k)] = v
+			end
 		end
 		
         if ( k == "gBotRunning" ) then
             ml_task_hub.ToggleRun()
-			if (v == "0") then
-				Player:Stop()
-			end
 		end
 		
 		if ( k == "gDisableDrawing" ) then
@@ -698,6 +745,7 @@ function ffxivminion.SetMode(mode)
 end
 
 function ffxivminion.CheckClass()
+
     local classes = 
     {
         [FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
@@ -717,6 +765,7 @@ function ffxivminion.CheckClass()
         [FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
         [FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
         [FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
+		
         [FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
         [FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
         [FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
@@ -731,13 +780,10 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
     }
 	
-	
 	if (ml_global_information.CurrentClass == nil) then
 		ml_global_information.CurrentClass = classes[Player.job]
 		ml_global_information.CurrentClassID = Player.job
-		if ( ml_global_information.CurrentClass.range ) then
-			ml_global_information.AttackRange = ml_global_information.CurrentClass.range
-		end
+		ml_global_information.AttackRange = ml_global_information.CurrentClass.range or 2
 		SkillMgr.UseDefaultProfile()
 		return
 	end
@@ -747,9 +793,7 @@ function ffxivminion.CheckClass()
         ml_global_information.CurrentClass = classes[Player.job]
         ml_global_information.CurrentClassID = Player.job
         if ml_global_information.CurrentClass ~= nil then
-            if ( ml_global_information.CurrentClass.range ) then
-				ml_global_information.AttackRange = ml_global_information.CurrentClass.range
-			end
+            ml_global_information.AttackRange = ml_global_information.CurrentClass.range or 2
 			
 			-- autosetting the correct botmode
 			local newModeName = ""
@@ -773,7 +817,7 @@ function ffxivminion.CheckClass()
             
             SkillMgr.UseDefaultProfile()
         else
-            ml_global_information.AttackRange = 3
+            ml_global_information.AttackRange = 2
         end
     end
 end
