@@ -756,7 +756,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
+        if ((ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) or IsMounting()) then
             return false
         end
 		
@@ -1389,6 +1389,12 @@ function c_stealth:evaluate()
 		return false
 	end
 	
+	local list = Player:GetGatherableSlotList()
+	local fs = tonumber(Player:GetFishingState())
+	if (ValidTable(list) or fs ~= 0) then
+		return false
+	end
+	
 	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
     if  (not useStealth) then
 		if (HasBuff(Player.id, 47)) then
@@ -1397,11 +1403,6 @@ function c_stealth:evaluate()
 			return false
 		end
     end
-	
-	local list = Player:GetGatherableSlotList()
-	if (ValidTable(list)) then
-		return false
-	end
 	
     local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then

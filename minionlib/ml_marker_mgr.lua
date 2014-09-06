@@ -624,7 +624,9 @@ function ml_marker_mgr.HandleInit()
 	if (Settings.minionlib.gMarkerMgrMode == nil) then
 		Settings.minionlib.gMarkerMgrMode = strings[gCurrentLanguage].markerList
 	end
-    
+    if (Settings.minionlib.lastSelectedMarkerType == nil) then
+		Settings.minionlib.lastSelectedMarkerType = strings[gCurrentLanguage].grindMarker
+	end
     if (Settings.minionlib.lastSelectedMarker == nil) then
         Settings.minionlib.lastSelectedMarker = {}
     end
@@ -660,9 +662,23 @@ function ml_marker_mgr.HandleInit()
 	gMarkerMgrMode = Settings.minionlib.gMarkerMgrMode
 end
 
+function ml_marker_mgr.SetMarkerType(strType)
+	gMarkerMgrType = strType
+	ml_marker_mgr.RefreshMarkerNames()
+	ml_marker_mgr.currentEditMarker = nil
+	
+	local lastSelected = Settings.minionlib.lastSelectedMarker
+	if (ValidTable(lastSelected)) then
+		if (lastSelected[gMarkerMgrType]) then
+			gMarkerMgrName = lastSelected[gMarkerMgrType]
+		end
+	end
+end
+
 function ml_marker_mgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if 	(k == "gMarkerMgrType") then
+			Settings.minionlib.lastSelectedMarkerType = gMarkerMgrType
 			ml_marker_mgr.RefreshMarkerNames()
 			GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 			ml_marker_mgr.currentEditMarker = nil

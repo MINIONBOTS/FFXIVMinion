@@ -486,7 +486,7 @@ function c_nextgatherlocation:evaluate()
 			local eTime = EorzeaTime()
 			local overdue = SubtractHours(eTime.hour,3)
 			--d("reset condition1 = "..tostring(ffxiv_task_gather.gatherStarted))
-			--d("reset condition2 = "..tostring(overdue == ffxiv_task_gather.location.hour))
+			d("reset condition2 = "..tostring(overdue == ffxiv_task_gather.location.hour))
 			if (ffxiv_task_gather.gatherStarted or overdue == ffxiv_task_gather.location.hour) then
 				ffxiv_task_gather.gatherStarted = false
 				ffxiv_task_gather.unspoiledGathered = true
@@ -646,8 +646,12 @@ c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
     local list = Player:GetGatherableSlotList()
-    local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (list or (node ~= nil and node.cangather and node.distance2d <= 2.5)) then
+	if (list) then
+		return true
+	end
+	
+	local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+    if (node and node.cangather and node.distance2d <= 2.5) then
 		local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
 		if (markerType == GetString("unspoiledMarker") or markerType == GetString("botanyMarker") or markerType == GetString("miningMarker")) then
 			local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].minimumGP)) or 0
@@ -695,14 +699,6 @@ function e_gather:execute()
             ml_task_hub:CurrentTask().failedTimer = 0
         end
 		
-		--If it's an unspoiled marker, make sure we give plenty of time in between attempts to use skills properly, due to buff lag.
-		local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
-		if (markerType == GetString("unspoiledMarker")) then
-			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 3000) then
-				return
-			end
-		end
-	
         if ( gSMactive == "1") then
 			if (ActionList:IsCasting()) then return end
             if (SkillMgr.Gather()) then
@@ -714,6 +710,15 @@ function e_gather:execute()
 		if (Now() > ml_task_hub:CurrentTask().interactTimer) then
 			-- make sure items are visible so that we don't waste gather map or gardening attempts on an uncover			
 			if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+			
+				--If it's an unspoiled marker, make sure we give plenty of time in between attempts to use skills properly, due to buff lag.
+				local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+				if (markerType == GetString("unspoiledMarker")) then
+					if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 3000) then
+						return
+					end
+				end
+		
 				local itemsVisible = ml_task_hub:CurrentTask().itemsUncovered or not IsUnspoiled(node.contentid)
 				if (itemsVisible) then
 					-- first try to get treasure maps
@@ -785,7 +790,13 @@ function e_gather:execute()
 						local n = tonumber(item1)
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
-								if (Player:Gather(n-1)) then
+								if (IsGardening(item.id) or IsMap(item.id)) then
+									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+									ml_error("Use the GatherMaps option for this marker to gather map items.")
+									ml_error("Gardening and Map items set to slots will be ignored.")
+								end
+								if (not IsGardening(item.id) and not IsMap(item.id)) then
+									Player:Gather(n-1)
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 									return
@@ -793,7 +804,13 @@ function e_gather:execute()
 							end
 						else						
 							if (item.name == item1) then
-								if (Player:Gather(item.index)) then
+								if (IsGardening(item.id) or IsMap(item.id)) then
+									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+									ml_error("Use the GatherMaps option for this marker to gather map items.")
+									ml_error("Gardening and Map items set to slots will be ignored.")
+								end
+								if (not IsGardening(item.id) and not IsMap(item.id)) then
+									Player:Gather(item.index)
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 									return
@@ -808,19 +825,29 @@ function e_gather:execute()
 						local n = tonumber(item2)
 						if (n ~= nil) then
 							if (item.index == (n-1) and item.id ~= nil) then
-								if (Player:Gather(n-1)) then
+								if (IsGardening(item.id) or IsMap(item.id)) then
+									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+									ml_error("Use the GatherMaps option for this marker to gather map items.")
+									ml_error("Gardening and Map items set to slots will be ignored.")
+								end
+								if (not IsGardening(item.id) and not IsMap(item.id)) then
+									Player:Gather(n-1)
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
 									return
 								end
 							end
-						else						
-							if (item.name == item2) then
-								if (Player:Gather(item.index)) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-									return
-								end
+						else
+							if (IsGardening(item.id) or IsMap(item.id)) then
+								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+								ml_error("Use the GatherMaps option for this marker to gather map items.")
+								ml_error("Gardening and Map items set to slots will be ignored.")
+							end
+							if (not IsGardening(item.id) and not IsMap(item.id)) then
+								Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								return
 							end
 						end
 					end
@@ -879,14 +906,12 @@ c_gatherwindow = inheritsFrom( ml_cause )
 e_gatherwindow = inheritsFrom( ml_effect )
 function c_gatherwindow:evaluate()
 	local list = Player:GetGatherableSlotList()
-    if (list ~= nil and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+    if (list ~= nil and ml_task_hub:CurrentTask().name ~= "LT_GATHER") then
 		return true
 	end
 end
 function e_gatherwindow:execute()
-	ml_error("Bad! We fell into the gathering/moveto timing bug...terminating MoveTo task")
-	-- Complete the moveto task so that we can go back to gathering window
-	--ml_task_hub:CurrentTask():task_complete_execute()
+	ml_debug(ml_task_hub:CurrentTask().name.." will be terminated to allow gathering to continue.")
 end
 
 function ffxiv_task_gather:Init()
@@ -936,12 +961,20 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
         if ( 	k == "gGatherMapID" or
 				k == "gGatherMapHour" or
 				k == "gGatherMapClass" or
-				k == "gGatherUnspoiled" or
 				k == "gGatherMinerGearset" or
 				k == "gGatherBotanistGearset" or
 				k == "gDoStealth" or
 				k == "gGatherMapMarker" or
 				k == "gGatherIdleLocation" ) then
+			Settings.FFXIVMINION[tostring(k)] = v
+		elseif ( k == "gGatherUnspoiled") then
+			if (v == "1") then
+				ml_marker_mgr.SetMarkerType(GetString("unspoiledMarker"))
+			elseif (Player.job == FFXIV.JOBS.BOTANIST) then
+				ml_marker_mgr.SetMarkerType(GetString("botanyMarker"))
+			else
+				ml_marker_mgr.SetMarkerType(GetString("miningMarker"))
+			end
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gGatherStartLocation") then
 			ffxiv_task_gather.location = 0
@@ -993,6 +1026,7 @@ function ffxiv_task_gather.UIInit()
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"")

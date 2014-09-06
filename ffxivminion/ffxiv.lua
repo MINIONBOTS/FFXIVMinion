@@ -300,7 +300,7 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(winName, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshManager")
     GUI_NewButton(winName, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	--GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
 	GUI_NewButton(winName,strings[gCurrentLanguage].profileManager,"QMToggleMain")
 	
 	local group = GetString("botStatus")
@@ -476,6 +476,9 @@ function ffxivminion.HandleInit()
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
+	
+	local lastMarkerType = Settings.minionlib.lastSelectedMarkerType
+	ml_marker_mgr.SetMarkerType(lastMarkerType)
 	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
@@ -706,6 +709,26 @@ function ffxivminion.SwitchMode(mode)
             Player:EnableUnstuckJump(true)
         end
 		
+		--Set marker type to the appropriate type.
+		if (gBotMode == GetString("gatherMode")) then
+			if (gGatherUnspoiled == "1") then
+				ml_marker_mgr.SetMarkerType(GetString("unspoiledMarker"))
+			elseif (Player.job == FFXIV.JOBS.BOTANIST) then
+				ml_marker_mgr.SetMarkerType(GetString("botanyMarker"))
+			else
+				ml_marker_mgr.SetMarkerType(GetString("miningMarker"))
+			end
+		elseif (gBotMode == GetString("huntMode")) then
+			ml_marker_mgr.SetMarkerType(GetString("huntMarker"))
+		elseif (gBotMode == GetString("fishMode")) then
+			ml_marker_mgr.SetMarkerType(GetString("fishMarker"))
+		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
+			ml_marker_mgr.SetMarkerType(GetString("grindMarker"))
+		elseif (gBotMode == GetString("pvpMode")) then
+			ml_marker_mgr.SetMarkerType(GetString("pvpMarker"))
+		end
+		
+		--Setup default options.
 		if (gBotMode == GetString("dutyMode")) then
 			gTeleport = "1"
 			ffxiv_task_duty.UpdateProfiles()
