@@ -70,7 +70,7 @@ end
 
 function ffxiv_task_killtarget:task_complete_eval()	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if 	(not target or not target.attackable or 
+    if 	((target and not target.attackable) or 
 		(target and not target.alive) or 
 		(target and not target.onmesh and not InCombatRange(target.id) and ml_task_hub:CurrentTask().canEngage)) 
 	then
@@ -85,6 +85,15 @@ function ffxiv_task_killtarget:task_complete_execute()
 	ffxiv_task_hunt.hasTarget = false
 end
 
+function ffxiv_task_killtarget:task_fail_eval()
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	return not ValidTable(target)
+end
+
+function ffxiv_task_killtarget:task_fail_execute()
+	ffxiv_task_hunt.hasTarget = false
+	self:Terminate()
+end
 
 ---------------------------------------------------------------------------------------------
 --REACTIVE GOALS--

@@ -230,12 +230,12 @@ function e_questcomplete:execute()
 		ml_task_hub:CurrentTask().delayComplete = true
 		return
 	end
-		
+	
+	if(ml_task_hub:CurrentTask().params["equip"]) then
+		ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
+	end
+	
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
-		if(ml_task_hub:CurrentTask().params["equip"]) then
-			ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
-		end
-		
 		local reward = ml_task_hub:CurrentTask().params["itemrewardslot"]
 		local rewardslot
 		if(type(reward) == "table") then
@@ -245,13 +245,13 @@ function e_questcomplete:execute()
 		end
 		--d("Selecting reward from slot "..tostring(rewardslot))
 		Quest:CompleteQuestReward(rewardslot)
-		
-		if(ml_task_hub:CurrentTask().params["equip"]) then
-			--delay the task a bit so that the inventory will update
-			ml_task_hub:CurrentTask():SetDelay(1500)
-		end
 	else
 		Quest:CompleteQuestReward()
+	end
+	
+	if(ml_task_hub:CurrentTask().params["equip"]) then
+		--delay the task a bit so that the inventory will update
+		ml_task_hub:CurrentTask():SetDelay(1500)
 	end
 	
 	ml_task_hub:CurrentTask().stepCompleted = true
@@ -395,7 +395,7 @@ function e_questkill:execute()
 	newTask.task_fail_evaluate = 
 		function()
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-			return target.incombat and not target.targetid == Player.id
+			return not ValidTable(target) or (target.incombat and not target.targetid == Player.id)
 		end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
