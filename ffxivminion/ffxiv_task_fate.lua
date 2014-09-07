@@ -38,7 +38,8 @@ function c_fatewait:evaluate()
     local gotoPos = ml_marker_mgr.markerList["evacPoint"]
     return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
-            Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 -- ? 
+            Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 and
+			ml_task_hub:CurrentTask().name == "LT_GRIND"
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos.Create()
@@ -97,8 +98,9 @@ end
 c_betterfatesearch = inheritsFrom( ml_cause )
 e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
+e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (ml_task_hub:CurrentTask().name ~= "MOVETOPOS" or TimeSince(c_betterfatesearch.timer) < 10000) then
+    if (ffxiv_task_grind.inFate or TimeSince(c_betterfatesearch.timer) < 10000) then
         return false
     end
     
@@ -107,6 +109,7 @@ function c_betterfatesearch:evaluate()
 	if (ValidTable(fate)) then
 		if (fate.id ~= ml_task_hub:ThisTask().fateid) then
 			c_betterfatesearch.timer = Now()
+			e_betterfatesearch.fateid = fate.id
 			return true	
 		end
 	end
@@ -114,9 +117,8 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
-    d( "Closer fate found" )
-    ml_task_hub:ThisTask():Terminate()
-    d("CLOSER FATE CURRENT TASK "..tostring(ml_task_hub:CurrentTask().name) .." "..tostring(ml_task_hub:CurrentTask().completed))
+	Player:Stop()
+    ml_task_hub:ThisTask().fateid = e_betterfatesearch.fateid
 end
 
 c_teletofate = inheritsFrom( ml_cause )
@@ -237,9 +239,9 @@ function e_movetofate:execute()
 
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
         if ( ml_task_hub:CurrentTask().moving) then
-            newTask.range = math.random(2, fate.radius/4)
+            newTask.range = math.random(3, fate.radius/4)
         else
-            newTask.range = math.random(fate.radius * .9, fate.radius)
+            newTask.range = math.random(fate.radius * .7, fate.radius * .9)
         end
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
@@ -254,7 +256,7 @@ function c_atfate:evaluate()
             if (ValidTable(fate)) then
                 -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
                 local plevel = Player.level
-                if (fate.level > plevel + 5 or fate.level < plevel - 5) then
+                if (fate.level < plevel - 5) then
                     return false
                 end
                 

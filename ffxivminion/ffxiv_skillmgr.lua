@@ -606,7 +606,6 @@ function SkillMgr.ButtonHandler(event, Button)
 end
 
 function SkillMgr.CreateNewProfile()
-    
     -- Delete existing Skills
     GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     gSMprofile = "None"
@@ -621,27 +620,36 @@ function SkillMgr.SetDefaultProfile(strName)
 end
 
 function SkillMgr.UseDefaultProfile()
-    local default = Settings.FFXIVMINION.SMDefaultProfiles[Player.job]
-	if (default and default ~= "None") then
-		local profile = fileread(SkillMgr.profilepath..default..".lua")
-		if (not ValidTable(profile)) then
-			local starterDefault = SkillMgr.StartingProfiles[Player.job]
-			d("Default profile "..tostring(default).." not found. Switching to starter profile "..tostring(starterDefault))
-			default = starterDefault
-		end
-	else
-		local starterDefault = SkillMgr.StartingProfiles[Player.job]
-		if ( starterDefault ) then
-			d("No default profile set, using start default ["..tostring(starterDefault).."]")
-			SkillMgr.SetDefaultProfile(starterDefault)
-			default = starterDefault
-		else
-			d("There is NO Default Skillmanager profile for your current job")
-			default = "None"
+	local defaultTable = Settings.FFXIVMINION.SMDefaultProfiles
+	local default = nil
+	local profile = nil
+	local profileFound = false
+	
+	--Try default profile first.
+	if (ValidTable(defaultTable)) then
+		default = defaultTable[Player.job]
+		if (default) then
+			profile = fileread(SkillMgr.profilepath..default..".lua")
+			if (ValidTable(profile)) then
+				profileFound = true
+			end
 		end
 	end
 	
-	gSMprofile = default
+	if (not profileFound) then
+		local starterDefault = SkillMgr.StartingProfiles[Player.job]
+		if ( starterDefault ) then
+			profile = fileread(SkillMgr.profilepath..starterDefault..".lua")
+			if (ValidTable(profile)) then
+				d("No default profile set, using start default ["..tostring(starterDefault).."]")
+				SkillMgr.SetDefaultProfile(starterDefault)
+				default = starterDefault
+				profileFound = true
+			end
+		end
+	end
+	
+	gSMprofile = profileFound and default or "None"
 	GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
 	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		

@@ -237,8 +237,14 @@ function c_add_fate:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
     end
+	
+	if (ml_task_hub:ThisTask().subtask) then
+		if (ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
+			return false
+		end
+	end
     
-    if (gDoFates == "1" and ml_task_hub:CurrentTask().name == "LT_GRIND") then
+    if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
 		if (ValidTable(fate)) then
 			c_add_fate.id = fate.id
@@ -368,7 +374,7 @@ function e_nextatma:execute()
 		return
 	end
 	
-	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT") then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(atma.tele)
 		
 		local newTask = ffxiv_task_teleport.Create()
@@ -607,6 +613,11 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
+	local teleport = ActionList:Get(5)
+	if (not teleport or not teleport.isready) then
+		return false
+	end
+	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
@@ -644,9 +655,8 @@ function e_teleporttomap:execute()
 		return
 	end
 	
-	if (not ml_task_hub:CurrentTask().changingLocations) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(e_teleporttomap.aethid)
-		ml_task_hub:CurrentTask().changingLocations = true
 							
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = e_teleporttomap.destMap
@@ -752,7 +762,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
+        if ((ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) or IsMounting()) then
             return false
         end
 		
@@ -856,6 +866,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
+e_mount.id = 0
 function c_mount:evaluate()
     if (gBotMode == strings[gCurrentLanguage].pvpMode  or
 		Player.localmapid == 130 or
@@ -872,13 +883,42 @@ function c_mount:evaluate()
 	end
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
-		if (not Player.ismounted and not ActionList:IsCasting() and not Player.incombat) then
+		if (not Player.ismounted and not ActionList:IsCasting() and not IsMounting() and not Player.incombat) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		
 			if (distance > tonumber(gMountDist)) then
-				return true
+				--Added mount verifications here.
+				--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
+				local mountID
+				local mountIndex
+				local mountlist = ActionList("type=13")
+				
+				if (ValidTable(mountlist)) then
+					--First pass, look for our named mount.
+					for k,v in pairsByKeys(mountlist) do
+						if (v.name == gMount) then
+							local acMount = ActionList:Get(v.id,13)
+							if (acMount and acMount.isready) then
+								e_mount.id = v.id
+								return true
+							end
+						end
+					end
+					
+					--Second pass, look for any mount as backup.
+					if (gMount == strings[gCurrentLanguage].none) then
+						for k,v in pairsByKeys(mountlist) do
+							local acMount = ActionList:Get(v.id,13)
+							if (acMount and acMount.isready) then
+								SetGUIVar("gMount", v.name)
+								e_mount.id = v.id
+								return true
+							end
+						end		
+					end
+				end
 			end
 		end
     end
@@ -887,13 +927,14 @@ function c_mount:evaluate()
 end
 function e_mount:execute()
     Player:Stop()
-    Mount()
+    Mount(e_mount.id)
 end
 
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
+e_companion.lastSummon = 0
 function c_companion:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM") then
+    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM" or TimeSince(e_companion.lastSummon) < 5000) then
         return false
     end
 
@@ -919,6 +960,7 @@ function c_companion:evaluate()
 end
 
 function e_companion:execute()
+	e_companion.lastSummon = Now()
 	local newTask = ffxiv_task_useitem.Create()
 	newTask.itemid = 4868
 	newTask.useTime = 3000
@@ -1113,6 +1155,15 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
+
+	local target = Player:GetTarget()
+	if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
+		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
+		if (TableSize(el) == 0) then
+			return false
+		end
+	end
+	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
         if  (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") or (gFatesOnly == "1") then
@@ -1346,6 +1397,12 @@ function c_stealth:evaluate()
 		return false
 	end
 	
+	local list = Player:GetGatherableSlotList()
+	local fs = tonumber(Player:GetFishingState())
+	if (ValidTable(list) or fs ~= 0) then
+		return false
+	end
+	
 	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
     if  (not useStealth) then
 		if (HasBuff(Player.id, 47)) then
@@ -1354,11 +1411,6 @@ function c_stealth:evaluate()
 			return false
 		end
     end
-	
-	local list = Player:GetGatherableSlotList()
-	if (ValidTable(list)) then
-		return false
-	end
 	
     local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then

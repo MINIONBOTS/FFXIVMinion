@@ -398,9 +398,9 @@ function e_nexthuntlocation:execute()
 		return
 	end
 	
-	if (Player.castinginfo.channelingid ~= 5) then
+	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 		Player:Teleport(location.teleport)
-	elseif (Player.castinginfo.channelingid == 5) then
+	
 		ffxiv_task_hunt.location = location.mapid
 		ffxiv_task_hunt.locationIndex = c_nexthuntlocation.locationIndex
 		ffxiv_task_hunt.locationTimer = Now() + (tonumber(location.timer) * 60 * 1000) + 15000 -- Add on 15 seconds for teleport time.
@@ -610,6 +610,7 @@ function ffxiv_task_hunt.UIInit()
 	local winName = GetString("huntMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")

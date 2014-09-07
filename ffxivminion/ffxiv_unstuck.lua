@@ -110,9 +110,9 @@ function ffxiv_unstuck.CheckStuck()
 						Dismount()
 						
 						--Changing this to perform the teleport task, since it's safer.
-						if (Player.castinginfo.channelingid ~= 5) then
+						if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 							Player:Teleport(id)
-						elseif (Player.castinginfo.channelingid == 5) then										
+									
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.mapID = Player.localmapid
 							newTask.mesh = Settings.minionlib.DefaultMaps[Player.localmapid]
