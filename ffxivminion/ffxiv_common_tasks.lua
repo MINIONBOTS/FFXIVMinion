@@ -395,6 +395,7 @@ function ffxiv_task_teleport:task_complete_eval()
 			not Quest:IsLoading()) 
 	then
 		if (Player.onmesh) then
+			ffxiv_task_grind.SetEvacPoint()
 			return true
 		else
 			if (NavigationManager:GetNavMeshName() ~= self.mesh) then

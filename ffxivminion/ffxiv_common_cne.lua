@@ -926,8 +926,9 @@ end
 
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
+e_companion.lastSummon = 0
 function c_companion:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM") then
+    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM" or TimeSince(e_companion.lastSummon) < 5000) then
         return false
     end
 
@@ -953,6 +954,7 @@ function c_companion:evaluate()
 end
 
 function e_companion:execute()
+	e_companion.lastSummon = Now()
 	local newTask = ffxiv_task_useitem.Create()
 	newTask.itemid = 4868
 	newTask.useTime = 3000

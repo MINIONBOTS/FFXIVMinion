@@ -1394,7 +1394,7 @@ function GetClosestFate(pos)
 						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 						if (dist <= 5) then
 							local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
-							if (nearestFate == nil or distance < nearestDistance) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 								nearestFate = fate
 								nearestDistance = distance
 							end
@@ -2196,7 +2196,7 @@ function GetJPTime()
 	jpTime.day = tonumber(os.date("!%d"))
 	
 	local utcHour = tonumber(os.date("!%H"))
-	local jphour = tonumber(os.date("!%H")) + 9	
+	local jphour = AddHours(utcHour,9)
 	if ( utcHour >= 15 ) then
 		jpTime.day = jpTime.day + 1
 	end
@@ -2217,17 +2217,9 @@ function EorzeaTime()
 	jpTime.month = os.date("!%m")
 	jpTime.day = os.date("!%d")
 	
-	--[[
-	local hour = tonumber(os.date("!%H")) + (os.date("*t").isdst == true and 1 or 0) + 9
-	if (hour >= 24) then
-		jpTime.day = jpTime.day + 1
-		hour = hour - 24
-	end
-	jpTime.hour = hour
-	--]]
-	
 	local utcHour = tonumber(os.date("!%H"))
-	local jphour = tonumber(os.date("!%H")) + 9	+ (os.date("*t").isdst == true and 1 or 0)
+	local offset = 9 + (os.date("*t").isdst == true and 1 or 0)
+	local jphour = AddHours(utcHour,offset)
 	if ( utcHour >= 15 ) then
 		jpTime.day = jpTime.day + 1
 	end
