@@ -237,8 +237,14 @@ function c_add_fate:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
     end
+	
+	if (ml_task_hub:ThisTask().subtask) then
+		if (ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
+			return false
+		end
+	end
     
-    if (gDoFates == "1" and ml_task_hub:CurrentTask().name == "LT_GRIND") then
+    if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
 		if (ValidTable(fate)) then
 			c_add_fate.id = fate.id

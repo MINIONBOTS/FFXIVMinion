@@ -477,9 +477,6 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
 	
-	local lastMarkerType = Settings.minionlib.lastSelectedMarkerType
-	ml_marker_mgr.SetMarkerType(lastMarkerType)
-	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
 		ml_global_information.autoStartQueued = true		
@@ -721,7 +718,7 @@ function ffxivminion.SwitchMode(mode)
 		elseif (gBotMode == GetString("huntMode")) then
 			ml_marker_mgr.SetMarkerType(GetString("huntMarker"))
 		elseif (gBotMode == GetString("fishMode")) then
-			ml_marker_mgr.SetMarkerType(GetString("fishMarker"))
+			ml_marker_mgr.SetMarkerType(GetString("fishingMarker"))
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			ml_marker_mgr.SetMarkerType(GetString("grindMarker"))
 		elseif (gBotMode == GetString("pvpMode")) then

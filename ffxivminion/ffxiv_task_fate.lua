@@ -38,7 +38,8 @@ function c_fatewait:evaluate()
     local gotoPos = ml_marker_mgr.markerList["evacPoint"]
     return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
-            Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 -- ? 
+            Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 and
+			ml_task_hub:CurrentTask().name == "LT_GRIND"
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos.Create()
