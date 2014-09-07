@@ -557,6 +557,8 @@ strings =
 		stepIndex						= "Step Index",
 		killCount					 	= "Kill Count",
 		autoEquip					 	= "Auto-Equip",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
     },                                  
     ["cn"] =                            
     {                               
@@ -1149,6 +1151,8 @@ strings =
 		stepIndex						= "步骤次序",
 		killCount					 	= "击杀统计",
 		autoEquip					 	= "自动换装",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
 	},
     ["jp"] =
     {
@@ -1694,6 +1698,8 @@ strings =
 		stepIndex						= "Step Index",
 		killCount					 	= "Kill Count",
 		autoEquip					 	= "Auto-Equip",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
 	},   
     ["de"] =
     {
@@ -2240,6 +2246,8 @@ strings =
 		stepIndex						= "Step Index",
 		killCount					 	= "Kill Count",
 		autoEquip					 	= "Auto-Equip",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
 	},     
     ["fr"] =
     {
@@ -2785,6 +2793,8 @@ strings =
 		stepIndex						= "Step Index",
 		killCount					 	= "Kill Count",
 		autoEquip					 	= "Auto-Equip",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
 	},       
     ["ru"] =
     {
@@ -3330,6 +3340,8 @@ strings =
 		stepIndex						= "Step Index",
 		killCount					 	= "Kill Count",
 		autoEquip					 	= "Auto-Equip",
+		idlePulseCount					= "Idle Count",
+		taskDelay						= "Task Delay (ms)",
 	},    	
 
 }

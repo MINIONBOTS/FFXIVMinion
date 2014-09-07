@@ -667,7 +667,7 @@ local obj1 = {
 						["z"] = -164.20077514648;
 					};
 				};
-				[5] = {
+				[6] = {
 					["mapid"] = 141;
 					["type"] = "complete";
 					["itemrewardslot"] = {
@@ -693,7 +693,7 @@ local obj1 = {
 					["itemid"] = {
 						[1] = 3311;
 						[2] = 3311;
-						[7] = 3312
+						[7] = 3312;
 					};
 					["id"] = 1001564;
 					["buyamount"] = 1;
@@ -703,6 +703,26 @@ local obj1 = {
 						["y"] = -2.048198223114;
 						["x"] = -12.132037162781;
 						["z"] = -145.7733001709;
+					};
+				};
+				[5] = {
+					["mapid"] = 141;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 1;
+					["itemid"] = {
+						[1] = 1602;
+						[2] = 1681;
+						[7] = 2106;
+					};
+					["id"] = 1001563;
+					["buyamount"] = 1;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -2.05;
+						["x"] = -10.67;
+						["z"] = -150;
 					};
 				};
 			};
@@ -1852,7 +1872,7 @@ local obj1 = {
 					["mapid"] = 141;
 					["type"] = "useitem";
 					["itemturnin"] = false;
-					["delay"] = 4000;
+					["delay"] = 0;
 					["id"] = 2000268;
 					["itemreward"] = false;
 					["itemid"] = 2000212;
@@ -2635,7 +2655,7 @@ local obj1 = {
 					["mapid"] = 140;
 					["itemturnin"] = false;
 					["itemid"] = 2000414;
-					["delay"] = 3000;
+					["delay"] = 0;
 					["meshname"] = "Western Thanalan";
 					["pos"] = {
 						["y"] = 50.91828918457;
@@ -3436,7 +3456,7 @@ local obj1 = {
 		};
 		[308] = {
 			["steps"] = {
-				[2] = {
+				[3] = {
 					["mapid"] = 141;
 					["type"] = "interact";
 					["itemturnin"] = false;
@@ -3450,7 +3470,7 @@ local obj1 = {
 						["z"] = -56.8984375;
 					};
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 141;
 					["type"] = "interact";
 					["itemturnin"] = false;
@@ -3477,7 +3497,27 @@ local obj1 = {
 						["z"] = -154.62580871582;
 					};
 				};
-				[4] = {
+				[2] = {
+					["mapid"] = 141;
+					["type"] = "vendor";
+					["equip"] = true;
+					["conversationindex"] = 1;
+					["itemid"] = {
+						[1] = 1603;
+						[2] = 1682;
+						[7] = 2107;
+					};
+					["id"] = 1001563;
+					["buyamount"] = 1;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -2.05;
+						["x"] = -10.67;
+						["z"] = -150;
+					};
+				};
+				[5] = {
 					["mapid"] = 141;
 					["type"] = "interact";
 					["itemturnin"] = false;
@@ -3491,7 +3531,7 @@ local obj1 = {
 						["z"] = -120.1555557251;
 					};
 				};
-				[5] = {
+				[6] = {
 					["type"] = "complete";
 					["id"] = 1001439;
 					["itemreward"] = true;
@@ -3514,7 +3554,7 @@ local obj1 = {
 					};
 				};
 			};
-			["level"] = 8;
+			["level"] = 9;
 			["prereq"] = {
 				[-1] = {
 					[1] = 326;
@@ -5445,7 +5485,7 @@ local obj1 = {
 				[2] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
-					["delay"] = 5000;
+					["delay"] = 0;
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001376;
 					["itemreward"] = false;
@@ -5459,7 +5499,7 @@ local obj1 = {
 				[3] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
-					["delay"] = 5000;
+					["delay"] = 0;
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001375;
 					["itemreward"] = false;
@@ -5485,7 +5525,7 @@ local obj1 = {
 				[4] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
-					["delay"] = 5000;
+					["delay"] = 0;
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001377;
 					["itemreward"] = false;
@@ -5499,7 +5539,7 @@ local obj1 = {
 				[5] = {
 					["mapid"] = 140;
 					["type"] = "useitem";
-					["delay"] = 5000;
+					["delay"] = 0;
 					["meshname"] = "Western Thanalan";
 					["id"] = 2001374;
 					["itemreward"] = false;
@@ -5657,7 +5697,7 @@ local obj1 = {
 				[2] = {
 					["mapid"] = 130;
 					["type"] = "interact";
-					["delay"] = 15000;
+					["delay"] = 20000;
 					["id"] = 1001709;
 					["itemreward"] = false;
 					["meshname"] = "Ul dah - Steps of Nald";

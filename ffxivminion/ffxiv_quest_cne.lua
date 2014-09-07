@@ -100,6 +100,14 @@ function e_nextqueststep:execute()
 					end
 				end
 			end
+		elseif(task.params["type"] == "useitem") then
+			local itemid = tonumber(task.params["itemid"])
+			if(itemid) then
+				local item = Inventory:Get(itemid)
+				if(ValidTable(item)) then
+					task.startingCount = item.count
+				end
+			end
 		end
 		
 		if(task.params["restartatstep"]) then
@@ -125,8 +133,15 @@ function c_questmovetomap:evaluate()
 	local mapID = ml_task_hub:CurrentTask().params["mapid"]
     if (mapID and mapID > 0) then
         if(Player.localmapid ~= mapID) then
-			e_questmovetomap.mapID = mapID
-			return true
+			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
+														Player.localmapid,
+														mapID	)
+			if(ValidTable(pos)) then
+				e_questmovetomap.mapID = mapID
+				return true
+			else
+				d("No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
+			end
         end
     end
 	
@@ -263,7 +278,7 @@ e_questinteract = inheritsFrom( ml_effect )
 function c_questinteract:evaluate()
 	local id = ml_task_hub:ThisTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("contentid="..tostring(id))
+		local el = EntityList("shortestpath,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(entity) then
@@ -390,7 +405,7 @@ function e_questkill:execute()
 			ffxiv_task_quest.killTaskCompleted = true
 			ml_task_hub:CurrentTask().completed = true
 			--set a delay to give the inckillcount cne time to check quest flag update from server
-			ml_task_hub:CurrentTask():SetDelay(1500)
+			ml_task_hub:CurrentTask():SetDelay(3000)
 		end
 	newTask.task_fail_evaluate = 
 		function()
@@ -585,7 +600,12 @@ end
 c_questuseitem = inheritsFrom( ml_cause )
 e_questuseitem = inheritsFrom( ml_effect )
 function c_questuseitem:evaluate()
-	if (ml_task_hub:CurrentTask():IsDelayed()) then
+	--if we already started using the item then there's gonna be a really annoying ~1000ms window
+	--after the cast finishes when it will spam useitem again because the entity hasn't become not targetable yet
+	--set a dynamic delay based on the cast time
+	if (ml_task_hub:CurrentTask():IsDelayed() or
+		ActionList:IsCasting()) 
+	then
 		return false
 	end
 	
@@ -593,18 +613,22 @@ function c_questuseitem:evaluate()
 		local id = ml_task_hub:CurrentTask().params["itemid"]
 		local item = Inventory:Get(id)
 		if(ValidTable(item)) then
+			if(item.count < ml_task_hub:CurrentTask().startingCount) then
+				return false
+			end
+			
 			if(ml_task_hub:CurrentTask().params["id"]) then
-				local list = EntityList("contentid="..tostring(ml_task_hub:CurrentTask().params["id"]))
+				local list = EntityList("shortestpath,contentid="..tostring(ml_task_hub:CurrentTask().params["id"]))
 				if(ValidTable(list)) then
 					id, entity = next(list)
-					if(id ~= nil) then
+					if(id ~= nil and entity.targetable) then
 						e_questuseitem.id = id
 					end
 				end
 			end
 			return true
 		else
-			ml_error("No item with specified ID found in inventory")
+			d("No item with specified ID found in inventory")
 			return false
 		end
 	else
@@ -615,6 +639,7 @@ end
 function e_questuseitem:execute()
 	local item = Inventory:Get(ml_task_hub:CurrentTask().params["itemid"])
 	if(e_questuseitem.id ~= nil) then
+		Player:SetTarget(e_questuseitem.id)
 		item:Use(e_questuseitem.id)
 	else
 		item:Use()
@@ -741,7 +766,7 @@ function c_questflee:evaluate()
 		else
 			d("Need to flee but no evac position defined for current mesh - trying random position")
 			local myPos = Player.pos
-			local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x,myPos.y,myPos.z,50,100)
+			local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x,myPos.y,myPos.z,100,200)
 			if(ValidTable(newPos)) then
 				ml_marker_mgr.markerList["evacPoint"] = newPos
 				return true
@@ -833,7 +858,7 @@ function c_inckillcount:evaluate()
 	local disableFlagCheck = ml_task_hub:ThisTask().params["disableflagcheck"]
 	if(ffxiv_task_quest.killTaskCompleted and (disableFlagCheck or ffxiv_task_quest.QuestFlagsChanged())) then
 		return true
-	elseif(ffxiv_task_quest.backupKillCount > 5) then
+	elseif(ffxiv_task_quest.backupKillCount > 10) then
 		--if the client gets ahead of the bot in killcount then the quest flags will never change once it reaches
 		--the max kills for the objective. use a backup count and just count is as complete if its killed 5 with no flag change
 		return true
@@ -892,7 +917,7 @@ function c_questkillaggrotarget:evaluate()
 		end
 	end
 	
-	el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=5")
+	el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
@@ -951,6 +976,8 @@ function c_questbuy:evaluate()
 end
 function e_questbuy:execute()
 	local buyamount = ml_task_hub:CurrentTask().params["buyamount"] or 1
+	d("test")
+	d(e_questbuy.itemid)
 	if(Inventory:BuyShopItem(e_questbuy.itemid,buyamount)) then
 		if(ml_task_hub:CurrentTask().params["equip"]) then
 			ffxiv_task_quest.AddEquipItem(e_questbuy.itemid)
@@ -1044,4 +1071,32 @@ function e_questidle:execute()
 	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." for quest "..gCurrQuestID.." on step "..gCurrQuestStep)
 	ml_error("Attempting to fix by moving to next quest step")
 	ml_task_hub:CurrentTask():task_complete_execute()
+end
+
+c_questreset = inheritsFrom( ml_cause )
+e_questreset = inheritsFrom( ml_effect )
+function c_questreset:evaluate()
+	return ml_global_information.idlePulseCount > 1000 
+end
+function e_questreset:execute()
+	ml_error("Quest "..gCurrQuestID.." cannot be completed because all quest objectives have not been met...something screwed up!")
+	ml_error("Attempting to restart quest objectives at step 2 of profile")
+	ffxiv_task_quest.restartStep = 2
+	ffxiv_task_quest.ResetStep()
+end
+
+--sets a delay based on the cast time for item so that we don't spam 
+c_questitemcastdelay = inheritsFrom( ml_cause )
+e_questitemcastdelay = inheritsFrom( ml_effect )
+function c_questitemcastdelay:evaluate()
+	local target = Player:GetTarget()
+	if(target and target.type == 7) then
+		if(Player.castinginfo.casttime > 0 and not ml_task_hub:ThisTask().delaySet) then
+			return true
+		end
+	end
+end
+function e_questitemcastdelay:execute()
+	ml_task_hub:CurrentTask():SetDelay(tonumber(Player.castinginfo.casttime)*1000 + 2000)
+	ml_task_hub:ThisTask().delaySet = true
 end
