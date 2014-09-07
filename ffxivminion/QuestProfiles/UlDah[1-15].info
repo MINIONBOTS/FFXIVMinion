@@ -1191,6 +1191,7 @@ local obj1 = {
 			["prereq"] = {
 				[-1] = {
 					[1] = 504;
+					[2] = 332;
 				};
 			};
 		};
@@ -2980,6 +2981,7 @@ local obj1 = {
 					["itemreward"] = false;
 					["meshname"] = "Ul dah - Steps of Thal";
 					["itemrewardslot"] = 0;
+					["equip"] = true;
 				};
 				[9] = {
 					["mapid"] = 140;
@@ -4916,6 +4918,7 @@ local obj1 = {
 					["itemreward"] = false;
 					["mapid"] = 141;
 					["itemrewardslot"] = 0;
+					["equip"] = true;
 				};
 			};
 			["level"] = 6;

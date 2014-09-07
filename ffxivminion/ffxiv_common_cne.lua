@@ -1642,7 +1642,7 @@ end
 c_equip = inheritsFrom( ml_cause )
 e_equip = inheritsFrom( ml_effect )
 function c_equip:evaluate()
-	if(ActionList:IsCasting()) then
+	if(ActionList:IsCasting() or Player.incombat or Player.hasaggro) then
 		return false
 	end
 
