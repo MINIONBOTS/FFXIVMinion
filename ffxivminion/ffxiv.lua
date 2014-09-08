@@ -92,6 +92,21 @@ function ml_global_information.OnUpdate( event, tickcount )
         if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
+		
+		--update idle pulse count
+		if (ml_global_information.idlePulseCount ~= 0) then
+			gIdlePulseCount = tostring(ml_global_information.idlePulseCount)
+		elseif(gIdlePulseCount ~= "") then
+			gIdlePulseCount = ""
+		end
+		
+		--update delay time
+		if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():IsDelayed()) then
+			gTaskDelay = tostring(ml_task_hub:CurrentTask():GetDelay())
+		elseif(gTaskDelay ~= "") then
+			gTaskDelay = ""
+		end
+		
 		--update marker status
 		if (	gBotMode == strings[gCurrentLanguage].grindMode or
 				gBotMode == strings[gCurrentLanguage].gatherMode or
@@ -310,6 +325,8 @@ function ffxivminion.HandleInit()
     GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)

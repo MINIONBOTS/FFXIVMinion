@@ -35,7 +35,7 @@ function quest_step_complete_execute()
 	local delay = ml_task_hub:CurrentTask().params["delay"]
 	if (delay == nil or delay == 0) then
 		--minimum delay to allow quest objective flags to update
-		delay = 2000
+		delay = math.random(1500,2000)
 	end
 	ml_task_hub:CurrentTask():SetDelay(delay)
 end
@@ -91,8 +91,8 @@ function ffxiv_quest_task:Init()
 	local ke_questIsComplete = ml_element:create( "QuestIsComplete", c_questiscomplete, e_questiscomplete, 14 )
     self:add( ke_questIsComplete, self.process_elements)
 	
-	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 10 )
-    self:add( ke_questIdle, self.process_elements)
+	local ke_questReset = ml_element:create( "QuestResetCheck", c_questreset, e_questreset, 10 )
+    self:add( ke_questReset, self.process_elements)
 	
 	--its tempting to make autoequip an overwatch cne but there are too many states 
 	--when the client does not allow gear changes
@@ -301,11 +301,23 @@ end
 --idea for ["conversationindex"] but at a lower priority
 function ffxiv_quest_interact:Init()
     --init ProcessOverWatch cnes
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
     self:add( ke_questMoveToMap, self.process_elements)
+
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 22 )
+    self:add( ke_rest, self.process_elements)
 	
-	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
-    self:add( ke_questMoveToPos, self.process_elements)
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
+    self:add( ke_killAggroTarget, self.process_elements)	
+	
+	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
+    self:add( ke_questHandover, self.process_elements)	
+	
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
 	
 	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 10 )
     self:add( ke_questInteract, self.process_elements)
@@ -313,17 +325,11 @@ function ffxiv_quest_interact:Init()
 	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
     self:add( ke_questAtInteract, self.overwatch_elements)
 	
-	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
-    self:add( ke_questSelectConvIndex, self.process_elements)
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+    self:add( ke_questMoveToPos, self.process_elements)
 	
-	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
-    self:add( ke_questHandover, self.process_elements)
-	
-	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
-    self:add( ke_killAggroTarget, self.process_elements)
-	
-	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
-    self:add( ke_inDialog, self.process_elements)
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 01 )
+    self:add( ke_questIdle, self.process_elements)
 	
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
@@ -373,11 +379,9 @@ function ffxiv_quest_kill:Init()
     self:add( ke_questIdle, self.process_elements)
 	
 	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 20 )
-    self:add( ke_incrementKillCount, self.overwatch_elements)
+    self:add( ke_incrementKillCount, self.process_elements)
 	
 	self:AddTaskCheckCEs()
-	
-	ffxiv_task_quest.questFlags = 0
 end
 
 function ffxiv_quest_kill:task_complete_eval()
@@ -393,7 +397,6 @@ end
 function ffxiv_quest_kill:task_complete_execute()
 	Settings.FFXIVMINION.questKillCount = nil
 	gQuestKillCount = ""
-	ffxiv_task_quest.questFlags = 0
 	ffxiv_task_quest.killCount = 0
 	
 	quest_step_complete_execute()
@@ -440,6 +443,9 @@ function ffxiv_quest_dutykill:Init()
 	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
     self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 01 )
+    self:add( ke_questIdle, self.process_elements)
 	
 	ml_global_information.disableFlee = true
 	self.task_complete_execute = quest_step_complete_execute
@@ -601,12 +607,33 @@ end
 function ffxiv_quest_useitem:task_complete_eval()
 	local target = Player:GetTarget()
 	if(target and target.type == 7) then
-		if(Player.castinginfo.channeltime > 0) then
+		if(ActionList:IsCasting()) then
 			return false
 		end
 	end
 	
-	return quest_step_complete_eval()
+	local id = ml_task_hub:ThisTask().params["id"]
+    if (id and id > 0) then
+		local el = EntityList("closest,maxdistance=10,contentid="..tostring(id))
+		if(ValidTable(el)) then
+			local id, entity = next(el)
+			if(ValidTable(entity)) then
+				return not entity.targetable
+			end
+		end
+	end
+	
+	if(ml_task_hub:CurrentTask().params["itemid"]) then
+		local id = ml_task_hub:CurrentTask().params["itemid"]
+		local item = Inventory:Get(id)
+		if( not ValidTable(item)) then
+			return true
+		elseif(item.count < ml_task_hub:CurrentTask().startingCount and ml_task_hub:CurrentTask().stepCompleted) then
+			return true
+		end
+	end
+	
+	return false
 end
 
 function ffxiv_quest_useitem:Init()
@@ -614,11 +641,17 @@ function ffxiv_quest_useitem:Init()
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
     self:add( ke_questMoveToMap, self.process_elements)
 	
-	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 20 )
     self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 15 )
+    self:add( ke_killAggroTarget, self.process_elements)	
 	
 	local ke_questUseItem = ml_element:create( "QuestUseItem", c_questuseitem, e_questuseitem, 10 )
     self:add( ke_questUseItem, self.process_elements)
+	
+	local ke_questItemCastDelay = ml_element:create( "QuestItemCastDelay", c_questitemcastdelay, e_questitemcastdelay, 10 )
+    self:add( ke_questItemCastDelay, self.process_elements)
 
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
