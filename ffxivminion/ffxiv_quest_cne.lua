@@ -785,7 +785,12 @@ function e_questflee:execute()
 		newTask.useTeleport = gTeleport == "1"
 		newTask.task_complete_eval = 
 			function ()
-				return not Player.hasaggro or Player.hp.percent > 90
+				if(not Player.hasaggro and Player:IsMoving()) then
+					self.pos = Player.pos
+					Player:Stop()
+				end
+				
+				return not Player.hasaggro and Player.hp.percent > 90
 			end
 		newTask.task_fail_eval = 
 			function ()
