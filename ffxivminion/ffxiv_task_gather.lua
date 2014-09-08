@@ -838,16 +838,18 @@ function e_gather:execute()
 								end
 							end
 						else
-							if (IsGardening(item.id) or IsMap(item.id)) then
-								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-								ml_error("Use the GatherMaps option for this marker to gather map items.")
-								ml_error("Gardening and Map items set to slots will be ignored.")
-							end
-							if (not IsGardening(item.id) and not IsMap(item.id)) then
-								Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-								return
+							if (item.name == item2) then
+								if (IsGardening(item.id) or IsMap(item.id)) then
+									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+									ml_error("Use the GatherMaps option for this marker to gather map items.")
+									ml_error("Gardening and Map items set to slots will be ignored.")
+								end
+								if (not IsGardening(item.id) and not IsMap(item.id)) then
+									Player:Gather(item.index)
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									return
+								end
 							end
 						end
 					end
