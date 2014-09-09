@@ -9,6 +9,7 @@ ffxiv_task_quest.backupKillCount = 0
 ffxiv_task_quest.questFlags = 0
 ffxiv_task_quest.killTaskCompleted = false
 ffxiv_task_quest.restartStep = 0
+ffxiv_task_quest.lastStepStartTime = 0
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -286,11 +287,10 @@ function ffxiv_task_quest:Init()
     self:add( ke_questAddGrind, self.process_elements)
 	
 	--overwatch elements
+	--flee has to go on individual step tasks so that we don't lose current step data
+	--when it goes off
 	local ke_dead = ml_element:create( "Dead", c_questdead, e_questdead, 20 )
     self:add( ke_dead, self.overwatch_elements)
-    
-    local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 15 )
-    self:add( ke_flee, self.overwatch_elements)
 	
 	local ke_questIsLoading = ml_element:create( "QuestIsLoading", c_questisloading, e_questisloading, 105 )
     self:add( ke_questIsLoading, self.overwatch_elements)

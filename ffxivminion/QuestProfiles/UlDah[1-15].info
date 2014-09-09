@@ -2283,6 +2283,7 @@ local obj1 = {
 						["z"] = -46.159412384033;
 					};
 					["killcount"] = 2;
+					["killaggro"] = true;
 				};
 				[3] = {
 					["mapid"] = 141;
@@ -2295,6 +2296,7 @@ local obj1 = {
 						["z"] = -22.701095581055;
 					};
 					["killcount"] = 2;
+					["killaggro"] = true;
 				};
 				[1] = {
 					["mapid"] = 141;
@@ -2319,6 +2321,7 @@ local obj1 = {
 						["z"] = -14.890086174011;
 					};
 					["killcount"] = 1;
+					["killaggro"] = true;
 				};
 				[5] = {
 					["mapid"] = 141;
@@ -5650,7 +5653,7 @@ local obj1 = {
 					["meshname"] = "Central Thanalan";
 					["id"] = 2001427;
 					["itemreward"] = false;
-					["delay"] = 30000;
+					["delay"] = 10000;
 					["pos"] = {
 						["y"] = -17.125240325928;
 						["x"] = 246.20660400391;
