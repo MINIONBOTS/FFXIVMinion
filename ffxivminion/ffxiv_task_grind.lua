@@ -191,7 +191,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				gDoFates = Settings.FFXIVMINION.gDoFates
 				gFatesOnly = Settings.FFXIVMINION.gFatesOnly
-			end			
+			end	
+			Settings.FFXIVMINION[tostring(k)] = v
         end
     end
     GUI_RefreshWindow(GetString("grindMode"))

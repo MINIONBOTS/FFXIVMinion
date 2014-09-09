@@ -177,6 +177,7 @@ end
 c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
+	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	
 	--Do some special checking here for hunts.
@@ -206,13 +207,17 @@ function c_add_combat:evaluate()
 	end
 	
 	if (target and target.id ~= 0) then
-		return InCombatRange(target.id) and target.alive
+		return InCombatRange(target.id) and target.alive and not IsMounting()
 	end
         
     return false
 end
 function e_add_combat:execute()
 	Dismount()
+	
+	if (IsMounting() or Player.ismounted) then	
+		return
+	end
 	
     if ( gSMactive == "1" ) then
         local newTask = ffxiv_task_skillmgrAttack.Create()
@@ -940,7 +945,7 @@ function c_companion:evaluate()
 
     if (((gChoco == strings[gCurrentLanguage].grindMode or gChoco == strings[gCurrentLanguage].any) and (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode)) or
 		((gChoco == strings[gCurrentLanguage].assistMode or gChoco == strings[gCurrentLanguage].any) and gBotMode == strings[gCurrentLanguage].assistMode)) then
-		if (not Player.ismounted and not ActionList:IsCasting()) then
+		if (not Player.ismounted and not IsMounting()) then
 			local al = ActionList("type=6")
 			local dismiss = al[2]
 			local acDismiss = ActionList:Get(dismiss.id,6)
@@ -1003,7 +1008,7 @@ function e_stance:execute()
 	local stance = stanceList[ml_global_information.chocoStance[gChocoStance]]
     local acStance = ActionList:Get(stance.id,6)		
 	acStance:Cast(Player.id)
-	ml_global_information.stanceTimer = ml_global_information.Now
+	ml_global_information.stanceTimer = Now()
 end
 
 -----------------------------------------------------------------------------------------------
