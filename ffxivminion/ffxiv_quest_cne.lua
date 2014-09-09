@@ -24,13 +24,17 @@ function e_questcanstart:execute()
 		gQuestStepType = task.params["type"]
 		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
 		ffxiv_task_quest.currentStepParams = task.params
+		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
 	end
 end
 
+--we want iscomplete to try to compensate for other quest bugs by firing when the client data
+--shows that the quest is complete, but we don't want to break other non-quest steps that have
+--been added after the final quest objective
 c_questiscomplete = inheritsFrom( ml_cause )
 e_questiscomplete = inheritsFrom( ml_effect )
 function c_questiscomplete:evaluate()
-	return ffxiv_task_quest.currentQuest:isComplete()
+	return 	ffxiv_task_quest.currentQuest:isComplete()
 end
 function e_questiscomplete:execute()
 	local task = ffxiv_task_quest.currentQuest:GetCompleteTask()
@@ -68,6 +72,7 @@ function e_nextqueststep:execute()
 	then
 		ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
 		ffxiv_task_quest.restartStep = 0
+		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
@@ -116,6 +121,10 @@ function e_nextqueststep:execute()
 			ffxiv_task_quest.restartStep = 0
 		end
 		
+		if(task.params["disableavoid"]) then
+			gAvoidAOE = "0"
+		end
+			
 		ml_task_hub:CurrentTask():AddSubTask(task)
 		
 		ffxiv_task_quest.currentStepParams = task.params
@@ -124,6 +133,7 @@ function e_nextqueststep:execute()
 		gQuestStepType = task.params["type"]
 		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
 		ffxiv_task_quest.SetQuestFlags()	
+		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
 	end
 end
 
@@ -200,7 +210,9 @@ function e_questmovetopos:execute()
 	
 	--add kill aggro target check
 	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
-	if(ml_task_hub:CurrentTask().params["killaggro"] or ml_task_hub:CurrentTask().params["type"] == "interact") then
+	if(	ml_task_hub:CurrentTask().params["killaggro"] or 
+		ml_task_hub:CurrentTask().params["type"] == "interact") 
+	then
 		newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
 	end
 	
@@ -785,18 +797,13 @@ function e_questflee:execute()
 		newTask.useTeleport = gTeleport == "1"
 		newTask.task_complete_eval = 
 			function ()
-				if(not Player.hasaggro and Player:IsMoving()) then
-					self.pos = Player.pos
-					Player:Stop()
-				end
-				
-				return not Player.hasaggro and Player.hp.percent > 90
+				return not Player.hasaggro
 			end
 		newTask.task_fail_eval = 
 			function ()
-				return not Player.alive
+				return not Player.alive or (not c_walktopos:evaluate() and Player.hasaggro)
 			end
-		ml_task_hub:ThisTask().preserveSubtasks = true
+		--ml_task_hub:ThisTask().preserveSubtasks = true
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
 		ml_error("Need to flee but no evac position defined for this mesh!!")
@@ -906,7 +913,8 @@ function c_questkillaggrotarget:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:ThisTask().pos
 		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		if(distance > 30) then
+		if(distance > 50) then
+			--d("KillAggroTarget False - distance to quest pos :"..tostring(distance))
 			return false
 		end
 	end
@@ -916,17 +924,19 @@ function c_questkillaggrotarget:evaluate()
 		local id, target = next(el)
 		if (ValidTable(target)) then
 			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
+				--d("KillAggroTarget True - targetingme")
 				c_questkillaggrotarget.targetid = target.id
 				return true
 			end
 		end
 	end
 	
-	el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=10")
+	el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,maxdistance=15")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
 			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
+				--d("KillAggroTarget True - aggressive")
 				c_questkillaggrotarget.targetid = target.id
 				return true
 			end
@@ -1068,7 +1078,7 @@ end
 c_questidle = inheritsFrom( ml_cause )
 e_questidle = inheritsFrom( ml_effect )
 function c_questidle:evaluate()
-	return ml_global_information.idlePulseCount > 1000
+	return ml_global_information.idlePulseCount > 2000
 end
 function e_questidle:execute()
 	--something break because we haven't executed a cne in a long time
@@ -1081,7 +1091,7 @@ end
 c_questreset = inheritsFrom( ml_cause )
 e_questreset = inheritsFrom( ml_effect )
 function c_questreset:evaluate()
-	return ml_global_information.idlePulseCount > 1000 
+	return ml_global_information.idlePulseCount > 2000 
 end
 function e_questreset:execute()
 	ml_error("Quest "..gCurrQuestID.." cannot be completed because all quest objectives have not been met...something screwed up!")
