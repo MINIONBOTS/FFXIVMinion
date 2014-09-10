@@ -400,7 +400,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
             local f = falist[tonumber(gFateIndex)]
             if ( f ) then
                 fafound = true
-                gFateName = f.name
+                gFateName = string.gsub(f.name,",","")
                 gFateID = f.id
             end
         end

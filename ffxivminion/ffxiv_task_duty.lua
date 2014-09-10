@@ -241,7 +241,6 @@ function c_readyduty:evaluate()
 		))
 	then
 		ml_task_hub:CurrentTask().state = ""
-		
 	end
 	
 	if (not Quest:IsLoading() and not ml_mesh_mgr.meshLoading and not OnDutyMap() and IsDutyLeader() and 
@@ -607,7 +606,14 @@ end
 function IsFullParty()
 	local party = EntityList.myparty
 	if (ValidTable(party)) then
-		return (TableSize(party) == 4 or TableSize(party) == 8)
+		if (TableSize(party) == 4 or TableSize(party) == 8) then
+			for i,member in pairs(party) do
+				if (member.mapid == 0) then
+					return false
+				end
+			end
+			return true
+		end
 	end
 	
 	return false

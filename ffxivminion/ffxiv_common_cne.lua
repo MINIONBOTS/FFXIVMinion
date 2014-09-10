@@ -21,6 +21,16 @@ c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
+		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
+			local aggro = GetNearestAggro()
+			if ValidTable(aggro) then
+				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+					ml_global_information.IsWaiting = false
+					c_add_killtarget.targetid = aggro.id
+					return true
+				end
+			end 
+		end
         return false
     end
 	
