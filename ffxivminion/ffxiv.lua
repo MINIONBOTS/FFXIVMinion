@@ -283,7 +283,7 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
 	if ( Settings.FFXIVMINION.gUseAetherytes == nil) then
-		Settings.FFXIVMINION.gUseAetherytes = "1"
+		Settings.FFXIVMINION.gUseAetherytes = "0"
 	end
 	if ( Settings.FFXIVMINION.gChoco == nil) then
 		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
@@ -322,6 +322,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].enableLog,"gEnableLog",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].logCNE,"gLogCNE",group )
+	GUI_NewCheckbox(winName,"Dev Debug","gDevDebug",group )
     GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
@@ -388,6 +389,7 @@ function ffxivminion.HandleInit()
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
+	gDevDebug = Settings.FFXIVMINION.gDevDebug
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs
@@ -566,7 +568,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gUseAetherytes" or
 			k == "gFood" or
 			k == "gFoodHQ" or 
-			k == "gAvoidAOE" )				
+			k == "gAvoidAOE" or
+			k == "gDevDebug" )				
         then
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gMount" ) then
@@ -758,7 +761,7 @@ function ffxivminion.SwitchMode(mode)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
 			gAvoidAOE = "1"
-			SendTextCommand("/busy")
+			SendTextCommand("/busy on")
 		else
 			if (gBotMode == GetString("gatherMode")) then
 				gTeleport = "0"
