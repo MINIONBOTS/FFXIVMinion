@@ -227,7 +227,7 @@ end
 function e_nextquest:execute()
 	local quest = e_nextquest.quest
 	if (ValidTable(quest)) then
-		if(quest.id == 551 and gDevDebug == "1") then
+		if(quest.id == 307 and gDevDebug == "1") then
 			ml_task_hub.ToggleRun()
 			ml_error("At quest for testing")
 			return

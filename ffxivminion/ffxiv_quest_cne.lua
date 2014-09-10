@@ -91,8 +91,13 @@ function e_nextqueststep:execute()
 		-- that will have to come later
 		if(task.params["type"] == "kill") then
 			if(Settings.FFXIVMINION.questKillCount ~= nil) then
-				task.killCount = Settings.FFXIVMINION.questKillCount
-				gQuestKillCount = task.killCount
+				if(Settings.FFXIVMINION.questKillCount) then
+					task.killCount = Settings.FFXIVMINION.questKillCount
+				else
+					task.killCount = 0
+				end
+				
+				gQuestKillCount = tostring(task.killCount)
 			end
 		elseif(task.params["type"] == "vendor") then
 			local itemtable = tonumber(task.params["itemid"])
@@ -150,7 +155,7 @@ function c_questmovetomap:evaluate()
 				e_questmovetomap.mapID = mapID
 				return true
 			else
-				d("No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
+				--ml_debug("No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
 			end
         end
     end
@@ -325,11 +330,7 @@ function e_questinteract:execute()
 			ml_task_hub:ThisTask().params["itemturnin"] and not
 			ml_task_hub:ThisTask().params["conversationindex"])
 		then
-			--if we're interacting with a quest object then we don't want to complete
-			--the step until the quest object is no longer targetable (we finished the interact)
-			if(entity.type ~= 7) then
-				ml_task_hub:ThisTask().stepCompleted = true
-			end
+			ml_task_hub:ThisTask().stepCompleted = true
 		end
 	end
 end
@@ -887,7 +888,7 @@ function e_inckillcount:execute()
 	ffxiv_task_quest.SetQuestFlags()
 	
 	Settings.FFXIVMINION.questKillCount = ffxiv_task_quest.killCount
-	gQuestKillCount = ffxiv_task_quest.killCount
+	gQuestKillCount = tostring(ffxiv_task_quest.killCount)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -1084,8 +1085,13 @@ function e_questidle:execute()
 	--something break because we haven't executed a cne in a long time
 	--try the next quest step
 	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." for quest "..gCurrQuestID.." on step "..gCurrQuestStep)
-	ml_error("Attempting to fix by moving to next quest step")
-	ml_task_hub:CurrentTask():task_complete_execute()
+	if(gDevDebug == "1") then
+		ml_task_hub.ToggleRun()
+		return
+	else
+		ml_error("Attempting to fix by moving to next quest step")
+		ml_task_hub:CurrentTask():task_complete_execute()
+	end
 end
 
 c_questreset = inheritsFrom( ml_cause )
@@ -1095,9 +1101,14 @@ function c_questreset:evaluate()
 end
 function e_questreset:execute()
 	ml_error("Quest "..gCurrQuestID.." cannot be completed because all quest objectives have not been met...something screwed up!")
-	ml_error("Attempting to restart quest objectives at step 2 of profile")
-	ffxiv_task_quest.restartStep = 2
-	ffxiv_task_quest.ResetStep()
+	if(gDevDebug == "1") then
+		ml_task_hub.ToggleRun()
+		return
+	else
+		ml_error("Attempting to restart quest objectives at step 2 of profile")
+		ffxiv_task_quest.restartStep = 2
+		ffxiv_task_quest.ResetStep()
+	end
 end
 
 --sets a delay based on the cast time for item so that we don't spam 
