@@ -635,6 +635,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:Disable3DRendering(false)
 			end
+			Settings.FFXIVMINION[tostring(k)] = v
 		end
 		
 		if ( k == "gSkipCutscene" ) then
@@ -753,6 +754,8 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 		elseif (gBotMode == GetString("questMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			ffxiv_task_quest.UpdateProfiles()
@@ -760,16 +763,20 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
 			GameHacks:SkipDialogue(true)
+			gDisableDrawing = "0"
+			GameHacks:Disable3DRendering(false)
 			gAvoidAOE = "1"
 			SendTextCommand("/busy on")
 		else
 			if (gBotMode == GetString("gatherMode")) then
 				gTeleport = "0"
 			end
+			gDisableDrawing = "0"
+			GameHacks:Disable3DRendering(false)
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			GameHacks:SkipCutscene(gSkipDialogue == "1")
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gProfile_listitems = "NA"
 			gProfile = "NA"

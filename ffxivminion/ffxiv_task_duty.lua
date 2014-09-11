@@ -58,10 +58,31 @@ c_followleaderduty = inheritsFrom( ml_cause )
 e_followleaderduty = inheritsFrom( ml_effect )
 c_followleaderduty.rrange = 8
 c_followleaderduty.leader = nil
+c_followleaderduty.leaderpos = nil
 function c_followleaderduty:evaluate()
     if (IsDutyLeader() or Player.localmapid ~= ffxiv_task_duty.mapID or ml_task_hub:CurrentTask().suppressFollow) then
         return false
     end
+	
+	--[[
+	local leader = GetDutyLeader()
+    if (leader) then
+		if (leader.pos.x ~= -1000) then
+			local leaderEntity = EntityList:Get(leader.id)
+			if (leaderEntity) then
+				c_followleaderduty.leaderpos = leaderEntity.pos
+				local myPos = Player.pos				
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
+				if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
+					(distance > 1 and gTeleport == "1")) 
+				then				
+					c_followleaderduty.leader = leader
+					return true
+				end
+			end
+		end
+	end
+	--]]
     
     local leader = GetDutyLeader()
     if ( leader ) then
@@ -70,7 +91,7 @@ function c_followleaderduty:evaluate()
 			local myPos = Player.pos				
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, c_followleaderduty.leaderpos.x, c_followleaderduty.leaderpos.y, c_followleaderduty.leaderpos.z)
 			if ((distance > c_followleaderduty.rrange and leader.onmesh) or (distance > c_followleaderduty.rrange and distance < 30 and not leader.onmesh) or
-				(distance > 3 and gTeleport == "1")) 
+				(distance > 1 and gTeleport == "1")) 
 			then				
 				c_followleaderduty.leader = leader
 				return true
@@ -98,7 +119,7 @@ function e_followleaderduty:execute()
                 end
             end
         else
-			local lpos = leader.pos
+			local lpos = c_followleaderduty.leaderpos
             local myPos = Player.pos
 			if (gTeleport == "1") then
 				Player:Stop()
@@ -220,7 +241,6 @@ function c_readyduty:evaluate()
 		))
 	then
 		ml_task_hub:CurrentTask().state = ""
-		
 	end
 	
 	if (not Quest:IsLoading() and not ml_mesh_mgr.meshLoading and not OnDutyMap() and IsDutyLeader() and 
@@ -527,6 +547,8 @@ function ffxiv_task_duty.UpdateProfiles()
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 		if (ffxiv_task_duty.dutyInfo.Independent) then
 			ffxiv_task_duty.independentMode = true
+		else
+			ffxiv_task_duty.independentMode = false
 		end
 	end
 	if (file_exists(ffxiv_task_duty.dutyPath..gProfile..".lua")) then
@@ -542,6 +564,11 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..v..".info")
 			if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 				ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
+				if (ffxiv_task_duty.dutyInfo.Independent) then
+					ffxiv_task_duty.independentMode = true
+				else
+					ffxiv_task_duty.independentMode = false
+				end
 			end
 			d(loadfile(ffxiv_task_duty.dutyPath..v..".lua"))
 			Settings.FFXIVMINION["gLastDutyProfile"] = v
@@ -579,7 +606,14 @@ end
 function IsFullParty()
 	local party = EntityList.myparty
 	if (ValidTable(party)) then
-		return (TableSize(party) == 4 or TableSize(party) == 8)
+		if (TableSize(party) == 4 or TableSize(party) == 8) then
+			for i,member in pairs(party) do
+				if (member.mapid == 0) then
+					return false
+				end
+			end
+			return true
+		end
 	end
 	
 	return false

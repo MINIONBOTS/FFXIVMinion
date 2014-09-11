@@ -239,9 +239,9 @@ function e_movetofate:execute()
 
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
         if ( ml_task_hub:CurrentTask().moving) then
-            newTask.range = math.random(3, fate.radius/4)
+            newTask.range = math.random(3, fate.radius * .25)
         else
-            newTask.range = math.random(fate.radius * .7, fate.radius * .9)
+            newTask.range = math.random(fate.radius * .25, fate.radius * .5)
         end
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end

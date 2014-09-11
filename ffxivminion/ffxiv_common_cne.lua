@@ -21,6 +21,16 @@ c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
     -- block killtarget for grinding when user has specified "Fates Only"
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
+		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
+			local aggro = GetNearestAggro()
+			if ValidTable(aggro) then
+				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+					ml_global_information.IsWaiting = false
+					c_add_killtarget.targetid = aggro.id
+					return true
+				end
+			end 
+		end
         return false
     end
 	
@@ -177,6 +187,7 @@ end
 c_add_combat = inheritsFrom( ml_cause )
 e_add_combat = inheritsFrom( ml_effect )
 function c_add_combat:evaluate()
+	
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	
 	--Do some special checking here for hunts.
@@ -206,13 +217,17 @@ function c_add_combat:evaluate()
 	end
 	
 	if (target and target.id ~= 0) then
-		return InCombatRange(target.id) and target.alive
+		return InCombatRange(target.id) and target.alive and not IsMounting()
 	end
         
     return false
 end
 function e_add_combat:execute()
 	Dismount()
+	
+	if (IsMounting() or Player.ismounted) then	
+		return
+	end
 	
     if ( gSMactive == "1" ) then
         local newTask = ffxiv_task_skillmgrAttack.Create()
@@ -940,7 +955,7 @@ function c_companion:evaluate()
 
     if (((gChoco == strings[gCurrentLanguage].grindMode or gChoco == strings[gCurrentLanguage].any) and (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode)) or
 		((gChoco == strings[gCurrentLanguage].assistMode or gChoco == strings[gCurrentLanguage].any) and gBotMode == strings[gCurrentLanguage].assistMode)) then
-		if (not Player.ismounted and not ActionList:IsCasting()) then
+		if (not Player.ismounted and not IsMounting()) then
 			local al = ActionList("type=6")
 			local dismiss = al[2]
 			local acDismiss = ActionList:Get(dismiss.id,6)
@@ -965,6 +980,7 @@ function e_companion:execute()
 	newTask.itemid = 4868
 	newTask.useTime = 3000
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_stance = inheritsFrom( ml_cause )
@@ -1003,7 +1019,8 @@ function e_stance:execute()
 	local stance = stanceList[ml_global_information.chocoStance[gChocoStance]]
     local acStance = ActionList:Get(stance.id,6)		
 	acStance:Cast(Player.id)
-	ml_global_information.stanceTimer = ml_global_information.Now
+	ml_global_information.stanceTimer = Now()
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 -----------------------------------------------------------------------------------------------
@@ -1160,13 +1177,16 @@ function c_rest:evaluate()
 	if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
 		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
 		if (TableSize(el) == 0) then
+			e_rest.resting = false
+			ml_global_information.IsWaiting = false
 			return false
 		end
 	end
 	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
-        if  (ml_task_hub:CurrentTask() ~= nil and ml_task_hub:CurrentTask().name == "LT_FATE") or (gFatesOnly == "1") then
+        if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") or (gFatesOnly == "1") then
+			e_rest.resting = false
 			ml_global_information.IsWaiting = false
             return false
         end
@@ -1220,7 +1240,9 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleeing = false
 function c_flee:evaluate()
-    if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)))) or e_flee.fleeing
+    if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and 
+		(Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))))
+		or e_flee.fleeing
     then
         return true
     end
@@ -1229,7 +1251,7 @@ function c_flee:evaluate()
 end
 function e_flee:execute()
     if (e_flee.fleeing) then
-        if (not Player.hasaggro) then
+        if (not Player.hasaggro or not Player:IsMoving()) then
             Player:Stop()
             e_flee.fleeing = false
             return

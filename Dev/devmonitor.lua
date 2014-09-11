@@ -661,59 +661,59 @@ function Dev.UpdateWindow()
 		player_castingtargetcount = ci.castingtargetcount or 0
 	end
 	
-	local target = Player:GetTarget() 
-	if (ValidTable(target)) then	
-		target_ptr = string.format( "%x",tonumber(target.ptr ))
-		target_id = target.id
-		target_type = target.type
-		target_chartype = target.chartype
-		target_name = target.name
-		target_ownerid = target.ownerid
-		target_targetid = target.targetid
-		target_contentid = target.contentid
-		target_uniqueid = target.uniqueid
-		target_status = target.status--string.format( "%x",tonumber(target.status ))
-		target_targetable = tostring(target.targetable)
-		target_los = tostring(target.los)
-		target_aggro = tostring(target.aggro)
+	local mytarget = Player:GetTarget() 
+	if (ValidTable(mytarget)) then	
+		target_ptr = string.format( "%x",tonumber(mytarget.ptr ))
+		target_id = mytarget.id
+		target_type = mytarget.type
+		target_chartype = mytarget.chartype
+		target_name = mytarget.name
+		target_ownerid = mytarget.ownerid
+		target_targetid = mytarget.targetid
+		target_contentid = mytarget.contentid
+		target_uniqueid = mytarget.uniqueid
+		target_status = mytarget.status--string.format( "%x",tonumber(mytarget.status ))
+		target_targetable = tostring(mytarget.targetable)
+		target_los = tostring(mytarget.los)
+		target_aggro = tostring(mytarget.aggro)
 		local agp = EntityList.aggrolist
 		if (ValidTable(agp)) then
 			for i,entity in pairs(agp) do
-				if entity.id == target.id then
+				if entity.id == mytarget.id then
 					target_aggropercentage = entity.aggropercentage
 				end
 			end
 		end
-		--target_aggropercentage = target.aggropercentage
-		target_attackable = tostring(target.attackable)
-		target_aggressive = tostring(target.aggressive)
-		target_friendly = tostring(target.friendly)
-		target_incombat = tostring(target.incombat)
-		target_distance = (math.floor(target.distance * 10) / 10)
-		target_distance2d = (math.floor(target.distance2d * 10) / 10)
-		target_pathdistance = (math.floor(target.pathdistance * 10) / 10)
-		target_InCombatRange = tostring(InCombatRange(target.id))
-		target_hitradius = target.hitradius
-		target_onmesh = tostring(target.onmesh)
-		target_posX = (math.floor(target.pos.x * 10) / 10)
-		target_posY = (math.floor(target.pos.y * 10) / 10)
-		target_posZ = (math.floor(target.pos.z * 10) / 10)
-		target_posH = (math.floor(target.pos.h * 10) / 10)
-		target_hp = tostring(target.hp.current.." / "..target.hp.max.." / "..target.hp.percent.."%")	
-		target_mp = tostring(target.mp.current.." / "..target.mp.max.." / "..target.mp.percent.."%")	
-		target_tp = tostring(target.tp)	
+		--target_aggropercentage = mytarget.aggropercentage
+		target_attackable = tostring(mytarget.attackable)
+		target_aggressive = tostring(mytarget.aggressive)
+		target_friendly = tostring(mytarget.friendly)
+		target_incombat = tostring(mytarget.incombat)
+		target_distance = (math.floor(mytarget.distance * 10) / 10)
+		target_distance2d = (math.floor(mytarget.distance2d * 10) / 10)
+		target_pathdistance = (math.floor(mytarget.pathdistance * 10) / 10)
+		target_InCombatRange = tostring(InCombatRange(mytarget.id))
+		target_hitradius = mytarget.hitradius
+		target_onmesh = tostring(mytarget.onmesh)
+		target_posX = (math.floor(mytarget.pos.x * 10) / 10)
+		target_posY = (math.floor(mytarget.pos.y * 10) / 10)
+		target_posZ = (math.floor(mytarget.pos.z * 10) / 10)
+		target_posH = (math.floor(mytarget.pos.h * 10) / 10)
+		target_hp = tostring(mytarget.hp.current.." / "..mytarget.hp.max.." / "..mytarget.hp.percent.."%")	
+		target_mp = tostring(mytarget.mp.current.." / "..mytarget.mp.max.." / "..mytarget.mp.percent.."%")	
+		target_tp = tostring(mytarget.tp)	
 		
-		target_level = target.level
-		target_job = target.job
-		target_cangather = tostring(target.cangather)
-		target_gatherattemptsmax = target.cangatherattemptsmax
-		target_gatherattempts = target.gatherattempts
-		target_fateid = target.fateid or 0
-		target_action = target.action
-		target_lastaction = target.lastaction
+		target_level = mytarget.level
+		target_job = mytarget.job
+		target_cangather = tostring(mytarget.cangather)
+		target_gatherattemptsmax = mytarget.cangatherattemptsmax
+		target_gatherattempts = mytarget.gatherattempts
+		target_fateid = mytarget.fateid or 0
+		target_action = mytarget.action
+		target_lastaction = mytarget.lastaction
 		
-		if (ValidTable(target.castinginfo)) then
-			local ci = target.castinginfo
+		if (ValidTable(mytarget.castinginfo)) then
+			local ci = mytarget.castinginfo
 			target_channelingid = ci.channelingid or 0
 			target_channeltime = ci.channeltime or 0
 			target_channeltargetid = ci.channeltargetid or 0
