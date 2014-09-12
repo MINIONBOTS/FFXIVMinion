@@ -1310,10 +1310,10 @@ c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == strings[gCurrentLanguage].assistMode) then
-		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not Quest:IsLoading())
+		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not IsLoading())
 	end
 	
-    return (ControlVisible("ContentsFinderConfirm") and not Quest:IsLoading() and Player.revivestate ~=2 and Player.revivestate ~= 3)
+    return (ControlVisible("ContentsFinderConfirm") and not IsLoading() and Player.revivestate ~=2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)

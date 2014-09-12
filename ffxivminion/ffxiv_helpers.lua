@@ -1588,6 +1588,10 @@ function IsMounting()
 	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castid == 4)
 end
 
+function IsLoading()
+	return (Quest:IsLoading() or Player.localmapid == 0)
+end
+
 function HasAction(id, category)
 	id = tonumber(id) or 0
 	category = category or 1

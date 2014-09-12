@@ -906,17 +906,12 @@ function ffxivminion.CreateWindow(window)
 	if (Settings.FFXIVMINION[winTable] == nil) then
 		Settings.FFXIVMINION[winTable] = {}
 	end
-	
-	--d("windowName="..tostring(window.Name))
+
 	settings = {}
 	settings.width = Settings.FFXIVMINION[winTable].width or window.width
-	--d("usedWidth="..tostring(settings.width)..",savedWidth="..tostring(Settings.FFXIVMINION[winTable].width)..",windowWidth="..tostring(window.width))
 	settings.height = Settings.FFXIVMINION[winTable].height or window.height
-	--d("usedHeight="..tostring(settings.height)..",savedHeight="..tostring(Settings.FFXIVMINION[winTable].height)..",windowHeight="..tostring(window.height))
 	settings.y = Settings.FFXIVMINION[winTable].y or window.y
-	--d("usedY="..tostring(settings.y)..",savedY="..tostring(Settings.FFXIVMINION[winTable].y)..",windowY="..tostring(window.y))
 	settings.x = Settings.FFXIVMINION[winTable].x or window.x
-	--d("usedX="..tostring(settings.x)..",savedX="..tostring(Settings.FFXIVMINION[winTable].x)..",windowX="..tostring(window.x))	
 
 	if (ValidTable(settings)) then 
 		Settings.FFXIVMINION[winTable] = settings 
@@ -967,8 +962,12 @@ function ffxivminion.SaveWindows()
 		if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
 		if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
 		if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
-			
-		if (TableSize(WindowInfo) > 0 and WindowInfo ~= WI) then Settings.FFXIVMINION[tableName] = WindowInfo end
+		
+		local tablesEqual = true
+		if (ValidTable(WindowInfo) and ValidTable(WI)) then
+			tablesEqual = deepcompare(WindowInfo,WI,true)
+		end
+		if (not tablesEqual) then Settings.FFXIVMINION[tableName] = WindowInfo end
 	end
 end
 

@@ -224,7 +224,7 @@ c_movetounspoiledmarker = inheritsFrom( ml_cause )
 e_movetounspoiledmarker = inheritsFrom( ml_effect )
 function c_movetounspoiledmarker:evaluate()
 	--Check that we have a proper location, that we haven't already gathered here, and that we haven't already found the node and that there is a valid marker.
-	if (Now() < ffxiv_task_gather.timer or Quest:IsLoading()) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading()) then
 		return false
 	end
 	
@@ -315,7 +315,7 @@ c_nextunspoiledmarker = inheritsFrom( ml_cause )
 e_nextunspoiledmarker = inheritsFrom( ml_effect )
 e_nextunspoiledmarker.marker = nil
 function c_nextunspoiledmarker:evaluate()
-	if (Now() < ffxiv_task_gather.timer or Quest:IsLoading()) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading()) then
 		return false
 	end
 	
@@ -358,11 +358,6 @@ function e_nextunspoiledmarker:execute()
 	ml_global_information.BlacklistContentID = ""
     ml_global_information.WhitelistContentID = ""
 	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
-	
-	local profile = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].skillProfile)
-	if (profile ~= "None") then
-		SkillMgr.UseProfile(profile)
-	end
 end
 
 c_nextgathermarker = inheritsFrom( ml_cause )
@@ -464,7 +459,7 @@ c_nextgatherlocation = inheritsFrom( ml_cause )
 e_nextgatherlocation = inheritsFrom( ml_effect )
 c_nextgatherlocation.location = {}
 function c_nextgatherlocation:evaluate()
-	if (Now() < ffxiv_task_gather.timer or Quest:IsLoading()) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading()) then
 		return false
 	end
 	
@@ -875,6 +870,12 @@ function e_gather:execute()
                 Player:SetTarget(node.id)
             else
 				Eat()
+				if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+					local profile = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].skillProfile)
+					if (profile and profile ~= "None") then
+						SkillMgr.UseProfile(profile)
+					end
+				end
                 Player:Interact(node.id)
 				ffxiv_task_gather.gatherStarted = true
 				ml_task_hub:CurrentTask().interactTimer = Now() + 1000
@@ -1115,7 +1116,6 @@ function ffxiv_task_gather.SwitchClass(class)
 	end
 	
 	SendTextCommand(commandString)
-	d("CLASS WAS CHANGED")
 	ffxiv_task_gather.timer = Now() + 2000
 end
 

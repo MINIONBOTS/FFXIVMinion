@@ -2113,7 +2113,7 @@ function c_triggersuppressions:evaluate()
 		return false
 	end
 	
-	if (not IsDutyLeader() and OnDutyMap() and not Quest:IsLoading() and Player.incombat and not ml_task_hub:CurrentTask().suppressFollow) then
+	if (not IsDutyLeader() and OnDutyMap() and not IsLoading() and Player.incombat and not ml_task_hub:CurrentTask().suppressFollow) then
 		local leader = GetDutyLeader()
 		if leader.dead then
 			return true

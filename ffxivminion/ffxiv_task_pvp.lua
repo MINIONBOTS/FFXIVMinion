@@ -51,7 +51,7 @@ e_joinqueuepvp = inheritsFrom( ml_effect )
 function c_joinqueuepvp:evaluate() 
     return ((   not MultiComp(Player.localmapid, "337,175,336,352,376")) and 
 				(IsLeader() or TableSize(EntityList.myparty) == 0) and
-				not Quest:IsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3 and
+				not IsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3 and
                 (ml_task_hub:CurrentTask().state == "COMBAT_ENDED" or
 				ml_task_hub:CurrentTask().state == ""))
 end
@@ -70,7 +70,7 @@ e_detectenter = inheritsFrom( ml_effect )
 function c_detectenter:evaluate() 
     return (   MultiComp(Player.localmapid,"337,175,336,352,376") and 
 			MultiComp(ml_task_hub:CurrentTask().state,"WAITING_FOR_DUTY,DUTY_STARTED") and
-			not Quest:IsLoading())
+			not IsLoading())
 end
 function e_detectenter:execute()
     ml_task_hub:CurrentTask().state = "WAITING_FOR_COMBAT"
