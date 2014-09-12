@@ -281,7 +281,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or Quest:IsLoading() or ml_task_hub:CurrentTask().name == "LT_TELEPORT") then
+	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or IsLoading() or ml_task_hub:CurrentTask().name == "LT_TELEPORT") then
 		return false
 	end
 	
