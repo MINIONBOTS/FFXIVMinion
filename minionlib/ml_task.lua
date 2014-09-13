@@ -266,6 +266,28 @@ function ml_task:AddTaskCheckCEs()
 	self:add( ke_fail, self.process_elements)
 end
 
+function ml_task:AddOverwatchTaskCheckCEs()
+    --Add complete check
+    local c_complete = inheritsFrom(ml_cause)
+    function c_complete:evaluate() return ml_task_hub:CurrentTask():task_complete_eval() end
+    
+    local e_complete = inheritsFrom(ml_effect)
+    function e_complete:execute() ml_task_hub:CurrentTask():task_complete_execute() end
+
+    local ke_complete = ml_element:create( "TaskComplete", c_complete, e_complete, ml_effect.priorities.interrupt )
+	self:add( ke_complete, self.overwatch_elements)
+    
+    --Add fail check
+    local c_fail = inheritsFrom(ml_cause)
+    function c_fail:evaluate() return ml_task_hub:CurrentTask():task_fail_eval() end
+    
+    local e_fail = inheritsFrom(ml_effect)
+    function e_fail:execute() ml_task_hub:CurrentTask():task_fail_execute() end
+
+    local ke_fail = ml_element:create( "TaskFail", c_fail, e_fail, ml_effect.priorities.interrupt )
+	self:add( ke_fail, self.overwatch_elements)
+end
+
 function ml_task.Create()
 	local newinst = inheritsFrom( ml_task )
     newinst.name = ""

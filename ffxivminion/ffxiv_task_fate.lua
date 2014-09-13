@@ -17,7 +17,7 @@ function ffxiv_task_fate.Create()
     newinst.name = "LT_FATE"
     newinst.fateid = 0
     newinst.targetFunction = GetNearestFateAttackable
-    newinst.fateTimer = 0
+    --newinst.fateTimer = 0
     newinst.fateCompletion = 0
     newinst.started = false
     newinst.moving = false
@@ -51,7 +51,6 @@ function e_fatewait:execute()
         newTask.pos = {x = evacPoint.x, y = evacPoint.y, z = evacPoint.z}
     end
     
-    ml_global_information.IsWaiting = true
     newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -125,9 +124,9 @@ c_teletofate = inheritsFrom( ml_cause )
 e_teletofate = inheritsFrom( ml_effect )
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
-c_teletofate.initiatemove = false
-c_teletofate.stopmove = false
-c_teletofate.movethrottle = 0
+--c_teletofate.initiatemove = false
+--c_teletofate.stopmove = false
+--c_teletofate.movethrottle = 0
 function c_teletofate:evaluate()
 	if (gTeleport == "0") then
 		return false
@@ -145,6 +144,8 @@ function c_teletofate:evaluate()
 	end
 	
 	if Now() < c_teletofate.lastTele then
+		return false
+		--[[
 		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
 			return true
 		elseif (c_teletofate.initiatemove and not c_teletofate.stopmove and Now() > c_teletofate.movethrottle) then
@@ -153,13 +154,14 @@ function c_teletofate:evaluate()
 			ml_debug("Can't teleport, it's been too soon off.")
 			return false
 		end
+		--]]
 	end
 	
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
         if (fate ~= nil and TableSize(fate) > 0) then
 			local percent = tonumber(gFateTeleportPercent)
-			if(gTeleport == "1" and percent == 0) then
+			if (gTeleport == "1" and percent == 0) then
 				--use a default completion percentage to enable fate teleport to match checkbox
 				percent = 10
 			end
@@ -169,7 +171,7 @@ function c_teletofate:evaluate()
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
 				
-				if (dist < 1) then
+				if (dist < 3) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.pos = dest
 						return true
@@ -183,6 +185,7 @@ function c_teletofate:evaluate()
     return false
 end
 function e_teletofate:execute()
+	--[[
 	if (Now() > c_teletofate.lastTele) then
 		local dest = c_teletofate.pos
 		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
@@ -190,6 +193,15 @@ function e_teletofate:execute()
 		c_teletofate.lastTele = Now() + 10000
 		c_teletofate.initiatemove = false
 		c_teletofate.stopmove = false
+	end
+	--]]
+	
+	local dest = c_teletofate.pos
+	GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+	Player:SetFacingSynced(Player.pos.h)
+	c_teletofate.lastTele = Now() + 10000
+	
+	--[[
 	else
 		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
 			local pos = c_teletofate.pos
@@ -201,6 +213,7 @@ function e_teletofate:execute()
 			c_teletofate.stopmove = true
 		end
 	end
+	--]]
 	ffxiv_task_grind.inFate = true
 end
 
@@ -214,11 +227,11 @@ function c_movetofate:evaluate()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		
-        if (fate ~= nil and TableSize(fate) > 0) then
+        if (ValidTable(fate)) then
             local myPos = Player.pos
-            local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+            local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
             if ( ml_task_hub:CurrentTask().moving) then
-                if (distance > fate.radius/2) then				
+                if (distance > fate.radius/4) then				
                     return true
                 end
             else
@@ -236,12 +249,13 @@ function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
         local newTask = ffxiv_task_movetopos.Create()
-
+		newTask.remainMounted = true
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
+		
         if ( ml_task_hub:CurrentTask().moving) then
             newTask.range = math.random(3, fate.radius * .25)
         else
-            newTask.range = math.random(fate.radius * .25, fate.radius * .5)
+            newTask.range = 4
         end
         ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
@@ -299,10 +313,10 @@ function c_syncfatelevel:evaluate()
 	local fate = GetFateByID(fateID)
 	if ( fate and TableSize(fate)) then
 		local plevel = Player.level
-		if ( ( fate.level > plevel + 5 or fate.level < plevel - 5))then
+		if (fate.level < (plevel - 5))then
 			local myPos = Player.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-			if (distance < fate.radius) then				
+			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+			if (distance <= fate.radius) then				
 				return true
 			end
 		end
@@ -378,7 +392,7 @@ function ffxiv_task_fate:Init()
 	local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 2 )
 	self:add(ke_KillAggroTarget, self.process_elements)
     
-    self:AddTaskCheckCEs()
+    self:AddOverwatchTaskCheckCEs()
 end
 
 function ffxiv_task_fate:task_complete_eval()
@@ -393,8 +407,9 @@ function ffxiv_task_fate:task_complete_eval()
 end
 
 function ffxiv_task_fate:task_complete_execute()
-    self.completed = true
+	Player:Stop()
 	ffxiv_task_grind.inFate = false
+	self:Terminate()
 end
 
 

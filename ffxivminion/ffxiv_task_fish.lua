@@ -188,6 +188,10 @@ function c_nextfishingmarker:evaluate()
 		return false
 	end
 	
+	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+		ml_task_hub:CurrentTask().filterLevel = false
+	end
+	
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
         

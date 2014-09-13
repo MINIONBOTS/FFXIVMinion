@@ -410,10 +410,6 @@ function ml_marker_mgr.CleanMarkerOrder(markerType)
 				end
 			end
 		end
-		if ( ml_marker_mgr.markerPath == "" or not FileExists(ml_marker_mgr.markerPath)) then
-			d("ml_marker_mgr.CleanMarkerOrder: Invalid MarkerPath : "..ml_marker_mgr.markerPath)
-			return false
-		end
 		ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
     end
 end

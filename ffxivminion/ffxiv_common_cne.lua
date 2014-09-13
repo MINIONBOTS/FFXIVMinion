@@ -19,13 +19,16 @@ c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
-    -- block killtarget for grinding when user has specified "Fates Only"
+	if (ml_task_hub:CurrentTask().name == "LT_FLEE") then
+		return false
+	end
+	
+	-- block killtarget for grinding when user has specified "Fates Only"
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
 			local aggro = GetNearestAggro()
 			if ValidTable(aggro) then
 				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
-					ml_global_information.IsWaiting = false
 					c_add_killtarget.targetid = aggro.id
 					return true
 				end
@@ -38,23 +41,17 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	local parentTask = ""
-	if (ml_task_hub:CurrentTask():ParentTask()) then
-		parentTask = ml_task_hub:CurrentTask():ParentTask().name
-	end
-	
-	if not (ml_task_hub:CurrentTask().name == "MOVETOPOS" and parentTask == "LT_FATE") then
+	if not (ml_task_hub:ThisTask().name == "LT_FATE" and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 		local aggro = GetNearestAggro()
 		if ValidTable(aggro) then
 			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
-				ml_global_information.IsWaiting = false
 				c_add_killtarget.targetid = aggro.id
 				return true
 			end
 		end 
 	end
     
-	if (ml_global_information.IsWaiting) then 
+	if (ml_task_hub:CurrentTask().name == "LT_REST") then 
 		return false 
 	end
 	
@@ -247,7 +244,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
-c_add_fate.id = nil
+c_add_fate.fate = {}
 function c_add_fate:evaluate()    
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
@@ -262,7 +259,7 @@ function c_add_fate:evaluate()
     if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
 		if (ValidTable(fate)) then
-			c_add_fate.id = fate.id
+			c_add_fate.fate = shallowcopy(fate)
 			return true
 		end
     end
@@ -272,8 +269,9 @@ end
 function e_add_fate:execute()
     local newTask = ffxiv_task_fate.Create()
     local myPos = Player.pos
-    newTask.fateid = c_add_fate.id
-    newTask.fateTimer = ml_global_information.Now
+    newTask.fateid = c_add_fate.fate.id
+    --newTask.fateTimer = Now()
+	newTask.fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -551,7 +549,7 @@ c_interactgate.lastInteract = 0
 e_interactgate.id = 0
 function c_interactgate:evaluate()
     if (ml_task_hub:CurrentTask().destMapID) then
-		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not Quest:IsLoading() and not ml_mesh_mgr.loadingMesh) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
 			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
 
 			if (ValidTable(pos) and pos.g) then
@@ -590,7 +588,7 @@ e_movetogate = inheritsFrom( ml_effect )
 function c_movetogate:evaluate()
     if (ml_task_hub:CurrentTask().destMapID) then
         return 	Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and
-				not Quest:IsLoading() and
+				not IsLoading() and
 				not ml_mesh_mgr.loadingMesh
 	end
 end
@@ -830,7 +828,7 @@ c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
 c_bettertargetsearch.targetid = 0
 function c_bettertargetsearch:evaluate()        
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
         return false
     end
 	
@@ -838,18 +836,13 @@ function c_bettertargetsearch:evaluate()
 		return false
 	end
     
-	if (ml_global_information.IsWaiting) then 
+	if (ml_task_hub:CurrentTask().name == "LT_REST" or ml_task_hub:CurrentTask().name == "LT_FLEE") then 
 		return false 
 	end
 	
 	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
-    
-    -- this breaks rest because we never finish the current target
-    if (Player.hp.percent < tonumber(gRestHP) or Player.mp.percent < tonumber(gRestMP)) then
-        return false
-    end
     
 	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:RootTask().name == "LT_GRIND") then
 		if (not Player.incombat and Player.hasaggro) then
@@ -1172,13 +1165,14 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-
+	if (ml_task_hub:CurrentTask().name == "LT_REST") then
+		return false
+	end
+	
 	local target = Player:GetTarget()
 	if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
 		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
 		if (TableSize(el) == 0) then
-			e_rest.resting = false
-			ml_global_information.IsWaiting = false
 			return false
 		end
 	end
@@ -1186,50 +1180,28 @@ function c_rest:evaluate()
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
         if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") or (gFatesOnly == "1") then
-			e_rest.resting = false
-			ml_global_information.IsWaiting = false
             return false
         end
     end
 	
 	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) or
 		Player.hasaggro or Player.incombat ) then
-		e_rest.resting = false
-		ml_global_information.IsWaiting = false
 		return false
 	end
 	
-	if (e_rest.resting or 		
-		( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
 	then
-		ml_global_information.IsWaiting = true
 		return true
 	end
     
-	e_rest.resting = false
-    ml_global_information.IsWaiting = false
     return false
 end
 function e_rest:execute()
-    if (e_rest.resting == true) then
-		SkillMgr.Cast( Player, true)
-        if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
-            e_rest.resting = false
-            ml_global_information.IsWaiting = false
-            return
-        end
-    else
-        if ((tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
-            (tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP))) 
-        then
-            ml_global_information.IsWaiting = true
-            Player:Stop()
-			SkillMgr.Cast( Player, true)
-            e_rest.resting = true
-            return
-        end
-    end
+	Player:Stop()
+	local newTask = ffxiv_task_rest.Create()
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	d("Entering a resting state due to low hp/mp.")
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1238,35 +1210,49 @@ end
 ---------------------------------------------------------------------------------------------
 c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
-e_flee.fleeing = false
+e_flee.fleePos = {}
 function c_flee:evaluate()
-    if (ValidTable(ml_marker_mgr.markerList["evacPoint"]) and 
-		(Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))))
-		or e_flee.fleeing
-    then
-        return true
-    end
+	if (ml_task_hub:CurrentTask().name == "LT_FLEE") then
+		return false
+	end
+	
+	if ((Player.incombat or Player.hasaggro) and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
+		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
+			local fpos = ml_marker_mgr.markerList["evacPoint"]
+			local ppos = Player.pos
+			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
+				e_flee.fleePos = fpos
+				return true
+			end
+		end
+		
+		local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x,myPos.y,myPos.z,100,200)
+		if (ValidTable(newPos)) then
+			e_flee.fleePos = newPos
+			return true
+		end
+	end
     
     return false
 end
 function e_flee:execute()
-    if (e_flee.fleeing) then
-        if (not Player.hasaggro or not Player:IsMoving()) then
-            Player:Stop()
-            e_flee.fleeing = false
-            return
-        end
-    else
-        local fleePos = ml_marker_mgr.markerList["evacPoint"]
-        if (fleePos ~= nil and fleePos ~= 0) then
-            ml_debug( "Fleeing combat" )
-            ml_task_hub:ThisTask():DeleteSubTasks()
-            Player:MoveTo(fleePos.x, fleePos.y, fleePos.z, 1.5, false, gRandomPaths=="1")
-            e_flee.fleeing = true
-        else
-            ml_error( "Need to flee combat but no evacPoint set!!")
-        end
-    end
+	local fleePos = e_flee.fleePos
+	if (ValidTable(fleePos)) then
+		local newTask = ffxiv_task_flee.Create()
+		newTask.pos = fleePos
+		newTask.useTeleport = (gTeleport == "1")
+		newTask.task_complete_eval = 
+			function ()
+				return not Player.incombat or (Player.hp.percent > tonumber(gFleeHP) and Player.mp.percent > tonumber(gFleeMP))
+			end
+		newTask.task_fail_eval = 
+			function ()
+				return not Player.alive or ((not c_walktopos:evaluate() or Player:IsMoving()) and Player.incombat)
+			end
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	else
+		ml_error("Need to flee but no evac position defined for this mesh!!")
+	end
 end
 
 ---------------------------------------------------------------------------------------------

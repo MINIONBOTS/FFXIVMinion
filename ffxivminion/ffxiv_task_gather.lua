@@ -653,9 +653,11 @@ function c_gather:evaluate()
 			if (not ffxiv_task_gather.gatherStarted) then
 				if (Player.gp.current < requiredGP) then
 					if (((requiredGP - Player.gp.current) > 50) and gGatherUseCordials == "1") then
-						local newTask = ffxiv_task_useitem.Create()
-						newTask.itemid = 6141
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
+						if (ItemIsReady(6141)) then
+							local newTask = ffxiv_task_useitem.Create()
+							newTask.itemid = 6141
+							ml_task_hub:CurrentTask():AddSubTask(newTask)
+						end
 					end
 					return false
 				else
@@ -669,7 +671,6 @@ function c_gather:evaluate()
 		end
     end
 	
-	ml_global_information.IsWaiting = false
     return false
 end
 function e_gather:execute()
@@ -686,8 +687,6 @@ function e_gather:execute()
 		if (not ValidTable(node) or not node.cangather) then
 			return
 		end
-		
-		ml_global_information.IsWaiting = true
         
 		-- reset fail timer
         if (ml_task_hub:CurrentTask().failedTimer ~= 0) then
@@ -697,7 +696,7 @@ function e_gather:execute()
         if ( gSMactive == "1") then
 			if (ActionList:IsCasting()) then return end
             if (SkillMgr.Gather()) then
-				ml_task_hub:CurrentTask().failedTimer = ml_global_information.Now -- just to make sure it doesnt cast skills and somehow while moving away from the node blacklits it..dont know if that is needed
+				ml_task_hub:CurrentTask().failedTimer = Now()
                 return
             end
         end
@@ -862,7 +861,6 @@ function e_gather:execute()
 			end
 		end
     else
-		ml_global_information.IsWaiting = false
         local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if ( node and node.cangather ) then
             local target = Player:GetTarget()
@@ -1441,6 +1439,7 @@ ffxiv_task_gather.gardening =
 	[7726] = true,
 	[7725] = true,
 	[7767] = true,
+	[8024] = true,
 }        
 
 RegisterEventHandler("GUI.Item",ffxiv_task_gather.HandleButtons)

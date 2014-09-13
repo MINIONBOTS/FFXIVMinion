@@ -211,9 +211,7 @@ function ffxiv_task_movetopos:Process()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if (Quest:IsLoading() or
-		ml_mesh_mgr.loadingMesh )
-	then
+	if (IsLoading() or ml_mesh_mgr.loadingMesh ) then
 		return true
 	end
 
@@ -401,7 +399,7 @@ function ffxiv_task_teleport:task_complete_eval()
 			Player.castinginfo.channelingid ~= 5) and
 			not ml_mesh_mgr.loadingMesh	and 
 			Player.localmapid == self.mapID and 
-			not Quest:IsLoading()) 
+			not IsLoading()) 
 	then
 		if (Player.onmesh) then
 			ffxiv_task_grind.SetEvacPoint()
@@ -631,4 +629,133 @@ function ffxiv_task_avoid:task_complete_execute()
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
 	end
+end
+
+--=======================REST TASK=========================-
+--This is a blocking task to prevent anything else from happening
+--while stealth is being added or removed.
+
+ffxiv_task_rest = inheritsFrom(ml_task)
+function ffxiv_task_rest.Create()
+    local newinst = inheritsFrom(ffxiv_task_rest)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "LT_REST"
+	newinst.timer = 0
+    
+    return newinst
+end
+
+function ffxiv_task_rest:Init()
+	self.timer = Now() + 120000
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_rest:task_complete_eval()
+	--Try to cast self-heals if we have them.
+	SkillMgr.Cast( Player, true )
+	
+    if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
+		return true
+	end
+	
+	if (Player.hp.percent == 100 and Now() > self.timer) then
+		return true
+	end
+	
+	return false
+end
+function ffxiv_task_rest:task_complete_execute()
+	d("Completed resting, resuming normal task actions.")
+    self.completed = true
+end
+
+function ffxiv_task_rest:task_fail_eval()
+    if (Player.hasaggro or Player.incombat) then
+		return true
+	end
+	
+	return false
+end
+function ffxiv_task_rest:task_fail_execute()
+	d("Forced out of resting state, resuming normal task actions.")
+    self.valid = false
+end
+
+---------------------------------------------------------------------------------------------
+--TASK_MOVETOPOS: Reactive Goal - Move to the specified position
+--This task moves the player to a specified position, the partent of this task needs to make sure
+--that this movetopos task has up2date positions and is still valid.
+---------------------------------------------------------------------------------------------
+ffxiv_task_flee = inheritsFrom(ml_task)
+function ffxiv_task_flee.Create()
+    local newinst = inheritsFrom(ffxiv_task_flee)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "LT_FLEE"
+    newinst.pos = 0
+    newinst.range = 1.5
+	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
+    
+    return newinst
+end
+
+function ffxiv_task_flee:Init()	
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 11 )
+    self:add( ke_teleportToPos, self.process_elements)
+	
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+    self:add( ke_walkToPos, self.process_elements)
+	
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_flee:task_complete_eval()
+	if (IsLoading() or ml_mesh_mgr.loadingMesh ) then
+		return true
+	end
+
+    if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
+        local myPos = Player.pos
+		
+		local gotoPos
+		gotoPos = ml_task_hub:CurrentTask().pos
+		
+		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+		
+        ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
+        ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
+        ml_debug("Task Range: "..tostring(self.range))
+        ml_debug("Current Distance: "..tostring(distance))
+		ml_debug("Path Distance: "..tostring(pathdistance))
+        ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
+
+		if (distance <= self.range) then
+			return true
+		end
+    else
+        ml_error("Missing position in flee task, killing the task.")
+		self.valid = false
+    end    
+    return false
+end
+
+function ffxiv_task_flee:task_complete_execute()
+    Player:Stop()
+	NavigationManager:ClearAvoidanceAreas()
+    self.completed = true
 end

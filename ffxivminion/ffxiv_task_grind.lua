@@ -56,6 +56,10 @@ function c_nextgrindmarker:evaluate()
 	then
         return false
     end
+	
+	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+		ml_task_hub:CurrentTask().filterLevel = false
+	end
     
     if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
         local marker = nil
@@ -63,7 +67,7 @@ function c_nextgrindmarker:evaluate()
         -- first check to see if we have no initiailized marker
         if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
             marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
-        
+			
 			if (marker == nil) then
 				ml_task_hub:CurrentTask().filterLevel = false
 				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:CurrentTask().filterLevel)
@@ -151,16 +155,20 @@ function ffxiv_task_grind:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_grind:OnSleep()
-
-end
-
-function ffxiv_task_grind:OnTerminate()
-
-end
-
-function ffxiv_task_grind:IsGoodToAbort()
-
+function ffxiv_task_grind:Process()
+	if (IsLoading() or ml_mesh_mgr.meshLoading) then
+		return false
+	end
+	
+	if (TableSize(ml_task_hub:CurrentTask().process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(ml_task_hub:CurrentTask().process_elements)
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
+	else
+		ml_debug("no elements in process table")
+	end
 end
 
 function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
@@ -186,11 +194,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gAtma") then
 			if (v == "1") then
-				gDoFates = "1"
-				gFatesOnly = "1"
-			else
-				gDoFates = Settings.FFXIVMINION.gDoFates
-				gFatesOnly = Settings.FFXIVMINION.gFatesOnly
+				SetGUIVar("gDoFates","1")
+				SetGUIVar("gFatesOnly","1")
 			end	
 			Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -323,6 +328,8 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewButton(winName, GetString("setEvacPoint"), "setEvacPointEvent", group)
+	
 	local group = GetString("settings")
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].doAtma, "gAtma",group)
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].doFates, "gDoFates",group)
@@ -379,6 +386,7 @@ function ffxiv_task_grind.SetupMarkers()
     local grindMarker = ml_marker:Create("grindTemplate")
 	grindMarker:SetType(strings[gCurrentLanguage].grindMarker)
 	grindMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	grindMarker:AddField("button", "Whitelist Target", "")
 	grindMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     grindMarker:SetTime(300)
     grindMarker:SetMinLevel(1)

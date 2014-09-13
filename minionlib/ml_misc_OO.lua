@@ -127,6 +127,16 @@ function shallowcopy(orig)
     return copy
 end
 
+function outputTable(t)
+	for k,v in pairs(t) do
+		if (type(v) == "table") then
+			outputTable(v)
+		else
+			d((k).."="..tostring(v))	
+		end
+	end
+end
+
 function deepcopy( object )
     local lookup_table = {}
     local function _copy( object )

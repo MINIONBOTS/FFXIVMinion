@@ -1385,22 +1385,21 @@ function GetClosestFate(pos)
 		
 		for k, fate in pairs(fateList) do
 			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
-				(fate.status == 2 or (fate.status == 7 and Distance2D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
-				and fate.completion >= tonumber(gFateWaitPercent)) then	
-				
-					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
-						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
-						--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-						if (dist <= 5) then
-							local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z))
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = fate
-								nearestDistance = distance
-							end
+				(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
+				and fate.completion >= tonumber(gFateWaitPercent)) 
+			then	
+				if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
+					 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
+					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
+					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+					if (dist <= 5) then
+						local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+							nearestFate = shallowcopy(fate)
+							nearestDistance = distance
 						end
-						
 					end
+				end
             end
         end
     
@@ -1662,7 +1661,8 @@ function Mount(id)
 			if (v.id == mountID) then
 				local acMount = ActionList:Get(mountID,13)
 				if (acMount and acMount.isready) then
-					acMount:Cast() 
+					acMount:Cast()
+					ml_task_hub:CurrentTask():SetDelay(2000)
 				end
 			end
 		end
@@ -1793,7 +1793,7 @@ end
 
 function IsGardening(itemid)
 	itemid = itemid or 0
-	return (itemid >= 7715 and itemid <= 7767)
+	return ((itemid >= 7715 and itemid <= 7767) or itemid == 8024)
 end
 
 function IsUnspoiled(contentid)
@@ -2084,6 +2084,32 @@ function GetItemInSlot(equipSlot)
 			return item
 		end
 	end
+end
+
+function ItemIsReady(itemid)
+	itemid = tonumber(itemid)
+	
+	local hasItem = false
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (itemid == item.id) then
+				hasItem = true
+			end
+			if (hasItem) then
+				break
+			end
+		end
+	end
+
+	if (hasItem) then					
+		local item = Inventory:Get(itemid)
+		if (item and item.isready) then
+			return true
+		end
+	end
+	
+	return false
 end
 
 function GetEquipSlotForItem(item)
