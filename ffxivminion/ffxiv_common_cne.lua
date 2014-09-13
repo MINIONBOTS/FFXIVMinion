@@ -1226,7 +1226,8 @@ function c_flee:evaluate()
 			end
 		end
 		
-		local newPos = NavigationManager:GetRandomPointOnCircle(myPos.x,myPos.y,myPos.z,100,200)
+		local ppos = Player.pos
+		local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 		if (ValidTable(newPos)) then
 			e_flee.fleePos = newPos
 			return true
