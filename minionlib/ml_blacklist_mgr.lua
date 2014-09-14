@@ -1,5 +1,5 @@
 ml_blacklist_mgr = {}
-ml_blacklist_mgr.mainwindow = { name = strings[gCurrentLanguage].blacklistManager, x = 350, y = 100, w = 250, h = 400}
+ml_blacklist_mgr.mainwindow = { name = strings[gCurrentLanguage].blacklistManager, x = 350, y = 100, w = 250, h = 300}
 ml_blacklist_mgr.parentWindow = nil
 ml_blacklist_mgr.path = ""
 ml_blacklist_mgr.currentID = ""

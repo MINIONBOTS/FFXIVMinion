@@ -1394,9 +1394,11 @@ function GetClosestFate(pos)
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
 						local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-							nearestFate = shallowcopy(fate)
-							nearestDistance = distance
+						if (distance) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+								nearestFate = shallowcopy(fate)
+								nearestDistance = distance
+							end
 						end
 					end
 				end

@@ -74,11 +74,17 @@ function c_add_killtarget:evaluate()
     
     return false
 end
-function e_add_killtarget:execute()    
-    local newTask = ffxiv_task_killtarget.Create()
-	Player:SetTarget(c_add_killtarget.targetid)
-    newTask.targetid = c_add_killtarget.targetid
-    ml_task_hub:CurrentTask():AddSubTask(newTask)
+function e_add_killtarget:execute()
+	if (ml_task_hub:ThisTask().killFunction ~= nil) then
+		local newTask = ml_task_hub:ThisTask().killFunction.Create()
+		newTask.targetid = c_add_killtarget.targetid
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	else
+		local newTask = ffxiv_task_killtarget.Create()
+		Player:SetTarget(c_add_killtarget.targetid)
+		newTask.targetid = c_add_killtarget.targetid
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
 end
 
 c_killaggrotarget = inheritsFrom( ml_cause )
@@ -407,22 +413,24 @@ function c_avoid:evaluate()
 	if (gAvoidAOE == "0") then
 		return false
 	end
-	
+
 	local ppos = Player.pos
 	local plevel = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("aggressive,onmesh,maxdistance=25")
+	local el = EntityList("targetingme,aggressive,onmesh,maxdistance=25")
 	if (el) then
 		for i,e in pairs(el) do
 			if (ValidTable(e.castinginfo) and e.castinginfo.channelingid ~= 0) then
-				local epos = e.pos
-				local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
-				if not (e.castinginfo.casttime < 1.5 
-					or (distance > 15 and e.castinginfo.channeltargetid == e.id) 
-					or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-					or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 5)) then
-					c_avoid.target = e
-					return true
+				if (not ml_blacklist.CheckBlacklistEntry(GetString("aoe"), e.castinginfo.channelingid)) then
+					local epos = shallowcopy(e.pos)
+					local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
+					if not (e.castinginfo.casttime < 1.5 
+						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
+						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
+						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 5)) then
+						c_avoid.target = e
+						return true
+					end
 				end
 			end
 		end
@@ -431,6 +439,10 @@ function c_avoid:evaluate()
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
 	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
+		return false
+	end
+	
+	if (ml_blacklist.CheckBlacklistEntry(GetString("aoe"), target.castinginfo.channelingid)) then
 		return false
 	end
 	
@@ -470,8 +482,9 @@ function e_avoid:execute()
 	if (p ~= nil and dist <= 25) then
 		local newTask = ffxiv_task_avoid.Create()
 		newTask.pos = p
+		newTask.targetid = target.id
 		newTask.interruptCasting = true
-		newTask.maxTime = tonumber(target.castinginfo.casttime)
+		newTask.maxTime = tonumber(target.castinginfo.casttime) + 500
 		-- set preserveSubtasks = true so that the current kill task is not deleted
 		-- we want it to complete normally after the avoid task completes
 		ml_task_hub:ThisTask().preserveSubtasks = true
@@ -502,6 +515,27 @@ end
 function e_movetotarget:execute()
     ml_debug( "Moving within combat range of target" )
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = target.pos
+	newTask.targetid = target.id
+	newTask.useFollowMovement = false
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_movecloser = inheritsFrom( ml_cause )
+e_movecloser = inheritsFrom( ml_effect )
+function c_movecloser:evaluate()
+	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
+		local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+		if (target and target.id ~= 0 and target.alive) then
+			return (target.distance > 40)
+		end
+	end
+	
+	return false
+end
+function e_movecloser:execute()
+	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = target.pos
 	newTask.targetid = target.id
@@ -630,6 +664,22 @@ function c_teleporttomap:evaluate()
 	if (not teleport or not teleport.isready) then
 		return false
 	end
+	
+	local gil = nil
+	local inv = Inventory("type=2000")
+	for i,item in pairs(inv) do
+		if (item.slot == 0) then
+			gil = item.count
+		end
+		if (gil) then
+			break
+		end
+	end
+	
+	if (gil < 500) then
+		return false
+	end
+	
 	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
@@ -1071,7 +1121,6 @@ c_attarget = inheritsFrom( ml_cause )
 e_attarget = inheritsFrom( ml_effect )
 function c_attarget:evaluate()
     if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        --if ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and ml_global_information.AttackRange > 20 then
         if ml_global_information.AttackRange > 20 then
             local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
             if ValidTable(target) then

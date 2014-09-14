@@ -42,7 +42,8 @@ function ffxiv_task_grind.Create()
     
     --this is the targeting function that will be used for the generic KillTarget task
     newinst.targetFunction = GetNearestGrindAttackable
-    
+	newinst.killFunction = ffxiv_task_grindCombat
+
     return newinst
 end
 
@@ -220,6 +221,20 @@ function ffxiv_task_grind.BlacklistTarget()
     end
 end
 
+function ffxiv_task_grind.BlacklistAOE()
+	if (not IsNullString(gSpellID)) then
+		if (IsNullString(gSpellName)) then
+			if (HasAction(tonumber(gSpellID))) then
+				local action = ActionList:Get(tonumber(gSpellID))
+				gSpellName = action.name
+			else
+				gSpellName = "None"
+			end
+		end
+		ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].aoe, tonumber(gSpellID), gSpellName, true)
+	end
+end
+
 function ffxiv_task_grind.BlacklistFate(arg)
     if (gFateName ~= "") then
         if (arg == "gBlacklistFateAddEvent") then
@@ -232,10 +247,19 @@ function ffxiv_task_grind.BlacklistFate(arg)
     end
 end
 
+
+
 function ffxiv_task_grind.BlacklistInitUI()
     GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName, "gTargetName", strings[gCurrentLanguage].addEntry)
     GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistTarget, "ffxiv_task_grind.blacklistTarget",strings[gCurrentLanguage].addEntry)
     RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
+end
+
+function ffxiv_task_grind.BlacklistInitAOE()
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].maMarkerID, "gSpellID", strings[gCurrentLanguage].addEntry)
+	GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].maMarkerName, "gSpellName", strings[gCurrentLanguage].addEntry)
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry, "ffxiv_task_grind.blacklistAOE",strings[gCurrentLanguage].addEntry)
+    RegisterEventHandler("ffxiv_task_grind.blacklistAOE",ffxiv_task_grind.BlacklistAOE)
 end
 
 function ffxiv_task_grind.HuntingUI()
@@ -377,6 +401,7 @@ function ffxiv_task_grind.UIInit()
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
 	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].huntMonsters,ffxiv_task_grind.HuntingUI)
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].fates,ffxiv_task_fate.BlacklistInitUI)
+	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].aoe,ffxiv_task_grind.BlacklistInitAOE)
 	
 	ffxiv_task_grind.SetupMarkers()
 end
@@ -423,6 +448,20 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
         else
             gTargetName = strings[gCurrentLanguage].notAttackable
         end
+		
+		if ValidTable(target) then
+			if (ValidTable(target.castinginfo)) then
+				if (target.castinginfo.channelingid ~= 0) then
+					gSpellID = target.castinginfo.channelingid
+					if (HasAction(tonumber(gSpellID))) then
+						local action = ActionList:Get(tonumber(gSpellID))
+						gSpellName = action.name
+					else
+						gSpellName = gSpellID
+					end
+				end
+			end
+		end
     end
 end
 

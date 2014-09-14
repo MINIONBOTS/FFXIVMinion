@@ -55,7 +55,7 @@ function ml_mesh_mgr.ModuleInit()
 	end
 	Settings.minionlib.gNoMeshLoad = Settings.minionlib.gNoMeshLoad or "0"
 	
-	GUI_NewWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.x,ml_mesh_mgr.mainwindow.y,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h,"",true)
+	GUI_NewWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.x,ml_mesh_mgr.mainwindow.y,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h)
 	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("navmesh"),"gmeshname",GetString("generalSettings"),"")
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("noMeshLoad"),"gNoMeshLoad",GetString("generalSettings"))
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showrealMesh"),"gShowRealMesh",GetString("generalSettings"))
@@ -76,8 +76,8 @@ function ml_mesh_mgr.ModuleInit()
 	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("changeAreaType"),"gChangeAreaType",GetString("editor"),"Delete,Road,Lowdanger,Highdanger")
 	GUI_NewNumeric(ml_mesh_mgr.mainwindow.name,GetString("changeAreaSize"),"gChangeAreaSize",GetString("editor"),"1","10")
 	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("biDirOffMesh"),"gBiDirOffMesh",GetString("connections"))
-	--GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump,Teleport,Portal,Interact")	
-	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump")	
+	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump,Interact,Teleport,Portal")	
+	--GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump")	
 	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("addOffMeshSpot"),"offMeshSpotEvent",GetString("connections"))
 	RegisterEventHandler("offMeshSpotEvent", ml_mesh_mgr.AddOMC)
 	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("delOffMeshSpot"),"deleteoffMeshEvent",GetString("connections"))
@@ -124,7 +124,6 @@ function ml_mesh_mgr.ModuleInit()
 	
 	
 	ml_mesh_mgr.SetupNavNodes()
-		
 end
 
 -- initializes the marker group, this needs to be called from the main.lua's HandleInit, after all possible marker templates were created or when templatelist was updated
@@ -152,6 +151,7 @@ function ml_mesh_mgr.InitMarkers()
 			RegisterEventHandler("ml_mesh_mgr.SelectClosestMarker",ml_mesh_mgr.HandleMarkerButtons)
 			ml_mesh_mgr.registeredevents["ml_mesh_mgr.SelectClosestMarker"] = 1
 		end
+		GUI_SizeWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h)
 	end
 end
 function ml_mesh_mgr.HandleMarkerButtons( event )
@@ -747,9 +747,9 @@ function ml_mesh_mgr.AddOMC()
 			omctype = 0
 		elseif ( gOMCType == "Teleport" ) then
 			omctype = 1
-		elseif ( gOMCType == "Interact" ) then
-			omctype = 2
 		elseif ( gOMCType == "Portal" ) then
+			omctype = 2
+		elseif ( gOMCType == "Interact" ) then
 			omctype = 3
 		end
 		
@@ -771,6 +771,11 @@ end
 -- Handler for different OMC types
 function ml_mesh_mgr.HandleOMC( event, OMCType ) 	
 	d("OMC REACHED : "..tostring(OMCType))
+	if (OMCType == "OMC_INTERACT") then
+		Player:Stop()
+		local newTask = ffxiv_mesh_interact.Create()
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	end
 	--Player:StopMovement()	
 end
 
