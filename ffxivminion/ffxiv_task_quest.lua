@@ -10,6 +10,7 @@ ffxiv_task_quest.questFlags = 0
 ffxiv_task_quest.killTaskCompleted = false
 ffxiv_task_quest.restartStep = 0
 ffxiv_task_quest.lastStepStartTime = 0
+ffxiv_task_quest.ignoreLevelItemIDs = {}
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -110,7 +111,7 @@ function ffxiv_task_quest.QuestObjectiveChanged()
 	end
 end
 
-function ffxiv_task_quest.AddEquipItem(itemid)
+function ffxiv_task_quest.AddEquipItem(itemid, ignoreLevel)
 	local equipTable = ml_global_information.itemIDsToEquip[gProfile]
 	if(not equipTable) then
 		equipTable = {}
@@ -124,6 +125,11 @@ function ffxiv_task_quest.AddEquipItem(itemid)
 	equipTable[Player.job] = jobTable
 	
 	jobTable[itemid] = true
+	
+	if(ignoreLevel) then
+		ffxiv_task_quest.ignoreLevelItemIDs[itemid] = true
+	end
+	
 	Settings.FFXIVMINION.itemIDsToEquip = ml_global_information.itemIDsToEquip
 	Settings.FFXIVMINION.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 end
