@@ -411,7 +411,7 @@ function c_questkill:evaluate()
 	return false
 end
 function e_questkill:execute()
-	local newTask = ffxiv_task_killtarget.Create()
+	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = e_questkill.id
 	newTask.task_complete_execute = 
 		function()
