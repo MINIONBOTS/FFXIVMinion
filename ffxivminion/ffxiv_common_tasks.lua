@@ -668,7 +668,7 @@ function ffxiv_task_rest:task_complete_execute()
 end
 
 function ffxiv_task_rest:task_fail_eval()
-    if (Player.hasaggro or Player.incombat) then
+    if (Player.hasaggro or Player.incombat or not Player.alive) then
 		return true
 	end
 	
