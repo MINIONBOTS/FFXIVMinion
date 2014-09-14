@@ -17,6 +17,8 @@ function ffxiv_task_fate.Create()
     newinst.name = "LT_FATE"
     newinst.fateid = 0
     newinst.targetFunction = GetNearestFateAttackable
+	newinst.killFunction = ffxiv_task_grindCombat
+	
     --newinst.fateTimer = 0
     newinst.fateCompletion = 0
     newinst.started = false
@@ -389,8 +391,8 @@ function ffxiv_task_fate:Init()
     local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
     self:add( ke_moveToFate, self.process_elements)
 	
-	local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 2 )
-	self:add(ke_KillAggroTarget, self.process_elements)
+	--local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 2 )
+	--self:add(ke_KillAggroTarget, self.process_elements)
     
     self:AddOverwatchTaskCheckCEs()
 end

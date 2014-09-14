@@ -580,48 +580,38 @@ function ffxiv_task_avoid.Create()
     
     --ffxiv_task_movetopos members
     newinst.name = "AVOID"
+	newinst.targetid = 0
     newinst.pos = 0
-    newinst.range = 1.5
 	newinst.maxTime = 0
-    newinst.started = ml_global_information.Now
+    newinst.started = Now()
     
     return newinst
 end
 
 function ffxiv_task_avoid:Init()
-
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-    self:add( ke_walkToPos, self.process_elements)
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z, 1, false, false)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_avoid:task_complete_eval()
-	if TimeSince(ml_task_hub:ThisTask().started) > (ml_task_hub:ThisTask().maxTime * 1000) then
+	if TimeSince(self.started) > (self.maxTime * 1000) then
+		return true
+	end
+	
+	local target = EntityList:Get(self.targetid)
+	if (not target or not target.alive or target.castinginfo.channelingid == 0) then
 		return true
 	end
 	
 	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then
 		return true
 	end
-	
-    if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
-        local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos  
-        local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-        
-        if (distance <= self.range) then
-            return true
-        end
-    else
-        ml_debug(" ERROR: no valid position in ffxiv_task_movetopos ")
-    end    
+
     return false
 end
 
 function ffxiv_task_avoid:task_complete_execute()
-	self.completed = true
-	
     Player:Stop()
     
 	local target = Player:GetTarget()
@@ -629,6 +619,7 @@ function ffxiv_task_avoid:task_complete_execute()
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
 	end
+	self.completed = true
 end
 
 --=======================REST TASK=========================-
@@ -758,4 +749,172 @@ function ffxiv_task_flee:task_complete_execute()
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
+end
+
+--=======================GRIND COMBAT TASK=========================-
+
+ffxiv_task_grindCombat = inheritsFrom(ml_task)
+function ffxiv_task_grindCombat.Create()
+    local newinst = inheritsFrom(ffxiv_task_grindCombat)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "GRIND_COMBAT"
+	newinst.targetid = 0
+    
+    return newinst
+end
+
+function ffxiv_task_grindCombat:Init()
+    local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
+	self:add( ke_avoidance, self.overwatch_elements)
+	
+	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
+	self:add( ke_attarget, self.overwatch_elements)
+
+	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
+	self:add( ke_bettertargetsearch, self.overwatch_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 3 )
+	self:add( ke_companion, self.overwatch_elements)
+	
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 1 )
+	self:add( ke_stance, self.overwatch_elements)
+		
+	local ke_moveCloser = ml_element:create( "MoveCloser", c_movecloser, e_movecloser, 10 )
+	self:add( ke_moveCloser, self.process_elements)
+	
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_grindCombat:Process()
+	target = EntityList:Get(self.targetid)
+	if ValidTable(target) then
+		local pos = shallowcopy(target.pos)
+		local ppos = shallowcopy(Player.pos)
+		local range = ml_global_information.AttackRange
+		Player:SetTarget(target.id)
+		Player:SetFacing(pos.x,pos.y,pos.z)
+		SkillMgr.Cast( target )
+		
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		if (ml_global_information.AttackRange > 5) then
+			if not InCombatRange(target.id) then
+				if (target.los) then
+					local path = Player:MoveTo(pos.x,pos.y,pos.z, 5, true, false)
+				else
+					local path = Player:MoveTo(pos.x,pos.y,pos.z, 5, false, false)
+				end
+			else
+				if (Player.ismounted) then
+					Dismount()
+				end
+				if (Player:IsMoving()) then
+					Player:Stop()
+				end
+			end
+			Player:SetFacing(pos.x,pos.y,pos.z)
+			SkillMgr.Cast( target )
+		else
+			if not InCombatRange(target.id) then
+				if (target.los) then
+					local path = Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
+				else
+					local path = Player:MoveTo(pos.x,pos.y,pos.z, 1, false, false)
+				end
+			else
+				if (Player.ismounted) then
+					Dismount()
+				end
+				if (Player:IsMoving()) then
+					Player:Stop()
+				end
+			end
+			Player:SetFacing(pos.x,pos.y,pos.z)
+			SkillMgr.Cast( target )
+		end
+	end
+      
+    --Process regular elements.
+    if (TableSize(self.process_elements) > 0) then
+		ml_cne_hub.clear_queue()
+		ml_cne_hub.eval_elements(self.process_elements)
+		ml_cne_hub.queue_to_execute()
+		ml_cne_hub.execute()
+		return false
+	else
+		ml_debug("no elements in process table")
+	end
+end
+
+function ffxiv_task_grindCombat:task_complete_eval()
+	target = EntityList:Get(self.targetid)
+    if (not target or not target.alive or target.hp.percent == 0 or not target.attackable) then
+        return true
+    end
+end
+
+function ffxiv_task_grindCombat:task_complete_execute()
+    Player:Stop()
+	self.completed = true
+end
+
+ffxiv_mesh_interact = inheritsFrom(ml_task)
+function ffxiv_mesh_interact.Create()
+    local newinst = inheritsFrom(ffxiv_mesh_interact)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MESH_INTERACT"
+	
+	newinst.interact = 0
+    newinst.lastinteract = 0
+	
+    return newinst
+end
+
+function ffxiv_mesh_interact:Init()
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_mesh_interact:task_complete_eval()
+	if (self.interact == 0) then
+		local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=4")
+		if (interacts) then
+			local i, interact = next(interacts)
+			if (interact and interact.id and interact.id ~= 0) then
+				self.interact = interact.id
+			end
+		end
+	end
+	
+	if (self.interact ~= 0 and TimeSince(self.lastinteract) > 4000) then
+		Player:Interact(self.interact)
+		self.lastinteract = Now()
+	end
+	
+	local interact = EntityList:Get(tonumber(self.interact))
+	if (not interact or not interact.targetable or IsLoading() or interact.distance > 4) then
+		return true
+	end
+end
+
+function ffxiv_mesh_interact:task_complete_execute()
+    Player:Stop()
+	self.completed = true
 end

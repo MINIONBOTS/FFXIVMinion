@@ -446,6 +446,10 @@ function ffxivminion.HandleInit()
 		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].huntMonsters)
 	end
 	
+	if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].aoe) then
+		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].aoe)
+	end
+	
 
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
