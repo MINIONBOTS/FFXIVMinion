@@ -1050,17 +1050,20 @@ function c_questequip:evaluate()
 		end
 	elseif(type(itemid) == "table" and ValidTable(itemid)) then
 		local equipped = true
-		for _, id in pairs(itemid) do
-			local item = Inventory:Get(id)
-			if(ValidTable(item)) then
-				local currItem = GetItemInSlot(item.slot)
-				if (not currItem or currItem.id ~= item.id) then
-					equipped = false
+		local itemtable = itemid[Player.job] or itemid[-1]
+		if(ValidTable(itemtable)) then
+			for _, id in pairs(itemtable) do
+				local item = Inventory:Get(id)
+				if(ValidTable(item)) then
+					local currItem = GetItemInSlot(item.slot)
+					if (not currItem or currItem.id ~= item.id) then
+						equipped = false
+					end
 				end
 			end
 		end
 		
-		return equipped
+		return not equipped
 	end
 	
 	return false
@@ -1070,8 +1073,11 @@ function e_questequip:execute()
 	if(type(itemid) == "number") then
 		ffxiv_task_quest.AddEquipItem(itemid)
 	elseif(type(itemid) == "table" and ValidTable(itemid)) then
-		for _, id in pairs(itemid) do
-			ffxiv_task_quest.AddEquipItem(id)
+		local itemtable = itemid[Player.job] or itemid[-1]
+		if(ValidTable(itemtable)) then
+			for _, id in pairs(itemtable) do
+				ffxiv_task_quest.AddEquipItem(id, true)
+			end
 		end
 	end
 end

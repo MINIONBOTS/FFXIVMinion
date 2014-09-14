@@ -956,6 +956,14 @@ local obj1 = {
 		[449] = {
 			["steps"] = {
 				[2] = {
+					["type"] = "equip";
+					["itemid"] = {
+						[-1] = {
+							[1] = 2651;
+						};
+					};
+				};
+				[3] = {
 					["mapid"] = 133;
 					["type"] = "interact";
 					["delay"] = 10000;
@@ -968,7 +976,7 @@ local obj1 = {
 						["z"] = -118.81520843506;
 					};
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 179;
 					["type"] = "interact";
 					["meshname"] = "New Gridania";
@@ -993,7 +1001,7 @@ local obj1 = {
 						["z"] = 117.22133636475;
 					};
 				};
-				[4] = {
+				[5] = {
 					["mapid"] = 133;
 					["type"] = "interact";
 					["meshname"] = "Old Gridania";
@@ -1006,7 +1014,7 @@ local obj1 = {
 						["z"] = -4.8452925682068;
 					};
 				};
-				[5] = {
+				[6] = {
 					["mapid"] = 205;
 					["type"] = "complete";
 					["itemrewardslot"] = 0;
@@ -2837,7 +2845,7 @@ local obj1 = {
 			["level"] = 10;
 			["prereq"] = {
 				[5] = {
-					[1] = 67;
+					[1] = 46;
 				};
 			};
 			["job"] = 5;
@@ -5745,6 +5753,8 @@ local obj1 = {
 						["x"] = 319.47424316406;
 						["z"] = -330.14389038086;
 					};
+					["restartatstep"] = 2;
+					["healerid"] = 1376;
 				};
 				[1] = {
 					["mapid"] = 148;
@@ -5811,6 +5821,7 @@ local obj1 = {
 						["x"] = -294.68612670898;
 						["z"] = 162.22952270508;
 					};
+					["restartatstep"] = 5;
 				};
 				[2] = {
 					["mapid"] = 132;
