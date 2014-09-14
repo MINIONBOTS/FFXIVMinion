@@ -625,7 +625,7 @@ end
 function ffxiv_task_avoid:task_fail_eval()
     return (not Player.alive)
 end
-function ffxiv_task_rest:task_fail_execute()
+function ffxiv_task_avoid:task_fail_execute()
     self.valid = false
 end
 
