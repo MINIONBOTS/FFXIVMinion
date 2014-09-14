@@ -622,6 +622,13 @@ function ffxiv_task_avoid:task_complete_execute()
 	self.completed = true
 end
 
+function ffxiv_task_avoid:task_fail_eval()
+    return (not Player.alive)
+end
+function ffxiv_task_avoid:task_fail_execute()
+    self.valid = false
+end
+
 --=======================REST TASK=========================-
 --This is a blocking task to prevent anything else from happening
 --while stealth is being added or removed.
@@ -749,6 +756,14 @@ function ffxiv_task_flee:task_complete_execute()
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
+end
+
+function ffxiv_task_flee:task_fail_eval()
+	return not Player.alive 
+end
+
+function ffxiv_task_flee:task_fail_execute()
+	self:Terminate()
 end
 
 --=======================GRIND COMBAT TASK=========================-
@@ -917,4 +932,16 @@ end
 function ffxiv_mesh_interact:task_complete_execute()
     Player:Stop()
 	self.completed = true
+end
+
+function ffxiv_mesh_interact:task_fail_eval()
+    if (Player.hasaggro or Player.incombat or not Player.alive) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_mesh_interact:task_fail_execute()
+    self.valid = false
 end
