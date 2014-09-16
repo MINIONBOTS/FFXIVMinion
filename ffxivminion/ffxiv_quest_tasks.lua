@@ -712,6 +712,28 @@ function ffxiv_quest_useaction.Create()
     return newinst
 end
 
+function ffxiv_quest_useaction:task_complete_eval()
+	local target = Player:GetTarget()
+	if(target and (target.type == 7 or target.type == 3)) then
+		if(ActionList:IsCasting()) then
+			return false
+		end
+	end
+	
+	local id = ml_task_hub:ThisTask().params["id"]
+    if (id and id > 0) then
+		local el = EntityList("closest,maxdistance=10,contentid="..tostring(id))
+		if(ValidTable(el)) then
+			local id, entity = next(el)
+			if(ValidTable(entity)) then
+				return not entity.targetable
+			end
+		end
+	end
+	
+	return ml_task_hub:CurrentTask().stepCompleted
+end
+
 function ffxiv_quest_useaction:Init()
     --init ProcessOverWatch cnes
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
@@ -720,11 +742,15 @@ function ffxiv_quest_useaction:Init()
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 20 )
     self:add( ke_questMoveToPos, self.process_elements)
 	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 16 )
+    self:add( ke_killAggroTarget, self.process_elements)	
+	
 	local ke_moveToActionRange = ml_element:create( "QuestMoveToActionRange", c_questmovetoactionrange, e_questmovetoactionrange, 15 )
 	self:add( ke_moveToActionRange, self.process_elements)
 	
 	local ke_questUseAction = ml_element:create( "QuestUseAction", c_questuseaction, e_questuseaction, 10 )
     self:add( ke_questUseAction, self.process_elements)
+	
 	
 	--overwatch
 	local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 15 )
