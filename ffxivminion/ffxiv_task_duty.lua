@@ -65,8 +65,9 @@ function c_followleaderduty:evaluate()
         return false
     end
 	
+	local leader = GetDutyLeader()
 	local leaderPos = GetLeaderPos()
-	if (ValidTable(leaderPos)) then
+	if (ValidTable(leaderPos) and ValidTable(leader)) then
 		local myPos = Player.pos	
 		
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
@@ -205,7 +206,37 @@ c_resetstate = inheritsFrom(ml_cause)
 e_resetstate = inheritsFrom(ml_effect)
 e_resetstate.id = 0
 function c_resetstate:evaluate()
-	local resets = ml_task_hub:ThisTask().resets
+	local resets = { 
+		[1] = {
+			timer = 15000, 
+			countdown = 0,
+			test = function()
+				if (not OnDutyMap() and (ml_task_hub:CurrentTask().state == "DUTY_NEXTENCOUNTER" or ml_task_hub:CurrentTask().state == "DUTY_DOENCOUNTER")) then
+					return true
+				else
+					return false
+				end
+			end,
+			reaction = function()
+				ml_task_hub:ThisTask().state = ""
+			end
+		},
+		[2] = {
+			timer = 15000, 
+			countdown = 0,
+			test = function()
+				if (IsPartyLeader() and IsFullParty() and not OnDutyMap()) then	
+					if (ml_task_hub:CurrentTask().state == "DUTY_ENTER" and Now() > ml_task_hub:CurrentTask().joinTimer) then
+						return true
+					end
+				end
+				return false
+			end,
+			reaction = function()
+				ml_task_hub:ThisTask().state = ""
+			end
+		},
+	}
 	
 	--Do a first pass, check each reset to see if it's test function evaluates true, and set it's timer accordingly.
 	if (ValidTable(resets)) then
@@ -484,38 +515,6 @@ function ffxiv_task_duty:Init()
     self:add(ke_resetState, self.process_elements)
 	
     self:AddTaskCheckCEs()
-	
-	ml_task_hub:ThisTask().resets = { 
-		[1] = {
-			timer = 15000, 
-			countdown = 0,
-			test = function()
-				if (not OnDutyMap() and (ml_task_hub:CurrentTask().state == "DUTY_NEXTENCOUNTER" or ml_task_hub:CurrentTask().state == "DUTY_DOENCOUNTER")) then
-					return true
-				else
-					return false
-				end
-			end,
-			reaction = function()
-				ml_task_hub:ThisTask().state = ""
-			end
-		},
-		[2] = {
-			timer = 15000, 
-			countdown = 0,
-			test = function()
-				if (IsPartyLeader() and IsFullParty() and not OnDutyMap()) then	
-					if (ml_task_hub:CurrentTask().state == "DUTY_ENTER" and Now() > ml_task_hub:CurrentTask().joinTimer) then
-						return true
-					end
-				end
-				return false
-			end,
-			reaction = function()
-				ml_task_hub:ThisTask().state = ""
-			end
-		},
-	}
 end
 
 -- UI settings
