@@ -1218,13 +1218,13 @@ function c_rest:evaluate()
 		return false
 	end
 	
-	local target = Player:GetTarget()
-	if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
-		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
-		if (TableSize(el) == 0) then
-			return false
-		end
-	end
+	--local target = Player:GetTarget()
+	--if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
+	--	local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
+	--	if (TableSize(el) == 0) then
+--			return false
+	--	end
+	--end
 	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then

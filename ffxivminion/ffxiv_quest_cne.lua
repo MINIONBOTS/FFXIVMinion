@@ -798,11 +798,21 @@ function e_questflee:execute()
 		newTask.useTeleport = gTeleport == "1"
 		newTask.task_complete_eval = 
 			function ()
-				return not Player.hasaggro
+				if(not Player.hasaggro and not Player.incombat) then
+					d("No aggro or combat detected - flee complete")
+					return true
+				else
+					return false
+				end
 			end
 		newTask.task_fail_eval = 
 			function ()
-				return not Player.alive or (not c_walktopos:evaluate() and Player.hasaggro)
+				if(not Player.alive or (not c_walktopos:evaluate() and (Player.hasaggro or Player.incombat))) then
+					d("Flee task failed - player dead or at position and still has aggro")
+					return true
+				else
+					return false
+				end
 			end
 		--ml_task_hub:ThisTask().preserveSubtasks = true
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
