@@ -64,9 +64,10 @@ function ffxiv_task_assist:GetHealingTarget()
 end
 
 function ffxiv_task_assist:GetAttackTarget()
+	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or ml_global_information.AttackRange
     local target = nil
     if ( gAssistMode == "LowestHealth") then	
-        local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
+        local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -75,7 +76,7 @@ function ffxiv_task_assist:GetAttackTarget()
         end	
     
     elseif ( gAssistMode == "Closest" ) then	
-        local el = EntityList("shortestpath,alive,attackable,maxdistance="..tostring(ml_global_information.AttackRange))
+        local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -110,16 +111,12 @@ function ffxiv_task_assist:Process()
         
         if ( newTarget ~= nil and (not target or newTarget.id ~= target.id)) then
             target = newTarget
+			Player:SetTarget(target.id)  
         end
     end	
 
-    if 	( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 30 ) then
-        local pos = target.pos
-        
-        --Player:SetFacing(pos.x,pos.y,pos.z)
-        Player:SetTarget(ml_task_hub:CurrentTask().targetid)      			
+    if 	( target and target.alive and target.los and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 30 ) then
         SkillMgr.Cast( target )
-		
     end
 	
 	if ( target == nil and not ActionList:IsCasting()) then

@@ -509,7 +509,7 @@ end
 c_questyesno = inheritsFrom( ml_cause )
 e_questyesno = inheritsFrom( ml_effect )
 function c_questyesno:evaluate()
-	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0" and not ml_task_hub:CurrentTask().name == "MESH_INTERACT") then
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
 		return false
 	end
 	return ControlVisible("SelectYesno")
