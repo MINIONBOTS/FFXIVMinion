@@ -285,7 +285,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or IsLoading() or ml_task_hub:CurrentTask().name == "LT_TELEPORT") then
+	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or IsLoading()) then
 		return false
 	end
 	
@@ -318,11 +318,9 @@ function c_nextatma:evaluate()
 			end
 		
 			if (not haveBest) then
-				if (atma.map == map) then
-					--We're already on the map with the most appropriate atma and we don't have it
-					return false
-				else
+				if (atma.map ~= map) then
 					--We need the best atma, and it's not on this map, so move to it.
+					d("Setting next atma according to time theory rules.")
 					e_nextatma.atma = atma
 					return true
 				end
@@ -376,6 +374,7 @@ function c_nextatma:evaluate()
 		end
 		
 		if (not found) then
+			d("We don't need the atma for the map we are currently on, go somewhere else.")
 			e_nextatma.atma = atma
 			return true
 		end
@@ -392,15 +391,15 @@ function e_nextatma:execute()
 	if (Player.ismounted) then
 		return
 	end
-	
-	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
+
+	if (ActionIsReady(5)) then
 		Player:Teleport(atma.tele)
 		
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
 		newTask.mapID = atma.map
 		newTask.mesh = atma.mesh
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
 

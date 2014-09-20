@@ -177,6 +177,7 @@ function ffxiv_task_movetopos:Process()
 			end
 		end
 		
+		--[[
 		if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and TimeSince(ml_task_hub:ThisTask().obstacleTimer) > 10000) then
 			NavigationManager:ClearAvoidanceAreas()
 			local el = EntityList("attackable,aggressive,notincombat,maxdistance=100,fateid=0")
@@ -197,6 +198,7 @@ function ffxiv_task_movetopos:Process()
 			NavigationManager:SetAvoidanceAreas(obst)
 			ml_task_hub:ThisTask().obstacleTimer = Now()
 		end
+		--]]
 	end
 	
 	if (TableSize(self.process_elements) > 0) then
@@ -385,7 +387,7 @@ function ffxiv_task_teleport.Create()
     newinst.name = "LT_TELEPORT"
     newinst.mapID = 0
 	newinst.mesh = nil
-    newinst.started = ml_global_information.Now
+    newinst.started = Now()
     
     return newinst
 end
@@ -395,6 +397,10 @@ function ffxiv_task_teleport:Init()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
+	if (TimeSince(self.started) < 2000) then
+		return false
+	end
+	
 	if (	(TableSize(Player.castinginfo) == 0 or 
 			Player.castinginfo.channelingid ~= 5) and
 			not ml_mesh_mgr.loadingMesh	and 
@@ -402,17 +408,19 @@ function ffxiv_task_teleport:task_complete_eval()
 			not IsLoading()) 
 	then
 		if (Player.onmesh) then
+			d("Player landed on mesh, setting evac point to crystal.")
 			ffxiv_task_grind.SetEvacPoint()
 			return true
 		else
 			if (NavigationManager:GetNavMeshName() ~= self.mesh) then
+				d("Mesh for this location seems to be invalid, attempting to load a better one.. loading:"..tostring(self.mesh))
 				ml_mesh_mgr.LoadNavMesh(self.mesh)
 				return false
 			end
 		end
 	end
 	
-	if (TimeSince(ml_task_hub:ThisTask().started) > 25000) then
+	if (TimeSince(ml_task_hub:ThisTask().started) > 30000) then
 		return true
 	end
 	

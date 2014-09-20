@@ -646,7 +646,7 @@ function ml_marker_mgr.HandleInit()
     GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
     
     -- marker editor window
-    GUI_NewWindow(ml_marker_mgr.editwindow.name, ml_marker_mgr.mainwindow.x+ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.y, ml_marker_mgr.editwindow.w, ml_marker_mgr.editwindow.h)
+    GUI_NewWindow(ml_marker_mgr.editwindow.name, ml_marker_mgr.mainwindow.x+ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.y, ml_marker_mgr.editwindow.w, ml_marker_mgr.editwindow.h,"",true)
     GUI_NewField(ml_marker_mgr.editwindow.name, "Placeholder", "gPlaceholder", strings[gCurrentLanguage].markerFields)
     GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].deleteMarker,"ml_marker_mgr.DeleteMarker")
 	GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].removeMarker,"ml_marker_mgr.RemoveMarker")

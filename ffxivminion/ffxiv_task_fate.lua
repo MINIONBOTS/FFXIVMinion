@@ -124,17 +124,16 @@ end
 
 c_teletofate = inheritsFrom( ml_cause )
 e_teletofate = inheritsFrom( ml_effect )
+c_teletofate.radius = nil
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
---c_teletofate.initiatemove = false
---c_teletofate.stopmove = false
---c_teletofate.movethrottle = 0
 function c_teletofate:evaluate()
 	if (gTeleport == "0") then
 		return false
 	end
 
-	local nearbyPlayers = TableSize(EntityList("type=1,maxdistance=30"))
+	local players = EntityList("type=1,maxdistance=30")
+	local nearbyPlayers = TableSize(players)
 	if nearbyPlayers > 0 then
 		ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
 		return false
@@ -146,21 +145,12 @@ function c_teletofate:evaluate()
 	end
 	
 	if Now() < c_teletofate.lastTele then
+		ml_debug("Can't teleport, not enough time has passed.")
 		return false
-		--[[
-		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
-			return true
-		elseif (c_teletofate.initiatemove and not c_teletofate.stopmove and Now() > c_teletofate.movethrottle) then
-			return true
-		elseif (c_teletofate.initiatemove and c_teletofate.stopmove) then
-			ml_debug("Can't teleport, it's been too soon off.")
-			return false
-		end
-		--]]
 	end
 	
-    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
+        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
         if (fate ~= nil and TableSize(fate) > 0) then
 			local percent = tonumber(gFateTeleportPercent)
 			if (gTeleport == "1" and percent == 0) then
@@ -175,6 +165,7 @@ function c_teletofate:evaluate()
 				
 				if (dist < 3) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
+						c_teletofate.radius = fate.radius
 						c_teletofate.pos = dest
 						return true
 					end
@@ -183,39 +174,19 @@ function c_teletofate:evaluate()
         end
     end
     
-	ml_debug("Can't teleport, some other reason.")
     return false
 end
 function e_teletofate:execute()
-	--[[
-	if (Now() > c_teletofate.lastTele) then
-		local dest = c_teletofate.pos
-		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
-		Player:SetFacingSynced(Player.pos.h)
-		c_teletofate.lastTele = Now() + 10000
-		c_teletofate.initiatemove = false
-		c_teletofate.stopmove = false
-	end
-	--]]
-	
 	local dest = c_teletofate.pos
-	GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,5,c_teletofate.radius)
+	
+	if (newPos) then
+		GameHacks:TeleportToXYZ(newPos.x,newPos.y,newPos.z)
+	else
+		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+	end
 	Player:SetFacingSynced(Player.pos.h)
 	c_teletofate.lastTele = Now() + 10000
-	
-	--[[
-	else
-		if (not c_teletofate.initiatemove and not c_teletofate.stopmove) then
-			local pos = c_teletofate.pos
-			Player:MoveToStraight(pos.x+2,pos.y,pos.z,1)
-			c_teletofate.initiatemove = true
-			c_teletofate.movethrottle = Now() + 500
-		elseif (c_teletofate.initiatemove and not c_teletofate.stopmove) then
-			Player:Stop()
-			c_teletofate.stopmove = true
-		end
-	end
-	--]]
 	ffxiv_task_grind.inFate = true
 end
 

@@ -1322,7 +1322,11 @@ function QM.LoadWindows()
 	for k,v in pairs(windows) do
 		if (TableSize(QM.Builds[k]) > 0) then
 			local wname = v.name
-			GUI_NewWindow	(wname,WI.x,WI.y,v.width,v.height)
+			if (wname == strings[gCurrentLanguage].profileManager) then
+				GUI_NewWindow	(wname,WI.x,WI.y,v.width,v.height)
+			else
+				GUI_NewWindow	(wname,WI.x,WI.y,v.width,v.height,"",true)
+			end 
 			QM.LoadWindowFields(k)
 			GUI_SizeWindow	(wname,v.width,v.height)
 			GUI_RefreshWindow(wname)
