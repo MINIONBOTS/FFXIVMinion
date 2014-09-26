@@ -65,8 +65,6 @@ function ffxiv_duty_kill_task:Process()
 				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				self.pullHandled = true
 			end
-			
-			
 				--[[
 				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				Player:SetTarget(entity.id)
@@ -219,6 +217,18 @@ function c_dutyAtInteract:evaluate()
 			end
 		end
 		
+		local npcs = EntityList("type=3,chartype=0")
+		for i, interactable in pairs(npcs) do
+			if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
+				tpos = interactable.pos
+				ppos = Player.pos
+				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
+				if (dist <= 4) then
+					return true
+				end
+			end
+		end
+		
 		if (not ml_task_hub:CurrentTask().repositioned) then
 			GameHacks:TeleportToXYZ(tpos.x,tpos.y,tpos.z)
 			Player:SetFacingSynced(tpos.x,tpos.y,tpos.z)
@@ -272,6 +282,16 @@ function c_interact:evaluate()
 	
 	local chests = EntityList("type=4,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 	for i, interactable in pairs(chests) do
+		if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
+			if (interactable.targetable) then
+				c_interact.id = interactable.id
+				return true
+			end
+		end
+	end
+	
+	local npcs = EntityList("type=3,chartype=0,maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+	for i, interactable in pairs(npcs) do
 		if interactable.uniqueid == tonumber(ml_task_hub:CurrentTask().encounterData.interactid) then
 			if (interactable.targetable) then
 				c_interact.id = interactable.id

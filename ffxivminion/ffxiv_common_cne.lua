@@ -96,7 +96,7 @@ function c_killaggrotarget:evaluate()
     end
 	
 	if (gBotMode == strings[gCurrentLanguage].partyMode) then
-		local leader = GetPartyLeader()	
+		local leader, isEntity = GetPartyLeader()	
 		if (leader and leader.id ~= 0) then
 			local entity = EntityList:Get(leader.id)
 			if ( entity  and entity.id ~= 0) then
@@ -135,52 +135,43 @@ function c_assistleader:evaluate()
         return false
     end
 	
-    local leader = GetPartyLeader()	
-    if (leader ~= nil and leader.id ~= 0) then
-		local entity = EntityList:Get(leader.id)
-        if ( entity  and entity.id ~= 0) then
-			local leadtarget = entity.targetid
-			
-			if (entity.ismounted or not entity.incombat) then
-				return false			
-			end
+    local leader, isEntity = GetPartyLeader()	
+    if (ValidTable(leader) and isEntity) then
+		local leadtarget = leader.targetid
+		if (leader.ismounted or not leader.incombat or not leadtarget or leadtarget == 0) then
+			return false			
+		end
 
-			if (ml_task_hub:RootTask().subtask) then
-				local task = ml_task_hub:RootTask().subtask
-				if (task.name == "LT_KILLTARGET" and task.targetid == leadtarget) then
-					return false
-				end
+		if (ml_task_hub:ThisTask().subtask) then
+			local task = ml_task_hub:ThisTask().subtask
+			if (task.name == "GRIND_COMBAT" and task.targetid == leadtarget) then
+				return false
 			end
-            
-            if ( leadtarget and leadtarget ~= 0 ) then
-                local target = EntityList:Get(leadtarget)				
-                if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
-					c_assistleader.targetid = target.id
-					return true
-                end
-            end
-        end
+		end
+		
+		local target = EntityList:Get(leadtarget)				
+		if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
+			c_assistleader.targetid = target.id
+			return true
+		end
     end
     
     return false
 end
 function e_assistleader:execute()
-	if ( c_assistleader.targetid ) then
-		if ( Player.ismounted ) then
-			Dismount()
-		end
-		
-		local entity = EntityList:Get(c_assistleader.targetid)
-		SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-		
-		if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET") then
-			ml_task_hub:CurrentTask():Terminate()
-		end
-		
-		local newTask = ffxiv_task_killtarget.Create()
-        newTask.targetid = c_assistleader.targetid 
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    end
+	local id = c_assistleader.targetid
+	if ( Player.ismounted ) then
+		Dismount()
+		return
+	end
+	
+	if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
+		ml_task_hub:CurrentTask().targetid = id
+	else
+		local newTask = ffxiv_task_grindCombat.Create()
+		newTask.targetid = id 
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -728,25 +719,28 @@ end
 
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.range = math.random(6,10)
-c_followleader.id = nil
+c_followleader.range = math.random(6,12)
+c_followleader.leaderpos = nil
+c_followleader.leader = nil
+c_followleader.distance = nil
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
+	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() or ActionList:IsCasting()) then
         return false
     end
 	
-	local leader = GetPartyLeader()	
-    if (leader and leader.id ~= 0) then
-		local entity = EntityList:Get(leader.id)
-        if ( entity  and entity.id ~= 0) then
-			if (((entity.incombat and entity.distance > 6) or (not entity.incombat and entity.distance > 9) or (entity.ismounted and not Player.ismounted)) and entity.onmesh) then
-				c_followleader.id = entity.id
-				return true
-			end
+	if (ValidTable(leaderPos) and ValidTable(leader)) then
+		local myPos = shallowcopy(Player.pos)	
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
+		
+		if (((leader.incombat and distance > 6) or (distance > 12)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
+			c_followleader.leaderpos = leaderPos
+			c_followleader.leader = leader
+			c_followleader.distance = distance
+			return true
 		end
-    end
+	end
 	
 	if (e_followleader.isFollowing) then
 		e_followleader.stopFollow = true
@@ -757,7 +751,9 @@ function c_followleader:evaluate()
 end
 
 function e_followleader:execute()
-	local leader = EntityList:Get(c_followleader.id)
+	local leader = c_followleader.leader
+	local leaderPos = c_followleader.leaderpos
+	local distance = c_followleader.distance
 	
 	if (e_followleader.isFollowing and e_followleader.stopFollow) then
 		Player:Stop()
@@ -766,28 +762,32 @@ function e_followleader:execute()
 		return
 	end
 	
-	if (Player.onmesh) then
-			
-		local lpos = leader.pos
-		local myPos = Player.pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, lpos.x, lpos.y, lpos.z)	
-		
-		-- mount						
-		if ((leader.castinginfo.channelingid == 4 or leader.ismounted) and not Player.ismounted) then
-			if (not ActionList:IsCasting()) then
-				Player:Stop()
-				Mount()
+	if (Player.onmesh) then		
+		-- mount
+		if (gUseMount == "1" and gMount ~= "None") then
+			if (((leader.castinginfo.channelingid == 4 or leader.ismounted) or distance >= tonumber(gMountDist)) and not Player.ismounted) then
+				if (not ActionList:IsCasting()) then
+					Player:Stop()
+					Mount()
+				end
+				return
 			end
-			return
 		end
 		
 		--sprint
-		if ( not HasBuff(Player.id, 50) and not Player.ismounted and gUseSprint == "1") then
-			local sprint = ActionList:Get(3)
-			if (sprint.isready) then
-				if (distance > tonumber(gSprintDist)) then		
+		if (gUseSprint == "1" and distance >= tonumber(gSprintDist)) then
+			if ( not HasBuff(Player.id, 50) and not Player.ismounted) then
+				local sprint = ActionList:Get(3)
+				if (sprint.isready) then	
 					sprint:Cast()
 				end
+			end
+		end
+		
+		if (gTeleport == "1") then
+			if (distance > 100) then
+				GameHacks:TeleportToXYZ(leaderPos.x,leaderPos.y,leaderPos.z)
+				Player:SetFacingSynced(leaderPos.x,leaderPos.y,leaderPos.z)
 			end
 		end
 		
@@ -1348,14 +1348,14 @@ function c_pressconfirm:evaluate()
 		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not IsLoading())
 	end
 	
-    return (ControlVisible("ContentsFinderConfirm") and not IsLoading() and Player.revivestate ~=2 and Player.revivestate ~= 3)
+    return (ControlVisible("ContentsFinderConfirm") and not IsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)
 	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
-		ml_task_hub:CurrentTask().state = "DUTY_STARTED"
+		ml_task_hub:ThisTask().state = "DUTY_STARTED"
 	elseif (gBotMode == strings[gCurrentLanguage].dutyMode and IsDutyLeader()) then
-		ml_task_hub:CurrentTask().state = "DUTY_ENTER"
+		ml_task_hub:ThisTask().state = "DUTY_ENTER"
 	end
 end
 

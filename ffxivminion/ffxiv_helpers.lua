@@ -327,7 +327,7 @@ function GetBestPartyHealTarget( npc, range )
 	end
 	
 	if (gBotMode == GetString("partyMode") and not IsLeader()) then
-		local leader = GetPartyLeader()
+		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
 			if (leaderentity and leaderentity.distance <= range) then
@@ -606,7 +606,7 @@ function GetBestRevive( party, role)
 	end
 	
 	if (gBotMode == GetString("partyMode") and not IsLeader()) then
-		local leader = GetPartyLeader()
+		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
 			if (leaderentity and leaderentity.distance <= range and not leader.alive and not HasBuffs(leaderentity, "148")) then
@@ -1435,28 +1435,58 @@ end
 
 function GetPartyLeader()
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
-	
 		if (gPartyLeaderName ~= "") then
-		local party = EntityList("type=1,name="..gPartyLeaderName)
-			if (ValidTable(party)) then
-				local i,member = next (party)
-				if (i and member) then
-					return member
+		local el = EntityList("type=1,name="..gPartyLeaderName)
+			if (ValidTable(el)) then
+				local i,leaderentity = next (el)
+				if (i and leaderentity) then
+					return leaderentity, true
 				end
 			end
 		end
 	else
+		local leader = nil
+		local isEntity = false
 		local party = EntityList.myparty
 		if (ValidTable(party)) then
-			for i,m in pairs(party) do
-				if m.isleader then
-					return m
+			for i,member in pairs(party) do
+				if member.isleader then
+					leader = member
+					isEntity = false
 				end
 			end
+		end
+		
+		if (leader) then
+			local el = EntityList("type=1,name="..leader.name)
+			if (ValidTable(el)) then
+				local i,leaderentity = next (el)
+				if (i and leaderentity) then
+					leader = leaderentity
+					isEntity = true
+				end
+			end
+		end
+		
+		if (leader) then
+			return leader, isEntity
 		end
 	end 
     
     return nil	    
+end
+
+function GetPartyLeaderPos()
+	local pos = nil
+	
+	local leader, isEntity = GetPartyLeader()
+    if (leader) then
+		if (leader.pos.x ~= -1000) then
+			pos = shallowcopy(leader.pos)
+		end
+	end
+	
+	return pos
 end
 
 function IsInParty(id)

@@ -2,11 +2,12 @@ ffxiv_task_party = inheritsFrom(ml_task)
 ffxiv_task_party.name = "LT_PARTY"
 ffxiv_task_party.evacPoint = {0, 0, 0}
 ffxiv_task_party.isPL = false
+ffxiv_task_party.extraMembers = {}
 
 c_partysyncfatelevel = inheritsFrom( ml_cause )
 e_partysyncfatelevel = inheritsFrom( ml_effect )
 function c_partysyncfatelevel:evaluate()
-    if ( IsLeader() ) then
+    if ( IsLeader() or Player:GetSyncLevel() ~= 0 ) then
         return false
     end
 	
@@ -17,10 +18,10 @@ function c_partysyncfatelevel:evaluate()
     
     local myPos = Player.pos
     local fate = GetClosestFate(myPos)
-	if ( fate and TableSize(fate)) then
+	if (ValidTable(fate)) then
 		local plevel = Player.level
-		if ( ( fate.level > plevel +5 or fate.level < plevel - 5) and Player:GetSyncLevel() == 0 )then
-			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+		if (fate.level < (plevel - 5)) then
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance < fate.radius) then				
 				return true
 			end
@@ -80,7 +81,7 @@ function ffxiv_task_party:Init()
     self:add( ke_followleader, self.overwatch_elements )
     
     local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 11 )--minion only
-    self:add( ke_assistleader, self.overwatch_elements)
+    self:add( ke_assistleader, self.overwatch_elements )
 	
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 30 )--leader only
     self:add( ke_returnToMarker, self.process_elements)
@@ -146,6 +147,11 @@ function ffxiv_task_party.SetLeaderFromTarget()
 	end
 end
 
+function ffxiv_task_party.AddExtraMember()
+	local i = TableSize(ffxiv_task_party.extraMembers) + 1
+	ffxiv_task_party.extraMembers[i] = gPartyExtraMember
+end
+
 -- UI settings etc
 function ffxiv_task_party.UIInit()	
 
@@ -155,7 +161,9 @@ function ffxiv_task_party.UIInit()
 	if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
         Settings.FFXIVMINION.gPartyLeaderName = ""
     end
-	
+	if (Settings.FFXIVMINION.gPartyExtraMember == nil) then
+        Settings.FFXIVMINION.gPartyExtraMember = ""
+    end
     if (Settings.FFXIVMINION.gPartyGrindUsePartyLeader == nil) then
         Settings.FFXIVMINION.gPartyGrindUsePartyLeader = "1"
     end
@@ -178,6 +186,9 @@ function ffxiv_task_party.UIInit()
     RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
     GUI_NewField(winName, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", group)
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",group)
+	GUI_NewField(winName, "Extra Member", "gPartyExtraMember", group)
+    GUI_NewButton(winName, "Add Member", "partyAddExtraMember",group)
+	RegisterEventHandler("partyAddExtraMember",ffxiv_task_party.AddExtraMember)
 
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)

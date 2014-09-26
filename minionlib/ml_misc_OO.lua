@@ -137,7 +137,9 @@ function outputTable(t)
 	end
 end
 
-function deepcopy( object )
+function deepcopy( object, skipMT )
+	local skipMT = skipMT or true
+	
     local lookup_table = {}
     local function _copy( object )
         if type( object ) ~= "table" then
@@ -150,7 +152,9 @@ function deepcopy( object )
         for index, value in pairs( object ) do
             new_table[_copy( index )] = _copy( value )
         end
-        return setmetatable(new_table, getmetatable( object ) )
+		if (not skipMT) then
+			return setmetatable(new_table, getmetatable( object ) )
+		end
     end
     return _copy( object )
 end
