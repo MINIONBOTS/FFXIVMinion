@@ -197,13 +197,13 @@ end
 c_movetofate = inheritsFrom( ml_cause )
 e_movetofate = inheritsFrom( ml_effect )
 function c_movetofate:evaluate()
-    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
+        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 		
         if (ValidTable(fate)) then
             local myPos = Player.pos
             local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-            if ( ml_task_hub:CurrentTask().moving) then
+            if ( ml_task_hub:ThisTask().moving) then
                 if (distance > fate.radius/4) then				
                     return true
                 end
@@ -219,18 +219,18 @@ function c_movetofate:evaluate()
     return false
 end
 function e_movetofate:execute()
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
     if (ValidTable(fate)) then
         local newTask = ffxiv_task_movetopos.Create()
 		newTask.remainMounted = true
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
 		
-        if ( ml_task_hub:CurrentTask().moving) then
+        if ( ml_task_hub:ThisTask().moving) then
             newTask.range = math.random(3, fate.radius * .25)
         else
             newTask.range = 4
         end
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
+        ml_task_hub:ThisTask():AddSubTask(newTask)
     end
 end
 
@@ -305,19 +305,19 @@ end
 c_movingfate = inheritsFrom( ml_cause )
 e_movingfate = inheritsFrom( ml_effect )
 function c_movingfate:evaluate()
-    if ( ml_task_hub:CurrentTask().moving) then
+    if ( ml_task_hub:ThisTask().moving) then
         return false
     end
     
-    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
+        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
         if (ValidTable(fate)) then
             local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-            if ( TableSize(ml_task_hub:CurrentTask().fatePos) == 0 ) then
-                ml_task_hub:CurrentTask().fatePos = fatePos
+            if ( TableSize(ml_task_hub:ThisTask().fatePos) == 0 ) then
+                ml_task_hub:ThisTask().fatePos = fatePos
                 return false
             else
-                local oldFatePos = ml_task_hub:CurrentTask().fatePos
+                local oldFatePos = ml_task_hub:ThisTask().fatePos
                 local distance = Distance2D(oldFatePos.x, oldFatePos.z, fatePos.x, fatePos.z)
                 if (distance > 0) then
                     return true
@@ -329,7 +329,7 @@ function c_movingfate:evaluate()
     return false
 end
 function e_movingfate:execute()
-    ml_task_hub:CurrentTask().moving = true
+    ml_task_hub:ThisTask().moving = true
 end
 
 function ffxiv_task_fate:Init()
@@ -369,10 +369,8 @@ function ffxiv_task_fate:Init()
 end
 
 function ffxiv_task_fate:task_complete_eval()
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-    if (fate ~= nil and TableSize(fate) > 0) then
-        return fate.completion > 99
-    elseif (fate == nil) then
+    local fate = GetFateByID(self.fateid)
+    if (fate == nil) then
         return true
     end
     
@@ -383,6 +381,7 @@ function ffxiv_task_fate:task_complete_execute()
 	Player:Stop()
 	ffxiv_task_grind.inFate = false
 	self:Terminate()
+	self:ParentTask():SetDelay(6000)
 end
 
 

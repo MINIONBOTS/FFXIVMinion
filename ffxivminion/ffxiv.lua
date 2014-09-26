@@ -10,6 +10,7 @@ ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
 ml_global_information.BlacklistContentID = ""
 ml_global_information.WhitelistContentID = ""
+ml_global_information.currentMarker = false
 ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.IsWaiting = false
@@ -112,13 +113,17 @@ function ml_global_information.OnUpdate( event, tickcount )
 				gBotMode == strings[gCurrentLanguage].gatherMode or
 				gBotMode == strings[gCurrentLanguage].fishMode or
 				gBotMode == strings[gCurrentLanguage].questMode or
-				gBotMode == strings[gCurrentLanguage].huntMode) and (
-				ValidTable(GetCurrentMarker())) and
-				ml_task_hub.shouldRun
+				gBotMode == strings[gCurrentLanguage].huntMode or 
+				gBotMode == strings[gCurrentLanguage].pvpMode ) and
+				ml_task_hub.shouldRun and 
+				ValidTable(ml_global_information.currentMarker)
 		then
-			local timesince = TimeSince(ml_global_information.MarkerTime)
-			local timeleft = ((GetCurrentMarker():GetTime() * 1000) - timesince) / 1000
-			gStatusMarkerTime = tostring(round(timeleft, 1))
+			local timeleft = (ml_global_information.MarkerTime - Now()) / 1000
+			if (timeleft > 0) then
+				gStatusMarkerTime = tostring(round(timeleft, 1))
+			else
+				gStatusMarkerTime = "0.0"
+			end
 		else
 			gStatusMarkerName = ""
 			gStatusMarkerTime = ""

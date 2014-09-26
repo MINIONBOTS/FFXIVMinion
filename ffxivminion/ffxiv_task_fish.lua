@@ -16,6 +16,8 @@ function ffxiv_task_fish.Create()
     newinst.castTimer = 0
     newinst.markerTime = 0
     newinst.currentMarker = false
+	ml_global_information.currentMarker = false
+	
     newinst.baitName = ""
     newinst.castFailTimer = 0
 	newinst.filterLevel = true
@@ -189,44 +191,47 @@ function c_nextfishingmarker:evaluate()
 	end
 	
 	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
-		ml_task_hub:CurrentTask().filterLevel = false
+		ml_task_hub:ThisTask().filterLevel = false
+	else
+		ml_task_hub:ThisTask().filterLevel = true
 	end
 	
-    if ( ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 ) then
+    if ( ml_task_hub:ThisTask().currentMarker ~= nil and ml_task_hub:ThisTask().currentMarker ~= 0 ) then
         local marker = nil
         
         -- first check to see if we have no initiailized marker
-        if (ml_task_hub:CurrentTask().currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
+        if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
+            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
         
 			if (marker == nil) then
-				ml_task_hub:CurrentTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
+				ml_task_hub:ThisTask().filterLevel = false
+				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
 			end	
 		end
         
         -- next check to see if our level is out of range
         if (marker == nil) then
-            if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-                if 	(ml_task_hub:CurrentTask().filterLevel) and
-					(Player.level < ml_task_hub:CurrentTask().currentMarker:GetMinLevel() or 
-                    Player.level > ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()) 
+            if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+                if 	(ml_task_hub:ThisTask().filterLevel) and
+					(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
+                    Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
                 end
             end
         end
         
         -- last check if our time has run out
         if (marker == nil) then
-            local time = ml_task_hub:CurrentTask().currentMarker:GetTime()
-			if (time and time ~= 0 and TimeSince(ml_task_hub:CurrentTask().markerTime) > time * 1000) then
-				--ml_debug("Marker timer: "..tostring(TimeSince(ml_task_hub:CurrentTask().markerTime)) .."seconds of " ..tostring(time)*1000)
-                ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:CurrentTask().filterLevel)
-            else
-                return false
-            end
+			if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+				local expireTime = ml_task_hub:ThisTask().markerTime
+				if (Now() > expireTime) then
+					ml_debug("Getting Next Marker, TIME IS UP!")
+					marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+				else
+					return false
+				end
+			end
         end
         
         if (ValidTable(marker)) then
@@ -239,12 +244,13 @@ function c_nextfishingmarker:evaluate()
     return false
 end
 function e_nextfishingmarker:execute()
-    ml_task_hub:CurrentTask().currentMarker = e_nextfishingmarker.marker
-    ml_task_hub:CurrentTask().markerTime = ml_global_information.Now
-	ml_global_information.MarkerTime = ml_global_information.Now
-    ml_global_information.MarkerMinLevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
-    ml_global_information.MarkerMaxLevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
-	gStatusMarkerName = ml_task_hub:CurrentTask().currentMarker:GetName()
+	ml_global_information.currentMarker = e_nextfishingmarker.marker
+    ml_task_hub:ThisTask().currentMarker = e_nextfishingmarker.marker
+    ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
+	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
+    ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
+    ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
+	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 	ml_task_hub:CurrentTask().requiresAdjustment = true
 end
 

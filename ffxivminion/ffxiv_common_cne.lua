@@ -19,10 +19,6 @@ c_add_killtarget = inheritsFrom( ml_cause )
 e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
-	if (ml_task_hub:CurrentTask().name == "LT_FLEE") then
-		return false
-	end
-	
 	-- block killtarget for grinding when user has specified "Fates Only"
 	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gFatesOnly == "1") then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
@@ -51,10 +47,6 @@ function c_add_killtarget:evaluate()
 		end 
 	end
     
-	if (ml_task_hub:CurrentTask().name == "LT_REST") then 
-		return false 
-	end
-	
 	if (SkillMgr.Cast( Player, true)) then
 		c_add_killtarget.oocCastTimer = Now() + 1500
 		return false
@@ -934,15 +926,14 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 function c_mount:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode  or
-		Player.localmapid == 130 or
-		Player.localmapid == 131 or
-		Player.localmapid == 132 or
-		Player.localmapid == 133 or
-		Player.localmapid == 128 or
-		Player.localmapid == 129) then
-        return false
-    end
+	noMountMaps = {
+		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,
+		[337] = true,[336] = true,[175] = true,[352] = true,
+	}
+	
+    if (noMountMaps[Player.localmapid]) then
+		return false
+	end
 	
 	if (HasBuffs(Player,"47")) then
 		return false
@@ -1403,6 +1394,16 @@ function c_returntomarker:evaluate()
 				return true
 			end
 		end
+		
+		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+			local nearestTarget = GetPVPTarget()
+			if (nearestTarget) then
+				return false
+			end
+			if (distance > 15) then
+				return true
+			end
+		end	
 		
 		if (gBotMode == strings[gCurrentLanguage].huntMode) then
 			if (distance > 15) then
