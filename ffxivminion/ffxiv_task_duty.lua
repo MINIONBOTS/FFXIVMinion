@@ -379,6 +379,21 @@ function ffxiv_task_duty:ProcessOverWatch()
 		return ml_cne_hub.execute()
 	end
 end
+
+c_dutyidle = inheritsFrom( ml_cause )
+e_dutyidle = inheritsFrom( ml_effect )
+function c_dutyidle:evaluate()
+	return (not OnDutyMap()) and (
+	ml_global_information.idlePulseCount > 4000 or
+	ml_task_hub:ThisTask().state == "DUTY_NEXTENCOUNTER" or 
+	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")
+end
+function e_dutyidle:execute()
+	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." with state "..ml_task_hub:CurrentTask().state)
+	ml_error("Attempting to recover from error.")
+	ml_task_hub:ThisTask():DeleteSubTasks()
+	ml_task_hub:ThisTask().state = ""
+end
 	
 function ffxiv_task_duty:Process()
 	if (IsLoading() or ml_mesh_mgr.meshLoading) then
@@ -473,6 +488,12 @@ end
 
 function ffxiv_task_duty:Init()
     --init Process() cnes
+	--local ke_resetState = ml_element:create( "ResetState", c_resetstate, e_resetstate, 9 )
+    --self:add(ke_resetState, self.overwatch_elements)
+	
+	local ke_dutyIdle = ml_element:create( "DutyIdle", c_dutyidle, e_dutyidle, 40 )
+    self:add(ke_dutyIdle, self.overwatch_elements)
+	
 	local ke_deadDuty = ml_element:create( "Dead", c_deadduty, e_deadduty, 35 )
     self:add( ke_deadDuty, self.overwatch_elements)	
 	
@@ -484,9 +505,6 @@ function ffxiv_task_duty:Init()
 	
 	local ke_pressConfirm = ml_element:create( "PressConfirm", c_pressconfirm, e_pressconfirm, 15 )
     self:add(ke_pressConfirm, self.overwatch_elements)
-	
-	local ke_resetState = ml_element:create( "ResetState", c_resetstate, e_resetstate, 9 )
-    self:add(ke_resetState, self.overwatch_elements)
 	
 	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 19 )--minion only
     self:add( ke_lootcheck, self.process_elements)
