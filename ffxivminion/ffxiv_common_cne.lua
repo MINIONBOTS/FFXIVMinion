@@ -719,10 +719,11 @@ end
 
 c_followleader = inheritsFrom( ml_cause )
 e_followleader = inheritsFrom( ml_effect )
-c_followleader.range = math.random(6,12)
+c_followleader.range = math.random(3,8)
 c_followleader.leaderpos = nil
 c_followleader.leader = nil
 c_followleader.distance = nil
+c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
@@ -730,14 +731,17 @@ function c_followleader:evaluate()
         return false
     end
 	
+	local leader, isEntity = GetPartyLeader()
+	local leaderPos = GetPartyLeaderPos()
 	if (ValidTable(leaderPos) and ValidTable(leader)) then
 		local myPos = shallowcopy(Player.pos)	
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
 		
-		if (((leader.incombat and distance > 6) or (distance > 12)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
+		if (((leader.incombat and distance > 5) or (distance > 10)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
 			c_followleader.leaderpos = leaderPos
 			c_followleader.leader = leader
 			c_followleader.distance = distance
+			c_followleader.hasEntity = isEntity
 			return true
 		end
 	end
@@ -764,7 +768,8 @@ function e_followleader:execute()
 	
 	if (Player.onmesh) then		
 		-- mount
-		if (gUseMount == "1" and gMount ~= "None") then
+		
+		if (gUseMount == "1" and gMount ~= "None" and c_followleader.hasEntity) then
 			if (((leader.castinginfo.channelingid == 4 or leader.ismounted) or distance >= tonumber(gMountDist)) and not Player.ismounted) then
 				if (not ActionList:IsCasting()) then
 					Player:Stop()
@@ -791,7 +796,11 @@ function e_followleader:execute()
 			end
 		end
 		
-		ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(tonumber(lpos.x),tonumber(lpos.y),tonumber(lpos.z),tonumber(c_followleader.range),true,false)))	
+		if (c_followleader.hasEntity and leader.los) then
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),true,false)))	
+		else
+			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),false,false)))	
+		end
 		if ( not Player:IsMoving()) then
 			if ( ml_global_information.AttackRange < 5 ) then
 				c_followleader.range = math.random(4,6)
