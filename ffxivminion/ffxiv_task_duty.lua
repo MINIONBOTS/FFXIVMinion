@@ -127,7 +127,7 @@ function c_assistleaderduty:evaluate()
 			end
 			if ( leadtarget and leadtarget ~= 0 ) then			
 				local target = EntityList:Get(leadtarget)
-				if ( ValidTable(target) and target.alive and target.attackable and target.chartype == 5 and (target.onmesh or InCombatRange(target.id))) then
+				if ( ValidTable(target) and target.alive and target.attackable and (target.type == 2 or target.type == 3) and (target.onmesh or InCombatRange(target.id))) then
 					c_assistleaderduty.targetid = target.id
 					return true
 				end
