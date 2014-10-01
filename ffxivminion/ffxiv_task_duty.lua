@@ -389,7 +389,7 @@ function c_dutyidle:evaluate()
 	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")
 end
 function e_dutyidle:execute()
-	ml_error("Stuck idle in task "..ml_task_hub:CurrentTask().name.." with state "..ml_task_hub:CurrentTask().state)
+	ml_error("Stuck idle in task "..ml_task_hub:ThisTask().name.." with state "..ml_task_hub:ThisTask().state)
 	ml_error("Attempting to recover from error.")
 	ml_task_hub:ThisTask():DeleteSubTasks()
 	ml_task_hub:ThisTask().state = ""
@@ -488,9 +488,6 @@ end
 
 function ffxiv_task_duty:Init()
     --init Process() cnes
-	--local ke_resetState = ml_element:create( "ResetState", c_resetstate, e_resetstate, 9 )
-    --self:add(ke_resetState, self.overwatch_elements)
-	
 	local ke_dutyIdle = ml_element:create( "DutyIdle", c_dutyidle, e_dutyidle, 40 )
     self:add(ke_dutyIdle, self.overwatch_elements)
 	
