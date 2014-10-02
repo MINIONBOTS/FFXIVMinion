@@ -455,7 +455,6 @@ function ffxivminion.HandleInit()
 		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].aoe)
 	end
 	
-
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end

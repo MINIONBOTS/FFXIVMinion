@@ -199,12 +199,11 @@ function c_pvpflee:evaluate()
     return false
 end
 function e_pvpflee:execute()
-	d("attempting to flee combat.")
 	local fleePos = e_pvpflee.fleePos
 	if (ValidTable(fleePos)) then
 		local newTask = ffxiv_task_flee.Create()
 		newTask.pos = fleePos
-		newTask.useTeleport = (gTeleport == "1")
+		newTask.useTeleport = false
 		newTask.task_complete_eval = 
 			function ()
 				return not Player.incombat or (Player.hp.percent > tonumber(gFleeHP) and Player.mp.percent > tonumber(gFleeMP))
@@ -302,9 +301,8 @@ function c_atpvpmarker:evaluate()
     return false
 end
 function e_atpvpmarker:execute()
-	d("AtPVPMarker, returning true.")
-	ml_task_hub:ThisTask().markerTime = Now()
-	ml_global_information.MarkerTime = Now()
+	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
+	ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
 	ml_task_hub:ThisTask().atMarker = true
 end
 
@@ -359,14 +357,12 @@ function c_nextpvpmarker:evaluate()
     
     return false
 end
-function e_nextpvpmarker:execute()
-	d("Setting next PVP marker.")
-	--If we find a new marker, set it as current marker, and immediately move to it.
-	--Set atMarker to false until we get there so that the timer does not count down until we arrive at the marker.
+function e_nextpvpmarker:execute()	
 	ml_task_hub:ThisTask().atMarker = false
+	ml_global_information.currentMarker = e_nextpvpmarker.marker
     ml_task_hub:ThisTask().currentMarker = e_nextpvpmarker.marker
-    ml_task_hub:ThisTask().markerTime = Now()
-	ml_global_information.MarkerTime = Now() + ml_task_hub:ThisTask().currentMarker:GetTime()
+    ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
+	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
     ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
     ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
