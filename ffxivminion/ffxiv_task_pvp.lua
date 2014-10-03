@@ -810,21 +810,3 @@ function ffxiv_task_pvpavoid:task_complete_execute()
 		Player:SetFacing(pos.x,pos.y,pos.z)
 	end
 end
-	
-function ffxiv_task_pvp.OnUpdate( Event, ticks ) 
-	if (ml_task_hub.shouldRun and ValidTable(ml_task_hub:RootTask())) then
-		if (TimeSince(ffxiv_task_pvp.lastTick) > 500) then
-			ffxiv_task_pvp.lastTick = ticks
-			if (ValidTable(ml_task_hub:RootTask().currentMarker)) then
-				local timesince = TimeSince(ml_global_information.MarkerTime)
-				local timeleft = ((ml_task_hub:RootTask().currentMarker:GetTime() * 1000) - timesince) / 1000
-				gStatusMarkerTime = tostring(round(timeleft, 1))
-			else
-				gStatusMarkerName = ""
-				gStatusMarkerTime = ""
-			end
-		end
-	end
-end
-
-RegisterEventHandler("Gameloop.Update", ffxiv_task_pvp.OnUpdate)
