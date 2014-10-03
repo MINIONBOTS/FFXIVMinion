@@ -489,13 +489,8 @@ function c_nextgatherlocation:evaluate()
 				[AddHours(ffxiv_task_gather.location.hour,2)] = true,
 			}
 			local overdue = true
-			for hour,_ in pairs(gatherableWindow) do
-				if (eTime.hour == hour) then
-					overdue = false
-				end 
-				if (not overdue) then
-					break
-				end
+			if (gatherableWindow[eTime.hour]) then
+				overdue = false
 			end
 			
 			--d("reset condition1 = "..tostring(ffxiv_task_gather.gatherStarted))
@@ -940,7 +935,6 @@ function e_gatherwindow:execute()
 end
 
 function ffxiv_task_gather:Init()
-	--[[START SHARED OVERWATCH CNE SECTION]]--
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
     self:add( ke_dead, self.overwatch_elements)
 	
@@ -952,42 +946,33 @@ function ffxiv_task_gather:Init()
 	
 	local ke_gatherWindow = ml_element:create( "GatherWindow", c_gatherwindow, e_gatherwindow, 20)
 	self:add( ke_gatherWindow, self.overwatch_elements)
-	--[[END SHARED OVERWATCH CNE SECTION]]--
 	
-	--[[START UNSPOILED OVERWATCH CNE SECTION]]--
 	local ke_findunspoiledNode = ml_element:create( "FindUnspoiledNode", c_findunspoilednode, e_findunspoilednode, 12 )
     self:add(ke_findunspoiledNode, self.overwatch_elements)
-	--[[END UNSPOILED OVERWATCH CNE SECTION]]--
-	
-	--[[START UNSPOILED PROCESS CNE SECTION]]--
-	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
-    self:add( ke_nextUnspoiledMarker, self.process_elements)
-	
-	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
-    self:add( ke_moveToUnspoiledMarker, self.process_elements)
 	
 	local ke_nextLocation = ml_element:create( "NextLocation", c_nextgatherlocation, e_nextgatherlocation, 4 )
-    self:add(ke_nextLocation, self.process_elements)
-	--[[END UNSPOILED PROCESS CNE SECTION]]--	
+    self:add(ke_nextLocation, self.overwatch_elements)
 	
-	--[[START REGULAR PROCESS CNE SECTION]]--
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add( ke_returnToMarker, self.process_elements)
 	
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 20 )
     self:add( ke_nextMarker, self.process_elements)
 	
-    local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
+	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
+    self:add( ke_nextUnspoiledMarker, self.process_elements)
+	
+	local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
     self:add(ke_findGatherable, self.process_elements)
+	
+	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
+    self:add( ke_moveToUnspoiledMarker, self.process_elements)
 	
     local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 10 )
     self:add( ke_moveToGatherable, self.process_elements)
-	--[[END REGULAR PROCESS CNE SECTION]]--
     
-	--[[START SHARED PROCESS CNE SECTION]]--
     local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 5 )
     self:add(ke_gather, self.process_elements)
-	--[[END SHARED PROCESS CNE SECTION]]--
 	
     self:AddTaskCheckCEs()
 end

@@ -131,7 +131,7 @@ function c_startcombat:evaluate()
 	
 	if (ml_task_hub:ThisTask().state == "WAITING_FOR_COMBAT" and 
 		((MultiComp(Player.localmapid,"337,175,336,352") and TimeSince(ml_task_hub:ThisTask().enterTimer) > 62000) or
-		(Player.localmapid == 376 and TimeSince(ml_task_hub:ThisTask().enterTimer) > 122000))) then
+		(Player.localmapid == 376 and TimeSince(ml_task_hub:ThisTask().enterTimer) > 116000))) then
 		return true
 	end
 
@@ -268,7 +268,7 @@ function c_pvpdetectenemy:evaluate()
 	if (ValidTable(newTarget)) then
 		ml_task_hub:ThisTask().targetid = newTarget.id
 		ml_task_hub:ThisTask().targetTimer = Now()
-		return false
+		return true
 	end
     
     return false
@@ -333,20 +333,20 @@ function c_nextpvpmarker:evaluate()
 			if (marker == nil) then
 				ml_task_hub:ThisTask().filterLevel = false
 				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].pvpMarker, ml_task_hub:ThisTask().filterLevel)
-				d("marker was set in block 1, the default selection.")
 			end	
 		end
         
         -- last check if our time has run out
         if (marker == nil and ml_task_hub:ThisTask().atMarker) then
-            local time = ml_task_hub:ThisTask().currentMarker:GetTime()
-			if (time and time ~= 0 and TimeSince(ml_task_hub:ThisTask().markerTime) > time * 1000) then
-                ml_debug("Getting Next Marker, TIME IS UP!")
-                marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].pvpMarker, ml_task_hub:ThisTask().filterLevel)
-				d("marker was set in block 2, because time was up.")
-            else
-                return false
-            end
+			if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+				local expireTime = ml_task_hub:ThisTask().markerTime
+				if (Now() > expireTime) then
+					ml_debug("Getting Next Marker, TIME IS UP!")
+					marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+				else
+					return false
+				end
+			end
         end
         
         if (ValidTable(marker)) then
@@ -373,8 +373,9 @@ function e_nextpvpmarker:execute()
     local markerPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
     local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
     newTask.pos = markerPos
-    newTask.range = math.random(0,30)
+    newTask.range = math.random(0,5)
 	newTask.use3d = true
+	newTask.remainMounted = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -482,6 +483,10 @@ function c_pvpdead:evaluate()
 		return false
 	end
 	
+	if (not Player.alive and HasBuffs(Player,"148")) then
+		return true
+	end
+	
     if (not Player.alive and c_pvpdead.timer == 0) then
 		c_pvpdead.timer = Now() + 7000 + (ml_task_hub:ThisTask().deadTimes * 5000)
     end 
@@ -493,8 +498,13 @@ function c_pvpdead:evaluate()
     return false
 end
 function e_pvpdead:execute()
-	PressYesNoCounter(true)
-	c_pvpdead.timer = 0
+	if (HasBuffs(Player,"148")) then
+		PressYesNo(true)
+		c_pvpdead.timer = 0
+	else
+		PressYesNoCounter(true)
+		c_pvpdead.timer = 0
+	end
 end
 
 function ffxiv_task_pvp:Init()
