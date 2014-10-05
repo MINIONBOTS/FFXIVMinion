@@ -2388,13 +2388,12 @@ function EorzeaTime()
 	jpTime.sec = os.date("!%S")
 	local jpSecs = os.time(jpTime)
 	
-	local epoch = { year = 2010, month = 6, day = 12, hour = 0, min = 0, sec = 0 }
+	local epoch = { year = 2010, month = 6, day = 11, hour = 16, min = 0, sec = 0, isdst = false }
 	local epochSecs = os.time(epoch)
 	
 	local diffTime = (jpSecs - epochSecs) - 90000 
-	
 	local delta = (diffTime * ratioRealToGame)
-	
+
 	local gameSecond = (delta % 60) or 0
 	delta = delta - gameSecond
 	delta = delta / 60

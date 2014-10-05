@@ -400,6 +400,7 @@ strings =
 		pvpTargetFive					= "Priority 5",
 		pvpAvoid						= "Avoidance",
 		pvpSpeedMatchPartner			= "Speed Match Partner",
+		pvpArena						= "PVP Arena",
 		
 		gatherMaps						= "Gather Maps",
         markerFields                    = "Marker Fields",
@@ -473,13 +474,13 @@ strings =
 		questMode						= "Quest",
 		removeMarker					= "Remove Marker",
 		deleteMarker					= "Delete Marker",
-    PartyGrind          = "Party Grind",
-    PartyLeader         = "Leader:",
-    GetPartyLeader      = "Target->Leader",
-    UseGamePartyLeader  = "Use Party Leader",
-    TargetIsCasting           = "Target Casting",
-    TargetCastingOnMe           = "Casting On Me",
-    TargetCastingTime           = "Casting Time >",
+		PartyGrind         				= "Party Grind",
+		PartyLeader         			= "Leader:",
+		GetPartyLeader      			= "Target->Leader",
+		UseGamePartyLeader  			= "Use Party Leader",
+		TargetIsCasting           		= "Target Casting",
+		TargetCastingOnMe           	= "Casting On Me",
+		TargetCastingTime           	= "Casting Time >",
         botanyMarker                    = "Botany Marker",
         miningMarker                    = "Mining Marker",
         grindMarker                     = "Grind Marker",
@@ -559,6 +560,21 @@ strings =
 		autoEquip					 	= "Auto-Equip",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
+		
+		teleporter 						= "Teleporter",
+		waypoint 						= "Waypoint",
+		newWaypoint 					= "New Waypoint",
+		editWaypoint					= "Edit Waypoint",
+		newName 						= "New Name",
+		deleteWaypoint 					= "Delete Waypoint",
+		renameWaypoint	 				= "Rename Waypoint",
+		getTargetName					= "Get Target Name",
+		saveAsTargetPos					= "Save @ Target POS",
+		saveAsPlayerPos					= "Save @ Player POS",
+		save							= "Save",
+		move							= "Move",
+		distance						= "Distance",
     },                                  
     ["cn"] =                            
     {                               
@@ -1153,6 +1169,7 @@ strings =
 		autoEquip					 	= "自动换装",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
 	},
     ["jp"] =
     {
@@ -1700,6 +1717,7 @@ strings =
 		autoEquip					 	= "Auto-Equip",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
 	},   
     ["de"] =
     {
@@ -2248,6 +2266,7 @@ strings =
 		autoEquip					 	= "Auto-Equip",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
 	},     
     ["fr"] =
     {
@@ -2795,6 +2814,7 @@ strings =
 		autoEquip					 	= "Auto-Equip",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
 	},       
     ["ru"] =
     {
@@ -3342,6 +3362,7 @@ strings =
 		autoEquip					 	= "Auto-Equip",
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
+		eorzeaTime						= "Eorzea Time",
 	},    	
 
 }

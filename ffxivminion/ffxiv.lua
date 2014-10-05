@@ -129,6 +129,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 			gStatusMarkerTime = ""
 		end
 		
+		local et = EorzeaTime() 
+		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
+		
 		-- Mesher.lua
 		ml_mesh_mgr.OnUpdate( tickcount )
 		
@@ -333,6 +336,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].eorzeaTime,"gEorzeaTime", group)
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)
