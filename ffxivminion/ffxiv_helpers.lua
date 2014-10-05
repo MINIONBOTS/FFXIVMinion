@@ -652,7 +652,7 @@ function GetPVPTarget()
     
 	local enemyParty = nil
 	if (Player.localmapid == 376) then
-		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxpathdistance=45")
+		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 	else
 		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
 	end
@@ -2143,6 +2143,8 @@ function GetDutyFromID(dutyID)
 	
 	return ""
 end
+
+--
 
 function GetBestGrindMap()
 	local mapid = Player.localmapid

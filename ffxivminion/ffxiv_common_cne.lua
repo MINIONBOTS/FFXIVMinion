@@ -1396,12 +1396,16 @@ function c_returntomarker:evaluate()
 		end
 		
 		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
-			local nearestTarget = GetPVPTarget()
-			if (nearestTarget) then
+			if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or Player.localmapid ~= 376) then
+				local nearestTarget = GetPVPTarget()
+				if (nearestTarget) then
+					return false
+				end
+				if (distance > 25) then
+					return true
+				end
+			else
 				return false
-			end
-			if (distance > 15) then
-				return true
 			end
 		end	
 		
