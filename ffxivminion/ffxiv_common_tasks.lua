@@ -136,12 +136,20 @@ function ffxiv_task_movetopos.Create()
 	newinst.objectid = 0
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.postDelay = 0
+	newinst.dismountTimer = 0
+	newinst.dismountDistance = 0
     
     return newinst
 end
 
 function ffxiv_task_movetopos:Init()	
-    local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+    self:add( ke_teleportToPos, self.process_elements)
+	
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
+    self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
     self:add( ke_mount, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
@@ -150,35 +158,14 @@ function ffxiv_task_movetopos:Init()
     -- The parent needs to take care of checking and updating the position of this task!!	
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
     self:add( ke_walkToPos, self.process_elements)
-	
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 10 )
-    self:add( ke_teleportToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_movetopos:Process()
-	local parentTask = ml_task_hub:ThisTask():ParentTask()
+	local parentTask = self:ParentTask()
 	if(ValidTable(parentTask)) then
-		if (ml_task_hub:ThisTask():ParentTask().name == "LT_KILLTARGET") then
-			local target = Player:GetTarget()
-			
-			if 	( target and target.alive ) then
-				if (not target.los or not InCombatRange(target.id)) then
-					ml_task_hub:ThisTask().useFollowMovement = false
-				else
-					ml_task_hub:ThisTask().useFollowMovement = true
-				end
-				if (target.type < 3 and not Player.ismounted) then
-					SkillMgr.Cast( target )
-				end
-			else
-				ml_task_hub:ThisTask().useFollowMovement = false
-			end
-		end
-		
-		--[[
-		if (ml_task_hub:ThisTask():ParentTask().name == "LT_FATE" and TimeSince(ml_task_hub:ThisTask().obstacleTimer) > 10000) then
+		if (self:ParentTask().name == "LT_FATE" and TimeSince(self.obstacleTimer) > 10000) then
 			NavigationManager:ClearAvoidanceAreas()
 			local el = EntityList("attackable,aggressive,notincombat,maxdistance=100,fateid=0")
 	
@@ -188,17 +175,14 @@ function ffxiv_task_movetopos:Process()
 			local plvl = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
 		  
 			for i,e in pairs(el) do
-				if (e.level >= (plvl - 3)) then
-					local pos = shallowcopy(e.pos)
-					pos.r = 15.0
-					obst[count] = pos
-					count = count + 1
-				end
+				local pos = shallowcopy(e.pos)
+				pos.r = 20.0
+				obst[count] = pos
+				count = count + 1
 			end
 			NavigationManager:SetAvoidanceAreas(obst)
-			ml_task_hub:ThisTask().obstacleTimer = Now()
+			self.obstacleTimer = Now()
 		end
-		--]]
 	end
 	
 	if (TableSize(self.process_elements) > 0) then
@@ -229,7 +213,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		
 		local distance = 0.0
 		
-		if(ml_task_hub:CurrentTask().use3d) then
+		if (ml_task_hub:CurrentTask().use3d) then
 			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		else
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -254,7 +238,12 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (distance <= (self.range + self.gatherRange) and pathdistance < 10) then
 				return true
 			end
-		else
+		else	
+			if (self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and Now() > self.dismountTimer) then
+				Dismount()
+				self.dismountTimer = Now() + 1500
+			end
+				
 			if (distance <= (self.range + self.gatherRange)) then
 				return true
 			end
@@ -307,6 +296,7 @@ function ffxiv_task_movetomap.Create()
     newinst.name = "MOVETOMAP"
     newinst.destMapID = 0
     newinst.tryTP = true
+	newinst.pos = nil
    
     return newinst
 end
@@ -314,6 +304,9 @@ end
 function ffxiv_task_movetomap:Init()
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
     self:add( ke_teleportToMap, self.process_elements)
+	
+	local ke_transportGate = ml_element:create( "TransportGate", c_transportgate, e_transportgate, 12 )
+    self:add( ke_transportGate, self.process_elements)
 	
 	local ke_interactGate = ml_element:create( "InteractGate", c_interactgate, e_interactgate, 11 )
     self:add( ke_interactGate, self.process_elements)
@@ -397,7 +390,7 @@ function ffxiv_task_teleport:Init()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 2000) then
+	if (TimeSince(self.started) < 1500) then
 		return false
 	end
 	
@@ -408,19 +401,17 @@ function ffxiv_task_teleport:task_complete_eval()
 			not IsLoading()) 
 	then
 		if (Player.onmesh) then
-			d("Player landed on mesh, setting evac point to crystal.")
 			ffxiv_task_grind.SetEvacPoint()
 			return true
 		else
 			if (NavigationManager:GetNavMeshName() ~= self.mesh) then
-				d("Mesh for this location seems to be invalid, attempting to load a better one.. loading:"..tostring(self.mesh))
 				ml_mesh_mgr.LoadNavMesh(self.mesh)
 				return false
 			end
 		end
 	end
 	
-	if (TimeSince(ml_task_hub:ThisTask().started) > 30000) then
+	if (TimeSince(self.started) > 30000) then
 		return true
 	end
 	
@@ -902,8 +893,11 @@ function ffxiv_mesh_interact.Create()
     newinst.overwatch_elements = {}
     newinst.name = "MESH_INTERACT"
 	
+	newinst.uniqueid = 0
 	newinst.interact = 0
     newinst.lastinteract = 0
+	newinst.pos = false
+	newinst.range = 1.5
 	
     return newinst
 end
@@ -911,17 +905,42 @@ end
 function ffxiv_mesh_interact:Init()
 	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
     self:add( ke_questYesNo, self.overwatch_elements)
+	
+	if (self.pos and ValidTable(self.pos)) then		
+		local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+		self:add( ke_walkToPos, self.process_elements)
+	end
 
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_mesh_interact:task_complete_eval()
+function ffxiv_mesh_interact:task_complete_eval()	
+	if (self.pos and ValidTable(self.pos)) then
+		local ppos = shallowcopy(Player.pos)
+		if (Distance2D(ppos.x,ppos.z,self.pos.x,self.pos.z) > (self.range)) then
+			return false
+		elseif (Player:IsMoving()) then
+			Player:Stop()
+			return false
+		end
+	end
+	
 	if (self.interact == 0) then
-		local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=4")
-		if (interacts) then
-			local i, interact = next(interacts)
-			if (interact and interact.id and interact.id ~= 0) then
-				self.interact = interact.id
+		if (self.uniqueid ~= 0) then
+			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=5")
+			if (interacts) then
+				local i, interact = next(interacts)
+				if (interact and interact.id and interact.id ~= 0) then
+					self.interact = interact.id
+				end
+			end
+		else
+			local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=4")
+			if (interacts) then
+				local i, interact = next(interacts)
+				if (interact and interact.id and interact.id ~= 0) then
+					self.interact = interact.id
+				end
 			end
 		end
 	end
@@ -951,5 +970,126 @@ function ffxiv_mesh_interact:task_fail_eval()
 end
 
 function ffxiv_mesh_interact:task_fail_execute()
+    self.valid = false
+end
+
+--=====USE BOAT====
+
+ffxiv_nav_interact = inheritsFrom(ml_task)
+function ffxiv_nav_interact.Create()
+    local newinst = inheritsFrom(ffxiv_nav_interact)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "NAV_INTERACT"
+	
+	newinst.uniqueid = 0
+	newinst.interact = 0
+    newinst.lastinteract = 0
+	newinst.conversationIndex = 0
+	newinst.pos = false
+	newinst.range = 1.5
+	newinst.areaChanged = false
+	newinst.addedMoveElement = false
+	
+    return newinst
+end
+
+function ffxiv_nav_interact:Init()
+	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
+    self:add( ke_questYesNo, self.overwatch_elements)
+	
+	local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
+    self:add( ke_convIndex, self.overwatch_elements)
+
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_nav_interact:task_complete_eval()		
+	if (IsLoading() and not self.areaChanged) then
+		for i, element in pairs(self.process_elements) do
+			if (element.name == "WalkToPos" or element.name == "Mount") then
+				table.remove(self.process_elements,i)
+			end
+		end
+		self.areaChanged = true
+	end
+	
+	if (not IsLoading() and self.areaChanged and not ml_mesh_mgr.meshLoading and Player.onmesh) then
+		return true
+	end
+	
+	if (self.pos and ValidTable(self.pos)) then
+		if (not self.addedMoveElement) then
+			
+			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+			self:add( ke_mount, self.process_elements)
+			
+			local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+			self:add( ke_walkToPos, self.process_elements)
+			self.addedMoveElement = true
+		end
+		
+		local ppos = shallowcopy(Player.pos)
+		if (Distance2D(ppos.x,ppos.z,self.pos.x,self.pos.z) > (self.range)) then
+			return false
+		elseif (Player:IsMoving()) then
+			Player:Stop()
+			return false
+		end
+	end
+	
+	if (self.interact == 0) then
+		if (self.uniqueid ~= 0) then
+			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=5")
+			if (interacts) then
+				local i, interact = next(interacts)
+				if (interact and interact.id and interact.id ~= 0) then
+					Player:SetTarget(interact.id)
+					self.interact = interact.id
+				end
+			end
+		end
+	end
+	
+	if (Player.ismounted) then
+		Dismount()
+		self.lastinteract = Now() + 2000
+		return false
+	end
+	
+	if (self.interact ~= 0 and Now() > self.lastinteract) then
+		Player:Interact(self.interact)
+		self.lastinteract = Now() + 4000
+		return false
+	end
+	
+	local interact = EntityList:Get(tonumber(self.interact))
+	if (not interact or not interact.targetable or interact.distance > 5) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_nav_interact:task_complete_execute()
+    Player:Stop()
+	self.completed = true
+end
+
+function ffxiv_nav_interact:task_fail_eval()
+    if (Player.hasaggro or Player.incombat or not Player.alive) then
+		return true
+	end
+	
+	return false
+end
+
+function ffxiv_nav_interact:task_fail_execute()
     self.valid = false
 end
