@@ -599,6 +599,176 @@ function e_interactgate:execute()
 	Player:Interact(gate.id)
 end
 
+c_usenavinteraction = inheritsFrom( ml_cause )
+e_usenavinteraction = inheritsFrom( ml_effect)
+e_usenavinteraction.task = nil
+function c_usenavinteraction:evaluate()
+	local gotoPos = ml_task_hub:ThisTask().pos
+	
+	requiresTransport = {
+		[139] = { name = "Upper La Noscea",
+			test = function()
+				if (Player.pos.x < 0 and gotoPos.x > 0) then
+					--d("Need  to move from west to east.")
+					return true
+				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
+					--d("Need  to move from west to east.")
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.x < 0 and gotoPos.x > 0) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -341.24, y = -1, z = 112.098}
+					newTask.uniqueid = 1003586
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 220.899, y = 1.7, z = 257.399}
+					newTask.uniqueid = 1003587
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[137] = { name = "Eastern La Noscea",
+			test = function()
+				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
+					--d("Need to move from Costa area to Wineport.")
+					return true
+				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
+					--d("Need to move from Wineport to Costa area.")
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
+					if (gUseAetherytes == "1") then
+						Player:Stop()
+						Dismount()
+						
+						if (Player.ismounted) then
+							return
+						end
+						
+						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+							Player:Teleport(12)
+						end
+					else
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
+						newTask.uniqueid = 1003588
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
+					if (gUseAetherytes == "1") then
+						Player:Stop()
+						Dismount()
+						
+						if (Player.ismounted) then
+							return
+						end
+						
+						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+							Player:Teleport(11)
+						end
+					else
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
+						newTask.uniqueid = 1003589
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end,
+		},
+		[138] = { name = "Western La Noscea",
+			test = function()
+				if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
+					return true
+				elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 318.314, y = -36, z = 351.376}
+					newTask.uniqueid = 1003584
+					newTask.conversationIndex = 3
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -290, y = -41.263, z = 407.726}
+					newTask.uniqueid = 1005239
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[130] = { name = "Uldah Airstrip",
+			test = function()
+				if (Player.pos.y < 40 and gotoPos.y > 50) then
+					return true
+				elseif (Player.pos.y > 50 and gotoPos.y < 40) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.y < 40 and gotoPos.y > 50) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -20.760, y = 10, z = -45.3617}
+					newTask.uniqueid = 1001834
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.y > 50 and gotoPos.y < 40) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
+					newTask.uniqueid = 1004339
+					newTask.conversationIndex = 2
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[128] = { name = "Limsa Airstrip",
+			test = function()
+				if (Player.pos.y < 60 and gotoPos.y > 70) then
+					return true
+				elseif (Player.pos.y > 70 and gotoPos.y < 60) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.y < 60 and gotoPos.y > 70) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 7.802, y = 40, z = 16.158}
+					newTask.uniqueid = 1003597
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.y > 70 and gotoPos.y < 60) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
+					newTask.uniqueid = 1003583
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+	}
+	
+	if (requiresTransport[Player.localmapid]) then
+		e_usenavinteraction.task = requiresTransport[Player.localmapid].reaction
+		return requiresTransport[Player.localmapid].test()
+	end
+	
+	return false
+end
+function e_usenavinteraction:execute()
+	e_usenavinteraction.task()
+end
+
 c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 function c_movetogate:evaluate()
