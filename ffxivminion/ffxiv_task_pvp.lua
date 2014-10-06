@@ -103,6 +103,25 @@ function e_pressleave:execute()
     end
 end
 
+c_detectkick = inheritsFrom( ml_cause )
+e_detectkick = inheritsFrom( ml_effect )
+c_detectkick.throttle = 1000
+function c_detectkick:evaluate() 
+    return (not MultiComp(Player.localmapid, "337,175,336,352,376") and 
+		(ml_task_hub:ThisTask().state == "WAITING_FOR_COMBAT" or ml_task_hub:ThisTask().state == "COMBAT_STARTED"))
+end
+function e_detectkick:execute()
+	-- reset pvp task state since it doesn't get terminated/reinstantiated
+	ml_task_hub:ThisTask().state = "COMBAT_ENDED"
+	ml_task_hub:ThisTask().targetid = 0
+	ml_task_hub:ThisTask().startTimer = 0
+	ml_task_hub:ThisTask().leaveTimer = 0
+	ml_task_hub:ThisTask().enterTimer = 0
+	ml_task_hub:ThisTask().afkTimer = 0
+	Player:Stop()
+	ml_task_hub:ThisTask():ResetMarkerStatus()
+end
+
 --d(ml_task_hub:CurrentTask().state)
 
 c_startcombat = inheritsFrom( ml_cause )
@@ -318,8 +337,7 @@ function c_nextpvpmarker:evaluate()
         return false
     end
 	
-	local nearestTarget = GetPVPTarget()
-	if (nearestTarget) then
+	if (ml_task_hub:ThisTask().targetid ~= 0) then
 		return false
 	end
 	
@@ -530,6 +548,9 @@ function ffxiv_task_pvp:Init()
 	
 	local ke_pressLeave = ml_element:create( "LeaveColosseum", c_pressleave, e_pressleave, 10 )
     self:add(ke_pressLeave, self.overwatch_elements)
+	
+	local ke_detectKick = ml_element:create( "DetectKick", c_detectkick, e_detectkick, 10 )
+    self:add(ke_detectKick, self.overwatch_elements)
 	
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 19 )
     self:add(ke_returnToMarker, self.process_elements)
