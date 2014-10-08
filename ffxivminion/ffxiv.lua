@@ -222,7 +222,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		--["NavTest"]								= ffxiv_task_test,
+		["NavTest"]								= ffxiv_task_test,
 	}
 	
 	if ( not ffxivminion.Windows ) then
