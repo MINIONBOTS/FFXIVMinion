@@ -396,7 +396,7 @@ function c_questkill:evaluate()
 	
 		--otherwise check for mobs not incombat so we get credit for kill
 		if(not ValidTable(el)) then
-			el = EntityList("shortestpath,onmesh,alive,attackable,notincombat,contentid="..tostring(id))
+			el = EntityList("shortestpath,onmesh,alive,attackable,fateid=0,notincombat,contentid="..tostring(id))
 		end
 		
 		if(ValidTable(el)) then
