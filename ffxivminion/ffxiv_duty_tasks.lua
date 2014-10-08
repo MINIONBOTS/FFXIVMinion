@@ -440,7 +440,7 @@ function e_roll:execute()
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
-				if (gLootOption == "Greed" or gLootOption == "Any") then 
+				if (gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any") then 
 					e:Greed()
 					ml_task_hub:CurrentTask().rollstate = "Pass"					
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
@@ -449,10 +449,8 @@ function e_roll:execute()
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
-				if (gLootOption == "Pass" or gLootOption == "Any") then 
-					e:Pass()
-					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
-				end
+				e:Pass()
+				ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
 				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
 			i,e = next (loot,i)

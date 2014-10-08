@@ -406,10 +406,11 @@ function c_avoid:evaluate()
 				if (not ml_blacklist.CheckBlacklistEntry(GetString("aoe"), e.castinginfo.channelingid)) then
 					local epos = shallowcopy(e.pos)
 					local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
+					
 					if not (e.castinginfo.casttime < 1.5 
 						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
 						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 5)) then
+						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 7)) then
 						c_avoid.target = e
 						return true
 					end
@@ -420,7 +421,7 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
+	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 7)) then
 		return false
 	end
 	

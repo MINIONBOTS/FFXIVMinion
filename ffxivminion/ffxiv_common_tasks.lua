@@ -86,7 +86,7 @@ function ffxiv_task_killtarget:task_complete_execute()
 end
 
 function ffxiv_task_killtarget:task_fail_eval()
-	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
+	local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
 	return not ValidTable(target)
 end
 
@@ -878,6 +878,11 @@ end
 function ffxiv_task_grindCombat:task_complete_execute()
     Player:Stop()
 	self.completed = true
+end
+
+function ffxiv_task_grindCombat:task_fail_eval()
+	local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
+	return not ValidTable(target)
 end
 
 ffxiv_mesh_interact = inheritsFrom(ml_task)
