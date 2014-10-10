@@ -880,11 +880,6 @@ function ffxiv_task_grindCombat:task_complete_execute()
 	self.completed = true
 end
 
-function ffxiv_task_grindCombat:task_fail_eval()
-	local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
-	return not ValidTable(target)
-end
-
 ffxiv_mesh_interact = inheritsFrom(ml_task)
 function ffxiv_mesh_interact.Create()
     local newinst = inheritsFrom(ffxiv_mesh_interact)
