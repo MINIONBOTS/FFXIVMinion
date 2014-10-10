@@ -739,6 +739,9 @@ function ffxiv_quest_useaction:Init()
     local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
     self:add( ke_questMoveToMap, self.process_elements)
 	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 22 )
+    self:add( ke_rest, self.process_elements)
+	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 20 )
     self:add( ke_questMoveToPos, self.process_elements)
 	

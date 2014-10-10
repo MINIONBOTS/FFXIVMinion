@@ -636,9 +636,12 @@ function c_questuseitem:evaluate()
 					id, entity = next(list)
 					if(id ~= nil and entity.targetable) then
 						e_questuseitem.id = id
+					else
+						return false
 					end
 				end
 			end
+			
 			return true
 		else
 			d("No item with specified ID found in inventory")
@@ -654,6 +657,9 @@ function e_questuseitem:execute()
 	if(e_questuseitem.id ~= nil) then
 		Player:SetTarget(e_questuseitem.id)
 		item:Use(e_questuseitem.id)
+	elseif(ml_task_hub:CurrentTask().params["usepos"]) then
+		local pos = ml_task_hub:CurrentTask().params["usepos"]
+		item:Use(pos.x, pos.y, pos.z)
 	else
 		item:Use()
 	end

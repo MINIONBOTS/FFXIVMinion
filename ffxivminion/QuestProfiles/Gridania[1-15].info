@@ -5759,6 +5759,7 @@ local obj1 = {
 					};
 					["restartatstep"] = 2;
 					["healerid"] = 1376;
+					["delay"] = 10000;
 				};
 				[1] = {
 					["mapid"] = 148;
