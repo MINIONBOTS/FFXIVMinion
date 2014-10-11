@@ -111,7 +111,8 @@ function ffxiv_task_quest.QuestObjectiveChanged()
 	end
 end
 
-function ffxiv_task_quest.AddEquipItem(itemid, ignoreLevel)
+function ffxiv_task_quest.AddEquipItem(itemid, ignoreLevel, itemtype)
+	local itemTable = {type = itemtype}
 	local equipTable = ml_global_information.itemIDsToEquip[gProfile]
 	if(not equipTable) then
 		equipTable = {}
@@ -124,10 +125,10 @@ function ffxiv_task_quest.AddEquipItem(itemid, ignoreLevel)
 	end
 	equipTable[Player.job] = jobTable
 	
-	jobTable[itemid] = true
+	jobTable[itemid] = itemTable
 	
 	if(ignoreLevel) then
-		ffxiv_task_quest.ignoreLevelItemIDs[itemid] = true
+		ffxiv_task_quest.ignoreLevelItemIDs[itemid] = itemTable
 	end
 	
 	Settings.FFXIVMINION.itemIDsToEquip = ml_global_information.itemIDsToEquip

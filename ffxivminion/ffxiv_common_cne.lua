@@ -2060,11 +2060,11 @@ function c_equip:evaluate()
 	
 	local itemids = {}
 	if(ValidTable(itemIDsToEquip)) then
-		for id,_ in pairs(itemIDsToEquip) do
+		for id,data in pairs(itemIDsToEquip) do
 			local item = Inventory:Get(id)
 			if(ValidTable(item) and item.canequip) then
 				--transfer the id to the temp list for equipping and remove from the global list
-				itemids[id] = true
+				itemids[id] = data
 				itemIDsToEquip[id] = nil
 			end
 		end
@@ -2082,7 +2082,7 @@ function c_equip:evaluate()
 	return false
 end
 function e_equip:execute()
-	local id, _ = next(e_equip.itemids)
+	local id, data = next(e_equip.itemids)
 	if(id) then
 		local newItem = Inventory:Get(id)
 		if(ValidTable(newItem)) then
@@ -2095,7 +2095,7 @@ function e_equip:execute()
 				local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
 				local ignoreLevel = ffxiv_task_quest.ignoreLevelItemIDs[id]
 				if(not currItem or (currItem and ((currItem.level <= newItem.level) or ignoreLevel))) then
-					EquipItem(id)
+					EquipItem(id, data.type)
 					ml_task_hub:CurrentTask():SetDelay(500)
 				else
 					e_equip.itemids[id] = nil

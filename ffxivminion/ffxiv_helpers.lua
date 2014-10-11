@@ -2199,10 +2199,15 @@ function GetBestGrindMap()
 	end
 end
 
-function EquipItem(itemID)
+function EquipItem(itemID, itemtype)
+	local itemtype = itemtype or 0
 	local item = Inventory:Get(itemID)
 	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-		item:Move(1000,GetEquipSlotForItem(item))
+		if (itemtype ~= 0) then
+			item:Move(1000,itemtype)
+		else
+			item:Move(1000,GetEquipSlotForItem(item))
+		end
 	end
 end
 
