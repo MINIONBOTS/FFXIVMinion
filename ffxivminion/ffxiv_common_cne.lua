@@ -404,7 +404,7 @@ function c_avoid:evaluate()
 					local epos = shallowcopy(e.pos)
 					local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
 					
-					if not (e.castinginfo.casttime < 1.5 
+					if not (e.castinginfo.casttime < 1.3 
 						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
 						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
 						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 7)) then
@@ -429,7 +429,7 @@ function c_avoid:evaluate()
 	local epos = target.pos
 	local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
 	--Check to see if our current target is casting on us.
-    if (target.castinginfo.casttime < 1.5 
+    if (target.castinginfo.casttime < 1.3
 		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
 		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) then
         return false
@@ -454,11 +454,13 @@ function e_avoid:execute()
 	
 	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
 	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
+	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
 	
 	local options1 = {
 		GetPosFromDistanceHeading(epos, target.hitradius + 13, mobRear),
 		GetPosFromDistanceHeading(epos, target.hitradius + 11, mobRight),
 		GetPosFromDistanceHeading(epos, target.hitradius + 11, mobLeft),
+		GetPosFromDistanceHeading(epos, target.hitradius + 11, playerRear),
 	}
 	
 	local options2 = {
@@ -515,13 +517,15 @@ function e_avoid:execute()
 		escapePoint = closest
 	end
 	
-	local newTask = ffxiv_task_avoid.Create()
-	newTask.pos = escapePoint
-	newTask.targetid = target.id
-	newTask.interruptCasting = true
-	newTask.maxTime = tonumber(target.castinginfo.casttime)
-	ml_task_hub:ThisTask().preserveSubtasks = true
-	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	if (ValidTable(escapePoint)) then
+		local newTask = ffxiv_task_avoid.Create()
+		newTask.pos = escapePoint
+		newTask.targetid = target.id
+		newTask.interruptCasting = true
+		newTask.maxTime = tonumber(target.castinginfo.casttime)
+		ml_task_hub:ThisTask().preserveSubtasks = true
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	end
 end
 
 ---------------------------------------------------------------------------------------------
