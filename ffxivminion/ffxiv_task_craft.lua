@@ -64,6 +64,10 @@ e_precraftbuff = inheritsFrom( ml_effect )
 e_precraftbuff.id = 0
 function c_precraftbuff:evaluate()
 	local synth = Crafting:SynthInfo()	
+	if (not synth) then
+		Repair()
+	end
+	
 	if (not synth) then	
 		local foodID = 0
 		if (gFoodHQ ~= "None") then
