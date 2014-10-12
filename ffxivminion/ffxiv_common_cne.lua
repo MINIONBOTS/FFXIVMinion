@@ -456,6 +456,8 @@ function e_avoid:execute()
 	
 	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
 	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
+	local playerRearLeft = ConvertHeading((h + (math.pi * .65)))%(2*math.pi)
+	local playerRearRight = ConvertHeading((h - (math.pi * .65)))%(2*math.pi)
 	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
 	
 	local dodgeDist = 0
@@ -475,7 +477,6 @@ function e_avoid:execute()
 		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
 		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
 		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
-		GetPosFromDistanceHeading(epos, target.hitradius + 11, playerRear),
 	}
 	
 	local options2 = {
