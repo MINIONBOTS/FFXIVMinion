@@ -302,8 +302,6 @@ function c_nextatma:evaluate()
 		
 			if (not haveBest) then
 				if (atma.map ~= map) then
-					--We need the best atma, and it's not on this map, so move to it.
-					d("Setting next atma according to time theory rules.")
 					e_nextatma.atma = atma
 					return true
 				end
@@ -357,7 +355,6 @@ function c_nextatma:evaluate()
 		end
 		
 		if (not found) then
-			d("We don't need the atma for the map we are currently on, go somewhere else.")
 			e_nextatma.atma = atma
 			return true
 		end
@@ -374,7 +371,7 @@ function e_nextatma:execute()
 	if (Player.ismounted) then
 		return
 	end
-
+	
 	if (ActionIsReady(5)) then
 		Player:Teleport(atma.tele)
 		
@@ -406,10 +403,11 @@ function c_avoid:evaluate()
 				if (not ml_blacklist.CheckBlacklistEntry(GetString("aoe"), e.castinginfo.channelingid)) then
 					local epos = shallowcopy(e.pos)
 					local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
-					if not (e.castinginfo.casttime < 1.5 
+					
+					if not (e.castinginfo.casttime < 1.3 
 						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
 						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 5)) then
+						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 7)) then
 						c_avoid.target = e
 						return true
 					end
@@ -420,7 +418,7 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 5)) then
+	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 7)) then
 		return false
 	end
 	
@@ -431,7 +429,7 @@ function c_avoid:evaluate()
 	local epos = target.pos
 	local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
 	--Check to see if our current target is casting on us.
-    if (target.castinginfo.casttime < 1.5 
+    if (target.castinginfo.casttime < 1.3
 		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
 		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) then
         return false
@@ -441,34 +439,106 @@ function c_avoid:evaluate()
     return true
 end
 
-function e_avoid:execute() 
+function e_avoid:execute() 	
 	local target = c_avoid.target
-	local pos = Player.pos
+	local ppos = Player.pos
 	local epos = target.pos
-	local angle = AngleFromPos(pos, epos)
-	local angle2 = AngleFromPos(epos, pos)
-	local onMesh = false
-	local attempt = 0
 	local escapePoint
+
+	local h = ConvertHeading(ppos.h)
+	local eh = ConvertHeading(epos.h)
 	
+	local mobRight = ConvertHeading((eh - (math.pi/2)))%(2*math.pi)
+	local mobLeft = ConvertHeading((eh + (math.pi/2)))%(2*math.pi)
+	local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
+	local mobFrontLeft = ConvertHeading((eh + (math.pi * .25)))%(2*math.pi)
+	local mobFrontRight = ConvertHeading((eh - (math.pi * .25)))%(2*math.pi)
+	
+	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
+	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
+	local playerRearLeft = ConvertHeading((h + (math.pi * .65)))%(2*math.pi)
+	local playerRearRight = ConvertHeading((h - (math.pi * .65)))%(2*math.pi)
+	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
+	
+	local dodgeDist = 0
+	if (target.hitradius < 2) then
+		dodgeDist = 8
+	elseif (target.hitradius >= 2 and target.hitradius < 3) then
+		dodgeDist = 10
+	else
+		dodgeDist = 13
+	end
+	
+		
+	local options1 = {
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRear),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRight),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
+		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
+	}
+	
+	local options2 = {
+		GetPosFromDistanceHeading(ppos, 8, h),
+		GetPosFromDistanceHeading(ppos, 8, playerRight),
+		GetPosFromDistanceHeading(ppos, 8, playerLeft),
+	}
 	
 	if (target.castinginfo.channeltargetid == target.id) then
 		-- If the casting target is the entity's own ID, it is a self-centered aoe, so either run away or move very far left and right.
-		escapePoint = (math.random(0,1) == 0 and FindPointOnCircle(epos, angle, (target.hitradius + 13)) or FindPointLeftRight(epos, angle2, (target.hitradius + 13), false))
+		local viable = {}
+		local i = 0
+		for _, pos in pairs(options1) do
+			i = i + 1
+			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
+			if (p and dist <= 5) then
+				viable[i] = p
+			end
+		end
+		
+		local closest = nil
+		local closestDistance = 99
+		for _, pos in pairs(viable) do
+			local distance = Distance3D(pos.x,pos.y,pos.z,ppos.x,ppos.y,ppos.z)
+			if (distance < closestDistance) then
+				closestDistance = distance
+				closest = pos
+			end
+		end
+		
+		escapePoint = closest
 	else
 		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
-		escapePoint = FindPointLeftRight(pos, angle, 8, true)
+		local viable = {}
+		local i = 0
+		for _, pos in pairs(options2) do
+			i = i + 1
+			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
+			if (p and dist <= 5) then
+				viable[i] = p
+			end
+		end
+		
+		local closest = nil
+		local closestDistance = 99
+		for _, pos in pairs(viable) do
+			local distance = Distance3D(pos.x,pos.y,pos.z,ppos.x,ppos.y,ppos.z)
+			if (distance < closestDistance) then
+				closestDistance = distance
+				closest = pos
+			end
+		end
+		
+		escapePoint = closest
 	end
 	
-	local p,dist = NavigationManager:GetClosestPointOnMesh(escapePoint)
-	if (p ~= nil and dist <= 25) then
+	if (ValidTable(escapePoint)) then
 		local newTask = ffxiv_task_avoid.Create()
-		newTask.pos = p
+		newTask.pos = escapePoint
 		newTask.targetid = target.id
 		newTask.interruptCasting = true
-		newTask.maxTime = tonumber(target.castinginfo.casttime) + 500
-		-- set preserveSubtasks = true so that the current kill task is not deleted
-		-- we want it to complete normally after the avoid task completes
+		newTask.maxTime = tonumber(target.castinginfo.casttime)
 		ml_task_hub:ThisTask().preserveSubtasks = true
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
@@ -599,6 +669,45 @@ function e_interactgate:execute()
 	Player:Interact(gate.id)
 end
 
+c_transportgate = inheritsFrom( ml_cause )
+e_transportgate = inheritsFrom( ml_effect )
+e_transportgate.details = nil
+function c_transportgate:evaluate()
+	if (ml_task_hub:ThisTask().destMapID) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
+			local pos = ml_nav_manager.GetNextPathPos( Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
+			ml_task_hub:ThisTask().pos = pos
+			if (not c_usenavinteraction:evaluate()) then
+				if (ValidTable(pos) and pos.b) then
+					local details = {}
+					details.uniqueid = pos.b
+					details.pos = { x = pos.x, y = pos.y, z = pos.z }
+					details.conversationIndex = pos.i or 0
+					e_transportgate.details = details
+					return true
+				elseif (ValidTable(pos) and pos.a) then
+					local details = {}
+					details.uniqueid = pos.a
+					details.pos = { x = pos.x, y = pos.y, z = pos.z }
+					details.conversationIndex = pos.i or 0
+					e_transportgate.details = details
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
+end
+function e_transportgate:execute()
+	local gateDetails = e_transportgate.details
+	local newTask = ffxiv_nav_interact.Create()
+	newTask.pos = gateDetails.pos
+	newTask.uniqueid = gateDetails.uniqueid
+	newTask.conversationIndex = gateDetails.conversationIndex
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 function c_movetogate:evaluate()
@@ -615,10 +724,11 @@ function e_movetogate:execute()
 												ml_task_hub:CurrentTask().destMapID	)
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
-		local newPos = GetPosFromDistanceHeading(pos, 5, pos.h)
+		local newPos = { x = pos.x, y = pos.y, z = pos.z }
+		local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
 		newTask.pos = pos
 		
-		if (not pos.g) then
+		if (not pos.g and not pos.b and not pos.a) then
 			newTask.gatePos = newPos
 		end
 		
@@ -642,8 +752,13 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
+	local el = EntityList("alive,attackable,onmesh,targetingme")
+	if (ValidTable(el)) then
+		return false
+	end
+	
 	local teleport = ActionList:Get(5)
-	if (not teleport or not teleport.isready) then
+	if (not teleport) then
 		return false
 	end
 	
@@ -700,12 +815,12 @@ function e_teleporttomap:execute()
 		return
 	end
 	
-	if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
+	if (ActionIsReady(5)) then
 		Player:Teleport(e_teleporttomap.aethid)
 							
 		local newTask = ffxiv_task_teleport.Create()
 		newTask.mapID = e_teleporttomap.destMap
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
 
@@ -864,7 +979,7 @@ function e_walktopos:execute()
         local gotoPos = c_walktopos.pos
         --d("Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
 		--d("Move To vars"..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..","..tostring(ml_task_hub:CurrentTask().range *0.75)..","..tostring(ml_task_hub:CurrentTask().useFollowMovement or false)..","..tostring(gRandomPaths=="1"))
-        local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub:CurrentTask().range *0.75), ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+		local PathSize = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),tonumber(ml_task_hub:CurrentTask().range *0.75), ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
 		--d(tostring(PathSize))
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
@@ -872,6 +987,207 @@ function e_walktopos:execute()
     c_walktopos.pos = 0
 end
 
+c_usenavinteraction = inheritsFrom( ml_cause )
+e_usenavinteraction = inheritsFrom( ml_effect)
+e_usenavinteraction.task = nil
+function c_usenavinteraction:evaluate()
+	local myPos = shallowcopy(Player.pos)
+	local gotoPos = ml_task_hub:ThisTask().pos
+	
+	requiresTransport = {
+		[139] = { name = "Upper La Noscea",
+			test = function()
+				if (Player.pos.x < 0 and gotoPos.x > 0) then
+					--d("Need  to move from west to east.")
+					return true
+				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
+					--d("Need  to move from west to east.")
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.x < 0 and gotoPos.x > 0) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -341.24, y = -1, z = 112.098}
+					newTask.uniqueid = 1003586
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 220.899, y = 1.7, z = 257.399}
+					newTask.uniqueid = 1003587
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[156] = { name = "Mor Dhona - Cid's Workshop",
+			test = function()
+				if ((myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
+					not (gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) then
+					--d("Need  to move from west to east.")
+					return true
+				elseif (not (myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
+						(gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) then
+					--d("Need  to move from west to east.")
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if ((myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
+					not (gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) 
+				then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = .70, y = -157, z = 16.2}
+					newTask.uniqueid = 2002502
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (not (myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
+						(gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) 
+				then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 21.9, y = 20.7, z = -682}
+					newTask.uniqueid = 1006530
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[137] = { name = "Eastern La Noscea",
+			test = function()
+				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
+					--d("Need to move from Costa area to Wineport.")
+					return true
+				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
+					--d("Need to move from Wineport to Costa area.")
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
+					if (gUseAetherytes == "1") then
+						Player:Stop()
+						Dismount()
+						
+						if (Player.ismounted) then
+							return
+						end
+						
+						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+							Player:Teleport(12)
+						end
+					else
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
+						newTask.uniqueid = 1003588
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
+					if (gUseAetherytes == "1") then
+						Player:Stop()
+						Dismount()
+						
+						if (Player.ismounted) then
+							return
+						end
+						
+						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+							Player:Teleport(11)
+						end
+					else
+						local newTask = ffxiv_nav_interact.Create()
+						newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
+						newTask.uniqueid = 1003589
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+					end
+				end
+			end,
+		},
+		[138] = { name = "Western La Noscea",
+			test = function()
+				if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
+					return true
+				elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 318.314, y = -36, z = 351.376}
+					newTask.uniqueid = 1003584
+					newTask.conversationIndex = 3
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -290, y = -41.263, z = 407.726}
+					newTask.uniqueid = 1005239
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[130] = { name = "Uldah Airstrip",
+			test = function()
+				if (Player.pos.y < 40 and gotoPos.y > 50) then
+					return true
+				elseif (Player.pos.y > 50 and gotoPos.y < 40) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.y < 40 and gotoPos.y > 50) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -20.760, y = 10, z = -45.3617}
+					newTask.uniqueid = 1001834
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.y > 50 and gotoPos.y < 40) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
+					newTask.uniqueid = 1004339
+					newTask.conversationIndex = 2
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+		[128] = { name = "Limsa Airstrip",
+			test = function()
+				if (Player.pos.y < 60 and gotoPos.y > 70) then
+					return true
+				elseif (Player.pos.y > 70 and gotoPos.y < 60) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if (Player.pos.y < 60 and gotoPos.y > 70) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 7.802, y = 40, z = 16.158}
+					newTask.uniqueid = 1003597
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (Player.pos.y > 70 and gotoPos.y < 60) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
+					newTask.uniqueid = 1003583
+					newTask.conversationIndex = 1
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
+	}
+	
+	if (requiresTransport[Player.localmapid]) then
+		e_usenavinteraction.task = requiresTransport[Player.localmapid].reaction
+		return requiresTransport[Player.localmapid].test()
+	end
+	
+	return false
+end
+function e_usenavinteraction:execute()
+	e_usenavinteraction.task()
+end
 
 -- Checks for a better target while we are engaged in fighting an enemy and switches to it
 c_bettertargetsearch = inheritsFrom( ml_cause )
@@ -1217,13 +1533,20 @@ function c_rest:evaluate()
 		return false
 	end
 	
-	--local target = Player:GetTarget()
-	--if (not target and ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and ml_task_hub:CurrentTask().name ~= "QUEST_KILL" and ml_task_hub:CurrentTask().name ~= "LT_QUEST") then
-	--	local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
-	--	if (TableSize(el) == 0) then
---			return false
-	--	end
-	--end
+	--[[
+	local target = Player:GetTarget()
+	if (not target and 
+		ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and 
+		ml_task_hub:ThisTask().name ~= "QUEST_KILL" and 
+		ml_task_hub:ThisTask().name ~= "LT_QUEST" and
+		ml_task_hub:ThisTask().name ~= "QUEST_INTERACT") 
+	then
+		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
+		if (TableSize(el) == 0) then
+			return false
+		end
+	end
+	--]]
 	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
@@ -1781,4 +2104,16 @@ function e_equip:execute()
 			end
 		end
 	end
+end
+
+c_selectconvindex = inheritsFrom( ml_cause )
+e_selectconvindex = inheritsFrom( ml_effect )
+function c_selectconvindex:evaluate()	
+	--check for vendor window open
+	local index = ml_task_hub:CurrentTask().conversationIndex
+	return index and index ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
+end
+function e_selectconvindex:execute()
+	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().conversationIndex))
+	ml_task_hub:CurrentTask():SetDelay(1500)
 end

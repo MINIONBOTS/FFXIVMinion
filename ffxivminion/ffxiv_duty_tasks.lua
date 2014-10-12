@@ -21,6 +21,11 @@ function ffxiv_duty_kill_task.Create()
 	newinst.pullHandled = false
 	newinst.hasSynced = false
 	
+	newinst.immunePulses = 0
+	newinst.lastEntity = nil
+	newinst.lastHPPercent = 100
+	newinst.immuneMax = 80
+	
     return newinst
 end
 
@@ -37,11 +42,8 @@ function ffxiv_duty_kill_task:Process()
 	end
 
 	local entity = GetDutyTarget(killPercent)
-	if (entity) then
-		--d(entity.name)
-	end
 	
-	local myPos = Player.pos
+	local myPos = shallowcopy(Player.pos)
 	local fightPos = nil
 	if (self.encounterData.fightPos) then
 		fightPos = self.encounterData.fightPos["General"]
@@ -53,6 +55,19 @@ function ffxiv_duty_kill_task:Process()
 	end
 	
 	if (ValidTable(entity)) then
+		if (self.lastEntity == nil or self.lastEntity ~= entity.id) then
+			self.lastEntity = entity.id
+			self.lastHPPercent = entity.hp.percent
+			self.immunePulses = 0
+		elseif (self.lastEntity == entity.id) then
+			if (self.lastHPPercent == entity.hp.percent) then
+				self.immunePulses = self.immunePulses + 1
+			elseif (self.lastHPPercent > entity.hp.percent) then
+				self.lastHPPercent = entity.hp.percent
+				self.immunePulses = 0
+			end
+		end
+		
 		if (fightPos and not self.pullHandled) then
 			--fightPos is for handling pull situations
 			if (entity.targetid == 0) then
@@ -65,26 +80,12 @@ function ffxiv_duty_kill_task:Process()
 				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				self.pullHandled = true
 			end
-				--[[
-				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-				Player:SetTarget(entity.id)
-				SkillMgr.Cast( entity )
-				self.timer = Now() + math.random(3000,5000)
-				self.hasFailed = false
-				
-			elseif (Now() <= self.timer) then
-				Player:SetTarget(entity.id)
-				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-				SkillMgr.Cast( entity )
-				self.hasFailed = false
-				
-			elseif (Now() > self.timer and Player.incombat) then
-				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				Player:SetFacingSynced(Player.pos.h)
-				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-				self.pullHandled = true
-			end
-			--]]
+		elseif (fightPos and self.pullHandled and Distance3D(myPos.x,myPos.y,myPos.z,fightPos.x,fightPos.y,fightPos.z) > 1) then
+			GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+		elseif (startPos and fightPos == nil and Distance3D(myPos.x,myPos.y,myPos.z,startPos.x,startPos.y,startPos.z) > 1 and TableSize(SkillMgr.teleBack) == 0) then
+			GameHacks:TeleportToXYZ(startPos.x, startPos.y, startPos.z)
+			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					if (entity.targetid == 0) then
@@ -95,13 +96,11 @@ function ffxiv_duty_kill_task:Process()
 					else
 						self.hasFailed = true
 					end
-			--return false
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
 				ml_task_hub:CurrentTask().encounterData.doKill == true) then
 					self.hasFailed = false
 					
 					local pos = entity.pos
-					
 					Player:SetTarget(entity.id)
 					
 					--Telecasting, teleport to mob portion.
@@ -152,6 +151,11 @@ end
 
 function ffxiv_duty_kill_task:task_complete_eval()
 	-- If the task has failed and we haven't yet started the countdown, start it.
+	if (self.immunePulses > self.immuneMax) then
+		d("Immune pulses reached "..tostring(self.immunePulses).." which exceeds the max of "..tostring(self.immuneMax)) 
+		return true
+	end
+	
 	if (self.hasFailed and self.failTimer == 0) then
 		if (self.encounterData.failTime and self.encounterData.failTime > 0) then
 			self.failTimer = Now() + self.encounterData.failTime
@@ -436,7 +440,7 @@ function e_roll:execute()
 				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
-				if (gLootOption == "Greed" or gLootOption == "Any") then 
+				if (gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any") then 
 					e:Greed()
 					ml_task_hub:CurrentTask().rollstate = "Pass"					
 					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
@@ -445,10 +449,8 @@ function e_roll:execute()
 				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
 			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
-				if (gLootOption == "Pass" or gLootOption == "Any") then 
-					e:Pass()
-					ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
-				end
+				e:Pass()
+				ml_task_hub:CurrentTask().latencyTimer = Now() + 1500
 				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
 			i,e = next (loot,i)

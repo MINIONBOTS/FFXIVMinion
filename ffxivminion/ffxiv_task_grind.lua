@@ -297,18 +297,6 @@ function ffxiv_task_grind.UIInit()
     if (Settings.FFXIVMINION.gMinFateLevel == nil) then
         Settings.FFXIVMINION.gMinFateLevel = "0"
     end
-    if (Settings.FFXIVMINION.gRestHP == nil) then
-        Settings.FFXIVMINION.gRestHP = "70"
-    end
-    if (Settings.FFXIVMINION.gRestMP == nil) then
-        Settings.FFXIVMINION.gRestMP = "0"
-    end
-    if (Settings.FFXIVMINION.gFleeHP == nil) then
-        Settings.FFXIVMINION.gFleeHP = "20"
-    end
-    if (Settings.FFXIVMINION.gFleeMP == nil) then
-        Settings.FFXIVMINION.gFleeMP = "0"
-    end
 	if (Settings.FFXIVMINION.gAtma == nil) then
         Settings.FFXIVMINION.gAtma = "0"
     end
@@ -364,10 +352,6 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",group)
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].claimRange, "gClaimRange", 	group, "0", "50")
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].attackClaimed, "gClaimed",	group)
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
     GUI_NewNumeric(winName, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", group, "1", "100")
 	local group = GetString("fates")
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].restInFates, "gRestInFates",group)
@@ -390,10 +374,6 @@ function ffxiv_task_grind.UIInit()
     gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
     gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
     gRestInFates = Settings.FFXIVMINION.gRestInFates
-    gRestHP = Settings.FFXIVMINION.gRestHP
-    gRestMP = Settings.FFXIVMINION.gRestMP
-    gFleeHP = Settings.FFXIVMINION.gFleeHP
-    gFleeMP = Settings.FFXIVMINION.gFleeMP
     gCombatRangePercent = Settings.FFXIVMINION.gCombatRangePercent
     gFateWaitPercent = Settings.FFXIVMINION.gFateWaitPercent
 	gFateTeleportPercent = Settings.FFXIVMINION.gFateTeleportPercent
