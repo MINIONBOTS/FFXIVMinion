@@ -713,9 +713,11 @@ end
 c_questmovetohealer = inheritsFrom( ml_cause )
 e_questmovetohealer = inheritsFrom( ml_effect )
 function c_questmovetohealer:evaluate()
-	if(ml_task_hub:ThisTask().params["healderid"] and Player.hp.percent < 50) then
+	if(ml_task_hub:ThisTask().params["healderid"] and Player.hp.percent < 80) then
+		d("test1")
 		local list = EntityList("contentid="..tostring(ml_task_hub:ThisTask().params["healderid"]))
 		if(ValidTable(list)) then
+			d("test2")
 			local id, healer = next(list)
 			if(ValidTable(healer) and healer.distance > 5) then
 				e_questmovetohealer.pos = healer.pos
@@ -733,7 +735,7 @@ function e_questmovetohealer:execute()
 	newTask.pos = pos
 	newTask.use3d = true
 	
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
 c_questmovetoactionrange = inheritsFrom( ml_cause )
