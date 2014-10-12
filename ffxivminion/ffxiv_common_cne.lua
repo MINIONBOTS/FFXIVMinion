@@ -451,16 +451,32 @@ function e_avoid:execute()
 	local mobRight = ConvertHeading((eh - (math.pi/2)))%(2*math.pi)
 	local mobLeft = ConvertHeading((eh + (math.pi/2)))%(2*math.pi)
 	local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
+	local mobFrontLeft = ConvertHeading((eh + (math.pi * .25)))%(2*math.pi)
+	local mobFrontRight = ConvertHeading((eh - (math.pi * .25)))%(2*math.pi)
 	
 	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
 	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
+	local playerRearLeft = ConvertHeading((h + (math.pi * .65)))%(2*math.pi)
+	local playerRearRight = ConvertHeading((h - (math.pi * .65)))%(2*math.pi)
 	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
 	
+	local dodgeDist = 0
+	if (target.hitradius < 2) then
+		dodgeDist = 8
+	elseif (target.hitradius >= 2 and target.hitradius < 3) then
+		dodgeDist = 10
+	else
+		dodgeDist = 13
+	end
+	
+		
 	local options1 = {
-		GetPosFromDistanceHeading(epos, target.hitradius + 13, mobRear),
-		GetPosFromDistanceHeading(epos, target.hitradius + 11, mobRight),
-		GetPosFromDistanceHeading(epos, target.hitradius + 11, mobLeft),
-		GetPosFromDistanceHeading(epos, target.hitradius + 11, playerRear),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRear),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRight),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
+		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
 	}
 	
 	local options2 = {
@@ -476,7 +492,7 @@ function e_avoid:execute()
 		for _, pos in pairs(options1) do
 			i = i + 1
 			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
-			if (p and dist <= 20) then
+			if (p and dist <= 5) then
 				viable[i] = p
 			end
 		end
@@ -499,7 +515,7 @@ function e_avoid:execute()
 		for _, pos in pairs(options2) do
 			i = i + 1
 			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
-			if (p and dist <= 20) then
+			if (p and dist <= 5) then
 				viable[i] = p
 			end
 		end
