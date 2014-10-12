@@ -274,7 +274,7 @@ function ffxiv_quest_interact:task_complete_eval()
 	--so if its not targetable or its gone (for doors that make you leave/enter rooms)
 	--then the task is complete
 	local target = Player:GetTarget()
-	if(target and (target.type == 7 or target.type == 3)) then
+	if (target and (target.type == 7 or target.type == 5 or target.type == 3)) then
 		if(ActionList:IsCasting()) then
 			return false
 		end
