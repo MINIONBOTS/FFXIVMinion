@@ -317,6 +317,18 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAvoidAOE == nil) then
 		Settings.FFXIVMINION.gAvoidAOE = "0" 
 	end
+	if (Settings.FFXIVMINION.gRestHP == nil) then
+        Settings.FFXIVMINION.gRestHP = "70"
+    end
+    if (Settings.FFXIVMINION.gRestMP == nil) then
+        Settings.FFXIVMINION.gRestMP = "0"
+    end
+    if (Settings.FFXIVMINION.gFleeHP == nil) then
+        Settings.FFXIVMINION.gFleeHP = "20"
+    end
+    if (Settings.FFXIVMINION.gFleeMP == nil) then
+        Settings.FFXIVMINION.gFleeMP = "0"
+    end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -360,6 +372,12 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(winName,"Cast Prevention","CastPrevention.toggle",group)
 	GUI_NewButton(winName,"Shortcut Manager","ShortcutManager.toggle",group)
 	
+	local group = GetString("playerHPMPTP")
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
+	
 	local group = GetString("hacks")
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].repair,"gRepair",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",group)
@@ -399,6 +417,10 @@ function ffxivminion.HandleInit()
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
 	gDevDebug = Settings.FFXIVMINION.gDevDebug
+	gRestHP = Settings.FFXIVMINION.gRestHP
+    gRestMP = Settings.FFXIVMINION.gRestMP
+    gFleeHP = Settings.FFXIVMINION.gFleeHP
+    gFleeMP = Settings.FFXIVMINION.gFleeMP
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs
