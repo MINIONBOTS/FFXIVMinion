@@ -312,20 +312,20 @@ function ffxiv_quest_interact:Init()
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 22 )
     self:add( ke_rest, self.process_elements)
 	
-	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 20 )
-    self:add( ke_killAggroTarget, self.process_elements)	
-	
 	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
     self:add( ke_questHandover, self.process_elements)	
 	
 	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
     self:add( ke_questSelectConvIndex, self.process_elements)
 	
-	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 10 )
-    self:add( ke_questInteract, self.process_elements)
-	
-	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 10 )
     self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 8 )
+    self:add( ke_killAggroTarget, self.process_elements)
+	
+	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 5 )
+    self:add( ke_questInteract, self.process_elements)
 	
 	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 01 )
     self:add( ke_questIdle, self.process_elements)
@@ -375,8 +375,11 @@ function ffxiv_quest_kill:Init()
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 25 )
     self:add( ke_rest, self.process_elements)
 	
-	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 21 )
+	local ke_incrementKillCount = ml_element:create( "IncrementKillCount", c_inckillcount, e_inckillcount, 22 )
     self:add( ke_incrementKillCount, self.process_elements)
+	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 21 )
+    self:add( ke_killAggroTarget, self.process_elements)
 	
 	local ke_questKill = ml_element:create( "QuestKill", c_questkill, e_questkill, 20 )
     self:add( ke_questKill, self.process_elements)
