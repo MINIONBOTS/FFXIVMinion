@@ -1144,7 +1144,7 @@ function e_questequip:execute()
 	local itemtype = ml_task_hub:CurrentTask().params["itemtype"] or 0
 	
 	if(type(itemid) == "number") then
-		ffxiv_task_quest.AddEquipItem(itemid, false, itemtype)
+		ffxiv_task_quest.AddEquipItem(itemid, true, itemtype)
 	elseif(type(itemid) == "table" and ValidTable(itemid)) then
 		local itemtable = itemid[Player.job] or itemid[-1]
 		if(ValidTable(itemtable)) then

@@ -2109,7 +2109,7 @@ function c_equip:evaluate()
 		e_equip.itemids = itemids
 		
 		--write out changes to item equip table for settings
-		Settings.FFXIVMINION.itemIDsToEquip = ml_global_information.itemIDsToEquip
+		ml_global_information.itemIDsToEquip = itemIDsToEquip
 		Settings.FFXIVMINION.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 		return true
 	end
@@ -2118,16 +2118,21 @@ function c_equip:evaluate()
 end
 function e_equip:execute()
 	local id, data = next(e_equip.itemids)
-	if(id) then
+	if (id) then
 		local newItem = Inventory:Get(id)
 		if(ValidTable(newItem)) then
 			--grab the current item in that slot
 			if(newItem.type == FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-				--we equipped this successfully, remove it from the list
 				e_equip.itemids[id] = nil
 				ffxiv_task_quest.ignoreLevelItemIDs[id] = nil
 			else
-				local currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
+				local currItem = nil
+				if (ValidTable(data)) then
+					currItem = GetItemInSlot(data.type)
+				else
+					currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
+				end
+				
 				local ignoreLevel = ffxiv_task_quest.ignoreLevelItemIDs[id]
 				if(not currItem or (currItem and ((currItem.level <= newItem.level) or ignoreLevel))) then
 					EquipItem(id, data.type)
