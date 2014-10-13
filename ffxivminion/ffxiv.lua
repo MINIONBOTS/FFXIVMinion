@@ -330,10 +330,10 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gFleeMP = "0"
     end
 	if (Settings.FFXIVMINION.gPotionHP == nil) then
-        Settings.FFXIVMINION.gPotionHP = "1"
+        Settings.FFXIVMINION.gPotionHP = "50"
     end
 	if (Settings.FFXIVMINION.gPotionMP == nil) then
-        Settings.FFXIVMINION.gPotionMP = "1"
+        Settings.FFXIVMINION.gPotionMP = "0"
     end
 	
 	local winName = ffxivminion.Windows.Main.Name
