@@ -544,6 +544,41 @@ function e_avoid:execute()
 	end
 end
 
+
+c_autopotion = inheritsFrom( ml_cause )
+e_autopotion = inheritsFrom( ml_effect )
+c_autopotion.potions = "4554;4553;4552;4551"
+c_autopotion.ethers = "4558;4557;4556;4555"
+c_autopotion.itemid = 0
+function c_autopotion:evaluate()	
+	local potions = c_autopotion.potions
+	if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
+		for itemid in StringSplit(potions,";") do
+			if (ItemIsReady(tonumber(itemid))) then
+				c_autopotion.itemid = tonumber(itemid)
+				return true
+			end
+		end
+	end
+	
+	local ethers = c_autopotion.ethers
+	if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
+		for itemid in StringSplit(ethers,";") do
+			if (ItemIsReady(tonumber(itemid))) then
+				c_autopotion.itemid = tonumber(itemid)
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_autopotion:execute()
+	local newTask = ffxiv_task_useitem.Create()
+	newTask.itemid = c_autopotion.itemid
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+end
+
 ---------------------------------------------------------------------------------------------
 --ADD_MOVETOTARGET: If (current target distance > combat range) Then (add movetotarget task)
 --Adds a MoveToTarget task 

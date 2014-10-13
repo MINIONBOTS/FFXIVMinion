@@ -561,6 +561,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 		
 		teleporter 						= "Teleporter",
 		waypoint 						= "Waypoint",
@@ -1170,6 +1172,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 	},
     ["jp"] =
     {
@@ -1718,6 +1722,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 	},   
     ["de"] =
     {
@@ -2267,6 +2273,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 	},     
     ["fr"] =
     {
@@ -2815,6 +2823,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 	},       
     ["ru"] =
     {
@@ -3363,6 +3373,8 @@ strings =
 		idlePulseCount					= "Idle Count",
 		taskDelay						= "Task Delay (ms)",
 		eorzeaTime						= "Eorzea Time",
+		potionHP						= "Potion HP",
+		potionMP						= "Potion MP",
 	},    	
 
 }

@@ -329,6 +329,12 @@ function ffxivminion.HandleInit()
     if (Settings.FFXIVMINION.gFleeMP == nil) then
         Settings.FFXIVMINION.gFleeMP = "0"
     end
+	if (Settings.FFXIVMINION.gPotionHP == nil) then
+        Settings.FFXIVMINION.gPotionHP = "1"
+    end
+	if (Settings.FFXIVMINION.gPotionMP == nil) then
+        Settings.FFXIVMINION.gPotionMP = "1"
+    end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -375,6 +381,8 @@ function ffxivminion.HandleInit()
 	local group = GetString("playerHPMPTP")
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
     GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].potionHP, "gPotionHP", group, "0", "100")
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].potionMP, "gPotionMP", group, "0", "100")
     GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
     GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
 	
@@ -421,6 +429,8 @@ function ffxivminion.HandleInit()
     gRestMP = Settings.FFXIVMINION.gRestMP
     gFleeHP = Settings.FFXIVMINION.gFleeHP
     gFleeMP = Settings.FFXIVMINION.gFleeMP
+	gPotionHP = Settings.FFXIVMINION.gPotionHP
+	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs

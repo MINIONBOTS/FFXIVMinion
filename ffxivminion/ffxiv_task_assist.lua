@@ -39,6 +39,9 @@ function ffxiv_task_assist:Init()
 	local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
 	self:add(ke_avoid, self.process_elements)
 	
+	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
+	self:add(ke_autoPotion, self.process_elements)
+	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 18 )
     self:add( ke_companion, self.process_elements)
 	

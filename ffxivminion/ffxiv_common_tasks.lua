@@ -37,6 +37,9 @@ function ffxiv_task_killtarget:Init()
 	local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
     self:add( ke_avoidance, self.overwatch_elements)
 	
+	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
+	self:add(ke_autoPotion, self.process_elements)
+	
 	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
 	self:add( ke_attarget, self.overwatch_elements)
 	
@@ -789,6 +792,9 @@ end
 function ffxiv_task_grindCombat:Init()
     local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
 	self:add( ke_avoidance, self.overwatch_elements)
+	
+	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
+	self:add(ke_autoPotion, self.overwatch_elements)
 	
 	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
 	self:add( ke_attarget, self.overwatch_elements)
