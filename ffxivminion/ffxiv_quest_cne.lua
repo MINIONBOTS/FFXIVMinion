@@ -688,7 +688,7 @@ function e_questuseitem:execute()
 	else
 		item:Use()
 	end
-		
+	
 	ml_task_hub:ThisTask().stepCompleted = true
 end
 

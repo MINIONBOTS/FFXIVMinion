@@ -282,7 +282,7 @@ function ffxiv_quest_interact:task_complete_eval()
 	
 	local id = ml_task_hub:ThisTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("closest,maxdistance=10,contentid="..tostring(id))
+		local el = EntityList("nearest,maxdistance=10,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(ValidTable(entity) and entity.type == 7) then
@@ -737,15 +737,15 @@ end
 function ffxiv_quest_useitem:task_complete_eval()
 	local target = Player:GetTarget()
 	if(target and (target.type == 7 or target.type == 3)) then
-		if(ActionList:IsCasting()) then
+		if (ActionList:IsCasting()) then
 			return false
 		end
 	end
 	
 	local id = ml_task_hub:ThisTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("closest,maxdistance=10,contentid="..tostring(id))
-		if(ValidTable(el)) then
+		local el = EntityList("shortestpath,maxdistance=10,contentid="..tostring(id))
+		if (ValidTable(el)) then
 			local id, entity = next(el)
 			if(ValidTable(entity)) then
 				return not entity.targetable
@@ -753,12 +753,15 @@ function ffxiv_quest_useitem:task_complete_eval()
 		end
 	end
 	
-	if(ml_task_hub:CurrentTask().params["itemid"]) then
+	local disableCountCheck = ml_task_hub:CurrentTask().params["disablecountcheck"]
+	if (ml_task_hub:CurrentTask().params["itemid"]) then
 		local id = ml_task_hub:CurrentTask().params["itemid"]
 		local item = Inventory:Get(id)
-		if( not ValidTable(item)) then
+		if (not ValidTable(item)) then
 			return true
 		elseif(item.count < ml_task_hub:CurrentTask().startingCount and ml_task_hub:CurrentTask().stepCompleted) then
+			return true
+		elseif(disableCountCheck and IsLoading() and ml_task_hub:ThisTask().stepCompleted) then
 			return true
 		end
 	end
@@ -825,7 +828,7 @@ function ffxiv_quest_useaction:task_complete_eval()
 	
 	local id = ml_task_hub:ThisTask().params["id"]
     if (id and id > 0) then
-		local el = EntityList("closest,maxdistance=10,contentid="..tostring(id))
+		local el = EntityList("nearest,maxdistance=10,contentid="..tostring(id))
 		if(ValidTable(el)) then
 			local id, entity = next(el)
 			if(ValidTable(entity)) then
@@ -972,9 +975,8 @@ function ffxiv_quest_equip:Init()
     local ke_questEquip = ml_element:create( "QuestEquip", c_questequip, e_questequip, 20 )
     self:add( ke_questEquip, self.process_elements)
 	
-	
 	--the questequip cne checks to see if we have equipped all requested items so its also a valid completion eval
-	self.task_complete_eval = function() return not c_questequip:evaluate() end
+	self.task_complete_eval = function() return (not c_questequip:evaluate()) and (not c_equip:evaluate()) end
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
