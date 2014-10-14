@@ -181,10 +181,6 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFatesOnly" or
                 k == "gMinFateLevel" or
                 k == "gMaxFateLevel" or              
-                k == "gRestHP" or
-                k == "gRestMP" or
-                k == "gFleeHP" or
-                k == "gFleeMP" or
                 k == "gFateWaitPercent" or
 				k == "gFateTeleportPercent" or
                 k == "gFateBLTimer" or
