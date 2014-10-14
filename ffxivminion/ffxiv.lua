@@ -613,7 +613,14 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gFood" or
 			k == "gFoodHQ" or 
 			k == "gAvoidAOE" or
-			k == "gDevDebug" )				
+			k == "gDevDebug" or
+			k == "gRestHP" or
+            k == "gRestMP" or
+            k == "gFleeHP" or
+            k == "gFleeMP" or
+			k == "gPotionHP" or
+            k == "gPotionMP"
+			)				
         then
             Settings.FFXIVMINION[tostring(k)] = v
 		elseif ( k == "gMount" ) then
