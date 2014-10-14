@@ -437,6 +437,9 @@ c_questprioritykill = inheritsFrom( ml_cause )
 e_questprioritykill = inheritsFrom( ml_effect )
 function c_questprioritykill:evaluate()
 	local ids = ml_task_hub:ThisTask().params["ids"]
+	if (not ids) then
+		return false
+	end
 	
 	if (ml_task_hub:ThisTask().subtask == nil and ml_task_hub:ThisTask().currentPrio ~= 0) then
 		ml_task_hub:ThisTask().currentPrio = 0

@@ -499,6 +499,103 @@ function ffxiv_quest_dutykill:task_fail_execute()
 	ffxiv_task_quest.ResetStep()
 end
 
+ffxiv_quest_killaggro = inheritsFrom(ml_task)
+ffxiv_quest_killaggro.name = "QUEST_KILLAGGRO"
+function ffxiv_quest_killaggro.Create()
+    local newinst = inheritsFrom(ffxiv_quest_killaggro)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_KILLAGGRO"
+	newinst.currentPrio = 0
+	
+	newinst.timer = 0
+	newinst.failed = false
+	newinst.failTimer = 0
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_killaggro:Init()
+    --init ProcessOverWatch cnes
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 30 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 25 )
+    self:add( ke_rest, self.process_elements)
+	
+	local ke_questPriorityKill = ml_element:create( "QuestPriorityKill", c_questprioritykill, e_questprioritykill, 23 )
+    self:add( ke_questPriorityKill, self.overwatch_elements)
+	
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 21 )
+    self:add( ke_killAggroTarget, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 15 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 10 )
+    self:add( ke_questIdle, self.process_elements)
+	
+	--overwatch
+	local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 15 )
+    self:add( ke_flee, self.overwatch_elements)
+	
+	--self:AddOverwatchTaskCheckCEs()
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_quest_killaggro:task_complete_eval()
+	local ids = ml_task_hub:ThisTask().params["ids"]
+	if (ids) then
+		local el = EntityList("shortestpath,onmesh,alive,attackable,contentid="..ids)
+		if (ValidTable(el)) then
+			self.failTimer = 0
+			return false
+		end
+	end
+	
+	el = EntityList("alive,attackable,onmesh,targetingme")
+	if (ValidTable(el)) then
+		self.failTimer = 0
+		return false
+	end
+	
+	if (self.failTimer == 0) then
+		if (self.params.failtime and self.params.failtime > 0) then
+			self.failTimer = Now() + self.params.failtime
+		else
+			self.failTimer = Now() + math.random(1500,2000)
+		end
+	end
+	
+	-- If the failTimer is not 0 (starting value) and we've exceeded the time, end the task.
+	if (self.failTimer > 0 and Now() > self.failTimer) then
+		return true
+	end
+
+	return false
+end
+
+function ffxiv_quest_killaggro:task_complete_execute()
+	quest_step_complete_execute()
+end
+
+function ffxiv_quest_killaggro:task_fail_eval()
+	return (ffxiv_task_quest.currentQuest:isComplete())
+end
+
+function ffxiv_quest_killaggro:task_fail_execute()
+	quest_step_complete_execute()
+end
+
 ------------------------------------------------------
 --nav helper
 ------------------------------------------------------

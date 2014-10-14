@@ -146,4 +146,5 @@ ffxiv_quest.tasks =
 	["useaction"]	= ffxiv_quest_useaction.Create,
 	["vendor"]		= ffxiv_quest_vendor.Create,
 	["equip"]		= ffxiv_quest_equip.Create,
+	["killaggro"]		= ffxiv_quest_killaggro.Create,
 }
