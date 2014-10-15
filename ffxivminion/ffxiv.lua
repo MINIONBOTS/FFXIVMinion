@@ -10,6 +10,7 @@ ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
 ml_global_information.BlacklistContentID = ""
 ml_global_information.WhitelistContentID = ""
+ml_global_information.currentMarker = false
 ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.IsWaiting = false
@@ -112,17 +113,24 @@ function ml_global_information.OnUpdate( event, tickcount )
 				gBotMode == strings[gCurrentLanguage].gatherMode or
 				gBotMode == strings[gCurrentLanguage].fishMode or
 				gBotMode == strings[gCurrentLanguage].questMode or
-				gBotMode == strings[gCurrentLanguage].huntMode) and (
-				ValidTable(GetCurrentMarker())) and
-				ml_task_hub.shouldRun
+				gBotMode == strings[gCurrentLanguage].huntMode or 
+				gBotMode == strings[gCurrentLanguage].pvpMode ) and
+				ml_task_hub.shouldRun and 
+				ValidTable(ml_global_information.currentMarker)
 		then
-			local timesince = TimeSince(ml_global_information.MarkerTime)
-			local timeleft = ((GetCurrentMarker():GetTime() * 1000) - timesince) / 1000
-			gStatusMarkerTime = tostring(round(timeleft, 1))
+			local timeleft = (ml_global_information.MarkerTime - Now()) / 1000
+			if (timeleft > 0) then
+				gStatusMarkerTime = tostring(round(timeleft, 1))
+			else
+				gStatusMarkerTime = "0.0"
+			end
 		else
 			gStatusMarkerName = ""
 			gStatusMarkerTime = ""
 		end
+		
+		local et = EorzeaTime() 
+		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		-- Mesher.lua
 		ml_mesh_mgr.OnUpdate( tickcount )
@@ -214,7 +222,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		--["NavTest"]								= ffxiv_task_test,
+		["NavTest"]								= ffxiv_task_test,
 	}
 	
 	if ( not ffxivminion.Windows ) then
@@ -309,6 +317,18 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gAvoidAOE == nil) then
 		Settings.FFXIVMINION.gAvoidAOE = "0" 
 	end
+	if (Settings.FFXIVMINION.gRestHP == nil) then
+        Settings.FFXIVMINION.gRestHP = "70"
+    end
+    if (Settings.FFXIVMINION.gRestMP == nil) then
+        Settings.FFXIVMINION.gRestMP = "0"
+    end
+    if (Settings.FFXIVMINION.gFleeHP == nil) then
+        Settings.FFXIVMINION.gFleeHP = "20"
+    end
+    if (Settings.FFXIVMINION.gFleeMP == nil) then
+        Settings.FFXIVMINION.gFleeMP = "0"
+    end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -328,6 +348,7 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].eorzeaTime,"gEorzeaTime", group)
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)
@@ -350,6 +371,12 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(winName, GetString("multiManager"), "MultiBotManager.toggle", group)
 	GUI_NewButton(winName,"Cast Prevention","CastPrevention.toggle",group)
 	GUI_NewButton(winName,"Shortcut Manager","ShortcutManager.toggle",group)
+	
+	local group = GetString("playerHPMPTP")
+	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
+    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
 	
 	local group = GetString("hacks")
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].repair,"gRepair",group)
@@ -390,6 +417,10 @@ function ffxivminion.HandleInit()
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
 	gDevDebug = Settings.FFXIVMINION.gDevDebug
+	gRestHP = Settings.FFXIVMINION.gRestHP
+    gRestMP = Settings.FFXIVMINION.gRestMP
+    gFleeHP = Settings.FFXIVMINION.gFleeHP
+    gFleeMP = Settings.FFXIVMINION.gFleeMP
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs
@@ -450,7 +481,6 @@ function ffxivminion.HandleInit()
 		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].aoe)
 	end
 	
-
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end

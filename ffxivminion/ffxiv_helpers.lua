@@ -240,25 +240,50 @@ function GetHuntTarget()
 		end
 	end
 	
-	if (gHuntBRankHunt == "1" and gHuntBRankHuntID and gHuntBRankHuntID ~= "") then
-		if (excludeString) then
-			el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-		else
-			el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
-		end
-		if (ValidTable(el)) then
-			for i,e in pairs(el) do
-				local myPos = Player.pos
-				local tpos = e.pos
-				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
-				if (distance < nearestDistance) then
-					nearest = e
-					nearestDistance = distance
+	if (gHuntBRankHunt == "1") then
+		if (gHuntBRankHuntID ~= "") then
+			if (excludeString) then
+				el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+			else
+				el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
+			end
+			if (ValidTable(el)) then
+				for i,e in pairs(el) do
+					local myPos = Player.pos
+					local tpos = e.pos
+					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+					if (distance < nearestDistance) then
+						nearest = e
+						nearestDistance = distance
+					end
+				end
+				
+				if (ValidTable(nearest)) then
+					return "B", nearest
 				end
 			end
-			
-			if (ValidTable(nearest)) then
-				return "B", nearest
+		end
+		
+		if (gHuntBRankHuntAny == "1") then
+			if (excludeString) then
+				el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+			else
+				el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
+			end
+			if (ValidTable(el)) then
+				for i,e in pairs(el) do
+					local myPos = Player.pos
+					local tpos = e.pos
+					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+					if (distance < nearestDistance) then
+						nearest = e
+						nearestDistance = distance
+					end
+				end
+				
+				if (ValidTable(nearest)) then
+					return "B", nearest
+				end
 			end
 		end
 	end
@@ -327,7 +352,7 @@ function GetBestPartyHealTarget( npc, range )
 	end
 	
 	if (gBotMode == GetString("partyMode") and not IsLeader()) then
-		local leader = GetPartyLeader()
+		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
 			if (leaderentity and leaderentity.distance <= range) then
@@ -606,7 +631,7 @@ function GetBestRevive( party, role)
 	end
 	
 	if (gBotMode == GetString("partyMode") and not IsLeader()) then
-		local leader = GetPartyLeader()
+		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
 			if (leaderentity and leaderentity.distance <= range and not leader.alive and not HasBuffs(leaderentity, "148")) then
@@ -625,7 +650,12 @@ function GetPVPTarget()
     local nearest = nil
 	local lowestHealth = nil
     
-	local enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+	local enemyParty = nil
+	if (Player.localmapid == 376) then
+		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
+	else
+		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+	end
     if (ValidTable(enemyParty)) then
         local id, entity = next(enemyParty)
         while (id ~= nil and entity ~= nil) do	
@@ -759,6 +789,11 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 
+function GetPrioritizedTarget( targetlist)
+	--targetlist should be a semi-colon ";" separated string list
+	
+end
+
 function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
 	local el = nil
@@ -885,10 +920,20 @@ function GetDutyTarget( maxHP )
 end
 
 function GetNearestAggro()
+	taskName = ml_task_hub:CurrentTask().name
+	
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,exclude_contentid="..excludeString..",maxpathdistance=30") 
+		if (taskName == "LT_GRIND") then
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
+		else
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+		end
 	else
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,maxpathdistance=30") 
+		if (taskName == "LT_GRIND") then
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
+		else
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
+		end
 	end
 	
 	if ( el ) then
@@ -904,15 +949,22 @@ function GetNearestAggro()
 		for i, member in pairs(party) do
 			if (member.id and member.id ~= 0) then
 				if (not IsNullString(excludeString)) then
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+					if (taskName == "LT_GRIND") then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+					end
 				else
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+					if (taskName == "LT_GRIND") then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+					end
 				end
 				
 				if ( el ) then
 					local i,e = next(el)
 					if (i~=nil and e~=nil) then
-						--d("Grind returned, using block:"..tostring(block))
 						return e
 					end
 				end
@@ -1393,7 +1445,8 @@ function GetClosestFate(pos)
 					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
-						local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
 						if (distance) then
 							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 								nearestFate = shallowcopy(fate)
@@ -1435,28 +1488,58 @@ end
 
 function GetPartyLeader()
 	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
-	
 		if (gPartyLeaderName ~= "") then
-		local party = EntityList("type=1,name="..gPartyLeaderName)
-			if (ValidTable(party)) then
-				local i,member = next (party)
-				if (i and member) then
-					return member
+		local el = EntityList("type=1,name="..gPartyLeaderName)
+			if (ValidTable(el)) then
+				local i,leaderentity = next (el)
+				if (i and leaderentity) then
+					return leaderentity, true
 				end
 			end
 		end
 	else
+		local leader = nil
+		local isEntity = false
 		local party = EntityList.myparty
 		if (ValidTable(party)) then
-			for i,m in pairs(party) do
-				if m.isleader then
-					return m
+			for i,member in pairs(party) do
+				if member.isleader then
+					leader = member
+					isEntity = false
 				end
 			end
+		end
+		
+		if (leader) then
+			local el = EntityList("type=1,name="..leader.name)
+			if (ValidTable(el)) then
+				local i,leaderentity = next (el)
+				if (i and leaderentity) then
+					leader = leaderentity
+					isEntity = true
+				end
+			end
+		end
+		
+		if (leader) then
+			return leader, isEntity
 		end
 	end 
     
     return nil	    
+end
+
+function GetPartyLeaderPos()
+	local pos = nil
+	
+	local leader, isEntity = GetPartyLeader()
+    if (leader) then
+		if (leader.pos.x ~= -1000) then
+			pos = shallowcopy(leader.pos)
+		end
+	end
+	
+	return pos
 end
 
 function IsInParty(id)
@@ -1977,6 +2060,48 @@ function GetClosestAetheryteToMapIDPos(mapid, p)
 	end
 end
 
+function MoveTo(X,Y,Z, stoppingdistance, followmovement, randomizePaths)
+	local stoppingdistance = stoppingdistance or false
+	local followmovement = followmovement or false
+	local randomizePaths = randomizePaths or false
+	
+	if (not X or not Y or not Z) then
+		ml_error("Missing parameters in MoveTo()")
+		return false
+	end
+	
+	specialConditions = {
+		[139] = { name = "Upper La Noscea",
+			reaction = function()
+				if (Player.pos.x < 0 and X > 0) then
+					local newTask = ffxiv_mesh_interact.Create()
+					newTask.pos = {x = -341.24, y = -1, z = 112.098}
+					newTask.uniqueid = 1003586
+					ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+				elseif (Player.pos.x > 0 and X < 0) then
+					local newTask = ffxiv_mesh_interact.Create()
+					newTask.pos = {x = 220.899, y = 1.7, z = 257.399}
+					newTask.uniqueid = 1003587
+					ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+				else
+					return (Player:MoveTo(X,Y,Z,stoppingdistance,followmovement,randomizePaths))
+				end
+			end,
+		}
+	}
+	
+	local doSpecial = false
+	if (specialConditions[Player.localmapid]) then
+		doSpecial = true
+	end
+	
+	if (doSpecial) then
+		specialConditions[Player.localmapid].reaction()
+	else
+		return (Player:MoveTo(X,Y,Z,stoppingdistance,followmovement,randomizePaths))
+	end
+end
+
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
     local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
@@ -2018,6 +2143,8 @@ function GetDutyFromID(dutyID)
 	
 	return ""
 end
+
+--
 
 function GetBestGrindMap()
 	local mapid = Player.localmapid
@@ -2261,13 +2388,12 @@ function EorzeaTime()
 	jpTime.sec = os.date("!%S")
 	local jpSecs = os.time(jpTime)
 	
-	local epoch = { year = 2010, month = 6, day = 12, hour = 0, min = 0, sec = 0 }
+	local epoch = { year = 2010, month = 6, day = 11, hour = 16, min = 0, sec = 0, isdst = false }
 	local epochSecs = os.time(epoch)
 	
 	local diffTime = (jpSecs - epochSecs) - 90000 
-	
 	local delta = (diffTime * ratioRealToGame)
-	
+
 	local gameSecond = (delta % 60) or 0
 	delta = delta - gameSecond
 	delta = delta / 60

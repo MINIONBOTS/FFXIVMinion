@@ -396,7 +396,7 @@ function c_questkill:evaluate()
 	
 		--otherwise check for mobs not incombat so we get credit for kill
 		if(not ValidTable(el)) then
-			el = EntityList("shortestpath,onmesh,alive,attackable,notincombat,contentid="..tostring(id))
+			el = EntityList("shortestpath,onmesh,alive,attackable,fateid=0,notincombat,contentid="..tostring(id))
 		end
 		
 		if(ValidTable(el)) then
@@ -433,6 +433,10 @@ e_questprioritykill = inheritsFrom( ml_effect )
 function c_questprioritykill:evaluate()
 	local ids = ml_task_hub:ThisTask().params["ids"]
 	
+	if (ml_task_hub:ThisTask().subtask == nil and ml_task_hub:ThisTask().currentPrio ~= 0) then
+		ml_task_hub:ThisTask().currentPrio = 0
+	end
+	
 	local priority = 0
 	for uniqueid in StringSplit(ids,";") do
 		priority = priority + 1
@@ -443,6 +447,7 @@ function c_questprioritykill:evaluate()
 				local id, target = next(el)
 				if (target) then
 					e_questprioritykill.id = target.id
+					e_questprioritykill.contentid = target.uniqueid
 					ml_task_hub:ThisTask().currentPrio = priority
 					return true
 				end
@@ -453,16 +458,28 @@ function c_questprioritykill:evaluate()
 	return false
 end
 function e_questprioritykill:execute()
-	local newTask = ffxiv_task_killtarget.Create()
+	Player:Stop()
+	
+	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = e_questprioritykill.id
+	newTask.contentid = e_questprioritykill.contentid
 	newTask.task_complete_execute = 
 		function()
-			ml_task_hub:CurrentTask():ParentTask().currentPrio = 0
-			ml_task_hub:CurrentTask().completed = true
+			ml_task_hub:ThisTask():ParentTask().currentPrio = 0
+			ml_task_hub:ThisTask().completed = true
 		end
-	ml_task_hub:ThisTask():DeleteSubTasks()
+	newTask.task_fail_evaluate = 
+		function()
+			local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
+			return not ValidTable(target) or (ValidTable(target) and target.uniqueid ~= ml_task_hub:ThisTask().contentid)
+		end
+	newTask.task_fail_execute = 
+		function()
+			ml_task_hub:ThisTask():ParentTask().currentPrio = 0
+			ml_task_hub:ThisTask().valid = false
+		end
+	
 	ml_task_hub:ThisTask():AddSubTask(newTask)
-	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_atinteract = inheritsFrom( ml_cause )
@@ -636,9 +653,12 @@ function c_questuseitem:evaluate()
 					id, entity = next(list)
 					if(id ~= nil and entity.targetable) then
 						e_questuseitem.id = id
+					else
+						return false
 					end
 				end
 			end
+			
 			return true
 		else
 			d("No item with specified ID found in inventory")
@@ -654,6 +674,9 @@ function e_questuseitem:execute()
 	if(e_questuseitem.id ~= nil) then
 		Player:SetTarget(e_questuseitem.id)
 		item:Use(e_questuseitem.id)
+	elseif(ml_task_hub:CurrentTask().params["usepos"]) then
+		local pos = ml_task_hub:CurrentTask().params["usepos"]
+		item:Use(pos.x, pos.y, pos.z)
 	else
 		item:Use()
 	end
@@ -707,8 +730,8 @@ end
 c_questmovetohealer = inheritsFrom( ml_cause )
 e_questmovetohealer = inheritsFrom( ml_effect )
 function c_questmovetohealer:evaluate()
-	if(ml_task_hub:ThisTask().params["healderid"] and Player.hp.percent < 50) then
-		local list = EntityList("contentid="..tostring(ml_task_hub:ThisTask().params["healderid"]))
+	if(ml_task_hub:ThisTask().params["healerid"] and Player.hp.percent < 50) then
+		local list = EntityList("contentid="..tostring(ml_task_hub:ThisTask().params["healerid"]))
 		if(ValidTable(list)) then
 			local id, healer = next(list)
 			if(ValidTable(healer) and healer.distance > 5) then
