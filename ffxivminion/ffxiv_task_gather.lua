@@ -667,7 +667,7 @@ function c_gather:evaluate()
 	local node = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
     if (node and node.cangather and node.distance2d <= 2.5) then
 		local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
-		if (markerType == GetString("unspoiledMarker") or markerType == GetString("botanyMarker") or markerType == GetString("miningMarker")) then
+		if (markerType == GetString("unspoiledMarker")) then
 			local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].minimumGP)) or 0
 			if (not ffxiv_task_gather.gatherStarted) then
 				if (Player.gp.current < requiredGP) then
@@ -676,11 +676,25 @@ function c_gather:evaluate()
 							local newTask = ffxiv_task_useitem.Create()
 							newTask.itemid = 6141
 							ml_task_hub:CurrentTask():AddSubTask(newTask)
+							return false
 						end
 					end
 					return false
 				else
 					return true
+				end
+			else
+				return true
+			end
+		elseif markerType == GetString("botanyMarker") or markerType == GetString("miningMarker") then
+			if (not ffxiv_task_gather.gatherStarted) then
+				if (gGatherUseCordials == "1" and Player.gp.percent <= 30) then
+					if (ItemIsReady(6141)) then
+						local newTask = ffxiv_task_useitem.Create()
+						newTask.itemid = 6141
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+						return false
+					end
 				end
 			else
 				return true
