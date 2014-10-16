@@ -386,7 +386,8 @@ function c_dutyidle:evaluate()
 	return (not OnDutyMap()) and (
 	ml_global_information.idlePulseCount > 4000 or
 	ml_task_hub:ThisTask().state == "DUTY_NEXTENCOUNTER" or 
-	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")
+	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER" or
+	(IsPartyLeader() and ml_task_hub:ThisTask().state == "DUTY_ENTER" and Now() > ml_task_hub:ThisTask().joinTimer))
 end
 function e_dutyidle:execute()
 	ml_error("Stuck idle in task "..ml_task_hub:ThisTask().name.." with state "..ml_task_hub:ThisTask().state)
