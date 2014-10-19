@@ -525,7 +525,7 @@ end
 c_indialog = inheritsFrom( ml_cause )
 e_indialog = inheritsFrom( ml_effect )
 function c_indialog:evaluate()
-	return Quest:IsInDialog() and not ControlVisible("SelectIconString") and not ControlVisible("SelectString")
+	return Quest:IsInDialog() and not ControlVisible("SelectIconString") and not ControlVisible("SelectString") and not Quest:IsRequestDialogOpen()
 end
 function e_indialog:execute()
 	--do nothing, this is a blocking cne to avoid spamming
