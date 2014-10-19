@@ -82,7 +82,6 @@ function c_findgatherable:evaluate()
     return false
 end
 function e_findgatherable:execute()
-    ml_debug( "Getting new gatherable target" )
     local minlevel = 1
     local maxlevel = 50
     if (ValidTable(ml_task_hub:CurrentTask().currentMarker) and
@@ -91,6 +90,8 @@ function e_findgatherable:execute()
 		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
 		maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
     end
+	
+	ffxiv_task_gather.gatherStarted = false
     
     local gatherable = GetNearestGatherable(minlevel,maxlevel)
     if (gatherable ~= nil) then
@@ -488,13 +489,17 @@ function c_nextgatherlocation:evaluate()
 				[AddHours(ffxiv_task_gather.location.hour,1)] = true,
 				[AddHours(ffxiv_task_gather.location.hour,2)] = true,
 			}
+			
+			d(tostring(SubtractHours(ffxiv_task_gather.location.hour,1)))
+			d(tostring(ffxiv_task_gather.location.hour))
+			d(tostring(AddHours(ffxiv_task_gather.location.hour,1)))
+			d(tostring(AddHours(ffxiv_task_gather.location.hour,2)))
+			
 			local overdue = true
 			if (gatherableWindow[eTime.hour]) then
 				overdue = false
 			end
 			
-			--d("reset condition1 = "..tostring(ffxiv_task_gather.gatherStarted))
-			--d("reset condition2 = "..tostring(overdue))
 			if (ffxiv_task_gather.gatherStarted or overdue) then
 				ffxiv_task_gather.gatherStarted = false
 				ffxiv_task_gather.unspoiledGathered = true
@@ -622,7 +627,7 @@ function e_nextgatherlocation:execute()
 	local location = c_nextgatherlocation.location
 	ml_task_hub:ThisTask().currentMarker = false
 	ml_task_hub:ThisTask().gatherid = 0
-	
+
 	if (tonumber(location.mapid) ~= Player.localmapid) then
 		Player:Stop()
 		Dismount()
@@ -633,7 +638,7 @@ function e_nextgatherlocation:execute()
 		
 		if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
 			Player:Teleport(location.teleport)
-								
+			
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.mapID = location.mapid
 			newTask.mesh = location.mesh
@@ -688,13 +693,13 @@ function c_gather:evaluate()
 			end
 		elseif markerType == GetString("botanyMarker") or markerType == GetString("miningMarker") then
 			if (not ffxiv_task_gather.gatherStarted) then
-				if (gGatherUseCordials == "1" and Player.gp.percent <= 30) then
-					if (ItemIsReady(6141)) then
-						local newTask = ffxiv_task_useitem.Create()
-						newTask.itemid = 6141
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-						return false
-					end
+				if (gGatherUseCordials == "1" and Player.gp.percent <= 30 and ItemIsReady(6141)) then
+					local newTask = ffxiv_task_useitem.Create()
+					newTask.itemid = 6141
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+					return false
+				else
+					return true
 				end
 			else
 				return true
@@ -967,20 +972,21 @@ function ffxiv_task_gather:Init()
 	local ke_nextLocation = ml_element:create( "NextLocation", c_nextgatherlocation, e_nextgatherlocation, 4 )
     self:add(ke_nextLocation, self.overwatch_elements)
 	
+	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
+    self:add( ke_nextUnspoiledMarker, self.process_elements)
+	
+	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
+    self:add( ke_moveToUnspoiledMarker, self.process_elements)
+	
+	
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add( ke_returnToMarker, self.process_elements)
 	
 	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 20 )
     self:add( ke_nextMarker, self.process_elements)
 	
-	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
-    self:add( ke_nextUnspoiledMarker, self.process_elements)
-	
-	local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
+    local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
     self:add(ke_findGatherable, self.process_elements)
-	
-	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
-    self:add( ke_moveToUnspoiledMarker, self.process_elements)
 	
     local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 10 )
     self:add( ke_moveToGatherable, self.process_elements)
