@@ -489,6 +489,9 @@ end
 
 function ffxiv_task_duty:Init()
     --init Process() cnes
+	--local ke_resetState = ml_element:create( "ResetState", c_resetstate, e_resetstate, 9 )
+    --self:add(ke_resetState, self.overwatch_elements)
+	
 	local ke_dutyIdle = ml_element:create( "DutyIdle", c_dutyidle, e_dutyidle, 40 )
     self:add(ke_dutyIdle, self.overwatch_elements)
 	
@@ -759,13 +762,14 @@ function c_deadduty:evaluate()
 		c_deadduty.leader = leader
 	end
 	
-    if ((Player.revivestate == 2) and not e_deadduty.justRevived and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+    if ((Player.revivestate == 1 or Player.revivestate == 2) and not e_deadduty.justRevived and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
         return true
     end 
 	
-	if ((Player.revivestate ~=2 and Player.revivestate ~=3) and e_deadduty.justRevived and not IsLoading()) then
+	if (e_deadduty.justRevived) then
 		return true
 	end
+
     return false
 end
 function e_deadduty:execute()
@@ -791,6 +795,10 @@ function e_deadduty:execute()
 	end
 	
 	if (e_deadduty.justRevived) then
+		if (IsLoading() or Player.hp.current == 0 or Player.revivestate == 3) then
+			return 
+		end
+		
 		if (gTeleport == "1") then
 			--d("dead, stay close")
 			if (not IsDutyLeader()) then
@@ -808,6 +816,61 @@ function e_deadduty:execute()
 			end
 		end
 	end
+end
+
+ffxiv_task_duty_res = inheritsFrom(ml_task)
+function ffxiv_task_duty_res.Create()
+    local newinst = inheritsFrom(ffxiv_task_duty_res)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "LT_DUTY_RES"
+    newinst.pos = 0
+	newinst.repositioned = false
+    
+    return newinst
+end
+
+function ffxiv_task_duty_res:Init()	
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_duty_res:task_complete_eval()
+	if (IsLoading() or ml_mesh_mgr.loadingMesh or Player.revivestate == 3 or Player.revivestate == 1 ) then
+		return false
+	end
+	
+	local pos = self.pos
+	if (not Player.alive and ControlVisible("SelectYesno")) then
+		if (PressYesNo(true)) then
+			return false
+		end
+		if (PressOK()) then
+			return false
+		end 
+	end
+	
+	if (Player.alive and not self.repositioned) then
+		GameHacks:TeleportToXYZ(pos.x, pos.y, pos.z)
+		Player:SetFacingSynced(pos.h)
+	end
+	
+	if (Player.alive and self.repositioned) then
+		return true
+	end
+	
+    return false
+end
+
+function ffxiv_task_duty_res:task_complete_execute()
+    self.completed = true
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_duty.GUIVarUpdate)
