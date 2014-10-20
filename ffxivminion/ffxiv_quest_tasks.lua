@@ -391,6 +391,9 @@ function ffxiv_quest_kill:Init()
 	local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 15 )
     self:add( ke_flee, self.overwatch_elements)
 	
+	local ke_useitemonhostile = ml_element:create( "UseItem", c_questuseitemonhostile, e_questuseitemonhostile, 05 )
+    self:add( ke_useitemonhostile, self.overwatch_elements)
+	
 	self:AddTaskCheckCEs()
 end
 

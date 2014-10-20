@@ -684,6 +684,64 @@ function e_questuseitem:execute()
 	ml_task_hub:ThisTask().stepCompleted = true
 end
 
+--variation of regular useitem cne. this one is designed to be used as part of a kill task by 
+--checking for a given effect id and casting if the id isn't present
+c_questuseitemhostile = inheritsFrom( ml_cause )
+e_questuseitemhostile = inheritsFrom( ml_effect )
+function c_questuseitemonhostile:evaluate()
+	if (ml_task_hub:CurrentTask():IsDelayed() or
+		ActionList:IsCasting()) 
+	then
+		return false
+	end
+	
+	if(ml_task_hub:CurrentTask().params["itemid"]) then
+		local id = ml_task_hub:CurrentTask().params["itemid"]
+		local item = Inventory:Get(id)
+		if(ValidTable(item)) then
+			if(item.count < ml_task_hub:CurrentTask().startingCount) then
+				return false
+			end
+			
+			if(ml_task_hub:CurrentTask().params["id"]) then
+				local list = EntityList("shortestpath,contentid="..tostring(ml_task_hub:CurrentTask().params["id"]))
+				if(ValidTable(list)) then
+					id, entity = next(list)
+					if(id ~= nil and entity.targetable) then
+						if(ml_task_hub:CurrentTask().params["itemeffectid"])
+							if(not HasBuff(id, ml_task_hub:CurrentTask().params["itemeffectid"])
+								e_questuseitem.id = id
+								return true
+							end
+						else
+							e_questuseitem.id = id
+							return true
+						end
+					end
+				end
+			end
+			
+			return false
+		else
+			d("No item with specified ID found in inventory")
+			return false
+		end
+	else
+		ml_error("No itemid found in profile")
+		return false
+	end
+end
+function e_questuseitemonhostile:execute()
+	local item = Inventory:Get(ml_task_hub:CurrentTask().params["itemid"])
+	if(e_questuseitem.id ~= nil) then
+		Player:SetTarget(e_questuseitem.id)
+		item:Use(e_questuseitem.id)
+	elseif(ml_task_hub:CurrentTask().params["usepos"]) then
+		local pos = ml_task_hub:CurrentTask().params["usepos"]
+		item:Use(pos.x, pos.y, pos.z)
+	end
+end
+
 c_questuseaction = inheritsFrom( ml_cause )
 e_questuseaction = inheritsFrom( ml_effect )
 function c_questuseaction:evaluate()
