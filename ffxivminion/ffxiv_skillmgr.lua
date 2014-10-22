@@ -1703,6 +1703,16 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..TID)
 							attackTable = TableSize(tlistAE)
 			  
+							for i,nearby in pairs(tlistAE) do
+								if ( skill.tcontids ~="" and not HasContentID(nearby, skill.tcontids ) ) then
+									castable = false
+								end
+								
+								if ( skill.tncontids ~="" and HasContentID(nearby, skill.tncontids) ) then
+									castable = false
+								end
+							end
+							
 							if ( skill.tecount > 0 and ( attackTable < skill.tecount) ) then
 								castable = false
 							end
