@@ -203,7 +203,7 @@ function c_dutyAtInteract:evaluate()
 				tpos = interactable.pos
 				ppos = Player.pos
 				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
-				if (dist <= 4) then
+				if (dist <= 5) then
 					return true
 				end
 			end
@@ -215,7 +215,7 @@ function c_dutyAtInteract:evaluate()
 				tpos = interactable.pos
 				ppos = Player.pos
 				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
-				if (dist <= 4) then
+				if (dist <= 5) then
 					return true
 				end
 			end
@@ -227,7 +227,7 @@ function c_dutyAtInteract:evaluate()
 				tpos = interactable.pos
 				ppos = Player.pos
 				local dist = Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z)
-				if (dist <= 4) then
+				if (dist <= 5) then
 					return true
 				end
 			end
