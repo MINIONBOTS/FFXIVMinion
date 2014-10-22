@@ -42,6 +42,7 @@ ml_mesh_mgr.GetPlayerPos = function () return { x=0, y=0, z=0, h=0 } end -- Need
 ml_mesh_mgr.nextNavMesh = nil -- Holds the navmeshfilename that should get loaded
 ml_mesh_mgr.currentMesh = ml_mesh.Create()
 ml_mesh_mgr.loadingMesh = false
+ml_mesh_mgr.loadObjectFile = false
 ml_mesh_mgr.averagegameunitsize = 50
 ml_mesh_mgr.OMC = 0
 ml_mesh_mgr.transitionthreshold = 10 -- distance when to autoset an OMC, like when we we'r walking though a portal or door but are still in the same map
@@ -99,6 +100,7 @@ function ml_mesh_mgr.ModuleInit()
 	gShowRealMesh = "0"
 	gShowPath = "0"
 	gShowMesh = "0"
+	gnewmeshname = ""
 	gMeshrec = "0"
 	gRecAreaType = "Lowdanger"
 	gRecAreaSize = "20"
@@ -303,7 +305,7 @@ function ml_mesh_mgr.SwitchNavmesh()
 		if ( ml_mesh_mgr.navmeshfilepath ~= nil and ml_mesh_mgr.navmeshfilepath ~= "" ) then
 			-- Check if the file exist
 			d("Loading Navmesh : " ..ml_mesh_mgr.nextNavMesh)
-			if (not NavigationManager:LoadNavMesh(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh)) then
+			if (not NavigationManager:LoadNavMesh(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh,ml_mesh_mgr.loadObjectFile)) then
 				ml_error("Error while trying to load Navmesh: "..ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh)
 				ml_marker_mgr.ClearMarkerList()
 				ml_marker_mgr.RefreshMarkerNames()
@@ -311,6 +313,8 @@ function ml_mesh_mgr.SwitchNavmesh()
 				gnewmeshname = ""
 				
 			else
+				-- Dont reload the obj file again
+				ml_mesh_mgr.loadObjectFile = false
 				-- To prevent (re-)loading or saving of mesh data while the mesh is beeing build/loaded
 				ml_mesh_mgr.loadingMesh = true
 				
@@ -516,14 +520,15 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 			if ( gMeshrec == "1" or gMeshChange == "1") then
 				-- Key-Input-Handler
 				-- 162 = Left CTRL + Left Mouse
-				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
+				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
+
 					MeshManager:RecForce(true)
 				else
 					MeshManager:RecForce(false)
 				end			
 				
 				-- 162 = Left CTRL 
-				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
+				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
 					-- show the mesh if it issnt shown
 					if ( gShowMesh == "0" ) then
 						MeshManager:ShowTriMesh(true)
@@ -641,7 +646,7 @@ function ml_mesh_mgr.ClearNavMesh()
 	ml_mesh_mgr.currentMesh.MapID = ml_mesh_mgr.GetMapID()
 	ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
 	ml_mesh_mgr.currentMesh.Name = ml_mesh_mgr.GetMapName()
-	gnewmeshname = ml_mesh_mgr.currentMesh.Name
+	gnewmeshname = ml_mesh_mgr.currentMesh.Name or ""
 	gmeshname = "none"
 	d("Empty NavMesh created...")
 end
@@ -670,12 +675,14 @@ function ml_mesh_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			end			
 		elseif( k == "gShowMesh") then
 			if (v == "1") then
+				ml_mesh_mgr.LoadObjectFile()
 				MeshManager:ShowTriMesh(true)
 			else
 				MeshManager:ShowTriMesh(false)
 			end				
 		elseif( k == "gMeshrec") then
 			if (v == "1") then
+				ml_mesh_mgr.LoadObjectFile()
 				MeshManager:Record(true)
 			else
 				MeshManager:Record(false)
@@ -692,6 +699,7 @@ function ml_mesh_mgr.GUIVarUpdate(Event, NewVals, OldVals)
 			MeshManager:RecSize(tonumber(gRecAreaSize))
 		elseif( k == "gMeshChange") then
 			if (v == "1") then
+				ml_mesh_mgr.LoadObjectFile()
 				MeshManager:SetChangeAreaMode(true)
 			else
 				MeshManager:SetChangeAreaMode(false)
@@ -807,6 +815,14 @@ function ml_mesh_mgr.ToggleMenu()
     end
 end
 
+-- load the obj file of the mesh for editing functions
+function ml_mesh_mgr.LoadObjectFile()
+	if ( gmeshname ~= "none" and not NavigationManager:IsObjectFileLoaded()) then
+		d("Loading .OBJ file for mesh...")
+		ml_mesh_mgr.loadObjectFile = true
+		ml_mesh_mgr.LoadNavMesh(gmeshname)
+	end
+end
 
 --- FFXIV UNIQUE ?
 function ml_mesh_mgr.SetupNavNodes()
