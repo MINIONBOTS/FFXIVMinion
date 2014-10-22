@@ -54,61 +54,64 @@ end
 --when the quest engine is running
 c_nextqueststep = inheritsFrom( ml_cause )
 e_nextqueststep = inheritsFrom( ml_effect )
-e_nextqueststep.task = nil
 function c_nextqueststep:evaluate()
 	if (not ml_task_hub:CurrentTask().quest:isStarted())
 	then
 		return false
 	end
 	
-	if (ml_task_hub:CurrentTask().currentStepCompleted or (ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0)) then
-		local quest = ffxiv_task_quest.currentQuest
-		local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep) or 1
-		
-		if ((ml_task_hub:CurrentTask().currentStepIndex == 1 and currentStepIndex > 1) or 
-			ffxiv_task_quest.restartStep ~= 0) 
-		then
-			ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
-			ffxiv_task_quest.restartStep = 0
-			ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
-		else
-			ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
-		end
-		
-		local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
-		if (ValidTable(task)) then
-			e_nextqueststep.task = task
-			return true
-		end
-	end
-	
-	return false
+	return ml_task_hub:CurrentTask().currentStepCompleted or (ffxiv_task_quest.restartStep and ffxiv_task_quest.restartStep ~= 0)
 end
 function e_nextqueststep:execute()
-	local task = e_nextqueststep.task
-	ml_task_hub:ThisTask().currentStepCompleted = false
+	local quest = ffxiv_task_quest.currentQuest
+	--local objectiveStepIndex = quest:GetStepIndexForObjective(quest:currentObjectiveIndex())
+	local currentStepIndex = tonumber(Settings.FFXIVMINION.gCurrQuestStep) or 1
 	
-	if(task.params["type"] == "complete") then
-		--don't let nextqueststep queue a complete task, let the complete cne handle it
-		return
+	if ((ml_task_hub:CurrentTask().currentStepIndex == 1 and currentStepIndex > 1) or 
+		ffxiv_task_quest.restartStep ~= 0) 
+	then
+		ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
+		ffxiv_task_quest.restartStep = 0
+		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
+	else
+		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
-	-- initialize task vars for some step types here
-	-- this could really be handled more elegantly than a giant ifelse but
-	-- that will have to come later
-	if(task.params["type"] == "kill") then
-		if(Settings.FFXIVMINION.questKillCount ~= nil) then
-			if(Settings.FFXIVMINION.questKillCount) then
-				task.killCount = Settings.FFXIVMINION.questKillCount
-			else
-				task.killCount = 0
-			end
-			
-			gQuestKillCount = tostring(task.killCount)
+	
+	local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
+	if (ValidTable(task)) then
+		--update quest step state
+		ml_task_hub:ThisTask().currentStepCompleted = false
+		
+		if(task.params["type"] == "complete") then
+			--don't let nextqueststep queue a complete task, let the complete cne handle it
+			return
 		end
-	elseif(task.params["type"] == "vendor") then
-		local itemtable = tonumber(task.params["itemid"])
-		if(ValidTable(itemtable)) then
-			local itemid = itemtable[Player.job] or itemtable[-1]
+		-- initialize task vars for some step types here
+		-- this could really be handled more elegantly than a giant ifelse but
+		-- that will have to come later
+		if(task.params["type"] == "kill") then
+			if(Settings.FFXIVMINION.questKillCount ~= nil) then
+				if(Settings.FFXIVMINION.questKillCount) then
+					task.killCount = Settings.FFXIVMINION.questKillCount
+				else
+					task.killCount = 0
+				end
+				
+				gQuestKillCount = tostring(task.killCount)
+			end
+		elseif(task.params["type"] == "vendor") then
+			local itemtable = tonumber(task.params["itemid"])
+			if(ValidTable(itemtable)) then
+				local itemid = itemtable[Player.job] or itemtable[-1]
+				if(itemid) then
+					local item = Inventory:Get(itemid)
+					if(ValidTable(item)) then
+						task.startingCount = item.count
+					end
+				end
+			end
+		elseif(task.params["type"] == "useitem") then
+			local itemid = tonumber(task.params["itemid"])
 			if(itemid) then
 				local item = Inventory:Get(itemid)
 				if(ValidTable(item)) then
@@ -116,35 +119,27 @@ function e_nextqueststep:execute()
 				end
 			end
 		end
-	elseif(task.params["type"] == "useitem") then
-		local itemid = tonumber(task.params["itemid"])
-		if(itemid) then
-			local item = Inventory:Get(itemid)
-			if(ValidTable(item)) then
-				task.startingCount = item.count
-			end
-		end
-	end
-	
-	if(task.params["restartatstep"]) then
-		ffxiv_task_quest.restartStep = task.params["restartatstep"]
-	else
-		ffxiv_task_quest.restartStep = 0
-	end
-	
-	if(task.params["disableavoid"]) then
-		gAvoidAOE = "0"
-	end
 		
-	ml_task_hub:CurrentTask():AddSubTask(task)
-	
-	ffxiv_task_quest.currentStepParams = task.params
-	gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
-	gCurrQuestObjective = tostring(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
-	gQuestStepType = task.params["type"]
-	Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
-	ffxiv_task_quest.SetQuestFlags()	
-	ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
+		if(task.params["restartatstep"]) then
+			ffxiv_task_quest.restartStep = task.params["restartatstep"]
+		else
+			ffxiv_task_quest.restartStep = 0
+		end
+		
+		if(task.params["disableavoid"]) then
+			gAvoidAOE = "0"
+		end
+			
+		ml_task_hub:CurrentTask():AddSubTask(task)
+		
+		ffxiv_task_quest.currentStepParams = task.params
+		gCurrQuestStep = tostring(ml_task_hub:ThisTask().currentStepIndex)
+		gCurrQuestObjective = tostring(ffxiv_task_quest.currentQuest:currentObjectiveIndex())
+		gQuestStepType = task.params["type"]
+		Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
+		ffxiv_task_quest.SetQuestFlags()	
+		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
+	end
 end
 
 c_questmovetomap = inheritsFrom( ml_cause )
