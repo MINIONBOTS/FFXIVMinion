@@ -737,6 +737,9 @@ end
 function e_transportgate:execute()
 	local gateDetails = e_transportgate.details
 	local newTask = ffxiv_nav_interact.Create()
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
 	newTask.pos = gateDetails.pos
 	newTask.uniqueid = gateDetails.uniqueid
 	newTask.conversationIndex = gateDetails.conversationIndex
@@ -1875,8 +1878,8 @@ function c_stealth:evaluate()
 			end
 		end
 			
-		local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
-		local removeMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=40")
+		local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=20")
+		local removeMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=25")
 		
 		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
 		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
