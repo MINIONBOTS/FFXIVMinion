@@ -490,11 +490,6 @@ function c_nextgatherlocation:evaluate()
 				[AddHours(ffxiv_task_gather.location.hour,2)] = true,
 			}
 			
-			d(tostring(SubtractHours(ffxiv_task_gather.location.hour,1)))
-			d(tostring(ffxiv_task_gather.location.hour))
-			d(tostring(AddHours(ffxiv_task_gather.location.hour,1)))
-			d(tostring(AddHours(ffxiv_task_gather.location.hour,2)))
-			
 			local overdue = true
 			if (gatherableWindow[eTime.hour]) then
 				overdue = false
@@ -636,7 +631,7 @@ function e_nextgatherlocation:execute()
 			return
 		end
 		
-		if (ml_task_hub:CurrentTask().name ~= "LT_TELEPORT" and ActionIsReady(5)) then
+		if (ActionIsReady(5)) then
 			Player:Teleport(location.teleport)
 			
 			local newTask = ffxiv_task_teleport.Create()
@@ -650,7 +645,7 @@ function e_nextgatherlocation:execute()
 				ffxiv_task_gather.gatherStarted = false
 				d("Arrived at location ["..location.name.."], using aetheryte teleport.")
 			end
-			ml_task_hub:CurrentTask():AddSubTask(newTask)
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
 	else
 		ffxiv_task_gather.location = location
