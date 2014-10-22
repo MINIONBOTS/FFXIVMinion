@@ -512,7 +512,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 				end
 			end	
 			
-			if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2)) then
+			if ( gMeshrec == "0" and gMeshChange == "0" and  MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2)) then
 				ml_mesh_mgr.CreateSingleCell()
 			end	
 			
