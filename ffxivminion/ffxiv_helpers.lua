@@ -1786,13 +1786,6 @@ function Dismount()
 end
 
 function Repair()
-	local list = Player:GetGatherableSlotList()
-	local synth = Crafting:SynthInfo()	
-	
-	if (ValidTable(list) or ValidTable(synth)) then
-		return false
-	end
-	
 	if (gRepair == "1") then
 		local eq = Inventory("type=1000")
 		for i,e in pairs(eq) do
