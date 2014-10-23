@@ -118,6 +118,14 @@ function e_nextqueststep:execute()
 					task.startingCount = item.count
 				end
 			end
+		elseif(task.params["type"] == "kill") then
+			local itemid = tonumber(task.params["itemid"])
+			if(itemid) then
+				local item = Inventory:Get(itemid)
+				if(ValidTable(item)) then
+					task.startingCount = item.count
+				end
+			end
 		end
 		
 		if(task.params["restartatstep"]) then
@@ -1002,7 +1010,6 @@ function c_questkillaggrotarget:evaluate()
 	end
 	
 	local taskName = ml_task_hub:ThisTask().name
-
 	if (ml_task_hub:ThisTask().name == "MOVETOPOS") then
 		if(e_questflee.fleeing) then
 			return false
@@ -1011,17 +1018,19 @@ function c_questkillaggrotarget:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:ThisTask().pos
 		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		if(distance > 50) then
+		if (distance > 50) then
 			--d("KillAggroTarget False - distance to quest pos :"..tostring(distance))
 			return false
 		end
 	end
 
 	local excludeID = nil
-	if (ml_task_hub:ThisTask().params) then
-		local targetid = ml_task_hub:ThisTask().params["id"]
-		if (targetid and targetid > 0 and taskName == "QUEST_KILL") then
-			excludeID = targetid
+	if (taskName == "QUEST_KILL") then
+		if (ml_task_hub:ThisTask().params) then
+			local targetid = ml_task_hub:ThisTask().params["id"]
+			if (targetid and targetid > 0) then
+				excludeID = targetid
+			end
 		end
 	end
 	
