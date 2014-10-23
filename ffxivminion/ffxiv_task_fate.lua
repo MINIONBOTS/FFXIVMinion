@@ -16,6 +16,7 @@ function ffxiv_task_fate.Create()
     --ffxiv_task_fate members
     newinst.name = "LT_FATE"
     newinst.fateid = 0
+	newinst.targetid = 0
     newinst.targetFunction = GetNearestFateAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
 	
@@ -332,6 +333,35 @@ function e_movingfate:execute()
     ml_task_hub:ThisTask().moving = true
 end
 
+c_resettarget = inheritsFrom( ml_cause )
+e_resettarget = inheritsFrom( ml_effect )
+function c_resettarget:evaluate()
+	local subtask = ml_task_hub:ThisTask().subtask
+	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	
+	if (ValidTable(fate)) then
+		if (subtask and subtask.name == "GRIND_COMBAT" and subtask.targetid and subtask.targetid > 0) then
+			if (Player:GetSyncLevel() ~= 0 or (Player:GetSyncLevel() == 0 and (fate.level < (Player.level - 5)))) then
+				local target = EntityList:Get(subtask.targetid)
+				if (ValidTable(target)) then
+					if (target.fateid == fate.id) then
+						local epos = shallowcopy(target.pos)
+						local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+						if (dist > fate.radius) then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+    
+    return false
+end
+function e_resettarget:execute()
+	d("Dropping target outside FATE radius.")
+end
+
 function ffxiv_task_fate:Init()
     --init processoverwatch 
 	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 16 )
@@ -345,6 +375,9 @@ function ffxiv_task_fate:Init()
     
     local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 5 )
     self:add( ke_atFate, self.overwatch_elements)
+	
+	local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_resettarget, 3 )
+	self:add( ke_resetTarget, self.overwatch_elements)
     
     --init process
     local ke_movingFate = ml_element:create( "SetFateMovingFlag", c_movingfate, e_movingfate, 30 )

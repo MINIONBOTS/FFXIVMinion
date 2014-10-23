@@ -165,12 +165,42 @@ function GetNearestFateAttackable()
     local fate = GetClosestFate(myPos)
 	
     if (fate ~= nil) then
+		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+
+        if ( el ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+				epos = shallowcopy(e.pos)
+				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+				if (dist <= fate.radius) then
+					return e
+				end
+            end
+        end	
+    
+        el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
+            
+        if ( el ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                epos = shallowcopy(e.pos)
+				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+				if (dist <= fate.radius) then
+					return e
+				end
+            end
+        end
+		
         el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
 
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-                return e
+				epos = shallowcopy(e.pos)
+				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+				if (dist <= fate.radius) then
+					return e
+				end
             end
         end	
     
@@ -179,7 +209,11 @@ function GetNearestFateAttackable()
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-                return e
+                epos = shallowcopy(e.pos)
+				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+				if (dist <= fate.radius) then
+					return e
+				end
             end
         end
     end
@@ -920,7 +954,7 @@ function GetDutyTarget( maxHP )
 end
 
 function GetNearestAggro()
-	taskName = ml_task_hub:CurrentTask().name
+	taskName = ml_task_hub:ThisTask().name
 	
 	if (not IsNullString(excludeString)) then
 		if (taskName == "LT_GRIND") then
