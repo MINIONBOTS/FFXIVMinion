@@ -118,6 +118,14 @@ function e_nextqueststep:execute()
 					task.startingCount = item.count
 				end
 			end
+		elseif(task.params["type"] == "kill") then
+			local itemid = tonumber(task.params["itemid"])
+			if(itemid) then
+				local item = Inventory:Get(itemid)
+				if(ValidTable(item)) then
+					task.startingCount = item.count
+				end
+			end
 		end
 		
 		if(task.params["restartatstep"]) then
