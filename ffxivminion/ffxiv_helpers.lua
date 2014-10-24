@@ -90,7 +90,7 @@ function GetNearestGrindAttackable()
 	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
 	block = 5
 	if (not IsNullString(huntString)) then
-		el = EntityList("contentid="..huntString..",shortestpath,alive,attackable,onmesh")
+		el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
 		
 		if ( el ) then
 			local i,e = next(el)
