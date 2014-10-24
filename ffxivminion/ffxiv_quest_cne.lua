@@ -90,6 +90,7 @@ function e_nextqueststep:execute()
 		-- this could really be handled more elegantly than a giant ifelse but
 		-- that will have to come later
 		if(task.params["type"] == "kill") then
+			-- setup kill count
 			if(Settings.FFXIVMINION.questKillCount ~= nil) then
 				if(Settings.FFXIVMINION.questKillCount) then
 					task.killCount = Settings.FFXIVMINION.questKillCount
@@ -98,6 +99,15 @@ function e_nextqueststep:execute()
 				end
 				
 				gQuestKillCount = tostring(task.killCount)
+			end
+			
+			-- setup item count
+			local itemid = tonumber(task.params["itemid"])
+			if(itemid) then
+				local item = Inventory:Get(itemid)
+				if(ValidTable(item)) then
+					task.startingCount = item.count
+				end
 			end
 		elseif(task.params["type"] == "vendor") then
 			local itemtable = tonumber(task.params["itemid"])
@@ -111,14 +121,6 @@ function e_nextqueststep:execute()
 				end
 			end
 		elseif(task.params["type"] == "useitem") then
-			local itemid = tonumber(task.params["itemid"])
-			if(itemid) then
-				local item = Inventory:Get(itemid)
-				if(ValidTable(item)) then
-					task.startingCount = item.count
-				end
-			end
-		elseif(task.params["type"] == "kill") then
 			local itemid = tonumber(task.params["itemid"])
 			if(itemid) then
 				local item = Inventory:Get(itemid)
