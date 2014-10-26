@@ -26,6 +26,7 @@ local obj1 = {
 						[3] = 0;
 						[26] = 1;
 					};
+					["equip"] = true;
 					["meshname"] = "Limsa (Upper)";
 					["id"] = 1001000;
 					["itemreward"] = true;
@@ -137,7 +138,7 @@ local obj1 = {
 						["x"] = -283.37811279297;
 						["z"] = -250.39862060547;
 					};
-					["delay"] = 2000;
+					["delay"] = 6000;
 					["id"] = 1003239;
 					["itemreward"] = true;
 					["meshname"] = "Middle La Noscea";
@@ -287,17 +288,17 @@ local obj1 = {
 				};
 				[3] = {
 					["mapid"] = 138;
-					["type"] = "kill";
+					["type"] = "killaggro";
 					["itemturnin"] = false;
+					["failtime"] = 2000;
 					["pos"] = {
-						["y"] = 22.928243637085;
-						["x"] = 589.65454101563;
-						["z"] = 369.4421081543;
+						["y"] = 23.969869613647;
+						["x"] = 630.56781005859;
+						["z"] = 390.99328613281;
 					};
-					["id"] = 394;
 					["itemreward"] = false;
 					["meshname"] = "Western La Noscea";
-					["killcount"] = 2;
+					
 				};
 				[1] = {
 					["mapid"] = 138;
@@ -329,31 +330,29 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 138;
-					["type"] = "kill";
+					["type"] = "killaggro";
 					["itemturnin"] = false;
+					["failtime"] = 2000;
 					["pos"] = {
-						["y"] = 21.168851852417;
-						["x"] = 590.09228515625;
-						["z"] = 375.34350585938;
+						["y"] = 22.871873855591;
+						["x"] = 590.07147216797;
+						["z"] = 369.8205871582;
 					};
-					["id"] = 394;
 					["itemreward"] = false;
 					["meshname"] = "Western La Noscea";
-					["killcount"] = 2;
 				};
 				[7] = {
 					["mapid"] = 138;
-					["type"] = "kill";
+					["type"] = "killaggro";
 					["itemturnin"] = false;
+					["failtime"] = 2000;
 					["pos"] = {
-						["y"] = 42.363910675049;
-						["x"] = 643.74450683594;
-						["z"] = 323.8401184082;
+						["y"] = 41.900161743164;
+						["x"] = 633.38031005859;
+						["z"] = 322.7815246582;
 					};
-					["id"] = 394;
 					["itemreward"] = false;
 					["meshname"] = "Western La Noscea";
-					["killcount"] = 2;
 				};
 			};
 			["level"] = 12;
@@ -673,9 +672,9 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 134;
-					["type"] = "kill";
-					["killcount"] = 4;
-					["id"] = 965;
+					["type"] = "killaggro";
+					["ids"] = "965";
+					["failtime"] = 10000;
 					["itemreward"] = false;
 					["meshname"] = "Middle La Noscea";
 					["pos"] = {
@@ -1225,11 +1224,10 @@ local obj1 = {
 		};
 		[485] = {
 			["steps"] = {
-				[6] = {
+				[7] = {
 					["mapid"] = 135;
-					["type"] = "kill";
-					["killcount"] = 1;
-					["id"] = 201;
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
 					["pos"] = {
@@ -1253,6 +1251,18 @@ local obj1 = {
 					};
 				};
 				[3] = {
+					["mapid"] = 135;
+					["type"] = "killaggro";
+					["failtime"] = 3000;
+					["itemreward"] = false;
+					["meshname"] = "Lower La Noscea";
+					["pos"] = {
+						["y"] = 74.586036682129;
+						["x"] = 278.74374389648;
+						["z"] = -308.87060546875;
+					};
+				};
+				[4] = {
 					["mapid"] = 135;
 					["type"] = "useitem";
 					["delay"] = 4000;
@@ -1279,11 +1289,10 @@ local obj1 = {
 						["z"] = -309.142578125;
 					};
 				};
-				[4] = {
+				[5] = {
 					["mapid"] = 135;
-					["type"] = "kill";
-					["killcount"] = 2;
-					["id"] = 201;
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
 					["pos"] = {
@@ -1292,7 +1301,7 @@ local obj1 = {
 						["z"] = -272.35333251953;
 					};
 				};
-				[5] = {
+				[6] = {
 					["mapid"] = 135;
 					["type"] = "useitem";
 					["delay"] = 4000;
@@ -1306,7 +1315,7 @@ local obj1 = {
 						["z"] = -263.63070678711;
 					};
 				};
-				[7] = {
+				[8] = {
 					["type"] = "complete";
 					["id"] = 1002658;
 					["itemreward"] = true;
@@ -1610,19 +1619,6 @@ local obj1 = {
 		};
 		[414] = {
 			["steps"] = {
-				[7] = {
-					["mapid"] = 249;
-					["type"] = "kill";
-					["pos"] = {
-						["y"] = 8.973653793335;
-						["x"] = 177.9875793457;
-						["z"] = 608.20928955078;
-					};
-					["id"] = 812;
-					["itemreward"] = false;
-					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
-				};
 				[1] = {
 					["mapid"] = 135;
 					["type"] = "start";
@@ -1662,7 +1658,7 @@ local obj1 = {
 						["z"] = 682.97814941406;
 					};
 				};
-				[8] = {
+				[6] = {
 					["mapid"] = 249;
 					["type"] = "nav";
 					["meshname"] = "Lower La Noscea";
@@ -1674,7 +1670,7 @@ local obj1 = {
 						["z"] = 616.1806640625;
 					};
 				};
-				[9] = {
+				[7] = {
 					["mapid"] = 249;
 					["type"] = "dutykill";
 					["delay"] = 20000;
@@ -1690,18 +1686,18 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 249;
-					["type"] = "kill";
+					["type"] = "killaggro";
 					["pos"] = {
 						["y"] = 12.126487731934;
 						["x"] = 162.62533569336;
 						["z"] = 631.81359863281;
 					};
-					["id"] = 812;
+					["ids"] = "812;817";
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
 					["killcount"] = 2;
 				};
-				[10] = {
+				[8] = {
 					["mapid"] = 135;
 					["type"] = "interact";
 					["delay"] = 6000;
@@ -1727,20 +1723,7 @@ local obj1 = {
 						["z"] = 674.93560791016;
 					};
 				};
-				[6] = {
-					["mapid"] = 249;
-					["type"] = "kill";
-					["pos"] = {
-						["y"] = 8.973653793335;
-						["x"] = 182.04815673828;
-						["z"] = 608.62310791016;
-					};
-					["id"] = 817;
-					["itemreward"] = false;
-					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
-				};
-				[11] = {
+				[9] = {
 					["type"] = "complete";
 					["id"] = 1002237;
 					["itemreward"] = true;
@@ -1947,17 +1930,17 @@ local obj1 = {
 				};
 				[4] = {
 					["mapid"] = 134;
-					["type"] = "kill";
+					["type"] = "killaggro";
 					["itemturnin"] = false;
 					["pos"] = {
 						["y"] = 46.258148193359;
 						["x"] = 180.63757324219;
 						["z"] = 121.47462463379;
 					};
-					["id"] = 283;
+					["ids"] = "283";
+					["failtime"] = 3000;
 					["itemreward"] = false;
 					["meshname"] = "Middle La Noscea";
-					["killcount"] = 2;
 				};
 				[8] = {
 					["mapid"] = 134;
@@ -2106,7 +2089,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemrewardslot"] = {
 						[3] = 0;
-						[4] = 1;
+						[26] = 1;
 					};
 					["mapid"] = 134;
 					["equip"] = true;
@@ -2120,9 +2103,8 @@ local obj1 = {
 				};
 				[3] = {
 					["mapid"] = 134;
-					["type"] = "kill";
-					["killcount"] = 2;
-					["id"] = 284;
+					["type"] = "killaggro";
+					["failtime"] = 2000;
 					["itemreward"] = false;
 					["meshname"] = "Middle La Noscea";
 					["pos"] = {
@@ -2159,9 +2141,8 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 134;
-					["type"] = "kill";
-					["killcount"] = 2;
-					["id"] = 284;
+					["type"] = "killaggro";
+					["failtime"] = 2000;
 					["itemreward"] = false;
 					["meshname"] = "Middle La Noscea";
 					["pos"] = {
@@ -2172,9 +2153,8 @@ local obj1 = {
 				};
 				[7] = {
 					["mapid"] = 134;
-					["type"] = "kill";
-					["killcount"] = 2;
-					["id"] = 284;
+					["type"] = "killaggro";
+					["failtime"] = 2000;
 					["itemreward"] = false;
 					["meshname"] = "Middle La Noscea";
 					["pos"] = {
@@ -2264,7 +2244,7 @@ local obj1 = {
 		};
 		[478] = {
 			["steps"] = {
-				[6] = {
+				[5] = {
 					["mapid"] = 135;
 					["type"] = "interact";
 					["itemturnin"] = false;
@@ -2292,14 +2272,14 @@ local obj1 = {
 						["z"] = -323.95352172852;
 					};
 				};
-				[8] = {
+				[7] = {
 					["mapid"] = 135;
 					["type"] = "complete";
 					["itemrewardslot"] = 1;
 					["meshname"] = "Lower La Noscea";
 					["id"] = 1002571;
 					["itemreward"] = true;
-					["delay"] = 2000;
+					["delay"] = 12000;
 					["pos"] = {
 						["y"] = 89.185249328613;
 						["x"] = 548.09942626953;
@@ -2336,33 +2316,19 @@ local obj1 = {
 				};
 				[4] = {
 					["mapid"] = 135;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["itemturnin"] = false;
 					["pos"] = {
 						["y"] = 73.476173400879;
 						["x"] = 258.71722412109;
 						["z"] = -317.71212768555;
 					};
-					["id"] = 368;
+					["ids"] = "368;372";
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
-					["killcount"] = 2;
 				};
-				[5] = {
-					["mapid"] = 135;
-					["type"] = "kill";
-					["itemturnin"] = false;
-					["pos"] = {
-						["y"] = 73.206344604492;
-						["x"] = 262.91793823242;
-						["z"] = -327.04473876953;
-					};
-					["id"] = 372;
-					["itemreward"] = false;
-					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
-				};
-				[7] = {
+				[6] = {
 					["type"] = "interact";
 					["id"] = 1002591;
 					["itemreward"] = false;
@@ -2431,16 +2397,15 @@ local obj1 = {
 				};
 				[3] = {
 					["mapid"] = 135;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["pos"] = {
 						["y"] = 68.329879760742;
 						["x"] = 473.50183105469;
 						["z"] = -173.06553649902;
 					};
-					["id"] = 958;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
 				};
 				[1] = {
 					["mapid"] = 135;
@@ -2470,7 +2435,8 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 135;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["pos"] = {
 						["y"] = 68.224296569824;
 						["x"] = 472.52264404297;
@@ -2479,11 +2445,11 @@ local obj1 = {
 					["id"] = 958;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
 				};
 				[7] = {
 					["mapid"] = 135;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["pos"] = {
 						["y"] = 68.368774414063;
 						["x"] = 457.04815673828;
@@ -2492,7 +2458,6 @@ local obj1 = {
 					["id"] = 958;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
-					["killcount"] = 1;
 				};
 			};
 			["level"] = 7;
@@ -2727,17 +2692,16 @@ local obj1 = {
 				};
 				[5] = {
 					["mapid"] = 138;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 2000;
 					["itemturnin"] = false;
 					["pos"] = {
 						["y"] = 30.996175765991;
 						["x"] = 606.94787597656;
 						["z"] = 356.64297485352;
 					};
-					["id"] = 963;
 					["itemreward"] = false;
 					["meshname"] = "Western La Noscea";
-					["killcount"] = 1;
 				};
 				[7] = {
 					["mapid"] = 138;
@@ -3400,7 +3364,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemrewardslot"] = {
 						[3] = 0;
-						[4] = 1;
+						[26] = 1;
 					};
 					["mapid"] = 134;
 					["itemturnin"] = true;
@@ -3751,28 +3715,14 @@ local obj1 = {
 				};
 				[8] = {
 					["mapid"] = 135;
-					["type"] = "kill";
-					["killcount"] = 1;
-					["id"] = 368;
+					["type"] = "killaggro";
+					["failtime"] = 5000;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
 					["pos"] = {
 						["y"] = 76.537284851074;
 						["x"] = 244.43342590332;
 						["z"] = -300.66265869141;
-					};
-				};
-				[9] = {
-					["mapid"] = 135;
-					["type"] = "kill";
-					["killcount"] = 1;
-					["id"] = 372;
-					["itemreward"] = false;
-					["meshname"] = "Lower La Noscea";
-					["pos"] = {
-						["y"] = 75.293807983398;
-						["x"] = 238.7165222168;
-						["z"] = -293.31875610352;
 					};
 				};
 				[5] = {
@@ -3786,19 +3736,6 @@ local obj1 = {
 						["y"] = 71.637054443359;
 						["x"] = 282.94345092773;
 						["z"] = -210.2318572998;
-					};
-				};
-				[10] = {
-					["mapid"] = 135;
-					["type"] = "kill";
-					["killcount"] = 1;
-					["id"] = 368;
-					["itemreward"] = false;
-					["meshname"] = "Lower La Noscea";
-					["pos"] = {
-						["y"] = 72.842140197754;
-						["x"] = 218.32922363281;
-						["z"] = -287.41693115234;
 					};
 				};
 				[3] = {
@@ -3828,7 +3765,7 @@ local obj1 = {
 						["z"] = -283.59887695313;
 					};
 				};
-				[12] = {
+				[10] = {
 					["type"] = "complete";
 					["id"] = 1000972;
 					["itemreward"] = true;
@@ -3846,7 +3783,7 @@ local obj1 = {
 						["z"] = -5.1336879730225;
 					};
 				};
-				[11] = {
+				[9] = {
 					["mapid"] = 135;
 					["type"] = "interact";
 					["meshname"] = "Lower La Noscea";
@@ -3922,17 +3859,16 @@ local obj1 = {
 				};
 				[3] = {
 					["mapid"] = 135;
-					["type"] = "kill";
+					["type"] = "killaggro";
+					["failtime"] = 3000;
 					["itemturnin"] = false;
 					["pos"] = {
 						["y"] = 68.096809387207;
 						["x"] = 441.47708129883;
 						["z"] = -174.03868103027;
 					};
-					["id"] = 49;
 					["itemreward"] = false;
 					["meshname"] = "Lower La Noscea";
-					["killcount"] = 3;
 				};
 			};
 			["level"] = 8;
@@ -4009,7 +3945,7 @@ local obj1 = {
 					["itemreward"] = true;
 					["itemrewardslot"] = {
 						[3] = 0;
-						[4] = 1;
+						[26] = 1;
 					};
 					["mapid"] = 134;
 					["equip"] = true;
@@ -4072,6 +4008,7 @@ local obj1 = {
 					["itemturninid"] = {
 						[1] = 2000522;
 					};
+					["equip"] = true;
 					["meshname"] = "Middle La Noscea";
 					["delay"] = 15000;
 					["pos"] = {
@@ -4123,7 +4060,7 @@ local obj1 = {
 					["mapid"] = 128;
 					["type"] = "textcommand";
 					["commandstring"] = "/disappointed";
-					["delay"] = 15000;
+					["delay"] = 20000;
 					["id"] = 1000918;
 					["itemreward"] = false;
 					["meshname"] = "Limsa (Upper)";
@@ -4304,14 +4241,14 @@ local obj1 = {
 					["mapid"] = 130;
 					["type"] = "interact";
 					["itemturnin"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["meshname"] = "Ul dah - Steps of Nald";
 					["id"] = 9;
 					["itemreward"] = false;
 					["delay"] = 10000;
 					["pos"] = {
 						["y"] = -3.1548881530762;
-						["x"] = -141.76684570313;
-						["z"] = -166.70375061035;
+						["x"] = -141.29295349121;
+						["z"] = -165.75482177734;
 					};
 				};
 				[17] = {
@@ -4324,7 +4261,7 @@ local obj1 = {
 					["itemturninid"] = {
 						[1] = 2000459;
 					};
-					["meshname"] = "Ul'dah - Steps of Thal";
+					["meshname"] = "Ul dah - Steps of Thal";
 					["delay"] = 10000;
 					["pos"] = {
 						["y"] = 38.000003814697;
@@ -4440,7 +4377,7 @@ local obj1 = {
 					["delay"] = 3000;
 					["id"] = 1004434;
 					["itemreward"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["meshname"] = "Ul dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 83.199989318848;
 						["x"] = -27.215887069702;
@@ -4468,7 +4405,7 @@ local obj1 = {
 					["delay"] = 3000;
 					["id"] = 1004336;
 					["itemreward"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["meshname"] = "Ul dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 82.999778747559;
 						["x"] = -13.986831665039;
@@ -4483,7 +4420,7 @@ local obj1 = {
 					["itemturnin"] = false;
 					["conversationindex"] = 1;
 					["delay"] = 3000;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["meshname"] = "Ul dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 81.799995422363;
 						["x"] = -25.565313339233;
@@ -4499,8 +4436,14 @@ local obj1 = {
 			};
 		};
 		[545] = {
-			["steps"] = {
+			["steps"] = {	
 				[2] = {
+					["itemturnin"] = false;
+					["itemid"] = 3760;
+					["delay"] = 2000;
+					["type"] = "equip";
+				};
+				[3] = {
 					["mapid"] = 129;
 					["type"] = "interact";
 					["delay"] = 15000;
@@ -4513,7 +4456,7 @@ local obj1 = {
 						["z"] = -15.300000190735;
 					};
 				};
-				[3] = {
+				[4] = {
 					["mapid"] = 177;
 					["type"] = "interact";
 					["meshname"] = "Limsa Lominsa - Inn";
@@ -4539,7 +4482,7 @@ local obj1 = {
 						["z"] = -5.3179306983948;
 					};
 				};
-				[4] = {
+				[5] = {
 					["mapid"] = 129;
 					["type"] = "interact";
 					["meshname"] = "Limsa (Lower)";
@@ -4552,7 +4495,7 @@ local obj1 = {
 						["z"] = -15.300000190735;
 					};
 				};
-				[5] = {
+				[6] = {
 					["mapid"] = 198;
 					["type"] = "complete";
 					["itemrewardslot"] = 0;
@@ -4580,7 +4523,7 @@ local obj1 = {
 					["mapid"] = 131;
 					["type"] = "interact";
 					["conversationindex"] = 1;
-					["meshname"] = "Ul'dah - Steps of Thal";
+					["meshname"] = "Ul dah - Steps of Thal";
 					["id"] = 1001854;
 					["itemreward"] = false;
 					["delay"] = 5000;
@@ -4597,7 +4540,7 @@ local obj1 = {
 					["delay"] = 5000;
 					["id"] = 1004433;
 					["itemreward"] = false;
-					["meshname"] = "Ul'dah - Steps of Nald";
+					["meshname"] = "Ul dah - Steps of Nald";
 					["pos"] = {
 						["y"] = 83.199989318848;
 						["x"] = -23.732883453369;
@@ -4607,7 +4550,7 @@ local obj1 = {
 				[1] = {
 					["mapid"] = 131;
 					["type"] = "start";
-					["meshname"] = "Ul'dah - Steps of Thal";
+					["meshname"] = "Ul dah - Steps of Thal";
 					["id"] = 1001821;
 					["itemreward"] = false;
 					["delay"] = 2000;
@@ -4768,6 +4711,7 @@ local obj1 = {
 						[3] = 0;
 						[26] = 1;
 					};
+					["equip"] = true;
 					["meshname"] = "Limsa (Upper)";
 					["id"] = 1000972;
 					["itemreward"] = true;
@@ -4859,16 +4803,16 @@ local obj1 = {
 					["type"] = "interact";
 					["itemturnin"] = false;
 					["delay"] = 8000;
-					["id"] = 2001263;
+					["id"] = 2001262;
 					["itemreward"] = false;
 					["meshname"] = "Western La Noscea";
 					["pos"] = {
-						["y"] = 40.659362792969;
-						["x"] = 680.64056396484;
-						["z"] = 363.27349853516;
+						["y"] = 41.40;
+						["x"] = 681.00;
+						["z"] = 356.30;
 					};
 				};
-				[4] = {
+				[3] = {
 					["type"] = "complete";
 					["id"] = 1003244;
 					["itemreward"] = true;
@@ -4888,20 +4832,6 @@ local obj1 = {
 						["y"] = 7.9525165557861;
 						["x"] = 650.54113769531;
 						["z"] = 528.44958496094;
-					};
-				};
-				[3] = {
-					["mapid"] = 138;
-					["type"] = "interact";
-					["itemturnin"] = false;
-					["delay"] = 8000;
-					["id"] = 2001262;
-					["itemreward"] = false;
-					["meshname"] = "Western La Noscea";
-					["pos"] = {
-						["y"] = 40.978561401367;
-						["x"] = 680.47302246094;
-						["z"] = 356.12661743164;
 					};
 				};
 			};
@@ -5297,9 +5227,9 @@ local obj1 = {
 					["itemreward"] = false;
 					["delay"] = 6000;
 					["pos"] = {
-						["y"] = 19.996215820313;
-						["x"] = 4.0509099960327;
-						["z"] = 10.161838531494;
+						["y"] = 20;
+						["x"] = 3.6;
+						["z"] = 9.7;
 					};
 				};
 				[8] = {
@@ -5365,7 +5295,7 @@ local obj1 = {
 					["meshname"] = "Limsa (Upper)";
 					["id"] = 1000969;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["delay"] = 8000;
 					["pos"] = {
 						["y"] = 40.000373840332;
 						["x"] = 8.2394256591797;
@@ -5557,7 +5487,7 @@ local obj1 = {
 					["meshname"] = "Limsa (Upper)";
 					["id"] = 1000969;
 					["itemreward"] = false;
-					["delay"] = 2000;
+					["delay"] = 8000;
 					["pos"] = {
 						["y"] = 40.000373840332;
 						["x"] = 8.2394256591797;
@@ -5752,6 +5682,7 @@ local obj1 = {
 					["ids"] = "825;827";
 					["healerid"] = 824;
 					["itemreward"] = false;
+					["restartatstep"] = 15;
 					["delay"] = 15000;
 					["pos"] = {
 						["y"] = 33.730861663818;
@@ -5917,8 +5848,8 @@ local obj1 = {
 					["meshname"] = "Lower La Noscea";
 					["pos"] = {
 						["y"] = 33.843852996826;
-						["x"] = 156.66607666016;
-						["z"] = 84.838684082031;
+						["x"] = 157.00;
+						["z"] = 85.00;
 					};
 				};
 			};
