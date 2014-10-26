@@ -274,7 +274,12 @@ function e_questcomplete:execute()
 	end
 	
 	if(ml_task_hub:CurrentTask().params["equip"]) then
-		ffxiv_task_quest.lastArmoryIDs = GetArmoryIDsTable()
+		local gear = GetArmoryIDsTable()
+		if (ValidTable(gear)) then
+			ffxiv_task_quest.lastArmoryIDs = gear
+		else
+			ffxiv_task_quest.lastArmoryIDs = false
+		end
 	end
 	
 	if(ml_task_hub:CurrentTask().params["itemreward"]) then
@@ -1220,12 +1225,12 @@ end
 c_equipreward = inheritsFrom( ml_cause )
 e_equipreward = inheritsFrom( ml_effect )
 function c_equipreward:evaluate()	
-	return ValidTable(ffxiv_task_quest.lastArmoryIDs)
+	return (ValidTable(ffxiv_task_quest.lastArmoryIDs) or ffxiv_task_quest.lastArmoryIDs == false)
 end
 function e_equipreward:execute()
 	local newArmoryIDs = GetArmoryIDsTable()
 	for id, _ in pairs(newArmoryIDs) do
-		if(not ffxiv_task_quest.lastArmoryIDs[id]) then
+		if(not ffxiv_task_quest.lastArmoryIDs or not ffxiv_task_quest.lastArmoryIDs[id]) then
 			ffxiv_task_quest.AddEquipItem(id)
 		end
 	end
