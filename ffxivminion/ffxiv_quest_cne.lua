@@ -73,6 +73,8 @@ function e_nextqueststep:execute()
 		ml_task_hub:CurrentTask().currentStepIndex = currentStepIndex
 		ffxiv_task_quest.restartStep = 0
 		ffxiv_task_quest.lastStepStartTime = ml_global_information.Now
+	elseif (ml_task_hub:CurrentTask().currentStepIndex > TableSize(ml_task_hub:CurrentTask().quest.steps)) then
+		ml_task_hub:CurrentTask().currentStepIndex = 1
 	else
 		ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
 	end
@@ -81,6 +83,13 @@ function e_nextqueststep:execute()
 	if (ValidTable(task)) then
 		--update quest step state
 		ml_task_hub:ThisTask().currentStepCompleted = false
+		
+		if (ml_task_hub:CurrentTask().currentStepIndex == TableSize(ml_task_hub:CurrentTask().quest.steps)) then
+			if(task.params["type"] ~= "complete") then
+				d("Detected end of profile, or we are missing a complete step, on quest ID:"..tostring(ml_task_hub:CurrentTask().quest.id))
+				ml_task_hub.ToggleRun()
+			end
+		end
 		
 		if(task.params["type"] == "complete") then
 			--don't let nextqueststep queue a complete task, let the complete cne handle it
@@ -495,14 +504,14 @@ function c_questprioritykill:evaluate()
 							return true
 						end
 					else
-					e_questprioritykill.id = target.id
-					e_questprioritykill.contentid = target.uniqueid
-					ml_task_hub:ThisTask().currentPrio = priority
-					return true
+						e_questprioritykill.id = target.id
+						e_questprioritykill.contentid = target.uniqueid
+						ml_task_hub:ThisTask().currentPrio = priority
+						return true
+					end
 				end
 			end	
 		end
-	end
 	end
 	
 	return false
