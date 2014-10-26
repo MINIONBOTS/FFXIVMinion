@@ -518,6 +518,7 @@ function c_questprioritykill:evaluate()
 end
 function e_questprioritykill:execute()
 	Player:Stop()
+	ml_task_hub:ThisTask().failTimer = 0
 	
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = e_questprioritykill.id
@@ -1159,6 +1160,7 @@ function e_questkillaggrotarget:execute()
 	--just in case
 	Player:Stop()
 	Dismount()
+	ml_task_hub:ThisTask().failTimer = 0
 	
 	local newTask = ffxiv_task_grindCombat.Create()
     newTask.targetid = c_questkillaggrotarget.targetid
