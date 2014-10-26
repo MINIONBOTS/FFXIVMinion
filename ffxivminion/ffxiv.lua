@@ -496,8 +496,8 @@ function ffxivminion.HandleInit()
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
 	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
+	ml_node.DistanceTo	= 			ffxivminion.NodeDistance
 	
-
 -- setup meshmanager
 	if ( ml_mesh_mgr ) then
 		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
@@ -1158,7 +1158,27 @@ function ffxivminion.DrawMarker(marker)
     return id
 end
 
+function ffxivminion.NodeDistance(self, id)
+	local neighbor = self:GetNeighbor(id)
+    if (neighbor) then
+		local cost = neighbor.cost or 5
+		local levelmin = neighbor.levelmin or 0
+		if (levelmin > 0 and Player.level < levelmin and Player:GetSyncLevel() == 0) then
+			cost = cost * 3
+		end
+		local requiredlevel = neighbor.requiredlevel or 0
+		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
+			cost = 999
+		end
+		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
+			cost = 999
+		end
 
+        return cost
+    end
+    
+    return nil
+end
 
 -- Register Event Handlers
 RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)

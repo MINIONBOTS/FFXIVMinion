@@ -49,17 +49,11 @@ function ml_node:GetClosestNeighborPos(origin, id)
     return nil
 end
 
+--OVERRIDE IN GAME MODULE IF NECESSARY.
 function ml_node:DistanceTo(id)
 	local neighbor = self:GetNeighbor(id)
     if (neighbor) then
 		local cost = neighbor.cost or 5
-		local levelmin = neighbor.levelmin or 0
-		if (levelmin > 0 and Player.level < levelmin and Player:GetSyncLevel() == 0) then
-			cost = cost * 3
-		end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
-			cost = 999
-		end
         return cost
     end
     
