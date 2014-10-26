@@ -405,8 +405,17 @@ function c_questkill:evaluate()
 		--end
 	
 		--otherwise check for mobs not incombat so we get credit for kill
+		local petid = nil
+		if (ValidTable(Player.pet)) then
+			petid = Player.pet.id
+		end
+		
 		if(not ValidTable(el)) then
 			el = EntityList("shortestpath,onmesh,alive,attackable,fateid=0,notincombat,contentid="..tostring(id))
+		end
+		
+		if(not ValidTable(el) and petid ~= nil) then
+			el = EntityList("shortestpath,onmesh,alive,attackable,fateid=0,contentid="..tostring(id)..",targeting="..tostring(petid))
 		end
 		
 		if(ValidTable(el)) then
@@ -433,7 +442,7 @@ function e_questkill:execute()
 	newTask.task_fail_evaluate = 
 		function()
 			local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-			return not ValidTable(target) or (target.incombat and not target.targetid == Player.id)
+			return not ValidTable(target) or (target.incombat and target.targetid ~= Player.id and (not Player.pet or target.targetid ~= Player.pet.id) and target.targetid ~= 0)
 		end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -444,6 +453,19 @@ function c_questprioritykill:evaluate()
 	local ids = ml_task_hub:ThisTask().params["ids"]
 	if (not ids) then
 		return false
+	end
+	
+	local healerID = nil
+	local healerPos = nil
+	if (ml_task_hub:ThisTask().params["healerid"]) then
+		local el = EntityList("onmesh,alive,contentid="..tostring(ml_task_hub:ThisTask().params["healerid"]))
+		if (ValidTable(el)) then
+			local id, healer = next(el)
+			if (healer) then
+				healerID = healer.id
+				healerPos = shallowcopy(healer.pos)
+			end
+		end
 	end
 	
 	if (ml_task_hub:ThisTask().subtask == nil and ml_task_hub:ThisTask().currentPrio ~= 0) then
@@ -459,6 +481,15 @@ function c_questprioritykill:evaluate()
 			if (ValidTable(el)) then
 				local id, target = next(el)
 				if (target) then
+					if (healerID) then
+						local healerdist = Distance3D(target.pos.x,target.pos.y,target.pos.z,healerPos.x,healerPos.y,healerPos.z)
+						if (healerdist <= 30) then
+							e_questprioritykill.id = target.id
+							e_questprioritykill.contentid = target.uniqueid
+							ml_task_hub:ThisTask().currentPrio = priority
+							return true
+						end
+					else
 					e_questprioritykill.id = target.id
 					e_questprioritykill.contentid = target.uniqueid
 					ml_task_hub:ThisTask().currentPrio = priority
@@ -466,6 +497,7 @@ function c_questprioritykill:evaluate()
 				end
 			end	
 		end
+	end
 	end
 	
 	return false
@@ -1047,6 +1079,30 @@ function c_questkillaggrotarget:evaluate()
 					return true
 				elseif (excludeID == target.uniqueid) then
 					return false
+				end
+			end
+		end
+	end
+	
+	--For summoners/pet users
+	local petid = nil
+	if (Player.pet) then 
+		petid = Player.pet.id 
+	end
+	
+	if (petid) then
+		local el = EntityList("alive,attackable,onmesh,targeting="..tostring(petid))
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (ValidTable(target)) then
+				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3))) then
+					if (not excludeID or excludeID ~= target.uniqueid) then
+						--d("KillAggroTarget True - targeting pet")
+						c_questkillaggrotarget.targetid = target.id
+						return true
+					elseif (excludeID == target.uniqueid) then
+						return false
+					end
 				end
 			end
 		end

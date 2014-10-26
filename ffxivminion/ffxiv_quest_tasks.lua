@@ -571,6 +571,14 @@ function ffxiv_quest_killaggro:task_complete_eval()
 		return false
 	end
 	
+	if (ValidTable(Player.pet)) then
+		el = EntityList("alive,attackable,onmesh,targeting="..tostring(Player.pet.id))
+		if (ValidTable(el)) then
+			self.failTimer = 0
+			return false
+		end
+	end
+	
 	if (self.failTimer == 0) then
 		if (self.params.failtime and self.params.failtime > 0) then
 			self.failTimer = Now() + self.params.failtime
