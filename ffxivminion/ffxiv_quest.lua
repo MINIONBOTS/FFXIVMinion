@@ -115,9 +115,13 @@ end
 
 --returns a task for the given step index
 function ffxiv_quest:GetStepTask(stepIndex)
+	local task = nil
 	local params = self.steps[stepIndex]
-	local task = ffxiv_quest.tasks[params.type]()
-	task.params = params
+	
+	if (params) then
+		task = ffxiv_quest.tasks[params.type]()
+		task.params = params
+	end
 	
 	return task
 end
