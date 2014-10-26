@@ -744,8 +744,21 @@ function ffxiv_quest_useitem:task_complete_eval()
 			return false
 		end
 	end
+
+	local disableCountCheck = self.params["disablecountcheck"]
+	if (ml_task_hub:CurrentTask().params["itemid"]) then
+		local id = self.params["itemid"]
+		local item = Inventory:Get(id)
+		if (not ValidTable(item)) then
+			return true
+		elseif(item.count < self.startingCount and self.stepCompleted) then
+			return true
+		elseif(disableCountCheck and IsLoading() and self.stepCompleted) then
+			return true
+		end
+	end
 	
-	local id = ml_task_hub:ThisTask().params["id"]
+	local id = self.params["id"]
     if (id and id > 0) then
 		local el = EntityList("shortestpath,maxdistance=10,contentid="..tostring(id))
 		if (ValidTable(el)) then
@@ -753,19 +766,6 @@ function ffxiv_quest_useitem:task_complete_eval()
 			if(ValidTable(entity)) then
 				return not entity.targetable
 			end
-		end
-	end
-	
-	local disableCountCheck = ml_task_hub:CurrentTask().params["disablecountcheck"]
-	if (ml_task_hub:CurrentTask().params["itemid"]) then
-		local id = ml_task_hub:CurrentTask().params["itemid"]
-		local item = Inventory:Get(id)
-		if (not ValidTable(item)) then
-			return true
-		elseif(item.count < ml_task_hub:CurrentTask().startingCount and ml_task_hub:CurrentTask().stepCompleted) then
-			return true
-		elseif(disableCountCheck and IsLoading() and ml_task_hub:ThisTask().stepCompleted) then
-			return true
 		end
 	end
 	
