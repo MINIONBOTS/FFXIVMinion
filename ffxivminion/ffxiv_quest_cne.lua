@@ -1318,7 +1318,7 @@ c_questitemcastdelay = inheritsFrom( ml_cause )
 e_questitemcastdelay = inheritsFrom( ml_effect )
 function c_questitemcastdelay:evaluate()
 	local target = Player:GetTarget()
-	if(target and target.type == 7) then
+	if(target and (target.type == 7 or target.type == 3)) then
 		if(Player.castinginfo.casttime > 0 and not ml_task_hub:ThisTask().delaySet) then
 			return true
 		end

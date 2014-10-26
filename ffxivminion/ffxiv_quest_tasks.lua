@@ -327,6 +327,9 @@ function ffxiv_quest_interact:Init()
 	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 5 )
     self:add( ke_questInteract, self.process_elements)
 	
+	local ke_questItemCastDelay = ml_element:create( "QuestInteractDelay", c_questitemcastdelay, e_questitemcastdelay, 3 )
+    self:add( ke_questItemCastDelay, self.process_elements)
+	
 	local ke_questIdle = ml_element:create( "QuestIdleCheck", c_questidle, e_questidle, 01 )
     self:add( ke_questIdle, self.process_elements)
 	
