@@ -856,6 +856,8 @@ function ffxivminion.CheckClass()
         [FFXIV.JOBS.LANCER]			= ffxiv_combat_lancer,
         [FFXIV.JOBS.MARAUDER] 		= ffxiv_combat_marauder,
         [FFXIV.JOBS.MONK] 			= ffxiv_combat_monk,
+		[FFXIV.JOBS.NINJA] 			= ffxiv_combat_ninja,
+		[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
         [FFXIV.JOBS.PALADIN] 		= ffxiv_combat_paladin,
         [FFXIV.JOBS.PUGILIST] 		= ffxiv_combat_pugilist,
         [FFXIV.JOBS.SCHOLAR] 		= ffxiv_combat_scholar,
