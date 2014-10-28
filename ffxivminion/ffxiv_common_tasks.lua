@@ -557,14 +557,24 @@ function ffxiv_task_avoid.Create()
 end
 
 function ffxiv_task_avoid:Init()
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z, 1, false, false)
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_avoid:task_complete_eval()
-	if TimeSince(self.started) > (self.maxTime * 1000) then
-		return true
+	
+	if (self.maxTime > 0) then
+		if TimeSince(self.started) > (self.maxTime * 1000) then
+			return true
+		end
+	else
+		local ppos = shallowcopy(Player.pos)
+		local topos = self.pos
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
+		if (dist < 1) then
+			return true
+		end
 	end
 	
 	local target = EntityList:Get(self.targetid)

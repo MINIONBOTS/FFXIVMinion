@@ -451,8 +451,8 @@ function e_avoid:execute()
 	local mobRight = ConvertHeading((eh - (math.pi/2)))%(2*math.pi)
 	local mobLeft = ConvertHeading((eh + (math.pi/2)))%(2*math.pi)
 	local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
-	local mobFrontLeft = ConvertHeading((eh + (math.pi * .25)))%(2*math.pi)
-	local mobFrontRight = ConvertHeading((eh - (math.pi * .25)))%(2*math.pi)
+	local mobFrontLeft = ConvertHeading((eh + (math.pi * .30)))%(2*math.pi)
+	local mobFrontRight = ConvertHeading((eh - (math.pi * .30)))%(2*math.pi)
 	
 	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
 	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
@@ -462,21 +462,24 @@ function e_avoid:execute()
 	
 	local dodgeDist = 0
 	if (target.hitradius < 2) then
-		dodgeDist = 8
+		dodgeDist = 9
 	elseif (target.hitradius >= 2 and target.hitradius < 3) then
-		dodgeDist = 10
+		dodgeDist = 11
 	else
-		dodgeDist = 13
+		dodgeDist = 14
 	end
 	
-		
+	local rangeDist = nil
+	if (ml_global_information.AttackRange > 5) then
+		rangeDist = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)		
+	else
+		rangeDist = target.hitradius + 1
+	end
+	
 	local options1 = {
-		GetPosFromDistanceHeading(epos, dodgeDist, mobRear),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobRight),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobLeft),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
-		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
+		GetPosFromDistanceHeading(epos, rangeDist, mobRear),
+		GetPosFromDistanceHeading(epos, rangeDist, mobRight),
+		GetPosFromDistanceHeading(epos, rangeDist, mobLeft),
 	}
 	
 	local options2 = {
@@ -485,11 +488,30 @@ function e_avoid:execute()
 		GetPosFromDistanceHeading(ppos, 8, playerLeft),
 	}
 	
+	local options3 = {
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRear),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobRight),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
+		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
+		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
+	}
+	
+	local maxTime = 0
 	if (target.castinginfo.channeltargetid == target.id) then
+		local optionTable = nil
+		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid]) then
+			optionTable = options3
+			maxTime = tonumber(target.castinginfo.casttime)
+		else
+			optionTable = options1
+			maxTime = 0
+		end
+		
 		-- If the casting target is the entity's own ID, it is a self-centered aoe, so either run away or move very far left and right.
 		local viable = {}
 		local i = 0
-		for _, pos in pairs(options1) do
+		for _, pos in pairs(optionTable) do
 			i = i + 1
 			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
 			if (p and dist <= 5) then
@@ -510,6 +532,7 @@ function e_avoid:execute()
 		escapePoint = closest
 	else
 		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
+		maxTime = tonumber(target.castinginfo.casttime)
 		local viable = {}
 		local i = 0
 		for _, pos in pairs(options2) do
@@ -534,13 +557,16 @@ function e_avoid:execute()
 	end
 	
 	if (ValidTable(escapePoint)) then
-		local newTask = ffxiv_task_avoid.Create()
-		newTask.pos = escapePoint
-		newTask.targetid = target.id
-		newTask.interruptCasting = true
-		newTask.maxTime = tonumber(target.castinginfo.casttime)
-		ml_task_hub:ThisTask().preserveSubtasks = true
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		local moveDist = Distance3D(ppos.x,ppos.y,ppos.z,escapePoint.x,escapePoint.y,escapePoint.z)
+		if (moveDist > 1.5) then
+			local newTask = ffxiv_task_avoid.Create()
+			newTask.pos = escapePoint
+			newTask.targetid = target.id
+			newTask.interruptCasting = true
+			newTask.maxTime = maxTime
+			ml_task_hub:ThisTask().preserveSubtasks = true
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		end
 	end
 end
 
