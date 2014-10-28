@@ -43,7 +43,7 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.BOTANIST] = 218,
 	[FFXIV.JOBS.MINER] = 235,
 	[FFXIV.JOBS.ROGUE] = 2240,
-	[FFXIV.JOBS.NINJA] = 2240,
+	[FFXIV.JOBS.NINJA] = 2240
 }
 
 SkillMgr.StartingProfiles = 
@@ -67,8 +67,8 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
 	[FFXIV.JOBS.BOTANIST] = "Botanist",
 	[FFXIV.JOBS.MINER] = "Miner",
-	[FFXIV.JOBS.CULINARIAN] = "Culinarian"
-	[FFXIV.JOBS.ROGUE] = "Rogue"
+	[FFXIV.JOBS.CULINARIAN] = "Culinarian",
+	[FFXIV.JOBS.ROGUE] = "Rogue",
 	[FFXIV.JOBS.NINJA] = "Ninja"
 	
 }
