@@ -865,6 +865,9 @@ function ffxivminion.CheckClass()
         [FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
         [FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
         [FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
+		[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
+		[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
+		
 		
         [FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
         [FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
@@ -878,6 +881,8 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
 		[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
+		
+
     }
 	
 	if (ml_global_information.CurrentClass == nil) then
