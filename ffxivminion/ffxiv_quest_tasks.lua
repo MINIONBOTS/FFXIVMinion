@@ -994,3 +994,78 @@ function ffxiv_quest_equip:Init()
 	self.task_complete_execute = quest_step_complete_execute
 	self:AddTaskCheckCEs()
 end
+
+ffxiv_quest_finish = inheritsFrom(ml_task)
+ffxiv_quest_finish.name = "QUEST_FINISH"
+
+function ffxiv_quest_finish.Create()
+    local newinst = inheritsFrom(ffxiv_quest_finish)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_FINISH"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+    
+    return newinst
+end
+
+function ffxiv_quest_finish:task_complete_eval()
+	local target = Player:GetTarget()
+	if (target and (target.type == 7 or target.type == 5 or target.type == 3)) then
+		if(ActionList:IsCasting()) then
+			return false
+		end
+	end
+	
+	local id = ml_task_hub:ThisTask().params["id"]
+    if (id and id > 0) then
+		local el = EntityList("nearest,maxdistance=10,contentid="..tostring(id))
+		if(ValidTable(el)) then
+			local id, entity = next(el)
+			if(ValidTable(entity) and entity.type == 7) then
+				return not entity.targetable
+			end
+		end
+	end
+
+	return ml_task_hub:CurrentTask().stepCompleted
+end
+
+function ffxiv_quest_finish:Init()
+	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
+    self:add( ke_inDialog, self.process_elements)
+	
+    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
+	local ke_questHandover = ml_element:create( "QuestHandover", c_questhandover, e_questhandover, 15 )
+    self:add( ke_questHandover, self.process_elements)
+
+	local ke_questComplete = ml_element:create( "QuestComplete", c_questcomplete, e_questcomplete, 15 )
+    self:add( ke_questComplete, self.process_elements)	
+	
+	local ke_questSelectConvIndex = ml_element:create( "QuestSelectConvIndex", c_questselectconvindex, e_questselectconvindex, 12 )
+    self:add( ke_questSelectConvIndex, self.process_elements)
+	
+	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 10 )
+    self:add( ke_questInteract, self.process_elements)
+	
+	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
+    self:add( ke_questMoveToPos, self.process_elements)
+	
+	local ke_questItemCastDelay = ml_element:create( "QuestInteractDelay", c_questitemcastdelay, e_questitemcastdelay, 3 )
+    self:add( ke_questItemCastDelay, self.process_elements)
+	
+	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
+    self:add( ke_questAtInteract, self.overwatch_elements)
+	
+	self.task_complete_execute = quest_step_complete_execute
+	self:AddTaskCheckCEs()
+end
