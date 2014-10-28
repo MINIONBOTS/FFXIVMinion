@@ -470,6 +470,7 @@ ffxiv_nav_data =
 		[138] =
 		{
 			cost = 3,
+			requiredlevel = 15,
 			gates = {
 				{x = -190.834, y = 1, z = 210.829, h = -1, b = 1000868, i = 1 },
 			},
@@ -477,6 +478,7 @@ ffxiv_nav_data =
 		[137] =
 		{
 			cost = 3,
+			requiredlevel = 30,
 			gates = {
 				{x = -190.834, y = 1, z = 210.829, h = -1, b = 1000868, i = 2 },
 			},
