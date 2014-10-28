@@ -1924,7 +1924,9 @@ function GetRoleString(jobID)
         jobID == FFXIV.JOBS.MONK or
         jobID == FFXIV.JOBS.PUGILIST or
         jobID == FFXIV.JOBS.SUMMONER or
-        jobID == FFXIV.JOBS.THAUMATURGE
+        jobID == FFXIV.JOBS.THAUMATURGE or
+		jobID == FFXIV.JOBS.ROGUE or
+		jobID == FFXIV.JOBS.NINJA
     then
         return strings[gCurrentLanguage].dps
     elseif
@@ -1947,7 +1949,9 @@ function IsMeleeDPS(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
 			jobID == FFXIV.JOBS.PUGILIST or
 			jobID == FFXIV.JOBS.DRAGOON or
-			jobID == FFXIV.JOBS.LANCER
+			jobID == FFXIV.JOBS.LANCER or
+			jobID == FFXIV.JOBS.ROGUE or
+			jobID == FFXIV.JOBS.NINJA
 end
 
 function IsRangedDPS(jobID)

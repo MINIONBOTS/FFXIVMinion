@@ -42,6 +42,8 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.SCHOLAR] = 163,
 	[FFXIV.JOBS.BOTANIST] = 218,
 	[FFXIV.JOBS.MINER] = 235,
+	[FFXIV.JOBS.ROGUE] = 2240,
+	[FFXIV.JOBS.NINJA] = 2240,
 }
 
 SkillMgr.StartingProfiles = 
@@ -65,7 +67,9 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
 	[FFXIV.JOBS.BOTANIST] = "Botanist",
 	[FFXIV.JOBS.MINER] = "Miner",
-	[FFXIV.JOBS.CULINARIAN] = "Culinarian"	
+	[FFXIV.JOBS.CULINARIAN] = "Culinarian"
+	[FFXIV.JOBS.ROGUE] = "Rogue"
+	[FFXIV.JOBS.NINJA] = "Ninja"
 	
 }
 
@@ -284,6 +288,16 @@ function SkillMgr.ModuleInit()
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
 	end
+	
+	-- enable these 2 once we got some profiles
+	--[[if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
+	end
+	
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
+	end]]
+		
 	
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
