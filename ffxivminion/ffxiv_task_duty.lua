@@ -283,7 +283,7 @@ function e_readyduty:execute()
 	ml_task_hub:ThisTask().state = "DUTY_NEW" 
 	ml_task_hub:ThisTask().joinTimer = Now() + 2000
 end
-			
+
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
@@ -692,10 +692,6 @@ function OnDutyMap()
 end
 
 function PartyInCombat()
-	if (Player.hasaggro) then
-		return true
-	end
-	
 	local party = EntityList.myparty
 	if (ValidTable(party)) then
 		for i, member in pairs(party) do
