@@ -293,11 +293,9 @@ function SkillMgr.ModuleInit()
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
 	end
 	
-	--[[
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
 	end
-	--]]
 		
 	
     -- Skillbook
