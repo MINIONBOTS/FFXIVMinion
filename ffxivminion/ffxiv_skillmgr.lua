@@ -1664,8 +1664,17 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							or (skill.thpb > 0 and skill.thpb < target.hp.percent)
 							or (skill.thpcl > 0 and skill.thpcl > target.hp.current)
 							or (skill.thpcb > 0 and skill.thpcb < target.hp.current)
-							)) then castable = false end			
-
+							)) then castable = false end	
+			
+						--BAD FATE CHECK
+						if (target.fateid ~= 0) then
+							local fate = GetFateByID(target.fateid)
+							if (ValidTable(fate)) then
+								if (Player:GetSyncLevel() == 0 and fate.level < Player.level - 5) then
+									castable = false
+								end
+							end
+						end
 						
 						-- TARGET BUFFS						
 						if ( castable ) then 							
@@ -1812,14 +1821,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										local action = ActionList:Get(skill.id)
 										if (action:Cast(TID)) then
 											skill.lastcast = Now()
-											if skill.cbreak == "0" then 
+											if skill.cbreak == "0" then
 												SkillMgr.prevSkillID = tostring(skill.id) 
 												SkillMgr.prevFailedTimer = Now() + 5500
 											end
-											if (skill.nskill ~= "") then
-												SkillMgr.nextSkillID = tostring(skill.nskill)
-												SkillMgr.nextFailedTimer = Now() + 5500
-											end
+											SkillMgr.nextSkillID = tostring(skill.nskill)
+											SkillMgr.nextFailedTimer = Now() + 5500
 											return true
 										end
 									end
