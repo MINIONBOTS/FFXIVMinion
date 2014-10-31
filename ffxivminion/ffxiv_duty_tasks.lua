@@ -1,3 +1,120 @@
+c_dutyavoid = inheritsFrom( ml_cause )
+e_dutyavoid = inheritsFrom( ml_effect )
+c_dutyavoid.target = nil
+function c_dutyavoid:evaluate()	
+	local target = Player:GetTarget()
+	if (not ml_task_hub:ThisTask().encounterData["avoid"] or 
+		not ml_task_hub:ThisTask().encounterData["avoidpos"] or
+		not target or 
+		target.castinginfo.channelingid == 0) 
+	then
+		return false
+	end
+	
+	for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
+		if (tonumber(spell) == target.castinginfo.channelingid) then
+			return true
+		end
+	end
+
+    return false
+end
+function e_dutyavoid:execute() 
+	local avoidpos = ml_task_hub:ThisTask().encounterData["avoidpos"]
+	local entity = Player:GetTarget()
+	
+	GameHacks:TeleportToXYZ(avoidpos.x, avoidpos.y, avoidpos.z)
+	SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+	ml_task_hub:CurrentTask():SetDelay(tonumber(entity.castinginfo.casttime) + 500)
+	
+	--[[
+	local newTask = ffxiv_task_duty_avoid.Create()
+	newTask.pos = ml_task_hub:ThisTask().encounterData["avoidpos"]
+	newTask.targetid = target.id
+	newTask.interruptCasting = true
+	newTask.maxTime = tonumber(target.castinginfo.casttime) + 500
+	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	--]]
+end
+
+
+--=======================AVOID TASK=========================-
+--[[
+ffxiv_task_duty_avoid = inheritsFrom(ml_task)
+function ffxiv_task_duty_avoid.Create()
+    local newinst = inheritsFrom(ffxiv_task_duty_avoid)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "AVOID"
+	newinst.targetid = 0
+    newinst.pos = 0
+	newinst.maxTime = 0
+    newinst.started = Now()
+    
+    return newinst
+end
+
+function ffxiv_task_duty_avoid:Init()
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
+    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_duty_avoid:task_complete_eval()
+	
+	if (self.maxTime > 0) then
+		if TimeSince(self.started) > (self.maxTime * 1000) then
+			return true
+		end
+	else
+		local ppos = shallowcopy(Player.pos)
+		local topos = self.pos
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
+		if (dist < 1) then
+			return true
+		end
+	end
+	
+	local target = EntityList:Get(self.targetid)
+	if (not target or not target.alive or target.castinginfo.channelingid == 0) then
+		return true
+	end
+	
+	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then
+		return true
+	end
+
+    return false
+end
+
+function ffxiv_task_duty_avoid:task_complete_execute()
+    Player:Stop()
+    
+	local target = Player:GetTarget()
+	if (target ~= nil) then
+		local pos = target.pos
+		Player:SetFacing(pos.x,pos.y,pos.z)
+	end
+	self.completed = true
+end
+
+function ffxiv_task_duty_avoid:task_fail_eval()
+    return (not Player.alive)
+end
+function ffxiv_task_duty_avoid:task_fail_execute()
+    self.valid = false
+end
+--]]
+
 ffxiv_duty_kill_task = inheritsFrom(ml_task)
 function ffxiv_duty_kill_task.Create()
     local newinst = inheritsFrom(ffxiv_duty_kill_task)
@@ -182,6 +299,9 @@ function ffxiv_duty_kill_task:task_complete_execute()
 end
 
 function ffxiv_duty_kill_task:Init()	
+	local ke_dutyAvoid = ml_element:create( "DutyAvoid", c_dutyavoid, e_dutyavoid, 35 )
+    self:add( ke_dutyAvoid, self.overwatch_elements)
+	
     self:AddTaskCheckCEs()
 end
 
