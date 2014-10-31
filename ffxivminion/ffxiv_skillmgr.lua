@@ -1237,18 +1237,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 						
-						--Reset prevSkillID if too much time has passed.
-						if (Now() > SkillMgr.prevFailedTimer) then
-							SkillMgr.prevSkillID = ""
-						end
-						
 						-- PREVIOUS SKILL
 						if ( castable and skill.pskill ~= "") then
 							castable = false
 							if (SkillMgr.prevSkillID ~= "") then
-								for i in skill.pskill:gmatch("%S+") do
-									if ( SkillMgr.prevSkillID == i) then
+								for skill in StringSplit(skill.pskill,",") do
+									if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
 										castable = true
+									end
+									if (castable) then
 										break
 									end
 								end
@@ -1258,9 +1255,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						-- PREVIOUS SKILL NOT
 						if ( castable and skill.npskill ~= "") then
 							if (SkillMgr.prevSkillID ~= "") then
-								for i in skill.npskill:gmatch("%S+") do
-									if ( SkillMgr.prevSkillID == i) then
+								for skill in StringSplit(skill.npskill,",") do
+									if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
 										castable = false
+									end
+									if (not castable) then
 										break
 									end
 								end
@@ -1413,6 +1412,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						end	
+						
+						if (skill.name == "Gust Slash" and SkillMgr.prevSkillID == "2240") then
+							d("Castable before target check is:"..tostring(castable))
+						end
 						
 						--Added a castable check so we don't waste CPU doing all this if it's already failed.
 						if (castable) then
@@ -1782,7 +1785,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 						
+						--FORCE CAST IF IS "NEXTSKILL"
+						if ( castable and SkillMgr.nextSkillID ~= "" ) then
+							if ( tonumber(SkillMgr.nextSkillID) == tonumber(skill.id) ) then
+								castable = true
+							end
+						end
+						
 						if ( castable ) then
+						
 						-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 							if (skill.stype == "Pet") then	
 								local s = ActionList:Get(skill.id,11)
@@ -1801,13 +1812,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 										skill.lastcast = Now()
 										if skill.cbreak == "0" then 
-											SkillMgr.prevSkillID = tostring(skill.id) 
-											SkillMgr.prevFailedTimer = Now() + 5500
+											SkillMgr.prevSkillID = skill.id
 										end
-										if (skill.nskill ~= "") then
-											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextFailedTimer = Now() + 5500
-										end
+										SkillMgr.nextSkillID = tostring(skill.nskill)
+										SkillMgr.nextFailedTimer = Now() + 8000
 										return true
 									end
 								else
@@ -1820,11 +1828,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										if (action:Cast(TID)) then
 											skill.lastcast = Now()
 											if skill.cbreak == "0" then
-												SkillMgr.prevSkillID = tostring(skill.id) 
-												SkillMgr.prevFailedTimer = Now() + 5500
+												SkillMgr.prevSkillID = skill.id
 											end
 											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextFailedTimer = Now() + 5500
+											SkillMgr.nextFailedTimer = Now() + 8000
 											return true
 										end
 									end
