@@ -11,9 +11,9 @@ SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.prevSkillID = ""
 SkillMgr.prevSkillList = {}
+SkillMgr.lastOFFCD = false
 SkillMgr.nextSkillID = ""
-SkillMgr.nextFailedTimer = 0
-SkillMgr.prevFailedTimer = 0
+SkillMgr.failTimer = 0
 SkillMgr.teleCastTimer = 0
 SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
@@ -1196,6 +1196,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						tbuffs = ebuffs
 					
 						local castable = true
+						
+						-- Reset prev/next/lastoffCD if failTimer has passed
+						if (Now() > SkillMgr.failTimer) then
+							SkillMgr.nextSkillID = ""
+							SkillMgr.prevSkillID = ""
+							SkillMgr.lastOFFCD = false
+						end
 				
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff == "1" and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now) ) then 
@@ -1223,14 +1230,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if ( SkillMgr.IsReady( tonumber(sknready), actiontype)) then
 								castable = false
 							end
-						end
+						end						
 						
-						-- Next Skill Check
-						--Reset nextSkillID if too much time has passed
-						if (Now() > SkillMgr.nextFailedTimer) then
-							SkillMgr.nextSkillID = ""
-						end
-						
+						--NEXT SKILL CHECK
 						if ( castable and SkillMgr.nextSkillID ~= "" ) then
 							if ( tonumber(SkillMgr.nextSkillID) ~= tonumber(skill.id) ) then
 								castable = false
@@ -1412,10 +1414,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						end	
-						
-						if (skill.name == "Gust Slash" and SkillMgr.prevSkillID == "2240") then
-							d("Castable before target check is:"..tostring(castable))
-						end
 						
 						--Added a castable check so we don't waste CPU doing all this if it's already failed.
 						if (castable) then
@@ -1814,8 +1812,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										if skill.cbreak == "0" then 
 											SkillMgr.prevSkillID = skill.id
 										end
+										SkillMgr.lastOFFCD = skill.offgcd == "1"
 										SkillMgr.nextSkillID = tostring(skill.nskill)
-										SkillMgr.nextFailedTimer = Now() + 8000
+										SkillMgr.failTimer = Now() + 8000
 										return true
 									end
 								else
@@ -1830,8 +1829,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											if skill.cbreak == "0" then
 												SkillMgr.prevSkillID = skill.id
 											end
+											SkillMgr.lastOFFCD = skill.offgcd == "1"
 											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextFailedTimer = Now() + 8000
+											SkillMgr.failTimer = Now() + 8000
 											return true
 										end
 									end
@@ -2022,6 +2022,17 @@ function SkillMgr.IsReady( actionid, actiontype )
 	local action = ActionList:Get(actionid)
 	if (action) then
 		return action.isready
+	end
+	
+	return false
+end
+
+function SkillMgr.IsOffCD( actionid, actiontype )
+	actionid = tonumber(actionid)
+	actiontype = actiontype or 1
+	local action = ActionList:Get(actionid)
+	if (action) then
+		return action.cdmax == 0
 	end
 	
 	return false
