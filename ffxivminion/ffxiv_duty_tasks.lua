@@ -1,22 +1,26 @@
 c_dutyavoid = inheritsFrom( ml_cause )
 e_dutyavoid = inheritsFrom( ml_effect )
 c_dutyavoid.target = nil
-function c_dutyavoid:evaluate()	
-	local target = Player:GetTarget()
+function c_dutyavoid:evaluate()
 	if (not ml_task_hub:ThisTask().encounterData["avoid"] or 
-		not ml_task_hub:ThisTask().encounterData["avoidpos"] or
-		not target or 
-		target.castinginfo.channelingid == 0) 
+		not ml_task_hub:ThisTask().encounterData["avoidpos"]) 
 	then
 		return false
 	end
 	
-	for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
-		if (tonumber(spell) == target.castinginfo.channelingid) then
-			return true
-		end
+	for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
+		local el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+		if (ValidTable(el)) then
+			for id, target in pairs(el) do
+				for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
+					if (tonumber(spell) == target.castinginfo.channelingid) then
+						return true
+					end
+				end
+			end
+		end		
 	end
-
+	
     return false
 end
 function e_dutyavoid:execute() 
@@ -25,8 +29,9 @@ function e_dutyavoid:execute()
 	
 	GameHacks:TeleportToXYZ(avoidpos.x, avoidpos.y, avoidpos.z)
 	SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+	ml_task_hub:ThisTask().immunePulses = 0
+	ml_task_hub:ThisTask().failTimer = 0
 	ml_task_hub:CurrentTask():SetDelay(tonumber(entity.castinginfo.casttime) + 500)
-	
 	--[[
 	local newTask = ffxiv_task_duty_avoid.Create()
 	newTask.pos = ml_task_hub:ThisTask().encounterData["avoidpos"]
@@ -38,9 +43,6 @@ function e_dutyavoid:execute()
 	--]]
 end
 
-
---=======================AVOID TASK=========================-
---[[
 ffxiv_task_duty_avoid = inheritsFrom(ml_task)
 function ffxiv_task_duty_avoid.Create()
     local newinst = inheritsFrom(ffxiv_task_duty_avoid)
@@ -54,7 +56,7 @@ function ffxiv_task_duty_avoid.Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_task_movetopos members
-    newinst.name = "AVOID"
+    newinst.name = "DUTY_AVOID"
 	newinst.targetid = 0
     newinst.pos = 0
 	newinst.maxTime = 0
@@ -64,22 +66,15 @@ function ffxiv_task_duty_avoid.Create()
 end
 
 function ffxiv_task_duty_avoid:Init()
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
+	GameHacks:TeleportToXYZ(self.pos.x, self.pos.y, self.pos.z)
+	Player:SetFacing(self.pos.h)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_duty_avoid:task_complete_eval()
-	
 	if (self.maxTime > 0) then
 		if TimeSince(self.started) > (self.maxTime * 1000) then
-			return true
-		end
-	else
-		local ppos = shallowcopy(Player.pos)
-		local topos = self.pos
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
-		if (dist < 1) then
 			return true
 		end
 	end
@@ -89,7 +84,7 @@ function ffxiv_task_duty_avoid:task_complete_eval()
 		return true
 	end
 	
-	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then
+	if TimeSince(ml_task_hub:ThisTask().started) > 8000 then
 		return true
 	end
 
@@ -97,13 +92,6 @@ function ffxiv_task_duty_avoid:task_complete_eval()
 end
 
 function ffxiv_task_duty_avoid:task_complete_execute()
-    Player:Stop()
-    
-	local target = Player:GetTarget()
-	if (target ~= nil) then
-		local pos = target.pos
-		Player:SetFacing(pos.x,pos.y,pos.z)
-	end
 	self.completed = true
 end
 
@@ -113,7 +101,6 @@ end
 function ffxiv_task_duty_avoid:task_fail_execute()
     self.valid = false
 end
---]]
 
 ffxiv_duty_kill_task = inheritsFrom(ml_task)
 function ffxiv_duty_kill_task.Create()
