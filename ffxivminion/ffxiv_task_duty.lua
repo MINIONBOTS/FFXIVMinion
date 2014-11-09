@@ -354,15 +354,15 @@ end
 c_lootcheck = inheritsFrom( ml_cause )
 e_lootcheck = inheritsFrom( ml_effect )
 function c_lootcheck:evaluate()
-    if (not Inventory:HasLoot() or IsDutyLeader()) then
-        return false
+    if (Inventory:HasLoot()) then
+        return true
     end	
 	
-    return true
+    return false
 end
 function e_lootcheck:execute()     
-	local newTask = ffxiv_task_loot.Create()
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	local newTask = ffxiv_task_lootroll.Create()
+	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
 function ffxiv_task_duty:ProcessOverWatch()
@@ -541,8 +541,8 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gResetDutyTimer == nil) then
         Settings.FFXIVMINION.gResetDutyTimer = 60
     end
-	if (Settings.FFXIVMINION.gLootOption == nil) then
-        Settings.FFXIVMINION.gLootOption = "All"
+	if (Settings.FFXIVMINION.gLootOption == nil or Settings.FFXIVMINION.gLootOption == "All") then
+        Settings.FFXIVMINION.gLootOption = "Any"
     end
 	if (Settings.FFXIVMINION.gUseTelecast == nil) then
         Settings.FFXIVMINION.gUseTelecast = "1"
