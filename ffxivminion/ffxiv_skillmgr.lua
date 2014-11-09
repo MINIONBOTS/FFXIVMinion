@@ -13,6 +13,7 @@ SkillMgr.prevSkillID = ""
 SkillMgr.prevSkillList = {}
 SkillMgr.lastOFFCD = false
 SkillMgr.nextSkillID = ""
+SkillMgr.nextSkillPrio = ""
 SkillMgr.failTimer = 0
 SkillMgr.teleCastTimer = 0
 SkillMgr.teleBack = {}
@@ -167,6 +168,7 @@ SkillMgr.Variables = {
 	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
 	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting"  },
 	SKM_NSkillID = { default = "", cast = "string", profile = "nskill", section = "fighting"  },
+	SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
 	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
@@ -340,6 +342,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
+	GUI_NewField(SkillMgr.editwindow.name,"Next Skill Prio","SKM_NSkillPrio",strings[gCurrentLanguage].basicDetails) -- strings[gCurrentLanguage].skmNSkillPrio
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCBreak,"SKM_CBreak",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmGCD,"SKM_OFFGCD",strings[gCurrentLanguage].basicDetails)
 	GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
@@ -1200,6 +1203,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						-- Reset prev/next/lastoffCD if failTimer has passed
 						if (Now() > SkillMgr.failTimer) then
 							SkillMgr.nextSkillID = ""
+							SkillMgr.nextSkillPrio = ""
 							SkillMgr.prevSkillID = ""
 							SkillMgr.lastOFFCD = false
 						end
@@ -1219,7 +1223,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						--Check that the other skill is ready.
 						if ( skill.skready ~= "") then
 							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( not SkillMgr.IsReady( tonumber(skready), actiontype)) then
+							if ( not SkillMgr.IsReady( tonumber(skill.skready), actiontype)) then
 								castable = false
 							end
 						end
@@ -1227,10 +1231,17 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						--Check that the other skill is not ready.
 						if ( skill.sknready ~= "") then
 							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( SkillMgr.IsReady( tonumber(sknready), actiontype)) then
+							if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
 								castable = false
 							end
 						end						
+						
+						--NEXT SKILL PRIO CHECK
+						if ( castable and SkillMgr.nextSkillPrio ~= "" ) then
+							if ( tonumber(SkillMgr.nextSkillPrio) ~= tonumber(skill.prio) ) then
+								castable = false
+							end
+						end
 						
 						--NEXT SKILL CHECK
 						if ( castable and SkillMgr.nextSkillID ~= "" ) then
@@ -1778,14 +1789,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 												
 						-- ISMOVING CHECK
 						if( castable) then
-							if(Player:IsMoving() and realskilldata.casttime > 0 and not forceStop) then
+							if (Player:IsMoving() and realskilldata.casttime > 0 and not forceStop) then
 								castable = false
 							end
 						end
 						
-						--FORCE CAST IF IS "NEXTSKILL"
-						if ( castable and SkillMgr.nextSkillID ~= "" ) then
-							if ( tonumber(SkillMgr.nextSkillID) == tonumber(skill.id) ) then
+						--FORCE CAST IF IS "NEXTSKILLPRIO"
+						if ( SkillMgr.nextSkillPrio ~= "" ) then
+							--d("checking to see if "..tostring(skill.prio).." is the nextskill prio of "..tostring(SkillMgr.nextSkillPrio).." with a result of "..tostring(tonumber(SkillMgr.nextSkillPrio) == tonumber(skill.prio)))
+							if ( tonumber(SkillMgr.nextSkillPrio) == tonumber(skill.prio) ) then
 								castable = true
 							end
 						end
@@ -1814,6 +1826,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										end
 										SkillMgr.lastOFFCD = skill.offgcd == "1"
 										SkillMgr.nextSkillID = tostring(skill.nskill)
+										SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 										SkillMgr.failTimer = Now() + 8000
 										return true
 									end
@@ -1831,6 +1844,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											end
 											SkillMgr.lastOFFCD = skill.offgcd == "1"
 											SkillMgr.nextSkillID = tostring(skill.nskill)
+											SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 											SkillMgr.failTimer = Now() + 8000
 											return true
 										end
@@ -2019,7 +2033,8 @@ end
 function SkillMgr.IsReady( actionid, actiontype )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
-	local action = ActionList:Get(actionid)
+	
+	local action = ActionList:Get(actionid, actiontype)
 	if (action) then
 		return action.isready
 	end
@@ -2030,7 +2045,7 @@ end
 function SkillMgr.IsOffCD( actionid, actiontype )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
-	local action = ActionList:Get(actionid)
+	local action = ActionList:Get(actionid, actiontype)
 	if (action) then
 		return action.cdmax == 0
 	end

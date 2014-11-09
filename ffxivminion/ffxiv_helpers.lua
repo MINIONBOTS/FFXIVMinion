@@ -686,7 +686,10 @@ function GetPVPTarget()
     
 	local enemyParty = nil
 	if (Player.localmapid == 376) then
-		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
+		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,targetingme,chartype=4,maxdistance=45")
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
+		end
 	else
 		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
 	end
@@ -1131,8 +1134,10 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 		for _andid in StringSplit(_orids,"+") do
 			found = false
 			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) and (duration == 0 or buff.duration > duration) 
-					and (owner == 0 or buff.ownerid == owner)) then 
+				if (buff.id == tonumber(_andid) 
+					and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
+					and (owner == 0 or buff.ownerid == owner)) 
+				then 
 					found = true 
 				end
 			end
@@ -1163,8 +1168,10 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     	missing = true
 		for _andid in StringSplit(_orids,"+") do
 			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) and (duration == 0 or buff.duration > duration)
-					and (owner == 0 or buff.ownerid == owner)) then 
+				if (buff.id == tonumber(_andid) 
+					and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id))
+					and (owner == 0 or buff.ownerid == owner)) 
+				then
 					missing = false 
 				end
 			end
@@ -1180,6 +1187,13 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     return false
 end
 
+function HasInfiniteDuration(id)
+	infiniteDurationAbilities = {
+		[614] = true,
+	}
+	
+	return infiniteDurationAbilities[id] or false
+end
 
 function ActionList:IsCasting()
 	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castid == 4)
