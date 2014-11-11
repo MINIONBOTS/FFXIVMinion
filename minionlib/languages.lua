@@ -138,6 +138,11 @@ strings =
 		
 		
 		--new SKM stuff
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
@@ -724,6 +729,11 @@ strings =
 		AutoRezz						= "复活敌方",
 		Fightstyle						= "战斗风格",
 		
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
@@ -1309,6 +1319,11 @@ strings =
 		AdvancedSettings				= "高度設定",
 		Fightstyle						= "戦闘スタイル",
 		
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
@@ -1859,6 +1874,11 @@ strings =
 		AdvancedSettings				= "Advanced Settings",
 		Fightstyle						= "Fightstyle",
 		
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
@@ -2410,6 +2430,11 @@ strings =
 		AdvancedSettings				= "Configuration Avancé",
 		Fightstyle						= "Fightstyle",
 		
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
@@ -2960,6 +2985,11 @@ strings =
 		AdvancedSettings				= "Advanced Settings",
 		Fightstyle						= "Fightstyle",
 		
+		alias							= "Alias",
+		cdIsReady						= "CD Is Ready",
+		cdNotReady						= "CD Not Ready",
+		cdTimeLT						= "CD Time <=",
+		nextSkillPrio					= "Next Skill Prio",
 		skmTYPE							= "Action Type",
 		skmSTYPE					 	= "Skill Type",
 		skmCombat						= "Combat Status",
