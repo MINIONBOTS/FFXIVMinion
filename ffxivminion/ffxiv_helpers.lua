@@ -1328,6 +1328,31 @@ function IsBehind(entity)
     return false
 end
 
+function IsFront(entity)
+	if not entity or entity.id == Player.id then return false end
+	
+    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
+        local entityHeading = nil
+        
+        if (entity.pos.h < 0) then
+            entityHeading = entity.pos.h + 2 * math.pi
+        else
+            entityHeading = entity.pos.h
+        end
+        
+        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+        local deviation = entityAngle - entityHeading
+        local absDeviation = math.abs(deviation)
+        
+        local leftover = absDeviation - math.pi
+		
+        if (leftover > (math.pi * .75)) then
+            return true
+        end
+    end
+    return false
+end
+
 function ConvertHeading(heading)
 	if (heading < 0) then
 		return heading + 2 * math.pi
@@ -1604,6 +1629,10 @@ function IsInParty(id)
 end
 
 function InCombatRange(targetid)
+	if (gBotRunning == "0") then
+		return false
+	end
+	
 	local target = {}
 	
 	--Quick change here to allow passing of a target or just the ID.
@@ -1919,7 +1948,9 @@ end
 
 function IsGardening(itemid)
 	itemid = itemid or 0
-	return ((itemid >= 7715 and itemid <= 7767) or itemid == 8024)
+	return ((itemid >= 7715 and itemid <= 7767) 
+			or itemid == 8024
+			or itemid == 5365)
 end
 
 function IsUnspoiled(contentid)

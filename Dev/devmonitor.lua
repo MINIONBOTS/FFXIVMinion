@@ -67,6 +67,11 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","pathdistance","target_pathdistance","TargetInfo")
 	GUI_NewField("Dev","hitradius","target_hitradius","TargetInfo")
 	GUI_NewField("Dev","InCombatRange()","target_InCombatRange","TargetInfo")
+	
+	GUI_NewField("Dev","IsBehind()","target_IsBehind","TargetInfo")
+	GUI_NewField("Dev","IsFlanking()","target_IsFlanking","TargetInfo")
+	GUI_NewField("Dev","IsFront()","target_IsFront","TargetInfo")
+	
 	GUI_NewField("Dev","pos.x","target_posX","TargetInfo")
 	GUI_NewField("Dev","pos.y","target_posY","TargetInfo")
 	GUI_NewField("Dev","pos.z","target_posZ","TargetInfo")
@@ -693,6 +698,11 @@ function Dev.UpdateWindow()
 		target_distance2d = (math.floor(mytarget.distance2d * 10) / 10)
 		target_pathdistance = (math.floor(mytarget.pathdistance * 10) / 10)
 		target_InCombatRange = tostring(InCombatRange(mytarget.id))
+		
+		target_IsBehind = tostring(IsBehind(mytarget))
+		target_IsFlanking = tostring(IsFlanking(mytarget))
+		target_IsFront = tostring(IsFront(mytarget))
+		
 		target_hitradius = mytarget.hitradius
 		target_onmesh = tostring(mytarget.onmesh)
 		target_posX = (math.floor(mytarget.pos.x * 10) / 10)
