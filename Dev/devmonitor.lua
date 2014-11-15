@@ -141,6 +141,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","CanEquip","invequipable","InventoryInfo")
 	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
 	GUI_NewField("Dev","IsHQ","invHQ","InventoryInfo")
+	GUI_NewButton("Dev","Sell","Dev.SellItem","InventoryInfo")
 	invSelSlot = 0
 	invinv = "0"
 	
@@ -374,7 +375,15 @@ function Dev.HandleButtons( Event, arg )
 						d(item:Use())
 					end					
 				end
-			end			
+			end	
+		elseif ( arg == "Dev.SellItem") then	
+			local inv = Inventory("type="..invinv)
+			if ( inv ) then
+				local item = inv[tonumber(invSelSlot)]
+				if ( item and ControlVisible("Shop")) then
+					d("Attempting to sell item, result:"..tostring(item:Sell()))				
+				end
+			end	
 		elseif ( arg == "Dev.Interact") then
 			local t = Player:GetTarget()
 			if ( t ) then
