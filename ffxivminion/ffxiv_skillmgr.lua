@@ -179,7 +179,8 @@ SkillMgr.Variables = {
 	SKM_SKOFFCD = { default = "", cast = "string", profile = "skoffcd", section = "fighting" },
 	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting" },
 	SKM_SKNOFFCD = { default = "", cast = "string", profile = "sknoffcd", section = "fighting" },
-	SKM_SKNCDTIME = { default = "", cast = "string", profile = "skncdtime", section = "fighting" },
+	SKM_SKNCDTIMEMIN = { default = "", cast = "string", profile = "skncdtimemin", section = "fighting" },
+	SKM_SKNCDTIMEMAX = { default = "", cast = "string", profile = "skncdtimemax", section = "fighting" },
 	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
@@ -360,7 +361,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdIsReady,"SKM_SKOFFCD",strings[gCurrentLanguage].skillChecks)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isNotReady,"SKM_SKNREADY",strings[gCurrentLanguage].skillChecks)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdNotReady,"SKM_SKNOFFCD",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdTimeLT,"SKM_SKNCDTIME",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdTimeGT,"SKM_SKNCDTIMEMIN",strings[gCurrentLanguage].skillChecks)
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdTimeLT,"SKM_SKNCDTIMEMAX",strings[gCurrentLanguage].skillChecks)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmSTYPE,"SKM_SKTYPE",strings[gCurrentLanguage].skillChecks,"Action,Pet")
 	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL",strings[gCurrentLanguage].playerHPMPTP)
@@ -1253,10 +1255,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						--Check that the other skill is on CD.
 						if ( not IsNullString(skill.sknoffcd)) then
 							local actiontype = (skill.sktype == "Action") and 1 or 11
-							local minCDTime = tonumber(skill.skncdtime) or 0
+							local minCDTime = tonumber(skill.skncdtimemin) or 0
+							local maxCDTime = tonumber(skill.skncdtimemax) or 0
 							local cdTime = SkillMgr.GetCDTime(tonumber(skill.sknoffcd), actiontype)
 							
-							if (not cdTime or (cdTime <= minCDTime)) then							
+							if (not cdTime or 
+								(minCDTime > 0 and cdTime <= minCDTime) or 
+								(maxCDTime > 0 and cdTime >= maxCDTime) or
+								(minCDTime == 0 and maxCDTime == 0 and cdTime > 0)) 
+							then							
 								castable = false
 							end
 						end
