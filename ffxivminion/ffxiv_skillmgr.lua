@@ -463,6 +463,8 @@ function SkillMgr.ModuleInit()
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow_crafting.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow_crafting.name,"COPY","SKMCopySkill")
     GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
     GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
     
@@ -485,6 +487,8 @@ function SkillMgr.ModuleInit()
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"COPY","SKMCopySkill")
     GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
     GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
 
@@ -628,7 +632,6 @@ function SkillMgr.ButtonHandler(event, Button)
 			SkillMgr.PasteSkill()
 		end
 	end
-	
 end
 
 function SkillMgr.CreateNewProfile()
@@ -725,7 +728,7 @@ function SkillMgr.CopySkill()
 	SkillMgr.copiedSkill = {}
 	local temp = {}
 	for k,v in pairs(SkillMgr.Variables) do
-		if (v.section == "fighting") then
+		if (v.section ~= "main") then
 			temp[k] = _G[tostring(k)]
 		end
 	end
