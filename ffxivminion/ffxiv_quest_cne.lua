@@ -646,8 +646,9 @@ function e_questgrind:execute()
 		gDoFates = "0"
 	else
 		gDoFates = "1"
-		gMinFateLevel = "5"
-		gMaxFateLevel = "5"
+		gMinFateLevel = "7"
+		gMaxFateLevel = "2"
+		gFateWaitPercent = 1 
 	end
 	
 	local newTask = ffxiv_task_grind.Create()
@@ -1211,7 +1212,6 @@ end
 
 c_questbuy = inheritsFrom( ml_cause )
 e_questbuy = inheritsFrom( ml_effect )
-
 function c_questbuy:evaluate()	
 	--check for vendor window open
 	if (not ControlVisible("Shop")) then
@@ -1228,16 +1228,20 @@ function c_questbuy:evaluate()
 	end
 	
 	return false
-	
 end
+
 function e_questbuy:execute()
-	local buyamount = ml_task_hub:ThisTask().params["buyamount"] or 1
-	d(e_questbuy.itemid)
-	if(Inventory:BuyShopItem(e_questbuy.itemid,buyamount)) then
-		if(ml_task_hub:ThisTask().params["equip"]) then
-			ffxiv_task_quest.AddEquipItem(e_questbuy.itemid)
+	if(ml_task_hub:ThisTask().params["equip"]) then
+		local gear = GetArmoryIDsTable()
+		if (ValidTable(gear)) then
+			ffxiv_task_quest.lastArmoryIDs = gear
+		else
+			ffxiv_task_quest.lastArmoryIDs = false
 		end
 	end
+	
+	local buyamount = ml_task_hub:ThisTask().params["buyamount"] or 1
+	Inventory:BuyShopItem(e_questbuy.itemid,buyamount)
 	
 	--set a delay on the current task to give the server time to update the item count
 	--so the task completion check will be valid
@@ -1264,14 +1268,14 @@ end
 --then this cne kicks in and sees that the table was set, checks a diff, and equips anything new
 c_equipreward = inheritsFrom( ml_cause )
 e_equipreward = inheritsFrom( ml_effect )
-function c_equipreward:evaluate()	
+function c_equipreward:evaluate()
 	return (ValidTable(ffxiv_task_quest.lastArmoryIDs) or ffxiv_task_quest.lastArmoryIDs == false)
 end
 function e_equipreward:execute()
 	local newArmoryIDs = GetArmoryIDsTable()
 	for id, _ in pairs(newArmoryIDs) do
 		if(not ffxiv_task_quest.lastArmoryIDs or not ffxiv_task_quest.lastArmoryIDs[id]) then
-			ffxiv_task_quest.AddEquipItem(id)
+			ffxiv_task_quest.AddEquipItem(id, true)
 		end
 	end
 	ffxiv_task_quest.lastArmoryIDs = {}

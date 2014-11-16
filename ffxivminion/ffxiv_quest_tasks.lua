@@ -86,6 +86,9 @@ function ffxiv_quest_task:Init()
 	
 	--its tempting to make autoequip an overwatch cne but there are too many states 
 	--when the client does not allow gear changes
+	local ke_equipReward = ml_element:create( "EquipReward", c_equipreward, e_equipreward, 30 )
+    self:add( ke_equipReward, self.process_elements)
+	
 	local ke_equip = ml_element:create( "Equip", c_equip, e_equip, 25 )
     self:add( ke_equip, self.process_elements)
 	
@@ -931,10 +934,13 @@ function ffxiv_quest_vendor:task_complete_eval()
 end
 
 function ffxiv_quest_vendor:Init()
+	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
+    self:add( ke_questAtInteract, self.overwatch_elements)
+	
 	local ke_inDialog = ml_element:create( "QuestInDialog", c_indialog, e_indialog, 95 )
     self:add( ke_inDialog, self.process_elements)
 	
-    local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+	local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 20 )
     self:add( ke_questMoveToMap, self.process_elements)
 	
 	local ke_questBuy = ml_element:create( "QuestBuy", c_questbuy, e_questbuy, 15 )
@@ -945,9 +951,6 @@ function ffxiv_quest_vendor:Init()
 	
 	local ke_questInteract = ml_element:create( "QuestInteract", c_questinteract, e_questinteract, 10 )
     self:add( ke_questInteract, self.process_elements)
-	
-	local ke_questAtInteract = ml_element:create( "QuestAtInteract", c_atinteract, e_atinteract, 10 )
-    self:add( ke_questAtInteract, self.overwatch_elements)
 	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
     self:add( ke_questMoveToPos, self.process_elements)

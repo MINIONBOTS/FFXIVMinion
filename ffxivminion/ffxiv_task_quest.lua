@@ -113,6 +113,7 @@ end
 
 function ffxiv_task_quest.AddEquipItem(itemid, ignoreLevel, itemtype)
 	local itemtype = itemtype or 0
+	local ignoreLevel = ignoreLevel or false
 	
 	local itemTable = {type = itemtype}
 	local equipTable = ml_global_information.itemIDsToEquip[gProfile]
