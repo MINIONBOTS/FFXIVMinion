@@ -650,6 +650,9 @@ end
 
 function ffxiv_quest_nav:Init()
     --init ProcessOverWatch cnes
+	local ke_questMoveToMap = ml_element:create( "QuestMoveToMap", c_questmovetomap, e_questmovetomap, 25 )
+    self:add( ke_questMoveToMap, self.process_elements)
+	
 	local ke_questMoveToPos = ml_element:create( "QuestMoveToPos", c_questmovetopos, e_questmovetopos, 05 )
     self:add( ke_questMoveToPos, self.process_elements)
 
