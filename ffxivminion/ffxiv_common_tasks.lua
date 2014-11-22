@@ -140,7 +140,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.postDelay = 0
 	newinst.dismountTimer = 0
-	newinst.dismountDistance = 0
+	newinst.dismountDistance = 10
     
     return newinst
 end
@@ -208,7 +208,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 				return true
 			end
 		else	
-			if (self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and Now() > self.dismountTimer) then
+			if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and Now() > self.dismountTimer) then
 				Dismount()
 				self.dismountTimer = Now() + 1500
 			end
