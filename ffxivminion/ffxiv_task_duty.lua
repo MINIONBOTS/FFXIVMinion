@@ -287,8 +287,9 @@ end
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
-	if ( OnDutyMap() and not PartyInCombat() and Now() > ml_task_hub:ThisTask().leaveTimer) then
+	if ( OnDutyMap() and not PartyInCombat() and not Inventory:HasLoot() and Now() > ml_task_hub:ThisTask().leaveTimer) then
 		if	(DutyLeaderLeft() or
+			Quest:IsQuestRewardDialogOpen() or
 			(IsDutyLeader() and (ml_task_hub:ThisTask().state == "DUTY_EXIT"))) then
 			return true
 		end
@@ -297,16 +298,21 @@ function c_leaveduty:evaluate()
 	return false
 end
 function e_leaveduty:execute()
-	if not ControlVisible("ContentsFinder") then
-		Player:Stop()
-        ActionList:Cast(33,0,10)
+	if (Quest:IsQuestRewardDialogOpen()) then
+		Quest:CompleteQuestReward()
 		ml_task_hub:ThisTask().leaveTimer = Now() + 2000
-    elseif ControlVisible("ContentsFinder") and not ControlVisible("SelectYesno") then
-        PressDutyJoin()
-		ml_task_hub:ThisTask().leaveTimer = Now() + 2000
-	elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
-        PressYesNo(true)
-    end
+	else
+		if not ControlVisible("ContentsFinder") then
+			Player:Stop()
+			ActionList:Cast(33,0,10)
+			ml_task_hub:ThisTask().leaveTimer = Now() + 2000
+		elseif ControlVisible("ContentsFinder") and not ControlVisible("SelectYesno") then
+			PressDutyJoin()
+			ml_task_hub:ThisTask().leaveTimer = Now() + 2000
+		elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
+			PressYesNo(true)
+		end
+	end
 end
 
 c_changeleader = inheritsFrom( ml_cause )
@@ -390,8 +396,8 @@ function c_dutyidle:evaluate()
 	(IsPartyLeader() and ml_task_hub:ThisTask().state == "DUTY_ENTER" and Now() > ml_task_hub:ThisTask().joinTimer))
 end
 function e_dutyidle:execute()
-	ml_error("Stuck idle in task "..ml_task_hub:ThisTask().name.." with state "..ml_task_hub:ThisTask().state)
-	ml_error("Attempting to recover from error.")
+	ml_debug("Stuck idle in task "..ml_task_hub:ThisTask().name.." with state "..ml_task_hub:ThisTask().state)
+	ml_debug("Attempting to recover from error.")
 	ml_task_hub:ThisTask():DeleteSubTasks()
 	ml_task_hub:ThisTask().state = ""
 end
@@ -401,7 +407,7 @@ function ffxiv_task_duty:Process()
 		return false
 	end
 	
-	if (IsDutyLeader() and OnDutyMap()) then
+	if (IsDutyLeader() and OnDutyMap() and not Inventory:HasLoot()) then
 		if (self.state == "DUTY_ENTER") then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			if (ValidTable(encounters)) then
@@ -488,10 +494,7 @@ function ffxiv_task_duty:Process()
 end
 
 function ffxiv_task_duty:Init()
-    --init Process() cnes
-	--local ke_resetState = ml_element:create( "ResetState", c_resetstate, e_resetstate, 9 )
-    --self:add(ke_resetState, self.overwatch_elements)
-	
+    --init Process() cnes		
 	local ke_dutyIdle = ml_element:create( "DutyIdle", c_dutyidle, e_dutyidle, 40 )
     self:add(ke_dutyIdle, self.overwatch_elements)
 	
@@ -505,7 +508,7 @@ function ffxiv_task_duty:Init()
     self:add( ke_assistleaderduty, self.overwatch_elements)
 	
 	local ke_pressConfirm = ml_element:create( "PressConfirm", c_pressconfirm, e_pressconfirm, 15 )
-    self:add(ke_pressConfirm, self.overwatch_elements)
+    self:add(ke_pressConfirm, self.overwatch_elements)	
 	
 	local ke_lootcheck = ml_element:create( "Loot", c_lootcheck, e_lootcheck, 19 )--minion only
     self:add( ke_lootcheck, self.process_elements)

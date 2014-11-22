@@ -587,7 +587,6 @@ function c_roll:evaluate()
 	if (Now() < ml_task_hub:CurrentTask().latencyTimer) then
 		return false
 	end
-	ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 	
 	local loot = Inventory:GetLootList()
 	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
@@ -600,33 +599,35 @@ function e_roll:execute()
 	ml_task_hub:CurrentTask().isComplete = false
 	local loot = Inventory:GetLootList()
 	if (loot) then
-		local i,e = next(loot)
-		while (i~=nil and e~=nil) do    
-			if (ml_task_hub:CurrentTask().rollstate == "Need") then
+		if (ml_task_hub:CurrentTask().rollstate == "Need") then
+			for i, e in pairs(loot) do
 				if (gLootOption == "Need" or gLootOption == "Any") then 
 					d("Attempting to need on loot, result was:"..tostring(e:Need()))
-					ml_task_hub:CurrentTask().rollstate = "Greed"
-					ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
-					return
 				end
-				ml_task_hub:CurrentTask().rollstate = "Greed"
 			end
-			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
+			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().rollstate = "Greed"
+			return
+		end
+		
+		if (ml_task_hub:CurrentTask().rollstate == "Greed") then
+			for i, e in pairs(loot) do
 				if (gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any") then 
-					d("Attempting to greed on loot, result was:"..tostring(e:Greed()))
-					ml_task_hub:CurrentTask().rollstate = "Pass"					
-					ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
-					return
+					d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
 				end
-				ml_task_hub:CurrentTask().rollstate = "Pass"
 			end
-			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
+			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().rollstate = "Pass"
+			return
+		end
+		
+		if (ml_task_hub:CurrentTask().rollstate == "Pass") then
+			for i, e in pairs(loot) do
 				d("Attempting to pass on loot, result was:"..tostring(e:Pass()))
-				ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
-				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
-			i,e = next (loot,i)
-		end  
+			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().rollstate = "Complete"
+		end
 	end
 end
 
