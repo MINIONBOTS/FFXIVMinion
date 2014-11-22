@@ -1081,6 +1081,8 @@ function c_questkillaggrotarget:evaluate()
 		return false
 	end
 	
+	local ignoreAggressive = ml_task_hub:ThisTask().params["ignoreaggressive"]
+	
 	--if we still have the quest object targeted then the mob may have spawned
 	--don't start a kill aggro target task or we'll fuck up the next kill step
 	local target = Player:GetTarget()
@@ -1153,32 +1155,34 @@ function c_questkillaggrotarget:evaluate()
 		end
 	end
 	
-	if (taskName == "QUEST_KILL") then
-		el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=10")
-	elseif (taskName == "QUEST_INTERACT" or taskName == "QUEST_USEITEM") then
-		local interactid = ml_task_hub:ThisTask().params["id"]
-		local el = EntityList("shortestpath,contentid="..tostring(interactid))
-		if (ValidTable(el)) then
-			local id, entity = next(el)
-			if (entity) then
-				el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=15,distanceto="..tostring(entity.id))
+	if (not ignoreAggressive) then
+		if (taskName == "QUEST_KILL") then
+			el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=10")
+		elseif (taskName == "QUEST_INTERACT" or taskName == "QUEST_USEITEM") then
+			local interactid = ml_task_hub:ThisTask().params["id"]
+			local el = EntityList("shortestpath,contentid="..tostring(interactid))
+			if (ValidTable(el)) then
+				local id, entity = next(el)
+				if (entity) then
+					el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=15,distanceto="..tostring(entity.id))
+				end
+			else
+				return false
 			end
 		else
-			return false
-		end
-	else
-		el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=10")
-	end	
-	
-	if (ValidTable(el)) then
-		local id, target = next(el)
-		if (ValidTable(target)) then
-			if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3)) and
-				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) then
-				if (not excludeID or excludeID ~= target.uniqueid) then
-					--d("KillAggroTarget True - aggressive")
-					c_questkillaggrotarget.targetid = target.id
-					return true
+			el = EntityList("shortestpath,alive,attackable,onmesh,aggressive,targetid=0,maxdistance=10")
+		end	
+		
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (ValidTable(target)) then
+				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0 and (target.level <= (Player.level + 3)) and
+					(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) then
+					if (not excludeID or excludeID ~= target.uniqueid) then
+						--d("KillAggroTarget True - aggressive")
+						c_questkillaggrotarget.targetid = target.id
+						return true
+					end
 				end
 			end
 		end

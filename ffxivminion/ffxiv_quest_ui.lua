@@ -472,7 +472,6 @@ end
 --**************************************************************************************************************************************
 function QM.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
-		--d(tostring(k)..","..tostring(v)..","..tostring(type(v)))
 		local var = QM.Variables[tostring(k)]
 		if (var ~= nil) then
 			Settings.FFXIVMINION[k] = v
