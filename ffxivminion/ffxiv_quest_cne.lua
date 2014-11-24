@@ -1081,8 +1081,6 @@ function c_questkillaggrotarget:evaluate()
 		return false
 	end
 	
-	local ignoreAggressive = ml_task_hub:ThisTask().params["ignoreaggressive"]
-	
 	--if we still have the quest object targeted then the mob may have spawned
 	--don't start a kill aggro target task or we'll fuck up the next kill step
 	local target = Player:GetTarget()
@@ -1153,6 +1151,11 @@ function c_questkillaggrotarget:evaluate()
 				end
 			end
 		end
+	end
+	
+	local ignoreAggressive = false
+	if (ml_task_hub:ThisTask().params) then
+		ignoreAggressive = ml_task_hub:ThisTask().params["ignoreaggressive"]
 	end
 	
 	if (not ignoreAggressive) then
