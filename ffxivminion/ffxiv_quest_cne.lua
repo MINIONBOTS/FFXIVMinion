@@ -240,7 +240,7 @@ function e_questmovetopos:execute()
 	newTask.pos = pos
 	newTask.use3d = true
 	newTask.postDelay = 1500
-	if(ml_task_hub:ThisTask().params["type"] == "nav")then
+	if (ml_task_hub:ThisTask().params["type"] == "nav") then
 		newTask.range = 0.5
 	end
 	
@@ -269,6 +269,7 @@ function e_questmovetopos:execute()
 		newTask:add( ke_killAggroTarget, newTask.overwatch_elements)
 	end
 	
+	newTask.params = ml_task_hub:ThisTask().params
 	ml_task_hub:ThisTask():AddSubTask(newTask)
 end
 
