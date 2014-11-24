@@ -283,13 +283,16 @@ function ffxiv_quest_interact:task_complete_eval()
 		end
 	end
 	
-	local id = ml_task_hub:ThisTask().params["id"]
-    if (id and id > 0) then
-		local el = EntityList("nearest,maxdistance=10,contentid="..tostring(id))
-		if(ValidTable(el)) then
-			local id, entity = next(el)
-			if(ValidTable(entity) and entity.type == 7) then
-				return not entity.targetable
+	local disableTargetCheck = self.params["disabletargetcheck"]
+	if (not disableTargetCheck) then
+		local id = ml_task_hub:ThisTask().params["id"]
+		if (id and id > 0) then
+			local el = EntityList("nearest,maxdistance=10,contentid="..tostring(id))
+			if(ValidTable(el)) then
+				local id, entity = next(el)
+				if(ValidTable(entity) and entity.type == 7) then
+					return not entity.targetable
+				end
 			end
 		end
 	end
