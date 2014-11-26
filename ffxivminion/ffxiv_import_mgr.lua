@@ -112,9 +112,6 @@ function imp.GUIVarUpdate(Event, NewVals, OldVals)
 				end
 				importSettings[modifiedModule][k] = v
 				persistence.store(imp.globalSettings,importSettings)
-			else
-				ml_error("Specified setting has not been defined properly. Default entry is missing.  Cannot be auto-exported.")
-				return
 			end
 		end
 		if (k == "gImportFileName") then
@@ -164,7 +161,12 @@ function imp.Import(key)
 			local file = imp.filesPath..gImportFileName..".info"
 			local importSettings = persistence.load(file)
 			if (ValidTable(importSettings)) then
-				Settings.FFXIVMINION.gGatherLocations = importSettings
+				local currentLocations = Settings.FFXIVMINION.gGatherLocations
+				for locationName,locationData in pairs(importSettings) do
+					currentLocations[locationName] = locationData
+				end
+				
+				Settings.FFXIVMINION.gGatherLocations = currentLocations
 				gGatherLocations = Settings.FFXIVMINION.gGatherLocations
 				Reload()
 			else
@@ -180,7 +182,12 @@ function imp.Import(key)
 			local file = imp.filesPath..gImportFileName..".info"
 			local importSettings = persistence.load(file)
 			if (ValidTable(importSettings)) then
-				Settings.FFXIVMINION.gHuntLocations = importSettings
+				local currentLocations = Settings.FFXIVMINION.gHuntLocations
+				for locationName,locationData in pairs(importSettings) do
+					currentLocations[locationName] = locationData
+				end
+				
+				Settings.FFXIVMINION.gHuntLocations = currentLocations
 				gHuntLocations = Settings.FFXIVMINION.gHuntLocations
 				Reload()
 			else
