@@ -598,6 +598,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
     },                                  
     ["cn"] =                            
     {                               
@@ -1216,6 +1219,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
 	},
     ["jp"] =
     {
@@ -1787,6 +1793,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
 	},   
     ["de"] =
     {
@@ -2359,6 +2368,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
 	},     
     ["fr"] =
     {
@@ -2930,6 +2942,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
 	},       
     ["ru"] =
     {
@@ -3501,6 +3516,9 @@ strings =
 		importSettings					= "Import Settings",
 		exportGlobal					= "Export Global",
 		importGlobal					= "Import Global",
+		
+		minimumCP						= "Minimum CP",
+		craftAmount						= "Craft Amount",
 	},    	
 
 }
