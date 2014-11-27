@@ -407,7 +407,7 @@ function Dev.HandleButtons( Event, arg )
 		elseif ( arg == "Dev.Cast" ) then
 			sbpendingcast = true
 		elseif ( arg == "Dev.Craft" ) then
-			Dev.curTask = Dev.CraftTask	
+			Dev.curTask = Crafting:CraftSelectedItem()
 		elseif ( arg == "Dev.CraftLog" ) then	
 			Crafting:ToggleCraftingLog()
 		elseif ( arg == "Dev.Sync" ) then
@@ -868,7 +868,6 @@ function Dev.UpdateWindow()
 			invclass = item.class
 			invequipable = tostring(item.canequip)
 			invHQ = tostring(item.IsHQ)
-			
 		end
 	end
 	if (not found) then
@@ -1048,6 +1047,7 @@ function Dev.UpdateWindow()
 		crtext ="" 	
 	end
 	cropen = tostring(Crafting:IsCraftingLogOpen())
+	crcan = tostring(Crafting:CanCraftSelectedItem())
 	
 	-- PartyInfo
 	local party = EntityList.myparty
