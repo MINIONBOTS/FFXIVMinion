@@ -690,6 +690,9 @@ function GetPVPTarget()
 		if(not ValidTable(enemyParty)) then
 			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 		end
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,maxdistance=45")
+		end
 	else
 		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
 	end
@@ -1339,17 +1342,39 @@ function IsFront(entity)
         else
             entityHeading = entity.pos.h
         end
-        
-        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+		
+        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
-        
-        local leftover = absDeviation - math.pi
 		
+        local leftover = absDeviation - math.pi
         if (leftover > (math.pi * .75)) then
             return true
         end
     end
+    return false
+end
+
+function EntityIsFront(entity)
+	if not entity or entity.id == Player.id then return false end
+	
+	local playerHeading = nil
+	if (Player.pos.h < 0) then
+		playerHeading = Player.pos.h + 2 * math.pi
+	else
+		playerHeading = Player.pos.h
+	end
+	
+	local playerAngle = math.atan2(entity.pos.x - Player.pos.x, entity.pos.z - Player.pos.z)  	
+	local deviation = playerAngle - playerHeading
+	local absDeviation = math.abs(deviation)
+	
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .75)) then
+		return true
+	end
+		
     return false
 end
 
@@ -2091,8 +2116,24 @@ function GetAetheryteByMapID(id)
     return nil
 end
 
-function GetClosestAetheryteToMapIDPos(mapid, p)
+function GetClosestAetheryteToMapIDPos(id, p)
 	local pos = p
+	
+	local mapid = Player.localmapid
+	if (id == 133 and mapid ~= 132) then
+		id = 132
+	elseif (id == 128 and mapid ~= 129) then
+		id = 129
+	elseif (id == 131 and mapid ~= 130) then
+		id = 130
+	end
+	
+	if 	(mapid == 131 and id == 130) or
+		(mapid == 128 and id == 129) or
+		(mapid == 133 and id == 133)
+	then
+		return nil
+	end
 	
 	sharedMaps = {
 		[153] = { name = "South Shroud",
@@ -2118,22 +2159,24 @@ function GetClosestAetheryteToMapIDPos(mapid, p)
 	}
 	
 	local list = Player:GetAetheryteList()
-	if (sharedMaps[mapid] == nil) then
+	if (sharedMaps[id] == nil) then
 		for index,aetheryte in ipairs(list) do
-			if (aetheryte.territory == mapid) then
+			if (aetheryte.territory == id) then
 				return aetheryte.id
 			end
 		end
 	else
-		local map = sharedMaps[mapid]
-		if (mapid == 153 or mapid == 138 or mapid == 146 or mapid == 147) then
+		local map = sharedMaps[id]
+		if (id == 153 or id == 138 or id == 146 or id == 147) then
 			local distance1 = Distance2D(pos.x, pos.z, map[1].x, map[1].z)
 			local distance2 = Distance2D(pos.x, pos.z, map[2].x, map[2].z)
 			return ((distance1 < distance2) and map[1].id) or map[2].id
-		elseif (mapid == 137) then
+		elseif (id == 137) then
 			return ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
 		end
 	end
+	
+	return nil
 end
 
 function MoveTo(X,Y,Z, stoppingdistance, followmovement, randomizePaths)

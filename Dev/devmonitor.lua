@@ -72,6 +72,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsFlanking()","target_IsFlanking","TargetInfo")
 	GUI_NewField("Dev","IsFront()","target_IsFront","TargetInfo")
 	
+	GUI_NewField("Dev","EntityIsFront()","target_EntityIsFront","TargetInfo")
+	
 	GUI_NewField("Dev","pos.x","target_posX","TargetInfo")
 	GUI_NewField("Dev","pos.y","target_posY","TargetInfo")
 	GUI_NewField("Dev","pos.z","target_posZ","TargetInfo")
@@ -711,6 +713,8 @@ function Dev.UpdateWindow()
 		target_IsBehind = tostring(IsBehind(mytarget))
 		target_IsFlanking = tostring(IsFlanking(mytarget))
 		target_IsFront = tostring(IsFront(mytarget))
+		
+		target_EntityIsFront = tostring(EntityIsFront(mytarget))
 		
 		target_hitradius = mytarget.hitradius
 		target_onmesh = tostring(mytarget.onmesh)

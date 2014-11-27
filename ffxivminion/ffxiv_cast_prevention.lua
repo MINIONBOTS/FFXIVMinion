@@ -3,7 +3,7 @@ cp.mainwindow = { name = "Cast Prevention", x = 50, y = 50, width = 250, height 
 
 function cp.ModuleInit() 	
 
-	if (Settings.FFXIVMINION.cpOptions == nil) then
+	if ( Settings.FFXIVMINION.cpOptions == nil ) then
 		Settings.FFXIVMINION.cpOptions = {}
 	end
 	if ( Settings.FFXIVMINION.cpOption == nil ) then
@@ -19,7 +19,7 @@ function cp.ModuleInit()
 	GUI_NewWindow(cp.mainwindow.name,cp.mainwindow.x,cp.mainwindow.y,cp.mainwindow.width,cp.mainwindow.height)
     GUI_NewField(cp.mainwindow.name,"Option Name:",			"cpOption","New Option")
 	GUI_NewField(cp.mainwindow.name,"Target Has Buffs:",		"cpTBuffs","New Option")
-	GUI_NewField(cp.mainwindow.name,"Target Casting IDs:",		"cpTCastIDS","New Option")
+	GUI_NewField(cp.mainwindow.name,"Target Casting IDs:",		"cpTCastIDs","New Option")
 	GUI_NewButton(cp.mainwindow.name,"Add Option",				"cpAddCastPrevention",	"New Option")
 	GUI_UnFoldGroup(cp.mainwindow.name,"New Option" )
 	GUI_SizeWindow(cp.mainwindow.name,200,200)
@@ -29,7 +29,6 @@ function cp.ModuleInit()
 	cpOption = Settings.FFXIVMINION.cpOption
 	cpTCastIDs = Settings.FFXIVMINION.cpTCastIDs
 	cpTBuffs = Settings.FFXIVMINION.cpTBuffs
-
 end
 
 function cp.GUIVarUpdate(Event, NewVals, OldVals)
@@ -43,6 +42,12 @@ function cp.GUIVarUpdate(Event, NewVals, OldVals)
 	end
     GUI_RefreshWindow(cp.mainwindow.name)
 end
+
+--[[
+function cp.OnUpdate( event, tickcount )
+	imp.CheckForCasts()
+end
+--]]
 
 function cp.AddCastPrevention()
 	local list = Settings.FFXIVMINION.cpOptions

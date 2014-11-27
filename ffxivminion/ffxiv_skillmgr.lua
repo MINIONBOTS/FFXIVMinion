@@ -1182,6 +1182,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 			for k,v in pairs(cp) do
 				if ( v.castids and v.castids ~= "" ) then
 					if (isCasting(target, v.castids, nil, nil )) then
+						if (ActionList:IsCasting()) then
+							if (EntityIsFront(target)) then
+								SetFacing(target.pos.x,target.pos.y,target.pos.z)
+								TurnAround()
+							end
+						end
 						return false
 					end
 				elseif (v.tbuffs and v.tbuffs ~= "" ) then
