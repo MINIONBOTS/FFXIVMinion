@@ -503,7 +503,7 @@ function ffxiv_quest_dutykill:task_complete_eval()
 end
 
 function ffxiv_quest_dutykill:task_fail_eval()
-	return Player.hp.percent < 10
+	return Player.hp.percent == 0
 end
 
 function ffxiv_quest_dutykill:task_fail_execute()
@@ -609,11 +609,12 @@ function ffxiv_quest_killaggro:task_complete_execute()
 end
 
 function ffxiv_quest_killaggro:task_fail_eval()
-	return (ffxiv_task_quest.currentQuest:isComplete())
+	return (Player.hp.percent == 0)
 end
 
 function ffxiv_quest_killaggro:task_fail_execute()
-	quest_step_complete_execute()
+	self:Invalidate()
+	ffxiv_task_quest.ResetStep()
 end
 
 ------------------------------------------------------
@@ -759,7 +760,8 @@ end
 
 function ffxiv_quest_useitem:task_complete_eval()
 	local target = Player:GetTarget()
-	if(target and (target.type == 7 or target.type == 3)) then
+	local usepos = ml_task_hub:ThisTask().params["usepos"]
+	if ((target and (target.type == 7 or target.type == 3)) or usepos) then
 		if (ActionList:IsCasting()) then
 			return false
 		end
@@ -778,18 +780,21 @@ function ffxiv_quest_useitem:task_complete_eval()
 		end
 	end
 	
-	local id = self.params["id"]
-    if (id and id > 0) then
-		local el = EntityList("shortestpath,maxdistance=10,contentid="..tostring(id))
-		if (ValidTable(el)) then
-			local id, entity = next(el)
-			if(ValidTable(entity)) then
-				return not entity.targetable
+	local disableTargetCheck = self.params["disabletargetcheck"]
+	if (not disableTargetCheck) then
+		local id = self.params["id"]
+		if (id and id > 0) then
+			local el = EntityList("shortestpath,maxdistance=10,contentid="..tostring(id))
+			if (ValidTable(el)) then
+				local id, entity = next(el)
+				if(ValidTable(entity)) then
+					return not entity.targetable
+				end
 			end
 		end
 	end
 	
-	return false
+	return self.stepCompleted
 end
 
 function ffxiv_quest_useitem:Init()
