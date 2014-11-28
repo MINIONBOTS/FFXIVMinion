@@ -213,6 +213,9 @@ end
 function e_questmovetomap:execute()
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = e_questmovetomap.mapID
+	if (ValidTable(ml_task_hub:ThisTask().params["pos"])) then
+		task.pos = ml_task_hub:ThisTask().params["pos"]
+	end
 	ml_task_hub:CurrentTask():AddSubTask(task)
 end
 

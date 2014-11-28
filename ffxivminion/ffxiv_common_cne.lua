@@ -822,7 +822,7 @@ function c_teleporttomap:evaluate()
 	end
 	
 	local teleport = ActionList:Get(5)
-	if (not teleport) then
+	if (not teleport or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
 		return false
 	end
 	
@@ -852,7 +852,7 @@ function c_teleporttomap:evaluate()
 			local mapid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do
                 if (node.id ~= Player.localmapid) then
-					local map, aeth = GetAetheryteByMapID(node.id)
+					local map,aeth = GetAetheryteByMapID(node.id, ml_task_hub:ThisTask().pos)
                     if (aeth) then
 						mapid = map
 						aethid = aeth
@@ -1726,6 +1726,7 @@ function c_dead:evaluate()
 		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			if (c_dead.timer == 0) then
 				c_dead.timer = Now() + 30000
+				return false
 			end
 			if (Now() > c_dead.timer or HasBuffs(Player, "148")) then
 				ffxiv_task_grind.inFate = false
@@ -1738,7 +1739,7 @@ function c_dead:evaluate()
     return false
 end
 function e_dead:execute()
-    ml_debug("Respawning...")
+    d("Respawning...")
 	-- try raise first
     if(PressYesNo(true)) then
 		c_dead.timer = 0
