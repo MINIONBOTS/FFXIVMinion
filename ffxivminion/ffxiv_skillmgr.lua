@@ -2069,7 +2069,7 @@ function SkillMgr.IsGCDReady()
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		
-		if (action.cd - action.cdmax) <= .5 then
+		if (action.cd - action.cdmax) < .5 then
 			castable = true
 		end
 	end
