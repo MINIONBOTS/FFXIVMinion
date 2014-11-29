@@ -34,7 +34,7 @@ end
 
 ml_mesh_mgr = { }
 ml_mesh_mgr.navmeshfilepath = GetStartupPath() .. [[\Navigation\]];
-ml_mesh_mgr.mainwindow = { name = GetString("meshManager"), x = 350, y = 100, w = 275, h = 400}
+ml_mesh_mgr.mainwindow = { name = GetStringML("meshManager"), x = 350, y = 100, w = 275, h = 400}
 ml_mesh_mgr.parentWindow = { Name = "MinionBot" } -- Needs to get re-set
 ml_mesh_mgr.GetMapID = function () return 0 end -- Needs to get re-set
 ml_mesh_mgr.GetMapName = function () return "NoName" end -- Needs to get re-set
@@ -57,37 +57,37 @@ function ml_mesh_mgr.ModuleInit()
 	Settings.minionlib.gNoMeshLoad = Settings.minionlib.gNoMeshLoad or "0"
 	
 	GUI_NewWindow(ml_mesh_mgr.mainwindow.name,ml_mesh_mgr.mainwindow.x,ml_mesh_mgr.mainwindow.y,ml_mesh_mgr.mainwindow.w,ml_mesh_mgr.mainwindow.h)
-	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("navmesh"),"gmeshname",GetString("generalSettings"),"")
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("noMeshLoad"),"gNoMeshLoad",GetString("generalSettings"))
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showrealMesh"),"gShowRealMesh",GetString("generalSettings"))
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showMesh"),"gShowMesh",GetString("generalSettings"))
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("showPath"),"gShowPath",GetString("generalSettings"))
-	GUI_UnFoldGroup(ml_mesh_mgr.mainwindow.name,GetString("generalSettings"))	
+	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetStringML("navmesh"),"gmeshname",GetStringML("generalSettings"),"")
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("noMeshLoad"),"gNoMeshLoad",GetStringML("generalSettings"))
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("showrealMesh"),"gShowRealMesh",GetStringML("generalSettings"))
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("showMesh"),"gShowMesh",GetStringML("generalSettings"))
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("showPath"),"gShowPath",GetStringML("generalSettings"))
+	GUI_UnFoldGroup(ml_mesh_mgr.mainwindow.name,GetStringML("generalSettings"))	
 	
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name, GetString("setEvacPoint"), "setEvacPointEvent",GetString("recoder"))
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name, GetStringML("setEvacPoint"), "setEvacPointEvent",GetStringML("recoder"))
     RegisterEventHandler("setEvacPointEvent",ffxiv_task_grind.SetEvacPoint)
 	
-	GUI_NewField(ml_mesh_mgr.mainwindow.name,GetString("newMeshName"),"gnewmeshname",GetString("recoder"))
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("newMesh"),"newMeshEvent",GetString("recoder"))
+	GUI_NewField(ml_mesh_mgr.mainwindow.name,GetStringML("newMeshName"),"gnewmeshname",GetStringML("recoder"))
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetStringML("newMesh"),"newMeshEvent",GetStringML("recoder"))
 	RegisterEventHandler("newMeshEvent",ml_mesh_mgr.ClearNavMesh)
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("recmesh"),"gMeshrec",GetString("recoder"))
-	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("recAreaType"),"gRecAreaType",GetString("recoder"),"Road,Lowdanger,Highdanger")-- enum 1,2,3
-	GUI_NewNumeric(ml_mesh_mgr.mainwindow.name,GetString("recAreaSize"),"gRecAreaSize",GetString("recoder"),"1","25")
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("changeMesh"),"gMeshChange",GetString("editor"))
-	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("changeAreaType"),"gChangeAreaType",GetString("editor"),"Delete,Road,Lowdanger,Highdanger")
-	GUI_NewNumeric(ml_mesh_mgr.mainwindow.name,GetString("changeAreaSize"),"gChangeAreaSize",GetString("editor"),"1","10")
-	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetString("biDirOffMesh"),"gBiDirOffMesh",GetString("connections"))
-	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump,Interact,Teleport,Portal")	
-	--GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetString("typeOffMeshSpot"),"gOMCType",GetString("connections"),"Jump")	
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("addOffMeshSpot"),"offMeshSpotEvent",GetString("connections"))
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("recmesh"),"gMeshrec",GetStringML("recoder"))
+	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetStringML("recAreaType"),"gRecAreaType",GetStringML("recoder"),"Road,Lowdanger,Highdanger")-- enum 1,2,3
+	GUI_NewNumeric(ml_mesh_mgr.mainwindow.name,GetStringML("recAreaSize"),"gRecAreaSize",GetStringML("recoder"),"1","25")
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("changeMesh"),"gMeshChange",GetStringML("editor"))
+	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetStringML("changeAreaType"),"gChangeAreaType",GetStringML("editor"),"Delete,Road,Lowdanger,Highdanger")
+	GUI_NewNumeric(ml_mesh_mgr.mainwindow.name,GetStringML("changeAreaSize"),"gChangeAreaSize",GetStringML("editor"),"1","10")
+	GUI_NewCheckbox(ml_mesh_mgr.mainwindow.name,GetStringML("biDirOffMesh"),"gBiDirOffMesh",GetStringML("connections"))
+	GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetStringML("typeOffMeshSpot"),"gOMCType",GetStringML("connections"),"Jump,Interact,Teleport,Portal")	
+	--GUI_NewComboBox(ml_mesh_mgr.mainwindow.name,GetStringML("typeOffMeshSpot"),"gOMCType",GetStringML("connections"),"Jump")	
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetStringML("addOffMeshSpot"),"offMeshSpotEvent",GetStringML("connections"))
 	RegisterEventHandler("offMeshSpotEvent", ml_mesh_mgr.AddOMC)
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("delOffMeshSpot"),"deleteoffMeshEvent",GetString("connections"))
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetStringML("delOffMeshSpot"),"deleteoffMeshEvent",GetStringML("connections"))
 	RegisterEventHandler("deleteoffMeshEvent", ml_mesh_mgr.DeleteOMC)
 	
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name,"CreateSingleCell","createSingleCell",GetString("recoder"))
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name,"CreateSingleCell","createSingleCell",GetStringML("recoder"))
 	RegisterEventHandler("createSingleCell", ml_mesh_mgr.CreateSingleCell)
 	
-	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("saveMesh"),"saveMeshEvent") --GetString("editor"))
+	GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetStringML("saveMesh"),"saveMeshEvent") --GetStringML("editor"))
 	RegisterEventHandler("saveMeshEvent",ml_mesh_mgr.SaveMesh)   
 	
 	--GUI_NewButton(ml_mesh_mgr.mainwindow.name,"CTRL+M:ChangeMeshRenderDepth","ChangeMeshDepth")
@@ -133,13 +133,13 @@ ml_mesh_mgr.registeredevents = {} -- to prevent re-registering of the same event
 function ml_mesh_mgr.InitMarkers()
 	
 	if ( ml_marker_mgr ) then		
-		GUI_DeleteGroup(ml_mesh_mgr.mainwindow.name, GetString("markers"))
+		GUI_DeleteGroup(ml_mesh_mgr.mainwindow.name, GetStringML("markers"))
 				
 		-- create an ADD button for each type
 		if ( ValidString(gMarkerMgrType_listitems) ) then 
 			for mtype in StringSplit(gMarkerMgrType_listitems,",") do
 										
-				GUI_NewButton(ml_mesh_mgr.mainwindow.name,"New "..mtype,"ml_mesh_mgr.NewMarker_"..mtype,GetString("markers"))
+				GUI_NewButton(ml_mesh_mgr.mainwindow.name,"New "..mtype,"ml_mesh_mgr.NewMarker_"..mtype,GetStringML("markers"))
 				if ( not ml_mesh_mgr.registeredevents["ml_mesh_mgr.NewMarker_"..mtype] ) then
 					RegisterEventHandler("ml_mesh_mgr.NewMarker_"..mtype,ml_mesh_mgr.HandleMarkerButtons)
 					ml_mesh_mgr.registeredevents["ml_mesh_mgr.NewMarker_"..mtype] = 1
@@ -148,7 +148,7 @@ function ml_mesh_mgr.InitMarkers()
 			end
 		end
 		-- Select closest marker
-		GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetString("selectClosestMarker"),"ml_mesh_mgr.SelectClosestMarker",GetString("markers"))
+		GUI_NewButton(ml_mesh_mgr.mainwindow.name,GetStringML("selectClosestMarker"),"ml_mesh_mgr.SelectClosestMarker",GetStringML("markers"))
 		if ( not ml_mesh_mgr.registeredevents["ml_mesh_mgr.SelectClosestMarker"] ) then
 			RegisterEventHandler("ml_mesh_mgr.SelectClosestMarker",ml_mesh_mgr.HandleMarkerButtons)
 			ml_mesh_mgr.registeredevents["ml_mesh_mgr.SelectClosestMarker"] = 1
@@ -326,8 +326,7 @@ function ml_mesh_mgr.SwitchNavmesh()
 						local lines = LinesFrom(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")		
 						d("LINE 1 : "..tostring(lines[1]))
 						if (lines[1] == "version=1") then --check for old marker file
-							d("Loading old info file...")
-							ml_mesh_mgr.ConvertOldMarkerInfoFileToFancyNewOne(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info") -- reads in and converts the ol info files
+							d("Marker list format no longer supported - delete list and create a new one...")
 						else
 							ml_marker_mgr.ReadMarkerFile(ml_mesh_mgr.navmeshfilepath..ml_mesh_mgr.nextNavMesh..".info")            
 						end					
@@ -452,7 +451,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 			if ( gMeshrec == "1" ) then
 			
 				-- Save MapMarker on "old" map/mesh
-				--if ( ml_mesh_mgr.currentMesh.LastPlayerPosition.x ~= 0 and ml_marker_mgr.GetClosestMarker( ml_mesh_mgr.currentMesh.LastPlayerPosition.x, ml_mesh_mgr.currentMesh.LastPlayerPosition.y, ml_mesh_mgr.currentMesh.LastPlayerPosition.z, 5, GetString("mapMarker")) == nil and NavigationManager:IsOnMesh(ml_mesh_mgr.currentMesh.LastPlayerPosition) ) then
+				--if ( ml_mesh_mgr.currentMesh.LastPlayerPosition.x ~= 0 and ml_marker_mgr.GetClosestMarker( ml_mesh_mgr.currentMesh.LastPlayerPosition.x, ml_mesh_mgr.currentMesh.LastPlayerPosition.y, ml_mesh_mgr.currentMesh.LastPlayerPosition.z, 5, GetStringML("mapMarker")) == nil and NavigationManager:IsOnMesh(ml_mesh_mgr.currentMesh.LastPlayerPosition) ) then
 				if ( ml_mesh_mgr.currentMesh.LastPlayerPosition.x ~= 0 and ml_marker_mgr.GetClosestMarker( ml_mesh_mgr.currentMesh.LastPlayerPosition.x, ml_mesh_mgr.currentMesh.LastPlayerPosition.y, ml_mesh_mgr.currentMesh.LastPlayerPosition.z, 5) == nil ) then
 					
 					if ( not NavigationManager:IsOnMesh(ml_mesh_mgr.currentMesh.LastPlayerPosition) ) then
@@ -461,7 +460,7 @@ function ml_mesh_mgr.OnUpdate( tickcount )
 					
 					-- Add MapMarker in mesh
 					local newMarker = ml_marker:Create("MapMarker")
-					newMarker:SetType(GetString("mapMarker"))
+					newMarker:SetType(GetStringML("mapMarker"))
 					newMarker:AddField("int", "Target MapID", ml_mesh_mgr.GetMapID())
 					newMarker:SetName(tostring(ml_mesh_mgr.currentMesh.Name).." to "..tostring(ml_mesh_mgr.GetMapName()))
 					if ( ml_marker_mgr.GetMarker(newMarker:GetName()) ~= nil ) then
@@ -837,124 +836,6 @@ function ml_mesh_mgr.SetupNavNodes()
 		end
 	end
 end
-
-
-
--- old compatibilityshit, remove that at some point in the near future!
-function ml_mesh_mgr.ConvertOldMarkerInfoFileToFancyNewOne(meshname)
-   
-	local OldShitList = {}
-	
-    -- helper functions located in ml_utility.lua
-    local lines = LinesFrom(meshname)
-    local version = 0
-    if ( TableSize(lines) > 0) then
-        for i, line in pairs(lines) do
-            local sections = {}
-            for section in StringSplit(line,":") do
-                table.insert(sections, section)
-            end
-            local tag = nil
-            local key = nil
-            local mark = string.find(sections[1], "=")
-            if (mark ~= nil) then
-                tag = sections[1]:sub(0,mark-1)
-                key = sections[1]:sub(mark+1)
-            end
-            if ( tag == "MapID" ) then
-                ml_mesh_mgr.currentMesh.MapID = tonumber(key)
-				ml_mesh_mgr.currentMesh.AllowedMapIDs[ml_mesh_mgr.currentMesh.MapID] = ml_mesh_mgr.currentMesh.MapID
-            elseif (tag == "evacPoint") then
-                local posTable = {}
-                for coord in StringSplit(key,",") do
-                    table.insert(posTable, tonumber(coord))
-                end
-                if (TableSize(posTable) == 3) then
-                    ml_marker_mgr.markerList["evacPoint"] = { x = tonumber(posTable[1]), y = tonumber(posTable[2]), z = tonumber(posTable[3]) }
-                end	
-            elseif (tag == "version") then
-                version = tonumber(key)
-            else
-                local posTable = {}
-                for coord in StringSplit(sections[2],",") do
-                    table.insert(posTable, tonumber(coord))
-                end
-                local i = 4
-                local markerMinLevel = 1
-                local markerMaxLevel = 50
-                if (version == 1) then
-                    markerMinLevel = tonumber(sections[3])
-                    markerMaxLevel = tonumber(sections[4])
-                    i = 5
-                else
-                    markerMinLevel = tonumber(sections[3])
-                    markerMaxLevel = tonumber(sections[3])
-                end
-                
-                local markerTime = tonumber(sections[i])
-                local dataTable = {}
-                for data in StringSplit(sections[i+1],",") do
-                    table.insert(dataTable, data)
-                end
-                
-                -- add the marker to the list
-                if ( not OldShitList[tag] ) then
-					OldShitList[tag] = {}
-				end
-				local list = OldShitList[tag]
-
-                -- Draw this Marker (?? whaaat?, fx)
-                list[key] = {x=posTable[1],y=posTable[2],z=posTable[3],h=posTable[4],minlevel=markerMinLevel,maxlevel=markerMaxLevel,time=markerTime,data=dataTable}
-                                
-            end
-        end
-    else
-        ml_debug("NO INFO FILE FOR THAT MESH EXISTS")
-    end
-	
-	-- convert the ol shit
-	if (TableSize(OldShitList) > 0) then
-		for type, list in pairs(OldShitList) do
-			for name, marker in pairs(list) do
-				local newMarker = nil
-				if (type == "grindSpot") then 
-					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].grindMarker]:Copy()
-				elseif (type == "botanySpot") then
-					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].botanyMarker]:Copy()
-					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
-					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
-				elseif (type == "miningSpot") then
-					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].miningMarker]:Copy()
-					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem1, marker.data[1])
-					newMarker:SetFieldValue(strings[gCurrentLanguage].selectItem2, marker.data[2])
-				elseif (type == "fishingSpot") then
-					newMarker = ml_marker_mgr.templateList[strings[gCurrentLanguage].fishingMarker]:Copy()
-					newMarker:SetFieldValue(strings[gCurrentLanguage].baitName, marker.data[1])
-				else
-					return
-				end
-				
-				if (ValidTable(newMarker)) then
-					newMarker:SetName(name)
-					newMarker:SetTime(marker.time)
-					local pos = {x = marker.x, y = marker.y, z = marker.z, h = marker.h}
-					newMarker:SetPosition(pos)
-					newMarker:SetMinLevel(marker.minlevel)
-					newMarker:SetMaxLevel(marker.maxlevel)
-					ml_marker_mgr.AddMarker(newMarker)
-				end
-			end
-		end
-
-		if ( ValidString(meshname) ) then
-			ml_marker_mgr.markerPath = meshname
-		end
-		d("save converted marker info file")
-		--save new markers
-		ml_marker_mgr.WriteMarkerFile(meshname)
-	end	
-end
-
 
 RegisterEventHandler("ToggleMeshManager", ml_mesh_mgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",ml_mesh_mgr.GUIVarUpdate)

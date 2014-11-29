@@ -174,35 +174,35 @@ function ml_marker:SetType(markerType)
 end
 
 function ml_marker:GetName()
-	return self:GetFieldValue(strings[gCurrentLanguage].name)
+	return self:GetFieldValue(GetStringML("name"))
 end
 
 function ml_marker:SetName(markerName)
-	return self:SetFieldValue(strings[gCurrentLanguage].name, markerName)
+	return self:SetFieldValue(GetStringML("name"), markerName)
 end
 
 function ml_marker:GetTime()
-	return self:GetFieldValue(strings[gCurrentLanguage].time)
+	return self:GetFieldValue(GetStringML("time"))
 end
 
 function ml_marker:SetTime(markerTime)
-	return self:SetFieldValue(strings[gCurrentLanguage].time, markerTime)
+	return self:SetFieldValue(GetStringML("time"), markerTime)
 end
 
 function ml_marker:GetMinLevel()
-	return self:GetFieldValue(strings[gCurrentLanguage].minLevel)
+	return self:GetFieldValue(GetStringML("minLevel"))
 end
 
 function ml_marker:SetMinLevel(minLevel)
-	return self:SetFieldValue(strings[gCurrentLanguage].minLevel, minLevel)
+	return self:SetFieldValue(GetStringML("minLevel"), minLevel)
 end
 
 function ml_marker:GetMaxLevel()
-	return self:GetFieldValue(strings[gCurrentLanguage].maxLevel)
+	return self:GetFieldValue(GetStringML("maxLevel"))
 end
 
 function ml_marker:SetMaxLevel(maxLevel)
-	return self:SetFieldValue(strings[gCurrentLanguage].maxLevel, maxLevel)
+	return self:SetFieldValue(GetStringML("maxLevel"), maxLevel)
 end
 
 -- internal functions
@@ -217,7 +217,7 @@ function ml_marker:Create(markerName)
 	
 	-- add default fields
 	-- name
-	newMarker:AddField("string", strings[gCurrentLanguage].name, markerName)
+	newMarker:AddField("string", GetStringML("name"), markerName)
 	
 	-- position
 	newMarker:AddField("float", "x", 0.0)
@@ -234,13 +234,13 @@ function ml_marker:Create(markerName)
 	newMarker:AddField("string", "type", "")
 	
 	-- time
-	newMarker:AddField("int", strings[gCurrentLanguage].time, 0)
+	newMarker:AddField("int", GetStringML("time"), 0)
 	
 	-- minlevel
-	newMarker:AddField("int", strings[gCurrentLanguage].minLevel, 0)
+	newMarker:AddField("int", GetStringML("minLevel"), 0)
 	
 	-- maxlevel
-	newMarker:AddField("int", strings[gCurrentLanguage].maxLevel, 0)
+	newMarker:AddField("int", GetStringML("maxLevel"), 0)
 	
 	return newMarker
 end

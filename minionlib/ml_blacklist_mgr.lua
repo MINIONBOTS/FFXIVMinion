@@ -1,5 +1,5 @@
 ml_blacklist_mgr = {}
-ml_blacklist_mgr.mainwindow = { name = strings[gCurrentLanguage].blacklistManager, x = 350, y = 100, w = 250, h = 300}
+ml_blacklist_mgr.mainwindow = { name = GetStringML("blacklistManager"), x = 350, y = 100, w = 250, h = 300}
 ml_blacklist_mgr.parentWindow = nil
 ml_blacklist_mgr.path = ""
 ml_blacklist_mgr.currentID = ""
@@ -9,14 +9,14 @@ ml_blacklist_mgr.currentEntryCount = 0
 
 function ml_blacklist_mgr.HandleInit()
     GUI_NewWindow(ml_blacklist_mgr.mainwindow.name,ml_blacklist_mgr.mainwindow.x,ml_blacklist_mgr.mainwindow.y,ml_blacklist_mgr.mainwindow.w,ml_blacklist_mgr.mainwindow.h)
-    GUI_NewComboBox(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].blacklistName,"gBlacklistName",strings[gCurrentLanguage].generalSettings,"")
-    GUI_NewComboBox(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].blacklistEntry,"gBlacklistEntry",strings[gCurrentLanguage].generalSettings,"")
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].entryTime,"gBlacklistEntryTime",strings[gCurrentLanguage].generalSettings)
-    GUI_NewButton(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].deleteEntry,"ml_blacklist_mgr.DeleteEntry",strings[gCurrentLanguage].generalSettings)
+    GUI_NewComboBox(ml_blacklist_mgr.mainwindow.name,GetStringML("blacklistName"),"gBlacklistName",GetStringML("generalSettings"),"")
+    GUI_NewComboBox(ml_blacklist_mgr.mainwindow.name,GetStringML("blacklistEntry"),"gBlacklistEntry",GetStringML("generalSettings"),"")
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name,GetStringML("entryTime"),"gBlacklistEntryTime",GetStringML("generalSettings"))
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name,GetStringML("deleteEntry"),"ml_blacklist_mgr.DeleteEntry",GetStringML("generalSettings"))
     RegisterEventHandler("ml_blacklist_mgr.DeleteEntry",ml_blacklist_mgr.DeleteEntry)
     
     GUI_SizeWindow(ml_blacklist_mgr.mainwindow.name, ml_blacklist_mgr.mainwindow.w, ml_blacklist_mgr.mainwindow.h)
-    GUI_UnFoldGroup(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].generalSettings)
+    GUI_UnFoldGroup(ml_blacklist_mgr.mainwindow.name, GetStringML("generalSettings"))
     GUI_WindowVisible(ml_blacklist_mgr.mainwindow.name,false)
 end
 
@@ -52,11 +52,11 @@ end
 
 function ml_blacklist_mgr.UpdateAddEntry()
     -- init the correct "Add Entry" controls
-    GUI_DeleteGroup(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry)
+    GUI_DeleteGroup(ml_blacklist_mgr.mainwindow.name, GetStringML("addEntry"))
     local initUI = ml_blacklist_mgr.UIList[gBlacklistName]
     if (initUI) then
         initUI()
-        GUI_UnFoldGroup(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry)
+        GUI_UnFoldGroup(ml_blacklist_mgr.mainwindow.name, GetStringML("addEntry"))
     end
     
     GUI_SizeWindow(ml_blacklist_mgr.mainwindow.name, ml_blacklist_mgr.mainwindow.w, ml_blacklist_mgr.mainwindow.h)

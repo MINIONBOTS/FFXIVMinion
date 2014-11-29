@@ -9,8 +9,8 @@
 ml_marker_mgr = {}
 ml_marker_mgr.version = 1.0
 ml_marker_mgr.parentWindow = nil
-ml_marker_mgr.mainwindow =  { name = strings[gCurrentLanguage].markerManager,    x = 340, y = 50, w = 250, h = 300}
-ml_marker_mgr.editwindow =  { name = strings[gCurrentLanguage].editMarker,       w = 250, h = 300}
+ml_marker_mgr.mainwindow =  { name = GetStringML("markerManager"),    x = 340, y = 50, w = 250, h = 300}
+ml_marker_mgr.editwindow =  { name = GetStringML("editMarker"),       w = 250, h = 300}
 ml_marker_mgr.markerList = {}
 ml_marker_mgr.renderList = {}
 ml_marker_mgr.currentMarker = {}		--current marker selected by the GetNextMarker() function
@@ -138,7 +138,7 @@ function ml_marker_mgr.GetLastMarker(markerType)
 end
 
 function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
-    if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+    if (gMarkerMgrMode == GetStringML("singleMarker")) then
         if (ValidTable(ml_marker_mgr.currentMarker) and
 			ml_marker_mgr.currentMarker:GetType() ~= markerType) 
 		then
@@ -161,7 +161,7 @@ function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
                 ml_debug("Error in GetNextMarker_SingleMode - no marker found matching "..gMarkerMgrName)
             end
         end
-    elseif (gMarkerMgrMode == strings[gCurrentLanguage].randomMarker) then
+    elseif (gMarkerMgrMode == GetStringML("randomMarker")) then
         local list = ml_marker_mgr.GetList(markerType, true, filterLevel)
         if (ValidTable(list)) then
             local marker = GetRandomTableEntry(list)
@@ -170,7 +170,7 @@ function ml_marker_mgr.GetNextMarker(markerType, filterLevel)
                 return marker
             end
         end
-    elseif (gMarkerMgrMode == strings[gCurrentLanguage].markerList) then
+    elseif (gMarkerMgrMode == GetStringML("markerList")) then
         --lots of repeat code in this conditional. many of these cases could be dumped together but
         --keeping them separate for now in case we decide to handle one differently during testing
         local list = ml_marker_mgr.GetListByOrder(markerType, filterLevel)
@@ -543,7 +543,7 @@ function ml_marker_mgr.RefreshMarkerList()
 		ml_marker_mgr.CleanMarkerOrder(gMarkerMgrType)
 		
 		local window = GUI_GetWindowInfo(ml_marker_mgr.mainwindow.name)
-		GUI_DeleteGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
+		GUI_DeleteGroup(ml_marker_mgr.mainwindow.name, GetStringML("markerList"))
 		
 		local markerTable = {}
 		local markerList = ml_marker_mgr.GetList(gMarkerMgrType, true)
@@ -555,11 +555,11 @@ function ml_marker_mgr.RefreshMarkerList()
 		
 		if (TableSize(markerTable) > 0) then
 			for index, marker in pairsByKeys(markerTable) do
-				GUI_NewButton(ml_marker_mgr.mainwindow.name,marker:GetName(),"Marker_" .. tostring(marker:GetName()),strings[gCurrentLanguage].markerList)
+				GUI_NewButton(ml_marker_mgr.mainwindow.name,marker:GetName(),"Marker_" .. tostring(marker:GetName()),GetStringML("markerList"))
 			end
 		end
 		
-		GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].markerList)
+		GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, GetStringML("markerList"))
 		GUI_SizeWindow(ml_marker_mgr.mainwindow.name, window.width, window.height)
 	end
 end
@@ -579,23 +579,23 @@ function ml_marker_mgr.CreateEditWindow(marker)
 			end
 		end
 		
-		GUI_DeleteGroup(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].markerFields)
+		GUI_DeleteGroup(ml_marker_mgr.editwindow.name, GetStringML("markerFields"))
 		local fieldNames = marker:GetFieldNames()
 		if (ValidTable(fieldNames)) then
 			for _, name in pairsByKeys(fieldNames) do
 				local fieldType = marker:GetFieldType(name)
 				
 				if (fieldType == "float" or fieldType == "string") then
-					GUI_NewField(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+					GUI_NewField(ml_marker_mgr.editwindow.name,name,"Field_"..name, GetStringML("markerFields"))
 				elseif (fieldType == "int") then
-					GUI_NewNumeric(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+					GUI_NewNumeric(ml_marker_mgr.editwindow.name,name,"Field_"..name, GetStringML("markerFields"))
 				elseif (fieldType == "button") then
-					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+					GUI_NewButton(ml_marker_mgr.editwindow.name,name,"Field_"..name, GetStringML("markerFields"))
 				elseif (fieldType == "checkbox") then
-					GUI_NewCheckbox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields)
+					GUI_NewCheckbox(ml_marker_mgr.editwindow.name,name,"Field_"..name, GetStringML("markerFields"))
 				elseif (fieldType == "combobox") then
 					local choiceString = marker:GetFieldChoices(name)
-					GUI_NewComboBox(ml_marker_mgr.editwindow.name,name,"Field_"..name, strings[gCurrentLanguage].markerFields, choiceString)
+					GUI_NewComboBox(ml_marker_mgr.editwindow.name,name,"Field_"..name, GetStringML("markerFields"), choiceString)
 				end
 				
 				if (fieldType ~= "button") then
@@ -604,7 +604,7 @@ function ml_marker_mgr.CreateEditWindow(marker)
 			end
 		end
 		
-		GUI_UnFoldGroup(ml_marker_mgr.editwindow.name, strings[gCurrentLanguage].markerFields)
+		GUI_UnFoldGroup(ml_marker_mgr.editwindow.name, GetStringML("markerFields"))
 		GUI_SizeWindow(ml_marker_mgr.editwindow.name,ml_marker_mgr.editwindow.w,ml_marker_mgr.editwindow.h)
 		GUI_WindowVisible(ml_marker_mgr.editwindow.name, true)
 	end
@@ -618,10 +618,10 @@ end
 -- GUI/Eventhandler functions
 function ml_marker_mgr.HandleInit()
 	if (Settings.minionlib.gMarkerMgrMode == nil) then
-		Settings.minionlib.gMarkerMgrMode = strings[gCurrentLanguage].markerList
+		Settings.minionlib.gMarkerMgrMode = GetStringML("markerList")
 	end
     if (Settings.minionlib.lastSelectedMarkerType == nil) then
-		Settings.minionlib.lastSelectedMarkerType = strings[gCurrentLanguage].grindMarker
+		Settings.minionlib.lastSelectedMarkerType = GetStringML("grindMarker")
 	end
     if (Settings.minionlib.lastSelectedMarker == nil) then
         Settings.minionlib.lastSelectedMarker = {}
@@ -629,29 +629,29 @@ function ml_marker_mgr.HandleInit()
 
     -- main window
 	GUI_NewWindow(ml_marker_mgr.mainwindow.name,ml_marker_mgr.mainwindow.x,ml_marker_mgr.mainwindow.y,ml_marker_mgr.mainwindow.w,ml_marker_mgr.mainwindow.h)
-	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerMode,"gMarkerMgrMode",strings[gCurrentLanguage].generalSettings,"")
-    GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerType,"gMarkerMgrType",strings[gCurrentLanguage].generalSettings,"")
-    GUI_NewComboBox(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].markerName,"gMarkerMgrName",strings[gCurrentLanguage].generalSettings,"")
-	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].addMarker,"ml_marker_mgr.AddMarkerToList",strings[gCurrentLanguage].generalSettings)
+	GUI_NewComboBox(ml_marker_mgr.mainwindow.name,GetStringML("markerMode"),"gMarkerMgrMode",GetStringML("generalSettings"),"")
+    GUI_NewComboBox(ml_marker_mgr.mainwindow.name,GetStringML("markerType"),"gMarkerMgrType",GetStringML("generalSettings"),"")
+    GUI_NewComboBox(ml_marker_mgr.mainwindow.name,GetStringML("markerName"),"gMarkerMgrName",GetStringML("generalSettings"),"")
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,GetStringML("addMarker"),"ml_marker_mgr.AddMarkerToList",GetStringML("generalSettings"))
 	RegisterEventHandler("ml_marker_mgr.AddMarkerToList",ml_marker_mgr.AddMarkerToList)
-	GUI_NewButton(ml_marker_mgr.mainwindow.name,strings[gCurrentLanguage].newMarker,"ml_marker_mgr.NewMarker",strings[gCurrentLanguage].generalSettings)
+	GUI_NewButton(ml_marker_mgr.mainwindow.name,GetStringML("newMarker"),"ml_marker_mgr.NewMarker",GetStringML("generalSettings"))
 	RegisterEventHandler("ml_marker_mgr.NewMarker",ml_marker_mgr.NewMarker)
 	
 	-- setup marker mode list
-	gMarkerMgrMode_listitems = strings[gCurrentLanguage].markerList..","..strings[gCurrentLanguage].singleMarker..","..strings[gCurrentLanguage].randomMarker
+	gMarkerMgrMode_listitems = GetStringML("markerList")..","..GetStringML("singleMarker")..","..GetStringML("randomMarker")
 	gMarkerMgrMode = Settings.minionlib.gMarkerMgrMode
 	
-	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, strings[gCurrentLanguage].generalSettings)
+	GUI_UnFoldGroup(ml_marker_mgr.mainwindow.name, GetStringML("generalSettings"))
 	GUI_SizeWindow(ml_marker_mgr.mainwindow.name, ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.h)
     GUI_WindowVisible(ml_marker_mgr.mainwindow.name,false)
     
     -- marker editor window
     GUI_NewWindow(ml_marker_mgr.editwindow.name, ml_marker_mgr.mainwindow.x+ml_marker_mgr.mainwindow.w, ml_marker_mgr.mainwindow.y, ml_marker_mgr.editwindow.w, ml_marker_mgr.editwindow.h,"",true)
-    GUI_NewField(ml_marker_mgr.editwindow.name, "Placeholder", "gPlaceholder", strings[gCurrentLanguage].markerFields)
-    GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].deleteMarker,"ml_marker_mgr.DeleteMarker")
-	GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].removeMarker,"ml_marker_mgr.RemoveMarker")
-    GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].questDown,"ml_marker_mgr.MarkerDown")	
-    GUI_NewButton(ml_marker_mgr.editwindow.name,strings[gCurrentLanguage].questUp,"ml_marker_mgr.MarkerUp")
+    GUI_NewField(ml_marker_mgr.editwindow.name, "Placeholder", "gPlaceholder", GetStringML("markerFields"))
+    GUI_NewButton(ml_marker_mgr.editwindow.name,GetStringML("deleteMarker"),"ml_marker_mgr.DeleteMarker")
+	GUI_NewButton(ml_marker_mgr.editwindow.name,GetStringML("removeMarker"),"ml_marker_mgr.RemoveMarker")
+    GUI_NewButton(ml_marker_mgr.editwindow.name,GetStringML("priorityDown"),"ml_marker_mgr.MarkerDown")	
+    GUI_NewButton(ml_marker_mgr.editwindow.name,GetStringML("priorityUp"),"ml_marker_mgr.MarkerUp")
     GUI_SizeWindow(ml_marker_mgr.editwindow.name,ml_marker_mgr.editwindow.w,ml_marker_mgr.editwindow.h)
     GUI_WindowVisible(ml_marker_mgr.editwindow.name,false)
 	

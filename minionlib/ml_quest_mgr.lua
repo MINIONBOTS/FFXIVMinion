@@ -4,18 +4,18 @@ ml_quest_mgr.profilepath = GetStartupPath() -- gets reset on init
 ml_quest_mgr.RegisteredButtonEventList = {} -- holds the already registered events of the questmanager
 
 -- Main Window
-ml_quest_mgr.mainwindow = { name = GetString("questManager"), x = 350, y = 50, w = 250, h = 350}
+ml_quest_mgr.mainwindow = { name = GetStringML("questManager"), x = 350, y = 50, w = 250, h = 350}
 ml_quest_mgr.visible = false
 ml_quest_mgr.QuestList = {}
 
 
 -- Quest Editor Window
-ml_quest_mgr.editwindow = { name = GetString("questEditor"), x = 350, y = 50, w = 250, h = 350}
+ml_quest_mgr.editwindow = { name = GetStringML("questEditor"), x = 350, y = 50, w = 250, h = 350}
 ml_quest_mgr.editwindow.currentPrio = 0
 
 
 -- Step Editor Window
-ml_quest_mgr.stepwindow = { name = GetString("questStepEditor"), x = 350, y = 50, w = 250, h = 350}
+ml_quest_mgr.stepwindow = { name = GetStringML("questStepEditor"), x = 350, y = 50, w = 250, h = 350}
 ml_quest_mgr.stepwindow.currentPrio = 0
 
 -- Script Window
@@ -34,14 +34,14 @@ function ml_quest_mgr.ModuleInit( name , path)
 	end
 		
 	GUI_NewWindow(ml_quest_mgr.mainwindow.name,ml_quest_mgr.mainwindow.x,ml_quest_mgr.mainwindow.y,ml_quest_mgr.mainwindow.w,ml_quest_mgr.mainwindow.h)
-	GUI_NewComboBox(ml_quest_mgr.mainwindow.name,GetString("profile"),"gQMprofile",GetString("generalSettings"),"None")
-	GUI_NewField(ml_quest_mgr.mainwindow.name,GetString("newProfileName"),"gQMnewname",GetString("generalSettings"))
-	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetString("newProfile"),"QMCreateNewProfile",GetString("generalSettings"))
+	GUI_NewComboBox(ml_quest_mgr.mainwindow.name,GetStringML("profile"),"gQMprofile",GetStringML("generalSettings"),"None")
+	GUI_NewField(ml_quest_mgr.mainwindow.name,GetStringML("newProfileName"),"gQMnewname",GetStringML("generalSettings"))
+	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetStringML("newProfile"),"QMCreateNewProfile",GetStringML("generalSettings"))
 	RegisterEventHandler("QMCreateNewProfile",ml_quest_mgr.CreateNewProfile)
 	
-	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetString("saveProfile"),"QMSaveProfile")	
+	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetStringML("saveProfile"),"QMSaveProfile")	
 	RegisterEventHandler("QMSaveProfile",ml_quest_mgr.MainButtonHandler)	
-	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetString("questAddQuest"),"QMAddQuest")	
+	GUI_NewButton(ml_quest_mgr.mainwindow.name,GetStringML("questAddQuest"),"QMAddQuest")	
 	RegisterEventHandler("QMAddQuest",ml_quest_mgr.MainButtonHandler)	
 
 
@@ -50,53 +50,53 @@ function ml_quest_mgr.ModuleInit( name , path)
 	gQMnewname = ""
   		
 	GUI_SizeWindow(ml_quest_mgr.mainwindow.name,ml_quest_mgr.mainwindow.w,ml_quest_mgr.mainwindow.h)
-	GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetString("generalSettings"))
+	GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetStringML("generalSettings"))
 	GUI_WindowVisible(ml_quest_mgr.mainwindow.name,false)
 	
 	
 	-- EDITOR WINDOW
 	GUI_NewWindow(ml_quest_mgr.editwindow.name,ml_quest_mgr.mainwindow.x+ml_quest_mgr.mainwindow.w,ml_quest_mgr.mainwindow.y,ml_quest_mgr.editwindow.w,ml_quest_mgr.editwindow.h)		
-	GUI_NewField(ml_quest_mgr.editwindow.name,GetString("questName"),"QME_Name",GetString("questInfo"))
-	GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetString("questDone"),"QME_Done",GetString("questInfo"))	
-	GUI_NewNumeric(ml_quest_mgr.editwindow.name,GetString("questMinLevel"),"QME_MinLevel",GetString("questInfo"),"0","80")
-	GUI_NewNumeric(ml_quest_mgr.editwindow.name,GetString("questMaxLevel"),"QME_MaxLevel",GetString("questInfo"),"0","80")
-	GUI_NewField(ml_quest_mgr.editwindow.name,GetString("questMap"),"QME_Map",GetString("questInfo"))
-	--GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetString("questPreQuest"),"QME_PrevQuest",GetString("questInfo")) 
-	GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetString("questRepeat"),"QME_Repeat",GetString("questInfo"))
+	GUI_NewField(ml_quest_mgr.editwindow.name,GetStringML("questName"),"QME_Name",GetStringML("questInfo"))
+	GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetStringML("questDone"),"QME_Done",GetStringML("questInfo"))	
+	GUI_NewNumeric(ml_quest_mgr.editwindow.name,GetStringML("questMinLevel"),"QME_MinLevel",GetStringML("questInfo"),"0","80")
+	GUI_NewNumeric(ml_quest_mgr.editwindow.name,GetStringML("questMaxLevel"),"QME_MaxLevel",GetStringML("questInfo"),"0","80")
+	GUI_NewField(ml_quest_mgr.editwindow.name,GetStringML("questMap"),"QME_Map",GetStringML("questInfo"))
+	--GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetStringML("questPreQuest"),"QME_PrevQuest",GetStringML("questInfo")) 
+	GUI_NewCheckbox(ml_quest_mgr.editwindow.name,GetStringML("questRepeat"),"QME_Repeat",GetStringML("questInfo"))
 	
 	
-	GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetString("questInfo"))
+	GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetStringML("questInfo"))
 	GUI_SizeWindow(ml_quest_mgr.editwindow.name,ml_quest_mgr.editwindow.w,ml_quest_mgr.editwindow.h)
 	GUI_WindowVisible(ml_quest_mgr.editwindow.name,false)
 	
-	GUI_NewButton(ml_quest_mgr.editwindow.name,GetString("questDelete"),"QMDeleteQuest") 
+	GUI_NewButton(ml_quest_mgr.editwindow.name,GetStringML("questDelete"),"QMDeleteQuest") 
 	RegisterEventHandler("QMDeleteQuest",ml_quest_mgr.EditorButtonHandler)
-	GUI_NewButton(ml_quest_mgr.editwindow.name,GetString("questReset"),"QMResetQuest") 
+	GUI_NewButton(ml_quest_mgr.editwindow.name,GetStringML("questReset"),"QMResetQuest") 
 	RegisterEventHandler("QMResetQuest",ml_quest_mgr.EditorButtonHandler)
-	GUI_NewButton(ml_quest_mgr.editwindow.name,GetString("questDown"),"QMLowerPrioQuest")
+	GUI_NewButton(ml_quest_mgr.editwindow.name,GetStringML("questDown"),"QMLowerPrioQuest")
 	RegisterEventHandler("QMLowerPrioQuest",ml_quest_mgr.EditorButtonHandler)
-	GUI_NewButton(ml_quest_mgr.editwindow.name,GetString("questUp"),"QMHigherPrioQuest")	
+	GUI_NewButton(ml_quest_mgr.editwindow.name,GetStringML("questUp"),"QMHigherPrioQuest")	
 	RegisterEventHandler("QMHigherPrioQuest",ml_quest_mgr.EditorButtonHandler)	
-	GUI_NewButton(ml_quest_mgr.editwindow.name,GetString("questAddStep"),"QMAddStep")	
+	GUI_NewButton(ml_quest_mgr.editwindow.name,GetStringML("questAddStep"),"QMAddStep")	
 	RegisterEventHandler("QMAddStep",ml_quest_mgr.StepButtonHandler)
 	
 	
 	-- STEP EDITOR WINDOW
 	GUI_NewWindow(ml_quest_mgr.stepwindow.name,ml_quest_mgr.editwindow.x+ml_quest_mgr.editwindow.w,ml_quest_mgr.editwindow.y,ml_quest_mgr.stepwindow.w,ml_quest_mgr.stepwindow.h)		
-	GUI_NewField(ml_quest_mgr.stepwindow.name,GetString("questName"),"QMS_Name",GetString("questStepInfo"))
-	GUI_NewCheckbox(ml_quest_mgr.stepwindow.name,GetString("questStepDone"),"QMS_Done",GetString("questStepInfo"))	
-	GUI_NewComboBox(ml_quest_mgr.stepwindow.name,GetString("questStepScript"),"gQMS_Script",GetString("questStepInfo"),"None")
+	GUI_NewField(ml_quest_mgr.stepwindow.name,GetStringML("questName"),"QMS_Name",GetStringML("questStepInfo"))
+	GUI_NewCheckbox(ml_quest_mgr.stepwindow.name,GetStringML("questStepDone"),"QMS_Done",GetStringML("questStepInfo"))	
+	GUI_NewComboBox(ml_quest_mgr.stepwindow.name,GetStringML("questStepScript"),"gQMS_Script",GetStringML("questStepInfo"),"None")
 	
 	--Custom UI fields are in the task-scripts
-	GUI_UnFoldGroup(ml_quest_mgr.stepwindow.name,GetString("questStepInfo"))
+	GUI_UnFoldGroup(ml_quest_mgr.stepwindow.name,GetStringML("questStepInfo"))
 	GUI_SizeWindow(ml_quest_mgr.stepwindow.name,ml_quest_mgr.stepwindow.w,ml_quest_mgr.stepwindow.h)
 	GUI_WindowVisible(ml_quest_mgr.stepwindow.name,false)
 	
-	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetString("questStepDelete"),"QMDeleteStep") 
+	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetStringML("questStepDelete"),"QMDeleteStep") 
 	RegisterEventHandler("QMDeleteStep",ml_quest_mgr.StepButtonHandler)	
-	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetString("questDown"),"QMLowerPrioStep")
+	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetStringML("questDown"),"QMLowerPrioStep")
 	RegisterEventHandler("QMLowerPrioStep",ml_quest_mgr.StepButtonHandler)
-	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetString("questUp"),"QMHigherPrioStep")	
+	GUI_NewButton(ml_quest_mgr.stepwindow.name,GetStringML("questUp"),"QMHigherPrioStep")	
 	RegisterEventHandler("QMHigherPrioStep",ml_quest_mgr.StepButtonHandler)
 	
 	
@@ -142,7 +142,7 @@ function ml_quest_mgr.UpdateCurrentProfileData()
 		gQMprofile = "None"
     end
 	ml_quest_mgr.RefreshQuestList()
-    GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))	
+    GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))	
 end
 
 --**********************
@@ -155,7 +155,7 @@ function ml_quest_mgr.MainButtonHandler(event)
 	elseif ( event == "QMAddQuest") then
 		ml_quest_mgr.AddNewQuest( nil )
 		ml_quest_mgr.editwindow.currentPrio = table.maxn(ml_quest_mgr.QuestList)
-		GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))
+		GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))
 		ml_quest_mgr.EditQuest( nil )
 	end
 end
@@ -188,7 +188,7 @@ function ml_quest_mgr.UpdateProfiles()
 			d("Loading default Profile for our Map")	
 						
 			GUI_WindowVisible(ml_quest_mgr.editwindow.name,false)
-			GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))
+			GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))
 			ml_quest_mgr.QuestList = {}
 			ml_quest_mgr.UpdateCurrentProfileData()
 			Settings[ml_quest_mgr.ModuleName].gQMprofile = tostring(defaultprofile)
@@ -256,7 +256,7 @@ end
 
 function ml_quest_mgr.CreateNewProfile()
 	-- Delete existing Skills
-    GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))
+    GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))
 	GUI_WindowVisible(ml_quest_mgr.editwindow.name,false)
 	GUI_WindowVisible(ml_quest_mgr.stepwindow.name,false)
     gQMprofile = "None"
@@ -277,7 +277,7 @@ function ml_quest_mgr.AddNewQuest( quest )
 		qname = quest.name
 	end
 	
-	GUI_NewButton(ml_quest_mgr.mainwindow.name, tostring(newquestprio)..": "..qname, bevent,GetString("quests"))
+	GUI_NewButton(ml_quest_mgr.mainwindow.name, tostring(newquestprio)..": "..qname, bevent,GetStringML("quests"))
 	-- Check if a event with this name is already registered, this is needed since we cannot unregister events
 	
 	if ( ml_quest_mgr.RegisteredButtonEventList[bevent] == nil ) then
@@ -315,7 +315,7 @@ function ml_quest_mgr.AddNewQuest( quest )
 end
 
 function ml_quest_mgr.RefreshQuestList()
-	GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))
+	GUI_DeleteGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))
 	if ( TableSize( ml_quest_mgr.QuestList ) > 0 ) then
 		local i,s = next ( ml_quest_mgr.QuestList )
 		while i and s do
@@ -323,7 +323,7 @@ function ml_quest_mgr.RefreshQuestList()
 			i,s = next ( ml_quest_mgr.QuestList , i )
 		end
 	end
-	GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetString("quests"))
+	GUI_UnFoldGroup(ml_quest_mgr.mainwindow.name,GetStringML("quests"))
 	
 	-- Update global variables from used scripts
 	ml_quest_mgr.RefreshScriptData()
@@ -445,7 +445,7 @@ function ml_quest_mgr.AddNewStep( step )
 		qname = step.name
 	end
 	
-	GUI_NewButton(ml_quest_mgr.editwindow.name, tostring(newquestprio)..": "..qname, bevent,GetString("questSteps"))
+	GUI_NewButton(ml_quest_mgr.editwindow.name, tostring(newquestprio)..": "..qname, bevent,GetStringML("questSteps"))
 	-- Check if a event with this name is already registered, this is needed since we cannot unregister events
 	
 	if ( ml_quest_mgr.RegisteredButtonEventList[bevent] == nil ) then
@@ -476,7 +476,7 @@ function ml_quest_mgr.AddNewStep( step )
 end
 
 function ml_quest_mgr.RefreshStepList()	
-	GUI_DeleteGroup(ml_quest_mgr.editwindow.name,GetString("questSteps"))
+	GUI_DeleteGroup(ml_quest_mgr.editwindow.name,GetStringML("questSteps"))
 	if ( TableSize( ml_quest_mgr.QuestList ) > 0 and TableSize( ml_quest_mgr.QuestList[ml_quest_mgr.editwindow.currentPrio].steps ) > 0) then
 			
 		local i,s = next ( ml_quest_mgr.QuestList[ml_quest_mgr.editwindow.currentPrio].steps )
@@ -485,7 +485,7 @@ function ml_quest_mgr.RefreshStepList()
 			i,s = next ( ml_quest_mgr.QuestList[ml_quest_mgr.editwindow.currentPrio].steps , i )
 		end
 	end
-	GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetString("questSteps"))
+	GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetStringML("questSteps"))
 end
 
 
@@ -496,7 +496,7 @@ function ml_quest_mgr.StepButtonHandler(event)
 	if ( event == "QMAddStep") then
 		ml_quest_mgr.AddNewStep( nil )
 		ml_quest_mgr.stepwindow.currentPrio = table.maxn(ml_quest_mgr.QuestList[ml_quest_mgr.editwindow.currentPrio].steps)
-		GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetString("questSteps"))
+		GUI_UnFoldGroup(ml_quest_mgr.editwindow.name,GetStringML("questSteps"))
 		ml_quest_mgr.EditStep( nil )
 
 	elseif ( event == "QMDeleteStep") then				
@@ -581,7 +581,7 @@ end
 -- Refreshes the currently shown ScriptUI and loads the corresponding scriptdata into the UI fields
 function ml_quest_mgr.RefreshScript()
 	-- Clear old scriptUI
-	GUI_DeleteGroup(ml_quest_mgr.stepwindow.name,GetString("questStepDetails"))
+	GUI_DeleteGroup(ml_quest_mgr.stepwindow.name,GetStringML("questStepDetails"))
 	
 	-- Load the UI elements of the selected script
 	if ( gQMS_Script ~= nil and gQMS_Script ~= "" and gQMS_Script ~= "None" ) then
@@ -605,7 +605,7 @@ function ml_quest_mgr.RefreshScript()
 		end
 	end	
 	
-	GUI_UnFoldGroup(ml_quest_mgr.stepwindow.name,GetString("questStepDetails"))
+	GUI_UnFoldGroup(ml_quest_mgr.stepwindow.name,GetStringML("questStepDetails"))
 end
 
 -- Saves the entered/changed data of the currently shown ScriptUI-Elements in the QuestList table
