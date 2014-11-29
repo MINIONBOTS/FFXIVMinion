@@ -389,6 +389,7 @@ end
 
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
+	ml_task_hub:CurrentTask():SetDelay(2000)
 end
 
 --=======================STEALTH TASK=========================-

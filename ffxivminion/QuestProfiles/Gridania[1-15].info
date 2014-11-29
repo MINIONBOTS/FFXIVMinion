@@ -4629,7 +4629,7 @@ local obj1 = {
 			["level"] = 11;
 			["prereq"] = {
 				[-1] = {
-					[1] = 374;
+					[1] = 376;
 				};
 			};
 		};
@@ -4638,6 +4638,7 @@ local obj1 = {
 				[1] = {
 					["mapid"] = 148;
 					["type"] = "start";
+					["conversationindex"] = 2;
 					["id"] = 1000470;
 					["itemreward"] = false;
 					["meshname"] = "Central Shroud";

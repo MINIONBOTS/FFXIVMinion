@@ -197,6 +197,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsHomepoint","aeishp","AetheryteList")
 	GUI_NewField("Dev","IsFavorite","aeisfav","AetheryteList")
 	GUI_NewField("Dev","IsInLocalMap","aeisloc","AetheryteList")
+	GUI_NewButton("Dev","Teleport","Dev.AetheryteTeleport","AetheryteList")
 	aesel = 0
 	
 	-- FateInfo
@@ -390,7 +391,15 @@ function Dev.HandleButtons( Event, arg )
 			local t = Player:GetTarget()
 			if ( t ) then
 				Player:Interact(t.id)
-			end		
+			end	
+		elseif ( arg == "Dev.AetheryteTeleport") then
+			local aelist = Player:GetAetheryteList()
+			if (aelist ) then 
+				local a = aelist[tonumber(aesel)]
+				if a then
+					Player:Teleport(a.id)
+				end
+			end
 		elseif ( arg == "Dev.Follow") then
 			local t = Player:GetTarget()
 			if ( t ) then

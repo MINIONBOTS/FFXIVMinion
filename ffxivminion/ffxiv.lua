@@ -803,18 +803,14 @@ function ffxivminion.SwitchMode(mode)
 			gTeleport = "1"
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
-			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
-			GameHacks:SkipDialogue(true)
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 		elseif (gBotMode == GetString("questMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
-			GameHacks:SkipCutscene(true)
 			gSkipDialogue = "1"
-			GameHacks:SkipDialogue(true)
 			gDisableDrawing = "0"
 			GameHacks:Disable3DRendering(false)
 			gAvoidAOE = "1"
@@ -828,8 +824,6 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			GameHacks:SkipCutscene(gSkipCutscene == "1")
-			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gProfile_listitems = "NA"
 			gProfile = "NA"
 		end
@@ -838,7 +832,9 @@ end
 
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
-    if (task ~= nil) then		
+    if (task ~= nil) then
+		GameHacks:SkipCutscene(gSkipCutscene == "1")
+		GameHacks:SkipDialogue(gSkipDialogue == "1")
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
 end
