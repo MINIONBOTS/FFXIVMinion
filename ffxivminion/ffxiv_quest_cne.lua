@@ -74,7 +74,7 @@ function c_nextqueststep:evaluate()
 			(guiStepIndex > TableSize(ml_task_hub:CurrentTask().quest.steps))
 		then
 			local startingStep = 1
-			if (ml_task_hub:CurrentTask().quest:isCompleted()) then
+			if (ml_task_hub:CurrentTask().quest:isComplete()) then
 				startingStep = TableSize(ml_task_hub:CurrentTask().quest.steps)
 			end
 			ml_task_hub:CurrentTask().currentStepIndex = startingStep
