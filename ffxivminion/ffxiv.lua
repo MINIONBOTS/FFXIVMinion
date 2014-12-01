@@ -975,7 +975,11 @@ function ffxivminion.CreateWindow(window)
 	local wi = Settings.FFXIVMINION[winTable]
 	local wname = window.Name
 	
+	if (window.hideModule) then
+		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
+	else
 	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
+end
 end
 
 function ffxivminion.SizeWindow(strName)
