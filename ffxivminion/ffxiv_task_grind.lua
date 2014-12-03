@@ -203,13 +203,6 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(GetString("grindMode"))
 end
 
-function ffxiv_task_grind.SetEvacPoint()
-    if (gmeshname ~= "" and Player.onmesh) then
-        ml_marker_mgr.markerList["evacPoint"] = Player.pos
-        ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
-    end
-end
-
 function ffxiv_task_grind.BlacklistTarget()
     local target = Player:GetTarget()
     if ValidTable(target) then

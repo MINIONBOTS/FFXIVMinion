@@ -669,3 +669,7 @@ ffxiv_nav_data =
 	},
 	
 }
+
+-- set reference for mesh mgr
+ml_mesh_mgr.navData = ffxiv_nav_data
+ml_mesh_mgr.SetupNavNodes()

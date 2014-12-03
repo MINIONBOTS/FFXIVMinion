@@ -1,4 +1,0 @@
-[Module]
-Name=minionlib
-Version=1
-Files=languages.lua,ml_misc_OO.lua,ml_effect.lua,ml_cause.lua,ml_element.lua,ml_misc_log.lua,ml_task.lua,ml_task_queue.lua,ml_task_hub.lua,ml_cne_hub.lua,ml_utility.lua,ml_debug.lua,ml_blacklist.lua,ml_blacklist_mgr.lua,ml_persistence.lua,ml_marker.lua,ml_marker_mgr.lua,ml_mesh_mgr.lua,ml_profile_task.lua,ml_node.lua,ml_nav_manager.lua,ml_gui.lua,ml_gui_mgr.lua

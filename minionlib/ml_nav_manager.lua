@@ -57,6 +57,8 @@ function ml_nav_manager.SetNavPath(currID, destID)
 		ml_nav_manager.currPath = ml_nav_manager.GetPath(currNode, destNode)
 	else
 		d("SetNavPath - Invalid node IDs")
+		d("fromID: "..tostring(currID))
+		d("toID: "..tostring(destID))
 	end
 end
 
