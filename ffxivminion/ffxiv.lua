@@ -805,6 +805,8 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 		elseif (gBotMode == GetString("questMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
@@ -813,6 +815,8 @@ function ffxivminion.SwitchMode(mode)
 			gSkipDialogue = "1"
 			gDisableDrawing = "0"
 			GameHacks:Disable3DRendering(false)
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gAvoidAOE = "1"
 			SendTextCommand("/busy on")
 		else

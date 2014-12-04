@@ -79,7 +79,11 @@ function c_nextqueststep:evaluate()
 			end
 			ml_task_hub:CurrentTask().currentStepIndex = startingStep
 		else
-			ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
+			if (ml_task_hub:CurrentTask().currentStepCompleted) then
+				ml_task_hub:CurrentTask().currentStepIndex = ml_task_hub:CurrentTask().currentStepIndex + 1
+			else
+				ml_task_hub:CurrentTask().currentStepIndex = guiStepIndex
+			end
 		end
 		
 		local task = ml_task_hub:CurrentTask().quest:GetStepTask(ml_task_hub:CurrentTask().currentStepIndex)
@@ -609,7 +613,13 @@ end
 
 c_indialog = inheritsFrom( ml_cause )
 e_indialog = inheritsFrom( ml_effect )
+c_indialog.lastSet = 0
 function c_indialog:evaluate()
+	if (Quest:IsInDialog() and Now() > c_indialog.lastSet) then
+		GameHacks:SkipDialogue(true)
+		c_indialog.lastSet = Now() + 2000
+	end
+	
 	return Quest:IsInDialog() and not ControlVisible("SelectIconString") and not ControlVisible("SelectString") and not Quest:IsRequestDialogOpen()
 end
 function e_indialog:execute()
