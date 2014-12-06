@@ -1183,10 +1183,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				if ( v.castids and v.castids ~= "" ) then
 					if (isCasting(target, v.castids, nil, nil )) then
 						if (ActionList:IsCasting()) then
-							if (EntityIsFront(target)) then
-								SetFacing(target.pos.x,target.pos.y,target.pos.z)
-								TurnAround()
-							end
+							--[[
+							local p = shallowcopy(Player.pos)
+							local newPos = GetPosFromDistanceHeading(p,.75, p.h)
+							Player:MoveTo(newPos.x,newPos.y,newPos.z)
+							--]]
+							ActionList:Cast(2,Player.id,5)
 						end
 						return false
 					end
@@ -1231,9 +1233,19 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							SkillMgr.lastOFFCD = false
 						end
 				
+						if (IsHealingSkill(skill.id)) then
+							if IsHealingSkill(Player.castinginfo.channelingid) or
+								IsHealingSkill(Player.castinginfo.castingid) 
+							then
+								castable = false
+							end
+						end
+				
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
-						if ( skill.dobuff == "1" and skill.lastcast ~= nil and ( skill.lastcast + (realskilldata.casttime * 1000 + 1000) > ml_global_information.Now) ) then 
+						if ( skill.dobuff == "1") then
+							if (Player.castinginfo.castingid == tonumber(skill.id)) then
 							castable = false
+						end
 						end
 						
 						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
