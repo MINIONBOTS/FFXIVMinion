@@ -1065,7 +1065,7 @@ function ffxiv_nav_interact:task_complete_execute()
 end
 
 function ffxiv_nav_interact:task_fail_eval()
-    if (Player.hasaggro or Player.incombat or not Player.alive) then
+    if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
