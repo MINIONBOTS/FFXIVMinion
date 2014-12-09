@@ -90,6 +90,14 @@ function ml_global_information.OnUpdate( event, tickcount )
     if (TimeSince(ml_global_information.lastrun) > tonumber(gFFXIVMINIONPulseTime)) then
         ml_global_information.lastrun = tickcount
 		
+		-- close any social addons that might screw up behavior first
+		if(	gBotRunning == "1" and 
+			gBotMode ~= strings[gCurrentLanguage].assistMode and
+			gBotMode ~= strings[gCurrentLanguage].dutyMode) 
+		then
+			ffxivminion.ClearAddons()
+		end
+		
         if( ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
@@ -814,7 +822,6 @@ function ffxivminion.SwitchMode(mode)
 			gDisableDrawing = "0"
 			GameHacks:Disable3DRendering(false)
 			gAvoidAOE = "1"
-			SendTextCommand("/busy on")
 		else
 			if (gBotMode == GetString("gatherMode")) then
 				gTeleport = "0"
@@ -1182,6 +1189,29 @@ function ffxivminion.NodeDistance(self, id)
     end
     
     return nil
+end
+
+-- clear any addons displayed by social actions like trade/party invites
+function ffxivminion.ClearAddons()
+	--trade window
+	Player:CheckTradeWindow()
+	
+	--party invite
+	if(ControlVisible("_NotificationItemParty") and ControlVisible("SelectYesno")) then
+		if(not ffxivminion.declineTimer) then
+			ffxivminion.declineTimer = Now() + math.random(3000,5000)
+		elseif(Now() > ffxivminion.declineTimer) then
+			if(not ffxivminion.inviteDeclined) then
+				PressYesNo(false)
+				ffxivminion.inviteDeclined = true
+				ffxivminion.declineTimer = Now() + math.random(1000,3000)
+			else
+				PressYesNo(true)
+				ffxivminion.inviteDeclined = nil
+				ffxivminion.declineTimer = nil
+			end
+		end
+	end
 end
 
 -- Register Event Handlers

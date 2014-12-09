@@ -1739,6 +1739,11 @@ function c_dead:evaluate()
     return false
 end
 function e_dead:execute()
+	-- if the party invite window is open wait for ClearAddons() to close it 
+	if(ControlVisible("_NotificationItemParty")) then
+		return
+	end
+	
     d("Respawning...")
 	-- try raise first
     if(PressYesNo(true)) then

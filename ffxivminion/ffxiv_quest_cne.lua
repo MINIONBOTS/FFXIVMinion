@@ -619,7 +619,9 @@ end
 c_questyesno = inheritsFrom( ml_cause )
 e_questyesno = inheritsFrom( ml_effect )
 function c_questyesno:evaluate()
-	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") then
+	if (gBotMode == GetString("assistMode") and gQuestHelpers == "0") or
+		ControlVisible("_NotificationItemParty")
+	then
 		return false
 	end
 	return ControlVisible("SelectYesno")
