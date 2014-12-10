@@ -1583,7 +1583,38 @@ function GetClosestFate(pos)
         local nearestDistance = 99999999
         local level = Player.level
 		local myPos = Player.pos
+		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
+		local whitelistTable = {}
 		
+		for entry in StringSplit(whitelisted,";") do
+			local delimiter = entry:find('-')
+			if (delimiter ~= nil and delimiter ~= 0) then
+				local mapid = entry:sub(0,delimiter-1)
+				local fateid = entry:sub(delimiter+1)
+				if (tonumber(mapid) == Player.localmapid) then
+					whitelistTable[fateid] = true
+				end
+			end
+				
+		end
+		
+		if (ValidTable(whitelistTable)) then
+			for k, fate in pairs(fatelist) do
+				if (whitelistTable[fate.id] and	fate.status == 2 and fate.completion >= tonumber(gFateWaitPercent)) then	
+					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+					if (dist <= 5) then
+						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
+						if (distance) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+								nearestFate = shallowcopy(fate)
+								nearestDistance = distance
+							end
+						end
+					end
+				end
+			end
+		else
 		for k, fate in pairs(fateList) do
 			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
 				(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
@@ -1606,6 +1637,7 @@ function GetClosestFate(pos)
 				end
             end
         end
+		end
     
         if (nearestFate ~= nil) then
 			--local fate = nearestFate
@@ -2348,8 +2380,6 @@ function GetDutyFromID(dutyID)
 	
 	return ""
 end
-
---
 
 function GetBestGrindMap()
 	local mapid = Player.localmapid
