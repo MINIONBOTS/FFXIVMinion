@@ -1060,7 +1060,7 @@ end
 
 function ffxiv_nav_interact:task_complete_execute()
     Player:Stop()
-	GameHacks:SkipDialogue(Settings.FFXIVMINION.gSkipDialogue == "1")
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
 	self.completed = true
 end
 
@@ -1073,6 +1073,6 @@ function ffxiv_nav_interact:task_fail_eval()
 end
 
 function ffxiv_nav_interact:task_fail_execute()
-	GameHacks:SkipDialogue(Settings.FFXIVMINION.gSkipDialogue == "1")
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
     self.valid = false
 end

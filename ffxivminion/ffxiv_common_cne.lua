@@ -1263,6 +1263,29 @@ function c_usenavinteraction:evaluate()
 				end
 			end,
 		},
+		[351] = { name = "Rising Sands",
+			test = function()
+				if ((myPos.z < 27.394 and myPos.z > -27.20) and not (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
+					return true
+				elseif (not (myPos.z < 27.394 and myPos.z > -27.20) and (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				if ((myPos.z < 27.394 and myPos.z > -27.20) and not (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
+					newTask.uniqueid = 2002878
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				elseif (not (myPos.z < 27.394 and myPos.z > -27.20) and (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 0.010291699320078, y = -2, z = -29.227424621582}
+					newTask.uniqueid = 2002880
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end,
+		},
 	}
 	
 	if (requiresTransport[Player.localmapid]) then

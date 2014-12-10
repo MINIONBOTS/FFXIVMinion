@@ -1275,6 +1275,24 @@ function IsReviveSkill(skillID)
     return false
 end
 
+function IsHealingSkill(skillID)
+	local id = tonumber(skillID)
+	
+	local cures = {
+		[120] = true,
+		[135] = true,
+		[131] = true,
+		[190] = true,
+		[185] = true,
+		[186] = true,
+		[189] = true,
+	}
+    if (cures[id]) then
+        return true
+    end
+    return false
+end
+
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end

@@ -270,7 +270,7 @@ function TP.OnUpdate( Event, ticks )
 		TP.UpdateWaypointTick = ticks
 		if (not IsLoading()) then
 			local p = shallowcopy(Player.pos)
-			gPlayerPOS = string.format("%.2f",p.x).." | "..string.format("%.2f",p.z).." | "..string.format("%.2f",p.y).." | "..string.format("%.2f",p.h)
+			gPlayerPOS = string.format("%.2f",p.x).." | "..string.format("%.2f",p.y).." | "..string.format("%.2f",p.z).." | "..string.format("%.2f",p.h)
 			if (TP.MapID ~= Player.localmapid) then
 				TP.Refresh()
 			end

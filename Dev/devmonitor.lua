@@ -275,6 +275,10 @@ function Dev.ModuleInit()
 	pamem = 0
 	
 	--DutyFinder/PvP
+	GUI_NewNumeric("Dev","ListIndex","duty_sel","DutyInfo","1","99")
+	GUI_NewField("Dev","Name","duty_name","DutyInfo")
+	GUI_NewField("Dev","MapID","duty_mapid","DutyInfo")	
+	
 	GUI_NewField("Dev","DutySelectWindow","duty_selectwindow","DutyInfo")
 	GUI_NewField("Dev","ConfirmEnterWindow","duty_confirmenterwindow","DutyInfo")
 	GUI_NewField("Dev","YesNoWindow","duty_yesnowindow","DutyInfo")
@@ -1060,7 +1064,11 @@ function Dev.UpdateWindow()
 		crtext ="" 	
 	end
 	cropen = tostring(Crafting:IsCraftingLogOpen())
-	crcan = tostring(Crafting:CanCraftSelectedItem())
+	if (Crafting:IsCraftingLogOpen()) then
+		crcan = tostring(Crafting:CanCraftSelectedItem())
+	else
+		crcan = ""
+	end
 	
 	-- PartyInfo
 	local party = EntityList.myparty
@@ -1088,6 +1096,20 @@ function Dev.UpdateWindow()
 	end
 	
 	--Duty/PVP
+	local dutyfound = false
+	local dutylist = Duty:GetDutyList()
+	if (dutylist ) then 
+		local duty = dutylist[tonumber(duty_sel)]
+		if duty then
+			dutyfound = true
+			duty_name = duty.name
+			duty_mapid = duty.id
+		end
+	end
+	if not dutyfound then
+		duty_name = 0
+		duty_mapid = 0
+	end
 	
 	duty_selectwindow = tostring(ControlVisible("ContentsFinder"))
 	duty_confirmenterwindow = tostring(ControlVisible("ContentsFinderConfirm"))

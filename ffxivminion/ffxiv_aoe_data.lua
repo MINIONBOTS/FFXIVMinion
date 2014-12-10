@@ -75,6 +75,8 @@ ffxiv_aoe_data =
 		[2831] = true,
 		--Aqueous Discharge
 		[381] = true,
+		--Iron Tempest
+		[1003] = true,
 	},
 	["frontal"] = {
 	
