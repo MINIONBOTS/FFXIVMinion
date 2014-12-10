@@ -64,9 +64,9 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.ARCHER] = "Archer",
 	[FFXIV.JOBS.BARD] = "Bard",
 	[FFXIV.JOBS.CONJURER] = "Conjurer",
-	[FFXIV.JOBS.WHITEMAGE] = "White Mage",
-	[FFXIV.JOBS.THAUMATURGE] = "Black Mage",
-	[FFXIV.JOBS.BLACKMAGE] = "Black Mage",
+	[FFXIV.JOBS.WHITEMAGE] = "White_Mage",
+	[FFXIV.JOBS.THAUMATURGE] = "Black_Mage",
+	[FFXIV.JOBS.BLACKMAGE] = "Black_Mage",
 	[FFXIV.JOBS.ARCANIST] = "Arcanist",
 	[FFXIV.JOBS.SUMMONER] = "Summoner",
 	[FFXIV.JOBS.SCHOLAR] = "Scholar",
@@ -259,7 +259,7 @@ function SkillMgr.ModuleInit()
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black Mage"
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black_Mage"
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
@@ -287,11 +287,11 @@ function SkillMgr.ModuleInit()
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White Mage"
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White_Mage"
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black Mage"
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black_Mage"
 	end
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
