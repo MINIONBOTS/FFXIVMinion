@@ -475,6 +475,10 @@ function ffxivminion.HandleInit()
     if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].fates) then
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].fates)
     end
+	
+	if not ml_blacklist.BlacklistExists("FATE Whitelist") then
+        ml_blacklist.CreateBlacklist("FATE Whitelist")
+    end
     
     if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].monsters) then
         ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].monsters)
@@ -983,8 +987,8 @@ function ffxivminion.CreateWindow(window)
 	if (window.hideModule) then
 		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
 	else
-	GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height) 
-end
+		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
+	end
 end
 
 function ffxivminion.SizeWindow(strName)

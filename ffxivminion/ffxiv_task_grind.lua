@@ -246,6 +246,17 @@ function ffxiv_task_grind.BlacklistFate(arg)
     end
 end
 
+function ffxiv_task_grind.WhitelistFate(arg)
+    if (gFateName ~= "") then
+        if (arg == "gWhitelistFateAddEvent") then
+            ml_blacklist.AddBlacklistEntry("FATE Whitelist", tostring(gFateMapID).."-"..tostring(gFateID), gFateName, true)
+        elseif (arg == "gWhitelistFateRemEvent") then
+            ml_blacklist.DeleteEntry("FATE Whitelist", tonumber(gFateID))
+        end
+    else
+        ml_debug("No valid fate selected")
+    end
+end
 
 
 function ffxiv_task_grind.BlacklistInitUI()
@@ -380,6 +391,7 @@ function ffxiv_task_grind.UIInit()
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
 	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].huntMonsters,ffxiv_task_grind.HuntingUI)
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].fates,ffxiv_task_fate.BlacklistInitUI)
+	ml_blacklist_mgr.AddInitUI("FATE Whitelist",ffxiv_task_fate.WhitelistInitUI)
 	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].aoe,ffxiv_task_grind.BlacklistInitAOE)
 	
 	ffxiv_task_grind.SetupMarkers()
@@ -414,11 +426,13 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
                 fafound = true
                 gFateName = string.gsub(f.name,",","")
                 gFateID = f.id
+				gFateMapID = Player.localmapid
             end
         end
         if (not fafound) then
             gFateName = ""
             gFateID = 0
+			gFateMapID = 0
         end
         
         local target = Player:GetTarget()

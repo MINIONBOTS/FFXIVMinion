@@ -396,7 +396,7 @@ function c_avoid:evaluate()
 	local ppos = Player.pos
 	local plevel = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("targetingme,aggressive,onmesh,maxdistance=25")
+	local el = EntityList("targetingme,aggressive,onmesh,maxdistance=30")
 	if (el) then
 		for i,e in pairs(el) do
 			if (ValidTable(e.castinginfo) and e.castinginfo.channelingid ~= 0) then
@@ -812,7 +812,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
-	if (gUseAetherytes == "0") then
+	if (gUseAetherytes == "0" or IsLoading()) then
 		return false
 	end
 	
@@ -1321,7 +1321,7 @@ function c_bettertargetsearch:evaluate()
 	end
     
 	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:RootTask().name == "LT_GRIND") then
-		if (not Player.incombat and Player.hasaggro) then
+		if (not Player.incombat) then
 			local bettertarget = GetNearestGrindAttackable()
 			if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
 				c_bettertargetsearch.targetid = bettertarget.id
@@ -1666,7 +1666,7 @@ function c_rest:evaluate()
     end
 	
 	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) or
-		Player.hasaggro or Player.incombat ) then
+		Player.incombat ) then
 		return false
 	end
 	
@@ -1697,7 +1697,7 @@ function c_flee:evaluate()
 		return false
 	end
 	
-	if ((Player.incombat or Player.hasaggro) and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
+	if ((Player.incombat) and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			local fpos = ml_marker_mgr.markerList["evacPoint"]
 			local ppos = Player.pos

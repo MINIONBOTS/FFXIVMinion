@@ -424,3 +424,11 @@ function ffxiv_task_fate.BlacklistInitUI()
     GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistFate, "gBlacklistFateAddEvent", strings[gCurrentLanguage].addEntry)
     RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
 end
+
+function ffxiv_task_fate.WhitelistInitUI()
+    GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateIndex,"gFateIndex",strings[gCurrentLanguage].addEntry,"1","5")
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateName,"gFateName",strings[gCurrentLanguage].addEntry)
+	GUI_NewField(ml_blacklist_mgr.mainwindow.name,"Map ID","gFateMapID",strings[gCurrentLanguage].addEntry)
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistFate, "gWhitelistFateAddEvent", strings[gCurrentLanguage].addEntry)
+    RegisterEventHandler("gWhitelistFateAddEvent", ffxiv_task_grind.WhitelistFate)
+end

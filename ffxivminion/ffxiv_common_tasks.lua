@@ -141,6 +141,10 @@ function ffxiv_task_movetopos.Create()
 	newinst.postDelay = 0
 	newinst.dismountTimer = 0
 	newinst.dismountDistance = 10
+	
+	newinst.distanceCheckTimer = 0
+	newinst.lastPosition = nil
+	newinst.lastDistance = 0
     
     return newinst
 end
@@ -272,7 +276,7 @@ end
 
 function ffxiv_task_movetomap:Init()
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
-    self:add( ke_teleportToMap, self.process_elements)
+    self:add( ke_teleportToMap, self.overwatch_elements)
 	
 	local ke_transportGate = ml_element:create( "TransportGate", c_transportgate, e_transportgate, 12 )
     self:add( ke_transportGate, self.process_elements)
@@ -654,7 +658,7 @@ function ffxiv_task_rest:task_complete_execute()
 end
 
 function ffxiv_task_rest:task_fail_eval()
-    if (Player.hasaggro or Player.incombat or not Player.alive) then
+    if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
@@ -939,7 +943,7 @@ function ffxiv_mesh_interact:task_complete_execute()
 end
 
 function ffxiv_mesh_interact:task_fail_eval()
-    if (Player.hasaggro or Player.incombat or not Player.alive) then
+    if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
@@ -1065,7 +1069,7 @@ function ffxiv_nav_interact:task_complete_execute()
 end
 
 function ffxiv_nav_interact:task_fail_eval()
-    if (Player.hasaggro or Player.incombat or not Player.alive) then
+    if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
