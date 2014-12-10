@@ -1293,6 +1293,40 @@ function IsHealingSkill(skillID)
     return false
 end
 
+function IsMudraSkill(skillID)
+	local id = tonumber(skillID)
+	
+	local mudras = {
+		[2261] = true,
+		[2259] = true,
+		[2263] = true,
+	}
+    if (mudras[id]) then
+        return true
+    end
+    return false
+end
+
+function IsNinjutsuSkill(skillID)
+	local id = tonumber(skillID)
+	
+	local ninjutsus = {
+		[2260] = true,
+		[2265] = true,
+		[2266] = true,
+		[2267] = true,
+		[2268] = true,
+		[2269] = true,
+		[2270] = true,
+		[2271] = true,
+		[2272] = true,
+	}
+    if (ninjutsus[id]) then
+        return true
+    end
+    return false
+end
+
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
@@ -1312,11 +1346,11 @@ end
         local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
+        local leftover = math.abs(absDeviation - math.pi)
         
-        local leftover = absDeviation - math.pi
-		leftover = math.abs(leftover)
-		
-        if (leftover > (math.pi/4) and leftover < (math.pi*.75)) then
+        if ((leftover < (math.pi * 1.75) and leftover > (math.pi * 1.25)) or
+			(leftover < (math.pi * .75) and leftover > (math.pi * .25))) 
+		then
             return true
         end
     end
@@ -1339,10 +1373,9 @@ function IsBehind(entity)
         local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
+        local leftover = math.abs(absDeviation - math.pi)
         
-        local leftover = absDeviation - math.pi
-
-        if (leftover > -(math.pi/4) and leftover < (math.pi/4))then
+        if (leftover > (math.pi * 1.75) or leftover < (math.pi * .25))then
             return true
         end
     end
@@ -1364,9 +1397,9 @@ function IsFront(entity)
         local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
+        local leftover = math.abs(absDeviation - math.pi)
 		
-        local leftover = absDeviation - math.pi
-        if (leftover > (math.pi * .75)) then
+        if (leftover > (math.pi * .75) and leftover < (math.pi * 1.25)) then
             return true
         end
     end
