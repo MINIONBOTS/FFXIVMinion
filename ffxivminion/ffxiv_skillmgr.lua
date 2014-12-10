@@ -1,6 +1,7 @@
 ﻿-- Skillmanager for adv. skill customization
 SkillMgr = { }
-SkillMgr.version = "v0.5";
+SkillMgr.version = "v2.0";
+SkillMgr.lastTick = 0
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
 SkillMgr.skillbook = { name = strings[gCurrentLanguage].skillbook, x = 250, y = 50, w = 250, h = 350}
 SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, y = 50, w = 250, h = 350}
@@ -22,6 +23,9 @@ SkillMgr.mplock = false
 SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
 SkillMgr.bestAOE = 0
+SkillMgr.lastCast = 0
+SkillMgr.queued = {}
+SkillMgr.latencyTimer = 0
 
 SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
@@ -167,6 +171,12 @@ SkillMgr.Variables = {
 	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting"  },
 	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting"  },
 	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
+	
+	SKM_PetBuff = { default = "", cast = "string", profile = "petbuff", section = "fighting"  },
+	SKM_PetBuffDura = { default = 0, cast = "number", profile = "petbuffdura", section = "fighting" },
+	SKM_PetNBuff = { default = "", cast = "string", profile = "petnbuff", section = "fighting"  },
+	SKM_PetNBuffDura = { default = 0, cast = "number", profile = "petnbuffdura", section = "fighting"   },
+	
 	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting"  },
 	SKM_NSkillID = { default = "", cast = "string", profile = "nskill", section = "fighting"  },
 	SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
@@ -425,6 +435,12 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
+	
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PetBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_PetBuffDura","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PetNBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PetNBuffDura","Pet Buffs")
+	
     GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)
 	
     GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
@@ -524,6 +540,45 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 			end
 		end
     end
+end
+
+function SkillMgr.OnUpdate( event, tickcount )
+	if ((tickcount - SkillMgr.lastTick) > 10) then
+		SkillMgr.lastTick = tickcount
+	
+		--Filter out resting state and auto-attack.
+		if (Player.castinginfo.castingid ~= 0 and Player.castinginfo.castingid ~= 7) then
+			if (ValidTable(SkillMgr.queued)) then
+				if (SkillMgr.queued.id == Player.castinginfo.castingid) then
+					local skill = SkillMgr.queued
+					if not (IsMudraSkill(skill.id) or IsNinjutsuSkill(skill.id)) then
+						--d("Queued skill "..tostring(skill.name).." with priority .."..tostring(skill.prio).." detected, executing follow-up conditions.")
+						if (not skill.cbreak) then
+							SkillMgr.prevSkillID = skill.id
+						end
+						SkillMgr.lastOFFCD = skill.offgcd
+						SkillMgr.nextSkillID = tostring(skill.nskill)
+						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+						SkillMgr.failTimer = Now() + 8000
+						SkillMgr.queued = nil
+						
+						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+					end
+				end
+			end
+			
+			SkillMgr.lastCast = tickcount
+		end
+		
+		if (Player.castinginfo.castingid == 0 and Player.castinginfo.channelingid == 0 and SkillMgr.IsGCDReady() and (tickcount - SkillMgr.lastCast) >= 2800) then
+			--d("Resetting tracking vars.")
+			SkillMgr.queued = nil
+			SkillMgr.lastOFFCD = false
+			SkillMgr.nextSkillID = ""
+			SkillMgr.nextSkillPrio = ""
+			SkillMgr.prevSkillID = ""
+		end
+	end
 end
 
 function SkillMgr.SetGUIVar(strName, value)
@@ -1200,6 +1255,41 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 			end
 		end
 		
+		if (ValidTable(SkillMgr.queued)) then
+			local skill = SkillMgr.queued
+			if (IsMudraSkill(skill.id)) then
+				if (SkillMgr.GetCDTime(2259) > 0.5) then
+					SkillMgr.queued = nil
+					SkillMgr.lastOFFCD = false
+					SkillMgr.nextSkillID = ""
+					SkillMgr.nextSkillPrio = ""
+					SkillMgr.prevSkillID = ""
+				elseif (SkillMgr.IsReady(skill.id)) then
+					d("Queued mudra skill "..tostring(skill.name).." with priority .."..tostring(skill.prio)..", executing follow-up conditions.")
+					if (not skill.cbreak) then
+						SkillMgr.prevSkillID = skill.id
+					end
+					SkillMgr.lastOFFCD = skill.offgcd
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.failTimer = Now() + 8000
+					SkillMgr.queued = nil
+				end
+			elseif (IsNinjutsuSkill(skill.id)) then
+				if (SkillMgr.GetCDTime(2260) > 0.5) then
+					d("Queued ninjutsu skill "..tostring(skill.name).." with priority .."..tostring(skill.prio).." detected, executing follow-up conditions.")
+					if (not skill.cbreak) then
+						SkillMgr.prevSkillID = skill.id
+					end
+					SkillMgr.lastOFFCD = skill.offgcd
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.failTimer = Now() + 8000
+					SkillMgr.queued = nil
+				end
+			end
+		end
+		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 ) then
 			for prio,skill in spairs(SkillMgr.SkillProfile) do
 				ally = nil
@@ -1209,15 +1299,34 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				plistAE = nil
 				
 				if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-					local realskilldata 
-							
+					local realskilldata = nil
+					local dependentskill = nil
+					local dependentstate = true
+					
 					if (skill.stype == "Pet") then 
 						realskilldata = ActionList:Get(skill.id,11) 
 					else 
 						realskilldata = ActionList:Get(skill.id) 
 					end
-
-					if ( realskilldata and realskilldata.isready ) then
+					
+					if (IsMudraSkill(skill.id)) then
+						dependentskill = ActionList:Get(2260)
+					end
+					
+					if (IsMudraSkill(Player.castinginfo.castingid)) then
+						if (not ActionIsReady(Player.castinginfo.castingid)) then
+							dependentstate = false
+						end
+					end
+					
+					if (Now() < SkillMgr.latencyTimer) then
+						dependentstate = false
+					end
+					
+					if ( realskilldata and realskilldata.isready and 
+						(not dependentskill or not dependentskill.isoncd) and dependentstate) 
+					then
+					
 						--reset our variables
 						target = entity
 						TID = EID
@@ -1232,7 +1341,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							SkillMgr.prevSkillID = ""
 							SkillMgr.lastOFFCD = false
 						end
-				
+						
 						if (IsHealingSkill(skill.id)) then
 							if IsHealingSkill(Player.castinginfo.channelingid) or
 								IsHealingSkill(Player.castinginfo.castingid) 
@@ -1240,12 +1349,31 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								castable = false
 							end
 						end
-				
+						
+						--[[
+						if (IsMudraSkill(skill.id)) then
+							local castingSkill = Player.castinginfo.castingid
+							if (not IsMudraSkill(castingSkill) and not (castingSkill == 0 or castingSkill == 7)) then
+								castable = false
+							end
+						end
+						--]]
+						
+						if (ValidTable(SkillMgr.queued)) then
+							if (IsMudraSkill(SkillMgr.queued.id) or IsNinjutsuSkill(SkillMgr.queued.id)) then
+								castable = false
+							end
+						end
+						
+						if (IsNinjutsuSkill(Player.castinginfo.castingid) and Player.lastaction ~= 0) then
+							castable = false
+						end
+
 						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
 						if ( skill.dobuff == "1") then
 							if (Player.castinginfo.castingid == tonumber(skill.id)) then
-							castable = false
-						end
+								castable = false
+							end
 						end
 						
 						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
@@ -1462,6 +1590,20 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								if not MissingBuffs(Player, skill.pnbuff, duration) then castable = false end 
 							end							
 						end
+						
+						-- Pet BUFFS
+						if ( castable ) then 			
+							if (pet and pet ~= 0) then
+								if (not IsNullString(skill.petbuff)) then
+									local duration = skill.petbuffdura or 0
+									if not HasBuffs(pet, skill.petbuff, duration) then castable = false end 
+								end
+								if (not IsNullString(skill.petnbuff)) then
+									local duration = skill.petnbuffdura or 0
+									if not MissingBuffs(pet, skill.petnbuff, duration) then castable = false end 
+								end	
+							end
+						end
 											
 						-- Party Buffs - Cast-On-Self
 						if ( castable ) then
@@ -1495,7 +1637,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								target = pet
 								TID = pet.id
 								tbuffs = pet.buffs
-							else	
+							elseif IsHealingSkill(skill.id) then
+								castable = false
+							else
 								--target = Player
 								TID = PID
 								--tbuffs = pbuffs
@@ -1722,10 +1866,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						end
 					 
 						-- PLAYER AGGRO
+						--[[
 						if ( castable and (				
 							(skill.pagl > 0 and skill.pagl > Player.aggropercentage)
 							or (skill.pagb > 0 and skill.pagb < Player.aggropercentage)	
 							)) then castable = false end
+						--]]
 						
 						-- TARGET HEALTH
 						if ( castable and (
@@ -1890,22 +2036,45 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										return true
 									end
 								else
-									if ( ActionList:CanCast(skill.id,tonumber(TID) )) then -- takes care of los, range, facing target and valid target								
-										--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name))
+									if ((IsNinjutsuSkill(skill.id) and ActionList:CanCast(skill.id,Player.id)) or ActionList:CanCast(skill.id,tonumber(TID))) then -- takes care of los, range, facing target and valid target								
 										--If PVP, forceStop a healer to allow them to cast on self.
 										if forceStop then Player:Stop() end
-
+										
 										local action = ActionList:Get(skill.id)
 										if (action:Cast(TID)) then
 											skill.lastcast = Now()
+											--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name)..", spell ready status:"..tostring(action.isready))
+											
+											SkillMgr.queued = {
+												id = skill.id,
+												name = skill.name,
+												prio = skill.prio,
+												offgcd = skill.offgcd == "1",
+												nskill = skill.nskill,
+												nskillprio = skill.nskillprio,
+												cbreak = skill.cbreak == "1"
+											}
+											
+											if (IsMudraSkill(skill.id)) then
+												SkillMgr.latencyTimer = Now() + 500
+											elseif (IsNinjutsuSkill(skill.id)) then
+												SkillMgr.latencyTimer = Now() + 1000
+											else
+												SkillMgr.latencyTimer = Now() + 1000
+											end
+											--[[
 											if skill.cbreak == "0" then
 												SkillMgr.prevSkillID = skill.id
 											end
+											
 											SkillMgr.lastOFFCD = skill.offgcd == "1"
 											SkillMgr.nextSkillID = tostring(skill.nskill)
 											SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 											SkillMgr.failTimer = Now() + 8000
+											--]]
 											return true
+										else
+											--d("CAST FAILED : "..tostring(skill.name)..", spell status was:"..tostring(action.isready)..", oncd was:"..tostring(action.isoncd))
 										end
 									end
 								end
@@ -2081,7 +2250,7 @@ function SkillMgr.IsGCDReady()
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		
-		if (action.cd - action.cdmax) < .5 then
+		if (action.cd - action.cdmax) >= .5 then
 			castable = true
 		end
 	end
@@ -2262,7 +2431,7 @@ function e_resetsuppressions:execute()
 end
 
 
---RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
+RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
 RegisterEventHandler("GUI.Item",SkillMgr.ButtonHandler)
 RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",SkillMgr.GUIVarUpdate)
