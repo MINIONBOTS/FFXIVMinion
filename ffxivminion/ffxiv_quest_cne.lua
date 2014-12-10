@@ -192,6 +192,7 @@ function e_nextqueststep:execute()
 	Settings.FFXIVMINION.gCurrQuestStep = tonumber(gCurrQuestStep)
 	ffxiv_task_quest.SetQuestFlags()	
 	ffxiv_task_quest.lastStepStartTime = Now()
+	c_questselectconvindex.unexpected = 0
 end
 
 c_questmovetomap = inheritsFrom( ml_cause )
@@ -286,7 +287,14 @@ function c_questaccept:evaluate()
 	--local id = ffxiv_task_quest.currentQuest.id
 	local id = ml_task_hub:ThisTask().params["questid"] or ffxiv_task_quest.currentQuest.id
     if (id and id > 0) then
-		return Quest:IsQuestAcceptDialogOpen(id)
+		if (Quest:IsQuestAcceptDialogOpen()) then
+			if Quest:IsQuestAcceptDialogOpen(id) then
+				return true
+			else
+				Quest:DeclineQuest()
+				return false
+			end
+		end
     end
 	
 	return false
@@ -959,7 +967,7 @@ function c_questflee:evaluate()
 		return false
 	end
 	
-    if (Player.hasaggro and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
+    if (Player.incombat and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
 		if(ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			return true
 		else
@@ -984,7 +992,7 @@ function e_questflee:execute()
 		newTask.useTeleport = gTeleport == "1"
 		newTask.task_complete_eval = 
 			function ()
-				if(not Player.hasaggro and not Player.incombat) then
+				if (not Player.incombat) then
 					d("No aggro or combat detected - flee complete")
 					return true
 				else
@@ -993,7 +1001,7 @@ function e_questflee:execute()
 			end
 		newTask.task_fail_eval = 
 			function ()
-				if(not Player.alive or (not c_walktopos:evaluate() and (Player.hasaggro or Player.incombat))) then
+				if (not Player.alive or (not c_walktopos:evaluate() and (Player.incombat))) then
 					d("Flee task failed - player dead or at position and still has aggro")
 					return true
 				else
@@ -1271,13 +1279,18 @@ end
 
 c_questselectconvindex = inheritsFrom( ml_cause )
 e_questselectconvindex = inheritsFrom( ml_effect )
+c_questselectconvindex.unexpected = 0
 function c_questselectconvindex:evaluate()	
-	--check for vendor window open
-	local index = ml_task_hub:ThisTask().params["conversationindex"]
-	return index and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
+	return (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
 function e_questselectconvindex:execute()
-	SelectConversationIndex(tonumber(ml_task_hub:ThisTask().params["conversationindex"]))
+	local index = ml_task_hub:ThisTask().params["conversationindex"]
+	if (not index) then
+		d("Unexpected conversation selector, trying different choices.")
+		c_questselectconvindex.unexpected = c_questselectconvindex.unexpected + 1
+	end
+	
+	SelectConversationIndex(tonumber(index))
 	if (ml_task_hub:ThisTask().params["type"] == "interact") then
 		ml_task_hub:ThisTask().stepCompleted = true
 	end
