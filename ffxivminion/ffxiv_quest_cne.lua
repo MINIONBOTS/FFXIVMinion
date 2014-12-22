@@ -985,6 +985,8 @@ function c_questflee:evaluate()
 end
 function e_questflee:execute()
 	ffxiv_task_quest.ResetStep()
+	ml_task_hub:ThisTask():Invalidate()
+	
 	local fleePos = ml_marker_mgr.markerList["evacPoint"]
 	if(ValidTable(fleePos)) then
 		local newTask = ffxiv_task_movetopos.Create()
@@ -1288,9 +1290,10 @@ function e_questselectconvindex:execute()
 	if (not index) then
 		d("Unexpected conversation selector, trying different choices.")
 		c_questselectconvindex.unexpected = c_questselectconvindex.unexpected + 1
+		index = c_questselectconvindex.unexpected
 	end
-	
 	SelectConversationIndex(tonumber(index))
+	
 	if (ml_task_hub:ThisTask().params["type"] == "interact") then
 		ml_task_hub:ThisTask().stepCompleted = true
 	end

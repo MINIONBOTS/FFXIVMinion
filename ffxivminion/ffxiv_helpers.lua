@@ -1017,8 +1017,13 @@ end
 
 function GetNearestGatherable(minlevel,maxlevel)
     local el = nil
-    local whitelist = GetWhitelistIDString()
-    local blacklist = GetBlacklistIDString()
+    local whitelist = nil
+    local blacklist = nil
+	
+	if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+		whitelist = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
+		blacklist = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
+	end
     
     if (whitelist and whitelist ~= "") then
         el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
@@ -1582,24 +1587,25 @@ function GetClosestFate(pos)
         local nearestFate = nil
         local nearestDistance = 99999999
         local level = Player.level
-		local myPos = Player.pos
+		local myPos = shallowcopy(Player.pos)
 		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
 		local whitelistTable = {}
 		
-		for entry in StringSplit(whitelisted,";") do
-			local delimiter = entry:find('-')
-			if (delimiter ~= nil and delimiter ~= 0) then
-				local mapid = entry:sub(0,delimiter-1)
-				local fateid = entry:sub(delimiter+1)
-				if (tonumber(mapid) == Player.localmapid) then
-					whitelistTable[fateid] = true
+		if (not IsNullString(whitelistString)) then
+			for entry in StringSplit(whitelistString,";") do
+				local delimiter = entry:find('-')
+				if (delimiter ~= nil and delimiter ~= 0) then
+					local mapid = entry:sub(0,delimiter-1)
+					local fateid = entry:sub(delimiter+1)
+					if (tonumber(mapid) == Player.localmapid) then
+						whitelistTable[fateid] = true
+					end
 				end
 			end
-				
 		end
 		
 		if (ValidTable(whitelistTable)) then
-			for k, fate in pairs(fatelist) do
+			for k, fate in pairs(fateList) do
 				if (whitelistTable[fate.id] and	fate.status == 2 and fate.completion >= tonumber(gFateWaitPercent)) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
@@ -1615,28 +1621,28 @@ function GetClosestFate(pos)
 				end
 			end
 		else
-		for k, fate in pairs(fateList) do
-			if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
-				(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
-				and fate.completion >= tonumber(gFateWaitPercent)) 
-			then	
-				if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
-					 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
-					--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					if (dist <= 5) then
-						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
-						if (distance) then
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = shallowcopy(fate)
-								nearestDistance = distance
+			for k, fate in pairs(fateList) do
+				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
+					(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
+					and fate.completion >= tonumber(gFateWaitPercent)) 
+				then	
+					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
+						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
+						--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
+						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+						if (dist <= 5) then
+							--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+							local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
+							if (distance ~= 0) then
+								if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+									nearestFate = shallowcopy(fate)
+									nearestDistance = distance
+								end
 							end
 						end
 					end
 				end
-            end
-        end
+			end
 		end
     
         if (nearestFate ~= nil) then
@@ -1855,6 +1861,10 @@ end
 
 function IsMounting()
 	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castid == 4)
+end
+
+function IsPositionLocked()
+	return not ActionIsReady(2,5)
 end
 
 function IsLoading()

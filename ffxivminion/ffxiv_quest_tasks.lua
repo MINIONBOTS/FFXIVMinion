@@ -814,7 +814,7 @@ function ffxiv_quest_useitem:Init()
 	local ke_questUseItem = ml_element:create( "QuestUseItem", c_questuseitem, e_questuseitem, 10 )
     self:add( ke_questUseItem, self.process_elements)
 	
-	local ke_questItemCastDelay = ml_element:create( "QuestItemCastDelay", c_questitemcastdelay, e_questitemcastdelay, 10 )
+	local ke_questItemCastDelay = ml_element:create( "QuestItemCastDelay", c_questitemcastdelay, e_questitemcastdelay, 9 )
     self:add( ke_questItemCastDelay, self.process_elements)
 	
 	--overwatch

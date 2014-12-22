@@ -170,6 +170,7 @@ function ffxiv_task_quest.ResetStep()
 		gQuestKillCount = ""
 		ffxiv_task_quest.questFlags = 0
 		ffxiv_task_quest.killCount = 0
+		ml_task_hub:ThisTask().stepCompleted = false
 	end
 end
 

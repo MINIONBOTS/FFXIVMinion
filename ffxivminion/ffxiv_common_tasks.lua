@@ -275,6 +275,9 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
+    self:add(ke_yesnoQuest, self.overwatch_elements)
+	
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
     self:add( ke_teleportToMap, self.overwatch_elements)
 	
@@ -972,11 +975,13 @@ function ffxiv_nav_interact.Create()
 	newinst.uniqueid = 0
 	newinst.interact = 0
     newinst.lastinteract = 0
+	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
 	newinst.pos = false
 	newinst.range = 1.5
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
+	newinst.use3d = true
 	
 	GameHacks:SkipDialogue(true)
 	
@@ -1021,7 +1026,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 		
 		local ppos = shallowcopy(Player.pos)
-		if (Distance2D(ppos.x,ppos.z,self.pos.x,self.pos.z) > (self.range)) then
+		if (Distance3D(ppos.x,ppos.y,ppos.z,self.pos.x,self.pos.y,self.pos.z) > (self.range)) then
 			return false
 		elseif (Player:IsMoving()) then
 			Player:Stop()
@@ -1044,19 +1049,21 @@ function ffxiv_nav_interact:task_complete_eval()
 	
 	if (Player.ismounted) then
 		Dismount()
-		self.lastinteract = Now() + 2000
+		self.delayTimer = Now() + 2000
 		return false
 	end
 	
-	if (self.interact ~= 0 and Now() > self.lastinteract) then
+	if (self.interact ~= 0 and Now() > self.delayTimer) then
 		Player:Interact(self.interact)
 		self.lastinteract = Now() + 4000
 		return false
 	end
 	
-	local interact = EntityList:Get(tonumber(self.interact))
-	if (not interact or not interact.targetable or interact.distance > 5) then
-		return true
+	if (self.interact ~= 0) then
+		local interact = EntityList:Get(tonumber(self.interact))
+		if (not interact or not interact.targetable or interact.distance > 5) then
+			return true
+		end
 	end
 	
 	return false
