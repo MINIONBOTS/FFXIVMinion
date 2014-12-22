@@ -3545,4 +3545,4 @@ function GetString(stringName)
 	end
 end
 
-RegisterEventHandler("FFXIVMINION.setlanguage", SetLanguage)
+RegisterEventHandler("MINION.setlanguage", SetLanguage)
