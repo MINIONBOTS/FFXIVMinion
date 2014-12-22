@@ -14,7 +14,10 @@ function c_dutyavoid:evaluate()
 	end
 	
 	for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
-		local el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+		local el = EntityList("alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+		if (ml_task_hub:ThisTask().encounterData["avoidAll"]) then
+			el = EntityList("alive,maxdistance=300")
+		end
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
 				for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
@@ -106,6 +109,22 @@ function ffxiv_duty_kill_task:Process()
 		startPos = self.encounterData.startPos["General"]
 	end
 	
+	if (fightPos and self.pullHandled and Distance3D(myPos.x,myPos.y,myPos.z,fightPos.x,fightPos.y,fightPos.z) > 1) then
+		GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+		if (ValidTable(entity)) then
+			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+		else
+			Player:SetFacing(Player.pos.h)
+		end
+	elseif (startPos and fightPos == nil and Distance3D(myPos.x,myPos.y,myPos.z,startPos.x,startPos.y,startPos.z) > 1 and TableSize(SkillMgr.teleBack) == 0) then
+		GameHacks:TeleportToXYZ(startPos.x, startPos.y, startPos.z)
+		if (ValidTable(entity)) then
+			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+		else
+			Player:SetFacing(Player.pos.h)
+		end
+	end
+	
 	if (ValidTable(entity)) then
 		if (self.lastEntity == nil or self.lastEntity ~= entity.id) then
 			self.lastEntity = entity.id
@@ -132,12 +151,6 @@ function ffxiv_duty_kill_task:Process()
 				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 				self.pullHandled = true
 			end
-		elseif (fightPos and self.pullHandled and Distance3D(myPos.x,myPos.y,myPos.z,fightPos.x,fightPos.y,fightPos.z) > 1) then
-			GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-		elseif (startPos and fightPos == nil and Distance3D(myPos.x,myPos.y,myPos.z,startPos.x,startPos.y,startPos.z) > 1 and TableSize(SkillMgr.teleBack) == 0) then
-			GameHacks:TeleportToXYZ(startPos.x, startPos.y, startPos.z)
-			SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
 				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
 					if (entity.targetid == 0) then
@@ -187,6 +200,7 @@ function ffxiv_duty_kill_task:Process()
 					
 		end
 	else
+		SkillMgr.Cast( Player, true )
 		self.hasFailed = true
 	end
 	
