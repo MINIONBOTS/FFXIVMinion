@@ -22,6 +22,7 @@ ml_global_information.windowTimer = 0
 ml_global_information.disableFlee = false
 ml_global_information.updateFoodTimer = 0
 ml_global_information.foodCheckTimer = 0
+ml_global_information.rootCheckTimer = 0
 ml_global_information.lastMode = ""
 ml_global_information.itemIDsToEquip = {}
 ml_global_information.idlePulseCount = 0
@@ -188,6 +189,34 @@ function ml_global_information.OnUpdate( event, tickcount )
 					Eat()
 				end
 			end
+			
+			if (gUseCurielRoot == "1") then
+				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
+					ml_global_information.rootCheckTimer = tickcount
+					
+					if (not Player.ismounted and not IsMounting()) then
+						local al = ActionList("type=6")
+						local dismiss = al[2]
+						local acDismiss = ActionList:Get(dismiss.id,6)
+						local item = Inventory:Get(7894)
+
+						if ( acDismiss.isready and item and item.isready) then
+							local el = EntityList("nearest,type=2,chartype=3")
+							local i, choco = next(el)
+							if (i and choco) then
+								if MissingBuffs(choco,"536") then
+									Player:Stop()
+									local newTask = ffxiv_task_useitem.Create()
+									newTask.itemid = 7894
+									newTask.useTime = 3000
+									ml_task_hub:CurrentTask():AddSubTask(newTask)
+								end
+							end
+							
+						end
+					end
+				end
+			end
 		end
         
         if (not ml_task_hub:Update() and ml_task_hub.shouldRun) then
@@ -335,6 +364,12 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gPotionMP == nil) then
         Settings.FFXIVMINION.gPotionMP = "0"
     end
+	if (Settings.FFXIVMINION.gUseCurielRoot == nil) then
+        Settings.FFXIVMINION.gUseCurielRoot = "0"
+    end
+	--if (Settings.FFXIVMINION.gChocoName	== nil) then
+		--Settings.FFXIVMINION.gChocoName = ""
+	--end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -366,6 +401,8 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].useSprint,"gUseSprint",group )
     GUI_NewNumeric(winName,strings[gCurrentLanguage].sprintDist,"gSprintDist",group )
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].companion, "gChoco",group,"")
+	--GUI_NewField(winName,"Chocobo Name","gChocoName",group )
+	GUI_NewCheckbox(winName,"Curiel Root","gUseCurielRoot",group )
 	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].stance,"gChocoStance",group,"")
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
@@ -432,6 +469,8 @@ function ffxivminion.HandleInit()
     gFleeMP = Settings.FFXIVMINION.gFleeMP
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
+	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
+	--gChocoName = Settings.FFXIVMINION.gChocoName
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs
@@ -541,6 +580,9 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
 		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
+		ml_mesh_mgr.SetDefaultMesh(177, "Gridania - Inn")
+		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
+		ml_mesh_mgr.SetDefaultMesh(179, "Limsa Lominsa - Inn")
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
@@ -624,7 +666,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gFleeHP" or
             k == "gFleeMP" or
 			k == "gPotionHP" or
-            k == "gPotionMP"
+            k == "gPotionMP" or
+			k == "gUseCurielRoot"
 			)				
         then
             Settings.FFXIVMINION[tostring(k)] = v
