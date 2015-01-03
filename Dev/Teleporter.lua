@@ -563,7 +563,7 @@ function TP.RefreshWaypoints()
 	end
 	
 	if (ValidTable(TP.availableCoords)) then
-		for i,coord in pairs(TP.availableCoords) do
+		for i,coord in spairs(TP.availableCoords,function( coord,a,b ) return coord[a].name < coord[b].name end) do
 			local matched = false
 			local matchGroup = ""
 			for _, group in pairs(TP.GRPName) do
