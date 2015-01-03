@@ -292,10 +292,28 @@ ffxiv_nav_data =
 				{x = 25.977, y = -8, z = 100.151, h = -1.760, b = 1000102, i = 1 },
 			},
 		},
+		[204] =
+		{
+			cost = 1,
+			gates = {
+				{x = 232, y = 1.90, z = 45.5, h = 1.16, b = 1000423},
+			},
+		},
+	},
+	[204] =
+	{
+		[132] =
+		{
+			cost = 1,
+			gates = {
+				{x = 0, y = 1, z = 9.8, h = 0, g = 2001215},
+			},
+		},
 	},
 	[179] =
 	{
-		[132] = {
+		[132] = 
+		{
 			cost = 1,
 			gates = {
 				{x = -0.081, y = 9.685, z = 6.3329, h = -0.0146, g = 2000087},
@@ -731,7 +749,6 @@ ffxiv_nav_data =
 			},
 		},
 	},
-}
--- set reference for mesh mgr
+}-- set reference for mesh mgr
 ml_mesh_mgr.navData = ffxiv_nav_data
 ml_mesh_mgr.SetupNavNodes()
