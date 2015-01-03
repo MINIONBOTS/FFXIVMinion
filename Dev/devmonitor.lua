@@ -26,6 +26,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","onmesh","player_onmesh","PlayerInfo")
 	GUI_NewField("Dev","ismounted","player_ismounted","PlayerInfo")
 	GUI_NewField("Dev","ismounting","player_ismounting","PlayerInfo")
+	GUI_NewField("Dev","ispositionlocked","player_ispositionlocked","PlayerInfo")
 	GUI_NewField("Dev","hp","player_hp","PlayerInfo")
 	GUI_NewField("Dev","mp","player_mp","PlayerInfo")
 	GUI_NewField("Dev","tp","player_tp","PlayerInfo")
@@ -117,6 +118,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Casttime","sbct","ActionListInfo")
 	GUI_NewField("Dev","Recasttime","sbrct","ActionListInfo")
 	GUI_NewField("Dev","CanCast","sbcanc","ActionListInfo")
+	GUI_NewField("Dev","CanCastSelf","sbcancs","ActionListInfo")
 	GUI_NewField("Dev","CanCastOnTarget","sbcancast","ActionListInfo")
 	GUI_NewButton("Dev","Cast","Dev.Cast","ActionListInfo")
 	sbSelSlot = 1		
@@ -296,6 +298,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","ID","QIID","QuestInfo")
 	GUI_NewField("Dev","Name","QIName","QuestInfo")
 	GUI_NewField("Dev","Step","QIStep","QuestInfo")
+	GUI_NewField("Dev","ObjectiveIndex","QOIndex","QuestInfo")
 	GUI_NewField("Dev","QuestI8A","QuestI8A","QuestInfo")
 	GUI_NewField("Dev","QuestI8B","QuestI8B","QuestInfo")
 	GUI_NewField("Dev","QuestI8C","QuestI8C","QuestInfo")
@@ -669,6 +672,7 @@ function Dev.UpdateWindow()
 	player_onmesh = tostring(p.onmesh)
 	player_ismounted = tostring(p.ismounted)
 	player_ismounting = tostring(IsMounting())
+	player_ispositionlocked = tostring(IsPositionLocked())
 	player_hp = tostring(tostring(p.hp.current).." / "..tostring(p.hp.max).." / "..tostring(p.hp.percent).."%")	
 	player_mp = tostring(tostring(p.mp.current).." / "..tostring(p.mp.max).." / "..tostring(p.mp.percent).."%")
 	player_tp = tostring(p.tp)
@@ -822,12 +826,14 @@ function Dev.UpdateWindow()
 		sbt4 = spell.t4
 		sbt5 = spell.t5	
 		mytarget = Player:GetTarget() 
+		
 		if (mytarget  ~= nil) then
-			sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id))
+			sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id,spellTypes[sbSelHotbar]))
 		else
 			sbcancast = "No Target"
 		end
-		sbcanc = tostring(ActionList:CanCast(spell.id,0))
+		sbcanc = tostring(ActionList:CanCast(spell.id,0,spellTypes[sbSelHotbar]))
+		sbcancs = tostring(ActionList:CanCast(spell.id,Player.id,spellTypes[sbSelHotbar]))
 		if ( sbpendingcast) then
 			sbpendingcast = false
 			if ( mytarget  ~= nil ) then
@@ -1144,6 +1150,7 @@ function Dev.UpdateWindow()
 		QIID = quest.id
 		QIName = quest.name
 		QIStep = quest.step
+		QOIndex = Quest:GetQuestCurrentStep(quest.id)
 		QuestI8A = quest.I8A
 		QuestI8B = quest.I8B
 		QuestI8C = quest.I8C
@@ -1180,6 +1187,7 @@ function Dev.UpdateWindow()
 		QIID = 0
 		QIName = ""
 		QIStep = 0
+		QOIndex = 0
 		QuestI8A = 0
 		QuestI8B = 0
 	end
