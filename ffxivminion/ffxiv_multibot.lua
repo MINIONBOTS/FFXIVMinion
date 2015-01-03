@@ -109,12 +109,18 @@ function mb.OnUpdate( event, tickcount )
     end
 end
 
-function mb.BroadcastQueueStatus( ready )
+function mb.BroadcastPVPQueueStatus( ready )
 	-- State 1: Leader of one team communicates that he is ready with msgID = 1.
 	-- State 2: Leader has received acknowledgement that the other team is ready, pass it along to the minions with msgID = 2.
 	-- State 3: Leader has no received acknowledgement that the other team is ready, probably randoms, pass along a message to withdraw with msgID = 3.
 	-- State 4: Reset the queue status whenever we join the instance or as necessary under other conditions.
-	if ( IsLeader() ) then
+	if ( IsPartyLeader() ) then
+		MultiBotSend( "1;"..Player.name, gMultiChannel )
+	else
+		MultiBotSend( "2;"..Player.name, gMultiChannel )
+	end
+	
+		--[[
 		if ( ready and not mb.QueueReady() and (Now() < mb.withdrawTimer or mb.withdrawTimer == 0)) then
 			MultiBotSend( "1;"..Player.name, gMultiChannel )
 			mb.withdrawTimer = Now() + 15000
@@ -129,7 +135,7 @@ function mb.BroadcastQueueStatus( ready )
 			mb.queueStatus = false
 			mb.queueWithdraw = false
 		end
-	end
+		--]]
 end
 
 function mb.BroadcastHuntStatus( targetid, mapid, pos )
@@ -168,15 +174,12 @@ function HandleMultiBotMessages( event, message, channel )
 				local msg = message:sub(delimiter+1)
 				if (tonumber(msgID) ~= nil and msg ~= nil ) then
 				
-					if ( tonumber(msgID) == 1 and msg ~= "" and msg ~= Player.name and IsLeader()) then
-                        mb.queueStatus = true
-					elseif ( tonumber(msgID) == 2 and msg ~= "" and msg == GetPartyLeader().name) then
-                        ml_task_hub:CurrentTask().multibotJoin = true
-					elseif ( tonumber(msgID) == 3 and msg ~= "" and msg == GetPartyLeader().name) then
-						ml_task_hub:CurrentTask().multibotWithdraw = true
-					elseif ( tonumber(msgID) == 4 and msg ~= "" ) then
-						ml_task_hub:CurrentTask().multibotWithdraw = false
-						ml_task_hub:CurrentTask().multibotJoin = false
+					if ( tonumber(msgID) == 1 and msg ~= "" and not IsPartyLeader()) then
+						d("Received message that leader is ready.")
+                        ffxiv_task_pvp.multibotJoin = true
+					elseif ( tonumber(msgID) == 2 and msg ~= "" and not IsPartyLeader()) then
+						d("Received message that minions are ready.")
+                        ffxiv_task_pvp.multibotJoin = true
 					end
 					
 					if (tonumber(msgID) == 6) then
