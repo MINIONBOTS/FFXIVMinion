@@ -2097,6 +2097,22 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
     end
 end
 
+SkillMgr.MatchingCraftSkills = {
+	--Basic Skills
+	["Basic Synth"] = 	{[8] = 100001, [9] = 100015, [10] = 100030, [11] = 100045, [12] = 100060, [13] = 100075, [14] = 100090, [15] = 100105 },
+	["Basic Touch"] = 	{[8] = 100002, [9] = 100016, [10] = 100031, [11] = 100046, [12] = 100061, [13] = 100076, [14] = 100091, [15] = 100106 },
+	["Master's Mend"] = {[8] = 100003, [9] = 100017, [10] = 100032, [11] = 100047, [12] = 100062, [13] = 100077, [14] = 100092, [15] = 100107 },
+	["Standard Touch"] ={[8] = 100004, [9] = 100018, [10] = 100034, [11] = 100048, [12] = 100064, [13] = 100078, [14] = 100093, [15] = 100109 },
+	["Mend II"] = 		{[8] = 100005, [9] = 100019, [10] = 100035, [11] = 100049, [12] = 100065, [13] = 100079, [14] = 100094, [15] = 100110 },
+	["Standard Synth"] ={[8] = 100007, [9] = 100021, [10] = 100037, [11] = 100051, [12] = 100067, [13] = 100080, [14] = 100096, [15] = 100111 },
+	["Advanced Touch"] ={[8] = 100008, [9] = 100022, [10] = 100038, [11] = 100052, [12] = 100068, [13] = 100081, [14] = 100097, [15] = 100112 },
+	["Observe"] = 		{[8] = 100010, [9] = 100023, [10] = 100040, [11] = 100053, [12] = 100070, [13] = 100082, [14] = 100099, [15] = 100113 },
+	
+	["Steady Hand"] = 	{[8] = 244, [9] = 245, [10] = 246, [11] = 247, [12] = 248, [13] = 249, [14] = 250, [15] = 251 },
+	["Inner Quiet"] = 	{[8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 256, [13] = 257, [14] = 258, [15] = 259 },
+	["Great Strides"] = {[8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 264, [13] = 265, [14] = 266, [15] = 267 },
+}
+
 SkillMgr.lastquality = 0
 SkillMgr.currentIQStack = 0
 function SkillMgr.Craft()
@@ -2133,9 +2149,26 @@ function SkillMgr.Craft()
 		
             if ( skill.used == "1" ) then                
                 local realskilldata = ActionList:Get(skill.id)
+				local skid = skill.id
+				--if skill is not found, see if we can find it
+				if (not realskilldata) then
+					for skillname,data in pairs(SkillMgr.MatchingCraftSkills) do
+						for job, skillid in pairs(data) do
+							if (skillid == skill.id) then
+								skid = data[Player.job]
+								realskilldata = ActionList:Get(skid)
+							end
+							if (realskilldata) then
+								break
+							end
+						end
+						if (realskilldata) then
+							break
+						end
+					end
+				end
 				
                 if ( realskilldata and realskilldata.isready ) then
-				
                     local castable = true
                     --d("Checking on skill:"..tostring(skill.name).."  "..tostring(synth.durability).." > "..tostring(skill.durabmax) .. ": "..tostring(skill.durabmax > 0 and synth.durability > skill.durabmax))
 					--d("Checking on skill:"..tostring(skill.name).."  "..tostring(skill.condition).." > "..tostring(synth.description) .. ": "..tostring(skill.condition ~= "NotUsed" and synth.description ~= skill.condition))
@@ -2169,10 +2202,10 @@ function SkillMgr.Craft()
                         if tbfound then castable = false end								
                       end								
 	 
-							 
+				
                         if ( castable ) then
                           d("CASTING(Crafting) : "..tostring(skill.name))								
-                          if ( ActionList:Cast(skill.id,0) ) then									
+                          if ( ActionList:Cast(skid,0) ) then									
                             skill.lastcast = ml_global_information.Now
                             SkillMgr.prevSkillID = tostring(skill.id)
                           return true
@@ -2249,8 +2282,11 @@ function SkillMgr.IsGCDReady()
 	
 	if (actionID) then
 		local action = ActionList:Get(actionID)
-		
-		if (action.cd - action.cdmax) < .5 then
+		if (action) then
+			if (action.cd - action.cdmax) < .5 then
+				castable = true
+			end
+		else
 			castable = true
 		end
 	end
