@@ -209,7 +209,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 						local item = Inventory:Get(7894)
 
 						if ( acDismiss.isready and item and item.isready) then
-							local el = EntityList("nearest,type=2,chartype=3")
+							local el = EntityList("nearest,myparty,type=2,chartype=3")
 							local i, choco = next(el)
 							if (i and choco) then
 								if MissingBuffs(choco,"536") then
@@ -220,7 +220,6 @@ function ml_global_information.OnUpdate( event, tickcount )
 									ml_task_hub:CurrentTask():AddSubTask(newTask)
 								end
 							end
-							
 						end
 					end
 				end
