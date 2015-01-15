@@ -1504,7 +1504,7 @@ function c_sprint:evaluate()
     if not HasBuff(Player.id, 50) and not Player.ismounted and Player:IsMoving() then
         local skills = ActionList("type=1")
         local skill = skills[3]
-        if (skill.isready) then
+        if (skill and skill.isready) then
             if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
                 local myPos = Player.pos
                 local gotoPos = ml_task_hub:CurrentTask().pos
