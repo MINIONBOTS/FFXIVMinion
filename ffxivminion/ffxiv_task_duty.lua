@@ -174,7 +174,7 @@ function c_joinduty:evaluate()
 end
 function e_joinduty:execute()
 	if (not ControlVisible("ContentsFinder")) then
-		ActionList:Cast(33,0,10)
+		SendTextCommand("/dutyfinder")
 		ml_task_hub:ThisTask().joinTimer = Now() + 2000
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 		Duty:ClearDutySelection()
