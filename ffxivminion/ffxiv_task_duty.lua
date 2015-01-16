@@ -304,7 +304,7 @@ function e_leaveduty:execute()
 	else
 		if not ControlVisible("ContentsFinder") then
 			Player:Stop()
-			ActionList:Cast(33,0,10)
+			SendTextCommand("/dutyfinder")
 			ml_task_hub:ThisTask().leaveTimer = Now() + 2000
 		elseif ControlVisible("ContentsFinder") and not ControlVisible("SelectYesno") then
 			PressDutyJoin()

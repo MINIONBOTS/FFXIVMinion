@@ -58,7 +58,7 @@ function c_joinqueuepvp:evaluate()
 end
 function e_joinqueuepvp:execute()
     if not ControlVisible("ContentsFinder") then
-        ActionList:Cast(33,0,10)
+        SendTextCommand("/dutyfinder")
         ml_task_hub:ThisTask().windowTimer = Now() + 1500
     elseif ( ControlVisible("ContentsFinder") and (Now() > ml_task_hub:ThisTask().windowTimer)) then
         PressDutyJoin()
