@@ -1961,6 +1961,8 @@ function SkillMgr.IsGCDReady()
 		if (action.cd - action.cdmax) < .5 then
 			castable = true
 		end
+	else
+		castable = true
 	end
 	
 	return castable
