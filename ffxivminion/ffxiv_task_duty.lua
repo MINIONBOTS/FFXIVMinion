@@ -616,7 +616,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxiv_task_duty.LoadProfile(strName)
-	ffxiv_task_duty.dutyInfo = persistence.load(ffxiv_task_duty.dutyPath..strName..".info")
+	ffxiv_task_duty.dutyInfo, e = persistence.load(ffxiv_task_duty.dutyPath..strName..".info")
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 		if (ffxiv_task_duty.dutyInfo.Independent) then
@@ -755,13 +755,14 @@ c_deadduty = inheritsFrom( ml_cause )
 e_deadduty = inheritsFrom( ml_effect )
 c_deadduty.leader = {}
 e_deadduty.justRevived = false
+e_deadduty.originalPos = {}
 function c_deadduty:evaluate()
 	local leader = GetDutyLeader()
 	if (leader) then
 		c_deadduty.leader = leader
 	end
 	
-    if ((Player.revivestate == 1 or Player.revivestate == 2) and not e_deadduty.justRevived and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+    if (not Player.alive and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
         return true
     end 
 	
@@ -774,47 +775,37 @@ end
 function e_deadduty:execute()
     local leader = c_deadduty.leader
 	
-	if (Player.revivestate == 2) then
+	if (not Player.alive) then
 		-- try raise first
 		if(PressYesNo(true)) then
-			if (IsDutyLeader()) then
-				ffxiv_task_duty.leaderLastPos = Player.pos
-			end
+			e_deadduty.originalPos = shallowcopy(Player.pos)
 			e_deadduty.justRevived = true
-			return
+			ml_task_hub:ThisTask():SetDelay(500)
 		end
 		-- press ok
 		if(PressOK()) then
-			if (IsDutyLeader()) then
-				ffxiv_task_duty.leaderLastPos = Player.pos
-			end
+			e_deadduty.originalPos = shallowcopy(Player.pos)
 			e_deadduty.justRevived = true
-			return
+			ml_task_hub:ThisTask():SetDelay(500)
 		end
 	end
 	
-	if (e_deadduty.justRevived) then
-		if (IsLoading() or Player.hp.current == 0 or Player.revivestate == 3) then
-			return 
-		end
-		
+	if (e_deadduty.justRevived and not IsLoading() and Player.alive) then
 		if (gTeleport == "1") then
+			local ppos = shallowcopy(Player.pos)
+			local opos = e_deadduty.originalPos
+			local dist = Distance3D(ppos.x,ppos.y,ppos.z,opos.x,opos.y,opos.z)
 			--d("dead, stay close")
-			if (not IsDutyLeader()) then
-				local lpos = leader.pos
-				GameHacks:TeleportToXYZ(lpos.x+1, lpos.y, lpos.z)
+			if (dist > 3) then
+				GameHacks:TeleportToXYZ(opos.x, opos.y, opos.z)
 				Player:SetFacingSynced(Player.pos.h)
-				e_deadduty.justRevived = false
 			else
-				local lpos = ffxiv_task_duty.leaderLastPos
-				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
-				Player:SetFacingSynced(lpos.h)
+				e_deadduty.originalPos = {}
 				e_deadduty.justRevived = false
-				ffxiv_task_duty.leaderLastPos = {}
-				ml_task_hub:ThisTask().state = "DUTY_NEXTENCOUNTER"
 			end
 		end
 	end
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 ffxiv_task_duty_res = inheritsFrom(ml_task)

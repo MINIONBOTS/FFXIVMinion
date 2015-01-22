@@ -80,6 +80,7 @@ function ffxiv_duty_kill_task.Create()
 	newinst.lastEntity = nil
 	newinst.lastHPPercent = 100
 	newinst.immuneMax = 80
+	newinst.currentPos = nil
 	
     return newinst
 end
@@ -109,6 +110,12 @@ function ffxiv_duty_kill_task:Process()
 		startPos = self.encounterData.startPos["General"]
 	end
 	
+	if (fightPos and self.pullHandled) then
+		self.currentPos = fightPos
+	else
+		self.currentPos = startPos
+	end
+	
 	if (fightPos and self.pullHandled and Distance3D(myPos.x,myPos.y,myPos.z,fightPos.x,fightPos.y,fightPos.z) > 1) then
 		GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
 		if (ValidTable(entity)) then
@@ -124,8 +131,9 @@ function ffxiv_duty_kill_task:Process()
 			Player:SetFacing(Player.pos.h)
 		end
 	end
-	
+
 	if (ValidTable(entity)) then
+		--d("Attacking current entity:"..tostring(entity.name)..",id:"..tostring(entity.id)..",contentid:"..tostring(entity.uniqueid)..",attackable:"..tostring(entity.attackable))
 		if (self.lastEntity == nil or self.lastEntity ~= entity.id) then
 			self.lastEntity = entity.id
 			self.lastHPPercent = entity.hp.percent
@@ -169,37 +177,84 @@ function ffxiv_duty_kill_task:Process()
 					Player:SetTarget(entity.id)
 					
 					--Telecasting, teleport to mob portion.
-					if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and entity.castinginfo.channelingid == 0 and
-						gTeleport == "1" and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
-						and entity.targetid ~= Player.id) then
+					if (ml_global_information.AttackRange < 5 and 
+						gUseTelecast == "1" and 
+						entity.castinginfo.channelingid == 0 and
+						gTeleport == "1" and 
+						SkillMgr.teleCastTimer == 0 and 
+						SkillMgr.IsGCDReady() and 
+						(entity.targetid ~= Player.id or self.encounterData.telecastAlways) and 
+						Player.hp.percent > 30) 
+					then
 						
 						self.suppressFollow = true
-						self.suppressFollowTimer = Now() + 2500
+						self.suppressFollowTimer = Now() + 2000
 						
-						SkillMgr.teleBack = startPos
-						GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-						TurnAround()
-						--Player:SetFacing(pos.h)
-						SkillMgr.teleCastTimer = Now() + 1600
+						SkillMgr.teleBack = self.currentPos
+						
+						if (self.encounterData.telecastPos) then
+							--d("Using telecast pos.")
+							local telePos = self.encounterData.telecastPos
+							GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
+							Player:SetFacingSynced(pos.x,pos.y,pos.z)
+						else
+							--d("Using normal telecast pos.")
+							GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+							Player:SetFacingSynced(pos.x,pos.y,pos.z)
+						end
+						
+						SkillMgr.teleCastTimer = Now() + 1500
 					end
 					
 					SetFacing(pos.x, pos.y, pos.z)
 					SkillMgr.Cast( entity )
 					
-					--Telecasting, teleport back to spot portion.
-					if (TableSize(SkillMgr.teleBack) > 0 and 
-						(Now() > SkillMgr.teleCastTimer or entity.castinginfo.channelingid ~= 0 or entity.targetid == Player.id)) then
-						local back = SkillMgr.teleBack
-						--Player:Stop()
-						GameHacks:TeleportToXYZ(back.x, back.y, back.z)
-						Player:SetFacingSynced(back.h)
-						--Player:SetFacing(back.h)
-						SkillMgr.teleBack = {}
-						SkillMgr.teleCastTimer = 0
+					if (TableSize(SkillMgr.teleBack) > 0) then
+						returnable = false
+						
+						if (Now() > SkillMgr.teleCastTimer) then
+							returnable = true
+							--d("setting returnable in clause 1 - timer is up")
+						end
+						
+						if (entity.castinginfo.channelingid ~= 0) then
+							returnable = true
+							--d("setting returnable in clause 2 - enemy is casting")
+						end
+						
+						if (entity.targetid == Player.id and not self.encounterData.telecastAlways) then
+							returnable = true
+							--d("setting returnable in clause 3 - enemy is targeting player and telecast always is not set")
+						end
+						
+						if (Player.hp.percent < 30) then
+							returnable = true
+							--d("setting returnable in clause 4 - player has less than 30% hp")
+						end
+						
+						if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > (entity.hitradius + 5)) then
+							returnable = true
+							--d("setting returnable in clause 5 - distance from entity too far")
+						end
+						
+						if (returnable) then
+							local back = SkillMgr.teleBack
+							--d("teleporting back")
+							GameHacks:TeleportToXYZ(back.x, back.y, back.z)
+							Player:SetFacingSynced(back.h)
+							SkillMgr.teleBack = {}
+							SkillMgr.teleCastTimer = 0
+						end
 					end
 					
 		end
 	else
+		if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.currentPos.x,self.currentPos.y,self.currentPos.z) > 1) then
+			SkillMgr.teleBack = {}
+			SkillMgr.teleCastTimer = 0
+			GameHacks:TeleportToXYZ(self.currentPos.x, self.currentPos.y, self.currentPos.z)
+			Player:SetFacingSynced(self.currentPos.h)
+		end
 		SkillMgr.Cast( Player, true )
 		self.hasFailed = true
 	end
