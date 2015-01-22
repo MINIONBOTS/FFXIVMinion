@@ -610,6 +610,9 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		--====== Added 1/22/15 - Ace
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 		
     },                                  
     ["cn"] =                            
@@ -1240,6 +1243,8 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 	},
     ["jp"] =
     {
@@ -1821,6 +1826,8 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 	},   
     ["de"] =
     {
@@ -2404,6 +2411,8 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 	},     
     ["fr"] =
     {
@@ -2986,6 +2995,8 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 	},       
     ["ru"] =
     {
@@ -3568,6 +3579,8 @@ strings =
 		food							= "Food",
 		foodHQ							= "Food HQ",
 		curielRoot						= "Curiel Root",
+		whitelistTarget					= "Whitelist Target",
+		validSlots						= "Valid Slots",
 	},    	
 
 }
