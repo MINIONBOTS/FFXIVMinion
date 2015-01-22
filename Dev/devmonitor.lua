@@ -131,6 +131,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Ptr","invptr","InventoryInfo")
 	GUI_NewField("Dev","Ptr2","invptr2","InventoryInfo")
 	GUI_NewField("Dev","ID","invid","InventoryInfo")
+	GUI_NewField("Dev","IsReady","invisready","InventoryInfo")
 	GUI_NewField("Dev","Name/Desc","invname","InventoryInfo")
 	GUI_NewField("Dev","InvType","invtype","InventoryInfo")
 	GUI_NewField("Dev","InvSlot","invslot","InventoryInfo")
@@ -939,6 +940,7 @@ function Dev.UpdateWindow()
 			invptr = string.format( "%x",tonumber(item.ptr ))
 			invptr2 = string.format( "%x",tonumber(item.ptr2 ))
 			invid = item.id
+			invisready = tostring(item.isready)
 			invname = item.name
 			invtype = item.type
 			invslot = item.slot
@@ -957,6 +959,7 @@ function Dev.UpdateWindow()
 	if (not found) then
 		invptr = 0
 		invid = 0
+		invisready = ""
 		invname = ""
 		invtype = 0
 		invslot = 0
