@@ -2,6 +2,13 @@
 SkillMgr = { }
 SkillMgr.version = "v2.0";
 SkillMgr.lastTick = 0
+SkillMgr.ConditionList = {}
+SkillMgr.CurrentSkill = {}
+SkillMgr.CurrentSkillData = {}
+SkillMgr.CurrentTarget = {}
+SkillMgr.CurrentTargetBuffs = {}
+SkillMgr.CurrentTID = 0
+SkillMgr.CurrentPet = {}
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
 SkillMgr.skillbook = { name = strings[gCurrentLanguage].skillbook, x = 250, y = 50, w = 250, h = 350}
 SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, y = 50, w = 250, h = 350}
@@ -12,7 +19,7 @@ SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.prevSkillID = ""
 SkillMgr.prevSkillList = {}
-SkillMgr.lastOFFCD = false
+--SkillMgr.lastOFFCD = false
 SkillMgr.nextSkillID = ""
 SkillMgr.nextSkillPrio = ""
 SkillMgr.failTimer = 0
@@ -24,7 +31,8 @@ SkillMgr.mplockPercent = 0
 SkillMgr.mplockTimer = 0
 SkillMgr.bestAOE = 0
 SkillMgr.lastCast = 0
-SkillMgr.queued = {}
+SkillMgr.comboQueue = {}
+SkillMgr.otherQueue = {}
 SkillMgr.latencyTimer = 0
 
 SkillMgr.GCDSkills = {
@@ -50,6 +58,63 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.ROGUE] = 2240,
 	[FFXIV.JOBS.NINJA] = 2240
 }
+
+function CastSucceeded()
+	local succeeded = false
+	local actionID = SkillMgr.GCDSkills[Player.job]
+	
+	if (actionID) then
+		local action = ActionList:Get(actionID)
+		if (action.cd > 0 and (action.cdmax >= (action.cd * .75))) then
+			succeeded = true
+		end
+	end
+	
+	return succeeded
+end
+
+function ActionSucceeded()
+	local succeeded = false
+	local actionID = SkillMgr.GCDSkills[Player.job]
+	
+	if (actionID) then
+		local action = ActionList:Get(actionID)
+		if (action.cdmax > 1) then
+			d("Action succeeded.")
+			succeeded = true
+		end
+	end
+	
+	return succeeded
+end
+
+function MudraSucceeded()
+	local buffs = Player.buffs
+	if (ValidTable(buffs)) then
+		for i, buff in pairs(buffs) do
+			if (buff.id == 496 and buff.duration >= 4.2) then 
+				d("Mudra succeeded.")
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+function NinjutsuSucceeded()
+	local buffs = Player.buffs
+	if (ValidTable(buffs)) then
+		for i, buff in pairs(buffs) do
+			if (buff.id == 496)	then 
+				return false
+			end
+		end
+	end
+	
+	d("Ninjutsu succeeded.")
+	return true
+end
 
 SkillMgr.StartingProfiles = 
 {
@@ -118,7 +183,7 @@ SkillMgr.Variables = {
 	SKM_TRG = { default = strings[gCurrentLanguage].target, cast = "string", profile = "trg", section = "fighting"  },
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
-	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting"  },
+	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
 	SKM_PGTRG = { default = "Enemy", cast = "string", profile = "ptrg", section = "fighting"  },
 	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting"  },
 	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting"  },
@@ -314,7 +379,6 @@ function SkillMgr.ModuleInit()
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
 	end
 		
-	
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
     GUI_NewButton(SkillMgr.skillbook.name,strings[gCurrentLanguage].skillbookrefresh,"SMRefreshSkillbookEvent")
@@ -325,9 +389,11 @@ function SkillMgr.ModuleInit()
     -- SelectedSkills/Main Window
     GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
     GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].activated,"gSMactive",strings[gCurrentLanguage].generalSettings)
-    --GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].defaultProfile,"gSMDefaultProfile",strings[gCurrentLanguage].generalSettings)
     GUI_NewComboBox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].profile,"gSMprofile",strings[gCurrentLanguage].generalSettings,"")
-                
+	GUI_NewCheckbox(SkillMgr.mainwindow.name,"Enable Debugging","gSkillManagerDebug",strings[gCurrentLanguage].generalSettings)
+	GUI_NewField(SkillMgr.mainwindow.name,"Debug Items","gSkillManagerDebugPriorities",strings[gCurrentLanguage].generalSettings)
+	--GUI_NewField(SkillMgr.mainwindow.name,"Prev Skill","gLastSkillUsed",strings[gCurrentLanguage].generalSettings)
+	
     GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].saveProfile,"SMSaveEvent")
     RegisterEventHandler("SMSaveEvent",SkillMgr.SaveProfile)
     GUI_NewField(SkillMgr.mainwindow.name,strings[gCurrentLanguage].newProfileName,"gSMnewname",strings[gCurrentLanguage].skillEditor)
@@ -353,14 +419,14 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMax,"SKM_LevelMax",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMin,"SKM_LevelMin",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR",strings[gCurrentLanguage].basicDetails)
+	--GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR",strings[gCurrentLanguage].basicDetails)
+	--GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].maxRange,"SKM_MaxR",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].nextSkillPrio,"SKM_NSkillPrio",strings[gCurrentLanguage].basicDetails) -- strings[gCurrentLanguage].skmNSkillPrio
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCBreak,"SKM_CBreak",strings[gCurrentLanguage].basicDetails)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmGCD,"SKM_OFFGCD",strings[gCurrentLanguage].basicDetails)
+	--GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCBreak,"SKM_CBreak",strings[gCurrentLanguage].basicDetails)
+	--GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmGCD,"SKM_OFFGCD",strings[gCurrentLanguage].basicDetails)
 	GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
@@ -512,6 +578,8 @@ function SkillMgr.ModuleInit()
 	SkillMgr.UpdateProfiles()
     SkillMgr.UpdateCurrentProfileData()
     GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+	
+	SkillMgr.AddDefaultConditions()
 end
 
 function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
@@ -543,40 +611,94 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function SkillMgr.OnUpdate( event, tickcount )
-	if ((tickcount - SkillMgr.lastTick) > 10) then
+	if ((tickcount - SkillMgr.lastTick) > 100) then
 		SkillMgr.lastTick = tickcount
-	
-		--Filter out resting state and auto-attack.
-		if (Player.castinginfo.castingid ~= 0 and Player.castinginfo.castingid ~= 7) then
-			if (ValidTable(SkillMgr.queued)) then
-				if (SkillMgr.queued.id == Player.castinginfo.castingid) then
-					local skill = SkillMgr.queued
-					if not (IsMudraSkill(skill.id) or IsNinjutsuSkill(skill.id)) then
-						--d("Queued skill "..tostring(skill.name).." with priority .."..tostring(skill.prio).." detected, executing follow-up conditions.")
-						if (not skill.cbreak) then
-							SkillMgr.prevSkillID = skill.id
-						end
-						SkillMgr.lastOFFCD = skill.offgcd
-						SkillMgr.nextSkillID = tostring(skill.nskill)
-						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-						SkillMgr.failTimer = Now() + 8000
-						SkillMgr.queued = nil
-						
-						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
-					end
+		
+		if (ValidTable(SkillMgr.comboQueue)) then
+			local skill = SkillMgr.comboQueue
+			local skilldata = ActionList:Get(skill.id)
+			
+			if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
+				if (skill.combo) then
+					--d(skill.name.." is being set as the previous skill.")
+					SkillMgr.prevSkillID = skill.id
+				end
+				
+				SkillMgr.failTimer = Now() + 3000
+				--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+				SkillMgr.nextSkillID = tostring(skill.nskill)
+				SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+				SkillMgr.comboQueue = nil
+				
+				SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+			elseif (skilldata.casttime > 0 and CastSucceeded()) then
+				if (skill.combo) then
+					--d(skill.name.." is being set as the previous skill.")
+					SkillMgr.prevSkillID = skill.id
+				end
+				
+				SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
+				--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+				SkillMgr.nextSkillID = tostring(skill.nskill)
+				SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+				SkillMgr.comboQueue = nil
+				
+				SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
+			end
+		elseif (ValidTable(SkillMgr.otherQueue)) then
+			local skill = SkillMgr.otherQueue
+			local skilldata = ActionList:Get(skill.id)
+			
+			if (IsMudraSkill(skill.id)) then
+				if (MudraSucceeded()) then
+					SkillMgr.failTimer = Now() + 1000
+					--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.otherQueue = nil
+					
+					--d("next skill prio being set:"..tostring(skill.nskillprio))
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+				end
+			elseif (IsNinjutsuSkill(skill.id)) then
+				if (NinjutsuSucceeded()) then
+					SkillMgr.failTimer = Now() + 2000
+					--d("Fail timer pushed forward 2 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.otherQueue = nil
+					
+					--d("next skill prio being set:"..tostring(skill.nskillprio))
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+				end
+			else
+				if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
+					SkillMgr.failTimer = Now() + 3000
+					--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.otherQueue = nil
+					
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+				elseif (skilldata.casttime > 0 and CastSucceeded()) then					
+					SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
+					--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.otherQueue = nil
+					
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
 				end
 			end
-			
-			SkillMgr.lastCast = tickcount
 		end
 		
-		if (Player.castinginfo.castingid == 0 and Player.castinginfo.channelingid == 0 and SkillMgr.IsGCDReady() and (tickcount - SkillMgr.lastCast) >= 2800) then
-			--d("Resetting tracking vars.")
-			SkillMgr.queued = nil
-			SkillMgr.lastOFFCD = false
+		if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
+			SkillMgr.comboQueue = nil
+			SkillMgr.otherQueue = nil
 			SkillMgr.nextSkillID = ""
 			SkillMgr.nextSkillPrio = ""
 			SkillMgr.prevSkillID = ""
+			SkillMgr.failTimer = 0
 		end
 	end
 end
@@ -1205,8 +1327,7 @@ function SkillMgr.GetHealSpellHPLimit()
 	return highestHPLimit
 end
 
-function SkillMgr.Cast( entity , preCombat, forceStop )
-
+function SkillMgr.Cast( entity , preCombat, forceStop )	
 	preCombat = preCombat or false
 	forceStop = forceStop or false
 	
@@ -1217,6 +1338,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		end
 		
 		local PID = Player.id
+		local myPos = shallowcopy(Player.pos)
 		local pbuffs = Player.buffs
 		
 		local EID = entity.id				
@@ -1255,40 +1377,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 			end
 		end
 		
-		if (ValidTable(SkillMgr.queued)) then
-			local skill = SkillMgr.queued
-			if (IsMudraSkill(skill.id)) then
-				if (SkillMgr.GetCDTime(2259) > 0.5) then
-					SkillMgr.queued = nil
-					SkillMgr.lastOFFCD = false
-					SkillMgr.nextSkillID = ""
-					SkillMgr.nextSkillPrio = ""
-					SkillMgr.prevSkillID = ""
-				elseif (SkillMgr.IsReady(skill.id)) then
-					d("Queued mudra skill "..tostring(skill.name).." with priority .."..tostring(skill.prio)..", executing follow-up conditions.")
-					if (not skill.cbreak) then
-						SkillMgr.prevSkillID = skill.id
-					end
-					SkillMgr.lastOFFCD = skill.offgcd
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.failTimer = Now() + 8000
-					SkillMgr.queued = nil
-				end
-			elseif (IsNinjutsuSkill(skill.id)) then
-				if (SkillMgr.GetCDTime(2260) > 0.5) then
-					d("Queued ninjutsu skill "..tostring(skill.name).." with priority .."..tostring(skill.prio).." detected, executing follow-up conditions.")
-					if (not skill.cbreak) then
-						SkillMgr.prevSkillID = skill.id
-					end
-					SkillMgr.lastOFFCD = skill.offgcd
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.failTimer = Now() + 8000
-					SkillMgr.queued = nil
-				end
-			end
-		end
+		
 		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 ) then
 			for prio,skill in spairs(SkillMgr.SkillProfile) do
@@ -1326,312 +1415,31 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					if ( realskilldata and realskilldata.isready and 
 						(not dependentskill or not dependentskill.isoncd) and dependentstate) 
 					then
-					
+						
 						--reset our variables
 						target = entity
 						TID = EID
 						tbuffs = ebuffs
 					
 						local castable = true
+						SkillMgr.CurrentSkill = skill
+						SkillMgr.CurrentSkillData = realskilldata
+						SkillMgr.CurrentTarget = entity
+						SkillMgr.CurrentTID = TID
+						SkillMgr.CurrentPet = pet				
 						
-						-- Reset prev/next/lastoffCD if failTimer has passed
-						if (Now() > SkillMgr.failTimer) then
-							SkillMgr.nextSkillID = ""
-							SkillMgr.nextSkillPrio = ""
-							SkillMgr.prevSkillID = ""
-							SkillMgr.lastOFFCD = false
-						end
-						
-						if (IsHealingSkill(skill.id)) then
-							if IsHealingSkill(Player.castinginfo.channelingid) or
-								IsHealingSkill(Player.castinginfo.castingid) 
-							then
+						if (skill.trg == "Target") then
+							if (target.id == Player.id) then
 								castable = false
 							end
-						end
-						
-						--[[
-						if (IsMudraSkill(skill.id)) then
-							local castingSkill = Player.castinginfo.castingid
-							if (not IsMudraSkill(castingSkill) and not (castingSkill == 0 or castingSkill == 7)) then
+							local range = realskilldata.range > 0 and realskilldata.range or 3
+							if (not ActionList:CanCast(skill.id,TID)) then
 								castable = false
 							end
-						end
-						--]]
-						
-						if (ValidTable(SkillMgr.queued)) then
-							if (IsMudraSkill(SkillMgr.queued.id) or IsNinjutsuSkill(SkillMgr.queued.id)) then
-								castable = false
-							end
-						end
-						
-						if (IsNinjutsuSkill(Player.castinginfo.castingid) and Player.lastaction ~= 0) then
-							castable = false
-						end
-
-						-- soft cooldown for compensating the delay between spell cast and buff applies on target)
-						if ( skill.dobuff == "1") then
-							if (Player.castinginfo.castingid == tonumber(skill.id)) then
-								castable = false
-							end
-						end
-						
-						-- Check that we are currently on GCD (maybe off GCD), possible dumb name.
-						if ( skill.offgcd == "1" ) then
-							if (SkillMgr.IsGCDReady() or SkillMgr.lastOFFCD) then
-								castable = false
-							end
-						end
-						
-						--Check that the other skill is ready.
-						if ( skill.skready ~= "") then
-							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( not SkillMgr.IsReady( tonumber(skill.skready), actiontype)) then
-								castable = false
-							end
-						end
-						
-						--Check that the other skill is off CD.
-						if ( not IsNullString(skill.skoffcd)) then
-							local actiontype = (skill.sktype == "Action") and 1 or 11
-							local cdTime = SkillMgr.GetCDTime(tonumber(skill.skoffcd), actiontype)
-							
-							if (not cdTime or cdTime ~= 0) then
-								castable = false
-							end
-						end
-						
-						--Check that the other skill is on CD.
-						if ( not IsNullString(skill.sknoffcd)) then
-							local actiontype = (skill.sktype == "Action") and 1 or 11
-							local minCDTime = tonumber(skill.skncdtimemin) or 0
-							local maxCDTime = tonumber(skill.skncdtimemax) or 0
-							local cdTime = SkillMgr.GetCDTime(tonumber(skill.sknoffcd), actiontype)
-							
-							if (not cdTime or 
-								(minCDTime > 0 and cdTime <= minCDTime) or 
-								(maxCDTime > 0 and cdTime >= maxCDTime) or
-								(minCDTime == 0 and maxCDTime == 0 and cdTime > 0)) 
-							then							
-								castable = false
-							end
-						end
-						
-						--Check that the other skill is not ready.
-						if ( not IsNullString(skill.sknready)) then
-							local actiontype = (skill.sktype == "Action") and 1 or 11
-							if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
-								castable = false
-							end
-						end						
-						
-						--NEXT SKILL PRIO CHECK
-						if ( castable and not IsNullString(SkillMgr.nextSkillPrio)) then
-							if ( tonumber(SkillMgr.nextSkillPrio) ~= tonumber(skill.prio) ) then
-								castable = false
-							end
-						end
-						
-						--NEXT SKILL CHECK
-						if ( castable and not IsNullString(SkillMgr.nextSkillID)) then
-							if ( tonumber(SkillMgr.nextSkillID) ~= tonumber(skill.id) ) then
-								castable = false
-							end
-						end
-						
-						-- PREVIOUS SKILL
-						if ( castable and not IsNullString(skill.pskill)) then
-							castable = false
-							if (not IsNullString(SkillMgr.prevSkillID)) then
-								for skill in StringSplit(skill.pskill,",") do
-									if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
-										castable = true
-									end
-									if (castable) then
-										break
-									end
-								end
-							end
-						end
-						
-						-- PREVIOUS SKILL NOT
-						if ( castable and not IsNullString(skill.npskill)) then
-							if (not IsNullString(SkillMgr.prevSkillID)) then
-								for skill in StringSplit(skill.npskill,",") do
-									if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
-										castable = false
-									end
-									if (not castable) then
-										break
-									end
-								end
-							end
-						end
-							
-						-- CURRENT TARGET -- mostly to prevent assist mode from spamming all cooldowns if a non-enemy is selected
-						if ( castable and skill.ptrg ~= "Any" and (
-							( skill.ptrg == "Enemy" and not target.attackable)
-							or ( skill.ptrg == "Player" and target.type ~= 1 )						
-							)) then castable = false end
-							
-						-- ONLY SOLO OR PARTY
-						if ( skill.onlysolo == "1" and TableSize(plist) > 0 ) then castable = false end
-						if ( skill.onlyparty == "1" and TableSize(plist) == 0 ) then castable = false end						
-						
-						if ((skill.combat == "Out of Combat") and (preCombat == nil or preCombat == false) ) then castable = false end
-						if ((skill.combat == "In Combat") and (preCombat == true) ) then castable = false end
-						
-						--CHECK SKILL FILTERS
-						if 	(	(gPrimaryFilter == "1" and skill.filterone == "Off")
-							or	(gPrimaryFilter == "0" and skill.filterone == "On" )						
-							) then castable = false end
-							
-						if 	( 	(gSecondaryFilter == "1" and skill.filtertwo == "Off") 
-							or 	(gSecondaryFilter == "0" and skill.filtertwo == "On" )
-							) then castable = false end
-						
-						-- SECOND SINCE LAST CAST
-						if ( skill.secspassed > 0 and skill.lastcast and ( ml_global_information.Now - skill.lastcast < skill.secspassed*1000 )) then castable = false end
-						
-						-- CHECK FOR MP LOCKS						
-						if ( SkillMgr.mplock ) then
-							if ( (Player.mp.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
-								SkillMgr.mplock = false
-								SkillMgr.mplockPercent = 0
-							else
-								if ( skill.mplocked == "1" ) then
-									castable = false
-								end
-							end
-						end
-						
-						--Player level
-						if (castable) then
-							if (skill.levelmin > 0 and 
-								((skill.levelmin > Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmin > Player:GetSyncLevel()))))
-							then
-								castable = false
-							elseif (skill.levelmax > 0 and
-								((skill.levelmax < Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmax < Player:GetSyncLevel()))))
-							then
-								castable = false
-							end
-			
-						end
-
-						
-						-- Player HP/TP
-						if ( castable and (
-							 --custom
-							(skill.phpl > 0 and skill.phpl > Player.hp.percent)
-							or (skill.phpb > 0 and skill.phpb < Player.hp.percent)					
-							or (skill.ptpl > 0 and skill.ptpl > Player.tp)
-							or (skill.ptpb > 0 and skill.ptpb < Player.tp)	
-							)) then castable = false end
-						
-						-- Player MP -- Separated to check for MP lockout.	
-						if ( castable ) then
-							if ((skill.ppowl > 0 and skill.ppowl > Player.mp.current) or 
-								(skill.pmppl > 0 and skill.pmppl > Player.mp.percent)
-								) then castable = false
-								if (skill.mplock == "1" ) then
-									SkillMgr.mplock = true
-									SkillMgr.mplockTimer = Now() + 10000
-									SkillMgr.mplockPercent = tonumber(skill.mplockper)
-								end
-							elseif ((skill.ppowb > 0 and skill.ppowb < Player.mp.current) or
-									(skill.pmppb > 0 and skill.pmppb < Player.mp.percent)
-								) then castable = false 
-							end
-						end
-							
-						-- Party TP/MP checks.
-						if ( castable ) then
-							if ( skill.pthpl ~= 0 or skill.pthpb ~= 0 ) then
-								allyHP = GetLowestHPParty( skill )
-								
-								if ( skill.ptcount == 0 and allyHP ~= nil ) then
-									if (( skill.pthpl > 0 and skill.pthpl > allyHP.hp.percent ) or
-										( skill.pthpb > 0 and skill.pthpb < allyHP.hp.percent )) then castable = false end
-								elseif (skill.ptcount > 0 and not allyHP) then
-									castable = false
-								else
-									castable = false
-								end
-							end
-							if ( skill.ptmpl ~= 0 or skill.ptmpb ~= 0 ) then
-								allyMP = GetLowestMPParty()
-								if ( allyMP ~= nil ) then
-									if (( skill.ptmpl > 0 and skill.ptmpl > allyMP.mp.percent ) or
-										( skill.ptmpb > 0 and skill.ptmpb < allyMP.mp.percent )) then castable = false end
-								else
-									castable = false
-								end
-							end
-							if ( skill.pttpl ~= 0 or skill.pttpb ~= 0 ) then
-								allyTP = GetLowestTPParty()
-								if ( allyTP ~= nil ) then
-									if (( skill.pttpl > 0 and skill.pttpl > allyTP.tp ) or
-										( skill.pttpb > 0 and skill.pttpb < allyTP.tp )) then castable = false end
-								else
-									castable = false
-								end
-							end						
-						end
-						
-						-- Player BUFFS
-						if ( castable ) then 							
-							if (not IsNullString(skill.pbuff)) then
-								local duration = skill.pbuffdura or 0
-								if not HasBuffs(Player, skill.pbuff, duration) then castable = false end 
-							end
-							if (not IsNullString(skill.pnbuff)) then
-								local duration = skill.pnbuffdura or 0
-								if not MissingBuffs(Player, skill.pnbuff, duration) then castable = false end 
-							end							
-						end
-						
-						-- Pet BUFFS
-						if ( castable ) then 			
-							if (pet and pet ~= 0) then
-								if (not IsNullString(skill.petbuff)) then
-									local duration = skill.petbuffdura or 0
-									if not HasBuffs(pet, skill.petbuff, duration) then castable = false end 
-								end
-								if (not IsNullString(skill.petnbuff)) then
-									local duration = skill.petnbuffdura or 0
-									if not MissingBuffs(pet, skill.petnbuff, duration) then castable = false end 
-								end	
-							end
-						end
-											
-						-- Party Buffs - Cast-On-Self
-						if ( castable ) then
-							if ( skill.trg == "Player" ) then								
-								if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-									local partymemberlist = EntityList("myparty,type=1")
-									if ( partymemberlist) then
-									   local i,entity = next(partymemberlist)
-									   while ( i~=nil and entity~=nil ) do
-											if ( 	(skill.ptbuff=="" or not HasBuffs(entity,skill.ptbuff)) and
-													(skill.ptnbuff=="" or HasBuffs(entity,skill.ptnbuff)) ) then
-												castable = false
-											end
-											i,entity  = next(partymemberlist,i)  
-									   end 
-									end
-									
-									if ( 	(skill.ptbuff=="" or not HasBuffs(Player,skill.ptbuff)) and
-											(skill.ptnbuff=="" or MissingBuffs(Player,skill.ptnbuff)) ) then
-										castable = false
-									end	
-								end
-							end
-						end	
-						
-						--Added a castable check so we don't waste CPU doing all this if it's already failed.
-						-- SWITCH TARGET FOR PET / ALLY - CHECK
-						if ( skill.trg == "Pet" ) then
+							--if (Distance3D(myPos.x,myPos.y,myPos.z,target.pos.x,target.pos.y,target.pos.z) > ((target.hitradius + 2 + range))) then
+								--castable = false
+							--end
+						elseif ( skill.trg == "Pet" ) then
 							if ( pet ~= nil and pet ~= 0) then
 								if ( SkillMgr.IsPetSummonSkill(skill.id) ) then castable = false end -- we still have a pet, no need to summon
 								target = pet
@@ -1646,7 +1454,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						elseif ( skill.trg == "Party" ) then
 							if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-								local newtarget = PartyMemberWithBuff(skill.ptbuff, skill.ptnbuff,skill.maxRange)
+								local newtarget = PartyMemberWithBuff(skill.ptbuff, skill.ptnbuff,realskilldata.range)
 								if (newtarget ~= nil) then
 									target = newtarget
 									TID = newtarget.id
@@ -1656,9 +1464,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							else
 								if ( skill.npc == "1" ) then
-									ally = GetBestPartyHealTarget( true, skill.maxRange )
+									ally = GetBestPartyHealTarget( true, realskilldata.range )
 								else
-									ally = GetBestPartyHealTarget( false, skill.maxRange )
+									ally = GetBestPartyHealTarget( false, realskilldata.range )
 								end
 								
 								if ( ally ~= nil ) then
@@ -1671,7 +1479,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						elseif ( skill.trg == "PartyS" ) then
 							if ( skill.ptbuff ~= "" or skill.ptnbuff ~= "" ) then
-								local newtarget = PartySMemberWithBuff(skill.ptbuff, skill.ptnbuff,skill.maxRange)
+								local newtarget = PartySMemberWithBuff(skill.ptbuff, skill.ptnbuff,realskilldata.range)
 								if (newtarget ~= nil) then
 									target = newtarget
 									TID = newtarget.id
@@ -1691,7 +1499,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						elseif ( skill.trg == "Tank" ) then
-							ally = GetBestTankHealTarget( skill.maxRange )
+							ally = GetBestTankHealTarget( realskilldata.range )
 							if ( ally ~= nil and ally.id ~= PID) then
 								target = ally
 								TID = ally.id
@@ -1701,9 +1509,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						elseif ( skill.trg == "Ally" ) then
 							if ( skill.npc == "1" ) then
-								ally = GetBestHealTarget( true, skill.maxRange )
+								ally = GetBestHealTarget( true, realskilldata.range )
 							else
-								ally = GetBestHealTarget( false, skill.maxRange )
+								ally = GetBestHealTarget( false, realskilldata.range )
 							end
 							
 							if ( ally ~= nil and ally.id ~= PID) then
@@ -1763,60 +1571,33 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							TID = PID
 							--tbuffs = pbuffs 
 						elseif ( skill.trg == "Heal Priority" and skill.hpriohp > 0 ) then
+							local priorities = {
+								[1] = skill.hprio1,
+								[2] = skill.hprio2,
+								[3] = skill.hprio3,
+								[4] = skill.hprio4,
+							}
+							local healTargets = {}
+							healTargets["Self"] = Player
+							healTargets["Tank"] = GetBestTankHealTarget( realskilldata.range )
+							if ( skill.npc == "1" ) then
+								healTargets["Party"] = GetBestPartyHealTarget( true, realskilldata.range )
+								healTargets["Any"] = GetBestHealTarget( true, realskilldata.range )
+							else
+								healTargets["Party"] = GetBestPartyHealTarget( false, realskilldata.range )
+								healTargets["Any"] = GetBestHealTarget( false, realskilldata.range ) 
+							end
 							
-							local healSelection = {}
-							if (skill.hprio1 == "Self" or skill.hprio2 == "Self" or skill.hprio3 == "Self" or skill.hprio4 == "Self") then 
-								healSelection["Self"] = Player
-							end
-							if (skill.hprio1 == "Tank" or skill.hprio2 == "Tank" or skill.hprio3 == "Tank" or skill.hprio4 == "Tank") then 
-								healSelection["Tank"] = GetBestTankHealTarget( skill.maxRange ) 
-							end
-							if (skill.hprio1 == "Party" or skill.hprio2 == "Party" or skill.hprio3 == "Party" or skill.hprio4 == "Party") then 
-								if ( skill.npc == "1" ) then
-									healSelection["Party"] = GetBestPartyHealTarget( true, skill.maxRange )
-								else
-									healSelection["Party"] = GetBestPartyHealTarget( false, skill.maxRange )
+							
+							for i,trgstring in ipairs(priorities) do
+								if (healTargets[trgstring]) then
+									local htarget = healTargets[trgstring]
+									if (skill.hpriohp > htarget.hp.percent) then
+										ally = htarget
+									end
 								end
-							end
-							if (skill.hprio1 == "Any" or skill.hprio2 == "Any" or skill.hprio3 == "Any" or skill.hprio4 == "Any") then 
-								if ( skill.npc == "1" ) then
-									healSelection["Any"] = GetBestHealTarget( true, skill.maxRange ) 
-								else
-									healSelection["Any"] = GetBestHealTarget( false, skill.maxRange ) 
-								end
-							end
-							
-							local prio1
-							local prio2
-							local prio3
-							local prio4
-							
-							if (skill.hprio1 ~= "None") then prio1 = healSelection[skill.hprio1] else prio1 = 0 end
-							if (skill.hprio2 ~= "None") then prio2 = healSelection[skill.hprio2] else prio2 = 0 end
-							if (skill.hprio3 ~= "None") then prio3 = healSelection[skill.hprio3] else prio3 = 0 end
-							if (skill.hprio4 ~= "None") then prio4 = healSelection[skill.hprio4] else prio4 = 0 end
-							
-							if (ally == nil) then
-								if (prio1 ~= 0 and prio1 ~= nil and skill.hpriohp > prio1.hp.percent) then
-									ally = prio1
-								end
-							end
-							
-							if (ally == nil) then
-								if (prio2 ~= 0 and prio2 ~= nil and skill.hpriohp > prio2.hp.percent) then
-									ally = prio2
-								end
-							end
-							
-							if (ally == nil) then
-								if (prio3 ~= 0 and prio3 ~= nil and skill.hpriohp > prio3.hp.percent) then
-									ally = prio3
-								end
-							end
-							
-							if (ally == nil) then
-								if (prio4 ~= 0 and prio4 ~= nil and skill.hpriohp > prio4.hp.percent) then
-									ally = prio4
+								if (ally) then
+									break
 								end
 							end
 							
@@ -1829,186 +1610,48 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 						
-						if (castable and skill.trgtype ~= strings[gCurrentLanguage].any and target.job ~= nil) then
-							local found = true
-                            local roleString = GetRoleString(target.job)
-                            if skill.trgtype ~= roleString then 
-								found = false
-							end
-							if skill.trgtype == "Caster" and IsCaster(target.job) then
-								found = true
-							end
-							if not found then castable = false end
-                        end
+						SkillMgr.CurrentTarget = target
+						SkillMgr.CurrentTID = TID
+						SkillMgr.CurrentTargetBuffs = tbuffs
 						
-						-- DEAD TARGET CHECK
-						if (castable and (skill.trg ~= "Dead Ally" and skill.trg ~= "Dead Party")) then
-							if ( target.hp.current == 0 ) then
-								castable = false
-							end
-						end
-							
-						-- RANGE 							
-						if ( castable and (
-						   (skill.minRange > 0 and target.distance2d < skill.minRange)
-						or (skill.maxRange > 3 and target.distance2d > skill.maxRange+target.hitradius+1)--target.distance2d- target.hitradius > skill.maxRange)
-						)) then castable = false end
-									
-						-- POSITIONAL		
-						if ( castable and skill.ppos ~= "None" ) then 
-							if ( skill.ppos == "Flanking" and not IsFlanking(target)) then
-								castable = false
-							elseif ( skill.ppos == "Behind" and not IsBehind(target)) then
-								castable = false
-							elseif ( skill.ppos == "Front" and not IsFront(target)) then
-								castable = false
-							end						
-						end
-					 
-						-- PLAYER AGGRO
-						--[[
-						if ( castable and (				
-							(skill.pagl > 0 and skill.pagl > Player.aggropercentage)
-							or (skill.pagb > 0 and skill.pagb < Player.aggropercentage)	
-							)) then castable = false end
-						--]]
-						
-						-- TARGET HEALTH
-						if ( castable and (
-							(skill.thpl > 0 and skill.thpl > target.hp.percent)
-							or (skill.thpb > 0 and skill.thpb < target.hp.percent)
-							or (skill.thpcl > 0 and skill.thpcl > target.hp.current)
-							or (skill.thpcb > 0 and skill.thpcb < target.hp.current)
-							)) then castable = false end	
-			
-						--BAD FATE CHECK
-						if (target.fateid ~= 0) then
-							local fate = GetFateByID(target.fateid)
-							if (ValidTable(fate)) then
-								if (Player:GetSyncLevel() == 0 and fate.level < Player.level - 5) then
-									castable = false
+						for i,condition in spairs(SkillMgr.ConditionList) do
+							if (type(condition.eval) == "function") then
+								if (condition.eval()) then
+									castable = false									
+									if (gSkillManagerDebug == "1") then
+										if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
+											d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(skill.prio).."]")
+										else
+											local priorityChecks = {}
+											for priority in StringSplit(gSkillManagerDebugPriorities,",") do
+												priorityChecks[tonumber(priority)] = true
+											end
+											if (priorityChecks[skill.prio]) then
+												d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(skill.prio).."]")
+											end
+										end
+									end
 								end
 							end
-						end
-						
-						-- TARGET BUFFS						
-						if ( castable ) then 							
-							if (not IsNullString(skill.tbuff)) then
-								local owner = (skill.tbuffowner == "Player") and PID or nil
-								if not HasBuffs(target, skill.tbuff, nil, owner) then castable = false end 
-							end
-							if (not IsNullString(skill.tnbuff)) then
-								local owner = (skill.tbuffowner == "Player") and PID or nil
-								local duration = skill.tnbuffdura or 0
-								if not MissingBuffs(target, skill.tnbuff, duration, owner) then castable = false end 
-							end							
-						end
-						
-						-- CASTING
-						local casttime = tonumber(skill.tcasttime)
-						if casttime == nil then casttime = 0 end
-						
-						if (castable and ( casttime > 0 or skill.tcastids ~= "")) then
-							if (TableSize(target.castinginfo) == 0) then
-								castable = false
-							elseif target.castinginfo.channeltime == 0 then
-								castable = false
-							elseif (skill.tcastids == "" and casttime ~= nil) then
-								if target.castinginfo.channeltime < casttime then
-									castable = false
-								end
-							elseif (skill.tcastids ~= "") then								
-								local ctid = (skill.tcastonme == "1" and Player.id or nil)
-								if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
-									castable = false
-								end
-							end
-						end
-						
-						-- CONTENT ID
-						if (castable) then
-							if ( not IsNullString(skill.tcontids) and not HasContentID(target, skill.tcontids ) ) then
-								castable = false
-							end
-							if ( not IsNullString(skill.tncontids) and HasContentID(target, skill.tncontids) ) then
-								castable = false
-							end
-						end
-							
-						-- TARGET AE CHECK
-						local tlistAE
-						local attackTable
-						if ( castable and (skill.tecount > 0 or skill.tecount2 > 0) and skill.terange > 0 ) then
-							tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..TID)
-							attackTable = TableSize(tlistAE)
-			  
-							for i,nearby in pairs(tlistAE) do
-								if ( skill.tcontids ~="" and not HasContentID(nearby, skill.tcontids ) ) then
-									castable = false
-								end
-								
-								if ( skill.tncontids ~="" and HasContentID(nearby, skill.tncontids) ) then
-									castable = false
-								end
-							end
-							
-							if ( skill.tecount > 0 and ( attackTable < skill.tecount) ) then
-								castable = false
-							end
-							
-							if ( skill.tecount2 > 0 and ( attackTable > skill.tecount2) ) then
-								castable = false
-							end
-						end
-						
-						--"0,2,4,6,Any"
-						-- TARGET AE LEVEL CHECK
-						if (castable and ValidTable(tlistAE) and skill.televel ~= "Any") then
-							local level = tonumber(Player.level) + tonumber(skill.televel)
-							for _, entity in pairs(tlistAE) do
-								if entity.level > level then
-									castable = false
-								end
-							end
-						end
-						
-						-- ALLY AE CHECK
-						if ( castable and skill.tacount > 0 and skill.tarange > 0) then
-							plistAE = EntityList("alive,myparty,maxdistance="..skill.tarange..",distanceto="..TID)
-							if (TableSize(plistAE) < skill.tacount) then castable = false end
-						end
-						
-						-- ALLY HEALTH CHECK
-						-- If we get into this function than we know that skill.tacount > 0 and skill.tarange > 0
-						-- and that tarange has already been checked in the previous conditional
-						if ( castable and ValidTable(plistAE) and skill.tahpl > 0 ) then
-							local count = 0
-							for id, entity in pairs(plistAE) do
-								if (entity.hp.current ~= 0 and (entity.hp.percent < skill.tahpl)) then
-									count = count + 1
-								end
-							end
-							
-							if count < skill.tacount then castable = false end
-						end
-												
-						-- ISMOVING CHECK
-						if( castable) then
-							if (Player:IsMoving() and realskilldata.casttime > 0 and not forceStop) then
-								castable = false
+							if (not castable) then
+								break
 							end
 						end
 						
 						--FORCE CAST IF IS "NEXTSKILLPRIO"
 						if ( SkillMgr.nextSkillPrio ~= "" ) then
-							--d("checking to see if "..tostring(skill.prio).." is the nextskill prio of "..tostring(SkillMgr.nextSkillPrio).." with a result of "..tostring(tonumber(SkillMgr.nextSkillPrio) == tonumber(skill.prio)))
 							if ( tonumber(SkillMgr.nextSkillPrio) == tonumber(skill.prio) ) then
 								castable = true
 							end
 						end
 						
-						if ( castable ) then
+						if (castable) then
+							if (IsNinjutsuSkill(skill.id) and MissingBuffs(Player,"496",3)) then
+								castable = false
+							end
+						end
 						
+						if ( castable ) then
 						-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 							if (skill.stype == "Pet") then	
 								local s = ActionList:Get(skill.id,11)
@@ -2026,61 +1669,92 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									
 									if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 										skill.lastcast = Now()
-										if skill.cbreak == "0" then 
-											SkillMgr.prevSkillID = skill.id
-										end
-										SkillMgr.lastOFFCD = skill.offgcd == "1"
+										
 										SkillMgr.nextSkillID = tostring(skill.nskill)
 										SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 										SkillMgr.failTimer = Now() + 8000
 										return true
 									end
 								else
-									if ((IsNinjutsuSkill(skill.id) and ActionList:CanCast(skill.id,Player.id)) or ActionList:CanCast(skill.id,tonumber(TID))) then -- takes care of los, range, facing target and valid target								
+									--[[
+									if (IsNinjutsuSkill(skill.id) 
+											--and ActionList:CanCast(skill.id,Player.id)) 
+										or ActionList:CanCast(skill.id,tonumber(TID))) 
+									then -- takes care of los, range, facing target and valid target								
 										--If PVP, forceStop a healer to allow them to cast on self.
-										if forceStop then Player:Stop() end
-										
-										local action = ActionList:Get(skill.id)
-										if (action:Cast(TID)) then
-											skill.lastcast = Now()
-											--d("CASTING : "..tostring(skill.name) .." on "..tostring(target.name)..", spell ready status:"..tostring(action.isready))
-											
-											SkillMgr.queued = {
+									--]]
+									
+									if forceStop then 
+										Player:Stop() 
+									end
+									
+									local hasSwiftcast = HasBuffs(Player,"167")
+									
+									local action = ActionList:Get(skill.id)
+									if (action:Cast(TID)) then
+										if (gSkillManagerDebug == "1") then
+											d("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
+										end
+										skill.lastcast = Now()
+			
+										if (realskilldata.recasttime == 2.5) then
+											--d("using the combo queue.")
+											SkillMgr.comboQueue = {
 												id = skill.id,
 												name = skill.name,
+												alias = skill.alias,
 												prio = skill.prio,
-												offgcd = skill.offgcd == "1",
+												swift = hasSwiftcast,
 												nskill = skill.nskill,
 												nskillprio = skill.nskillprio,
-												cbreak = skill.cbreak == "1"
+												combo = true,
+												time = Now(),
+												ticks = 0,
 											}
-											
-											if (IsMudraSkill(skill.id)) then
-												SkillMgr.latencyTimer = Now() + 500
-											elseif (IsNinjutsuSkill(skill.id)) then
-												SkillMgr.latencyTimer = Now() + 1000
-											else
-												SkillMgr.latencyTimer = Now() + 1000
-											end
-											--[[
-											if skill.cbreak == "0" then
-												SkillMgr.prevSkillID = skill.id
-											end
-											
-											SkillMgr.lastOFFCD = skill.offgcd == "1"
-											SkillMgr.nextSkillID = tostring(skill.nskill)
-											SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-											SkillMgr.failTimer = Now() + 8000
-											--]]
-											return true
 										else
-											--d("CAST FAILED : "..tostring(skill.name)..", spell status was:"..tostring(action.isready)..", oncd was:"..tostring(action.isoncd))
+											if (not IsNullString(skill.nskillprio) or not IsNullString(skill.nskill)) then
+												--d("using the other queue")
+												SkillMgr.otherQueue = {
+													id = skill.id,
+													name = skill.name,
+													alias = skill.alias,
+													prio = skill.prio,
+													swift = hasSwiftcast,
+													nskill = skill.nskill,
+													nskillprio = skill.nskillprio,
+													combo = false,
+													time = Now(),
+													ticks = 0,
+												}
+											elseif (SkillMgr.nextSkillPrio == tostring(skill.prio) or SkillMgr.nextSkillID == tostring(skill.id)) then
+												SkillMgr.nextSkillID = ""
+												SkillMgr.nextSkillPrio = ""
+											end
 										end
+										
+										if (IsMudraSkill(skill.id)) then
+											SkillMgr.failTimer = Now() + 1000
+											--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+										elseif (IsNinjutsuSkill(skill.id)) then
+											SkillMgr.failTimer = Now() + 2000
+											--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+										else
+											if (action.casttime > 2.5) then
+												SkillMgr.failTimer = Now() + (action.casttime)
+											else
+												SkillMgr.failTimer = Now() + 2000
+												--d("Fail timer pushed forward 1.5 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+											end
+										end
+										
+										--d("Current last skill used:"..tostring(SkillMgr.prevSkillID))
+										return true
+									else
+										--d("CAST FAILED : "..tostring(skill.name)..", spell status was:"..tostring(action.isready)..", oncd was:"..tostring(action.isoncd))
 									end
 								end
 							end
 						end
-					
 					elseif ( realskilldata and not realskilldata.isready and skill.mplock == "1") then
 						if (realskilldata.cost == nil) then
 							--d("Skill:"..skill.name.." shows as having nil cost.")
@@ -2276,17 +1950,15 @@ function SkillMgr.Gather( )
     return false
 end
 
+
+
 function SkillMgr.IsGCDReady()
 	local castable = false
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	
 	if (actionID) then
 		local action = ActionList:Get(actionID)
-		if (action) then
-			if (action.cd - action.cdmax) < .5 then
-				castable = true
-			end
-		else
+		if (action.cd - action.cdmax) < .5 then
 			castable = true
 		end
 	end
@@ -2464,6 +2136,814 @@ function c_resetsuppressions:evaluate()
 end
 function e_resetsuppressions:execute()
 	ml_task_hub:CurrentTask().suppressFollow = false
+end
+
+function SkillMgr.AddConditional(conditional)
+	assert(type(conditional) == "table","Expected table for conditional,received type "..tostring(type(conditional)))
+	table.insert(SkillMgr.ConditionList,conditional)
+end
+
+function SkillMgr.AddDefaultConditions()	
+	conditional = { name = "Other Queued Skill Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (ValidTable(SkillMgr.otherQueue)) then
+			local queued = SkillMgr.otherQueue
+			if (not IsNullString(queued.nskill) or not IsNullString(queued.nskillprio)) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Min Range Check"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		local ppos = shallowcopy(Player.pos)
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
+		if (skill.trg == "Target") then
+			if ( not IsRanged(Player.job) and realskilldata.range >= 15 and realskilldata.recasttime == 2.5 and dist <= (target.hitradius + 4)) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Debuff/Buff Latency Check"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( skill.dobuff == "1" and skill.lastcast) then
+			if ((skill.lastcast + 1000) > Now()) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "OffGCD Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (realskilldata.recasttime ~= 2.5) then
+			if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
+				return true
+			end
+		end
+		--[[
+		if (ValidTable(SkillMgr.comboQueue) and realskilldata.recasttime ~= 2.5) then
+			if (SkillMgr.IsGCDReady() and not IsCaster(Player.job)) then
+				return true
+			end
+		end
+		--]]
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Other Skill Ready Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( skill.skready ~= "") then
+			local actiontype = (skill.sktype == "Action") and 1 or 11
+			if ( not SkillMgr.IsReady( tonumber(skill.skready), actiontype)) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Other Skill Off Cooldown."	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(skill.skoffcd)) then
+			local actiontype = (skill.sktype == "Action") and 1 or 11
+			local cdTime = SkillMgr.GetCDTime(tonumber(skill.skoffcd), actiontype)
+			
+			if (not cdTime or cdTime ~= 0) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Other Skill On Cooldown"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(skill.sknoffcd)) then
+			local actiontype = (skill.sktype == "Action") and 1 or 11
+			local minCDTime = tonumber(skill.skncdtimemin) or 0
+			local maxCDTime = tonumber(skill.skncdtimemax) or 0
+			local cdTime = SkillMgr.GetCDTime(tonumber(skill.sknoffcd), actiontype)
+			
+			if (not cdTime or 
+				(minCDTime > 0 and cdTime <= minCDTime) or 
+				(maxCDTime > 0 and cdTime >= maxCDTime) or
+				(minCDTime == 0 and maxCDTime == 0 and cdTime > 0)) 
+			then							
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Other Skill Not Ready"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(skill.sknready)) then
+			local actiontype = (skill.sktype == "Action") and 1 or 11
+			if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
+				return true
+			end
+		end		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Other Skill Not Ready"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(skill.sknready)) then
+			local actiontype = (skill.sktype == "Action") and 1 or 11
+			if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
+				return true
+			end
+		end		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Next Skill Priority Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(SkillMgr.nextSkillPrio)) then
+			if ( tonumber(SkillMgr.nextSkillPrio) ~= tonumber(skill.prio) ) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Next Skill ID Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(SkillMgr.nextSkillID)) then
+			if ( tonumber(SkillMgr.nextSkillID) ~= tonumber(skill.id) ) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)	
+
+	conditional = { name = "Previous Skill ID Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if ( not IsNullString(skill.pskill)) then
+			if (not IsNullString(SkillMgr.prevSkillID)) then
+				for skill in StringSplit(skill.pskill,",") do
+					if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
+						return false
+					end
+				end
+			end
+			return true
+		end
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Previous Skill NOT ID Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if (not IsNullString(skill.npskill)) then
+			if (not IsNullString(SkillMgr.prevSkillID)) then
+				for skill in StringSplit(skill.npskill,",") do
+					if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
+						return true
+					end
+				end
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+
+	conditional = { name = "Player Target Type Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ( skill.ptrg ~= "Any" ) then
+			if (( skill.ptrg == "Enemy" and (not target or not target.attackable)) or 
+				( skill.ptrg == "Player" and (not target or target.type ~= 1))) 
+			then 
+				return true 
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Only Solo/Party Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		local plist = EntityList("myparty")
+		if (( skill.onlysolo == "1" and TableSize(plist) > 0 ) or
+			( skill.onlyparty == "1" and TableSize(plist) == 0 ))
+		then
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+
+	conditional = { name = "Combat Status Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (((skill.combat == "Out of Combat") and (preCombat == nil or preCombat == false) and Player.incombat) or
+			((skill.combat == "In Combat") and (preCombat == true)))
+		then 
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Filter Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if 	((gPrimaryFilter == "1" and skill.filterone == "Off") or 
+			(gPrimaryFilter == "0" and skill.filterone == "On" ) or 
+			(gSecondaryFilter == "1" and skill.filtertwo == "Off") or
+			(gSecondaryFilter == "0" and skill.filtertwo == "On" ))
+		then
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Secs Passed Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local secspassed = tonumber(skill.secspassed) or 0
+		if ( secspassed > 0 and skill.lastcast and (TimeSince(skill.lastcast) < (secspassed * 1000)))then 
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "MP Lock Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ( SkillMgr.mplock ) then
+			if ( (Player.mp.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
+				SkillMgr.mplock = false
+				SkillMgr.mplockPercent = 0
+			else
+				if ( skill.mplocked == "1" ) then
+					return true
+				end
+			end
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Player level checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if (skill.levelmin > 0 and 
+			((skill.levelmin > Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmin > Player:GetSyncLevel()))))
+		then
+			return true
+		elseif (skill.levelmax > 0 and
+			((skill.levelmax < Player.level) or (Player:GetSyncLevel() > 0 and (skill.levelmax < Player:GetSyncLevel()))))
+		then
+			return true
+		end
+			
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Player HP/TP Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ((skill.phpl > 0 and skill.phpl > Player.hp.percent)	or 
+			(skill.phpb > 0 and skill.phpb < Player.hp.percent)	or 
+			(skill.ptpl > 0 and skill.ptpl > Player.tp)	or 
+			(skill.ptpb > 0 and skill.ptpb < Player.tp)) 
+		then 
+			return true
+		end				
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Player MP Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ((skill.ppowl > 0 and skill.ppowl > Player.mp.current) or 
+			(skill.pmppl > 0 and skill.pmppl > Player.mp.percent)) 
+		then 
+			if (skill.mplock == "1" ) then
+				SkillMgr.mplock = true
+				SkillMgr.mplockTimer = Now() + 10000
+				SkillMgr.mplockPercent = tonumber(skill.mplockper)
+			end
+			return true
+		elseif ((skill.ppowb > 0 and skill.ppowb < Player.mp.current) or
+				(skill.pmppb > 0 and skill.pmppb < Player.mp.percent)) 
+		then 
+			return true 
+		end			
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	--========================================================
+	
+	conditional = { name = "Party HP/MP/TP Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ( skill.pthpl ~= 0 or skill.pthpb ~= 0 ) then
+			allyHP = GetLowestHPParty( skill )
+			
+			if ( skill.ptcount == 0 and allyHP ~= nil ) then
+				if (( skill.pthpl > 0 and skill.pthpl > allyHP.hp.percent ) or
+					( skill.pthpb > 0 and skill.pthpb < allyHP.hp.percent )) 
+				then 
+					return true
+				end
+			elseif (skill.ptcount > 0 and not allyHP) then
+				return true
+			else
+				return true
+			end
+		end
+		if ( skill.ptmpl ~= 0 or skill.ptmpb ~= 0 ) then
+			allyMP = GetLowestMPParty()
+			if ( allyMP ~= nil ) then
+				if (( skill.ptmpl > 0 and skill.ptmpl > allyMP.mp.percent ) or
+					( skill.ptmpb > 0 and skill.ptmpb < allyMP.mp.percent )) 
+				then 
+					return true
+				end
+			else
+				return true
+			end
+		end
+		if ( skill.pttpl ~= 0 or skill.pttpb ~= 0 ) then
+			allyTP = GetLowestTPParty()
+			if ( allyTP ~= nil ) then
+				if (( skill.pttpl > 0 and skill.pttpl > allyTP.tp ) or
+					( skill.pttpb > 0 and skill.pttpb < allyTP.tp )) 
+				then 
+					return true
+				end
+			else
+				return true
+			end
+		end				
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Player Buff Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if (not IsNullString(skill.pbuff)) then
+			local duration = skill.pbuffdura or 0
+			if not HasBuffs(Player, skill.pbuff, duration) then 
+				return true
+			end 
+		end
+		if (not IsNullString(skill.pnbuff)) then
+			local duration = skill.pnbuffdura or 0
+			if not MissingBuffs(Player, skill.pnbuff, duration) then 
+				return true 
+			end 
+		end			
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Pet Buff Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local pet = SkillMgr.CurrentPet
+		
+		if (pet and pet ~= 0) then
+			if (not IsNullString(skill.petbuff)) then
+				local duration = skill.petbuffdura or 0
+				if not HasBuffs(pet, skill.petbuff, duration) then 
+					return true 
+				end 
+			end
+			if (not IsNullString(skill.petnbuff)) then
+				local duration = skill.petnbuffdura or 0
+				if not MissingBuffs(pet, skill.petnbuff, duration) then 
+					return true 
+				end 
+			end	
+		end		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Party Buff Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ( skill.trg == "Player" ) then								
+			if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
+				local partymemberlist = EntityList("myparty,type=1")
+				if ( partymemberlist) then
+				   for i,entity in pairs(partymemberlist) do
+						if ((skill.ptbuff=="" or not HasBuffs(entity,skill.ptbuff)) and
+							(skill.ptnbuff=="" or HasBuffs(entity,skill.ptnbuff))) 
+						then
+							return true
+						end
+				   end 
+				end
+				
+				if ((skill.ptbuff=="" or not HasBuffs(Player,skill.ptbuff)) and
+					(skill.ptnbuff=="" or MissingBuffs(Player,skill.ptnbuff))) 
+				then
+					return true
+				end	
+			end
+		end		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+
+	--======================================================================
+	
+	conditional = { name = "Target HP Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ((skill.thpl > 0 and skill.thpl > target.hp.percent) or
+			(skill.thpb > 0 and skill.thpb < target.hp.percent) or
+			(skill.thpcl > 0 and skill.thpcl > target.hp.current) or
+			(skill.thpcb > 0 and skill.thpcb < target.hp.current)) 
+		then 
+			return true 
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Target Job Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if (skill.trgtype ~= strings[gCurrentLanguage].any and target.job ~= nil) then
+			local found = true
+			local roleString = GetRoleString(target.job)
+			if skill.trgtype ~= roleString then 
+				found = false
+			end
+			if skill.trgtype == "Caster" and IsCaster(target.job) then
+				found = true
+			end
+			if not found then 
+				return true 
+			end
+		end						
+
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Dead Target Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if (skill.trg ~= "Dead Ally" and skill.trg ~= "Dead Party") then
+			if ( target.hp.current == 0 ) then
+				return true
+			end
+		end						
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Positional Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if ( skill.ppos ~= "None" ) then 
+			if ((skill.ppos == "Flanking" and not IsFlanking(target)) or
+				(skill.ppos == "Behind" and not IsBehind(target)) or
+				(skill.ppos == "Front" and not IsFront(target)))
+			then
+				return true
+			end						
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Bad Fate Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if (target.fateid ~= 0) then
+			local fate = GetFateByID(target.fateid)
+			if (ValidTable(fate)) then
+				if (Player:GetSyncLevel() == 0 and fate.level < Player.level - 5) then
+					return true
+				end
+			end
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Target Buff Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		local PID = Player.id
+		
+		if (not IsNullString(skill.tbuff)) then
+			local owner = (skill.tbuffowner == "Player") and PID or nil
+			if not HasBuffs(target, skill.tbuff, nil, owner) then 
+				return true 
+			end 
+		end
+		if (not IsNullString(skill.tnbuff)) then
+			local owner = (skill.tbuffowner == "Player") and PID or nil
+			local duration = skill.tnbuffdura or 0
+			if not MissingBuffs(target, skill.tnbuff, duration, owner) then 
+				return true 
+			end 
+		end	
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Target Casting Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		local casttime = tonumber(skill.tcasttime)
+		if casttime == nil then casttime = 0 end
+		
+		if (( casttime > 0 or skill.tcastids ~= "")) then
+			if (TableSize(target.castinginfo) == 0) then
+				return true
+			elseif target.castinginfo.channeltime == 0 then
+				return true
+			elseif (skill.tcastids == "" and casttime ~= nil) then
+				if target.castinginfo.channeltime < casttime then
+					return true
+				end
+			elseif (skill.tcastids ~= "") then								
+				local ctid = (skill.tcastonme == "1" and Player.id or nil)
+				if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
+					return true
+				end
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Target ContentID Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if ( not IsNullString(skill.tcontids) and not HasContentID(target, skill.tcontids ) ) then
+			return true
+		end
+		if ( not IsNullString(skill.tncontids) and HasContentID(target, skill.tncontids) ) then
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Target AOE Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if (realskilldata.casttime == 0) then
+			TID = target.id
+		end
+		
+		if ((skill.tecount > 0 or skill.tecount2 > 0) and skill.terange > 0 ) then
+			tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..TID)
+			local attackTable = TableSize(tlistAE) or 0
+			
+			if (tlistAE) then
+				for i,nearby in pairs(tlistAE) do
+					if ( skill.tcontids ~="" and not HasContentID(nearby, skill.tcontids ) ) then
+						return true
+					end
+					if ( skill.tncontids ~="" and HasContentID(nearby, skill.tncontids) ) then
+						return true
+					end
+				end
+			end
+			if ( skill.tecount > 0 and ( attackTable < skill.tecount)) then
+				return true
+			end
+			if ( skill.tecount2 > 0 and ( attackTable > skill.tecount2)) then
+				return true
+			end
+		end	
+		
+		if (castable and ValidTable(tlistAE) and skill.televel ~= "Any") then
+			local level = tonumber(Player.level) + tonumber(skill.televel)
+			for _, entity in pairs(tlistAE) do
+				if entity.level > level then
+					return true
+				end
+			end
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Ally AOE Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if (realskilldata.casttime == 0) then
+			TID = target.id
+		end
+		
+		if (skill.tacount > 0 and skill.tarange > 0) then
+			plistAE = EntityList("alive,myparty,maxdistance="..skill.tarange..",distanceto="..TID)
+			if (TableSize(plistAE) < skill.tacount) then 
+				return true 
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Ally AOE HP Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if ( ValidTable(plistAE) and skill.tahpl > 0 ) then
+			local count = 0
+			for id, entity in pairs(plistAE) do
+				if (entity.hp.current ~= 0 and (entity.hp.percent < skill.tahpl)) then
+					count = count + 1
+				end
+			end
+			
+			if count < skill.tacount then 
+				return true 
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "IsMoving Checks"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		local TID = SkillMgr.CurrentTID
+		
+		if (Player:IsMoving() and realskilldata.casttime > 0) then
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
 end
 
 

@@ -11,18 +11,19 @@ function GetNearestGrindAttackable()
 	local nearestDistance = 9999
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
-	
+
 	block = 1
 	if (gClaimFirst	== "1") then		
 		if (not IsNullString(huntString)) then
 			local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
 			if ( el ) then
 				local i,e = next(el)
-				if (i~=nil and e~=nil and 
-					(e.targetid == 0 or e.targetid == Player.id) and
-					e.pathdistance <= tonumber(gClaimRange)) then
-					--d("Grind returned, using block:"..tostring(block))
-					return e
+				if (ValidTable(e) and e.uniqueid ~= 541) then
+					if ((e.targetid == 0 or e.targetid == Player.id) and
+						e.pathdistance <= tonumber(gClaimRange)) then
+						--d("Grind returned, using block:"..tostring(block))
+						return e
+					end
 				end
 			end
 		end
@@ -38,7 +39,7 @@ function GetNearestGrindAttackable()
 	
 	if ( el ) then
 		local i,e = next(el)
-		if (i~=nil and e~=nil) then
+		if (ValidTable(e) and e.uniqueid ~= 541) then
 			--d("Grind returned, using block:"..tostring(block))
 			return e
 		end
@@ -61,7 +62,7 @@ function GetNearestGrindAttackable()
 				
 				if ( el ) then
 					local i,e = next(el)
-					if (i~=nil and e~=nil) then
+					if (ValidTable(e) and e.uniqueid ~= 541) then
 						--d("Grind returned, using block:"..tostring(block))
 						return e
 					end
@@ -80,7 +81,7 @@ function GetNearestGrindAttackable()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (i~=nil and e~=nil) then
+			if (ValidTable(e) and e.uniqueid ~= 541) then
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
@@ -94,9 +95,11 @@ function GetNearestGrindAttackable()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (i~=nil and e~=nil and (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1")) then
-				--d("Grind returned, using block:"..tostring(block))
-				return e
+			if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+					--d("Grind returned, using block:"..tostring(block))
+					return e
+				end
 			end
 		end
 	end
@@ -112,7 +115,7 @@ function GetNearestGrindAttackable()
 		block = 6
 		if ( el ) then
 			local i,e = next(el)
-			if (i~=nil and e~=nil) then
+			if (ValidTable(e) and e.uniqueid ~= 541) then
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
@@ -127,7 +130,7 @@ function GetNearestGrindAttackable()
 		block = 7
 		if ( el ) then
 			local i,e = next(el)
-			if (i~=nil and e~=nil) then
+			if (ValidTable(e) and e.uniqueid ~= 541) then
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
@@ -325,62 +328,59 @@ function GetHuntTarget()
 	return nil
 end
 
+function IsValidHealTarget(e)
+	if (ValidTable(e) and e.alive) then
+		return (e.chartype == 4) or
+			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
+			(e.chartype == 3 and e.type == 2)
+	end
+	
+	return false
+end
+
 function GetBestTankHealTarget( range )
 	range = range or ml_global_information.AttackRange
-    local pID = Player.id
 	local lowest = nil
 	local lowestHP = 101
-	
-    local el = EntityList("friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+
+    local el = EntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
     if ( el ) then
 		for i,e in pairs(el) do
-			if (e.job == 1 or e.job == 19 or e.job == 3 or e.job == 21) then
-				if (e.hp.percent < lowestHP ) then
-					lowest = e
-					lowestHP = e.hp.percent
-				end
+			if (IsTank(e.job) and e.hp.percent < lowestHP ) then
+				lowest = e
+				lowestHP = e.hp.percent
 			end
         end
     end
 	
 	local ptrg = Player:GetTarget()
-	if (ptrg ~= nil) then
-		if (lowest == nil and Player.pet ~= nil and ptrg.targetid == Player.pet.id) then
+	if (ptrg and Player.pet) then
+		if (lowest == nil and ptrg.targetid == Player.pet.id) then
 			lowest = Player.pet
 		end
 	end
 	
-	if (lowest ~= nil and lowest.hp.percent ~= 0) then
-		return lowest
-	end
-	
-    return nil
+	return lowest
 end
 
 function GetBestPartyHealTarget( npc, range )
 	npc = npc or false
 	range = range or ml_global_information.AttackRange
 	
-	local el = nil
-	el = EntityList("lowesthealth,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	
+	local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
     if ( el ) then
         local i,e = next(el)
-        if (i~=nil and e~=nil) then
-            if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-				return e
-			end
+        if (i and e and IsValidHealTarget(e)) then
+			return e
         end
     end
 	
 	if (npc) then
-		el = EntityList("lowesthealth,friendly,myparty,targetable,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
 		if ( el ) then
 			local i,e = next(el)
-			if (i~=nil and e~=nil) then
-				if (e.chartype == 4 or (e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
-					return e
-				end
+			if (i and e and IsValidHealTarget(e)) then
+				return e
 			end
 		end
 	end
@@ -402,33 +402,33 @@ function GetLowestMPParty()
     local pID = Player.id
 	local lowest = nil
 	local lowestMP = 101
-    local el = EntityList("myparty,type=1,targetable,maxdistance=35")
+	
+	local mpUsers = {
+		[1] = true,
+		[6] = true,
+		[19] = true,
+		[24] = true,
+		[26] = true,
+		[27] = true,
+		[28] = true,
+	}
+	
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance=35")
     if ( el ) then
-        local i,e = next(el)
-        while (i~=nil and e~=nil) do
-            if (e.mp.percent ~= nil and e.hp.percent > 0 and e.mp.percent < lowestMP) then
-				if (e.job == 28 or e.job == 27 or e.job == 26 or e.job == 24 or e.job == 19 or e.job == 6 or e.job == 1 ) then
-					lowest = e
-					lowestMP = e.mp.percent
-				end
+		for i,e in pairs(el) do
+			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
+				lowest = e
+				lowestMP = e.mp.percent
 			end
-			i,e  = next(el,i) 
         end
     end
 	
-	if (Player.hp.percent > 0 and Player.mp.percent < lowestMP) then
-		if (Player.job == 28 or Player.job == 27 or Player.job == 26 or Player.job == 24 or Player.job == 19 or Player.job == 6 or Player.job == 1 ) then
-			lowest = Player
-			lowestMP = Player.mp.percent
-		end
+	if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
+		lowest = Player
+		lowestMP = Player.mp.percent
 	end
 	
-	if (lowest ~= nil and lowest.hp.percent ~= 0) then
-		return lowest
-	end
-	
-    --ml_debug("GetLowestMPTarget() failed with no entity found matching params")
-    return nil
+	return lowest
 end
 
 function GetLowestHPParty( skill )
@@ -452,72 +452,69 @@ function GetLowestHPParty( skill )
 				return true
 			end
 		end
+		return false
 	else
 		if (not npc) then
-			el = EntityList("myparty,type=1,targetable,maxdistance="..tostring(range))
+			el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
 		else
-			el = EntityList("myparty,targetable,maxdistance="..tostring(range))
+			el = EntityList("myparty,alive,targetable,maxdistance="..tostring(range))
 		end
 		
 		if ( el ) then
-			local i,e = next(el)
-			while (i~=nil and e~=nil) do
-				if (e.hp.percent ~= nil and e.hp.percent > 0 and e.hp.percent < lowestHP) then
-					lowest = e
-					lowestHP = e.hp.percent
+			for i,e in pairs(el) do
+				if (IsValidHealTarget(e)) then
+					if (not lowest or e.hp.percent < lowestHP) then
+						lowest = e
+						lowestHP = e.hp.percent
+					end
 				end
-				i,e  = next(el,i) 
 			end
 		end
 		
-		if (Player.hp.percent > 0 and Player.hp.percent < lowestHP) then
+		if (Player.alive and Player.hp.percent < lowestHP) then
 			lowest = Player
 			lowestHP = Player.hp.percent
 		end
 		
-		if (lowest ~= nil and lowest.hp.percent ~= 0) then
-			if (lowest.chartype == 4 or (lowest.chartype == 0 and (lowest.type == 2 or lowest.type == 3 or lowest.type == 5)) or (lowest.chartype == 3 and lowest.type == 2))  then
-				return lowest
-			end
-		end
+		return lowest
 	end
-	
-    --ml_debug("GetLowestHPTarget() failed with no entity found matching params")
-    return nil
 end
 
 function GetLowestTPParty()
 	local lowest = nil
 	local lowestTP = 1001
-    local el = EntityList("myparty,type=1,targetable,maxdistance=35")
+	
+	local tpUsers = {
+		[1] = true,
+		[2] = true,
+		[3] = true,
+		[4] = true,
+		[5] = true,
+		[19] = true,
+		[20] = true,
+		[21] = true,
+		[22] = true,
+		[23] = true,
+	}
+	
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance=35")
     if ( el ) then
-        local i,e = next(el)
-        while (i~=nil and e~=nil) do
-            if (e.tp ~= nil and e.hp.percent > 0 and e.tp < lowestTP) then
-				if (e.job == 1 or e.job == 2 or e.job == 3 or e.job == 4 or e.job == 5 or e.job == 19 or e.job == 20 or
-					e.job == 21 or e.job == 22 or e.job == 23 ) then
+        for i,e in pairs(el) do
+			if (e.job and tpUsers[e.job]) then
+				if (e.tp < lowestTP) then
 					lowest = e
 					lowestTP = e.tp
 				end
 			end
-			i,e  = next(el,i) 
         end
     end
 	
-	if (Player.hp.percent > 0 and Player.tp < lowestTP) then
-		local e = Player
-		if (e.job == 1 or e.job == 2 or e.job == 3 or e.job == 4 or e.job == 5 or e.job == 19 or e.job == 20 or	e.job == 21 or e.job == 22 or e.job == 23 ) then
-			lowest = Player
-			lowestTP = Player.tp
-		end
+	if (Player.alive and tpUsers[Player.job] and Player.tp < lowestTP) then
+		lowest = Player
+		lowestTP = Player.tp
 	end
 	
-	if (lowest ~= nil and lowest.hp.percent ~= 0) then
-		return lowest
-	end
-	
-	--ml_debug("lowest tp failed with no matches.")
-    return nil
+    return lowest
 end
 
 function GetBestHealTarget( npc, range )
@@ -636,7 +633,7 @@ end
 function GetBestRevive( party, role)
 	party = party or false
 	role = role or "Any"
-	range = ml_global_information.AttackRange
+	range = 30
 	
 	local el = nil
 	if (party) then
@@ -647,17 +644,14 @@ function GetBestRevive( party, role)
 								
 	if ( el ) then
 		if (role ~= "Any") then
-			local i,e = next(el)
-			while (i~=nil and e~=nil) do
-				if (e.job ~= nil and GetRoleString(e.job) == role and not HasBuffs(e, "148")) then
+			for i,e in pairs(el) do
+				if (e.job ~= nil and GetRoleString(e.job) == role and MissingBuffs(e, "148")) then
 					return e
-				end
-				i,e = next(el,i)  
+				end 
 			end  
 		else
-			local i,e = next(el)
-			if (i~=nil and e~=nil) then
-				if (not HasBuffs(e, "148")) then
+			for i,e in pairs(el) do
+				if (MissingBuffs(e, "148")) then
 					return e
 				end
 			end  
@@ -668,12 +662,11 @@ function GetBestRevive( party, role)
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
-			if (leaderentity and leaderentity.distance <= range and not leader.alive and not HasBuffs(leaderentity, "148")) then
+			if (leaderentity and leaderentity.distance <= range and not leader.alive and MissingBuffs(leaderentity, "148")) then
 				return leaderentity
 			end
 		end
 	end
-	
 	
 	return nil
 end
@@ -685,7 +678,7 @@ function GetPVPTarget()
 	local lowestHealth = nil
     
 	local enemyParty = nil
-	if (Player.localmapid == 376) then
+	if (Player.localmapid == 376 or Player.localmapid == 422) then
 		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,targetingme,chartype=4,maxdistance=45")
 		if(not ValidTable(enemyParty)) then
 			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
@@ -829,7 +822,7 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 
-function GetPrioritizedTarget( targetlist)
+function GetPrioritizedTarget( targetlist )
 	--targetlist should be a semi-colon ";" separated string list
 	
 end
@@ -956,6 +949,62 @@ function GetDutyTarget( maxHP )
 		end
 	end	
 	
+    return nil
+end
+
+function GetNearestGrindAggro()
+	taskName = ml_task_hub:ThisTask().name
+	
+	if (not IsNullString(excludeString)) then
+		if (taskName == "LT_GRIND") then
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
+		else
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+		end
+	else
+		if (taskName == "LT_GRIND") then
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
+		else
+			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
+		end
+	end
+	
+	if ( el ) then
+		local i,e = next(el)
+		if (i~=nil and e~=nil) then
+			--d("Grind returned, using block:"..tostring(block))
+			return e
+		end
+	end
+	
+	local party = EntityList.myparty
+	if ( party ) then
+		for i, member in pairs(party) do
+			if (member.id and member.id ~= 0) then
+				if (not IsNullString(excludeString)) then
+					if (taskName == "LT_GRIND") then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+					end
+				else
+					if (taskName == "LT_GRIND") then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+					end
+				end
+				
+				if ( el ) then
+					local i,e = next(el)
+					if (i~=nil and e~=nil) then
+						return e
+					end
+				end
+			end
+		end
+	end
+    
     return nil
 end
 
@@ -1256,23 +1305,6 @@ function HasContentID(entity, contentIDs)
 	return false
 end
 
-function IsCasterDPS(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE
-end
-
-function IsCaster(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE or
-			jobID == FFXIV.JOBS.WHITEMAGE or
-			jobID == FFXIV.JOBS.CONJURER or
-			jobID == FFXIV.JOBS.SCHOLAR
-end
-
 function IsReviveSkill(skillID)
     if (skillID == 173 or skillID == 125) then
         return true
@@ -1352,7 +1384,7 @@ end
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
         local leftover = math.abs(absDeviation - math.pi)
-        
+		
         if ((leftover < (math.pi * 1.75) and leftover > (math.pi * 1.25)) or
 			(leftover < (math.pi * .75) and leftover > (math.pi * .25))) 
 		then
@@ -1379,7 +1411,7 @@ function IsBehind(entity)
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
         local leftover = math.abs(absDeviation - math.pi)
-        
+		
         if (leftover > (math.pi * 1.75) or leftover < (math.pi * .25))then
             return true
         end
@@ -1432,6 +1464,14 @@ function EntityIsFront(entity)
 	end
 		
     return false
+end
+
+function Distance3DT(pos1,pos2)
+	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
+	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
+	
+	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+	return distance
 end
 
 function ConvertHeading(heading)
@@ -1653,6 +1693,62 @@ function GetClosestFate(pos)
     end
     
     return nil
+end
+
+function IsOnMap(mapid)
+	local mapid = tonumber(mapid)
+	if (Player.localmapid == mapid) then
+		return true
+	end
+	
+	return false
+end
+
+function ScanForMobs(ids,distance)
+	local ids = tostring(ids)
+	local maxdistance = tonumber(distance) or 30
+	local el = EntityList("nearest,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		d("el in scanformobs was valid.")
+		return true
+	end
+	
+	return false
+end
+
+function PathDistanceTest()
+	PathDistanceTable({x=3.399,y=39.517,z=7.191})
+end
+
+function PathDistanceTable(gotoPos)
+	if (ValidTable(gotoPos)) then
+		local ppos = Player.pos
+		local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+		
+		local prevPos = nil
+		for k,v in pairsByKeys(path) do
+			if (prevPos == nil) then
+				d("Distance:"..tostring(Distance3D(ppos.x,ppos.y,ppos.z,v.x,v.y,v.z)))
+			else
+				d("Distance:"..tostring(Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)))
+			end
+			prevPos = {x=v.x,y=v.y,z=v.z}
+		end
+		
+		--[[
+		local dist
+		if ( pathdist ) then
+			local pdist = PathDistance(pathdist)
+			if ( pdist ~= nil ) then
+				dist = pdist
+			else
+				dist = Distance3DT(gotoPos,ppos)
+			end
+		else
+			dist = Distance3DT(gotoPos,ppos)
+		end	
+		--]]
+	end
 end
 
 function IsLeader()
@@ -2076,6 +2172,10 @@ function IsUnspoiled(contentid)
 			contentid == 7 or contentid == 8
 end
 
+--===========================
+--Class/Role Helpers
+--===========================
+
 function GetRoleString(jobID)
     if 
         jobID == FFXIV.JOBS.ARCANIST or
@@ -2109,6 +2209,7 @@ function GetRoleString(jobID)
 end
 
 function IsMeleeDPS(jobID)
+	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
 			jobID == FFXIV.JOBS.PUGILIST or
 			jobID == FFXIV.JOBS.DRAGOON or
@@ -2118,6 +2219,7 @@ function IsMeleeDPS(jobID)
 end
 
 function IsRangedDPS(jobID)
+	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
 			jobID == FFXIV.JOBS.ARCHER or
 			jobID == FFXIV.JOBS.BARD or
@@ -2127,6 +2229,7 @@ function IsRangedDPS(jobID)
 end
 
 function IsRanged(jobID)
+	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
 			jobID == FFXIV.JOBS.ARCHER or
 			jobID == FFXIV.JOBS.BARD or
@@ -2138,12 +2241,55 @@ function IsRanged(jobID)
 			jobID == FFXIV.JOBS.WHITEMAGE
 end
 
+function IsPhysicalDPS(jobID)
+	local jobID = tonumber(jobID)
+	return 	jobID == FFXIV.JOBS.MONK or
+			jobID == FFXIV.JOBS.PUGILIST or
+			jobID == FFXIV.JOBS.DRAGOON or
+			jobID == FFXIV.JOBS.LANCER or
+			jobID == FFXIV.JOBS.ROGUE or
+			jobID == FFXIV.JOBS.NINJA or 
+			jobID == FFXIV.JOBS.ARCHER or
+			jobID == FFXIV.JOBS.BARD
+end
+
+function IsCasterDPS(jobID)
+	local jobID = tonumber(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE
+end
+
+function IsCaster(jobID)
+	local jobID = tonumber(jobID)
+	return 	jobID == FFXIV.JOBS.ARCANIST or
+			jobID == FFXIV.JOBS.BLACKMAGE or
+			jobID == FFXIV.JOBS.SUMMONER or
+			jobID == FFXIV.JOBS.THAUMATURGE or
+			jobID == FFXIV.JOBS.WHITEMAGE or
+			jobID == FFXIV.JOBS.CONJURER or
+			jobID == FFXIV.JOBS.SCHOLAR
+end
+
+function IsTank(jobID)
+	local jobID = tonumber(jobID)
+	local tanks = {
+		[FFXIV.JOBS.GLADIATOR] = true,
+		[FFXIV.JOBS.MARAUDER] = true,
+		[FFXIV.JOBS.PALADIN] = true,
+		[FFXIV.JOBS.WARRIOR] = true,
+	}
+	
+	return tanks[jobID]
+end
+
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	if (maxdistance==nil or maxdistance == "") then
 		maxdistance = 30
 	end
 	
-	local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
+	local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance)..",targetable")
 	for i,e in pairs(el) do	
 		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
 			return e
@@ -2156,7 +2302,7 @@ end
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
-	local el = EntityList("myparty,chartype=4,maxdistance="..tostring(maxdistance)..",targetable,los")
+	local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance)..",targetable")
 	for i,e in pairs(el) do	
 		if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
 			return e
@@ -2307,45 +2453,26 @@ function GetClosestAetheryteToMapIDPos(id, p)
 	return nil
 end
 
-function MoveTo(X,Y,Z, stoppingdistance, followmovement, randomizePaths)
-	local stoppingdistance = stoppingdistance or false
-	local followmovement = followmovement or false
-	local randomizePaths = randomizePaths or false
-	
-	if (not X or not Y or not Z) then
-		ml_error("Missing parameters in MoveTo()")
+function ShouldTeleport()
+	if (IsLoading() or IsPositionLocked()) then
 		return false
 	end
 	
-	specialConditions = {
-		[139] = { name = "Upper La Noscea",
-			reaction = function()
-				if (Player.pos.x < 0 and X > 0) then
-					local newTask = ffxiv_mesh_interact.Create()
-					newTask.pos = {x = -341.24, y = -1, z = 112.098}
-					newTask.uniqueid = 1003586
-					ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-				elseif (Player.pos.x > 0 and X < 0) then
-					local newTask = ffxiv_mesh_interact.Create()
-					newTask.pos = {x = 220.899, y = 1.7, z = 257.399}
-					newTask.uniqueid = 1003587
-					ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-				else
-					return (Player:MoveTo(X,Y,Z,stoppingdistance,followmovement,randomizePaths))
-				end
-			end,
-		}
-	}
-	
-	local doSpecial = false
-	if (specialConditions[Player.localmapid]) then
-		doSpecial = true
-	end
-	
-	if (doSpecial) then
-		specialConditions[Player.localmapid].reaction()
+	if (gTeleport == "0") then
+		return false
+	elseif (ml_task_hub:CurrentTask().noTeleport) then
+		return false
 	else
-		return (Player:MoveTo(X,Y,Z,stoppingdistance,followmovement,randomizePaths))
+		if (gParanoid == "0") then
+			return true
+		else
+			local players = EntityList("type=1,maxdistance=50")
+			local nearbyPlayers = TableSize(players)
+			if nearbyPlayers > 0 then
+				return false
+			end
+			return true
+		end
 	end
 end
 
@@ -2355,7 +2482,12 @@ function GetBlacklistIDString()
     
     -- then add on any local contentIDs to exclude
     if (ml_global_information.BlacklistContentID and ml_global_information.BlacklistContentID ~= "") then
-        excludeString = excludeString..";"..ml_global_information.BlacklistContentID
+		if (excludeString) then
+			excludeString = excludeString..";"..ml_global_information.BlacklistContentID
+		else
+			d("BlacklistIDString:"..tostring(ml_global_information.BlacklistContentID))
+			excludeString = ml_global_information.BlacklistContentID
+		end
     end
     
     return excludeString
@@ -2421,7 +2553,7 @@ function GetBestGrindMap()
 						mapid == 139 or
 						mapid == 180
 						
-	if (level < 15) then
+	if (level < 12) then
 		if (inthanalan) then
 			return 140 --western than
 		elseif (inshroud) then
@@ -2429,8 +2561,14 @@ function GetBestGrindMap()
 		elseif (inlanoscea) then
 			return 134 --middle la noscea
 		end
-	elseif (level >= 15 and level < 20) then
-		return 152 --east shroud
+	elseif ( level >= 12 and level < 20) then
+		if (inthanalan) then
+			return 140 --western than
+		elseif (inshroud) then
+			return 152 --east shroud
+		elseif (inlanoscea) then
+			return 138 --middle la noscea
+		end
 	elseif (level >= 20 and level < 25) then
 		return 152 --east shroud
 	elseif (level >= 20 and level < 30) then
@@ -2444,6 +2582,449 @@ function GetBestGrindMap()
 	end
 end
 
+function CheckSlotLevels(slotids,level)
+	--[[
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
+	[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+	--]]
+	
+	local slotids = tostring(slotids)
+	local level = tonumber(level)
+	for slot in StringSplit(slotids,",") do
+		local equipped = Inventory("type=1000")
+		local itemFound = false
+		for i,item in pairs(equipped) do
+			if (item.slot == tonumber(slot)) then
+				itemFound = true
+				if (item.level < level) then
+					return false
+				end
+			end
+		end
+		if (itemFound) then
+			break
+		end
+		if (not itemFound) then
+			return false
+		end
+	end
+	
+	return true
+end
+
+function EvaluateItemInSlot(slot)
+	--[[
+	Slot numbers in ffxiv_item_data table.
+	
+	1 - 1-handed weapon
+	2 - offhand
+	3 - helmet
+	4 - chest
+	5 - glove
+	6 - belt
+	7 - leg
+	8 - boot
+	9 - earring
+	10 - necklace
+	11 - wrist
+	12 - ring
+	13 - 2-handed weapon
+	15 - covers chest and head
+	16,19,20,21 - seasonal - do not equip
+	17 - soulstone - do not equip
+	18 - legs that also cover feet
+	--]]	
+	
+	--[[
+	Sub-stats
+	1 = Strength
+	2 = Dexterity
+	3 = Vitality
+	4 = Int
+	5 = Mind
+	6 = Piety
+	19 = Parry
+	22 = Accuracy
+	27 = Critical Hit
+	44 = Determination
+	45 = Skill Speed
+	48 = Morale
+	--]]
+	
+	local defaultWeaponUI = {
+		[FFXIV.JOBS.GLADIATOR] = 2,
+		[FFXIV.JOBS.PALADIN] = 2,
+		[FFXIV.JOBS.MARAUDER] = 3,
+		[FFXIV.JOBS.WARRIOR] = 3,
+		[FFXIV.JOBS.PUGILIST] = 1,
+		[FFXIV.JOBS.MONK] = 1,
+		[FFXIV.JOBS.LANCER] = 5,
+		[FFXIV.JOBS.DRAGOON] = 5,
+		[FFXIV.JOBS.ARCHER] = 4,
+		[FFXIV.JOBS.BARD] = 4,
+		[FFXIV.JOBS.CONJURER] = 8,
+		[FFXIV.JOBS.WHITEMAGE] = 8,
+		[FFXIV.JOBS.THAUMATURGE] = 7,
+		[FFXIV.JOBS.BLACKMAGE] = 7,
+		[FFXIV.JOBS.ARCANIST] = 9,
+		[FFXIV.JOBS.SUMMONER] = 9,
+		[FFXIV.JOBS.SCHOLAR] = 9,
+		[FFXIV.JOBS.ROGUE] = 84,
+		[FFXIV.JOBS.NINJA] = 84,
+	}
+	local defaultWeaponSlot = {
+		[FFXIV.JOBS.GLADIATOR] = 1,
+		[FFXIV.JOBS.PALADIN] = 1,
+		[FFXIV.JOBS.MARAUDER] = 13,
+		[FFXIV.JOBS.WARRIOR] = 13,
+		[FFXIV.JOBS.PUGILIST] = 13,
+		[FFXIV.JOBS.MONK] = 13,
+		[FFXIV.JOBS.LANCER] = 13,
+		[FFXIV.JOBS.DRAGOON] = 13,
+		[FFXIV.JOBS.ARCHER] = 13,
+		[FFXIV.JOBS.BARD] = 13,
+		[FFXIV.JOBS.CONJURER] = 1,
+		[FFXIV.JOBS.WHITEMAGE] = 1,
+		[FFXIV.JOBS.THAUMATURGE] = 13,
+		[FFXIV.JOBS.BLACKMAGE] = 13,
+		[FFXIV.JOBS.ARCANIST] = 13,
+		[FFXIV.JOBS.SUMMONER] = 13,
+		[FFXIV.JOBS.SCHOLAR] = 13,
+		[FFXIV.JOBS.ROGUE] = 13,
+		[FFXIV.JOBS.NINJA] = 13,
+	}
+	local defaultArmorUI = {
+		[1] = 11,
+		[2] = 34,
+		[3] = 35,
+		[4] = 37,
+		[5] = 39,
+		[6] = 36,
+		[7] = 38,
+		[8] = 41,
+		[9] = 40,
+		[10] = 42,
+		[11] = 43,
+		[12] = 43,
+	}
+	local defaultArmorSlot = {
+		[1] = 2,
+		[2] = 3,
+		[3] = 4,
+		[4] = 5,
+		[5] = 6,
+		[6] = 7,
+		[7] = 8,
+		[8] = 9,
+		[9] = 10,
+		[10] = 11,
+		[11] = 12,
+		[12] = 12,
+	}
+	local primaryStats = {
+		[FFXIV.JOBS.GLADIATOR] = 1,
+		[FFXIV.JOBS.PALADIN] = 1,
+		[FFXIV.JOBS.MARAUDER] = 1,
+		[FFXIV.JOBS.WARRIOR] = 1,
+		[FFXIV.JOBS.PUGILIST] = 1,
+		[FFXIV.JOBS.MONK] = 1,
+		[FFXIV.JOBS.LANCER] = 1,
+		[FFXIV.JOBS.DRAGOON] = 1,
+		[FFXIV.JOBS.ARCHER] = 2,
+		[FFXIV.JOBS.BARD] = 2,
+		[FFXIV.JOBS.CONJURER] = 5,
+		[FFXIV.JOBS.WHITEMAGE] = 5,
+		[FFXIV.JOBS.THAUMATURGE] = 4,
+		[FFXIV.JOBS.BLACKMAGE] = 4,
+		[FFXIV.JOBS.ARCANIST] = 4,
+		[FFXIV.JOBS.SUMMONER] = 4,
+		[FFXIV.JOBS.SCHOLAR] = 5,
+		[FFXIV.JOBS.ROGUE] = 2,
+		[FFXIV.JOBS.NINJA] = 2,
+	}
+	
+	local slot = tonumber(slot)
+	local equippedItem = nil
+	local itemID = nil
+	
+	local equipped = Inventory("type=1000")
+	local item = nil
+	for _,i in pairs(equipped) do
+		if (i.slot == slot) then
+			item = i
+		end
+	end
+	
+	if (item) then
+		--If there is an item equipped, use it's details as a base comparison factor.
+		itemID = item.id
+		
+		if (item.IsHQ == 1) then
+			itemID = (itemID - 1000000)
+		end
+		local equippedItemDetails = ffxiv_item_data[itemID]
+		equippedItemDetails.hq = item.IsHQ == 1
+		
+		local statTotals = 0
+		local possibleUpgrades = FindItemsBySlot(equippedItemDetails.slot,equippedItemDetails.ui)
+		
+		if (slot == 0) then
+			--Use physical or magical damage and item level.
+			if (equippedItemDetails.hq) then
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
+				statTotals = statTotals + (equippedItemDetails.stats[primaryStats[Player.job]] or 0)
+			else
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamage + equippedItemDetails.mDamage
+				statTotals = statTotals + (equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0)
+			end
+		elseif (slot == 1) then
+			--Use shield stats and damage (not usually present, but just in case).
+			if (equippedItemDetails.hq) then
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
+				statTotals = statTotals + equippedItemDetails.shieldRateHQ + equippedItemDetails.blockRateHQ
+				statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
+				statTotals = statTotals + (equippedItemDetails.stats[primaryStats[Player.job]] or 0)
+			else
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamage + equippedItemDetails.mDamage
+				statTotals = statTotals + equippedItemDetails.shieldRate + equippedItemDetails.blockRate
+				statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
+				statTotals = statTotals + (equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0)
+			end
+		elseif (slot > 1 and slot <= 12) then
+			--Use physical and magical defense and item level.
+			if (equippedItemDetails.hq) then
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
+				statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
+				statTotals = statTotals + (equippedItemDetails.stats[primaryStats[Player.job]] or 0)
+			else
+				statTotals = equippedItemDetails.level + equippedItemDetails.pDamage + equippedItemDetails.mDamage
+				statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
+				statTotals = statTotals + (equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0)
+			end
+		end
+		
+		local highestStats = 0
+		local bestUpgrade = nil
+		local bestUpgradeID = nil
+		for id,data in pairs(possibleUpgrades) do
+			local statTotals = 0
+			if (slot == 0) then
+				--Use physical or magical damage and item level.
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			elseif (slot == 1) then
+				--Use shield stats and damage (not usually present, but just in case).
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + data.shieldRateHQ + data.blockRateHQ
+					statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + data.shieldRate + data.blockRate
+					statTotals = statTotals + data.defense + data.magicDefense
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			elseif (slot > 1 and slot <= 12) then
+				--Use physical and magical defense and item level.
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + data.defense + data.magicDefense
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			end
+			
+			if (not bestUpgrade or statTotals > highestStats) then
+				--d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
+				bestUpgrade = data
+				bestUpgradeID = id
+				highestStats = statTotals
+			end
+		end
+		
+		if (not bestUpgrade or statTotals > highestStats) then
+			d("For slot "..tostring(slot).." no upgrade is necessary.")
+			return false
+		else
+			local item = Inventory:Get(bestUpgradeID)
+			if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
+				item:Move(1000,slot)
+			end
+			
+			return true
+		end
+	else
+		--If there is no item equipped, use the default type details as a base comparison factor.
+		local defaultSlot = (slot == 0 and defaultWeaponSlot[Player.job]) or defaultArmorSlot[slot]
+		local defaultUI = (slot == 0 and defaultWeaponUI[Player.job]) or defaultArmorUI[slot]
+		local possibleUpgrades = FindItemsBySlot(defaultSlot,defaultUI)	
+		
+		local highestStats = 0
+		local bestUpgrade = nil
+		local bestUpgradeID = nil
+		for id,data in pairs(possibleUpgrades) do
+			local statTotals = 0
+			if (slot == 0) then
+				--Use physical or magical damage and item level.
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			elseif (slot == 1) then
+				--Use shield stats and damage (not usually present, but just in case).
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + data.shieldRateHQ + data.blockRateHQ
+					statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + data.shieldRate + data.blockRate
+					statTotals = statTotals + data.defense + data.magicDefense
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			elseif (slot > 1 and slot <= 12) then
+				--Use physical and magical defense and item level.
+				if (data.hq) then
+					statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+					statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
+					statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+				else
+					statTotals = data.level + data.pDamage + data.mDamage
+					statTotals = statTotals + data.defense + data.magicDefense
+					statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+				end
+			end
+			
+			if (not bestUpgrade or statTotals > highestStats) then
+				--d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
+				bestUpgrade = data
+				bestUpgradeID = id
+				highestStats = statTotals
+			end
+		end
+		
+		if (bestUpgrade) then
+			local item = Inventory:Get(bestUpgradeID)
+			if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
+				item:Move(1000,slot)
+			end
+			
+			d("For slot "..tostring(slot).." item should be swapped to "..tostring(bestUpgrade.name))
+			return true
+		else
+			d("For slot "..tostring(slot).." no upgrade is possible.")
+			return false
+		end
+	end
+	
+	return false
+end
+
+function FindItemsBySlot(slot,ui)
+	local slot = tonumber(slot)
+	local ui = tonumber(ui)
+	local items = {}
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (ValidTable(item) and item.requiredlevel > 0) then
+				if (item.requiredlevel <= Player.level) then
+					local isHQ = item.IsHQ == 1
+					local itemid = (isHQ and (item.id - 1000000)) or item.id
+					local itemDetails = ffxiv_item_data[itemid]
+					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
+						itemDetails.hq = isHQ
+						items[item.id] = itemDetails
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (ValidTable(item) and item.requiredlevel > 0) then
+				if (item.requiredlevel <= Player.level) then
+					local isHQ = item.IsHQ == 1
+					local itemid = (isHQ and (item.id - 1000000)) or item.id
+					local itemDetails = ffxiv_item_data[itemid]
+					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
+						itemDetails.hq = isHQ
+						items[item.id] = itemDetails
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = Inventory("type=3300")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local isHQ = item.IsHQ == 1
+				local itemid = (isHQ and (item.id - 1000000)) or item.id
+				local itemDetails = ffxiv_item_data[itemid]
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
+					itemDetails.hq = isHQ
+					items[item.id] = itemDetails
+				end
+			end
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = Inventory("type=3500")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local isHQ = item.IsHQ == 1
+				local itemid = (isHQ and (item.id - 1000000)) or item.id
+				local itemDetails = ffxiv_item_data[itemid]
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
+					itemDetails.hq = isHQ
+					items[item.id] = itemDetails
+				end
+			end
+		end
+	end
+	
+	for id,item in pairs(items) do
+		if (not item.classes[Player.job]) then
+			items[id] = nil
+		end
+	end
+	
+	return items
+end
+
 function EquipItem(itemID, itemtype)
 	local itemtype = itemtype or 0
 	local item = Inventory:Get(itemID)
@@ -2454,6 +3035,17 @@ function EquipItem(itemID, itemtype)
 			item:Move(1000,GetEquipSlotForItem(item))
 		end
 	end
+end
+
+function IsEquipped(itemid)
+	local itemid = tonumber(itemid)
+	local currEquippedItems = Inventory("type=1000")
+	for id,item in pairs(currEquippedItems) do
+		if(item.id == itemid) then
+			return true
+		end
+	end
+	return false
 end
 
 function GetItemInSlot(equipSlot)
@@ -2489,6 +3081,72 @@ function ItemIsReady(itemid)
 	end
 	
 	return false
+end
+
+function ItemCount(itemid)
+	local itemcount = 0
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				itemcount = itemcount + item.count
+			end
+		end
+	end
+	
+	--Look through equipped items bag.
+	local inv = Inventory("type=1000")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = itemcount + 1
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				itemcount = itemcount + 1
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = Inventory("type=3300")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = itemcount + 1
+		end
+	end
+	
+	--Look through soulstones armory bag.
+	local inv = Inventory("type=3400")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = itemcount + 1
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = Inventory("type=3500")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = itemcount + 1
+		end
+	end
+	
+	--Look through quest/key items bag.
+	local inv = Inventory("type=2004")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = itemcount + item.count
+		end
+	end
+	
+	return itemcount
 end
 
 function GetEquipSlotForItem(item)
@@ -2684,4 +3342,98 @@ function GetQuestByID(questID)
 			end
 		end
 	end
+end
+
+function IsLimsa(mapid)
+	local mapid = tonumber(mapid)
+	return (mapid == 128 or mapid == 129)
+end
+
+function IsUldah(mapid)
+	local mapid = tonumber(mapid)
+	return (mapid == 132 or mapid == 133)
+end
+
+function IsGridania(mapid)
+	local mapid = tonumber(mapid)
+	return (mapid == 130 or mapid == 131)
+end
+
+function NewCheckbox(strWinName,strText,strVarName,varDefaultValue,strGroup)
+	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
+	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
+	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
+	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
+	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
+	
+	if (Settings.FFXIVMINION[strVarName] == nil) then
+		Settings.FFXIVMINION[strVarName] = varDefaultValue
+	end
+	
+	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
+	
+	_G[strVarName] = Settings.FFXIVMINION[strVarName]
+end
+
+function NewComboBox(strWinName,strText,strVarName,varDefaultValue,strGroup,strOptions)
+	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
+	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
+	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
+	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
+	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
+	
+	if (Settings.FFXIVMINION[strVarName] == nil) then
+		Settings.FFXIVMINION[strVarName] = varDefaultValue
+	end
+	
+	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup,strOptions)
+	
+	_G[strVarName] = Settings.FFXIVMINION[strVarName]
+end
+
+function NewField(strWinName,strText,strVarName,varDefaultValue,strGroup)
+	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
+	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
+	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
+	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
+	assert(varDefaultValue ~= nil, "Default value for field required.")
+	
+	if (Settings.FFXIVMINION[strVarName] == nil) then
+		Settings.FFXIVMINION[strVarName] = varDefaultValue
+	end
+	
+	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
+	
+	_G[strVarName] = Settings.FFXIVMINION[strVarName]
+end
+
+function NewNumeric(strWinName,strText,strVarName,varDefaultValue,strGroup,lngMin,lngMax)
+	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
+	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
+	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
+	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
+	
+	if (Settings.FFXIVMINION[strVarName] == nil) then
+		Settings.FFXIVMINION[strVarName] = varDefaultValue
+	end
+	
+	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
+	
+	_G[strVarName] = Settings.FFXIVMINION[strVarName]
+end
+
+function NewButton(strWinName,strText,strVarName,varDefaultValue,strGroup)
+	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
+	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
+	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
+	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
+	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
+	
+	if (Settings.FFXIVMINION[strVarName] == nil) then
+		Settings.FFXIVMINION[strVarName] = varDefaultValue
+	end
+	
+	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
+	
+	_G[strVarName] = Settings.FFXIVMINION[strVarName]
 end
