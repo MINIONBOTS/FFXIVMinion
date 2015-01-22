@@ -1167,9 +1167,10 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	else
-		d("target not valid>")
-		if (Player:GetSyncLevel() ~= 0) then
-			Player:SyncLevel()
+		if (ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+			if (Player:GetSyncLevel() ~= 0) then
+				Player:SyncLevel()
+			end
 		end
 	end
       
@@ -1193,8 +1194,10 @@ function ffxiv_task_grindCombat:task_complete_eval()
 end
 
 function ffxiv_task_grindCombat:task_complete_execute()
-	if (Player:GetSyncLevel() ~= 0) then
-		Player:SyncLevel()
+	if (ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+		if (Player:GetSyncLevel() ~= 0) then
+			Player:SyncLevel()
+		end
 	end
     Player:Stop()
 	self.completed = true
