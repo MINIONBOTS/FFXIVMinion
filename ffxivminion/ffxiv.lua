@@ -1201,7 +1201,7 @@ end
 
 function ffxivminion.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" and string.find(Button,"Field_") ~= nil ) then
-		if (Button == "Field_Whitelist Target") then
+		if (Button == "Field_"..GetString("whitelistTarget")) then
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then
 			BlacklistTarget()

@@ -813,6 +813,27 @@ function e_gather:execute()
 						end
 					end
 				end
+				
+				local validNodes = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("validSlots"))
+				if (not IsNullString(validNodes)) then
+					for slot in StringSplit(validNodes,",") do
+						local slotNum = tonumber(slot)
+						local slotFound = found
+						if (slotNum ~= nil) then
+							for i, item in pairs(list) do
+								if ((item.index) == (slotNum-1)) then
+									slotFound = true
+								end
+							end
+						end
+						if (not slotFound) then
+							Player:Gather(slotNum-1)
+							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+							ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+							return
+						end
+					end
+				end
 			
 				-- do 2 loops to allow prioritization of first item
 				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem1)
@@ -1178,7 +1199,6 @@ function ffxiv_task_gather.LocatorBuff(class)
 	end
 	local action = ActionList:Get(actionid)
 	if (action and not action.isoncd) then
-		d("locator buff, using ability")
 		action:Cast()
 	end
 	ffxiv_task_gather.timer = Now() + 1000
@@ -1186,13 +1206,14 @@ end
 
 function ffxiv_task_gather.SetupMarkers()
     -- add marker templates for gathering
-    local botanyMarker = ml_marker:Create("botanyTemplate")
+     local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(strings[gCurrentLanguage].botanyMarker)
 	botanyMarker:ClearFields()
+	botanyMarker:AddField("string", GetString("validSlots"), "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	botanyMarker:AddField("button", "Whitelist Target", "")
+	botanyMarker:AddField("button", GetString("whitelistTarget"), "")
 	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
 	botanyMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
 	botanyMarker:AddField("combobox", strings[gCurrentLanguage].gatherMaps, "Any", "Any,Peisteskin Only,None")
@@ -1206,10 +1227,11 @@ function ffxiv_task_gather.SetupMarkers()
 	local miningMarker = ml_marker:Create("miningTemplate")
 	miningMarker:SetType(strings[gCurrentLanguage].miningMarker)
 	miningMarker:ClearFields()
+	miningMarker:AddField("string", GetString("validSlots"), "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	miningMarker:AddField("button", "Whitelist Target", "")
+	miningMarker:AddField("button", GetString("whitelistTarget"), "")
 	miningMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
 	miningMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
 	miningMarker:AddField("combobox", strings[gCurrentLanguage].gatherMaps, "Any", "Any,Peisteskin Only,None")

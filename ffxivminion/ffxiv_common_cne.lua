@@ -1946,7 +1946,7 @@ function c_stealth:evaluate()
 			if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
 				local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
 				if (gatherable and (gatherable.distance < 15)) then
-					if (not HasBuff(Player.id, 47)) then
+					if (not HasBuff(Player.id, 47) and gGatherUnspoiled == "1") then
 						return true
 					else
 						return false
