@@ -393,10 +393,10 @@ function c_avoid:evaluate()
 		return false
 	end
 
-	local ppos = Player.pos
-	local plevel = Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel() or Player.level
+	local ppos = shallowcopy(Player.pos)
+	local plevel = (Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel()) or Player.level
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("targetingme,aggressive,onmesh,maxdistance=30")
+	local el = EntityList("targetingme,onmesh,maxdistance=30")
 	if (el) then
 		for i,e in pairs(el) do
 			if (ValidTable(e.castinginfo) and e.castinginfo.channelingid ~= 0) then
@@ -407,7 +407,8 @@ function c_avoid:evaluate()
 					if not (e.castinginfo.casttime < 1.3 
 						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
 						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-						or (e.level ~= nil and e.level ~= 0 and plevel > e.level + 7)) then
+						or (e.level ~= nil and e.level ~= 0 and plevel > (e.level + 7))) 
+					then
 						c_avoid.target = e
 						return true
 					end
@@ -418,11 +419,18 @@ function c_avoid:evaluate()
 	
 	-- If we don't have a target, we obviously can't avoid anything.
 	local target = Player:GetTarget()
-	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > target.level + 7)) then
+	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > (target.level + 7))) then
+		if (target) then
+			--d("Condition2:"..tostring(not target.castinginfo))
+			--d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
+			--d("Condition4:"..tostring(plevel > (target.level + 7)))
+		end
+		--d("avoid returning false in block 1.")
 		return false
 	end
 	
 	if (ml_blacklist.CheckBlacklistEntry(GetString("aoe"), target.castinginfo.channelingid)) then
+		--d("avoid returning false in block 2.")
 		return false
 	end
 	
@@ -431,7 +439,12 @@ function c_avoid:evaluate()
 	--Check to see if our current target is casting on us.
     if (target.castinginfo.casttime < 1.3
 		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
-		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) then
+		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) 
+	then
+		--d("Condition1:"..tostring(target.castinginfo.casttime < 1.3))
+		--d("Condition2:"..tostring(distance > 15 and target.castinginfo.channeltargetid == target.id))
+		--d("Condition3:"..tostring(target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id))
+		--d("avoid returning false in block 3")
         return false
     end
 
@@ -448,8 +461,8 @@ function e_avoid:execute()
 	local h = ConvertHeading(ppos.h)
 	local eh = ConvertHeading(epos.h)
 	
-	local mobRight = ConvertHeading((eh - (math.pi/2)))%(2*math.pi)
-	local mobLeft = ConvertHeading((eh + (math.pi/2)))%(2*math.pi)
+	local mobRight = ConvertHeading((eh - (math.pi * .65)))%(2*math.pi)
+	local mobLeft = ConvertHeading((eh + (math.pi * .65)))%(2*math.pi)
 	local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 	local mobFrontLeft = ConvertHeading((eh + (math.pi * .30)))%(2*math.pi)
 	local mobFrontRight = ConvertHeading((eh - (math.pi * .30)))%(2*math.pi)
@@ -471,7 +484,7 @@ function e_avoid:execute()
 	
 	local rangeDist = nil
 	if (ml_global_information.AttackRange > 5) then
-		rangeDist = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)		
+		rangeDist = Distance3DT(ppos,epos)		
 	else
 		rangeDist = target.hitradius + 1
 	end
@@ -497,12 +510,18 @@ function e_avoid:execute()
 		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
 	}
 	
+	local isRanged = (ml_global_information.AttackRange > 5)
+	
 	local maxTime = 0
 	if (target.castinginfo.channeltargetid == target.id) then
 		local optionTable = nil
 		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid]) then
 			optionTable = options3
+			if (isRanged) then
+				maxTime = 0
+			else
 			maxTime = tonumber(target.castinginfo.casttime)
+			end
 		else
 			optionTable = options1
 			maxTime = 0
@@ -532,7 +551,11 @@ function e_avoid:execute()
 		escapePoint = closest
 	else
 		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
+		if (isRanged) then
+			maxTime = 0
+		else
 		maxTime = tonumber(target.castinginfo.casttime)
+		end
 		local viable = {}
 		local i = 0
 		for _, pos in pairs(options2) do
@@ -1058,6 +1081,9 @@ function c_usenavinteraction:evaluate()
 	local myPos = shallowcopy(Player.pos)
 	local gotoPos = ml_task_hub:ThisTask().pos
 	
+	assert(type(myPos) == "table","Player position is invalid.")
+	assert(type(gotoPos) == "table","Destination position is invalid.")
+	
 	requiresTransport = {
 		[139] = { name = "Upper La Noscea",
 			test = function()
@@ -1352,6 +1378,10 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 function c_mount:evaluate()
+	if (IsLoading() or IsPositionLocked()) then
+		return false
+	end
+	
 	noMountMaps = {
 		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,
 		[337] = true,[336] = true,[175] = true,[352] = true,
@@ -1639,24 +1669,9 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-	if (ml_task_hub:CurrentTask().name == "LT_REST") then
+	if (Player.incombat or not Player.alive) then
 		return false
 	end
-	
-	--[[
-	local target = Player:GetTarget()
-	if (not target and 
-		ml_task_hub:CurrentTask().name ~= "LT_KILLTARGET" and 
-		ml_task_hub:ThisTask().name ~= "QUEST_KILL" and 
-		ml_task_hub:ThisTask().name ~= "LT_QUEST" and
-		ml_task_hub:ThisTask().name ~= "QUEST_INTERACT") 
-	then
-		local el = EntityList("attackable,aggressive,notincombat,maxdistance=40,minlevel="..tostring(Player.level - 10))
-		if (TableSize(el) == 0) then
-			return false
-		end
-	end
-	--]]
 	
     -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
     if (gRestInFates == "0") then
@@ -1665,8 +1680,7 @@ function c_rest:evaluate()
         end
     end
 	
-	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) or
-		Player.incombat ) then
+	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) or Player.incombat) then
 		return false
 	end
 	
@@ -1693,10 +1707,6 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleePos = {}
 function c_flee:evaluate()
-	if (ml_task_hub:CurrentTask().name == "LT_FLEE") then
-		return false
-	end
-	
 	if ((Player.incombat) and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			local fpos = ml_marker_mgr.markerList["evacPoint"]
@@ -1818,17 +1828,17 @@ function c_returntomarker:evaluate()
 	-- making this will most likely break the behavior on some badly made meshes 
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
 	
-		local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+		local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
 		if (markerType == GetString("unspoiledMarker")) then
 			return false
 		end
 	
         local myPos = Player.pos
-        local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+        local pos = ml_task_hub:ThisTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 		
-		if (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode) then
-			local target = ml_task_hub:CurrentTask().targetFunction()
+		if (ml_task_hub:ThisTask().name == "LT_GRIND" or ml_task_hub:ThisTask().name == "LT_PARTY") then
+			local target = ml_task_hub:ThisTask().targetFunction()
 			if (distance > 200 or target == nil) then
 				return true
 			end
@@ -2033,6 +2043,10 @@ function c_teleporttopos:evaluate()
 			return false
 		end
 		
+		if (not ShouldTeleport()) then
+			return false
+		end
+		
         local myPos = Player.pos
         local gotoPos = ml_task_hub:CurrentTask().pos
 		
@@ -2057,21 +2071,14 @@ function e_teleporttopos:execute()
         local gotoPos = c_teleporttopos.pos
 		Player:Stop()
 		
-		--if(gShortTeleport == "1") then
-		--	if(c_teleporttopos.distance and c_teleporttopos.distance > 50) then
-		--		Player:SetFacing(gotoPos.x, gotoPos.y, gotoPos.z)
-		--		local myPos = Player.pos
-		--		local newPos = GetPosFromDistanceHeading(myPos, 50, myPos.h)
-		--		if(ValidTable(newPos)) then
-		--			gotoPos = newPos
-		--		end
-		--	end
-		--end
-			
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		Player:SetFacingSynced(math.random())
-		ml_task_hub:CurrentTask():SetDelay(1500)
-		--d(tostring(PathSize))
+		--[[
+		if (ActionIsReady(2,5)) then
+			local unfloat = ActionList:Get(2,5)
+			unfloat:Cast()
+		end
+		--]]
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
     end
