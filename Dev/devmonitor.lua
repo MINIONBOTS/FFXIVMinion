@@ -278,8 +278,69 @@ function Dev.ModuleInit()
 	
 	--DutyFinder/PvP
 	GUI_NewNumeric("Dev","ListIndex","duty_sel","DutyInfo","1","99")
-	GUI_NewField("Dev","Name","duty_name","DutyInfo")
-	GUI_NewField("Dev","MapID","duty_mapid","DutyInfo")	
+	GUI_NewField("Dev","name","duty_name","DutyInfo")
+	GUI_NewField("Dev","id (mapid)","duty_mapid","DutyInfo")	
+	GUI_NewField("Dev","ptr","duty_ptr","DutyInfo")
+	GUI_NewField("Dev","ptr2","duty_ptr2","DutyInfo")
+	GUI_NewField("Dev","ListIndex","duty_lidx","DutyInfo")
+	GUI_NewField("Dev","SelectCode","duty_selcode","DutyInfo")
+	GUI_NewField("Dev","Level","duty_lvl","DutyInfo")
+	GUI_NewField("Dev","Selectable","duty_selectable","DutyInfo")
+	GUI_NewField("Dev","Content Type","duty_2","DutyInfo")
+	--[[
+	Content Types
+	1) Duty Roulette
+	2) Dungeon
+	3) Guildhest
+	4) Trial (Primals)
+	5) Raids
+	6) PvP
+	7) Quest Battle
+	8) FATE
+	9) Treasure Hunt
+	10) Levequest
+	11) Grand Company
+	12) Companions
+	13) Beast Tribe Quests
+	14) Overall Completion
+	15) Player Commendation
+	16) Disciples of the Land
+	17) Disciples of the Handle
+	18) Retainer Ventures
+	--]]
+	GUI_NewField("Dev","3","duty_3","DutyInfo")
+	GUI_NewField("Dev","4","duty_4","DutyInfo")
+	GUI_NewField("Dev","Max Time?","duty_5","DutyInfo")
+	--[[
+	61802 - 120
+	61804 - 60
+	61801 - 90
+	61803 - 30
+	--]]
+	GUI_NewField("Dev","Required Level","duty_6","DutyInfo")
+	GUI_NewField("Dev","Sync Level","duty_7","DutyInfo")
+	GUI_NewField("Dev","8","duty_8","DutyInfo")
+	GUI_NewField("Dev","Item Sync Level","duty_9","DutyInfo")
+	GUI_NewField("Dev","10","duty_10","DutyInfo")
+	GUI_NewField("Dev","11","duty_11","DutyInfo")
+	GUI_NewField("Dev","12","duty_12","DutyInfo")
+	GUI_NewField("Dev","13","duty_13","DutyInfo")
+	GUI_NewField("Dev","Party Size","duty_14","DutyInfo")
+	GUI_NewField("Dev","Max Tanks","duty_15","DutyInfo")
+	GUI_NewField("Dev","Max Healers","duty_16","DutyInfo")
+	GUI_NewField("Dev","Max DPS","duty_17","DutyInfo")
+	GUI_NewField("Dev","Max Melee","duty_18","DutyInfo")
+	GUI_NewField("Dev","Max Ranged","duty_19","DutyInfo")
+	GUI_NewField("Dev","Party Count","duty_20","DutyInfo")
+	GUI_NewField("Dev","DifferentiateDPS","duty_21","DutyInfo") -- True/False
+	GUI_NewField("Dev","Free Role","duty_22","DutyInfo") -- True/False
+	GUI_NewField("Dev","Alliance Count?","duty_23","DutyInfo")
+	GUI_NewField("Dev","24","duty_24","DutyInfo")
+	GUI_NewField("Dev","25","duty_25","DutyInfo")
+	GUI_NewField("Dev","26","duty_26","DutyInfo")
+	GUI_NewField("Dev","27","duty_27","DutyInfo")
+	GUI_NewField("Dev","28","duty_28","DutyInfo")
+	GUI_NewField("Dev","29","duty_29","DutyInfo")
 	
 	GUI_NewField("Dev","DutySelectWindow","duty_selectwindow","DutyInfo")
 	GUI_NewField("Dev","ConfirmEnterWindow","duty_confirmenterwindow","DutyInfo")
@@ -1101,20 +1162,89 @@ function Dev.UpdateWindow()
 		paonmesh = false
 	end
 	
-	--Duty/PVP
 	local dutyfound = false
 	local dutylist = Duty:GetDutyList()
 	if (dutylist ) then 
 		local duty = dutylist[tonumber(duty_sel)]
 		if duty then
 			dutyfound = true
+			duty_ptr = duty.ptr or 0
+			duty_ptr2 = duty.ptr2 or 0
 			duty_name = duty.name
 			duty_mapid = duty.id
+			duty_lidx = duty.DutyListIndex
+			duty_selcode = duty.DutySelectCode
+			duty_lvl = duty.level
+			duty_selectable = tostring(duty.selectable)
+			duty_2 = tostring(duty.u2)
+			duty_3 = tostring(duty.u3)
+			duty_4 = tostring(duty.u4)
+			duty_5 = tostring(duty.u5)
+			duty_6 = tostring(duty.u6)
+			duty_7 = tostring(duty.u7)
+			duty_8 = tostring(duty.u8)
+			duty_9 = tostring(duty.u9)
+			duty_10 = tostring(duty.u10)
+			duty_11 = tostring(duty.u11)
+			duty_12 = tostring(duty.u12)
+			duty_13 = tostring(duty.u13)
+			duty_14 = tostring(duty.u14)
+			duty_15 = tostring(duty.u15)
+			duty_16 = tostring(duty.u16)
+			duty_17 = tostring(duty.u17)
+			duty_18 = tostring(duty.u18)
+			duty_19 = tostring(duty.u19)
+			duty_20 = tostring(duty.u20)
+			duty_21 = tostring(duty.u21)
+			duty_22 = tostring(duty.u22)
+			duty_23 = tostring(duty.u23)
+			duty_24 = tostring(duty.u24)
+			duty_25 = tostring(duty.u25)
+			duty_26 = tostring(duty.u26)
+			duty_27 = tostring(duty.u27)
+			duty_28 = tostring(duty.u28)
+			duty_29 = tostring(duty.u29)
 		end
 	end
 	if not dutyfound then
+		duty_ptr = 0
+		duty_ptr2 = 0
 		duty_name = 0
 		duty_mapid = 0
+		duty_lidx = 0
+		duty_selcode = 0
+		duty_lvl = 0
+		duty_selectable = false
+		duty_1 = ""
+		duty_2 = ""
+		duty_3 = ""
+		duty_4 = ""
+		duty_5 = ""
+		duty_6 = ""
+		duty_7 = ""
+		duty_8 = ""
+		duty_9 = ""
+		duty_10 = ""
+		duty_11 = ""
+		duty_12 = ""
+		duty_13 = ""
+		duty_14 = ""
+		duty_15 = ""
+		duty_16 = ""
+		duty_17 = ""
+		duty_18 = ""
+		duty_19 = ""
+		duty_20 = ""
+		duty_21 = ""
+		duty_22 = ""
+		duty_23 = ""
+		duty_24 = ""
+		duty_25 = ""
+		duty_26 = ""
+		duty_27 = ""
+		duty_28 = ""
+		duty_29 = ""
+		duty_30 = ""
 	end
 	
 	duty_selectwindow = tostring(ControlVisible("ContentsFinder"))
