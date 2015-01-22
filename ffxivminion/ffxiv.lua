@@ -310,6 +310,9 @@ function ffxivminion.HandleInit()
 	if ( Settings.FFXIVMINION.gTeleport == nil) then
         Settings.FFXIVMINION.gTeleport = "0"
     end
+	if ( Settings.FFXIVMINION.gParanoid == nil) then
+        Settings.FFXIVMINION.gParanoid = "0"
+    end
     if ( Settings.FFXIVMINION.gSkipCutscene == nil) then
         Settings.FFXIVMINION.gSkipCutscene = "0"
     end
@@ -345,6 +348,9 @@ function ffxivminion.HandleInit()
 	end
 	if ( Settings.FFXIVMINION.gGatherPS == nil) then
 		Settings.FFXIVMINION.gGatherPS = "0" 
+	end
+	if ( Settings.FFXIVMINION.gPermaSwiftCast == nil) then
+		Settings.FFXIVMINION.gPermaSwiftCast = "0" 
 	end
 	if ( Settings.FFXIVMINION.gFoodHQ == nil) then
 		Settings.FFXIVMINION.gFoodHQ = "None" 
@@ -411,19 +417,19 @@ function ffxivminion.HandleInit()
     GUI_NewNumeric(winName,strings[gCurrentLanguage].sprintDist,"gSprintDist",group )
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].companion, "gChoco",group,"")
 	--GUI_NewField(winName,"Chocobo Name","gChocoName",group )
-	GUI_NewCheckbox(winName,"Curiel Root","gUseCurielRoot",group )
+	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
 	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].stance,"gChocoStance",group,"")
 	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
-	GUI_NewComboBox(winName,"Food", 	"gFood", group, "None")
-	GUI_NewComboBox(winName,"HQ Food", 	"gFoodHQ", group, "None")
+	GUI_NewComboBox(winName,GetString("food"),"gFood", group, "None")
+	GUI_NewComboBox(winName,GetString("foodHQ"),"gFoodHQ", group, "None")
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].avoidAOE, "gAvoidAOE",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
-	GUI_NewButton(winName, GetString("multiManager"), "MultiBotManager.toggle", group)
-	GUI_NewButton(winName,"Cast Prevention","CastPrevention.toggle",group)
-	GUI_NewButton(winName,"Shortcut Manager","ShortcutManager.toggle",group)
+	GUI_NewButton(winName,GetString("multiManager"), "MultiBotManager.toggle", group)
+	GUI_NewButton(winName,GetString("castPrevention"),"CastPrevention.toggle",group)
+	GUI_NewButton(winName,GetString("shortcutManager"),"ShortcutManager.toggle",group)
 	
 	local group = GetString("playerHPMPTP")
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
@@ -437,7 +443,9 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].repair,"gRepair",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].teleport,"gTeleport",group)
-	GUI_NewCheckbox(winName, strings[gCurrentLanguage].permaSprint, "gGatherPS",group)
+	GUI_NewCheckbox(winName,GetString("paranoid"),"gParanoid",group)
+	GUI_NewCheckbox(winName,strings[gCurrentLanguage].permaSprint, "gGatherPS",group)
+	GUI_NewCheckbox(winName,GetString("permaSwiftcast"),"gPermaSwiftCast",group)
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",group)
@@ -468,7 +476,9 @@ function ffxivminion.HandleInit()
 	gMount = Settings.FFXIVMINION.gMount
 	gRepair = Settings.FFXIVMINION.gRepair
 	gTeleport = Settings.FFXIVMINION.gTeleport
+	gParanoid = Settings.FFXIVMINION.gParanoid
 	gGatherPS = Settings.FFXIVMINION.gGatherPS
+	gPermaSwiftCast = Settings.FFXIVMINION.gPermaSwiftCast
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
 	gDevDebug = Settings.FFXIVMINION.gDevDebug
@@ -588,10 +598,15 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
+		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines")
 		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
 		ml_mesh_mgr.SetDefaultMesh(177, "Gridania - Inn")
 		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
 		ml_mesh_mgr.SetDefaultMesh(179, "Limsa Lominsa - Inn")
+		
+		ml_mesh_mgr.SetDefaultMesh(203, "Ul dah - Heart of the Sworn")
+		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
+		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
@@ -620,6 +635,9 @@ function ffxivminion.HandleInit()
 	end
 	if (gGatherPS == "1") then
         GameHacks:SetPermaSprint(true)
+    end
+	if (gPermaSwiftCast == "1") then
+        GameHacks:SetPermaSwiftCast(true)
     end
 	
 	ffxivminion.UpdateFoodOptions()
@@ -663,6 +681,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gChocoStance" or
 			k == "gMount" or
 			k == "gTeleport" or
+			k == "gParanoid" or
 			k == "gQuestHelpers" or
 			k == "gRepair" or 
 			k == "gUseAetherytes" or
@@ -796,6 +815,15 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
                 GameHacks:SetPermaSprint(true)
             else
                 GameHacks:SetPermaSprint(false)
+            end
+			Settings.FFXIVMINION[tostring(k)] = v
+        end
+		
+		if ( k == "gPermaSwiftCast" ) then
+            if ( v == "1") then
+                GameHacks:SetPermaSwiftCast(true)
+            else
+                GameHacks:SetPermaSwiftCast(false)
             end
 			Settings.FFXIVMINION[tostring(k)] = v
         end
@@ -938,8 +966,6 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
 		[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
-		
-
     }
 	
 	if (ml_global_information.CurrentClass == nil) then
@@ -1239,9 +1265,9 @@ function ffxivminion.NodeDistance(self, id)
 			cost = 999
 		end
 		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
-			cost = 999
-		end
-
+				cost = 999
+			end
+		
         return cost
     end
     

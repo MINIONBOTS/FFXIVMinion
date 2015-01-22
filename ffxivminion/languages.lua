@@ -601,6 +601,16 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		
+		--===== Added 1/21/15 - Ace
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
+		
     },                                  
     ["cn"] =                            
     {                               
@@ -1222,6 +1232,14 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
 	},
     ["jp"] =
     {
@@ -1796,6 +1814,13 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
 	},   
     ["de"] =
     {
@@ -2371,6 +2396,14 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
 	},     
     ["fr"] =
     {
@@ -2945,6 +2978,14 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
 	},       
     ["ru"] =
     {
@@ -3519,6 +3560,14 @@ strings =
 		
 		minimumCP						= "Minimum CP",
 		craftAmount						= "Craft Amount",
+		
+		paranoid						= "Paranoid",
+		permaSwiftcast					= "PermaSwiftCast",
+		castPrevention					= "Cast Prevention",
+		shortcutManager					= "Shortcut Manager",
+		food							= "Food",
+		foodHQ							= "Food HQ",
+		curielRoot						= "Curiel Root",
 	},    	
 
 }
