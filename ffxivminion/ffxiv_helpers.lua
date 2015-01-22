@@ -2045,7 +2045,7 @@ function Mount(id)
 				local acMount = ActionList:Get(mountID,13)
 				if (acMount and acMount.isready) then
 					acMount:Cast()
-					ml_task_hub:CurrentTask():SetDelay(2000)
+					ml_task_hub:CurrentTask():SetDelay(1000)
 				end
 			end
 		end
