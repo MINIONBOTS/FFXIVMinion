@@ -1839,7 +1839,7 @@ function c_returntomarker:evaluate()
 		
 		if (ml_task_hub:ThisTask().name == "LT_GRIND" or ml_task_hub:ThisTask().name == "LT_PARTY") then
 			local target = ml_task_hub:ThisTask().targetFunction()
-			if (distance > 200 or target == nil) then
+			if (distance > 200 or (target == nil and distance > 10)) then
 				return true
 			end
 		end

@@ -88,7 +88,13 @@ function e_findgatherable:execute()
 		gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) 
 	then
 		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
+		if (minlevel and minlevel < 50) then
+			minlevel = RoundUp(minlevel,5)
+		end
 		maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
+		if (maxlevel and maxlevel < 50) then
+			maxlevel = RoundUp(maxlevel,5)
+		end
     end
 	
 	ffxiv_task_gather.gatherStarted = false

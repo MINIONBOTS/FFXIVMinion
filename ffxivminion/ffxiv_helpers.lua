@@ -1064,6 +1064,13 @@ function GetNearestAggro()
     return nil
 end
 
+function RoundUp(number, multiple)
+	local number = tonumber(number)
+	local multiple = tonumber(multiple)
+	
+	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
+end
+
 function GetNearestGatherable(minlevel,maxlevel)
     local el = nil
     local whitelist = nil
