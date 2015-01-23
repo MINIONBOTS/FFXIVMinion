@@ -1167,7 +1167,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	else
-		if (ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+		if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
 			if (Player:GetSyncLevel() ~= 0) then
 				Player:SyncLevel()
 			end
@@ -1194,7 +1194,7 @@ function ffxiv_task_grindCombat:task_complete_eval()
 end
 
 function ffxiv_task_grindCombat:task_complete_execute()
-	if (ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+	if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
 		if (Player:GetSyncLevel() ~= 0) then
 			Player:SyncLevel()
 		end
