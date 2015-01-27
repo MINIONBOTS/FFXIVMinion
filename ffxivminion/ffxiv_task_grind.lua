@@ -85,7 +85,7 @@ function c_nextgrindmarker:evaluate()
 					(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
                     Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
                 end
             end
         end
@@ -96,7 +96,7 @@ function c_nextgrindmarker:evaluate()
 				local expireTime = ml_task_hub:ThisTask().markerTime
 				if (Now() > expireTime) then
 					ml_debug("Getting Next Marker, TIME IS UP!")
-					marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+					marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
 				else
 					return false
 				end
@@ -395,7 +395,7 @@ function ffxiv_task_grind.SetupMarkers()
     local grindMarker = ml_marker:Create("grindTemplate")
 	grindMarker:SetType(strings[gCurrentLanguage].grindMarker)
 	grindMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
-	grindMarker:AddField("button", "Whitelist Target", "")
+	grindMarker:AddField("button", GetString("whitelistTarget"), "")
 	grindMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
     grindMarker:SetTime(300)
     grindMarker:SetMinLevel(1)
@@ -443,7 +443,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 						local action = ActionList:Get(tonumber(gSpellID))
 						gSpellName = action.name
 					else
-						gSpellName = gSpellID
+						gSpellName = tostring(gSpellID)
 					end
 				end
 			end
