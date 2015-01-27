@@ -303,7 +303,7 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or ControlVisible("Shop")) then
 		return true
 	end
 	
@@ -1074,7 +1074,7 @@ function ffxiv_task_grindCombat:Init()
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_grindCombat:Process()
+function ffxiv_task_grindCombat:Process()	
 	local teleport = ShouldTeleport()
 	
 	target = EntityList:Get(self.targetid)
@@ -1104,7 +1104,7 @@ function ffxiv_task_grindCombat:Process()
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
 			if ((not InCombatRange(target.id) or not target.los) and not ActionList:IsCasting()) then
-				if (teleport and dist > 35) then
+				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
@@ -1125,19 +1125,20 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			Player:SetFacing(pos.x,pos.y,pos.z) 
+			--d("InCombatRange:"..tostring(InCombatRange(target.id))..",attackable:"..tostring(target.attackable)..",alive:"..tostring(target.alive))
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 					SkillMgr.Cast( target )
 					if (self.attackThrottle) then
 						if (Player.level > (target.level + 10)) then
-							self.attackThrottleTimer = Now() + 3000
+							self.attackThrottleTimer = Now() + 4000
 						end
 					end
 				end
 			end
 		else
 			if (not InCombatRange(target.id) or not target.los) then
-				if (teleport and dist > 30) then
+				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
@@ -1161,7 +1162,7 @@ function ffxiv_task_grindCombat:Process()
 				SkillMgr.Cast( target )
 				if (self.attackThrottle) then
 					if (Player.level > (target.level + 10)) then
-						self.attackThrottleTimer = Now() + 3000
+						self.attackThrottleTimer = Now() + 4000
 					end
 				end
 			end
@@ -1340,7 +1341,7 @@ end
 function ffxiv_nav_interact:task_complete_eval()
 	if (IsPositionLocked() and self.addedMoveElement) then
 		for i, element in pairs(self.process_elements) do
-			if (element.name == "TeleportToPos" or element.name == "WalkToPos" or element.name == "Mount") then
+			if (element.name == "TeleportToPos" or element.name == "Mount") then
 				table.remove(self.process_elements,i)
 			end
 		end
@@ -1365,56 +1366,10 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (IsPositionLocked() or IsLoading()) then
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectYesno")) then
+		Player:Stop()
 		return false
-	end
-	
-	--[[
-	if (Player.ismounted and Now() > self.delayTimer) then
-		local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")
-		if (ValidTable(interacts)) then
-			Dismount()
-			self.delayTimer = 1000
-		end
-	end
-	
-	if (self.interact == 0) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
-			if (interacts) then
-				local i,interact = next(interacts)
-				if (interact) then
-					self.interact = interact.id
-				end
-			end
-		end
-	end
-	
-	if (not Player:GetTarget() and self.interact ~= 0) then
-		Player:SetTarget(self.interact)
-	end
-	
-	if (Player:GetTarget() and self.interact ~= 0 and Now() > self.lastinteract) then
-		if (not IsLoading() and not IsPositionLocked()) then
-			local interact = EntityList:Get(tonumber(self.interact))
-			if (interact) then
-				Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
-				Player:Interact(interact.id)
-				self.lastinteract = Now() + 500
-			end
-		end
-	end
-	
-	if (self.interact ~= 0) then
-		local interact = EntityList:Get(tonumber(self.interact))
-		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
-			return true
-		end
-	end
-	
-	--]]
-	
-	
+	end	
 	
 	if (Player.ismounted and Now() > self.delayTimer) then
 		local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")

@@ -478,8 +478,10 @@ function e_avoid:execute()
 		dodgeDist = 9
 	elseif (target.hitradius >= 2 and target.hitradius < 3) then
 		dodgeDist = 11
-	else
+	elseif (target.hitradius >= 3 and target.hitradius < 6) then
 		dodgeDist = 14
+	else
+		dodgeDist = 18
 	end
 	
 	local rangeDist = nil
@@ -1026,13 +1028,49 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
+	if (IsLoading() or IsPositionLocked()) then
+		return false
+	end
+	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
         if ((ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) or IsMounting()) then
             return false
         end
 		
-        local myPos = Player.pos
+        local myPos = shallowcopy(Player.pos)
         local gotoPos
+		
+		if (not ml_task_hub:ThisTask().distanceCheckTimer or 
+			not ml_task_hub:ThisTask().stuckTicks) 
+		then
+			ml_task_hub:ThisTask().distanceCheckTimer = 0
+			ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
+			ml_task_hub:ThisTask().stuckTicks = 0
+		end
+		
+		if (ml_task_hub:ThisTask().distanceCheckTimer) then
+			if (Now() > ml_task_hub:ThisTask().distanceCheckTimer) then
+				if (not ml_task_hub:ThisTask().lastPosition) then
+					ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
+				else
+					local lastPos = ml_task_hub:ThisTask().lastPosition
+					local distanceTraveled = Distance3D(myPos.x,myPos.y,myPos.z,lastPos.x,lastPos.y,lastPos.z)
+					
+					--d("Distance traveled was "..tostring(distanceTraveled))
+					
+					if (distanceTraveled < 3) then
+						ml_task_hub:ThisTask().stuckTicks = ml_task_hub:ThisTask().stuckTicks + 1
+					else
+						ml_task_hub:ThisTask().stuckTicks = 0
+					end
+	
+					--d("Current stuck ticks: "..tostring(ml_task_hub:ThisTask().stuckTicks))
+					
+					ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
+					ml_task_hub:ThisTask().distanceCheckTimer = Now() + 1000
+				end
+			end
+		end
 		
 		-- if we're doing map navigation then we have extended the moveto pos beyond the gate to 
 		-- make sure the bot runs through it...use the gatePos instead of the original position
@@ -1041,6 +1079,63 @@ function c_walktopos:evaluate()
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 		end
+		
+		--[[
+		if (ml_task_hub:ThisTask().stuckTicks > 3) then
+			local path = NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+			
+			local closestPos = nil
+			local closestDistance = 999
+			local prevPos = nil
+			for k,v in pairsByKeys(path) do
+				local dist = nil
+				if (prevPos == nil) then
+					d("Distance:"..tostring(Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)))
+					dist = Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)
+					if (dist > 3) then
+						closestPos = {x=v.x,y=v.y,z=v.z}
+						closestDistance = dist
+					end
+				else
+					d("Distance:"..tostring(Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)))
+					dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)
+					if (dist > 3 and (not closestDistance or dist < closestDistance)) then
+						closestPos = {x=v.x,y=v.y,z=v.z}
+						closestDistance = dist
+					end
+				end
+				prevPos = {x=v.x,y=v.y,z=v.z}
+			end
+			
+			if (closestPos) then
+				d("Using a corrective path.")
+				
+				local correctivePos = nil
+				
+				local h = ConvertHeading(myPos.h)
+				local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
+				local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
+				local leftMove = GetPosFromDistanceHeading(myPos, 3, playerRight)
+				local rightMove = GetPosFromDistanceHeading(myPos, 3, playerLeft)
+				local leftPos,leftDist = NavigationManager:GetClosestPointOnMesh(leftMove)
+				local rightPos,rightDist = NavigationManager:GetClosestPointOnMesh(rightMove)
+				
+				if (leftDist < 6 and rightDist < 6) then
+					
+				elseif (leftDist < 6 and rightDist > 6) then
+					
+				elseif (leftDist > 6 and rightDist < 6) then
+				
+				else
+				
+				end
+			
+				c_walktopos.pos = closestPos
+				c_walktopos.corrective = true
+				return true
+			end
+		end
+		--]]
 		
         -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
 		local distance = 0.0
@@ -1772,7 +1867,6 @@ function c_dead:evaluate()
     return false
 end
 function e_dead:execute()
-	-- if the party invite window is open wait for ClearAddons() to close it 
 	if (ControlVisible("_NotificationItemParty")) then
 		return
 	end
@@ -1845,7 +1939,7 @@ function c_returntomarker:evaluate()
 		end
 		
 		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
-			if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or Player.localmapid ~= 376) then
+			if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 				local nearestTarget = GetPVPTarget()
 				if (nearestTarget) then
 					return false
@@ -1945,7 +2039,7 @@ function c_stealth:evaluate()
 		if (gBotMode == GetString("gatherMode")) then
 			if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
 				local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-				if (gatherable and (gatherable.distance < 15)) then
+				if (gatherable and (gatherable.distance < 10)) then
 					if (not HasBuff(Player.id, 47) and gGatherUnspoiled == "1") then
 						return true
 					else
@@ -2093,7 +2187,9 @@ function c_autoequip:evaluate()
 	if (gQuestAutoEquip == "0" or 
 		ControlVisible("Shop") or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
-		not Player.alive or Player.incombat) then
+		not Player.alive or Player.incombat or
+		Player:GetGatherableSlotList()) 
+	then
 		return false
 	end
 	
@@ -2175,6 +2271,8 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.SCHOLAR] = {ui = 10, slot = 13},
 		[FFXIV.JOBS.ROGUE] = {ui = 84, slot = 13},
 		[FFXIV.JOBS.NINJA] = {ui = 84, slot = 13},
+		[FFXIV.JOBS.MINER] = {ui = 28, slot = 1},
+		[FFXIV.JOBS.BOTANIST] = {ui = 30, slot = 1},
 	}
 	
 	local soulStones = {
@@ -2192,7 +2290,11 @@ function c_autoequip:evaluate()
 	}
 	
 	local defaultArmorUI = {
-		[1] = 11,
+		[1] = {
+			[-1] = 11,
+			[16] = 29,
+			[17] = 31,
+		},
 		[2] = 34,
 		[3] = 35,
 		[4] = 37,
@@ -2241,15 +2343,31 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.SCHOLAR] = 5,
 		[FFXIV.JOBS.ROGUE] = 2,
 		[FFXIV.JOBS.NINJA] = 2,
+		[FFXIV.JOBS.MINER] = 72,
+		[FFXIV.JOBS.BOTANIST] = 72,
+	}
+	local secondaryStats = {
+		[FFXIV.JOBS.GLADIATOR] = 3,
+		[FFXIV.JOBS.PALADIN] = 3,
+		[FFXIV.JOBS.MARAUDER] = 3,
+		[FFXIV.JOBS.WARRIOR] = 3,
+		[FFXIV.JOBS.MINER] = 73,
+		[FFXIV.JOBS.BOTANIST] = 73,
+	}
+	local tertiaryStats = {
+		[FFXIV.JOBS.MINER] = 10,
+		[FFXIV.JOBS.BOTANIST] = 10,
 	}
 	local oneHanders = {
 		[2] = true,
 		[6] = true,
 		[8] = true,
+		[28] = true,
+		[30] = true,
 	}
 	
 	for slot=0,13 do
-		if (ffxiv_task_quest.lockedSlots[slot] == nil) then			
+		if (ffxiv_task_quest.lockedSlots[slot] == nil and not IsArmoryFull(slot)) then			
 			local equippedItem = nil
 			local itemID = nil
 			
@@ -2314,9 +2432,13 @@ function c_autoequip:evaluate()
 					if (equippedItemDetails.hq) then
 						statTotals = (equippedItemDetails.level * 1.1) + (equippedItemDetails.pDamageHQ * 4) + (equippedItemDetails.mDamageHQ * 4)
 						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 1.5)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 1.5)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 1.5)
 					else
 						statTotals = (equippedItemDetails.level * 1.1) + (equippedItemDetails.pDamage * 4) + (equippedItemDetails.mDamage * 4)
 						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 1.5)
+						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 1.5)
+						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 1.5)
 					end
 					--d("statTotals for current weapon:"..tostring(statTotals))
 				elseif (slot == 1) then
@@ -2326,22 +2448,36 @@ function c_autoequip:evaluate()
 						statTotals = statTotals + equippedItemDetails.shieldRateHQ + equippedItemDetails.blockRateHQ
 						statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
 						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 					else
 						statTotals = (equippedItemDetails.level * 1.25) + equippedItemDetails.pDamage + equippedItemDetails.mDamage
 						statTotals = statTotals + equippedItemDetails.shieldRate + equippedItemDetails.blockRate
 						statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
 						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 2)
 					end
 				elseif (slot > 1 and slot <= 12) then
 					--Use physical and magical defense and item level.
 					if (equippedItemDetails.hq) then
-						statTotals = (equippedItemDetails.level * 1.25) + equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
+						if (Player.level < 50) then
+							statTotals = equippedItemDetails.level
+						end
+						statTotals = equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
 						statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
 						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 					else
-						statTotals = (equippedItemDetails.level * 1.25) + equippedItemDetails.pDamage + equippedItemDetails.mDamage
+						if (Player.level < 50) then
+							statTotals = equippedItemDetails.level
+						end
+						statTotals = equippedItemDetails.pDamage + equippedItemDetails.mDamage
 						statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
-						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 2)						
+						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 2)							
 					end
 				end
 				
@@ -2356,9 +2492,13 @@ function c_autoequip:evaluate()
 							if (data.hq) then
 								newStatTotals = (data.level * 1.1) + (data.pDamageHQ * 4) + (data.mDamageHQ * 4)
 								newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 1.5)
+								newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 1.5)
+								newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 1.5)
 							else
 								newStatTotals = (data.level * 1.1) + (data.pDamage * 4) + (data.mDamage * 4)
 								newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 1.5)
+								newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 1.5)
+								newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 1.5)
 							end
 							--d("statTotals for new weapon:"..tostring(newStatTotals))
 						elseif (slot == 1) then
@@ -2385,23 +2525,44 @@ function c_autoequip:evaluate()
 									newStatTotals = newStatTotals + data.shieldRateHQ + data.blockRateHQ
 									newStatTotals = newStatTotals + data.defenseHQ + data.magicDefenseHQ
 									newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 								else
 									newStatTotals = (data.level * 1.25) + data.pDamage + data.mDamage
 									newStatTotals = newStatTotals + data.shieldRate + data.blockRate
 									newStatTotals = newStatTotals + data.defense + data.magicDefense
 									newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
 								end
 							end					
 						elseif (slot > 1 and slot <= 12) then
 							--Use physical and magical defense and item level.
-							if (data.hq) then
-								newStatTotals = (data.level * 1.25) + data.pDamageHQ + data.mDamageHQ
-								newStatTotals = newStatTotals + data.defenseHQ + data.magicDefenseHQ
-								newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]]) or 0 * 2)
-							else
-								newStatTotals = (data.level * 1.25) + data.pDamage + data.mDamage
-								newStatTotals = newStatTotals + data.defense + data.magicDefense
-								newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+							if ((Player.level == 50 and
+								((data.stats[primaryStats[Player.job]] or 0) > 0 or
+								(data.stats[secondaryStats[Player.job]] or 0) > 0 or
+								(data.stats[tertiaryStats[Player.job]] or 0) > 0)) or
+								Player.level < 50) 
+							then
+								if (data.hq) then
+									if (Player.level < 50) then
+										newStatTotals = data.level
+									end
+									newStatTotals = data.pDamageHQ + data.mDamageHQ
+									newStatTotals = newStatTotals + data.defenseHQ + data.magicDefenseHQ
+									newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]]) or 0 * 2)
+									newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]]) or 0 * 2)
+									newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]]) or 0 * 2)
+								else
+									if (Player.level < 50) then
+										newStatTotals = data.level
+									end
+									newStatTotals = data.pDamage + data.mDamage
+									newStatTotals = newStatTotals + data.defense + data.magicDefense
+									newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
+								end
 							end
 						end
 						
@@ -2428,6 +2589,13 @@ function c_autoequip:evaluate()
 					if (slot ~= 13) then
 						local defaultSlot = defaultArmorSlot[slot]
 						local defaultUI = defaultArmorUI[slot]
+						if (slot == 1) then
+							if (Player.job == 16) then
+								defaultUI = defaultArmorUI[1][Player.job]
+							elseif (Player.job == 17) then
+								defaultUI = defaultArmorUI[1][Player.job]
+							end
+						end
 						local possibleUpgrades = FindItemsBySlot(defaultSlot,defaultUI)	
 						
 						local highestStats = 0
@@ -2456,32 +2624,46 @@ function c_autoequip:evaluate()
 								
 								if (oneHanders[weaponDetails.ui]) then
 									if (data.hq) then
-										statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+										statTotals = (data.level * 1.25) + data.pDamageHQ + data.mDamageHQ
 										statTotals = statTotals + data.shieldRateHQ + data.blockRateHQ
 										statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
-										statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+										statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
 									else
-										statTotals = data.level + data.pDamage + data.mDamage
+										statTotals = (data.level * 1.25) + data.pDamage + data.mDamage
 										statTotals = statTotals + data.shieldRate + data.blockRate
 										statTotals = statTotals + data.defense + data.magicDefense
-										statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+										statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 									end
 								end			
 							elseif (slot > 1 and slot <= 12) then
 								--Use physical and magical defense and item level.
 								if (data.hq) then
-									statTotals = data.level + data.pDamageHQ + data.mDamageHQ
+									if (Player.level < 50) then
+										statTotals = data.level
+									end
+									statTotals = data.pDamageHQ + data.mDamageHQ
 									statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
-									statTotals = statTotals + (data.stats[primaryStats[Player.job]] or 0)
+									statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+									statTotals = statTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
+									statTotals = statTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
 								else
-									statTotals = data.level + data.pDamage + data.mDamage
+									if (Player.level < 50) then
+										statTotals = data.level
+									end
+									statTotals = data.pDamage + data.mDamage
 									statTotals = statTotals + data.defense + data.magicDefense
-									statTotals = statTotals + (data.statsHQ[primaryStats[Player.job]] or 0)
+									statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
+									statTotals = statTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
+									statTotals = statTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 								end
 							end
 							
 							if (not bestUpgrade or statTotals > highestStats) then
-								--d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
+								d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
 								bestUpgrade = data
 								bestUpgradeID = id
 								highestStats = statTotals
@@ -2521,19 +2703,14 @@ function c_autoequip:evaluate()
 end
 function e_autoequip:execute()
 	if (e_autoequip.slot ~= 13) then
-		local item = Inventory:Get(e_autoequip.id)
+		--local item = Inventory:Get(e_autoequip.id)
+		local item = GetUnequippedItem(e_autoequip.id)
 		if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			item:Move(1000,e_autoequip.slot)
 			ml_task_hub:ThisTask():SetDelay(500)
 		end
 	else
-		local equip = nil
-		local inv = Inventory("type=3400")
-		for i, item in pairs(inv) do
-			if (item.id == e_autoequip.id) then
-				equip = item
-			end
-		end
+		local equip = GetUnequippedItem(e_autoequip.id)
 		if (equip and equip.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			equip:Move(1000,e_autoequip.slot)
 			ml_task_hub:ThisTask():SetDelay(500)

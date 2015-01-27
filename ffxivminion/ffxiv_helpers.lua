@@ -526,7 +526,9 @@ function GetBestHealTarget( npc, range )
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
-			return e
+			if (IsValidHealTarget(e)) then
+				return e
+			end
 		end
 	end
 	
@@ -535,7 +537,7 @@ function GetBestHealTarget( npc, range )
 		if ( el ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
-				if ((e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or (e.chartype == 3 and e.type == 2))  then
+				if (IsValidHealTarget(e)) then
 					return e
 				end
 			end
@@ -679,7 +681,22 @@ function GetPVPTarget()
     
 	local enemyParty = nil
 	if (Player.localmapid == 376 or Player.localmapid == 422) then
-		enemyParty = EntityList("shortestpath,onmesh,attackable,alive,targetingme,chartype=4,maxdistance=45")
+		enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
+		end
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=15")
+		end
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=25")
+		end
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=15")
+		end
+		if(not ValidTable(enemyParty)) then
+			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=25")
+		end
 		if(not ValidTable(enemyParty)) then
 			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 		end
@@ -1714,9 +1731,8 @@ end
 function ScanForMobs(ids,distance)
 	local ids = tostring(ids)
 	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("nearest,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = EntityList("nearest,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
-		d("el in scanformobs was valid.")
 		return true
 	end
 	
@@ -1851,7 +1867,6 @@ function InCombatRange(targetid)
 	end
 	
 	local target = {}
-	
 	--Quick change here to allow passing of a target or just the ID.
 	if (type(targetid) == "table") then
 		local id = targetid.id
@@ -1886,7 +1901,7 @@ function InCombatRange(targetid)
 	end
 	
 	--If the target is los, consider the player not in-range.
-	if (not target.los) then
+	if (not target) then
 		return false
 	end
 	
@@ -1917,14 +1932,12 @@ function InCombatRange(targetid)
 	elseif (highestRange < 3) then
 		highestRange = 3
 	end
-	--d("Last skill picked:"..skill.name..", range:"..tostring(skill.maxRange)..", charge:"..tostring(skill.charge))
-	
-	--d(tostring(ml_global_information.AttackRange)..","..tostring(highestRange)..","..tostring(skillID))
+
+	--d("attackRange:"..tostring(ml_global_information.AttackRange))
 	if ( ml_global_information.AttackRange < 5 ) then
 		if (skillID ~= nil) then
 			if (highestRange > 5) then
 				if ((target.targetid == 0 or target.targetid == nil) and ml_task_hub:RootTask().name ~= "LT_PVP") then
-					--d(tostring(skillID).."skill not charge type, but used anyway")
 					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
 							local pos = target.pos
@@ -1933,7 +1946,6 @@ function InCombatRange(targetid)
 						end
 					end
 				elseif (charge) then
-					--d(tostring(skillID).."skill was charge type")
 					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
 							local pos = target.pos
@@ -1945,6 +1957,7 @@ function InCombatRange(targetid)
 			end
 		end
 	else
+		--d(tostring(target.distance).." - "..tostring(target.hitradius).."("..tostring(target.distance - target.hitradius)..") <= "..tostring(highestRange * tonumber(gCombatRangePercent) / 100))
 		return ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
 	end
 	
@@ -1963,7 +1976,7 @@ function GetMounts()
 end
 
 function IsMounting()
-	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castid == 4)
+	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castingid == 4)
 end
 
 function IsPositionLocked()
@@ -3007,6 +3020,21 @@ function FindItemsBySlot(slot,ui)
 		end
 	end
 	
+	--Look through soulstone armory bag.
+	local inv = Inventory("type=3400")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local itemid = item.id
+				local itemDetails = ffxiv_item_data[itemid]
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
+					itemDetails.hq = false
+					items[item.id] = itemDetails
+				end
+			end
+		end
+	end
+	
 	--Look through weapons armory bag.
 	local inv = Inventory("type=3500")
 	for i, item in pairs(inv) do
@@ -3154,6 +3182,90 @@ function ItemCount(itemid)
 	end
 	
 	return itemcount
+end
+
+function IsArmoryFull(slot)
+	local slot = tonumber(slot)
+	local xref = {
+		[0] = 3500,
+		[1] = 3200,
+		[2] = 3201,
+		[3] = 3202,
+		[4] = 3203,
+		[5] = 3204,
+		[6] = 3205,
+		[7] = 3206,
+		[8] = 3207,
+		[9] = 3208,
+		[10] = 3209,
+		[11] = 3300,
+		[12] = 3300,		
+	}
+	if (slot ~= 13) then
+		local inv = Inventory("type="..tostring(xref[slot]))
+		if (inv) then
+			local occupiedSlots = 0
+			for i, item in pairs(inv) do
+				if (item.id and item.id ~= 0) then
+					occupiedSlots = occupiedSlots + 1
+				end
+			end
+			if (occupiedslots == 25) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function GetUnequippedItem(itemid)
+	local itemid = tonumber(itemid)
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = Inventory("type=3300")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			return item
+		end
+	end
+	
+	--Look through soulstones armory bag.
+	local inv = Inventory("type=3400")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			return item
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = Inventory("type=3500")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			return item
+		end
+	end
+	
+	return nil
 end
 
 function GetEquipSlotForItem(item)
