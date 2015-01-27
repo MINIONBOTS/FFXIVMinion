@@ -2,9 +2,9 @@ mb = { }
 mb.mainwindow = { name = "MultiBot Manager", x = 350, y = 100, w = 250, h = 300}
 mb.visible = false
 mb.lasttick = 0
-mb.queueStatus = false
-mb.queueWithdraw = false
-mb.withdrawTimer = 0
+mb.Handlers = {}
+mb.ReceivedID = 0
+mb.ReceivedMsg = ""
 
 function mb.ModuleInit() 	
 
@@ -42,7 +42,7 @@ function mb.ModuleInit()
 	GUI_UnFoldGroup(mb.mainwindow.name,GetString("serverInfo"))	
 	GUI_SizeWindow(mb.mainwindow.name,mb.mainwindow.w,mb.mainwindow.h)	
     GUI_WindowVisible(mb.mainwindow.name,false)
-
+	
 	if (gMultiBotEnabled == "1" and MultiBotIsConnected() ) then
 		MultiBotJoinChannel(gMultiChannel)
 	end
@@ -66,8 +66,10 @@ end
 function mb.ToggleOnOff()
 	if gMultiBotEnabled == "1" then
 		gMultiBotEnabled = "0"
+		Settings.FFXIVMINION.gMultiBotEnabled = "0"
 	else
 		gMultiBotEnabled = "1"
+		Settings.FFXIVMINION.gMultiBotEnabled = "1"
 	end
 end
 
@@ -109,55 +111,9 @@ function mb.OnUpdate( event, tickcount )
     end
 end
 
-function mb.BroadcastPVPQueueStatus( ready )
-	-- State 1: Leader of one team communicates that he is ready with msgID = 1.
-	-- State 2: Leader has received acknowledgement that the other team is ready, pass it along to the minions with msgID = 2.
-	-- State 3: Leader has no received acknowledgement that the other team is ready, probably randoms, pass along a message to withdraw with msgID = 3.
-	-- State 4: Reset the queue status whenever we join the instance or as necessary under other conditions.
-	if ( IsPartyLeader() ) then
-		MultiBotSend( "1;"..Player.name, gMultiChannel )
-	else
-		MultiBotSend( "2;"..Player.name, gMultiChannel )
-	end
-	
-		--[[
-		if ( ready and not mb.QueueReady() and (Now() < mb.withdrawTimer or mb.withdrawTimer == 0)) then
-			MultiBotSend( "1;"..Player.name, gMultiChannel )
-			mb.withdrawTimer = Now() + 15000
-		elseif ( ready and mb.QueueReady()) then
-			MultiBotSend( "2;"..Player.name, gMultiChannel )
-			mb.withdrawTimer = 0
-		elseif ( ready and not mb.QueueReady() and Now() > mb.withdrawTimer and mb.withdrawTimer ~= 0)  then
-			MultiBotSend( "3;"..Player.name, gMultiChannel )
-			mb.queueWithdraw = true
-		elseif ( not ready ) then
-			MultiBotSend( "4;Reset", gMultiChannel )
-			mb.queueStatus = false
-			mb.queueWithdraw = false
-		end
-		--]]
-end
-
-function mb.BroadcastHuntStatus( targetid, mapid, pos )
-	
-	mapid = tonumber(mapid) or 0
-	posX = tonumber(pos.x) or 0
-	posY = tonumber(pos.y) or 0
-	posZ = tonumber(pos.z) or 0
-	posH = tonumber(pos.h) or 0
-	
-	if (mapid == 0) then
-		return false
-	end
-	
-	if (posX == 0 and posY == 0 and posZ == 0) then
-		return false
-	end
-	MultiBotSend(("6;"..tostring(targetid)..":"..tostring(mapid)..":"..tostring(posX)..":"..tostring(posY)..":"..tostring(posZ)..":"..tostring(posH)), gMultiChannel )
-end
-
-function mb.QueueReady()
-	return mb.queueStatus
+function mb.AddHandler(handler)
+	assert(type(handler) == "table","Expected table for handler,received type "..tostring(type(handler)))
+	table.insert(mb.Handlers,handler)
 end
 --**********************************************************
 -- HandleMultiBotMessages
@@ -172,32 +128,14 @@ function HandleMultiBotMessages( event, message, channel )
 
 				local msgID = message:sub(0,delimiter-1)
 				local msg = message:sub(delimiter+1)
-				if (tonumber(msgID) ~= nil and msg ~= nil ) then
 				
-					if ( tonumber(msgID) == 1 and msg ~= "" and not IsPartyLeader()) then
-						d("Received message that leader is ready.")
-                        ffxiv_task_pvp.multibotJoin = true
-					elseif ( tonumber(msgID) == 2 and msg ~= "" and not IsPartyLeader()) then
-						d("Received message that minions are ready.")
-                        ffxiv_task_pvp.multibotJoin = true
-					end
-					
-					if (tonumber(msgID) == 6) then
-						--d("Received hunt message.")
-						local newLocation = {}
-						local counter = 1
-						for _, part in StringSplit(msg,":") do
-							if (counter == 1) then
-								ffxiv_task_hunt.multiTargetID = tonumber(part)
-							elseif (counter == 2) then
-								ffxiv_task_hunt.multiTargetMapID = tonumber(part)
-							else
-								newLocation[counter] = tonumber(part)
-								counter = counter + 1
-							end
-						end
-						ffxiv_task_hunt.multiTargetLocation = newLocation
-						ffxiv_task_hunt.multiHasTarget = true
+				mb.ReceivedID = tonumber(msgID)
+				mb.ReceivedMsg = msg
+				
+				local handlers = mb.Handlers
+				for i,handler in pairsByKeys(handlers) do
+					if (handler.evaluate()) then
+						handler.execute()
 					end
 				end
 			end
