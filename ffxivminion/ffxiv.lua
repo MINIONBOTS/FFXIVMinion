@@ -382,9 +382,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gUseCurielRoot == nil) then
         Settings.FFXIVMINION.gUseCurielRoot = "0"
     end
-	--if (Settings.FFXIVMINION.gChocoName	== nil) then
-		--Settings.FFXIVMINION.gChocoName = ""
-	--end
+	if (Settings.FFXIVMINION.gQuestAutoEquip == nil) then
+		Settings.FFXIVMINION.gQuestAutoEquip = "1"
+	end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
@@ -409,6 +409,7 @@ function ffxivminion.HandleInit()
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)
+	GUI_NewCheckbox(winName,GetString("autoEquip"),"gQuestAutoEquip",group)
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useMount,"gUseMount",group )
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].mount, "gMount",group,GetMounts())
@@ -462,6 +463,7 @@ function ffxivminion.HandleInit()
     gSprintDist = Settings.FFXIVMINION.gSprintDist
     gRandomPaths = Settings.FFXIVMINION.gRandomPaths
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
     gAutoStart = Settings.FFXIVMINION.gAutoStart
     gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
     gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
