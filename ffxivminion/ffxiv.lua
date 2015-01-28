@@ -1282,7 +1282,7 @@ function ffxivminion.ClearAddons()
 	Player:CheckTradeWindow()
 	
 	--party invite
-	if(ControlVisible("_NotificationItemParty") and ControlVisible("SelectYesno")) then
+	if(ControlVisible("_NotificationParty") and ControlVisible("SelectYesno")) then
 		if(not ffxivminion.declineTimer) then
 			ffxivminion.declineTimer = Now() + math.random(3000,5000)
 		elseif(Now() > ffxivminion.declineTimer) then

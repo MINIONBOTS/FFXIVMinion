@@ -45,7 +45,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency ) then
+	if ( Now() < ml_task_hub:ThisTask().networkLatency or ml_task_hub:ThisTask().itemsCrafted > 0 ) then
 		return false
 	end
 	
@@ -84,7 +84,7 @@ function e_selectitem:execute()
 	ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 	SkillMgr.currentIQStack = 0 
 	SkillMgr.lastquality = 0
-	ml_task_hub:ThisTask().networkLatency = Now() + 1500
+	ml_task_hub:ThisTask().networkLatency = Now() + 2500
 end
 
 c_precraftbuff = inheritsFrom( ml_cause )
@@ -166,14 +166,14 @@ function ffxiv_task_craft:Init()
 	local ke_precraftbuff = ml_element:create( "PreCraftBuff", c_precraftbuff, e_precraftbuff, 20 )
     self:add(ke_precraftbuff, self.process_elements)
 
-	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 15 )
-    self:add(ke_opencraftlog, self.process_elements)		
-	
-	local ke_selectitem = ml_element:create( "SelectItem", c_selectitem, e_selectitem, 10 )
+	local ke_selectitem = ml_element:create( "SelectItem", c_selectitem, e_selectitem, 15 )
     self:add(ke_selectitem, self.process_elements)
 	
-    local ke_craft = ml_element:create( "Crafting", c_craft, e_craft, 5 )
+    local ke_craft = ml_element:create( "Crafting", c_craft, e_craft, 10 )
     self:add(ke_craft, self.process_elements)   
+	
+	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 10 )
+    self:add(ke_opencraftlog, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
