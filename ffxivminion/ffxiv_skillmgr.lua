@@ -66,6 +66,7 @@ function CastSucceeded()
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		if (action.cd > 0 and (action.cdmax >= (action.cd * .75))) then
+			--d("Cast succeeded.")
 			succeeded = true
 		end
 	end
@@ -80,7 +81,7 @@ function ActionSucceeded()
 	if (actionID) then
 		local action = ActionList:Get(actionID)
 		if (action.cdmax > 1) then
-			d("Action succeeded.")
+			--d("Action succeeded.")
 			succeeded = true
 		end
 	end
@@ -93,7 +94,7 @@ function MudraSucceeded()
 	if (ValidTable(buffs)) then
 		for i, buff in pairs(buffs) do
 			if (buff.id == 496 and buff.duration >= 4.2) then 
-				d("Mudra succeeded.")
+				--d("Mudra succeeded.")
 				return true
 			end
 		end
@@ -112,7 +113,7 @@ function NinjutsuSucceeded()
 		end
 	end
 	
-	d("Ninjutsu succeeded.")
+	--d("Ninjutsu succeeded.")
 	return true
 end
 
@@ -633,7 +634,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 				SkillMgr.SkillProfile[skill.prio].lastcast = Now()
 			elseif (skilldata.casttime > 0 and CastSucceeded()) then
 				if (skill.combo) then
-					--d(skill.name.." is being set as the previous skill.")
+					d(skill.name.." is being set as the previous skill.")
 					SkillMgr.prevSkillID = skill.id
 				end
 				
@@ -1698,7 +1699,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										skill.lastcast = Now()
 			
 										if (realskilldata.recasttime == 2.5) then
-											--d("using the combo queue.")
 											SkillMgr.comboQueue = {
 												id = skill.id,
 												name = skill.name,
@@ -1740,7 +1740,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 										else
 											if (action.casttime > 2.5) then
-												SkillMgr.failTimer = Now() + (action.casttime)
+												SkillMgr.failTimer = Now() + (action.casttime * 1000)
 											else
 												SkillMgr.failTimer = Now() + 2000
 												--d("Fail timer pushed forward 1.5 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
@@ -1773,18 +1773,19 @@ end
 
 SkillMgr.MatchingCraftSkills = {
 	--Basic Skills
-	["Basic Synth"] = 	{[8] = 100001, [9] = 100015, [10] = 100030, [11] = 100045, [12] = 100060, [13] = 100075, [14] = 100090, [15] = 100105 },
-	["Basic Touch"] = 	{[8] = 100002, [9] = 100016, [10] = 100031, [11] = 100046, [12] = 100061, [13] = 100076, [14] = 100091, [15] = 100106 },
-	["Master's Mend"] = {[8] = 100003, [9] = 100017, [10] = 100032, [11] = 100047, [12] = 100062, [13] = 100077, [14] = 100092, [15] = 100107 },
-	["Standard Touch"] ={[8] = 100004, [9] = 100018, [10] = 100034, [11] = 100048, [12] = 100064, [13] = 100078, [14] = 100093, [15] = 100109 },
-	["Mend II"] = 		{[8] = 100005, [9] = 100019, [10] = 100035, [11] = 100049, [12] = 100065, [13] = 100079, [14] = 100094, [15] = 100110 },
-	["Standard Synth"] ={[8] = 100007, [9] = 100021, [10] = 100037, [11] = 100051, [12] = 100067, [13] = 100080, [14] = 100096, [15] = 100111 },
-	["Advanced Touch"] ={[8] = 100008, [9] = 100022, [10] = 100038, [11] = 100052, [12] = 100068, [13] = 100081, [14] = 100097, [15] = 100112 },
-	["Observe"] = 		{[8] = 100010, [9] = 100023, [10] = 100040, [11] = 100053, [12] = 100070, [13] = 100082, [14] = 100099, [15] = 100113 },
+	-- CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL
+	["Basic Synth"] = 	{[8] = 100001, [9] = 100015, [10] = 100030, [11] = 100075, [12] = 100045, [13] = 100060, [14] = 100090, [15] = 100105 },
+	["Basic Touch"] = 	{[8] = 100002, [9] = 100016, [10] = 100031, [11] = 100076, [12] = 100046, [13] = 100061, [14] = 100091, [15] = 100106 },
+	["Master's Mend"] = {[8] = 100003, [9] = 100017, [10] = 100032, [11] = 100077, [12] = 100047, [13] = 100062, [14] = 100092, [15] = 100107 },
+	["Standard Touch"] ={[8] = 100004, [9] = 100018, [10] = 100034, [11] = 100078, [12] = 100048, [13] = 100064, [14] = 100093, [15] = 100109 },
+	["Mend II"] = 		{[8] = 100005, [9] = 100019, [10] = 100035, [11] = 100079, [12] = 100049, [13] = 100065, [14] = 100094, [15] = 100110 },
+	["Standard Synth"] ={[8] = 100007, [9] = 100021, [10] = 100037, [11] = 100080, [12] = 100051, [13] = 100067, [14] = 100096, [15] = 100111 },
+	["Advanced Touch"] ={[8] = 100008, [9] = 100022, [10] = 100038, [11] = 100081, [12] = 100052, [13] = 100068, [14] = 100097, [15] = 100112 },
+	["Observe"] = 		{[8] = 100010, [9] = 100023, [10] = 100040, [11] = 100082, [12] = 100053, [13] = 100070, [14] = 100099, [15] = 100113 },
 	
-	["Steady Hand"] = 	{[8] = 244, [9] = 245, [10] = 246, [11] = 247, [12] = 248, [13] = 249, [14] = 250, [15] = 251 },
-	["Inner Quiet"] = 	{[8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 256, [13] = 257, [14] = 258, [15] = 259 },
-	["Great Strides"] = {[8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 264, [13] = 265, [14] = 266, [15] = 267 },
+	["Steady Hand"] = 	{[8] = 244, [9] = 245, [10] = 246, [11] = 247, [12] = 249, [13] = 248, [14] = 250, [15] = 251 },
+	["Inner Quiet"] = 	{[8] = 252, [9] = 253, [10] = 254, [11] = 255, [12] = 257, [13] = 256, [14] = 258, [15] = 259 },
+	["Great Strides"] = {[8] = 260, [9] = 261, [10] = 262, [11] = 263, [12] = 265, [13] = 264, [14] = 266, [15] = 267 },
 }
 
 SkillMgr.lastquality = 0
@@ -1937,6 +1938,7 @@ function SkillMgr.Gather( )
 							SkillMgr.prevSkillID = tostring(skill.id)
 							--After a skill is used here, mark it unusable for the rest of the duration of the node.
 							SkillMgr.prevSkillList[skill.id] = true
+							
 							if IsUncoverSkill(skill.id) then
 								ml_task_hub:CurrentTask().itemsUncovered = true
 							end
@@ -1949,8 +1951,6 @@ function SkillMgr.Gather( )
     end
     return false
 end
-
-
 
 function SkillMgr.IsGCDReady()
 	local castable = false
@@ -2204,13 +2204,6 @@ function SkillMgr.AddDefaultConditions()
 				return true
 			end
 		end
-		--[[
-		if (ValidTable(SkillMgr.comboQueue) and realskilldata.recasttime ~= 2.5) then
-			if (SkillMgr.IsGCDReady() and not IsCaster(Player.job)) then
-				return true
-			end
-		end
-		--]]
 		return false
 	end
 	}
@@ -2333,10 +2326,11 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		
 		if ( not IsNullString(skill.pskill)) then
 			if (not IsNullString(SkillMgr.prevSkillID)) then
-				for skill in StringSplit(skill.pskill,",") do
-					if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
+				for skillid in StringSplit(skill.pskill,",") do
+					if (tonumber(SkillMgr.prevSkillID) == tonumber(skillid)) then
 						return false
 					end
 				end
@@ -2353,8 +2347,8 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		if (not IsNullString(skill.npskill)) then
 			if (not IsNullString(SkillMgr.prevSkillID)) then
-				for skill in StringSplit(skill.npskill,",") do
-					if (tonumber(SkillMgr.prevSkillID) == tonumber(skill)) then
+				for skillid in StringSplit(skill.npskill,",") do
+					if (tonumber(SkillMgr.prevSkillID) == tonumber(skillid)) then
 						return true
 					end
 				end
