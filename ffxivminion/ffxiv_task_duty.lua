@@ -541,7 +541,9 @@ function ffxiv_task_duty.UIInit()
 	ffxivminion.Windows.Duty = { id = strings["us"].dutyMode, Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Duty)
 	
-
+	if (Settings.FFXIVMINION.gjob == nil) then
+        Settings.FFXIVMINION.gjob = ""
+    end
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
@@ -571,11 +573,13 @@ function ffxiv_task_duty.UIInit()
     GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
 	GUI_NewCheckbox(winName,"Use Telecast",			"gUseTelecast",group)
 	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
+	GUI_NewField(winName,"desys jobs :","gjob",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
+	gjob = Settings.FFXIVMINION.gjob
 	gLootOption = Settings.FFXIVMINION.gLootOption
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer

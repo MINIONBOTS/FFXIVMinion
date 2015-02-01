@@ -667,10 +667,25 @@ end
 function e_roll:execute()
 	ml_task_hub:CurrentTask().isComplete = false
 	local loot = Inventory:GetLootList()
+	local dneedlist = {}
+	if(glootlist ~= nil and gjob ~= nil) then
+		for djob, ditem in pairs(glootlist) do
+			if(string.find(gjob,djob) ~= nil) then
+				for n,did in pairs(ditem) do
+					dneedlist[did] =2
+				end
+			else
+				for n,did in pairs(ditem) do
+					dneedlist[did] = 1
+				end		
+			end
+		end
+	end
 	if (loot) then
+
 		if (ml_task_hub:CurrentTask().rollstate == "Need") then
 			for i, e in pairs(loot) do
-				if (gLootOption == "Need" or gLootOption == "Any") then 
+				if ((gLootOption == "Need" or gLootOption == "Any" or dneedlist[e.id]==2) and dneedlist[e.id]~=1) then 
 					d("Attempting to need on loot, result was:"..tostring(e:Need()))
 				end
 			end
@@ -681,7 +696,7 @@ function e_roll:execute()
 		
 		if (ml_task_hub:CurrentTask().rollstate == "Greed") then
 			for i, e in pairs(loot) do
-				if (gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any") then 
+				if ((gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any" or dneedlist[e.id]==2) and dneedlist[e.id]~=1) then 
 					d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
 				end
 			end
@@ -696,7 +711,7 @@ function e_roll:execute()
 			end
 			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 			ml_task_hub:CurrentTask().rollstate = "Complete"
-		end
+		end	
 	end
 end
 
