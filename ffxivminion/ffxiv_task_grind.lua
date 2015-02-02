@@ -37,7 +37,7 @@ function ffxiv_task_grind.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	newinst.filterLevel = true
-	newinst.startMap = Player.localmapid
+	newinst.correctMap = Player.localmapid
 	ffxiv_task_grind.inFate = false
 	ml_global_information.currentMarker = false
     
@@ -125,15 +125,14 @@ end
 
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
-    
+	local ke_returnToMap = ml_element:create( "ReturnToMap", c_returntomap, e_returntomap, 30 )
+    self:add(ke_returnToMap, self.overwatch_elements)
+	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
     self:add(ke_dead, self.overwatch_elements)
 	
 	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 20 )
     self:add(ke_atma, self.overwatch_elements)
-	
-	--local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 19)
-	--self:add(ke_avoid, self.overwatch_elements)
     
     local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
     self:add(ke_flee, self.overwatch_elements)
@@ -191,13 +190,13 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gClaimRange" or
 				k == "gClaimed" )
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		elseif ( k == "gAtma") then
 			if (v == "1") then
 				SetGUIVar("gDoFates","1")
 				SetGUIVar("gFatesOnly","1")
 			end	
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("grindMode"))

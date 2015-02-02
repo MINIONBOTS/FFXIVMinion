@@ -454,6 +454,7 @@ function c_nextgathermarker:evaluate()
     return false
 end
 function e_nextgathermarker:execute()
+	Player:Stop()
 	ml_global_information.currentMarker = e_nextgathermarker.marker
     ml_task_hub:ThisTask().currentMarker = e_nextgathermarker.marker
     ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
@@ -994,18 +995,21 @@ function ffxiv_task_gather:Init()
 	local ke_nextLocation = ml_element:create( "NextLocation", c_nextgatherlocation, e_nextgatherlocation, 4 )
     self:add(ke_nextLocation, self.overwatch_elements)
 	
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 3 )
+    self:add( ke_nextMarker, self.overwatch_elements)
+	
+	
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
+    self:add( ke_autoEquip, self.process_elements)
+	
 	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
     self:add( ke_nextUnspoiledMarker, self.process_elements)
 	
 	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
     self:add( ke_moveToUnspoiledMarker, self.process_elements)
 	
-	
 	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add( ke_returnToMarker, self.process_elements)
-	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 20 )
-    self:add( ke_nextMarker, self.process_elements)
 	
     local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
     self:add(ke_findGatherable, self.process_elements)
@@ -1029,7 +1033,7 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gDoStealth" or
 				k == "gGatherMapMarker" or
 				k == "gGatherIdleLocation" ) then
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
 		elseif ( k == "gGatherUnspoiled") then
 			if (v == "1") then
 				ml_marker_mgr.SetMarkerType(GetString("unspoiledMarker"))
@@ -1038,10 +1042,10 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				ml_marker_mgr.SetMarkerType(GetString("miningMarker"))
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		elseif ( k == "gGatherStartLocation") then
 			ffxiv_task_gather.location = 0
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("gatherMode"))
@@ -1206,7 +1210,7 @@ end
 
 function ffxiv_task_gather.SetupMarkers()
     -- add marker templates for gathering
-     local botanyMarker = ml_marker:Create("botanyTemplate")
+    local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(strings[gCurrentLanguage].botanyMarker)
 	botanyMarker:ClearFields()
 	botanyMarker:AddField("string", GetString("validSlots"), "")
