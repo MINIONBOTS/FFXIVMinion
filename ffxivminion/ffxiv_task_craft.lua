@@ -220,7 +220,7 @@ function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
         if 	( 	k == "gCraftMinCP" or 
 				k == "gCraftMaxItems" ) 
 		then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("craftMode"))

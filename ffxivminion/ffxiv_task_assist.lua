@@ -207,7 +207,7 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gQuestHelpers" or
 				k == "gPrimaryFilter" or
 				k == "gSecondaryFilter" ) then
-            Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("assistMode"))
