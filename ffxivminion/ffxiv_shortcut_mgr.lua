@@ -102,19 +102,19 @@ function sck.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if (k == "gShortcut") then			
 			sck.UpdateShortcutChoice()
-            Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
 		end
 		if (k == "gShortcutKey") then			
 			sck.UpdateShortcut("skey")
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		if (k == "gModifierKey") then			
 			sck.UpdateShortcut("mkey")
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		if (k == "gModifierKey2") then			
 			sck.UpdateShortcut("mkey2")
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 	end
     GUI_RefreshWindow(sck.mainwindow.name)
