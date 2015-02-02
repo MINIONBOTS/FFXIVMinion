@@ -567,6 +567,12 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
 		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
 		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
+		ml_mesh_mgr.SetEvacPoint = function()
+			if (gmeshname ~= "" and Player.onmesh) then
+				ml_marker_mgr.markerList["evacPoint"] = Player.pos
+				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+			end
+		end
 		ml_mesh_mgr.averagegameunitsize = 1
 		
 	-- Set default meshes SetDefaultMesh(mapid, filename)
