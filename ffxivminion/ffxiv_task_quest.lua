@@ -3,6 +3,8 @@ ffxiv_task_quest.name = "LT_QUEST_ENGINE"
 ffxiv_task_quest.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]]
 ffxiv_task_quest.questList = {}
 ffxiv_task_quest.currentQuest = {}
+ffxiv_task_quest.currentTask = {}
+
 ffxiv_task_quest.currentStepParams = {}
 ffxiv_task_quest.killCount = 0
 ffxiv_task_quest.backupKillCount = 0
@@ -11,6 +13,7 @@ ffxiv_task_quest.killTaskCompleted = false
 ffxiv_task_quest.restartStep = 0
 ffxiv_task_quest.lastStepStartTime = 0
 ffxiv_task_quest.ignoreLevelItemIDs = {}
+ffxiv_task_quest.lockedSlots = {}
 
 function ffxiv_task_quest.Create()
     local newinst = inheritsFrom(ffxiv_task_quest)
@@ -35,6 +38,9 @@ function ffxiv_task_quest.UIInit()
 	ffxivminion.Windows.Quest = { id = strings["us"].questMode, Name = GetString("questMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Quest)
 	
+	if (Settings.FFXIVMINION.gLastCompletedSteps == nil) then
+		Settings.FFXIVMINION.gLastCompletedSteps = {}
+	end
 	if (Settings.FFXIVMINION.gLastQuestProfile == nil) then
         Settings.FFXIVMINION.gLastQuestProfile = ""
     end
@@ -93,6 +99,16 @@ function ffxiv_task_quest.SetQuestFlags()
 	if(ValidTable(questTable)) then
 		ffxiv_task_quest.questFlags = questTable.I16A + questTable.I16B + questTable.I16C
 	end
+end
+
+function ffxiv_task_quest.GetQuestTable(id)
+	local id = tonumber(id) or ffxiv_task_quest.currentQuest.id
+	
+	local questTable = GetQuestByID(id)
+	if (ValidTable(questTable)) then
+		return questTable
+	end
+	return nil
 end
 
 function ffxiv_task_quest.QuestFlagsChanged()
@@ -322,15 +338,15 @@ function ffxiv_task_quest.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gProfile" and gBotMode == GetString("questMode")) then
 			ffxiv_task_quest.LoadProfile(ffxiv_task_quest.profilePath..v..".info")
-			Settings.FFXIVMINION["gLastQuestProfile"] = v
+			SafeSetVar("gLastQuestProfile",v)
         elseif (k == "gCurrQuestID" or
 				k == "gCurrQuestStep" or
 				k == "gQuestAutoEquip" )
         then
-            Settings.FFXIVMINION[k] = v
+            SafeSetVar(tostring(k),v)
 		elseif (k == "gQuestKillCount") then
-			Settings.FFXIVMINION[k] = v
-			Settings.FFXIVMINION.questKillCount = tonumber(v)
+			SafeSetVar(tostring(k),v)
+			SafeSetVar("questKillCount",v)
         end
     end
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
