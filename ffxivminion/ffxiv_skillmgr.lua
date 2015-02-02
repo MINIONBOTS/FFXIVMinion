@@ -94,10 +94,17 @@ function MudraSucceeded()
 	if (ValidTable(buffs)) then
 		for i, buff in pairs(buffs) do
 			if (buff.id == 496 and buff.duration >= 4.2) then 
-				--d("Mudra succeeded.")
 				return true
 			end
 		end
+	end
+	
+	local skill = SkillMgr.otherQueue
+	if ((skill.id == 2259 and Player.lastaction == 233) or
+		(skill.id == 2261 and Player.lastaction == 234) or
+		(skill.id == 2263 and Player.lastaction == 235)) 
+	then
+		return true
 	end
 	
 	return false
@@ -587,7 +594,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		
         if ( k == "gSMactive" ) then			
-            Settings.FFXIVMINION[tostring(k)] = v		
+            SafeSetVar(tostring(k),v)	
 		elseif ( k == "gSMprofile" ) then
             gSMactive = "1"					
             GUI_WindowVisible(SkillMgr.editwindow.name,false)
@@ -595,7 +602,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
             GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
             SkillMgr.SkillProfile = {}
             SkillMgr.UpdateCurrentProfileData()
-            Settings.FFXIVMINION.gSMlastprofile = tostring(v)
+			SafeSetVar("gSMlastprofile",v)
 			SkillMgr.SetDefaultProfile()
 		end
 		
@@ -652,7 +659,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 			
 			if (IsMudraSkill(skill.id)) then
 				if (MudraSucceeded()) then
-					SkillMgr.failTimer = Now() + 1000
+					SkillMgr.failTimer = Now() + 3000
 					--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 					SkillMgr.nextSkillID = tostring(skill.nskill)
 					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
@@ -663,7 +670,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 				end
 			elseif (IsNinjutsuSkill(skill.id)) then
 				if (NinjutsuSucceeded()) then
-					SkillMgr.failTimer = Now() + 2000
+					SkillMgr.failTimer = Now() + 3000
 					--d("Fail timer pushed forward 2 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 					SkillMgr.nextSkillID = tostring(skill.nskill)
 					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
@@ -673,8 +680,8 @@ function SkillMgr.OnUpdate( event, tickcount )
 					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
 				end
 			else
-				if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
-					SkillMgr.failTimer = Now() + 3000
+				if (skilldata.casttime == 0 or skill.hasSwiftcast) then
+					SkillMgr.failTimer = Now() + 5000
 					--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 					SkillMgr.nextSkillID = tostring(skill.nskill)
 					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
@@ -1087,7 +1094,7 @@ function SkillMgr.UpdateCurrentProfileData()
 			end
         else
             d("Profile is empty..")
-			SkillMgr.UseDefaultProfile()
+			--SkillMgr.UseDefaultProfile()
         end		
     else
         d("No new SkillProfile selected!")	
@@ -1378,8 +1385,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 			end
 		end
 		
-		
-		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 ) then
 			for prio,skill in spairs(SkillMgr.SkillProfile) do
 				ally = nil
@@ -1647,7 +1652,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						end
 						
 						if (castable) then
-							if (IsNinjutsuSkill(skill.id) and MissingBuffs(Player,"496",3)) then
+							if (IsNinjutsuSkill(skill.id) and (MissingBuffs(Player,"496",3) or (Player.action == 233 or Player.action == 234 or Player.action == 235))) then
+								castable = false
+							end
+							if (IsMudraSkill(skill.id) and ((SkillMgr.otherQueue ~= nil and SkillMgr.otherQueue.id == skill.id) or (TimeSince(skill.lastcast) < 750))) then
 								castable = false
 							end
 						end
@@ -1713,7 +1721,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											}
 										else
 											if (not IsNullString(skill.nskillprio) or not IsNullString(skill.nskill)) then
-												--d("using the other queue")
 												SkillMgr.otherQueue = {
 													id = skill.id,
 													name = skill.name,
@@ -2200,8 +2207,10 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		if (realskilldata.recasttime ~= 2.5) then
-			if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
-				return true
+			if (Player.incombat) then
+				if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
+					return true
+				end
 			end
 		end
 		return false
