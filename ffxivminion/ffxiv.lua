@@ -428,7 +428,6 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
-	GUI_NewButton(winName,GetString("multiManager"), "MultiBotManager.toggle", group)
 	GUI_NewButton(winName,GetString("castPrevention"),"CastPrevention.toggle",group)
 	GUI_NewButton(winName,GetString("shortcutManager"),"ShortcutManager.toggle",group)
 	
@@ -491,7 +490,6 @@ function ffxivminion.HandleInit()
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
-	--gChocoName = Settings.FFXIVMINION.gChocoName
 	
 	if (not ml_global_information.TaskUIInit) then
 		-- load task UIs
@@ -516,7 +514,7 @@ function ffxivminion.HandleInit()
 		ffxivminion.SwitchMode(gBotMode)
 	else
 		gBotMode = GetString("grindMode")
-		Settings.FFXIVMINION.gBotMode = gBotMode
+		SafeSetVar("gBotMode",gBotMode)
 		ffxivminion.SwitchMode(gBotMode)
 	end
 	
@@ -656,7 +654,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( k == "gBotMode" ) then
             ffxivminion.SwitchMode(v)
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
         if (k == "gEnableLog") then
             if ( v == "1" ) then
@@ -664,7 +662,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             else
                 gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
             end
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         elseif (
             k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or
@@ -700,13 +698,13 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gUseCurielRoot"
 			)				
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
 		elseif ( k == "gMount" ) then
 			if ( v == strings[gCurrentLanguage].none and Player.ismounted and gBotRunning == "1" ) then
 				ml_error("Cannot change mounts while mounted.")
 				SetGUIVar("gMount",backupVals.gMount)
 			else
-				Settings.FFXIVMINION[tostring(k)] = v
+				SafeSetVar(tostring(k),v)
 			end
 		elseif ( k == "gUseMount" )	then
 			if ( v == "1") then
@@ -747,10 +745,10 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 					ml_error("No usable mounts found, disabling mount for now.")
 					SetGUIVar("gUseMount","0")
 				else
-					Settings.FFXIVMINION[tostring(k)] = v
+					SafeSetVar(tostring(k),v)
 				end
 			else
-				Settings.FFXIVMINION[tostring(k)] = v
+				SafeSetVar(tostring(k),v)
 			end
 		end
 		
@@ -764,7 +762,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:Disable3DRendering(false)
 			end
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gSkipCutscene" ) then
@@ -773,7 +771,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:SkipCutscene(false)
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gSkipDialogue" ) then
@@ -782,7 +780,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:SkipDialogue(false)
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		
         if ( k == "gClickToTeleport" ) then
@@ -791,7 +789,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:SetClickToTeleport(false)
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		
         if ( k == "gClickToTravel" ) then
@@ -800,7 +798,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				GameHacks:SetClickToTravel(false)
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gUseHQMats" ) then
@@ -809,7 +807,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			else
 				Crafting:UseHQMats(false)
 			end
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gGatherPS" ) then
@@ -818,7 +816,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             else
                 GameHacks:SetPermaSprint(false)
             end
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
 		
 		if ( k == "gPermaSwiftCast" ) then
@@ -827,7 +825,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             else
                 GameHacks:SetPermaSwiftCast(false)
             end
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
@@ -1056,8 +1054,8 @@ function ffxivminion.CreateWindow(window)
 	settings.y = Settings.FFXIVMINION[winTable].y or window.y
 	settings.x = Settings.FFXIVMINION[winTable].x or window.x
 
-	if (ValidTable(settings)) then 
-		Settings.FFXIVMINION[winTable] = settings 
+	if (ValidTable(settings)) then
+		SafeSetVar(winTable,settings)
 	end
 	
 	local wi = Settings.FFXIVMINION[winTable]
@@ -1085,7 +1083,6 @@ function ffxivminion.SizeWindow(strName)
 end
 
 function ffxivminion.GetWindowSize(strName)
-	
 	local window = nil
 	for i, wnd in pairs(ffxivminion.Windows) do
 		if (wnd.Name == strName) then
@@ -1114,7 +1111,9 @@ function ffxivminion.SaveWindows()
 		if (ValidTable(WindowInfo) and ValidTable(WI)) then
 			tablesEqual = deepcompare(WindowInfo,WI,true)
 		end
-		if (not tablesEqual) then Settings.FFXIVMINION[tableName] = WindowInfo end
+		if (not tablesEqual) then 
+			SafeSetVar(tableName,WindowInfo)
+		end
 	end
 end
 
@@ -1131,10 +1130,10 @@ end
 function ffxivminion.UpdateFood(var)
 	if (var == "gFood") then
 		gFoodHQ = "None"
-		Settings.FFXIVMINION.gFoodHQ = gFoodHQ
+		SafeSetVar("gFoodHQ",gFoodHQ)
 	elseif (var == "gFoodHQ") then
 		gFood = "None"
-		Settings.FFXIVMINION.gFood = gFood
+		SafeSetVar("gFood",gFood)
 	end		
 end
 
@@ -1255,6 +1254,7 @@ function ffxivminion.DrawMarker(marker)
 end
 
 function ffxivminion.NodeDistance(self, id)
+	
 	local neighbor = self:GetNeighbor(id)
     if (neighbor) then
 		local cost = neighbor.cost or 5
@@ -1266,9 +1266,11 @@ function ffxivminion.NodeDistance(self, id)
 		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
 			cost = 999
 		end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
+		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
+			if (not (HasQuest(674) and IsQuestComplete(674)) and not QuestCompleted(674)) then
 				cost = 999
 			end
+		end
 		
         return cost
     end
@@ -1290,11 +1292,33 @@ function ffxivminion.ClearAddons()
 				PressYesNo(false)
 				ffxivminion.inviteDeclined = true
 				ffxivminion.declineTimer = Now() + math.random(1000,3000)
-			else
-				PressYesNo(true)
-				ffxivminion.inviteDeclined = nil
-				ffxivminion.declineTimer = nil
 			end
+		end
+	end
+end
+
+function SetGUIVar(strName, value)
+	strName = strName or ""
+	if (strName ~= "" and _G[strName] ~= nil) then
+		_G[strName] = value
+		SafeSetVar(strName, value)
+	end
+end
+
+function SafeSetVar(name, value)
+	local valName = name
+	if (type(valName) ~= "string") then valName = tostring(valName) end
+	
+	local currentVal = Settings.FFXIVMINION[valName]
+	if (type(value) == "table") then
+		if not deepcompare(currentVal,value,true) then
+			--d("writing table settings " .. valName)
+			Settings.FFXIVMINION[valName] = value
+		end
+	else
+		if (currentVal ~= value and value ~= nil) then
+			--d("writing " .. value .. " to " .. currentVal)
+			Settings.FFXIVMINION[valName] = value
 		end
 	end
 end
