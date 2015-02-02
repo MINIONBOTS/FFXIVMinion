@@ -115,7 +115,7 @@ function wt_radar.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gRadarShowEventObjs" or
             k == "gRadarShowAetherytes")
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
             if ( v == "0") then
                 GameHacks:SetRadarSettings(k,false)
             else
@@ -123,15 +123,15 @@ function wt_radar.GUIVarUpdate(Event, NewVals, OldVals)
             end
         end
 		if ( k == "gRadarSpecialTargets" and gRadarSpecialTargets ~= nil ) then
-			Settings.FFXIVMINION[tostring(k)] = v
+			SafeSetVar(tostring(k),v)
 			GameHacks:SetRadarSettings("gRadarSpecialTargetList", tostring(gRadarSpecialTargets))
 		end
         if ( k == "gRadarX" and tonumber(v) ~= nil) then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
             GameHacks:SetRadarSettings(k,tonumber(v))
         end
         if ( k == "gRadarY" and tonumber(v) ~= nil) then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
             GameHacks:SetRadarSettings(k,tonumber(v))
         end
     end
