@@ -358,6 +358,7 @@ function Dev.ModuleInit()
 	--QuestInfo
 	GUI_NewNumeric("Dev","Quest","QIindex","QuestInfo","0","200");
 	GUI_NewField("Dev","ID","QIID","QuestInfo")
+	GUI_NewField("Dev","GlobalID","QGID","QuestInfo")
 	GUI_NewField("Dev","Name","QIName","QuestInfo")
 	GUI_NewField("Dev","Step","QIStep","QuestInfo")
 	GUI_NewField("Dev","ObjectiveIndex","QOIndex","QuestInfo")
@@ -385,6 +386,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","QuestI16A","QuestI16A","QuestInfo")
 	GUI_NewField("Dev","QuestI16B","QuestI16B","QuestInfo")
 	GUI_NewField("Dev","QuestI16C","QuestI16C","QuestInfo")
+	GUI_NewField("Dev","QuestI32A","QuestI32A","QuestInfo")
 	
 	GUI_NewField("Dev","QuestBit8","QuestBit8","QuestInfo")
 	GUI_NewField("Dev","QuestBit16","QuestBit16","QuestInfo")
@@ -703,12 +705,6 @@ function Dev.CraftTask()
   end
  end 
 end
-
-function Dev.Test2()
-	Dev.running = not Dev.running
-	if ( not Dev.running) then Dev.curTask = nil end
-	d(Dev.running)
-end
 			
 function Dev.UpdateWindow()
 	
@@ -940,7 +936,7 @@ function Dev.UpdateWindow()
 			invptr = string.format( "%x",tonumber(item.ptr ))
 			invptr2 = string.format( "%x",tonumber(item.ptr2 ))
 			invid = item.id
-			invisready = tostring(item.isready)
+			invisready = item.isready
 			invname = item.name
 			invtype = item.type
 			invslot = item.slot
@@ -1281,9 +1277,11 @@ function Dev.UpdateWindow()
 	
 	if ( quest ) then
 		QIID = quest.id
+		QGID = quest.id + 65536
 		QIName = quest.name
 		QIStep = quest.step
 		QOIndex = Quest:GetQuestCurrentStep(quest.id)
+		
 		QuestI8A = quest.I8A
 		QuestI8B = quest.I8B
 		QuestI8C = quest.I8C
@@ -1305,9 +1303,14 @@ function Dev.UpdateWindow()
 		QuestI8EL = quest.I8EL
 		QuestI8FL = quest.I8FL
 		
-		QuestI16A = quest.I16A
-		QuestI16B = quest.I16B
-		QuestI16C = quest.I16C
+		--QuestI16A = quest.I16A
+		--QuestI16B = quest.I16B
+		--QuestI16C = quest.I16C
+		
+		QuestI16A = quest.I8A * (2 ^ 8) + quest.I8B 
+		QuestI16B = quest.I8C * (2 ^ 8) + quest.I8D
+		QuestI16C = quest.I8E * (2 ^ 8) + quest.I8F
+		QuestI32A = quest.I8A * (2 ^ 24) + quest.I8B * (2 ^ 16) + quest.I8C * (2 ^ 8) + quest.I8D
 		
 		QuestBit8 = tostring(quest.Bit8)
 		QuestBit16 = tostring(quest.Bit16)
@@ -1318,6 +1321,7 @@ function Dev.UpdateWindow()
 		
 	else
 		QIID = 0
+		QGID = 0
 		QIName = ""
 		QIStep = 0
 		QOIndex = 0
@@ -1351,6 +1355,3 @@ end
 RegisterEventHandler("Module.Initalize",Dev.ModuleInit)
 RegisterEventHandler("Gameloop.Update", Dev.OnUpdateHandler)
 RegisterEventHandler("GUI.Item", Dev.HandleButtons )
-
-RegisterEventHandler("Dev.Test1", Dev.Test1)
-RegisterEventHandler("Dev.Test2", Dev.Test2)
