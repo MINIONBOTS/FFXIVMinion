@@ -12,6 +12,7 @@ ffxiv_task_duty.dutyCleared = false
 ffxiv_task_duty.joinAttempts = 0
 ffxiv_task_duty.independentMode = false
 ffxiv_task_duty.lastCompletion = 0
+ffxiv_task_duty.preventFail = 0
 
 function file_exists(name)
 	if (name) then
@@ -608,12 +609,12 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gProfile" and gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.LoadProfile(v)
-			Settings.FFXIVMINION["gLastDutyProfile"] = v
+			SafeSetVar("gLastDutyProfile",v)
         elseif (k == "gResetDutyTimer" or
 				k == "gLootOption" or
 				k == "gUseTelecast")
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("dutyMode"))
@@ -767,10 +768,12 @@ function c_deadduty:evaluate()
 	end
 	
     if (not Player.alive and OnDutyMap()) then --FFXIV.REVIVESTATE.DEAD & REVIVING
-        return true
+        ffxiv_task_duty.preventFail = Now() + 10000
+		return true
     end 
 	
 	if (e_deadduty.justRevived) then
+		ffxiv_task_duty.preventFail = Now() + 3000
 		return true
 	end
 
@@ -784,13 +787,13 @@ function e_deadduty:execute()
 		if(PressYesNo(true)) then
 			e_deadduty.originalPos = shallowcopy(Player.pos)
 			e_deadduty.justRevived = true
-			ml_task_hub:ThisTask():SetDelay(500)
+			ml_task_hub:ThisTask():SetDelay(1000)
 		end
 		-- press ok
 		if(PressOK()) then
 			e_deadduty.originalPos = shallowcopy(Player.pos)
 			e_deadduty.justRevived = true
-			ml_task_hub:ThisTask():SetDelay(500)
+			ml_task_hub:ThisTask():SetDelay(1000)
 		end
 	end
 	
