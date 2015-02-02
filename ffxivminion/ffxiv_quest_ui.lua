@@ -681,7 +681,7 @@ function QM.GUIVarUpdate(Event, NewVals, OldVals)
 	for k,v in pairs(NewVals) do
 		local var = QM.Variables[tostring(k)]
 		if (var ~= nil) then
-			Settings.FFXIVMINION[k] = v
+			SafeSetVar(tostring(k),v)
 			if (var.onChange ~= nil) then
 				QM.ExecuteFunction(var.onChange)
 			end
@@ -789,6 +789,7 @@ function QM.PullQuest()
 	local quest = Quest:GetSelectedJournalQuest()
 	qQuestID = tonumber(quest)
 	
+	local found = false
 	for id,data in pairs(Quest:GetQuestList()) do
 		if (id == qQuestID) then
 			qQuestName = data.name
@@ -880,17 +881,11 @@ function QM.RefreshQuests()
 	if (TableSize(QM.Quests) > 0) then
 		for k,v in spairs(QM.Quests) do
 			--Check the quest list to see if we have it, tack on the quest name if we do.
-			local found = false
-			for id,quest in pairs(Quest:GetQuestList()) do
-				if (id == k) then
-					GUI_NewButton(QM.Windows.Main.name, tostring(k).."["..quest.name.."]", "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
-					found = true
-				end
-				if (found) then
-					break
-				end
-			end
-			if (not found) then
+			local questData = ffxiv_quest_data[k]
+			if (questData) then
+				local nameString = tostring(k).." ["..questData.name[gCurrentLanguage].."]" or questData.name.us
+				GUI_NewButton(QM.Windows.Main.name, nameString, "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
+			else
 				GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), strings[gCurrentLanguage].quests)
 			end
 		end
@@ -949,6 +944,7 @@ function QM.EditEncounter(id)
 			local profileString = varSetup.profile
 			_G[varName] = encounter[profileString] or varSetup.default
 			Settings.FFXIVMINION[varName] = _G[varName]
+			SafeSetVar(varName,_G[varName])
 		end
 	end
 	
@@ -1505,7 +1501,7 @@ function QM.EditStep(id)
 						_G[varName] = step[profileString] or varSetup.default
 					end
 				end
-				Settings.FFXIVMINION[varName] = _G[varName]
+				SafeSetVar(varName,_G[varName])
 			else
 				local subtableName = profileString
 				for varName,varTable in pairs(QM.Variables) do
@@ -1517,7 +1513,7 @@ function QM.EditStep(id)
 							d("setting "..varName.." to "..tostring(varTable.default))
 							_G[varName] = varTable.default
 						end
-						Settings.FFXIVMINION[varName] = _G[varName]
+						SafeSetVar(varName,_G[varName])
 					end
 				end
 			end
@@ -1548,7 +1544,7 @@ function QM.EditStep(id)
 				else
 					_G[vName] = 0
 				end
-				Settings.FFXIVMINION[vName] = _G[vName]
+				SafeSetVar(vName,_G[vName])
 			end
 		end	
 	else
@@ -1785,7 +1781,7 @@ end
 function QM.PushVariables()
 	for k,v in pairs(QM.Variables) do
 		if Settings.FFXIVMINION[tostring(k)] ~= _G[tostring(k)] then
-			Settings.FFXIVMINION[tostring(k)] = _G[tostring(k)]
+			SafeSetVar(tostring(k),_G[tostring(k)])
 		end
 	end
 end
@@ -1925,7 +1921,13 @@ function QM.WindowUpdate()
 	if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
 	if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
 
-	if (WindowInfo ~= nil and WindowInfo ~= WI) then Settings.FFXIVMINION.qmWindow = WindowInfo end
+	local tablesEqual = true
+	if (ValidTable(WindowInfo) and ValidTable(WI)) then
+		tablesEqual = deepcompare(WindowInfo,WI,true)
+	end
+	if (not tablesEqual) then 
+		SafeSetVar(tableName,WindowInfo)
+	end
 end
 --**************************************************************************************************************************************
 function QM.WindowToggle(event)
