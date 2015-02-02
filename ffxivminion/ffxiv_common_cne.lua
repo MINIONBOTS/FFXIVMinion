@@ -1830,7 +1830,7 @@ function e_flee:execute()
 		newTask.useTeleport = (gTeleport == "1")
 		newTask.task_complete_eval = 
 			function ()
-				return not Player.incombat or (Player.hp.percent > tonumber(gFleeHP) and Player.mp.percent > tonumber(gFleeMP))
+				return not Player.incombat or (Player.hp.percent > tonumber(gRestHP) and Player.mp.percent > tonumber(gRestMP))
 			end
 		newTask.task_fail_eval = 
 			function ()
@@ -1851,6 +1851,10 @@ e_dead = inheritsFrom( ml_effect )
 c_dead.timer = 0
 function c_dead:evaluate()
     if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+		if (ml_task_hub:ThisTask().subtask ~= nil) then
+			ml_task_hub:ThisTask().subtask = nil
+		end
+		
 		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			if (c_dead.timer == 0) then
 				c_dead.timer = Now() + 30000
@@ -1867,7 +1871,7 @@ function c_dead:evaluate()
     return false
 end
 function e_dead:execute()
-	if (ControlVisible("_NotificationItemParty")) then
+	if (ControlVisible("_NotificationParty")) then
 		return
 	end
 
@@ -1940,10 +1944,6 @@ function c_returntomarker:evaluate()
 		
 		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
 			if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
-				local nearestTarget = GetPVPTarget()
-				if (nearestTarget) then
-					return false
-				end
 				if (distance > 25) then
 					return true
 				end
@@ -2801,4 +2801,35 @@ end
 function e_selectconvindex:execute()
 	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().conversationIndex))
 	ml_task_hub:CurrentTask():SetDelay(1500)
+end
+
+c_returntomap = inheritsFrom( ml_cause )
+e_returntomap = inheritsFrom( ml_effect )
+e_returntomap.mapID = 0
+function c_returntomap:evaluate()
+	if (IsPositionLocked() or IsLoading() or not Player.alive) then
+		return false
+	end
+	
+	if (ml_task_hub:ThisTask().correctMap and ml_task_hub:ThisTask().correctMap ~= Player.localmapid) then
+		local mapID = ml_task_hub:ThisTask().correctMap
+		if (mapID and mapID > 0) then
+			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
+														Player.localmapid,
+														mapID	)
+			if(ValidTable(pos)) then
+				e_returntomap.mapID = mapID
+				return true
+			else
+				--ml_debug("No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
+			end
+		end
+	end
+	
+	return false
+end
+function e_returntomap:execute()
+	local task = ffxiv_task_movetomap.Create()
+	task.destMapID = e_returntomap.mapID
+	ml_task_hub:Add(task, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end

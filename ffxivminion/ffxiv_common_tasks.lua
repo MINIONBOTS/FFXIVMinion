@@ -140,7 +140,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.postDelay = 0
 	newinst.dismountTimer = 0
-	newinst.dismountDistance = 10
+	newinst.dismountDistance = 15
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
@@ -222,8 +222,8 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 		else	
 			if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and Now() > self.dismountTimer) then
-				Dismount()
-				self.dismountTimer = Now() + 1500
+				SendTextCommand("/mount")
+				self.dismountTimer = Now() + 500
 			end
 				
 			if (distance <= (self.range + self.gatherRange)) then
@@ -536,7 +536,7 @@ function ffxiv_task_movetomap:Init()
 end
 
 function ffxiv_task_movetomap:task_complete_eval()
-    return Player.localmapid == ml_task_hub:CurrentTask().destMapID
+    return Player.localmapid == ml_task_hub:ThisTask().destMapID
 end
 
 --=======================SUMMON CHOCO TASK=========================-
@@ -1105,22 +1105,23 @@ function ffxiv_task_grindCombat:Process()
 		if (ml_global_information.AttackRange > 5) then
 			if ((not InCombatRange(target.id) or not target.los) and not ActionList:IsCasting()) then
 				if (teleport and dist > 60) then
-					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
+					local telePos = GetPosFromDistanceHeading(pos, 6, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 					end
 				else
 					if (Now() > self.movementDelay) then
-						local path = Player:MoveTo(pos.x,pos.y,pos.z, 10, false, false)
+						local path = Player:MoveTo(pos.x,pos.y,pos.z, 15, false, false)
 						self.movementDelay = Now() + 1000
 					end
 				end
-			else
+			end
+			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
 					Dismount()
 				end
-				if (IsCaster(Player.job) and Player:IsMoving()) then
+				if ((IsCaster(Player.job) and Player:IsMoving()) or target.los) then
 					Player:Stop()
 				end
 			end
@@ -1149,7 +1150,8 @@ function ffxiv_task_grindCombat:Process()
 				else
 					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
 				end
-			else
+			end
+			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
 					Dismount()
 				end
@@ -1299,6 +1301,19 @@ end
 
 --=====USE BOAT====
 
+c_detectyesno = inheritsFrom( ml_cause )
+e_detectyesno = inheritsFrom( ml_effect )
+function c_detectyesno:evaluate()
+	if (ControlVisible("_NotificationParty")) then
+		return false
+	end
+	return ControlVisible("SelectYesno")
+end
+function e_detectyesno:execute()
+	PressYesNo(true)
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 ffxiv_nav_interact = inheritsFrom(ml_task)
 function ffxiv_nav_interact.Create()
     local newinst = inheritsFrom(ffxiv_nav_interact)
@@ -1329,8 +1344,8 @@ function ffxiv_nav_interact.Create()
 end
 
 function ffxiv_nav_interact:Init()
-	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
-    self:add( ke_questYesNo, self.overwatch_elements)
+	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 20 )
+    self:add( ke_detectYesNo, self.overwatch_elements)
 	
 	local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
     self:add( ke_convIndex, self.overwatch_elements)

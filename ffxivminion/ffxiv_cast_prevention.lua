@@ -37,17 +37,11 @@ function cp.GUIVarUpdate(Event, NewVals, OldVals)
             k == "cpTCastIDs" or
             k == "cpTBuffs")			
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 	end
     GUI_RefreshWindow(cp.mainwindow.name)
 end
-
---[[
-function cp.OnUpdate( event, tickcount )
-	imp.CheckForCasts()
-end
---]]
 
 function cp.AddCastPrevention()
 	local list = Settings.FFXIVMINION.cpOptions
@@ -129,9 +123,7 @@ function cp.HandleButtons( Event, Button )
 	end
 end
 
---RegisterEventHandler("MultiBotManager.activate", mb.ToggleOnOff)
-RegisterEventHandler("GUI.Item",		cp.HandleButtons)
+RegisterEventHandler("GUI.Item",cp.HandleButtons)
 RegisterEventHandler("CastPrevention.toggle", cp.ShowMenu)
 RegisterEventHandler("Module.Initalize",cp.ModuleInit)
 RegisterEventHandler("GUI.Update",cp.GUIVarUpdate)
---RegisterEventHandler("Gameloop.Update",cp.OnUpdate)
