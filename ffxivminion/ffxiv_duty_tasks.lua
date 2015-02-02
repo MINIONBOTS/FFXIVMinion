@@ -21,7 +21,7 @@ function c_dutyavoid:evaluate()
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
 				for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
-					if (tonumber(spell) == target.castinginfo.channelingid) then
+					if (tonumber(spell) == target.castinginfo.channelingid or tonumber(spell) == target.castinginfo.castingid) then
 						c_dutyavoid.avoidTime = target.castinginfo.casttime + 1000
 						c_dutyavoid.facing = target.pos.h
 						return true
@@ -131,132 +131,269 @@ function ffxiv_duty_kill_task:Process()
 			Player:SetFacing(Player.pos.h)
 		end
 	end
-
-	if (ValidTable(entity)) then
-		--d("Attacking current entity:"..tostring(entity.name)..",id:"..tostring(entity.id)..",contentid:"..tostring(entity.uniqueid)..",attackable:"..tostring(entity.attackable))
-		if (self.lastEntity == nil or self.lastEntity ~= entity.id) then
-			self.lastEntity = entity.id
-			self.lastHPPercent = entity.hp.percent
-			self.immunePulses = 0
-		elseif (self.lastEntity == entity.id) then
-			if (self.lastHPPercent == entity.hp.percent) then
-				self.immunePulses = self.immunePulses + 1
-			elseif (self.lastHPPercent > entity.hp.percent) then
-				self.lastHPPercent = entity.hp.percent
-				self.immunePulses = 0
+	
+	local usedReaction = false
+	if (self.encounterData.condition and self.encounterData.reaction) then
+		local reactionIndex = 0
+		local conditionsTable = shallowcopy(self.encounterData.condition)
+		local needsReaction = true
+		for id, conditions in pairs(conditionsTable) do
+			needsReaction = true
+			for condition,value in pairs(conditions) do
+				local f = assert(loadstring("return " .. condition))()
+				if (f ~= nil) then
+					if (f ~= value) then
+						needsReaction = false
+					end
+				end
 			end
+			if (needsReaction) then
+				reactionIndex = id
+				break
+			end			
 		end
 		
-		if (fightPos and not self.pullHandled) then
-			--fightPos is for handling pull situations
-			if (entity.targetid == 0) then
-				Player:SetTarget(entity.id)
-				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-				SkillMgr.Cast( entity )
+		if (needsReaction) then
+			local reactionTable = self.encounterData.reaction
+			local reaction = reactionTable[reactionIndex]
+			
+			local reactionType = reaction.type
+			if (reactionType == "gotoPos") then
+				local myPos = shallowcopy(Player.pos)
+				local gotoPos = reaction.pos
+				if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+					GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+					Player:SetFacingSynced(gotoPos.h)
+				end
+				usedReaction = true
+			elseif (reactionType == "gotoTarget") then
+				local reactionTarget = reaction.id or 0
+				if (reactionTarget and reactionTarget ~= 0) then
+					local target = EntityList:Get(reactionTarget)
+					if (target) then
+						local myPos = shallowcopy(Player.pos)
+						local gotoPos = target.pos
+						if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+							GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+							Player:SetFacingSynced(gotoPos.h)
+						end
+					end
+				end
+				usedReaction = true
+			elseif (reactionType == "killTarget") then
+				local reactionTarget = reaction.id or 0
+				if (reactionTarget and reactionTarget ~= 0) then
+					local el = EntityList("nearest,alive,attackable,contentid="..tostring(reactionTarget))
+					if (el) then
+						local id, entity = next(el)
+						if (entity) then
+							local myPos = shallowcopy(Player.pos)
+							local gotoPos = entity.pos
+							local range = reaction.range or 15
+							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > range) then
+								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+								Player:SetFacingSynced(gotoPos.h)
+							end
+							
+							local pos = gotoPos
+							Player:SetTarget(entity.id)
+						
+							--Telecasting, teleport to mob portion.
+							if (ml_global_information.AttackRange < 5 and 
+								gUseTelecast == "1" and 
+								entity.castinginfo.channelingid == 0 and
+								gTeleport == "1" and 
+								SkillMgr.teleCastTimer == 0 and 
+								SkillMgr.IsGCDReady() and 
+								(entity.targetid ~= Player.id or self.encounterData.telecastAlways) and 
+								Player.hp.percent > 30) 
+							then
+								
+								self.suppressFollow = true
+								self.suppressFollowTimer = Now() + 2000
+								
+								SkillMgr.teleBack = self.currentPos
+								
+								if (self.encounterData.telecastPos) then
+									--d("Using telecast pos.")
+									local telePos = self.encounterData.telecastPos
+									GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
+									Player:SetFacingSynced(pos.x,pos.y,pos.z)
+								else
+									--d("Using normal telecast pos.")
+									GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+									Player:SetFacingSynced(pos.x,pos.y,pos.z)
+								end
+								
+								SkillMgr.teleCastTimer = Now() + 1500
+							end
+							
+							SetFacing(pos.x, pos.y, pos.z)
+							SkillMgr.Cast( entity )
+							
+							if (TableSize(SkillMgr.teleBack) > 0) then
+								returnable = false
+								if (Now() > SkillMgr.teleCastTimer) then
+									returnable = true
+								end
+								if (entity.castinginfo.channelingid ~= 0) then
+									returnable = true
+								end
+								if (entity.targetid == Player.id and not self.encounterData.telecastAlways) then
+									returnable = true
+								end
+								if (Player.hp.percent < 30) then
+									returnable = true
+								end
+								if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > (entity.hitradius + 5)) then
+									returnable = true
+								end
+								if (returnable) then
+									local back = SkillMgr.teleBack
+									GameHacks:TeleportToXYZ(back.x, back.y, back.z)
+									Player:SetFacingSynced(back.h)
+									SkillMgr.teleBack = {}
+									SkillMgr.teleCastTimer = 0
+								end
+							end
+						end
+					end
+				end
+				usedReaction = true
 				self.hasFailed = false
-			else
-				GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
-				SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-				self.pullHandled = true
 			end
-		elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
-				ml_task_hub:CurrentTask().encounterData.doKill == false ) then
-					if (entity.targetid == 0) then
-						Player:SetTarget(entity.id)
-						SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
-						SkillMgr.Cast( entity )
-						self.hasFailed = false
-					else
-						self.hasFailed = true
-					end
-		elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
-				ml_task_hub:CurrentTask().encounterData.doKill == true) then
-					self.hasFailed = false
-					
-					local pos = entity.pos
+		end
+	end
+
+	if (not usedReaction) then
+		if (ValidTable(entity)) then
+			--d("Attacking current entity:"..tostring(entity.name)..",id:"..tostring(entity.id)..",contentid:"..tostring(entity.uniqueid)..",attackable:"..tostring(entity.attackable))
+			if (self.lastEntity == nil or self.lastEntity ~= entity.id) then
+				self.lastEntity = entity.id
+				self.lastHPPercent = entity.hp.percent
+				self.immunePulses = 0
+			elseif (self.lastEntity == entity.id) then
+				if (self.lastHPPercent == entity.hp.percent) then
+					self.immunePulses = self.immunePulses + 1
+				elseif (self.lastHPPercent > entity.hp.percent) then
+					self.lastHPPercent = entity.hp.percent
+					self.immunePulses = 0
+				end
+			end
+			
+			if (fightPos and not self.pullHandled) then
+				--fightPos is for handling pull situations
+				if (entity.targetid == 0) then
 					Player:SetTarget(entity.id)
-					
-					--Telecasting, teleport to mob portion.
-					if (ml_global_information.AttackRange < 5 and 
-						gUseTelecast == "1" and 
-						entity.castinginfo.channelingid == 0 and
-						gTeleport == "1" and 
-						SkillMgr.teleCastTimer == 0 and 
-						SkillMgr.IsGCDReady() and 
-						(entity.targetid ~= Player.id or self.encounterData.telecastAlways) and 
-						Player.hp.percent > 30) 
-					then
-						
-						self.suppressFollow = true
-						self.suppressFollowTimer = Now() + 2000
-						
-						SkillMgr.teleBack = self.currentPos
-						
-						if (self.encounterData.telecastPos) then
-							--d("Using telecast pos.")
-							local telePos = self.encounterData.telecastPos
-							GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
-							Player:SetFacingSynced(pos.x,pos.y,pos.z)
-						else
-							--d("Using normal telecast pos.")
-							GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-							Player:SetFacingSynced(pos.x,pos.y,pos.z)
-						end
-						
-						SkillMgr.teleCastTimer = Now() + 1500
-					end
-					
-					SetFacing(pos.x, pos.y, pos.z)
+					SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
 					SkillMgr.Cast( entity )
-					
-					if (TableSize(SkillMgr.teleBack) > 0) then
-						returnable = false
+					self.hasFailed = false
+				else
+					GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+					SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+					self.pullHandled = true
+				end
+			elseif (ml_task_hub:CurrentTask().encounterData.doKill ~= nil and 
+					ml_task_hub:CurrentTask().encounterData.doKill == false ) then
+						if (entity.targetid == 0) then
+							Player:SetTarget(entity.id)
+							SetFacing(entity.pos.x, entity.pos.y, entity.pos.z)
+							SkillMgr.Cast( entity )
+							self.hasFailed = false
+						else
+							self.hasFailed = true
+						end
+			elseif (ml_task_hub:CurrentTask().encounterData.doKill == nil or 
+					ml_task_hub:CurrentTask().encounterData.doKill == true) then
+						self.hasFailed = false
 						
-						if (Now() > SkillMgr.teleCastTimer) then
-							returnable = true
-							--d("setting returnable in clause 1 - timer is up")
+						local pos = entity.pos
+						Player:SetTarget(entity.id)
+						
+						--Telecasting, teleport to mob portion.
+						if (ml_global_information.AttackRange < 5 and 
+							gUseTelecast == "1" and 
+							entity.castinginfo.channelingid == 0 and
+							gTeleport == "1" and 
+							SkillMgr.teleCastTimer == 0 and 
+							SkillMgr.IsGCDReady() and 
+							(entity.targetid ~= Player.id or self.encounterData.telecastAlways) and 
+							Player.hp.percent > 30) 
+						then
+							
+							self.suppressFollow = true
+							self.suppressFollowTimer = Now() + 2000
+							
+							SkillMgr.teleBack = self.currentPos
+							
+							if (self.encounterData.telecastPos) then
+								--d("Using telecast pos.")
+								local telePos = self.encounterData.telecastPos
+								GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
+								Player:SetFacingSynced(pos.x,pos.y,pos.z)
+							else
+								--d("Using normal telecast pos.")
+								GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+								Player:SetFacingSynced(pos.x,pos.y,pos.z)
+							end
+							
+							SkillMgr.teleCastTimer = Now() + 1500
 						end
 						
-						if (entity.castinginfo.channelingid ~= 0) then
-							returnable = true
-							--d("setting returnable in clause 2 - enemy is casting")
+						SetFacing(pos.x, pos.y, pos.z)
+						SkillMgr.Cast( entity )
+						
+						if (TableSize(SkillMgr.teleBack) > 0) then
+							returnable = false
+							
+							if (Now() > SkillMgr.teleCastTimer) then
+								returnable = true
+								--d("setting returnable in clause 1 - timer is up")
+							end
+							
+							if (entity.castinginfo.channelingid ~= 0) then
+								returnable = true
+								--d("setting returnable in clause 2 - enemy is casting")
+							end
+							
+							if (entity.targetid == Player.id and not self.encounterData.telecastAlways) then
+								returnable = true
+								--d("setting returnable in clause 3 - enemy is targeting player and telecast always is not set")
+							end
+							
+							if (Player.hp.percent < 30) then
+								returnable = true
+								--d("setting returnable in clause 4 - player has less than 30% hp")
+							end
+							
+							if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > (entity.hitradius + 5)) then
+								returnable = true
+								--d("setting returnable in clause 5 - distance from entity too far")
+							end
+							
+							if (returnable) then
+								local back = SkillMgr.teleBack
+								--d("teleporting back")
+								GameHacks:TeleportToXYZ(back.x, back.y, back.z)
+								Player:SetFacingSynced(back.h)
+								SkillMgr.teleBack = {}
+								SkillMgr.teleCastTimer = 0
+							end
 						end
 						
-						if (entity.targetid == Player.id and not self.encounterData.telecastAlways) then
-							returnable = true
-							--d("setting returnable in clause 3 - enemy is targeting player and telecast always is not set")
-						end
-						
-						if (Player.hp.percent < 30) then
-							returnable = true
-							--d("setting returnable in clause 4 - player has less than 30% hp")
-						end
-						
-						if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z) > (entity.hitradius + 5)) then
-							returnable = true
-							--d("setting returnable in clause 5 - distance from entity too far")
-						end
-						
-						if (returnable) then
-							local back = SkillMgr.teleBack
-							--d("teleporting back")
-							GameHacks:TeleportToXYZ(back.x, back.y, back.z)
-							Player:SetFacingSynced(back.h)
-							SkillMgr.teleBack = {}
-							SkillMgr.teleCastTimer = 0
-						end
-					end
-					
+			end
+		else
+			if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.currentPos.x,self.currentPos.y,self.currentPos.z) > 1) then
+				SkillMgr.teleBack = {}
+				SkillMgr.teleCastTimer = 0
+				GameHacks:TeleportToXYZ(self.currentPos.x, self.currentPos.y, self.currentPos.z)
+				Player:SetFacingSynced(self.currentPos.h)
+			end
+			SkillMgr.Cast( Player, true )
+			self.hasFailed = true
 		end
 	else
-		if (Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.currentPos.x,self.currentPos.y,self.currentPos.z) > 1) then
-			SkillMgr.teleBack = {}
-			SkillMgr.teleCastTimer = 0
-			GameHacks:TeleportToXYZ(self.currentPos.x, self.currentPos.y, self.currentPos.z)
-			Player:SetFacingSynced(self.currentPos.h)
-		end
-		SkillMgr.Cast( Player, true )
-		self.hasFailed = true
+		self.hasFailed = false
 	end
 	
 	if (TableSize(ml_task_hub:CurrentTask().process_elements) > 0) then
@@ -277,6 +414,10 @@ function ffxiv_duty_kill_task:task_complete_eval()
 			d("Immune pulses reached "..tostring(self.immunePulses).." which exceeds the max of "..tostring(self.immuneMax)) 
 			return true
 		end
+	end
+	
+	if (ffxiv_task_duty.preventFail and Now() < ffxiv_task_duty.preventFail) then
+		return false
 	end
 	
 	if (self.hasFailed and self.failTimer == 0) then
@@ -661,7 +802,7 @@ function c_roll:evaluate()
 	if (loot and ml_task_hub:CurrentTask().rollstate ~= "Complete") then
 		return true
 	end
-    
+	
     return false
 end
 function e_roll:execute()
@@ -669,10 +810,9 @@ function e_roll:execute()
 	local loot = Inventory:GetLootList()
 	if (loot) then
 		if (ml_task_hub:CurrentTask().rollstate == "Need") then
-			for i, e in pairs(loot) do
-				if (gLootOption == "Need" or gLootOption == "Any") then 
-					d("Attempting to need on loot, result was:"..tostring(e:Need()))
-				end
+			for i, e in pairs(loot) do 
+				d("Attempting to need on loot, result was:"..tostring(e:Need()))
+				d("Attempting to need on loot, result was:"..tostring(e:Need()))
 			end
 			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 			ml_task_hub:CurrentTask().rollstate = "Greed"
@@ -681,9 +821,7 @@ function e_roll:execute()
 		
 		if (ml_task_hub:CurrentTask().rollstate == "Greed") then
 			for i, e in pairs(loot) do
-				if (gLootOption == "Need" or gLootOption == "Greed" or gLootOption == "Any") then 
-					d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
-				end
+				d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
 			end
 			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 			ml_task_hub:CurrentTask().rollstate = "Pass"
@@ -694,7 +832,7 @@ function e_roll:execute()
 			for i, e in pairs(loot) do
 				d("Attempting to pass on loot, result was:"..tostring(e:Pass()))
 			end
-			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().latencyTimer = Now()
 			ml_task_hub:CurrentTask().rollstate = "Complete"
 		end
 	end
@@ -715,7 +853,14 @@ function ffxiv_task_lootroll.Create()
 	newinst.encounterData = {}
    
     newinst.name = "LT_LOOTROLL"
-	newinst.rollstate = "Need"
+	
+	local startingStates = {
+		["Need"] = "Need",
+		["Greed"] = "Greed",
+		["Pass"] = "Pass",
+		["Any"] = "Need",
+	}
+	newinst.rollstate = startingStates[gLootOption]
 	newinst.failTimer = 0
 	newinst.isComplete = false
 	newinst.latencyTimer = 0
@@ -724,7 +869,8 @@ function ffxiv_task_lootroll.Create()
     return newinst
 end
 
-function ffxiv_task_lootroll:Init() 	
+function ffxiv_task_lootroll:Init() 
+	
 	local ke_lootroll = ml_element:create( "Roll", c_roll, e_roll, 10 )
     self:add(ke_lootroll, self.process_elements)
 	
