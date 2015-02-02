@@ -43,7 +43,7 @@ function ffxiv_task_pvp.Create()
 	newinst.filterLevel = false
     newinst.atMarker = false
 	newinst.deadTimes = 0
-	
+	newinst.movementDelay = 0
 	newinst.currentLeader = ""
     
     newinst.targetFunction = GetPVPTarget
@@ -85,7 +85,6 @@ function e_detectenter:execute()
 end
 
 c_pressleave = inheritsFrom( ml_cause )
-c_pressleave.throttle = 1000
 e_pressleave = inheritsFrom( ml_effect )
 function c_pressleave:evaluate()
 	d("Leave condition1:"..tostring(MultiComp(Player.localmapid, "337,175,336,352,376,422")))
@@ -116,6 +115,7 @@ e_detectkick = inheritsFrom( ml_effect )
 c_detectkick.throttle = 1000
 function c_detectkick:evaluate() 
     return (not MultiComp(Player.localmapid, "337,175,336,352,376,422") and 
+		not IsLoading() and not ControlVisible("ColosseumRecord") and
 		(ml_task_hub:ThisTask().state == "WAITING_FOR_COMBAT" or ml_task_hub:ThisTask().state == "COMBAT_STARTED"))
 end
 function e_detectkick:execute()
@@ -282,7 +282,7 @@ c_pvpdetectenemy = inheritsFrom( ml_cause )
 e_pvpdetectenemy = inheritsFrom( ml_effect )
 c_pvpdetectenemy.targetid = nil
 function c_pvpdetectenemy:evaluate()
-	if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
+	if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422) or IsLoading() or ControlVisible("ColosseumRecord")) then
 		return false
 	end
 	
@@ -308,7 +308,7 @@ end
 c_atpvpmarker = inheritsFrom( ml_cause )
 e_atpvpmarker = inheritsFrom( ml_effect )
 function c_atpvpmarker:evaluate()
-	if (ml_task_hub:RootTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
+	if (ml_task_hub:RootTask().state ~= "COMBAT_STARTED" or IsLoading() or ControlVisible("ColosseumRecord") or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 		return false
 	end
 
@@ -406,8 +406,8 @@ function e_nextpvpmarker:execute()
     local markerPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
     local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
     newTask.pos = markerPos
-    newTask.range = math.random(0,5)
-	newTask.dismountDistance = 25
+    newTask.range = 3
+	newTask.dismountDistance = 15
 	newTask.use3d = true
 	newTask.remainMounted = false
     ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -518,7 +518,7 @@ e_pvpdead = inheritsFrom( ml_effect )
 c_pvpdead.timer = 0
 c_pvpdead.throttle = 1000
 function c_pvpdead:evaluate()
-	if (Player.alive) then	
+	if (Player.alive or ControlVisible("ColosseumRecord")) then	
 		return false
 	end
 	
@@ -642,7 +642,7 @@ function e_pvpfollowleader:execute()
 		e_pvpfollowleader.isFollowing = true
 	else
 		if ( not Player:IsMoving() ) then
-			FollowResult = Player:FollowTarget(leader.id)
+			local FollowResult = Player:FollowTarget(leader.id)
 			ml_debug( "Following Leader: "..tostring(FollowResult))
 		end
 	end
@@ -1010,7 +1010,7 @@ function ffxiv_task_pvp.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gPVPSpeedMatchPartner" or
 				k == "gPVPWinTrade" )
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("pvpMode"))
