@@ -2065,14 +2065,6 @@ function Mount(id)
 	end			
 end
 
-function SetGUIVar(strName, value)
-	strName = strName or ""
-	if (strName ~= "" and _G[strName] ~= nil) then
-		_G[strName] = value
-		Settings.FFXIVMINION[strName] = value
-	end
-end
-
 function Dismount()
 	if (Player.ismounted) then
 		local mountlist = ActionList("type=13")

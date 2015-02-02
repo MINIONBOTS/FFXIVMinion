@@ -57,7 +57,7 @@ function mb.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gMultiPort" or
             k == "gMultiPass")			
         then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
 		end
 	end
     GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
