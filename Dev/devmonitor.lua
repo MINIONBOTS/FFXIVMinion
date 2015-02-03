@@ -1333,7 +1333,6 @@ function Dev.UpdateWindow()
 	QIIsQRDO = tostring(Quest:IsQuestRewardDialogOpen())
 	QIIsLoading = tostring(Quest:IsLoading())
 	QIIsDialog = tostring(Quest:IsInDialog())
-	
 end
 
 function Dev.DoTask()
@@ -1352,6 +1351,13 @@ function Dev.OnUpdateHandler( Event, ticks )
 	end
 end
 
+function Dev.Test2()
+	Dev.running = not Dev.running
+	if ( not Dev.running) then Dev.curTask = nil end
+	d(Dev.running)
+end
+
 RegisterEventHandler("Module.Initalize",Dev.ModuleInit)
 RegisterEventHandler("Gameloop.Update", Dev.OnUpdateHandler)
 RegisterEventHandler("GUI.Item", Dev.HandleButtons )
+RegisterEventHandler("Dev.Test2", Dev.Test2)
