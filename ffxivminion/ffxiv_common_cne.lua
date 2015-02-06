@@ -2375,7 +2375,18 @@ function c_autoequip:evaluate()
 			local item = nil
 			for _,i in pairs(equipped) do
 				if (i.slot == slot) then
-					item = i
+					local itemid = i.id
+					if (i.IsHQ == 1) then
+						itemid = (itemid - 1000000)
+					end
+					if (ffxiv_item_data[itemid]) then
+						item = i
+					else
+						ml_debug("No item information was found for :"..tostring(i.name))
+					end
+				end
+				if (item) then
+					break
 				end
 			end
 			
