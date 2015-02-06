@@ -641,7 +641,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 				SkillMgr.SkillProfile[skill.prio].lastcast = Now()
 			elseif (skilldata.casttime > 0 and CastSucceeded()) then
 				if (skill.combo) then
-					d(skill.name.." is being set as the previous skill.")
+					--d(skill.name.." is being set as the previous skill.")
 					SkillMgr.prevSkillID = skill.id
 				end
 				
