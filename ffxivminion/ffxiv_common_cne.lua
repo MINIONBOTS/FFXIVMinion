@@ -837,7 +837,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
-	if (gUseAetherytes == "0" or IsLoading()) then
+	if (gUseAetherytes == "0" or IsPositionLocked()) then
 		return false
 	end
 	
@@ -1849,7 +1849,7 @@ end
 c_dead = inheritsFrom( ml_cause )
 e_dead = inheritsFrom( ml_effect )
 c_dead.timer = 0
-function c_dead:evaluate()
+function c_dead:evaluate()	
     if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
 		if (ml_task_hub:ThisTask().subtask ~= nil) then
 			ml_task_hub:ThisTask().subtask = nil
@@ -2185,7 +2185,7 @@ e_autoequip.id = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()
 	if (gQuestAutoEquip == "0" or 
-		ControlVisible("Shop") or Player.targetid ~= 0 or
+		IsShopWindowOpen() or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
 		Player:GetGatherableSlotList()) 
@@ -2721,7 +2721,7 @@ end
 c_equip = inheritsFrom( ml_cause )
 e_equip = inheritsFrom( ml_effect )
 function c_equip:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting() or Player.incombat or ControlVisible("Shop")) then
+	if (IsPositionLocked() or ActionList:IsCasting() or Player.incombat or IsShopWindowOpen()) then
 		return false
 	end
 

@@ -303,7 +303,7 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or ControlVisible("Shop")) then
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return true
 	end
 	
@@ -1103,7 +1103,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
-			if ((not InCombatRange(target.id) or not target.los) and not ActionList:IsCasting()) then
+			if ((not InCombatRange(target.id)) and not ActionList:IsCasting()) then
 				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 6, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1138,7 +1138,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 		else
-			if (not InCombatRange(target.id) or not target.los) then
+			if (not InCombatRange(target.id)) then
 				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)

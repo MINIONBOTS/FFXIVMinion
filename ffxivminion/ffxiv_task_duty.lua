@@ -13,6 +13,12 @@ ffxiv_task_duty.joinAttempts = 0
 ffxiv_task_duty.independentMode = false
 ffxiv_task_duty.lastCompletion = 0
 ffxiv_task_duty.preventFail = 0
+ffxiv_task_duty.performanceLevels = {
+	["Extreme"] = 2;
+	["Fast"] = 4;
+	["Normal"] = 6;
+	["Slow"] = 8;
+}
 
 function file_exists(name)
 	if (name) then
@@ -176,17 +182,17 @@ end
 function e_joinduty:execute()
 	if (not ControlVisible("ContentsFinder")) then
 		SendTextCommand("/dutyfinder")
-		ml_task_hub:ThisTask().joinTimer = Now() + 2000
+		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 		Duty:ClearDutySelection()
 		ffxiv_task_duty.dutyCleared = true
-		ml_task_hub:ThisTask().joinTimer = Now() + 2000
+		ml_task_hub:ThisTask().joinTimer = Now() + (500 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared) then
 		local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 		if (duty) then
 			Duty:SelectDuty(duty.DutyListIndex)
 			ffxiv_task_duty.dutySet = true
-			ml_task_hub:ThisTask().joinTimer = Now() + 2000
+			ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		end
 	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
         ml_task_hub:ThisTask().joinTimer = Now() + (tonumber(gResetDutyTimer) * 1000)
@@ -282,7 +288,7 @@ function e_readyduty:execute()
 	end
 	
 	ml_task_hub:ThisTask().state = "DUTY_NEW" 
-	ml_task_hub:ThisTask().joinTimer = Now() + 2000
+	ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 end
 
 c_leaveduty = inheritsFrom( ml_cause )
@@ -301,15 +307,15 @@ end
 function e_leaveduty:execute()
 	if (Quest:IsQuestRewardDialogOpen()) then
 		Quest:CompleteQuestReward()
-		ml_task_hub:ThisTask().leaveTimer = Now() + 2000
+		ml_task_hub:ThisTask().leaveTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	else
 		if not ControlVisible("ContentsFinder") then
 			Player:Stop()
 			SendTextCommand("/dutyfinder")
-			ml_task_hub:ThisTask().leaveTimer = Now() + 2000
+			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		elseif ControlVisible("ContentsFinder") and not ControlVisible("SelectYesno") then
 			PressDutyJoin()
-			ml_task_hub:ThisTask().leaveTimer = Now() + 2000
+			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
 			PressYesNo(true)
 		end
@@ -446,7 +452,7 @@ function ffxiv_task_duty:Process()
 				
 				--Moved the delay processing here so that any future tasks don't have to explicitly handle this.
 				local delay = 1500
-				if (encounterData.waitTime and encounterData.waitTime > 0) then
+				if (encounterData.waitTime) then
 					delay = encounterData.waitTime
 				end
 				
@@ -542,7 +548,6 @@ function ffxiv_task_duty.UIInit()
 	ffxivminion.Windows.Duty = { id = strings["us"].dutyMode, Name = GetString("dutyMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Duty)
 	
-
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
     end
@@ -555,6 +560,9 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gUseTelecast == nil) then
         Settings.FFXIVMINION.gUseTelecast = "1"
     end
+	if (Settings.FFXIVMINION.gPerformanceLevel == nil) then
+		Settings.FFXIVMINION.gPerformanceLevel = "Normal"
+	end
 	if (gBotMode == GetString("dutyMode")) then
 		ffxiv_task_duty.UpdateProfiles()
 	end
@@ -568,6 +576,7 @@ function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].profile,"gProfile",group,"None")
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewComboBox(winName,"Performance","gPerformanceLevel",group,"Extreme,Fast,Normal,Slow")
 	local group = GetString("settings")
     GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
 	GUI_NewCheckbox(winName,"Use Telecast",			"gUseTelecast",group)
@@ -580,6 +589,7 @@ function ffxiv_task_duty.UIInit()
 	gLootOption = Settings.FFXIVMINION.gLootOption
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
 	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
+	gPerformanceLevel = Settings.FFXIVMINION.gPerformanceLevel
 end
 
 function ffxiv_task_duty.UpdateProfiles()
@@ -612,7 +622,8 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 			SafeSetVar("gLastDutyProfile",v)
         elseif (k == "gResetDutyTimer" or
 				k == "gLootOption" or
-				k == "gUseTelecast")
+				k == "gUseTelecast" or
+				k == "gPerformanceLevel")
         then
             SafeSetVar(tostring(k),v)
         end
@@ -636,7 +647,7 @@ function ffxiv_task_duty.LoadProfile(strName)
 	end
 	if (file_exists(ffxiv_task_duty.dutyPath..strName..".lua")) then
 		d("loading "..ffxiv_task_duty.dutyPath..strName..".lua")
-		dofile(ffxiv_task_duty.dutyPath..strName..".lua")
+		persistence.load(ffxiv_task_duty.dutyPath..strName..".lua")
 	end
 	ffxiv_task_duty.dutyCleared = false
 	ffxiv_task_duty.dutySet = false

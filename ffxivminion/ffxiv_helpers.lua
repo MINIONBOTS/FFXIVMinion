@@ -32,9 +32,9 @@ function GetNearestGrindAttackable()
 	--Prioritize the lowest health with aggro on player, non-fate mobs.
 	block = 2
 	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
 	else
-		el = EntityList("shortestpath,alive,attackable,los,onmesh,targetingme,fateid=0,maxpathdistance=30") 
+		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
 	end
 	
 	if ( el ) then
@@ -841,7 +841,6 @@ end
 
 function GetPrioritizedTarget( targetlist )
 	--targetlist should be a semi-colon ";" separated string list
-	
 end
 
 function GetDutyTarget( maxHP )
@@ -1729,11 +1728,30 @@ function IsOnMap(mapid)
 end
 
 function ScanForMobs(ids,distance)
-	local ids = tostring(ids)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("nearest,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
-		return true
+		for i,e in pairs(el) do
+			if (ValidTable(e)) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+function ScanForObjects(ids,distance)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
+	local maxdistance = tonumber(distance) or 30
+	local el = EntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		for i,e in pairs(el) do
+			if (ValidTable(e)) then
+				return true
+			end
+		end
 	end
 	
 	return false
@@ -1898,11 +1916,6 @@ function InCombatRange(targetid)
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
 	if ( Player.castinginfo.channelingid ~= nil and Player.castinginfo.channeltargetid == targetid) then
 		return true
-	end
-	
-	--If the target is los, consider the player not in-range.
-	if (not target) then
-		return false
 	end
 	
 	local highestRange = 0
@@ -2294,6 +2307,40 @@ function IsTank(jobID)
 	}
 	
 	return tanks[jobID]
+end
+
+function IsGatherer(jobID)
+	local jobID = tonumber(jobID)
+	if (jobID >= 16 and jobID <= 17) then
+		return true
+	end
+	
+	return false
+end
+
+function IsFighter(jobID)
+	local jobID = tonumber(jobID)
+	if ((jobID >= 0 and jobID <= 8) or
+		(jobID >= 19))
+	then
+		return true
+	end
+	
+	return false
+end
+
+function IsCrafter(jobID)
+	local jobID = tonumber(jobID)
+	if (jobID >= 8 and jobID <= 15) then
+		return true
+	end
+	
+	return false
+end
+
+function IsFisher(jobID)
+	local jobID = tonumber(jobID)
+	return jobID == 18
 end
 
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
@@ -3082,6 +3129,7 @@ function GetItemInSlot(equipSlot)
 			return item
 		end
 	end
+	return nil
 end
 
 function ItemIsReady(itemid)
@@ -3174,6 +3222,44 @@ function ItemCount(itemid)
 	end
 	
 	return itemcount
+end
+
+function GilCount()
+	local gil = 0
+	local inv = Inventory("type=2000")
+	for i,item in pairs(inv) do
+		if (item.slot == 0) then
+			gil = item.count
+		end
+	end
+	return gil
+end
+
+function PoeticCount()
+	local poetic = 0
+	local inv = Inventory("type=2000")
+	for i,item in pairs(inv) do
+		if (item.slot == 6) then
+			poetic = item.count
+		end
+	end
+	return poetic
+end
+
+function SoldieryCount()
+	local soldiery = 0
+	local inv = Inventory("type=2000")
+	for i,item in pairs(inv) do
+		if (item.slot == 7) then
+			soldiery = item.count
+		end
+	end
+	return soldiery
+end
+
+function IsShopWindowOpen()
+	return (ControlVisible("Shop") or ControlVisible("ShopExchangeItem") or ControlVisible("ShopExchangeCurrency")
+		or ControlVisible("ShopCard") or ControlVisible("ShopExchangeCoin"))
 end
 
 function IsArmoryFull(slot)
@@ -3388,29 +3474,29 @@ end
 
 function EorzeaTime()
 	local et = {}
-    local ratioRealToGame = (1440 / 70)	
-	
+    local ratioRealToGame = (1440 / 70)
+
 	local jpTime = {}
 	jpTime.year = os.date("!%Y")
 	jpTime.month = os.date("!%m")
 	jpTime.day = os.date("!%d")
-	
+
 	local utcHour = tonumber(os.date("!%H"))
-	local offset = 9 + (os.date("*t").isdst == true and 1 or 0)
+	local offset = 9
 	local jphour = AddHours(utcHour,offset)
 	if ( utcHour >= 15 ) then
 		jpTime.day = jpTime.day + 1
 	end
 	jpTime.hour = jphour
-	
 	jpTime.min = os.date("!%M")
 	jpTime.sec = os.date("!%S")
-	local jpSecs = os.time(jpTime)
+	jpTime.isdst = false
 	
+	local jpSecs = os.time(jpTime)
 	local epoch = { year = 2010, month = 6, day = 11, hour = 16, min = 0, sec = 0, isdst = false }
 	local epochSecs = os.time(epoch)
-	
-	local diffTime = (jpSecs - epochSecs) - 90000 
+
+	local diffTime = (jpSecs - epochSecs) - 90000
 	local delta = (diffTime * ratioRealToGame)
 
 	local gameSecond = (delta % 60) or 0
@@ -3427,20 +3513,20 @@ function EorzeaTime()
 	delta = delta - gameHour
 	delta = delta / 24
 	et.hour = gameHour
-	
+
 	local gameDay = (delta % 32) or 0
 	delta = delta - gameDay
 	delta = delta / 32
 	et.day = gameDay
-	
+
 	local gameMonth = (delta % 12) or 0
 	delta = delta - gameMonth
 	delta = delta / 12
 	et.month = gameMonth
-	
+
 	local gameYear = delta or 0
 	et.year = gameYear
-	
+
 	return et
 end
 
