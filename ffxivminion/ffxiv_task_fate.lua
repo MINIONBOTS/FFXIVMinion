@@ -278,7 +278,7 @@ c_syncfatelevel = inheritsFrom( ml_cause )
 e_syncfatelevel = inheritsFrom( ml_effect )
 c_syncfatelevel.throttle = 1000
 function c_syncfatelevel:evaluate()
-    if (Player:GetSyncLevel() ~= 0) then
+    if (Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
         return false
     end
 	

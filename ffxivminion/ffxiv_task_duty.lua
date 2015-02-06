@@ -532,8 +532,8 @@ function ffxiv_task_duty:Init()
     local ke_leaveDuty = ml_element:create( "LeaveDuty", c_leaveduty, e_leaveduty, 15 )
     self:add(ke_leaveDuty, self.process_elements)
 	
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 10 )
-    self:add( ke_autoEquip, self.process_elements)
+	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 10 )
+    --self:add( ke_autoEquip, self.process_elements)
 	
 	
     self:AddTaskCheckCEs()

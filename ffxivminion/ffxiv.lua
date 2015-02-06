@@ -13,6 +13,7 @@ ml_global_information.WhitelistContentID = ""
 ml_global_information.currentMarker = false
 ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
+ml_global_information.syncTimer = 0
 ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
 ml_global_information.stanceTimer = 0
@@ -27,6 +28,7 @@ ml_global_information.lastMode = ""
 ml_global_information.itemIDsToEquip = {}
 ml_global_information.idlePulseCount = 0
 ml_global_information.autoStartQueued = false
+ml_global_information.blacklistedAetherytes = {}
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -248,6 +250,8 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].stAttacker] = 6,
 		[strings[gCurrentLanguage].stHealer] = 7,
 	}
+	
+	ml_global_information.blacklistedAetherytes = {}
 	
 	ffxivminion.modes =	{
 		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
@@ -1082,10 +1086,11 @@ function ffxivminion.SizeWindow(strName)
 		end
 	end
 	
-	local winTableName = "AutoWindow"..window.id
-	local winTable = Settings.FFXIVMINION[winTableName]
-	
-	GUI_SizeWindow(strName,winTable.width,winTable.height)
+	if (window) then
+		local winTableName = "AutoWindow"..window.id
+		local winTable = Settings.FFXIVMINION[winTableName]
+		GUI_SizeWindow(strName,winTable.width,winTable.height)
+	end
 end
 
 function ffxivminion.GetWindowSize(strName)

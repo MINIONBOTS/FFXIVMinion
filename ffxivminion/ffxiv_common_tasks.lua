@@ -1170,9 +1170,13 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	else
-		if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+		if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
+			if (ml_task_hub:ThisTask():ParentTask()) then
+				d("ParentTask:["..ml_task_hub:ThisTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+			end
 			if (Player:GetSyncLevel() ~= 0) then
 				Player:SyncLevel()
+				ml_global_information.syncTimer = Now() + 1000
 			end
 		end
 	end
@@ -1197,9 +1201,13 @@ function ffxiv_task_grindCombat:task_complete_eval()
 end
 
 function ffxiv_task_grindCombat:task_complete_execute()
-	if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE") then
+	if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
+		if (ml_task_hub:ThisTask():ParentTask()) then
+			d("ParentTask:["..ml_task_hub:ThisTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+		end
 		if (Player:GetSyncLevel() ~= 0) then
 			Player:SyncLevel()
+			ml_global_information.syncTimer = Now() + 1000
 		end
 	end
     Player:Stop()
