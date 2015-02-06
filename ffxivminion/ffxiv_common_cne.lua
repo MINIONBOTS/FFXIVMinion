@@ -372,7 +372,7 @@ function e_nextatma:execute()
 		return
 	end
 	
-	if (ActionIsReady(5)) then
+	if (ActionIsReady(7,5)) then
 		Player:Teleport(atma.tele)
 		
 		local newTask = ffxiv_task_teleport.Create()
@@ -846,8 +846,8 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
-	local teleport = ActionList:Get(5)
-	if (not teleport or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
+	local teleport = ActionList:Get(7,5)
+	if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
 		return false
 	end
 	
@@ -904,7 +904,7 @@ function e_teleporttomap:execute()
 		return
 	end
 	
-	if (ActionIsReady(5)) then
+	if (ActionIsReady(7,5)) then
 		Player:Teleport(e_teleporttomap.aethid)
 							
 		local newTask = ffxiv_task_teleport.Create()
@@ -1257,7 +1257,7 @@ function c_usenavinteraction:evaluate()
 							return
 						end
 						
-						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							Player:Teleport(12)
 						end
 					else
@@ -1275,7 +1275,7 @@ function c_usenavinteraction:evaluate()
 							return
 						end
 						
-						if (ActionIsReady(5) and not ActionList:IsCasting() and not IsLoading()) then
+						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							Player:Teleport(11)
 						end
 					else

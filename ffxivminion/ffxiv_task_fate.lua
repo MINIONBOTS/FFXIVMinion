@@ -477,7 +477,7 @@ c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-    if (not fate or fate.completion > 99) then
+    if (not fate) then
         return true
     end
     
