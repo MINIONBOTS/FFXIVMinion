@@ -16,6 +16,7 @@ function ffxiv_task_fate.Create()
     --ffxiv_task_fate members
     newinst.name = "LT_FATE"
     newinst.fateid = 0
+	newinst.fateDetails = {}
 	newinst.targetid = 0
     newinst.targetFunction = GetNearestFateAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
@@ -333,6 +334,30 @@ function e_movingfate:execute()
     ml_task_hub:ThisTask().moving = true
 end
 
+c_updatefate = inheritsFrom( ml_cause )
+e_updatefate = inheritsFrom( ml_effect )
+function c_updatefate:evaluate()
+	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	local fateDetails = ml_task_hub:ThisTask().fateDetails
+	
+	local tablesEqual = true
+	if (ValidTable(fate)) then
+		if (not fateDetails) then
+			fateDetails = shallowcopy(fate) 
+		elseif (ValidTable(fateDetails)) then
+			if not deepcompare(fate,fateDetails,true) then
+				fateDetails = shallowcopy(fate)
+			end
+		end
+	end
+	
+	return false
+end
+function e_updatefate:execute()
+	--This should never actually run, but just incase.
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 c_resettarget = inheritsFrom( ml_cause )
 e_resettarget = inheritsFrom( ml_effect )
 function c_resettarget:evaluate()
@@ -341,7 +366,7 @@ function c_resettarget:evaluate()
 	
 	if (ValidTable(fate)) then
 		if (subtask and subtask.name == "GRIND_COMBAT" and subtask.targetid and subtask.targetid > 0) then
-			if (Player:GetSyncLevel() ~= 0 or (Player:GetSyncLevel() == 0 and (fate.level < (Player.level - 5)))) then
+			if (Player:GetSyncLevel() ~= 0) then
 				local target = EntityList:Get(subtask.targetid)
 				if (ValidTable(target)) then
 					if (target.fateid == fate.id) then
@@ -362,8 +387,60 @@ function e_resettarget:execute()
 	d("Dropping target outside FATE radius.")
 end
 
+c_add_fatetarget = inheritsFrom( ml_cause )
+e_add_fatetarget = inheritsFrom( ml_effect )
+c_add_fatetarget.oocCastTimer = 0
+function c_add_fatetarget:evaluate()	
+	if not (ml_task_hub:ThisTask().name == "LT_FATE" and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+		local aggro = GetNearestAggro()
+		if ValidTable(aggro) then
+			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+				c_add_killtarget.targetid = aggro.id
+				return true
+			end
+		end 
+	end
+    
+	if (SkillMgr.Cast( Player, true)) then
+		c_add_killtarget.oocCastTimer = Now() + 1500
+		return false
+	end
+	
+	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+		return false
+	end
+	
+	local target = ml_task_hub:CurrentTask().targetFunction()
+    if (ValidTable(target)) then
+        if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+            c_add_killtarget.targetid = target.id
+            return true
+        end
+    end
+    
+    return false
+end
+function e_add_fatetarget:execute()
+	if (ml_task_hub:ThisTask().killFunction ~= nil) then
+		local newTask = ml_task_hub:ThisTask().killFunction.Create()
+		newTask.targetid = c_add_killtarget.targetid
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	else
+		local newTask = ffxiv_task_killtarget.Create()
+		Player:SetTarget(c_add_killtarget.targetid)
+		newTask.targetid = c_add_killtarget.targetid
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	end
+end
+
 function ffxiv_task_fate:Init()
     --init processoverwatch 
+	local ke_fateEnd = ml_element:create( "FateEnd", c_endfate, e_endfate, 50)
+    self:add( ke_fateEnd, self.overwatch_elements)
+	
+	local ke_updateFate = ml_element:create( "UpdateFateDetails", c_updatefate, e_updatefate, 18 )
+    self:add( ke_updateFate, self.overwatch_elements)
+	
 	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 16 )
     self:add( ke_teleToFate, self.overwatch_elements)
 	
@@ -376,8 +453,8 @@ function ffxiv_task_fate:Init()
     local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 5 )
     self:add( ke_atFate, self.overwatch_elements)
 	
-	local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_resettarget, 3 )
-	self:add( ke_resetTarget, self.overwatch_elements)
+	--local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_resettarget, 3 )
+	--self:add( ke_resetTarget, self.overwatch_elements)
     
     --init process
     local ke_movingFate = ml_element:create( "SetFateMovingFlag", c_movingfate, e_movingfate, 30 )
@@ -394,27 +471,24 @@ function ffxiv_task_fate:Init()
     
     local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
     self:add( ke_moveToFate, self.process_elements)
-	
-	--local ke_KillAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 2 )
-	--self:add(ke_KillAggroTarget, self.process_elements)
-    
-    self:AddOverwatchTaskCheckCEs()
 end
 
-function ffxiv_task_fate:task_complete_eval()
-    local fate = GetFateByID(self.fateid)
-    if (fate == nil) then
+c_endfate = inheritsFrom( ml_cause )
+e_endfate = inheritsFrom( ml_effect )
+function c_endfate:evaluate()
+    local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+    if (not fate or fate.completion > 99) then
         return true
     end
     
     return false
 end
-
-function ffxiv_task_fate:task_complete_execute()
-	Player:Stop()
+function e_endfate:execute()
 	ffxiv_task_grind.inFate = false
-	self:Terminate()
-	self:ParentTask():SetDelay(6000)
+	Player:Stop()
+	ml_task_hub:ThisTask().completed = true
+	ml_task_hub:ThisTask():DeleteSubTasks()
+	ml_task_hub:ThisTask():ParentTask():SetDelay(6000)
 end
 
 
@@ -426,8 +500,7 @@ function ffxiv_task_fate.BlacklistInitUI()
 end
 
 function ffxiv_task_fate.WhitelistInitUI()
-    GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateIndex,"gFateIndex",strings[gCurrentLanguage].addEntry,"1","5")
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateName,"gFateName",strings[gCurrentLanguage].addEntry)
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateName,"gWhitelistFateName",strings[gCurrentLanguage].addEntry)
 	GUI_NewField(ml_blacklist_mgr.mainwindow.name,"Map ID","gFateMapID",strings[gCurrentLanguage].addEntry)
     GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistFate, "gWhitelistFateAddEvent", strings[gCurrentLanguage].addEntry)
     RegisterEventHandler("gWhitelistFateAddEvent", ffxiv_task_grind.WhitelistFate)
