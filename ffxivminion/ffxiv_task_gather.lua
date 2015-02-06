@@ -308,15 +308,11 @@ function e_movetogatherable:execute()
 
     local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
-        if (gTeleport == "1") then
-            GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
-        else
-            local newTask = ffxiv_task_movetopos.Create()
-            newTask.pos = pos
-            newTask.range = ml_task_hub:CurrentTask().gatherDistance
-            newTask.gatherRange = 0.5
-            ml_task_hub:CurrentTask():AddSubTask(newTask)
-        end
+		local newTask = ffxiv_task_movetopos.Create()
+		newTask.pos = pos
+		newTask.range = ml_task_hub:CurrentTask().gatherDistance
+		newTask.gatherRange = 0.5
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
 end
 
@@ -968,7 +964,7 @@ c_gatherwindow = inheritsFrom( ml_cause )
 e_gatherwindow = inheritsFrom( ml_effect )
 function c_gatherwindow:evaluate()
 	local list = Player:GetGatherableSlotList()
-    if (list ~= nil and ml_task_hub:CurrentTask().name ~= "LT_GATHER") then
+    if (list ~= nil and (ml_task_hub:CurrentTask().name ~= "LT_GATHER" and ml_task_hub:CurrentTask().name ~= "LT_QS_GATHER")) then
 		return true
 	end
 end
