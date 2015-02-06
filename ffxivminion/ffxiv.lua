@@ -1277,10 +1277,8 @@ function ffxivminion.NodeDistance(self, id)
 		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
 			cost = 999
 		end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
-			if (not (HasQuest(674) and IsQuestComplete(674)) and not QuestCompleted(674)) then
-				cost = 999
-			end
+		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
+			cost = 999
 		end
 		
         return cost
