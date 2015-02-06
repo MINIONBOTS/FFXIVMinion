@@ -1079,7 +1079,7 @@ function ffxiv_task_grindCombat:Process()
 	
 	target = EntityList:Get(self.targetid)
 	if ValidTable(target) then
-		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0) then
+		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
 			if ( fate ) then
@@ -1103,7 +1103,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
-			if ((not InCombatRange(target.id)) and not ActionList:IsCasting()) then
+			if ((not InCombatRange(target.id) or not target.los) and not ActionList:IsCasting()) then
 				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 6, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1112,7 +1112,7 @@ function ffxiv_task_grindCombat:Process()
 					end
 				else
 					if (Now() > self.movementDelay) then
-						local path = Player:MoveTo(pos.x,pos.y,pos.z, 15, false, false)
+						local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
 						self.movementDelay = Now() + 1000
 					end
 				end
@@ -1138,14 +1138,14 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 		else
-			if (not InCombatRange(target.id)) then
+			if (not InCombatRange(target.id) or (not target.los and not dist < target.hitradius + 1)) then
 				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 					end
-				elseif (target.los and dist <= 6) then
+				elseif (target.los and dist <= (target.hitradius + 2.5)) then
 					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
 				else
 					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
@@ -1170,9 +1170,9 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	else
-		if (not ml_task_hub:ThisTask():ParentTask() or ml_task_hub:ThisTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
-			if (ml_task_hub:ThisTask():ParentTask()) then
-				d("ParentTask:["..ml_task_hub:ThisTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+		if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
+			if (ml_task_hub:CurrentTask():ParentTask()) then
+				d("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
 			end
 			if (Player:GetSyncLevel() ~= 0) then
 				Player:SyncLevel()

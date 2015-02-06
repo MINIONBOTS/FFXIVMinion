@@ -812,9 +812,8 @@ function e_roll:execute()
 		if (ml_task_hub:CurrentTask().rollstate == "Need") then
 			for i, e in pairs(loot) do 
 				d("Attempting to need on loot, result was:"..tostring(e:Need()))
-				d("Attempting to need on loot, result was:"..tostring(e:Need()))
 			end
-			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 			ml_task_hub:CurrentTask().rollstate = "Greed"
 			return
 		end
@@ -823,7 +822,7 @@ function e_roll:execute()
 			for i, e in pairs(loot) do
 				d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
 			end
-			ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+			ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 			ml_task_hub:CurrentTask().rollstate = "Pass"
 			return
 		end
@@ -879,7 +878,7 @@ end
 
 function ffxiv_task_lootroll:task_complete_eval()
 	if (self.maxTime == 0) then
-		self.maxTime = Now() + 10000
+		self.maxTime = Now() + (2000 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	end
 	
 	if (Now() > self.maxTime) then
