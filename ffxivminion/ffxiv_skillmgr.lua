@@ -628,77 +628,85 @@ function SkillMgr.OnUpdate( event, tickcount )
 			local skill = SkillMgr.comboQueue
 			local skilldata = ActionList:Get(skill.id)
 			
-			if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
-				if (skill.combo) then
-					--d(skill.name.." is being set as the previous skill.")
-					SkillMgr.prevSkillID = skill.id
+			if (skill and skilldata) then
+				if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
+					if (skill.combo) then
+						--d(skill.name.." is being set as the previous skill.")
+						SkillMgr.prevSkillID = skill.id
+					end
+					
+					SkillMgr.failTimer = Now() + 3000
+					--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.comboQueue = nil
+					
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+				elseif (skilldata.casttime > 0 and CastSucceeded()) then
+					if (skill.combo) then
+						--d(skill.name.." is being set as the previous skill.")
+						SkillMgr.prevSkillID = skill.id
+					end
+					
+					SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
+					--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+					SkillMgr.nextSkillID = tostring(skill.nskill)
+					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+					SkillMgr.comboQueue = nil
+					
+					SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
 				end
-				
-				SkillMgr.failTimer = Now() + 3000
-				--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-				SkillMgr.nextSkillID = tostring(skill.nskill)
-				SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-				SkillMgr.comboQueue = nil
-				
-				SkillMgr.SkillProfile[skill.prio].lastcast = Now()
-			elseif (skilldata.casttime > 0 and CastSucceeded()) then
-				if (skill.combo) then
-					--d(skill.name.." is being set as the previous skill.")
-					SkillMgr.prevSkillID = skill.id
-				end
-				
-				SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
-				--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-				SkillMgr.nextSkillID = tostring(skill.nskill)
-				SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-				SkillMgr.comboQueue = nil
-				
-				SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
+			elseif (gSkillManagerDebug == "1") then
+				d("Couldn't find data for skill ID:"..tostring(skill.id))
 			end
 		elseif (ValidTable(SkillMgr.otherQueue)) then
 			local skill = SkillMgr.otherQueue
 			local skilldata = ActionList:Get(skill.id)
 			
-			if (IsMudraSkill(skill.id)) then
-				if (MudraSucceeded()) then
-					SkillMgr.failTimer = Now() + 3000
-					--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.otherQueue = nil
-					
-					--d("next skill prio being set:"..tostring(skill.nskillprio))
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+			if (skill and skilldata) then
+				if (IsMudraSkill(skill.id)) then
+					if (MudraSucceeded()) then
+						SkillMgr.failTimer = Now() + 3000
+						--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+						SkillMgr.nextSkillID = tostring(skill.nskill)
+						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+						SkillMgr.otherQueue = nil
+						
+						--d("next skill prio being set:"..tostring(skill.nskillprio))
+						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+					end
+				elseif (IsNinjutsuSkill(skill.id)) then
+					if (NinjutsuSucceeded()) then
+						SkillMgr.failTimer = Now() + 3000
+						--d("Fail timer pushed forward 2 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+						SkillMgr.nextSkillID = tostring(skill.nskill)
+						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+						SkillMgr.otherQueue = nil
+						
+						--d("next skill prio being set:"..tostring(skill.nskillprio))
+						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+					end
+				else
+					if (skilldata.casttime == 0 or skill.hasSwiftcast) then
+						SkillMgr.failTimer = Now() + 5000
+						--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+						SkillMgr.nextSkillID = tostring(skill.nskill)
+						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+						SkillMgr.otherQueue = nil
+						
+						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+					elseif (skilldata.casttime > 0 and CastSucceeded()) then					
+						SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
+						--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
+						SkillMgr.nextSkillID = tostring(skill.nskill)
+						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+						SkillMgr.otherQueue = nil
+						
+						SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
+					end
 				end
-			elseif (IsNinjutsuSkill(skill.id)) then
-				if (NinjutsuSucceeded()) then
-					SkillMgr.failTimer = Now() + 3000
-					--d("Fail timer pushed forward 2 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.otherQueue = nil
-					
-					--d("next skill prio being set:"..tostring(skill.nskillprio))
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
-				end
-			else
-				if (skilldata.casttime == 0 or skill.hasSwiftcast) then
-					SkillMgr.failTimer = Now() + 5000
-					--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.otherQueue = nil
-					
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
-				elseif (skilldata.casttime > 0 and CastSucceeded()) then					
-					SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
-					--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.otherQueue = nil
-					
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
-				end
+			elseif (gSkillManagerDebug == "1") then
+				d("Couldn't find data for skill ID:"..tostring(skill.id))
 			end
 		end
 		

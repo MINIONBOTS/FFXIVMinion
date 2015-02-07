@@ -198,6 +198,7 @@ end
 ---------------------------------------------------------------------------------------------
 c_movetofate = inheritsFrom( ml_cause )
 e_movetofate = inheritsFrom( ml_effect )
+e_movetofate.radius = 0
 function c_movetofate:evaluate()
     if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
@@ -206,7 +207,8 @@ function c_movetofate:evaluate()
             local myPos = Player.pos
             local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
             if ( ml_task_hub:ThisTask().moving) then
-                if (distance > fate.radius/4) then				
+                if (distance > fate.radius/4) then	
+					e_movetofate.radius = (fate.radius/4)
                     return true
                 end
             else
@@ -228,7 +230,7 @@ function e_movetofate:execute()
         newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
 		
         if ( ml_task_hub:ThisTask().moving) then
-            newTask.range = math.random(3, fate.radius * .25)
+            newTask.range = math.random(3, (e_movetofate.radius))
         else
             newTask.range = 4
         end
