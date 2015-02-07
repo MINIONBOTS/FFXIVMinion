@@ -374,6 +374,7 @@ function e_nextatma:execute()
 	
 	if (ActionIsReady(7,5)) then
 		Player:Teleport(atma.tele)
+		ml_task_hub:ThisTask().correctMap = atma.map
 		
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
@@ -2823,7 +2824,7 @@ c_returntomap = inheritsFrom( ml_cause )
 e_returntomap = inheritsFrom( ml_effect )
 e_returntomap.mapID = 0
 function c_returntomap:evaluate()
-	if (IsPositionLocked() or IsLoading() or not Player.alive) then
+	if (IsPositionLocked() or IsLoading() or not Player.alive or ActionList:IsCasting()) then
 		return false
 	end
 	
