@@ -1138,7 +1138,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 		else
-			if (not InCombatRange(target.id) or (not target.los and not dist < target.hitradius + 1)) then
+			if (not InCombatRange(target.id) or (not target.los and not (dist < (target.hitradius + 1)))) then
 				if (teleport and dist > 60) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)

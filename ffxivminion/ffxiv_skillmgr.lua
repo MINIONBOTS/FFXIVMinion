@@ -34,6 +34,8 @@ SkillMgr.lastCast = 0
 SkillMgr.comboQueue = {}
 SkillMgr.otherQueue = {}
 SkillMgr.latencyTimer = 0
+SkillMgr.forceStop = false
+SkillMgr.preCombat = false
 
 SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
@@ -1339,6 +1341,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	preCombat = preCombat or false
 	forceStop = forceStop or false
 	
+	SkillMgr.preCombat = preCombat
+	SkillMgr.forceStop = forceStop
+	
     if ( entity ) then
 		-- first check if we're in combat or not for the start combat setting	
 		if (not preCombat and gBotMode == strings[gCurrentLanguage].assistMode and gStartCombat == "0" and not Player.incombat) then
@@ -2406,8 +2411,9 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		local preCombat = SkillMgr.preCombat
 		
-		if (((skill.combat == "Out of Combat") and (preCombat == nil or preCombat == false) and Player.incombat) or
+		if (((skill.combat == "Out of Combat") and (preCombat == false or Player.incombat)) or
 			((skill.combat == "In Combat") and (preCombat == true)))
 		then 
 			return true
