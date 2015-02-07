@@ -17,6 +17,7 @@ function ffxiv_task_craft.Create()
 	newinst.synthStarted = false
 	newinst.attemptedStarts = 0
 	newinst.itemsCrafted = 0
+	newinst.allowWindowOpen = true
 	newinst.maxItems = tonumber(gCraftMaxItems)
     
     return newinst
@@ -45,7 +46,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency or ml_task_hub:ThisTask().itemsCrafted > 0 ) then
+	if ( Now() < ml_task_hub:ThisTask().networkLatency or not ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
 	
@@ -59,6 +60,7 @@ end
 
 function e_opencraftwnd:execute()
     Crafting:ToggleCraftingLog()
+	ml_task_hub:CurrentTask().allowWindowOpen = false
 	ml_task_hub:ThisTask().networkLatency = Now() + 1500
 end
 
@@ -133,6 +135,7 @@ function e_precraftbuff:execute()
 			ml_task_hub:CurrentTask().networkLatency = Now() + 1500
 		end	
 	end
+	ml_task_hub:CurrentTask().allowWindowOpen = true
 end
 
 c_craft = inheritsFrom( ml_cause )
