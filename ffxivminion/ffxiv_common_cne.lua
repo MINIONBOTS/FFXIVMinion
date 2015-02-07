@@ -1546,7 +1546,10 @@ c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 e_companion.lastSummon = 0
 function c_companion:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode or ml_task_hub:CurrentTask().name == "LT_USEITEM" or TimeSince(e_companion.lastSummon) < 5000) then
+    if (gBotMode == strings[gCurrentLanguage].pvpMode or 
+		ml_task_hub:CurrentTask().name == "LT_USEITEM" or 
+		TimeSince(e_companion.lastSummon) < 5000 or 
+		Player.ismounted or IsMounting() or IsDismounting()) then
         return false
     end
 

@@ -1989,7 +1989,11 @@ function GetMounts()
 end
 
 function IsMounting()
-	return (Player.castinginfo.channelingid == 1 or Player.castinginfo.castingid == 4)
+	return (Player.action == 83 or Player.action == 84 or Player.action == 165)
+end
+
+function IsDismounting()
+	return (Player.action == 32)
 end
 
 function IsPositionLocked()
