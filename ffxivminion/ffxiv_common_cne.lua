@@ -394,20 +394,27 @@ function c_avoid:evaluate()
 	end
 
 	local ppos = shallowcopy(Player.pos)
-	local plevel = (Player:GetSyncLevel() ~= 0 and Player:GetSyncLevel()) or Player.level
+	local plevel = Player.level
+	local aoeData = ffxiv_aoe_data.dodge
+	
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("targetingme,onmesh,maxdistance=30")
+	local el = EntityList("targetingme,incombat,onmesh,maxdistance=30")
 	if (el) then
 		for i,e in pairs(el) do
-			if (ValidTable(e.castinginfo) and e.castinginfo.channelingid ~= 0) then
-				if (not ml_blacklist.CheckBlacklistEntry(GetString("aoe"), e.castinginfo.channelingid)) then
+			local casting = e.castinginfo.castingid or 0
+			local channeling = e.castinginfo.channelingid or 0
+			local channeltarget = e.castinginfo.channeltargetid
+			local secspassed = e.castinginfo.channeltime or 0
+			local casttime = e.castinginfo.casttime or 0
+			local casttargets = e.castinginfo.targets
+			
+			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling]) or e.action == 131) then
 					local epos = shallowcopy(e.pos)
-					local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
+				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 					
-					if not (e.castinginfo.casttime < 1.3 
-						or (distance > 20 and e.castinginfo.channeltargetid == e.id) 
-						or (e.castinginfo.channeltargetid ~= e.id and e.targetid ~= Player.id)
-						or (e.level ~= nil and e.level ~= 0 and plevel > (e.level + 7))) 
+				if (casttime >= 1.3 and (secspassed >= casttime * .25) and
+					not (distance > 22 and channeltarget == e.id) and
+					not (plevel > (e.level + 8)))
 					then
 						c_avoid.target = e
 						return true
@@ -415,41 +422,39 @@ function c_avoid:evaluate()
 				end
 			end
 		end
-	end
 	
-	-- If we don't have a target, we obviously can't avoid anything.
-	local target = Player:GetTarget()
-	if (not target or not target.castinginfo or target.castinginfo.channelingid == 0 or (plevel > (target.level + 7))) then
-		if (target) then
-			--d("Condition2:"..tostring(not target.castinginfo))
-			--d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
-			--d("Condition4:"..tostring(plevel > (target.level + 7)))
-		end
-		--d("avoid returning false in block 1.")
-		return false
-	end
+	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
+	if (el) then
+		for i,e in pairs(el) do
+			if (e.targetid ~= 0) then
+				local target = EntityList:Get(e.targetid)
+				local tpos = shallowcopy(target.pos)
+				if (Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z) < 10) then
+					local casting = e.castinginfo.castingid or 0
+					local channeling = e.castinginfo.channelingid or 0
+					local channeltarget = e.castinginfo.channeltargetid
+					local secspassed = e.castinginfo.channeltime or 0
+					local casttime = e.castinginfo.casttime or 0
+					local casttargets = e.castinginfo.targets
 	
-	if (ml_blacklist.CheckBlacklistEntry(GetString("aoe"), target.castinginfo.channelingid)) then
-		--d("avoid returning false in block 2.")
-		return false
-	end
+					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling] or e.action == 131)) then
+						local epos = shallowcopy(e.pos)
+						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 	
-	local epos = target.pos
-	local distance = Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, epos.x, epos.y, epos.z)
-	--Check to see if our current target is casting on us.
-    if (target.castinginfo.casttime < 1.3
-		or (distance > 15 and target.castinginfo.channeltargetid == target.id) 
-		or (target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id)) 
+						if (casttime >= 1.3 and (secspassed >= casttime * .25) and
+							not (distance > 22 and channeltarget == e.id) and
+							not (plevel > (e.level + 8)))
 	then
-		--d("Condition1:"..tostring(target.castinginfo.casttime < 1.3))
-		--d("Condition2:"..tostring(distance > 15 and target.castinginfo.channeltargetid == target.id))
-		--d("Condition3:"..tostring(target.castinginfo.channeltargetid ~= target.id and target.targetid ~= Player.id))
-		--d("avoid returning false in block 3")
-        return false
+							c_avoid.target = e
+							return true
+						end
+					end
+				end
+			end
+		end
     end
 
-	c_avoid.target = target
-    return true
+	return false
 end
 
 function e_avoid:execute() 	

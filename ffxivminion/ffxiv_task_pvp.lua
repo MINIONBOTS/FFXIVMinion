@@ -87,8 +87,6 @@ end
 c_pressleave = inheritsFrom( ml_cause )
 e_pressleave = inheritsFrom( ml_effect )
 function c_pressleave:evaluate()
-	d("Leave condition1:"..tostring(MultiComp(Player.localmapid, "337,175,336,352,376,422")))
-	d("Leave condition2:"..tostring(ControlVisible("ColosseumRecord")))
     return (MultiComp(Player.localmapid, "337,175,336,352,376,422") and ControlVisible("ColosseumRecord"))
 end
 function e_pressleave:execute()
