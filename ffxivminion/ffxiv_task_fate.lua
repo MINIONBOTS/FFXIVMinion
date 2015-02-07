@@ -132,23 +132,25 @@ c_teletofate.lastTele = 0
 function c_teletofate:evaluate()
 	if (gTeleport == "0") then
 		return false
-	end
-
-	local players = EntityList("type=1,maxdistance=30")
-	local nearbyPlayers = TableSize(players)
-	if nearbyPlayers > 0 then
-		ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
-		return false
-	end
+	end	
 	
-	if (tonumber(gFateTeleportPercent) == 0 and gTeleport == "0") then
-		ml_debug("Can't teleport, it's turned off.")
-		return false
-	end
-	
-	if Now() < c_teletofate.lastTele then
-		ml_debug("Can't teleport, not enough time has passed.")
-		return false
+	if (gParanoid == "1") then
+		local players = EntityList("type=1,maxdistance=30")
+		local nearbyPlayers = TableSize(players)
+		if nearbyPlayers > 0 then
+			ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
+			return false
+		end
+		
+		if (tonumber(gFateTeleportPercent) == 0 and gTeleport == "0") then
+			ml_debug("Can't teleport, it's turned off.")
+			return false
+		end
+		
+		if Now() < c_teletofate.lastTele then
+			ml_debug("Can't teleport, not enough time has passed.")
+			return false
+		end
 	end
 	
     if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
@@ -181,7 +183,7 @@ end
 function e_teletofate:execute()
 	local dest = c_teletofate.pos
 	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,5,c_teletofate.radius)
-	
+	Player:Stop()
 	if (newPos) then
 		GameHacks:TeleportToXYZ(newPos.x,newPos.y,newPos.z)
 	else
