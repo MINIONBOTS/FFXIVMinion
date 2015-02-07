@@ -358,7 +358,6 @@ function c_nextatma:evaluate()
 			e_nextatma.atma = atma
 			return true
 		end
-		
 	end
 	
 	return false
@@ -871,7 +870,6 @@ function c_teleporttomap:evaluate()
 	if (gil < 500) then
 		return false
 	end
-	
 	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
@@ -2824,7 +2822,7 @@ c_returntomap = inheritsFrom( ml_cause )
 e_returntomap = inheritsFrom( ml_effect )
 e_returntomap.mapID = 0
 function c_returntomap:evaluate()
-	if (IsPositionLocked() or IsLoading() or not Player.alive or ActionList:IsCasting()) then
+	if (IsPositionLocked() or IsLoading() or not Player.alive) then
 		return false
 	end
 	
