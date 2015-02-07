@@ -342,7 +342,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
-	GUI_NewButton(winName, GetString("setEvacPoint"), "setEvacPointEvent", group)
+	GUI_NewButton(winName, GetString("setEvacPoint"), "ml_mesh_mgr.SetEvacPoint", group)
 	
 	local group = GetString("settings")
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].doAtma, "gAtma",group)
