@@ -409,19 +409,19 @@ function c_avoid:evaluate()
 			local casttargets = e.castinginfo.targets
 			
 			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling]) or e.action == 131) then
-					local epos = shallowcopy(e.pos)
+				local epos = shallowcopy(e.pos)
 				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
-					
+				
 				if (casttime >= 1.3 and (secspassed >= casttime * .25) and
 					not (distance > 22 and channeltarget == e.id) and
 					not (plevel > (e.level + 8)))
-					then
-						c_avoid.target = e
-						return true
-					end
+				then
+					c_avoid.target = e
+					return true
 				end
 			end
 		end
+	end
 	
 	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
 	if (el) then
@@ -436,7 +436,7 @@ function c_avoid:evaluate()
 					local secspassed = e.castinginfo.channeltime or 0
 					local casttime = e.castinginfo.casttime or 0
 					local casttargets = e.castinginfo.targets
-	
+					
 					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling] or e.action == 131)) then
 						local epos = shallowcopy(e.pos)
 						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
@@ -444,7 +444,7 @@ function c_avoid:evaluate()
 						if (casttime >= 1.3 and (secspassed >= casttime * .25) and
 							not (distance > 22 and channeltarget == e.id) and
 							not (plevel > (e.level + 8)))
-	then
+						then
 							c_avoid.target = e
 							return true
 						end
@@ -452,8 +452,8 @@ function c_avoid:evaluate()
 				end
 			end
 		end
-    end
-
+	end
+	
 	return false
 end
 
@@ -1783,6 +1783,11 @@ function c_rest:evaluate()
 		return false
 	end
 	
+	local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
+	if (TableSize(addMobList) == 0) then
+		return false
+	end
+	
 	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
 	then
@@ -2137,7 +2142,7 @@ function c_teleporttopos:evaluate()
             return false
         end
 		
-		if (not ml_task_hub:CurrentTask().useTeleport) then
+		if (not ml_task_hub:CurrentTask().useTeleport or c_rest:evaluate()) then
 			return false
 		end
 		
@@ -2591,9 +2596,9 @@ function c_autoequip:evaluate()
 				end
 				
 				if (bestUpgrade and highestStats > statTotals) then
-					d("equip should be performed for slot:"..tostring(slot))
-					d("currently equipped item is:"..tostring(item.name).." which has a stats total of:"..tostring(statTotals))
-					d("new item will be:"..tostring(bestUpgrade.name).." which has a stats total of:"..tostring(highestStats))
+					--d("equip should be performed for slot:"..tostring(slot))
+					--d("currently equipped item is:"..tostring(item.name).." which has a stats total of:"..tostring(statTotals))
+					--d("new item will be:"..tostring(bestUpgrade.name).." which has a stats total of:"..tostring(highestStats))
 					e_autoequip.id = bestUpgradeID
 					e_autoequip.slot = slot
 					return true
@@ -2678,7 +2683,7 @@ function c_autoequip:evaluate()
 							end
 							
 							if (not bestUpgrade or statTotals > highestStats) then
-								d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
+								--d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
 								bestUpgrade = data
 								bestUpgradeID = id
 								highestStats = statTotals

@@ -277,7 +277,6 @@ end
 ---------------------------------------------------------------------------------------------
 c_syncfatelevel = inheritsFrom( ml_cause )
 e_syncfatelevel = inheritsFrom( ml_effect )
-c_syncfatelevel.throttle = 1000
 function c_syncfatelevel:evaluate()
     if (Player:GetSyncLevel() ~= 0 or Now() < ml_global_information.syncTimer) then
         return false
@@ -302,6 +301,7 @@ function e_syncfatelevel:execute()
     ml_debug( "Current Sync Fate level: "..tostring(Player:GetSyncLevel() ))
     ml_debug( "Syncing Fate level Result: "..tostring(Player:SyncLevel()))
 	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_global_information.syncTimer = Now() + 1000
 end
 
 c_movingfate = inheritsFrom( ml_cause )
@@ -488,7 +488,7 @@ function e_endfate:execute()
 	Player:Stop()
 	ml_task_hub:ThisTask().completed = true
 	ml_task_hub:ThisTask():DeleteSubTasks()
-	ml_task_hub:ThisTask():ParentTask():SetDelay(6000)
+	ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
 end
 
 
