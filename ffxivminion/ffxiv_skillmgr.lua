@@ -92,21 +92,33 @@ function ActionSucceeded()
 end
 
 function MudraSucceeded()
-	local buffs = Player.buffs
-	if (ValidTable(buffs)) then
-		for i, buff in pairs(buffs) do
-			if (buff.id == 496 and buff.duration >= 4.2) then 
+	local skill = SkillMgr.otherQueue
+	if (skill) then
+		local buffs = Player.buffs
+		if (ValidTable(buffs)) then
+			for i, buff in pairs(buffs) do
+				if (buff.id == 496 and buff.duration >= 4.2) then 
+					return true
+				end
+			end
+		end
+		
+		local skilldata = ActionList:Get(skill.id)
+		if (skilldata) then
+			if ((skill.id == 2259 and TimeSince(skill.lastcast) > 300 and Player.action == 233 and skilldata.isready) or
+				(skill.id == 2261 and TimeSince(skill.lastcast) > 300 and Player.action == 234 and skilldata.isready) or
+				(skill.id == 2263 and TimeSince(skill.lastcast) > 300 and Player.action == 235 and skilldata.isready))
+			then
 				return true
 			end
 		end
-	end
-	
-	local skill = SkillMgr.otherQueue
-	if ((skill.id == 2259 and Player.lastaction == 233) or
-		(skill.id == 2261 and Player.lastaction == 234) or
-		(skill.id == 2263 and Player.lastaction == 235)) 
-	then
-		return true
+		
+		if ((skill.id == 2259 and Player.lastaction == 233) or
+			(skill.id == 2261 and Player.lastaction == 234) or
+			(skill.id == 2263 and Player.lastaction == 235)) 
+		then
+			return true
+		end
 	end
 	
 	return false
@@ -122,7 +134,6 @@ function NinjutsuSucceeded()
 		end
 	end
 	
-	--d("Ninjutsu succeeded.")
 	return true
 end
 
@@ -1665,7 +1676,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						end
 						
 						if (castable) then
-							if (IsNinjutsuSkill(skill.id) and (MissingBuffs(Player,"496",3) or (Player.action == 233 or Player.action == 234 or Player.action == 235))) then
+							if (IsNinjutsuSkill(skill.id) and (MissingBuffs(Player,"496",3))) then
 								castable = false
 							end
 							if (IsMudraSkill(skill.id) and ((SkillMgr.otherQueue ~= nil and SkillMgr.otherQueue.id == skill.id) or (TimeSince(skill.lastcast) < 750))) then
@@ -2419,10 +2430,13 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
 		local preCombat = SkillMgr.preCombat
 		
 		if (((skill.combat == "Out of Combat") and (preCombat == false or Player.incombat)) or
-			((skill.combat == "In Combat") and (preCombat == true)))
+			((skill.combat == "In Combat") and (preCombat == true)) or
+			((skill.combat == "In Combat") and not Player.incombat and skill.trg ~= "Target") or
+			((skill.combat == "In Combat") and not Player.incombat and not target.attackable))
 		then 
 			return true
 		end
@@ -2863,12 +2877,12 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local TID = SkillMgr.CurrentTID
 		
-		if (realskilldata.casttime == 0) then
+		if (realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) then
 			TID = target.id
 		end
 		
 		if ((skill.tecount > 0 or skill.tecount2 > 0) and skill.terange > 0 ) then
-			tlistAE = EntityList("alive,attackable,maxdistance="..skill.terange..",distanceto="..TID)
+			tlistAE = EntityList("alive,attackable,maxdistance="..tostring(skill.terange)..",distanceto="..tostring(TID))
 			local attackTable = TableSize(tlistAE) or 0
 			
 			if (tlistAE) then
