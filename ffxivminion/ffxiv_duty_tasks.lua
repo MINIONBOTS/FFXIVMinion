@@ -809,6 +809,14 @@ function e_roll:execute()
 	ml_task_hub:CurrentTask().isComplete = false
 	local loot = Inventory:GetLootList()
 	if (loot) then
+		if (not ControlVisible("NeedGreed")) then
+			for i,e in pairs(loot) do
+				e:Need()
+				ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				return
+			end
+		end
+		
 		if (ml_task_hub:CurrentTask().rollstate == "Need") then
 			for i, e in pairs(loot) do 
 				d("Attempting to need on loot, result was:"..tostring(e:Need()))
