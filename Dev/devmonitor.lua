@@ -163,6 +163,7 @@ function Dev.ModuleInit()
 	
 	--Movement Info
 	GUI_NewField("Dev","IsMoving","mimov","MovementInfo")
+	GUI_NewField("Dev","IsJumping","mijump","MovementInfo")
 	GUI_NewField("Dev","Moves Forward","mimovf","MovementInfo")
 	GUI_NewField("Dev","Moves Backward","mimovb","MovementInfo")
 	GUI_NewField("Dev","Moves Left","mimovl","MovementInfo")
@@ -351,6 +352,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","TaskState","duty_taskstate","DutyInfo")
 	GUI_NewField("Dev","Leader","duty_leader","DutyInfo")
 	GUI_NewField("Dev","Encounter","duty_taskencounter","DutyInfo")
+	GUI_NewField("Dev","IsQueued","duty_isqueued","DutyInfo")
+	GUI_NewField("Dev","QueueStatus","duty_queuestatus","DutyInfo")
 	
 	GUI_NewButton("Dev","PressDutyConfirm","Dev.DConf","DutyInfo")
 	GUI_NewButton("Dev","PressLeaveColosseum","Dev.PressLeaveColosseum","DutyInfo")
@@ -1000,6 +1003,7 @@ function Dev.UpdateWindow()
 	
 	-- Movement
 	mimov = tostring(Player:IsMoving())
+	mijump = tostring(Player:IsJumping())
 	mimovf = tostring(Player:IsMoving(FFXIV.MOVEMENT.FORWARD)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.FORWARD))..")"
 	mimovb = tostring(Player:IsMoving(FFXIV.MOVEMENT.BACKWARD)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.BACKWARD))..")"
 	mimovl = tostring(Player:IsMoving(FFXIV.MOVEMENT.LEFT)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.LEFT))..")"
@@ -1258,7 +1262,9 @@ function Dev.UpdateWindow()
 	else
 		duty_taskencounter = ""
 	end
-	
+	duty_isqueued = tostring(Duty:IsQueued())
+	duty_queuestatus = Duty:GetQueueStatus()
+			
 	
 	-- QuestInfo
 	local QList = Quest:GetQuestList()

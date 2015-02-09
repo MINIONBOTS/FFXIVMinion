@@ -90,6 +90,11 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_task_hub:ToggleRun()
 	end
 	
+	-- OMC Handler
+	if ( ml_mesh_mgr ) then 
+		ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+	end
+	
     if (TimeSince(ml_global_information.lastrun) > tonumber(gFFXIVMINIONPulseTime)) then
         ml_global_information.lastrun = tickcount
 		
@@ -578,6 +583,7 @@ function ffxivminion.HandleInit()
 			end
 		end
 		ml_mesh_mgr.averagegameunitsize = 1
+		ml_mesh_mgr.useQuaternion = false
 		
 	-- Set default meshes SetDefaultMesh(mapid, filename)
 		ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea")
