@@ -111,7 +111,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						Player:Stop()
 						ml_mesh_mgr.ResetOMC()
 										
-					elseif(ePos.z < sPos.z and ePos.z < pPos.z and math.abs(ePos.z - pPos.z) > 0.30 and ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 500 ) then
+					elseif(ePos.z < sPos.z and ePos.z < pPos.z and math.abs(ePos.z - pPos.z) < 0.50 and ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 500 ) then
 						d("We felt below the OMCEndpoint height..means we missed the landingpoint..")
 						Player:Stop()
 						ml_mesh_mgr.ResetOMC()
