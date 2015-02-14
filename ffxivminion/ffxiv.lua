@@ -90,12 +90,12 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_task_hub:ToggleRun()
 	end
 	
-	-- OMC Handler
-	if ( ml_mesh_mgr ) then 
+	if (ml_mesh_mgr and not IsLoading()) then
 		ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	end
 	
-    if (TimeSince(ml_global_information.lastrun) > tonumber(gFFXIVMINIONPulseTime)) then
+	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
+    if (TimeSince(ml_global_information.lastrun) > pulseTime) then
         ml_global_information.lastrun = tickcount
 		
 		-- close any social addons that might screw up behavior first
@@ -149,7 +149,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		-- Mesher.lua
-		ml_mesh_mgr.OnUpdate( tickcount )
+		if (ml_mesh_mgr) then
+			ml_mesh_mgr.OnUpdate( tickcount )
+		end
 		
 		-- ffxiv_task_fate.lua
 		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
@@ -269,6 +271,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
+		["QuickStart"] 							= ffxiv_task_qs_wrapper,
 		["NavTest"]								= ffxiv_task_test,
 	}
 	
@@ -320,7 +323,7 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gTeleport = "0"
     end
 	if ( Settings.FFXIVMINION.gParanoid == nil) then
-        Settings.FFXIVMINION.gParanoid = "0"
+        Settings.FFXIVMINION.gParanoid = "1"
     end
     if ( Settings.FFXIVMINION.gSkipCutscene == nil) then
         Settings.FFXIVMINION.gSkipCutscene = "0"
@@ -339,9 +342,6 @@ function ffxivminion.HandleInit()
 	end
     if ( Settings.FFXIVMINION.gClickToTravel == nil) then
 		Settings.FFXIVMINION.gClickToTravel = "0"
-	end
-	if ( Settings.FFXIVMINION.gUseAetherytes == nil) then
-		Settings.FFXIVMINION.gUseAetherytes = "0"
 	end
 	if ( Settings.FFXIVMINION.gChoco == nil) then
 		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
@@ -408,18 +408,17 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].enableLog,"gEnableLog",group )
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].logCNE,"gLogCNE",group )
-	GUI_NewCheckbox(winName,"Dev Debug","gDevDebug",group )
     GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
+	--GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
+	--GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
+	
 	GUI_NewField(winName,strings[gCurrentLanguage].eorzeaTime,"gEorzeaTime", group)
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)
 	GUI_NewCheckbox(winName,GetString("autoEquip"),"gQuestAutoEquip",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useAetherytes,"gUseAetherytes",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useMount,"gUseMount",group )
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].mount, "gMount",group,GetMounts())
     GUI_NewNumeric(winName,strings[gCurrentLanguage].mountDist,"gMountDist",group )
@@ -480,7 +479,6 @@ function ffxivminion.HandleInit()
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
-	gUseAetherytes = Settings.FFXIVMINION.gUseAetherytes
 	gChoco = Settings.FFXIVMINION.gChoco
 	gChocoStance = Settings.FFXIVMINION.gChocoStance
 	gMount = Settings.FFXIVMINION.gMount
@@ -491,7 +489,6 @@ function ffxivminion.HandleInit()
 	gPermaSwiftCast = Settings.FFXIVMINION.gPermaSwiftCast
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
-	gDevDebug = Settings.FFXIVMINION.gDevDebug
 	gRestHP = Settings.FFXIVMINION.gRestHP
     gRestMP = Settings.FFXIVMINION.gRestMP
     gFleeHP = Settings.FFXIVMINION.gFleeHP
@@ -901,6 +898,7 @@ function ffxivminion.SwitchMode(mode)
 		--Setup default options.
 		if (gBotMode == GetString("dutyMode")) then
 			gTeleport = "1"
+			gParanoid = "0"
 			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
@@ -911,6 +909,7 @@ function ffxivminion.SwitchMode(mode)
 			SendTextCommand("/busy off")
 		elseif (gBotMode == GetString("questMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
@@ -920,13 +919,14 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gAvoidAOE = "1"
 		else
-			if (gBotMode == GetString("gatherMode")) then
-				gTeleport = "0"
-			end
+			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
 			gDisableDrawing = "0"
 			GameHacks:Disable3DRendering(false)
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gProfile_listitems = "NA"
 			gProfile = "NA"
@@ -1283,8 +1283,10 @@ function ffxivminion.NodeDistance(self, id)
 		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
 			cost = 999
 		end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil and gUseAirships == "0") then
-			cost = 999
+		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
+			if (not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) then
+				cost = 999
+			end
 		end
 		
         return cost
