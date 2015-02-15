@@ -139,9 +139,12 @@ function ffxiv_task_grind:Init()
     
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
     self:add(ke_rest, self.overwatch_elements)
-    
+	
     local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 )
     self:add(ke_addFate, self.overwatch_elements)
+	
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 30 )
+    self:add( ke_autoEquip, self.process_elements)
 
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add(ke_returnToMarker, self.process_elements)
