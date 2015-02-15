@@ -31,8 +31,9 @@ function c_craftlimit:evaluate()
 	end
 	
     local synth = Crafting:SynthInfo()
-	if ( not synth and
-		((ml_task_hub:ThisTask().maxItems > 0 and ml_task_hub:ThisTask().itemsCrafted == ml_task_hub:ThisTask().maxItems) or ml_task_hub:ThisTask().attemptedStarts > 2)) 
+	if ( not synth and (
+		(ml_task_hub:CurrentTask().maxItems > 0 and ml_task_hub:ThisTask().itemsCrafted == ml_task_hub:ThisTask().maxItems) or 
+		ml_task_hub:CurrentTask().attemptedStarts > 2)) 
 	then
 		return true
 	end	
@@ -46,7 +47,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency or not ml_task_hub:CurrentTask().allowWindowOpen ) then
+	if ( Now() < ml_task_hub:ThisTask().networkLatency or ActionList:IsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
 	
@@ -60,7 +61,6 @@ end
 
 function e_opencraftwnd:execute()
     Crafting:ToggleCraftingLog()
-	ml_task_hub:CurrentTask().allowWindowOpen = false
 	ml_task_hub:ThisTask().networkLatency = Now() + 1500
 end
 
@@ -87,6 +87,7 @@ function e_selectitem:execute()
 	SkillMgr.currentIQStack = 0 
 	SkillMgr.lastquality = 0
 	ml_task_hub:ThisTask().networkLatency = Now() + 2500
+	ml_task_hub:CurrentTask().allowWindowOpen = false
 end
 
 c_precraftbuff = inheritsFrom( ml_cause )
@@ -132,9 +133,10 @@ function e_precraftbuff:execute()
 		local food = Inventory:Get(e_precraftbuff.id)
 		if (food) then
 			food:Use()
-			ml_task_hub:CurrentTask().networkLatency = Now() + 1500
+			ml_task_hub:CurrentTask().networkLatency = Now() + 3000
 		end	
 	end
+	
 	ml_task_hub:CurrentTask().allowWindowOpen = true
 end
 
@@ -175,7 +177,7 @@ function ffxiv_task_craft:Init()
     local ke_craft = ml_element:create( "Crafting", c_craft, e_craft, 10 )
     self:add(ke_craft, self.process_elements)   
 	
-	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 10 )
+	local ke_opencraftlog = ml_element:create( "OpenCraftingLog", c_opencraftwnd, e_opencraftwnd, 9 )
     self:add(ke_opencraftlog, self.process_elements)
     
     self:AddTaskCheckCEs()
