@@ -638,7 +638,7 @@ function e_nextgatherlocation:execute()
 		local mapID = tonumber(location.mapid)
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 	else
 		ffxiv_task_gather.location = location
 		gGatherMapLocation = location.name

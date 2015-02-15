@@ -764,6 +764,10 @@ c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
+	if (ActionList:IsCasting()) then
+		return false
+	end
+	
 	if (ml_task_hub:ThisTask().destMapID) then
 		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
 			local pos = ml_nav_manager.GetNextPathPos( Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
@@ -899,7 +903,7 @@ function e_teleporttomap:execute()
 	end
 	
 	if (ActionIsReady(7,5)) then
-		if (Player:Teleport(e_teleporttomap.aethid)) then			
+		if (Player:Teleport(e_teleporttomap.aethid)) then	
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.mapID = e_teleporttomap.destMap
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
