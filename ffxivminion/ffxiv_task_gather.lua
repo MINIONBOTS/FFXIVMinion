@@ -275,6 +275,7 @@ function e_movetounspoiledmarker:execute()
     if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
 		newTask.pos = pos
+		newTask.destination = "UNSPOILED_MARKER"
 		newTask.range = 1.5
 		newTask.use3d = true
 		newTask.remainMounted = true

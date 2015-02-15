@@ -2015,6 +2015,14 @@ function c_stealth:evaluate()
 		return false
 	end
 	
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().name == "UNSPOILED_MARKER") then
+		local dest = ml_task_hub:CurrentTask().pos
+		local ppos = shallowcopy(Player.pos)
+		if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
+			return false
+		end
+	end
+	
 	local list = Player:GetGatherableSlotList()
 	local fs = tonumber(Player:GetFishingState())
 	if (ValidTable(list) or fs ~= 0) then
