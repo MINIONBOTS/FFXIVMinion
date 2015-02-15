@@ -1992,6 +1992,10 @@ function IsMounting()
 	return (Player.action == 83 or Player.action == 84 or Player.action == 165)
 end
 
+function IsMounted()
+	return (Player.ismounted or Player.action == 166)
+end
+
 function IsDismounting()
 	return (Player.action == 32)
 end
@@ -2038,7 +2042,7 @@ function Mount(id)
 	local mountID = id or 0
 	local actions = nil
 	
-	if (Player.ismounted or IsMounting()) then
+	if (IsMounted() or IsMounting()) then
 		ml_debug("Cannot mount while mounted or mounting.")
 		return
 	end
@@ -2062,6 +2066,7 @@ function Mount(id)
 					local acDismiss = ActionList:Get(2,6)
 					if (acDismiss and acDismiss.isready) then
 						acDismiss:Cast()
+						return 
 					end
 				end
 			end
@@ -2390,6 +2395,30 @@ function GetLocalAetheryte()
     return nil
 end
 
+function GetAttunedAetheryteList()
+	local attuned = {}
+	local list = Player:GetAetheryteList()
+	for id,aetheryte in pairsByKeys(list) do
+		if (aetheryte.isattuned) then
+			table.insert(attuned, aetheryte)
+		end
+	end
+	
+	return attuned
+end
+
+function GetAetheryteByID(id)
+	local aethid = tonumber(id) or 0
+	local list = Player:GetAetheryteList()
+    for index,aetheryte in pairsByKeys(list) do
+        if (aetheryte.id == aethid) then
+            return aetheryte
+        end
+    end
+    
+    return nil
+end
+
 function GetAetheryteByMapID(id, p)
 	local pos = p
 	
@@ -2432,7 +2461,7 @@ function GetAetheryteByMapID(id, p)
 		},
 	}
 	
-	local list = Player:GetAetheryteList()
+	local list = GetAttunedAetheryteList()
 	if (not pos or not sharedMaps[id]) then
 		for index,aetheryte in ipairs(list) do
 			if (aetheryte.territory == id) then
@@ -2448,6 +2477,98 @@ function GetAetheryteByMapID(id, p)
 		elseif (id == 137) then
 			return id, ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
 		end
+	end
+	
+	return nil
+end
+
+function GetAetheryteLocation(id)
+	local aethid = tonumber(id) or 0
+	aetherytes = 
+	{
+		[8] = {
+			mapid = 129, x = -85.681526184082, y = 18.800333023071, z = -6.4848699569702
+		},
+		[52] = {
+			mapid = 134, x = 224.27067565918, y = 113.09999084473, z = -261.05822753906
+		},
+		[10] = {
+			mapid = 135, x = 156.93988037109, y = 14.09584903717, z = 668.01940917969
+		},
+		[11] = {
+			mapid = 137, x = 490.56713867188, y = 17.416807174683, z = 474.01110839844
+		},
+		[12] = {
+			mapid = 137, x = -20.159227371216, y = 70.599250793457, z = 7.4133810997009
+		},
+		[14] = {
+			mapid = 138, x = 259.89932250977, y = -22.75, z = 223.38513183594
+		},
+		[13] = {
+			mapid = 138, x = 652.9736328125, y = 9.2408666610718, z = 509.41586303711
+		},
+		[15] = {
+			mapid = 139, x = 433.61944580078, y = 3.6090106964111, z = 92.736114501953
+		},
+		[16] = {
+			mapid = 180, x = -122.27465820313, y = 64.79615020752, z = -211.87341308594
+		},
+		[2] = {
+			mapid = 132, x = 30.390216827393, y = 1.8258748054504, z = 26.265508651733
+		},
+		[3] = {
+			mapid = 148, x = 13.585005760193, y = -1.1827243566513, z = 41.725193023682
+		},
+		[4] = {
+			mapid = 152, x = -189.0665435791, y = 4.4424576759338, z = 293.23275756836
+		},
+		[5] = {
+			mapid = 153, x = 181.93789672852, y = 8.6657190322876, z = -66.213958740234
+		},
+		[6] = {
+			mapid = 153, x = -226.1929473877, y = 21.010675430298, z = 355.90420532227
+		},
+		[7] = {
+			mapid = 154, x = -45.544578552246, y = -39.256271362305, z = 230.90368652344
+		},
+		[9] = {
+			mapid = 130, x = -143.30297851563, y = -3.1548881530762, z = -165.79141235352
+		},
+		[17] = {
+			mapid = 140, x = 71.629104614258, y = 45.432174682617, z = -230.00273132324
+		},
+		[53] = {
+			mapid = 141, x = -15.56315612793, y = -1.8785282373428, z = -169.75825500488
+		},
+		[18] = {
+			mapid = 145, x = -379.7414855957, y = -59, z = 142.57489013672
+		},
+		[19] = {
+			mapid = 146, x = -165.46360778809, y = 26.138355255127, z = -414.46130371094
+		},
+		[20] = {
+			mapid = 146, x = -321.84567260742, y = 8.2604389190674, z = 406.19985961914
+		},
+		[21] = {
+			mapid = 147, x = 21.909135818481, y = 6.9785833358765, z = 458.83193969727
+		},
+		[22] = {
+			mapid = 147, x = -24.236480712891, y = 48.309478759766, z = -27.79927444458
+		},
+		[23] = {
+			mapid = 155, x = 227.28480529785, y = 312, z = -229.6822052002
+		},
+		[24] = {
+			mapid = 156, x = 48.166370391846, y = 20.295000076294, z = -667.26159667969
+		},
+		[55] = {
+			mapid = 250, x = 41.127487182617, y = 5.5999984741211, z = -8.2964677810669
+		},
+	}
+	
+	local aetheryte = aetherytes[aethid]
+	if (aetheryte) then
+		return {x = aetheryte.x, y = aetheryte.y, z = aetheryte.z}
 	end
 	
 	return nil
@@ -2495,7 +2616,7 @@ function GetClosestAetheryteToMapIDPos(id, p)
 		},
 	}
 	
-	local list = Player:GetAetheryteList()
+	local list = GetAttunedAetheryteList()
 	if (sharedMaps[id] == nil) then
 		for index,aetheryte in ipairs(list) do
 			if (aetheryte.territory == id) then
@@ -2529,7 +2650,11 @@ function ShouldTeleport()
 		if (gParanoid == "0") then
 			return true
 		else
-			local players = EntityList("type=1,maxdistance=50")
+			local scanDistance = 50
+			if (gBotMode == GetString("gatherMode")) then
+				scanDistance = 100
+			end
+			local players = EntityList("type=1,maxdistance=".. scanDistance)
 			local nearbyPlayers = TableSize(players)
 			if nearbyPlayers > 0 then
 				return false
