@@ -221,7 +221,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 				return true
 			end
 		else	
-			if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and Now() > self.dismountTimer) then
+			if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
 				SendTextCommand("/mount")
 				self.dismountTimer = Now() + 500
 			end
@@ -386,6 +386,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
 	end
 	
+	--[[
 	local myPos = shallowcopy(Player.pos)
 	local gotoPos = shallowcopy(self.pos)
 	if (not ml_task_hub:ThisTask().distanceCheckTimer or 
@@ -459,6 +460,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			end
 		end
 	end
+	--]]
 	
 	return false
 end
@@ -833,8 +835,7 @@ function ffxiv_task_avoid.Create()
 end
 
 function ffxiv_task_avoid:Init()
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
-    
+    Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
     self:AddTaskCheckCEs()
 end
 
@@ -861,6 +862,7 @@ function ffxiv_task_avoid:task_complete_eval()
 		return true
 	end
 
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
     return false
 end
 
@@ -1061,15 +1063,15 @@ function ffxiv_task_grindCombat:Init()
 
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.overwatch_elements)
-	
-	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 3 )
-	self:add( ke_companion, self.overwatch_elements)
-	
-	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 1 )
-	self:add( ke_stance, self.overwatch_elements)
 		
 	local ke_moveCloser = ml_element:create( "MoveCloser", c_movecloser, e_movecloser, 10 )
 	self:add( ke_moveCloser, self.process_elements)
+	
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 8 )
+	self:add( ke_companion, self.process_elements)
+	
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 6 )
+	self:add( ke_stance, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
