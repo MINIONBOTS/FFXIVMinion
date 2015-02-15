@@ -413,13 +413,14 @@ function SkillMgr.ModuleInit()
     GUI_NewComboBox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].profile,"gSMprofile",strings[gCurrentLanguage].generalSettings,"")
 	GUI_NewCheckbox(SkillMgr.mainwindow.name,"Enable Debugging","gSkillManagerDebug",strings[gCurrentLanguage].generalSettings)
 	GUI_NewField(SkillMgr.mainwindow.name,"Debug Items","gSkillManagerDebugPriorities",strings[gCurrentLanguage].generalSettings)
-	--GUI_NewField(SkillMgr.mainwindow.name,"Prev Skill","gLastSkillUsed",strings[gCurrentLanguage].generalSettings)
 	
     GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].saveProfile,"SMSaveEvent")
     RegisterEventHandler("SMSaveEvent",SkillMgr.SaveProfile)
+	GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].clearProfile,"SMClearEvent")
+    RegisterEventHandler("SMClearEvent",SkillMgr.ClearProfile)
     GUI_NewField(SkillMgr.mainwindow.name,strings[gCurrentLanguage].newProfileName,"gSMnewname",strings[gCurrentLanguage].skillEditor)
     GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].newProfile,"newSMProfileEvent",strings[gCurrentLanguage].skillEditor)
-    RegisterEventHandler("newSMProfileEvent",SkillMgr.CreateNewProfile)
+    RegisterEventHandler("newSMProfileEvent",SkillMgr.NewProfile)
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,strings[gCurrentLanguage].generalSettings)
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     GUI_WindowVisible(SkillMgr.mainwindow.name,false)		
@@ -470,8 +471,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPMPPB,"SKM_PMPPB",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPL,"SKM_PTPL",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPB,"SKM_PTPB",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPAGL,"SKM_PAGL",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPB,"SKM_PAGB",strings[gCurrentLanguage].playerHPMPTP)
+	--GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPAGL,"SKM_PAGL",strings[gCurrentLanguage].playerHPMPTP)
+	--GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPB,"SKM_PAGB",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLock,"SKM_MPLock",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLocked,"SKM_MPLocked",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLockPer,"SKM_MPLockPer",strings[gCurrentLanguage].playerHPMPTP)
@@ -613,7 +614,6 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
             GUI_WindowVisible(SkillMgr.editwindow.name,false)
             GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
             GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-            SkillMgr.SkillProfile = {}
             SkillMgr.UpdateCurrentProfileData()
 			SafeSetVar("gSMlastprofile",v)
 			SkillMgr.SetDefaultProfile()
@@ -652,7 +652,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 					SkillMgr.comboQueue = nil
 					
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
 				elseif (skilldata.casttime > 0 and CastSucceeded()) then
 					if (skill.combo) then
 						--d(skill.name.." is being set as the previous skill.")
@@ -664,8 +664,8 @@ function SkillMgr.OnUpdate( event, tickcount )
 					SkillMgr.nextSkillID = tostring(skill.nskill)
 					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 					SkillMgr.comboQueue = nil
-					
-					SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
+
+					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
 				end
 			elseif (gSkillManagerDebug == "1") then
 				d("Couldn't find data for skill ID:"..tostring(skill.id))
@@ -684,7 +684,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 						SkillMgr.otherQueue = nil
 						
 						--d("next skill prio being set:"..tostring(skill.nskillprio))
-						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
 					end
 				elseif (IsNinjutsuSkill(skill.id)) then
 					if (NinjutsuSucceeded()) then
@@ -695,7 +695,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 						SkillMgr.otherQueue = nil
 						
 						--d("next skill prio being set:"..tostring(skill.nskillprio))
-						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
 					end
 				else
 					if (skilldata.casttime == 0 or skill.hasSwiftcast) then
@@ -705,7 +705,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 						SkillMgr.otherQueue = nil
 						
-						SkillMgr.SkillProfile[skill.prio].lastcast = Now()
+						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
 					elseif (skilldata.casttime > 0 and CastSucceeded()) then					
 						SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
 						--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
@@ -713,7 +713,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
 						SkillMgr.otherQueue = nil
 						
-						SkillMgr.SkillProfile[skill.prio].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
+						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
 					end
 				end
 			elseif (gSkillManagerDebug == "1") then
@@ -730,6 +730,120 @@ function SkillMgr.OnUpdate( event, tickcount )
 			SkillMgr.failTimer = 0
 		end
 	end
+end
+
+--This is the only function that should actually read from the file.
+function SkillMgr.ReadFile(strFile)
+	assert(type(strFile) == "string" and strFile ~= "", "[SkillMgr.ReadFile]: File target is not valid")
+	local filename = SkillMgr.profilepath..strFile..".lua"
+	
+	--Attempt to read old files and convert them.
+	local profile = fileread(filename)
+	if (profile) then
+		local version = nil
+		for i,line in pairsByKeys(profile) do
+			local _, key, id, value = string.match(line, "(%w+)_(%w+)_(%d+)=(.*)")
+			if ( tostring(key) == "SMVersion" and tostring(id) == "1") then
+				version = 1
+			end
+			if (version == 1) then
+				break
+			end
+		end
+		if (version == 1) then
+			local newskill = {}
+			local sortedSkillList = {}
+			for i,line in pairsByKeys(profile) do
+				local _, key, value = string.match(line, "(%w+)_(%w+)=(.*)")
+				if ( key and value ) then
+					value = string.gsub(value, "\r", "")					
+					if ( key == "END" ) then
+						local job = Player.job
+						if (job >= 8 and job <= 15) then
+							for k,v in pairs(SkillMgr.Variables) do
+								if (v.section == "crafting") then
+									newskill[v.profile] = newskill[v.profile] or v.default
+								end
+							end
+						elseif (job >=16 and job <=17) then
+							for k,v in pairs(SkillMgr.Variables) do
+								if (v.section == "gathering") then
+									newskill[v.profile] = newskill[v.profile] or v.default
+								end
+							end
+						else
+							for k,v in pairs(SkillMgr.Variables) do
+								if (v.section == "fighting") then
+									newskill[v.profile] = newskill[v.profile] or v.default
+								end
+							end
+						end
+						
+						-- try to update the names 
+						local found = false
+						for i, actiontype in pairsByKeys(SkillMgr.ActionTypes) do
+							local actionlist = ActionList("type="..tostring(actiontype))
+							for k, action in pairs(actionlist) do
+								if (action.id == newskill.id and action.name and action.name ~= "") then
+									newskill.name = action.name
+									found = true
+									break
+								end
+							end
+							if (found) then
+								break
+							end
+						end
+						
+						sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
+						newskill = {}
+					elseif (SkillMgr.Variables["SKM_"..key] ~= nil) then
+						local t = SkillMgr.Variables["SKM_"..key]
+						if (t ~= nil) then
+							if (t.cast == "number") then
+								newskill[t.profile] = tonumber(value)
+							elseif (t.cast == "string") then
+								if (key == "TRG" and value == "Enemy") then
+									newskill[t.profile] = strings[gCurrentLanguage].target
+								else
+									newskill[t.profile] = tostring(value)
+								end
+							end
+						end
+					end
+				end
+			end
+			if ( TableSize(sortedSkillList) > 0 ) then
+				local reorder = 1
+				for k,v in pairsByKeys(sortedSkillList) do
+					v.prio = reorder
+					SkillMgr.SkillProfile[reorder] = v
+					reorder = reorder + 1
+				end
+			end
+			--Overwrite the old file with the new file type.
+			SkillMgr.WriteToFile(strFile)
+		end
+	end	
+	
+	--Load the file, which should only be the new type.
+	local profile, e = persistence.load(filename)
+	if (ValidTable(profile)) then
+		SkillMgr.SkillProfile = profile.skills
+	end
+end
+
+--All writes to the profiles should come through this function.
+function SkillMgr.WriteToFile(strFile)
+	assert(strFile and type(strFile) == "string" and strFile ~= "", "[SkillMgr.WriteToFile]: File target is not valid.")
+	assert(string.find(strFile,"\\") == nil, "[SkillMgr.WriteToFile]: File contains illegal characters.")
+	
+	local filename = SkillMgr.profilepath ..strFile..".lua"
+	
+	local info = {}
+	info.version = 2
+	info.skills = SkillMgr.SkillProfile or {}	
+	persistence.store(filename,info)
 end
 
 function SkillMgr.SetGUIVar(strName, value)
@@ -751,7 +865,6 @@ function SkillMgr.UseProfile(strName)
 	GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.SkillProfile = {}
 	SkillMgr.UpdateCurrentProfileData()
 	Settings.FFXIVMINION.gSMlastprofile = strName
 end
@@ -840,12 +953,45 @@ function SkillMgr.ButtonHandler(event, Button)
 	end
 end
 
-function SkillMgr.CreateNewProfile()
-    -- Delete existing Skills
+function SkillMgr.NewProfile()
+    if ( gSMnewname and gSMnewname ~= "" ) then
+		gSMprofile_listitems = gSMprofile_listitems..","..gSMnewname
+        gSMprofile = gSMnewname
+        gSMnewname = ""
+		
+		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+		SkillMgr.SkillProfile = {}
+		SkillMgr.WriteToFile(gSMprofile)
+	else
+		d("New profile name is invalid, couldn't create new profile.")
+    end
+end
+
+function SkillMgr.ClearProfile()
     GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-    gSMprofile = "None"
-    Settings.FFXIVMINION.gSMlastprofile = gSMprofile
-    gSMnewname = ""	
+	SkillMgr.SkillProfile = {}
+	SkillMgr.WriteToFile(gSMprofile)
+end
+
+function SkillMgr.SaveProfile()
+    local filename = ""
+	
+    --If a new name is filled out, copy the profile rather than save it.
+    if ( gSMnewname ~= "" ) then
+        filename = gSMnewname
+        gSMnewname = ""
+
+		gSMprofile_listitems = gSMprofile_listitems..","..filename
+		gSMprofile = filename
+		Settings.FFXIVMINION.gSMlastprofile = filename
+		
+		SkillMgr.WriteToFile(filename)
+    elseif (gSMprofile ~= nil and gSMprofile ~= "None" and gSMprofile ~= "") then
+        filename = gSMprofile
+        gSMnewname = ""		
+		
+		SkillMgr.WriteToFile(filename)
+    end
 end
 
 function SkillMgr.SetDefaultProfile(strName)
@@ -864,8 +1010,7 @@ function SkillMgr.UseDefaultProfile()
 	if (ValidTable(defaultTable)) then
 		default = defaultTable[Player.job]
 		if (default) then
-			profile = fileread(SkillMgr.profilepath..default..".lua")
-			if (ValidTable(profile)) then
+			if (file_exists(SkillMgr.profilepath..default..".lua")) then
 				profileFound = true
 			end
 		end
@@ -874,8 +1019,8 @@ function SkillMgr.UseDefaultProfile()
 	if (not profileFound) then
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
-			profile = fileread(SkillMgr.profilepath..starterDefault..".lua")
-			if (ValidTable(profile)) then
+			local starterDefault = SkillMgr.profilepath..starterDefault..".lua"
+			if (file_exists(starterDefault)) then
 				d("No default profile set, using start default ["..tostring(starterDefault).."]")
 				SkillMgr.SetDefaultProfile(starterDefault)
 				default = starterDefault
@@ -889,15 +1034,7 @@ function SkillMgr.UseDefaultProfile()
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
 	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.SkillProfile = {}
-	
-	-- You need to make sure that this profile is valid & can be loaded, else you are producing a never ending call loop here!! SkillMgr.UseDefaultProfile() -> SkillMgr.UpdateCurrentProfileData() -> SkillMgr.UseDefaultProfile() 
-	if ( gSMprofile ~= nil and gSMprofile ~= "" and gSMprofile ~= "None" ) then
-        local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
-	    if ( TableSize(profile) > 0) then
-			SkillMgr.UpdateCurrentProfileData()
-		end
-	end
+	SkillMgr.UpdateCurrentProfileData()
 	
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
@@ -950,179 +1087,16 @@ function SkillMgr.PasteSkill()
 	end
 end
 
---+
-function SkillMgr.SaveProfile()
-    local filename = ""
-    local isnew = false
-    -- Save under new name if one was entered
-    if ( gSMnewname ~= "" ) then
-        filename = gSMnewname
-        gSMnewname = ""
-        isnew = true
-    elseif (gSMprofile ~= nil and gSMprofile ~= "None" and gSMprofile ~= "") then
-        filename = gSMprofile
-        gSMnewname = ""		
-    end
-            
-    -- Save current Profiledata into the Profile-file 
-    if ( filename ~= "" ) then
-        d("Saving Profile Data into File: "..filename)
-        local string2write = "SKM_SMVersion_1=1\n"
-		
-		for prio, skill in spairs(SkillMgr.SkillProfile) do
-			local job = Player.job
-			for k,v in pairs(SkillMgr.Variables) do
-				if (v.section == "main") then
-					string2write = string2write..tostring(k).."="..(skill[v.profile] ~= nil and skill[v.profile] or v.default).."\n"
-				end
-			end
-            if ( job >= 8 and job <=15 ) then
-                --crafting
-                for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "crafting") then
-						string2write = string2write..tostring(k).."="..(skill[v.profile] ~= nil and skill[v.profile] or v.default).."\n"
-					end
-				end
-            elseif ( job >= 16 and job <=17 ) then
-                -- gathering                
-                for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "gathering") then
-						string2write = string2write..tostring(k).."="..(skill[v.profile] ~= nil and skill[v.profile] or v.default).."\n"
-					end
-				end				
-            else
-				for k,v in pairs(SkillMgr.Variables) do
-					if (v.section == "fighting") then
-						string2write = string2write..tostring(k).."="..(skill[v.profile] ~= nil and skill[v.profile] or v.default).."\n"
-					end
-				end
-            end
-            string2write = string2write.."SKM_END=0\n"
-            --skID,skill = next (SkillMgr.SkillProfile,skID)
-        end
-		d(tostring(SkillMgr.profilepath ..filename..".lua"))
-		d(filewrite(SkillMgr.profilepath ..filename..".lua",string2write))
-        
-        if ( isnew ) then
-            gSMprofile_listitems = gSMprofile_listitems..","..filename
-			gDefaultProfile_listitems = gSMprofile_listitems
-			gModeProfile_listitems = gSMprofile_listitems
-            gSMprofile = filename
-            Settings.FFXIVMINION.gSMlastprofile = filename
-        end
-    end
-end
-
---+
 function SkillMgr.UpdateCurrentProfileData()
-
-	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.SkillProfile = {}
-	
-    if ( gSMprofile ~= nil and gSMprofile ~= "" and gSMprofile ~= "None" ) then
-        local profile = fileread(SkillMgr.profilepath..gSMprofile..".lua")
-		
-		--SkillMgr.SkillListTrans()
-		
-        if ( TableSize(profile) > 0) then
-            local sortedSkillList = {}			
-            local newskill = {}	
-            local i, line = next (profile)
-            
-            if ( line ) then
-			
-                local version
-                local _, key, id, value = string.match(line, "(%w+)_(%w+)_(%d+)=(.*)")
-                if ( tostring(key) == "SMVersion" and tostring(id) == "1") then
-                    version = 1
-                end
-				
-                while i and line do
-                    local _, key, value = string.match(line, "(%w+)_(%w+)=(.*)")
-                    
-                    if ( key and value ) then
-                        value = string.gsub(value, "\r", "")					
-                        if ( key == "END" ) then
-							local job = Player.job
-							if (job >= 8 and job <= 15) then
-								for k,v in pairs(SkillMgr.Variables) do
-									if (v.section == "crafting") then
-										newskill[v.profile] = newskill[v.profile] or v.default
-									end
-								end
-							elseif (job >=16 and job <=17) then
-								for k,v in pairs(SkillMgr.Variables) do
-									if (v.section == "gathering") then
-										newskill[v.profile] = newskill[v.profile] or v.default
-									end
-								end
-							else
-								for k,v in pairs(SkillMgr.Variables) do
-									if (v.section == "fighting") then
-										newskill[v.profile] = newskill[v.profile] or v.default
-									end
-								end
-							end
-							
-							-- try to update the names 
-							local found = false
-							for i, actiontype in pairsByKeys(SkillMgr.ActionTypes) do
-								local actionlist = ActionList("type="..tostring(actiontype))
-								for k, action in pairs(actionlist) do
-									if (action.id == newskill.id and action.name and action.name ~= "") then
-										newskill.name = action.name
-										found = true
-										break
-									end
-								end
-								if (found) then
-									break
-								end
-							end
-							
-							sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
-                            newskill = {}
-						elseif (SkillMgr.Variables["SKM_"..key] ~= nil) then
-							local t = SkillMgr.Variables["SKM_"..key]
-							if (t ~= nil) then
-								if (t.cast == "number") then
-									newskill[t.profile] = tonumber(value)
-								elseif (t.cast == "string") then
-									if (key == "TRG" and value == "Enemy") then
-										newskill[t.profile] = strings[gCurrentLanguage].target
-									else
-										newskill[t.profile] = tostring(value)
-									end
-								end
-							end
-						end
-                    else
-                        d("Error loading inputline: Key: "..(tostring(key)).." value:"..tostring(value))
-                    end				
-                    i, line = next (profile,i)
-                end
-            end
-            
-            -- Create UI Fields
-			if ( TableSize(sortedSkillList) > 0 ) then
-				local reorder = 1
-				for k,v in spairs(sortedSkillList) do
-					v.prio = reorder
-					SkillMgr.SkillProfile[reorder] = v
-					reorder = reorder + 1
-				end
-				SkillMgr.RefreshSkillList()
-			end
-        else
-            d("Profile is empty..")
-			--SkillMgr.UseDefaultProfile()
-        end		
-    else
-        d("No new SkillProfile selected!")	
-		SkillMgr.UseDefaultProfile()
-    end
-	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
-	GUI_RefreshWindow(SkillMgr.mainwindow.name)
+	local profile = gSMprofile
+	if (profile and profile ~= "") then
+		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+		SkillMgr.SkillProfile = {}
+		SkillMgr.ReadFile(profile)
+		SkillMgr.RefreshSkillList()
+		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+		GUI_RefreshWindow(SkillMgr.mainwindow.name)
+	end
 end
 
 --+Rebuilds the UI Entries for the SkillbookList
@@ -1204,7 +1178,7 @@ end
 --+Rebuilds the UI Entries for the Profile-SkillList
 function SkillMgr.RefreshSkillList()	
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
-		for prio,skill in spairs(SkillMgr.SkillProfile) do
+		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			if (not IsNullString(skill.alias)) then
 				GUI_NewButton(SkillMgr.mainwindow.name, tostring(prio)..": "..skill.alias.."["..tostring(skill.id).."]", "SKMEditSkill"..tostring(prio),"ProfileSkills")
 			else
@@ -1223,14 +1197,14 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	end
 	
 	local skname = skill.name
-	local skID = skill.id
+	local skID = tonumber(skill.id)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
 	local bevent = tostring(newskillprio)
 	
 	GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname.."["..tostring(skID).."]", "SKMEditSkill"..tostring(bevent),"ProfileSkills")
-	
-	SkillMgr.SkillProfile[newskillprio] = {	id = skID, prio = newskillprio, name = skname, used = "1" }
+
+	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skname, ["used"] = "1", ["alias"] = "", ["type"] = 1 }
 	if (job >= 8 and job <= 15) then
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "crafting") then
@@ -1249,7 +1223,8 @@ function SkillMgr.CreateNewSkillEntry(skill)
 				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
 			end
 		end
-	end		
+	end	
+	SkillMgr.RefreshSkillList()
 end	
 
 --+	Button Handler for ProfileList Skills
@@ -1392,11 +1367,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				if ( v.castids and v.castids ~= "" ) then
 					if (isCasting(target, v.castids, nil, nil )) then
 						if (ActionList:IsCasting()) then
-							--[[
-							local p = shallowcopy(Player.pos)
-							local newPos = GetPosFromDistanceHeading(p,.75, p.h)
-							Player:MoveTo(newPos.x,newPos.y,newPos.z)
-							--]]
 							ActionList:Cast(2,Player.id,5)
 						end
 						return false
@@ -1466,9 +1436,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if (not ActionList:CanCast(skill.id,TID)) then
 								castable = false
 							end
-							--if (Distance3D(myPos.x,myPos.y,myPos.z,target.pos.x,target.pos.y,target.pos.z) > ((target.hitradius + 2 + range))) then
-								--castable = false
-							--end
 						elseif ( skill.trg == "Pet" ) then
 							if ( pet ~= nil and pet ~= 0) then
 								if ( SkillMgr.IsPetSummonSkill(skill.id) ) then castable = false end -- we still have a pet, no need to summon
@@ -1478,9 +1445,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							elseif IsHealingSkill(skill.id) then
 								castable = false
 							else
-								--target = Player
 								TID = PID
-								--tbuffs = pbuffs
 							end
 						elseif ( skill.trg == "Party" ) then
 							if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
@@ -1562,9 +1527,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									TID = ally.id
 									tbuffs = ally.buffs
 								else
-									--target = Player
 									TID = PID
-									--tbuffs = pbuffs
 								end
 							else
 								castable = false
@@ -1597,9 +1560,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								castable = false
 							end
 						elseif ( skill.trg == "Player" ) then
-							--target = Player
 							TID = PID
-							--tbuffs = pbuffs 
 						elseif ( skill.trg == "Heal Priority" and skill.hpriohp > 0 ) then
 							local priorities = {
 								[1] = skill.hprio1,
@@ -1607,6 +1568,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								[3] = skill.hprio3,
 								[4] = skill.hprio4,
 							}
+							
 							local healTargets = {}
 							healTargets["Self"] = Player
 							healTargets["Tank"] = GetBestTankHealTarget( realskilldata.range )
@@ -1618,6 +1580,17 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								healTargets["Any"] = GetBestHealTarget( false, realskilldata.range ) 
 							end
 							
+							--if (gSkillManagerDebug == "1") then
+								for i,trgstring in ipairs(priorities) do
+									d("i:"..tostring(i)..",string:"..tostring(trgstring))
+								end
+							--end
+							
+							--if (gSkillManagerDebug == "1") then
+								for name,target in pairs(healTargets) do
+									d("name:"..tostring(name)..",target:"..tostring(ValidTable(target)))
+								end
+							--end
 							
 							for i,trgstring in ipairs(priorities) do
 								if (healTargets[trgstring]) then
@@ -1650,14 +1623,14 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									castable = false									
 									if (gSkillManagerDebug == "1") then
 										if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
-											d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(skill.prio).."]")
+											d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 										else
 											local priorityChecks = {}
 											for priority in StringSplit(gSkillManagerDebugPriorities,",") do
 												priorityChecks[tonumber(priority)] = true
 											end
 											if (priorityChecks[skill.prio]) then
-												d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(skill.prio).."]")
+												d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 											end
 										end
 									end
@@ -1701,7 +1674,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									local tpos = EntityList:Get(TID).pos
 									
 									if (action:Cast(tpos.x, tpos.y, tpos.z)) then
-										skill.lastcast = Now()
+										if (SkillMgr.SkillProfile[prio]) then
+											SkillMgr.SkillProfile[prio].lastcast = Now()
+										else
+											d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+										end
 										
 										SkillMgr.nextSkillID = tostring(skill.nskill)
 										SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
@@ -1728,14 +1705,19 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										if (gSkillManagerDebug == "1") then
 											d("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
 										end
-										skill.lastcast = Now()
-			
+										
+										if (SkillMgr.SkillProfile[prio]) then
+											SkillMgr.SkillProfile[prio].lastcast = Now()
+										else
+											d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+										end
+										
 										if (realskilldata.recasttime == 2.5) then
 											SkillMgr.comboQueue = {
 												id = skill.id,
 												name = skill.name,
 												alias = skill.alias,
-												prio = skill.prio,
+												prio = prio,
 												swift = hasSwiftcast,
 												nskill = skill.nskill,
 												nskillprio = skill.nskillprio,
@@ -1749,7 +1731,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 													id = skill.id,
 													name = skill.name,
 													alias = skill.alias,
-													prio = skill.prio,
+													prio = prio,
 													swift = hasSwiftcast,
 													nskill = skill.nskill,
 													nskillprio = skill.nskillprio,
@@ -1765,20 +1747,16 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										
 										if (IsMudraSkill(skill.id)) then
 											SkillMgr.failTimer = Now() + 1000
-											--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 										elseif (IsNinjutsuSkill(skill.id)) then
 											SkillMgr.failTimer = Now() + 2000
-											--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 										else
 											if (action.casttime > 2.5) then
 												SkillMgr.failTimer = Now() + (action.casttime * 1000)
 											else
 												SkillMgr.failTimer = Now() + 2000
-												--d("Fail timer pushed forward 1.5 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
 											end
 										end
 										
-										--d("Current last skill used:"..tostring(SkillMgr.prevSkillID))
 										return true
 									else
 										--d("CAST FAILED : "..tostring(skill.name)..", spell status was:"..tostring(action.isready)..", oncd was:"..tostring(action.isoncd))
