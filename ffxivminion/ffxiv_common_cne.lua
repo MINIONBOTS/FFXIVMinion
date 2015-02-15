@@ -2731,13 +2731,13 @@ function e_autoequip:execute()
 		local item = GetUnequippedItem(e_autoequip.id)
 		if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			item:Move(1000,e_autoequip.slot)
-			ml_task_hub:ThisTask():SetDelay(500)
+			ml_task_hub:CurrentTask():SetDelay(500)
 		end
 	else
 		local equip = GetUnequippedItem(e_autoequip.id)
 		if (equip and equip.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			equip:Move(1000,e_autoequip.slot)
-			ml_task_hub:ThisTask():SetDelay(500)
+			ml_task_hub:CurrentTask():SetDelay(500)
 		end
 	end
 end

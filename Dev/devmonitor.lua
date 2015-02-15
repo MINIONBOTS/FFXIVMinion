@@ -415,6 +415,7 @@ function Dev.ModuleInit()
 	QIindex = 0
 	
 	-- General Functions
+	GUI_NewButton("Dev","Perform AutoEquip","Dev.AutoEquip","General Functions")
 	GUI_NewField("Dev","Text Command","general_sendtextcommand","General Functions")
 	GUI_NewButton("Dev","Send Text Command","Dev.SendTextCommand","General Functions")
 	GUI_NewButton("Dev","Repair","Dev.Repair", "General Functions")
@@ -540,6 +541,10 @@ function Dev.HandleButtons( Event, arg )
 			d(GameHacks:TeleportToXYZ(tonumber(tb_xPos),tonumber(tb_yPos),tonumber(tb_zPos)))
 		elseif ( arg == "Dev.SendTextCommand" ) then
 			SendTextCommand(general_sendtextcommand)
+		elseif ( arg == "Dev.AutoEquip" ) then
+			if (c_autoequip:evaluate()) then
+				e_autoequip:execute()
+			end
 		elseif ( arg == "Dev.Repair" ) then
 			local eq = Inventory("type=1000")
 			if (eq) then
