@@ -633,23 +633,11 @@ function e_nextgatherlocation:execute()
 		if (Player.ismounted) then
 			return
 		end
-		
-		if (ActionIsReady(5)) then
-			Player:Teleport(location.teleport)
-			
-			local newTask = ffxiv_task_teleport.Create()
-			newTask.mapID = location.mapid
-			newTask.mesh = location.mesh
-			newTask.task_complete_execute = function()
-				ml_task_hub:ThisTask().completed = true
-				ffxiv_task_gather.location = location
-				gGatherMapLocation = location.name
-				ffxiv_task_gather.unspoiledGathered = false
-				ffxiv_task_gather.gatherStarted = false
-				d("Arrived at location ["..location.name.."], using aetheryte teleport.")
-			end
-			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-		end
+
+		local mapID = tonumber(location.mapid)
+		local newTask = ffxiv_task_movetomap.Create()
+		newTask.destMapID = mapID
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
 		ffxiv_task_gather.location = location
 		gGatherMapLocation = location.name
@@ -719,6 +707,8 @@ function e_gather:execute()
 	
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
+		Player:Stop()
+
 		local node = Player:GetTarget()
 		if (not ValidTable(node) or not node.cangather) then
 			return
@@ -950,10 +940,8 @@ function e_gather:execute()
 					ml_task_hub:CurrentTask().failedTimer = 0
 				end
             end
-
-            if (gTeleport == "1") then
-                Player:MoveToStraight(Player.pos.x+2, Player.pos.y, Player.pos.z+2)
-            end
+			
+            Player:MoveTo(node.pos.x,node.pos.y,node.pos.z,nil,true,false)
         else
             --ml_debug(" EntityList:Get(ml_task_hub:CurrentTask().gatherid) returned no node!")
         end
@@ -969,6 +957,7 @@ function c_gatherwindow:evaluate()
 	end
 end
 function e_gatherwindow:execute()
+	Player:Stop()
 	ml_debug(ml_task_hub:CurrentTask().name.." will be terminated to allow gathering to continue.")
 end
 
