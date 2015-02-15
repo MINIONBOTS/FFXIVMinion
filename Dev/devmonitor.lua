@@ -201,6 +201,9 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsHomepoint","aeishp","AetheryteList")
 	GUI_NewField("Dev","IsFavorite","aeisfav","AetheryteList")
 	GUI_NewField("Dev","IsInLocalMap","aeisloc","AetheryteList")
+	GUI_NewField("Dev","Price","aeprice","AetheryteList")
+	GUI_NewField("Dev","IsAttuned","aeattuned","AetheryteList")
+	
 	GUI_NewButton("Dev","Teleport","Dev.AetheryteTeleport","AetheryteList")
 	aesel = 0
 	
@@ -1024,6 +1027,8 @@ function Dev.UpdateWindow()
 			aeterr = a.territory
 			aeregion = tostring(a.region)
 			aeisloc = tostring(a.islocalmap)
+			aeprice = tostring(a.price)
+			aeattuned = tostring(a.isattuned)
 		end
 	end
 	if not aefound then
@@ -1035,10 +1040,19 @@ function Dev.UpdateWindow()
 		aeterr = 0
 		aeregion = 0
 		aeisloc = 0
+		aeprice = ""
+		aeattuned = ""
 	end
 	
 	-- FateInfo
 	local fafound = false
+	--[[
+	 FATETYPE_BATTLE = 0
+	 FATETYPE_BOSS = 1
+	 FATETYPE_GATHER = 2
+	 FATETYPE_DEFENSE = 3
+	 FATETYPE_ESCORT = 4
+	--]]
 	local falist = MapObject:GetFateList()
 	if ( falist ) then
 		local f = falist[tonumber(faidx)]
