@@ -271,7 +271,7 @@ function ffxivminion.HandleInit()
 		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
 		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
 		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		["QuickStart"] 							= ffxiv_task_qs_wrapper,
+		[GetString("quickStartMode")]			= ffxiv_task_qs_wrapper,
 		["NavTest"]								= ffxiv_task_test,
 	}
 	

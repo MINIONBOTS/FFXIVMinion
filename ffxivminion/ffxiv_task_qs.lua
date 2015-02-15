@@ -21,7 +21,7 @@ end
 
 function ffxiv_task_qs_wrapper.UIInit()
 	--Add it to the main tracking table, so that we can save positions for it.
-	ffxivminion.Windows.QuickStart = { id = "QuickStart", Name = "QuickStart", x=50, y=50, width=210, height=350 }
+	ffxivminion.Windows.QuickStart = { id = "QuickStart", Name = GetString("quickStartMode"), x=50, y=50, width=210, height=350 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.QuickStart)
 
 	if ( Settings.FFXIVMINION.gQSGrindMinLevel == nil ) then
@@ -49,7 +49,7 @@ function ffxiv_task_qs_wrapper.UIInit()
 		Settings.FFXIVMINION.gUseMooch = "0"
 	end
 	
-	local winName = "QuickStart"
+	local winName = GetString("quickStartMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
@@ -60,18 +60,18 @@ function ffxiv_task_qs_wrapper.UIInit()
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
     
 	local group = "Attack Settings"
-    GUI_NewNumeric(winName,"Min Level","gQSGrindMinLevel",group,"1","50")
-    GUI_NewNumeric(winName,"Max Level","gQSGrindMaxLevel",group,"1","50")
-    GUI_NewField(winName,"Content ID(s)","gQSGrindContent",group)
+    GUI_NewNumeric(winName,GetString("minLevel"),"gQSGrindMinLevel",group,"1","50")
+    GUI_NewNumeric(winName,GetString("maxLevel"),"gQSGrindMaxLevel",group,"1","50")
+    GUI_NewField(winName,GetString("contentIDEquals"),"gQSGrindContent",group)
 	
 	local group = "Fish Settings"
-	GUI_NewCheckbox(winName,"Mooch","gUseMooch",group)
+	GUI_NewCheckbox(winName,GetString("useMooch"),"gUseMooch",group)
 	
 	local group = "Gather Settings"
-	GUI_NewNumeric(winName,"Min Level","gQSGatherNodeLevel",group,"1","50")
-	GUI_NewField(winName,"Main Item","gQSGatherItem1",group)	
-	GUI_NewField(winName,"Backup Item","gQSGatherItem2",group)	
-    GUI_NewField(winName,"Content ID(s)","gQSGatherContent",group)	
+	GUI_NewNumeric(winName,GetString("minLevel"),"gQSGatherNodeLevel",group,"1","50")
+	GUI_NewField(winName,GetString("selectItem1"),"gQSGatherItem1",group)	
+	GUI_NewField(winName,GetString("selectItem2"),"gQSGatherItem2",group)	
+    GUI_NewField(winName,GetString("contentIDEquals"),"gQSGatherContent",group)	
 	
     gQSGrindMinLevel = Settings.FFXIVMINION.gQSGrindMinLevel
     gQSGrindMaxLevel = Settings.FFXIVMINION.gQSGrindMaxLevel

@@ -66,7 +66,8 @@ strings =
 		saveProfile                 	= "Save Profile",
 		newProfileName                  = "New Profile",
 		skillProfile					= "Skill Profile",
-        newProfile                      = "Clear Profile",		
+        newProfile                      = "Create New Profile",
+		clearProfile					= "Clear Profile",
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
 		stepmin							= "Step <",
@@ -613,7 +614,8 @@ strings =
 		--====== Added 1/22/15 - Ace
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
-		
+		--====== Added 2/15/15 - Ace
+		quickStartMode					= "QuickStart",
     },                                  
     ["cn"] =                            
     {                               
@@ -679,8 +681,9 @@ strings =
         skillEditor_gather            	= "技能编辑器_采集",
 		saveProfile                 	= "保存当前配置",
         newProfileName                  = "新配置文件名字",
-		skillProfile					= "Skill Profile",
-        newProfile                      = "新配置文件",	
+		skillProfile					= "Skill Profile",		
+		newProfile                      = "Create New Profile",
+		clearProfile					= "新配置文件",
 		skillbookrefresh                = "舒心技能",
         targetType                      = "目标类型",
 		stepmin							= "步 <",
@@ -1245,6 +1248,7 @@ strings =
 		curielRoot						= "Curiel Root",
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
+		quickStartMode					= "QuickStart",
 	},
     ["jp"] =
     {
@@ -1310,7 +1314,8 @@ strings =
 		saveProfile                 	= "プロファイル保存",
 		newProfileName                  = "新規プロファイル名",
 		skillProfile					= "Skill Profile",
-        newProfile                      = "新規プロファイル",		
+		newProfile                      = "Create New Profile",
+		clearProfile					= "新規プロファイル",
 		skillbookrefresh                = "スキルブックリフレッシュ",
 		targetType                      = "標的",
 		stepmin							= "ターン <",
@@ -1828,6 +1833,7 @@ strings =
 		curielRoot						= "Curiel Root",
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
+		quickStartMode					= "QuickStart",
 	},   
     ["de"] =
     {
@@ -1893,7 +1899,8 @@ strings =
 		saveProfile                 	= "Save Profile",
 		newProfileName                  = "New Profile",
 		skillProfile					= "Skill Profile",
-        newProfile                      = "Clear Profile",		
+        newProfile                      = "Create New Profile",
+		clearProfile					= "Clear Profile",		
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
 		stepmin							= "Step <",
@@ -2413,6 +2420,7 @@ strings =
 		curielRoot						= "Curiel Root",
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
+		quickStartMode					= "QuickStart",
 	},     
     ["fr"] =
     {
@@ -2478,7 +2486,8 @@ strings =
 		saveProfile                 	= "Savegarder Profil Courrent",
 		newProfileName                  = "Nom Nouveau Profil",
 		skillProfile					= "Skill Profile",
-        newProfile                      = "Clear Profile",		
+        newProfile                      = "Create New Profile",
+		clearProfile					= "Clear Profile",			
 		skillbookrefresh                = "Rafraîchir Compétences",
 		targetType                      = "Cible",
 		stepmin							= "Étape <",
@@ -2997,6 +3006,7 @@ strings =
 		curielRoot						= "Curiel Root",
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
+		quickStartMode					= "QuickStart",
 	},       
     ["ru"] =
     {
@@ -3062,7 +3072,8 @@ strings =
 		saveProfile                 	= "Save Profile",
 		newProfileName                  = "New Profile",
 		skillProfile					= "Skill Profile",
-        newProfile                      = "Clear Profile",		
+        newProfile                      = "Create New Profile",
+		clearProfile					= "Clear Profile",			
 		skillbookrefresh                = "Refresh Skills",
 		targetType                      = "Target",
 		stepmin							= "Step <",
@@ -3581,6 +3592,7 @@ strings =
 		curielRoot						= "Curiel Root",
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
+		quickStartMode					= "QuickStart",
 	},    	
 
 }
