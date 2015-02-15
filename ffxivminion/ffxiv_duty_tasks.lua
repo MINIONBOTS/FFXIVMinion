@@ -811,8 +811,14 @@ function e_roll:execute()
 	if (loot) then
 		if (not ControlVisible("NeedGreed")) then
 			for i,e in pairs(loot) do
-				e:Need()
-				ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				if (ml_task_hub:CurrentTask().rollstate == "Need") then
+					e:Need()
+				elseif (ml_task_hub:CurrentTask().rollstate == "Greed") then
+					e:Greed()
+				else
+					e:Pass()
+				end
+				ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
 				return
 			end
 		end
