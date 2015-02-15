@@ -27,6 +27,7 @@ ml_mesh_mgr.OMCStartPositionReached = false
 ml_mesh_mgr.OMCJumpStartedTimer = 0
 ml_mesh_mgr.OMCThrottle = 0
 ml_mesh_mgr.OMCLastDistance = 0
+ml_mesh_mgr.OMCStartingDistance = 0
 function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount ) 
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
 		ml_global_information.lastrun = Now()
@@ -50,11 +51,13 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				if ( ValidTable(sPos) ) then
 					--local dist = Distance3D(sPos.x,sPos.y,sPos.z,pPos.x,pPos.y,pPos.z)
 					local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
-					if ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1)) then -- Close enough to start
+					if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
+						(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
+					then
 						--d("OMC StartPosition reached..Facing Target Direction..")
 						Player:Stop()
 						Player:SetFacing(sPos.h) -- Set heading
-						
+						ml_mesh_mgr.OMCStartingDistance = meshdist
 						ml_mesh_mgr.OMCStartPositionReached = true
 						ml_mesh_mgr.OMCThrottle = Now() + 100
 						return
@@ -73,6 +76,11 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							local dist = Distance2D(ePos.x,ePos.y,sPos.x,sPos.y)
 							local heightdiff = math.abs(ePos.y - pPos.y)
 							ml_mesh_mgr.OMCThrottle = Now() + 150
+							
+							--In case we're starting extra far, give it a little more time.
+							if ((not Player.ismounted and meshdist >= .75) or (Player.ismounted and meshdist > 1)) then
+								ml_mesh_mgr.OMCThrottle = ml_mesh_mgr.OMCThrottle + 150
+							end
 							return
 						end
 		
@@ -225,6 +233,7 @@ function ml_mesh_mgr.ResetOMC()
 	ml_mesh_mgr.OMCJumpStartedTimer = 0
 	ml_mesh_mgr.OMCThrottle = 0
 	ml_mesh_mgr.OMCLastDistance = 0
+	ml_mesh_mgr.OMCStartingDistance = 0
 end
 
 function ml_mesh_mgr.UnpackArgsForOMC( args )
