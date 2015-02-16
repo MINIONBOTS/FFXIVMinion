@@ -221,8 +221,8 @@ SkillMgr.Variables = {
 	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting"   },
 	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting"  },
 	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"   },
-	SKM_PAGL = { default = 0, cast = "number", profile = "pagl", section = "fighting"   },
-	SKM_PAGB = { default = 0, cast = "number", profile = "pagb", section = "fighting"   },
+	--SKM_PAGL = { default = 0, cast = "number", profile = "pagl", section = "fighting"   },
+	--SKM_PAGB = { default = 0, cast = "number", profile = "pagb", section = "fighting"   },
 	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"   },
 	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"   },
 	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
@@ -1176,7 +1176,8 @@ end
 
 
 --+Rebuilds the UI Entries for the Profile-SkillList
-function SkillMgr.RefreshSkillList()	
+function SkillMgr.RefreshSkillList()
+	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			if (not IsNullString(skill.alias)) then
@@ -1201,8 +1202,6 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
 	local bevent = tostring(newskillprio)
-	
-	GUI_NewButton(SkillMgr.mainwindow.name, tostring(bevent)..": "..skname.."["..tostring(skID).."]", "SKMEditSkill"..tostring(bevent),"ProfileSkills")
 
 	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skname, ["used"] = "1", ["alias"] = "", ["type"] = 1 }
 	if (job >= 8 and job <= 15) then
