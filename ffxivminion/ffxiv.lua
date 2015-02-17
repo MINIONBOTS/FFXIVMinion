@@ -36,6 +36,8 @@ FFXIVMINION.SKILLS = {}
 ffxivminion = {}
 ffxivminion.foods = {}
 ffxivminion.foodsHQ = {}
+ffxivminion.modes = {}
+ffxivminion.modesToLoad = {}
 
 ffxivminion.Strings = {
 	BotModes = 
@@ -84,6 +86,10 @@ ffxivminion.settingsVisible = false
 function ml_global_information.OnUpdate( event, tickcount )
 
     ml_global_information.Now = tickcount
+	
+	if (ValidTable(ffxivminion.modesToLoad)) then
+		ffxivminion.LoadModes()
+	end
 	
 	if (ml_global_information.autoStartQueued) then
 		ml_global_information.autoStartQueued = false
@@ -260,20 +266,18 @@ function ffxivminion.HandleInit()
 	
 	ml_global_information.blacklistedAetherytes = {}
 	
-	ffxivminion.modes =	{
-		[strings[gCurrentLanguage].grindMode] 	= ffxiv_task_grind, 
-		[strings[gCurrentLanguage].fishMode] 	= ffxiv_task_fish,
-		[strings[gCurrentLanguage].gatherMode] 	= ffxiv_task_gather,
-		[strings[gCurrentLanguage].craftMode] 	= ffxiv_task_craft,
-		[strings[gCurrentLanguage].assistMode]	= ffxiv_task_assist,
-		[strings[gCurrentLanguage].partyMode]	= ffxiv_task_party,
-		[strings[gCurrentLanguage].pvpMode]	    = ffxiv_task_pvp,
-		[strings[gCurrentLanguage].dutyMode] 	= ffxiv_task_duty,
-		[strings[gCurrentLanguage].questMode]	= ffxiv_task_quest,
-		[strings[gCurrentLanguage].huntMode]	= ffxiv_task_hunt,
-		[GetString("quickStartMode")]			= ffxiv_task_qs_wrapper,
-		["NavTest"]								= ffxiv_task_test,
-	}
+	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
+	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
+	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
+	ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
+	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
+	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
+	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
+	ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
+	ffxivminion.AddMode(GetString("questMode"), ffxiv_task_quest)
+	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
+	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
+	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	
 	if ( not ffxivminion.Windows ) then
 		ffxivminion.Windows = {}
@@ -396,7 +400,6 @@ function ffxivminion.HandleInit()
 	end
 	
 	local winName = ffxivminion.Windows.Main.Name
-	--GUI_NewButton(ffxivminion.Windows.Main.Name, GetString("advancedSettings"), "ToggleAdvancedSettings")
 	GUI_NewButton(winName, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
     GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshManager")
     GUI_NewButton(winName, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
@@ -497,31 +500,8 @@ function ffxivminion.HandleInit()
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
 	
-	if (not ml_global_information.TaskUIInit) then
-		-- load task UIs
-		for i, task in pairs(ffxivminion.modes) do
-			task.UIInit()
-		end
-		ml_global_information.TaskUIInit = true
-	end
-	
-	local botModes = ffxivminion.Strings.BotModes()
-	gBotMode_listitems = botModes
-	gBotMode = Settings.FFXIVMINION.gBotMode
-	local modeFound = false
-	for i, entry in pairs(ffxivminion.modes) do
-		if (i == gBotMode) then
-			modeFound = true
-			break
-		end
-	end
-	
-	if (modeFound) then
-		ffxivminion.SwitchMode(gBotMode)
-	else
-		gBotMode = GetString("grindMode")
-		SafeSetVar("gBotMode",gBotMode)
-		ffxivminion.SwitchMode(gBotMode)
+	if (ValidTable(ffxivminion.modesToLoad)) then
+		ffxivminion.LoadModes()
 	end
 	
 	gFFXIVMINIONTask = ""
@@ -1268,6 +1248,40 @@ function ffxivminion.DrawMarker(marker)
     
     local id = RenderManager:AddObject(t)	
     return id
+end
+
+function ffxivminion.AddMode(name, task)
+	ffxivminion.modesToLoad[name] = task
+end
+
+function ffxivminion.LoadModes()
+	if (ValidTable(ffxivminion.modesToLoad)) then
+		for modeName,task in pairs(ffxivminion.modesToLoad) do
+			ffxivminion.modes[modeName] = task
+			task:UIInit()
+		end
+		
+		-- Empty out the table to prevent reloading.
+		ffxivminion.modesToLoad = {}
+	end
+	
+	local botModes = ffxivminion.Strings.BotModes()
+	gBotMode_listitems = botModes
+	gBotMode = Settings.FFXIVMINION.gBotMode
+	local modeFound = false
+	for i, entry in pairs(ffxivminion.modes) do
+		if (i == gBotMode) then
+			modeFound = true
+			break
+		end
+	end
+	
+	if (modeFound) then
+		ffxivminion.SwitchMode(gBotMode)
+	else
+		gBotMode = GetString("grindMode")
+		ffxivminion.SwitchMode(gBotMode)
+	end
 end
 
 function ffxivminion.NodeDistance(self, id)
