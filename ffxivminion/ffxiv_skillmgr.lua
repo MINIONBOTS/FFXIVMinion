@@ -831,6 +831,7 @@ function SkillMgr.ReadFile(strFile)
 	if (ValidTable(profile)) then
 		SkillMgr.SkillProfile = profile.skills
 	end
+	SkillMgr.ResetSkillTracking()
 end
 
 --All writes to the profiles should come through this function.
@@ -842,6 +843,7 @@ function SkillMgr.WriteToFile(strFile)
 	
 	local info = {}
 	info.version = 2
+	SkillMgr.ResetSkillTracking()
 	info.skills = SkillMgr.SkillProfile or {}	
 	persistence.store(filename,info)
 end
@@ -1190,6 +1192,15 @@ function SkillMgr.RefreshSkillList()
     end
 end
 
+function SkillMgr.ResetSkillTracking()
+	local skills = SkillMgr.SkillProfile
+	if (ValidTable(skills)) then
+		for prio,skill in pairs(skills) do
+			skill.lastcast = 0
+		end
+	end
+end
+
 function SkillMgr.CreateNewSkillEntry(skill)
 	assert(type(skill) == "table", "CreateNewSkillEntry was called with a non-table value.")
 	
@@ -1379,7 +1390,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		end
 		
 		if ( EID and PID and TableSize(SkillMgr.SkillProfile) > 0 ) then
-			for prio,skill in spairs(SkillMgr.SkillProfile) do
+			for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 				ally = nil
 				allyHP = nil
 				allyMP = nil
@@ -1578,18 +1589,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								healTargets["Party"] = GetBestPartyHealTarget( false, realskilldata.range )
 								healTargets["Any"] = GetBestHealTarget( false, realskilldata.range ) 
 							end
-							
-							--if (gSkillManagerDebug == "1") then
-								for i,trgstring in ipairs(priorities) do
-									d("i:"..tostring(i)..",string:"..tostring(trgstring))
-								end
-							--end
-							
-							--if (gSkillManagerDebug == "1") then
-								for name,target in pairs(healTargets) do
-									d("name:"..tostring(name)..",target:"..tostring(ValidTable(target)))
-								end
-							--end
 							
 							for i,trgstring in ipairs(priorities) do
 								if (healTargets[trgstring]) then
@@ -2192,6 +2191,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		
 		if ( skill.dobuff == "1" and skill.lastcast) then
 			if ((skill.lastcast + 1000) > Now()) then
 				return true
