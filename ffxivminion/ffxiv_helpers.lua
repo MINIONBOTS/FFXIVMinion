@@ -2637,6 +2637,39 @@ function GetClosestAetheryteToMapIDPos(id, p)
 	return nil
 end
 
+function GetOffMapMarkerPos(strMeshName, strMarkerName)
+	local newMarkerPos = nil
+	
+	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
+	if (FileExists(markerPath)) then
+		local markerList = persistence.load(markerPath)
+		local markerName = strMarkerName
+		
+		local searchMarker = nil
+		for _, list in pairs(markerList) do
+			for name, marker in pairs(list) do
+				if (name == markerName) then
+					searchMarker = marker
+				end
+				if (searchMarker) then
+					break
+				end
+			end
+			if (searchMarker) then
+				break
+			end
+		end
+		if (searchMarker) then
+			local markerFields = searchMarker.fields
+			if (markerFields["x"] and markerFields["y"] and markerFields["z"]) then
+				newMarkerPos = { x = markerFields["x"].value, y = markerFields["y"].value, z = markerFields["z"].value }
+			end
+		end
+	end
+	
+	return newMarkerPos
+end
+
 function ShouldTeleport()
 	if (IsLoading() or IsPositionLocked()) then
 		return false
