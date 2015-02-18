@@ -84,8 +84,7 @@ function e_selectitem:execute()
 	Crafting:CraftSelectedItem()
 	Crafting:ToggleCraftingLog()
 	ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
-	SkillMgr.currentIQStack = 0 
-	SkillMgr.lastquality = 0
+	SkillMgr.newCraft = true
 	ml_task_hub:ThisTask().networkLatency = Now() + 2500
 	ml_task_hub:CurrentTask().allowWindowOpen = false
 end
