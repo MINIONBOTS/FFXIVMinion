@@ -139,6 +139,7 @@ function c_startcombat:evaluate()
 	if (Player.localmapid == 352 and ml_task_hub:ThisTask().state == "WAITING_FOR_COMBAT") then
 		if (gPVPSpeedMatchPartner and gPVPSpeedMatchPartner ~= "") then
 			local enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+			if (enemyParty) then
 			for i,enemy in pairs(enemyParty) do
 				if (enemy.name == gPVPSpeedMatchPartner) then
 					local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
@@ -146,7 +147,14 @@ function c_startcombat:evaluate()
 					return true
 				end
 			end
+			else
+				--d("No valid enemy team found.")
+			end
 		end
+	else
+		--d("MapID or state is not valid for speed matching.")
+		--d("MapID:"..tostring(Player.localmapid))
+		--d("State:"..tostring(ml_task_hub:ThisTask().state))
 	end
 	
     -- just in case we restart lua while in pvp combat
@@ -476,40 +484,13 @@ e_confirmEnterPVP = inheritsFrom( ml_effect )
 e_confirmEnterPVP.confirm = false
 function c_confirmEnterPVP:evaluate()	
 	if (ControlVisible("ContentsFinderConfirm") and not IsLoading() and Player.alive) then
-		if (gMultiBotEnabled == "1") then
-			if (Now() > ml_task_hub:ThisTask().multibotBroadcastTimer) then
-				mb.BroadcastPVPQueueStatus( true )
-				ml_task_hub:ThisTask().multibotBroadcastTimer = Now() + 10000
-				if (ml_task_hub:ThisTask().multibotWithdrawTimer == 0) then
-					ml_task_hub:ThisTask().multibotWithdrawTimer = Now() + 30000
-				end
-			end
-			
-			if ( Now() > ml_task_hub:ThisTask().multibotWithdrawTimer) then
-				e_confirmEnterPVP.confirm = false
-				return true
-			elseif ( ffxiv_task_pvp.multibotJoin ) then
-				e_confirmEnterPVP.confirm = true
 				return true
 			end			
-		else
-			return true
-		end
-	end
 end
 function e_confirmEnterPVP:execute()
-	if (gMultiBotEnabled == "1") then
-		local confirm = e_confirmEnterPVP.confirm
-		PressDutyConfirm(confirm)
-		ml_task_hub:ThisTask().multibotWithdrawTimer = 0
-		if (not confirm ) then
-			ml_task_hub:ThisTask().state = ""
-		end
-	else
 		PressDutyConfirm(true)
 		ml_task_hub:ThisTask().state = "DUTY_STARTED"
 	end
-end
 
 c_pvpdead = inheritsFrom( ml_cause )
 e_pvpdead = inheritsFrom( ml_effect )
