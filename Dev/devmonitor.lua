@@ -36,7 +36,11 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","job","player_job","PlayerInfo")	
 	GUI_NewField("Dev","fateid","player_fateid","PlayerInfo")
 	GUI_NewField("Dev","action","player_action","PlayerInfo")
-	GUI_NewField("Dev","lastaction","player_lastaction","PlayerInfo")	
+	GUI_NewField("Dev","lastaction","player_lastaction","PlayerInfo")
+	GUI_NewField("Dev","icon","player_icon","PlayerInfo")
+	GUI_NewField("Dev","grandcompany","player_grandcompany","PlayerInfo")
+	GUI_NewField("Dev","grandcompanyrank","player_grandcompanyrank","PlayerInfo")
+	GUI_NewField("Dev","claimedbyid","player_claimedbyid","PlayerInfo")
 	GUI_NewField("Dev","channelingid","player_channelingid","PlayerInfo")	
 	GUI_NewField("Dev","channeltime","player_channeltime","PlayerInfo")	
 	GUI_NewField("Dev","channeltargetid","player_channeltargetid","PlayerInfo")
@@ -89,6 +93,10 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","gatherattemptsmax","target_gatherattemptsmax","TargetInfo")
 	GUI_NewField("Dev","gatherattempts","target_gatherattempts","TargetInfo")
 	GUI_NewField("Dev","fateid","target_fateid","TargetInfo")
+	GUI_NewField("Dev","icon","target_icon","TargetInfo")
+	GUI_NewField("Dev","grandcompany","target_grandcompany","TargetInfo")
+	GUI_NewField("Dev","grandcompanyrank","target_grandcompanyrank","TargetInfo")
+	GUI_NewField("Dev","claimedbyid","target_claimedbyid","TargetInfo")
 	GUI_NewField("Dev","action","target_action","TargetInfo")
 	GUI_NewField("Dev","lastaction","target_lastaction","TargetInfo")	
 	GUI_NewField("Dev","channelingid","target_channelingid","TargetInfo")	
@@ -238,11 +246,14 @@ function Dev.ModuleInit()
 	-- Gathering
 	GUI_NewNumeric("Dev","GatherItem","gaidx","GatheringInfo","1","8");
 	GUI_NewField("Dev","Ptr open","gaptr","GatheringInfo")
+	GUI_NewField("Dev","IsUnknown","gaunknown","GatheringInfo")
 	GUI_NewField("Dev","ItemID","gaid","GatheringInfo")
 	GUI_NewField("Dev","Name","ganame","GatheringInfo")
 	GUI_NewField("Dev","Chance","gachan","GatheringInfo")
 	GUI_NewField("Dev","HQchance","gahqchan","GatheringInfo")
 	GUI_NewField("Dev","Level","galevel","GatheringInfo")
+	GUI_NewField("Dev","RequiredLevel","galevel2","GatheringInfo")
+	GUI_NewField("Dev","RequiredPerception","gaminpercept","GatheringInfo")
 	GUI_NewField("Dev","Description","gadesc","GatheringInfo")
 	GUI_NewField("Dev","Index","gaindex","GatheringInfo")
 	GUI_NewButton("Dev","Gather Item","Dev.Gather","GatheringInfo")
@@ -413,6 +424,32 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsLoading","QIIsLoading","QuestInfo")
 	GUI_NewField("Dev","IsInDialog","QIIsDialog","QuestInfo")
 	QIindex = 0
+	
+	
+	--PlayerStats	
+	GUI_NewField("Dev","craftmanship","ps_craft","PlayerStats")
+	GUI_NewField("Dev","control","ps_control","PlayerStats")
+	GUI_NewField("Dev","gathering","ps_gathering","PlayerStats")
+	GUI_NewField("Dev","perception","ps_perception","PlayerStats")
+	GUI_NewField("Dev","Gladiator","ps_Gladiator","PlayerStats")
+	GUI_NewField("Dev","Pugilist","ps_Pugilist","PlayerStats")
+	GUI_NewField("Dev","Marauder","ps_Marauder","PlayerStats")
+	GUI_NewField("Dev","Lancer","ps_Lancer","PlayerStats")
+	GUI_NewField("Dev","Archer","ps_Archer","PlayerStats")
+	GUI_NewField("Dev","Conjurer","ps_Conjurer","PlayerStats")
+	GUI_NewField("Dev","Thaumaturge","ps_Thaumaturge","PlayerStats")
+	GUI_NewField("Dev","Carpenter","ps_Carpenter","PlayerStats")
+	GUI_NewField("Dev","Blacksmith","ps_Blacksmith","PlayerStats")
+	GUI_NewField("Dev","Armorer","ps_Armorer","PlayerStats")
+	GUI_NewField("Dev","Goldsmith","ps_Goldsmith","PlayerStats")
+	GUI_NewField("Dev","Leatherworker","ps_Leatherworker","PlayerStats")
+	GUI_NewField("Dev","Weaver","ps_Weaver","PlayerStats")
+	GUI_NewField("Dev","Alchemist","ps_Alchemist","PlayerStats")
+	GUI_NewField("Dev","Culinarian","ps_Culinarian","PlayerStats")
+	GUI_NewField("Dev","Miner","ps_Miner","PlayerStats")
+	GUI_NewField("Dev","Botanist","ps_Botanist","PlayerStats")
+	GUI_NewField("Dev","Fisher","ps_Fisher","PlayerStats")
+	GUI_NewField("Dev","Fisher","ps_Arcanist","PlayerStats")	
 	
 	-- General Functions
 	GUI_NewButton("Dev","Perform AutoEquip","Dev.AutoEquip","General Functions")
@@ -752,6 +789,10 @@ function Dev.UpdateWindow()
 	player_fateid = p.fateid
 	player_action = p.action
 	player_lastaction = p.lastaction
+	player_icon = p.icon
+	player_grandcompany = p.grandcompany
+	player_grandcompanyrank = p.grandcompanyrank
+	player_claimedbyid = p.claimedbyid
 	
 	if (ValidTable(p.castinginfo)) then
 		local ci = p.castinginfo
@@ -820,6 +861,10 @@ function Dev.UpdateWindow()
 		target_fateid = mytarget.fateid or 0
 		target_action = mytarget.action
 		target_lastaction = mytarget.lastaction
+		target_icon = mytarget.icon
+		target_grandcompany = mytarget.grandcompany
+		target_grandcompanyrank = mytarget.grandcompanyrank
+		target_claimedbyid = mytarget.claimedbyid
 		
 		if (ValidTable(mytarget.castinginfo)) then
 			local ci = mytarget.castinginfo
@@ -1103,26 +1148,33 @@ function Dev.UpdateWindow()
 		local gitem = Glist[tonumber(gaidx)]
 		if ( gitem ) then
 			gfound = true
+			gaunknown = tostring(gitem.isunknown)
 			gaptr = gitem.ptr
 			gaid = gitem.id
 			ganame = gitem.name
 			gachan = gitem.chance			
 			gahqchan = gitem.hqchance
 			galevel = gitem.level
+			galevel2 = gitem.requiredlevel
+			gaminpercept = gitem.minperception
 			gadesc = gitem.description
 			gaindex = gitem.index
 		end
 	end
 	if (not gfound ) then
+		gaunknown = ""
 		gaptr = 0
 		gaid = 0
 		ganame = 0
 		gachan = 0
 		gahqchan = 0
 		galevel = 0
+		galevel2 = 0
+		gaminpercept = 0
 		gadesc = 0
 		gaindex = 0
 	end
+	
 	
 	-- Respawn n Teleportinfo
 	resState = tostring(Player.revivestate)
@@ -1358,6 +1410,39 @@ function Dev.UpdateWindow()
 	QIIsQRDO = tostring(Quest:IsQuestRewardDialogOpen())
 	QIIsLoading = tostring(Quest:IsLoading())
 	QIIsDialog = tostring(Quest:IsInDialog())
+	
+	--PlayerStats
+	local ps = Player.stats
+	if (ps) then
+		ps_craft = ps.craftmanship
+		ps_control = ps.control
+		ps_gathering = ps.gathering
+		ps_perception = ps.perception	
+	end
+	
+	local pl = Player.levels
+	if (pl) then
+		ps_Gladiator = pl[1]
+		ps_Pugilist = pl[2]
+		ps_Marauder = pl[3]
+		ps_Lancer = pl[4]
+		ps_Archer = pl[5]
+		ps_Conjurer = pl[6]
+		ps_Thaumaturge = pl[7]
+		ps_Carpenter = pl[8]
+		ps_Blacksmith = pl[9]
+		ps_Armorer = pl[10]
+		ps_Goldsmith = pl[11]
+		ps_Leatherworker = pl[12]
+		ps_Weaver = pl[13]
+		ps_Alchemist = pl[14]
+		ps_Culinarian = pl[15]
+		ps_Miner = pl[16]
+		ps_Botanist = pl[17]
+		ps_Fisher = pl[18]
+		ps_Arcanist = pl[19]
+	end
+	
 end
 
 function Dev.DoTask()
