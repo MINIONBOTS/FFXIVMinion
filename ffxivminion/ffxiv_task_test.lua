@@ -56,6 +56,7 @@ function c_gotopostest:evaluate()
 end
 function e_gotopostest:execute()
 	local newTask = ffxiv_task_movetopos.Create()
+	newTask.remainMounted = true
 	newTask.pos = e_gotopostest.pos
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 	ml_task_hub:ThisTask().moveCreated = true
@@ -89,6 +90,7 @@ function ffxiv_task_test.UIInit()
 	GUI_NewField(winName, "X:", "gTestMapX","NavTest")
 	GUI_NewField(winName, "Y:", "gTestMapY","NavTest")
 	GUI_NewField(winName, "Z:", "gTestMapZ","NavTest")
+	GUI_NewButton(winName, "Get Current Position", "ffxiv_navtestGetPosition", "NavTest")
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,"NavTest")
@@ -97,7 +99,7 @@ function ffxiv_task_test.UIInit()
 end
 
 function ffxiv_task_test.OnUpdate( event, tickcount )
-	if (ml_task_hub.shouldRun) then
+	if (gBotRunning == "1") then
 		if (TimeSince(ffxiv_task_test.lastTick) >= 1000) then
 			ffxiv_task_test.lastTick = Now()
 			
@@ -130,4 +132,23 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 	end
 end
 
+function ffxiv_task_test.GetCurrentPosition()
+	local mapid = Player.localmapid
+	local pos = Player.pos
+	
+	gTestMapX = pos.x
+	gTestMapY = pos.y
+	gTestMapZ = pos.z
+	gTestMapID = mapid
+end
+
+function ffxiv_task_test.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" and string.find(Button,"ffxiv_navtest") ~= nil ) then
+		if (Button == "ffxiv_navtestGetPosition") then
+			ffxiv_task_test.GetCurrentPosition()
+		end
+	end
+end
+
+RegisterEventHandler("GUI.Item",ffxiv_task_test.HandleButtons)
 RegisterEventHandler("Gameloop.Update",ffxiv_task_test.OnUpdate)
