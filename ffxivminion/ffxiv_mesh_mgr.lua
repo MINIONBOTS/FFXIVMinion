@@ -28,6 +28,7 @@ ml_mesh_mgr.OMCJumpStartedTimer = 0
 ml_mesh_mgr.OMCThrottle = 0
 ml_mesh_mgr.OMCLastDistance = 0
 ml_mesh_mgr.OMCStartingDistance = 0
+ml_mesh_mgr.OMCMeshDistance = 0
 function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount ) 
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
 		ml_global_information.lastrun = Now()
@@ -51,6 +52,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				if ( ValidTable(sPos) ) then
 					--local dist = Distance3D(sPos.x,sPos.y,sPos.z,pPos.x,pPos.y,pPos.z)
 					local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+					ml_mesh_mgr.OMCMeshDistance = meshdist
 					if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
 						(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
 					then
@@ -66,6 +68,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					ml_error("Invalid/missing start position for OMC_JUMP")
 				end
 			else
+				local meshdist = ml_mesh_mgr.OMCMeshDistance
 				if ( ml_mesh_mgr.OMCType == "OMC_JUMP" ) then
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
 						-- We are at our start OMC point and are facing the correct direction, now start moving forward and jump
@@ -85,7 +88,6 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						end
 		
 						if (ml_mesh_mgr.OMCJumpStartedTimer == 0 ) then
-							--d("Initiated jump.")
 							Player:Jump()
 							ml_mesh_mgr.OMCJumpStartedTimer = Now()
 							return
@@ -95,7 +97,6 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						local dist2d = Distance2D(ePos.x,ePos.y,pPos.x,pPos.y)
 						ml_mesh_mgr.OMCLastDistance = dist
 						
-						--d("DISTCHECK: "..tostring(dist).."  2d: "..tostring(dist2d))
 						if (not Player:IsJumping() and ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 150) then
 							--d("No longer jumping, must have succeeded.")
 							Player:Stop()
@@ -105,58 +106,22 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							Player:Stop()
 							ml_mesh_mgr.ResetOMC()
 						end
-						
-						
-						--[[
-						if ( ml_mesh_mgr.OMCJumpStartedTimer > Now() and not Player:IsJumping()) then
-							if ( dist < 0.35 or (dist < 0.5 and dist2d < 0.10)) then
-								--d("OMC Endposition reached exactly..")
-								Player:Stop()
-								ml_mesh_mgr.ResetOMC() -- turn off omc handler
-								ml_mesh_mgr.OMCThrottle = Now() + 150
-								
-							elseif(ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 350) then
-								d("We landed already")
-								Player:Stop()
-								ml_mesh_mgr.ResetOMC()
-								ml_mesh_mgr.OMCThrottle = Now() + 150	
-							elseif( dist > 5.00 and  ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1500)then
-								d("We failed to land on the enposition..use teleport maybe?")
-								Player:Stop()
-								ml_mesh_mgr.ResetOMC()
-												
-							elseif(ePos.y < sPos.y and pPos.y < ePos.y and math.abs(ePos.y - pPos.y) > 1 and ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 500 ) then
-								d("We felt below the OMCEndpoint height..means we missed the landingpoint..")
-								Player:Stop()
-								ml_mesh_mgr.ResetOMC()
-								ml_global_information.Lasttick = ml_global_information.Lasttick + 500
-							
-							else
-								d("Something else happened in the JUMP OMC.")
-								return
-							end
-						elseif (Player:IsJumping() and ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 3000 and (dist > ml_mesh_mgr.OMCLastDistance)) then
-							d("We've been falling for a really long time and we're moving away from the goal, maybe resort to teleport here.")
-							Player:Stop()
-							ml_mesh_mgr.ResetOMC()
-							ml_mesh_mgr.OMCThrottle = Now() + 500
-						end
-						--]]
 					end
-					
 				
 				elseif ( ml_mesh_mgr.OMCType == "OMC_WALK" ) then
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
-						if ( not ml_global_information.Player_IsMoving ) then Player:Move(FFXIV.MOVEMENT.FORWARD) end
-						Player:SetFacing(ePos.x,ePos.y,ePos.z)
-						local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
-						if ( dist < 0.50 ) then
-							d("OMC Endposition reached..")
-							ml_mesh_mgr.ResetOMC()
-							Player:Stop()
-							ml_mesh_mgr.OMCThrottle = Now() + 2000
-						else
+						if ( not ml_global_information.Player_IsMoving ) then 
+							Player:Move(FFXIV.MOVEMENT.FORWARD) 
+							local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
+							Player:SetFacing(facingPos)
+							ml_mesh_mgr.OMCThrottle = Now() + 150
 							return
+						end
+						
+						local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
+						if ((not Player.ismounted and dist < 1) or (Player.ismounted and dist < 1.5)) then
+							Player:Stop()
+							ml_mesh_mgr.ResetOMC()
 						end
 					end
 				
