@@ -295,6 +295,11 @@ SkillMgr.Variables = {
 	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", section = "crafting"},
 	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", section = "crafting"},
 	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", section = "crafting"},
+	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
+	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
+	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
+	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
+	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},
 	
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
@@ -484,7 +489,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTMPB,"SKM_PTMPB",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPL,"SKM_PTTPL",strings[gCurrentLanguage].party)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPB,"SKM_PTTPB",strings[gCurrentLanguage].party)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PTBuff",strings[gCurrentLanguage].party)
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
 	
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
@@ -520,13 +525,13 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PNBuff",strings[gCurrentLanguage].playerBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PNBuffDura",strings[gCurrentLanguage].playerBuffs)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTBuffOwner,"SKM_TBuffOwner",strings[gCurrentLanguage].targetBuffs, "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
 	
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PetBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_PetBuffDura","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PetNBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PetNBuffDura","Pet Buffs")
 	
     GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)
@@ -557,11 +562,17 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualityminper,"SKM_QUALMINPer",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymaxper,"SKM_QUALMAXPer",strings[gCurrentLanguage].skillDetails)   
-    
-    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION",strings[gCurrentLanguage].skillDetails,strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
-	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHas,"SKM_CPBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].playerHasNot,"SKM_CPNBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",strings[gCurrentLanguage].skillDetails);
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",strings[gCurrentLanguage].skillDetails);
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",strings[gCurrentLanguage].skillDetails);
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].iqstack,"SKM_IQSTACK",strings[gCurrentLanguage].skillDetails);
+	
+    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION",strings[gCurrentLanguage].skillDetails,strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
+	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmMissBuffs"),"SKM_CPNBuff",strings[gCurrentLanguage].skillDetails);
+	
 	
 	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].skillDetails)
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
@@ -580,12 +591,12 @@ function SkillMgr.ModuleInit()
     GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHas,"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
-	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].playerHasNot,"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skmUnspoiled,"SKM_UNSP",strings[gCurrentLanguage].skillDetails)
 	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
 
     GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skillDetails)
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
@@ -832,6 +843,7 @@ function SkillMgr.ReadFile(strFile)
 		SkillMgr.SkillProfile = profile.skills
 	end
 	SkillMgr.ResetSkillTracking()
+	SkillMgr.CheckProfileValidity()
 end
 
 --All writes to the profiles should come through this function.
@@ -858,6 +870,49 @@ function SkillMgr.SetGUIVar(strName, value)
 		elseif (skillVar.cast == "number") then
 			SkillMgr.SkillProfile[SKM_Prio][skillVar.profile] = tonumber(value)
 		end
+	end
+end
+
+function SkillMgr.CheckProfileValidity()
+	local profile = SkillMgr.SkillProfile
+	
+	local job = Player.job
+	local requiredUpdate = false
+	if (ValidTable(profile)) then
+		for prio,skill in pairs(profile) do
+			if (job >= 8 and job <= 15) then
+				for k,v in pairs(SkillMgr.Variables) do
+					if (v.section == "crafting") then
+						if (profile[prio][v.profile] == nil) then
+							SkillMgr.SkillProfile[prio][v.profile] = v.default
+							requiredUpdate = true
+						end
+					end
+				end
+			elseif (job >=16 and job <=17) then
+				for k,v in pairs(SkillMgr.Variables) do
+					if (v.section == "gathering") then
+						if (profile[prio][v.profile] == nil) then
+							SkillMgr.SkillProfile[prio][v.profile] = v.default
+							requiredUpdate = true
+						end
+					end
+				end
+			else
+				for k,v in pairs(SkillMgr.Variables) do
+					if (v.section == "fighting") then
+						if (profile[prio][v.profile] == nil) then
+							SkillMgr.SkillProfile[prio][v.profile] = v.default
+							requiredUpdate = true
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	if (requiredUpdate) then
+		SkillMgr.SaveProfile()
 	end
 end
 
@@ -1796,39 +1851,48 @@ SkillMgr.MatchingCraftSkills = {
 }
 
 SkillMgr.lastquality = 0
+SkillMgr.currentSHStack = 0
 SkillMgr.currentIQStack = 0
+SkillMgr.currentToTUses = 0
+SkillMgr.currentHTSuccesses = 0
+SkillMgr.manipulationUses = 0
+SkillMgr.checkHT = false
+SkillMgr.newCraft = true
 function SkillMgr.Craft()
     local synth = Crafting:SynthInfo()
-    if ( TableSize(synth) > 0 and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
-
-		local pbuffs = Player.buffs
+    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile) and not ActionList:IsCasting()) then
 		
-		-- update inner quite stack
-		local iqfound=false
-		if ( TableSize(pbuffs) > 0) then
-			for i, buff in pairs(pbuffs) do
-                if (buff.id == 251) then
-						-- first time we have the buff
-					if ( SkillMgr.lastquality == 0 ) then
-						SkillMgr.lastquality = synth.quality
-					elseif ( synth.quality > SkillMgr.lastquality ) then
-						-- second time in here with increased quality -> we gained a stack IQ
-						SkillMgr.lastquality = synth.quality
-						SkillMgr.currentIQStack = SkillMgr.currentIQStack + 1
-					end
-					iqfound = true
-					break
-                end
-            end
-		end
-		-- reset
-		if not iqfound then 
+		if (SkillMgr.newCraft) then
 			SkillMgr.currentIQStack = 0 
-			SkillMgr.lastquality = 0
+			SkillMgr.currentSHStack = 0
+			SkillMgr.currentHTSuccesses = 0
+			SkillMgr.currentToTUses = 0
+			SkillMgr.manipulationUses = 0
+			SkillMgr.lastquality = synth.quality
+			SkillMgr.newCraft = false
 		end
 		
-        for prio,skill in pairs(SkillMgr.SkillProfile) do
+		-- Update HT Successes
+		if (SkillMgr.checkHT) then
+			if (synth.quality > SkillMgr.lastquality) then
+				SkillMgr.currentHTSuccesses = SkillMgr.currentHTSuccesses + 1
+			end
+			SkillMgr.checkHT = false
+		end
 		
+		-- Update IQ Stacks
+		if (HasBuffs(Player,"251")) then
+			iqfound = true
+			if (SkillMgr.currentIQStack == 0) then
+				SkillMgr.currentIQStack = 1
+			elseif ( synth.quality > SkillMgr.lastquality) then
+				SkillMgr.currentIQStack = SkillMgr.currentIQStack + 1
+			end
+		else
+			SkillMgr.currentIQStack = 0 
+		end
+		
+        for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
             if ( skill.used == "1" ) then                
                 local realskilldata = ActionList:Get(skill.id)
 				local skid = skill.id
@@ -1849,12 +1913,10 @@ function SkillMgr.Craft()
 						end
 					end
 				end
-				
+
                 if ( realskilldata and realskilldata.isready ) then
                     local castable = true
-                    --d("Checking on skill:"..tostring(skill.name).."  "..tostring(synth.durability).." > "..tostring(skill.durabmax) .. ": "..tostring(skill.durabmax > 0 and synth.durability > skill.durabmax))
-					--d("Checking on skill:"..tostring(skill.name).."  "..tostring(skill.condition).." > "..tostring(synth.description) .. ": "..tostring(skill.condition ~= "NotUsed" and synth.description ~= skill.condition))
-                    if ( (skill.stepmin > 0 and synth.step >= skill.stepmin) or
+                    if ((skill.stepmin > 0 and synth.step >= skill.stepmin) or
                         (skill.stepmax > 0 and synth.step < skill.stepmax) or
                         (skill.cpmin > 0 and Player.cp.current >= skill.cpmin) or
                         (skill.cpmax > 0 and Player.cp.current < skill.cpmax) or
@@ -1870,29 +1932,67 @@ function SkillMgr.Craft()
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                         then castable = false 
                     end
+					
+					if ((skill.totmin > 0 and SkillMgr.currentToTUses < skill.totmin) or
+						(skill.totmax > 0 and SkillMgr.currentToTUses >= skill.totmax))
+					then
+						castable = false
+					end
+					
+					if (skill.htsucceed > 0 and SkillMgr.currentHTSuccesses > skill.htsucceed) then
+						castable = false
+					end
+					
+					if (skill.shstackmin > 0 and SkillMgr.currentSHStack < skill.shstackmin) then
+						castable = false
+					end
+					
+					if (skill.manipmax > 0 and SkillMgr.manipulationUses >= skill.manipmax) then
+						castable = false
+					end
                         
-                  -- buff checks
-
+					-- buff checks
                     if ( skill.cpbuff ~= "" ) then
-                      local bfound = HasBuffs(Player,skill.cpbuff)
-                      if not bfound then castable = false end
+						if not HasBuffs(Player, skill.cpbuff) then
+							castable = false 
+						end
                     end						
                     
-                    -- dont cast this spell when we have any of the BuffIDs in the skill.cpnbuff list
                     if (skill.cpnbuff ~= "" ) then
-                        local tbfound = HasBuffs(Player,skill.cpnbuff)
-                        if tbfound then castable = false end								
-                      end								
-	 
-				
-                        if ( castable ) then
-                          d("CASTING(Crafting) : "..tostring(skill.name))								
-                          if ( ActionList:Cast(skid,0) ) then									
-                            skill.lastcast = ml_global_information.Now
-                            SkillMgr.prevSkillID = tostring(skill.id)
-                          return true
-                        end	
-                    end	
+						if not MissingBuffs(Player, skill.cpnbuff) then
+							castable = false 
+						end								
+                    end								
+					
+					local currentQuality = synth.quality
+					if ( castable ) then
+						d("CASTING(Crafting) : "..tostring(skill.name))	
+						if ( ActionList:Cast(skid,0) ) then	
+							SkillMgr.lastquality = currentQuality
+							
+							if (skid == 100098) then
+								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
+							elseif (skid == 100108) then
+								SkillMgr.checkHT = true
+							elseif (skid == 278) then
+								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
+							end
+							
+							if (MultiComp(skid,"281,244,245,246,247,249,248,250,251")) then
+								SkillMgr.currentSHStack = 5
+							else
+								if (SkillMgr.currentSHStack > 0) then
+									SkillMgr.currentSHStack = SkillMgr.currentSHStack - 1
+								end
+							end
+							
+							SkillMgr.SkillProfile[prio].lastcast = Now()
+							SkillMgr.prevSkillID = tostring(skill.id)
+							return true
+						end	
+					end
+				elseif (not realskilldata) then
+					d("Couldn't find skilldata for:"..skill.name)
                 end
             end
         end
@@ -1902,9 +2002,9 @@ end
 
 function SkillMgr.Gather( )
     local node = Player:GetTarget()
-    if ( ValidTable(node) and node.cangather and TableSize(SkillMgr.SkillProfile) > 0 and not ActionList:IsCasting()) then
+    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ActionList:IsCasting()) then
         
-		for prio,skill in pairs(SkillMgr.SkillProfile) do
+		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
                 local realskilldata = ActionList:Get(skill.id, 1)
                 if ( realskilldata and realskilldata.isready ) then 
@@ -1941,7 +2041,7 @@ function SkillMgr.Gather( )
 					if ( castable ) then
 						if ( ActionList:Cast(skill.id,Player.id)) then	
 							--d("CASTING (gathering) : "..tostring(skill.name))
-							skill.lastcast = ml_global_information.Now
+							SkillMgr.SkillProfile[prio].lastcast = Now()
 							SkillMgr.prevSkillID = tostring(skill.id)
 							--After a skill is used here, mark it unusable for the rest of the duration of the node.
 							SkillMgr.prevSkillList[skill.id] = true

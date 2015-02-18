@@ -412,7 +412,7 @@ function c_avoid:evaluate()
 				local epos = shallowcopy(e.pos)
 				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 				
-				if (casttime >= 1.3 and (secspassed >= casttime * .25) and
+				if (casttime >= 1.3 and (secspassed >= casttime * .10) and
 					not (distance > 22 and channeltarget == e.id) and
 					not (plevel > (e.level + 8)))
 				then
@@ -441,7 +441,7 @@ function c_avoid:evaluate()
 						local epos = shallowcopy(e.pos)
 						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 	
-						if (casttime >= 1.3 and (secspassed >= casttime * .25) and
+						if (casttime >= 1.3 and (secspassed >= casttime * .10) and
 							not (distance > 22 and channeltarget == e.id) and
 							not (plevel > (e.level + 8)))
 						then
@@ -831,10 +831,9 @@ function e_movetogate:execute()
 		end
 		
 		newTask.range = 0.5
-		
+		newTask.remainMounted = true
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
-			--newTask:SetDelay(2000)
 		end
 		--newTask.useFollowMovement = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -1935,7 +1934,7 @@ function c_returntomarker:evaluate()
     if (ml_task_hub:CurrentTask().currentMarker ~= false and ml_task_hub:CurrentTask().currentMarker ~= nil) then
 	
 		local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
-		if (markerType == GetString("unspoiledMarker")) then
+		if (markerType == GetString("unspoiledMarker") and not ffxiv_task_gather.IsIdleLocation()) then
 			return false
 		end
 	
@@ -2019,7 +2018,7 @@ function c_stealth:evaluate()
 		return false
 	end
 	
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().name == "UNSPOILED_MARKER") then
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().destination == "UNSPOILED_MARKER") then
 		local dest = ml_task_hub:CurrentTask().pos
 		local ppos = shallowcopy(Player.pos)
 		if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then

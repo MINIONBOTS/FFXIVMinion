@@ -616,6 +616,12 @@ strings =
 		validSlots						= "Valid Slots",
 		--====== Added 2/15/15 - Ace
 		quickStartMode					= "QuickStart",
+		--====== Added 2/18/15 - Ace
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
     },                                  
     ["cn"] =                            
     {                               
@@ -1249,6 +1255,11 @@ strings =
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
 		quickStartMode					= "QuickStart",
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
 	},
     ["jp"] =
     {
@@ -1834,6 +1845,11 @@ strings =
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
 		quickStartMode					= "QuickStart",
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
 	},   
     ["de"] =
     {
@@ -2421,6 +2437,11 @@ strings =
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
 		quickStartMode					= "QuickStart",
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
 	},     
     ["fr"] =
     {
@@ -3007,6 +3028,11 @@ strings =
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
 		quickStartMode					= "QuickStart",
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
 	},       
     ["ru"] =
     {
@@ -3593,6 +3619,11 @@ strings =
 		whitelistTarget					= "Whitelist Target",
 		validSlots						= "Valid Slots",
 		quickStartMode					= "QuickStart",
+		totMin							= "ToT >=",
+		totMax							= "ToT <",
+		htSucceedMax					= "Hasty Touch Success <",
+		shStackMin						= "Steady Hand Stack >=",
+		manipMax						= "Manipulation Uses <",
 	},    	
 
 }

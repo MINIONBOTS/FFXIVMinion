@@ -57,7 +57,7 @@ end
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
 function c_findgatherable:evaluate()
-	if (gGatherUnspoiled == "1") then
+	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
 	end
 	
@@ -286,7 +286,7 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-	if (gGatherUnspoiled == "1") then
+	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
 	end
 	
@@ -368,10 +368,16 @@ end
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	
 	--Check to make sure we have gathered any unspoiled nodes first.
-	if (gGatherUnspoiled == "1") then
+	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
+	end
+	
+	if (gGatherUnspoiled == "1") then
+		if (Player.job ~= ffxiv_task_gather.location.class) then
+			ffxiv_task_gather.SwitchClass(ffxiv_task_gather.location.class)
+			return false
+		end
 	end
 	
     local list = Player:GetGatherableSlotList()
@@ -634,9 +640,15 @@ function e_nextgatherlocation:execute()
 		if (Player.ismounted) then
 			return
 		end
-
+		
 		local mapID = tonumber(location.mapid)
+		local nextMesh = Settings.minionlib.DefaultMaps[mapID]		
+		local newMarkerPos = GetOffMapMarkerPos(nextMesh, location.marker)
+		
 		local newTask = ffxiv_task_movetomap.Create()
+		if (newMarkerPos ~= nil) then 
+			newTask.pos = newMarkerPos
+		end
 		newTask.destMapID = mapID
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 	else
@@ -1263,6 +1275,16 @@ function ffxiv_task_gather.GetUnspoiledMarkers()
 	end
 	
 	return namestring
+end
+
+function ffxiv_task_gather.IsIdleLocation()
+	if (ValidTable(ffxiv_task_gather.location)) then
+		if (ffxiv_task_gather.location.isIdle) then
+			return true
+		end
+	end
+	
+	return false
 end
 
 function ffxiv_task_gather.GetUnspoiledLocations()
