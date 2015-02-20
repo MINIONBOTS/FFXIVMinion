@@ -150,7 +150,9 @@ function e_findgatherable:execute()
 	
 	--idiotcheck for no usable markers found on this mesh
 	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-        ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")	
+        if not (gGatherUnspoiled == "1" and ffxiv_task_gather.IsIdleLocation()) then
+			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		end
 	end
 	return false
 end
