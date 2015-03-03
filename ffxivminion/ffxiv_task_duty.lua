@@ -63,7 +63,7 @@ c_followleaderduty.rrange = 8
 c_followleaderduty.leader = nil
 c_followleaderduty.leaderpos = nil
 function c_followleaderduty:evaluate()
-    if (IsDutyLeader() or not OnDutyMap() or ml_task_hub:CurrentTask().suppressFollow) then
+    if (IsDutyLeader() or not InInstance() or IsLoading() or ml_task_hub:CurrentTask().suppressFollow) then
         return false
     end
 	
@@ -106,6 +106,7 @@ function e_followleaderduty:execute()
             local myPos = Player.pos
 			if (gTeleport == "1") then
 				Player:Stop()
+				d("Teleporting in order to follow leader. Current MapID:"..tostring(Player.localmapid))
 				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
 				Player:SetFacingSynced(Player.pos.h)
 			else
@@ -119,8 +120,7 @@ c_assistleaderduty= inheritsFrom( ml_cause )
 e_assistleaderduty = inheritsFrom( ml_effect )
 c_assistleaderduty.targetid = nil
 function c_assistleaderduty:evaluate()
-    --if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or not OnDutyMap() or ActionList:IsCasting()) then
-	if (IsDutyLeader() or ml_task_hub:CurrentTask().suppressAssist or ActionList:IsCasting()) then
+	if (IsDutyLeader() or not InInstance() or IsLoading() or ml_task_hub:CurrentTask().suppressAssist or ActionList:IsCasting()) then
         return false
     end
     
@@ -169,10 +169,8 @@ end
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
 function c_joinduty:evaluate()
-	if (IsPartyLeader() and IsFullParty() and not OnDutyMap()) then			
-		if (ml_task_hub:ThisTask().state == "DUTY_NEW" and
-			Now() > ml_task_hub:ThisTask().joinTimer )
-		then
+	if (IsPartyLeader() and IsFullParty() and NotQueued()) then			
+		if (Now() > ml_task_hub:ThisTask().joinTimer ) then
 			return true
 		end
 	end
@@ -180,6 +178,9 @@ function c_joinduty:evaluate()
 	return false
 end
 function e_joinduty:execute()
+	if (ml_task_hub:ThisTask().state == "DUTY_EXIT" or ml_task_hub:ThisTask().state == "") then
+		ml_task_hub:ThisTask().state = "DUTY_NEW"
+	end
 	if (not ControlVisible("ContentsFinder")) then
 		SendTextCommand("/dutyfinder")
 		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
@@ -195,107 +196,18 @@ function e_joinduty:execute()
 			ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		end
 	elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
-        ml_task_hub:ThisTask().joinTimer = Now() + (tonumber(gResetDutyTimer) * 1000)
+        ml_task_hub:ThisTask().joinTimer = Now() + (5000 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		PressDutyJoin()
 		ffxiv_task_duty.dutyCleared = false
 		ffxiv_task_duty.dutySet = false
 	end
 end
 
---Pushed all reset state stuff for error-catching here.
-c_resetstate = inheritsFrom(ml_cause)
-e_resetstate = inheritsFrom(ml_effect)
-c_resetstate.states = {
-	[1] = { timer = 15000, countdown = 0},
-	[2] = { timer = 15000, countdown = 0},
-}
-e_resetstate.task = nil
-function c_resetstate:evaluate()
-		if (c_resetstate.states[1].test == nil or c_resetstate.states[1].reaction == nil) then
-			c_resetstate.states[1].test = function()
-				if (not OnDutyMap() and (ml_task_hub:ThisTask().state == "DUTY_NEXTENCOUNTER" or ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")) then
-					return true
-				else
-					return false
-				end
-			end
-			c_resetstate.states[1].reaction = function() ml_task_hub:ThisTask().state = "" end
-		end
-		
-		if (c_resetstate.states[2].test == nil or c_resetstate.states[2].reaction == nil) then
-			c_resetstate.states[2].test = function()
-				if (IsPartyLeader() and IsFullParty() and not OnDutyMap()) then	
-					if (ml_task_hub:ThisTask().state == "DUTY_ENTER" and Now() > ml_task_hub:ThisTask().joinTimer) then
-						return true
-					end
-				end
-				return false
-			end
-			c_resetstate.states[2].reaction = function() ml_task_hub:ThisTask().state = "" end
-		end
-	
-	--Do a first pass, check each reset to see if it's test function evaluates true, and set it's timer accordingly.
-	if (ValidTable(c_resetstate.states)) then
-		for id, condition in pairs(c_resetstate.states) do
-			if (condition.test() and condition.countdown == 0) then
-				c_resetstate.states[id].countdown = Now() + condition.timer
-			end
-		end
-	end
-	
-	--Secondary pass, check to see if the test condition has validated, bring us back in compliance, clear the condition.
-	if (ValidTable(c_resetstate.states)) then
-		for id, condition in pairs(c_resetstate.states) do
-			if (not condition.test() and condition.countdown ~= 0 and Now() < condition.countdown) then
-				c_resetstate.states[id].countdown = 0
-			end
-		end
-	end
-	
-	--Final pass, if the allotted time has passed, queue up the reset to perform it's reaction() function.
-	if (ValidTable(c_resetstate.states)) then
-		for id, condition in pairs(c_resetstate.states) do
-			if (condition.test() and condition.countdown ~= 0 and Now() > condition.timer) then
-				e_resetstate.id = id
-				e_resetstate.task = condition.reaction()
-				return true
-			end
-		end
-	end
-	
-	return false
-end
-function e_resetstate:execute()
-	d("Resetting conditions. ResetCondition = "..tostring(e_resetstate.id))
-	e_resetstate.task()
-end
-
-c_readyduty = inheritsFrom( ml_cause )
-e_readyduty = inheritsFrom( ml_effect )
-function c_readyduty:evaluate()
-	if (not OnDutyMap() and IsDutyLeader() and Player.revivestate ~= 2 and Player.revivestate ~= 3 and 
-		(ml_task_hub:ThisTask().state == "DUTY_EXIT" or ml_task_hub:ThisTask().state == "")) then
-		if (IsFullParty()) then
-			return true
-		end
-	end
-	
-	return false
-end
-function e_readyduty:execute()
-	if (ml_task_hub:ThisTask().state == "DUTY_EXIT") then
-		ml_task_hub:ThisTask().joinAttempts = 0
-	end
-	
-	ml_task_hub:ThisTask().state = "DUTY_NEW" 
-	ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
-end
-
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
-	if ( OnDutyMap() and not PartyInCombat() and not Inventory:HasLoot() and Now() > ml_task_hub:ThisTask().leaveTimer) then
-		if	(DutyLeaderLeft() or
+	if (InInstance() and not PartyInCombat() and not Inventory:HasLoot() and Now() > ml_task_hub:ThisTask().leaveTimer) then
+		if (DutyLeaderLeft() or
 			Quest:IsQuestRewardDialogOpen() or
 			(IsDutyLeader() and (ml_task_hub:ThisTask().state == "DUTY_EXIT"))) then
 			return true
@@ -318,6 +230,7 @@ function e_leaveduty:execute()
 			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
 			PressYesNo(true)
+			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		end
 	end
 end
@@ -330,7 +243,7 @@ function c_changeleader:evaluate()
 		return false
 	end
 	
-	if (OnDutyMap()) then
+	if (InInstance()) then
 		if (ffxiv_task_duty.leader == "") then
 			e_changeleader.name = Player.name
 			return true
@@ -350,9 +263,9 @@ end
 function e_changeleader:execute()
 	ffxiv_task_duty.leader = e_changeleader.name
 	if (ffxiv_task_duty.leader == Player.name) then
-		if (not OnDutyMap()) then
+		if (not InInstance()) then
 			ml_task_hub:ThisTask().state = ""
-		elseif (OnDutyMap()) then
+		elseif (InInstance()) then
 			ml_task_hub:ThisTask().state = "DUTY_ENTER"
 		end
 	
@@ -396,11 +309,11 @@ end
 c_dutyidle = inheritsFrom( ml_cause )
 e_dutyidle = inheritsFrom( ml_effect )
 function c_dutyidle:evaluate()
-	return (not OnDutyMap()) and (
+	return ((not InInstance() and (
 	ml_global_information.idlePulseCount > 4000 or
 	ml_task_hub:ThisTask().state == "DUTY_NEXTENCOUNTER" or 
-	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER" or
-	(IsPartyLeader() and ml_task_hub:ThisTask().state == "DUTY_ENTER" and Now() > ml_task_hub:ThisTask().joinTimer))
+	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")) or
+	(IsPartyLeader() and ml_task_hub:ThisTask().state == "DUTY_ENTER" and NotQueued()))
 end
 function e_dutyidle:execute()
 	ml_debug("Stuck idle in task "..ml_task_hub:ThisTask().name.." with state "..ml_task_hub:ThisTask().state)
@@ -414,7 +327,7 @@ function ffxiv_task_duty:Process()
 		return false
 	end
 	
-	if (IsDutyLeader() and OnDutyMap() and not Inventory:HasLoot()) then
+	if (IsDutyLeader() and InInstance() and not Inventory:HasLoot()) then
 		if (self.state == "DUTY_ENTER") then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			if (ValidTable(encounters)) then
@@ -462,6 +375,7 @@ function ffxiv_task_duty:Process()
 				local gotoPos = pos
 				if ValidTable(gotoPos) then
 					if (gTeleport == "1") then
+						d("Teleporting to reach next encounter. Current MapID:"..tostring(Player.localmapid))
 						GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 						Player:SetFacingSynced(tonumber(gotoPos.h))
 					else
@@ -523,9 +437,6 @@ function ffxiv_task_duty:Init()
 	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)
 	
-	local ke_readyDuty = ml_element:create( "ReadyDuty", c_readyduty, e_readyduty, 16 )
-    self:add(ke_readyDuty, self.process_elements) 
-	
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements) 
 
@@ -534,7 +445,6 @@ function ffxiv_task_duty:Init()
 	
 	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 10 )
     --self:add( ke_autoEquip, self.process_elements)
-	
 	
     self:AddTaskCheckCEs()
 end
@@ -550,9 +460,6 @@ function ffxiv_task_duty.UIInit()
 	
 	if (Settings.FFXIVMINION.gLastDutyProfile == nil) then
         Settings.FFXIVMINION.gLastDutyProfile = ""
-    end
-	if (Settings.FFXIVMINION.gResetDutyTimer == nil) then
-        Settings.FFXIVMINION.gResetDutyTimer = 60
     end
 	if (Settings.FFXIVMINION.gLootOption == nil or Settings.FFXIVMINION.gLootOption == "All") then
         Settings.FFXIVMINION.gLootOption = "Any"
@@ -580,15 +487,14 @@ function ffxiv_task_duty.UIInit()
 	local group = GetString("settings")
     GUI_NewComboBox(winName,"Loot Option",			"gLootOption",				group,"Any,Need,Greed,Pass")
 	GUI_NewCheckbox(winName,"Use Telecast",			"gUseTelecast",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].resetDutyTimer,"gResetDutyTimer",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_UnFoldGroup(winName,GetString("settings"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gLootOption = Settings.FFXIVMINION.gLootOption
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
-	gResetDutyTimer = Settings.FFXIVMINION.gResetDutyTimer
 	gPerformanceLevel = Settings.FFXIVMINION.gPerformanceLevel
 end
 
@@ -620,8 +526,7 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 		if (	k == "gProfile" and gBotMode == GetString("dutyMode")) then
 			ffxiv_task_duty.LoadProfile(v)
 			SafeSetVar("gLastDutyProfile",v)
-        elseif (k == "gResetDutyTimer" or
-				k == "gLootOption" or
+		elseif (k == "gLootOption" or
 				k == "gUseTelecast" or
 				k == "gPerformanceLevel")
         then
@@ -704,6 +609,26 @@ function IsFullParty()
 	end
 	
 	return false
+end
+
+function NotQueued()
+	return Duty:GetQueueStatus() == 0
+end
+
+function InQueue()
+	return Duty:GetQueueStatus() == 1
+end
+
+function IsConfirming()
+	return Duty:GetQueueStatus() == 2
+end
+
+function IsReadying()
+	return Duty:GetQueueStatus() == 3
+end
+
+function InInstance()
+	return Duty:GetQueueStatus() == 4
 end
 
 function OnDutyMap()
@@ -814,7 +739,8 @@ function e_deadduty:execute()
 			local opos = e_deadduty.originalPos
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,opos.x,opos.y,opos.z)
 			--d("dead, stay close")
-			if (dist > 3) then
+			if (dist > 3 and InInstance()) then
+				d("Teleporting back to original location due to death. Current MapID:"..tostring(Player.localmapid))
 				GameHacks:TeleportToXYZ(opos.x, opos.y, opos.z)
 				Player:SetFacingSynced(Player.pos.h)
 			else

@@ -13,18 +13,20 @@ function c_dutyavoid:evaluate()
 		return false
 	end
 	
-	for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
-		local el = EntityList("alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+	for uniqueid in StringSplit(ml_task_hub:ThisTask().encounterData.bossIDs,";") do
+		local el = EntityList("alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:ThisTask().encounterData.radius))
 		if (ml_task_hub:ThisTask().encounterData["avoidAll"]) then
 			el = EntityList("alive,maxdistance=300")
 		end
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
-				for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
-					if (tonumber(spell) == target.castinginfo.channelingid or tonumber(spell) == target.castinginfo.castingid) then
-						c_dutyavoid.avoidTime = target.castinginfo.casttime + 1000
-						c_dutyavoid.facing = target.pos.h
-						return true
+				if (target.castinginfo) then
+					for spell in StringSplit(ml_task_hub:ThisTask().encounterData["avoid"],";") do
+						if (tonumber(spell) == target.castinginfo.channelingid or tonumber(spell) == target.castinginfo.castingid) then
+							c_dutyavoid.avoidTime = target.castinginfo.casttime + 1000
+							c_dutyavoid.facing = target.pos.h
+							return true
+						end
 					end
 				end
 			end
