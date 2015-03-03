@@ -236,6 +236,23 @@ function e_movetofate:execute()
         else
             newTask.range = 4
         end
+		
+		newTask.Init = function()
+			local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
+			newTask:add( ke_useNavInteraction, newTask.process_elements)
+
+			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+			newTask:add( ke_mount, newTask.process_elements)
+
+			local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+			newTask:add( ke_sprint, newTask.process_elements)
+	
+			local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+			newTask:add( ke_walkToPos, newTask.process_elements)
+			
+			newTask:AddTaskCheckCEs()
+		end
+		
         ml_task_hub:ThisTask():AddSubTask(newTask)
     end
 end
@@ -481,7 +498,7 @@ c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-    if (not fate) then
+    if (not fate or fate.completion > 99) then
         return true
     end
     

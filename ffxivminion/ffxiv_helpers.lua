@@ -1643,11 +1643,40 @@ function GetFateByID(fateID)
     return fate
 end
 
+function GetApprovedFates()
+	local approvedFates = {}
+	
+	local level = Player.level
+	local fatelist = MapObject:GetFateList()
+	if (ValidTable(fatelist)) then
+		for _,fate in pairs(fatelist) do
+			if ((tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
+				(tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel)))) 
+			then
+				if (fate.type == 0 and gDoBattleFates == "1" and fate.completion >= tonumber(gFateBattleWaitPercent)) then
+					table.insert(approvedFates,fate)
+				elseif (fate.type == 1 and gDoBossFates == "1" and fate.completion >= tonumber(gFateBossWaitPercent)) then
+					table.insert(approvedFates,fate)
+				elseif (fate.type == 2 and gDoGatherFates == "1" and fate.completion >= tonumber(gFateGatherWaitPercent)) then
+					table.insert(approvedFates,fate)
+				elseif (fate.type == 3 and gDoDefenseFates == "1" and fate.completion >= tonumber(gFateDefenseWaitPercent)) then
+					table.insert(approvedFates,fate)
+				elseif (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent)) then
+					table.insert(approvedFates,fate)
+				end
+			end
+		end
+	end
+	
+	return approvedFates
+end
+
 function GetClosestFate(pos)
-    local fateList = MapObject:GetFateList()
-    if (TableSize(fateList) > 0) then
+
+	local fateList = GetApprovedFates()
+	if (ValidTable(fateList)) then
         local nearestFate = nil
-        local nearestDistance = 99999999
+        local nearestDistance = 9999
         local level = Player.level
 		local myPos = shallowcopy(Player.pos)
 		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
@@ -1668,7 +1697,7 @@ function GetClosestFate(pos)
 		
 		if (ValidTable(whitelistTable)) then
 			for k, fate in pairs(fateList) do
-				if (whitelistTable[fate.id] and	fate.status == 2 and fate.completion >= tonumber(gFateWaitPercent)) then	
+				if (whitelistTable[fate.id] and	fate.status == 2) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
@@ -1685,21 +1714,16 @@ function GetClosestFate(pos)
 		else
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
-					(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50))
-					and fate.completion >= tonumber(gFateWaitPercent)) 
+					(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50)))
 				then	
-					if ( (tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
-						 (tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel))) ) then
-						--d("DIST TO FATE :".."ID"..tostring(fate.id).." "..tostring(NavigationManager:GetPointToMeshDistance({x=fate.x, y=fate.y, z=fate.z})) .. " ONMESH: "..tostring(NavigationManager:IsOnMesh(fate.x, fate.y, fate.z)))
-						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-						if (dist <= 5) then
-							--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-							local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
-							if (distance ~= 0) then
-								if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-									nearestFate = shallowcopy(fate)
-									nearestDistance = distance
-								end
+					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+					if (dist <= 5) then
+						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
+						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
+						if (distance ~= 0) then
+							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+								nearestFate = shallowcopy(fate)
+								nearestDistance = distance
 							end
 						end
 					end
@@ -2133,7 +2157,7 @@ function ShouldEat()
 	end
 	return false
 end
-	
+
 function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -2143,11 +2167,11 @@ function Eat()
 	end
 			
 	if (foodID) then
-	local food = Inventory:Get(foodID)
-	if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
-		food:Use()
+		local food = Inventory:Get(foodID)
+		if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+			food:Use()
+		end
 	end
-end
 end
 
 function NodeHasItem(itemName)
@@ -2985,7 +3009,7 @@ function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
 	local currEquippedItems = Inventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
-		if(item.id == itemid) then
+		if (item.id == itemid) then
 			return true
 		end
 	end
