@@ -1,6 +1,4 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
-ffxiv_task_fish.name = "LT_FISH"
-
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
     
@@ -11,7 +9,8 @@ function ffxiv_task_fish.Create()
     newinst.auxiliary = false
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
-    
+    newinst.name = "LT_FISH"
+	
     --ffxiv_task_fish members
     newinst.castTimer = 0
     newinst.markerTime = 0
@@ -88,9 +87,9 @@ function e_cast:execute()
 	local marker = ml_task_hub:CurrentTask().currentMarker
 	local useMooch = false
 	if (ValidTable(marker)) then
-		useMooch = marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1" and true or false
+		useMooch = (marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1")
 	elseif (gFishNoMarker == "1") then
-		useMooch = gUseMooch == "1" and true or false
+		useMooch = (gUseMooch == "1")
 	end
 	
     local mooch = ActionList:Get(297,1)
@@ -309,8 +308,10 @@ function ffxiv_task_syncadjust:task_complete_execute()
 end
 
 function ffxiv_task_fish:Init()
-
     --init ProcessOverwatch() cnes
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
+    self:add( ke_inventoryFull, self.overwatch_elements)
+	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
     self:add( ke_dead, self.overwatch_elements)
     
@@ -331,9 +332,6 @@ function ffxiv_task_fish:Init()
     local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
     self:add(ke_setbait, self.process_elements)
 	
-	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 8)
-	self:add(ke_syncadjust, self.process_elements)
-	
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 7 )
     self:add(ke_precast, self.process_elements)
     
@@ -351,13 +349,6 @@ end
 function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
-
-	if ( Settings.FFXIVMINION.gFishNoMarker == nil ) then
-        Settings.FFXIVMINION.gFishNoMarker = "0"
-	end
-	if ( Settings.FFXIVMINION.gUseMooch == nil ) then
-		Settings.FFXIVMINION.gUseMooch = "1"
-	end
 	
 	local winName = GetString("fishMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -370,16 +361,10 @@ function ffxiv_task_fish.UIInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
 	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
-	local group = GetString("settings")
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].noMarker,"gFishNoMarker",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useMooch,"gUseMooch",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
-	
-	gUseMooch = Settings.FFXIVMINION.gUseMooch
-	gFishNoMarker = Settings.FFXIVMINION.gFishNoMarker
     
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 	
@@ -401,14 +386,4 @@ function ffxiv_task_fish.SetupMarkers()
     -- refresh the manager with the new templates
     ml_marker_mgr.RefreshMarkerTypes()
 	ml_marker_mgr.RefreshMarkerNames()
-end
-
-function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
-	 for k,v in pairs(NewVals) do
-		if ( 	k == "gUseMooch" or
-				k == "gFishNoMarker" ) then
-            Settings.FFXIVMINION[tostring(k)] = v
-        end
-    end
-    GUI_RefreshWindow(GetString("fishMode"))
 end

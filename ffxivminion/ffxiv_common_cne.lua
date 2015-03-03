@@ -247,7 +247,7 @@ function c_add_fate:evaluate()
     
     if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
-		if (ValidTable(fate)) then
+		if (fate and fate.completion < 99) then
 			c_add_fate.fate = shallowcopy(fate)
 			return true
 		end
@@ -257,7 +257,6 @@ function c_add_fate:evaluate()
 end
 function e_add_fate:execute()
     local newTask = ffxiv_task_fate.Create()
-    local myPos = Player.pos
     newTask.fateid = c_add_fate.fate.id
     --newTask.fateTimer = Now()
 	newTask.fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
@@ -428,7 +427,7 @@ function c_avoid:evaluate()
 		for i,e in pairs(el) do
 			if (e.targetid ~= 0) then
 				local target = EntityList:Get(e.targetid)
-				local tpos = shallowcopy(target.pos)
+				local tpos = shallowcopy(e.pos)
 				if (Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z) < 10) then
 					local casting = e.castinginfo.castingid or 0
 					local channeling = e.castinginfo.channelingid or 0
@@ -725,6 +724,10 @@ e_interactgate = inheritsFrom( ml_effect )
 c_interactgate.lastInteract = 0
 e_interactgate.id = 0
 function c_interactgate:evaluate()
+	if (IsPositionLocked() or ActionList:IsCasting()) then
+		return false
+	end
+	
     if (ml_task_hub:CurrentTask().destMapID) then
 		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
 			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
@@ -764,7 +767,7 @@ c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
-	if (ActionList:IsCasting()) then
+	if (IsPositionLocked() or ActionList:IsCasting()) then
 		return false
 	end
 	
@@ -845,7 +848,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
-	if (IsPositionLocked()) then
+	if (IsPositionLocked() or ActionList:IsCasting()) then
 		return false
 	end
 	
@@ -1025,12 +1028,12 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if (IsLoading() or IsPositionLocked()) then
+	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if ((ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) or IsMounting()) then
+        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
             return false
         end
 		
@@ -1472,7 +1475,7 @@ c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 function c_mount:evaluate()
-	if (IsLoading() or IsPositionLocked()) then
+	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
 	
@@ -1625,8 +1628,12 @@ function c_sprint:evaluate()
     if (gBotMode == "PVP") then
         return false
     end
+	
+	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
+		return false
+	end
 
-    if not HasBuff(Player.id, 50) and not Player.ismounted and Player:IsMoving() then
+    if not HasBuff(Player.id, 50) and Player:IsMoving() then
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill and skill.isready) then
@@ -1764,31 +1771,28 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-	if (Player.incombat or not Player.alive) then
-		return false
-	end
-	
-    -- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
-    if (gRestInFates == "0") then
-        if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") or (gFatesOnly == "1") then
-            return false
-        end
-    end
-	
-	if (((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0))) then
-		return false
-	end
-	
-	if (ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0) then
-		local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
-		if (TableSize(addMobList) == 0) then
-			return false
-		end
-	end
-	
 	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
 	then
+	
+		if (Player.incombat or not Player.alive) then
+			return false
+		end
+		
+		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
+		if (gRestInFates == "0") then
+			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") or (gFatesOnly == "1") then
+				return false
+			end
+		end
+		
+		if (ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0) then
+			local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
+			if (TableSize(addMobList) == 0) then
+				return false
+			end
+		end
+	
 		return true
 	end
     
@@ -1856,8 +1860,9 @@ end
 c_dead = inheritsFrom( ml_cause )
 e_dead = inheritsFrom( ml_effect )
 c_dead.timer = 0
+e_dead.blockOnly = false
 function c_dead:evaluate()	
-    if (Player.revivestate == 2 or Player.revivestate == 3) then --FFXIV.REVIVESTATE.DEAD & REVIVING
+    if (not Player.alive) then
 		if (ml_task_hub:ThisTask().subtask ~= nil) then
 			ml_task_hub:ThisTask().subtask = nil
 		end
@@ -1874,25 +1879,34 @@ function c_dead:evaluate()
 		else
 			return true
 		end
+		
+		e_dead.blockOnly = true
+		return true
     end 
     return false
 end
 function e_dead:execute()
+	if (e_dead.blockOnly) then
+		e_dead.blockOnly = false
+		return
+	end
+		
 	if (ControlVisible("_NotificationParty")) then
 		return
 	end
 
-    d("Respawning...")
-	-- try raise first
-    if(PressYesNo(true)) then
-		c_dead.timer = 0
-		return
-    end
-	-- press ok
-    if(PressOK()) then
-		c_dead.timer = 0
-		return
-    end
+	if (Player.revivestate == 2) then
+		-- try raise first
+		if(PressYesNo(true)) then
+			c_dead.timer = 0
+			return
+		end
+		-- press ok
+		if(PressOK()) then
+			c_dead.timer = 0
+			return
+		end
+	end
 end
 
 c_pressconfirm = inheritsFrom( ml_cause )
@@ -2008,22 +2022,12 @@ end
 ---------------------------------------------------------------------------------------------
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
-function c_stealth:evaluate()	
-	local marker = ml_task_hub:RootTask().currentMarker
-	if (not marker) then
+function c_stealth:evaluate()
+	if (Player.incombat or 
+		(Player.job ~= FFXIV.JOBS.MINER and
+		Player.job ~= FFXIV.JOBS.BOTANIST and
+		Player.job ~= FFXIV.JOBS.FISHER)) then
 		return false
-	end
-	
-	if (ml_task_hub:CurrentTask().name == "LT_STEALTH") then
-		return false
-	end
-	
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().destination == "UNSPOILED_MARKER") then
-		local dest = ml_task_hub:CurrentTask().pos
-		local ppos = shallowcopy(Player.pos)
-		if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
-			return false
-		end
 	end
 	
 	local list = Player:GetGatherableSlotList()
@@ -2032,16 +2036,7 @@ function c_stealth:evaluate()
 		return false
 	end
 	
-	local useStealth = marker:GetFieldValue(strings[gCurrentLanguage].useStealth) == "1" and true or false
-    if  (not useStealth) then
-		if (HasBuff(Player.id, 47)) then
-			return true
-		else
-			return false
-		end
-    end
-	
-    local action = nil
+	local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then
         action = ActionList:Get(212)
     elseif (Player.job == FFXIV.JOBS.MINER) then
@@ -2049,16 +2044,36 @@ function c_stealth:evaluate()
     elseif (Player.job == FFXIV.JOBS.FISHER) then
         action = ActionList:Get(298)
     end
-    
-    if (action and not action.isoncd) then
+	
+	if (action) then
+		-- If we are going to teleport, go ahead and use stealth.
+		if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().destination == "UNSPOILED_MARKER") then
+			local dest = ml_task_hub:CurrentTask().pos
+			local ppos = shallowcopy(Player.pos)
+			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
+				return false
+			end
+		end
+		
 		if (gBotMode == GetString("gatherMode")) then
 			if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
 				local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-				if (gatherable and (gatherable.distance < 10)) then
-					if (not HasBuff(Player.id, 47) and gGatherUnspoiled == "1") then
-						return true
-					else
-						return false
+				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
+					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+					if (TableSize(potentialAdds) > 0) then
+						if (not HasBuff(Player.id, 47)) then
+							return true
+						end
+					end
+				end
+				
+				if (gTeleport == "1" and c_teleporttopos:evaluate()) then
+					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=25,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+					if (TableSize(potentialAdds) > 0) then
+						if (not HasBuff(Player.id, 47)) then
+							d("potential adds near gatherable.")
+							return true
+						end
 					end
 				end
 			end
@@ -2074,16 +2089,17 @@ function c_stealth:evaluate()
 				end
 			end
 		end
-			
-		local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=20")
-		local removeMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=25")
+		
+		local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=25")
+		local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
 		
 		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
 		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
 		then
+			d("stealth returning true in final block.")
 			return true
-		end	
-    end
+		end
+	end
  
     return false
 end
@@ -2095,7 +2111,7 @@ function e_stealth:execute()
 		newTask.addingStealth = true
 	end
 	ml_task_hub:ThisTask().preserveSubtasks = true
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
 c_acceptquest = inheritsFrom( ml_cause )
@@ -2143,6 +2159,10 @@ c_teleporttopos = inheritsFrom( ml_cause )
 e_teleporttopos = inheritsFrom( ml_effect )
 c_teleporttopos.pos = 0
 function c_teleporttopos:evaluate()
+	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+		return false
+	end
+	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
         if (ActionList:IsCasting()) then
             return false
@@ -2163,7 +2183,7 @@ function c_teleporttopos:evaluate()
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end
         
-        if (distance > 20) then
+        if (distance > 10) then
             c_teleporttopos.pos = gotoPos
 			c_teleporttopos.distance = distance
             return true
@@ -2178,12 +2198,6 @@ function e_teleporttopos:execute()
 		
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		Player:SetFacingSynced(math.random())
-		--[[
-		if (ActionIsReady(2,5)) then
-			local unfloat = ActionList:Get(2,5)
-			unfloat:Cast()
-		end
-		--]]
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
     end
@@ -2855,4 +2869,21 @@ function e_returntomap:execute()
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = e_returntomap.mapID
 	ml_task_hub:Add(task, IMMEDIATE_GOAL, TP_IMMEDIATE)
+end
+
+c_inventoryfull = inheritsFrom( ml_cause )
+e_inventoryfull = inheritsFrom( ml_effect )
+function c_inventoryfull:evaluate()
+	if (IsInventoryFull()) then
+		return true
+	end
+	
+    return false
+end
+function e_inventoryfull:execute()
+	if (gBotRunning == "1") then
+		GUI_ToggleConsole(true)
+		d("Inventory is full, bot will stop.")
+		ml_task_hub:ToggleRun()
+	end
 end

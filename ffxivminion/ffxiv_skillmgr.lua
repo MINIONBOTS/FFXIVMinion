@@ -18,6 +18,7 @@ SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_g
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.prevSkillID = ""
+SkillMgr.prevComboSkillID = ""
 SkillMgr.prevSkillList = {}
 --SkillMgr.lastOFFCD = false
 SkillMgr.nextSkillID = ""
@@ -62,82 +63,6 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.NINJA] = 2240
 }
 
-function CastSucceeded()
-	local succeeded = false
-	local actionID = SkillMgr.GCDSkills[Player.job]
-	
-	if (actionID) then
-		local action = ActionList:Get(actionID)
-		if (action.cd > 0 and (action.cdmax >= (action.cd * .75))) then
-			--d("Cast succeeded.")
-			succeeded = true
-		end
-	end
-	
-	return succeeded
-end
-
-function ActionSucceeded()
-	local succeeded = false
-	local actionID = SkillMgr.GCDSkills[Player.job]
-	
-	if (actionID) then
-		local action = ActionList:Get(actionID)
-		if (action.cdmax > 1) then
-			--d("Action succeeded.")
-			succeeded = true
-		end
-	end
-	
-	return succeeded
-end
-
-function MudraSucceeded()
-	local skill = SkillMgr.otherQueue
-	if (skill) then
-		local buffs = Player.buffs
-		if (ValidTable(buffs)) then
-			for i, buff in pairs(buffs) do
-				if (buff.id == 496 and buff.duration >= 4.2) then 
-					return true
-				end
-			end
-		end
-		
-		local skilldata = ActionList:Get(skill.id)
-		if (skilldata) then
-			if ((skill.id == 2259 and TimeSince(skill.lastcast) > 300 and Player.action == 233 and skilldata.isready) or
-				(skill.id == 2261 and TimeSince(skill.lastcast) > 300 and Player.action == 234 and skilldata.isready) or
-				(skill.id == 2263 and TimeSince(skill.lastcast) > 300 and Player.action == 235 and skilldata.isready))
-			then
-				return true
-			end
-		end
-		
-		if ((skill.id == 2259 and Player.lastaction == 233) or
-			(skill.id == 2261 and Player.lastaction == 234) or
-			(skill.id == 2263 and Player.lastaction == 235)) 
-		then
-			return true
-		end
-	end
-	
-	return false
-end
-
-function NinjutsuSucceeded()
-	local buffs = Player.buffs
-	if (ValidTable(buffs)) then
-		for i, buff in pairs(buffs) do
-			if (tonumber(buff.id) == 496)	then 
-				return false
-			end
-		end
-	end
-	
-	return true
-end
-
 SkillMgr.StartingProfiles = 
 {
 	[FFXIV.JOBS.GLADIATOR] = "Gladiator",
@@ -162,20 +87,13 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.CULINARIAN] = "Culinarian",
 	[FFXIV.JOBS.ROGUE] = "Rogue",
 	[FFXIV.JOBS.NINJA] = "Ninja"
-	
 }
 
 SkillMgr.ActionTypes = 
 {
 	ACTIONS = 1,
-	--ITEM = 2,
-	--GENERAL = 5,
-	--COMPANION = 6,
-	--MINIONS = 8,
 	CRAFT = 9,
-	--MAINCOMMANDS = 10,
 	PET = 11,
-	--MOUNT = 13,
 }
 
 SkillMgr.Variables = {
@@ -212,6 +130,7 @@ SkillMgr.Variables = {
 	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
 	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", section = "fighting"  },
 	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", section = "fighting"  },
+	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"   },
 	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting"   },
 	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting"   },
 	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting"   },
@@ -261,9 +180,12 @@ SkillMgr.Variables = {
 	SKM_PetNBuffDura = { default = 0, cast = "number", profile = "petnbuffdura", section = "fighting"   },
 	
 	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting"  },
+	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
+	SKM_PCSkillID = { default = "", cast = "string", profile = "pcskill", section = "fighting"  },
+	SKM_NPCSkillID = { default = "", cast = "string", profile = "npcskill", section = "fighting"  },
 	SKM_NSkillID = { default = "", cast = "string", profile = "nskill", section = "fighting"  },
 	SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
-	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
+	
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
 	SKM_OFFGCD = { default = "0", cast = "string", profile = "offgcd", section = "fighting" },
@@ -304,6 +226,8 @@ SkillMgr.Variables = {
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_UNSP = { default = "0", cast = "string", profile = "isunspoiled", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
+	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
+	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
 	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 }
@@ -441,6 +365,9 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMax,"SKM_LevelMax",strings[gCurrentLanguage].basicDetails)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMin,"SKM_LevelMin",strings[gCurrentLanguage].basicDetails)
+	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR",strings[gCurrentLanguage].basicDetails)
+	GUI_NewField(SkillMgr.editwindow.name,"Previous Combo Skill","SKM_PCSkillID",strings[gCurrentLanguage].basicDetails)
+	GUI_NewField(SkillMgr.editwindow.name,"Previous Combo Skill NOT","SKM_NPCSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
@@ -580,6 +507,8 @@ function SkillMgr.ModuleInit()
     GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",strings[gCurrentLanguage].skillDetails);
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",strings[gCurrentLanguage].skillDetails);
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
     GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
 	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skmUnspoiled,"SKM_UNSP",strings[gCurrentLanguage].skillDetails)
@@ -634,99 +563,11 @@ end
 function SkillMgr.OnUpdate( event, tickcount )
 	if ((tickcount - SkillMgr.lastTick) > 100) then
 		SkillMgr.lastTick = tickcount
-		
-		if (ValidTable(SkillMgr.comboQueue)) then
-			local skill = SkillMgr.comboQueue
-			local skilldata = ActionList:Get(skill.id)
-			
-			if (skill and skilldata) then
-				if ((skilldata.casttime == 0 or skill.hasSwiftcast) and ActionSucceeded()) then
-					if (skill.combo) then
-						--d(skill.name.." is being set as the previous skill.")
-						SkillMgr.prevSkillID = skill.id
-					end
-					
-					SkillMgr.failTimer = Now() + 3000
-					--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.comboQueue = nil
-					
-					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
-				elseif (skilldata.casttime > 0 and CastSucceeded()) then
-					if (skill.combo) then
-						--d(skill.name.." is being set as the previous skill.")
-						SkillMgr.prevSkillID = skill.id
-					end
-					
-					SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
-					--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-					SkillMgr.nextSkillID = tostring(skill.nskill)
-					SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-					SkillMgr.comboQueue = nil
-
-					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
-				end
-			elseif (gSkillManagerDebug == "1") then
-				d("Couldn't find data for skill ID:"..tostring(skill.id))
-			end
-		elseif (ValidTable(SkillMgr.otherQueue)) then
-			local skill = SkillMgr.otherQueue
-			local skilldata = ActionList:Get(skill.id)
-			
-			if (skill and skilldata) then
-				if (IsMudraSkill(skill.id)) then
-					if (MudraSucceeded()) then
-						SkillMgr.failTimer = Now() + 3000
-						--d("Fail timer pushed forward 1 second.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-						SkillMgr.nextSkillID = tostring(skill.nskill)
-						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-						SkillMgr.otherQueue = nil
-						
-						--d("next skill prio being set:"..tostring(skill.nskillprio))
-						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
-					end
-				elseif (IsNinjutsuSkill(skill.id)) then
-					if (NinjutsuSucceeded()) then
-						SkillMgr.failTimer = Now() + 3000
-						--d("Fail timer pushed forward 2 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-						SkillMgr.nextSkillID = tostring(skill.nskill)
-						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-						SkillMgr.otherQueue = nil
-						
-						--d("next skill prio being set:"..tostring(skill.nskillprio))
-						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
-					end
-				else
-					if (skilldata.casttime == 0 or skill.hasSwiftcast) then
-						SkillMgr.failTimer = Now() + 5000
-						--d("Fail timer pushed forward 3 seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-						SkillMgr.nextSkillID = tostring(skill.nskill)
-						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-						SkillMgr.otherQueue = nil
-						
-						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
-					elseif (skilldata.casttime > 0 and CastSucceeded()) then					
-						SkillMgr.failTimer = Now() + ((skilldata.casttime * .50) * 1000)
-						--d("Fail timer pushed forward "..tostring(((skilldata.casttime * .50) * 1000)).." seconds.  Current time difference:"..tostring((Now() - SkillMgr.failTimer) / 1000))
-						SkillMgr.nextSkillID = tostring(skill.nskill)
-						SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-						SkillMgr.otherQueue = nil
-						
-						SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now() + (((skilldata.casttime - 2.5) + (skilldata.casttime * .25)) * 1000)
-					end
-				end
-			elseif (gSkillManagerDebug == "1") then
-				d("Couldn't find data for skill ID:"..tostring(skill.id))
-			end
-		end
-		
 		if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
-			SkillMgr.comboQueue = nil
-			SkillMgr.otherQueue = nil
 			SkillMgr.nextSkillID = ""
 			SkillMgr.nextSkillPrio = ""
 			SkillMgr.prevSkillID = ""
+			SkillMgr.prevComboSkillID = ""
 			SkillMgr.failTimer = 0
 		end
 	end
@@ -1413,6 +1254,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	SkillMgr.preCombat = preCombat
 	SkillMgr.forceStop = forceStop
 	
+	if (Player.ismounted) then
+		return false
+	end
+	
     if ( entity ) then
 		-- first check if we're in combat or not for the start combat setting	
 		if (not preCombat and gBotMode == strings[gCurrentLanguage].assistMode and gStartCombat == "0" and not Player.incombat) then
@@ -1484,7 +1329,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					end
 					
 					if ( realskilldata and (not dependentskill or not dependentskill.isoncd) and dependentstate) then
-						if (realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady())) then						
+						if (realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady())) then
 							--reset our variables
 							target = entity
 							TID = EID
@@ -1711,7 +1556,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								if (IsNinjutsuSkill(skillid) and (MissingBuffs(Player,"496",3))) then
 									castable = false
 								end
-								if (IsMudraSkill(skillid) and ((SkillMgr.otherQueue ~= nil and SkillMgr.otherQueue.id == skillid) or (TimeSince(skill.lastcast) < 750))) then
+								if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 750) then
 									castable = false
 								end
 							end
@@ -1720,8 +1565,8 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							-- Noob check for making sure we cast the spell on the correct target (buffs n heals only on us/friends, attacks enemies)
 								if (skill.stype == "Pet") then	
 									local s = ActionList:Get(skillid,11)
-									local attempt = 1
 									
+									local attempt = 1
 									while (s.isready and attempt <= 25) do
 										ActionList:Cast(skillid,TID,11)
 										s = ActionList:Get(skillid,11)
@@ -1748,70 +1593,13 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										if forceStop then 
 											Player:Stop() 
 										end
-										
-										local hasSwiftcast = HasBuffs(Player,"167")
-										
-										local action = ActionList:Get(skillid)
-										if (action:Cast(TID)) then
-											if (gSkillManagerDebug == "1") then
-												--SkillMgr.logger:info("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
-												d("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
-											end
-											
-											if (SkillMgr.SkillProfile[prio]) then
-												SkillMgr.SkillProfile[prio].lastcast = Now()
-											else
-												d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
-											end
-											
-											if (realskilldata.recasttime == 2.5) then
-												SkillMgr.comboQueue = {
-													id = skillid,
-													name = skill.name,
-													alias = skill.alias,
-													prio = prio,
-													swift = hasSwiftcast,
-													nskill = skill.nskill,
-													nskillprio = skill.nskillprio,
-													combo = true,
-													time = Now(),
-													ticks = 0,
-												}
-											else
-												if (not IsNullString(skill.nskillprio) or not IsNullString(skill.nskill)) then
-													SkillMgr.otherQueue = {
-														id = skillid,
-														name = skill.name,
-														alias = skill.alias,
-														prio = prio,
-														swift = hasSwiftcast,
-														nskill = skill.nskill,
-														nskillprio = skill.nskillprio,
-														combo = false,
-														time = Now(),
-														ticks = 0,
-													}
-												elseif (SkillMgr.nextSkillPrio == tostring(skill.prio) or SkillMgr.nextSkillID == tostring(skillid)) then
-													SkillMgr.nextSkillID = ""
-													SkillMgr.nextSkillPrio = ""
-												end
-											end
-											
-											if (IsMudraSkill(skillid)) then
-												SkillMgr.failTimer = Now() + 1500
-											elseif (IsNinjutsuSkill(skillid)) then
-												SkillMgr.failTimer = Now() + 2000
-											else
-												if (action.casttime > 2.5) then
-													SkillMgr.failTimer = Now() + (action.casttime * 1000)
-												else
-													SkillMgr.failTimer = Now() + 2000
-												end
-											end
-											
+										if (realskilldata:Cast(TID)) then
+											local newTask = ffxiv_task_skill_cast.Create()
+											newTask.skill = shallowcopy(skill)
+											newTask.TID = TID
+											ml_task_hub:CurrentTask():AddSubTask(newTask)
+											SkillMgr.failTimer = Now() + 3000
 											return true
-										else
-											--d("CAST FAILED : "..tostring(skill.name)..", spell status was:"..tostring(action.isready)..", oncd was:"..tostring(action.isoncd))
 										end
 									end
 								end
@@ -2002,7 +1790,7 @@ function SkillMgr.Craft()
 	return false
 end
 
-function SkillMgr.Gather( )
+function SkillMgr.Gather(item)
 	-- This is required to refresh the available action list abilities.
 	local al = ActionList("type=1")
 	
@@ -2028,6 +1816,14 @@ function SkillMgr.Gather( )
 						(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)) or
 						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
 						then castable = false 
+					end
+					
+					if (tonumber(skill.itemchancemax) > 0 and item and item.chance > tonumber(skill.itemchancemax)) then
+						castable = false
+					end
+					
+					if (tonumber(skill.itemhqchancemin) > 0 and item and (item.hqchance == 255 or item.hqchance < tonumber(skill.itemhqchancemin))) then
+						castable = false
 					end
 					
 					if ( skill.gpbuff and skill.gpbuff ~= "" ) then
@@ -2117,6 +1913,96 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 		end
 	end
 end
+
+ffxiv_task_skill_cast = inheritsFrom(ml_task)
+function ffxiv_task_skill_cast.Create()
+    local newinst = inheritsFrom(ffxiv_task_skill_cast)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_grind members
+    newinst.name = "CASTVERIFY"
+	newinst.skill = 0
+	newinst.TID = 0
+	newinst.failTime = Now() + 600
+    
+    return newinst
+end
+
+function ffxiv_task_skill_cast:Init()
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_skill_cast:task_complete_eval()
+	local skill = self.skill
+	local skilldata = ActionList:Get(tonumber(skill.id))	
+	
+	if ((skilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or skilldata.isready) then
+		if (skilldata:Cast(self.TID)) then
+			SkillMgr.failTimer = Now() + 3000
+			return false
+		end
+	end
+
+	if (skilldata) then
+		if ((skilldata.recasttime == 2.5 and not SkillMgr.IsGCDReady()) or (skilldata.recasttime ~= 2.5 and skilldata.isoncd)) then
+			if (gSkillManagerDebug == "1") then
+				--SkillMgr.logger:info("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
+				d("CAST SUCCEEDED:"..tostring(skill.prio)..","..tostring(skill.name)..","..tostring(skill.alias))
+			end
+			
+			if (SkillMgr.SkillProfile[tonumber(skill.prio)]) then
+				if (skilldata.casttime > 0) then
+					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now() + (skilldata.cd * 1000)
+				else
+					SkillMgr.SkillProfile[tonumber(skill.prio)].lastcast = Now()
+				end
+			end
+			
+			if ((tonumber(SkillMgr.nextSkillPrio) == tonumber(skill.prio)) or (tonumber(SkillMgr.nextSkillID) == tostring(skill.id))) then
+				SkillMgr.nextSkillID = ""
+				SkillMgr.nextSkillPrio = ""
+			end
+			
+			if (skilldata.recasttime == 2.5) then
+				SkillMgr.prevComboSkillID = skill.id
+				SkillMgr.latencyTimer = Now() + 500
+			end
+			
+			SkillMgr.prevSkillID = skill.id
+			SkillMgr.nextSkillID = tostring(skill.nskill)
+			SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+			
+			return true
+		end
+	end
+   
+    return false
+end
+
+function ffxiv_task_skill_cast:task_fail_eval()
+	local entity = EntityList:Get(tonumber(self.TID))
+	if (not entity) then
+		return true
+	end
+	
+	if (Now() > self.failTime) then
+		return true
+	end
+	
+	return false
+end
+function ffxiv_task_skill_cast:task_complete_execute()
+    self.valid = false
+end
+
+
 
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
@@ -2276,7 +2162,7 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	conditional = { name = "Min Range Check"
+	conditional = { name = "Min Range (System Defined)"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
@@ -2288,6 +2174,23 @@ function SkillMgr.AddDefaultConditions()
 			if ( not IsRanged(Player.job) and realskilldata.range >= 15 and realskilldata.recasttime == 2.5 and dist <= (target.hitradius + 4)) then
 				return true
 			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Min Range Check (User Defined)"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		local ppos = shallowcopy(Player.pos)
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
+		local minRange = tonumber(skill.minRange)
+		if (minRange > 0 and dist < minRange) then
+			return true
 		end
 		return false
 	end
@@ -2439,6 +2342,43 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)	
 
+	conditional = { name = "Previous Combo Skill ID Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if ( not IsNullString(skill.pcskill)) then
+			if (not IsNullString(SkillMgr.prevComboSkillID)) then
+				for skillid in StringSplit(skill.pcskill,",") do
+					if (tonumber(SkillMgr.prevComboSkillID) == tonumber(skillid)) then
+						return false
+					end
+				end
+			end
+			return true
+		end
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Previous Combo Skill NOT ID Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		if (not IsNullString(skill.npcskill)) then
+			if (not IsNullString(SkillMgr.prevComboSkillID)) then
+				for skillid in StringSplit(skill.npcskill,",") do
+					if (tonumber(SkillMgr.prevComboSkillID) == tonumber(skillid)) then
+						return true
+					end
+				end
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+		
 	conditional = { name = "Previous Skill ID Check"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -2552,6 +2492,7 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
+		
 		local secspassed = tonumber(skill.secspassed) or 0
 		if ( secspassed > 0 and skill.lastcast and (TimeSince(skill.lastcast) < (secspassed * 1000)))then 
 			return true

@@ -164,6 +164,9 @@ end
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
+    self:add( ke_inventoryFull, self.overwatch_elements)
+	
 	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 25 )
     self:add(ke_reachedCraftLimit, self.process_elements)
 	

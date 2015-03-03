@@ -149,7 +149,7 @@ function ffxiv_task_movetopos.Create()
     return newinst
 end
 
-function ffxiv_task_movetopos:Init()	
+function ffxiv_task_movetopos:Init()		
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
     self:add( ke_teleportToPos, self.process_elements)
 	
@@ -281,11 +281,13 @@ function ffxiv_task_movetointeract.Create()
 	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
 	newinst.pos = false
+	newinst.adjustedPos = false
 	newinst.range = nil
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
 	newinst.use3d = true
 	newinst.lastDistance = nil
+	newinst.useTeleport = true
 	
 	GameHacks:SkipDialogue(true)
 	
@@ -293,12 +295,6 @@ function ffxiv_task_movetointeract.Create()
 end
 
 function ffxiv_task_movetointeract:Init()
-	--local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
-    --self:add( ke_questYesNo, self.overwatch_elements)
-	
-	--local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
-    --self:add( ke_convIndex, self.overwatch_elements)
-
 	self:AddTaskCheckCEs()
 end
 
@@ -319,20 +315,38 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 26 )
 			self:add( ke_useNavInteraction, self.process_elements)
 	
-			local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
-			self:add( ke_teleportToPos, self.process_elements)
+			if (self.useTeleport) then
+				local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+				self:add( ke_teleportToPos, self.process_elements)
+			end
 			
 			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
 			self:add( ke_mount, self.process_elements)
+			
+			local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+			self:add( ke_sprint, self.process_elements)
+			
 			self.addedMoveElement = true
 		end
 	end
 	
 	if (Player.ismounted and Now() > self.delayTimer) then
-		local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")
-		if (ValidTable(interacts)) then
+		local requiresDismount = false
+		if (self.interact == 0) then
+			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			if (ValidTable(interacts)) then
+				requiresDismount = true
+			end
+		else
+			local interact = EntityList:Get(tonumber(self.interact))
+			if (interact and interact.distance < 10) then
+				requiresDismount = true
+			end
+		end
+		if (requiresDismount) then
 			Dismount()
 			self.delayTimer = 1000
+			return
 		end
 	end
 	
@@ -350,11 +364,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	if (not Player:GetTarget() and self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
-		if (interact and interact.targetable) then
+		if (interact and interact.targetable and interact.distance < 10) then
 			Player:SetTarget(self.interact)
 			local ipos = shallowcopy(interact.pos)
-			if (not deepcompare(ipos,self.pos)) then
-				self.pos = shallowcopy(ipos)
+			if (not deepcompare(ipos,self.adjustedPos)) then
+				self.adjustedPos = shallowcopy(ipos)
 			end
 		end
 	end
@@ -382,85 +396,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	end
 	
-	if (ValidTable(self.pos)) then
+	if (ValidTable(self.adjustedPos)) then
+		Player:MoveTo(self.adjustedPos.x,self.adjustedPos.y,self.adjustedPos.z)
+	elseif (ValidTable(self.pos)) then
 		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
 	end
-	
-	--[[
-	local myPos = shallowcopy(Player.pos)
-	local gotoPos = shallowcopy(self.pos)
-	if (not ml_task_hub:ThisTask().distanceCheckTimer or 
-		not ml_task_hub:ThisTask().stuckTicks) 
-	then
-		ml_task_hub:ThisTask().distanceCheckTimer = 0
-		ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-		ml_task_hub:ThisTask().stuckTicks = 0
-	end
-	
-	if (ml_task_hub:ThisTask().distanceCheckTimer) then
-		if (Now() > ml_task_hub:ThisTask().distanceCheckTimer) then
-			if (not ml_task_hub:ThisTask().lastPosition) then
-				ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-			else
-				local lastPos = ml_task_hub:ThisTask().lastPosition
-				local distanceTraveled = Distance3D(myPos.x,myPos.y,myPos.z,lastPos.x,lastPos.y,lastPos.z)
-				
-				d("Distance traveled:"..tostring(distanceTraveled))
-				
-				if (distanceTraveled < 3) then
-					ml_task_hub:ThisTask().stuckTicks = ml_task_hub:ThisTask().stuckTicks + 1
-				else
-					ml_task_hub:ThisTask().stuckTicks = 0
-				end
-				
-				ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-				ml_task_hub:ThisTask().distanceCheckTimer = Now() + 750
-			end
-		end
-	end
-	
-	if (ml_task_hub:ThisTask().stuckTicks > 3) then
-		local path = NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-		
-		local closestPos = nil
-		local closestDistance = 999
-		local prevPos = nil
-		for k,v in pairsByKeys(path) do
-			local dist = nil
-			if (prevPos == nil) then
-				--d("Distance:"..tostring(Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)))
-				dist = Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)
-				if (dist > 3) then
-					closestPos = {x=v.x,y=v.y,z=v.z}
-					closestDistance = dist
-				end
-			else
-				--d("Distance:"..tostring(Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)))
-				dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)
-				if (dist > 3 and (not closestDistance or dist < closestDistance)) then
-					closestPos = {x=v.x,y=v.y,z=v.z}
-					closestDistance = dist
-				end
-			end
-			prevPos = {x=v.x,y=v.y,z=v.z}
-		end
-		
-		d("Using a corrective path.")
-		
-		if (closestPos) then
-			local p,dist = NavigationManager:GetClosestPointOnMesh(closestPos)
-			if (p and dist < 5) then
-				Player:Stop()
-				GameHacks:TeleportToXYZ(p.x,p.y,p.z)
-				if (ActionIsReady(2,5)) then
-					local unfloat = ActionList:Get(2,5)
-					unfloat:Cast()
-				end
-				ml_task_hub:ThisTask().stuckTicks = 0
-			end
-		end
-	end
-	--]]
 	
 	return false
 end
@@ -614,32 +554,34 @@ function ffxiv_task_teleport:task_complete_eval()
 		return false
 	end
 	
-	if (	(TableSize(Player.castinginfo) == 0 or 
-			Player.castinginfo.channelingid ~= 5) and
-			not ml_mesh_mgr.loadingMesh	and 
-			Player.localmapid == self.mapID and 
-			not IsLoading()) 
-	then
-		if (Player.onmesh) then
-			ml_mesh_mgr.SetEvacPoint()
-			return true
-		else
-			if (NavigationManager:GetNavMeshName() ~= self.mesh) then
-				ml_mesh_mgr.LoadNavMesh(self.mesh)
-				return false
-			end
-		end
+	if (ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh or Player.localmapid ~= self.mapID) then
+		return false
 	end
 	
-	if (TimeSince(self.started) > 30000) then
+	if (Player.onmesh) then
+		ml_mesh_mgr.SetEvacPoint()
 		return true
+	else
+		if (self.mesh and NavigationManager:GetNavMeshName() ~= self.mesh) then
+			ml_mesh_mgr.LoadNavMesh(self.mesh)
+			return false
+		end
 	end
 	
     return false
 end
-
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
+	ml_task_hub:CurrentTask():SetDelay(2000)
+end
+
+function ffxiv_task_teleport:task_fail_eval()
+	if (TimeSince(self.started) > 30000) then
+		return true
+	end
+end
+function ffxiv_task_teleport:task_fail_execute()  
+	self.valid = false
 	ml_task_hub:CurrentTask():SetDelay(2000)
 end
 
@@ -664,12 +606,13 @@ function ffxiv_task_stealth.Create()
 	newinst.droppingStealth = false
 	newinst.addingStealth = false
 	newinst.timer = 0
-    
+	newinst.failTimer = Now() + 6000
+
     return newinst
 end
 
 function ffxiv_task_stealth:Init()    
-    self:AddTaskCheckCEs()
+    self:AddTaskCheckCEs()    
 end
 
 function ffxiv_task_stealth:task_complete_eval()
@@ -682,7 +625,6 @@ function ffxiv_task_stealth:task_complete_eval()
 	
 	if (self.addingStealth) then
 		if (Player.ismounted) then
-			Player:Stop()
 			Dismount()
 			return false
 		end
@@ -707,18 +649,39 @@ function ffxiv_task_stealth:task_complete_eval()
 		if (HasBuffs(Player,"47")) then
 			return true
 		end
+		if (action and action.isoncd and Player:IsMoving()) then
+			Player:Stop()
+		end
 	end
 	
-	if (action and not action.isoncd and Now() > self.timer) then
+	if (action and not action.isoncd) then
         action:Cast()
-		self.timer = Now() + 1000
+		ml_task_hub:CurrentTask():SetDelay(500)
     end
 	
 	return false
 end
-
 function ffxiv_task_stealth:task_complete_execute()
+	d("Stealth task finished.")
     self.completed = true
+end
+
+function ffxiv_task_stealth:task_fail_eval()
+	local list = Player:GetGatherableSlotList()
+	local fs = tonumber(Player:GetFishingState())
+	if (ValidTable(list) or fs ~= 0) then
+		return true
+	end
+	
+	if (Now() > self.failTimer) then
+		return true
+	end
+	
+	return false
+end
+function ffxiv_task_stealth:task_fail_execute()
+	d("Stealth task failing.")
+	self.valid = false
 end
 
 --=======================USEITEM TASK=========================-
@@ -900,13 +863,12 @@ function ffxiv_task_rest.Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     newinst.name = "LT_REST"
-	newinst.timer = 0
+	newinst.timer = Now()
     
     return newinst
 end
 
 function ffxiv_task_rest:Init()
-	self.timer = Now()
     self:AddTaskCheckCEs()
 end
 
@@ -918,11 +880,11 @@ function ffxiv_task_rest:task_complete_eval()
 		return false
 	end
 	
-    if ((Player.hp.percent == 100 or tonumber(gRestHP) == 0) and (Player.mp.percent == 100 or tonumber(gRestMP) == 0)) then
+    if ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
 		return true
 	end
 	
-	if (Player.hp.percent == 100 and TimeSince(self.timer) > 120000) then
+	if (Player.hp.percent > math.random(90,95) and TimeSince(self.timer) > 120000) then
 		return true
 	end
 	
@@ -1012,6 +974,7 @@ function ffxiv_task_flee:task_complete_eval()
 end
 
 function ffxiv_task_flee:task_complete_execute()
+	d("Flee task completed properly.")
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
@@ -1022,6 +985,7 @@ function ffxiv_task_flee:task_fail_eval()
 end
 
 function ffxiv_task_flee:task_fail_execute()
+	d("Flee task failed.")
 	self:Terminate()
 end
 
@@ -1153,10 +1117,12 @@ function ffxiv_task_grindCombat:Process()
 					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
 				end
 			end
-			if (InCombatRange(target.id)) then
+			if (target.distance <= 15) then
 				if (Player.ismounted) then
 					Dismount()
 				end
+			end
+			if (InCombatRange(target.id)) then
 				if (Player:IsMoving()) then
 					Player:Stop()
 				end
@@ -1201,7 +1167,6 @@ function ffxiv_task_grindCombat:task_complete_eval()
         return true
     end
 end
-
 function ffxiv_task_grindCombat:task_complete_execute()
 	if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 		if (ml_task_hub:CurrentTask():ParentTask()) then
@@ -1214,6 +1179,20 @@ function ffxiv_task_grindCombat:task_complete_execute()
 	end
     Player:Stop()
 	self.completed = true
+end
+
+function ffxiv_task_grindCombat:task_fail_eval()
+	if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
+		local fateID = target.fateid
+		local fate = GetFateByID(fateID)
+		if (not fate or fate.completion > 99) then
+			return true
+		end
+	end
+end
+function ffxiv_task_grindCombat:task_fail_execute()
+	Player:Stop()
+	self.valid = false
 end
 
 ffxiv_mesh_interact = inheritsFrom(ml_task)

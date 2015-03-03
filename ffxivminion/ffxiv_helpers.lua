@@ -221,7 +221,6 @@ function GetNearestFateAttackable()
         end
     end
     
-    --ml_debug("GetNearestFateAttackable() failed with no entity found matching params")
     return nil
 end
 
@@ -1924,15 +1923,13 @@ function InCombatRange(targetid)
 	
 	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 		for prio,skill in spairs(SkillMgr.SkillProfile) do
-			if ( skill.maxRange > 0 and skill.used == "1" and skill.maxRange > highestRange ) then
-				local s = ActionList:Get(skill.id)
-				if (s) then
-					if (ActionList:CanCast(skill.id,target.id) and 
-						((ml_global_information.AttackRange < 5 and s.isready) or
-						ml_global_information.AttackRange >= 5)) then
-						skillID = skill.id
-						highestRange = tonumber(skill.maxRange)
-						charge = skill.charge == "1" and true or false
+			local skilldata = ActionList:Get(tonumber(skill.id))
+			if (skilldata) then
+				if ( skilldata.range > 0 and skill.used == "1" and skilldata.range > highestRange and ActionList:CanCast(tonumber(skill.id),target.id)) then
+					if ((ml_global_information.AttackRange < 5 and skilldata.isready) or ml_global_information.AttackRange >= 5) then
+						skillID = tonumber(skill.id)
+						highestRange = tonumber(skilldata.range)
+						charge = (skill.charge == "1" and true) or false
 					end
 				end
 			end
@@ -1970,7 +1967,6 @@ function InCombatRange(targetid)
 			end
 		end
 	else
-		--d(tostring(target.distance).." - "..tostring(target.hitradius).."("..tostring(target.distance - target.hitradius)..") <= "..tostring(highestRange * tonumber(gCombatRangePercent) / 100))
 		return ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
 	end
 	
@@ -2121,19 +2117,37 @@ function Repair()
 	end
 end
 
-function Eat()
-	local foodID
-	
+function ShouldEat()
+	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
 	end
 			
+	if (foodID) then
+		local food = Inventory:Get(foodID)
+		if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+			return true
+		end
+	end
+	return false
+end
+	
+function Eat()
+	local foodID = nil
+	if (gFoodHQ ~= "None") then
+		foodID = ffxivminion.foodsHQ[gFoodHQ]
+	elseif (gFood ~= "None") then
+		foodID = ffxivminion.foods[gFood]
+	end
+			
+	if (foodID) then
 	local food = Inventory:Get(foodID)
 	if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
 		food:Use()
 	end
+end
 end
 
 function NodeHasItem(itemName)
@@ -2190,15 +2204,30 @@ function BlacklistTarget()
 end
 
 function IsMap(itemid)
-	itemid = itemid or 0
+	local itemid = tonumber(itemid) or 0
 	return (itemid >= 6687 and itemid <= 6692)
 end
 
 function IsGardening(itemid)
-	itemid = itemid or 0
+	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 7715 and itemid <= 7767) 
 			or itemid == 8024
 			or itemid == 5365)
+end
+
+function IsChocoboFood(itemid)
+	local itemid = tonumber(itemid) or 0
+	return (itemid >= 10094 and itemid <= 10098)
+end
+
+function IsChocoboFoodSpecial(itemid)
+	local itemid = tonumber(itemid) or 0
+	
+	local special = {
+		[10098] = true,
+		[10095] = true,
+	}
+	return special[itemid]
 end
 
 function IsUnspoiled(contentid)
@@ -2671,8 +2700,8 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 end
 
 function ShouldTeleport()
-	if (IsLoading() or IsPositionLocked()) then
-		return false
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+		return true
 	end
 	
 	if (gTeleport == "0") then
@@ -2994,6 +3023,24 @@ function ItemIsReady(itemid)
 		if (item and item.isready) then
 			return true
 		end
+	end
+	
+	return false
+end
+
+function IsInventoryFull()
+	local itemcount = 0
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			itemcount = itemcount + 1
+		end
+	end
+	
+	if (itemcount == 100) then
+		return true
 	end
 	
 	return false
