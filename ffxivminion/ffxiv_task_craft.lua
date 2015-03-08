@@ -18,7 +18,7 @@ function ffxiv_task_craft.Create()
 	newinst.attemptedStarts = 0
 	newinst.itemsCrafted = 0
 	newinst.allowWindowOpen = true
-	newinst.maxItems = tonumber(gCraftMaxItems)
+	newinst.maxItems = tonumber(gCraftMaxItems) or 0
     
     return newinst
 end

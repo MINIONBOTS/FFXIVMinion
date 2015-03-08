@@ -137,6 +137,7 @@ end
 
 c_returntoposition = inheritsFrom( ml_cause )
 e_returntoposition = inheritsFrom( ml_effect )
+c_returntoposition.timer = 0
 function c_returntoposition:evaluate()	
     if (ml_task_hub:ThisTask().startingPosition) then
         local myPos = shallowcopy(Player.pos)
@@ -154,8 +155,14 @@ function c_returntoposition:evaluate()
 				return false
 			end
 			local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
-			if (distance > 30 and (not gatherable or (gatherable and not gatherable.targetable))) then
-				return true
+			if (distance > 30 and (not gatherable or (gatherable and not gatherable.cangather))) then
+				if (c_returntoposition.timer == 0) then
+					c_returntoposition.timer = Now() + 10000
+					return false
+				elseif (Now() > c_returntoposition.timer) then
+					c_returntoposition.timer = 0
+					return true
+				end
 			end
 		end
     end
@@ -608,6 +615,10 @@ function c_qsfindgatherable:evaluate()
     return false
 end
 function e_qsfindgatherable:execute()
+	if (c_returntoposition.timer ~= 0) then
+		c_returntoposition.timer = 0
+	end
+	
     local minlevel = tonumber(gQSGatherNodeLevel)
     local maxlevel = tonumber(gQSGatherNodeLevel)
 	if (minlevel and minlevel < 50) then
