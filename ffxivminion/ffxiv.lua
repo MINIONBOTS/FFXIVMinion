@@ -1298,7 +1298,9 @@ function ffxivminion.NodeDistance(self, id)
 			cost = 999
 		end
 		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
-			if (not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) then
+			if ((not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) or
+				GilCount() < 100) 
+			then
 				cost = 999
 			end
 		end
