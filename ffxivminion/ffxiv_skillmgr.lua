@@ -1594,6 +1594,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											Player:Stop() 
 										end
 										if (realskilldata:Cast(TID)) then
+											if (SkillMgr.SkillProfile[prio]) then
+												SkillMgr.SkillProfile[prio].lastcast = Now()
+											else
+												d("An error occurred setting last cast.")
+											end
+											
 											local newTask = ffxiv_task_skill_cast.Create()
 											newTask.skill = shallowcopy(skill)
 											newTask.TID = TID
@@ -2494,7 +2500,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		local secspassed = tonumber(skill.secspassed) or 0
-		if ( secspassed > 0 and skill.lastcast and (TimeSince(skill.lastcast) < (secspassed * 1000)))then 
+		if ( secspassed > 0 and skill.lastcast and (TimeSince(skill.lastcast) < (secspassed * 1000))) then 
 			return true
 		end
 		return false
