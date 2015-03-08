@@ -157,11 +157,13 @@ function c_returntoposition:evaluate()
 			local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
 			if (distance > 30 and (not gatherable or (gatherable and not gatherable.cangather))) then
 				if (c_returntoposition.timer == 0) then
-					c_returntoposition.timer = Now() + 10000
+					c_returntoposition.timer = Now() + 6000
 					return false
 				elseif (Now() > c_returntoposition.timer) then
 					c_returntoposition.timer = 0
 					return true
+				else
+					d("Time until reset:"..tostring((c_returntoposition.timer - Now()) / 1000).." seconds.")
 				end
 			end
 		end
@@ -614,11 +616,7 @@ function c_qsfindgatherable:evaluate()
     
     return false
 end
-function e_qsfindgatherable:execute()
-	if (c_returntoposition.timer ~= 0) then
-		c_returntoposition.timer = 0
-	end
-	
+function e_qsfindgatherable:execute()	
     local minlevel = tonumber(gQSGatherNodeLevel)
     local maxlevel = tonumber(gQSGatherNodeLevel)
 	if (minlevel and minlevel < 50) then
@@ -632,6 +630,9 @@ function e_qsfindgatherable:execute()
     
     local gatherable = GetNearestGatherable(minlevel,maxlevel)
     if (gatherable ~= nil) then
+		if (c_returntoposition.timer ~= 0) then
+			c_returntoposition.timer = 0
+		end
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
 		ml_task_hub:CurrentTask().gatheredMap = false
@@ -685,14 +686,14 @@ function ffxiv_task_qs_gather:Init()
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 23 )
     self:add( ke_stealth, self.overwatch_elements)
 	
+	local ke_returnToPosition = ml_element:create( "ReturnToPosition", c_returntoposition, e_returntoposition, 20)
+    self:add(ke_returnToPosition, self.process_elements)
+	
     local ke_findGatherable = ml_element:create( "FindGatherable", c_qsfindgatherable, e_qsfindgatherable, 15 )
     self:add(ke_findGatherable, self.process_elements)
 	
     local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_qsmovetogatherable, e_qsmovetogatherable, 12 )
     self:add( ke_moveToGatherable, self.process_elements)
-	
-	local ke_returnToPosition = ml_element:create( "ReturnToPosition", c_returntoposition, e_returntoposition, 10)
-    self:add(ke_returnToPosition, self.process_elements)
     
     local ke_gatherSimple = ml_element:create( "Gather", c_gathersimple, e_gathersimple, 5 )
     self:add(ke_gatherSimple, self.process_elements)
