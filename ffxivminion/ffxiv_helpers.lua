@@ -2695,56 +2695,80 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	
 	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
 	if (FileExists(markerPath)) then
-		local markerList = persistence.load(markerPath)
+		local markerList, e = persistence.load(markerPath)
 		local markerName = strMarkerName
 		
 		local searchMarker = nil
-		for _, list in pairs(markerList) do
-			for name, marker in pairs(list) do
-				if (name == markerName) then
-					searchMarker = marker
+		if (markerList) then
+			for _, list in pairs(markerList) do
+				for name, marker in pairs(list) do
+					if (name == markerName) then
+						searchMarker = marker
+					end
+					if (searchMarker) then
+						break
+					end
 				end
 				if (searchMarker) then
 					break
 				end
 			end
 			if (searchMarker) then
-				break
+				local markerFields = searchMarker.fields
+				if (markerFields["x"] and markerFields["y"] and markerFields["z"]) then
+					newMarkerPos = { x = markerFields["x"].value, y = markerFields["y"].value, z = markerFields["z"].value }
+				end
 			end
-		end
-		if (searchMarker) then
-			local markerFields = searchMarker.fields
-			if (markerFields["x"] and markerFields["y"] and markerFields["z"]) then
-				newMarkerPos = { x = markerFields["x"].value, y = markerFields["y"].value, z = markerFields["z"].value }
-			end
+		else
+			d("No markers found for destination mesh ["..tostring(strMeshName).."].")
 		end
 	end
 	
 	return newMarkerPos
 end
 
-function ShouldTeleport()
+function ShouldTeleport(pos)
 	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
-		return true
+		return false
+	end
+	
+	if (ml_task_hub:CurrentTask().noTeleport) then
+		return false
 	end
 	
 	if (gTeleport == "0") then
-		return false
-	elseif (ml_task_hub:CurrentTask().noTeleport) then
 		return false
 	else
 		if (gParanoid == "0") then
 			return true
 		else
-			local scanDistance = 50
-			if (gBotMode == GetString("gatherMode")) then
-				scanDistance = 100
-			end
+			local scanDistance = 40
 			local players = EntityList("type=1,maxdistance=".. scanDistance)
 			local nearbyPlayers = TableSize(players)
 			if nearbyPlayers > 0 then
 				return false
 			end
+			
+			if (pos or ml_task_hub:CurrentTask().pos) then
+				local gotoPos = nil
+				if (pos) then
+					gotoPos = pos
+				else
+					gotoPos = ml_task_hub:CurrentTask().pos
+				end
+				
+				local players = EntityList("type=1")
+				if (players) then
+					for i,player in pairs(players) do
+						local ppos = player.pos
+						
+						if (Distance3D(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= 40) then
+							return true
+						end
+					end
+				end
+			end
+			
 			return true
 		end
 	end

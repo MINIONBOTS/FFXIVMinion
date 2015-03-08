@@ -4,6 +4,7 @@ ffxiv_task_gather.location = 0
 ffxiv_task_gather.unspoiledGathered = true
 ffxiv_task_gather.gatherStarted = false
 ffxiv_task_gather.timer = 0
+ffxiv_task_gather.awaitingSuccess = false
 ffxiv_task_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
 
 --unspoiled mining = content id 5
@@ -29,6 +30,7 @@ function ffxiv_task_gather.Create()
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
 	
+	newinst.pos = 0
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
 	newinst.maxGatherDistance = 100 -- for setting the range when the character is beeing considered "too far away from the gathermarker" where it would make him run back to the marker
@@ -60,6 +62,10 @@ end
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
 function c_findgatherable:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
 	end
@@ -165,6 +171,10 @@ c_findunspoilednode = inheritsFrom( ml_cause )
 e_findunspoilednode = inheritsFrom( ml_effect )
 e_findunspoilednode.pos = {}
 function c_findunspoilednode:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
         return false
@@ -183,12 +193,12 @@ function c_findunspoilednode:evaluate()
 		return false
 	end
 	
-	local destPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
-	local myPos = Player.pos
-	local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-	if (distance > 100) then
-		return false
-	end
+	--local destPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
+	--local myPos = Player.pos
+	--local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+	--if (distance > 100) then
+		--return false
+	--end
 	
 	if (MissingBuffs(Player,"221+222")) then
 		ffxiv_task_gather.LocatorBuff(ffxiv_task_gather.location.class)
@@ -205,12 +215,6 @@ function c_findunspoilednode:evaluate()
 	if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0) then
 		local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
 		if (gatherable and gatherable.cangather) then
-			if (ml_task_hub:CurrentTask().name == "MOVETOINTERACT") then
-				if (PosIsEqual(ml_task_hub:CurrentTask().pos, gatherable.pos)) then
-					return false
-				end
-			end
-			
 			e_findunspoilednode.pos = shallowcopy(gatherable.pos)
             return true
         end
@@ -223,7 +227,8 @@ function e_findunspoilednode:execute()
     if (ValidTable(pos)) then
 		local ppos = shallowcopy(Player.pos)
 		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport()) then
+		ml_task_hub:ThisTask().pos = pos
+		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
 			local eh = ConvertHeading(pos.h)
 			local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 			local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
@@ -265,6 +270,10 @@ end
 c_movetounspoiledmarker = inheritsFrom( ml_cause )
 e_movetounspoiledmarker = inheritsFrom( ml_effect )
 function c_movetounspoiledmarker:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	--Check that we have a proper location, that we haven't already gathered here, and that we haven't already found the node and that there is a valid marker.
     if ( ffxiv_task_gather.location == 0 or ffxiv_task_gather.unspoiledGathered or 
 		not ValidTable(ffxiv_task_gather.location) or gGatherUnspoiled == "0" or 
@@ -315,6 +324,10 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
 	end
@@ -345,7 +358,7 @@ function e_movetogatherable:execute()
 		--local newTask = ffxiv_task_movetopos.Create()
 		local ppos = shallowcopy(Player.pos)
 		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport()) then
+		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
 			local eh = ConvertHeading(pos.h)
 			local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 			local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
@@ -388,6 +401,10 @@ c_nextunspoiledmarker = inheritsFrom( ml_cause )
 e_nextunspoiledmarker = inheritsFrom( ml_effect )
 e_nextunspoiledmarker.marker = nil
 function c_nextunspoiledmarker:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	--Make sure we're supposed to be gathering unspoiled, and that we have a proper location table, that we haven't already gathered, and that the currentMarker is set to false.
 	if (gGatherUnspoiled == "0" or not ValidTable(ffxiv_task_gather.location) or ffxiv_task_gather.unspoiledGathered or 
 		ml_task_hub:ThisTask().currentMarker ~= false or ml_task_hub:ThisTask().gatherid ~= 0) then
@@ -431,16 +448,13 @@ end
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	--Check to make sure we have gathered any unspoiled nodes first.
-	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
+	if (Now() < ffxiv_task_gather.timer) then
 		return false
 	end
 	
-	if (gGatherUnspoiled == "1") then
-		if (Player.job ~= ffxiv_task_gather.location.class) then
-			ffxiv_task_gather.SwitchClass(ffxiv_task_gather.location.class)
-			return false
-		end
+	--Check to make sure we have gathered any unspoiled nodes first.
+	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
+		return false
 	end
 	
     local list = Player:GetGatherableSlotList()
@@ -538,6 +552,10 @@ c_nextgatherlocation = inheritsFrom( ml_cause )
 e_nextgatherlocation = inheritsFrom( ml_effect )
 c_nextgatherlocation.location = {}
 function c_nextgatherlocation:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	if (IsPositionLocked()) then
 		return false
 	end
@@ -721,13 +739,16 @@ function e_nextgatherlocation:execute()
 		gGatherMapLocation = location.name
 		ffxiv_task_gather.unspoiledGathered = false
 		ffxiv_task_gather.gatherStarted = false
-		d("Arrived at location ["..location.name.."], teleporting was not necessary.")
 	end
 end
 
 c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
 	local closestNode = EntityList("nearest,gatherable,maxdistance=10")
 	if (closestNode) then
 		local i, node = next(closestNode)
@@ -813,10 +834,15 @@ function e_gather:execute()
 		
 											local result = Player:Gather(item.index)
 											if (result == 65536) then
+												ffxiv_task_gather.timer = Now() + 300
+												ffxiv_task_gather.awaitingSuccess = true
+												return
+											elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 												ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 												ml_task_hub:CurrentTask().gatherTimer = Now()
 												ml_task_hub:CurrentTask().failedTimer = Now()
-												ffxiv_task_gather.timer = Now() + 2250
+												ffxiv_task_gather.timer = Now() + 750
+												ffxiv_task_gather.awaitingSuccess = false
 												return
 											end
 										elseif (itemCount > ml_task_hub:CurrentTask().mapCount) then
@@ -848,12 +874,16 @@ function e_gather:execute()
 									
 									local result = Player:Gather(item.index)
 									if (result == 65536) then
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
 									end
+									return
 								elseif (itemCount > ml_task_hub:CurrentTask().rareCount) then
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatheredGardening = true
@@ -880,12 +910,18 @@ function e_gather:execute()
 											
 									local result = Player:Gather(item.index)
 									if (result == 65536) then
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+										--return
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+										--return
 									end
+									return
 								elseif (itemCount > ml_task_hub:CurrentTask().rareCount2) then
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatheredChocoFood = true
@@ -900,12 +936,18 @@ function e_gather:execute()
 										
 								local result = Player:Gather(item.index)
 								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+									--return
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = Now()
 									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2250
-									return
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+									--return
 								end
+								return
 							end
 						end
 					end
@@ -927,6 +969,10 @@ function e_gather:execute()
 										
 								local result = Player:Gather(item.index)
 								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+									--return
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 									if (IsChocoboFood(item.id)) then
 										ml_task_hub:CurrentTask().gatheredChocoFood = true
 									elseif (IsGardening(item.id)) then
@@ -938,9 +984,11 @@ function e_gather:execute()
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = Now()
 									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2250
-									return
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+									--return
 								end
+								return
 							end
 						end
 					end
@@ -969,12 +1017,19 @@ function e_gather:execute()
 									
 									local result = Player:Gather(n-1)
 									if (result == 65536) then
+										--d("Gathering item priority 1.")
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+										--return
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+										--return
 									end
+									return
 								end
 							end
 						else						
@@ -993,12 +1048,19 @@ function e_gather:execute()
 							
 									local result = Player:Gather(item.index)
 									if (result == 65536) then
+										--d("Gathering item priority 1.")
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+										--return
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+										--return
 									end
+									return 
 								end
 							end
 						end
@@ -1024,12 +1086,19 @@ function e_gather:execute()
 							
 									local result = Player:Gather(n-1)
 									if (result == 65536) then
+										--d("Gathering item priority 2.")
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+										--return
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+										--return
 									end
+									return
 								end
 							end
 						else
@@ -1048,12 +1117,19 @@ function e_gather:execute()
 							
 									local result = Player:Gather(item.index)
 									if (result == 65536) then
+										--d("Gathering item priority 2.")
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+										--return
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 										ml_task_hub:CurrentTask().gatherTimer = Now()
 										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2250
-										return
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+										--return
 									end
+									return
 								end
 							end
 						end
@@ -1062,7 +1138,7 @@ function e_gather:execute()
 				
 				-- Gather unknown items to unlock them.
 				for i,item in pairs(list) do
-					if (item.isunknown) then
+					if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
 						if ((not IsChocoboFood(item.id) or (IsChocoboFood(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
 							(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
 							(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)))
@@ -1075,6 +1151,11 @@ function e_gather:execute()
 									
 							local result = Player:Gather(item.index)
 							if (result == 65536) then
+								--d("Gathering unknown item after failing item priorities.")
+								ffxiv_task_gather.timer = Now() + 300
+								ffxiv_task_gather.awaitingSuccess = true
+								--return
+							elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 								if (IsChocoboFood(item.id)) then
 									ml_task_hub:CurrentTask().gatheredChocoFood = true
 								elseif (IsGardening(item.id)) then
@@ -1086,9 +1167,11 @@ function e_gather:execute()
 								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 								ml_task_hub:CurrentTask().gatherTimer = Now()
 								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 2250
-								return
+								ffxiv_task_gather.timer = Now() + 750
+								ffxiv_task_gather.awaitingSuccess = false
+								--return
 							end
+							return
 						end
 					end
 				end
@@ -1096,7 +1179,7 @@ function e_gather:execute()
 			
 			-- Gather unknown items to unlock them.
 			for i,item in pairs(list) do
-				if (item.isunknown) then
+				if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
 					if ((not IsChocoboFood(item.id) or (IsChocoboFood(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
 						(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
 						(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)))
@@ -1109,6 +1192,11 @@ function e_gather:execute()
 								
 						local result = Player:Gather(item.index)
 						if (result == 65536) then
+							--d("Gathering unknown item in non-marker section.")
+							ffxiv_task_gather.timer = Now() + 300
+							ffxiv_task_gather.awaitingSuccess = true
+							--return
+						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 							if (IsChocoboFood(item.id)) then
 								ml_task_hub:CurrentTask().gatheredChocoFood = true
 							elseif (IsGardening(item.id)) then
@@ -1120,9 +1208,11 @@ function e_gather:execute()
 							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 							ml_task_hub:CurrentTask().gatherTimer = Now()
 							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2250
-							return
+							ffxiv_task_gather.timer = Now() + 750
+							ffxiv_task_gather.awaitingSuccess = false
+							--return
 						end
+						return
 					end
 				end
 			end
@@ -1138,12 +1228,19 @@ function e_gather:execute()
 							
 					local result = Player:Gather(item.index)
 					if (result == 65536) then
+						--d("Gathering random (change > 50) item because in non-marker section.")
+						ffxiv_task_gather.timer = Now() + 300
+						ffxiv_task_gather.awaitingSuccess = true
+						--return
+					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 						ml_task_hub:CurrentTask().gatherTimer = Now()
 						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2250
-						return
+						ffxiv_task_gather.timer = Now() + 750
+						ffxiv_task_gather.awaitingSuccess = false
+						--return
 					end
+					return
 				end
 			end
 			
@@ -1158,12 +1255,19 @@ function e_gather:execute()
 							
 					local result = Player:Gather(item.index)
 					if (result == 65536) then
+						--d("Gathering random item because in non-marker section.")
+						ffxiv_task_gather.timer = Now() + 300
+						ffxiv_task_gather.awaitingSuccess = true
+						--return
+					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 						ml_task_hub:CurrentTask().gatherTimer = Now()
 						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2250
-						return
+						ffxiv_task_gather.timer = Now() + 750
+						ffxiv_task_gather.awaitingSuccess = false
+						--return
 					end
+					return
 				end
 			end
 		end
@@ -1174,7 +1278,11 @@ c_nodeprebuff = inheritsFrom( ml_cause )
 e_nodeprebuff = inheritsFrom( ml_effect )
 e_nodeprebuff.useCordial = false
 function c_nodeprebuff:evaluate()
-	 local list = Player:GetGatherableSlotList()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
+	local list = Player:GetGatherableSlotList()
 	if (list) then
 		return false
 	end
@@ -1198,8 +1306,8 @@ function c_nodeprebuff:evaluate()
 						if (gGatherUseCordials == "1" and ItemIsReady(6141)) then
 							e_nodeprebuff.useCordial = true
 						end
-						return true
 					end
+					return true
 				end
 			elseif (markerType == GetString("botanyMarker") or markerType == GetString("miningMarker")) then
 				if (gGatherUseCordials == "1" and Player.gp.percent <= 30 and ItemIsReady(6141)) then
@@ -1212,7 +1320,14 @@ function c_nodeprebuff:evaluate()
 	return false
 end
 function e_nodeprebuff:execute()
-	Player:Stop()
+	if (Player:IsMoving()) then
+		Player:Stop()
+	end
+	if (Player.ismounted) then
+		Dismount()
+		return
+	end
+	
 	if (ShouldEat()) then
 		Eat()
 	end
@@ -1225,7 +1340,8 @@ function e_nodeprebuff:execute()
 	if (e_nodeprebuff.useCordial) then
 		local newTask = ffxiv_task_useitem.Create()
 		newTask.itemid = 6141
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		--ml_task_hub:CurrentTask():AddSubTask(newTask)
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 	end
 	e_nodeprebuff.useCordial = false
 end
@@ -1340,7 +1456,7 @@ function ffxiv_task_gather:Init()
 end
 
 function ffxiv_task_gather:Process()
-	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (IsLoading() or ml_mesh_mgr.meshLoading) then
 		return false
 	end
 	
@@ -1500,6 +1616,10 @@ function ffxiv_task_gather.UIInit()
 end
 
 function ffxiv_task_gather.SwitchClass(class)
+	if (Now() < ffxiv_task_gather.timer) then
+		return
+	end
+	
 	class = tonumber(class) or 0
 	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
@@ -1517,6 +1637,10 @@ function ffxiv_task_gather.SwitchClass(class)
 end
 
 function ffxiv_task_gather.LocatorBuff(class)
+	if (Now() < ffxiv_task_gather.timer) then
+		return
+	end
+	
 	class = tonumber(class) or 0
 	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
@@ -1538,7 +1662,7 @@ function ffxiv_task_gather.LocatorBuff(class)
 	if (action and not action.isoncd) then
 		action:Cast()
 	end
-	ffxiv_task_gather.timer = Now() + 1000
+	ffxiv_task_gather.timer = Now() + 2000
 end
 
 function ffxiv_task_gather.SetupMarkers()

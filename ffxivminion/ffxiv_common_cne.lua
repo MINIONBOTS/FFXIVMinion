@@ -2063,6 +2063,8 @@ function c_stealth:evaluate()
 					if (TableSize(potentialAdds) > 0) then
 						if (not HasBuff(Player.id, 47)) then
 							return true
+						else
+							return false
 						end
 					end
 				end
@@ -2071,8 +2073,9 @@ function c_stealth:evaluate()
 					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=25,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 					if (TableSize(potentialAdds) > 0) then
 						if (not HasBuff(Player.id, 47)) then
-							d("potential adds near gatherable.")
 							return true
+						else
+							return false
 						end
 					end
 				end
@@ -2081,11 +2084,14 @@ function c_stealth:evaluate()
 			local destPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
 			local myPos = Player.pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-			if (distance <= 5) then
-				if (not HasBuff(Player.id, 47)) then
-					return true
-				else
-					return false
+			if (distance <= 6) then
+				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
+				if (TableSize(potentialAdds) > 0) then
+					if (not HasBuff(Player.id, 47)) then
+						return true
+					else
+						return false
+					end
 				end
 			end
 		end
@@ -2096,7 +2102,6 @@ function c_stealth:evaluate()
 		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
 		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
 		then
-			d("stealth returning true in final block.")
 			return true
 		end
 	end
@@ -2168,12 +2173,12 @@ function c_teleporttopos:evaluate()
             return false
         end
 		
-		if (c_rest:evaluate() or not ShouldTeleport()) then
+		local myPos = Player.pos
+        local gotoPos = ml_task_hub:CurrentTask().pos
+		
+		if (c_rest:evaluate() or not ShouldTeleport(gotoPos)) then
 			return false
 		end
-		
-        local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos
 		
         -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
 		local distance = 0.0

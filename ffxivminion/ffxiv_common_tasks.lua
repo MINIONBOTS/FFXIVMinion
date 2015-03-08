@@ -662,7 +662,6 @@ function ffxiv_task_stealth:task_complete_eval()
 	return false
 end
 function ffxiv_task_stealth:task_complete_execute()
-	d("Stealth task finished.")
     self.completed = true
 end
 
@@ -680,7 +679,6 @@ function ffxiv_task_stealth:task_fail_eval()
 	return false
 end
 function ffxiv_task_stealth:task_fail_execute()
-	d("Stealth task failing.")
 	self.valid = false
 end
 
@@ -1041,10 +1039,9 @@ function ffxiv_task_grindCombat:Init()
 end
 
 function ffxiv_task_grindCombat:Process()	
-	local teleport = ShouldTeleport()
-	
 	target = EntityList:Get(self.targetid)
 	if ValidTable(target) then
+		local teleport = ShouldTeleport(target.pos)
 		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
@@ -1162,7 +1159,7 @@ function ffxiv_task_grindCombat:Process()
 end
 
 function ffxiv_task_grindCombat:task_complete_eval()
-	target = EntityList:Get(self.targetid)
+	local target = EntityList:Get(self.targetid)
     if (not target or not target.alive or target.hp.percent == 0 or not target.attackable) then
         return true
     end
@@ -1182,7 +1179,8 @@ function ffxiv_task_grindCombat:task_complete_execute()
 end
 
 function ffxiv_task_grindCombat:task_fail_eval()
-	if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
+	local target = EntityList:Get(self.targetid)
+	if (target.fateid ~= 0) then
 		local fateID = target.fateid
 		local fate = GetFateByID(fateID)
 		if (not fate or fate.completion > 99) then

@@ -148,6 +148,15 @@ function c_returntoposition:evaluate()
 			if (distance > 200 or (target == nil and distance > 15)) then
 				return true
 			end
+		elseif (ml_task_hub:ThisTask().name == "LT_QS_GATHER") then
+			local list = Player:GetGatherableSlotList()
+			if (list ~= nil) then
+				return false
+			end
+			local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
+			if (distance > 30 and (not gatherable or (gatherable and not gatherable.targetable))) then
+				return true
+			end
 		end
     end
     
@@ -499,6 +508,129 @@ function e_gathersimple:execute()
     end
 end
 
+c_qsmovetogatherable = inheritsFrom( ml_cause )
+e_qsmovetogatherable = inheritsFrom( ml_effect )
+function c_qsmovetogatherable:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+
+	local list = Player:GetGatherableSlotList()
+    if (list ~= nil) then
+        return false
+    end
+	
+    if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 1500 ) then
+        return false
+    end
+    
+    if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
+        local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+        if (gatherable and gatherable.cangather) then
+            return true
+        end
+    end
+    
+    return false
+end
+function e_qsmovetogatherable:execute()
+    -- reset idle timer
+    ml_task_hub:CurrentTask().idleTimer = 0
+    local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
+    if (pos ~= nil and pos ~= 0) then
+		--local newTask = ffxiv_task_movetopos.Create()
+		local ppos = shallowcopy(Player.pos)
+		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
+			local eh = ConvertHeading(pos.h)
+			local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
+			local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
+			local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
+			if (dist < 5) then
+				GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+				Player:SetFacing(pos.x,pos.y,pos.z)
+				return
+			end
+		end
+		
+		local newTask = ffxiv_task_movetointeract.Create()
+		newTask.pos = pos
+		newTask.useTeleport = false
+		newTask.interact = ml_task_hub:CurrentTask().gatherid
+		newTask.use3d = true
+		newTask.range = 3
+		newTask.task_complete_execute = function()
+			Player:Stop()
+			ffxiv_task_gather.gatherStarted = true
+			ffxiv_task_gather.timer = Now() + 500
+			ml_task_hub:CurrentTask():ParentTask().interactTimer = Now() + 1000
+			ml_task_hub:CurrentTask():ParentTask().failedTimer = Now()
+			ml_task_hub:CurrentTask():ParentTask().gatheredGardening = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
+			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
+			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
+			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
+			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
+			SkillMgr.prevSkillList = {}
+			ml_task_hub:ThisTask().completed = true
+		end
+		ml_task_hub:CurrentTask():AddSubTask(newTask)	
+    end
+end
+
+c_qsfindgatherable = inheritsFrom( ml_cause )
+e_qsfindgatherable = inheritsFrom( ml_effect )
+function c_qsfindgatherable:evaluate()
+	if (Now() < ffxiv_task_gather.timer) then
+		return false
+	end
+	
+	local list = Player:GetGatherableSlotList()
+    if (list ~= nil) then
+        return false
+    end
+
+    if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
+        return true
+    end
+    
+    local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+    if (gatherable) then
+        if (not gatherable.cangather) then
+            return true 
+        end
+	else
+        return true
+    end
+    
+    return false
+end
+function e_qsfindgatherable:execute()
+    local minlevel = tonumber(gQSGatherNodeLevel)
+    local maxlevel = tonumber(gQSGatherNodeLevel)
+	if (minlevel and minlevel < 50) then
+		minlevel = RoundUp(minlevel,5)
+	end
+	if (maxlevel and maxlevel < 50) then
+		maxlevel = RoundUp(maxlevel,5)
+	end
+	
+	ffxiv_task_gather.gatherStarted = false
+    
+    local gatherable = GetNearestGatherable(minlevel,maxlevel)
+    if (gatherable ~= nil) then
+		-- reset blacklist vars for a new node
+		ml_task_hub:CurrentTask().failedTimer = 0		
+		ml_task_hub:CurrentTask().gatheredMap = false
+        ml_task_hub:CurrentTask().gatherid = gatherable.id
+		ml_task_hub:CurrentTask().gatheruniqueid = gatherable.uniqueid		
+    else
+		d("No gatherable entities found nearby.")
+    end
+end
+
 ffxiv_task_qs_gather = inheritsFrom(ml_task)
 function ffxiv_task_qs_gather.Create()
     local newinst = inheritsFrom(ffxiv_task_qs_gather)
@@ -542,17 +674,14 @@ function ffxiv_task_qs_gather:Init()
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 23 )
     self:add( ke_stealth, self.overwatch_elements)
 	
-	local ke_gatherWindow = ml_element:create( "GatherWindow", c_gatherwindow, e_gatherwindow, 20)
-	self:add( ke_gatherWindow, self.overwatch_elements)
-
-	local ke_returnToPosition = ml_element:create( "ReturnToPosition", c_returntoposition, e_returntoposition, 25 )
-    self:add(ke_returnToPosition, self.process_elements)
-	
-    local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
+    local ke_findGatherable = ml_element:create( "FindGatherable", c_qsfindgatherable, e_qsfindgatherable, 15 )
     self:add(ke_findGatherable, self.process_elements)
 	
-    local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 10 )
+    local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_qsmovetogatherable, e_qsmovetogatherable, 12 )
     self:add( ke_moveToGatherable, self.process_elements)
+	
+	local ke_returnToPosition = ml_element:create( "ReturnToPosition", c_returntoposition, e_returntoposition, 10)
+    self:add(ke_returnToPosition, self.process_elements)
     
     local ke_gatherSimple = ml_element:create( "Gather", c_gathersimple, e_gathersimple, 5 )
     self:add(ke_gatherSimple, self.process_elements)
