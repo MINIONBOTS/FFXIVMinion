@@ -79,29 +79,31 @@ function c_nextgrindmarker:evaluate()
 		end
         
         --Check level range, this section only executes if marker is in list mode.
-        if (marker == nil) then
-            if (ValidTable(ml_task_hub:ThisTask().currentMarker) and Player:GetSyncLevel() == 0) then
-                if 	(ml_task_hub:ThisTask().filterLevel) and
-					(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
-                    Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
-                then
-                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
-                end
-            end
-        end
-        
-        -- last check if our time has run out
-        if (marker == nil) then
-			if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-				local expireTime = ml_task_hub:ThisTask().markerTime
-				if (Now() > expireTime) then
-					ml_debug("Getting Next Marker, TIME IS UP!")
-					marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
-				else
-					return false
+		if (gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) then
+			if (marker == nil) then
+				if (ValidTable(ml_task_hub:ThisTask().currentMarker) and Player:GetSyncLevel() == 0) then
+					if 	(ml_task_hub:ThisTask().filterLevel) and
+						(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
+						Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
+					then
+						marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+					end
 				end
 			end
-        end
+			
+			-- last check if our time has run out
+			if (marker == nil) then
+				if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+					local expireTime = ml_task_hub:ThisTask().markerTime
+					if (Now() > expireTime) then
+						ml_debug("Getting Next Marker, TIME IS UP!")
+						marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+					else
+						return false
+					end
+				end
+			end
+		end
         
         if (ValidTable(marker)) then
             e_nextgrindmarker.marker = marker
@@ -191,9 +193,21 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "AlwaysKillAggro" or
 				k == "gClaimFirst" or
 				k == "gClaimRange" or
-				k == "gClaimed" )
+				k == "gClaimed" or
+				k == "gDoBattleFates" or
+				k == "gDoGatherFates" or
+				k == "gDoDefenseFates" or
+				k == "gDoBossFates" or
+				k == "gDoEscortFates" )
         then
             SafeSetVar(tostring(k),v)
+		elseif (k == "gFateBattleWaitPercent" or
+				k == "gFateBossWaitPercent" or
+				k == "gFateGatherWaitPercent" or
+				k == "gFateDefenseWaitPercent" or
+				k == "gFateEscortWaitPercent" )
+		then
+			SafeSetVar(tostring(k),tonumber(v))
 		elseif ( k == "gAtma") then
 			if (v == "1") then
 				SetGUIVar("gDoFates","1")
@@ -320,9 +334,6 @@ function ffxiv_task_grind.UIInit()
     if (Settings.FFXIVMINION.gRestInFates == nil) then
         Settings.FFXIVMINION.gRestInFates = "1"
     end
-    if (Settings.FFXIVMINION.gFateWaitPercent == nil) then
-        Settings.FFXIVMINION.gFateWaitPercent = "0"
-    end
 	if (Settings.FFXIVMINION.gFateTeleportPercent == nil) then
         Settings.FFXIVMINION.gFateTeleportPercent = "0"
     end
@@ -332,6 +343,37 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
+	
+	if (Settings.FFXIVMINION.gDoBattleFates == nil) then
+        Settings.FFXIVMINION.gDoBattleFates = "1"
+    end
+	if (Settings.FFXIVMINION.gDoBossFates == nil) then
+        Settings.FFXIVMINION.gDoBossFates = "1"
+    end
+	if (Settings.FFXIVMINION.gDoGatherFates == nil) then
+        Settings.FFXIVMINION.gDoGatherFates = "1"
+    end
+	if (Settings.FFXIVMINION.gDoDefenseFates == nil) then
+        Settings.FFXIVMINION.gDoDefenseFates = "1"
+    end
+	if (Settings.FFXIVMINION.gDoEscortFates == nil) then
+        Settings.FFXIVMINION.gDoEscortFates = "1"
+    end
+	if (Settings.FFXIVMINION.gFateBattleWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateBattleWaitPercent = 0
+    end
+	if (Settings.FFXIVMINION.gFateBossWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateBossWaitPercent = 0
+    end
+	if (Settings.FFXIVMINION.gFateGatherWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateGatherWaitPercent = 0
+    end
+	if (Settings.FFXIVMINION.gFateDefenseWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateDefenseWaitPercent = 0
+    end
+	if (Settings.FFXIVMINION.gFateEscortWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateEscortWaitPercent = 0
+    end
 	
 	local winName = GetString("grindMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -355,12 +397,25 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].claimRange, "gClaimRange", 	group, "0", "50")
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].attackClaimed, "gClaimed",	group)
     GUI_NewNumeric(winName, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", group, "1", "100")
+	
 	local group = GetString("fates")
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].restInFates, "gRestInFates",group)
     GUI_NewNumeric(winName, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", group, "0", "50")
     GUI_NewNumeric(winName, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", group, "0", "50")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].waitForComplete, "gFateWaitPercent", group, "0", "99")
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", group, "0", "99")
+	
+	local group = "Details"
+	GUI_NewCheckbox(winName,"Battle Fates", "gDoBattleFates",group)
+	GUI_NewNumeric(winName,"Battle Fate Wait %", "gFateBattleWaitPercent", group, "0", "99")
+	GUI_NewCheckbox(winName,"Boss Fates", "gDoBossFates",group)
+	GUI_NewNumeric(winName,"Boss Fate Wait %", "gFateBossWaitPercent", group, "0", "99")
+	GUI_NewCheckbox(winName,"Gather Fates", "gDoGatherFates",group)
+	GUI_NewNumeric(winName,"Gather Fate Wait %", "gFateGatherWaitPercent", group, "0", "99")
+	GUI_NewCheckbox(winName,"Defense Fates", "gDoDefenseFates",group)
+	GUI_NewNumeric(winName,"Defense Fate Wait %", "gFateDefenseWaitPercent", group, "0", "99")
+	GUI_NewCheckbox(winName,"Escort Fates", "gDoEscortFates",group)
+	GUI_NewNumeric(winName,"Escort Fate Wait %", "gFateEscortWaitPercent", group, "0", "99")
+	
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
@@ -381,6 +436,16 @@ function ffxiv_task_grind.UIInit()
 	gFateTeleportPercent = Settings.FFXIVMINION.gFateTeleportPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
+	gDoBattleFates = Settings.FFXIVMINION.gDoBattleFates
+	gDoBossFates = Settings.FFXIVMINION.gDoBossFates
+	gDoGatherFates = Settings.FFXIVMINION.gDoGatherFates
+	gDoDefenseFates = Settings.FFXIVMINION.gDoDefenseFates
+	gDoEscortFates = Settings.FFXIVMINION.gDoEscortFates
+	gFateBattleWaitPercent = Settings.FFXIVMINION.gFateBattleWaitPercent
+	gFateBossWaitPercent = Settings.FFXIVMINION.gFateBossWaitPercent
+	gFateGatherWaitPercent = Settings.FFXIVMINION.gFateGatherWaitPercent
+	gFateDefenseWaitPercent = Settings.FFXIVMINION.gFateDefenseWaitPercent
+	gFateEscortWaitPercent = Settings.FFXIVMINION.gFateEscortWaitPercent
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
