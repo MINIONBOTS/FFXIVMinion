@@ -1180,11 +1180,13 @@ end
 
 function ffxiv_task_grindCombat:task_fail_eval()
 	local target = EntityList:Get(self.targetid)
-	if (target.fateid ~= 0) then
-		local fateID = target.fateid
-		local fate = GetFateByID(fateID)
-		if (not fate or fate.completion > 99) then
-			return true
+	if (target) then
+		if (target.fateid ~= 0) then
+			local fateID = target.fateid
+			local fate = GetFateByID(fateID)
+			if (not fate or fate.completion > 99) then
+				return true
+			end
 		end
 	end
 end
