@@ -276,6 +276,7 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
 	ffxivminion.AddMode(GetString("questMode"), ffxiv_task_quest)
 	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
+	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	

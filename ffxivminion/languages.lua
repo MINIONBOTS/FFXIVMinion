@@ -287,6 +287,7 @@ strings =
         botEnabled                      = "Bot Enabled",
         grindMode                       = "Grind",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "Fish",
         gatherMode                      = "Gather",
         assistMode                      = "Assist",
@@ -622,6 +623,8 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		--====== Added 3/13/15 - Ace
+		doHuntingLog					= "Do Hunting Log",
     },                                  
     ["cn"] =                            
     {                               
@@ -916,6 +919,7 @@ strings =
         botEnabled                      = "开启外挂",
         grindMode                       = "普通地面",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "钓鱼",
         gatherMode                      = "采集",
         assistMode                      = "辅助",
@@ -1260,6 +1264,7 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		doHuntingLog					= "Do Hunting Log",
 	},
     ["jp"] =
     {
@@ -1542,6 +1547,7 @@ strings =
         botEnabled                      = "Bot 起動",
         grindMode                       = "レべリングモード",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "釣りモード",
 		gatherMode                      = "採集モード",
 		craftMode                       = "Crafting",
@@ -1850,6 +1856,7 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		doHuntingLog					= "Do Hunting Log",
 	},   
     ["de"] =
     {
@@ -2132,6 +2139,7 @@ strings =
         botEnabled                      = "Bot Enabled",
         grindMode                       = "Grind",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "Fish",
 		craftMode                       = "Crafting",
         gatherMode                      = "Gather",
@@ -2442,6 +2450,7 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		doHuntingLog					= "Do Hunting Log",
 	},     
     ["fr"] =
     {
@@ -2724,6 +2733,7 @@ strings =
         botEnabled                      = "Bot Enabled",
         grindMode                       = "Grind",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "Fish",
         gatherMode                      = "Gather",
         assistMode                      = "Assist",
@@ -3033,6 +3043,7 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		doHuntingLog					= "Do Hunting Log",
 	},       
     ["ru"] =
     {
@@ -3315,6 +3326,7 @@ strings =
         botEnabled                      = "Bot Enabled",
         grindMode                       = "Grind",
 		huntMode						= "Hunt",
+		huntlogMode						= "Hunting Log",
         fishMode                        = "Fish",
         gatherMode                      = "Gather",
         assistMode                      = "Assist",
@@ -3624,6 +3636,7 @@ strings =
 		htSucceedMax					= "Hasty Touch Success <",
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
+		doHuntingLog					= "Do Hunting Log",
 	},    	
 
 }
