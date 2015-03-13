@@ -238,12 +238,6 @@ function c_add_fate:evaluate()
     if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
 		return false
     end
-	
-	if (ml_task_hub:ThisTask().subtask) then
-		if (ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
-			return false
-		end
-	end
     
     if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
@@ -857,9 +851,12 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
-	local teleport = ActionList:Get(7,5)
-	if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
-		return false
+	--Only perform this check when dismounted.
+	if (not Player.ismounted) then
+		local teleport = ActionList:Get(7,5)
+		if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
+			return false
+		end
 	end
 	
     if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
@@ -897,10 +894,12 @@ function c_teleporttomap:evaluate()
     return false
 end
 function e_teleporttomap:execute()
-	Player:Stop()
-	Dismount()
+	if (Player:IsMoving()) then
+		Player:Stop()
+	end
 	
 	if (Player.ismounted) then
+		Dismount()
 		return
 	end
 	
@@ -1201,7 +1200,7 @@ function c_usenavinteraction:evaluate()
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
 					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 220.899, y = 1.7, z = 257.399}
+					newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
 					newTask.uniqueid = 1003587
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
@@ -2163,7 +2162,12 @@ end
 c_teleporttopos = inheritsFrom( ml_cause )
 e_teleporttopos = inheritsFrom( ml_effect )
 c_teleporttopos.pos = 0
+e_teleporttopos.teleCooldown = 0
 function c_teleporttopos:evaluate()
+	if (Now() < e_teleporttopos.teleCooldown) then
+		return false
+	end
+	
 	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
@@ -2203,6 +2207,7 @@ function e_teleporttopos:execute()
 		
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		Player:SetFacingSynced(math.random())
+		e_teleporttopos.teleCooldown = Now() + 1000
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
     end
