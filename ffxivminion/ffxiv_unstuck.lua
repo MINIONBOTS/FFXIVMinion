@@ -142,8 +142,8 @@ function ffxiv_unstuck.HandleUpdate(ticks)
         ml_task_hub.shouldRun
     then
         ffxiv_unstuck.evaltime = ticks
-        ffxiv_unstuck:Update() --stuck/idle/mesh stuff.
-        ffxiv_unstuck:CheckStuck()
+        --ffxiv_unstuck:Update() --stuck/idle/mesh stuff.
+        --ffxiv_unstuck:CheckStuck()
     end
     
     if (ffxiv_unstuck.count > 20) then
