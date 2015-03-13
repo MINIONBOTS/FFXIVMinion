@@ -1329,7 +1329,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					end
 					
 					if ( realskilldata and (not dependentskill or not dependentskill.isoncd) and dependentstate) then
-						if (realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady())) then
+						if (realskilldata.isready or 
+							(realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or 
+							(IsCaster(Player.job) and SkillMgr.IsGCDReady())) 
+						then
 							--reset our variables
 							target = entity
 							TID = EID
@@ -1525,7 +1528,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										castable = false									
 										if (gSkillManagerDebug == "1") then
 											if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
-												--SkillMgr.logger:info("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 												d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 											else
 												local priorityChecks = {}
@@ -1533,7 +1535,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 													priorityChecks[tonumber(priority)] = true
 												end
 												if (priorityChecks[skill.prio]) then
-													--SkillMgr.logger:info("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 													d("Condition ["..condition.name.."] failed its check for "..skill.name.."["..tostring(prio).."]")
 												end
 											end
@@ -1604,7 +1605,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 											newTask.skill = shallowcopy(skill)
 											newTask.TID = TID
 											ml_task_hub:CurrentTask():AddSubTask(newTask)
-											SkillMgr.failTimer = Now() + 3000
+											SkillMgr.failTimer = Now() + 5000
 											return true
 										end
 									end
@@ -1951,7 +1952,7 @@ function ffxiv_task_skill_cast:task_complete_eval()
 	
 	if ((skilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or skilldata.isready) then
 		if (skilldata:Cast(self.TID)) then
-			SkillMgr.failTimer = Now() + 3000
+			SkillMgr.failTimer = Now() + 5000
 			return false
 		end
 	end
@@ -1977,7 +1978,7 @@ function ffxiv_task_skill_cast:task_complete_eval()
 			end
 			
 			if (skilldata.recasttime == 2.5) then
-				SkillMgr.prevComboSkillID = skill.id
+				SkillMgr.prevComboSkillID = skilldata.id
 				SkillMgr.latencyTimer = Now() + 500
 			end
 			
@@ -1990,6 +1991,9 @@ function ffxiv_task_skill_cast:task_complete_eval()
 	end
    
     return false
+end
+function ffxiv_task_skill_cast:task_complete_execute()
+	self.completed = true
 end
 
 function ffxiv_task_skill_cast:task_fail_eval()
@@ -2004,7 +2008,7 @@ function ffxiv_task_skill_cast:task_fail_eval()
 	
 	return false
 end
-function ffxiv_task_skill_cast:task_complete_execute()
+function ffxiv_task_skill_cast:task_fail_execute()
     self.valid = false
 end
 
