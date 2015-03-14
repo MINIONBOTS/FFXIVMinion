@@ -1952,18 +1952,18 @@ function c_returntomarker:evaluate()
 		end
 	
         local myPos = Player.pos
-        local pos = ml_task_hub:ThisTask().currentMarker:GetPosition()
+        local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
         local distance = Distance2D(myPos.x, myPos.z, pos.x, pos.z)
 		
-		if (ml_task_hub:ThisTask().name == "LT_GRIND" or ml_task_hub:ThisTask().name == "LT_PARTY") then
-			local target = ml_task_hub:ThisTask().targetFunction()
+		if (ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY") then
+			local target = ml_task_hub:CurrentTask().targetFunction()
 			if (distance > 200 or (target == nil and distance > 10)) then
 				return true
 			end
 		end
 		
 		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
-			if (ml_task_hub:ThisTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
+			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 				if (distance > 25) then
 					return true
 				end
@@ -2055,8 +2055,9 @@ function c_stealth:evaluate()
 		end
 		
 		if (gBotMode == GetString("gatherMode")) then
-			if ( ml_task_hub:ThisTask().gatherid ~= nil and ml_task_hub:ThisTask().gatherid ~= 0 ) then
-				local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
+			local gatherid = ml_task_hub:ThisTask().gatherid
+			if ( gatherid and gatherid ~= 0 ) then
+				local gatherable = EntityList:Get(gatherid)
 				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
 					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 					if (TableSize(potentialAdds) > 0) then
@@ -2080,16 +2081,19 @@ function c_stealth:evaluate()
 				end
 			end
 		elseif (gBotMode == GetString("fishMode")) then
-			local destPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
-			local myPos = Player.pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-			if (distance <= 6) then
-				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
-				if (TableSize(potentialAdds) > 0) then
-					if (not HasBuff(Player.id, 47)) then
-						return true
-					else
-						return false
+			local currentMarker = ml_task_hub:ThisTask().currentMarker
+			if (currentMarker) then
+				local destPos = currentMarker:GetPosition()
+				local myPos = Player.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+				if (distance <= 6) then
+					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
+					if (TableSize(potentialAdds) > 0) then
+						if (not HasBuff(Player.id, 47)) then
+							return true
+						else
+							return false
+						end
 					end
 				end
 			end
