@@ -127,26 +127,29 @@ end
 
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
-	local ke_returnToMap = ml_element:create( "ReturnToMap", c_returntomap, e_returntomap, 30 )
-    self:add(ke_returnToMap, self.overwatch_elements)
-	
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 45 )
     self:add(ke_dead, self.overwatch_elements)
 	
-	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 20 )
-    self:add(ke_atma, self.overwatch_elements)
-    
-    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 15 )
+	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 40 )
     self:add(ke_flee, self.overwatch_elements)
-    
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 14 )
+	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 35 )
     self:add(ke_rest, self.overwatch_elements)
 	
-    local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 10 )
-    self:add(ke_addFate, self.overwatch_elements)
-	
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 30 )
+	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 30 )
+    self:add(ke_atma, self.overwatch_elements)
+    
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 45 )
     self:add( ke_autoEquip, self.process_elements)
+	
+	local ke_addHuntlog = ml_element:create( "AddHuntlog", c_grind_addhuntlogtask, e_grind_addhuntlogtask, 40 )
+    self:add(ke_addHuntlog, self.process_elements)
+	
+	local ke_returnToMap = ml_element:create( "ReturnToMap", c_returntomap, e_returntomap, 35 )
+    self:add(ke_returnToMap, self.process_elements)
+	
+	 local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 30 )
+    self:add(ke_addFate, self.process_elements)
 
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
     self:add(ke_returnToMarker, self.process_elements)
@@ -198,7 +201,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gDoGatherFates" or
 				k == "gDoDefenseFates" or
 				k == "gDoBossFates" or
-				k == "gDoEscortFates" )
+				k == "gDoEscortFates" or
+				k == "gGrindDoHuntLog" )
         then
             SafeSetVar(tostring(k),v)
 		elseif (k == "gFateBattleWaitPercent" or
@@ -343,7 +347,6 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
-	
 	if (Settings.FFXIVMINION.gDoBattleFates == nil) then
         Settings.FFXIVMINION.gDoBattleFates = "1"
     end
@@ -374,6 +377,10 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gFateEscortWaitPercent == nil) then
         Settings.FFXIVMINION.gFateEscortWaitPercent = 0
     end
+	if (Settings.FFXIVMINION.gGrindDoHuntLog == nil) then
+        Settings.FFXIVMINION.gGrindDoHuntLog = "0"
+    end
+	
 	
 	local winName = GetString("grindMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -390,6 +397,7 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewButton(winName, GetString("setEvacPoint"), "ml_mesh_mgr.SetEvacPoint", group)
 	
 	local group = GetString("settings")
+	GUI_NewCheckbox(winName, GetString("doHuntingLog"),"gGrindDoHuntLog",group)
 	GUI_NewCheckbox(winName, strings[gCurrentLanguage].doAtma, "gAtma",group)
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].doFates, "gDoFates",group)
     GUI_NewCheckbox(winName, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",group)
@@ -446,6 +454,7 @@ function ffxiv_task_grind.UIInit()
 	gFateGatherWaitPercent = Settings.FFXIVMINION.gFateGatherWaitPercent
 	gFateDefenseWaitPercent = Settings.FFXIVMINION.gFateDefenseWaitPercent
 	gFateEscortWaitPercent = Settings.FFXIVMINION.gFateEscortWaitPercent
+	gGrindDoHuntLog = Settings.FFXIVMINION.gGrindDoHuntLog
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
