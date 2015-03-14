@@ -120,7 +120,6 @@ function c_grind_addhuntlogtask:evaluate()
 	c_grind_addhuntlogtask.possibleTargets = {}
 	
 	if (gGrindDoHuntLog == "0") then
-		d("Grind_AddHunt, returning false because the option is off.")
 		return false
 	end
 
@@ -128,7 +127,6 @@ function c_grind_addhuntlogtask:evaluate()
 	--First check that we have some valid indexes to complete.	
 	c_grind_addhuntlogtask.validIndexes = ffxiv_task_huntlog.GetValidIndexes()
 	if (not ValidTable(c_grind_addhuntlogtask.validIndexes)) then
-		d("Grind_AddHunt, returning false because we found no valid indexes.")
 		return false
 	end
 	
@@ -138,7 +136,6 @@ function c_grind_addhuntlogtask:evaluate()
 		return true
 	end
 	
-	d("Grind_AddHunt, returning false because the target list was empty.")
 	return false
 end
 function e_grind_addhuntlogtask:execute()
