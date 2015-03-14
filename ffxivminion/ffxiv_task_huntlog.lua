@@ -459,10 +459,14 @@ function ffxiv_task_huntlog.GetTargetList(indexlist,filtermap)
 	
 	local targetList = {}
 	for indexkey,indexdata in pairs(list) do
-		for entrykey,entrydata in pairs(indexdata) do
-			if (not ffxiv_task_huntlog.IsEntryComplete(indexkey,entrykey)) then
-				if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
-					targetList[entrydata.id] = entrydata
+		if (ValidTable(indexdata)) then
+			for entrykey,entrydata in pairs(indexdata) do
+				if (ValidTable(entrydata)) then
+					if (not ffxiv_task_huntlog.IsEntryComplete(indexkey,entrykey)) then
+						if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
+							targetList[entrydata.id] = entrydata
+						end
+					end
 				end
 			end
 		end
