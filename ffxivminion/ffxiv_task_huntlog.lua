@@ -320,13 +320,13 @@ function e_huntlogkill:execute()
 			Player:Stop()
 			ml_task_hub:CurrentTask().completed = true
 			ml_task_hub:CurrentTask():ParentTask().completed = true
-			ml_task_hub:CurrentTask():ParentTask():SetDelay(3000)
+			ml_task_hub:CurrentTask():ParentTask():SetDelay(2000)
 		end
 	else
 		newTask.task_complete_execute = function ()
 			Player:Stop()
 			ml_task_hub:CurrentTask().completed = true
-			ml_task_hub:CurrentTask():SetDelay(3000)
+			ml_task_hub:CurrentTask():SetDelay(2000)
 		end
 	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -545,7 +545,7 @@ function ffxiv_task_huntlog.GetBestTarget(list)
 		end
 		
 		local closestType = nil
-		local nearscan = EntityList("nearest,alive,onmesh,attackable,contentid="..entityString..",maxlevel="..tostring(maxlevel))
+		local nearscan = EntityList("nearest,alive,onmesh,attackable,fateid=0,contentid="..entityString..",maxlevel="..tostring(maxlevel))
 		if (nearscan) then
 			local id,target = next(nearscan)
 			if (target) then
