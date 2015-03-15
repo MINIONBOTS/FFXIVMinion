@@ -1005,6 +1005,7 @@ function ffxiv_task_grindCombat.Create()
     newinst.name = "GRIND_COMBAT"
 	newinst.targetid = 0
     newinst.noTeleport = false
+	newinst.teleportThrottle = 0
 	newinst.targetPos = nil
 	newinst.movementDelay = 0
 	newinst.attackThrottle = false
@@ -1019,15 +1020,12 @@ function ffxiv_task_grindCombat:Init()
 	
 	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
 	self:add(ke_autoPotion, self.overwatch_elements)
-	
-	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
-	self:add( ke_attarget, self.overwatch_elements)
 
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.overwatch_elements)
 		
-	local ke_moveCloser = ml_element:create( "MoveCloser", c_movecloser, e_movecloser, 10 )
-	self:add( ke_moveCloser, self.process_elements)
+	--local ke_moveCloser = ml_element:create( "MoveCloser", c_movecloser, e_movecloser, 10 )
+	--self:add( ke_moveCloser, self.process_elements)
 	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 8 )
 	self:add( ke_companion, self.process_elements)
@@ -1067,11 +1065,12 @@ function ffxiv_task_grindCombat:Process()
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
 			if ((not InCombatRange(target.id) or not target.los) and not ActionList:IsCasting()) then
-				if (teleport and dist > 60) then
-					local telePos = GetPosFromDistanceHeading(pos, 6, mobRear)
+				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
+					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+						self.teleportThrottle = Now() + 1500
 					end
 				else
 					if (Now() > self.movementDelay) then
@@ -1102,11 +1101,12 @@ function ffxiv_task_grindCombat:Process()
 			end
 		else
 			if (not InCombatRange(target.id) or (not target.los and not (dist < (target.hitradius + 1)))) then
-				if (teleport and dist > 60) then
+				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (dist < 5) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+						self.teleportThrottle = Now() + 1500
 					end
 				elseif (target.los and dist <= (target.hitradius + 2.5)) then
 					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
