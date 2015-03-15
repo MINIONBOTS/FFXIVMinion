@@ -2239,9 +2239,24 @@ function IsGardening(itemid)
 			or itemid == 5365)
 end
 
+-- Ixali hidden items have a max item count of 5.
+function IsIxaliRare(itemid)
+	local itemid = tonumber(itemid) or 0
+	return (itemid == 2001392
+			or itemid == 2001389)
+end
+
+-- Ixali "regular" items have a max item count of 15.
+function IsIxaliSemiRare(itemid)
+	local itemid = tonumber(itemid) or 0
+	return (itemid == 2001391
+			or itemid == 2001388)
+end
+
 function IsChocoboFood(itemid)
 	local itemid = tonumber(itemid) or 0
-	return (itemid >= 10094 and itemid <= 10098)
+	return ((itemid >= 10094 and itemid <= 10095) or
+			(itemid >= 10097 and itemid <= 10098))
 end
 
 function IsChocoboFoodSpecial(itemid)
