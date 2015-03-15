@@ -6,7 +6,6 @@ SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
 SkillMgr.CurrentSkillData = {}
 SkillMgr.CurrentTarget = {}
-SkillMgr.CurrentTargetBuffs = {}
 SkillMgr.CurrentTID = 0
 SkillMgr.CurrentPet = {}
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
@@ -1280,80 +1279,72 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	
 	if (SkillMgr.SkillProfile) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-		
-			local skillid = tonumber(skill.id)
-			local realskilldata = nil	
-			if (skill.stype == "Pet") then 
-				realskilldata = ActionList:Get(skillid,11) 
-			else 
-				realskilldata = ActionList:Get(skillid) 
-			end
 			
-			if (not realskilldata) then
-				d(skill.name .."["..tostring(prio).."] is misconfigured, please check the skill type.")
-			else
-				local targetTable = SkillMgr.GetSkillTargetTable(skill, entity, realskilldata.range)
-				if (targetTable) then
-					if (SkillMgr.CanCast(prio, entity, preCombat)) then
-						local TID = targetTable.TID
-							
-						if (skill.stype == "Pet") then	
-							local s = ActionList:Get(skillid,11)
-							
-							local attempt = 1
-							while (s.isready and attempt <= 25) do
-								ActionList:Cast(skillid,TID,11)
-								s = ActionList:Get(skillid,11)
-								attempt = attempt + 1
-							end			
-						else
-							if (skill.trg == "Ground Target") then
-								local action = ActionList:Get(skillid)
-								local tpos = EntityList:Get(TID).pos
-								
-								if (action:Cast(tpos.x, tpos.y, tpos.z)) then
-									if (SkillMgr.SkillProfile[prio]) then
-										SkillMgr.SkillProfile[prio].lastcast = Now()
-									else
-										d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
-									end
-									
-									SkillMgr.nextSkillID = tostring(skill.nskill)
-									SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-									SkillMgr.failTimer = Now() + 8000
-									return true
-								end
+			local result = SkillMgr.CanCast(prio, entity, preCombat)
+			if (result ~= 0) then
+				local TID = result
+				
+				if (skill.stype == "Pet") then	
+					local s = ActionList:Get(skill.id,11)
+					
+					local attempt = 1
+					while (s.isready and attempt <= 25) do
+						ActionList:Cast(skill.id,TID,11)
+						s = ActionList:Get(skill.id,11)
+						attempt = attempt + 1
+					end		
+					if (SkillMgr.SkillProfile[prio]) then
+						SkillMgr.SkillProfile[prio].lastcast = Now()
+					else
+						d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+					end
+				else
+					local action = ActionList:Get(skill.id)
+					if (skill.trg == "Ground Target") then
+						local tpos = EntityList:Get(TID).pos
+						
+						if (action:Cast(tpos.x, tpos.y, tpos.z)) then
+							if (SkillMgr.SkillProfile[prio]) then
+								SkillMgr.SkillProfile[prio].lastcast = Now()
 							else
-								if forceStop then 
-									Player:Stop() 
-								end
-								if (realskilldata:Cast(TID)) then
-									if (SkillMgr.SkillProfile[prio]) then
-										SkillMgr.SkillProfile[prio].lastcast = Now()
-									else
-										d("An error occurred setting last cast.")
-									end
-									
-									local newTask = ffxiv_task_skill_cast.Create()
-									newTask.skill = shallowcopy(skill)
-									newTask.TID = TID
-									newTask.entity = entity
-									newTask.preCombat = preCombat
-									ml_task_hub:CurrentTask():AddSubTask(newTask)
-									SkillMgr.failTimer = Now() + 5000
-									return true
-								end
+								d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
 							end
+							
+							SkillMgr.nextSkillID = tostring(skill.nskill)
+							SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+							SkillMgr.failTimer = Now() + 8000
+							return true
 						end
 					else
-						if (IsCaster(Player.job)) then
-							if ( realskilldata and not realskilldata.isready and skill.mplock == "1") then
-								if ( (realskilldata.cost > Player.mp.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > Player.mp.current) ) then
-									SkillMgr.mplock = true
-									SkillMgr.mplockTimer = Now() + 10000
-									SkillMgr.mplockPercent = tonumber(skill.mplockper)
-								end
+						if forceStop then 
+							Player:Stop() 
+						end
+						if (action:Cast(TID)) then
+							if (SkillMgr.SkillProfile[prio]) then
+								SkillMgr.SkillProfile[prio].lastcast = Now()
+							else
+								d("An error occurred setting last cast.")
 							end
+							
+							local newTask = ffxiv_task_skill_cast.Create()
+							newTask.skill = shallowcopy(skill)
+							newTask.TID = TID
+							newTask.entity = entity
+							newTask.preCombat = preCombat
+							ml_task_hub:CurrentTask():AddSubTask(newTask)
+							SkillMgr.failTimer = Now() + 5000
+							return true
+						end
+					end
+				end
+			else
+				if (IsCaster(Player.job)) then
+					local realskilldata = ActionList:Get(skill.id)
+					if ( realskilldata and not realskilldata.isready and skill.mplock == "1") then
+						if ( (realskilldata.cost > Player.mp.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > Player.mp.current) ) then
+							SkillMgr.mplock = true
+							SkillMgr.mplockTimer = Now() + 10000
+							SkillMgr.mplockPercent = tonumber(skill.mplockper)
 						end
 					end
 				end
@@ -1676,17 +1667,15 @@ function SkillMgr.DebugOutput( prio, message )
 end
 
 -- Need to return a table containing the target, the cast TID, and the buffs table for the target.
-function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
+function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	if (not skill or not entity) then
 		return nil
 	end
 	
 	local PID = Player.id
-	local pbuffs = Player.buffs	
 	local pet = Player.pet
 	local target = entity
 	local TID = entity.id
-	local tbuffs = entity.buffs
 	local maxrange = tonumber(maxrange) or 0
 	
 	local targetTable = {}
@@ -1708,7 +1697,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			else
 				target = pet
 				TID = pet.id
-				tbuffs = pet.buffs
 			end
 		else
 			TID = PID
@@ -1719,7 +1707,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
-				tbuffs = newtarget.buffs
 			 else
 				return nil
 			end
@@ -1734,7 +1721,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			if ( ally ) then
 				target = ally
 				TID = ally.id
-				tbuffs = ally.buffs
 			else
 				return nil
 			end
@@ -1745,7 +1731,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
-				tbuffs = newtarget.buffs
 			else
 				return nil
 			end
@@ -1754,7 +1739,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			if ( ally ) then
 				target = ally
 				TID = ally.id
-				tbuffs = ally.buffs
 			else
 				return nil
 			end
@@ -1764,7 +1748,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if ( ally and ally.id ~= PID) then
 			target = ally
 			TID = ally.id
-			tbuffs = ally.buffs
 		else
 			return nil
 		end
@@ -1779,7 +1762,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if ( ally and ally.id ~= PID) then
 			target = ally
 			TID = ally.id
-			tbuffs = ally.buffs
 		end	
 	elseif ( skill.trg == "Dead Party" or skill.trg == "Dead Ally") then
 		local ally = nil
@@ -1793,7 +1775,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 			if IsReviveSkill(skillid) then
 				target = ally
 				TID = ally.id
-				tbuffs = ally.buffs
 			else
 				TID = PID
 			end
@@ -1805,7 +1786,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if ( ci ) then
 			target = EntityList:Get(ci.channeltargetid)
 			TID = ci.channeltargetid
-			tbuffs = target.buffs
 		else
 			return nil
 		end
@@ -1814,7 +1794,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if (newtarget) then
 			target = newtarget
 			TID = newtarget.id
-			tbuffs = newtarget.buffs
 		else
 			return nil
 		end
@@ -1823,7 +1802,6 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if (newtarget) then
 			target = newtarget
 			TID = newtarget.id
-			tbuffs = newtarget.buffs
 		else
 			return nil
 		end
@@ -1864,27 +1842,28 @@ function SkillMgr.GetSkillTargetTable(skill, entity, maxrange)
 		if ( ally ) then
 			target = ally
 			TID = ally.id
-			tbuffs = ally.buffs
 		else
 			return nil
 		end
 	end
 	
-	targetTable.target = target
-	targetTable.TID = TID
-	targetTable.tbuffs = tbuffs
+	if (ValidTable(target) and TID ~= 0) then
+		targetTable.target = target
+		targetTable.TID = TID
+		return targetTable
+	end
 	
-	return targetTable
+	return nil
 end
 
 function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (not entity) then
-		return false
+		return 0
 	end
 	
 	--Check for buffs on the player that prevent using weaponskills
-	if (HasBuffs(Player,"3,6")) then
-		return false
+	if (HasBuffs(Player,"2,3,6")) then
+		return 0
 	end
 	
 	outofcombat = outofcombat or false	
@@ -1892,14 +1871,14 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	local prio = tonumber(prio) or 0
 	if (prio == 0) then
-		return false
+		return 0
 	end
 	
 	local skill = SkillMgr.SkillProfile[prio]
 	if (not skill) then
-		return false
+		return 0
 	elseif (skill and skill.used == "0") then
-		return false
+		return 0
 	end
 	
 	local skillid = tonumber(skill.id)
@@ -1912,221 +1891,52 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		realskilldata = ActionList:Get(skillid) 
 	end
 	if (not realskilldata) then
-		return false
+		return 0
+	end
+	if (realskilldata.isoncd) then
+		return 0
 	end
 	
 	--Some special processing for mudras.
 	if (IsMudraSkill(skillid)) then
 		dependentskill = ActionList:Get(2260)
 		if (not dependentskill or (dependentskill and dependentskill.isoncd)) then
-			return false
+			return 0
 		end
 	end
 	
 	--Check the latency timer to see if casting is currently allowed.
 	if (Now() < SkillMgr.latencyTimer or Player.ismounted) then
-		return false
+		return 0
 	end
 	
-	--reset our variables	
-	local PID = Player.id
-	local pbuffs = Player.buffs	
-	local pet = Player.pet
-	local target = entity
-	local TID = entity.id
-	local tbuffs = entity.buffs
-
-	local maxrange = realskilldata.range
-	
 	if ( realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or (IsCaster(Player.job) and SkillMgr.IsGCDReady())) then
+	--if (realskilldata.isready) then
 		local castable = true
+		
+		local targetTable = SkillMgr.GetSkillTarget(skill, entity, realskilldata.range)
+		if (not targetTable) then
+			SkillMgr.DebugOutput( prio, "Target function returned no valid target.")
+			return 0
+		end
+		
+		-- Just in case, these shouldn't happen.
+		if (not ValidTable(targetTable.target)) then
+			SkillMgr.DebugOutput( prio, "Target function returned an invalid target, should never happen.")
+			return 0
+		elseif (targetTable.TID == 0) then
+			SkillMgr.DebugOutput( prio, "Target function returned 0, should never happen.")
+			return 0
+		end
 		
 		SkillMgr.CurrentSkill = skill
 		SkillMgr.CurrentSkillData = realskilldata
-		SkillMgr.CurrentTarget = entity
-		SkillMgr.CurrentTID = TID
-		SkillMgr.CurrentPet = pet				
-							
-		if (skill.trg == "Target") then
-			if (target.id == Player.id) then
-				castable = false
-			end
-		elseif ( skill.trg == "Pet" ) then
-			if ( pet ) then
-				if ( SkillMgr.IsPetSummonSkill(skillid) and pet.alive ) then 
-					castable = false 
-				else
-					target = pet
-					TID = pet.id
-					tbuffs = pet.buffs
-				end
-			else
-				TID = PID
-			end
-		elseif ( skill.trg == "Party" ) then
-			if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-				local newtarget = PartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
-				if (newtarget) then
-					target = newtarget
-					TID = newtarget.id
-					tbuffs = newtarget.buffs
-				 else
-					castable = false
-				end
-			else
-				local ally = nil
-				if ( skill.npc == "1" ) then
-					ally = GetBestPartyHealTarget( true, maxrange )
-				else
-					ally = GetBestPartyHealTarget( false, maxrange )
-				end
-				
-				if ( ally ) then
-					target = ally
-					TID = ally.id
-					tbuffs = ally.buffs
-				else
-					castable = false
-				end
-			end
-		elseif ( skill.trg == "PartyS" ) then
-			if (not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-				local newtarget = PartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
-				if (newtarget) then
-					target = newtarget
-					TID = newtarget.id
-					tbuffs = newtarget.buffs
-				else
-					castable = false
-				end
-			else
-				local ally = GetLowestHPParty( skill )
-				if ( ally ) then
-					target = ally
-					TID = ally.id
-					tbuffs = ally.buffs
-				else
-					castable = false
-				end
-			end
-		elseif ( skill.trg == "Tank" ) then
-			local ally = GetBestTankHealTarget( maxrange )
-			if ( ally and ally.id ~= PID) then
-				target = ally
-				TID = ally.id
-				tbuffs = ally.buffs
-			else
-				castable = false
-			end
-		elseif ( skill.trg == "Ally" ) then
-			local ally = nil
-			if ( skill.npc == "1" ) then
-				ally = GetBestHealTarget( true, maxrange )
-			else
-				ally = GetBestHealTarget( false, maxrange )
-			end
-			
-			if ( ally and ally.id ~= PID) then
-				target = ally
-				TID = ally.id
-				tbuffs = ally.buffs
-			end	
-		elseif ( skill.trg == "Dead Party" or skill.trg == "Dead Ally") then
-			local ally = nil
-			if (skill.trg == "Dead Party") then
-				ally = GetBestRevive( true, skill.trgtype )
-			else
-				ally = GetBestRevive( false, skill.trgtype )
-			end 
-			
-			if ( ally and ally.id ~= PID ) then
-				if IsReviveSkill(skillid) then
-					target = ally
-					TID = ally.id
-					tbuffs = ally.buffs
-				else
-					TID = PID
-				end
-			else
-				castable = false
-			end
-		elseif ( skill.trg == "Casting Target" ) then
-			local ci = entity.castinginfo
-			if ( ci ) then
-				target = EntityList:Get(ci.channeltargetid)
-				TID = ci.channeltargetid
-				tbuffs = target.buffs
-			else
-				castable = false
-			end
-		elseif ( skill.trg == "SMN DoT" ) then
-			local newtarget = GetBestDoTTarget()
-			if (newtarget) then
-				target = newtarget
-				TID = newtarget.id
-				tbuffs = newtarget.buffs
-			else
-				castable = false
-			end
-		elseif ( skill.trg == "SMN Bane" ) then
-			local newtarget = GetBestBaneTarget()
-			if (newtarget) then
-				target = newtarget
-				TID = newtarget.id
-				tbuffs = newtarget.buffs
-			else
-				castable = false
-			end
-		elseif ( skill.trg == "Player" ) then
-			TID = PID
-		elseif ( skill.trg == "Heal Priority" and tonumber(skill.hpriohp) > 0 ) then
-			local priorities = {
-				[1] = skill.hprio1,
-				[2] = skill.hprio2,
-				[3] = skill.hprio3,
-				[4] = skill.hprio4,
-			}
-			
-			local healTargets = {}
-			healTargets["Self"] = Player
-			healTargets["Tank"] = GetBestTankHealTarget( maxrange )
-			if ( skill.npc == "1" ) then
-				healTargets["Party"] = GetBestPartyHealTarget( true, maxrange )
-				healTargets["Any"] = GetBestHealTarget( true, maxrange )
-			else
-				healTargets["Party"] = GetBestPartyHealTarget( false, maxrange )
-				healTargets["Any"] = GetBestHealTarget( false, maxrange ) 
-			end
-			
-			local ally = nil
-			for i,trgstring in ipairs(priorities) do
-				if (healTargets[trgstring]) then
-					local htarget = healTargets[trgstring]
-					if (tonumber(skill.hpriohp) > htarget.hp.percent) then
-						ally = htarget
-					end
-				end
-				if (ally) then
-					break
-				end
-			end
-			
-			if ( ally ) then
-				target = ally
-				TID = ally.id
-				tbuffs = ally.buffs
-			else
-				castable = false
-			end
-		end
-		
-		-- Set globals after selecting target.				
-		SkillMgr.CurrentTarget = target
-		SkillMgr.CurrentTID = TID
-		SkillMgr.CurrentTargetBuffs = tbuffs
+		SkillMgr.CurrentPet = pet	
+		SkillMgr.CurrentTarget = targetTable.target
+		SkillMgr.CurrentTID = targetTable.TID
 		
 		-- Verify that condition list is valid, and that castable hasn't already been flagged false, just to save processing time.
-		if (SkillMgr.ConditionList and castable) then
+		if (SkillMgr.ConditionList) then
 			for i,condition in spairs(SkillMgr.ConditionList) do
 				if (type(condition.eval) == "function") then
 					if (condition.eval()) then
@@ -2137,12 +1947,6 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 				if (not castable) then
 					break
 				end
-			end
-		else
-			if (not SkillMgr.ConditionList) then
-				SkillMgr.DebugOutput( prio, "Conditions were not evaluated because they are invalid." )
-			elseif (not castable) then
-				SkillMgr.DebugOutput( prio, "Conditions were not evaluated because the target chain is invalid." )
 			end
 		end
 								
@@ -2166,11 +1970,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		end
 		
 		if (castable) then
-			return true
+			return targetTable.TID
 		end
 	end
 	
-	return false
+	return 0
 end
 
 ffxiv_task_skill_cast = inheritsFrom(ml_task)
@@ -2191,7 +1995,8 @@ function ffxiv_task_skill_cast.Create()
 	newinst.TID = 0
 	newinst.preCombat = false
 	newinst.entity = nil
-	newinst.failTime = Now() + 600
+	newinst.failTime = Now() + 750
+	newinst.latencyTime = Now() + 300
     
     return newinst
 end
@@ -2204,10 +2009,14 @@ function ffxiv_task_skill_cast:task_complete_eval()
 	local skill = self.skill
 	local skilldata = ActionList:Get(tonumber(skill.id))	
 	
-	if (SkillMgr.CanCast(skill.prio, self.entity, self.preCombat)) then
-		if (skilldata:Cast(self.TID)) then
-			SkillMgr.failTimer = Now() + 5000
-			return false
+	if (Now() < self.latencyTime) then
+		local result = SkillMgr.CanCast(skill.prio, self.entity, self.preCombat)
+		if (result ~= 0) then
+			if (skilldata:Cast(self.TID)) then
+				SkillMgr.failTimer = Now() + 5000
+				return false
+			end
+			self.latencyTime = Now() + 300
 		end
 	end
 
@@ -2257,12 +2066,23 @@ function ffxiv_task_skill_cast:task_fail_eval()
 	end
 	
 	if (Now() > self.failTime) then
+		--[[
+		d("Cast verify failed for "..self.skill.name.." because of failTime.")
+		
+		local skilldata = ActionList:Get(tonumber(self.skill.id))
+		if (not skilldata) then
+			d("SkillData was invalid.")
+		else
+			d("SkillData Details : RecastTime = " .. skilldata.recasttime .. ", IsGCDReady() = "..tostring(not SkillMgr.IsGCDReady())..", IsOnCD = "..tostring(skilldata.isoncd))
+		end
+		--]]
 		return true
 	end
 	
 	return false
 end
 function ffxiv_task_skill_cast:task_fail_execute()
+	--d("Cast verify failed for "..self.skill.name)
     self.valid = false
 end
 
