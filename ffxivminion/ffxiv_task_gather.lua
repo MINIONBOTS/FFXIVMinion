@@ -37,6 +37,7 @@ function ffxiv_task_gather.Create()
 	newinst.gatheredMap = false
 	newinst.gatheredGardening = false
 	newinst.gatheredChocoFood = false
+	newinst.gatheredIxaliRare = false
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.swingCount = 0
@@ -46,6 +47,7 @@ function ffxiv_task_gather.Create()
 	newinst.changingLocations = false
 	newinst.rareCount = -1
 	newinst.rareCount2 = -1
+	newinst.rareCount3 = -1
 	newinst.mapCount = -1
     
     -- for blacklisting nodes
@@ -255,8 +257,10 @@ function e_findunspoilednode:execute()
 			ml_task_hub:CurrentTask():ParentTask().gatheredGardening = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredIxaliRare = false
 			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount3 = -1
 			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
 			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
 			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
@@ -385,8 +389,10 @@ function e_movetogatherable:execute()
 			ml_task_hub:CurrentTask():ParentTask().gatheredGardening = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredIxaliRare = false
 			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount3 = -1
 			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
 			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
 			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
@@ -453,8 +459,15 @@ function c_nextgathermarker:evaluate()
 	end
 	
 	--Check to make sure we have gathered any unspoiled nodes first.
-	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
-		return false
+	if (gGatherUnspoiled == "1") then
+		if (not ffxiv_task_gather.IsIdleLocation()) then
+			return false
+		else
+			if (Player.job ~= ffxiv_task_gather.location.class) then
+				ffxiv_task_gather.SwitchClass(ffxiv_task_gather.location.class)
+				return false
+			end
+		end
 	end
 	
     local list = Player:GetGatherableSlotList()
@@ -821,7 +834,7 @@ function e_gather:execute()
 							if not hasMap then
 								for i, item in pairs(list) do
 									if ((gatherMaps == "Any" and IsMap(item.id)) or (gatherMaps == "Peisteskin Only" and item.id == 6692)) then
-										local itemCount = CountItemsByID(item.id)
+										local itemCount = ItemCount(item.id)
 										if (ml_task_hub:CurrentTask().mapCount == -1) then
 											ml_task_hub:CurrentTask().mapCount = itemCount
 										end
@@ -861,7 +874,7 @@ function e_gather:execute()
 					if (not ml_task_hub:CurrentTask().gatheredGardening and gatherGardening == "1") then
 						for i, item in pairs(list) do
 							if 	(IsGardening(item.id)) then
-								local itemCount = CountItemsByID(item.id)
+								local itemCount = ItemCount(item.id)
 								if (ml_task_hub:CurrentTask().rareCount == -1) then
 									ml_task_hub:CurrentTask().rareCount = itemCount
 								end
@@ -893,11 +906,64 @@ function e_gather:execute()
 						end
 					end
 					
+					-- Check for rare ixali items.
+					if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
+						for i, item in pairs(list) do
+							if (IsIxaliRare(item.id)) then
+								local itemCount = ItemCount(item.id)
+								if (itemCount < 5) then
+									if (ml_task_hub:CurrentTask().rareCount3 == -1) then
+										ml_task_hub:CurrentTask().rareCount3 = itemCount
+									end
+									if (itemCount == ml_task_hub:CurrentTask().rareCount3) then
+										if (SkillMgr.Gather(item)) then
+											ml_task_hub:CurrentTask().failedTimer = Now()
+											ffxiv_task_gather.timer = Now() + 2000
+											return
+										end
+										
+										local result = Player:Gather(item.index)
+										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatherTimer = Now()
+										ml_task_hub:CurrentTask().failedTimer = Now()
+										ffxiv_task_gather.timer = Now() + 3500
+										return
+									elseif (itemCount > ml_task_hub:CurrentTask().rareCount3) then
+										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatheredIxaliRare = true
+										ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									end
+								end
+							end
+						end
+					end
+					
+					-- Check for semi-rare ixali items.
+					for i, item in pairs(list) do
+						if (IsIxaliSemiRare(item.id)) then
+							local itemCount = ItemCount(item.id)
+							if (itemCount < 15) then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
+								end
+								
+								local result = Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 3500
+								return
+							end
+						end
+					end
+					
 					-- third pass to get chocobo items
 					if (not ml_task_hub:CurrentTask().gatheredChocoFood) then
 						for i, item in pairs(list) do
 							if (IsChocoboFoodSpecial(item.id)) then
-								local itemCount = CountItemsByID(item.id)
+								local itemCount = ItemCount(item.id)
 								if (ml_task_hub:CurrentTask().rareCount2 == -1) then
 									ml_task_hub:CurrentTask().rareCount2 = itemCount
 								end
@@ -1219,7 +1285,9 @@ function e_gather:execute()
 				
 			-- just grab a random item with good chance
 			for i, item in pairs(list) do
-				if (item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
+				if (item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
+					not IsIxaliRare(item.id) and not IsIxaliSemiRare(item.id)) 
+				then
 					if (SkillMgr.Gather(item)) then
 						ml_task_hub:CurrentTask().failedTimer = Now()
 						ffxiv_task_gather.timer = Now() + 2000
@@ -1246,7 +1314,9 @@ function e_gather:execute()
 			
 			-- just grab a random item - last resort
 			for i, item in pairs(list) do
-				if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
+				if (item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
+					not IsIxaliRare(item.id) and not IsIxaliSemiRare(item.id)) 
+				then
 					if (SkillMgr.Gather(item)) then
 						ml_task_hub:CurrentTask().failedTimer = Now()
 						ffxiv_task_gather.timer = Now() + 2000
