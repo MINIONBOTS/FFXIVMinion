@@ -369,17 +369,21 @@ function GetBestPartyHealTarget( npc, range )
 	local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
     if ( el ) then
         local i,e = next(el)
-        if (i and e and IsValidHealTarget(e)) then
-			return e
-        end
+		if (i and e) then
+			if (i and e and IsValidHealTarget(e)) then
+				return e
+			end
+		end
     end
 	
 	if (npc) then
 		el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
 		if ( el ) then
 			local i,e = next(el)
-			if (i and e and IsValidHealTarget(e)) then
-				return e
+			if (i and e) then
+				if (i and e and IsValidHealTarget(e)) then
+					return e
+				end
 			end
 		end
 	end
@@ -395,6 +399,60 @@ function GetBestPartyHealTarget( npc, range )
 	end
 	
     return nil
+end
+
+function GetPetSkillRangeRadius(id)
+	local id = tonumber(id) or 0
+	
+	local petRangeRadius = {
+		--Carbuncle 1
+		[9] = { range = 25, radius = 0},
+		[10] = { range = 5, radius = 0},
+		[11] = { range = 25, radius = 5},
+		[12] = { range = 25, radius = 15},
+		
+		--Carbuncle 2
+		[13] = { range = 25, radius = 0},
+		[14] = { range = 5, radius = 0},
+		[15] = { range = 25, radius = 5},
+		[16] = { range = 25, radius = 15},
+		
+		--Garuda
+		[17] = { range = 25, radius = 0},
+		[18] = { range = 5, radius = 0},
+		[19] = { range = 25, radius = 5},
+		[20] = { range = 25, radius = 15},
+		
+		--Titan
+		[22] = { range = 3, radius = 0},
+		[23] = { range = 0, radius = 4},
+		[24] = { range = 0, radius = 0},
+		[25] = { range = 3, radius = 0},
+		
+		--Ifrit
+		[27] = { range = 3, radius = 0},
+		[28] = { range = 3, radius = 0},
+		[29] = { range = 0, radius = 0},
+		[30] = { range = 0, radius = 3},
+		
+		--Eos
+		[32] = { range = 30, radius = 0},
+		[33] = { range = 0, radius = 15},
+		[34] = { range = 0, radius = 15},
+		[35] = { range = 0, radius = 15},
+		
+		--Selene
+		[36] = { range = 30, radius = 0},
+		[37] = { range = 25, radius = 0},
+		[38] = { range = 0, radius = 20},
+		[39] = { range = 0, radius = 20},		
+	}
+	
+	if (petRangeRadius[id]) then
+		return petRangeRadius[id]
+	end
+	
+	return nil
 end
 
 function GetLowestMPParty()
@@ -2757,7 +2815,7 @@ function ShouldTeleport(pos)
 		if (gParanoid == "0") then
 			return true
 		else
-			local scanDistance = 40
+			local scanDistance = 50
 			local players = EntityList("type=1,maxdistance=".. scanDistance)
 			local nearbyPlayers = TableSize(players)
 			if nearbyPlayers > 0 then
@@ -2774,11 +2832,11 @@ function ShouldTeleport(pos)
 				
 				local players = EntityList("type=1")
 				if (players) then
-					for i,player in pairs(players) do
-						local ppos = player.pos
+					for i,entity in pairs(players) do
+						local epos = entity.pos
 						
-						if (Distance3D(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= 40) then
-							return true
+						if (Distance3D(epos.x,epos.y,epos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= 50) then
+							return false
 						end
 					end
 				end

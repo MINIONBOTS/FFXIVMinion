@@ -119,11 +119,13 @@ function ffxiv_task_assist:Process()
     end	
 
     if ( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 35 ) then
-        SkillMgr.Cast( target )
+		if (gStartCombat == "1" or (gStartCombat == "0" and Player.incombat)) then
+			SkillMgr.Cast( target )
+		end
     end
 	
 	if ( target == nil and not ActionList:IsCasting()) then
-		SkillMgr.Cast( Player, true)
+		SkillMgr.Cast( Player, true )
 	end
 
     if (TableSize(self.process_elements) > 0) then

@@ -1826,6 +1826,11 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			healTargets["Any"] = GetBestHealTarget( false, maxrange ) 
 		end
 		
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets["Tank"] and healTargets["Tank"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets["Party"] and healTargets["Party"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets["Any"] and healTargets["Any"].name or "nil")..".")
+		
 		local ally = nil
 		for i,trgstring in ipairs(priorities) do
 			if (healTargets[trgstring]) then
@@ -1840,9 +1845,11 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 		
 		if ( ally ) then
+			SkillMgr.DebugOutput( skill.prio, "Heal Priority: Target Selection : "..ally.name)
 			target = ally
 			TID = ally.id
 		else
+			SkillMgr.DebugOutput( skill.prio, "Heal Priority: Target Selection : nil")
 			return nil
 		end
 	end
@@ -1914,7 +1921,15 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	--if (realskilldata.isready) then
 		local castable = true
 		
-		local targetTable = SkillMgr.GetSkillTarget(skill, entity, realskilldata.range)
+		local maxrange = realskilldata.range
+		if (skill.stype == "Pet") then
+			petRangeRadius = GetPetSkillRangeRadius(skill.id)
+			if (petRangeRadius) then
+				maxrange = petRangeRadius.range
+			end
+		end
+		
+		local targetTable = SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		if (not targetTable) then
 			SkillMgr.DebugOutput( prio, "Target function returned no valid target.")
 			return 0
@@ -2918,14 +2933,14 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	conditional = { name = "Bad Fate Checks"	
+	conditional = { name = "Unattackable Fate Target Checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
 		local TID = SkillMgr.CurrentTID
 		
-		if (target.fateid ~= 0) then
+		local target = EntityList:Get(TID)
+		if (target and target.fateid ~= 0) then
 			local fate = GetFateByID(target.fateid)
 			if (ValidTable(fate)) then
 				if (Player:GetSyncLevel() == 0 and fate.level < (Player.level - 5)) then

@@ -162,6 +162,7 @@ function e_assistleader:execute()
 	else
 		local newTask = ffxiv_task_grindCombat.Create()
 		newTask.targetid = id 
+		newTask.noFateSync = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
 end

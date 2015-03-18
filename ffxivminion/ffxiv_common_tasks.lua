@@ -1005,6 +1005,7 @@ function ffxiv_task_grindCombat.Create()
     newinst.name = "GRIND_COMBAT"
 	newinst.targetid = 0
     newinst.noTeleport = false
+	newinst.noFateSync = false
 	newinst.teleportThrottle = 0
 	newinst.targetPos = nil
 	newinst.movementDelay = 0
@@ -1023,9 +1024,6 @@ function ffxiv_task_grindCombat:Init()
 
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.overwatch_elements)
-		
-	--local ke_moveCloser = ml_element:create( "MoveCloser", c_movecloser, e_movecloser, 10 )
-	--self:add( ke_moveCloser, self.process_elements)
 	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 8 )
 	self:add( ke_companion, self.process_elements)
@@ -1039,22 +1037,26 @@ end
 function ffxiv_task_grindCombat:Process()	
 	target = EntityList:Get(self.targetid)
 	if ValidTable(target) then
-		local teleport = ShouldTeleport(target.pos)
+		
+		--Check to see if we would need to sync to attack this target, and do it if we are allowed to.
 		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
-			local fateID = target.fateid
-			local fate = GetFateByID(fateID)
-			if ( fate ) then
-				local plevel = Player.level
-				if (fate.level < (plevel - 5))then
-					local myPos = Player.pos
-					local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
-					if (distance <= fate.radius) then				
-						Player:SyncLevel()
+			if (not self.noFateSync) then
+				local fateID = target.fateid
+				local fate = GetFateByID(fateID)
+				if ( fate and fate.completion < 99) then
+					local plevel = Player.level
+					if (fate.level < (plevel - 5))then
+						local myPos = Player.pos
+						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+						if (distance <= fate.radius * .95) then				
+							Player:SyncLevel()
+						end
 					end
 				end
 			end
 		end
 		
+		local teleport = ShouldTeleport(target.pos)
 		local pos = shallowcopy(target.pos)
 		local ppos = shallowcopy(Player.pos)
 		local range = ml_global_information.AttackRange
@@ -1166,10 +1168,10 @@ function ffxiv_task_grindCombat:task_complete_eval()
 end
 function ffxiv_task_grindCombat:task_complete_execute()
 	if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
-		if (ml_task_hub:CurrentTask():ParentTask()) then
-			d("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
-		end
 		if (Player:GetSyncLevel() ~= 0) then
+			if (ml_task_hub:CurrentTask():ParentTask()) then
+				d("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+			end
 			Player:SyncLevel()
 			ml_global_information.syncTimer = Now() + 1000
 		end
@@ -1208,71 +1210,76 @@ function ffxiv_mesh_interact.Create()
     newinst.overwatch_elements = {}
     newinst.name = "MESH_INTERACT"
 	
-	newinst.uniqueid = 0
 	newinst.interact = 0
-    newinst.lastinteract = 0
-	newinst.pos = false
-	newinst.range = 1.5
+    newinst.interactLatency = 0
+	
+	GameHacks:SkipDialogue(true)
+	
+	d("Mesh interact task created.")
 	
     return newinst
 end
 
 function ffxiv_mesh_interact:Init()
-	local ke_questYesNo = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 20 )
-    self:add( ke_questYesNo, self.overwatch_elements)
-	
-	if (self.pos and ValidTable(self.pos)) then		
-		local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-		self:add( ke_walkToPos, self.process_elements)
-	end
+	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 25 )
+    self:add( ke_detectYesNo, self.overwatch_elements)
 
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_mesh_interact:task_complete_eval()	
-	if (self.pos and ValidTable(self.pos)) then
-		local ppos = shallowcopy(Player.pos)
-		if (Distance2D(ppos.x,ppos.z,self.pos.x,self.pos.z) > (self.range)) then
-			return false
-		elseif (Player:IsMoving()) then
-			Player:Stop()
-			return false
-		end
-	end
-	
+function ffxiv_mesh_interact:task_complete_eval()		
 	if (self.interact == 0) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=5")
-			if (interacts) then
-				local i, interact = next(interacts)
-				if (interact and interact.id and interact.id ~= 0) then
-					self.interact = interact.id
-				end
+		local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=6")
+		if (interacts) then
+			local i, interact = next(interacts)
+			if (interact and interact.id and interact.id ~= 0) then
+				self.interact = interact.id
 			end
-		else
-			local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=4")
-			if (interacts) then
-				local i, interact = next(interacts)
-				if (interact and interact.id and interact.id ~= 0) then
-					self.interact = interact.id
-				end
+		end
+		
+		local interacts = EntityList("nearest,type=3,chartype=0,maxdistance=6")
+		if (interacts) then
+			local i, interact = next(interacts)
+			if (interact and interact.id and interact.id ~= 0) then
+				self.interact = interact.id
 			end
 		end
 	end
 	
-	if (self.interact ~= 0 and TimeSince(self.lastinteract) > 4000) then
-		Player:Interact(self.interact)
-		self.lastinteract = Now()
+	if (self.interact ~= 0) then
+		local target = Player:GetTarget()
+		if (not target or (target and target.id ~= self.interact)) then
+			local interact = EntityList:Get(tonumber(self.interact))
+			if (interact and interact.targetable) then
+				Player:SetTarget(self.interact)
+				d("Setting target for interact.")
+			end		
+		end
+		
+		if (target and target.id == self.interact and Now() > self.interactLatency) then
+			if (not IsLoading() and not IsPositionLocked()) then
+				local interact = EntityList:Get(tonumber(self.interact))
+				local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
+				if (interact and interact.distance < (radius * 4)) then
+					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
+					Player:Interact(interact.id)
+					self.lastDistance = interact.distance
+					self.interactLatency = Now() + 1000
+				end
+			end
+		end
 	end
 	
 	local interact = EntityList:Get(tonumber(self.interact))
-	if (not interact or not interact.targetable or IsLoading() or interact.distance > 4) then
+	if (not interact or not interact.targetable or IsLoading() or interact.distance > 6) then
 		return true
 	end
 end
 
 function ffxiv_mesh_interact:task_complete_execute()
-    Player:Stop()
+	d("Mesh interact task completed normally.")
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
+	ml_mesh_mgr.ResetOMC()
 	self.completed = true
 end
 
@@ -1285,6 +1292,9 @@ function ffxiv_mesh_interact:task_fail_eval()
 end
 
 function ffxiv_mesh_interact:task_fail_execute()
+	d("Mesh interact task failed.")
+    GameHacks:SkipDialogue(gSkipDialogue == "1")
+	ml_mesh_mgr.ResetOMC()
     self.valid = false
 end
 
