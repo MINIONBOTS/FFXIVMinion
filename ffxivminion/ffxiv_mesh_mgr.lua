@@ -29,6 +29,7 @@ ml_mesh_mgr.OMCThrottle = 0
 ml_mesh_mgr.OMCLastDistance = 0
 ml_mesh_mgr.OMCStartingDistance = 0
 ml_mesh_mgr.OMCMeshDistance = 0
+ml_mesh_mgr.OMCTarget = 0
 function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount ) 
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
 		ml_global_information.lastrun = Now()
@@ -50,22 +51,67 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			
 			if ( ml_mesh_mgr.OMCStartPositionReached == false ) then
 				if ( ValidTable(sPos) ) then
-					--local dist = Distance3D(sPos.x,sPos.y,sPos.z,pPos.x,pPos.y,pPos.z)
-					local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
-					ml_mesh_mgr.OMCMeshDistance = meshdist
-					if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
-						(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
-					then
-						--d("OMC StartPosition reached..Facing Target Direction..")
+					if (ml_mesh_mgr.OMCType == "OMC_INTERACT") then						
 						Player:Stop()
-						Player:SetFacing(sPos.h) -- Set heading
-						ml_mesh_mgr.OMCStartingDistance = meshdist
-						ml_mesh_mgr.OMCStartPositionReached = true
-						ml_mesh_mgr.OMCThrottle = Now() + 100
-						return
+						-- Check for inanimate objects, use those as first guess.
+						if (ml_mesh_mgr.OMCTarget == 0) then
+							local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=5")
+							d("Scanning for objects to interact with.")
+							if (interacts) then
+								local i, interact = next(interacts)
+								if (interact and interact.id and interact.id ~= 0) then
+									d("Chose object : "..interact.name)
+									ml_mesh_mgr.OMCTarget = interact.id
+								end
+							end
+						end
+						
+						-- Check for NPC's, use those as a backup guess.
+						if (ml_mesh_mgr.OMCTarget == 0) then
+							local interacts = EntityList("nearest,type=3,chartype=0,maxdistance=5")
+							d("Scanning for NPCs to interact with.")
+							if (interacts) then
+								local i, interact = next(interacts)
+								if (interact and interact.id and interact.id ~= 0) then
+									d("Chose NPC : "..interact.name)
+									ml_mesh_mgr.OMCTarget = interact.id
+								end
+							end
+						end
+						
+						-- If our target isn't 0 anymore, select it, and attempt to interact with it.
+						if (ml_mesh_mgr.OMCTarget ~= 0) then
+							local target = Player:GetTarget()
+							if (not target or (target and target.id ~= ml_mesh_mgr.OMCTarget)) then
+								local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
+								if (interact and interact.targetable) then
+									d("Setting target for interaction : "..interact.name)
+									Player:SetTarget(ml_mesh_mgr.OMCTarget)
+									ml_mesh_mgr.OMCStartingDistance = interact.distance
+									ml_mesh_mgr.OMCThrottle = Now() + 100
+									return
+								end		
+							end
+							
+							ml_mesh_mgr.OMCStartPositionReached = true
+							d("Starting state reached for INTERACT OMC.")
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+						end
+					else
+						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						ml_mesh_mgr.OMCMeshDistance = meshdist
+						if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
+							(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
+						then
+							Player:Stop()
+							Player:SetFacing(sPos.h) -- Set heading
+							ml_mesh_mgr.OMCStartingDistance = meshdist
+							ml_mesh_mgr.OMCStartPositionReached = true
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
+							return
+						end
 					end
-				else
-					ml_error("Invalid/missing start position for OMC_JUMP")
 				end
 			else
 				local meshdist = ml_mesh_mgr.OMCMeshDistance
@@ -126,19 +172,14 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					end
 				
 				elseif ( ml_mesh_mgr.OMCType == "OMC_LIFT" ) then
-					if ( ValidTable(ml_mesh_mgr.OMCStartPosition) ) then
-						if ( not ml_global_information.Player_IsMoving ) then Player:Move(FFXIV.MOVEMENT.FORWARD) end
-						local dist = Distance3D(sPos.x,sPos.y,sPos.z,pPos.x,pPos.y,pPos.z)
-						if ( dist > 2.50 ) then
-							d("OMC Endposition reached..")
-							ml_mesh_mgr.ResetOMC()
-							Player:Stop()
-							ml_mesh_mgr.OMCThrottle = Now() + 2000
-						else
-							return
-						end
+					ml_mesh_mgr.OMCThrottle = Now() + 100
+					
+					local movedDistance = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+					if (movedDistance > 3) then
+						ml_mesh_mgr.OMCThrottle = Now() + 300
+						ml_mesh_mgr.ResetOMC()
+						return
 					end
-				
 				
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
@@ -162,11 +203,49 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					end
 				
 				elseif ( ml_mesh_mgr.OMCType == "OMC_INTERACT" ) then
-					Player:Stop()
-					d("OMC Endposition reached..")
-					ml_mesh_mgr.ResetOMC()
-					Player:Interact()
-					ml_mesh_mgr.OMCThrottle = Now() + 2000
+					ml_mesh_mgr.OMCThrottle = Now() + 100
+					
+					if (ControlVisible("SelectYesno")) then
+						PressYesNo(true)
+						ml_mesh_mgr.OMCThrottle = Now() + 500
+						return
+					end
+					
+					if (IsLoading()) then
+						ml_mesh_mgr.OMCThrottle = Now() + 100
+						ml_mesh_mgr.ResetOMC()
+						return
+					end
+					
+					if (IsPositionLocked()) then
+						ml_mesh_mgr.OMCThrottle = Now() + 500
+						return
+					end
+					
+					-- If we're now not on the starting spot, we were moved somewhere.
+					local movedDistance = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+					if (movedDistance > 3) then
+						ml_mesh_mgr.OMCThrottle = Now() + 100
+						ml_mesh_mgr.ResetOMC()
+						return
+					end
+					
+					local target = Player:GetTarget()
+					if (target and target.id == ml_mesh_mgr.OMCTarget) then						
+						local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
+						local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
+						if (interact and interact.distance < (radius * 4)) then
+							Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
+							Player:Interact(interact.id)
+							ml_mesh_mgr.OMCThrottle = Now() + 500
+						end
+					end
+					
+					if (not target or not target.targetable or target.distance > 5) then
+						ml_mesh_mgr.OMCThrottle = Now() + 100
+						ml_mesh_mgr.ResetOMC()
+						return
+					end
 					
 				elseif ( ml_mesh_mgr.OMCType == "OMC_PORTAL" ) then
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
@@ -199,6 +278,7 @@ function ml_mesh_mgr.ResetOMC()
 	ml_mesh_mgr.OMCThrottle = 0
 	ml_mesh_mgr.OMCLastDistance = 0
 	ml_mesh_mgr.OMCStartingDistance = 0
+	ml_mesh_mgr.OMCTarget = 0
 end
 
 function ml_mesh_mgr.UnpackArgsForOMC( args )
