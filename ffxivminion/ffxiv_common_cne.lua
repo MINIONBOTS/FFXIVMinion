@@ -1174,6 +1174,7 @@ end
 c_usenavinteraction = inheritsFrom( ml_cause )
 e_usenavinteraction = inheritsFrom( ml_effect)
 e_usenavinteraction.task = nil
+e_usenavinteraction.timer = 0
 function c_usenavinteraction:evaluate()
 	local myPos = shallowcopy(Player.pos)
 	local gotoPos = ml_task_hub:ThisTask().pos
@@ -1251,14 +1252,14 @@ function c_usenavinteraction:evaluate()
 			end,
 			reaction = function()
 				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (gUseAetherytes == "1") then
-						Player:Stop()
-						Dismount()
-						
+					if (CanUseAetheryte(12)) then
+						if (Player:IsMoving()) then
+							Player:Stop()
+						end
 						if (Player.ismounted) then
+							Dismount()
 							return
 						end
-						
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							Player:Teleport(12)
 						end
@@ -1269,14 +1270,14 @@ function c_usenavinteraction:evaluate()
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (gUseAetherytes == "1") then
-						Player:Stop()
-						Dismount()
-						
+					if (CanUseAetheryte(11)) then
+						if (Player:IsMoving()) then
+							Player:Stop()
+						end
 						if (Player.ismounted) then
+							Dismount()
 							return
 						end
-						
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							Player:Teleport(11)
 						end
@@ -1419,7 +1420,12 @@ function c_usenavinteraction:evaluate()
 	return false
 end
 function e_usenavinteraction:execute()
+	if (ActionList:IsCasting() or Now() < e_usenavinteraction.timer) then
+		return false
+	end
+
 	e_usenavinteraction.task()
+	e_usenavinteraction.timer = Now() + 2000
 end
 
 -- Checks for a better target while we are engaged in fighting an enemy and switches to it

@@ -2300,15 +2300,25 @@ end
 -- Ixali hidden items have a max item count of 5.
 function IsIxaliRare(itemid)
 	local itemid = tonumber(itemid) or 0
-	return (itemid == 2001392
-			or itemid == 2001389)
+	local rares = {
+		[2001392] = true,
+		[2001389] = true,
+		[2001427] = true,
+		[2001416] = true,
+	}
+	return rares[itemid]
 end
 
 -- Ixali "regular" items have a max item count of 15.
 function IsIxaliSemiRare(itemid)
 	local itemid = tonumber(itemid) or 0
-	return (itemid == 2001391
-			or itemid == 2001388)
+	local rares = {
+		[2001391] = true,
+		[2001388] = true,
+		[2001425] = true,
+		[2001415] = true,
+	}
+	return rares[itemid]
 end
 
 function IsChocoboFood(itemid)
@@ -2761,6 +2771,20 @@ function GetClosestAetheryteToMapIDPos(id, p)
 	end
 	
 	return nil
+end
+
+function CanUseAetheryte(aethid)
+	local aethid = tonumber(aethid) or 0
+	if (aethid ~= 0) then
+		local aetheryte = GetAetheryteByID(aethid)
+		if (aetheryte) then
+			if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+				return true
+			end
+		end
+	end
+	
+	return false
 end
 
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
