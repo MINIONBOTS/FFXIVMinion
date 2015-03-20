@@ -1025,6 +1025,9 @@ function ffxiv_task_grindCombat:Init()
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.overwatch_elements)
 	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 15 )
+	self:add( ke_rest, self.process_elements)
+	
 	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 8 )
 	self:add( ke_companion, self.process_elements)
 	
@@ -1088,8 +1091,10 @@ function ffxiv_task_grindCombat:Process()
 				if ((IsCaster(Player.job) and Player:IsMoving()) or target.los) then
 					Player:Stop()
 				end
+				if (not EntityIsFront(target)) then
+					Player:SetFacing(pos.x,pos.y,pos.z) 
+				end
 			end
-			Player:SetFacing(pos.x,pos.y,pos.z) 
 			--d("InCombatRange:"..tostring(InCombatRange(target.id))..",attackable:"..tostring(target.attackable)..",alive:"..tostring(target.alive))
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
@@ -1125,8 +1130,8 @@ function ffxiv_task_grindCombat:Process()
 				if (Player:IsMoving()) then
 					Player:Stop()
 				end
+				Player:SetFacing(pos.x,pos.y,pos.z)
 			end
-			Player:SetFacing(pos.x,pos.y,pos.z)
 			if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 				SkillMgr.Cast( target )
 				if (self.attackThrottle) then

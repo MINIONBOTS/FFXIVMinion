@@ -1729,8 +1729,25 @@ function GetApprovedFates()
 	return approvedFates
 end
 
-function GetClosestFate(pos)
+function IsFateApproved(fateid)
+	local fateid = tonumber(fateid) or 0
+	if (fateid == 0) then
+		return false
+	end
+	
+	local fateList = GetApprovedFates()
+	if (fateList) then
+		for k,fate in pairs(fateList) do
+			if (fate.id == fateid) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
 
+function GetClosestFate(pos)
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
         local nearestFate = nil

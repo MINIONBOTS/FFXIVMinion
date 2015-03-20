@@ -682,13 +682,7 @@ function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 	
 	local indexLevel = ((rank - 1) * 10) + index
 
-	if (Player.level >= 40) then
-		return true
-	elseif (Player.level >= 30) then
-		if (indexLevel <= (Player.level + 5)) then
-			return true
-		end
-	elseif (Player.level >= 10) then
+	if (Player.level >= 10) then
 		if (indexLevel <= (Player.level + 3)) then
 			return true
 		end
@@ -702,11 +696,7 @@ function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 end
 
 function ffxiv_task_huntlog.GetMaxMobLevel()
-	if (Player.level >= 40) then
-		return 50
-	elseif (Player.level >= 30) then
-		return (Player.level + 5)
-	elseif (Player.level >= 10) then
+	if (Player.level >= 10) then
 		return (Player.level + 3)
 	else
 		return (Player.level + 1)

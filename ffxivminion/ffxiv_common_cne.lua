@@ -1782,15 +1782,18 @@ function c_rest:evaluate()
 	then
 	
 		if (Player.incombat or not Player.alive) then
+			d("Cannot rest, still in combat or not alive.")
 			return false
 		end
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
 		if (gRestInFates == "0") then
-			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") or (gFatesOnly == "1") then
+			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
+				d("Cannot rest due, no resting in fates option turned on.")
 				return false
 			end
 		end
+		
 		
 		if (ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0) then
 			local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
@@ -1985,7 +1988,7 @@ function c_returntomarker:evaluate()
 			end
 		end		
 		
-        if  (gBotMode == strings[gCurrentLanguage].gatherMode and ml_task_hub:CurrentTask().maxGatherDistance and distance > ml_task_hub:CurrentTask().maxGatherDistance) or
+        if  (gBotMode == strings[gCurrentLanguage].gatherMode and distance > 200) or
 			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
         then
             return true
@@ -2076,13 +2079,15 @@ function c_stealth:evaluate()
 					end
 				end
 				
-				if (gTeleport == "1" and c_teleporttopos:evaluate()) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=25,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-					if (TableSize(potentialAdds) > 0) then
-						if (not HasBuff(Player.id, 47)) then
-							return true
-						else
-							return false
+				if (gatherable) then
+					if (gTeleport == "1" and c_teleporttopos:evaluate()) then
+						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=25,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+						if (TableSize(potentialAdds) > 0) then
+							if (not HasBuff(Player.id, 47)) then
+								return true
+							else
+								return false
+							end
 						end
 					end
 				end
@@ -2519,8 +2524,8 @@ function c_autoequip:evaluate()
 							statTotals = equippedItemDetails.level
 						end
 						statTotals = equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
-						statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + equippedItemDetails.defenseHQ * .15 + equippedItemDetails.magicDefenseHQ * .15
+						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 3)
 						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 2)
 						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 					else
@@ -2528,8 +2533,8 @@ function c_autoequip:evaluate()
 							statTotals = equippedItemDetails.level
 						end
 						statTotals = equippedItemDetails.pDamage + equippedItemDetails.mDamage
-						statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
-						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 2)
+						statTotals = statTotals + equippedItemDetails.defense * .15 + equippedItemDetails.magicDefense * .15
+						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 3)
 						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 2)
 						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 2)							
 					end
@@ -2603,9 +2608,9 @@ function c_autoequip:evaluate()
 									if (Player.level < 50) then
 										newStatTotals = data.level
 									end
-									newStatTotals = data.pDamageHQ + data.mDamageHQ
-									newStatTotals = newStatTotals + data.defenseHQ + data.magicDefenseHQ
-									newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]]) or 0 * 2)
+									newStatTotals = (data.pDamageHQ or 0) + (data.mDamageHQ or 0)
+									newStatTotals = newStatTotals + ((data.defenseHQ + data.magicDefenseHQ) * .15)
+									newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]]) or 0 * 3)
 									newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]]) or 0 * 2)
 									newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]]) or 0 * 2)
 								else
@@ -2613,8 +2618,8 @@ function c_autoequip:evaluate()
 										newStatTotals = data.level
 									end
 									newStatTotals = data.pDamage + data.mDamage
-									newStatTotals = newStatTotals + data.defense + data.magicDefense
-									newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+									newStatTotals = newStatTotals + ((data.defense + data.magicDefense) * .15)
+									newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 3)
 									newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
 									newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
 								end
@@ -2704,8 +2709,8 @@ function c_autoequip:evaluate()
 											statTotals = data.level
 										end
 										statTotals = data.pDamageHQ + data.mDamageHQ
-										statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
-										statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.defenseHQ + data.magicDefenseHQ) * .15)
+										statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 3)
 										statTotals = statTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
 										statTotals = statTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
 									else
@@ -2713,8 +2718,8 @@ function c_autoequip:evaluate()
 											statTotals = data.level
 										end
 										statTotals = data.pDamage + data.mDamage
-										statTotals = statTotals + data.defense + data.magicDefense
-										statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
+										statTotals = statTotals + ((data.defense + data.magicDefense) * .15)
+										statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 3)
 										statTotals = statTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
 										statTotals = statTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
 									end

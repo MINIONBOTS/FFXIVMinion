@@ -37,7 +37,7 @@ end
 
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
-function c_fatewait:evaluate() 
+function c_fatewait:evaluate()
     local myPos = Player.pos
     local gotoPos = ml_marker_mgr.markerList["evacPoint"]
     return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
@@ -501,6 +501,11 @@ function c_endfate:evaluate()
     if (not fate or fate.completion > 99) then
         return true
     end
+	
+	if (not IsFateApproved(fate.id)) then
+		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		return true
+	end
     
     return false
 end
