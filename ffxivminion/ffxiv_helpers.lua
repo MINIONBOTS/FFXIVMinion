@@ -3229,6 +3229,22 @@ function ItemCount(itemid)
 		end
 	end
 	
+	--Look through currency bag.
+	local inv = Inventory("type=2000")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = item.count
+		end
+	end
+	
+	--Look through crystals bag.
+	local inv = Inventory("type=2001")
+	for i, item in pairs(inv) do
+		if (item.id == itemid) then
+			itemcount = item.count
+		end
+	end
+	
 	--Look through armory bags for off-hand through wrists
 	for x=3200,3209 do
 		local inv = Inventory("type="..tostring(x))

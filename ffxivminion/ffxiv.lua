@@ -89,6 +89,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 	
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
+		gBotRunning = "0"
 	end
 	
 	if (ml_global_information.autoStartQueued) then

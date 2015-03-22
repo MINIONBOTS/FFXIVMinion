@@ -1051,7 +1051,7 @@ function ffxiv_task_grindCombat:Process()
 					if (fate.level < (plevel - 5))then
 						local myPos = Player.pos
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
-						if (distance <= fate.radius * .95) then				
+						if (distance <= fate.radius) then				
 							Player:SyncLevel()
 						end
 					end
