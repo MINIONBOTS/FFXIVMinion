@@ -146,6 +146,38 @@ function e_grind_addhuntlogtask:execute()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
+c_quest_addhuntlogtask = inheritsFrom( ml_cause )
+e_quest_addhuntlogtask = inheritsFrom( ml_effect )
+c_quest_addhuntlogtask.validIndexes = {}
+c_quest_addhuntlogtask.possibleTargets = {}
+function c_quest_addhuntlogtask:evaluate()
+	--Reinitialize tempvars.
+	c_quest_addhuntlogtask.validIndexes = {}
+	c_quest_addhuntlogtask.possibleTargets = {}
+
+	--CNE will need to pass 2 main table checks to the task, we will only verify that there are possible indexes and targets.
+	--First check that we have some valid indexes to complete.	
+	c_quest_addhuntlogtask.validIndexes = ffxiv_task_huntlog.GetValidIndexes()
+	if (not ValidTable(c_quest_addhuntlogtask.validIndexes)) then
+		return false
+	end
+	
+	--Second, check for targets, filtering to only this map (maybe expand into other maps later).
+	c_quest_addhuntlogtask.possibleTargets = ffxiv_task_huntlog.GetTargetList(c_quest_addhuntlogtask.validIndexes)
+	if (ValidTable(c_quest_addhuntlogtask.possibleTargets)) then
+		return true
+	end
+	
+	return false
+end
+function e_quest_addhuntlogtask:execute()
+	local newTask = ffxiv_task_huntlog.Create()
+	newTask.validIndexes = deepcopy(c_quest_addhuntlogtask.validIndexes,true)
+	newTask.possibleTargets = deepcopy(c_quest_addhuntlogtask.possibleTargets,true)
+	newTask.adHoc = true
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 c_selectvalidindexes = inheritsFrom( ml_cause )
 e_selectvalidindexes = inheritsFrom( ml_effect )
 c_selectvalidindexes.indexes = {}
@@ -697,9 +729,9 @@ end
 
 function ffxiv_task_huntlog.GetMaxMobLevel()
 	if (Player.level >= 10) then
-		return (Player.level + 3)
+		return (Player.level + 5)
 	else
-		return (Player.level + 1)
+		return (Player.level + 3)
 	end
 end
 
