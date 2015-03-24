@@ -196,6 +196,7 @@ SkillMgr.Variables = {
 	SKM_SKNCDTIMEMIN = { default = "", cast = "string", profile = "skncdtimemin", section = "fighting" },
 	SKM_SKNCDTIMEMAX = { default = "", cast = "string", profile = "skncdtimemax", section = "fighting" },
 	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
+	SKM_NCURRENTACTION = { default = "", cast = "string", profile = "ncurrentaction", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
@@ -371,6 +372,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].nextSkillPrio,"SKM_NSkillPrio",strings[gCurrentLanguage].basicDetails)
+	GUI_NewField(SkillMgr.editwindow.name,"Current Action NOT","SKM_NCURRENTACTION",strings[gCurrentLanguage].basicDetails)
 	GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
@@ -2511,6 +2513,23 @@ function SkillMgr.AddDefaultConditions()
 			end
 			return true
 		end
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Current Action NOT Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if ( not IsNullString(skill.ncurrentaction)) then
+			for actionid in StringSplit(skill.ncurrentaction,",") do
+				if (tonumber(actionid) == Player.action) then
+					return true
+				end
+			end
+		end
+		return false
 	end
 	}
 	SkillMgr.AddConditional(conditional)
