@@ -79,7 +79,6 @@ ffxiv_aoe_data =
 		[1385]=true;
 		[1411]=true;
 		[1554]=true;
-		[969]=true;
 		[1397]=true;
 		[1672]=true;
 		[2761]=true;
@@ -221,8 +220,6 @@ ffxiv_aoe_data =
 		[1664]=true;
 		[3175]=true;
 		[3176]=true;
-		[474]=true;
-		[963]=true;
 		[2927]=true;
 		[2928]=true;
 		[1926]=true;
@@ -293,9 +290,6 @@ ffxiv_aoe_data =
 		[3393]=true;
 		[2382]=true;
 		[1644]=true;
-		[967]=true;
-		[1395]=true;
-		[3093]=true;
 		[2349]=true;
 		[1720]=true;
 		[1721]=true;
@@ -1529,7 +1523,7 @@ ffxiv_aoe_data =
 		[2486]=true;
 		[2383]=true;
 		[2384]=true;
-		[1270]=true;
+		--[1270]=true; Thunder II
 		[2176]=true;
 		[326]=true;
 		[1050]=true;
@@ -1693,6 +1687,7 @@ ffxiv_aoe_data =
 		[582]=true;
 		[1265]=true;
 		[333]=true;
+		[146] = true,
 	};
 	["circle"] = {
 		--Labored Leap
@@ -1771,6 +1766,8 @@ ffxiv_aoe_data =
 		[381] = true,
 		--Iron Tempest
 		[1003] = true,
+		--Curse
+		[585] = true,
 	},
 	["frontal"] = {
 	

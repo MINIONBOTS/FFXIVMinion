@@ -402,7 +402,7 @@ function c_avoid:evaluate()
 			local casttime = e.castinginfo.casttime or 0
 			local casttargets = e.castinginfo.targets
 			
-			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling]) or e.action == 131) then
+			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
 				local epos = shallowcopy(e.pos)
 				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 				
@@ -431,7 +431,7 @@ function c_avoid:evaluate()
 					local casttime = e.castinginfo.casttime or 0
 					local casttargets = e.castinginfo.targets
 					
-					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling] or e.action == 131)) then
+					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
 						local epos = shallowcopy(e.pos)
 						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 	
@@ -1255,6 +1255,7 @@ function c_usenavinteraction:evaluate()
 					if (CanUseAetheryte(12)) then
 						if (Player:IsMoving()) then
 							Player:Stop()
+							return
 						end
 						if (Player.ismounted) then
 							Dismount()
@@ -1273,6 +1274,7 @@ function c_usenavinteraction:evaluate()
 					if (CanUseAetheryte(11)) then
 						if (Player:IsMoving()) then
 							Player:Stop()
+							return
 						end
 						if (Player.ismounted) then
 							Dismount()
