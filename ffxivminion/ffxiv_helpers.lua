@@ -455,39 +455,6 @@ function GetPetSkillRangeRadius(id)
 	return nil
 end
 
-function GetLowestMPParty()
-    local pID = Player.id
-	local lowest = nil
-	local lowestMP = 101
-	
-	local mpUsers = {
-		[1] = true,
-		[6] = true,
-		[19] = true,
-		[24] = true,
-		[26] = true,
-		[27] = true,
-		[28] = true,
-	}
-	
-    local el = EntityList("myparty,alive,type=1,targetable,maxdistance=35")
-    if ( el ) then
-		for i,e in pairs(el) do
-			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
-				lowest = e
-				lowestMP = e.mp.percent
-			end
-        end
-    end
-	
-	if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
-		lowest = Player
-		lowestMP = Player.mp.percent
-	end
-	
-	return lowest
-end
-
 function GetLowestHPParty( skill )
     npc = skill.npc == "1" and true or false
 	range = skill.range or ml_global_information.AttackRange
@@ -537,9 +504,57 @@ function GetLowestHPParty( skill )
 	end
 end
 
-function GetLowestTPParty()
+
+function GetLowestMPParty( range, role )
+    local pID = Player.id
+	local lowest = nil
+	local lowestMP = 101
+	local range = tonumber(range) or 35 
+	local role = tostring(role) or ""
+	
+	local mpUsers = {
+		[1] = true,
+		[6] = true,
+		[19] = true,
+		[24] = true,
+		[26] = true,
+		[27] = true,
+		[28] = true,
+	}
+	
+	-- If the role is to be filtered, remove the non-applicable jobs here.
+	local roleTable = GetRoleTable(role)
+	if (roleTable) then
+		for jobid,_ in pairs(mpUsers) do
+			if (not roleTable[jobid]) then
+				mpUsers[jobid] = nil
+			end
+		end
+	end
+	
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+    if ( el ) then
+		for i,e in pairs(el) do
+			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
+				lowest = e
+				lowestMP = e.mp.percent
+			end
+        end
+    end
+	
+	if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
+		lowest = Player
+		lowestMP = Player.mp.percent
+	end
+	
+	return lowest
+end
+
+function GetLowestTPParty( range, role )
 	local lowest = nil
 	local lowestTP = 1001
+	local range = tonumber(range) or 35
+	local role = tostring(role) or ""
 	
 	local tpUsers = {
 		[1] = true,
@@ -552,9 +567,21 @@ function GetLowestTPParty()
 		[21] = true,
 		[22] = true,
 		[23] = true,
+		[29] = true,
+		[30] = true,
 	}
 	
-    local el = EntityList("myparty,alive,type=1,targetable,maxdistance=35")
+	-- If the role is to be filtered, remove the non-applicable jobs here.
+	local roleTable = GetRoleTable(role)
+	if (roleTable) then
+		for jobid,_ in pairs(tpUsers) do
+			if (not roleTable[jobid]) then
+				tpUsers[jobid] = nil
+			end
+		end
+	end
+	
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
     if ( el ) then
         for i,e in pairs(el) do
 			if (e.job and tpUsers[e.job]) then
@@ -691,7 +718,7 @@ end
 
 function GetBestRevive( party, role)
 	party = party or false
-	role = role or "Any"
+	role = role or ""
 	range = 30
 	
 	local el = nil
@@ -700,20 +727,34 @@ function GetBestRevive( party, role)
 	else
 		el = EntityList("dead,maxdistance="..tostring(range))
 	end 
-								
-	if ( el ) then
-		if (role ~= "Any") then
-			for i,e in pairs(el) do
-				if (e.job ~= nil and GetRoleString(e.job) == role and MissingBuffs(e, "148")) then
-					return e
-				end 
-			end  
-		else
-			for i,e in pairs(el) do
-				if (MissingBuffs(e, "148")) then
-					return e
+	
+	-- Filter out the inappropriate roles.
+	local targets = {}
+	if (el) then
+		local roleTable = GetRoleTable(role)
+		if (roleTable) then
+			for id,entity in pairs(el) do
+				if (entity.job and roleTable[entity.job]) then
+					targets[id] = entity
 				end
-			end  
+			end
+		end
+	end
+	
+	-- Filter out targets with the res buff.
+	if (targets) then
+		for id,entity in pairs(targets) do
+			if (HasBuffs(entity,"148")) then
+				targets[id] = nil
+			end
+		end
+	end
+	
+	if (targets) then
+		for id,entity in pairs(targets) do
+			if (entity) then
+				return entity
+			end
 		end
 	end
 	
@@ -2322,6 +2363,7 @@ function IsIxaliRare(itemid)
 		[2001389] = true,
 		[2001427] = true,
 		[2001416] = true,
+		[2001413] = true,
 	}
 	return rares[itemid]
 end
@@ -2334,6 +2376,7 @@ function IsIxaliSemiRare(itemid)
 		[2001388] = true,
 		[2001425] = true,
 		[2001415] = true,
+		[2001412] = true,
 	}
 	return rares[itemid]
 end
@@ -2393,6 +2436,46 @@ function GetRoleString(jobID)
     then
         return strings[gCurrentLanguage].tank
     end
+end
+
+function GetRoleTable(rolestring)
+	if (rolestring == "DPS") then
+		return {
+			[FFXIV.JOBS.ARCHER] = true,
+			[FFXIV.JOBS.BARD] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.DRAGOON] = true,
+			[FFXIV.JOBS.LANCER] = true,
+			[FFXIV.JOBS.MONK] = true,
+			[FFXIV.JOBS.PUGILIST] = true,
+			[FFXIV.JOBS.ROGUE] = true,
+			[FFXIV.JOBS.NINJA] = true,
+		}
+	elseif (rolestring == "Healer") then
+		return {
+			[FFXIV.JOBS.CONJURER] = true,
+			[FFXIV.JOBS.SCHOLAR] = true,
+			[FFXIV.JOBS.WHITEMAGE] = true,
+		}
+	elseif (rolestring == "Tank") then
+		return {
+			[FFXIV.JOBS.GLADIATOR] = true,
+			[FFXIV.JOBS.MARAUDER] = true,
+			[FFXIV.JOBS.PALADIN] = true,
+			[FFXIV.JOBS.WARRIOR] = true,
+		}
+	elseif (rolestring == "Caster") then
+		return {
+			[FFXIV.JOBS.ARCANIST] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.SUMMONER] = true,
+			[FFXIV.JOBS.THAUMATURGE] = true,
+			[FFXIV.JOBS.WHITEMAGE] = true,
+			[FFXIV.JOBS.CONJURER] = true,
+			[FFXIV.JOBS.SCHOLAR] = true,
+		}
+	end
+	return nil
 end
 
 function IsMeleeDPS(jobID)

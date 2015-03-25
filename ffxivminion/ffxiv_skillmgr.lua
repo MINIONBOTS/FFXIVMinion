@@ -137,9 +137,11 @@ SkillMgr.Variables = {
 	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
 	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting"   },
 	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting"  },
-	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"   },
-	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"   },
-	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"   },
+	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"  },
+	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"  },
+	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"  },
+	SKM_TTPL = { default = 0, cast = "number", profile = "ttpl", section = "fighting"  },
+	SKM_TMPL = { default = 0, cast = "number", profile = "tmpl", section = "fighting"  },
 	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
 	SKM_PTHPL = { default = 0, cast = "number", profile = "pthpl", section = "fighting"   },
 	SKM_PTHPB = { default = 0, cast = "number", profile = "pthpb", section = "fighting"   },
@@ -409,7 +411,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRGTYPE,"SKM_TRGTYPE",strings[gCurrentLanguage].target,"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNPC,"SKM_NPC",strings[gCurrentLanguage].target)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTRG,"SKM_PTRG",strings[gCurrentLanguage].target,"Any,Enemy,Player")
@@ -419,6 +421,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCL,"SKM_THPCL",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCB,"SKM_THPCB",strings[gCurrentLanguage].target)
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Target TP <=","SKM_TTPL",strings[gCurrentLanguage].target)
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Target MP <=","SKM_TMPL",strings[gCurrentLanguage].target)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCONTIDS,"SKM_TCONTIDS",strings[gCurrentLanguage].target)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTNCONTIDS,"SKM_TNCONTIDS",strings[gCurrentLanguage].target)
 	
@@ -1235,6 +1239,14 @@ function SkillMgr.IsPetSummonSkill(skillID)
     return false
 end
 
+function SkillMgr.IsComboBreaker(skillid)
+	local skillid = tonumber(skillid) or 0
+	local skills = {
+		[14] = true,
+	}
+	return skills[skillid]
+end
+
 -- Goes through all spells and returns the highest HP% of all spells
 function SkillMgr.GetHealSpellHPLimit()
 	local highestHPLimit = 0
@@ -1809,6 +1821,22 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Player" ) then
 		TID = PID
+	elseif ( skill.trg == "Low TP" ) then
+		local ally = GetLowestTPParty( maxrange, skill.trgtype )
+		if ( ally ) then
+			target = ally
+			TID = ally.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Low MP" ) then
+		local ally = GetLowestMPParty( maxrange, skill.trgtype )
+		if ( ally ) then
+			target = ally
+			TID = ally.id
+		else
+			return nil
+		end
 	elseif ( skill.trg == "Heal Priority" and tonumber(skill.hpriohp) > 0 ) then
 		local priorities = {
 			[1] = skill.hprio1,
@@ -2057,7 +2085,7 @@ function ffxiv_task_skill_cast:task_complete_eval()
 				SkillMgr.nextSkillPrio = ""
 			end
 			
-			if (skilldata.recasttime == 2.5) then
+			if (skilldata.recasttime == 2.5 and not SkillMgr.IsComboBreaker(skill.id)) then
 				SkillMgr.prevComboSkillID = skilldata.id
 				SkillMgr.latencyTimer = Now() + 500
 			end
