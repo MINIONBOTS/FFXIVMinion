@@ -1688,6 +1688,8 @@ ffxiv_aoe_data =
 		[1265]=true;
 		[333]=true;
 		[146] = true,
+		[516] = true,
+		[1016] = true,
 	};
 	["circle"] = {
 		--Labored Leap
