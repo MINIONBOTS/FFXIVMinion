@@ -588,6 +588,7 @@ function e_avoid:execute()
 			newTask.targetid = target.id
 			newTask.interruptCasting = true
 			newTask.maxTime = maxTime
+			d("Creating avoid task with max time:"..tostring(maxTime))
 			ml_task_hub:ThisTask().preserveSubtasks = true
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
@@ -1262,7 +1263,11 @@ function c_usenavinteraction:evaluate()
 							return
 						end
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
-							Player:Teleport(12)
+							if (Player:Teleport(12)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.mapID = 137
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
 						end
 					else
 						local newTask = ffxiv_nav_interact.Create()
@@ -1281,7 +1286,11 @@ function c_usenavinteraction:evaluate()
 							return
 						end
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
-							Player:Teleport(11)
+							if (Player:Teleport(11)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.mapID = 137
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
 						end
 					else
 						local newTask = ffxiv_nav_interact.Create()

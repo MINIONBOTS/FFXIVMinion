@@ -655,8 +655,10 @@ function ffxiv_task_stealth:task_complete_eval()
 	end
 	
 	if (action and not action.isoncd) then
-        action:Cast()
-		ml_task_hub:CurrentTask():SetDelay(500)
+		if (Now() > self.timer) then
+			action:Cast()
+			self.timer = Now() + 1500
+		end
     end
 	
 	return false
@@ -927,6 +929,7 @@ function ffxiv_task_flee.Create()
     newinst.pos = 0
     newinst.range = 1.5
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
+	newinst.failTimer = 0
     
     return newinst
 end
@@ -945,30 +948,8 @@ function ffxiv_task_flee:task_complete_eval()
 	if (IsLoading() or ml_mesh_mgr.loadingMesh ) then
 		return true
 	end
-
-    if ( ml_task_hub:CurrentTask().pos ~= nil and TableSize(ml_task_hub:CurrentTask().pos) > 0 ) then
-        local myPos = Player.pos
-		
-		local gotoPos
-		gotoPos = ml_task_hub:CurrentTask().pos
-		
-		local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		
-        ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
-        ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-        ml_debug("Task Range: "..tostring(self.range))
-        ml_debug("Current Distance: "..tostring(distance))
-		ml_debug("Path Distance: "..tostring(pathdistance))
-        ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
-
-		if (distance <= self.range) then
-			return true
-		end
-    else
-        ml_error("Missing position in flee task, killing the task.")
-		self.valid = false
-    end    
-    return false
+	
+	return not Player.incombat or (Player.hp.percent > tonumber(gRestHP) and Player.mp.percent > tonumber(gRestMP))
 end
 
 function ffxiv_task_flee:task_complete_execute()
@@ -976,15 +957,25 @@ function ffxiv_task_flee:task_complete_execute()
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
+	ml_task_hub:CurrentTask():SetDelay(2000)
 end
 
 function ffxiv_task_flee:task_fail_eval()
-	return not Player.alive 
+	if (((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)) then
+		if (self.failTimer == 0) then
+			self.failTimer = Now() + 10000
+		end
+	else
+		if (self.failTimer ~= 0) then
+			self.failTimer = 0
+		end
+	end
+	return (not Player.alive or Now() > self.failTimer)
 end
 
 function ffxiv_task_flee:task_fail_execute()
 	d("Flee task failed.")
-	self:Terminate()
+	self.valid = false
 end
 
 --=======================GRIND COMBAT TASK=========================-
