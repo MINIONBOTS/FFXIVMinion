@@ -159,12 +159,21 @@ function ffxiv_task_assist.UIInit()
 	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
 		Settings.FFXIVMINION.gQuestHelpers = "0"
 	end
-	if (Settings.FFXIVMINION.gPrimaryFilter == nil) then
-        Settings.FFXIVMINION.gPrimaryFilter = "0"
+	if (Settings.FFXIVMINION.gAssistFilter1 == nil) then
+        Settings.FFXIVMINION.gAssistFilter1 = "0"
     end
-	if (Settings.FFXIVMINION.gSecondaryFilter == nil) then
-		Settings.FFXIVMINION.gSecondaryFilter = "0"
+	if (Settings.FFXIVMINION.gAssistFilter2 == nil) then
+		Settings.FFXIVMINION.gAssistFilter2 = "0"
 	end
+	if (Settings.FFXIVMINION.gAssistFilter3 == nil) then
+        Settings.FFXIVMINION.gAssistFilter3 = "0"
+    end
+	if (Settings.FFXIVMINION.gAssistFilter4 == nil) then
+		Settings.FFXIVMINION.gAssistFilter4 = "0"
+	end
+	if (Settings.FFXIVMINION.gAssistFilter5 == nil) then
+        Settings.FFXIVMINION.gAssistFilter5 = "0"
+    end
 	
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -175,8 +184,13 @@ function ffxiv_task_assist.UIInit()
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
-	GUI_NewCheckbox(winName,"Filter 1","gPrimaryFilter",group)
-	GUI_NewCheckbox(winName,"Filter 2","gSecondaryFilter",group)
+	
+	local group = "Filters"
+	GUI_NewCheckbox(winName,"Filter 1","gAssistFilter1",group)
+	GUI_NewCheckbox(winName,"Filter 2","gAssistFilter2",group)
+	GUI_NewCheckbox(winName,"Filter 3","gAssistFilter2",group)
+	GUI_NewCheckbox(winName,"Filter 4","gAssistFilter2",group)
+	GUI_NewCheckbox(winName,"Filter 5","gAssistFilter2",group)
     
 	local group = GetString("settings")
     GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
@@ -194,8 +208,11 @@ function ffxiv_task_assist.UIInit()
 	gStartCombat = Settings.FFXIVMINION.gStartCombat
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
-	gPrimaryFilter = Settings.FFXIVMINION.gPrimaryFilter
-	gSecondaryFilter = Settings.FFXIVMINION.gSecondaryFilter
+	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
+	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
+	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
+	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
+	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
@@ -207,8 +224,12 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gStartCombat" or
 				k == "gConfirmDuty" or
 				k == "gQuestHelpers" or
-				k == "gPrimaryFilter" or
-				k == "gSecondaryFilter" ) then
+				k == "gAssistFilter1" or
+				k == "gAssistFilter2" or 
+				k == "gAssistFilter3" or
+				k == "gAssistFilter4" or
+				k == "gAssistFilter5") 
+		then
 			SafeSetVar(tostring(k),v)
         end
     end

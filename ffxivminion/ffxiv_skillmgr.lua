@@ -115,6 +115,9 @@ SkillMgr.Variables = {
 	SKM_OnlyParty = { default = "0", cast = "string", profile = "onlyparty", section = "fighting"  },
 	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting"  },
 	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting"  },
+	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
+	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", section = "fighting"  },
+	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", section = "fighting"  },
 	SKM_CBreak = { default = "0", cast = "string", profile = "cbreak", section = "fighting"  },
 	SKM_MPLock = {default = "0", cast = "string", profile = "mplock", section = "fighting" },
 	SKM_MPLocked = {default = "0", cast = "string", profile = "mplocked", section = "fighting" },
@@ -123,7 +126,7 @@ SkillMgr.Variables = {
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
 	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
-	SKM_PGTRG = { default = "Enemy", cast = "string", profile = "ptrg", section = "fighting"  },
+	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", section = "fighting"  },
 	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting"  },
 	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting"  },
 	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
@@ -132,6 +135,7 @@ SkillMgr.Variables = {
 	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"   },
 	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting"   },
 	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting"   },
+	SKM_PUnderAttack = { default = "0", cast = "string", profile = "punderattack", section = "fighting"  },
 	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting"   },
 	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting"   },
 	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
@@ -140,6 +144,7 @@ SkillMgr.Variables = {
 	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"  },
 	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"  },
 	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"  },
+	SKM_THPADV = { default = 0, cast = "number", profile = "thpadv", section = "fighting"  },
 	SKM_TTPL = { default = 0, cast = "number", profile = "ttpl", section = "fighting"  },
 	SKM_TMPL = { default = 0, cast = "number", profile = "tmpl", section = "fighting"  },
 	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
@@ -375,8 +380,11 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].nextSkillPrio,"SKM_NSkillPrio",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,"Current Action NOT","SKM_NCURRENTACTION",strings[gCurrentLanguage].basicDetails)
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Primary Filter","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Secondary Filter","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 1","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 2","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 3","SKM_FilterThree",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 4","SKM_FilterFour",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 5","SKM_FilterFive",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlyParty,"SKM_OnlyParty",strings[gCurrentLanguage].basicDetails)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed",strings[gCurrentLanguage].basicDetails)
@@ -391,6 +399,7 @@ function SkillMgr.ModuleInit()
 	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPLT,"SKM_PHPB",strings[gCurrentLanguage].playerHPMPTP)
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Under Attack","SKM_PUnderAttack",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerGT,"SKM_PPowL",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB",strings[gCurrentLanguage].playerHPMPTP)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPMPPL,"SKM_PMPPL",strings[gCurrentLanguage].playerHPMPTP)
@@ -411,16 +420,17 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",strings[gCurrentLanguage].party)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRGTYPE,"SKM_TRGTYPE",strings[gCurrentLanguage].target,"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNPC,"SKM_NPC",strings[gCurrentLanguage].target)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTRG,"SKM_PTRG",strings[gCurrentLanguage].target,"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPGTRG,"SKM_PGTRG",strings[gCurrentLanguage].target,"Enemy,Player")
+	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPGTRG,"SKM_PGTRG",strings[gCurrentLanguage].target,"Direct,Behind")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPPos,"SKM_PPos",strings[gCurrentLanguage].target,"None,Front,Flanking,Behind")
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCL,"SKM_THPCL",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCB,"SKM_THPCB",strings[gCurrentLanguage].target)
+	GUI_NewField(SkillMgr.editwindow.name,"HP Advantage >=","SKM_THPADV",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Target TP <=","SKM_TTPL",strings[gCurrentLanguage].target)
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Target MP <=","SKM_TMPL",strings[gCurrentLanguage].target)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCONTIDS,"SKM_TCONTIDS",strings[gCurrentLanguage].target)
@@ -429,11 +439,13 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTID,"SKM_TCASTID",strings[gCurrentLanguage].casting)
 	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTM,"SKM_TCASTTM",strings[gCurrentLanguage].casting)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTIME,"SKM_TCASTTIME",strings[gCurrentLanguage].casting)
+	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIOHP,"SKM_HPRIOHP",strings[gCurrentLanguage].healPriority)
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO1,"SKM_HPRIO1",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO2,"SKM_HPRIO2",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO3,"SKM_HPRIO3",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO4,"SKM_HPRIO4",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
+	
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTECount,"SKM_TECount",strings[gCurrentLanguage].aoe)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTECount2,"SKM_TECount2",strings[gCurrentLanguage].aoe)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTERange,"SKM_TERange",strings[gCurrentLanguage].aoe)
@@ -441,10 +453,12 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTACount,"SKM_TACount",strings[gCurrentLanguage].aoe)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTARange,"SKM_TARange",strings[gCurrentLanguage].aoe)
 	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].alliesNearHPLT,"SKM_TAHPL",strings[gCurrentLanguage].aoe)
+	
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PBuff",strings[gCurrentLanguage].playerBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_PBuffDura",strings[gCurrentLanguage].playerBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PNBuff",strings[gCurrentLanguage].playerBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PNBuffDura",strings[gCurrentLanguage].playerBuffs)
+	
 	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTBuffOwner,"SKM_TBuffOwner",strings[gCurrentLanguage].targetBuffs, "Player,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
 	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
@@ -1260,6 +1274,79 @@ function SkillMgr.GetHealSpellHPLimit()
 	return highestHPLimit
 end
 
+function SkillMgr.GetTankableTarget( range )
+	local range = range or ml_global_information.AttackRange
+	local closest = nil
+	local closestRange = 100
+	local targets = {}
+	
+	local party = EntityList("myparty,chartype=4")
+	if (party) then
+		for i,member in pairs(party) do
+			local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxrange="..tostring(range))
+			if (list) then
+				for k,entity in pairs(list) do
+					targets[k] = entity
+				end
+			end
+		end
+	end
+	
+	if (targets) then
+		for k,entity in pairs(targets) do
+			if (not closest or (closest and entity.distance < closestRange)) then
+				closest = entity
+				closestRange = entity.distance
+			end
+		end
+		
+		return closest
+	end
+	
+	return nil
+end
+
+function SkillMgr.GetTankedTarget( range )
+	local range = range or ml_global_information.AttackRange
+	local closest = nil
+	local closestRange = 100
+	local tanks = {}
+	local targets = {}
+
+    local party = EntityList("chartype=4,myparty")
+    if ( party ) then
+		for i,e in pairs(party) do
+			if (IsTank(e.job)) then
+				tanks[i] = e
+			end
+        end
+    end
+	
+	if (tanks) then
+		for i,tank in pairs(tanks) do
+			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxrange="..tostring(range))
+			if (list) then
+				for k,entity in pairs(list) do
+					targets[k] = entity
+				end
+			end
+		end
+	end
+	
+	if (targets) then
+		for i,target in pairs(targets) do
+			if (not closest or (closest and closest.distance < closestRange)) then
+				closest = target
+				closestRange = target.distance
+			end
+		end
+		
+		return closest
+	end
+	
+	return nil
+end
+
 function SkillMgr.Cast( entity , preCombat, forceStop )
 	preCombat = preCombat or false
 	forceStop = forceStop or false
@@ -1315,19 +1402,36 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				else
 					local action = ActionList:Get(skill.id)
 					if (skill.trg == "Ground Target") then
-						local tpos = EntityList:Get(TID).pos
+						local entity = EntityList:Get(TID)
+						if (entity) then
+							local tpos = entity.pos
+							if (skill.pgtrg == "Behind") then
+								local eh = ConvertHeading(tpos.h)
+								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
+								local rangePercent = tonumber(gCombatRangePercent) * 0.01
+								local dist = (entity.hitradius * rangePercent)
+								if (entity.hitradius < 2) then
+									dist = 2
+								end
 						
-						if (action:Cast(tpos.x, tpos.y, tpos.z)) then
-							if (SkillMgr.SkillProfile[prio]) then
-								SkillMgr.SkillProfile[prio].lastcast = Now()
-							else
-								d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+								local newpos = GetPosFromDistanceHeading(tpos, dist, mobRear)
+								if (newpos) then
+									tpos = newpos
+								end
 							end
 							
-							SkillMgr.nextSkillID = tostring(skill.nskill)
-							SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
-							SkillMgr.failTimer = Now() + 8000
-							return true
+							if (action:Cast(tpos.x, tpos.y, tpos.z)) then
+								if (SkillMgr.SkillProfile[prio]) then
+									SkillMgr.SkillProfile[prio].lastcast = Now()
+								else
+									d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+								end
+								
+								SkillMgr.nextSkillID = tostring(skill.nskill)
+								SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+								SkillMgr.failTimer = Now() + 8000
+								return true
+							end
 						end
 					else
 						if forceStop then 
@@ -1704,6 +1808,22 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		if (target.id == Player.id) then
 			return nil
 		end
+	elseif ( skill.trg == "Tankable Target") then
+		local newtarget = SkillMgr.GetTankableTarget(maxrange)
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Tanked Target") then
+		local newtarget = SkillMgr.GetTankedTarget(maxrange)
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
 	elseif ( skill.trg == "Pet" ) then
 		if ( pet ) then
 			if ( SkillMgr.IsPetSummonSkill(skillid) and pet.alive ) then 
@@ -1976,7 +2096,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		
 		SkillMgr.CurrentSkill = skill
 		SkillMgr.CurrentSkillData = realskilldata
-		SkillMgr.CurrentPet = pet	
+		SkillMgr.CurrentPet = Player.pet	
 		SkillMgr.CurrentTarget = targetTable.target
 		SkillMgr.CurrentTID = targetTable.TID
 		
@@ -2613,6 +2733,26 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Player Under Attack Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (skill.punderattack == "1") then
+			local list = EntityList("nearest,alive,attackable,targetingme")
+			if (list) then
+				for i,e in pairs(list) do
+					if (i and e) then
+						return true
+					end
+				end
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
 
 	conditional = { name = "Combat Status Checks"	
 	, eval = function()	
@@ -2638,10 +2778,16 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if 	((gPrimaryFilter == "1" and skill.filterone == "Off") or 
-			(gPrimaryFilter == "0" and skill.filterone == "On" ) or 
-			(gSecondaryFilter == "1" and skill.filtertwo == "Off") or
-			(gSecondaryFilter == "0" and skill.filtertwo == "On" ))
+		if 	((gAssistFilter1 == "1" and skill.filterone == "Off") or 
+			(gAssistFilter1 == "0" and skill.filterone == "On" ) or 
+			(gAssistFilter2 == "1" and skill.filtertwo == "Off") or
+			(gAssistFilter2 == "0" and skill.filtertwo == "On" ) or
+			(gAssistFilter3 == "1" and skill.filterthree == "Off") or
+			(gAssistFilter3 == "0" and skill.filterthree == "On" ) or
+			(gAssistFilter4 == "1" and skill.filterfour == "Off") or
+			(gAssistFilter4 == "0" and skill.filterfour == "On" ) or
+			(gAssistFilter5 == "1" and skill.filterfive == "Off") or
+			(gAssistFilter5 == "0" and skill.filterfive == "On" ))
 		then
 			return true
 		end
@@ -2908,13 +3054,16 @@ function SkillMgr.AddDefaultConditions()
 		local thpb = tonumber(skill.thpb) or 0
 		local thpcl = tonumber(skill.thpcl) or 0
 		local thpcb = tonumber(skill.thpcb) or 0
+		local thpadv = tonumber(skill.thpadv) or 0
 		if ((thpl > 0 and thpl > target.hp.percent) or
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
-			(thpcb > 0 and thpcb < target.hp.current)) 
+			(thpcb > 0 and thpcb < target.hp.current) or
+			(thpadv > 0 and ((Player.hp.max * thpadv) > target.hp.max))) 
 		then 
 			return true 
 		end
+		
 		return false
 	end
 	}

@@ -1258,6 +1258,8 @@ function GetMaxAttackRange()
 end
 
 function HasBuff(targetid, buffID)
+	local buffID = tonumber(buffID) or 0
+	
     local entity = EntityList:Get(targetid)
     if (ValidTable(entity)) then
         local buffs = entity.buffs
@@ -2374,7 +2376,7 @@ function IsIxaliSemiRare(itemid)
 	local rares = {
 		[2001391] = true,
 		[2001388] = true,
-		[2001425] = true,
+		[2001426] = true,
 		[2001415] = true,
 		[2001412] = true,
 	}
@@ -3072,8 +3074,10 @@ function GetBestGrindMap()
 		return 146 --southern than
 	elseif (level >= 35 and level < 40) then
 		return 139 --upper la noscea
-	else
+	elseif (level >= 41 and level < 45) then
 		return 180 --outer la noscea
+	elseif (level >= 45) then
+		return 156 --mor dhona
 	end
 end
 

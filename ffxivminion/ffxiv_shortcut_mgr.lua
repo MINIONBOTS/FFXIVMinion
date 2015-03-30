@@ -1,6 +1,9 @@
 sck = {}
 sck.filterTime1 = 0
 sck.filterTime2 = 0
+sck.filterTime3 = 0
+sck.filterTime4 = 0
+sck.filterTime5 = 0
 sck.onOffTimer = 0
 sck.currentSpeed = 6
 sck.psTimer = 0
@@ -9,9 +12,12 @@ sck.mainwindow = { name = "Shortcut Manager", x = 50, y = 50, width = 250, heigh
 sck.Shortcuts = {
 	["Filter 1"] = 1,
 	["Filter 2"] = 2,
-	["Start/Stop"] = 3,
-	["Speed Hack"] = 4,
-	["PermaSprint"] = 5,
+	["Filter 3"] = 3,
+	["Filter 4"] = 4,
+	["Filter 5"] = 5,
+	["Start/Stop"] = 6,
+	["Speed Hack"] = 7,
+	["PermaSprint"] = 8,
 }
 
 ffxivminion.Strings.Shortcuts = 
@@ -206,10 +212,10 @@ function sck.OnUpdate( event, tickcount )
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
 			TimeSince(sck.filterTime1) >= 750) 
 	then
-		if ( gPrimaryFilter == "0" ) then
-			gPrimaryFilter = "1"
+		if ( gAssistFilter1 == "0" ) then
+			gAssistFilter1 = "1"
 		else
-			gPrimaryFilter = "0"
+			gAssistFilter1 = "0"
 		end
 		sck.filterTime1 = tickcount
 	end
@@ -223,12 +229,63 @@ function sck.OnUpdate( event, tickcount )
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
 			TimeSince(sck.filterTime2) >= 750) 
 	then
-		if ( gSecondaryFilter == "0" ) then
-			gSecondaryFilter = "1"
+		if ( gAssistFilter2 == "0" ) then
+			gAssistFilter2 = "1"
 		else
-			gSecondaryFilter = "0"
+			gAssistFilter2 = "0"
 		end
 		sck.filterTime2 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 3"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.filterTime3) >= 750) 
+	then
+		if ( gAssistFilter3 == "0" ) then
+			gAssistFilter3 = "1"
+		else
+			gAssistFilter3 = "0"
+		end
+		sck.filterTime3 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 4"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.filterTime4) >= 750) 
+	then
+		if ( gAssistFilter4 == "0" ) then
+			gAssistFilter4 = "1"
+		else
+			gAssistFilter4 = "0"
+		end
+		sck.filterTime4 = tickcount
+	end
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Filter 5"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.filterTime5) >= 750) 
+	then
+		if ( gAssistFilter4 == "0" ) then
+			gAssistFilter4 = "1"
+		else
+			gAssistFilter4 = "0"
+		end
+		sck.filterTime5 = tickcount
 	end
 	
 	CC = Settings.FFXIVMINION.ClickCombo["Start/Stop"]

@@ -285,7 +285,7 @@ function ffxivminion.HandleInit()
 		ffxivminion.Windows = {}
 	end
 	
-	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=300 }
+	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=350 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
 
 	if ( Settings.FFXIVMINION.version == nil ) then
@@ -402,12 +402,14 @@ function ffxivminion.HandleInit()
 	end
 	
 	local winName = ffxivminion.Windows.Main.Name
-	GUI_NewButton(winName, strings[gCurrentLanguage].skillManager, "SkillManager.toggle")
-    GUI_NewButton(winName, strings[gCurrentLanguage].meshManager, "ToggleMeshManager")
-    GUI_NewButton(winName, strings[gCurrentLanguage].blacklistManager, "ToggleBlacklistMgr")
-	GUI_NewButton(winName,strings[gCurrentLanguage].profileManager,"QMToggleMain")
-	GUI_NewButton(winName,GetString("importExport"), "ToggleImportMgr")
-	GUI_NewButton(winName,GetString("multiManager"), "MultiBotManager.toggle")
+	GUI_NewButton(winName, GetString("skillManager"), "SkillManager.toggle")
+    GUI_NewButton(winName, GetString("meshManager"), "ToggleMeshManager")
+    GUI_NewButton(winName, GetString("blacklistManager"), "ToggleBlacklistMgr")
+	GUI_NewButton(winName, GetString("profileManager"),"QMToggleMain")
+	GUI_NewButton(winName, GetString("importExport"), "ToggleImportMgr")
+	GUI_NewButton(winName, GetString("multiManager"), "MultiBotManager.toggle")
+	GUI_NewButton(winName, GetString("castPrevention"),"CastPrevention.toggle")
+	GUI_NewButton(winName, GetString("shortcutManager"),"ShortcutManager.toggle")
 	
 	local group = GetString("botStatus")
 	GUI_NewField(winName,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",group )
@@ -415,10 +417,7 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(winName,strings[gCurrentLanguage].logCNE,"gLogCNE",group )
     GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
-	--GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	--GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
-	
 	GUI_NewField(winName,strings[gCurrentLanguage].eorzeaTime,"gEorzeaTime", group)
 	
 	local group = GetString("generalSettings")
@@ -441,8 +440,6 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
-	GUI_NewButton(winName,GetString("castPrevention"),"CastPrevention.toggle",group)
-	GUI_NewButton(winName,GetString("shortcutManager"),"ShortcutManager.toggle",group)
 	
 	local group = GetString("playerHPMPTP")
 	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
