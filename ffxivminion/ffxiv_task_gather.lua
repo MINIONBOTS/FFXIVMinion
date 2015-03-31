@@ -1854,10 +1854,10 @@ function ffxiv_task_gather.GetUnspoiledMarkers(mapid)
 		if (markerNameList) then
 			return markerNameList
 		else
-			ml_error("Could not find the unspoiled marker name list.")
+			ml_debug("Could not find the unspoiled marker name list.")
 		end
 	else
-		ml_error("Could not find the associated mesh for mapid "..tostring(mapid))
+		ml_debug("Could not find the associated mesh for mapid "..tostring(mapid))
 	end
 	
 	return nil
@@ -2027,7 +2027,6 @@ function ffxiv_task_gather.RefreshMarkerList(mapid)
 	if (mapid ~= 0) then
 		markerString = ffxiv_task_gather.GetUnspoiledMarkers(mapid)
 	end
-	d("markerString:"..tostring(markerString))
 	gGatherMapMarker_listitems = markerString
 	eGatherMapMarker_listitems = markerString
 	GUI_RefreshWindow(winName)

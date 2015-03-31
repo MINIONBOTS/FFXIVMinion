@@ -2903,14 +2903,14 @@ function GetOffMapMarkerList(strMeshName, strMarkerType)
 				end
 				return namestring
 			else	
-				ml_error("No markers found on for type ["..strMarkerType.."]")
+				ml_debug("No markers found on map for type ["..strMarkerType.."].")
 			end
 		else
-			ml_error("Marker file could not be loaded successfully for destination mesh ["..tostring(strMeshName).."].")
-			ml_error("Error ["..e.."]")
+			d("Marker file could not be loaded successfully for destination mesh ["..tostring(strMeshName).."].")
+			d("Error ["..e.."]")
 		end
 	else
-		ml_error("No marker file found for destination mesh ["..tostring(strMeshName).."].")
+		d("No marker file found for destination mesh ["..tostring(strMeshName).."].")
 	end
 	
 	return nil
