@@ -2889,6 +2889,33 @@ function CanUseAetheryte(aethid)
 	return false
 end
 
+function GetOffMapMarkerList(strMeshName, strMarkerType)
+	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
+	if (FileExists(markerPath)) then
+		local markerList, e = persistence.load(markerPath)
+		if (markerList) then
+			local sublist = markerList[strMarkerType]
+			if (sublist) then
+				local namestring = ""
+				local markerNameList = GetComboBoxList(sublist)
+				if (markerNameList) then
+					namestring = markerNameList["keyList"]
+				end
+				return namestring
+			else	
+				ml_error("No markers found on for type ["..strMarkerType.."]")
+			end
+		else
+			ml_error("Marker file could not be loaded successfully for destination mesh ["..tostring(strMeshName).."].")
+			ml_error("Error ["..e.."]")
+		end
+	else
+		ml_error("No marker file found for destination mesh ["..tostring(strMeshName).."].")
+	end
+	
+	return nil
+end
+
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	local newMarkerPos = nil
 	
