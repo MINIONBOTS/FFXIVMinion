@@ -188,9 +188,9 @@ function ffxiv_task_assist.UIInit()
 	local group = "Filters"
 	GUI_NewCheckbox(winName,"Filter 1","gAssistFilter1",group)
 	GUI_NewCheckbox(winName,"Filter 2","gAssistFilter2",group)
-	GUI_NewCheckbox(winName,"Filter 3","gAssistFilter2",group)
-	GUI_NewCheckbox(winName,"Filter 4","gAssistFilter2",group)
-	GUI_NewCheckbox(winName,"Filter 5","gAssistFilter2",group)
+	GUI_NewCheckbox(winName,"Filter 3","gAssistFilter3",group)
+	GUI_NewCheckbox(winName,"Filter 4","gAssistFilter4",group)
+	GUI_NewCheckbox(winName,"Filter 5","gAssistFilter5",group)
     
 	local group = GetString("settings")
     GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
