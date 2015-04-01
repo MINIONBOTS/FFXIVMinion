@@ -332,6 +332,9 @@ function ffxiv_task_fish:Init()
     local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
     self:add(ke_setbait, self.process_elements)
 	
+	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 8)
+	self:add(ke_syncadjust, self.process_elements)
+	
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 7 )
     self:add(ke_precast, self.process_elements)
     
