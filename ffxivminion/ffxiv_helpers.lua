@@ -738,6 +738,10 @@ function GetBestRevive( party, role)
 					targets[id] = entity
 				end
 			end
+		else
+			for id,entity in pairs(el) do
+				targets[id] = entity
+			end
 		end
 	end
 	
