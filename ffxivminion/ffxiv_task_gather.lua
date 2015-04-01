@@ -1621,7 +1621,7 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "Field_Name") then
 			--Capture the marker name changes, incase it affects our marker lists.
-			ffxiv_task_gather.RefreshMap()
+			ffxiv_task_gather.RefreshMarkerList(Player.localmapid)
         end
     end
     GUI_RefreshWindow(GetString("gatherMode"))
@@ -1685,7 +1685,7 @@ function ffxiv_task_gather.UIInit()
 	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useCordials, "gGatherUseCordials",group)
 	GUI_NewComboBox(winName,strings[gCurrentLanguage].startLocation,"gGatherStartLocation",group,"")
 	gGatherStartLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
-	gGatherIdleLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
+	--gGatherIdleLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
 	GUI_NewField(winName,strings[gCurrentLanguage].minerGearset,"gGatherMinerGearset",group )
 	GUI_NewField(winName,strings[gCurrentLanguage].botanistGearset,"gGatherBotanistGearset",group )
 	--GUI_NewField(winName,strings[gCurrentLanguage].throttle,"gGatherThrottle",group)
@@ -2016,6 +2016,8 @@ function ffxiv_task_gather.RefreshGatherLocations()
 		GUI_UnFoldGroup(winName,tabName)
 	end
 	
+	gGatherStartLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
+	
 	ffxivminion.SizeWindow(winName)
 	GUI_RefreshWindow(winName)
 end
@@ -2037,9 +2039,9 @@ function ffxiv_task_gather.HandleButtons( Event, Button )
 		if (Button == "ffxiv_gatherAddLocation") then
 			ffxiv_task_gather.AddGatherLocation()
 		end
-		if (Button == "ffxiv_gatherRefreshMap") then
-			ffxiv_task_gather.RefreshMap()
-		end
+		--if (Button == "ffxiv_gatherRefreshMap") then
+			--ffxiv_task_gather.RefreshMap()
+		--end
 		if (Button == "ffxiv_gatherMoveLocation") then
 			ffxiv_task_gather.MoveGatherLocation()
 		end
