@@ -2066,12 +2066,15 @@ function c_stealth:evaluate()
     end
 	
 	if (action) then
-		-- If we are going to teleport, go ahead and use stealth.
-		if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:CurrentTask().destination == "UNSPOILED_MARKER") then
+		if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 			local dest = ml_task_hub:CurrentTask().pos
 			local ppos = shallowcopy(Player.pos)
-			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
-				return false
+			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 60) then
+				if (HasBuff(Player.id, 47)) then
+					return true
+				else
+					return false
+				end
 			end
 		end
 		
