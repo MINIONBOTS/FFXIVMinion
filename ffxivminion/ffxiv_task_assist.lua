@@ -53,10 +53,10 @@ end
 
 function ffxiv_task_assist:GetHealingTarget()
     local target = nil
-    if ( gAssistMode == "LowestHealth") then	
+    if ( gAssistMode == GetString("lowestHealth")) then	
         local target = GetBestHealTarget()		
     
-    elseif ( gAssistMode == "Closest" ) then	
+    elseif ( gAssistMode == GetString("nearest") ) then	
         local target = GetClosestHealTarget()	
     end
     
@@ -69,7 +69,7 @@ end
 function ffxiv_task_assist:GetAttackTarget()
 	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or ml_global_information.AttackRange
     local target = nil
-    if ( gAssistMode == "LowestHealth") then	
+    if ( gAssistMode == GetString("lowestHealth")) then	
         local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
         if ( el ) then
             local i,e = next(el)
@@ -78,7 +78,7 @@ function ffxiv_task_assist:GetAttackTarget()
             end
         end	
     
-    elseif ( gAssistMode == "Closest" ) then	
+    elseif ( gAssistMode == GetString("nearest") ) then	
         local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
         if ( el ) then
             local i,e = next(el)
@@ -96,16 +96,16 @@ function ffxiv_task_assist:Process()
 
     local target = Player:GetTarget()
     
-    if ( gAssistMode ~= "None" ) then
+    if ( gAssistMode ~= GetString("none") ) then
         local newTarget = nil
         
-        if ( gAssistPriority == "Healer" ) then
+        if ( gAssistPriority == GetString("healer") ) then
             newTarget = ffxiv_task_assist:GetHealingTarget()
             if ( newTarget == nil ) then
                 newTarget = ffxiv_task_assist:GetAttackTarget()				
             end		
 
-        elseif ( gAssistPriority == "Damage" ) then
+        elseif ( gAssistPriority == GetString("dps") ) then
             newTarget = ffxiv_task_assist:GetAttackTarget()
             if ( newTarget == nil ) then
                 newTarget = ffxiv_task_assist:GetHealingTarget()				
@@ -145,10 +145,10 @@ function ffxiv_task_assist.UIInit()
 	ffxivminion.CreateWindow(ffxivminion.Windows.Assist)
 
 	if ( Settings.FFXIVMINION.gAssistMode == nil ) then
-        Settings.FFXIVMINION.gAssistMode = "None"
+        Settings.FFXIVMINION.gAssistMode = GetString("none")
     end
     if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
-        Settings.FFXIVMINION.gAssistPriority = "Damage"
+        Settings.FFXIVMINION.gAssistPriority = GetString("dps")
     end
 	if (Settings.FFXIVMINION.gStartCombat == nil) then
         Settings.FFXIVMINION.gStartCombat = "1"
@@ -180,31 +180,31 @@ function ffxiv_task_assist.UIInit()
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+	GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	
 	local group = "Filters"
-	GUI_NewCheckbox(winName,"Filter 1","gAssistFilter1",group)
-	GUI_NewCheckbox(winName,"Filter 2","gAssistFilter2",group)
-	GUI_NewCheckbox(winName,"Filter 3","gAssistFilter3",group)
-	GUI_NewCheckbox(winName,"Filter 4","gAssistFilter4",group)
-	GUI_NewCheckbox(winName,"Filter 5","gAssistFilter5",group)
+	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
+	GUI_NewCheckbox(winName,GetString("filter2"),"gAssistFilter2",group)
+	GUI_NewCheckbox(winName,GetString("filter3"),"gAssistFilter3",group)
+	GUI_NewCheckbox(winName,GetString("filter4"),"gAssistFilter4",group)
+	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)
     
 	local group = GetString("settings")
-    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistMode,"gAssistMode", group,"None,LowestHealth,Closest")
-    GUI_NewComboBox(winName,strings[gCurrentLanguage].assistPriority,"gAssistPriority",group,"Damage,Healer")
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].startCombat,"gStartCombat",group)
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].confirmDuty,"gConfirmDuty",group) 
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].questHelpers,"gQuestHelpers",group)
+    GUI_NewComboBox(winName,GetString("assistMode"),"gAssistMode", group,GetStringList("none,lowestHealth,nearest",","))
+    GUI_NewComboBox(winName,GetString("assistPriority"),"gAssistPriority",group,GetStringList("dps,healer",","))
+    GUI_NewCheckbox(winName,GetString("startCombat"),"gStartCombat",group)
+    GUI_NewCheckbox(winName,GetString("confirmDuty"),"gConfirmDuty",group) 
+    GUI_NewCheckbox(winName,GetString("questHelpers"),"gQuestHelpers",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
-	gAssistMode = Settings.FFXIVMINION.gAssistMode
-    gAssistPriority = Settings.FFXIVMINION.gAssistPriority
+	gAssistMode = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gAssistMode,gAssistMode_listitems,GetString("none"))
+	gAssistPriority = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gAssistPriority,gAssistPriority_listitems,GetString("dps"))
 	gStartCombat = Settings.FFXIVMINION.gStartCombat
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers

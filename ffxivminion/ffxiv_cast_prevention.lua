@@ -1,5 +1,5 @@
 cp = {}
-cp.mainwindow = { name = "Cast Prevention", x = 50, y = 50, width = 250, height = 200}
+cp.mainwindow = { name = GetString("castPrevention"), x = 50, y = 50, width = 250, height = 200}
 
 function cp.ModuleInit() 	
 

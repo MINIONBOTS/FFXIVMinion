@@ -828,24 +828,24 @@ function GetPVPTarget()
 			
             if (not HasBuff(entity.id, 3) and not HasBuff(entity.id, 397) and entity.chartype ~= 2 and not beingSlept) then -- get sleep buff id
 				local role = GetRoleString(entity.job)
-                if role == strings[gCurrentLanguage].healer then
-                    targets[strings[gCurrentLanguage].healer] = entity
-                elseif role == strings[gCurrentLanguage].dps then
-                    if (targets[strings[gCurrentLanguage].dps] ~= nil) then
+                if role == GetString("healer") then
+                    targets[GetString("healer")] = entity
+                elseif role == GetString("dps") then
+                    if (targets[GetString("dps")] ~= nil) then
 						-- keep blackmage as highest prioritized ranged target
 						if (gPrioritizeRanged == "1" and IsRangedDPS(entity.job)) then
-							if (targets[strings[gCurrentLanguage].dps].job ~= FFXIV.JOBS.BLACKMAGE) then
-								targets[strings[gCurrentLanguage].dps] = entity
+							if (targets[GetString("dps")].job ~= FFXIV.JOBS.BLACKMAGE) then
+								targets[GetString("dps")] = entity
 							end
                         end
 					else
-						targets[strings[gCurrentLanguage].dps] = entity
+						targets[GetString("dps")] = entity
                     end
                 else
-                    targets[strings[gCurrentLanguage].tank] = entity
+                    targets[GetString("tank")] = entity
                 end 
 				
-				if role == strings[gCurrentLanguage].healer then
+				if role == GetString("healer") then
 					local eid = entity.id
 					local untargeted = true
                     for i,teammate in pairs(EntityList.myparty) do
@@ -857,61 +857,61 @@ function GetPVPTarget()
 						end
 					end
 					if untargeted then
-						targets[strings[gCurrentLanguage].unattendedHealer] = entity
+						targets[GetString("unattendedHealer")] = entity
 					else
-						targets[strings[gCurrentLanguage].unattendedHealer] = nil
+						targets[GetString("unattendedHealer")] = nil
 					end
 				end
 				
 				if IsMeleeDPS(entity.job) then
-					targets[strings[gCurrentLanguage].meleeDPS] = entity				
+					targets[GetString("meleeDPS")] = entity				
 				end
 				
 				if IsCasterDPS(entity.job) then
-					if (targets[strings[gCurrentLanguage].caster] ~= nil) then
-						if (targets[strings[gCurrentLanguage].caster].job ~= FFXIV.JOBS.BLACKMAGE) then
-							targets[strings[gCurrentLanguage].caster] = entity
+					if (targets[GetString("caster")] ~= nil) then
+						if (targets[GetString("caster")].job ~= FFXIV.JOBS.BLACKMAGE) then
+							targets[GetString("caster")] = entity
 						end
 					else
-						targets[strings[gCurrentLanguage].caster] = entity
+						targets[GetString("caster")] = entity
 					end
 				end
 				
 				if IsRangedDPS(entity.job) then
-					if (targets[strings[gCurrentLanguage].ranged] ~= nil) then
-						if (targets[strings[gCurrentLanguage].ranged].job ~= FFXIV.JOBS.BLACKMAGE) then
-							targets[strings[gCurrentLanguage].ranged] = entity
+					if (targets[GetString("ranged")] ~= nil) then
+						if (targets[GetString("ranged")].job ~= FFXIV.JOBS.BLACKMAGE) then
+							targets[GetString("ranged")] = entity
 						end
 					else
-						targets[strings[gCurrentLanguage].ranged] = entity
+						targets[GetString("ranged")] = entity
 					end
 				end
 				
 				if (entity.job == FFXIV.JOBS.BLACKMAGE or entity.job == FFXIV.JOBS.WHITEMAGE) then
-					if (targets[strings[gCurrentLanguage].sleeper] ~= nil) then
-						if (targets[strings[gCurrentLanguage].sleeper].job ~= FFXIV.JOBS.BLACKMAGE) then
-							targets[strings[gCurrentLanguage].sleeper] = entity
+					if (targets[GetString("sleeper")] ~= nil) then
+						if (targets[GetString("sleeper")].job ~= FFXIV.JOBS.BLACKMAGE) then
+							targets[GetString("sleeper")] = entity
 						end
 					else
-						targets[strings[gCurrentLanguage].sleeper] = entity
+						targets[GetString("sleeper")] = entity
 					end
 				end
 				
-				if targets[strings[gCurrentLanguage].nearDead] == entity and (entity.hp.percent > 30 or not entity.alive or entity.distance > 25) then
-					targets[strings[gCurrentLanguage].nearDead] = nil
+				if targets[GetString("nearDead")] == entity and (entity.hp.percent > 30 or not entity.alive or entity.distance > 25) then
+					targets[GetString("nearDead")] = nil
 				end
 				
 				if entity.hp.percent < 30 and entity.pathdistance < 15 then
-					targets[strings[gCurrentLanguage].nearDead] = entity
+					targets[GetString("nearDead")] = entity
 				end
 					
 				
-				if targets[strings[gCurrentLanguage].nearest] == nil or targets[strings[gCurrentLanguage].nearest].distance > entity.distance then
-					targets[strings[gCurrentLanguage].nearest] = entity
+				if targets[GetString("nearest")] == nil or targets[GetString("nearest")].distance > entity.distance then
+					targets[GetString("nearest")] = entity
 				end
 				
-				if targets[strings[gCurrentLanguage].lowestHealth] == nil or targets[strings[gCurrentLanguage].lowestHealth].hp.percent > entity.hp.percent then
-					targets[strings[gCurrentLanguage].lowestHealth] = entity
+				if targets[GetString("lowestHealth")] == nil or targets[GetString("lowestHealth")].hp.percent > entity.hp.percent then
+					targets[GetString("lowestHealth")] = entity
 				end
             end
             id, entity = next(enemyParty, id)
@@ -935,7 +935,7 @@ function GetPVPTarget()
 	elseif targets[gPVPTargetFive] ~= nil and targets[gPVPTargetFive].alive then
 		return targets[gPVPTargetFive]
 	else
-		return targets[strings[gCurrentLanguage].lowestHealth]
+		return targets[GetString("lowestHealth")]
 	end
 	
 	ml_error("Bad, we shouldn't have gotten to this point!")
@@ -949,7 +949,7 @@ function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
 	local el = nil
 	
-	if (gBotMode ~= strings[gCurrentLanguage].dutyMode or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
+	if (gBotMode ~= GetString("dutyMode") or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
         return nil
     end
 	
@@ -1956,7 +1956,7 @@ function IsLeader()
 end
 
 function GetPartyLeader()
-	if (gBotMode == strings[gCurrentLanguage].partyMode and gPartyGrindUsePartyLeader == "0") then
+	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 		local el = EntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(el)) then
@@ -2046,11 +2046,11 @@ function InCombatRange(targetid)
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
 	--d(ml_task_queue.rootTask)
-	if (gBotMode == strings[gCurrentLanguage].dutyMode) then
+	if (gBotMode == GetString("dutyMode")) then
 		return true
 	end
 	
-	if (gBotMode == strings[gCurrentLanguage].gatherMode) then
+	if (gBotMode == GetString("gatherMode")) then
 		local node = EntityList:Get(targetid)
 		if (node and node.distance2d < 4) then
 			return true
@@ -2312,18 +2312,18 @@ end
 function WhitelistTarget()
 	local target = Player:GetTarget()
 	if (target) then
-		local whitelistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+		local whitelistGlobal = tostring(_G["Field_"..GetString("contentIDEquals")])
 		if (whitelistGlobal ~= "") then
 			whitelistGlobal = whitelistGlobal..";"..tostring(target.contentid)
 		else
 			whitelistGlobal = tostring(target.contentid)
 		end
-		_G["Field_"..strings[gCurrentLanguage].contentIDEquals] = whitelistGlobal
+		_G["Field_"..GetString("contentIDEquals")] = whitelistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		local name = strings[gCurrentLanguage].contentIDEquals
+		local name = GetString("contentIDEquals")
 		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
-			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].contentIDEquals])
+			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..GetString("contentIDEquals")])
 			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 		end
 	end
@@ -2332,18 +2332,18 @@ end
 function BlacklistTarget()
 	local target = Player:GetTarget()
 	if (target) then
-		local blacklistGlobal = tostring(_G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals])
+		local blacklistGlobal = tostring(_G["Field_"..GetString("NOTcontentIDEquals")])
 		if (blacklistGlobal ~= "") then
 			blacklistGlobal = blacklistGlobal..";"..tostring(target.contentid)
 		else
 			blacklistGlobal = tostring(target.contentid)
 		end
-		_G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals] = blacklistGlobal
+		_G["Field_"..GetString("NOTcontentIDEquals")] = blacklistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		local name = strings[gCurrentLanguage].NOTcontentIDEquals
+		local name = GetString("NOTcontentIDEquals")
 		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
-			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..strings[gCurrentLanguage].NOTcontentIDEquals])
+			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..GetString("NOTcontentIDEquals")])
 			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 		end
 	end
@@ -2427,20 +2427,20 @@ function GetRoleString(jobID)
 		jobID == FFXIV.JOBS.ROGUE or
 		jobID == FFXIV.JOBS.NINJA
     then
-        return strings[gCurrentLanguage].dps
+        return GetString("dps")
     elseif
         jobID == FFXIV.JOBS.CONJURER or
         jobID == FFXIV.JOBS.SCHOLAR or
         jobID == FFXIV.JOBS.WHITEMAGE
     then
-        return strings[gCurrentLanguage].healer
+        return GetString("healer")
     elseif 
         jobID == FFXIV.JOBS.GLADIATOR or
         jobID == FFXIV.JOBS.MARAUDER or
         jobID == FFXIV.JOBS.PALADIN or
         jobID == FFXIV.JOBS.WARRIOR
     then
-        return strings[gCurrentLanguage].tank
+        return GetString("tank")
     end
 end
 
@@ -2991,7 +2991,6 @@ function ShouldTeleport(pos)
 				if (players) then
 					for i,entity in pairs(players) do
 						local epos = entity.pos
-						
 						if (Distance3D(epos.x,epos.y,epos.z,gotoPos.x,gotoPos.y,gotoPos.z) <= 50) then
 							return false
 						end
@@ -3006,7 +3005,7 @@ end
 
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
-    local excludeString = ml_blacklist.GetExcludeString(strings[gCurrentLanguage].monsters)
+    local excludeString = ml_blacklist.GetExcludeString(GetString("monsters"))
     
     -- then add on any local contentIDs to exclude
     if (ml_global_information.BlacklistContentID and ml_global_information.BlacklistContentID ~= "") then

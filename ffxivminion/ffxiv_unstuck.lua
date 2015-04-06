@@ -77,11 +77,11 @@ end
 
 function ffxiv_unstuck.CheckStuck()
 	if (gDoUnstuck == "0" or 
-		gBotMode == strings[gCurrentLanguage].pvpMode or
-		gBotMode == strings[gCurrentLanguage].craftMode or
-		gBotMode == strings[gCurrentLanguage].assistMode or 
-		gBotMode == strings[gCurrentLanguage].dutyMode or
-		gBotMode == strings[gCurrentLanguage].fishMode) 
+		gBotMode == GetString("pvpMode") or
+		gBotMode == GetString("craftMode") or
+		gBotMode == GetString("assistMode") or 
+		gBotMode == GetString("dutyMode") or
+		gBotMode == GetString("fishMode")) 
 	then
 		return
 	end

@@ -8,7 +8,7 @@ sck.onOffTimer = 0
 sck.currentSpeed = 6
 sck.psTimer = 0
 
-sck.mainwindow = { name = "Shortcut Manager", x = 50, y = 50, width = 250, height = 200}
+sck.mainwindow = { name = GetString("shortcutManager"), x = 50, y = 50, width = 250, height = 200}
 sck.Shortcuts = {
 	["Filter 1"] = 1,
 	["Filter 2"] = 2,
@@ -85,13 +85,13 @@ function sck.ModuleInit()
 	local group = GetString("settings")
 	local funcString = ""
 	funcString = ffxivminion.Strings.Shortcuts()
-    GUI_NewComboBox(winName,"Shortcut:",	"gShortcut",group,funcString)
+    GUI_NewComboBox(winName,GetString("shortcut"),"gShortcut",group,funcString)
 	funcString = ffxivminion.Strings.ModKeys()
-	GUI_NewComboBox(winName,"Modifier Key:","gModifierKey",group,funcString)
+	GUI_NewComboBox(winName,GetString("modifierKey"),"gModifierKey",group,funcString)
 	funcString = ffxivminion.Strings.ModKeys()
-	GUI_NewComboBox(winName,"Modifier Key:","gModifierKey2",group,funcString)
+	GUI_NewComboBox(winName,GetString("modifierKey"),"gModifierKey2",group,funcString)
 	funcString = ffxivminion.Strings.SCKeys()
-	GUI_NewComboBox(winName,"Shortcut Key:","gShortcutKey",group,funcString)
+	GUI_NewComboBox(winName,GetString("shortcutKey"),"gShortcutKey",group,funcString)
 	GUI_UnFoldGroup(winName,group )
 	GUI_SizeWindow(winName,200,200)
 	GUI_WindowVisible(winName, false)

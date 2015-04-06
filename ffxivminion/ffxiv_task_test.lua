@@ -24,7 +24,7 @@ c_gotomaptest = inheritsFrom( ml_cause )
 e_gotomaptest = inheritsFrom( ml_effect )
 function c_gotomaptest:evaluate()	
 	local mapID = tonumber(gTestMapID)
-	if (Player.localmapid ~= mapID and not ml_task_hub:ThisTask().taskCreated) then
+	if (Player.localmapid ~= mapID) then
 		return true
 	end
 end
@@ -33,7 +33,6 @@ function e_gotomaptest:execute()
 	local task = ffxiv_task_movetomap.Create()
 	task.destMapID = mapID
 	ml_task_hub:CurrentTask():AddSubTask(task)
-	ml_task_hub:ThisTask().taskCreated = true
 end
 
 c_gotopostest = inheritsFrom( ml_cause )
@@ -41,7 +40,7 @@ e_gotopostest = inheritsFrom( ml_effect )
 e_gotopostest.pos = nil
 function c_gotopostest:evaluate()	
 	local mapID = tonumber(gTestMapID)
-	if (Player.localmapid == mapID and not ml_task_hub:ThisTask().moveCreated) then
+	if (Player.localmapid == mapID) then
 		local ppos = shallowcopy(Player.pos)
 		local pos = {}
 		pos.x = tonumber(gTestMapX)
@@ -59,7 +58,6 @@ function e_gotopostest:execute()
 	newTask.remainMounted = true
 	newTask.pos = e_gotopostest.pos
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
-	ml_task_hub:ThisTask().moveCreated = true
 end
 
 function ffxiv_task_test:Init()
@@ -82,9 +80,9 @@ function ffxiv_task_test.UIInit()
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	
     GUI_NewField(winName, "MapID:", "gTestMapID","NavTest")
 	GUI_NewField(winName, "X:", "gTestMapX","NavTest")

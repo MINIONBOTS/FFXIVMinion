@@ -107,8 +107,8 @@ function ml_global_information.OnUpdate( event, tickcount )
 		
 		-- close any social addons that might screw up behavior first
 		if(	gBotRunning == "1" and 
-			gBotMode ~= strings[gCurrentLanguage].assistMode and
-			gBotMode ~= strings[gCurrentLanguage].dutyMode) 
+			gBotMode ~= GetString("assistMode") and
+			gBotMode ~= GetString("dutyMode")) 
 		then
 			ffxivminion.ClearAddons()
 		end
@@ -132,12 +132,12 @@ function ml_global_information.OnUpdate( event, tickcount )
 		end
 		
 		--update marker status
-		if (	gBotMode == strings[gCurrentLanguage].grindMode or
-				gBotMode == strings[gCurrentLanguage].gatherMode or
-				gBotMode == strings[gCurrentLanguage].fishMode or
-				gBotMode == strings[gCurrentLanguage].questMode or
-				gBotMode == strings[gCurrentLanguage].huntMode or 
-				gBotMode == strings[gCurrentLanguage].pvpMode ) and
+		if (	gBotMode == GetString("grindMode") or
+				gBotMode == GetString("gatherMode") or
+				gBotMode == GetString("fishMode") or
+				gBotMode == GetString("questMode") or
+				gBotMode == GetString("huntMode") or 
+				gBotMode == GetString("pvpMode") ) and
 				ml_task_hub.shouldRun and 
 				ValidTable(ml_global_information.currentMarker)
 		then
@@ -254,15 +254,15 @@ end
 function ffxivminion.HandleInit()
 		
 	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-	ml_global_information.BtnStart = { Name=strings[gCurrentLanguage].startStop,Event = "GUI_REQUEST_RUN_TOGGLE" }
-	ml_global_information.BtnPulse = { Name=strings[gCurrentLanguage].doPulse,Event = "Debug.Pulse" }
+	ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
+	ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
 	
 	ml_global_information.chocoStance = {
-		[strings[gCurrentLanguage].stFollow] = 3,
-		[strings[gCurrentLanguage].stFree] = 4,
-		[strings[gCurrentLanguage].stDefender] = 5,
-		[strings[gCurrentLanguage].stAttacker] = 6,
-		[strings[gCurrentLanguage].stHealer] = 7,
+		[GetString("stFollow")] = 3,
+		[GetString("stFree")] = 4,
+		[GetString("stDefender")] = 5,
+		[GetString("stAttacker")] = 6,
+		[GetString("stHealer")] = 7,
 	}
 	
 	ml_global_information.blacklistedAetherytes = {}
@@ -302,7 +302,7 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gLogCNE = "0"
     end
     if ( Settings.FFXIVMINION.gBotMode == nil ) then
-        Settings.FFXIVMINION.gBotMode = strings[gCurrentLanguage].grindMode
+        Settings.FFXIVMINION.gBotMode = GetString("grindMode")
     end
     if ( Settings.FFXIVMINION.gUseMount == nil ) then
         Settings.FFXIVMINION.gUseMount = "0"
@@ -350,13 +350,13 @@ function ffxivminion.HandleInit()
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
 	if ( Settings.FFXIVMINION.gChoco == nil) then
-		Settings.FFXIVMINION.gChoco = strings[gCurrentLanguage].none
+		Settings.FFXIVMINION.gChoco = GetString("none")
 	end
 	if ( Settings.FFXIVMINION.gMount == nil) then
-		Settings.FFXIVMINION.gMount = strings[gCurrentLanguage].none
+		Settings.FFXIVMINION.gMount = GetString("none")
 	end
     if ( Settings.FFXIVMINION.gChocoStance == nil) then
-		Settings.FFXIVMINION.gChocoStance = strings[gCurrentLanguage].stFree
+		Settings.FFXIVMINION.gChocoStance = GetString("stFree")
 	end
 	if ( Settings.FFXIVMINION.gRepair == nil) then
 		Settings.FFXIVMINION.gRepair = "1"
@@ -412,54 +412,54 @@ function ffxivminion.HandleInit()
 	GUI_NewButton(winName, GetString("shortcutManager"),"ShortcutManager.toggle")
 	
 	local group = GetString("botStatus")
-	GUI_NewField(winName,strings[gCurrentLanguage].pulseTime,"gFFXIVMINIONPulseTime",group )
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].enableLog,"gEnableLog",group )
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].logCNE,"gLogCNE",group )
-    GUI_NewField(winName,strings[gCurrentLanguage].task,"gFFXIVMINIONTask",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].taskDelay,"gTaskDelay",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].idlePulseCount,"gIdlePulseCount",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].eorzeaTime,"gEorzeaTime", group)
+	GUI_NewField(winName,GetString("pulseTime"),"gFFXIVMINIONPulseTime",group )
+    GUI_NewCheckbox(winName,GetString("enableLog"),"gEnableLog",group )
+    GUI_NewCheckbox(winName,GetString("logCNE"),"gLogCNE",group )
+    GUI_NewField(winName,GetString("task"),"gFFXIVMINIONTask",group )
+	GUI_NewField(winName,GetString("taskDelay"),"gTaskDelay",group )
+	GUI_NewField(winName,GetString("idlePulseCount"),"gIdlePulseCount",group )
+	GUI_NewField(winName,GetString("eorzeaTime"),"gEorzeaTime", group)
 	
 	local group = GetString("generalSettings")
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].autoStartBot,"gAutoStart",group)
+    GUI_NewCheckbox(winName,GetString("autoStartBot"),"gAutoStart",group)
 	GUI_NewCheckbox(winName,GetString("autoEquip"),"gQuestAutoEquip",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useMount,"gUseMount",group )
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].mount, "gMount",group,GetMounts())
-    GUI_NewNumeric(winName,strings[gCurrentLanguage].mountDist,"gMountDist",group )
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].useSprint,"gUseSprint",group )
-    GUI_NewNumeric(winName,strings[gCurrentLanguage].sprintDist,"gSprintDist",group )
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].companion, "gChoco",group,"")
+	GUI_NewCheckbox(winName,GetString("useMount"),"gUseMount",group )
+	GUI_NewComboBox(winName,GetString("mount"), "gMount",group,GetMounts())
+    GUI_NewNumeric(winName,GetString("mountDist"),"gMountDist",group )
+    GUI_NewCheckbox(winName,GetString("useSprint"),"gUseSprint",group )
+    GUI_NewNumeric(winName,GetString("sprintDist"),"gSprintDist",group )
+	GUI_NewComboBox(winName,GetString("companion"), "gChoco",group,"")
 	--GUI_NewField(winName,"Chocobo Name","gChocoName",group )
 	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
-	gChoco_listitems = strings[gCurrentLanguage].none..","..strings[gCurrentLanguage].grindMode..","..strings[gCurrentLanguage].assistMode..","..strings[gCurrentLanguage].any
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].stance,"gChocoStance",group,"")
-	gChocoStance_listitems = strings[gCurrentLanguage].stFree..","..strings[gCurrentLanguage].stDefender..","..strings[gCurrentLanguage].stAttacker..","..strings[gCurrentLanguage].stHealer..","..strings[gCurrentLanguage].stFollow
+	gChoco_listitems = GetString("none")..","..GetString("grindMode")..","..GetString("assistMode")..","..GetString("any")
+	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
+	gChocoStance_listitems = GetString("stFree")..","..GetString("stDefender")..","..GetString("stAttacker")..","..GetString("stHealer")..","..GetString("stFollow")
 	GUI_NewComboBox(winName,GetString("food"),"gFood", group, "None")
 	GUI_NewComboBox(winName,GetString("foodHQ"),"gFoodHQ", group, "None")
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].avoidAOE, "gAvoidAOE",group )
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].randomPaths,"gRandomPaths",group )
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].doUnstuck,"gDoUnstuck",group )
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useHQMats,"gUseHQMats",group )
+	GUI_NewCheckbox(winName,GetString("avoidAOE"), "gAvoidAOE",group )
+	GUI_NewCheckbox(winName,GetString("randomPaths"),"gRandomPaths",group )
+	GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
+	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	
 	local group = GetString("playerHPMPTP")
-	GUI_NewNumeric(winName, strings[gCurrentLanguage].restHP, "gRestHP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].restMP, "gRestMP", group, "0", "100")
-	GUI_NewNumeric(winName, strings[gCurrentLanguage].potionHP, "gPotionHP", group, "0", "100")
-	GUI_NewNumeric(winName, strings[gCurrentLanguage].potionMP, "gPotionMP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeHP, "gFleeHP", group, "0", "100")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].fleeMP, "gFleeMP", group, "0", "100")
+	GUI_NewNumeric(winName, GetString("restHP"), "gRestHP", group, "0", "100")
+    GUI_NewNumeric(winName, GetString("restMP"), "gRestMP", group, "0", "100")
+	GUI_NewNumeric(winName, GetString("potionHP"), "gPotionHP", group, "0", "100")
+	GUI_NewNumeric(winName, GetString("potionMP"), "gPotionMP", group, "0", "100")
+    GUI_NewNumeric(winName, GetString("fleeHP"), "gFleeHP", group, "0", "100")
+    GUI_NewNumeric(winName, GetString("fleeMP"), "gFleeMP", group, "0", "100")
 	
 	local group = GetString("hacks")
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].repair,"gRepair",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].disabledrawing,"gDisableDrawing",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].teleport,"gTeleport",group)
+	GUI_NewCheckbox(winName,GetString("repair"),"gRepair",group)
+	GUI_NewCheckbox(winName,GetString("disabledrawing"),"gDisableDrawing",group)
+	GUI_NewCheckbox(winName,GetString("teleport"),"gTeleport",group)
 	GUI_NewCheckbox(winName,GetString("paranoid"),"gParanoid",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].permaSprint, "gGatherPS",group)
+	GUI_NewCheckbox(winName,GetString("permaSprint"), "gGatherPS",group)
 	GUI_NewCheckbox(winName,GetString("permaSwiftcast"),"gPermaSwiftCast",group)
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].skipCutscene,"gSkipCutscene",group )
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].skipDialogue,"gSkipDialogue",group )
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].clickToTeleport,"gClickToTeleport",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].clickToTravel,"gClickToTravel",group)
+    GUI_NewCheckbox(winName,GetString("skipCutscene"),"gSkipCutscene",group )
+	GUI_NewCheckbox(winName,GetString("skipDialogue"),"gSkipDialogue",group )
+	GUI_NewCheckbox(winName,GetString("clickToTeleport"),"gClickToTeleport",group)
+	GUI_NewCheckbox(winName,GetString("clickToTravel"),"gClickToTravel",group)
 	
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
@@ -515,28 +515,28 @@ function ffxivminion.HandleInit()
     ml_blacklist_mgr.path = GetStartupPath() .. [[\LuaMods\ffxivminion\blacklist.info]]
     ml_blacklist_mgr.ReadBlacklistFile(ml_blacklist_mgr.path)
     
-    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].fates) then
-        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].fates)
+    if not ml_blacklist.BlacklistExists(GetString("fates")) then
+        ml_blacklist.CreateBlacklist(GetString("fates"))
     end
 	
 	if not ml_blacklist.BlacklistExists("FATE Whitelist") then
         ml_blacklist.CreateBlacklist("FATE Whitelist")
     end
     
-    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].monsters) then
-        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].monsters)
+    if not ml_blacklist.BlacklistExists(GetString("monsters")) then
+        ml_blacklist.CreateBlacklist(GetString("monsters"))
     end
     
-    if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].gatherMode) then
-        ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].gatherMode)
+    if not ml_blacklist.BlacklistExists(GetString("gatherMode")) then
+        ml_blacklist.CreateBlacklist(GetString("gatherMode"))
     end
 	
-	if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].huntMonsters) then
-		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].huntMonsters)
+	if not ml_blacklist.BlacklistExists(GetString("huntMonsters")) then
+		ml_blacklist.CreateBlacklist(GetString("huntMonsters"))
 	end
 	
-	if not ml_blacklist.BlacklistExists(strings[gCurrentLanguage].aoe) then
-		ml_blacklist.CreateBlacklist(strings[gCurrentLanguage].aoe)
+	if not ml_blacklist.BlacklistExists(GetString("aoe")) then
+		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
 	
 	-- setup marker manager callbacks and vars
@@ -692,7 +692,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
         then
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "gMount" ) then
-			if ( v == strings[gCurrentLanguage].none and Player.ismounted and gBotRunning == "1" ) then
+			if ( v == GetString("none") and Player.ismounted and gBotRunning == "1" ) then
 				ml_error("Cannot change mounts while mounted.")
 				SetGUIVar("gMount",backupVals.gMount)
 			else
@@ -704,7 +704,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 				local mountlist = ActionList("type=13")
 				if (ValidTable(mountlist)) then
 					--Check to see that the mount we have selected is valid first.
-					if (gMount ~= strings[gCurrentLanguage].none) then
+					if (gMount ~= GetString("none")) then
 						for k,v in pairsByKeys(mountlist) do
 							if (v.name == gMount) then
 								local acMount = ActionList:Get(v.id,13)
@@ -849,7 +849,7 @@ function ffxivminion.SwitchMode(mode)
 		GUI_WindowVisible(mode, true)
 		ml_global_information.lastMode = mode
 		
-		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+		if (gBotMode == GetString("pvpMode")) then
             Player:EnableUnstuckJump(false)
         else
             Player:EnableUnstuckJump(true)
@@ -897,6 +897,18 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			gAvoidAOE = "1"
+		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
+			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
+			gAvoidAOE = "1"
+			gProfile_listitems = "NA"
+			gProfile = "NA"
 		else
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
@@ -981,17 +993,17 @@ function ffxivminion.CheckClass()
 			-- autosetting the correct botmode
 			local newModeName = ""
 			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
-				newModeName = strings[gCurrentLanguage].gatherMode
+				newModeName = GetString("gatherMode")
 			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
-				newModeName = strings[gCurrentLanguage].fishMode
+				newModeName = GetString("fishMode")
 			elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
 					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
 					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
 					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-				newModeName = strings[gCurrentLanguage].craftMode
+				newModeName = GetString("craftMode")
 			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-			elseif ( gBotMode == strings[gCurrentLanguage].gatherMode or gBotMode == strings[gCurrentLanguage].fishMode or gBotMode == strings[gCurrentLanguage].craftMode) then
-				newModeName = strings[gCurrentLanguage].grindMode				
+			elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
+				newModeName = GetString("grindMode")				
 			end
 						
 			if (gBotMode ~= newModeName and newModeName ~= "") then
@@ -1327,6 +1339,25 @@ function ffxivminion.ClearAddons()
 			end
 		end
 	end
+end
+
+function ffxivminion.SafeComboBox(var,varlist,default)
+	local outputVar = var
+	local found = false
+	for k in StringSplit(varlist,",") do
+		if k == var then
+			found = true
+		end
+		if (found) then
+			break
+		end
+	end
+	
+	if (not found) then
+		outputVar = default
+	end
+	
+	return outputVar
 end
 
 function SetGUIVar(strName, value)

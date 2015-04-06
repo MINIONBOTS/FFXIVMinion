@@ -98,7 +98,7 @@ function e_findgatherable:execute()
     local minlevel = 1
     local maxlevel = 50
     if (ValidTable(ml_task_hub:CurrentTask().currentMarker) and
-		gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) 
+		gMarkerMgrMode ~= GetString("singleMarker")) 
 	then
 		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
 		if (minlevel and minlevel < 50) then
@@ -493,7 +493,7 @@ function c_nextgathermarker:evaluate()
         return false
     end
 	
-	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
 	else
 		ml_task_hub:ThisTask().filterLevel = true
@@ -506,9 +506,9 @@ function c_nextgathermarker:evaluate()
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
             local markerType = ""
             if (Player.job == FFXIV.JOBS.BOTANIST) then
-                markerType = strings[gCurrentLanguage].botanyMarker
+                markerType = GetString("botanyMarker")
             else
-                markerType = strings[gCurrentLanguage].miningMarker
+                markerType = GetString("miningMarker")
             end
             marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			
@@ -519,7 +519,7 @@ function c_nextgathermarker:evaluate()
         end
         
         -- next check to see if our level is out of range
-		if (gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) then
+		if (gMarkerMgrMode ~= GetString("singleMarker")) then
 			if (marker == nil) then
 				if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
 					if 	(ml_task_hub:ThisTask().filterLevel) and
@@ -574,8 +574,8 @@ function e_nextgathermarker:execute()
 	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
     ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-	ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
-    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
+	ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
+    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 end
 
@@ -833,7 +833,7 @@ function e_gather:execute()
 				local itemsVisible = ml_task_hub:CurrentTask().itemsUncovered or not IsUnspoiled(thisNode.contentid)
 				if (itemsVisible and TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000) then
 					-- first try to get treasure maps
-					local gatherMaps = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].gatherMaps)
+					local gatherMaps = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherMaps"))
 					if (gatherMaps ~= "None") then
 						if (not ml_task_hub:CurrentTask().gatheredMap) then
 							local hasMap = false
@@ -888,7 +888,7 @@ function e_gather:execute()
 					end
 					
 					-- second try to get gardening supplies
-					local gatherGardening = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].gatherGardening)
+					local gatherGardening = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherGardening"))
 					if (not ml_task_hub:CurrentTask().gatheredGardening and gatherGardening == "1") then
 						for i, item in pairs(list) do
 							if 	(IsGardening(item.id)) then
@@ -955,7 +955,7 @@ function e_gather:execute()
 					end
 					
 					-- third pass to get chocobo items
-					local gatherChocoFood = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].gatherChocoFood)
+					local gatherChocoFood = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherChocoFood"))
 					if (not ml_task_hub:CurrentTask().gatheredChocoFood and gatherChocoFood == "1") then
 						for i, item in pairs(list) do
 							if (IsChocoboFoodSpecial(item.id)) then
@@ -1057,8 +1057,8 @@ function e_gather:execute()
 				end
 			
 				-- do 2 loops to allow prioritization of first item
-				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem1)
-				local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].selectItem2)
+				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("selectItem1"))
+				local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("selectItem2"))
 				
 				if (item1 ~= "") then
 					for i, item in pairs(list) do
@@ -1406,14 +1406,14 @@ function c_nodeprebuff:evaluate()
 			return true
 		end
 		if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-			local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].skillProfile)
+			local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("skillProfile"))
 			if (profile and profile ~= "None" and profile ~= "" and gSMprofile ~= profile) then
 				return true
 			end
 			
 			local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
 			if (markerType == GetString("unspoiledMarker")) then
-				local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].minimumGP)) or 0
+				local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("minimumGP"))) or 0
 				if (Player.gp.current < requiredGP) then
 					if (((requiredGP - Player.gp.current) > 50)) then
 						if (gGatherUseCordials == "1" and ItemIsReady(6141)) then
@@ -1445,7 +1445,7 @@ function e_nodeprebuff:execute()
 		Eat()
 	end
 	if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-		local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].skillProfile)
+		local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("skillProfile"))
 		if (profile and profile ~= "None" and profile ~= "" and gSMprofile ~= profile) then
 			SkillMgr.UseProfile(profile)
 		end
@@ -1669,34 +1669,32 @@ function ffxiv_task_gather.UIInit()
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].locationName,"gGatherMapLocation",group)
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
+	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
+	GUI_NewField(winName,GetString("locationName"),"gGatherMapLocation",group)
 	
 	group = GetString("settings")
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].gatherUnspoiled, "gGatherUnspoiled",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].useCordials, "gGatherUseCordials",group)
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].startLocation,"gGatherStartLocation",group,"")
+	GUI_NewCheckbox(winName,GetString("gatherUnspoiled"), "gGatherUnspoiled",group)
+	GUI_NewCheckbox(winName,GetString("useCordials"), "gGatherUseCordials",group)
+	GUI_NewComboBox(winName,GetString("startLocation"),"gGatherStartLocation",group,"")
 	gGatherStartLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
-	--gGatherIdleLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
-	GUI_NewField(winName,strings[gCurrentLanguage].minerGearset,"gGatherMinerGearset",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].botanistGearset,"gGatherBotanistGearset",group )
-	--GUI_NewField(winName,strings[gCurrentLanguage].throttle,"gGatherThrottle",group)
+	GUI_NewField(winName,GetString("minerGearset"),"gGatherMinerGearset",group )
+	GUI_NewField(winName,GetString("botanistGearset"),"gGatherBotanistGearset",group )
 	
 	group = GetString("newLocation")
-	GUI_NewField(winName,strings[gCurrentLanguage].locationName,"gGatherMapName",group)
-	GUI_NewNumeric(winName,strings[gCurrentLanguage].hour,"gGatherMapHour",group, "0", "23")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].class,"gGatherMapClass",group, "MINER,BOTANIST")	
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].markerName,"gGatherMapMarker",group,"")
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].isIdle,"gGatherMapIdle",group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].addLocation,"ffxiv_gatherAddLocation",group)
+	GUI_NewField(winName,GetString("locationName"),"gGatherMapName",group)
+	GUI_NewNumeric(winName,GetString("hour"),"gGatherMapHour",group, "0", "23")
+	GUI_NewComboBox(winName,GetString("class"),"gGatherMapClass",group, "MINER,BOTANIST")	
+	GUI_NewComboBox(winName,GetString("markerName"),"gGatherMapMarker",group,"")
+	GUI_NewCheckbox(winName,GetString("isIdle"),"gGatherMapIdle",group)
+	GUI_NewButton(winName,GetString("addLocation"),"ffxiv_gatherAddLocation",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,GetString("settings"))
@@ -1707,16 +1705,16 @@ function ffxiv_task_gather.UIInit()
 	GUI_NewWindow(editWindow.name,editWindow.x,editWindow.y,editWindow.width,editWindow.height,"",true)
 	winName = editWindow.name
 	group = GetString("settings")
-	GUI_NewField(winName,strings[gCurrentLanguage].locationName,		"eGatherMapName",group)
-	GUI_NewField(winName,GetString("questMap"),	"eGatherMapID",group)
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].enabled, 			"eGatherMapEnabled",group)
-	GUI_NewNumeric(winName,strings[gCurrentLanguage].hour,			"eGatherMapHour",group, "0", "23")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].class,			"eGatherMapClass",group, "MINER,BOTANIST")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].markerName,			"eGatherMapMarker",group,"")
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].isIdle, 			"eGatherMapIdle",group)
-	GUI_NewButton(winName,GetString("saveLocation"),	"ffxiv_gatherSaveLocation")
-	GUI_NewButton(winName,GetString("moveLocation"),	"ffxiv_gatherSaveLocation")
-	GUI_NewButton(winName,GetString("removeLocation"),	"ffxiv_gatherRemoveLocation")
+	GUI_NewField(winName,GetString("locationName"),"eGatherMapName",group)
+	GUI_NewField(winName,GetString("questMap"),"eGatherMapID",group)
+	GUI_NewCheckbox(winName,GetString("enabled"),"eGatherMapEnabled",group)
+	GUI_NewNumeric(winName,GetString("hour"),"eGatherMapHour",group, "0", "23")
+	GUI_NewComboBox(winName,GetString("class"),"eGatherMapClass",group, "MINER,BOTANIST")
+	GUI_NewComboBox(winName,GetString("markerName"),"eGatherMapMarker",group,"")
+	GUI_NewCheckbox(winName,GetString("isIdle"),"eGatherMapIdle",group)
+	GUI_NewButton(winName,GetString("saveLocation"),"ffxiv_gatherSaveLocation")
+	GUI_NewButton(winName,GetString("moveLocation"),"ffxiv_gatherSaveLocation")
+	GUI_NewButton(winName,GetString("removeLocation"),"ffxiv_gatherRemoveLocation")
 	GUI_UnFoldGroup(winName,GetString("settings"))
 	GUI_SizeWindow(winName, editWindow.width, editWindow.height)
 	GUI_WindowVisible(winName, false)
@@ -1733,7 +1731,6 @@ function ffxiv_task_gather.UIInit()
 	gGatherBotanistGearset = Settings.FFXIVMINION.gGatherBotanistGearset
 	gGatherMapMarker = Settings.FFXIVMINION.gGatherMapMarker
 	gGatherUseCordials = Settings.FFXIVMINION.gGatherUseCordials
-	--gGatherThrottle = Settings.FFXIVMINION.gGatherThrottle
 	
     ffxiv_task_gather.SetupMarkers()
     ffxiv_task_gather.RefreshGatherLocations()
@@ -1793,49 +1790,49 @@ end
 function ffxiv_task_gather.SetupMarkers()
     -- add marker templates for gathering
     local botanyMarker = ml_marker:Create("botanyTemplate")
-	botanyMarker:SetType(strings[gCurrentLanguage].botanyMarker)
+	botanyMarker:SetType(GetString("botanyMarker"))
 	botanyMarker:ClearFields()
-	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
-	botanyMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
-	botanyMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	botanyMarker:AddField("string", GetString("selectItem1"), "")
+	botanyMarker:AddField("string", GetString("selectItem2"), "")
+	botanyMarker:AddField("string", GetString("contentIDEquals"), "")
 	botanyMarker:AddField("button", GetString("whitelistTarget"), "")
-	botanyMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
-	botanyMarker:AddField("combobox", strings[gCurrentLanguage].gatherMaps, "Any", "Any,Peisteskin Only,None")
-	botanyMarker:AddField("checkbox", strings[gCurrentLanguage].gatherGardening, "1")
-	botanyMarker:AddField("checkbox", strings[gCurrentLanguage].gatherChocoFood, "1")
-	botanyMarker:AddField("combobox", strings[gCurrentLanguage].skillProfile, "None", ffxivminion.Strings.SKMProfiles())
+	botanyMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
+	botanyMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	botanyMarker:AddField("checkbox", GetString("gatherGardening"), "1")
+	botanyMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	botanyMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
     botanyMarker:SetMaxLevel(50)
     ml_marker_mgr.AddMarkerTemplate(botanyMarker)
 	
 	local miningMarker = ml_marker:Create("miningTemplate")
-	miningMarker:SetType(strings[gCurrentLanguage].miningMarker)
+	miningMarker:SetType(GetString("miningMarker"))
 	miningMarker:ClearFields()
-	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
-	miningMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
-	miningMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	miningMarker:AddField("string", GetString("selectItem1"), "")
+	miningMarker:AddField("string", GetString("selectItem2"), "")
+	miningMarker:AddField("string", GetString("contentIDEquals"), "")
 	miningMarker:AddField("button", GetString("whitelistTarget"), "")
-	miningMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
-	miningMarker:AddField("combobox", strings[gCurrentLanguage].gatherMaps, "Any", "Any,Peisteskin Only,None")
-	miningMarker:AddField("checkbox", strings[gCurrentLanguage].gatherGardening, "1")
-	miningMarker:AddField("checkbox", strings[gCurrentLanguage].gatherChocoFood, "1")
-	miningMarker:AddField("combobox", strings[gCurrentLanguage].skillProfile, "None", ffxivminion.Strings.SKMProfiles())
+	miningMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
+	miningMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	miningMarker:AddField("checkbox", GetString("gatherGardening"), "1")
+	miningMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	miningMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
     miningMarker:SetMaxLevel(50)
     ml_marker_mgr.AddMarkerTemplate(miningMarker)
 	
 	local unspoiledMarker = ml_marker:Create("unspoiledTemplate")
-	unspoiledMarker:SetType(strings[gCurrentLanguage].unspoiledMarker)
+	unspoiledMarker:SetType(GetString("unspoiledMarker"))
 	unspoiledMarker:ClearFields()
-	unspoiledMarker:AddField("string", strings[gCurrentLanguage].minimumGP, "0")
-	unspoiledMarker:AddField("string", strings[gCurrentLanguage].selectItem1, "")
-	unspoiledMarker:AddField("string", strings[gCurrentLanguage].selectItem2, "")
-	unspoiledMarker:AddField("combobox", strings[gCurrentLanguage].gatherMaps, "Any", "Any,Peisteskin Only,None")
-	unspoiledMarker:AddField("checkbox", strings[gCurrentLanguage].gatherGardening, "1")
-	unspoiledMarker:AddField("checkbox", strings[gCurrentLanguage].gatherChocoFood, "1")
-	unspoiledMarker:AddField("combobox", strings[gCurrentLanguage].skillProfile, "None", ffxivminion.Strings.SKMProfiles())
+	unspoiledMarker:AddField("string", GetString("minimumGP"), "0")
+	unspoiledMarker:AddField("string", GetString("selectItem1"), "")
+	unspoiledMarker:AddField("string", GetString("selectItem2"), "")
+	unspoiledMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	unspoiledMarker:AddField("checkbox", GetString("gatherGardening"), "1")
+	unspoiledMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	unspoiledMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     unspoiledMarker:SetTime(1800)
     unspoiledMarker:SetMinLevel(50)
     unspoiledMarker:SetMaxLevel(50)

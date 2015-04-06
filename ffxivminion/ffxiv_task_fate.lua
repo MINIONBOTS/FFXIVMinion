@@ -40,10 +40,10 @@ e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate()
     local myPos = Player.pos
     local gotoPos = ml_marker_mgr.markerList["evacPoint"]
-    return  gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
+    return  (gFateWaitNearEvac == "1" and gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
             Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15 and
-			ml_task_hub:CurrentTask().name == "LT_GRIND"
+			ml_task_hub:CurrentTask().name == "LT_GRIND")
 end
 function e_fatewait:execute()
     local newTask = ffxiv_task_movetopos.Create()
@@ -56,6 +56,13 @@ function e_fatewait:execute()
     end
     
     newTask.remainMounted = true
+	newTask.task_fail_eval = function ()
+		return c_add_fate:evaluate()
+	end
+	newTask.task_fail_execute = function ()
+		Player:Stop()
+		newTask.valid = false
+	end
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -519,15 +526,15 @@ end
 
 
 function ffxiv_task_fate.BlacklistInitUI()
-    GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateIndex,"gFateIndex",strings[gCurrentLanguage].addEntry,"1","5")
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateName,"gFateName",strings[gCurrentLanguage].addEntry)
-    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistFate, "gBlacklistFateAddEvent", strings[gCurrentLanguage].addEntry)
+    GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,GetString("fateIndex"),"gFateIndex",GetString("addEntry"),"1","5")
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name,GetString("fateName"),"gFateName",GetString("addEntry"))
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, GetString("blacklistFate"), "gBlacklistFateAddEvent", GetString("addEntry"))
     RegisterEventHandler("gBlacklistFateAddEvent", ffxiv_task_grind.BlacklistFate)
 end
 
 function ffxiv_task_fate.WhitelistInitUI()
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name,strings[gCurrentLanguage].fateName,"gWhitelistFateName",strings[gCurrentLanguage].addEntry)
-	GUI_NewField(ml_blacklist_mgr.mainwindow.name,"Map ID","gFateMapID",strings[gCurrentLanguage].addEntry)
-    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistFate, "gWhitelistFateAddEvent", strings[gCurrentLanguage].addEntry)
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name,GetString("fateName"),"gWhitelistFateName",GetString("addEntry"))
+	GUI_NewField(ml_blacklist_mgr.mainwindow.name,"Map ID","gFateMapID",GetString("addEntry"))
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, GetString("blacklistFate"), "gWhitelistFateAddEvent", GetString("addEntry"))
     RegisterEventHandler("gWhitelistFateAddEvent", ffxiv_task_grind.WhitelistFate)
 end

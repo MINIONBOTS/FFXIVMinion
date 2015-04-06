@@ -9,11 +9,12 @@ SkillMgr.CurrentTarget = {}
 SkillMgr.CurrentTID = 0
 SkillMgr.CurrentPet = {}
 SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
-SkillMgr.skillbook = { name = strings[gCurrentLanguage].skillbook, x = 250, y = 50, w = 250, h = 350}
-SkillMgr.mainwindow = { name = strings[gCurrentLanguage].skillManager, x = 350, y = 50, w = 250, h = 350}
-SkillMgr.editwindow = { name = strings[gCurrentLanguage].skillEditor, w = 250, h = 550}
-SkillMgr.editwindow_crafting = { name = strings[gCurrentLanguage].skillEditor_craft, w = 250, h = 550}
-SkillMgr.editwindow_gathering = { name = strings[gCurrentLanguage].skillEditor_gather, w = 250, h = 550}
+SkillMgr.skillbook = { name = GetString("skillbook"), x = 250, y = 50, w = 250, h = 350}
+SkillMgr.mainwindow = { name = GetString("skillManager"), x = 350, y = 50, w = 250, h = 350}
+SkillMgr.editwindow = { name = GetString("skillEditor"), x = 250, y = 50, w = 250, h = 550}
+SkillMgr.editwindow_crafting = { name = GetString("skillEditor_craft"), x = 250, y = 50, w = 250, h = 550}
+SkillMgr.editwindow_gathering = { name = GetString("skillEditor_gather"), x = 250, y = 50, w = 250, h = 550}
+SkillMgr.confirmwindow = { name = GetString("confirm"), x = 250, y = 50, w = 250, h = 120}
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.prevSkillID = ""
@@ -122,7 +123,7 @@ SkillMgr.Variables = {
 	SKM_MPLock = {default = "0", cast = "string", profile = "mplock", section = "fighting" },
 	SKM_MPLocked = {default = "0", cast = "string", profile = "mplocked", section = "fighting" },
 	SKM_MPLockPer = {default = 0, cast = "number", profile = "mplockper", section = "fighting" },
-	SKM_TRG = { default = strings[gCurrentLanguage].target, cast = "string", profile = "trg", section = "fighting"  },
+	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting"  },
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
 	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
@@ -333,143 +334,150 @@ function SkillMgr.ModuleInit()
 		
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
-    GUI_NewButton(SkillMgr.skillbook.name,strings[gCurrentLanguage].skillbookrefresh,"SMRefreshSkillbookEvent")
+    GUI_NewButton(SkillMgr.skillbook.name,GetString("skillbookrefresh"),"SMRefreshSkillbookEvent")
     GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
     GUI_SizeWindow(SkillMgr.skillbook.name,SkillMgr.skillbook.w,SkillMgr.skillbook.h)
     GUI_WindowVisible(SkillMgr.skillbook.name,false)	
     
     -- SelectedSkills/Main Window
     GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
-    GUI_NewCheckbox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].activated,"gSMactive",strings[gCurrentLanguage].generalSettings)
-    GUI_NewComboBox(SkillMgr.mainwindow.name,strings[gCurrentLanguage].profile,"gSMprofile",strings[gCurrentLanguage].generalSettings,"")
-	GUI_NewCheckbox(SkillMgr.mainwindow.name,"Enable Debugging","gSkillManagerDebug",strings[gCurrentLanguage].generalSettings)
-	GUI_NewField(SkillMgr.mainwindow.name,"Debug Items","gSkillManagerDebugPriorities",strings[gCurrentLanguage].generalSettings)
+    GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("activated"),"gSMactive",GetString("generalSettings"))
+    GUI_NewComboBox(SkillMgr.mainwindow.name,GetString("profile"),"gSMprofile",GetString("generalSettings"),"")
+	GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("debugging"),"gSkillManagerDebug",GetString("generalSettings"))
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("debugItems"),"gSkillManagerDebugPriorities",GetString("generalSettings"))
 	
-    GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].saveProfile,"SMSaveEvent")
+    GUI_NewButton(SkillMgr.mainwindow.name,GetString("saveProfile"),"SMSaveEvent")
     RegisterEventHandler("SMSaveEvent",SkillMgr.SaveProfile)
-	GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].clearProfile,"SMClearEvent")
-    RegisterEventHandler("SMClearEvent",SkillMgr.ClearProfile)
-    GUI_NewField(SkillMgr.mainwindow.name,strings[gCurrentLanguage].newProfileName,"gSMnewname",strings[gCurrentLanguage].skillEditor)
-    GUI_NewButton(SkillMgr.mainwindow.name,strings[gCurrentLanguage].newProfile,"newSMProfileEvent",strings[gCurrentLanguage].skillEditor)
+	GUI_NewButton(SkillMgr.mainwindow.name,GetString("clearProfile"),"SMClearEvent")
+    RegisterEventHandler("SMClearEvent",SkillMgr.ClearProfilePrompt)
+    GUI_NewField(SkillMgr.mainwindow.name,GetString("newProfileName"),"gSMnewname",GetString("skillEditor"))
+    GUI_NewButton(SkillMgr.mainwindow.name,GetString("newProfile"),"newSMProfileEvent",GetString("skillEditor"))
     RegisterEventHandler("newSMProfileEvent",SkillMgr.NewProfile)
-    GUI_UnFoldGroup(SkillMgr.mainwindow.name,strings[gCurrentLanguage].generalSettings)
+    GUI_UnFoldGroup(SkillMgr.mainwindow.name,GetString("generalSettings"))
     GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-    GUI_WindowVisible(SkillMgr.mainwindow.name,false)		
+    GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
+
+	GUI_NewWindow(SkillMgr.confirmwindow.name, SkillMgr.confirmwindow.x, SkillMgr.confirmwindow.y, SkillMgr.confirmwindow.w, SkillMgr.confirmwindow.h)
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("yes"),"SKMClearProfileYes")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)	
                         
     gSMactive = "1"
     gSMnewname = ""
     
     -- EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME",strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].alias,"SKM_ALIAS",strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTYPE,"SKM_TYPE",strings[gCurrentLanguage].skillDetails)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmSTYPE,"SKM_STYPE",strings[gCurrentLanguage].skillDetails,"Action,Pet")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCombat,"SKM_Combat",strings[gCurrentLanguage].skillDetails,"In Combat,Out of Combat,Any")
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID",strings[gCurrentLanguage].skillDetails)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmCHARGE,"SKM_CHARGE",strings[gCurrentLanguage].basicDetails)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].appliesBuff,"SKM_DOBUFF",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMax,"SKM_LevelMax",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmLevelMin,"SKM_LevelMin",strings[gCurrentLanguage].basicDetails)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].minRange,"SKM_MinR",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,"Previous Combo Skill","SKM_PCSkillID",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,"Previous Combo Skill NOT","SKM_NPCSkillID",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillID,"SKM_PSkillID",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].prevSkillIDNot,"SKM_NPSkillID",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNSkillID,"SKM_NSkillID",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].nextSkillPrio,"SKM_NSkillPrio",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,"Current Action NOT","SKM_NCURRENTACTION",strings[gCurrentLanguage].basicDetails)
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 1","SKM_FilterOne",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 2","SKM_FilterTwo",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 3","SKM_FilterThree",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 4","SKM_FilterFour",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,"Filter 5","SKM_FilterFive",strings[gCurrentLanguage].basicDetails, "Ignore,Off,On")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlySolo,"SKM_OnlySolo",strings[gCurrentLanguage].basicDetails)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].onlyParty,"SKM_OnlyParty",strings[gCurrentLanguage].basicDetails)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_SecsPassed",strings[gCurrentLanguage].basicDetails)
+    GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("alias"),"SKM_ALIAS",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMax"),"SKM_LevelMax",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMin"),"SKM_LevelMin",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("minRange"),"SKM_MinR",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkill"),"SKM_PCSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkillNot"),"SKM_NPCSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillID"),"SKM_PSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillIDNot"),"SKM_NPSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmNSkillID"),"SKM_NSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("nextSkillPrio"),"SKM_NSkillPrio",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("currentActionNot"),"SKM_NCURRENTACTION",GetString("basicDetails"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter1"),"SKM_FilterOne",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter2"),"SKM_FilterTwo",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter3"),"SKM_FilterThree",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter4"),"SKM_FilterFour",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter5"),"SKM_FilterFive",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlySolo"),"SKM_OnlySolo",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
 	
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isReady,"SKM_SKREADY",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdIsReady,"SKM_SKOFFCD",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].isNotReady,"SKM_SKNREADY",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdNotReady,"SKM_SKNOFFCD",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdTimeGT,"SKM_SKNCDTIMEMIN",strings[gCurrentLanguage].skillChecks)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].cdTimeLT,"SKM_SKNCDTIMEMAX",strings[gCurrentLanguage].skillChecks)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmSTYPE,"SKM_SKTYPE",strings[gCurrentLanguage].skillChecks,"Action,Pet")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("isReady"),"SKM_SKREADY",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdIsReady"),"SKM_SKOFFCD",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("isNotReady"),"SKM_SKNREADY",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdNotReady"),"SKM_SKNOFFCD",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeGT"),"SKM_SKNCDTIMEMIN",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeLT"),"SKM_SKNCDTIMEMAX",GetString("skillChecks"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPGT,"SKM_PHPL",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerHPLT,"SKM_PHPB",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Under Attack","SKM_PUnderAttack",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerGT,"SKM_PPowL",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].playerPowerLT,"SKM_PPowB",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPMPPL,"SKM_PMPPL",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPMPPB,"SKM_PMPPB",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPL,"SKM_PTPL",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTPB,"SKM_PTPB",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLock,"SKM_MPLock",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLocked,"SKM_MPLocked",strings[gCurrentLanguage].playerHPMPTP)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMPLockPer,"SKM_MPLockPer",strings[gCurrentLanguage].playerHPMPTP)
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPLT"),"SKM_PHPB",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttack"),"SKM_PUnderAttack",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerGT"),"SKM_PPowL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPB"),"SKM_PMPPB",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPL"),"SKM_PTPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPB"),"SKM_PTPB",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmMPLock"),"SKM_MPLock",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmMPLocked"),"SKM_MPLocked",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmMPLockPer"),"SKM_MPLockPer",GetString("playerHPMPTP"))
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTCount,"SKM_PTCount",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPL,"SKM_PTHPL",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTHPB,"SKM_PTHPB",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTMPL,"SKM_PTMPL",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTMPB,"SKM_PTMPB",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPL,"SKM_PTTPL",strings[gCurrentLanguage].party)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTTPB,"SKM_PTTPB",strings[gCurrentLanguage].party)
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",strings[gCurrentLanguage].party)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PTNBuff",strings[gCurrentLanguage].party)
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTCount"),"SKM_PTCount",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPL"),"SKM_PTHPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPB"),"SKM_PTHPB",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPL"),"SKM_PTMPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPB"),"SKM_PTMPB",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPL"),"SKM_PTTPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPB"),"SKM_PTTPB",GetString("party"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",GetString("party"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PTNBuff",GetString("party"))
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRG,"SKM_TRG",strings[gCurrentLanguage].target,"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTRGTYPE,"SKM_TRGTYPE",strings[gCurrentLanguage].target,"Any,Tank,DPS,Caster,Healer")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmNPC,"SKM_NPC",strings[gCurrentLanguage].target)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPTRG,"SKM_PTRG",strings[gCurrentLanguage].target,"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPGTRG,"SKM_PGTRG",strings[gCurrentLanguage].target,"Direct,Behind")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmPPos,"SKM_PPos",strings[gCurrentLanguage].target,"None,Front,Flanking,Behind")
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPGT,"SKM_THPL",strings[gCurrentLanguage].target)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].targetHPLT,"SKM_THPB",strings[gCurrentLanguage].target)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCL,"SKM_THPCL",strings[gCurrentLanguage].target)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTHPCB,"SKM_THPCB",strings[gCurrentLanguage].target)
-	GUI_NewField(SkillMgr.editwindow.name,"HP Advantage >=","SKM_THPADV",strings[gCurrentLanguage].target)
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Target TP <=","SKM_TTPL",strings[gCurrentLanguage].target)
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Target MP <=","SKM_TMPL",strings[gCurrentLanguage].target)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCONTIDS,"SKM_TCONTIDS",strings[gCurrentLanguage].target)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTNCONTIDS,"SKM_TNCONTIDS",strings[gCurrentLanguage].target)
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
 	
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTID,"SKM_TCASTID",strings[gCurrentLanguage].casting)
-	GUI_NewCheckbox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTM,"SKM_TCASTTM",strings[gCurrentLanguage].casting)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTCASTTIME,"SKM_TCASTTIME",strings[gCurrentLanguage].casting)
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIOHP,"SKM_HPRIOHP",strings[gCurrentLanguage].healPriority)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO1,"SKM_HPRIO1",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO2,"SKM_HPRIO2",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO3,"SKM_HPRIO3",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHPRIO4,"SKM_HPRIO4",strings[gCurrentLanguage].healPriority,"Self,Tank,Party,Any,None")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
 	
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTECount,"SKM_TECount",strings[gCurrentLanguage].aoe)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTECount2,"SKM_TECount2",strings[gCurrentLanguage].aoe)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTERange,"SKM_TERange",strings[gCurrentLanguage].aoe)
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTELevel,"SKM_TELevel",strings[gCurrentLanguage].aoe,"0,2,4,6,Any")
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTACount,"SKM_TACount",strings[gCurrentLanguage].aoe)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTARange,"SKM_TARange",strings[gCurrentLanguage].aoe)
-	GUI_NewNumeric(SkillMgr.editwindow.name,strings[gCurrentLanguage].alliesNearHPLT,"SKM_TAHPL",strings[gCurrentLanguage].aoe)
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
 	
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmHasBuffs,"SKM_PBuff",strings[gCurrentLanguage].playerBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_PBuffDura",strings[gCurrentLanguage].playerBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_PNBuff",strings[gCurrentLanguage].playerBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PNBuffDura",strings[gCurrentLanguage].playerBuffs)
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmTBuffOwner,"SKM_TBuffOwner",strings[gCurrentLanguage].targetBuffs, "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",strings[gCurrentLanguage].targetBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmMissBuffs,"SKM_TNBuff",strings[gCurrentLanguage].targetBuffs)
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_TNBuffDura",strings[gCurrentLanguage].targetBuffs)
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
 	
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmAndBuffDura,"SKM_PetBuffDura","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,strings[gCurrentLanguage].skmOrBuffDura,"SKM_PetNBuffDura","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
 	
-    GUI_UnFoldGroup(SkillMgr.editwindow.name,strings[gCurrentLanguage].skillDetails)
+    GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
 	
     GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
     GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
@@ -481,35 +489,35 @@ function SkillMgr.ModuleInit()
     
     -- Crafting EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow_crafting.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_crafting.w, SkillMgr.editwindow_crafting.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME",strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].skmTYPE,"SKM_TYPE",strings[gCurrentLanguage].skillDetails)
-    GUI_NewField(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID",strings[gCurrentLanguage].skillDetails)
-    GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].stepmin,"SKM_STMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].stepmax,"SKM_STMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].cpmin,"SKM_CPMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].cpmax,"SKM_CPMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].durabmin,"SKM_DURMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].durabmax,"SKM_DURMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].progrmin,"SKM_PROGMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].progrmax,"SKM_PROGMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymin,"SKM_QUALMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymax,"SKM_QUALMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualityminper,"SKM_QUALMINPer",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].qualitymaxper,"SKM_QUALMAXPer",strings[gCurrentLanguage].skillDetails)   
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",strings[gCurrentLanguage].skillDetails);
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",strings[gCurrentLanguage].skillDetails);
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",strings[gCurrentLanguage].skillDetails);
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].iqstack,"SKM_IQSTACK",strings[gCurrentLanguage].skillDetails);
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+    GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmin"),"SKM_STMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmax"),"SKM_STMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmin"),"SKM_CPMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmax"),"SKM_CPMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmin"),"SKM_DURMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmax"),"SKM_DURMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmin"),"SKM_PROGMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmax"),"SKM_PROGMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymin"),"SKM_QUALMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymax"),"SKM_QUALMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualityminper"),"SKM_QUALMINPer",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymaxper"),"SKM_QUALMAXPer",GetString("skillDetails"))   
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
 	
-    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].condition,"SKM_CONDITION",strings[gCurrentLanguage].skillDetails,strings[gCurrentLanguage].notused..","..strings[gCurrentLanguage].excellent..","..strings[gCurrentLanguage].good..","..strings[gCurrentLanguage].normal..","..strings[gCurrentLanguage].poor)
-	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmMissBuffs"),"SKM_CPNBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,GetString("condition"),"SKM_CONDITION",GetString("skillDetails"),GetString("notused")..","..GetString("excellent")..","..GetString("good")..","..GetString("normal")..","..GetString("poor"))
+	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",GetString("skillDetails"));
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmMissBuffs"),"SKM_CPNBuff",GetString("skillDetails"));
 	
 	
-	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,strings[gCurrentLanguage].skillDetails)
+	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,GetString("skillDetails"))
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
     GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
@@ -520,22 +528,22 @@ function SkillMgr.ModuleInit()
     
     -- Gathering EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerName,"SKM_NAME",strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skmTYPE,"SKM_TYPE",strings[gCurrentLanguage].skillDetails)
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].maMarkerID,"SKM_ID",strings[gCurrentLanguage].skillDetails)
-    GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].enabled,"SKM_ON",strings[gCurrentLanguage].skillDetails)	
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmin,"SKM_GPMIN",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gpmax,"SKM_GPMAX",strings[gCurrentLanguage].skillDetails);
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",strings[gCurrentLanguage].skillDetails);
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",strings[gCurrentLanguage].skillDetails);
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].gatherAttempts,"SKM_GAttempts",strings[gCurrentLanguage].skillDetails);
-    GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].nodeHas,"SKM_ITEM",strings[gCurrentLanguage].skillDetails);
-	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skmUnspoiled,"SKM_UNSP",strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].secsSinceLastCast,"SKM_GSecsPassed", strings[gCurrentLanguage].skillDetails)
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",strings[gCurrentLanguage].skillDetails);
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",strings[gCurrentLanguage].skillDetails);
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+    GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmin"),"SKM_GPMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttempts"),"SKM_GAttempts",GetString("skillDetails"));
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_ITEM",GetString("skillDetails"));
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("skmUnspoiled"),"SKM_UNSP",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",GetString("skillDetails"));
 
-    GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,strings[gCurrentLanguage].skillDetails)
+    GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,GetString("skillDetails"))
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
@@ -568,6 +576,9 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		end
 		
 		if (SkillMgr.Variables[tostring(k)] ~= nil and tonumber(SKM_Prio) ~= nil and SKM_Prio > 0) then	
+			if (v == "?") then
+				d("Question mark was typed.")
+			end
 			if (v == nil) then
 				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = SkillMgr.Variables[tostring(k)].default
 			elseif (SkillMgr.Variables[k].cast == "string") then
@@ -664,7 +675,7 @@ function SkillMgr.ReadFile(strFile)
 								newskill[t.profile] = tonumber(value)
 							elseif (t.cast == "string") then
 								if (key == "TRG" and value == "Enemy") then
-									newskill[t.profile] = strings[gCurrentLanguage].target
+									newskill[t.profile] = GetString("target")
 								else
 									newskill[t.profile] = tostring(value)
 								end
@@ -863,16 +874,17 @@ function SkillMgr.ButtonHandler(event, Button)
 			local key = Button:gsub("SKMEditSkill", "")
 			SkillMgr.EditSkill(key)
 		end
-		
+		if (string.find(Button,"SKMClearProfile") ~= nil) then
+			local key = Button:gsub("SKMClearProfile", "")
+			SkillMgr.ClearProfile(key)
+		end
 		if (string.find(Button,"SKMAddSkill") ~= nil) then
 			local key = Button:gsub("SKMAddSkill", "")
 			SkillMgr.AddSkillToProfile(key)
 		end
-		
 		if (string.find(Button,"SKMCopySkill") ~= nil) then
 			SkillMgr.CopySkill()
 		end
-		
 		if (string.find(Button,"SKMPasteSkill") ~= nil) then
 			SkillMgr.PasteSkill()
 		end
@@ -893,10 +905,20 @@ function SkillMgr.NewProfile()
     end
 end
 
-function SkillMgr.ClearProfile()
-    GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.SkillProfile = {}
-	SkillMgr.WriteToFile(gSMprofile)
+function SkillMgr.ClearProfilePrompt()
+	local wnd = GUI_GetWindowInfo(SkillMgr.mainwindow.name)
+	GUI_MoveWindow(SkillMgr.confirmwindow.name, wnd.x,wnd.y+wnd.height) 
+	GUI_SizeWindow(SkillMgr.confirmwindow.name,wnd.width,SkillMgr.confirmwindow.h)
+	GUI_WindowVisible(SkillMgr.confirmwindow.name,true)
+end
+
+function SkillMgr.ClearProfile(arg)
+	if (arg == "Yes") then
+		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+		SkillMgr.SkillProfile = {}
+		SkillMgr.WriteToFile(gSMprofile)
+	end
+	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)
 end
 
 function SkillMgr.SaveProfile()
@@ -1234,6 +1256,7 @@ function SkillMgr.ToggleMenu()
         GUI_WindowVisible(SkillMgr.editwindow.name,false)	
         GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
         GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)	
+		GUI_WindowVisible(SkillMgr.confirmwindow.name,false)
         SkillMgr.visible = false
     else	 
         GUI_WindowVisible(SkillMgr.skillbook.name,true)
@@ -2295,7 +2318,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		
 		--[[
 		d("Condition1:"..tostring(ml_global_information.AttackRange < 5))
-		d("Condition2:"..tostring(gBotMode == strings[gCurrentLanguage].dutyMode))
+		d("Condition2:"..tostring(gBotMode == GetString("dutyMode")))
 		d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
 		d("Condition4:"..tostring(gTeleport == "1"))
 		d("Condition5:"..tostring(not IsDutyLeader() or ffxiv_task_duty.independentMode))
@@ -2309,7 +2332,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		--]]
 		
 		if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and
-			gBotMode == strings[gCurrentLanguage].dutyMode and target.castinginfo and target.castinginfo.channelingid == 0 and
+			gBotMode == GetString("dutyMode") and target.castinginfo and target.castinginfo.channelingid == 0 and
 			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
 			
@@ -2327,7 +2350,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		SkillMgr.Cast( target )
 		
 		if (TableSize(SkillMgr.teleBack) > 0 and 
-			gBotMode == strings[gCurrentLanguage].dutyMode and 
+			gBotMode == GetString("dutyMode") and 
 			(Now() > SkillMgr.teleCastTimer or (target.castinginfo and target.castinginfo.channelingid ~= 0))) then
 			local back = SkillMgr.teleBack
 			GameHacks:TeleportToXYZ(back.x, back.y, back.z)
@@ -3075,7 +3098,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (skill.trgtype ~= strings[gCurrentLanguage].any and target.job ~= nil) then
+		if (skill.trgtype ~= GetString("any") and target.job ~= nil) then
 			local found = true
 			local roleString = GetRoleString(target.job)
 			if skill.trgtype ~= roleString then 

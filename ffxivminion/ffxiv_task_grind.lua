@@ -52,14 +52,14 @@ c_nextgrindmarker = inheritsFrom( ml_cause )
 e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
 
-    if ((gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) or
+    if ((gBotMode == GetString("partyMode") and not IsLeader()) or
 		(gDoFates == "1" and gFatesOnly == "1") or
 		(not ml_marker_mgr.markersLoaded)) 
 	then
         return false
     end
 	
-	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
 	else
 		ml_task_hub:ThisTask().filterLevel = true
@@ -70,23 +70,23 @@ function c_nextgrindmarker:evaluate()
         
         -- first check to see if we have no initiailized marker
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+            marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
 			
 			if (marker == nil) then
 				ml_task_hub:ThisTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+				marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
 			end	
 		end
         
         --Check level range, this section only executes if marker is in list mode.
-		if (gMarkerMgrMode ~= strings[gCurrentLanguage].singleMarker) then
+		if (gMarkerMgrMode ~= GetString("singleMarker")) then
 			if (marker == nil) then
 				if (ValidTable(ml_task_hub:ThisTask().currentMarker) and Player:GetSyncLevel() == 0) then
 					if 	(ml_task_hub:ThisTask().filterLevel) and
 						(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
 						Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
 					then
-						marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+						marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
 					end
 				end
 			end
@@ -97,7 +97,7 @@ function c_nextgrindmarker:evaluate()
 					local expireTime = ml_task_hub:ThisTask().markerTime
 					if (Now() > expireTime) then
 						ml_debug("Getting Next Marker, TIME IS UP!")
-						marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].grindMarker, ml_task_hub:ThisTask().filterLevel)
+						marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
 					else
 						return false
 					end
@@ -120,8 +120,8 @@ function e_nextgrindmarker:execute()
 	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
     ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-    ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].NOTcontentIDEquals)
-    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(strings[gCurrentLanguage].contentIDEquals)
+    ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
+    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 end
 
@@ -193,7 +193,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
                 k == "gFateBLTimer" or
                 k == "gRestInFates" or
                 k == "gCombatRangePercent" or
-				k == "AlwaysKillAggro" or
+				k == "gAlwaysKillAggro" or
 				k == "gClaimFirst" or
 				k == "gClaimRange" or
 				k == "gClaimed" or
@@ -202,7 +202,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gDoDefenseFates" or
 				k == "gDoBossFates" or
 				k == "gDoEscortFates" or
-				k == "gGrindDoHuntLog" )
+				k == "gGrindDoHuntLog" or
+				k == "gFateWaitNearEvac" )
         then
             SafeSetVar(tostring(k),v)
 		elseif (k == "gFateBattleWaitPercent" or
@@ -226,7 +227,7 @@ end
 function ffxiv_task_grind.BlacklistTarget()
     local target = Player:GetTarget()
     if ValidTable(target) then
-        ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].monsters, target.contentid, target.name, true)
+        ml_blacklist.AddBlacklistEntry(GetString("monsters"), target.contentid, target.name, true)
         ml_debug("Blacklisted "..target.name)
     else
         ml_debug("Invalid target or no target selected")
@@ -243,16 +244,16 @@ function ffxiv_task_grind.BlacklistAOE()
 				gSpellName = "None"
 			end
 		end
-		ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].aoe, tonumber(gSpellID), gSpellName, true)
+		ml_blacklist.AddBlacklistEntry(GetString("aoe"), tonumber(gSpellID), gSpellName, true)
 	end
 end
 
 function ffxiv_task_grind.BlacklistFate(arg)
     if (gFateName ~= "") then
         if (arg == "gBlacklistFateAddEvent") then
-            ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].fates, tonumber(gFateID), gFateName, true)
+            ml_blacklist.AddBlacklistEntry(GetString("fates"), tonumber(gFateID), gFateName, true)
         elseif (arg == "gBlacklistFateRemEvent") then
-            ml_blacklist.DeleteEntry(strings[gCurrentLanguage].fates, tonumber(gFateID))
+            ml_blacklist.DeleteEntry(GetString("fates"), tonumber(gFateID))
         end
     else
         ml_debug("No valid fate selected")
@@ -273,28 +274,28 @@ end
 
 
 function ffxiv_task_grind.BlacklistInitUI()
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName, "gTargetName", strings[gCurrentLanguage].addEntry)
-    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].blacklistTarget, "ffxiv_task_grind.blacklistTarget",strings[gCurrentLanguage].addEntry)
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name, GetString("targetName"), "gTargetName", GetString("addEntry"))
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, GetString("blacklistTarget"), "ffxiv_task_grind.blacklistTarget",GetString("addEntry"))
     RegisterEventHandler("ffxiv_task_grind.blacklistTarget",ffxiv_task_grind.BlacklistTarget)
 end
 
 function ffxiv_task_grind.BlacklistInitAOE()
-    GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].maMarkerID, "gSpellID", strings[gCurrentLanguage].addEntry)
-	GUI_NewField(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].maMarkerName, "gSpellName", strings[gCurrentLanguage].addEntry)
-    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].addEntry, "ffxiv_task_grind.blacklistAOE",strings[gCurrentLanguage].addEntry)
+    GUI_NewField(ml_blacklist_mgr.mainwindow.name, GetString("maMarkerID"), "gSpellID", GetString("addEntry"))
+	GUI_NewField(ml_blacklist_mgr.mainwindow.name, GetString("maMarkerName"), "gSpellName", GetString("addEntry"))
+    GUI_NewButton(ml_blacklist_mgr.mainwindow.name, GetString("addEntry"), "ffxiv_task_grind.blacklistAOE",GetString("addEntry"))
     RegisterEventHandler("ffxiv_task_grind.blacklistAOE",ffxiv_task_grind.BlacklistAOE)
 end
 
 function ffxiv_task_grind.HuntingUI()
-	GUI_NewField	(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].targetName,"gTargetName", 		strings[gCurrentLanguage].addEntry)
-	GUI_NewButton	(ml_blacklist_mgr.mainwindow.name, strings[gCurrentLanguage].hunt, 	"ffxivminion.huntTarget",strings[gCurrentLanguage].addEntry)
+	GUI_NewField	(ml_blacklist_mgr.mainwindow.name, GetString("targetName"),"gTargetName", 		GetString("addEntry"))
+	GUI_NewButton	(ml_blacklist_mgr.mainwindow.name, GetString("hunt"), 	"ffxivminion.huntTarget",GetString("addEntry"))
 	RegisterEventHandler("ffxivminion.huntTarget",ffxiv_task_grind.HuntTarget)
 end
 
 function ffxiv_task_grind.HuntTarget()
 	local target = Player:GetTarget()
 	if ValidTable(target) then
-		ml_blacklist.AddBlacklistEntry(strings[gCurrentLanguage].huntMonsters, target.contentid, target.name, true)
+		ml_blacklist.AddBlacklistEntry(GetString("huntMonsters"), target.contentid, target.name, true)
 	end
 end
 
@@ -380,37 +381,40 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gGrindDoHuntLog == nil) then
         Settings.FFXIVMINION.gGrindDoHuntLog = "0"
     end
-	
+	if (Settings.FFXIVMINION.gFateWaitNearEvac == nil) then
+        Settings.FFXIVMINION.gFateWaitNearEvac = "1"
+    end
 	
 	local winName = GetString("grindMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
+	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	GUI_NewButton(winName, GetString("setEvacPoint"), "ml_mesh_mgr.SetEvacPoint", group)
 	
 	local group = GetString("settings")
 	GUI_NewCheckbox(winName, GetString("doHuntingLog"),"gGrindDoHuntLog",group)
-	GUI_NewCheckbox(winName, strings[gCurrentLanguage].doAtma, "gAtma",group)
-    GUI_NewCheckbox(winName, strings[gCurrentLanguage].doFates, "gDoFates",group)
-    GUI_NewCheckbox(winName, strings[gCurrentLanguage].fatesOnly, "gFatesOnly",group)
-	GUI_NewCheckbox(winName, strings[gCurrentLanguage].prioritizeClaims,"gClaimFirst",group)
-	GUI_NewNumeric(winName, strings[gCurrentLanguage].claimRange, "gClaimRange", 	group, "0", "50")
-	GUI_NewCheckbox(winName, strings[gCurrentLanguage].attackClaimed, "gClaimed",	group)
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].combatRangePercent, "gCombatRangePercent", group, "1", "100")
+	GUI_NewCheckbox(winName, GetString("doAtma"), "gAtma",group)
+    GUI_NewCheckbox(winName, GetString("doFates"), "gDoFates",group)
+    GUI_NewCheckbox(winName, GetString("fatesOnly"), "gFatesOnly",group)
+	GUI_NewCheckbox(winName, GetString("prioritizeClaims"),"gClaimFirst",group)
+	GUI_NewNumeric(winName, GetString("claimRange"), "gClaimRange", 	group, "0", "50")
+	GUI_NewCheckbox(winName, GetString("attackClaimed"), "gClaimed",	group)
+    GUI_NewNumeric(winName, GetString("combatRangePercent"), "gCombatRangePercent", group, "1", "100")
 	
 	local group = GetString("fates")
-    GUI_NewCheckbox(winName, strings[gCurrentLanguage].restInFates, "gRestInFates",group)
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].maxFateLevel, "gMaxFateLevel", group, "0", "50")
-    GUI_NewNumeric(winName, strings[gCurrentLanguage].minFateLevel, "gMinFateLevel", group, "0", "50")
-	GUI_NewNumeric(winName, strings[gCurrentLanguage].fateTeleportPercent, "gFateTeleportPercent", group, "0", "99")
+    GUI_NewCheckbox(winName, GetString("restInFates"), "gRestInFates",group)
+    GUI_NewNumeric(winName, GetString("maxFateLevel"), "gMaxFateLevel", group, "0", "50")
+    GUI_NewNumeric(winName, GetString("minFateLevel"), "gMinFateLevel", group, "0", "50")
+	GUI_NewNumeric(winName, GetString("fateTeleportPercent"), "gFateTeleportPercent", group, "0", "99")
+	GUI_NewCheckbox(winName, GetString("waitNearEvac"), "gFateWaitNearEvac",group)
 	
 	local group = "Details"
 	GUI_NewCheckbox(winName,"Battle Fates", "gDoBattleFates",group)
@@ -455,13 +459,14 @@ function ffxiv_task_grind.UIInit()
 	gFateDefenseWaitPercent = Settings.FFXIVMINION.gFateDefenseWaitPercent
 	gFateEscortWaitPercent = Settings.FFXIVMINION.gFateEscortWaitPercent
 	gGrindDoHuntLog = Settings.FFXIVMINION.gGrindDoHuntLog
+	gFateWaitNearEvac = Settings.FFXIVMINION.gFateWaitNearEvac
     
     --add blacklist init function
-    ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].monsters,ffxiv_task_grind.BlacklistInitUI)
-	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].huntMonsters,ffxiv_task_grind.HuntingUI)
-    ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].fates,ffxiv_task_fate.BlacklistInitUI)
+    ml_blacklist_mgr.AddInitUI(GetString("monsters"),ffxiv_task_grind.BlacklistInitUI)
+	ml_blacklist_mgr.AddInitUI(GetString("huntMonsters"),ffxiv_task_grind.HuntingUI)
+    ml_blacklist_mgr.AddInitUI(GetString("fates"),ffxiv_task_fate.BlacklistInitUI)
 	ml_blacklist_mgr.AddInitUI("FATE Whitelist",ffxiv_task_fate.WhitelistInitUI)
-	ml_blacklist_mgr.AddInitUI(strings[gCurrentLanguage].aoe,ffxiv_task_grind.BlacklistInitAOE)
+	ml_blacklist_mgr.AddInitUI(GetString("aoe"),ffxiv_task_grind.BlacklistInitAOE)
 	
 	ffxiv_task_grind.SetupMarkers()
 end
@@ -469,10 +474,10 @@ end
 function ffxiv_task_grind.SetupMarkers()
     -- add marker templates for grinding
     local grindMarker = ml_marker:Create("grindTemplate")
-	grindMarker:SetType(strings[gCurrentLanguage].grindMarker)
-	grindMarker:AddField("string", strings[gCurrentLanguage].contentIDEquals, "")
+	grindMarker:SetType(GetString("grindMarker"))
+	grindMarker:AddField("string", GetString("contentIDEquals"), "")
 	grindMarker:AddField("button", GetString("whitelistTarget"), "")
-	grindMarker:AddField("string", strings[gCurrentLanguage].NOTcontentIDEquals, "")
+	grindMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
     grindMarker:SetTime(300)
     grindMarker:SetMinLevel(1)
     grindMarker:SetMaxLevel(50)
@@ -508,7 +513,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
         if target and target.attackable then
             gTargetName = target.name
         else
-            gTargetName = strings[gCurrentLanguage].notAttackable
+            gTargetName = GetString("notAttackable")
         end
 		
 		if ValidTable(target) then

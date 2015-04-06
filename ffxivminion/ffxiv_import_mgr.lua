@@ -71,13 +71,13 @@ function imp.ModuleInit()
 	GUI_NewComboBox(winName,GetString("fileName"),"gImportFileName",group,"")
 	GUI_NewCheckbox(winName,GetString("overwriteExisting"),"gImportOverwriteMarkers",group)
 	GUI_NewButton(winName,GetString("allMarkers"),"impImportMarkersAll",group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].unspoiledMarker,"impImportMarkers"..strings[gCurrentLanguage].unspoiledMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].miningMarker,"impImportMarkers"..strings[gCurrentLanguage].miningMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].botanyMarker,"impImportMarkers"..strings[gCurrentLanguage].botanyMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].fishingMarker,"impImportMarkers"..strings[gCurrentLanguage].fishingMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].grindMarker,"impImportMarkers"..strings[gCurrentLanguage].grindMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].pvpMarker,"impImportMarkers"..strings[gCurrentLanguage].pvpMarker,group)
-	GUI_NewButton(winName,strings[gCurrentLanguage].huntMarker,"impImportMarkers"..strings[gCurrentLanguage].huntMarker,group)
+	GUI_NewButton(winName,GetString("unspoiledMarker"),"impImportMarkers"..GetString("unspoiledMarker"),group)
+	GUI_NewButton(winName,GetString("miningMarker"),"impImportMarkers"..GetString("miningMarker"),group)
+	GUI_NewButton(winName,GetString("botanyMarker"),"impImportMarkers"..GetString("botanyMarker"),group)
+	GUI_NewButton(winName,GetString("fishingMarker"),"impImportMarkers"..GetString("fishingMarker"),group)
+	GUI_NewButton(winName,GetString("grindMarker"),"impImportMarkers"..GetString("grindMarker"),group)
+	GUI_NewButton(winName,GetString("pvpMarker"),"impImportMarkers"..GetString("pvpMarker"),group)
+	GUI_NewButton(winName,GetString("huntMarker"),"impImportMarkers"..GetString("huntMarker"),group)
 	
 	gExportAutoGlobal = Settings.FFXIVMINION.gExportAutoGlobal
 	gImportFileName = Settings.FFXIVMINION.gImportFileName
@@ -115,7 +115,7 @@ function imp.GUIVarUpdate(Event, NewVals, OldVals)
 			end
 		end
 		if (k == "gImportFileName") then
-			Settings.FFXIVMINION[k] = v
+			SafeSetVar(tostring(k),v)
 		end
 	end
     --GUI_RefreshWindow(imp.winName)

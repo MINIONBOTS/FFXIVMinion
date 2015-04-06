@@ -54,10 +54,10 @@ function ffxiv_task_qs_wrapper.UIInit()
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-	GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+	GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
     
 	local group = "Attack Settings"
     GUI_NewNumeric(winName,GetString("minLevel"),"gQSGrindMinLevel",group,"1","50")
@@ -734,9 +734,7 @@ function e_qsfindgatherable:execute()
 		end
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
-		ml_task_hub:CurrentTask().gatheredMap = false
-        ml_task_hub:CurrentTask().gatherid = gatherable.id
-		ml_task_hub:CurrentTask().gatheruniqueid = gatherable.uniqueid		
+        ml_task_hub:CurrentTask().gatherid = gatherable.id		
     else
 		d("No gatherable entities found nearby.")
     end

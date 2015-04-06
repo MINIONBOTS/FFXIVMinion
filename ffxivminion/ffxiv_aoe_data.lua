@@ -1694,8 +1694,18 @@ ffxiv_aoe_data =
 		[1854] = true,
 		[950] = true,
 		[576] = true,
+		[3205] = true,
+		[3157] = true,
+		[3203] = true,
+		[1349] = true,
 	};
 	["circle"] = {
+		--Katon
+		[3205] = true,
+		--Death Blossom
+		[3157] = true,
+		--Raiton
+		[3203] = true,
 		--Labored Leap
 		[2809] = true,
 		[1130] = true,

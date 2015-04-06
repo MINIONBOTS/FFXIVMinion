@@ -122,6 +122,10 @@ function c_grind_addhuntlogtask:evaluate()
 	if (gGrindDoHuntLog == "0") then
 		return false
 	end
+	
+	if (IsPositionLocked() or IsLoading()) then
+		return false
+	end
 
 	--CNE will need to pass 2 main table checks to the task, we will only verify that there are possible indexes and targets.
 	--First check that we have some valid indexes to complete.	
@@ -154,6 +158,10 @@ function c_quest_addhuntlogtask:evaluate()
 	--Reinitialize tempvars.
 	c_quest_addhuntlogtask.validIndexes = {}
 	c_quest_addhuntlogtask.possibleTargets = {}
+	
+	if (IsPositionLocked() or IsLoading()) then
+		return false
+	end
 
 	--CNE will need to pass 2 main table checks to the task, we will only verify that there are possible indexes and targets.
 	--First check that we have some valid indexes to complete.	
@@ -176,6 +184,12 @@ function e_quest_addhuntlogtask:execute()
 	newTask.possibleTargets = deepcopy(c_quest_addhuntlogtask.possibleTargets,true)
 	newTask.adHoc = true
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	
+	gCurrQuestID = ""
+	gCurrQuestObjective = ""
+	gCurrQuestStep = ""
+	gQuestStepType = "huntlog"
+	gQuestKillCount = ""
 end
 
 c_selectvalidindexes = inheritsFrom( ml_cause )
@@ -446,13 +460,13 @@ function ffxiv_task_huntlog.UIInit()
 	local winName = GetString("huntlogMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
@@ -536,8 +550,8 @@ function ffxiv_task_huntlog.GetValidIndexes()
 		local data = ffxiv_task_huntlog.GetIndexData(class,rank,index)
 		if (data) then
 			indexList[index] = data
-		else
-			d("Could not find valid data for class " .. class .. ", rank " .. rank .. ", index " .. index)
+		--else
+			--d("Could not find valid data for class " .. class .. ", rank " .. rank .. ", index " .. index)
 		end
 	end
 	
@@ -787,7 +801,6 @@ function ffxiv_task_huntlog.IsEntryComplete(index,entry)
 		end
 	end
 	
-	ml_error("IsEntryComplete resulted in 0, should never happen.")
 	return 0
 end
 

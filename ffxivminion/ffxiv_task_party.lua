@@ -124,7 +124,7 @@ function ffxiv_task_party.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gPartyLeaderName" or 
 				k == "gPartyGrindUsePartyLeader") 
 		then
-            Settings.FFXIVMINION[tostring(k)] = v
+            SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("partyMode"))
@@ -161,9 +161,6 @@ function ffxiv_task_party.UIInit()
 	if (Settings.FFXIVMINION.gPartyLeaderName == nil) then
         Settings.FFXIVMINION.gPartyLeaderName = ""
     end
-	if (Settings.FFXIVMINION.gPartyExtraMember == nil) then
-        Settings.FFXIVMINION.gPartyExtraMember = ""
-    end
     if (Settings.FFXIVMINION.gPartyGrindUsePartyLeader == nil) then
         Settings.FFXIVMINION.gPartyGrindUsePartyLeader = "1"
     end
@@ -171,24 +168,21 @@ function ffxiv_task_party.UIInit()
 	local winName = GetString("partyMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].skillProfile,"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
+	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	
 	local group = GetString("settings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].GetPartyLeader, "setLeaderFromTarget",group)
+	GUI_NewButton(winName, GetString("GetPartyLeader"), "setLeaderFromTarget",group)
     RegisterEventHandler("setLeaderFromTarget",ffxiv_task_party.SetLeaderFromTarget)
-    GUI_NewField(winName, strings[gCurrentLanguage].PartyLeader, "gPartyLeaderName", group)
-    GUI_NewCheckbox(winName, strings[gCurrentLanguage].UseGamePartyLeader, "gPartyGrindUsePartyLeader",group)
-	GUI_NewField(winName, "Extra Member", "gPartyExtraMember", group)
-    GUI_NewButton(winName, "Add Member", "partyAddExtraMember",group)
-	RegisterEventHandler("partyAddExtraMember",ffxiv_task_party.AddExtraMember)
+    GUI_NewField(winName, GetString("PartyLeader"), "gPartyLeaderName", group)
+    GUI_NewCheckbox(winName, GetString("UseGamePartyLeader"), "gPartyGrindUsePartyLeader",group)
 
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)

@@ -33,7 +33,7 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsLeader()) then
         return false
     end
 	
@@ -83,11 +83,11 @@ c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
-	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
+	if (gBotMode == GetString("partyMode") and IsLeader() ) then
         return false
     end
 	
-	if (gBotMode == strings[gCurrentLanguage].partyMode) then
+	if (gBotMode == GetString("partyMode")) then
 		local leader, isEntity = GetPartyLeader()	
 		if (leader and leader.id ~= 0) then
 			local entity = EntityList:Get(leader.id)
@@ -123,7 +123,7 @@ c_assistleader = inheritsFrom( ml_cause )
 e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
 function c_assistleader:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() ) then
+    if (gBotMode == GetString("partyMode") and IsLeader() ) then
         return false
     end
 	
@@ -236,7 +236,7 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 c_add_fate.fate = {}
 function c_add_fate:evaluate()    
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
+    if (gBotMode == GetString("partyMode") and not IsLeader()) then
 		return false
     end
     
@@ -924,7 +924,7 @@ c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() or ActionList:IsCasting()) then
+	if (gBotMode == GetString("partyMode") and IsLeader() or ActionList:IsCasting()) then
         return false
     end
 	
@@ -1444,7 +1444,7 @@ c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
 c_bettertargetsearch.targetid = 0
 function c_bettertargetsearch:evaluate()        
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader()) then
+    if (gBotMode == GetString("partyMode") and not IsLeader()) then
         return false
     end
 	
@@ -1535,7 +1535,7 @@ function c_mount:evaluate()
 					end
 					
 					--Second pass, look for any mount as backup.
-					if (gMount == strings[gCurrentLanguage].none) then
+					if (gMount == GetString("none")) then
 						for k,v in pairsByKeys(mountlist) do
 							local acMount = ActionList:Get(v.id,13)
 							if (acMount and acMount.isready) then
@@ -1561,15 +1561,15 @@ c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 e_companion.lastSummon = 0
 function c_companion:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode or 
+    if (gBotMode == GetString("pvpMode") or 
 		ml_task_hub:CurrentTask().name == "LT_USEITEM" or 
 		TimeSince(e_companion.lastSummon) < 5000 or 
 		Player.ismounted or IsMounting() or IsDismounting()) then
         return false
     end
 
-    if (((gChoco == strings[gCurrentLanguage].grindMode or gChoco == strings[gCurrentLanguage].any) and (gBotMode == strings[gCurrentLanguage].grindMode or gBotMode == strings[gCurrentLanguage].partyMode)) or
-		((gChoco == strings[gCurrentLanguage].assistMode or gChoco == strings[gCurrentLanguage].any) and gBotMode == strings[gCurrentLanguage].assistMode)) then
+    if (((gChoco == GetString("grindMode") or gChoco == GetString("any")) and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
+		((gChoco == GetString("assistMode") or gChoco == GetString("any")) and gBotMode == GetString("assistMode"))) then
 		local al = ActionList("type=6")
 		local dismiss = al[2]
 		local acDismiss = ActionList:Get(dismiss.id,6)
@@ -1599,17 +1599,17 @@ end
 c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+    if (gBotMode == GetString("pvpMode")) then
         return false
     end
 	
 	local eval = {
-		[strings[gCurrentLanguage].grindMode] = true,
-		[strings[gCurrentLanguage].partyMode] = true,
-		[strings[gCurrentLanguage].assistMode] = true,
+		[GetString("grindMode")] = true,
+		[GetString("partyMode")] = true,
+		[GetString("assistMode")] = true,
 	}
 
-    if ( gChoco ~= strings[gCurrentLanguage].none and eval[tostring(gBotMode)]) then
+    if ( gChoco ~= GetString("none") and eval[tostring(gBotMode)]) then
 
 		local al = ActionList("type=6")
 		local dismiss = al[2]
@@ -1932,7 +1932,7 @@ end
 c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
-	if (gBotMode == strings[gCurrentLanguage].assistMode) then
+	if (gBotMode == GetString("assistMode")) then
 		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not IsLoading())
 	end
 	
@@ -1940,9 +1940,9 @@ function c_pressconfirm:evaluate()
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)
-	if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+	if (gBotMode == GetString("pvpMode")) then
 		ml_task_hub:ThisTask().state = "DUTY_STARTED"
-	elseif (gBotMode == strings[gCurrentLanguage].dutyMode and IsDutyLeader()) then
+	elseif (gBotMode == GetString("dutyMode") and IsDutyLeader()) then
 		ml_task_hub:ThisTask().state = "DUTY_ENTER"
 	end
 end
@@ -1951,12 +1951,12 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-    if (gBotMode == strings[gCurrentLanguage].partyMode and not IsLeader() ) then
+    if (gBotMode == GetString("partyMode") and not IsLeader() ) then
         return false
     end
 	
 	-- never switch to a new marker when the gatherableitemselect window is up, happens in some rare occasions
-	if gBotMode == strings[gCurrentLanguage].gatherMode then
+	if gBotMode == GetString("gatherMode") then
         local list = Player:GetGatherableSlotList()
         if (list ~= nil) then
             return false
@@ -1983,7 +1983,7 @@ function c_returntomarker:evaluate()
 			end
 		end
 		
-		if (gBotMode == strings[gCurrentLanguage].pvpMode) then
+		if (gBotMode == GetString("pvpMode")) then
 			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 				if (distance > 25) then
 					return true
@@ -1993,14 +1993,14 @@ function c_returntomarker:evaluate()
 			end
 		end	
 		
-		if (gBotMode == strings[gCurrentLanguage].huntMode) then
+		if (gBotMode == GetString("huntMode")) then
 			if (distance > 15) then
 				return true
 			end
 		end		
 		
-        if  (gBotMode == strings[gCurrentLanguage].gatherMode and distance > 200) or
-			(gBotMode == strings[gCurrentLanguage].fishMode and distance > 3)
+        if  (gBotMode == GetString("gatherMode") and distance > 200) or
+			(gBotMode == GetString("fishMode") and distance > 3)
         then
             return true
         end
@@ -2926,4 +2926,20 @@ function e_inventoryfull:execute()
 		d("Inventory is full, bot will stop.")
 		ml_task_hub:ToggleRun()
 	end
+end
+
+c_unpackdata = inheritsFrom( ml_cause )
+e_unpackdata = inheritsFrom( ml_effect )
+function c_unpackdata:evaluate()
+	if (not ml_task_hub:CurrentTask().dataUnpacked and (ml_task_hub:CurrentTask().encounterData or ml_task_hub:CurrentTask().params)) then
+		return true
+	end
+	
+    return false
+end
+function e_unpackdata:execute()
+	if (ml_task_hub:CurrentTask().encounterData) then
+		
+	end
+	ml_task_hub:CurrentTask().dataUnpacked = true
 end

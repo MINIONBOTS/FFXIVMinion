@@ -87,7 +87,7 @@ function e_cast:execute()
 	local marker = ml_task_hub:CurrentTask().currentMarker
 	local useMooch = false
 	if (ValidTable(marker)) then
-		useMooch = (marker:GetFieldValue(strings[gCurrentLanguage].useMooch) == "1")
+		useMooch = (marker:GetFieldValue(GetString("useMooch")) == "1")
 	elseif (gFishNoMarker == "1") then
 		useMooch = (gUseMooch == "1")
 	end
@@ -154,7 +154,7 @@ function c_setbait:evaluate()
     if (fs == 0 or fs == 4) then
         local marker = ml_task_hub:CurrentTask().currentMarker
         if (marker ~= nil and marker ~= false) then
-            local baitName = marker:GetFieldValue(strings[gCurrentLanguage].baitName)
+            local baitName = marker:GetFieldValue(GetString("baitName"))
             if (baitName ~= "None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
                 --check to see if we have the bait in inventory
                 ml_debug("Looking for bait named "..baitName)
@@ -189,7 +189,7 @@ function c_nextfishingmarker:evaluate()
 		return false
 	end
 	
-	if (gMarkerMgrMode == strings[gCurrentLanguage].singleMarker) then
+	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
 	else
 		ml_task_hub:ThisTask().filterLevel = true
@@ -200,11 +200,11 @@ function c_nextfishingmarker:evaluate()
         
         -- first check to see if we have no initiailized marker
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
-            marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
+            marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
         
 			if (marker == nil) then
 				ml_task_hub:ThisTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
+				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
 			end	
 		end
         
@@ -215,7 +215,7 @@ function c_nextfishingmarker:evaluate()
 					(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
                     Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
                 then
-                    marker = ml_marker_mgr.GetNextMarker(strings[gCurrentLanguage].fishingMarker, ml_task_hub:ThisTask().filterLevel)
+                    marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
                 end
             end
         end
@@ -356,14 +356,14 @@ function ffxiv_task_fish.UIInit()
 	local winName = GetString("fishMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, strings[gCurrentLanguage].markerManager, "ToggleMarkerMgr")
+	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
 	
 	local group = GetString("status")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].botMode,"gBotMode",group,"None")
-	GUI_NewComboBox(winName,strings[gCurrentLanguage].navmesh ,"gmeshname",group,ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,strings[gCurrentLanguage].botEnabled,"gBotRunning",group)
-	GUI_NewField(winName,strings[gCurrentLanguage].markerName,"gStatusMarkerName",group )
-	GUI_NewField(winName,strings[gCurrentLanguage].markerTime,"gStatusMarkerTime",group )
+	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+    GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
+	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
@@ -377,10 +377,10 @@ end
 function ffxiv_task_fish.SetupMarkers()
     -- add marker templates for fishing
     local fishingMarker = ml_marker:Create("fishingTemplate")
-	fishingMarker:SetType(strings[gCurrentLanguage].fishingMarker)
-	fishingMarker:AddField("string", strings[gCurrentLanguage].baitName, "")
-	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useMooch, "1")
-	fishingMarker:AddField("checkbox", strings[gCurrentLanguage].useStealth, "0")
+	fishingMarker:SetType(GetString("fishingMarker"))
+	fishingMarker:AddField("string", GetString("baitName"), "")
+	fishingMarker:AddField("checkbox", GetString("useMooch"), "1")
+	fishingMarker:AddField("checkbox", GetString("useStealth"), "0")
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)
     fishingMarker:SetMaxLevel(50)

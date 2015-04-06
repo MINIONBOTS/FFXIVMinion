@@ -51,23 +51,23 @@ function wt_radar.HandleInit()
 	
 
     GUI_NewWindow(wt_radar.MainWindow.Name,wt_radar.MainWindow.x,wt_radar.MainWindow.y,wt_radar.MainWindow.width,wt_radar.MainWindow.height)	
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].enableRadar,"gRadar","Radar" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].enable2DRadar,"g2dRadar","Radar" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].enable3DRadar,"g3dRadar","Radar" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].fullscreenRadar,"g2dRadarFullScreen","Radar" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enableRadar"),"gRadar","Radar" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enable2DRadar"),"g2dRadar","Radar" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enable3DRadar"),"g3dRadar","Radar" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("fullscreenRadar"),"g2dRadarFullScreen","Radar" );
     
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showNodes,"gRadarShowNode","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showPlayers,"gRadarShowPlayers","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showBattleNPCs,"gRadarShowBattleNPCs","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showEventNPCs,"gRadarShowEventNPCs","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showEventObjects,"gRadarShowEventObjs","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,strings[gCurrentLanguage].showAetherytes,"gRadarShowAetherytes","RadarSettings" )
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showNodes"),"gRadarShowNode","RadarSettings" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showPlayers"),"gRadarShowPlayers","RadarSettings" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showBattleNPCs"),"gRadarShowBattleNPCs","RadarSettings" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showEventNPCs"),"gRadarShowEventNPCs","RadarSettings" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showEventObjects"),"gRadarShowEventObjs","RadarSettings" );
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showAetherytes"),"gRadarShowAetherytes","RadarSettings" )
 	
 	GUI_NewField(wt_radar.MainWindow.Name,"SpecialTargetContentIDs","gRadarSpecialTargets","RadarSettings" )
 	
 
-    GUI_NewNumeric(wt_radar.MainWindow.Name,strings[gCurrentLanguage].xPos,"gRadarX","RadarSettings" )
-    GUI_NewNumeric(wt_radar.MainWindow.Name,strings[gCurrentLanguage].yPos,"gRadarY","RadarSettings" )
+    GUI_NewNumeric(wt_radar.MainWindow.Name,GetString("xPos"),"gRadarX","RadarSettings" )
+    GUI_NewNumeric(wt_radar.MainWindow.Name,GetString("yPos"),"gRadarY","RadarSettings" )
     
     gRadar = Settings.FFXIVMINION.gRadar
     g2dRadar = Settings.FFXIVMINION.g2dRadar
