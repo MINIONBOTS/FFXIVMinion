@@ -171,13 +171,35 @@ function ffxiv_duty_kill_task:Process()
 			elseif (reactionType == "gotoTarget") then
 				local reactionTarget = reaction.id or 0
 				if (reactionTarget and reactionTarget ~= 0) then
-					local target = EntityList:Get(reactionTarget)
-					if (target) then
-						local myPos = shallowcopy(Player.pos)
-						local gotoPos = target.pos
-						if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
-							GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
-							Player:SetFacingSynced(gotoPos.h)
+					local el = EntityList("nearest,contentid="..tostring(reactionTarget))
+					if (el) then
+						local id, target = next(el)
+						if (target) then
+							local myPos = shallowcopy(Player.pos)
+							local gotoPos = target.pos
+							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+								Player:SetFacingSynced(gotoPos.h)
+							end
+						end
+					end
+				end
+				usedReaction = true
+			elseif (reactionType == "interactTarget") then
+				local reactionTarget = reaction.id or 0
+				if (reactionTarget and reactionTarget ~= 0) then
+					local el = EntityList("nearest,targetable,contentid="..tostring(reactionTarget))
+					if (el) then
+						local id, target = next(el)
+						if (target) then
+							local myPos = shallowcopy(Player.pos)
+							local gotoPos = target.pos
+							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+								Player:SetFacingSynced(gotoPos.h)
+							else
+								Player:Interact(reactionTarget)
+							end
 						end
 					end
 				end
@@ -187,10 +209,10 @@ function ffxiv_duty_kill_task:Process()
 				if (reactionTarget and reactionTarget ~= 0) then
 					local el = EntityList("nearest,alive,attackable,contentid="..tostring(reactionTarget))
 					if (el) then
-						local id, entity = next(el)
-						if (entity) then
+						local id, target = next(el)
+						if (target) then
 							local myPos = shallowcopy(Player.pos)
-							local gotoPos = entity.pos
+							local gotoPos = target.pos
 							local range = reaction.range or 15
 							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > range) then
 								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
@@ -198,16 +220,16 @@ function ffxiv_duty_kill_task:Process()
 							end
 							
 							local pos = gotoPos
-							Player:SetTarget(entity.id)
+							Player:SetTarget(target.id)
 						
 							--Telecasting, teleport to mob portion.
 							if (ml_global_information.AttackRange < 5 and 
 								gUseTelecast == "1" and 
-								entity.castinginfo.channelingid == 0 and
+								target.castinginfo.channelingid == 0 and
 								gTeleport == "1" and 
 								SkillMgr.teleCastTimer == 0 and 
 								SkillMgr.IsGCDReady() and 
-								(entity.targetid ~= Player.id or self.encounterData.telecastAlways) and 
+								(target.targetid ~= Player.id or self.encounterData.telecastAlways) and 
 								Player.hp.percent > 30) 
 							then
 								
@@ -231,17 +253,17 @@ function ffxiv_duty_kill_task:Process()
 							end
 							
 							SetFacing(pos.x, pos.y, pos.z)
-							SkillMgr.Cast( entity )
+							SkillMgr.Cast( target )
 							
 							if (TableSize(SkillMgr.teleBack) > 0) then
 								returnable = false
 								if (Now() > SkillMgr.teleCastTimer) then
 									returnable = true
 								end
-								if (entity.castinginfo.channelingid ~= 0) then
+								if (target.castinginfo.channelingid ~= 0) then
 									returnable = true
 								end
-								if (entity.targetid == Player.id and not self.encounterData.telecastAlways) then
+								if (target.targetid == Player.id and not self.encounterData.telecastAlways) then
 									returnable = true
 								end
 								if (Player.hp.percent < 30) then
@@ -885,7 +907,6 @@ function ffxiv_task_lootroll.Create()
 end
 
 function ffxiv_task_lootroll:Init() 
-	
 	local ke_lootroll = ml_element:create( "Roll", c_roll, e_roll, 10 )
     self:add(ke_lootroll, self.process_elements)
 	
@@ -907,7 +928,25 @@ function ffxiv_task_lootroll:task_complete_eval()
 	
 	return false
 end
-
 function ffxiv_task_lootroll:task_complete_execute()
     self.completed = true
+end
+
+
+ffxiv_duty_task_exit = inheritsFrom(ml_task)
+function ffxiv_duty_task_exit.Create()
+	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.name = "DUTY_MOVETOEXIT"
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+	newTask.task_complete_execute = function()
+		newTask.completed = true
+		newTask:ParentTask().encounterCompleted = true
+		newTask:ParentTask().state = "DUTY_EXIT"
+		newTask:ParentTask().leaveTimer = Now() + 2000
+	end
+	newTask.encounterData = {}
+	
+	return newTask
 end

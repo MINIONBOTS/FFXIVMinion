@@ -85,29 +85,32 @@ function mb.ToggleMenu()
     end
 end
 
+function mb.RunConnectionHandler()
+	if (gMultiBotEnabled == "1") then
+		if ( not MultiBotIsConnected() )then
+			if ( not MultiBotConnect( gMultiServer , tonumber(gMultiPort) , gMultiPass) ) then
+				gMultiBotEnabled = "0"
+				d("Could not connect to the server with the specified IP:Port and password.")
+			else
+				if (MultiBotJoinChannel(gMultiChannel)) then
+					d("Channel join succeeeded for channel ["..gMultiChannel.."]")
+				else
+					d("Channel join failed for channel ["..gMultiChannel.."]")
+				end						
+			end	
+		end
+	else
+		if ( MultiBotIsConnected() ) then
+			d("MultiBot disconnected.")
+			MultiBotDisconnect()
+		end
+	end	
+end
+
 function mb.OnUpdate( event, tickcount )
     if ( tickcount - mb.lasttick > 500 ) then
         mb.lasttick = tickcount
-        
-        if (gMultiBotEnabled == "1") then
-			if ( not MultiBotIsConnected() )then
-				if ( not MultiBotConnect( gMultiServer , tonumber(gMultiPort) , gMultiPass) ) then
-					gMultiBotEnabled = "0"
-					d("Could not connect to the server with the specified IP:Port and password.")
-				else
-					if (MultiBotJoinChannel(gMultiChannel)) then
-						d("Channel join succeeeded for channel ["..gMultiChannel.."]")
-					else
-						d("Channel join failed for channel ["..gMultiChannel.."]")
-					end						
-				end	
-			end
-		else
-			if ( MultiBotIsConnected() ) then
-				d("MultiBot disconnected.")
-				MultiBotDisconnect()
-			end
-		end			
+        mb.RunConnectionHandler()
     end
 end
 
@@ -122,7 +125,7 @@ function HandleMultiBotMessages( event, message, channel )
 	if ( gMultiBotEnabled == "1" ) then
 		--d("Message:"..tostring(message)..", Channel:"..tostring(channel))
 		if ( channel == gMultiChannel ) then
-			--d("Detected messages in the proper channel.")
+			d("Detected messages in the proper channel.")
 			local delimiter = message:find(';')
 			if (delimiter ~= nil and delimiter ~= 0) then
 

@@ -411,8 +411,8 @@ function ffxiv_task_grind.UIInit()
 	
 	local group = GetString("fates")
     GUI_NewCheckbox(winName, GetString("restInFates"), "gRestInFates",group)
-    GUI_NewNumeric(winName, GetString("maxFateLevel"), "gMaxFateLevel", group, "0", "50")
-    GUI_NewNumeric(winName, GetString("minFateLevel"), "gMinFateLevel", group, "0", "50")
+    GUI_NewField(winName, GetString("maxFateLevel"), "gMaxFateLevel", group)
+    GUI_NewField(winName, GetString("minFateLevel"), "gMinFateLevel", group)
 	GUI_NewNumeric(winName, GetString("fateTeleportPercent"), "gFateTeleportPercent", group, "0", "99")
 	GUI_NewCheckbox(winName, GetString("waitNearEvac"), "gFateWaitNearEvac",group)
 	

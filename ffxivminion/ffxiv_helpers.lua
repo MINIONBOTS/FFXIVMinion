@@ -1755,8 +1755,11 @@ function GetApprovedFates()
 	local fatelist = MapObject:GetFateList()
 	if (ValidTable(fatelist)) then
 		for _,fate in pairs(fatelist) do
-			if ((tonumber(gMinFateLevel) == 0 or (fate.level >= level - tonumber(gMinFateLevel))) and 
-				(tonumber(gMaxFateLevel) == 0 or (fate.level <= level + tonumber(gMaxFateLevel)))) 
+			local minFateLevel = tonumber(gMinFateLevel) or 0
+			local maxFateLevel = tonumber(gMaxFateLevel) or 0
+			
+			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
+				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
 			then
 				if (fate.type == 0 and gDoBattleFates == "1" and fate.completion >= tonumber(gFateBattleWaitPercent)) then
 					table.insert(approvedFates,fate)
@@ -1835,9 +1838,7 @@ function GetClosestFate(pos)
 			end
 		else
 			for k, fate in pairs(fateList) do
-				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and 
-					(fate.status == 2 or (fate.status == 7 and Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z) < 50)))
-				then	
+				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and fate.status == 2) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))

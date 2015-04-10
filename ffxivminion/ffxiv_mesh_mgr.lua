@@ -97,6 +97,18 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							d("Starting state reached for INTERACT OMC.")
 							ml_mesh_mgr.OMCThrottle = Now() + 100
 						end
+					elseif (ml_mesh_mgr.OMCType == "OMC_LIFT") then
+						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						ml_mesh_mgr.OMCMeshDistance = meshdist
+						if ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1)) then
+							Player:Stop()
+							Player:SetFacing(sPos.h) -- Set heading
+							ml_mesh_mgr.OMCStartingDistance = meshdist
+							ml_mesh_mgr.OMCStartPositionReached = true
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
+							return
+						end
 					else
 						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
@@ -124,7 +136,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							-- give the bot some time to gain speed before we jump for longer jumps
 							local dist = Distance2D(ePos.x,ePos.y,sPos.x,sPos.y)
 							local heightdiff = math.abs(ePos.y - pPos.y)
-							ml_mesh_mgr.OMCThrottle = Now() + 150
+							ml_mesh_mgr.OMCThrottle = Now() + 200
 							
 							--In case we're starting extra far, give it a little more time.
 							if ((not Player.ismounted and meshdist >= .75) or (Player.ismounted and meshdist > 1)) then
@@ -174,10 +186,19 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_LIFT" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
-					local movedDistance = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
-					if (movedDistance > 3) then
-						ml_mesh_mgr.OMCThrottle = Now() + 300
+					if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer)) then
+						Player:Stop()
 						ml_mesh_mgr.ResetOMC()
+					end
+					
+					if ( not ml_global_information.Player_IsMoving ) then
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+						ml_mesh_mgr.OMCThrottle = Now() + 200
+						return
+					end
+	
+					if (ml_mesh_mgr.OMCJumpStartedTimer == 0 ) then
+						ml_mesh_mgr.OMCJumpStartedTimer = Now()
 						return
 					end
 				

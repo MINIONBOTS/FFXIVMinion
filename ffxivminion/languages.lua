@@ -659,6 +659,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
     },                                  
     ["cn"] =                            
     {                               
@@ -1301,7 +1302,7 @@ strings =
 		shStackMin						= "Steady Hand Stack >=",
 		manipMax						= "Manipulation Uses <",
 		doHuntingLog					= "Do Hunting Log",
-		frontlines						= "Frontlines",
+		frontlines						= "F边境遗址",
 		confirm							= "Confirm",
 		yes								= "Yes",
 		no								= "No",
@@ -1332,6 +1333,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
 	},
     ["jp"] =
     {
@@ -1957,6 +1959,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
 	},   
     ["de"] =
     {
@@ -2584,6 +2587,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
 	},     
     ["fr"] =
     {
@@ -3210,6 +3214,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
 	},       
     ["ru"] =
     {
@@ -3836,6 +3841,7 @@ strings =
 		shortcut						= "Shortcut",
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
+		waitNearEvac					= "Wait Near Evac",
 	},    	
 
 }
