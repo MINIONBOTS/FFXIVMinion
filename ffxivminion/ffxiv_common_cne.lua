@@ -372,7 +372,6 @@ function e_nextatma:execute()
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
 		newTask.mapID = atma.map
-		newTask.mesh = atma.mesh
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
@@ -1286,7 +1285,7 @@ function c_usenavinteraction:evaluate()
 							return
 						end
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
-							if (Player:Teleport(11)) then	
+							if (Player:Teleport(11)) then
 								local newTask = ffxiv_task_teleport.Create()
 								newTask.mapID = 137
 								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
@@ -1434,7 +1433,7 @@ function e_usenavinteraction:execute()
 	if (ActionList:IsCasting() or Now() < e_usenavinteraction.timer) then
 		return false
 	end
-
+	
 	e_usenavinteraction.task()
 	e_usenavinteraction.timer = Now() + 2000
 end
@@ -1491,9 +1490,14 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
+e_mount.timer = 0
 function c_mount:evaluate()
-	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
+	end
+	
+	if (IsMounting()) then
+		return true
 	end
 	
 	noMountMaps = {
@@ -1553,8 +1557,13 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
+	if (IsMounting() or Now() < e_mount.timer) then
+		return
+	end
+	
     Player:Stop()
     Mount(e_mount.id)
+	e_mount.timer = Now() + 1000
 end
 
 c_companion = inheritsFrom( ml_cause )

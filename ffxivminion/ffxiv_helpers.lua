@@ -168,8 +168,26 @@ function GetNearestFateAttackable()
     local fate = GetClosestFate(myPos)
 	
     if (fate ~= nil) then
+		if (fate.type == 1) then
+			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
+			if (el) then
+				local bestTarget = nil
+				local highestHP = 0
+				
+				for i,e in pairs(el) do
+					if (not bestTarget or (bestTarget and e.hp.max > highestHP)) then
+						bestTarget = e
+						highestHP = e.hp.max
+					end
+				end
+				
+				if (bestTarget) then
+					return bestTarget
+				end
+			end
+		end
+		
 		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -1573,23 +1591,36 @@ end
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local playerHeading = nil
-	if (Player.pos.h < 0) then
-		playerHeading = Player.pos.h + 2 * math.pi
-	else
-		playerHeading = Player.pos.h
-	end
+	local ppos = Player.pos
+	local epos = entity.pos
+	local playerHeading = ConvertHeading(ppos.h)
 	
-	local playerAngle = math.atan2(entity.pos.x - Player.pos.x, entity.pos.z - Player.pos.z)  	
+	local playerAngle = math.atan2(epos.x - ppos.x, epos.z - ppos.z) 
 	local deviation = playerAngle - playerHeading
 	local absDeviation = math.abs(deviation)
-	
 	local leftover = math.abs(absDeviation - math.pi)
 	
-	if (leftover > (math.pi * .75)) then
+	if (leftover > (math.pi * .85) and leftover < (math.pi * 1.15)) then
 		return true
 	end
-		
+    return false
+end
+
+function EntityIsFrontTight(entity)
+	if not entity or entity.id == Player.id then return false end
+	
+	local ppos = Player.pos
+	local epos = entity.pos
+	local playerHeading = ConvertHeading(ppos.h)
+	
+	local playerAngle = math.atan2(epos.x - ppos.x, epos.z - ppos.z) 
+	local deviation = playerAngle - playerHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .95) and leftover < (math.pi * 1.05)) then
+		return true
+	end
     return false
 end
 
@@ -1888,6 +1919,25 @@ function ScanForMobs(ids,distance)
 	return false
 end
 
+function ScanForCaster(ids,distance,spells)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
+	local spells = (type(spells) == "string" and spells) or tostring(spells)
+	
+	local maxdistance = tonumber(distance) or 30
+	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		for i,e in pairs(el) do
+			if (i and e and e.castinginfo) then
+				if (MultiComp(e.castinginfo.channelingid,spells) or MultiComp(e.castinginfo.castingid,spells)) then
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -2114,11 +2164,33 @@ function InCombatRange(targetid)
 			end
 		end
 	else
-		return ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100)))
+		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))
 	end
 	
 	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
 	return ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
+end
+
+function CanAttack(targetid)
+	local target = {}
+	--Quick change here to allow passing of a target or just the ID.
+	if (type(targetid) == "table") then
+		local id = targetid.id
+		target = EntityList:Get(id)
+		if (TableSize(target) == 0) then
+			return false
+		end
+	else
+		target = EntityList:Get(targetid)
+		if (TableSize(target) == 0) then
+			return false
+		end
+	end
+	
+	local canCast = false
+	local testSkill = SkillMgr.GCDSkills[Player.job]
+	canCast = ActionList:CanCast(testSkill,target.id)
+	return canCast
 end
 
 function GetMounts()

@@ -186,7 +186,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_LIFT" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
-					if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer)) then
+					if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 400) then
 						Player:Stop()
 						ml_mesh_mgr.ResetOMC()
 					end
