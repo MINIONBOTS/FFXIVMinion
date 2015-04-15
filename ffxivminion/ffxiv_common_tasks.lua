@@ -1047,7 +1047,7 @@ function ffxiv_task_grindCombat:Process()
 				local fate = GetFateByID(fateID)
 				if ( fate and fate.completion < 99) then
 					local plevel = Player.level
-					if (fate.level < (plevel - 5))then
+					if (fate.level < (plevel - 5)) then
 						local myPos = Player.pos
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 						if (distance <= fate.radius) then				
@@ -1122,7 +1122,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 				ml_task_hub:CurrentTask().lastMovement = Now()
 			end
-			if (InCombatRange(target.id) and Player.incombat) then				
+			if (InCombatRange(target.id) and Player.incombat and gRandomMovement == "1") then				
 				if (not Player:IsMoving() and TimeSince(ml_task_hub:CurrentTask().lastMovement) > math.random(1000,4000)) then
 					local h = ConvertHeading(ppos.h)
 					local headings = {

@@ -400,6 +400,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gQuestAutoEquip == nil) then
 		Settings.FFXIVMINION.gQuestAutoEquip = "1"
 	end
+	if (Settings.FFXIVMINION.gRandomMovement == nil) then
+		Settings.FFXIVMINION.gRandomMovement = "0"
+	end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	GUI_NewButton(winName, GetString("skillManager"), "SkillManager.toggle")
@@ -438,6 +441,7 @@ function ffxivminion.HandleInit()
 	GUI_NewComboBox(winName,GetString("foodHQ"),"gFoodHQ", group, "None")
 	GUI_NewCheckbox(winName,GetString("avoidAOE"), "gAvoidAOE",group )
 	GUI_NewCheckbox(winName,GetString("randomPaths"),"gRandomPaths",group )
+	GUI_NewCheckbox(winName,GetString("randomMovement"),"gRandomMovement",group )
 	GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	
@@ -471,6 +475,7 @@ function ffxivminion.HandleInit()
     gMountDist = Settings.FFXIVMINION.gMountDist
     gSprintDist = Settings.FFXIVMINION.gSprintDist
     gRandomPaths = Settings.FFXIVMINION.gRandomPaths
+	gRandomMovement = Settings.FFXIVMINION.gRandomMovement
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
     gAutoStart = Settings.FFXIVMINION.gAutoStart
@@ -590,7 +595,7 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
-		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines")
+		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter")
 		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
 		ml_mesh_mgr.SetDefaultMesh(179, "Gridania - Inn")
 		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")

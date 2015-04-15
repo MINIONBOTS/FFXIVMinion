@@ -660,6 +660,7 @@ strings =
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
     },                                  
     ["cn"] =                            
     {                               
@@ -1334,6 +1335,7 @@ strings =
 		modifierKey						= "修改器热键",
 		shortcutKey						= "快捷键",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
 	},
     ["jp"] =
     {
@@ -1960,6 +1962,7 @@ strings =
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
 	},   
     ["de"] =
     {
@@ -2588,6 +2591,7 @@ strings =
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
 	},     
     ["fr"] =
     {
@@ -3215,6 +3219,7 @@ strings =
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
 	},       
     ["ru"] =
     {
@@ -3842,6 +3847,7 @@ strings =
 		modifierKey						= "Modifier Key",
 		shortcutKey						= "Shortcut Key",
 		waitNearEvac					= "Wait Near Evac",
+		randomMovement					= "Randomize Movement",
 	},    	
 
 }
