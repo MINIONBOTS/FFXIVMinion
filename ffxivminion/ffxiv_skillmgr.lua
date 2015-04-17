@@ -1715,6 +1715,13 @@ function SkillMgr.Gather(item)
 						castable = false
 					end
 					
+					if (skillid == 215 or skillid == 232) then
+						local itemsUncovered = ml_task_hub:CurrentTask().itemsUncovered
+						if (IsUnspoiledNode(note.contentid) and not itemsUncovered) then
+							castable = false
+						end
+					end
+					
 					if ( castable ) then
 						if ( ActionList:Cast(skillid,Player.id)) then	
 							--d("CASTING (gathering) : "..tostring(skill.name))
@@ -3162,8 +3169,10 @@ function SkillMgr.AddDefaultConditions()
 		if (target and target.fateid ~= 0) then
 			local fate = GetFateByID(target.fateid)
 			if (ValidTable(fate)) then
-				if (Player:GetSyncLevel() == 0 and fate.level < (Player.level - 5)) then
-					return true
+				if (fate.status == 2) then
+					if (Player:GetSyncLevel() == 0 and fate.level < (Player.level - 5)) then
+						return true
+					end
 				end
 			else
 				return true

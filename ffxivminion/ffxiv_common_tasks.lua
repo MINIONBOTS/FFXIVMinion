@@ -1045,7 +1045,7 @@ function ffxiv_task_grindCombat:Process()
 			if (not self.noFateSync) then
 				local fateID = target.fateid
 				local fate = GetFateByID(fateID)
-				if ( fate and fate.completion < 99) then
+				if ( fate and fate.completion < 99 and fate.status == 2) then
 					local plevel = Player.level
 					if (fate.level < (plevel - 5)) then
 						local myPos = Player.pos
