@@ -1087,8 +1087,11 @@ function ffxiv_task_grindCombat:Process()
 				if (Player.ismounted) then
 					Dismount()
 				end
-				if ((IsCaster(Player.job) and Player:IsMoving()) or target.los or CanAttack(target.id)) then
+				if (Player:IsMoving() and (target.los or CanAttack(target.id))) then
 					Player:Stop()
+					if (IsCaster(Player.job)) then
+						return
+					end
 				end
 				if (not EntityIsFrontTight(target)) then
 					Player:SetFacing(pos.x,pos.y,pos.z) 

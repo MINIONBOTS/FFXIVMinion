@@ -859,10 +859,11 @@ function c_teleporttomap:evaluate()
 		end
 	end
 	
-    if (ml_task_hub:CurrentTask().tryTP and ml_task_hub:CurrentTask().destMapID) then
+	local destMapID = ml_task_hub:ThisTask().destMapID
+    if (destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
-                                                    ml_task_hub:CurrentTask().destMapID	)
+                                                    destMapID	)
 
         if (ValidTable(ml_nav_manager.currPath)) then
             local aethid = nil
@@ -890,7 +891,6 @@ function c_teleporttomap:evaluate()
         end
     end
     
-    ml_task_hub:CurrentTask().tryTP = false
     return false
 end
 function e_teleporttomap:execute()
@@ -1562,7 +1562,7 @@ function e_mount:execute()
 	
     Player:Stop()
     Mount(e_mount.id)
-	e_mount.timer = Now() + 1000
+	e_mount.timer = Now() + 1200
 end
 
 c_companion = inheritsFrom( ml_cause )
