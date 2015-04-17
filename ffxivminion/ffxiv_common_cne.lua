@@ -253,7 +253,6 @@ end
 function e_add_fate:execute()
     local newTask = ffxiv_task_fate.Create()
     newTask.fateid = c_add_fate.fate.id
-    --newTask.fateTimer = Now()
 	newTask.fatePos = {x = c_add_fate.fate.x, y = c_add_fate.fate.y, z = c_add_fate.fate.z}
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -1252,7 +1251,7 @@ function c_usenavinteraction:evaluate()
 			end,
 			reaction = function()
 				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(12)) then
+					if (CanUseAetheryte(12) and not Player.incombat) then
 						if (Player:IsMoving()) then
 							Player:Stop()
 							return
@@ -1275,7 +1274,7 @@ function c_usenavinteraction:evaluate()
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(11)) then
+					if (CanUseAetheryte(11) and not Player.incombat) then
 						if (Player:IsMoving()) then
 							Player:Stop()
 							return

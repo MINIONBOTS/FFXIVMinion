@@ -1087,10 +1087,8 @@ function ffxiv_task_grindCombat:Process()
 				if (Player.ismounted) then
 					Dismount()
 				end
-				if ((IsCaster(Player.job) and Player:IsMoving()) or target.los) then
-					if (TimeSince(ml_task_hub:CurrentTask().lastMovement) > 1000) then
-						Player:Stop()
-					end
+				if ((IsCaster(Player.job) and Player:IsMoving()) or target.los or CanAttack(target.id)) then
+					Player:Stop()
 				end
 				if (not EntityIsFrontTight(target)) then
 					Player:SetFacing(pos.x,pos.y,pos.z) 
@@ -1107,7 +1105,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 		else
-			if (not InCombatRange(target.id) or (not target.los and CanAttack(target.id))) then
+			if (not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1115,41 +1113,10 @@ function ffxiv_task_grindCombat:Process()
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
 					end
-				elseif (target.los and dist <= (target.hitradius + 2.5)) then
-					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
 				else
-					Player:MoveTo(pos.x,pos.y,pos.z, 1, true, false)
+					Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
 				end
 				ml_task_hub:CurrentTask().lastMovement = Now()
-			end
-			if (InCombatRange(target.id) and Player.incombat and gRandomMovement == "1") then				
-				if (not Player:IsMoving() and TimeSince(ml_task_hub:CurrentTask().lastMovement) > math.random(1000,4000)) then
-					local h = ConvertHeading(ppos.h)
-					local headings = {
-						[1] = ConvertHeading((h - (math.pi * (math.random(10,30) / 100))))%(2*math.pi),
-						[2] = ConvertHeading((h + (math.pi * (math.random(10,30) / 100))))%(2*math.pi),
-						[3] = ConvertHeading((h - (math.pi * (math.random(31,45) / 100))))%(2*math.pi),
-						[4] = ConvertHeading((h + (math.pi * (math.random(31,45) / 100))))%(2*math.pi),
-					}
-					
-					local mindist = target.hitradius * .50
-					if (mindist < 1) then
-						mindist = 1
-					end
-					
-					local maxdist = target.hitradius
-					if (target.hitradius < 3) then
-						maxdist = 3
-					end
-					
-					local newPos = GetPosFromDistanceHeading(ppos, (math.random((mindist * 10),(maxdist * 10)) / 10), headings[math.random(1,4)])
-					local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
-					if (p and dist < 4) then
-						Player:MoveTo(p.x,p.y,p.z, 1, false, false)
-						--Player:MoveTo(newPos.x,newPos.y,newPos.z, 1, false, false)
-						ml_task_hub:CurrentTask().lastMovement = Now()
-					end
-				end
 			end
 			if (target.distance <= 15) then
 				if (Player.ismounted) then
@@ -1158,6 +1125,9 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (InCombatRange(target.id)) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
+				if (target.los or CanAttack(target.id)) then
+					Player:Stop()
+				end
 			end
 			if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 				SkillMgr.Cast( target )

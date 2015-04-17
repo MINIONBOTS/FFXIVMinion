@@ -321,6 +321,10 @@ function c_huntlogkill:evaluate()
 			el = EntityList("onmesh,alive,attackable,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
+		if (not ValidTable(el)) then
+			el = EntityList("onmesh,alive,attackable,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+		end
+		
 		if(ValidTable(el)) then
 			if (TableSize(el) == 1) then
 				local id, entity = next(el)
@@ -442,16 +446,15 @@ function ffxiv_task_huntlog:Init()
     self:AddTaskCheckCEs()
 end
 
---[[
+
 function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if ( 	k == "gHuntMapID" )	then
+        if ( 	k == "gDoGCHuntLog" )	then
             SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("huntlogMode"))
 end
---]]
 
 function ffxiv_task_huntlog.UIInit()
 	ffxivminion.Windows.HuntLog = { id = strings["us"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
@@ -503,30 +506,63 @@ function ffxiv_task_huntlog.GetTargetList(indexlist,filtermap)
 		return nil
 	end
 	
+	if (not ValidTable(list.normal) and not ValidTable(list.gc)) then
+		return nil
+	end
+	
 	local targetList = {}
-	for indexkey,indexdata in pairs(list) do
-		if (ValidTable(indexdata)) then
-			for entrykey,entrydata in pairs(indexdata) do
-				if (ValidTable(entrydata)) then
-					if (not ffxiv_task_huntlog.IsEntryComplete(indexkey,entrykey)) then
-						if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
-							targetList[entrydata.id] = entrydata
+	
+	if (ValidTable(list.normal)) then
+		for indexkey,indexdata in pairs(list.normal) do
+			if (ValidTable(indexdata)) then
+				for entrykey,entrydata in pairs(indexdata) do
+					if (ValidTable(entrydata)) then
+						if (not ffxiv_task_huntlog.IsEntryComplete(indexkey,entrykey)) then
+							if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
+								targetList[entrydata.id] = entrydata
+							end
 						end
 					end
 				end
 			end
 		end
 	end
+	
+	if (ValidTable(list.gc)) then
+		for indexkey,indexdata in pairs(list.gc) do
+			if (ValidTable(indexdata)) then
+				for entrykey,entrydata in pairs(indexdata) do
+					if (ValidTable(entrydata)) then
+						if (not ffxiv_task_huntlog.IsGCEntryComplete(indexkey,entrykey)) then
+							if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
+								targetList[entrydata.id] = entrydata
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
 	return targetList
 end
 
 function ffxiv_task_huntlog.GetValidIndexes()
-	local safeIndexes = {}	
-	local indexList = {}
+	local safeIndexes = { 
+		normal = {},
+		gc = {},
+	}	
+	local indexList = {
+		normal = {},
+		gc = {},
+	}
 	
 	--First pass filters valid indexes by level.
 	local rank = 0
-	local info = ffxiv_task_huntlog.GetHuntLog()
+	local gcrank = 0
+	local info = nil
+	
+	info = ffxiv_task_huntlog.GetHuntLog()
 	if (info) then
 		for index,data in pairsByKeys(info) do
 			if (rank == 0) then
@@ -534,24 +570,47 @@ function ffxiv_task_huntlog.GetValidIndexes()
 			end
 			if (not data.iscompleted) then
 				if (ffxiv_task_huntlog.IsIndexCompatible(data.currentrank,index)) then
-					safeIndexes[index] = true
+					safeIndexes.normal[index] = true
 				end
 			end
 		end
 	end
 	
-	if (rank == 0 or not ValidTable(safeIndexes)) then
+	info = ffxiv_task_huntlog.GetGCHuntLog()
+	if (info) then
+		for index,data in pairsByKeys(info) do
+			if (gcrank == 0) then
+				gcrank = data.currentrank
+			end
+			if (not data.iscompleted) then
+				if (ffxiv_task_huntlog.IsIndexCompatible(data.currentrank,index)) then
+					safeIndexes.gc[index] = true
+				end
+			end
+		end
+	end
+	
+	if (not ValidTable(safeIndexes.normal) and not ValidTable(safeIndexes.gc)) then
 		return nil
 	end
 	
 	--Second pass filters indexes based on ffxiv_data_huntlog we have created.
-	local class = ffxiv_task_huntlog.jobTranslate[Player.job] or Player.job
-	for index,_ in pairs(safeIndexes) do
-		local data = ffxiv_task_huntlog.GetIndexData(class,rank,index)
-		if (data) then
-			indexList[index] = data
-		--else
-			--d("Could not find valid data for class " .. class .. ", rank " .. rank .. ", index " .. index)
+	if (ValidTable(safeIndexes.normal)) then
+		local class = ffxiv_task_huntlog.jobTranslate[Player.job] or Player.job
+		for index,_ in pairs(safeIndexes.normal) do
+			local data = ffxiv_task_huntlog.GetIndexData(class,rank,index)
+			if (data) then
+				indexList.normal[index] = data
+			end
+		end
+	end
+	
+	if (ValidTable(safeIndexes.gc)) then
+		for index,_ in pairs(safeIndexes.gc) do
+			local data = ffxiv_task_huntlog.GetGCIndexData(Player.grandcompany,gcrank,index)
+			if (data) then
+				indexList.gc[index] = data
+			end
 		end
 	end
 	
@@ -725,9 +784,12 @@ end
 function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 	local rank = tonumber(rank) or 0
 	local index = tonumber(index) or 0
-	
 	local indexLevel = ((rank - 1) * 10) + index
 
+	if (((rank - 1) * 10) > Player.level) then
+		return false
+	end
+	
 	if (Player.level >= 10) then
 		if (indexLevel <= (Player.level + 3)) then
 			return true
@@ -760,11 +822,69 @@ function ffxiv_task_huntlog.GetHuntLog()
 	return nil
 end
 
+function ffxiv_task_huntlog.GetGCHuntLog()
+	local gcEnum = {
+		[1] = 8,
+		[2] = 9,
+		[3] = 10,
+	}
+	
+	local logTable = Quest:GetHuntingLog(gcEnum[Player.grandcompany])
+	if (logTable) then
+		return logTable
+	end
+	return nil
+end
+
 function ffxiv_task_huntlog.IsEntryComplete(index,entry)
 	local index = tonumber(index) or 0
 	local entry = tonumber(entry) or 0
 	
 	local huntlog = ffxiv_task_huntlog.GetHuntLog()
+	if (huntlog) then
+		for i,data in pairsByKeys(huntlog) do
+			if (i == index) then
+				if (not data.iscompleted) then
+					if (entry == 1) then
+						if (data.entry1done) then
+							return true
+						else
+							return false
+						end
+					elseif (entry == 2) then
+						if (data.entry2done) then
+							return true
+						else
+							return false
+						end
+					elseif (entry == 3) then
+						if (data.entry3done) then
+							return true
+						else
+							return false
+						end
+					elseif (entry == 4) then
+						if (data.entry4done) then
+							return true
+						else
+							return false
+						end
+					end
+				else
+					return true
+				end
+			end
+		end
+	end
+	
+	return 0
+end
+
+function ffxiv_task_huntlog.IsGCEntryComplete(index,entry)
+	local index = tonumber(index) or 0
+	local entry = tonumber(entry) or 0
+	
+	local huntlog = ffxiv_task_huntlog.GetGCHuntLog()
 	if (huntlog) then
 		for i,data in pairsByKeys(huntlog) do
 			if (i == index) then
@@ -830,6 +950,32 @@ function ffxiv_task_huntlog.GetIndexData(class,rank,index)
 	return nil
 end
 
+function ffxiv_task_huntlog.GetGCIndexData(gc,rank,index)
+	local gc = tonumber(gc) or 0
+	local rank = tonumber(rank) or 0
+	local index = tonumber(index) or 0
+
+	if (gc ~= 0 and rank ~= 0 and index ~= 0) then
+		local data = ffxiv_data_gchuntlog
+		if (data) then
+			local gcdata = data[gc]
+			if (gcdata) then
+				local rankdata = gcdata[rank]
+				if (rankdata) then
+					local indexdata = rankdata[index]
+					if (indexdata) then
+						return indexdata
+					end
+				end
+			end
+		else
+			d("GC HuntLog data is invalid.")
+		end
+	end
+	
+	return nil
+end
+
 function ffxiv_task_huntlog.GetEntryData(class,rank,index,entry)
 	local class = tonumber(class) or 0
 	local rank = tonumber(rank) or 0
@@ -858,9 +1004,5 @@ function ffxiv_task_huntlog.GetEntryData(class,rank,index,entry)
 	return nil
 end
 
-function outputHuntingLog(job)
-	d(Quest:GetHuntingLog(job))
-end
-
 --RegisterEventHandler("GUI.Item",ffxiv_task_huntlog.HandleButtons)
---RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate)
+RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate)
