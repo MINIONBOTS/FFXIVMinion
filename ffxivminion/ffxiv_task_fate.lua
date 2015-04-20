@@ -67,6 +67,7 @@ function e_fatewait:execute()
 		Player:Stop()
 		newTask.valid = false
 	end
+
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -526,6 +527,7 @@ function e_endfate:execute()
 	ml_task_hub:ThisTask().completed = true
 	ml_task_hub:ThisTask():DeleteSubTasks()
 	ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
+	ml_task_hub:ThisTask():ParentTask().suppressRestTimer = Now() + 5000
 end
 
 

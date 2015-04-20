@@ -38,6 +38,7 @@ function ffxiv_task_grind.Create()
     newinst.currentMarker = false
 	newinst.filterLevel = true
 	newinst.correctMap = Player.localmapid
+	newinst.suppressRestTimer = 0
 	ffxiv_task_grind.inFate = false
 	ml_global_information.currentMarker = false
     
