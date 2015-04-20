@@ -123,7 +123,7 @@ function c_grind_addhuntlogtask:evaluate()
 		return false
 	end
 	
-	if (IsPositionLocked() or IsLoading()) then
+	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting()) then
 		return false
 	end
 
@@ -159,7 +159,7 @@ function c_quest_addhuntlogtask:evaluate()
 	c_quest_addhuntlogtask.validIndexes = {}
 	c_quest_addhuntlogtask.possibleTargets = {}
 	
-	if (IsPositionLocked() or IsLoading()) then
+	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting()) then
 		return false
 	end
 
@@ -790,14 +790,8 @@ function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 		return false
 	end
 	
-	if (Player.level >= 10) then
-		if (indexLevel <= (Player.level + 3)) then
-			return true
-		end
-	else
-		if (indexLevel <= (Player.level + 1)) then
-			return true
-		end
+	if (indexLevel <= (Player.level)) then
+		return true
 	end
 	
 	return false
