@@ -1801,22 +1801,22 @@ function c_rest:evaluate()
 	then
 	
 		if (Player.incombat or not Player.alive) then
-			d("Cannot rest, still in combat or not alive.")
+			--d("Cannot rest, still in combat or not alive.")
 			return false
 		end
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
 		if (gRestInFates == "0") then
 			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
-				d("Cannot rest due, no resting in fates option turned on.")
+				--d("Cannot rest due, no resting in fates option turned on.")
 				return false
 			end
 		end
 		
-		
-		if (ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0) then
+		if (ml_task_hub:ThisTask().suppressRestTimer and Now() > ml_task_hub:ThisTask().suppressRestTimer) then
 			local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
 			if (TableSize(addMobList) == 0) then
+				--d("Not resting due to aggro check.")
 				return false
 			end
 		end
@@ -1854,8 +1854,11 @@ function c_flee:evaluate()
 		local ppos = Player.pos
 		local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 		if (ValidTable(newPos)) then
-			e_flee.fleePos = newPos
-			return true
+			local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+			if (p) then
+				e_flee.fleePos = p
+				return true
+			end
 		end
 	end
     
@@ -1867,17 +1870,7 @@ function e_flee:execute()
 		local newTask = ffxiv_task_flee.Create()
 		newTask.pos = fleePos
 		newTask.useTeleport = (gTeleport == "1")
-		newTask.task_complete_eval = 
-			function ()
-				return not Player.incombat or (Player.hp.percent > tonumber(gRestHP) and Player.mp.percent > tonumber(gRestMP))
-			end
-		newTask.task_fail_eval = 
-			function ()
-				return not Player.alive or ((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)
-			end
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-	else
-		ml_error("Need to flee but no evac position defined for this mesh!!")
 	end
 end
 
@@ -2950,4 +2943,17 @@ function e_unpackdata:execute()
 		
 	end
 	ml_task_hub:CurrentTask().dataUnpacked = true
+end
+
+c_falling = inheritsFrom( ml_cause )
+e_falling = inheritsFrom( ml_effect )
+function c_falling:evaluate()
+	if (Player:IsJumping()) then
+		return true
+	end
+	
+    return false
+end
+function e_falling:execute()
+	Player:Stop()
 end

@@ -161,9 +161,12 @@ function ffxiv_task_movetopos:Init()
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
     
     -- The parent needs to take care of checking and updating the position of this task!!	
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
     self:add( ke_walkToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
@@ -298,6 +301,9 @@ end
 function ffxiv_task_movetointeract:Init()
 	local ke_unpackData = ml_element:create( "UnpackData", c_unpackdata, e_unpackdata, 50 )
 	self:add( ke_unpackData, self.process_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -945,7 +951,10 @@ function ffxiv_task_flee:Init()
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 11 )
     self:add( ke_teleportToPos, self.process_elements)
 	
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
+	
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
     self:add( ke_walkToPos, self.process_elements)
 	
     self:AddTaskCheckCEs()
@@ -970,14 +979,16 @@ end
 function ffxiv_task_flee:task_fail_eval()
 	if (((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)) then
 		if (self.failTimer == 0) then
-			self.failTimer = Now() + 10000
+			d("Setting failtimer for flee forward by 10 seconds.")
+			self.failTimer = Now() + 5000
 		end
 	else
 		if (self.failTimer ~= 0) then
+			d("Resetting failtimer for flee..")
 			self.failTimer = 0
 		end
 	end
-	return (not Player.alive or Now() > self.failTimer)
+	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
 end
 
 function ffxiv_task_flee:task_fail_execute()
@@ -1353,6 +1364,9 @@ function ffxiv_nav_interact:Init()
 	
 	local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
     self:add( ke_convIndex, self.overwatch_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
 
 	self:AddTaskCheckCEs()
 end
