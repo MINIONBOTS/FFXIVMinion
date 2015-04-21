@@ -1717,7 +1717,7 @@ function SkillMgr.Gather(item)
 					
 					if (skillid == 215 or skillid == 232) then
 						local itemsUncovered = ml_task_hub:CurrentTask().itemsUncovered
-						if (IsUnspoiledNode(note.contentid) and not itemsUncovered) then
+						if (IsUnspoiledNode(node.contentid) and not itemsUncovered) then
 							castable = false
 						end
 					end
