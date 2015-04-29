@@ -278,6 +278,7 @@ function ffxiv_task_movetointeract.Create()
     newinst.overwatch_elements = {}
     newinst.name = "MOVETOINTERACT"
 	
+	newinst.started = Now()
 	newinst.uniqueid = 0
 	newinst.interact = 0
     newinst.lastinteract = 0
@@ -302,8 +303,22 @@ function ffxiv_task_movetointeract:Init()
 	local ke_unpackData = ml_element:create( "UnpackData", c_unpackdata, e_unpackdata, 50 )
 	self:add( ke_unpackData, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 35 )
     self:add( ke_falling, self.process_elements)
+	
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 26 )
+	self:add( ke_useNavInteraction, self.process_elements)
+
+	if (self.useTeleport) then
+		local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+		self:add( ke_teleportToPos, self.process_elements)
+	end
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	self:add( ke_mount, self.process_elements)
+	
+	local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+	self:add( ke_sprint, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -318,26 +333,22 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
 			return true
 		end
-	end
-
-	if (self.pos and ValidTable(self.pos)) then
-		if (not self.addedMoveElement) then
-			local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 26 )
-			self:add( ke_useNavInteraction, self.process_elements)
-	
-			if (self.useTeleport) then
-				local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
-				self:add( ke_teleportToPos, self.process_elements)
+	else
+		local ppos = Player.pos
+		local epos = self.pos
+		local dist = Distance3DT(ppos,epos)
+		if (dist <= 10) then
+			local interacts = EntityList("contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			if (not interacts) then
+				return true
+			else
+				for i,interact in pairs(interacts) do
+					if (not interact.targetable) then
+						return true
+					end
+				end	
 			end
-			
-			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
-			self:add( ke_mount, self.process_elements)
-			
-			local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
-			self:add( ke_sprint, self.process_elements)
-			
-			self.addedMoveElement = true
-		end
+		end			
 	end
 	
 	if (Player.ismounted and Now() > self.delayTimer) then
@@ -356,17 +367,32 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (requiresDismount) then
 			Dismount()
 			self.delayTimer = 1000
-			return
+			return false
 		end
 	end
 	
 	if (self.interact == 0) then
 		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			local interacts = EntityList("contentid="..tostring(self.uniqueid)..",maxdistance=15")
 			if (interacts) then
-				local i,interact = next(interacts)
-				if (interact) then
-					self.interact = interact.id
+				local best = {}
+				for i,interact in pairs(interacts) do
+					if (interact.targetable) then
+						best[i] = interact
+					end
+				end
+				if (best) then
+					local nearest = nil
+					local nearestDistance = 20
+					for i,interact in pairs(best) do
+						if (not nearest or (nearest and interact.distance < nearestDistance)) then
+							nearest = interact
+							nearestDistance = interact.pathdistance
+						end
+					end
+					if (nearest) then
+						self.interact = nearest.id
+					end
 				end
 			end
 		end
@@ -375,7 +401,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (not Player:GetTarget() and self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (interact and interact.targetable and interact.distance < 10) then
-			Player:SetTarget(self.interact)
+			Player:SetTarget(interact.id)
 			local ipos = shallowcopy(interact.pos)
 			if (not deepcompare(ipos,self.adjustedPos)) then
 				self.adjustedPos = shallowcopy(ipos)
@@ -387,19 +413,19 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (Player:GetTarget() and self.interact ~= 0 and Now() > self.lastinteract) then
 		if (not IsLoading() and not IsPositionLocked()) then
 			local interact = EntityList:Get(tonumber(self.interact))
-			local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
+			local radius = (interact.hitradius >= 1 and interact.hitradius) or 1.25
 			if (range) then
 				if (interact and interact.distance <= range) then
 					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
-					self.lastDistance = interact.distance
+					self.lastDistance = interact.pathdistance
 					self.lastinteract = Now() + 500
 				end
 			else
 				if (interact and interact.distance < (radius * 4)) then
 					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
-					self.lastDistance = interact.distance
+					self.lastDistance = interact.pathdistance
 					self.lastinteract = Now() + 500
 				end
 			end
@@ -585,7 +611,6 @@ function ffxiv_task_teleport:task_complete_eval()
 end
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
-	ml_task_hub:CurrentTask():SetDelay(2000)
 end
 
 function ffxiv_task_teleport:task_fail_eval()
@@ -595,7 +620,6 @@ function ffxiv_task_teleport:task_fail_eval()
 end
 function ffxiv_task_teleport:task_fail_execute()  
 	self.valid = false
-	ml_task_hub:CurrentTask():SetDelay(2000)
 end
 
 --=======================STEALTH TASK=========================-
@@ -746,7 +770,7 @@ function ffxiv_task_useitem:task_complete_eval()
 	
 	if (Player.ismounted) then
 		Dismount()
-		ml_task_hub:ThisTask():SetDelay(1500)
+		ml_task_hub:CurrentTask():SetDelay(500)
 		return false
 	end
 	
@@ -755,7 +779,7 @@ function ffxiv_task_useitem:task_complete_eval()
 	end
 	
 	if (ActionList:IsCasting()) then
-		ml_task_hub:ThisTask():SetDelay(500)
+		ml_task_hub:CurrentTask():SetDelay(500)
 		return false 
 	end
 	
@@ -965,6 +989,14 @@ function ffxiv_task_flee:task_complete_eval()
 		return true
 	end
 	
+	if not HasBuff(Player.id, 50) and Player:IsMoving() then
+        local skills = ActionList("type=1")
+        local skill = skills[3]
+        if (skill and skill.isready) then
+			skill:Cast()
+        end
+    end
+	
 	return not Player.incombat or (Player.hp.percent > tonumber(gRestHP) and Player.mp.percent > tonumber(gRestMP))
 end
 
@@ -1073,7 +1105,6 @@ function ffxiv_task_grindCombat:Process()
 		local pos = shallowcopy(target.pos)
 		local ppos = shallowcopy(Player.pos)
 		local range = ml_global_information.AttackRange
-		Player:SetTarget(target.id)
 		local eh = ConvertHeading(pos.h)
 		local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 		
@@ -1110,6 +1141,10 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+					local currentTarget = Player:GetTarget()
+					if (currentTarget and currentTarget.id ~= target.id) then
+						Player:SetTarget(target.id)
+					end
 					SkillMgr.Cast( target )
 					if (self.attackThrottle) then
 						if (Player.level > (target.level + 10)) then
@@ -1144,6 +1179,10 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+				local currentTarget = Player:GetTarget()
+				if (currentTarget and currentTarget.id ~= target.id) then
+					Player:SetTarget(target.id)
+				end
 				SkillMgr.Cast( target )
 				if (self.attackThrottle) then
 					if (Player.level > (target.level + 10)) then
