@@ -773,6 +773,16 @@ ffxiv_nav_data =
 			},
 		},
 	},
+	[395] =
+	{
+		[155] =
+		{
+			cost = 5,
+			gates = {
+				{x = -3.9291708469391, z = 10.224318504333, y = -1.1920928955078e-007, h = -0.06826114654541, g = 2004781},
+			},
+		},
+	},
 }-- set reference for mesh mgr
 ml_mesh_mgr.navData = ffxiv_nav_data
 ml_mesh_mgr.SetupNavNodes()

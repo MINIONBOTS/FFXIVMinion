@@ -148,7 +148,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								return
 							end
 						
-							if ((not Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 4) or 
+							if ((not Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 6) or 
 								(Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 7))
 							then
 								return
@@ -165,16 +165,14 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						--local dist2d = Distance2D(ePos.x,ePos.y,pPos.x,pPos.y)
 						--ml_mesh_mgr.OMCLastDistance = dist
 						
-						if (Player:IsJumping()) then
-							if (ml_mesh_mgr.OMCJumpStartedTimer ~= 0 and TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 300) then
+						if (ml_mesh_mgr.OMCJumpStartedTimer ~= 0) then
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+							if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1500 and Player:IsJumping()) then
 								Player:Stop()
-								ml_mesh_mgr.OMCThrottle = Now() + 100
 								return
+							elseif (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 300 and not Player:IsJumping()) then
+								ml_mesh_mgr.ResetOMC()
 							end
-						end
-						
-						if (not Player:IsJumping()) then
-							ml_mesh_mgr.ResetOMC()
 						end
 					end
 				
