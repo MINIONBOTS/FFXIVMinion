@@ -142,44 +142,45 @@ c_teletofate.radius = nil
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
 function c_teletofate:evaluate()
-	if (gTeleport == "0") then
+	if (gTeleport == "0" or Now() < c_teletofate.lastTele or ml_task_hub:ThisTask().name ~= "LT_FATE") then
 		return false
 	end	
-	
-	if (gParanoid == "1") then
-		local players = EntityList("type=1,maxdistance=30")
-		local nearbyPlayers = TableSize(players)
-		if nearbyPlayers > 0 then
-			ml_debug("Can't teleport, nearby players = "..tostring(nearbyPlayers))
-			return false
-		end
-		
-		if (tonumber(gFateTeleportPercent) == 0 and gTeleport == "0") then
-			ml_debug("Can't teleport, it's turned off.")
-			return false
-		end
-		
-		if Now() < c_teletofate.lastTele then
-			ml_debug("Can't teleport, not enough time has passed.")
-			return false
-		end
-	end
 	
     if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
         if (fate ~= nil and TableSize(fate) > 0) then
+		
 			local percent = tonumber(gFateTeleportPercent)
 			if (gTeleport == "1" and percent == 0) then
 				--use a default completion percentage to enable fate teleport to match checkbox
-				percent = 10
+				percent = 5
 			end
 			
 			if fate.completion > percent then
 				local myPos = Player.pos
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
 				
-				if (dist < 3) then
+				if (gParanoid == "1") then
+					local scanDistance = 50
+					local players = EntityList("type=1,maxdistance=".. scanDistance)
+					local nearbyPlayers = TableSize(players)
+					if nearbyPlayers > 0 then
+						return false
+					end
+					
+					local players = EntityList("type=1")
+					if (players) then
+						for i,entity in pairs(players) do
+							local epos = entity.pos
+							if (Distance3D(epos.x,epos.y,epos.z,fatePos.x,fatePos.y,fatePos.z) <= 50) then
+								return false
+							end
+						end
+					end
+				end
+	
+				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
+				if (dist < 10) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.radius = fate.radius
 						c_teletofate.pos = dest
@@ -194,12 +195,12 @@ function c_teletofate:evaluate()
 end
 function e_teletofate:execute()
 	local dest = c_teletofate.pos
-	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,5,c_teletofate.radius)
+	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,c_teletofate.radius,(c_teletofate.radius + 15))
+	local newdest,dist = NavigationManager:GetClosestPointOnMesh(newPos,false)
+	
 	Player:Stop()
-	if (newPos) then
-		GameHacks:TeleportToXYZ(newPos.x,newPos.y,newPos.z)
-	else
-		GameHacks:TeleportToXYZ(dest.x,dest.y,dest.z)
+	if (newdest) then
+		GameHacks:TeleportToXYZ(newdest.x,newdest.y,newdest.z)
 	end
 	Player:SetFacingSynced(Player.pos.h)
 	c_teletofate.lastTele = Now() + 10000
