@@ -76,8 +76,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","IsBehind()","target_IsBehind","TargetInfo")
 	GUI_NewField("Dev","IsFlanking()","target_IsFlanking","TargetInfo")
 	GUI_NewField("Dev","IsFront()","target_IsFront","TargetInfo")
-	
 	GUI_NewField("Dev","EntityIsFront()","target_EntityIsFront","TargetInfo")
+	GUI_NewField("Dev","EntityIsFrontT()","target_EntityIsFrontTight","TargetInfo")
 	
 	GUI_NewField("Dev","pos.x","target_posX","TargetInfo")
 	GUI_NewField("Dev","pos.y","target_posY","TargetInfo")
@@ -105,6 +105,68 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","castingid","target_castingid","TargetInfo")	
 	GUI_NewField("Dev","casttime","target_casttime","TargetInfo")
 	GUI_NewField("Dev","castingtargetcount","target_castingtargetcount","TargetInfo")
+
+	-- EntityScanner
+	GUI_NewField("Dev","EntityList","scanner_string","EntityScanner")
+	GUI_NewNumeric("Dev","Entity","scanner_slot","EntityScanner","1","999")
+	GUI_NewButton("Dev","TeleportTo","scanner_TeleportTo","EntityScanner")
+	GUI_NewButton("Dev","MoveTo","scanner_MoveTo","EntityScanner")
+	GUI_NewButton("Dev","Target","scanner_Target","EntityScanner")
+	GUI_NewField("Dev","ScanForObjects()","scanner_ScanForObjects","EntityScanner")
+	GUI_NewField("Dev","ScanForMobs()","scanner_ScanForMobs","EntityScanner")
+	GUI_NewField("Dev","ptr","scanner_ptr","EntityScanner")
+	GUI_NewField("Dev","id","scanner_id","EntityScanner")
+	GUI_NewField("Dev","name","scanner_name","EntityScanner")
+	GUI_NewField("Dev","type","scanner_type","EntityScanner")
+	GUI_NewField("Dev","chartype","scanner_chartype","EntityScanner")
+	GUI_NewField("Dev","ownerid","scanner_ownerid","EntityScanner")
+	GUI_NewField("Dev","targetid","scanner_targetid","EntityScanner")
+	GUI_NewField("Dev","contentid","scanner_contentid","EntityScanner")
+	GUI_NewField("Dev","uniqueid","scanner_uniqueid","EntityScanner")
+	GUI_NewField("Dev","status","scanner_status","EntityScanner")	
+	GUI_NewField("Dev","targetable","scanner_targetable","EntityScanner")
+	GUI_NewField("Dev","attackable","scanner_attackable","EntityScanner")
+	GUI_NewField("Dev","los","scanner_los","EntityScanner")
+	GUI_NewField("Dev","aggressive","scanner_aggressive","EntityScanner")
+	GUI_NewField("Dev","friendly","scanner_friendly","EntityScanner")
+	GUI_NewField("Dev","aggro","scanner_aggro","EntityScanner")
+	GUI_NewField("Dev","aggropercentage","scanner_aggropercentage","EntityScanner")
+	GUI_NewField("Dev","incombat","scanner_incombat","EntityScanner")
+	GUI_NewField("Dev","distance (3D)","scanner_distance","EntityScanner")
+	GUI_NewField("Dev","distance2D","scanner_distance2d","EntityScanner")
+	GUI_NewField("Dev","pathdistance","scanner_pathdistance","EntityScanner")
+	GUI_NewField("Dev","hitradius","scanner_hitradius","EntityScanner")
+	GUI_NewField("Dev","InCombatRange()","scanner_InCombatRange","EntityScanner")
+	GUI_NewField("Dev","IsBehind()","scanner_IsBehind","EntityScanner")
+	GUI_NewField("Dev","IsFlanking()","scanner_IsFlanking","EntityScanner")
+	GUI_NewField("Dev","IsFront()","scanner_IsFront","EntityScanner")
+	GUI_NewField("Dev","EntityIsFront()","scanner_EntityIsFront","EntityScanner")
+	GUI_NewField("Dev","pos.x","scanner_posX","EntityScanner")
+	GUI_NewField("Dev","pos.y","scanner_posY","EntityScanner")
+	GUI_NewField("Dev","pos.z","scanner_posZ","EntityScanner")
+	GUI_NewField("Dev","pos.h","scanner_posH","EntityScanner")
+	GUI_NewField("Dev","onmesh","scanner_onmesh","EntityScanner")
+	GUI_NewField("Dev","hp","scanner_hp","EntityScanner")
+	GUI_NewField("Dev","mp","scanner_mp","EntityScanner")
+	GUI_NewField("Dev","tp","scanner_tp","EntityScanner")		
+	GUI_NewField("Dev","level","scanner_level","EntityScanner")
+	GUI_NewField("Dev","job","scanner_job","EntityScanner")
+	GUI_NewField("Dev","cangather","scanner_cangather","EntityScanner")
+	GUI_NewField("Dev","gatherattemptsmax","scanner_gatherattemptsmax","EntityScanner")
+	GUI_NewField("Dev","gatherattempts","scanner_gatherattempts","EntityScanner")
+	GUI_NewField("Dev","fateid","scanner_fateid","EntityScanner")
+	GUI_NewField("Dev","icon","scanner_icon","EntityScanner")
+	GUI_NewField("Dev","grandcompany","scanner_grandcompany","EntityScanner")
+	GUI_NewField("Dev","grandcompanyrank","scanner_grandcompanyrank","EntityScanner")
+	GUI_NewField("Dev","claimedbyid","scanner_claimedbyid","EntityScanner")
+	GUI_NewField("Dev","action","scanner_action","EntityScanner")
+	GUI_NewField("Dev","lastaction","scanner_lastaction","EntityScanner")	
+	GUI_NewField("Dev","channelingid","scanner_channelingid","EntityScanner")	
+	GUI_NewField("Dev","channeltime","scanner_channeltime","EntityScanner")	
+	GUI_NewField("Dev","channeltargetid","scanner_channeltargetid","EntityScanner")
+	GUI_NewField("Dev","castingid","scanner_castingid","EntityScanner")	
+	GUI_NewField("Dev","casttime","scanner_casttime","EntityScanner")
+	GUI_NewField("Dev","castingtargetcount","scanner_castingtargetcount","EntityScanner")
 	
 	-- ActionList
 	GUI_NewField("Dev","IsCasting","sbiscast","ActionListInfo")
@@ -155,6 +217,7 @@ function Dev.ModuleInit()
 	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
 	GUI_NewField("Dev","IsHQ","invHQ","InventoryInfo")
 	GUI_NewButton("Dev","Sell","Dev.SellItem","InventoryInfo")
+	GUI_NewButton("Dev","UnEquip","Dev.UnequipItem","InventoryInfo")
 	invSelSlot = 0
 	invinv = "0"
 	
@@ -176,6 +239,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Moves Backward","mimovb","MovementInfo")
 	GUI_NewField("Dev","Moves Left","mimovl","MovementInfo")
 	GUI_NewField("Dev","Moves Right","mimovr","MovementInfo")
+	GUI_NewButton("Dev","Move Random","Dev.MoveRandom","MovementInfo")
 	GUI_NewButton("Dev","MoveForward","Dev.MoveF","MovementInfo")
 	GUI_NewButton("Dev","MoveBackward","Dev.MoveB","MovementInfo")
 	GUI_NewButton("Dev","MoveLeft","Dev.MoveL","MovementInfo")
@@ -341,7 +405,7 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","11","duty_11","DutyInfo")
 	GUI_NewField("Dev","12","duty_12","DutyInfo")
 	GUI_NewField("Dev","13","duty_13","DutyInfo")
-	GUI_NewField("Dev","Party Size","duty_14","DutyInfo")
+	GUI_NewField("Dev","Party Size","duty_partysize","DutyInfo")
 	GUI_NewField("Dev","Max Tanks","duty_15","DutyInfo")
 	GUI_NewField("Dev","Max Healers","duty_16","DutyInfo")
 	GUI_NewField("Dev","Max DPS","duty_17","DutyInfo")
@@ -449,7 +513,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Miner","ps_Miner","PlayerStats")
 	GUI_NewField("Dev","Botanist","ps_Botanist","PlayerStats")
 	GUI_NewField("Dev","Fisher","ps_Fisher","PlayerStats")
-	GUI_NewField("Dev","Fisher","ps_Arcanist","PlayerStats")	
+	GUI_NewField("Dev","Arcanist","ps_Arcanist","PlayerStats")	
+	--GUI_NewField("Dev","Rogue","ps_Rogue","PlayerStats") -- needs to be added
 	
 	-- General Functions
 	GUI_NewButton("Dev","Perform AutoEquip","Dev.AutoEquip","General Functions")
@@ -502,6 +567,15 @@ function Dev.HandleButtons( Event, arg )
 					d("Attempting to sell item, result:"..tostring(item:Sell()))				
 				end
 			end	
+		elseif ( arg == "Dev.UnequipItem") then		
+			local inv = Inventory("type="..invinv)
+			if ( inv ) then
+				local item = inv[tonumber(invSelSlot)]
+				if ( item ) then
+					d("Unequipping item : "..tostring(item.id))
+					UnequipItem(item.id)			
+				end
+			end	
 		elseif ( arg == "Dev.Interact") then
 			local t = Player:GetTarget()
 			if ( t ) then
@@ -529,7 +603,7 @@ function Dev.HandleButtons( Event, arg )
 		elseif ( arg == "Dev.Rezz") then
 			d(Player:Respawn())
 		elseif ( arg == "Dev.Gather" ) then
-			d(Player:Gather(tonumber(gaindex)))
+			d("Gather Result:"..tostring(Player:Gather(tonumber(gaindex))))
 		elseif ( arg == "Dev.Cast" ) then
 			sbpendingcast = true
 		elseif ( arg == "Dev.Craft" ) then
@@ -544,14 +618,29 @@ function Dev.HandleButtons( Event, arg )
 			d(PressDutyConfirm(true))
 		elseif ( arg == "Dev.PressLeaveColosseum") then
 			d(PressLeaveColosseum())
+		elseif ( arg == "Dev.MoveRandom") then
+			local ppos = Player.pos
+			local h = ConvertHeading(ppos.h)
+			local headings = {
+				[1] = ConvertHeading((h - (math.pi * (math.random(45,75) / 100))))%(2*math.pi),
+				[2] = ConvertHeading((h + (math.pi * (math.random(45,75) / 100))))%(2*math.pi),
+			}
+			
+			local newPos = GetPosFromDistanceHeading(ppos, math.random(1,3), headings[math.random(1,2)])
+			local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+			if (p and dist < 4) then
+				--Player:MoveTo(p.x,p.y,p.z, 1, false, false)
+				Player:MoveTo(newPos.x,newPos.y,newPos.z)
+				--ml_task_hub:CurrentTask().lastMovement = Now()
+			end
 		elseif ( arg == "Dev.MoveF") then
-			Player:Move(FFXIV.MOVEMENT.FORWARD)
+			Player:Move(348)
 		elseif ( arg == "Dev.MoveB") then
-			Player:Move(FFXIV.MOVEMENT.BACKWARD)
+			Player:Move(332)
 		elseif ( arg == "Dev.MoveL") then
-			Player:Move(FFXIV.MOVEMENT.LEFT)
+			Player:Move(324)
 		elseif ( arg == "Dev.MoveR") then
-			Player:Move(FFXIV.MOVEMENT.RIGHT)
+			Player:Move(276)
 		elseif ( arg == "Dev.MoveS") then
 			Player:Stop()
 		elseif ( dir == "Dev.SetSpeed" and tonumber(mimovss) > 0) then
@@ -840,8 +929,8 @@ function Dev.UpdateWindow()
 		target_IsBehind = tostring(IsBehind(mytarget))
 		target_IsFlanking = tostring(IsFlanking(mytarget))
 		target_IsFront = tostring(IsFront(mytarget))
-		
 		target_EntityIsFront = tostring(EntityIsFront(mytarget))
+		target_EntityIsFrontTight = tostring(EntityIsFrontTight(mytarget))
 		
 		target_hitradius = mytarget.hitradius
 		target_onmesh = tostring(mytarget.onmesh)
@@ -875,6 +964,149 @@ function Dev.UpdateWindow()
 			target_casttime = ci.casttime or 0
 			target_castingtargetcount = ci.castingtargetcount or 0
 		end
+	end
+	
+	--EntityScanner
+	local scanTargetFound = false
+	local elstring = scanner_string
+	if (not IsNullString(elstring)) then
+		local el = EntityList(elstring)
+		if ValidTable(el) then
+		
+			local condensedList = {}
+			local count = 1
+			for i,entity in pairsByKeys(el) do
+				if (ValidTable(entity)) then
+					condensedList[count] = entity.id
+					count = count + 1
+				end
+			end
+			
+			local condensedEntity = condensedList[tonumber(scanner_slot)]
+			local mytarget = EntityList:Get(condensedEntity)
+			if (ValidTable(mytarget)) then
+				scanTargetFound = true
+				scanner_ptr = string.format( "%x",tonumber(mytarget.ptr ))
+				scanner_id = mytarget.id
+				scanner_type = mytarget.type
+				scanner_chartype = mytarget.chartype
+				scanner_name = mytarget.name
+				scanner_ownerid = mytarget.ownerid
+				scanner_targetid = mytarget.targetid
+				scanner_contentid = mytarget.contentid
+				scanner_uniqueid = mytarget.uniqueid
+				scanner_status = mytarget.status--string.format( "%x",tonumber(mytarget.status ))
+				scanner_targetable = tostring(mytarget.targetable)
+				scanner_los = tostring(mytarget.los)
+				scanner_aggro = tostring(mytarget.aggro)
+				scanner_attackable = tostring(mytarget.attackable)
+				scanner_aggressive = tostring(mytarget.aggressive)
+				scanner_friendly = tostring(mytarget.friendly)
+				scanner_incombat = tostring(mytarget.incombat)
+				scanner_distance = (math.floor(mytarget.distance * 10) / 10)
+				scanner_distance2d = (math.floor(mytarget.distance2d * 10) / 10)
+				scanner_pathdistance = (math.floor(mytarget.pathdistance * 10) / 10)
+				scanner_InCombatRange = tostring(InCombatRange(mytarget.id))
+				
+				scanner_IsBehind = tostring(IsBehind(mytarget))
+				scanner_IsFlanking = tostring(IsFlanking(mytarget))
+				scanner_IsFront = tostring(IsFront(mytarget))
+				scanner_ScanForMobs = tostring(ScanForMobs(scanner_uniqueid))
+				scanner_ScanForObjects = tostring(ScanForObjects(scanner_uniqueid))
+				
+				scanner_EntityIsFront = tostring(EntityIsFront(mytarget))
+				
+				scanner_hitradius = mytarget.hitradius
+				scanner_onmesh = tostring(mytarget.onmesh)
+				scanner_posX = (math.floor(mytarget.pos.x * 10) / 10)
+				scanner_posY = (math.floor(mytarget.pos.y * 10) / 10)
+				scanner_posZ = (math.floor(mytarget.pos.z * 10) / 10)
+				scanner_posH = (math.floor(mytarget.pos.h * 10) / 10)
+				scanner_hp = tostring(mytarget.hp.current.." / "..mytarget.hp.max.." / "..mytarget.hp.percent.."%")	
+				scanner_mp = tostring(mytarget.mp.current.." / "..mytarget.mp.max.." / "..mytarget.mp.percent.."%")	
+				scanner_tp = tostring(mytarget.tp)	
+				
+				scanner_level = mytarget.level
+				scanner_job = mytarget.job
+				scanner_cangather = tostring(mytarget.cangather)
+				scanner_gatherattemptsmax = mytarget.cangatherattemptsmax
+				scanner_gatherattempts = mytarget.gatherattempts
+				scanner_fateid = mytarget.fateid or 0
+				scanner_action = mytarget.action
+				scanner_lastaction = mytarget.lastaction
+				scanner_icon = mytarget.icon
+				scanner_grandcompany = mytarget.grandcompany
+				scanner_grandcompanyrank = mytarget.grandcompanyrank
+				scanner_claimedbyid = mytarget.claimedbyid
+				
+				if (ValidTable(mytarget.castinginfo)) then
+					local ci = mytarget.castinginfo
+					scanner_channelingid = ci.channelingid or 0
+					scanner_channeltime = ci.channeltime or 0
+					scanner_channeltargetid = ci.channeltargetid or 0
+					scanner_castingid = ci.castingid or 0
+					scanner_casttime = ci.casttime or 0
+					scanner_castingtargetcount = ci.castingtargetcount or 0
+				end
+			end
+		end
+	end
+	
+	if (not scanTargetFound) then
+		scanner_ptr = ""
+		scanner_id = ""
+		scanner_type = ""
+		scanner_chartype = ""
+		scanner_name = ""
+		scanner_ownerid = ""
+		scanner_targetid = ""
+		scanner_contentid = ""
+		scanner_uniqueid = ""
+		scanner_status = ""
+		scanner_targetable = ""
+		scanner_los = ""
+		scanner_aggro = ""
+		scanner_attackable = ""
+		scanner_aggressive = ""
+		scanner_friendly = ""
+		scanner_incombat = ""
+		scanner_distance = ""
+		scanner_distance2d = ""
+		scanner_pathdistance = ""
+		scanner_InCombatRange = ""
+		scanner_IsBehind = ""
+		scanner_IsFlanking = ""
+		scanner_IsFront = ""
+		scanner_EntityIsFront = ""
+		scanner_ScanForMobs = ""
+		scanner_ScanForObjects = ""
+		scanner_hitradius = ""
+		scanner_onmesh = ""
+		scanner_posX = ""
+		scanner_posY = ""
+		scanner_posZ = ""
+		scanner_posH = ""
+		scanner_hp = ""	
+		scanner_mp = ""	
+		scanner_tp = ""	
+		scanner_level = ""
+		scanner_job = ""
+		scanner_cangather = ""
+		scanner_gatherattemptsmax = ""
+		scanner_gatherattempts = ""
+		scanner_fateid = ""
+		scanner_action = ""
+		scanner_lastaction = ""
+		scanner_icon = ""
+		scanner_grandcompany = ""
+		scanner_grandcompanyrank = ""
+		scanner_claimedbyid = ""
+		scanner_channelingid = ""
+		scanner_channeltime = "" 
+		scanner_channeltargetid = ""
+		scanner_castingid = ""
+		scanner_casttime = ""
+		scanner_castingtargetcount = ""
 	end
 	
 	--ActionList		
@@ -941,7 +1173,7 @@ function Dev.UpdateWindow()
 		sbt5 = spell.t5	
 		mytarget = Player:GetTarget() 
 		
-		if (mytarget  ~= nil) then
+		if (mytarget ~= nil) then
 			sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id,spellTypes[sbSelHotbar]))
 		else
 			sbcancast = "No Target"
@@ -1262,7 +1494,7 @@ function Dev.UpdateWindow()
 			duty_11 = tostring(duty.u11)
 			duty_12 = tostring(duty.u12)
 			duty_13 = tostring(duty.u13)
-			duty_14 = tostring(duty.u14)
+			duty_partysize = tostring(duty.partysize)
 			duty_15 = tostring(duty.u15)
 			duty_16 = tostring(duty.u16)
 			duty_17 = tostring(duty.u17)
@@ -1302,7 +1534,7 @@ function Dev.UpdateWindow()
 		duty_11 = ""
 		duty_12 = ""
 		duty_13 = ""
-		duty_14 = ""
+		duty_partysize = ""
 		duty_15 = ""
 		duty_16 = ""
 		duty_17 = ""
@@ -1440,7 +1672,7 @@ function Dev.UpdateWindow()
 		ps_Miner = pl[16]
 		ps_Botanist = pl[17]
 		ps_Fisher = pl[18]
-		ps_Arcanist = pl[19]
+		ps_Arcanist = pl[26]
 	end
 	
 end
