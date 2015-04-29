@@ -1698,8 +1698,11 @@ ffxiv_aoe_data =
 		[3157] = true,
 		[3203] = true,
 		[1349] = true,
+		[1316] = true,
 	};
 	["circle"] = {
+		--Ring of Frost
+		[1316] = true,
 		--Katon
 		[3205] = true,
 		--Death Blossom
@@ -1787,7 +1790,7 @@ ffxiv_aoe_data =
 		--Hypha Whip
 		[396] = true,
 	},
-	["frontal"] = {
-	
+	["persistent"] = {
+		[1316] = 30,
 	}
 }

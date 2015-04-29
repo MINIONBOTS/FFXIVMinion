@@ -483,10 +483,11 @@ function e_avoid:execute()
 	
 	local rangeDist = nil
 	if (ml_global_information.AttackRange > 5) then
-		rangeDist = Distance3DT(ppos,epos)		
+		rangeDist = Distance3DT(ppos,epos)
 	else
-		rangeDist = target.hitradius + 1
+		rangeDist = target.hitradius + 3
 	end
+	local obst = nil
 	
 	local options1 = {
 		GetPosFromDistanceHeading(epos, rangeDist, mobRear),
@@ -514,8 +515,13 @@ function e_avoid:execute()
 	local maxTime = 0
 	if (target.castinginfo.channeltargetid == target.id) then
 		local optionTable = nil
-		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid]) then
+		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid] or ffxiv_aoe_data.circle[target.castinginfo.castingid]) then
 			optionTable = options3
+			if (ffxiv_aoe_data.persistent[target.castinginfo.channelingid]) then
+				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[target.castinginfo.channelingid] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (dodgeDist - 1.5) }
+			elseif (ffxiv_aoe_data.persistent[target.castinginfo.castingid]) then
+				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[target.castinginfo.castingid] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (dodgeDist - 1.5) }
+			end
 			if (isRanged) then
 				maxTime = 0
 			else
@@ -549,6 +555,7 @@ function e_avoid:execute()
 		
 		escapePoint = closest
 	else
+		center = ppos
 		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
 		if (isRanged) then
 			maxTime = 0
@@ -581,6 +588,10 @@ function e_avoid:execute()
 	if (ValidTable(escapePoint)) then
 		local moveDist = Distance3D(ppos.x,ppos.y,ppos.z,escapePoint.x,escapePoint.y,escapePoint.z)
 		if (moveDist > 1.5) then
+			if (obst) then
+				table.insert(ml_global_information.navObstacles,obst)
+				d("Adding nav obstacle.")
+			end
 			local newTask = ffxiv_task_avoid.Create()
 			newTask.pos = escapePoint
 			newTask.targetid = target.id
@@ -1073,10 +1084,14 @@ function c_walktopos:evaluate()
 		
 		-- if we're doing map navigation then we have extended the moveto pos beyond the gate to 
 		-- make sure the bot runs through it...use the gatePos instead of the original position
-		if(ml_task_hub:CurrentTask().gatePos) then
+		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
+			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
+			if (p and dist < 5) then
+				gotoPos = p
+			end
 		end
 		
 		--[[
@@ -1149,8 +1164,8 @@ function c_walktopos:evaluate()
         --d("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
 		
         if (distance > ml_task_hub:CurrentTask().range) then
-            c_walktopos.pos = gotoPos
-            return true
+			c_walktopos.pos = gotoPos
+			return true
         end
     end
     return false
@@ -1419,6 +1434,20 @@ function c_usenavinteraction:evaluate()
 				end
 			end,
 		},
+		[146] = { name = "Ifrit Cave",
+			test = function()
+				if (Distance3D(myPos.x,myPos.y,myPos.z,-60.55,-25.107,556.96) < 40) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -60.55, y = -25.107, z = 556.96}
+				newTask.uniqueid = 1004609
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end,
+		},
 	}
 	
 	if (requiresTransport[Player.localmapid]) then
@@ -1662,15 +1691,17 @@ function c_sprint:evaluate()
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill and skill.isready) then
-            if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseSprint == "1") then
-                local myPos = Player.pos
-                local gotoPos = ml_task_hub:CurrentTask().pos
-                local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-                
-                if (distance > tonumber(gSprintDist)) then		
-                    return true
-                end
-            end
+			if (gUseSprint == "1" or IsCityMap(Player.localmapid)) then
+				if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
+					local myPos = Player.pos
+					local gotoPos = ml_task_hub:CurrentTask().pos
+					local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+					
+					if (distance > tonumber(gSprintDist)) then		
+						return true
+					end
+				end
+			end
         end
     end
     
@@ -1809,6 +1840,13 @@ function c_rest:evaluate()
 		if (gRestInFates == "0") then
 			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
 				--d("Cannot rest due, no resting in fates option turned on.")
+				return false
+			end
+		end
+		
+		if  (ml_task_hub:ThisTask().name == "QUEST_DUTYKILL") then
+			local noRest = ml_task_hub:ThisTask().params["norest"]
+			if (noRest) then
 				return false
 			end
 		end
@@ -2070,7 +2108,7 @@ function c_stealth:evaluate()
 		if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 			local dest = ml_task_hub:CurrentTask().pos
 			local ppos = shallowcopy(Player.pos)
-			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 60) then
+			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
 				if (HasBuff(Player.id, 47)) then
 					return true
 				else
@@ -2433,7 +2471,7 @@ function c_autoequip:evaluate()
 	}
 	
 	for slot=0,13 do
-		if (ffxiv_task_quest.lockedSlots[slot] == nil and not IsArmoryFull(slot)) then			
+		if (ffxiv_task_quest.lockedSlots[slot] == nil and not IsArmoryFull(slot)) then		
 		
 			local item = nil
 			local equippedItemDetails = nil
@@ -2461,7 +2499,6 @@ function c_autoequip:evaluate()
 			
 			if (item and equippedItemDetails and not ffxiv_task_quest.lockedSlots[slot]) then
 				--If there is an item equipped, use it's details as a base comparison factor.
-
 				local statTotals = 0
 				local possibleUpgrades = {}
 				if (slot == 0) then
@@ -2671,6 +2708,8 @@ function c_autoequip:evaluate()
 								defaultUI = defaultArmorUI[1][Player.job]
 							elseif (Player.job == 17) then
 								defaultUI = defaultArmorUI[1][Player.job]
+							else
+								defaultUI = defaultArmorUI[1][-1]
 							end
 						end
 						local possibleUpgrades = FindItemsBySlot(defaultSlot,defaultUI)	
@@ -2878,7 +2917,7 @@ function c_selectconvindex:evaluate()
 end
 function e_selectconvindex:execute()
 	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().conversationIndex))
-	ml_task_hub:CurrentTask():SetDelay(1500)
+	ml_task_hub:CurrentTask():SetDelay(1000)
 end
 
 c_returntomap = inheritsFrom( ml_cause )
@@ -2947,13 +2986,28 @@ end
 
 c_falling = inheritsFrom( ml_cause )
 e_falling = inheritsFrom( ml_effect )
+c_falling.jumpKillTimer = 0
+c_falling.lastY = 0
 function c_falling:evaluate()
 	if (Player:IsJumping()) then
-		return true
+		if (c_falling.jumpKillTimer == 0) then
+			c_falling.jumpKillTimer = Now() + 1000
+			c_falling.lastY = Player.pos.y
+		elseif (Now() > c_falling.jumpKillTimer) then
+			if (Player.pos.y < (c_falling.lastY - 3)) then
+				return true
+			end
+		end
+	else
+		if (c_falling.jumpKillTimer ~= 0) then
+			c_falling.jumpKillTimer = 0
+			c_falling.lastY = 0
+		end
 	end
 	
     return false
 end
 function e_falling:execute()
 	Player:Stop()
+	c_falling.jumpKillTimer = 0
 end

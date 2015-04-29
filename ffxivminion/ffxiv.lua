@@ -29,6 +29,8 @@ ml_global_information.itemIDsToEquip = {}
 ml_global_information.idlePulseCount = 0
 ml_global_information.autoStartQueued = false
 ml_global_information.blacklistedAetherytes = {}
+ml_global_information.navObstacles = {}
+ml_global_information.navObstaclesTimer = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -100,6 +102,38 @@ function ml_global_information.OnUpdate( event, tickcount )
 	if (ml_mesh_mgr and not IsLoading()) then
 		ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	end
+	
+	if (ml_global_information.navObstacles and Now() > ml_global_information.navObstaclesTimer) then
+		ml_global_information.navObstaclesTimer = Now() + 1000
+		
+		local needsClearing = false
+		local hasNew = false
+		--Check for expired obstacles and remove them from viability.
+		local obstacles = ml_global_information.navObstacles
+		for i,obstacle in pairs(obstacles) do
+			if (Now() > obstacle.timer) then
+				--d("Nav obstacle " .. i .. " was removed because its timer expired.")
+				obstacles[i] = nil
+				needsClearing = true
+			else
+				if (obstacle.isnew) then
+					--d("Found a new obstacle.")
+					hasNew = true
+					obstacle.isnew = false
+				end
+			end
+		end
+		
+		if (needsClearing) then
+			--d("Clearing nav obstacles.")
+			NavigationManager:ClearNavObstacles()
+		end
+		
+		if (needsClearing or hasNew) then
+			--d("Adding nav obstacles.")
+			NavigationManager:AddNavObstacles(obstacles)
+		end
+	end 
 	
 	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
     if (TimeSince(ml_global_information.lastrun) > pulseTime) then
@@ -503,6 +537,9 @@ function ffxivminion.HandleInit()
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
+	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
+		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
+	end
 	
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
@@ -1178,9 +1215,11 @@ function ffxivminion.UpdateFoodOptions()
 	
 	if (ffxivminion.foodsHQ[gFoodHQ] == nil) then
 		gFoodHQ = "None"
+		SafeSetVar("gFoodHQ",gFoodHQ)
 	end
 	if (ffxivminion.foods[gFood] == nil) then
 		gFood = "None"
+		SafeSetVar("gFood",gFood)
 	end
 	
 	GUI_RefreshWindow(ffxivminion.Windows.Main.Name)
@@ -1195,6 +1234,8 @@ function ml_global_information.Stop()
     if (Player:IsMoving()) then
         Player:Stop()
     end
+	GameHacks:SkipCutscene(gSkipCutscene == "1")
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end
 
 function ffxivminion.ToggleAdvancedSettings()
