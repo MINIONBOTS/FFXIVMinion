@@ -159,7 +159,7 @@ function c_quest_addhuntlogtask:evaluate()
 	c_quest_addhuntlogtask.validIndexes = {}
 	c_quest_addhuntlogtask.possibleTargets = {}
 	
-	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting()) then
+	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting() or not HuntingLogsUnlocked()) then
 		return false
 	end
 
@@ -583,7 +583,7 @@ function ffxiv_task_huntlog.GetValidIndexes()
 				gcrank = data.currentrank
 			end
 			if (not data.iscompleted) then
-				if (ffxiv_task_huntlog.IsIndexCompatible(data.currentrank,index)) then
+				if (ffxiv_task_huntlog.IsGCIndexCompatible(data.currentrank,index)) then
 					safeIndexes.gc[index] = true
 				end
 			end
@@ -781,6 +781,22 @@ function ffxiv_task_huntlog.GetBestTarget(list)
 	return nil
 end
 
+function ffxiv_task_huntlog.IsGCIndexCompatible(rank,index)
+	local rank = tonumber(rank) or 0
+	local index = tonumber(index) or 0
+	local indexLevel = ((rank + 2) * 10) + index
+
+	if (((rank + 2) * 10) > Player.level) then
+		return false
+	end
+	
+	if (indexLevel <= (Player.level) or Player.level == 50) then
+		return true
+	end
+	
+	return false
+end
+
 function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 	local rank = tonumber(rank) or 0
 	local index = tonumber(index) or 0
@@ -790,7 +806,7 @@ function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 		return false
 	end
 	
-	if (indexLevel <= (Player.level)) then
+	if (indexLevel <= (Player.level + 1)) then
 		return true
 	end
 	
