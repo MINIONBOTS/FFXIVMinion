@@ -230,7 +230,8 @@ SkillMgr.Variables = {
 	
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
-	SKM_GAttempts = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
+	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
+	SKM_GAttemptsMax = { default = 0, cast = "number", profile = "gatherattemptsmax", section = "gathering"},
 	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
 	SKM_UNSP = { default = "0", cast = "string", profile = "isunspoiled", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
@@ -536,7 +537,8 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttempts"),"SKM_GAttempts",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMax"),"SKM_GAttemptsMax",GetString("skillDetails"));
     GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_ITEM",GetString("skillDetails"));
 	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("skmUnspoiled"),"SKM_UNSP",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
@@ -1129,11 +1131,19 @@ function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
+			local clientSkill = GetSkillByID(skill.id)
+			local skillFound = ValidTable(clientSkill)
+			local skillName = (clientSkill and clientSkill.name) or skill.name
+			local viewString = ""
 			if (not IsNullString(skill.alias)) then
-				GUI_NewButton(SkillMgr.mainwindow.name, tostring(prio)..": "..skill.alias.."["..tostring(skill.id).."]", "SKMEditSkill"..tostring(prio),"ProfileSkills")
+				viewString = tostring(prio)..": "..skill.alias.."["..tostring(skill.id).."]"
 			else
-				GUI_NewButton(SkillMgr.mainwindow.name, tostring(prio)..": "..skill.name.."["..tostring(skill.id).."]", "SKMEditSkill"..tostring(prio),"ProfileSkills")
+				viewString = tostring(prio)..": "..skillName.."["..tostring(skill.id).."]"
 			end
+			if (not skillFound) then
+				viewString = "***"..viewString.."***"
+			end
+			GUI_NewButton(SkillMgr.mainwindow.name, viewString, "SKMEditSkill"..tostring(prio),"ProfileSkills")
 		end
 		GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     end
@@ -1687,6 +1697,7 @@ function SkillMgr.Gather(item)
 					if ((tonumber(skill.gpmin) > 0 and Player.gp.current > tonumber(skill.gpmin)) or
 						(tonumber(skill.gpmax) > 0 and Player.gp.current < tonumber(skill.gpmax)) or
 						(tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) or
+						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax)) or
 						(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)) or
 						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
 						then castable = false 
@@ -1713,13 +1724,6 @@ function SkillMgr.Gather(item)
 					
 					if (SkillMgr.prevSkillList[skillid]) then
 						castable = false
-					end
-					
-					if (skillid == 215 or skillid == 232) then
-						local itemsUncovered = ml_task_hub:CurrentTask().itemsUncovered
-						if (IsUnspoiledNode(node.contentid) and not itemsUncovered) then
-							castable = false
-						end
 					end
 					
 					if ( castable ) then
@@ -2754,10 +2758,17 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		local plist = EntityList("myparty")
-		if (( skill.onlysolo == "1" and TableSize(plist) > 0 ) or
-			( skill.onlyparty == "1" and TableSize(plist) == 0 ))
-		then
+		if ( skill.onlysolo == "1" and TableSize(plist) > 0 ) then
 			return true
+		elseif ( skill.onlyparty == "1" ) then
+			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():ParentTask()) then
+				if (ml_task_hub:CurrentTask():ParentTask().name == "QUEST_DUTYKILL") then
+					return false
+				end				
+			end
+			if (TableSize(plist) == 0) then
+				return true
+			end
 		end
 		return false
 	end
