@@ -3431,30 +3431,14 @@ function FindItemsBySlot(slot,ui)
 	return items
 end
 
-function EquipItem(itemid, itemslot)
-	local itemtype = tonumber(itemslot)
-	local itemid = tonumber(itemid)
-	
-	local item = Inventory:Get(itemid)
-	if (item and item.canequip) then
-		item:Move(1000,itemslot)
-	end
-end
-
-function UnequipItem(itemid)
-	local itemid = tonumber(itemid)
-	
-	local item = GetEquippedItem(itemid)
-	if (item) then
-		local itemData = GetItemData(item.id)
-		if (itemData) then
-			local armorySlot = GetArmorySlotForItem(itemData.slot)
-			if (armorySlot) then
-				local freeSlot = GetFirstFreeArmorySlot(armorySlot)
-				if (freeSlot) then
-					item:Move(armorySlot,freeSlot)
-				end
-			end
+function EquipItem(itemID, itemtype)
+	local itemtype = itemtype or 0
+	local item = Inventory:Get(itemID)
+	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
+		if (itemtype ~= 0) then
+			item:Move(1000,itemtype)
+		else
+			item:Move(1000,GetEquipSlotForItem(item))
 		end
 	end
 end
@@ -3776,48 +3760,25 @@ function GetUnequippedItem(itemid)
 	return nil
 end
 
-function GetEquipSlotForItem(slot)
-	local slot = tonumber(slot)
-	local equipSlot = {
-		[1] = 0,
-		[2] = 1,
-		[3] = 2,
-		[4] = 3,
-		[5] = 4,
-		[6] = 5,
-		[7] = 6,
-		[8] = 7,
-		[9] = 8,
-		[10] = 9,
-		[11] = 10,
-		[12] = 11,
-		[13] = 0,
-		[17] = 13,
+function GetEquipSlotForItem(item)
+	local equipSlot = 
+	{
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
+		[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
 	}
 	
-	return equipSlot[slot]
-end
-
-function GetArmorySlotForItem(slot)
-	local slot = tonumber(slot)
-	local armorySlot = {
-		[1] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
-		[13] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
-		[2] = FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND,
-		[3] = FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD,
-		[4] = FFXIV.INVENTORYTYPE.INV_ARMORY_BODY,
-		[5] = FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS,
-		[6] = FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST,
-		[7] = FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS,
-		[8] = FFXIV.INVENTORYTYPE.INV_ARMORY_FEET,
-		[9] = FFXIV.INVENTORYTYPE.INV_ARMORY_NECK,
-		[10] = FFXIV.INVENTORYTYPE.INV_ARMORY_EARS,
-		[11] = FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST,
-		[12] = FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS,
-		[17] = FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL,
-	}
-	
-	return armorySlot[slot]
+	return equipSlot[item.type]
 end
 
 function CountItemsByID(id, includeHQ)
