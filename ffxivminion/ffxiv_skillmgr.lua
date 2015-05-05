@@ -742,6 +742,11 @@ function SkillMgr.CheckProfileValidity()
 	local requiredUpdate = false
 	if (ValidTable(profile)) then
 		for prio,skill in pairsByKeys(profile) do
+			if (tonumber(skill.prio) ~= tonumber(prio)) then
+				skill.prio = tonumber(prio)
+				requiredUpdate = true
+			end
+			
 			--First pass, make sure the profile has all the required conditionals.
 			if (job >= 8 and job <= 15) then
 				for k,v in pairs(SkillMgr.Variables) do
@@ -839,7 +844,6 @@ function SkillMgr.ButtonHandler(event, Button)
 				GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
 			end
 		end
-       
 
 		if (string.find(Button,"SMESkillUPEvent") ~= nil) then
 			if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
@@ -855,7 +859,6 @@ function SkillMgr.ButtonHandler(event, Button)
 				end
 			end
 		end
-        
 	
 		if (string.find(Button,"SMESkillDOWNEvent") ~= nil) then
 			if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
@@ -1268,7 +1271,9 @@ function SkillMgr.ToggleMenu()
         GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)	
 		GUI_WindowVisible(SkillMgr.confirmwindow.name,false)
         SkillMgr.visible = false
-    else	 
+    else
+		SkillMgr.RefreshSkillList()
+		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
         GUI_WindowVisible(SkillMgr.skillbook.name,true)
         GUI_WindowVisible(SkillMgr.mainwindow.name,true)	
         SkillMgr.visible = true
@@ -2115,7 +2120,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		
 		local targetTable = SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		if (not targetTable) then
-			SkillMgr.DebugOutput( prio, "Target function returned no valid target.")
+			SkillMgr.DebugOutput( prio, "Target function returned no valid target. : "..tostring(prio))
 			return 0
 		end
 		
