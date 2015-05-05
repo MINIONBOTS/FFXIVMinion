@@ -63,7 +63,7 @@ c_followleaderduty.rrange = 8
 c_followleaderduty.leader = nil
 c_followleaderduty.leaderpos = nil
 function c_followleaderduty:evaluate()
-    if (IsDutyLeader() or not InInstance() or IsLoading() or ml_task_hub:CurrentTask().suppressFollow) then
+    if (IsDutyLeader() or not OnDutyMap() or IsLoading() or ml_task_hub:CurrentTask().suppressFollow) then
         return false
     end
 	
@@ -120,7 +120,7 @@ c_assistleaderduty= inheritsFrom( ml_cause )
 e_assistleaderduty = inheritsFrom( ml_effect )
 c_assistleaderduty.targetid = nil
 function c_assistleaderduty:evaluate()
-	if (IsDutyLeader() or not InInstance() or IsLoading() or ml_task_hub:CurrentTask().suppressAssist or ActionList:IsCasting()) then
+	if (IsDutyLeader() or not OnDutyMap() or IsLoading() or ml_task_hub:CurrentTask().suppressAssist or ActionList:IsCasting()) then
         return false
     end
     
@@ -206,7 +206,7 @@ end
 c_leaveduty = inheritsFrom( ml_cause )
 e_leaveduty = inheritsFrom( ml_effect )
 function c_leaveduty:evaluate()
-	if (InInstance() and not PartyInCombat() and not Inventory:HasLoot() and Now() > ml_task_hub:ThisTask().leaveTimer) then
+	if (OnDutyMap() and not PartyInCombat() and not Inventory:HasLoot() and Now() > ml_task_hub:ThisTask().leaveTimer) then
 		if (DutyLeaderLeft() or
 			Quest:IsQuestRewardDialogOpen() or
 			(IsDutyLeader() and (ml_task_hub:ThisTask().state == "DUTY_EXIT"))) then
@@ -243,7 +243,7 @@ function c_changeleader:evaluate()
 		return false
 	end
 	
-	if (InInstance()) then
+	if (OnDutyMap()) then
 		if (ffxiv_task_duty.leader == "") then
 			e_changeleader.name = Player.name
 			return true
@@ -263,9 +263,9 @@ end
 function e_changeleader:execute()
 	ffxiv_task_duty.leader = e_changeleader.name
 	if (ffxiv_task_duty.leader == Player.name) then
-		if (not InInstance()) then
+		if (not OnDutyMap()) then
 			ml_task_hub:ThisTask().state = ""
-		elseif (InInstance()) then
+		elseif (OnDutyMap()) then
 			ml_task_hub:ThisTask().state = "DUTY_ENTER"
 		end
 	
@@ -309,7 +309,7 @@ end
 c_dutyidle = inheritsFrom( ml_cause )
 e_dutyidle = inheritsFrom( ml_effect )
 function c_dutyidle:evaluate()
-	return ((not InInstance() and (
+	return ((not OnDutyMap() and (
 	ml_global_information.idlePulseCount > 4000 or
 	ml_task_hub:ThisTask().state == "DUTY_NEXTENCOUNTER" or 
 	ml_task_hub:ThisTask().state == "DUTY_DOENCOUNTER")) or
@@ -327,7 +327,7 @@ function ffxiv_task_duty:Process()
 		return false
 	end
 	
-	if (IsDutyLeader() and InInstance() and not Inventory:HasLoot()) then
+	if (IsDutyLeader() and OnDutyMap() and not Inventory:HasLoot()) then
 		if (self.state == "DUTY_ENTER") then
 			local encounters = ffxiv_task_duty.dutyInfo["Encounters"]
 			if (ValidTable(encounters)) then
@@ -739,7 +739,7 @@ function e_deadduty:execute()
 			local opos = e_deadduty.originalPos
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,opos.x,opos.y,opos.z)
 			--d("dead, stay close")
-			if (dist > 3 and InInstance()) then
+			if (dist > 3 and OnDutyMap()) then
 				d("Teleporting back to original location due to death. Current MapID:"..tostring(Player.localmapid))
 				GameHacks:TeleportToXYZ(opos.x, opos.y, opos.z)
 				Player:SetFacingSynced(Player.pos.h)

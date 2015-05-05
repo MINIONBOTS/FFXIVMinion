@@ -1,3 +1,4 @@
+--[[
 function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
 	local el = nil
@@ -292,3 +293,4 @@ function GetDutyLeader()
 	
 	return nil
 end
+--]]
