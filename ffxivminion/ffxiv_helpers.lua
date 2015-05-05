@@ -3242,6 +3242,38 @@ function GetPartySize()
 	return count
 end
 
+function GetDutyFromID(dutyID)
+	local dutyID = tonumber(dutyID)
+	local dutyList = Duty:GetDutyList()
+	if (dutyList) then
+		for _, duty in pairs(dutyList) do
+			if (duty.id == dutyID) then
+				return duty
+			end
+		end
+	end
+	
+	return ""
+end
+
+function HasDutyUnlocked(dutyID)
+	local dutyID = tonumber(dutyID)
+	local dutyList = Duty:GetDutyList()
+	if (not dutyList) then
+		SendTextCommand("/dutyfinder")
+	end
+	
+	if (dutyList) then
+		for _, duty in pairs(dutyList) do
+			if (duty.id == dutyID) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
 function HuntingLogsUnlocked()	
 	local requiredQuests = {
 		[1] = 253,
