@@ -1,6 +1,6 @@
 imp = {}
 imp.filesPath = GetStartupPath()..[[\LuaMods\ffxivminion\ImportManagerFiles\]]
-imp.globalSettings = imp.filesPath.."ffxiv_global_settings.lua"
+imp.globalSettings = imp.filesPath.."ffxiv_global_save.lua"
 imp.markerPath = ml_mesh_mgr.navmeshfilepath
 imp.winName = GetString("importExport")
 imp.lastTick = 0
@@ -94,7 +94,7 @@ function imp.GUIVarUpdate(Event, NewVals, OldVals)
 			if not file_exists(imp.globalSettings) then
 				persistence.store(imp.globalSettings,imp.structure)
 			end
-			local importSettings = persistence.load(imp.globalSettings)
+			local importSettings,e = persistence.load(imp.globalSettings)
 			
 			local modifiedModule = ""
 			for _,moduleName in pairs(imp.modules) do
