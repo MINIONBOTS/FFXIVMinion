@@ -3105,7 +3105,7 @@ function SkillMgr.AddDefaultConditions()
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
 			(thpcb > 0 and thpcb < target.hp.current) or
-			(thpadv > 0 and ((Player.hp.max * thpadv) > target.hp.max))) 
+			(thpadv > 0 and (((Player.hp.max * thpadv) > target.hp.max) and target.uniqueid ~= 541))) 
 		then 
 			return true 
 		end

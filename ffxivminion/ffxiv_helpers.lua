@@ -360,11 +360,11 @@ function GetBestTankHealTarget( range )
 	local lowest = nil
 	local lowestHP = 101
 
-    --local el = EntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	local el = EntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
+    local el = EntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	--local el = EntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
-			if (IsTank(e.job) and e.targetable and e.hp.percent < lowestHP ) then
+			if (IsTank(e.job) and e.hp.percent < lowestHP ) then
 				lowest = e
 				lowestHP = e.hp.percent
 			end
@@ -385,8 +385,8 @@ function GetBestPartyHealTarget( npc, range )
 	npc = npc or false
 	range = range or ml_global_information.AttackRange
 	
-	--local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,maxdistance="..tostring(range))
+	local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	--local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
         local i,e = next(el)
 		if (i and e) then
@@ -397,8 +397,8 @@ function GetBestPartyHealTarget( npc, range )
     end
 	
 	if (npc) then
-		--el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
-		el = EntityList("lowesthealth,alive,friendly,myparty,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
+		--el = EntityList("lowesthealth,alive,friendly,myparty,maxdistance="..tostring(range))
 		if ( el ) then
 			local i,e = next(el)
 			if (i and e) then
@@ -500,11 +500,11 @@ function GetLowestHPParty( skill )
 		return false
 	else
 		if (not npc) then
-			--el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-			el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
+			el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+			--el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
 		else
-			--el = EntityList("myparty,alive,targetable,maxdistance="..tostring(range))
-			el = EntityList("myparty,alive,maxdistance="..tostring(range))
+			el = EntityList("myparty,alive,targetable,maxdistance="..tostring(range))
+			--el = EntityList("myparty,alive,maxdistance="..tostring(range))
 		end
 		
 		if ( ValidTable(el) ) then
@@ -555,11 +555,11 @@ function GetLowestMPParty( range, role )
 		end
 	end
 	
-    --local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	local el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+	--local el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
-			if (mpUsers[e.job] and e.mp.percent < lowestMP and e.targetable) then
+			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
 				lowest = e
 				lowestMP = e.mp.percent
 			end
@@ -605,11 +605,11 @@ function GetLowestTPParty( range, role )
 		end
 	end
 	
-    --local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+	--local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
         for i,e in pairs(el) do
-			if (e.job and e.targetable and tpUsers[e.job]) then
+			if (e.job and tpUsers[e.job]) then
 				if (e.tp < lowestTP) then
 					lowest = e
 					lowestTP = e.tp
@@ -631,8 +631,8 @@ function GetBestHealTarget( npc, range )
 	range = range or ml_global_information.AttackRange
 	
 	local el = nil
-	--el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))+
-	el = EntityList("lowesthealth,alive,friendly,chartype=4,maxdistance="..tostring(range))
+	el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
+	--el = EntityList("lowesthealth,alive,friendly,chartype=4,maxdistance="..tostring(range))
 	if ( el ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
@@ -643,8 +643,8 @@ function GetBestHealTarget( npc, range )
 	end
 	
 	if (npc) then
-		--el = EntityList("lowesthealth,alive,friendly,targetable,maxdistance="..tostring(range))
-		el = EntityList("lowesthealth,alive,friendly,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,alive,friendly,targetable,maxdistance="..tostring(range))
+		--el = EntityList("lowesthealth,alive,friendly,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
@@ -724,18 +724,18 @@ end
 
 function GetClosestHealTarget()
     local pID = Player.id
-    --local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-	local el = EntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( el ) then
+    local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	--local el = EntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+    if ( ValidTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
         end
     end
     
-    --local el = EntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-	local el = EntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( el ) then
+    local el = EntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	--local el = EntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+    if ( ValidTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
@@ -752,9 +752,9 @@ function GetBestRevive( party, role)
 	
 	local el = nil
 	if (party) then
-		el = EntityList("myparty,dead,maxdistance="..tostring(range))
+		el = EntityList("myparty,targtable,dead,maxdistance="..tostring(range))
 	else
-		el = EntityList("dead,maxdistance="..tostring(range))
+		el = EntityList("dead,targetable,maxdistance="..tostring(range))
 	end 
 	
 	-- Filter out the inappropriate roles.
@@ -987,13 +987,13 @@ function GetDutyTarget( maxHP )
 			for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
 				local el = nil
 				if Player.incombat then
-					el = EntityList("lowesthealth,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+					el = EntityList("lowesthealth,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 				else
-					el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+					el = EntityList("nearest,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
 				end
 				if (ValidTable(el)) then
 					local id, target = next(el)
-					if (target.targetable) then
+					if (id and target) then
 						if (not maxHP or target.hp.percent > maxHP) then
 							return target
 						end
@@ -1007,7 +1007,7 @@ function GetDutyTarget( maxHP )
 	local bestAOE = nil
 	--First, try to get the best AOE target if we are killing the mobs.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,los,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("alive,los,attackable,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			
 			for id, target in pairs(el) do
@@ -1026,7 +1026,7 @@ function GetDutyTarget( maxHP )
 	
 	--Second, try to get the lowesthealth, if we are killing the mobs.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,los,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("lowesthealth,alive,los,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			local id, target = next(el)
 			if (target.attackable) then
@@ -1041,7 +1041,7 @@ function GetDutyTarget( maxHP )
 	bestAOE = nil
 	--Third, try to get the best AOE target if we are killing the mobs, los ignored.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("alive,attackable,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
 				if (target.hp.current > highestHP and target.attackable) then
@@ -1059,7 +1059,7 @@ function GetDutyTarget( maxHP )
 	
 	--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
 	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+		el = EntityList("lowesthealth,alive,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 		if (ValidTable(el)) then
 			local id, target = next(el)
 			if (target.attackable) then
@@ -1072,7 +1072,7 @@ function GetDutyTarget( maxHP )
 	
 	--Fifth, if we are only pulling, get one with no target.
 	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
-		el = EntityList("nearest,alive,targeting=0,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+		el = EntityList("nearest,alive,attackable,targeting=0,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
 				if (target.attackable and target.targetid == 0) then
@@ -1085,7 +1085,7 @@ function GetDutyTarget( maxHP )
 	end
 	
 	--Lastly, fall back and just get what we can.
-	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	el = EntityList("alive,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
 	if (ValidTable(el)) then
 		for id, target in pairs(el) do
 			if (target.attackable) then
@@ -2389,7 +2389,7 @@ function Mount(id)
 			end
 		end
 	end
-	
+
 	if (mountID ~= 0) then
 		actions = ActionList("type=13")
 		for k,v in pairsByKeys(actions) do
@@ -2774,11 +2774,11 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 		maxdistance = 30
 	end
 	
-	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance)..",targetable")
-	local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
+	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
+	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do	
-			if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
+			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
 			end						
 		end
@@ -2790,17 +2790,17 @@ end
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
-	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance)..",targetable")
-	local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
+	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
+	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do	
-			if ( (hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or not MissingBuffs(e,hasnot)) ) then
+			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
 			end						
 		end
 	end
 
-	if ( (hasbuffs=="" or HasBuffs(Player,hasbuffs)) and (hasnot=="" or not MissingBuffs(Player,hasnot)) ) then
+	if ((hasbuffs=="" or HasBuffs(Player,hasbuffs)) and (hasnot=="" or MissingBuffs(Player,hasnot))) then
         return Player
     end
 	

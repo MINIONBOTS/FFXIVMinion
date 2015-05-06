@@ -674,6 +674,10 @@ function ffxivminion.HandleInit()
         GameHacks:SetPermaSwiftCast(true)
     end
 	
+	NavigationManager:SetAreaCost(1,1)
+	NavigationManager:SetAreaCost(2,5)
+	NavigationManager:SetAreaCost(3,200)
+	
 	ffxivminion.UpdateFoodOptions()
 end
 
@@ -1358,6 +1362,11 @@ function ffxivminion.NodeDistance(self, id)
 			if ((not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) or
 				GilCount() < 100) 
 			then
+				cost = 999
+			end
+		end
+		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].b ~= nil) then
+			if (GilCount() < 120) then
 				cost = 999
 			end
 		end
