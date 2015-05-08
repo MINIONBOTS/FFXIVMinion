@@ -674,9 +674,7 @@ function ffxivminion.HandleInit()
         GameHacks:SetPermaSwiftCast(true)
     end
 	
-	NavigationManager:SetAreaCost(1,1)
-	NavigationManager:SetAreaCost(2,5)
-	NavigationManager:SetAreaCost(3,200)
+	NavigationManager:SetAreaCost(3,5)
 	
 	ffxivminion.UpdateFoodOptions()
 end
