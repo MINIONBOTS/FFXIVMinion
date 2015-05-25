@@ -36,6 +36,7 @@ function c_dutyavoid:evaluate()
     return false
 end
 function e_dutyavoid:execute() 
+	d("Kicking off duty avoid.")
 	local avoidpos = ml_task_hub:ThisTask().encounterData["avoidpos"]
 	local avoidtime = ml_task_hub:ThisTask().encounterData["avoidTime"] or c_dutyavoid.avoidTime
 	
@@ -84,14 +85,32 @@ function ffxiv_duty_kill_task.Create()
 	newinst.immuneMax = 80
 	newinst.currentPos = nil
 	
+	--Reset the tempvars.
+	ffxiv_task_duty.tempvars = {}
+	
     return newinst
 end
 
 function ffxiv_duty_kill_task:Process()	
+	local tempvars = ffxiv_task_duty.tempvars
+	
+	if (tempvars["reactionprocesstime"]) then
+		if (Now() < tempvars["reactionprocesstime"]) then
+			d("Waiting on reaction processing.")
+			return false
+		else
+			d("Found a process reaction time, but the time has elapsed.")
+		end
+	end
 	
 	if (not self.hasSynced) then
 		Player:SetFacingSynced(Player.pos.h)
 		self.hasSynced = true
+	end
+	
+	if (self.encounterData["immuneMax"]) then
+		local immunity = tonumber(self.encounterData["immuneMax"]) or 80
+		self.immuneMax = immunity
 	end
 	
 	local killPercent = nil
@@ -159,25 +178,37 @@ function ffxiv_duty_kill_task:Process()
 			local reactionTable = self.encounterData.reaction
 			local reaction = reactionTable[reactionIndex]
 			
+			local targetAdjustments = self.encounterData.telehackAdjustments or {}
+			
 			local reactionType = reaction.type
 			if (reactionType == "gotoPos") then
-				local myPos = shallowcopy(Player.pos)
+				local myPos = Player.pos
 				local gotoPos = reaction.pos
 				if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
 					GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
 					Player:SetFacingSynced(gotoPos.h)
 				end
 				usedReaction = true
+			elseif (reactionType == "avoidSpell") then
+				local myPos = Player.pos
+				local gotoPos = reaction.pos
+				if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+					GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
+					Player:SetFacingSynced(gotoPos.h)
+					local delayTime = reaction.waitTime or 4000
+					tempvars["reactionprocesstime"] = Now() + delayTime
+				end
+				usedReaction = true
 			elseif (reactionType == "gotoTarget") then
 				local reactionTarget = reaction.id or 0
 				if (reactionTarget and reactionTarget ~= 0) then
 					local el = EntityList("nearest,contentid="..tostring(reactionTarget))
-					if (el) then
+					if (ValidTable(el)) then
 						local id, target = next(el)
 						if (target) then
 							local myPos = shallowcopy(Player.pos)
 							local gotoPos = target.pos
-							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
+							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 3) then
 								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
 								Player:SetFacingSynced(gotoPos.h)
 							end
@@ -188,38 +219,268 @@ function ffxiv_duty_kill_task:Process()
 			elseif (reactionType == "interactTarget") then
 				local reactionTarget = reaction.id or 0
 				if (reactionTarget and reactionTarget ~= 0) then
+					if (not tempvars["interactprocesslist"]) then
+						tempvars["interactprocesslist"] = {}
+					end
+					local processlist = tempvars["interactprocesslist"]
+					
+					local inprocessid = 0
+					local blockedids = {}
+					local availableids = {}
+					local processlist = tempvars["interactprocesslist"]
+					if (ValidTable(processlist)) then
+						for id,interact in pairs(processlist) do
+							if (interact.blocked ~= 0 and Now() < interact.blocked) then
+								blockedids[id] = true
+								d("[interactTarget]: ID : "..tostring(id).." is temporarily blocked due to cooldown usage.")
+							end
+							if (interact.inprocess) then
+								inprocessid = id
+								d("[interactTarget]: ID : "..tostring(id).." is in process currently so it will be used.")
+							end
+						end
+					end
+					
+					local interactid = nil
+					if (inprocessid == 0) then
+						local el = EntityList("targetable,contentid="..tostring(reactionTarget))
+						if (ValidTable(el)) then
+							local closest = nil
+							local closestDistance = 999
+							for id,target in pairs(el) do
+								local skip = false
+								if (ValidTable(blockedids) and blockedids[id]) then
+									skip = true
+								end
+								if (not skip) then
+									if (not closest or (closest and target.distance < closestDistance)) then
+										closest = target.id
+									end
+								end
+							end
+							interactid = closest
+						end
+					else
+						interactid = inprocessid
+					end
+					
+					if (interactid) then
+						local target = EntityList:Get(interactid)
+						if (ValidTable(target)) then
+							local myPos = Player.pos
+							local tpos = target.pos
+							local dist = Distance3D(myPos.x,myPos.y,myPos.z,tpos.x,tpos.y,tpos.z)
+							
+							if (processlist[target.id] and Now() < processlist[target.id].blocked) then
+								d("[interactTarget]: ID : "..tostring(target.id).." is currently blocked, should not have reached this point.")
+								return
+							end
+							
+							if (dist > 3 and not ActionList:IsCasting() and not IsPositionLocked()) then
+								GameHacks:TeleportToXYZ(tpos.x, tpos.y, tpos.z)
+								if (dist > 50) then
+									Player:SetFacingSynced(tpos.x, tpos.y, tpos.z)
+								end
+								Player:Jump()
+							end
+							
+							Player:SetFacing(tpos.x,tpos.y,tpos.z)
+							Player:SetTarget(target.id)
+							Player:Interact(target.id)
+							local cooldownTime = tonumber(reaction.cooldownTime) or 1000
+							processlist[target.id] = {inprocess = false, blocked = (Now() + cooldownTime)}
+							local delayTime = reaction.waitTime or 150
+							tempvars["reactionprocesstime"] = Now() + delayTime
+						end
+					end
+				end
+				usedReaction = true
+			elseif (reactionType == "useCannon") then
+				local reactionTarget = reaction.id or 0
+				if (reactionTarget and reactionTarget ~= 0) then
+					if (not tempvars["cannonprocesslist"]) then
+						tempvars["cannonprocesslist"] = {}
+					end
+					
+					local inprocessid = 0
+					local blockedids = {}
+					local availableids = {}
+					local processlist = tempvars["cannonprocesslist"]
+					if (ValidTable(processlist)) then
+						for id,cannon in pairs(processlist) do
+							if (cannon.blocked ~= 0 and Now() < cannon.blocked) then
+								blockedids[id] = true
+								d("[useCannon]: ID : "..tostring(id).." is temporarily blocked because it has been fired.")
+							end
+							if (cannon.inprocess) then
+								inprocessid = id
+								d("[useCannon]: ID : "..tostring(id).." is in process currently so it will be fired.")
+							end
+						end
+					end
+					
+					local cannonid = nil
+					if (inprocessid == 0) then
+						local el = EntityList("targetable,contentid="..tostring(reactionTarget))
+						if (ValidTable(el)) then
+							local closest = nil
+							local closestDistance = 999
+							for id,target in pairs(el) do
+								local skip = false
+								if (ValidTable(blockedids) and blockedids[id]) then
+									skip = true
+								end
+								if (not skip) then
+									if (not closest or (closest and target.distance < closestDistance)) then
+										closest = target.id
+									end
+								end
+							end
+							cannonid = closest
+						end
+					else
+						cannonid = inprocessid
+					end
+					
+					if (cannonid) then
+						local cannon = EntityList:Get(cannonid)
+						if (ValidTable(cannon)) then
+							local myPos = Player.pos
+							local tpos = cannon.pos
+							local dist = Distance3D(myPos.x,myPos.y,myPos.z,tpos.x,tpos.y,tpos.z)
+							if (dist > 3 and not ActionList:IsCasting()) then
+								GameHacks:TeleportToXYZ(tpos.x, tpos.y, tpos.z)
+								if (dist > 50) then
+									Player:SetFacingSynced(tpos.x, tpos.y, tpos.z)
+								end
+								Player:Jump()
+							end
+							Player:SetFacing(tpos.x,tpos.y,tpos.z)
+							Player:SetTarget(cannon.id)
+							Player:Interact(cannon.id)
+							processlist[cannon.id] = { inprocess = true, blocked = 0 }
+							tempvars["reactionprocesstime"] = Now() + 2500
+							d("[useCannon]: Interacting with target id :"..tostring(cannon.id))
+							
+							local newTask = ffxiv_duty_firecannon.Create()
+
+							local shootPos = nil
+							if (reaction.shootTarget) then
+								local shootid = reaction.shootTarget
+								local el = EntityList("targetable,contentid="..tostring(shootid))
+								if (ValidTable(el)) then
+									local id, target = next(el)
+									if (target) then
+										shootPos = target.pos
+										d("[useCannon]: Collected target position for cannon fire.")
+									end
+								end
+							elseif (ValidTable(reaction.shootPos)) then
+								shootPos = reaction.shootPos
+							end
+							
+							newTask.cannonid = cannonid
+							newTask.shootPos = shootPos
+							newTask.skillid = reaction.skillid
+							newTask.delayTime = tonumber(reaction.waitTime) or 2000
+							newTask.cooldownTime = tonumber(reaction.cooldownTime) or 10000
+							ml_task_hub:CurrentTask():AddSubTask(newTask)
+						end
+					end
+				end
+				usedReaction = true
+			elseif (reactionType == "useAction") then
+				local reactionTarget = reaction.id or 0
+				if (reactionTarget and reactionTarget ~= 0) then
+					
+					local targetid = nil
 					local el = EntityList("nearest,targetable,contentid="..tostring(reactionTarget))
-					if (el) then
-						local id, target = next(el)
-						if (target) then
-							local myPos = shallowcopy(Player.pos)
-							local gotoPos = target.pos
-							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > 1.5) then
-								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
-								Player:SetFacingSynced(gotoPos.h)
+					if (ValidTable(el)) then
+						local i,target = next(el)
+						if (ValidTable(target)) then
+							targetid = target.id
+						end
+					end
+					
+					if (targetid) then
+						local target = EntityList:Get(targetid)
+						if (ValidTable(target)) then
+							local myPos = Player.pos
+							local tpos = target.pos
+							
+							Player:SetFacing(tpos.x,tpos.y,tpos.z)
+							Player:SetTarget(target.id)
+							
+							local action = nil
+							if (reaction.skilltype and tonumber(reaction.skilltype) ~= nil) then
+								action = ActionList:Get(reaction.skillid,reaction.skilltype)
 							else
-								Player:Interact(reactionTarget)
+								action = ActionList:Get(reaction.skillid)
+							end
+							
+							if (ValidTable(action) and action.isready) then
+								if (reaction.groundTarget) then
+									local shootPos = tpos
+									d("[useAction]: FIRING POSITION [X:"..tostring(shootPos.x).."][Y:"..tostring(shootPos.y).."][Z:"..tostring(shootPos.z).."]")
+									if (action:Cast(shootPos.x, shootPos.y, shootPos.z)) then
+										d("[useAction]: SKILL FIRED.")
+										tempvars["reactionprocesstime"] = Now() + 500
+									end
+								else 
+									if (action:Cast(target.id)) then
+										d("[useAction]: SKILL FIRED.")
+										tempvars["reactionprocesstime"] = Now() + 500
+									end
+								end
 							end
 						end
 					end
 				end
 				usedReaction = true
-			elseif (reactionType == "killTarget") then
+			elseif (reactionType == "killTarget" or reactionType == "killFromPosition") then
 				local reactionTarget = reaction.id or 0
 				if (reactionTarget and reactionTarget ~= 0) then
-					local el = EntityList("nearest,alive,attackable,contentid="..tostring(reactionTarget))
-					if (el) then
+				
+					local el = nil
+					if (reaction.prioritize ~= nil and reaction.prioritize == true) then
+						local bossids = tostring(reactionTarget)
+						for uniqueid in StringSplit(bossids,";") do
+							if uniqueid ~= "" then
+								el = EntityList("lowesthealth,alive,attackable,contentid="..uniqueid)
+								if (ValidTable(el)) then
+									break
+								end
+						
+								el = EntityList("nearest,alive,attackable,contentid="..uniqueid)
+								if (ValidTable(el)) then
+									break
+								end	
+							end
+						end
+					end
+	
+					if (not ValidTable(el)) then
+						el = EntityList("nearest,alive,attackable,contentid="..tostring(reactionTarget))
+					end
+					
+					if (ValidTable(el)) then
 						local id, target = next(el)
 						if (target) then
-							local myPos = shallowcopy(Player.pos)
-							local gotoPos = target.pos
-							local range = reaction.range or 15
-							if (Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z) > range) then
-								GameHacks:TeleportToXYZ(gotoPos.x, gotoPos.y, gotoPos.z)
-								Player:SetFacingSynced(gotoPos.h)
+							local myPos = Player.pos
+							local returnPos = self.currentPos
+							
+							if (reactionType == "killFromPosition") then
+								d("Adjusting fight and return position.")
+								local fightPos = reaction.fightPos
+								local range = reaction.range or 15
+								if (Distance3D(myPos.x,myPos.y,myPos.z,fightPos.x,fightPos.y,fightPos.z) > range) then
+									returnPos = {x = fightPos.x, y = fightPos.y, z = fightPos.z}
+									GameHacks:TeleportToXYZ(fightPos.x, fightPos.y, fightPos.z)
+									Player:SetFacingSynced(fightPos.h)
+								end
 							end
 							
-							local pos = gotoPos
+							local pos = target.pos
 							Player:SetTarget(target.id)
 						
 							--Telecasting, teleport to mob portion.
@@ -236,17 +497,31 @@ function ffxiv_duty_kill_task:Process()
 								self.suppressFollow = true
 								self.suppressFollowTimer = Now() + 2000
 								
-								SkillMgr.teleBack = self.currentPos
+								SkillMgr.teleBack = returnPos
 								
 								if (self.encounterData.telecastPos) then
-									--d("Using telecast pos.")
+									d("Using hardcoded telecast position.")
 									local telePos = self.encounterData.telecastPos
 									GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
 									Player:SetFacingSynced(pos.x,pos.y,pos.z)
+									Player:SetFacing(pos.x,pos.y,pos.z)
+								elseif (ValidTable(targetAdjustments)) then
+									d("Using adjusted telehack position.")
+									local newPos = {x = pos.x, y = pos.y, z = pos.z}
+									if (targetAdjustments[target.contentid]) then
+										local thisAdjustment = targetAdjustments[target.contentid]
+										for k,v in pairs(thisAdjustment) do
+											newPos[k] = newPos[k] + v
+										end
+									end
+									GameHacks:TeleportToXYZ(newPos.x,newPos.y, newPos.z)
+									Player:SetFacingSynced(pos.x,pos.y,pos.z)
+									Player:SetFacing(pos.x,pos.y,pos.z)
 								else
-									--d("Using normal telecast pos.")
+									d("Using normal telecast pos.")
 									GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
 									Player:SetFacingSynced(pos.x,pos.y,pos.z)
+									Player:SetFacing(pos.x,pos.y,pos.z)
 								end
 								
 								SkillMgr.teleCastTimer = Now() + 1500
@@ -351,14 +626,29 @@ function ffxiv_duty_kill_task:Process()
 							SkillMgr.teleBack = self.currentPos
 							
 							if (self.encounterData.telecastPos) then
-								--d("Using telecast pos.")
+								d("Using telecast pos.")
 								local telePos = self.encounterData.telecastPos
 								GameHacks:TeleportToXYZ(telePos.x,telePos.y,telePos.z)
 								Player:SetFacingSynced(pos.x,pos.y,pos.z)
+								Player:SetFacing(pos.x,pos.y,pos.z)
+							elseif (ValidTable(self.encounterData.telehackAdjustments)) then
+								local targetAdjustments = self.encounterData.telehackAdjustments
+								d("Using adjusted telehack position.")
+								local newPos = {x = pos.x, y = pos.y, z = pos.z}
+								if (targetAdjustments[entity.contentid]) then
+									local thisAdjustment = targetAdjustments[entity.contentid]
+									for k,v in pairs(thisAdjustment) do
+										newPos[k] = newPos[k] + v
+									end
+								end
+								GameHacks:TeleportToXYZ(newPos.x,newPos.y, newPos.z)
+								Player:SetFacingSynced(pos.x,pos.y,pos.z)
+								Player:SetFacing(pos.x,pos.y,pos.z)
 							else
-								--d("Using normal telecast pos.")
+								d("Using normal telecast pos.")
 								GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
 								Player:SetFacingSynced(pos.x,pos.y,pos.z)
+								Player:SetFacing(pos.x,pos.y,pos.z)
 							end
 							
 							SkillMgr.teleCastTimer = Now() + 1500
@@ -465,6 +755,7 @@ function ffxiv_duty_kill_task:task_complete_eval()
     return false
 end
 function ffxiv_duty_kill_task:task_complete_execute()
+	d("Kill task completing.")
     ml_task_hub:CurrentTask().completed = true
 	ml_task_hub:CurrentTask():ParentTask().encounterCompleted = true
 end
@@ -950,3 +1241,81 @@ function ffxiv_duty_task_exit.Create()
 	
 	return newTask
 end
+
+ffxiv_duty_firecannon = inheritsFrom(ml_task)
+ffxiv_duty_firecannon.name = "DUTY_FIRECANNON"
+function ffxiv_duty_firecannon.Create()
+    local newinst = inheritsFrom(ffxiv_duty_firecannon)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "DUTY_FIRECANNON"
+    
+	newinst.shootPos = {}
+	newinst.skillid = 0
+	newinst.delayTime = 0
+	newinst.cooldownTime = 0
+	newinst.fireTimer = 0
+	newinst.maxTimer = Now() + 15000
+    
+    return newinst
+end
+
+function ffxiv_duty_firecannon:Init()
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_duty_firecannon:task_complete_eval()
+	local tempvars = ffxiv_task_duty.tempvars
+	if (tempvars["reactionprocesstime"]) then
+		if (Now() < tempvars["reactionprocesstime"]) then
+			d("[fireCannon]: Waiting on reaction processing.")
+			return false
+		else
+			d("[fireCannon]: Found a process reaction time, but the time has elapsed.")
+		end
+	end
+	
+	if (ActionList:IsCasting() or Now() > self.maxTimer) then
+		return true
+	end
+	
+	local shootPos = self.shootPos
+	local skillid = self.skillid
+	
+	if (self.fireTimer == 0 or Now() > self.fireTimer) then
+		local misc = ActionList("type=1,level=0")
+		if (ValidTable(misc)) then
+			for i,skill in pairsByKeys(misc) do
+				if (skill.id == skillid and skill.isready) then
+					d("[fireCannon]: FIRING POSITION [X:"..tostring(shootPos.x).."][Y:"..tostring(shootPos.y).."][Z:"..tostring(shootPos.z).."]")
+					if (skill:Cast(shootPos.x, shootPos.y, shootPos.z)) then
+						self.fireTimer = Now() + 1000
+						d("[fireCannon]: SHOTS FIRED.")
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function ffxiv_duty_firecannon:task_complete_execute()
+	local tempvars = ffxiv_task_duty.tempvars
+	local processlist = tempvars["cannonprocesslist"]
+	
+	local delayTime = self.delayTime
+	local cdTime = self.cooldownTime
+	tempvars["reactionprocesstime"] = Now() + delayTime
+	processlist[self.cannonid] = {inprocess = false, blocked = (Now() + cdTime)}
+	
+	ml_task_hub:CurrentTask():ParentTask():SetDelay(delayTime)
+    self.completed = true
+end
+
