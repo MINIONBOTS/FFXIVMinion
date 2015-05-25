@@ -370,6 +370,7 @@ function e_nextatma:execute()
 		
 		local newTask = ffxiv_task_teleport.Create()
 		d("Changing to new location for "..tostring(atma.name).." atma.")
+		newTask.aetheryte = atma.tele
 		newTask.mapID = atma.map
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
@@ -380,10 +381,15 @@ end
 c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
 c_avoid.target = nil
+e_avoid.lastavoid = {}
+c_avoid.lastavoidData = {}
 function c_avoid:evaluate()	
 	if (gAvoidAOE == "0") then
 		return false
 	end
+	
+	--Reset tempvar.
+	c_avoid.lastavoidData = {}
 
 	local ppos = shallowcopy(Player.pos)
 	local plevel = Player.level
@@ -401,6 +407,7 @@ function c_avoid:evaluate()
 			local casttargets = e.castinginfo.targets
 			
 			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
+				local avoidSpell = aoeData[casting] or aoeData[channeling]
 				local epos = shallowcopy(e.pos)
 				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 				
@@ -408,7 +415,15 @@ function c_avoid:evaluate()
 					not (distance > 22 and channeltarget == e.id) and
 					not (plevel > (e.level + 8)))
 				then
+					local lastavoid = c_avoid.lastavoid
+					if (lastavoid) then
+						if (avoidSpell == lastavoid.spell and e.id == lastavoid.attacker and Now() < lastavoid.timer) then
+							return false							
+						end
+					end
+					
 					c_avoid.target = e
+					c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
 					return true
 				end
 			end
@@ -430,6 +445,7 @@ function c_avoid:evaluate()
 					local casttargets = e.castinginfo.targets
 					
 					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
+						local avoidSpell = aoeData[casting] or aoeData[channeling]
 						local epos = shallowcopy(e.pos)
 						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 	
@@ -437,7 +453,15 @@ function c_avoid:evaluate()
 							not (distance > 22 and channeltarget == e.id) and
 							not (plevel > (e.level + 8)))
 						then
+							local lastavoid = c_avoid.lastavoid
+							if (lastavoid) then
+								if (avoidSpell == lastavoid.spell and e.id == lastavoid.attacker and Now() < lastavoid.timer) then
+									return false							
+								end
+							end
+							
 							c_avoid.target = e
+							c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
 							return true
 						end
 					end
@@ -471,11 +495,11 @@ function e_avoid:execute()
 	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
 	
 	local dodgeDist = 0
-	if (target.hitradius < 2) then
+	if (target.hitradius < 2.5) then
 		dodgeDist = 9
-	elseif (target.hitradius >= 2 and target.hitradius < 3) then
+	elseif (target.hitradius >= 2.5 and target.hitradius < 4.5) then
 		dodgeDist = 11
-	elseif (target.hitradius >= 3 and target.hitradius < 6) then
+	elseif (target.hitradius >= 4.5 and target.hitradius < 7) then
 		dodgeDist = 14
 	else
 		dodgeDist = 18
@@ -592,12 +616,12 @@ function e_avoid:execute()
 				table.insert(ml_global_information.navObstacles,obst)
 				d("Adding nav obstacle.")
 			end
+			c_avoid.lastavoid = c_avoid.lastavoidData
 			local newTask = ffxiv_task_avoid.Create()
 			newTask.pos = escapePoint
 			newTask.targetid = target.id
 			newTask.interruptCasting = true
 			newTask.maxTime = maxTime
-			d("Creating avoid task with max time:"..tostring(maxTime))
 			ml_task_hub:ThisTask().preserveSubtasks = true
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
@@ -830,9 +854,9 @@ function e_movetogate:execute()
 												ml_task_hub:CurrentTask().destMapID	)
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
+		newTask.pos = pos
 		local newPos = { x = pos.x, y = pos.y, z = pos.z }
 		local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
-		newTask.pos = pos
 		
 		if (not pos.g and not pos.b and not pos.a) then
 			newTask.gatePos = newPos
@@ -840,6 +864,7 @@ function e_movetogate:execute()
 		
 		newTask.range = 0.5
 		newTask.remainMounted = true
+		newTask.ignoreAggro = true
 		if(gTeleport == "1") then
 			newTask.useTeleport = true
 		end
@@ -853,7 +878,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting()) then
+	if (IsPositionLocked() or ActionList:IsCasting() or GilCount() < 1500) then
 		return false
 	end
 	
@@ -917,6 +942,8 @@ function e_teleporttomap:execute()
 	if (ActionIsReady(7,5)) then
 		if (Player:Teleport(e_teleporttomap.aethid)) then	
 			local newTask = ffxiv_task_teleport.Create()
+			newTask.setHomepoint = true
+			newTask.aetheryte = e_teleporttomap.aethid
 			newTask.mapID = e_teleporttomap.destMap
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
@@ -1038,18 +1065,14 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
+		(ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting)) 
+	then
 		return false
 	end
 	
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting) then
-            return false
-        end
-		
-        local myPos = shallowcopy(Player.pos)
-        local gotoPos
-		
+    if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then
+		--[[
 		if (not ml_task_hub:ThisTask().distanceCheckTimer or 
 			not ml_task_hub:ThisTask().stuckTicks) 
 		then
@@ -1081,9 +1104,10 @@ function c_walktopos:evaluate()
 				end
 			end
 		end
+		--]]
 		
-		-- if we're doing map navigation then we have extended the moveto pos beyond the gate to 
-		-- make sure the bot runs through it...use the gatePos instead of the original position
+		local myPos = Player.pos
+		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
 		else
@@ -1094,79 +1118,23 @@ function c_walktopos:evaluate()
 			end
 		end
 		
-		--[[
-		if (ml_task_hub:ThisTask().stuckTicks > 3) then
-			local path = NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-			
-			local closestPos = nil
-			local closestDistance = 999
-			local prevPos = nil
-			for k,v in pairsByKeys(path) do
-				local dist = nil
-				if (prevPos == nil) then
-					d("Distance:"..tostring(Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)))
-					dist = Distance3D(myPos.x,myPos.y,myPos.z,v.x,v.y,v.z)
-					if (dist > 3) then
-						closestPos = {x=v.x,y=v.y,z=v.z}
-						closestDistance = dist
-					end
-				else
-					d("Distance:"..tostring(Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)))
-					dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)
-					if (dist > 3 and (not closestDistance or dist < closestDistance)) then
-						closestPos = {x=v.x,y=v.y,z=v.z}
-						closestDistance = dist
-					end
-				end
-				prevPos = {x=v.x,y=v.y,z=v.z}
+		local range = ml_task_hub:CurrentTask().range or 0
+		if (range > 0) then
+			local distance = 0.0
+			if(ml_task_hub:CurrentTask().use3d) then
+				distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			else
+				distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 			end
-			
-			if (closestPos) then
-				d("Using a corrective path.")
-				
-				local correctivePos = nil
-				
-				local h = ConvertHeading(myPos.h)
-				local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
-				local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
-				local leftMove = GetPosFromDistanceHeading(myPos, 3, playerRight)
-				local rightMove = GetPosFromDistanceHeading(myPos, 3, playerLeft)
-				local leftPos,leftDist = NavigationManager:GetClosestPointOnMesh(leftMove)
-				local rightPos,rightDist = NavigationManager:GetClosestPointOnMesh(rightMove)
-				
-				if (leftDist < 6 and rightDist < 6) then
-					
-				elseif (leftDist < 6 and rightDist > 6) then
-					
-				elseif (leftDist > 6 and rightDist < 6) then
-				
-				else
-				
-				end
-			
-				c_walktopos.pos = closestPos
-				c_walktopos.corrective = true
+		
+			if (distance > ml_task_hub:CurrentTask().range) then
+				c_walktopos.pos = gotoPos
 				return true
 			end
-		end
-		--]]
-		
-        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
-		local distance = 0.0
-		if(ml_task_hub:CurrentTask().use3d) then
-			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		else
-			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-		end
-        --d("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
-        --d("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
-        --d("Current Distance: "..tostring(distance))
-        --d("Execute Distance: "..tostring(ml_task_hub:CurrentTask().range))
-		
-        if (distance > ml_task_hub:CurrentTask().range) then
 			c_walktopos.pos = gotoPos
 			return true
-        end
+		end
     end
     return false
 end
@@ -1187,11 +1155,14 @@ end
 
 c_usenavinteraction = inheritsFrom( ml_cause )
 e_usenavinteraction = inheritsFrom( ml_effect)
+c_usenavinteraction.blockOnly = false
 e_usenavinteraction.task = nil
 e_usenavinteraction.timer = 0
 function c_usenavinteraction:evaluate()
 	local myPos = shallowcopy(Player.pos)
 	local gotoPos = ml_task_hub:ThisTask().pos
+	
+	c_usenavinteraction.blockOnly = false
 	
 	assert(type(myPos) == "table","Player position is invalid.")
 	assert(type(gotoPos) == "table","Destination position is invalid.")
@@ -1199,12 +1170,14 @@ function c_usenavinteraction:evaluate()
 	requiresTransport = {
 		[139] = { name = "Upper La Noscea",
 			test = function()
-				if (Player.pos.x < 0 and gotoPos.x > 0) then
-					--d("Need  to move from west to east.")
-					return true
-				elseif (Player.pos.x > 0 and gotoPos.x < 0) then
-					--d("Need  to move from west to east.")
-					return true
+				if (GilCount() > 100) then
+					if (Player.pos.x < 0 and gotoPos.x > 0) then
+						--d("Need  to move from west to east.")
+						return true
+					elseif (Player.pos.x > 0 and gotoPos.x < 0) then
+						--d("Need  to move from west to east.")
+						return true
+					end
 				end
 				return false
 			end,
@@ -1255,12 +1228,14 @@ function c_usenavinteraction:evaluate()
 		},
 		[137] = { name = "Eastern La Noscea",
 			test = function()
-				if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-					--d("Need to move from Costa area to Wineport.")
-					return true
-				elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-					--d("Need to move from Wineport to Costa area.")
-					return true
+				if (GilCount() > 100) then
+					if ((Player.pos.x > 218 and Player.pos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
+						--d("Need to move from Costa area to Wineport.")
+						return true
+					elseif (not (Player.pos.x > 218 and Player.pos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
+						--d("Need to move from Wineport to Costa area.")
+						return true
+					end
 				end
 				return false
 			end,
@@ -1269,15 +1244,18 @@ function c_usenavinteraction:evaluate()
 					if (CanUseAetheryte(12) and not Player.incombat) then
 						if (Player:IsMoving()) then
 							Player:Stop()
-							return
+							c_usenavinteraction.blockOnly = true
+							return true
 						end
 						if (Player.ismounted) then
 							Dismount()
-							return
+							c_usenavinteraction.blockOnly = true
+							return true
 						end
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							if (Player:Teleport(12)) then	
 								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 12
 								newTask.mapID = 137
 								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 							end
@@ -1292,15 +1270,18 @@ function c_usenavinteraction:evaluate()
 					if (CanUseAetheryte(11) and not Player.incombat) then
 						if (Player:IsMoving()) then
 							Player:Stop()
-							return
+							c_usenavinteraction.blockOnly = true
+							return true
 						end
 						if (Player.ismounted) then
 							Dismount()
-							return
+							c_usenavinteraction.blockOnly = true
+							return true
 						end
 						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
 							if (Player:Teleport(11)) then
 								local newTask = ffxiv_task_teleport.Create()
+								newTask.aetheryte = 11
 								newTask.mapID = 137
 								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 							end
@@ -1316,10 +1297,12 @@ function c_usenavinteraction:evaluate()
 		},
 		[138] = { name = "Western La Noscea",
 			test = function()
-				if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
-					return true
-				elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
-					return true
+				if (GilCount() > 100) then
+					if (not (Player.pos.x < -170 and Player.pos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
+						return true
+					elseif ((Player.pos.x < -170 and Player.pos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
+						return true
+					end
 				end
 				return false
 			end,
@@ -1436,14 +1419,17 @@ function c_usenavinteraction:evaluate()
 		},
 		[146] = { name = "Ifrit Cave",
 			test = function()
-				if (Distance3D(myPos.x,myPos.y,myPos.z,-60.55,-25.107,556.96) < 40) then
-					return true
+				local distance = Distance3D(myPos.x,myPos.y,myPos.z,-60.55,-25.107,-556.96)
+				if (myPos.y < -15 and distance < 40) then
+					if (Quest:IsQuestCompleted(343) or (Quest:HasQuest(343) and Quest:GetQuestCurrentStep(343) > 3)) then
+						return true
+					end
 				end
 				return false
 			end,
 			reaction = function()
 				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = -60.55, y = -25.107, z = 556.96}
+				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
 				newTask.uniqueid = 1004609
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end,
@@ -1458,7 +1444,7 @@ function c_usenavinteraction:evaluate()
 	return false
 end
 function e_usenavinteraction:execute()
-	if (ActionList:IsCasting() or Now() < e_usenavinteraction.timer) then
+	if (ActionList:IsCasting() or Now() < e_usenavinteraction.timer or c_usenavinteraction.blockOnly) then
 		return false
 	end
 	
@@ -1477,10 +1463,6 @@ function c_bettertargetsearch:evaluate()
 	
 	if (gBotMode == GetString("huntMode") or gBotMode == GetString("questMode")) then
 		return false
-	end
-    
-	if (ml_task_hub:CurrentTask().name == "LT_REST" or ml_task_hub:CurrentTask().name == "LT_FLEE") then 
-		return false 
 	end
 	
 	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
@@ -1879,7 +1861,7 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleePos = {}
 function c_flee:evaluate()
-	if ((Player.incombat) and (Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP))) then
+	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			local fpos = ml_marker_mgr.markerList["evacPoint"]
 			local ppos = Player.pos
@@ -2237,36 +2219,38 @@ function c_teleporttopos:evaluate()
 		return false
 	end
 	
-	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	local useTeleport = ml_task_hub:CurrentTask().useTeleport
+
+	if (ActionList:IsCasting() or IsPositionLocked() or IsLoading() or IsMounting() or 
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
+		not ValidTable(ml_task_hub:CurrentTask().pos) or not useTeleport) 
+	then
 		return false
 	end
 	
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 ) then
-        if (ActionList:IsCasting()) then
-            return false
-        end
-		
-		local myPos = Player.pos
-        local gotoPos = ml_task_hub:CurrentTask().pos
-		
-		if (c_rest:evaluate() or not ShouldTeleport(gotoPos)) then
-			return false
-		end
-		
-        -- have to allow for 3d distance check because some quests have objectives on floors directly above one another  
-		local distance = 0.0
-		if(ml_task_hub:CurrentTask().use3d) then
-			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+	local myPos = Player.pos
+	local gotoPos = ml_task_hub:CurrentTask().pos
+	
+	if (not ValidTable(gotoPos) or c_rest:evaluate() or not ShouldTeleport(gotoPos)) then
+		return false
+	end
+	 
+	local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+	if (distance > 10) then
+		local properPos = nil
+		if (ml_task_hub:CurrentTask().gatePos) then
+			properPos = ml_task_hub:CurrentTask().pos
 		else
-			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+			properPos = ml_task_hub:CurrentTask().pos
+			local p,dist = NavigationManager:GetClosestPointOnMesh(properPos)
+			if (p and dist > 10) then
+				properPos = p
+			end
 		end
-        
-        if (distance > 10) then
-            c_teleporttopos.pos = gotoPos
-			c_teleporttopos.distance = distance
-            return true
-        end
-    end
+		
+		c_teleporttopos.pos = properPos
+		return true
+	end
     return false
 end
 function e_teleporttopos:execute()
@@ -2275,7 +2259,7 @@ function e_teleporttopos:execute()
 		Player:Stop()
 		
         GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
-		Player:SetFacingSynced(math.random())
+		--Player:SetFacingSynced(math.random())
 		e_teleporttopos.teleCooldown = Now() + 1000
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
@@ -2971,9 +2955,9 @@ end
 c_unpackdata = inheritsFrom( ml_cause )
 e_unpackdata = inheritsFrom( ml_effect )
 function c_unpackdata:evaluate()
-	if (not ml_task_hub:CurrentTask().dataUnpacked and (ml_task_hub:CurrentTask().encounterData or ml_task_hub:CurrentTask().params)) then
-		return true
-	end
+	--if (not ml_task_hub:CurrentTask().dataUnpacked and (ml_task_hub:CurrentTask().encounterData or ml_task_hub:CurrentTask().params)) then
+		--return true
+	--end
 	
     return false
 end
@@ -3010,4 +2994,83 @@ end
 function e_falling:execute()
 	Player:Stop()
 	c_falling.jumpKillTimer = 0
+end
+
+c_clearaggressive = inheritsFrom( ml_cause )
+e_clearaggressive = inheritsFrom( ml_effect )
+c_clearaggressive.targetid = 0
+function c_clearaggressive:evaluate()
+	if (ActionList:IsCasting() or IsPositionLocked() or IsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+		return false
+	end
+	
+	--Reset the tempvar.
+	c_clearaggressive.targetid = 0
+	
+	local clearAggressive = ml_task_hub:CurrentTask().clearAggressive or false
+	if (clearAggressive) then
+		local ppos = Player.pos
+		local id = ml_task_hub:CurrentTask().targetid or 0
+		if (id > 0) then
+			local el = EntityList("shortestpath,targetable,contentid="..tostring(id))
+			if (el) then
+				local i,entity = next(el)
+				if (i and entity) then
+					local epos = entity.pos
+					local aggroChecks = GetAggroDetectionPoints(ppos,epos)
+					if (ValidTable(aggroChecks)) then
+						for k,navPos in pairsByKeys(aggroChecks) do
+							local aggressives = EntityList("aggressive,alive,attackable,targetid=0,minlevel="..tostring(Player.level - 10)..",exclude_contentid="..tostring(id))
+							if (ValidTable(aggressives)) then
+								for _,aggressive in pairs(aggressives) do
+									local agpos = aggressive.pos
+									local dist = Distance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
+									local tdist = Distance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
+									if (dist <= 12 and dist < tdist) then
+										c_questclearaggressive.targetid = aggressive.id
+										return true
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		elseif (ml_task_hub:CurrentTask().pos) then
+			local dest = ml_task_hub:CurrentTask().pos
+			local aggroChecks = GetAggroDetectionPoints(ppos,dest)
+			if (ValidTable(aggroChecks)) then
+				for k,navPos in pairsByKeys(aggroChecks) do
+					local aggressives = nil
+					if (gBotMode == "NavTest") then
+						local aggressives = EntityList("aggressive,alive,attackable,targetid=0")
+					else
+						local aggressives = EntityList("aggressive,alive,attackable,targetid=0,minlevel="..tostring(Player.level - 10))
+					end
+					if (ValidTable(aggressives)) then
+						for _,aggressive in pairs(aggressives) do
+							local agpos = aggressive.pos
+							local dist = Distance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
+							if (dist <= 15) then
+								c_questclearaggressive.targetid = aggressive.id
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+    
+    return false
+end
+function e_clearaggressive:execute()	
+	--just in case
+	Player:Stop()
+	Dismount()
+	
+	local newTask = ffxiv_task_grindCombat.Create()
+    newTask.targetid = c_questclearaggressive.targetid
+	Player:SetTarget(c_questclearaggressive.targetid)
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end

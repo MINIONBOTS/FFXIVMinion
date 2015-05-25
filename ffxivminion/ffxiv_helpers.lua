@@ -399,7 +399,7 @@ function GetBestPartyHealTarget( npc, range )
 	if (npc) then
 		el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
 		--el = EntityList("lowesthealth,alive,friendly,myparty,maxdistance="..tostring(range))
-		if ( el ) then
+		if ( ValidTable(el) ) then
 			local i,e = next(el)
 			if (i and e) then
 				if (i and e and IsValidHealTarget(e)) then
@@ -633,7 +633,7 @@ function GetBestHealTarget( npc, range )
 	local el = nil
 	el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	--el = EntityList("lowesthealth,alive,friendly,chartype=4,maxdistance="..tostring(range))
-	if ( el ) then
+	if ( ValidTable(el) ) then
 		local i,e = next(el)
 		if (i~=nil and e~=nil) then
 			if (IsValidHealTarget(e)) then
@@ -982,38 +982,67 @@ function GetDutyTarget( maxHP )
         return nil
     end
 	
+	local bossids = ml_task_hub:CurrentTask().encounterData.bossIDs or ""
+	if (bossids ~= "") then
+		local lastbyte = string.byte(bossids,-1)
+		if (string.char(lastbyte) == ";") then
+			bossids = string.sub(bossids,1,-2)
+		end
+	end
+	local range = ml_task_hub:CurrentTask().encounterData.radius or 25
+	local dokill = (ml_task_hub:CurrentTask().encounterData.dokill ~= nil and ml_task_hub:CurrentTask().encounterData.dokill) or true
+	
+	if (bossids == "") then
+		local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(range))
+		if (not ValidTable(el)) then
+			el = EntityList("nearest,alive,attackable,maxdistance="..tostring(range))
+		end
+		
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (id and target) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
+				end
+			end
+		end	
+	end
+	
 	if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
 		if (ml_task_hub:CurrentTask().encounterData.prioritize) then
-			for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
-				local el = nil
-				if Player.incombat then
-					el = EntityList("lowesthealth,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
-				else
-					el = EntityList("nearest,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
-				end
-				if (ValidTable(el)) then
-					local id, target = next(el)
-					if (id and target) then
-						if (not maxHP or target.hp.percent > maxHP) then
-							return target
-						end
+			for uniqueid in StringSplit(bossids,";") do
+				if uniqueid ~= "" then
+					local el = EntityList("lowesthealth,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(range))
+					if (not ValidTable(el)) then
+						el = EntityList("nearest,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(range))
 					end
-				end		
+					
+					if (ValidTable(el)) then
+						local id, target = next(el)
+						if (id and target) then
+							if (not maxHP or target.hp.percent > maxHP) then
+								return target
+							end
+						end
+					end		
+				end
 			end
 		end
 	end
 	
-	local highestHP = 1
-	local bestAOE = nil
+	
 	--First, try to get the best AOE target if we are killing the mobs.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,los,attackable,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (Player.incombat and dokill) then
+		local highestHP = 1
+		local bestAOE = nil
+	
+		el = EntityList("alive,los,attackable,clustered=5,contentid="..bossids..",maxdistance="..tostring(range))	
 		if (ValidTable(el)) then
-			
 			for id, target in pairs(el) do
-				if (target.hp.current > highestHP and target.attackable) then
+				if (not bestAOE or (bestAOE and target.hp.current > highestHP)) then
 					if (not maxHP or target.hp.percent > maxHP) then
 						bestAOE = target
+						highestHP = target.hp.current
 					end
 				end			
 			end
@@ -1025,8 +1054,8 @@ function GetDutyTarget( maxHP )
 	end
 	
 	--Second, try to get the lowesthealth, if we are killing the mobs.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,los,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (Player.incombat and dokill) then
+		el = EntityList("lowesthealth,alive,los,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
 		if (ValidTable(el)) then
 			local id, target = next(el)
 			if (target.attackable) then
@@ -1037,16 +1066,18 @@ function GetDutyTarget( maxHP )
 		end	
 	end
 	
-	highestHP = 1
-	bestAOE = nil
 	--Third, try to get the best AOE target if we are killing the mobs, los ignored.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,attackable,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (Player.incombat and dokill) then
+		local highestHP = 1
+		local bestAOE = nil
+	
+		el = EntityList("alive,attackable,clustered=5,contentid="..bossids..",maxdistance="..tostring(range))	
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
-				if (target.hp.current > highestHP and target.attackable) then
+				if (not bestAOE or (bestAOE and target.hp.current > highestHP)) then
 					if (not maxHP or target.hp.percent > maxHP) then
 						bestAOE = target
+						highestHP = target.hp.current
 					end
 				end			
 			end
@@ -1058,8 +1089,8 @@ function GetDutyTarget( maxHP )
 	end
 	
 	--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
+	if (Player.incombat and dokill) then
+		el = EntityList("lowesthealth,alive,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
 		if (ValidTable(el)) then
 			local id, target = next(el)
 			if (target.attackable) then
@@ -1071,8 +1102,8 @@ function GetDutyTarget( maxHP )
 	end
 	
 	--Fifth, if we are only pulling, get one with no target.
-	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
-		el = EntityList("nearest,alive,attackable,targeting=0,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
+	if (not dokill) then
+		el = EntityList("nearest,alive,attackable,targeting=0,contentid="..bossids..",maxdistance="..tostring(range))		
 		if (ValidTable(el)) then
 			for id, target in pairs(el) do
 				if (target.attackable and target.targetid == 0) then
@@ -1085,16 +1116,18 @@ function GetDutyTarget( maxHP )
 	end
 	
 	--Lastly, fall back and just get what we can.
-	el = EntityList("alive,attackable,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	if (ValidTable(el)) then
-		for id, target in pairs(el) do
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
+	if (dokill) then
+		el = EntityList("alive,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
+		if (ValidTable(el)) then
+			for id, target in pairs(el) do
+				if (target.attackable) then
+					if (not maxHP or target.hp.percent > maxHP) then
+						return target
+					end
 				end
 			end
-		end
-	end	
+		end	
+	end
 	
     return nil
 end
@@ -1398,6 +1431,12 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     end
     
     return false
+end
+
+function GetFleeHP()
+	local attackingMobs = TableSize(EntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
+	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
+	return fleeHP
 end
 
 function HasInfiniteDuration(id)
@@ -1987,15 +2026,62 @@ function ScanForObjects(ids,distance)
 	return false
 end
 
+function DutyCanInteract(ids,distance)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
+	local maxdistance = tonumber(distance) or 30
+	local el = EntityList("targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		local tempvars = ffxiv_task_duty.tempvars
+		if (ValidTable(tempvars["interactprocesslist"])) then
+			local processlist = tempvars["interactprocesslist"]
+			for i,e in pairs(el) do
+				if (ValidTable(e)) then
+					if (not processlist[e.id] or (processlist[e.id] and Now() > processlist[e.id].blocked)) then
+						return true
+					end
+				end
+			end
+		else
+			for i,e in pairs(el) do
+				if (ValidTable(e)) then
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function CanUseCannon()
+	if (IsPositionLocked()) then
+		local misc = ActionList("type=1,level=0")
+		if (ValidTable(misc)) then
+			for i,skill in pairsByKeys(misc) do
+				if (skill.id == 1134 or skill.id == 1437 or skill.id == 2630 or skill.id == 1128 or skill.id == 2434) then
+					if (skill.isready) then
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
 function GetPathDistance(pos1,pos2)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
 	
 	local dist = nil
-	local pathdist = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
-	if ( pathdist ) then
+	
+	local p1,dist1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
+	local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
+	
+	local pathdist = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+	if (ValidTable(pathdist)) then
 		local pdist = PathDistance(pathdist)
-		if ( pdist ~= nil ) then
+		if (ValidTable(pdist)) then
 			dist = pdist
 		end
 	end	
@@ -2545,6 +2631,7 @@ function IsIxaliRare(itemid)
 		[2001427] = true,
 		[2001416] = true,
 		[2001413] = true,
+		[2001425] = true,
 	}
 	return rares[itemid]
 end
@@ -2558,6 +2645,7 @@ function IsIxaliSemiRare(itemid)
 		[2001426] = true,
 		[2001415] = true,
 		[2001412] = true,
+		[2001424] = true,
 	}
 	return rares[itemid]
 end
@@ -2828,6 +2916,20 @@ function GetAttunedAetheryteList()
 	end
 	
 	return attuned
+end
+
+function GetHomepoint()
+	local homepoint = 0
+	
+	local attuned = GetAttunedAetheryteList()
+	if (ValidTable(attuned)) then
+		for id,aetheryte in pairsByKeys(attuned) do
+			if (aetheryte.ishomepoint) then
+				homepoint = aetheryte.territory
+			end
+		end
+	end
+	return homepoint
 end
 
 function GetAetheryteByID(id)
