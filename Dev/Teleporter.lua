@@ -152,6 +152,10 @@ function TP.ModuleInit()
 	if (Settings.Dev.gMoveDist == nil) then
 		Settings.Dev.gMoveDist = "10"
 	end
+	if (Settings.Dev.gTeleporterNavType == nil) then
+		Settings.Dev.gTeleporterNavType = "Teleport"
+	end
+	
 	
 	--Let's create all our windows at once, instead of all throughout the code.
 	local WinName = nil
@@ -204,6 +208,7 @@ function TP.ModuleInit()
 		teleKey2 = teleKey2..","..k
 	end
 	
+	GUI_NewComboBox	(WinName,"NavType","gTeleporterNavType","Setting","Teleport,Walk")
 	GUI_NewCheckbox	(WinName,"Auto-Record","gAutoRecord","Setting")
 	GUI_NewCheckbox	(WinName,"Include Mobs","gAutoRecordMobs","Setting")
 	GUI_NewComboBox	(WinName,"Port To:","gClickTeleport","Setting","None,Cursor,Target")
@@ -230,6 +235,7 @@ function TP.ModuleInit()
 	GUI_SizeWindow(TP.WinName,WI.width,WI.height)
 	GUI_WindowVisible(TP.WinName, TP.Visible.Main)
 	
+	gTeleporterNavType = Settings.Dev.gTeleporterNavType
 	gAutoRecord = Settings.Dev.gAutoRecord	
 	gAutoRecordMobs = Settings.Dev.gAutoRecordMobs
 	gClickTeleport = Settings.Dev.gClickTeleport
@@ -247,7 +253,8 @@ function TP.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gClickTeleport" or
 			k == "gClickName1" or
 			k == "gClickName2" or
-			k == "gMoveDist") then
+			k == "gMoveDist" or
+			k == "gTeleporterNavType") then
 			Settings.Dev[tostring(k)] = v
 		end  
 	end
@@ -309,7 +316,7 @@ function CalculateTargetPosition( dest )
 		dist = tonumber(tpDistance)
 		if (dist == nil ) then dist = 0.0 end
 		local dirV = { x=math.sin(dest.h)*dist,z = math.cos(dest.h)*dist }
-		local pos = deepcopy(dest)
+		local pos = shallowcopy(dest)
 		pos.x = dest.x + dirV.x
 		pos.z = dest.z + dirV.z
 		return pos
@@ -490,8 +497,37 @@ function TP.Port(key)
 	local coord = TP.availableCoords[key]
 	
 	if (ValidTable(coord)) then
-		GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
-		Player:SetFacingSynced(coord.h)
+		if (gTeleporterNavType == "Teleport") then
+			d("teleporting in block 1.")
+			GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
+			Player:SetFacingSynced(coord.h)
+		else
+			if (Player:IsMoving()) then
+				ml_global_information.Stop()
+				ml_task_hub.shouldRun = false
+				gBotRunning = "0"
+			else
+				ml_task_hub:ClearQueues()
+				
+				ml_task_hub.shouldRun = true
+				gBotRunning = "1"
+				
+				local newTask = ffxiv_task_movetopos.Create()
+				newTask.remainMounted = true
+				newTask.useTeleport = false
+				newTask.pos = coord
+				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)		
+
+				newTask.task_complete_execute = function ()
+					ml_task_hub.shouldRun = false
+					gBotRunning = "0"
+				end
+				newTask.task_fail_execute = function ()
+					ml_task_hub.shouldRun = false
+					gBotRunning = "0"
+				end
+			end
+		end
 	end
 end
 --**************************************************************************************************************************************

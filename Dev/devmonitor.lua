@@ -517,6 +517,8 @@ function Dev.ModuleInit()
 	--GUI_NewField("Dev","Rogue","ps_Rogue","PlayerStats") -- needs to be added
 	
 	-- General Functions
+	GUI_NewField("Dev","Buy Item","general_buyitemid","General Functions")	
+	GUI_NewButton("Dev","Buy Item","Dev.BuyItem","General Functions")
 	GUI_NewButton("Dev","Perform AutoEquip","Dev.AutoEquip","General Functions")
 	GUI_NewField("Dev","Text Command","general_sendtextcommand","General Functions")
 	GUI_NewButton("Dev","Send Text Command","Dev.SendTextCommand","General Functions")
@@ -525,6 +527,10 @@ function Dev.ModuleInit()
 	GUI_NewButton("Dev","Follow Target","Dev.Follow","General Functions")
 	GUI_NewNumeric("Dev","Sound","gsound","General Functions","0","71");
 	GUI_NewButton("Dev","PlaySound","Dev.Sound","General Functions")
+	GUI_NewField("Dev","SelectIndex","general_selectindex","General Functions")
+	GUI_NewButton("Dev","SelectConversationIndex","Dev.SelectConversationIndex","General Functions")
+	GUI_NewField("Dev","SelectString","general_selectstringvisible","General Functions")
+	GUI_NewField("Dev","SelectIconString","general_selecticonstringvisible","General Functions")
 	gsound = 0
 	GUI_WindowVisible("Dev",false)
 	
@@ -681,6 +687,12 @@ function Dev.HandleButtons( Event, arg )
 					i,e = next (eq,i)
 				end		
 			end
+		elseif( arg == "Dev.BuyItem") then
+			local itemid = tonumber(general_buyitemid) or 0
+			Inventory:BuyShopItem(itemid,1)
+		elseif( arg == "Dev.SelectConversationIndex") then
+			local index = tonumber(general_selectindex) or 10
+			SelectConversationIndex(index)	
 		end
 	end
 end
@@ -1675,6 +1687,8 @@ function Dev.UpdateWindow()
 		ps_Arcanist = pl[26]
 	end
 	
+	general_selectstringvisible = tostring(ControlVisible("SelectString"))
+	general_selecticonstringvisible = tostring(ControlVisible("SelectIconString"))
 end
 
 function Dev.DoTask()
