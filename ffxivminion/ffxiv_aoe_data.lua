@@ -392,6 +392,7 @@ ffxiv_aoe_data =
 		[1298]=true,
 		[1038]=true,
 		[764]=true,
+		[3459]=true,
 		[1052]=true,
 		[1406]=true,
 		[1471]=true,
@@ -1422,6 +1423,7 @@ ffxiv_aoe_data =
 		[698]=true,
 		[2666]=true,
 		[2685]=true,
+		[410]=true,
 		[499]=true,
 		[1161]=true,
 		[2734]=true,
@@ -1699,8 +1701,17 @@ ffxiv_aoe_data =
 		[3203] = true,
 		[1349] = true,
 		[1316] = true,
+		[411] = true,
+		[2717] = true,
+		[1392] = true,
+		[946] = true,
+		[556] = true,
 	};
 	["circle"] = {
+		--Scourge of Nym
+		[2717] = true,
+		[1392] = true,
+		[946] = true,
 		--Ring of Frost
 		[1316] = true,
 		--Katon
@@ -1789,6 +1800,14 @@ ffxiv_aoe_data =
 		[585] = true,
 		--Hypha Whip
 		[396] = true,
+		--Bellowing Grunt
+		[336]=true,
+		--Malice
+		[586]=true,
+		--Bombination
+		[414] = true,
+		[1674] = true,
+		[2759] = true,
 	},
 	["persistent"] = {
 		[1316] = 30,
