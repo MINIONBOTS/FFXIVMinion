@@ -237,7 +237,8 @@ function e_findunspoilednode:execute()
 		newTask.interact = ml_task_hub:CurrentTask().gatherid
 		newTask.use3d = true
 		newTask.useTeleport = false
-		newTask.range = 3
+		newTask.interactRange = 3
+		newTask.pathRange = 5
 		newTask.task_complete_execute = function()
 			Player:Stop()
 			ffxiv_task_gather.gatherStarted = true
@@ -356,7 +357,8 @@ function e_movetogatherable:execute()
 		newTask.useTeleport = false
 		newTask.interact = ml_task_hub:CurrentTask().gatherid
 		newTask.use3d = true
-		newTask.range = 3
+		newTask.interactRange = 3
+		newTask.pathRange = 5
 		newTask.task_complete_execute = function()
 			Player:Stop()
 			ffxiv_task_gather.gatherStarted = true
@@ -513,8 +515,12 @@ function c_nextgathermarker:evaluate()
             marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			
 			if (marker == nil) then
-				ml_task_hub:ThisTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
+				if (gGatherUnspoiled ~= "1") then
+					ffxiv_dialog_manager.IssueStopNotice("Gather_NextGatherMarker", "There are no appropriate markers for your level range in the list.")
+				end
+				
+				--ml_task_hub:ThisTask().filterLevel = false
+				--marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			end
         end
         
@@ -1605,7 +1611,8 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gGatherMinerGearset" or
 				k == "gGatherBotanistGearset" or
 				k == "gGatherMapMarker" or
-				k == "gGatherIdleLocation" ) then
+				k == "gGatherIdleLocation" or	
+				k == "gGatherUseCordials" ) then
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "gGatherUnspoiled") then
 			if (v == "1") then
@@ -1895,12 +1902,6 @@ function ffxiv_task_gather.AddGatherLocation()
 		return
 	end
 	
-	local marker = ml_marker_mgr.GetMarker(gGatherMapMarker)
-	local markerPos = nil
-	if (ValidTable(marker)) then
-		markerPos = marker:GetPosition()
-	end
-		
 	local location = {
 		name = key,
 		enabled = true,
@@ -1910,7 +1911,6 @@ function ffxiv_task_gather.AddGatherLocation()
 		mesh = gmeshname,
 		marker = gGatherMapMarker,
 		lastGather = 0,
-		teleport = GetClosestAetheryteToMapIDPos(Player.localmapid, markerPos),
 		isIdle = (gGatherMapIdle == "1") and true or false,
 	}
 	

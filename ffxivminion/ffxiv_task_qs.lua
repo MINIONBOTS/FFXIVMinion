@@ -664,7 +664,8 @@ function e_qsmovetogatherable:execute()
 		newTask.useTeleport = false
 		newTask.interact = ml_task_hub:CurrentTask().gatherid
 		newTask.use3d = true
-		newTask.range = 3
+		newTask.interactRange = 3
+		newTask.pathRange = 5
 		newTask.task_complete_execute = function()
 			Player:Stop()
 			ffxiv_task_gather.gatherStarted = true
