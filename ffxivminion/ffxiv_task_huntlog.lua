@@ -47,7 +47,33 @@ function c_huntlogkillaggrotarget:evaluate()
 	
 	local el = nil
 	--Try onmesh first.
-	el = EntityList("alive,onmesh,attackable,targetingme,maxdistance=25")
+	el = EntityList("lowesthealth,alive,onmesh,attackable,targetingme,maxdistance=25")
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and (target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
+				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
+			then
+				e_huntlogkillaggrotarget.targetid = target.id
+				return true
+			end
+		end
+	end
+	
+	el = EntityList("shortestpath,alive,onmesh,attackable,targetingme,maxdistance=25")
+	if (ValidTable(el)) then
+		local id, target = next(el)
+		if (ValidTable(target)) then
+			if(target.hp.current > 0 and (target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
+				(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
+			then
+				e_huntlogkillaggrotarget.targetid = target.id
+				return true
+			end
+		end
+	end
+	
+	el = EntityList("nearest,alive,onmesh,attackable,targetingme,maxdistance=25")
 	if (ValidTable(el)) then
 		local id, target = next(el)
 		if (ValidTable(target)) then
@@ -67,7 +93,20 @@ function c_huntlogkillaggrotarget:evaluate()
 	end
 		
 	if (petid) then
-		el = EntityList("alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
+		el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (ValidTable(target)) then
+				if (target.hp.current > 0 and (target.level <= (Player.level + 3)) and (target.level >= (Player.level - 10)) and
+					(target.fateid == 0 or (target.fateid ~= 0 and target.level >= (Player.level - 5)))) 
+				then
+					e_huntlogkillaggrotarget.targetid = target.id
+					return true
+				end
+			end
+		end
+		
+		el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(petid)..",maxdistance=30")
 		if (ValidTable(el)) then
 			local id, target = next(el)
 			if (ValidTable(target)) then
@@ -295,7 +334,7 @@ c_huntlogkill = inheritsFrom( ml_cause )
 e_huntlogkill = inheritsFrom( ml_effect )
 e_huntlogkill.targetid = 0
 function c_huntlogkill:evaluate()
-	if (not ml_task_hub:CurrentTask().huntParams) then
+	if (not ValidTable(ml_task_hub:CurrentTask().huntParams)) then
 		return false
 	end
 	
@@ -318,11 +357,11 @@ function c_huntlogkill:evaluate()
 		end
 		
 		if (not ValidTable(el)) then
-			el = EntityList("onmesh,alive,attackable,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = EntityList("onmesh,alive,attackable,targetid=0,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if (not ValidTable(el)) then
-			el = EntityList("onmesh,alive,attackable,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = EntityList("onmesh,alive,attackable,targetid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if(ValidTable(el)) then
@@ -364,6 +403,12 @@ end
 function e_huntlogkill:execute()
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = e_huntlogkill.targetid
+	d("[HuntlogKill]:Creating kill task for :"..tostring(e_huntlogkill.targetid))
+	newTask.attemptPull = true
+	
+	local ke_clearAggressives = ml_element:create( "ClearAggressiveTargets", c_questclearaggressive, e_questclearaggressive, 3 )
+	newTask:add( ke_clearAggressives, newTask.process_elements)
+		
 	--If this is an adhoc task, meaning, this task is not the root task, make sure to kill the task after the kill has been completed.
 	if (ml_task_hub:CurrentTask().adHoc) then
 		newTask.task_complete_execute = function ()
@@ -385,12 +430,11 @@ end
 c_huntlogmovetopos = inheritsFrom( ml_cause )
 e_huntlogmovetopos = inheritsFrom( ml_effect )
 function c_huntlogmovetopos:evaluate()
-	if (not IsPositionLocked()) then
+	if (not IsPositionLocked() and not IsLoading()) then
 		local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
 		if (mapID and mapID > 0) then
-			if(Player.localmapid == mapID) then
+			if (Player.localmapid == mapID) then
 				local pos = ml_task_hub:ThisTask().huntParams["pos"]
-				
 				if (Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > 15) then
 					return true
 				end
@@ -409,7 +453,14 @@ function e_huntlogmovetopos:execute()
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
-	ml_task_hub:ThisTask():AddSubTask(newTask)
+	
+	local id = ml_task_hub:CurrentTask().huntParams["id"]
+	local maxlevel = ffxiv_task_huntlog.GetMaxMobLevel()
+	local customSearch = "shortestpath,onmesh,alive,attackable,targetid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
+	newTask.customSearch = customSearch
+	newTask.customSearchCompletes = true
+	
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 function ffxiv_task_huntlog:Init()    
@@ -519,7 +570,29 @@ function ffxiv_task_huntlog.GetTargetList(indexlist,filtermap)
 					if (ValidTable(entrydata)) then
 						if (not ffxiv_task_huntlog.IsEntryComplete(indexkey,entrykey)) then
 							if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
-								targetList[entrydata.id] = entrydata
+								if (entrydata.condition) then
+									local conditions = shallowcopy(entrydata.condition)
+									local canInsert = true
+									for condition,value in pairs(conditions) do
+										d("Checking loadstring condition :"..tostring(condition).." against value :"..tostring(value))
+										local f = assert(loadstring("return " .. condition))()
+										if (f ~= nil) then
+											if (f ~= value) then
+												canInsert = false
+											end
+											conditions[condition] = nil
+										end
+										if (not canInsert) then
+											break
+										end
+									end
+									
+									if (canInsert) then
+										targetList[entrydata.id] = entrydata
+									end
+								else
+									targetList[entrydata.id] = entrydata
+								end
 							end
 						end
 					end
@@ -535,7 +608,29 @@ function ffxiv_task_huntlog.GetTargetList(indexlist,filtermap)
 					if (ValidTable(entrydata)) then
 						if (not ffxiv_task_huntlog.IsGCEntryComplete(indexkey,entrykey)) then
 							if (not filtermap or (filtermap and entrydata.mapid == Player.localmapid)) then
-								targetList[entrydata.id] = entrydata
+								if (entrydata.condition) then
+									local conditions = shallowcopy(entrydata.condition)
+									local canInsert = true
+									for condition,value in pairs(conditions) do
+										d("Checking loadstring condition :"..tostring(condition).." against value :"..tostring(value))
+										local f = assert(loadstring("return " .. condition))()
+										if (f ~= nil) then
+											if (f ~= value) then
+												canInsert = false
+											end
+											conditions[condition] = nil
+										end
+										if (not canInsert) then
+											break
+										end
+									end
+									
+									if (canInsert) then
+										targetList[entrydata.id] = entrydata
+									end
+								else
+									targetList[entrydata.id] = entrydata
+								end
 							end
 						end
 					end
@@ -599,7 +694,7 @@ function ffxiv_task_huntlog.GetValidIndexes()
 		local class = ffxiv_task_huntlog.jobTranslate[Player.job] or Player.job
 		for index,_ in pairs(safeIndexes.normal) do
 			local data = ffxiv_task_huntlog.GetIndexData(class,rank,index)
-			if (data) then
+			if (ValidTable(data)) then
 				indexList.normal[index] = data
 			end
 		end
@@ -608,7 +703,7 @@ function ffxiv_task_huntlog.GetValidIndexes()
 	if (ValidTable(safeIndexes.gc)) then
 		for index,_ in pairs(safeIndexes.gc) do
 			local data = ffxiv_task_huntlog.GetGCIndexData(Player.grandcompany,gcrank,index)
-			if (data) then
+			if (ValidTable(data)) then
 				indexList.gc[index] = data
 			end
 		end
@@ -753,21 +848,12 @@ function ffxiv_task_huntlog.GetBestTarget(list)
 			end			
 		end
 		
-		if (pmapid == data.mapid) then			
-			local pathdist = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-			if ( pathdist ) then
-				local pdist = PathDistance(pathdist)
-				if ( pdist ~= nil ) then
-					dist = pdist
-				else
-					dist = Distance3DT(pos,ppos)
-				end
-			else
-				dist = Distance3DT(pos,ppos)
-			end			
+		if (pmapid == data.mapid) then	
+			dist = GetPathDistance(ppos,pos)
+			d("Distance measured from player position to target params for id ["..tostring(data.id).."] is :"..tostring(dist))
 		end
 		
-		if (not closest or (dist < closestDistance and closest.id ~= data.id)) then
+		if (not closest or (closest and dist < closestDistance and closest.id ~= data.id)) then
 			closest = data
 			closestDistance = dist
 		end
@@ -785,6 +871,12 @@ function ffxiv_task_huntlog.IsGCIndexCompatible(rank,index)
 	local rank = tonumber(rank) or 0
 	local index = tonumber(index) or 0
 	local indexLevel = ((rank + 2) * 10) + index
+	
+	if (rank == 2 and Player.grandcompanyrank < 5) then
+		return false
+	elseif (rank == 3 and Player.grandcompanyrank < 9) then
+		return false
+	end
 
 	if (((rank + 2) * 10) > Player.level) then
 		return false
@@ -806,7 +898,7 @@ function ffxiv_task_huntlog.IsIndexCompatible(rank,index)
 		return false
 	end
 	
-	if (indexLevel <= (Player.level + 1)) then
+	if (indexLevel <= Player.level) then
 		return true
 	end
 	
@@ -815,9 +907,9 @@ end
 
 function ffxiv_task_huntlog.GetMaxMobLevel()
 	if (Player.level >= 10) then
-		return (Player.level + 5)
-	else
 		return (Player.level + 3)
+	else
+		return (Player.level + 1)
 	end
 end
 
