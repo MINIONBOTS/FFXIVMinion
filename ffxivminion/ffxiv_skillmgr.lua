@@ -1319,18 +1319,20 @@ function SkillMgr.GetTankableTarget( range )
 	local targets = {}
 	
 	local party = EntityList("myparty,chartype=4")
-	if (party) then
+	if (ValidTable(party)) then
 		for i,member in pairs(party) do
-			local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxrange="..tostring(range))
-			if (list) then
-				for k,entity in pairs(list) do
-					targets[k] = entity
+			if (member.id ~= Player.id) then
+				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxrange="..tostring(range))
+				if (ValidTable(list)) then
+					for k,entity in pairs(list) do
+						targets[k] = entity
+					end
 				end
 			end
 		end
 	end
 	
-	if (targets) then
+	if (ValidTable(targets)) then
 		for k,entity in pairs(targets) do
 			if (not closest or (closest and entity.distance < closestRange)) then
 				closest = entity
@@ -1352,7 +1354,7 @@ function SkillMgr.GetTankedTarget( range )
 	local targets = {}
 
     local party = EntityList("chartype=4,myparty")
-    if ( party ) then
+    if ( ValidTable(party) ) then
 		for i,e in pairs(party) do
 			if (IsTank(e.job)) then
 				tanks[i] = e
@@ -1360,10 +1362,10 @@ function SkillMgr.GetTankedTarget( range )
         end
     end
 	
-	if (tanks) then
+	if (ValidTable(tanks)) then
 		for i,tank in pairs(tanks) do
 			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxrange="..tostring(range))
-			if (list) then
+			if (ValidTable(list)) then
 				for k,entity in pairs(list) do
 					targets[k] = entity
 				end
@@ -1371,7 +1373,7 @@ function SkillMgr.GetTankedTarget( range )
 		end
 	end
 	
-	if (targets) then
+	if (ValidTable(targets)) then
 		for i,target in pairs(targets) do
 			if (not closest or (closest and closest.distance < closestRange)) then
 				closest = target
@@ -1425,17 +1427,43 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				
 				if (skill.stype == "Pet") then	
 					local s = ActionList:Get(skill.id,11)
-					
-					local attempt = 1
-					while (s.isready and attempt <= 25) do
-						ActionList:Cast(skill.id,TID,11)
-						s = ActionList:Get(skill.id,11)
-						attempt = attempt + 1
-					end		
-					if (SkillMgr.SkillProfile[prio]) then
-						SkillMgr.SkillProfile[prio].lastcast = Now()
+					if (skill.trg == "Ground Target") then
+						local entity = EntityList:Get(TID)
+						if (entity) then
+							local tpos = entity.pos
+							if (skill.pgtrg == "Behind") then
+								local eh = ConvertHeading(tpos.h)
+								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
+								local rangePercent = tonumber(gCombatRangePercent) * 0.01
+								local dist = math.random(entity.hitradius + 5, entity.hitradius + 10)
+								if (dist < 2) then
+									dist = 2
+								end
+						
+								local newpos = GetPosFromDistanceHeading(tpos, dist, mobRear)
+								if (newpos) then
+									tpos = newpos
+								end
+							end
+							local attempt = 1
+							while (s.isready and attempt <= 5) do
+								s:Cast(tpos.x, tpos.y, tpos.z)
+								s = ActionList:Get(skill.id,11)
+								attempt = attempt + 1
+							end	
+						end
 					else
-						d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+						local attempt = 1
+						while (s.isready and attempt <= 25) do
+							ActionList:Cast(skill.id,TID,11)
+							s = ActionList:Get(skill.id,11)
+							attempt = attempt + 1
+						end		
+						if (SkillMgr.SkillProfile[prio]) then
+							SkillMgr.SkillProfile[prio].lastcast = Now()
+						else
+							d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+						end
 					end
 				else
 					local action = ActionList:Get(skill.id)
@@ -1448,7 +1476,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 								local rangePercent = tonumber(gCombatRangePercent) * 0.01
 								local dist = (entity.hitradius * rangePercent)
-								if (entity.hitradius < 2) then
+								if (dist < 2) then
 									dist = 2
 								end
 						
