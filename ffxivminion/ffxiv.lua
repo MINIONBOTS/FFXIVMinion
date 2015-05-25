@@ -537,6 +537,7 @@ function ffxivminion.HandleInit()
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
+	
 	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
 		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 	end
@@ -944,6 +945,19 @@ function ffxivminion.SwitchMode(mode)
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
+			gGrindDoHuntLog = Settings.FFXIVMINION.gGrindDoHuntLog
+			gDoFates = Settings.FFXIVMINION.gDoFates
+			gFatesOnly = Settings.FFXIVMINION.gFatesOnly
+			gMinFateLevel = Settings.FFXIVMINION.gMinFateLevel
+			gMaxFateLevel = Settings.FFXIVMINION.gMaxFateLevel
+			gDoBattleFates = Settings.FFXIVMINION.gDoBattleFates
+			gDoBossFates = Settings.FFXIVMINION.gDoBossFates
+			gDoGatherFates = Settings.FFXIVMINION.gDoGatherFates
+			gDoDefenseFates = Settings.FFXIVMINION.gDoDefenseFates
+			gDoEscortFates = Settings.FFXIVMINION.gDoEscortFates
+			gFateBattleWaitPercent = Settings.FFXIVMINION.gFateBattleWaitPercent
+			gFateBossWaitPercent = Settings.FFXIVMINION.gFateBossWaitPercent
+			gFateDefenseWaitPercent = Settings.FFXIVMINION.gFateDefenseWaitPercent
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
@@ -1094,6 +1108,8 @@ function ffxivminion.CreateWindows()
 end
 
 function ffxivminion.CreateWindow(window)
+	assert(type(window) == "table" and window.id and window.x and window.y and window.width and window.height and window.Name,"[CreateWindow]: Window is malformed or missing data.")
+	
 	local winTable = "AutoWindow"..window.id
 	if (Settings.FFXIVMINION[winTable] == nil) then
 		Settings.FFXIVMINION[winTable] = {}
@@ -1112,11 +1128,13 @@ function ffxivminion.CreateWindow(window)
 	local wi = Settings.FFXIVMINION[winTable]
 	local wname = window.Name
 	
+	if (ValidTable(wi)) then
 	if (window.hideModule) then
 		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
 	else
 		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
 	end
+end
 end
 
 function ffxivminion.SizeWindow(strName)
@@ -1149,7 +1167,9 @@ end
 
 function ffxivminion.SaveWindows()
 	for i,window in pairs(ffxivminion.Windows) do
-		local tableName = "AutoWindow"..window.id
+		if (IsValidWindow(window)) then
+			local winid = window.id or "unknown"
+			local tableName = "AutoWindow".. winid
 		local WI = Settings.FFXIVMINION[tableName]
 		local W = GUI_GetWindowInfo(window.Name)
 		local WindowInfo = {}
@@ -1165,6 +1185,9 @@ function ffxivminion.SaveWindows()
 		end
 		if (not tablesEqual) then 
 			SafeSetVar(tableName,WindowInfo)
+		end
+		else
+			d(tostring(window.id or "unknown").." was invalid.")
 		end
 	end
 end
@@ -1413,6 +1436,15 @@ function ffxivminion.SafeComboBox(var,varlist,default)
 	return outputVar
 end
 
+function IsValidWindow(window)
+	if (ValidTable(window)) then
+		if (window.id and window.x and window.y and window.height and window.width and window.Name) then
+			return true
+		end
+	end
+	return false
+end
+
 function SetGUIVar(strName, value)
 	strName = strName or ""
 	if (strName ~= "" and _G[strName] ~= nil) then
@@ -1422,19 +1454,30 @@ function SetGUIVar(strName, value)
 end
 
 function SafeSetVar(name, value)
-	local valName = name
-	if (type(valName) ~= "string") then valName = tostring(valName) end
+	if (not name or not value or (name and not type(name) == "string")) then
+		d("Prevented invalid name from being saved.")
+		return false
+	end
 	
+	local valName = name	
 	local currentVal = Settings.FFXIVMINION[valName]
 	if (type(value) == "table") then
 		if not deepcompare(currentVal,value,true) then
 			--d("writing table settings " .. valName)
+			if (valName ~= nil and value ~= nil) then
 			Settings.FFXIVMINION[valName] = value
+			else
+				d("Bad setting with name :"..tostring(valName).." was not written.")
+			end
 		end
 	else
 		if (currentVal ~= value and value ~= nil) then
 			--d("writing " .. value .. " to " .. currentVal)
+			if (valName ~= nil and value ~= nil) then
 			Settings.FFXIVMINION[valName] = value
+			else
+				d("Bad setting with name :"..tostring(valName).." was not written.")
+			end
 		end
 	end
 end

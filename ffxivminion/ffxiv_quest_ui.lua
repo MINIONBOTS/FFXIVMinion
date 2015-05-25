@@ -652,7 +652,7 @@ QM.Builds = {
 
 function QM.Init()
 
-	if (Settings.FFXIVMINION.qmWindow == nil or Settings.FFXIVMINION.qmWindow == {}) then 
+	if (not ValidTable(Settings.FFXIVMINION.qmWindow)) then 
 		local windowInfo = {} 
 		windowInfo.width = 250
 		windowInfo.height = 300
@@ -1926,7 +1926,7 @@ function QM.WindowUpdate()
 		tablesEqual = deepcompare(WindowInfo,WI,true)
 	end
 	if (not tablesEqual) then 
-		SafeSetVar(tableName,WindowInfo)
+		SafeSetVar(QM.Windows.Main.name,WindowInfo)
 	end
 end
 --**************************************************************************************************************************************
