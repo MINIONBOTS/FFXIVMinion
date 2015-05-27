@@ -123,6 +123,7 @@ function GetDutyTarget( maxHP )
 	
     return nil
 end
+--]]
 
 function GetDutyFromID(dutyID)
 	local dutyID = tonumber(dutyID)
@@ -293,4 +294,3 @@ function GetDutyLeader()
 	
 	return nil
 end
---]]
