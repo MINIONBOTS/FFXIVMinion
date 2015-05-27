@@ -474,7 +474,7 @@ end
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	if (Now() < ffxiv_task_gather.timer) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
 		return false
 	end
 	
@@ -516,7 +516,13 @@ function c_nextgathermarker:evaluate()
 			
 			if (marker == nil) then
 				if (gGatherUnspoiled ~= "1") then
-					ffxiv_dialog_manager.IssueStopNotice("Gather_NextGatherMarker", "There are no appropriate markers for your level range in the list.")
+					--local message = {
+						--[1] = "There are no appropriate markers",
+						--[2] = "for your level range in the list.",
+					--}
+					d("Currently no appropriate markers found in our level range.")
+					return false
+					--ffxiv_dialog_manager.IssueStopNotice("Gather_NextGatherMarker", message)
 				end
 				
 				--ml_task_hub:ThisTask().filterLevel = false
