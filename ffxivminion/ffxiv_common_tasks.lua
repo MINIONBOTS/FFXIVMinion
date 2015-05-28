@@ -518,6 +518,7 @@ function ffxiv_task_movetomap.Create()
     newinst.name = "MOVETOMAP"
     newinst.destMapID = 0
     newinst.tryTP = true
+	newinst.setHomepoint = false
 	newinst.pos = nil
    
     return newinst

@@ -328,9 +328,9 @@ ffxiv_data_huntlog = {
 					id = 268,
 					mapid = 145,
 					pos = {
-						x = 64.350730895996,
-						y = -8.0701274871826,
-						z = -24.216173171997,
+						x = 99.70017,
+						y = 0.58817,
+						z = 52.1649,
 					},
 				},
 			},
@@ -520,7 +520,7 @@ ffxiv_data_huntlog = {
 			[1] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1852,
 					mapid = 138,
@@ -532,7 +532,7 @@ ffxiv_data_huntlog = {
 				},
 				[2] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1853,
 					mapid = 138,
@@ -566,7 +566,7 @@ ffxiv_data_huntlog = {
 			[3] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -1264,7 +1264,7 @@ ffxiv_data_huntlog = {
 			[2] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -1779,10 +1779,10 @@ ffxiv_data_huntlog = {
 				[1] = {
 					id = 238,
 					mapid = 148,
-					pos = {
-						x = -429.73309326172,
-						y = 49,
-						z = -5.0842986106873,
+					pos = { 
+						x = -429.733, 
+						y = 49, 
+						z = -5.08429,
 					},
 				},
 			},
@@ -1946,7 +1946,7 @@ ffxiv_data_huntlog = {
 				},
 				[2] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -2668,7 +2668,7 @@ ffxiv_data_huntlog = {
 			[2] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -3388,7 +3388,7 @@ ffxiv_data_huntlog = {
 			[3] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1853,
 					mapid = 138,
@@ -3400,7 +3400,7 @@ ffxiv_data_huntlog = {
 				},
 				[2] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -3860,9 +3860,9 @@ ffxiv_data_huntlog = {
 					id = 268,
 					mapid = 145,
 					pos = {
-						x = 64.350730895996,
-						y = -8.0701274871826,
-						z = -24.216173171997,
+						x = 99.70017,
+						y = 0.58817,
+						z = 52.1649,
 					},
 				},
 			},
@@ -4072,7 +4072,7 @@ ffxiv_data_huntlog = {
 				},
 				[3] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1853,
 					mapid = 138,
@@ -4084,7 +4084,7 @@ ffxiv_data_huntlog = {
 				},
 				[4] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -4525,8 +4525,12 @@ ffxiv_data_huntlog = {
 			[10] = {
 				[1] = {
 					id = 238,
-					mapid = 153,
-					pos = { x = -67.0457, y = .95519, z = 356.1138},
+					mapid = 148,
+					pos = { 
+						x = -429.733, 
+						y = 49, 
+						z = -5.08429,
+					},
 				},
 			},
 		},
@@ -4702,7 +4706,7 @@ ffxiv_data_huntlog = {
 			[2] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1854,
 					mapid = 138,
@@ -5357,7 +5361,7 @@ ffxiv_data_huntlog = {
 			[2] = {
 				[1] = {
 					["condition"] = {
-						["QuestCompleted(962)"] = true,
+						["Quest:IsQuestCompleted(962)"] = true,
 					},
 					id = 1853,
 					mapid = 138,

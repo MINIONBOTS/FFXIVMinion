@@ -11,6 +11,10 @@ function GetNearestGrindAttackable()
 	local nearestDistance = 9999
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
+	
+	if (ml_task_hub:CurrentTask().safeLevel) then
+		maxLevel = Player.level + 2
+	end
 
 	block = 1
 	if (gClaimFirst	== "1") then		
@@ -200,7 +204,6 @@ function GetNearestFateAttackable()
         end	
     
         el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
-            
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -213,7 +216,6 @@ function GetNearestFateAttackable()
         end
 		
         el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-
         if ( el ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -3435,6 +3437,8 @@ function GetBestGrindMap()
 			return 148 --central shroud
 		elseif (inlanoscea) then
 			return 134 --middle la noscea
+		else
+			return 148
 		end
 	elseif ( level >= 12 and level < 20) then
 		if (inthanalan) then
@@ -3443,17 +3447,17 @@ function GetBestGrindMap()
 			return 152 --east shroud
 		elseif (inlanoscea) then
 			return 138 --middle la noscea
+		else
+			return 152
 		end
-	elseif (level >= 20 and level < 25) then
+	elseif (level >= 20 and level < 22) then
 		return 152 --east shroud
-	elseif (level >= 20 and level < 30) then
-		return 146 --southern than
+	elseif (level >= 22 and level < 30) then
+		return 153 --south shroud
 	elseif (level >= 30 and level < 35) then
-		return 146 --southern than
-	elseif (level >= 35 and level < 40) then
-		return 139 --upper la noscea
-	elseif (level >= 41 and level < 45) then
-		return 180 --outer la noscea
+		return 137 --eastern la noscea
+	elseif (level >= 35 and level < 45) then
+		return 155 --coerthas
 	elseif (level >= 45) then
 		return 156 --mor dhona
 	end
@@ -3815,19 +3819,19 @@ end
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
 	local xref = {
-		[0] = 3500,
-		[1] = 3200,
-		[2] = 3201,
-		[3] = 3202,
-		[4] = 3203,
-		[5] = 3204,
-		[6] = 3205,
-		[7] = 3206,
-		[8] = 3207,
-		[9] = 3208,
-		[10] = 3209,
-		[11] = 3300,
-		[12] = 3300,		
+		[0] = 3500, -- Weapon
+		[1] = 3200, -- OffHand
+		[2] = 3201, -- Head
+		[3] = 3202, -- Chest
+		[4] = 3203, -- Gloves
+		[5] = 3204, -- Belt
+		[6] = 3205, -- Pants
+		[7] = 3206, -- Feet
+		[8] = 3207, -- Earring
+		[9] = 3208, -- Necklace
+		[10] = 3209, -- Wrist
+		[11] = 3300, -- Rings
+		[12] = 3300, -- Rings		
 	}
 	if (slot ~= 13) then
 		local inv = Inventory("type="..tostring(xref[slot]))
@@ -3844,6 +3848,38 @@ function IsArmoryFull(slot)
 		end
 	end
 	return false
+end
+
+function ArmoryItemCount(slot)
+	local slot = tonumber(slot)
+	local xref = {
+		[0] = 3500, -- Weapon
+		[1] = 3200, -- OffHand
+		[2] = 3201, -- Head
+		[3] = 3202, -- Chest
+		[4] = 3203, -- Gloves
+		[5] = 3204, -- Belt
+		[6] = 3205, -- Pants
+		[7] = 3206, -- Feet
+		[8] = 3207, -- Earring
+		[9] = 3208, -- Necklace
+		[10] = 3209, -- Wrist
+		[11] = 3300, -- Rings
+		[12] = 3300, -- Rings		
+	}
+	if (slot ~= 13) then
+		local inv = Inventory("type="..tostring(xref[slot]))
+		if (inv) then
+			local occupiedSlots = 0
+			for i, item in pairs(inv) do
+				if (item.id and item.id ~= 0) then
+					occupiedSlots = occupiedSlots + 1
+				end
+			end
+			return occupiedSlots
+		end
+	end
+	return 0
 end
 
 function GetFirstFreeArmorySlot(armoryType)

@@ -942,7 +942,7 @@ function e_teleporttomap:execute()
 	if (ActionIsReady(7,5)) then
 		if (Player:Teleport(e_teleporttomap.aethid)) then	
 			local newTask = ffxiv_task_teleport.Create()
-			newTask.setHomepoint = true
+			newTask.setHomepoint = ml_task_hub:ThisTask().setHomepoint
 			newTask.aetheryte = e_teleporttomap.aethid
 			newTask.mapID = e_teleporttomap.destMap
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
@@ -2931,6 +2931,7 @@ function c_returntomap:evaluate()
 end
 function e_returntomap:execute()
 	local task = ffxiv_task_movetomap.Create()
+	task.setHomepoint = true
 	task.destMapID = e_returntomap.mapID
 	ml_task_hub:Add(task, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
