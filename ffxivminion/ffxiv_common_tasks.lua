@@ -788,7 +788,7 @@ function ffxiv_task_stealth:task_complete_eval()
 	if (action and not action.isoncd) then
 		if (Now() > self.timer) then
 			action:Cast()
-			self.timer = Now() + 1500
+			self.timer = Now() + 2500
 		end
     end
 	

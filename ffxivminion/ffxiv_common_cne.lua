@@ -2063,7 +2063,12 @@ end
 ---------------------------------------------------------------------------------------------
 c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
+e_stealth.timer = 0
 function c_stealth:evaluate()
+	if (Now() < e_stealth.timer) then
+		return false
+	end
+	
 	if (Player.incombat or 
 		(Player.job ~= FFXIV.JOBS.MINER and
 		Player.job ~= FFXIV.JOBS.BOTANIST and
@@ -2159,6 +2164,8 @@ function c_stealth:evaluate()
     return false
 end
 function e_stealth:execute()
+	e_stealth.timer = Now() + 3000
+	
 	local newTask = ffxiv_task_stealth.Create()
 	if (HasBuffs(Player,"47")) then
 		newTask.droppingStealth = true
