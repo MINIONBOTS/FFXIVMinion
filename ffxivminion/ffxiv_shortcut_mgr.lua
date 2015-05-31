@@ -280,10 +280,10 @@ function sck.OnUpdate( event, tickcount )
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
 			TimeSince(sck.filterTime5) >= 750) 
 	then
-		if ( gAssistFilter4 == "0" ) then
-			gAssistFilter4 = "1"
+		if ( gAssistFilter5 == "0" ) then
+			gAssistFilter5 = "1"
 		else
-			gAssistFilter4 = "0"
+			gAssistFilter5 = "0"
 		end
 		sck.filterTime5 = tickcount
 	end
