@@ -1,4 +1,3 @@
---[[
 function GetDutyTarget( maxHP )
 	maxHP = maxHP or nil
 	local el = nil
@@ -7,123 +6,134 @@ function GetDutyTarget( maxHP )
         return nil
     end
 	
-	if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
-		if (ml_task_hub:CurrentTask().encounterData.prioritize) then
-			for uniqueid in StringSplit(ml_task_hub:CurrentTask().encounterData.bossIDs,";") do
-				local el = nil
-				if Player.incombat then
-					el = EntityList("lowesthealth,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
-				else
-					el = EntityList("nearest,alive,contentid="..uniqueid..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))
+	local radius = ml_task_hub:CurrentTask().encounterData.radius or 25
+	local bossIDs = ml_task_hub:CurrentTask().encounterData.bossIDs or ""
+	if (bossIDs == "") then
+		if Player.incombat then
+			el = EntityList("lowesthealth,attackable,alive,maxdistance="..tostring(radius))
+		else
+			el = EntityList("nearest,attackable,alive,maxdistance="..tostring(radius))
+		end
+		if (ValidTable(el)) then
+			local id, target = next(el)
+			if (ValidTable(target)) then
+				if (not maxHP or target.hp.percent > maxHP) then
+					return target
 				end
-				if (ValidTable(el)) then
-					local id, target = next(el)
-					if (target.targetable) then
-						if (not maxHP or target.hp.percent > maxHP) then
-							return target
-						end
+			end
+		end		
+	else
+		if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
+			if (ml_task_hub:CurrentTask().encounterData.prioritize) then
+				for uniqueid in StringSplit(bossIDs,";") do
+					local el = nil
+					if Player.incombat then
+						el = EntityList("lowesthealth,attackable,alive,contentid="..uniqueid..",maxdistance="..tostring(radius))
+					else
+						el = EntityList("nearest,attackable,alive,contentid="..uniqueid..",maxdistance="..tostring(radius))
 					end
-				end		
+					if (ValidTable(el)) then
+						local id, target = next(el)
+						if (ValidTable(target)) then
+							if (not maxHP or target.hp.percent > maxHP) then
+								return target
+							end
+						end
+					end		
+				end
 			end
 		end
-	end
-	
-	local highestHP = 1
-	local bestAOE = nil
-	--First, try to get the best AOE target if we are killing the mobs.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,los,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-		if (ValidTable(el)) then
-			
-			for id, target in pairs(el) do
-				if (target.hp.current > highestHP and target.attackable) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						bestAOE = target
-					end
-				end			
-			end
-			
-			if (ValidTable(bestAOE)) then
-				return bestAOE
-			end
-		end	
-	end
-	
-	--Second, try to get the lowesthealth, if we are killing the mobs.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,los,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
-			end
-		end	
-	end
-	
-	highestHP = 1
-	bestAOE = nil
-	--Third, try to get the best AOE target if we are killing the mobs, los ignored.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("alive,clustered=5,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (target.hp.current > highestHP and target.attackable) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						bestAOE = target
-					end
-				end			
-			end
-			
-			if (ValidTable(bestAOE)) then
-				return bestAOE
-			end
-		end	
-	end
-	
-	--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
-	if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
-		el = EntityList("lowesthealth,alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
-			end
-		end	
-	end
-	
-	--Fifth, if we are only pulling, get one with no target.
-	if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
-		el = EntityList("nearest,alive,targeting=0,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))		
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (target.attackable and target.targetid == 0) then
+		
+		if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
+			el = EntityList("nearest,alive,attackable,targetid=0,contentid="..bossIDs..",maxdistance="..tostring(radius))		
+			if (ValidTable(el)) then
+				for id, target in pairs(el) do
 					if (not maxHP or target.hp.percent > maxHP) then
 						return target
 					end
 				end
+			end	
+		else
+			--First, try to get the best AOE target if we are killing the mobs.
+			if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+				el = EntityList("alive,attackable,los,clustered=4,contentid="..bossIDs..",maxdistance="..tostring(radius))	
+				if (ValidTable(el)) then
+					local highestHP = 1
+					local bestAOE = nil
+					for id, target in pairs(el) do
+						if (target.hp.current > highestHP) then
+							if (not maxHP or target.hp.percent > maxHP) then
+								bestAOE = target
+							end
+						end			
+					end
+					
+					if (ValidTable(bestAOE)) then
+						return bestAOE
+					end
+				end	
 			end
-		end	
-	end
-	
-	--Lastly, fall back and just get what we can.
-	el = EntityList("alive,contentid="..ml_task_hub:CurrentTask().encounterData.bossIDs..",maxdistance="..tostring(ml_task_hub:CurrentTask().encounterData.radius))	
-	if (ValidTable(el)) then
-		for id, target in pairs(el) do
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
+			
+			--Second, try to get the lowesthealth, if we are killing the mobs.
+			if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+				el = EntityList("lowesthealth,alive,attackable,los,contentid="..bossIDs..",maxdistance="..tostring(radius))	
+				if (ValidTable(el)) then
+					local id, target = next(el)
+					if (ValidTable(target)) then
+						if (not maxHP or target.hp.percent > maxHP) then
+							return target
+						end
+					end
+				end	
+			end
+			
+			--Third, try to get the best AOE target if we are killing the mobs, los ignored.
+			if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+				el = EntityList("alive,attackable,clustered=4,contentid="..bossIDs..",maxdistance="..tostring(radius))	
+				if (ValidTable(el)) then
+					highestHP = 1
+					bestAOE = nil
+					for id, target in pairs(el) do
+						if (target.hp.current > highestHP) then
+							if (not maxHP or target.hp.percent > maxHP) then
+								bestAOE = target
+							end
+						end			
+					end
+					
+					if (ValidTable(bestAOE)) then
+						return bestAOE
+					end
+				end	
+			end
+			
+			--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
+			if (Player.incombat and ml_task_hub:CurrentTask().encounterData["doKill"] == true) then
+				el = EntityList("lowesthealth,alive,attackable,contentid="..bossIDs..",maxdistance="..tostring(radius))	
+				if (ValidTable(el)) then
+					local id, target = next(el)
+					if (ValidTable(target)) then
+						if (not maxHP or target.hp.percent > maxHP) then
+							return target
+						end
+					end
+				end	
+			end
+
+			--Lastly, fall back and just get what we can.
+			el = EntityList("alive,attackable,contentid="..bossIDs..",maxdistance="..tostring(radius))	
+			if (ValidTable(el)) then
+				for id, target in pairs(el) do
+					if (not maxHP or target.hp.percent > maxHP) then
+						return target
+					end
 				end
-			end
+			end	
 		end
-	end	
+	end
 	
     return nil
 end
---]]
 
 function GetDutyFromID(dutyID)
 	local dutyID = tonumber(dutyID)

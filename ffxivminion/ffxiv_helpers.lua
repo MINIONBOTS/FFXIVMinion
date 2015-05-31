@@ -972,168 +972,6 @@ function GetPVPTarget()
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
 
-function GetPrioritizedTarget( targetlist )
-	--targetlist should be a semi-colon ";" separated string list
-end
-
-function GetDutyTarget( maxHP )
-	maxHP = maxHP or nil
-	local el = nil
-	
-	if (gBotMode ~= GetString("dutyMode") or not IsDutyLeader() or ml_task_hub:CurrentTask().encounterData.bossIDs == nil) then
-        return nil
-    end
-	
-	local bossids = ml_task_hub:CurrentTask().encounterData.bossIDs or ""
-	if (bossids ~= "") then
-		local lastbyte = string.byte(bossids,-1)
-		if (string.char(lastbyte) == ";") then
-			bossids = string.sub(bossids,1,-2)
-		end
-	end
-	local range = ml_task_hub:CurrentTask().encounterData.radius or 25
-	local dokill = (ml_task_hub:CurrentTask().encounterData.dokill ~= nil and ml_task_hub:CurrentTask().encounterData.dokill) or true
-	
-	if (bossids == "") then
-		local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(range))
-		if (not ValidTable(el)) then
-			el = EntityList("nearest,alive,attackable,maxdistance="..tostring(range))
-		end
-		
-		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (id and target) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
-			end
-		end	
-	end
-	
-	if (ml_task_hub:CurrentTask().encounterData.prioritize ~= nil) then
-		if (ml_task_hub:CurrentTask().encounterData.prioritize) then
-			for uniqueid in StringSplit(bossids,";") do
-				if uniqueid ~= "" then
-					local el = EntityList("lowesthealth,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(range))
-					if (not ValidTable(el)) then
-						el = EntityList("nearest,alive,attackable,contentid="..uniqueid..",maxdistance="..tostring(range))
-					end
-					
-					if (ValidTable(el)) then
-						local id, target = next(el)
-						if (id and target) then
-							if (not maxHP or target.hp.percent > maxHP) then
-								return target
-							end
-						end
-					end		
-				end
-			end
-		end
-	end
-	
-	
-	--First, try to get the best AOE target if we are killing the mobs.
-	if (Player.incombat and dokill) then
-		local highestHP = 1
-		local bestAOE = nil
-	
-		el = EntityList("alive,los,attackable,clustered=5,contentid="..bossids..",maxdistance="..tostring(range))	
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (not bestAOE or (bestAOE and target.hp.current > highestHP)) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						bestAOE = target
-						highestHP = target.hp.current
-					end
-				end			
-			end
-			
-			if (ValidTable(bestAOE)) then
-				return bestAOE
-			end
-		end	
-	end
-	
-	--Second, try to get the lowesthealth, if we are killing the mobs.
-	if (Player.incombat and dokill) then
-		el = EntityList("lowesthealth,alive,los,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
-		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
-			end
-		end	
-	end
-	
-	--Third, try to get the best AOE target if we are killing the mobs, los ignored.
-	if (Player.incombat and dokill) then
-		local highestHP = 1
-		local bestAOE = nil
-	
-		el = EntityList("alive,attackable,clustered=5,contentid="..bossids..",maxdistance="..tostring(range))	
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (not bestAOE or (bestAOE and target.hp.current > highestHP)) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						bestAOE = target
-						highestHP = target.hp.current
-					end
-				end			
-			end
-			
-			if (ValidTable(bestAOE)) then
-				return bestAOE
-			end
-		end	
-	end
-	
-	--Fourth, try to get the lowesthealth, if we are killing the mobs, los ignored.
-	if (Player.incombat and dokill) then
-		el = EntityList("lowesthealth,alive,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
-		if (ValidTable(el)) then
-			local id, target = next(el)
-			if (target.attackable) then
-				if (not maxHP or target.hp.percent > maxHP) then
-					return target
-				end
-			end
-		end	
-	end
-	
-	--Fifth, if we are only pulling, get one with no target.
-	if (not dokill) then
-		el = EntityList("nearest,alive,attackable,targeting=0,contentid="..bossids..",maxdistance="..tostring(range))		
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (target.attackable and target.targetid == 0) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						return target
-					end
-				end
-			end
-		end	
-	end
-	
-	--Lastly, fall back and just get what we can.
-	if (dokill) then
-		el = EntityList("alive,attackable,contentid="..bossids..",maxdistance="..tostring(range))	
-		if (ValidTable(el)) then
-			for id, target in pairs(el) do
-				if (target.attackable) then
-					if (not maxHP or target.hp.percent > maxHP) then
-						return target
-					end
-				end
-			end
-		end	
-	end
-	
-    return nil
-end
-
 function GetNearestGrindAggro()
 	taskName = ml_task_hub:ThisTask().name
 	
@@ -4087,10 +3925,24 @@ function GetJPTime()
 	end
 	
 	jpTime.hour = jphour
-	jpTime.minute = tonumber(os.date("!%M"))
+	jpTime.min = tonumber(os.date("!%M"))
 	jpTime.sec = tonumber(os.date("!%S"))
+	jpTime.isdst = false
 	
 	return jpTime
+end
+
+function GetUTCTime()
+	local utcTime = {}
+	utcTime.year = tonumber(os.date("!%Y"))
+	utcTime.month = tonumber(os.date("!%m"))
+	utcTime.day = tonumber(os.date("!%d"))
+	utcTime.hour = tonumber(os.date("!%H"))
+	utcTime.min = tonumber(os.date("!%M"))
+	utcTime.sec = tonumber(os.date("!%S")) 
+	utcTime.isdst = false
+	
+	return utcTime
 end
 
 function EorzeaTime()
