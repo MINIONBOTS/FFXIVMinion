@@ -272,9 +272,9 @@ function ffxiv_task_movetopos:task_complete_execute()
 end
 
 function ffxiv_task_movetopos:task_fail_eval()
-	if (not Player:IsMoving()) then
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
-			self.failTimer = Now() + 500
+			self.failTimer = Now() + 1500
 		end
 	else
 		if (self.failTimer ~= 0) then
@@ -485,7 +485,7 @@ end
 function ffxiv_task_movetointeract:task_fail_eval()
 	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
-			self.failTimer = Now() + 15000
+			self.failTimer = Now() + 3000
 		end
 	else
 		if (self.failTimer ~= 0) then

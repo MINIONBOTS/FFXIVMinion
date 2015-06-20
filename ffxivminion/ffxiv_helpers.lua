@@ -174,7 +174,7 @@ function GetNearestFateAttackable()
     if (fate ~= nil) then
 		if (fate.type == 1) then
 			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
-			if (el) then
+			if (ValidTable(el)) then
 				local bestTarget = nil
 				local highestHP = 0
 				
@@ -192,7 +192,7 @@ function GetNearestFateAttackable()
 		end
 		
 		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if ( el ) then
+        if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				epos = shallowcopy(e.pos)
@@ -204,7 +204,7 @@ function GetNearestFateAttackable()
         end	
     
         el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
-        if ( el ) then
+        if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 epos = shallowcopy(e.pos)
@@ -216,7 +216,7 @@ function GetNearestFateAttackable()
         end
 		
         el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if ( el ) then
+        if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				epos = shallowcopy(e.pos)
@@ -229,7 +229,7 @@ function GetNearestFateAttackable()
     
         el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fate.id))            
             
-        if ( el ) then
+        if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 epos = shallowcopy(e.pos)
@@ -1741,6 +1741,20 @@ function IsFateApproved(fateid)
 	return false
 end
 
+function IsInsideFate()
+	local closestFate = GetClosestFate()
+	if (ValidTable(closestFate)) then
+		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
+		local myPos = Player.pos
+		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
+		if (dist < closestFate.radius) then
+			return true
+		end
+	end
+	
+	return false
+end
+
 function GetClosestFate(pos)
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
@@ -2244,7 +2258,8 @@ function IsDismounting()
 end
 
 function IsPositionLocked()
-	return not ActionIsReady(2,5)
+	--return not ActionIsReady(2,5)
+	return (not ActionIsReady(2) and not Player.ismounted)
 end
 
 function IsLoading()
@@ -2528,20 +2543,23 @@ function GetRoleString(jobID)
         jobID == FFXIV.JOBS.SUMMONER or
         jobID == FFXIV.JOBS.THAUMATURGE or
 		jobID == FFXIV.JOBS.ROGUE or
-		jobID == FFXIV.JOBS.NINJA
+		jobID == FFXIV.JOBS.NINJA or
+		jobID == FFXIV.JOBS.MACHINIST
     then
         return GetString("dps")
     elseif
         jobID == FFXIV.JOBS.CONJURER or
         jobID == FFXIV.JOBS.SCHOLAR or
-        jobID == FFXIV.JOBS.WHITEMAGE
+        jobID == FFXIV.JOBS.WHITEMAGE or
+		jobID == FFXIV.JOBS.ASTROLOGIAN
     then
         return GetString("healer")
     elseif 
         jobID == FFXIV.JOBS.GLADIATOR or
         jobID == FFXIV.JOBS.MARAUDER or
         jobID == FFXIV.JOBS.PALADIN or
-        jobID == FFXIV.JOBS.WARRIOR
+        jobID == FFXIV.JOBS.WARRIOR or 
+		jobID == FFXIV.JOBS.DARKKNIGHT
     then
         return GetString("tank")
     end
@@ -2559,12 +2577,14 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.PUGILIST] = true,
 			[FFXIV.JOBS.ROGUE] = true,
 			[FFXIV.JOBS.NINJA] = true,
+			[FFXIV.JOBS.MACHINIST] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
 			[FFXIV.JOBS.CONJURER] = true,
 			[FFXIV.JOBS.SCHOLAR] = true,
 			[FFXIV.JOBS.WHITEMAGE] = true,
+			[FFXIV.JOBS.ASTROLOGIAN] = true,
 		}
 	elseif (rolestring == "Tank") then
 		return {
@@ -2572,6 +2592,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.MARAUDER] = true,
 			[FFXIV.JOBS.PALADIN] = true,
 			[FFXIV.JOBS.WARRIOR] = true,
+			[FFXIV.JOBS.DARKKNIGHT] = true,
 		}
 	elseif (rolestring == "Caster") then
 		return {
@@ -2582,6 +2603,7 @@ function GetRoleTable(rolestring)
 			[FFXIV.JOBS.WHITEMAGE] = true,
 			[FFXIV.JOBS.CONJURER] = true,
 			[FFXIV.JOBS.SCHOLAR] = true,
+			[FFXIV.JOBS.ASTROLOGIAN] = true,
 		}
 	end
 	return nil
@@ -2604,7 +2626,8 @@ function IsRangedDPS(jobID)
 			jobID == FFXIV.JOBS.BARD or
 			jobID == FFXIV.JOBS.BLACKMAGE or
 			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE
+			jobID == FFXIV.JOBS.THAUMATURGE or
+			jobID == FFXIV.JOBS.MACHINIST
 end
 
 function IsRanged(jobID)
@@ -2617,7 +2640,9 @@ function IsRanged(jobID)
 			jobID == FFXIV.JOBS.THAUMATURGE or
 			jobID == FFXIV.JOBS.CONJURER or
 			jobID == FFXIV.JOBS.SCHOLAR or
-			jobID == FFXIV.JOBS.WHITEMAGE
+			jobID == FFXIV.JOBS.WHITEMAGE or
+			jobID == FFXIV.JOBS.ASTROLOGIAN or
+			jobID == FFXIV.JOBS.MACHINIST
 end
 
 function IsPhysicalDPS(jobID)
@@ -2629,7 +2654,8 @@ function IsPhysicalDPS(jobID)
 			jobID == FFXIV.JOBS.ROGUE or
 			jobID == FFXIV.JOBS.NINJA or 
 			jobID == FFXIV.JOBS.ARCHER or
-			jobID == FFXIV.JOBS.BARD
+			jobID == FFXIV.JOBS.BARD or
+			jobID == FFXIV.JOBS.MACHINIST
 end
 
 function IsCasterDPS(jobID)
@@ -2648,7 +2674,8 @@ function IsCaster(jobID)
 			jobID == FFXIV.JOBS.THAUMATURGE or
 			jobID == FFXIV.JOBS.WHITEMAGE or
 			jobID == FFXIV.JOBS.CONJURER or
-			jobID == FFXIV.JOBS.SCHOLAR
+			jobID == FFXIV.JOBS.SCHOLAR or 
+			jobID == FFXIV.JOBS.ASTROLOGIAN
 end
 
 function IsTank(jobID)

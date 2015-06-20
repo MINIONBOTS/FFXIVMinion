@@ -308,12 +308,14 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
 	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
 	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
+	ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
 	ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
 	ffxivminion.AddMode(GetString("questMode"), ffxiv_task_quest)
 	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
 	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
+	ffxivminion.AddMode("FightTest", ffxiv_task_fighttest)
 	
 	if ( not ffxivminion.Windows ) then
 		ffxivminion.Windows = {}
@@ -437,6 +439,9 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gRandomMovement == nil) then
 		Settings.FFXIVMINION.gRandomMovement = "0"
 	end
+	if (Settings.FFXIVMINION.gAvoidHP == nil) then
+        Settings.FFXIVMINION.gAvoidHP = "100"
+    end
 	
 	local winName = ffxivminion.Windows.Main.Name
 	GUI_NewButton(winName, GetString("skillManager"), "SkillManager.toggle")
@@ -480,6 +485,7 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	
 	local group = GetString("playerHPMPTP")
+	GUI_NewNumeric(winName, GetString("avoidHP"), "gAvoidHP", group, "0", "100")
 	GUI_NewNumeric(winName, GetString("restHP"), "gRestHP", group, "0", "100")
     GUI_NewNumeric(winName, GetString("restMP"), "gRestMP", group, "0", "100")
 	GUI_NewNumeric(winName, GetString("potionHP"), "gPotionHP", group, "0", "100")
@@ -530,6 +536,7 @@ function ffxivminion.HandleInit()
 	gPermaSwiftCast = Settings.FFXIVMINION.gPermaSwiftCast
 	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
 	gFood = Settings.FFXIVMINION.gFood
+	gAvoidHP = Settings.FFXIVMINION.gAvoidHP
 	gRestHP = Settings.FFXIVMINION.gRestHP
     gRestMP = Settings.FFXIVMINION.gRestMP
     gFleeHP = Settings.FFXIVMINION.gFleeHP
@@ -642,6 +649,9 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(203, "Ul dah - Heart of the Sworn")
 		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
 		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
+		-- Duties
+		ml_mesh_mgr.SetDefaultMesh(159, "The Wanderers Palace")
+		
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
@@ -700,11 +710,21 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
                 gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
             end
 			SafeSetVar(tostring(k),v)
+		elseif (
+			k == "gRestHP" or
+            k == "gRestMP" or
+            k == "gFleeHP" or
+            k == "gFleeMP" or
+			k == "gPotionHP" or
+            k == "gPotionMP" or 
+			k == "gUseSprint")
+		then
+			ffxivminion.SaveClassSettings(tostring(k),v)
+			SafeSetVar(tostring(k),v)
         elseif (
             k == "gLogCNE" or
             k == "gFFXIVMINIONPulseTime" or
             k == "gBotMode" or 
-            k == "gUseSprint" or
             k == "gMountDist" or
             k == "gAssistMode" or
             k == "gAssistPriority" or
@@ -726,13 +746,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gFoodHQ" or 
 			k == "gAvoidAOE" or
 			k == "gDevDebug" or
-			k == "gRestHP" or
-            k == "gRestMP" or
-            k == "gFleeHP" or
-            k == "gFleeMP" or
-			k == "gPotionHP" or
-            k == "gPotionMP" or
-			k == "gUseCurielRoot"
+			k == "gUseCurielRoot" or
+			k == "gAvoidHP"
 			)				
         then
 			SafeSetVar(tostring(k),v)
@@ -937,10 +952,10 @@ function ffxivminion.SwitchMode(mode)
 			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
-			gDisableDrawing = "0"
-			GameHacks:Disable3DRendering(false)
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
@@ -970,12 +985,12 @@ function ffxivminion.SwitchMode(mode)
 		else
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
-			gDisableDrawing = "0"
-			GameHacks:Disable3DRendering(false)
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gProfile_listitems = "NA"
 			gProfile = "NA"
@@ -990,6 +1005,106 @@ function ffxivminion.SetMode(mode)
 		GameHacks:SkipDialogue(gSkipDialogue == "1")
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
+end
+
+function ffxivminion.VerifyClassSettings()
+	--Perform initial load.
+	ffxivminion.LoadClassSettings()
+	
+	local currentClass = ml_global_information.CurrentClass
+	if (currentClass) then
+		local classOptions = currentClass.options
+		if (not classOptions) then
+			d("[VerifyClassSettings]: Options does not exist, creating fresh table.")
+			currentClass.options = {}
+			classOptions = currentClass.options
+		end
+		
+		local classSettings = classOptions.settings
+		if (not classSettings) then
+			d("[VerifyClassSettings]: Settings does not exist, creating fresh table.")
+			classOptions.settings = {}
+			classSettings = classOptions.settings
+		end
+		
+		local settingsTemplate = {
+			["gRestHP"] = true,
+			["gRestMP"] = true,
+			["gPotionHP"] = true,
+			["gPotionMP"] = true,
+			["gFleeHP"] = true,
+			["gFleeMP"] = true,
+			["gUseSprint"] = true,
+		}
+		
+		local requiredUpdate = false
+		for name,value in pairs(settingsTemplate) do
+			if (not classSettings[name]) then
+				d("[VerifyClassSettings]: Setting ["..name.."] does not exist, creating fresh instance from global variable.")
+				classSettings[name] = _G[name]
+				if (not requiredUpdate) then
+					requiredUpdate = true
+				end
+			end
+		end
+		if (requiredUpdate) then
+			d("VerifyClassSettings: Saving altered settings in : "..tostring(currentClass.optionsPath))
+			persistence.store(currentClass.optionsPath,classOptions)
+			
+			--Reload settings if they were altered.
+			ffxivminion.LoadClassSettings()
+		end
+	end
+end
+
+function ffxivminion.SaveClassSettings(strName, value)
+	local currentClass = ml_global_information.CurrentClass
+	if (currentClass) then
+		local classOptions = currentClass.options
+		if (classOptions) then
+			local classSettings = classOptions.settings
+			if (classSettings) then
+				classSettings[strName] = value
+				--d("SaveClassSettings: Saving settings in : "..tostring(currentClass.optionsPath))
+				persistence.store(currentClass.optionsPath,classOptions)
+			end
+		end
+	end
+end
+
+function ffxivminion.LoadClassSettings()
+	local currentClass = ml_global_information.CurrentClass
+	if (currentClass) then
+		local optionsPath = currentClass.optionsPath
+		local options,e = persistence.load(optionsPath)
+		if (options) then
+			currentClass.options = options
+			d("[LoadClassSettings] : Loaded class options file.")
+			if not (options.settings) then
+				d("[LoadClassSettings] : Unable to find settings table in options file.")
+			end
+		else
+			d("[LoadClassSettings] :"..e)
+		end
+	else
+		d("[LoadClassSettings]: currentClass was invalid.")
+	end
+end
+
+function ffxivminion.UseClassSettings()
+	local currentClass = ml_global_information.CurrentClass
+	if (currentClass) then
+		local classOptions = currentClass.options
+		if (classOptions) then
+			local classSettings = classOptions.settings
+			if (classSettings) then
+				for name,value in pairs(classSettings) do
+					_G[name] = value
+					Settings.FFXIVMINION[name] = value
+				end
+			end
+		end
+	end
 end
 
 function ffxivminion.CheckClass()
@@ -1017,8 +1132,9 @@ function ffxivminion.CheckClass()
         [FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
 		[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
 		[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
-		
-		
+		[FFXIV.JOBS.MACHINIST]		= ffxiv_combat_machinist,
+		[FFXIV.JOBS.DARKKNIGHT]		= ffxiv_combat_darkknight,
+		[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,		
         [FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
         [FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
         [FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
@@ -1033,45 +1149,52 @@ function ffxivminion.CheckClass()
 		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
     }
 	
+	local playerClass = classes[Player.job]
+	if (not playerClass) then
+		if (gBotRunning == "1") then
+			ffxiv_dialog_manager.IssueStopNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
+		end
+		return
+	end
+	
 	if (ml_global_information.CurrentClass == nil) then
-		ml_global_information.CurrentClass = classes[Player.job]
+		ml_global_information.CurrentClass = playerClass
 		ml_global_information.CurrentClassID = Player.job
-		ml_global_information.AttackRange = ml_global_information.CurrentClass.range or 2
+		ml_global_information.AttackRange = playerClass.range or 2
 		SkillMgr.UseDefaultProfile()
+		ffxivminion.VerifyClassSettings()
+		ffxivminion.UseClassSettings()
 		return
 	end
     
     --TODO check which class we are currently using and modify globals appropriately
-    if (ml_global_information.CurrentClass == nil or ml_global_information.CurrentClassID ~= Player.job) then
-        ml_global_information.CurrentClass = classes[Player.job]
+    if (ml_global_information.CurrentClassID ~= Player.job) then
+        ml_global_information.CurrentClass = playerClass
         ml_global_information.CurrentClassID = Player.job
-        if ml_global_information.CurrentClass ~= nil then
-            ml_global_information.AttackRange = ml_global_information.CurrentClass.range or 2
-			
-			-- autosetting the correct botmode
-			local newModeName = ""
-			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
-				newModeName = GetString("gatherMode")
-			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
-				newModeName = GetString("fishMode")
-			elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
-					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
-					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
-					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-				newModeName = GetString("craftMode")
-			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-			elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
-				newModeName = GetString("grindMode")				
-			end
-						
-			if (gBotMode ~= newModeName and newModeName ~= "") then
-				ffxivminion.SwitchMode(newModeName)
-			end
-            
-            SkillMgr.UseDefaultProfile()
-        else
-            ml_global_information.AttackRange = 2
-        end
+		ml_global_information.AttackRange = playerClass.range or 2
+		SkillMgr.UseDefaultProfile()
+		ffxivminion.VerifyClassSettings()
+		ffxivminion.UseClassSettings()
+		
+		-- autosetting the correct botmode
+		local newModeName = ""
+		if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
+			newModeName = GetString("gatherMode")
+		elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
+			newModeName = GetString("fishMode")
+		elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
+				or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
+				or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
+				or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
+			newModeName = GetString("craftMode")
+		--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
+		elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
+			newModeName = GetString("grindMode")				
+		end
+					
+		if (gBotMode ~= newModeName and newModeName ~= "") then
+			ffxivminion.SwitchMode(newModeName)
+		end
     end
 end
 
@@ -1129,12 +1252,12 @@ function ffxivminion.CreateWindow(window)
 	local wname = window.Name
 	
 	if (ValidTable(wi)) then
-	if (window.hideModule) then
-		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
-	else
-		GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
+		if (window.hideModule) then
+			GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
+		else
+			GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
+		end
 	end
-end
 end
 
 function ffxivminion.SizeWindow(strName)
@@ -1170,22 +1293,22 @@ function ffxivminion.SaveWindows()
 		if (IsValidWindow(window)) then
 			local winid = window.id or "unknown"
 			local tableName = "AutoWindow".. winid
-		local WI = Settings.FFXIVMINION[tableName]
-		local W = GUI_GetWindowInfo(window.Name)
-		local WindowInfo = {}
-		
-		if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
-		if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
-		if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
-		if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
-		
-		local tablesEqual = true
-		if (ValidTable(WindowInfo) and ValidTable(WI)) then
-			tablesEqual = deepcompare(WindowInfo,WI,true)
-		end
-		if (not tablesEqual) then 
-			SafeSetVar(tableName,WindowInfo)
-		end
+			local WI = Settings.FFXIVMINION[tableName]
+			local W = GUI_GetWindowInfo(window.Name)
+			local WindowInfo = {}
+			
+			if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
+			if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
+			if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
+			if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
+			
+			local tablesEqual = true
+			if (ValidTable(WindowInfo) and ValidTable(WI)) then
+				tablesEqual = deepcompare(WindowInfo,WI,true)
+			end
+			if (not tablesEqual) then 
+				SafeSetVar(tableName,WindowInfo)
+			end
 		else
 			d(tostring(window.id or "unknown").." was invalid.")
 		end
@@ -1458,14 +1581,14 @@ function SafeSetVar(name, value)
 		d("Prevented invalid name from being saved.")
 		return false
 	end
-	
+
 	local valName = name	
 	local currentVal = Settings.FFXIVMINION[valName]
 	if (type(value) == "table") then
 		if not deepcompare(currentVal,value,true) then
 			--d("writing table settings " .. valName)
 			if (valName ~= nil and value ~= nil) then
-			Settings.FFXIVMINION[valName] = value
+				Settings.FFXIVMINION[valName] = value
 			else
 				d("Bad setting with name :"..tostring(valName).." was not written.")
 			end
@@ -1474,7 +1597,7 @@ function SafeSetVar(name, value)
 		if (currentVal ~= value and value ~= nil) then
 			--d("writing " .. value .. " to " .. currentVal)
 			if (valName ~= nil and value ~= nil) then
-			Settings.FFXIVMINION[valName] = value
+				Settings.FFXIVMINION[valName] = value
 			else
 				d("Bad setting with name :"..tostring(valName).." was not written.")
 			end

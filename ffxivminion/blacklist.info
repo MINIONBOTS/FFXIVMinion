@@ -1,0 +1,19 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["AOE"] = {
+	};
+	["FATE Whitelist"] = {
+	};
+	["Fates"] = {
+	};
+	["Gather"] = {
+	};
+	["Hunted Monsters"] = {
+	};
+	["Monsters"] = {
+	};
+}
+return obj1

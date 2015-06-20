@@ -1,39 +1,7 @@
-ffxiv_combat_blackmage = inheritsFrom(ml_task)
+ffxiv_combat_blackmage = {}
 ffxiv_combat_blackmage.range = 24
-
-function ffxiv_combat_blackmage.Create()
-    local newinst = inheritsFrom(ffxiv_combat_blackmage)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_combat_blackmage members
-    newinst.name = "BLACKMAGE"
-    newinst.targetid = 0
-	newinst.range = 24
-    
-    return newinst
-end
-
-function ffxiv_combat_blackmage:Init()
-    --init cnes
-    
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_combat_blackmage:OnSleep()
-
-end
-
-function ffxiv_combat_blackmage:OnTerminate()
-
-end
-
-function ffxiv_combat_blackmage:IsGoodToAbort()
-
+ffxiv_combat_blackmage.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_combat_blackmage.info"
+local options, e = persistence.load(ffxiv_combat_blackmage.optionsPath)
+if (options) then
+	ffxiv_combat_blackmage.options = options
 end

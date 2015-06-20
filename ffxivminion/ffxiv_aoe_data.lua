@@ -1809,6 +1809,12 @@ ffxiv_aoe_data =
 		[1674] = true,
 		[2759] = true,
 	},
+	["oversized"] = {
+		--Katon
+		[3203] = true,
+		--Raiton
+		[3205] = true,
+	},
 	["persistent"] = {
 		[1316] = 30,
 	}

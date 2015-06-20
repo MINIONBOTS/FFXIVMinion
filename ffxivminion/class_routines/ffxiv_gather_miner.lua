@@ -1,38 +1,7 @@
-ffxiv_gather_miner = inheritsFrom(ml_task)
-
-function ffxiv_gather_miner.Create()
-    local newinst = inheritsFrom(ffxiv_gather_miner)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_gather_miner members
-    newinst.name = "MINER"
-    newinst.targetid = 0
-    newinst.range = 3
-	
-    return newinst
-end
-
-function ffxiv_gather_miner:Init()
-    --init cnes
-    
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_gather_miner:OnSleep()
-
-end
-
-function ffxiv_gather_miner:OnTerminate()
-
-end
-
-function ffxiv_gather_miner:IsGoodToAbort()
-
+ffxiv_gather_miner = {}
+ffxiv_gather_miner.range = 3
+ffxiv_gather_miner.optionsPath = GetStartupPath()..[[\LuaMods\ffxivminion\class_routines\]].."ffxiv_gather_miner.info"
+local options, e = persistence.load(ffxiv_gather_miner.optionsPath)
+if (options) then
+	ffxiv_gather_miner.options = options
 end

@@ -28,7 +28,7 @@ function c_add_killtarget:evaluate()
 					c_add_killtarget.targetid = aggro.id
 					return true
 				end
-			end 
+			end
 		end
         return false
     end
@@ -274,8 +274,8 @@ function c_nextatma:evaluate()
 	
 	--First loop, check for best atma based on JP time theory.
 	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		if ((tonumber(atma.hour) == jpTime.hour and jpTime.minute <= 55) or
-			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.minute > 55)) then
+		if ((tonumber(atma.hour) == jpTime.hour and jpTime.min <= 55) or
+			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.min > 55)) then
 			local haveBest = false
 			--local bestAtma = a
 			for x=0,3 do
@@ -383,13 +383,15 @@ e_avoid = inheritsFrom( ml_effect )
 c_avoid.target = nil
 e_avoid.lastavoid = {}
 c_avoid.lastavoidData = {}
+c_avoid.thisSpell = 0
 function c_avoid:evaluate()	
-	if (gAvoidAOE == "0") then
+	if (gAvoidAOE == "0" or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent) then
 		return false
 	end
 	
 	--Reset tempvar.
 	c_avoid.lastavoidData = {}
+	c_avoid.thisSpell = 0
 
 	local ppos = shallowcopy(Player.pos)
 	local plevel = Player.level
@@ -397,7 +399,7 @@ function c_avoid:evaluate()
 	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("targetingme,incombat,onmesh,maxdistance=30")
-	if (el) then
+	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			local casting = e.castinginfo.castingid or 0
 			local channeling = e.castinginfo.channelingid or 0
@@ -407,7 +409,7 @@ function c_avoid:evaluate()
 			local casttargets = e.castinginfo.targets
 			
 			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
-				local avoidSpell = aoeData[casting] or aoeData[channeling]
+				local avoidSpell = (aoeData[channeling] and channeling) or casting
 				local epos = shallowcopy(e.pos)
 				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 				
@@ -423,6 +425,7 @@ function c_avoid:evaluate()
 					end
 					
 					c_avoid.target = e
+					c_avoid.thisSpell = avoidSpell
 					c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
 					return true
 				end
@@ -431,7 +434,7 @@ function c_avoid:evaluate()
 	end
 	
 	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
-	if (el) then
+	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			if (e.targetid ~= 0) then
 				local target = EntityList:Get(e.targetid)
@@ -445,7 +448,7 @@ function c_avoid:evaluate()
 					local casttargets = e.castinginfo.targets
 					
 					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
-						local avoidSpell = aoeData[casting] or aoeData[channeling]
+						local avoidSpell = (aoeData[channeling] and channeling) or casting
 						local epos = shallowcopy(e.pos)
 						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
 	
@@ -461,6 +464,7 @@ function c_avoid:evaluate()
 							end
 							
 							c_avoid.target = e
+							c_avoid.thisSpell = avoidSpell
 							c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
 							return true
 						end
@@ -505,6 +509,8 @@ function e_avoid:execute()
 		dodgeDist = 18
 	end
 	
+	local sideDist = 8
+	
 	local rangeDist = nil
 	if (ml_global_information.AttackRange > 5) then
 		rangeDist = Distance3DT(ppos,epos)
@@ -513,6 +519,12 @@ function e_avoid:execute()
 	end
 	local obst = nil
 	
+	if (ffxiv_aoe_data.oversized[c_avoid.thisSpell]) then
+		dodgeDist = dodgeDist + 5
+		sideDist = sideDist + 5
+		rangeDist = rangeDist + 5
+	end
+	
 	local options1 = {
 		GetPosFromDistanceHeading(epos, rangeDist, mobRear),
 		GetPosFromDistanceHeading(epos, rangeDist, mobRight),
@@ -520,9 +532,9 @@ function e_avoid:execute()
 	}
 	
 	local options2 = {
-		GetPosFromDistanceHeading(ppos, 8, h),
-		GetPosFromDistanceHeading(ppos, 8, playerRight),
-		GetPosFromDistanceHeading(ppos, 8, playerLeft),
+		GetPosFromDistanceHeading(ppos, sideDist, h),
+		GetPosFromDistanceHeading(ppos, sideDist, playerRight),
+		GetPosFromDistanceHeading(ppos, sideDist, playerLeft),
 	}
 	
 	local options3 = {
@@ -541,10 +553,8 @@ function e_avoid:execute()
 		local optionTable = nil
 		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid] or ffxiv_aoe_data.circle[target.castinginfo.castingid]) then
 			optionTable = options3
-			if (ffxiv_aoe_data.persistent[target.castinginfo.channelingid]) then
-				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[target.castinginfo.channelingid] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (dodgeDist - 1.5) }
-			elseif (ffxiv_aoe_data.persistent[target.castinginfo.castingid]) then
-				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[target.castinginfo.castingid] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (dodgeDist - 1.5) }
+			if (ffxiv_aoe_data.persistent[c_avoid.thisSpell]) then
+				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[c_avoid.thisSpell] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (sideDist - 1.5) }
 			end
 			if (isRanged) then
 				maxTime = 0
@@ -580,6 +590,11 @@ function e_avoid:execute()
 		escapePoint = closest
 	else
 		center = ppos
+		
+		if (ffxiv_aoe_data.persistent[c_avoid.thisSpell]) then
+			obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[c_avoid.thisSpell] * 1000), x = ppos.x, y = ppos.y, z = ppos.z, r = (dodgeDist - 1.5) }
+		end
+			
 		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
 		if (isRanged) then
 			maxTime = 0
@@ -1589,9 +1604,7 @@ function c_companion:evaluate()
 
     if (((gChoco == GetString("grindMode") or gChoco == GetString("any")) and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
 		((gChoco == GetString("assistMode") or gChoco == GetString("any")) and gBotMode == GetString("assistMode"))) then
-		local al = ActionList("type=6")
-		local dismiss = al[2]
-		local acDismiss = ActionList:Get(dismiss.id,6)
+		local acDismiss = ActionList:Get(2,6)
 		local item = Inventory:Get(4868)
 
 		if (not ValidTable(item)) then
@@ -1820,9 +1833,8 @@ function c_rest:evaluate()
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
 		if (gRestInFates == "0") then
-			if  (ml_task_hub:ThisTask().name == "LT_GRIND" and ml_task_hub:ThisTask().subtask and ml_task_hub:ThisTask().subtask.name == "LT_FATE") then
-				--d("Cannot rest due, no resting in fates option turned on.")
-				return false
+			if (gBotMode == GetString("grindMode")) then
+				return not IsInsideFate()
 			end
 		end
 		

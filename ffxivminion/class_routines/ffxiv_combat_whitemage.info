@@ -1,0 +1,16 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["settings"] = {
+		["gFleeHP"] = 35;
+		["gFleeMP"] = 0;
+		["gPotionHP"] = 50;
+		["gPotionMP"] = 15;
+		["gRestHP"] = 75;
+		["gRestMP"] = 40;
+		["gUseSprint"] = "1";
+	};
+}
+return obj1

@@ -60,7 +60,10 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.BOTANIST] = 218,
 	[FFXIV.JOBS.MINER] = 235,
 	[FFXIV.JOBS.ROGUE] = 2240,
-	[FFXIV.JOBS.NINJA] = 2240
+	[FFXIV.JOBS.NINJA] = 2240,
+	[FFXIV.JOBS.MACHINIST] = 2866,
+	[FFXIV.JOBS.ASTROLOGIAN] = 3596,
+	[FFXIV.JOBS.DARKKNIGHT] = 3617,
 }
 
 SkillMgr.StartingProfiles = 
@@ -86,7 +89,10 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.MINER] = "Miner",
 	[FFXIV.JOBS.CULINARIAN] = "Culinarian",
 	[FFXIV.JOBS.ROGUE] = "Rogue",
-	[FFXIV.JOBS.NINJA] = "Ninja"
+	[FFXIV.JOBS.NINJA] = "Ninja",
+	[FFXIV.JOBS.MACHINIST] = "Machinist",
+	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian",
+	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
 }
 
 SkillMgr.ActionTypes = 
@@ -256,81 +262,71 @@ function SkillMgr.ModuleInit()
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Marauder"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] = "Lancer"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Archer"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Conjurer"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black_Mage"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] = "Monk"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White_Mage"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black_Mage"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Arcanist"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
 	end
-	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
+	end
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "Dark Knight"
+	end
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist"
+	end
+	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) then
+		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
 	end
 		
     -- Skillbook

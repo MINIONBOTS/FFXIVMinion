@@ -1,0 +1,11 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["attributes"] = {
+		["range"] = 3;
+	};
+	["settings"] = {};
+}
+return obj1
