@@ -2295,7 +2295,8 @@ function c_autoequip:evaluate()
 		IsShopWindowOpen() or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
-		Player:GetGatherableSlotList()) 
+		Player:GetGatherableSlotList() or
+		Player.job == FFXIV.JOBS.ASTROLOGIAN or Player.job == FFXIV.JOBS.MACHINIST or Player.job == FFXIV.JOBS.DARKKNIGHT) 
 	then
 		return false
 	end
