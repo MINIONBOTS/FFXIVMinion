@@ -959,7 +959,7 @@ function SkillMgr.UseDefaultProfile()
 	if (ValidTable(defaultTable)) then
 		default = defaultTable[Player.job]
 		if (default) then
-			if (file_exists(SkillMgr.profilepath..default..".lua")) then
+			if (FileExists(SkillMgr.profilepath..default..".lua")) then
 				profileFound = true
 			end
 		end
@@ -968,8 +968,8 @@ function SkillMgr.UseDefaultProfile()
 	if (not profileFound) then
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
-			local starterDefault = SkillMgr.profilepath..starterDefault..".lua"
-			if (file_exists(starterDefault)) then
+			local filePath = SkillMgr.profilepath..starterDefault..".lua"
+			if (FileExists(filePath)) then
 				d("No default profile set, using start default ["..tostring(starterDefault).."]")
 				SkillMgr.SetDefaultProfile(starterDefault)
 				default = starterDefault
