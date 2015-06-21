@@ -1196,7 +1196,7 @@ function ffxiv_task_grindCombat:Process()
 				local fate = GetFateByID(fateID)
 				if ( fate and fate.completion < 99 and fate.status == 2) then
 					local plevel = Player.level
-					if (fate.level < (plevel - 5)) then
+					if ((fate.level < (plevel - 5)) or (fate.level < 50 and plevel > 50)) then
 						local myPos = Player.pos
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 						if (distance <= fate.radius) then				

@@ -1277,13 +1277,38 @@ function SkillMgr.ToggleMenu()
 end
 
 function SkillMgr.IsPetSummonSkill(skillID)
-    
-    if (	skillID == 165
-		or 	skillID == 150
-        or 	skillID == 170
-        or 	skillID == 180) then
+    if (skillID == 165 or
+		skillID == 150 or
+        skillID == 170 or
+        skillID == 180 or
+		skillID == 2864 or
+		skillID == 2865) 
+	then
         return true
     end
+    return false
+end
+
+function SkillMgr.IsPetSummonActive(skillID)
+	local contentids = {
+		[2864] = "3666",
+		[2865] = "3667",
+		[165] = "1404;1398;1401",
+		[170] = "1403;1399;1400",
+		[180] = "1402",
+	}
+	
+	local petstring = contentids[skillID]
+	if (petstring) then
+		local el = EntityList("ownerid="..tostring(Player.id)..",contentid="..petstring)
+		if (ValidTable(el)) then
+			local i,entity = next(el)
+			if (i and entity) then
+				return true
+			end
+		end
+	end
+		
     return false
 end
 
@@ -1889,7 +1914,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Pet" ) then
 		if ( pet ) then
-			if ( SkillMgr.IsPetSummonSkill(skillid) and pet.alive ) then 
+			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
 				return nil 
 			else
 				target = pet
@@ -2875,6 +2900,8 @@ function SkillMgr.AddDefaultConditions()
 		local secspassed = tonumber(skill.secspassed) or 0
 		if ( secspassed > 0 and skill.lastcast and (TimeSince(skill.lastcast) < (secspassed * 1000))) then 
 			return true
+		elseif (SkillMgr.IsPetSummonSkill(skill.id) and skill.lastcast and TimeSince(skill.lastcast) < (8000)) then
+			return true
 		end
 		return false
 	end
@@ -3210,7 +3237,7 @@ function SkillMgr.AddDefaultConditions()
 			local fate = GetFateByID(target.fateid)
 			if (ValidTable(fate)) then
 				if (fate.status == 2) then
-					if (Player:GetSyncLevel() == 0 and fate.level < (Player.level - 5)) then
+					if (Player:GetSyncLevel() == 0 and ((fate.level < (Player.level - 5)) or (fate.level < 50 and Player.level > 50))) then
 						return true
 					end
 				end

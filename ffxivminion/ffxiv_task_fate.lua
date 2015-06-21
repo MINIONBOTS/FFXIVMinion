@@ -279,7 +279,7 @@ function c_atfate:evaluate()
             if (ValidTable(fate)) then
                 -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
                 local plevel = Player.level
-                if (fate.level < plevel - 5) then
+                if ((fate.level < plevel - 5) or (fate.level < 50 and plevel > 50)) then
                     return false
                 end
                 
@@ -321,7 +321,7 @@ function c_syncfatelevel:evaluate()
 	local fate = GetFateByID(fateID)
 	if ( fate and TableSize(fate)) then
 		local plevel = Player.level
-		if (fate.level < (plevel - 5))then
+		if ((fate.level < (plevel - 5)) or (fate.level < 50 and plevel > 50)) then
 			local myPos = Player.pos
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
