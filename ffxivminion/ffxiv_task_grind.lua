@@ -39,6 +39,7 @@ function ffxiv_task_grind.Create()
 	newinst.filterLevel = true
 	newinst.correctMap = Player.localmapid
 	newinst.suppressRestTimer = 0
+	newinst.safeLevel = false
 	ffxiv_task_grind.inFate = false
 	ml_global_information.currentMarker = false
     
@@ -481,7 +482,7 @@ function ffxiv_task_grind.SetupMarkers()
 	grindMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
     grindMarker:SetTime(300)
     grindMarker:SetMinLevel(1)
-    grindMarker:SetMaxLevel(50)
+    grindMarker:SetMaxLevel(60)
     ml_marker_mgr.AddMarkerTemplate(grindMarker)
     
     -- refresh the manager with the new templates

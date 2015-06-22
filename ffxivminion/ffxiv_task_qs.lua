@@ -28,7 +28,7 @@ function ffxiv_task_qs_wrapper.UIInit()
         Settings.FFXIVMINION.gQSGrindMinLevel = "1"
     end
     if ( Settings.FFXIVMINION.gQSGrindMaxLevel == nil ) then
-        Settings.FFXIVMINION.gQSGrindMaxLevel = "50"
+        Settings.FFXIVMINION.gQSGrindMaxLevel = "60"
     end
 	if (Settings.FFXIVMINION.gQSGrindContent == nil) then
         Settings.FFXIVMINION.gQSGrindContent = ""
@@ -60,15 +60,15 @@ function ffxiv_task_qs_wrapper.UIInit()
 	GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
     
 	local group = "Attack Settings"
-    GUI_NewNumeric(winName,GetString("minLevel"),"gQSGrindMinLevel",group,"1","50")
-    GUI_NewNumeric(winName,GetString("maxLevel"),"gQSGrindMaxLevel",group,"1","50")
+    GUI_NewNumeric(winName,GetString("minLevel"),"gQSGrindMinLevel",group,"1","60")
+    GUI_NewNumeric(winName,GetString("maxLevel"),"gQSGrindMaxLevel",group,"1","60")
     GUI_NewField(winName,GetString("contentIDEquals"),"gQSGrindContent",group)
 	
 	local group = "Fish Settings"
 	GUI_NewCheckbox(winName,GetString("useMooch"),"gUseMooch",group)
 	
 	local group = "Gather Settings"
-	GUI_NewNumeric(winName,GetString("minLevel"),"gQSGatherNodeLevel",group,"1","50")
+	GUI_NewNumeric(winName,GetString("minLevel"),"gQSGatherNodeLevel",group,"1","60")
 	GUI_NewField(winName,GetString("selectItem1"),"gQSGatherItem1",group)	
 	GUI_NewField(winName,GetString("selectItem2"),"gQSGatherItem2",group)	
     GUI_NewField(winName,GetString("contentIDEquals"),"gQSGatherContent",group)	
@@ -719,10 +719,10 @@ end
 function e_qsfindgatherable:execute()	
     local minlevel = tonumber(gQSGatherNodeLevel)
     local maxlevel = tonumber(gQSGatherNodeLevel)
-	if (minlevel and minlevel < 50) then
+	if (minlevel and minlevel < 60) then
 		minlevel = RoundUp(minlevel,5)
 	end
-	if (maxlevel and maxlevel < 50) then
+	if (maxlevel and maxlevel < 60) then
 		maxlevel = RoundUp(maxlevel,5)
 	end
 	

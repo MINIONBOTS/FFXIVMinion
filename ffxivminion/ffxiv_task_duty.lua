@@ -13,6 +13,8 @@ ffxiv_task_duty.joinAttempts = 0
 ffxiv_task_duty.independentMode = false
 ffxiv_task_duty.lastCompletion = 0
 ffxiv_task_duty.preventFail = 0
+ffxiv_task_duty.leavingDuty = false
+ffxiv_task_duty.completionCount = 0
 ffxiv_task_duty.tempvars = {}
 
 ffxiv_task_duty.performanceLevels = {
@@ -59,7 +61,9 @@ function ffxiv_task_duty.Create()
 	newinst.refreshed = false
 	
 	ffxiv_task_duty.leader = ""
-    
+    ffxiv_task_duty.leavingDuty = false
+	ffxiv_task_duty.completionCount = 0
+	
     return newinst
 end
 
@@ -201,15 +205,36 @@ function e_joinduty:execute()
 	if (ml_task_hub:ThisTask().state == "DUTY_EXIT" or ml_task_hub:ThisTask().state == "") then
 		ml_task_hub:ThisTask().state = "DUTY_NEW"
 	end
+	
+	local category = ffxiv_task_duty.dutyInfo["Category"]
+	local categoryOptions = {
+		[0] = true, --FILTER_DAILY_ROULETTE,
+		[1] = true, --FILTER_DUNGEONS_ARR,
+		[2] = true, --FILTER_DUNGEONS_HW,
+		[3] = true, --FILTER_GUILDHEST,
+		[4] = true, --FILTER_TRIALS_ARR,
+		[5] = true, --FILTER_TRIALS_HW,
+		[6] = true, --FILTER_RAIDS_ARR,
+		[7] = true, --FILTER_RAIDS_HW,
+		[8] = true, --FILTER_PVP
+	}
+	
+	if (not category or not categoryOptions[category]) then
+		d("Unknown category:"..tostring(category))
+		return false
+	end
+	
 	if (not ControlVisible("ContentsFinder")) then
 		SendTextCommand("/dutyfinder")
 		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	else
 		if (IsFullParty()) then
 			if (ControlVisible("ContentsFinder") and IsFullParty() and not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
-				Duty:ClearDutySelection()
-				ffxiv_task_duty.dutyCleared = true
-				ml_task_hub:ThisTask().joinTimer = Now() + (500 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				if (Duty:SelectFilter(category)) then
+					Duty:ClearDutySelection()
+					ffxiv_task_duty.dutyCleared = true
+					ml_task_hub:ThisTask().joinTimer = Now() + (500 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				end
 			elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared) then
 				local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 				if (duty) then
@@ -255,9 +280,34 @@ function e_leaveduty:execute()
 			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		elseif ControlVisible("ContentsFinder") and ControlVisible("SelectYesno") then
 			PressYesNo(true)
+			ffxiv_task_duty.leavingDuty = true
 			ml_task_hub:ThisTask().leaveTimer = Now() + (300 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 		end
 	end
+end
+
+c_stopduty = inheritsFrom( ml_cause )
+e_stopduty = inheritsFrom( ml_effect )
+function c_stopduty:evaluate()
+	if (not IsLoading() and not Player.incombat and NotQueued()) then
+		if (ffxiv_task_duty.leavingDuty) then
+			return true
+		end
+	end
+	
+	return false
+end
+function e_stopduty:execute()
+	local completeCount = tonumber(gDutyCompleteCount) or 0
+	completeCount = completeCount + 1
+	gDutyCompleteCount = completeCount
+	
+	local stopCount = tonumber(gDutyStopCount) or 0
+	if (stopCount > 0 and completeCount >= stopCount) then
+		d("Bot stopped because enough completions have happened.")
+		ml_task_hub.ToggleRun()
+	end
+	ffxiv_task_duty.leavingDuty = false
 end
 
 c_changeleader = inheritsFrom( ml_cause )
@@ -536,6 +586,9 @@ function ffxiv_task_duty:Init()
 	local ke_changeLeader = ml_element:create( "ChangeLeader", c_changeleader, e_changeleader, 17 )
     self:add(ke_changeLeader, self.process_elements)
 	
+	local ke_stopDuty = ml_element:create( "StopDuty", c_stopduty, e_stopduty, 16 )
+    self:add(ke_stopDuty, self.process_elements)
+	
 	local ke_joinDuty = ml_element:create( "JoinDuty", c_joinduty, e_joinduty, 15 )
     self:add(ke_joinDuty, self.process_elements) 
 	
@@ -566,6 +619,9 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gLootOption == nil or Settings.FFXIVMINION.gLootOption == "All") then
         Settings.FFXIVMINION.gLootOption = GetString("need")
     end
+	if (Settings.FFXIVMINION.gDutyStopCount == nil) then
+        Settings.FFXIVMINION.gDutyStopCount = 0
+    end
 	if (Settings.FFXIVMINION.gUseTelecast == nil) then
         Settings.FFXIVMINION.gUseTelecast = "1"
     end
@@ -585,10 +641,13 @@ function ffxiv_task_duty.UIInit()
 	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
 	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewField(winName,"Complete Count","gDutyCompleteCount",group)
 	GUI_NewComboBox(winName,GetString("performance"),"gPerformanceLevel",group,GetStringList("extreme,fast,normal,slow",","))
+	
 	local group = GetString("settings")
     GUI_NewComboBox(winName,GetString("loot"),"gLootOption",group,GetStringList("need,greed,pass",","))
 	GUI_NewCheckbox(winName,GetString("telecast"),"gUseTelecast",group)
+	GUI_NewNumeric(winName,"Stop Count","gDutyStopCount",group,"0","100")
 
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,GetString("settings"))
@@ -596,6 +655,7 @@ function ffxiv_task_duty.UIInit()
 	GUI_WindowVisible(winName, false)
 	
 	gLootOption = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gLootOption,gLootOption_listitems,GetString("need"))
+	gDutyStopCount = Settings.FFXIVMINION.gDutyStopCount
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
 	gPerformanceLevel = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gPerformanceLevel,gPerformanceLevel_listitems,GetString("normal"))
 end

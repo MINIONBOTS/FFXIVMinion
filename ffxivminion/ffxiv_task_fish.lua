@@ -383,7 +383,7 @@ function ffxiv_task_fish.SetupMarkers()
 	fishingMarker:AddField("checkbox", GetString("useStealth"), "0")
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)
-    fishingMarker:SetMaxLevel(50)
+    fishingMarker:SetMaxLevel(60)
     ml_marker_mgr.AddMarkerTemplate(fishingMarker)
 	
     -- refresh the manager with the new templates

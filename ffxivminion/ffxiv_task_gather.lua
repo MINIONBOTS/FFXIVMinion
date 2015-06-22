@@ -96,16 +96,16 @@ function c_findgatherable:evaluate()
 end
 function e_findgatherable:execute()
     local minlevel = 1
-    local maxlevel = 50
+    local maxlevel = 60
     if (ValidTable(ml_task_hub:CurrentTask().currentMarker) and
 		gMarkerMgrMode ~= GetString("singleMarker")) 
 	then
 		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
-		if (minlevel and minlevel < 50) then
+		if (minlevel and minlevel < 60) then
 			minlevel = RoundUp(minlevel,5)
 		end
 		maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
-		if (maxlevel and maxlevel < 50) then
+		if (maxlevel and maxlevel < 60) then
 			maxlevel = RoundUp(maxlevel,5)
 		end
     end
@@ -140,7 +140,6 @@ function e_findgatherable:execute()
 		end
 		--default 
 		ml_task_hub:CurrentTask().maxGatherDistance = 250
-		
     else
 		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
         if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then            
@@ -1028,7 +1027,7 @@ function e_gather:execute()
 				end
 				
 				-- Gather unknown items to unlock them.
-				if (Player.level < 50) then
+				if (Player.level < 60) then
 					for i,item in pairs(list) do
 						if (item.isunknown) then
 							if ((not IsChocoboFood(item.id) or (IsChocoboFood(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
@@ -1816,7 +1815,7 @@ function ffxiv_task_gather.SetupMarkers()
 	botanyMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
-    botanyMarker:SetMaxLevel(50)
+    botanyMarker:SetMaxLevel(60)
     ml_marker_mgr.AddMarkerTemplate(botanyMarker)
 	
 	local miningMarker = ml_marker:Create("miningTemplate")
@@ -1833,7 +1832,7 @@ function ffxiv_task_gather.SetupMarkers()
 	miningMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
-    miningMarker:SetMaxLevel(50)
+    miningMarker:SetMaxLevel(60)
     ml_marker_mgr.AddMarkerTemplate(miningMarker)
 	
 	local unspoiledMarker = ml_marker:Create("unspoiledTemplate")
@@ -1848,7 +1847,7 @@ function ffxiv_task_gather.SetupMarkers()
 	unspoiledMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     unspoiledMarker:SetTime(1800)
     unspoiledMarker:SetMinLevel(50)
-    unspoiledMarker:SetMaxLevel(50)
+    unspoiledMarker:SetMaxLevel(60)
     ml_marker_mgr.AddMarkerTemplate(unspoiledMarker)
 	
     -- refresh the manager with the new templates
