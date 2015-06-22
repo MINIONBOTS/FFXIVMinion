@@ -3211,20 +3211,6 @@ function GetPartySize()
 	return count
 end
 
-function GetDutyFromID(dutyID)
-	local dutyID = tonumber(dutyID)
-	local dutyList = Duty:GetDutyList()
-	if (dutyList) then
-		for _, duty in pairs(dutyList) do
-			if (duty.id == dutyID) then
-				return duty
-			end
-		end
-	end
-	
-	return ""
-end
-
 function HasDutyUnlocked(dutyID)
 	local dutyID = tonumber(dutyID)
 	local dutyList = Duty:GetDutyList()

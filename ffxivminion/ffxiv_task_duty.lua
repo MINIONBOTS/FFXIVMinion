@@ -222,31 +222,33 @@ function e_joinduty:execute()
 	if (not category or not categoryOptions[category]) then
 		d("Unknown category:"..tostring(category))
 		return false
+	else
+		d("Found a known category:"..tostring(category))
 	end
 	
 	if (not ControlVisible("ContentsFinder")) then
 		SendTextCommand("/dutyfinder")
 		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	else
-		if (IsFullParty()) then
-			if (ControlVisible("ContentsFinder") and IsFullParty() and not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
-				if (Duty:SelectFilter(category)) then
+		if (ControlVisible("ContentsFinder") and Duty:SelectFilter(category)) then
+			if (IsFullParty()) then
+				if (not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 					Duty:ClearDutySelection()
 					ffxiv_task_duty.dutyCleared = true
 					ml_task_hub:ThisTask().joinTimer = Now() + (500 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				elseif (not ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared) then
+					local duty = GetDutyFromID(ffxiv_task_duty.mapID)
+					if (duty) then
+						Duty:SelectDuty(duty.DutyListIndex)
+						ffxiv_task_duty.dutySet = true
+						ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+					end
+				elseif (ffxiv_task_duty.dutySet) then
+					ml_task_hub:ThisTask().joinTimer = Now() + (5000 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+					PressDutyJoin()
+					ffxiv_task_duty.dutyCleared = false
+					ffxiv_task_duty.dutySet = false
 				end
-			elseif (ControlVisible("ContentsFinder") and not ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared) then
-				local duty = GetDutyFromID(ffxiv_task_duty.mapID)
-				if (duty) then
-					Duty:SelectDuty(duty.DutyListIndex)
-					ffxiv_task_duty.dutySet = true
-					ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
-				end
-			elseif (ControlVisible("ContentsFinder") and ffxiv_task_duty.dutySet) then
-				ml_task_hub:ThisTask().joinTimer = Now() + (5000 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
-				PressDutyJoin()
-				ffxiv_task_duty.dutyCleared = false
-				ffxiv_task_duty.dutySet = false
 			end
 		end
 	end

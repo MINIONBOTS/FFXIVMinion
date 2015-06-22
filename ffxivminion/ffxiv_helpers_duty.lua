@@ -138,7 +138,7 @@ end
 function GetDutyFromID(dutyID)
 	local dutyID = tonumber(dutyID)
 	local dutyList = Duty:GetDutyList()
-	if (dutyList) then
+	if (ValidTable(dutyList)) then
 		for _, duty in pairs(dutyList) do
 			if (duty.id == dutyID) then
 				return duty
@@ -146,7 +146,7 @@ function GetDutyFromID(dutyID)
 		end
 	end
 	
-	return ""
+	return nil
 end
 
 function HasDutyUnlocked(dutyID)
