@@ -19,8 +19,7 @@ function c_partysyncfatelevel:evaluate()
     local myPos = Player.pos
     local fate = GetClosestFate(myPos)
 	if (ValidTable(fate)) then
-		local plevel = Player.level
-		if ((fate.level < (plevel - 5)) or (fate.level < 50 and plevel > 50)) then
+		if (ffxiv_task_fate.RequiresSync(fate.level)) then
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance < fate.radius) then				
 				return true

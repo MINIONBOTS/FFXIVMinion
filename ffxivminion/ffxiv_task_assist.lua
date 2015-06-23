@@ -177,6 +177,7 @@ function ffxiv_task_assist.UIInit()
 	
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
+	GUI_NewButton(winName, "Teleport Nearest Current (HACK)", "ffxiv_task_assist.TeleportAetherCurrent")
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
 	
 	local group = GetString("status")
@@ -217,6 +218,23 @@ function ffxiv_task_assist.UIInit()
 	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
 
+function ffxiv_task_assist.TeleportAetherCurrent()
+	local el = EntityList("type=7,targetable")
+	if (ValidTable(el)) then
+		for i,entity in pairs(el) do
+			if (entity.name == "Aether Current") then
+				local coord = entity.pos
+				GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
+				Player:SetFacingSynced(coord.x,coord.y,coord.z)
+				return true
+			end
+		end
+	end
+	
+	d("Found no nearby currents")
+	return false
+end
+
 function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if 	( 	k == "gAssistMode" or
@@ -235,3 +253,13 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("assistMode"))
 end
+
+function ffxiv_task_assist.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" ) then
+		if (string.find(Button,"ffxiv_task_assist.")) then
+			ExecuteFunction(Button)
+		end
+	end
+end
+
+RegisterEventHandler("GUI.Item", ffxiv_task_assist.HandleButtons)

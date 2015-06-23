@@ -129,7 +129,9 @@ function ffxiv_dialog_manager.IssueStopNotice(winTitle, message)
 		newDialog:Show()
 	end
 	
-	ml_task_hub.ToggleRun()
+	if (gBotRunning == "1") then
+		ml_task_hub.ToggleRun()
+	end
 end
 
 RegisterEventHandler("GUI.Item",ffxiv_dialog_manager.ButtonHandler)

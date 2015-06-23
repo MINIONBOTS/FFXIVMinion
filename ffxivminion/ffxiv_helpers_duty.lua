@@ -304,3 +304,38 @@ function GetDutyLeader()
 	
 	return nil
 end
+
+function IsValidCategory(category)
+	local category = tonumber(category) or -1
+	local categoryOptions = {
+		[0] = true, --FILTER_DAILY_ROULETTE,
+		[1] = true, --FILTER_DUNGEONS_ARR,
+		[2] = true, --FILTER_DUNGEONS_HW,
+		[3] = true, --FILTER_GUILDHEST,
+		[4] = true, --FILTER_TRIALS_ARR,
+		[5] = true, --FILTER_TRIALS_HW,
+		[6] = true, --FILTER_RAIDS_ARR,
+		[7] = true, --FILTER_RAIDS_HW,
+		[8] = true, --FILTER_PVP
+	}
+	
+	if (categoryOptions[category]) then
+		return true
+	end
+	
+	local message = {}
+	message[1] = "Invalid category value passed in profile.\n"
+	message[2] = "Valid values are as follows:"
+	message[3] = "0 - FILTER_DAILY_ROULETTE"
+	message[4] = "1 - FILTER_DUNGEONS_ARR"
+	message[5] = "2 - FILTER_DUNGEONS_HW"
+	message[6] = "3 - FILTER_GUILDHEST"
+	message[7] = "4 - FILTER_TRIALS_ARR"
+	message[8] = "5 - FILTER_TRIALS_HW"
+	message[9] = "6 - FILTER_RAIDS_ARR"
+	message[10] = "7 - FILTER_RAIDS_HW"
+	message[11] = "8 - FILTER_PVP"
+	
+	ffxiv_dialog_manager.IssueStopNotice("FFXIV_Duty_IsValidCategory", message)
+	return false
+end

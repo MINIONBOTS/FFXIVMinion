@@ -2212,7 +2212,11 @@ function e_handoverquest:execute()
 	local inv = Inventory("type=2004")
 
 	for id, item in pairs(inv) do 
-		item:HandOver() 
+		if (item:HandOver()) then
+			d("Handed over item ID:"..tostring(item.id))
+			ml_task_hub:CurrentTask():SetDelay(1000)
+			return
+		end
 	end			
 	Quest:RequestHandOver()
 end

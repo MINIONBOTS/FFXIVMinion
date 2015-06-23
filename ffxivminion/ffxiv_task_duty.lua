@@ -16,6 +16,8 @@ ffxiv_task_duty.preventFail = 0
 ffxiv_task_duty.leavingDuty = false
 ffxiv_task_duty.completionCount = 0
 ffxiv_task_duty.tempvars = {}
+ffxiv_task_duty.category = -1
+ffxiv_task_duty.mapID = -1
 
 ffxiv_task_duty.performanceLevels = {
 	["Extreme"] = 2;
@@ -206,31 +208,11 @@ function e_joinduty:execute()
 		ml_task_hub:ThisTask().state = "DUTY_NEW"
 	end
 	
-	local category = ffxiv_task_duty.dutyInfo["Category"]
-	local categoryOptions = {
-		[0] = true, --FILTER_DAILY_ROULETTE,
-		[1] = true, --FILTER_DUNGEONS_ARR,
-		[2] = true, --FILTER_DUNGEONS_HW,
-		[3] = true, --FILTER_GUILDHEST,
-		[4] = true, --FILTER_TRIALS_ARR,
-		[5] = true, --FILTER_TRIALS_HW,
-		[6] = true, --FILTER_RAIDS_ARR,
-		[7] = true, --FILTER_RAIDS_HW,
-		[8] = true, --FILTER_PVP
-	}
-	
-	if (not category or not categoryOptions[category]) then
-		d("Unknown category:"..tostring(category))
-		return false
-	else
-		d("Found a known category:"..tostring(category))
-	end
-	
 	if (not ControlVisible("ContentsFinder")) then
 		SendTextCommand("/dutyfinder")
 		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	else
-		if (ControlVisible("ContentsFinder") and Duty:SelectFilter(category)) then
+		if (ControlVisible("ContentsFinder") and Duty:SelectFilter(ffxiv_task_duty.category)) then
 			if (IsFullParty()) then
 				if (not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 					Duty:ClearDutySelection()
@@ -425,9 +407,14 @@ function e_dutydatacheck:execute()
 		SendTextCommand("/dutyfinder")
 		e_dutydatacheck.timer = Now() + 2000
 	else
-		ml_task_hub:CurrentTask().refreshed = true
-		SendTextCommand("/dutyfinder")
-		e_dutydatacheck.timer = Now() + 1000
+		if (Duty:SelectFilter(ffxiv_task_duty.category)) then
+			ml_task_hub:CurrentTask().refreshed = true
+			SendTextCommand("/dutyfinder")
+			e_dutydatacheck.timer = Now() + 1000
+		else
+			d("Select filter failed, reattempting in 2 seconds.")
+			e_dutydatacheck.timer = Now() + 2000
+		end
 	end
 end
 
@@ -704,9 +691,17 @@ function ffxiv_task_duty.LoadProfile(strName)
 	ffxiv_task_duty.dutyInfo, e = persistence.load(ffxiv_task_duty.dutyPath..strName..".info")
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
-		if (ffxiv_task_duty.dutyInfo.Independent) then
-			ffxiv_task_duty.independentMode = true
+		ffxiv_task_duty.category = ffxiv_task_duty.dutyInfo.Category
+		
+		local categoryCheck = IsValidCategory(ffxiv_task_duty.category)
+		if (categoryCheck) then
+			if (ffxiv_task_duty.dutyInfo.Independent) then
+				ffxiv_task_duty.independentMode = true
+			else
+				ffxiv_task_duty.independentMode = false
+			end
 		else
+			ffxiv_task_duty.mapID = -1
 			ffxiv_task_duty.independentMode = false
 		end
 	else

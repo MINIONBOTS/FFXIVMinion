@@ -1151,9 +1151,7 @@ function ffxivminion.CheckClass()
 	
 	local playerClass = classes[Player.job]
 	if (not playerClass) then
-		if (gBotRunning == "1") then
-			ffxiv_dialog_manager.IssueStopNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
-		end
+		ffxiv_dialog_manager.IssueStopNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
 		return
 	end
 	

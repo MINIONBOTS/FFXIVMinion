@@ -320,8 +320,7 @@ function c_syncfatelevel:evaluate()
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
 	if ( fate and TableSize(fate)) then
-		local plevel = Player.level
-		if ((fate.level < (plevel - 5)) or (fate.level < 50 and plevel > 50)) then
+		if (ffxiv_task_fate.RequiresSync(fate.level)) then
 			local myPos = Player.pos
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
@@ -531,6 +530,25 @@ function e_endfate:execute()
 	ml_task_hub:ThisTask():ParentTask().suppressRestTimer = Now() + 5000
 end
 
+function ffxiv_task_fate.RequiresSync(fateLevel)
+	local fateLevel = tonumber(fateLevel) or 0
+	local playerLevel = Player.level
+	
+	local requiresSync = false
+	if (fateLevel > 0) then
+		if (fateLevel < 50) then
+			if (playerLevel > 50 or fateLevel < (playerLevel - 5)) then
+				requiresSync = true
+			end
+		else
+			if (fateLevel < (playerLevel - 3)) then
+				requiresSync = true
+			end
+		end
+	end
+		
+	return requiresSync
+end
 
 function ffxiv_task_fate.BlacklistInitUI()
     GUI_NewNumeric(ml_blacklist_mgr.mainwindow.name,GetString("fateIndex"),"gFateIndex",GetString("addEntry"),"1","5")

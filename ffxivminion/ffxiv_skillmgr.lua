@@ -1316,6 +1316,8 @@ function SkillMgr.IsComboBreaker(skillid)
 	local skillid = tonumber(skillid) or 0
 	local skills = {
 		[14] = true,
+		[49] = true,
+		[3549] = true,
 	}
 	return skills[skillid]
 end
@@ -3237,7 +3239,7 @@ function SkillMgr.AddDefaultConditions()
 			local fate = GetFateByID(target.fateid)
 			if (ValidTable(fate)) then
 				if (fate.status == 2) then
-					if (Player:GetSyncLevel() == 0 and ((fate.level < (Player.level - 5)) or (fate.level < 50 and Player.level > 50))) then
+					if (Player:GetSyncLevel() == 0 and ffxiv_task_fate.RequiresSync(fate.level)) then
 						return true
 					end
 				end
