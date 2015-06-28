@@ -161,7 +161,7 @@ function c_setbait:evaluate()
                 for i = 0,3 do
                     local inventory = Inventory("type="..tostring(i))
                     if (inventory ~= nil and inventory ~= 0) then
-                        for _,item in ipairs(inventory) do
+                        for _,item in pairs(inventory) do
                             if item.name == baitName then
                                 e_setbait.baitid = item.id
 								e_setbait.baitname = item.name
