@@ -174,6 +174,9 @@ function ffxiv_task_assist.UIInit()
 	if (Settings.FFXIVMINION.gAssistFilter5 == nil) then
         Settings.FFXIVMINION.gAssistFilter5 = "0"
     end
+	if (Settings.FFXIVMINION.gAssistUseAutoFace == nil) then
+        Settings.FFXIVMINION.gAssistUseAutoFace = "0"
+    end
 	
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -196,6 +199,7 @@ function ffxiv_task_assist.UIInit()
 	local group = GetString("settings")
     GUI_NewComboBox(winName,GetString("assistMode"),"gAssistMode", group,GetStringList("none,lowestHealth,nearest",","))
     GUI_NewComboBox(winName,GetString("assistPriority"),"gAssistPriority",group,GetStringList("dps,healer",","))
+	GUI_NewCheckbox(winName,"Use Autoface","gAssistUseAutoFace",group)
     GUI_NewCheckbox(winName,GetString("startCombat"),"gStartCombat",group)
     GUI_NewCheckbox(winName,GetString("confirmDuty"),"gConfirmDuty",group) 
     GUI_NewCheckbox(winName,GetString("questHelpers"),"gQuestHelpers",group)
@@ -214,6 +218,7 @@ function ffxiv_task_assist.UIInit()
 	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
 	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
 	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
+	gAssistUseAutoFace = Settings.FFXIVMINION.gAssistUseAutoFace
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
@@ -246,7 +251,8 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gAssistFilter2" or 
 				k == "gAssistFilter3" or
 				k == "gAssistFilter4" or
-				k == "gAssistFilter5") 
+				k == "gAssistFilter5" or
+				k == "gAssistUseAutoFace" ) 
 		then
 			SafeSetVar(tostring(k),v)
         end

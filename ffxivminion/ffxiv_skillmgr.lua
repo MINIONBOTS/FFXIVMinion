@@ -17,6 +17,7 @@ SkillMgr.editwindow_gathering = { name = GetString("skillEditor_gather"), x = 25
 SkillMgr.confirmwindow = { name = GetString("confirm"), x = 250, y = 50, w = 250, h = 120}
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
+SkillMgr.currentChain = ""
 SkillMgr.prevSkillID = ""
 SkillMgr.prevComboSkillID = ""
 SkillMgr.prevSkillList = {}
@@ -106,15 +107,16 @@ SkillMgr.Variables = {
 	SKM_NAME = { default = "", cast = "string", profile = "name", section = "main"},
 	SKM_ALIAS = { default = "", cast = "string", profile = "alias", section = "main"},
 	SKM_ID = { default = 0, cast = "number", profile = "id", section = "main"},
-	SKM_TYPE = { default = 1, cast = "number", profile = "type", section = "main"},
+	SKM_TYPE = { default = 1, cast = "number", profile = "type", section = "main", useData = "type" },
 	SKM_ON = { default = "0", cast = "string", profile = "used", section = "main"},
 	SKM_Prio = { default = 0, cast = "number", profile = "prio", section = "main"},
 	
 	SKM_STYPE = { default = "Action", cast = "string", profile = "stype", section = "fighting"},
 	SKM_CHARGE = { default = "0", cast = "string", profile = "charge", section = "fighting" },
 	SKM_DOBUFF = { default = "0", cast = "string", profile = "dobuff", section = "fighting" },
+	SKM_REMOVESBUFF = { default = "0", cast = "string", profile = "removebuff", section = "fighting" },
 	SKM_DOPREV = { default = "0", cast = "string", profile = "doprev", section = "fighting"  },
-	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting"   },
+	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting", useData = "level" },
 	SKM_LevelMax = { default = 0, cast = "number", profile = "levelmax", section = "fighting"   },
 	SKM_Combat = { default = "In Combat", cast = "string", profile = "combat", section = "fighting"  },
 	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
@@ -125,10 +127,10 @@ SkillMgr.Variables = {
 	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
 	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", section = "fighting"  },
 	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", section = "fighting"  },
-	SKM_CBreak = { default = "0", cast = "string", profile = "cbreak", section = "fighting"  },
-	SKM_MPLock = {default = "0", cast = "string", profile = "mplock", section = "fighting" },
-	SKM_MPLocked = {default = "0", cast = "string", profile = "mplocked", section = "fighting" },
-	SKM_MPLockPer = {default = 0, cast = "number", profile = "mplockper", section = "fighting" },
+	SKM_ComboSkill = { default = "Auto", cast = "string", profile = "comboskill", section = "fighting"  },
+	SKM_MPLock = { default = "0", cast = "string", profile = "mplock", section = "fighting" },
+	SKM_MPLocked = { default = "0", cast = "string", profile = "mplocked", section = "fighting" },
+	SKM_MPLockPer = { default = 0, cast = "number", profile = "mplockper", section = "fighting" },
 	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting"  },
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
@@ -139,10 +141,12 @@ SkillMgr.Variables = {
 	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
 	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", section = "fighting"  },
 	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", section = "fighting"  },
-	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"   },
+	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"  },
+	SKM_MaxR = { default = 24, cast = "number", profile = "maxRange", section = "fighting", useData = "range" },
 	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting"   },
 	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting"   },
 	SKM_PUnderAttack = { default = "0", cast = "string", profile = "punderattack", section = "fighting"  },
+	SKM_PUnderAttackMelee = { default = "0", cast = "string", profile = "punderattackmelee", section = "fighting"  },
 	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting"   },
 	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting"   },
 	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
@@ -172,11 +176,16 @@ SkillMgr.Variables = {
 	SKM_TCASTTIME = { default = "0.0", cast = "string", profile = "tcasttime", section = "fighting"  },
 	SKM_TECount = { default = 0, cast = "number", profile = "tecount", section = "fighting"   },
 	SKM_TECount2 = { default = 0, cast = "number", profile = "tecount2", section = "fighting"   },
-	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting"   },
+	
+	SKM_EnmityAOE = { default = "0", cast = "string", profile = "enmityaoe", section = "fighting"   },
+	SKM_FrontalConeAOE = { default = "0", cast = "string", profile = "frontalconeaoe", section = "fighting"   },
+	SKM_TankedOnly = { default = "0", cast = "string", profile = "tankedonlyaoe", section = "fighting"   },
+	
+	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting" , useData = "radius" },
+	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", section = "fighting"  },
 	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", section = "fighting"  },
-	--SKM_TESource = { default = "Target", cast = "string", profile = "tesource", section = "fighting"  },
 	SKM_TACount = { default = 0, cast = "number", profile = "tacount", section = "fighting"   },
-	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting"   },
+	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting", useData = "radius" },
 	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", section = "fighting"   },
 	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting"  },
 	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
@@ -184,6 +193,7 @@ SkillMgr.Variables = {
 	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
 	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", section = "fighting"  },
 	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting"  },
+	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", section = "fighting"   },
 	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting"  },
 	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
 	
@@ -200,8 +210,8 @@ SkillMgr.Variables = {
 	SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
 	
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
-	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting"  },
-	SKM_OFFGCD = { default = "0", cast = "string", profile = "offgcd", section = "fighting" },
+	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting" },
+	SKM_OFFGCD = { default = "Auto", cast = "string", profile = "offgcd", section = "fighting" },
 	
 	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
 	SKM_SKOFFCD = { default = "", cast = "string", profile = "skoffcd", section = "fighting" },
@@ -211,6 +221,10 @@ SkillMgr.Variables = {
 	SKM_SKNCDTIMEMAX = { default = "", cast = "string", profile = "skncdtimemax", section = "fighting" },
 	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
 	SKM_NCURRENTACTION = { default = "", cast = "string", profile = "ncurrentaction", section = "fighting" },
+	
+	SKM_CHAINSTART = { default = "0", cast = "string", profile = "chainstart", section = "fighting" },
+	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting" },
+	SKM_CHAINEND = { default = "0", cast = "string", profile = "chainend", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
@@ -375,9 +389,11 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("removesBuff"),"SKM_REMOVESBUFF",GetString("basicDetails"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMax"),"SKM_LevelMax",GetString("basicDetails"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMin"),"SKM_LevelMin",GetString("basicDetails"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("minRange"),"SKM_MinR",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("maxRange"),"SKM_MaxR",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkill"),"SKM_PCSkillID",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkillNot"),"SKM_NPCSkillID",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillID"),"SKM_PSkillID",GetString("basicDetails"))
@@ -394,6 +410,10 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
 	
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("name"),"SKM_CHAINNAME",GetString("chain"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainEnd"),"SKM_CHAINEND",GetString("chain"))
+	
 	GUI_NewField(SkillMgr.editwindow.name,GetString("isReady"),"SKM_SKREADY",GetString("skillChecks"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("cdIsReady"),"SKM_SKOFFCD",GetString("skillChecks"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("isNotReady"),"SKM_SKNREADY",GetString("skillChecks"))
@@ -405,6 +425,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPLT"),"SKM_PHPB",GetString("playerHPMPTP"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttack"),"SKM_PUnderAttack",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttackMelee"),"SKM_PUnderAttackMelee",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerGT"),"SKM_PPowL",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
@@ -425,7 +446,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",GetString("party"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PTNBuff",GetString("party"))
 	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,SMN DoT,SMN Bane,Cast Target,Player,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
@@ -451,10 +472,14 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
 	
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
@@ -466,6 +491,7 @@ function SkillMgr.ModuleInit()
 	
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
 	
@@ -473,6 +499,9 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OFFGCD",GetString("advancedSettings"),"Auto,True,False")
 	
     GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
 	
@@ -596,6 +625,7 @@ function SkillMgr.OnUpdate( event, tickcount )
 			SkillMgr.nextSkillPrio = ""
 			SkillMgr.prevSkillID = ""
 			SkillMgr.prevComboSkillID = ""
+			SkillMgr.currentChain = ""
 			SkillMgr.failTimer = 0
 		end
 	end
@@ -738,6 +768,10 @@ function SkillMgr.CheckProfileValidity()
 	local requiredUpdate = false
 	if (ValidTable(profile)) then
 		for prio,skill in pairsByKeys(profile) do
+			local skID = tonumber(skill.id)
+			local skType = tonumber(skill.type)
+			local realskilldata = ActionList:Get(skID,skType)
+			
 			if (tonumber(skill.prio) ~= tonumber(prio)) then
 				skill.prio = tonumber(prio)
 				requiredUpdate = true
@@ -748,7 +782,11 @@ function SkillMgr.CheckProfileValidity()
 				for k,v in pairs(SkillMgr.Variables) do
 					if (v.section == "crafting") then
 						if (skill[v.profile] == nil) then
-							skill[v.profile] = v.default
+							if (v.useData ~= nil and realskilldata ~= nil) then
+								skill[v.profile] = realskilldata[v.useData] or v.default
+							else
+								skill[v.profile] = v.default
+							end
 							requiredUpdate = true							
 						end
 					end
@@ -757,7 +795,11 @@ function SkillMgr.CheckProfileValidity()
 				for k,v in pairs(SkillMgr.Variables) do
 					if (v.section == "gathering") then
 						if (skill[v.profile] == nil) then
-							skill[v.profile] = v.default
+							if (v.useData ~= nil and realskilldata ~= nil) then
+								skill[v.profile] = realskilldata[v.useData] or v.default
+							else
+								skill[v.profile] = v.default
+							end
 							requiredUpdate = true
 						end
 					end
@@ -766,7 +808,11 @@ function SkillMgr.CheckProfileValidity()
 				for k,v in pairs(SkillMgr.Variables) do
 					if (v.section == "fighting") then
 						if (skill[v.profile] == nil) then
-							skill[v.profile] = v.default
+							if (v.useData ~= nil and realskilldata ~= nil) then
+								skill[v.profile] = realskilldata[v.useData] or v.default
+							else
+								skill[v.profile] = v.default
+							end
 							requiredUpdate = true
 						end
 					end
@@ -881,7 +927,15 @@ function SkillMgr.ButtonHandler(event, Button)
 		end
 		if (string.find(Button,"SKMAddSkill") ~= nil) then
 			local key = Button:gsub("SKMAddSkill", "")
-			SkillMgr.AddSkillToProfile(key)
+			SkillMgr.AddSkillToProfile(1,key)
+		end
+		if (string.find(Button,"SKMAddPetSkill") ~= nil) then
+			local key = Button:gsub("SKMAddPetSkill", "")
+			SkillMgr.AddSkillToProfile(11,key)
+		end
+		if (string.find(Button,"SKMAddCraftSkill") ~= nil) then
+			local key = Button:gsub("SKMAddCraftSkill", "")
+			SkillMgr.AddSkillToProfile(9,key)
 		end
 		if (string.find(Button,"SKMCopySkill") ~= nil) then
 			SkillMgr.CopySkill()
@@ -1060,7 +1114,6 @@ function SkillMgr.RefreshSkillBook()
     end
 	
 	local SkillList = ActionList("type=1,level=0")
-	--local SkillList = ActionList("type=1")
     if ( ValidTable( SkillList ) ) then
 		for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 			if (skill.level == 0) then
@@ -1077,7 +1130,7 @@ function SkillMgr.RefreshSkillBook()
 				local actionlvl = skill.level
 				if (actionlvl == nil or actionlvl < 0) then actionlvl = 0 end
 				if (Player.level >= actionlvl) then
-					SkillMgr.CreateNewSkillBookEntry(i, 11)
+					SkillMgr.CreateNewSkillBookEntry(i, 11, "Pets")
 				end
 			end
 		end	
@@ -1102,26 +1155,44 @@ function SkillMgr.CreateNewSkillBookEntry(id, actiontype, group)
 	local action = ActionList:Get(id,actiontype)
 	if (ValidTable(action)) then
 		local skName = action.name
-		local skID = tostring(action.id)	 
+		local skID = tostring(action.id)
+			
+		local handlers = {
+			[1] = "SKMAddSkill",
+			[9] = "SKMAddCraftSkill",
+			[11] = "SKMAddPetSkill",
+		}
 		
 		if (group) then
-			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", "SKMAddSkill"..skID, group)
+			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, group)
 		else
-			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", "SKMAddSkill"..skID, "AvailableSkills")
+			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, "AvailableSkills")
 		end
 		
-		SkillMgr.SkillBook[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}	
+		if (not ValidTable(SkillMgr.SkillBook[actiontype])) then
+			SkillMgr.SkillBook[actiontype] = {}
+		end
+		
+		local bookSection = SkillMgr.SkillBook[actiontype]
+		bookSection[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}
+		--SkillMgr.SkillBook[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}	
 	else
 		ml_error("Action ID:"..tostring(id)..", Type:"..tostring(actiontype).." is not valid and could not be retrieved.")
 	end
 end
 
 -- Button Handler for Skillbook-skill-buttons
-function SkillMgr.AddSkillToProfile(event)
-	local skillid = tonumber(event)
-    if (ValidTable(SkillMgr.SkillBook[skillid])) then
-        SkillMgr.CreateNewSkillEntry(SkillMgr.SkillBook[skillid])
-    end
+function SkillMgr.AddSkillToProfile(skilltype,skillid)
+	local skilltype = tonumber(skilltype)
+	local skillid = tonumber(skillid)
+	
+	local bookSection = SkillMgr.SkillBook[skilltype]
+	if (ValidTable(bookSection)) then
+		local thisAction = bookSection[skillid]
+		if (thisAction) then
+			SkillMgr.CreateNewSkillEntry(thisAction)
+		end
+	end
 end
 
 
@@ -1164,29 +1235,42 @@ function SkillMgr.CreateNewSkillEntry(skill)
 		return false
 	end
 	
-	local skname = skill.name
+	local skName = skill.name
 	local skID = tonumber(skill.id)
+	local skType = tonumber(skill.type) or 1
+	local realskilldata = ActionList:Get(skID,skType)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
-	local bevent = tostring(newskillprio)
 
-	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skname, ["used"] = "1", ["alias"] = "", ["type"] = 1 }
+	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skName, ["used"] = "1", ["alias"] = "", ["type"] = skType }
 	if (job >= 8 and job <= 15) then
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "crafting") then
-				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				if (v.useData) then
+					SkillMgr.SkillProfile[newskillprio][v.profile] = realskilldata[v.useData] or v.default
+				else
+					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				end
 			end
 		end
 	elseif (job >=16 and job <=17) then
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "gathering") then
-				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				if (v.useData) then
+					SkillMgr.SkillProfile[newskillprio][v.profile] = realskilldata[v.useData] or v.default
+				else
+					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				end
 			end
 		end
 	else
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "fighting") then
-				SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				if (v.useData) then
+					SkillMgr.SkillProfile[newskillprio][v.profile] = realskilldata[v.useData] or v.default
+				else
+					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				end
 			end
 		end
 	end	
@@ -1317,6 +1401,7 @@ function SkillMgr.IsComboBreaker(skillid)
 	local skills = {
 		[14] = true,
 		[49] = true,
+		[51] = true,
 		[3549] = true,
 	}
 	return skills[skillid]
@@ -1533,14 +1618,19 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								d("An error occurred setting last cast.")
 							end
 							
-							local newTask = ffxiv_task_skill_cast.Create()
-							newTask.skill = shallowcopy(skill)
-							newTask.TID = TID
-							newTask.entity = entity
-							newTask.preCombat = preCombat
-							ml_task_hub:CurrentTask():AddSubTask(newTask)
-							SkillMgr.failTimer = Now() + 5000
-							return true
+							if (skill.removesbuff ~= "1") then
+								local newTask = ffxiv_task_skill_cast.Create()
+								newTask.skill = shallowcopy(skill)
+								newTask.TID = TID
+								newTask.entity = entity
+								newTask.preCombat = preCombat
+								ml_task_hub:CurrentTask():AddSubTask(newTask)
+								SkillMgr.failTimer = Now() + 5000
+								return true
+							else
+								SkillMgr.failTimer = Now() + 5000
+								return true
+							end
 						end
 					end
 				end
@@ -2135,7 +2225,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (skill.stype == "Pet") then 
 		realskilldata = ActionList:Get(skillid,11) 
 	else 
-		realskilldata = ActionList:Get(skillid) 
+		realskilldata = ActionList:Get(skillid,1) 
 	end
 	if (not realskilldata) then
 		return 0
@@ -2157,8 +2247,8 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		return 0
 	end
 	
-	if ( realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or (IsCaster(Player.job) and SkillMgr.IsGCDReady())) then
-	--if (realskilldata.isready) then
+	--if ( realskilldata.isready or (realskilldata.recasttime == 2.5 and SkillMgr.IsGCDReady()) or (IsCaster(Player.job) and SkillMgr.IsGCDReady())) then
+	if (realskilldata.isready) then
 		local castable = true
 		
 		local maxrange = realskilldata.range
@@ -2182,6 +2272,13 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		elseif (targetTable.TID == 0) then
 			SkillMgr.DebugOutput( prio, "Target function returned 0, should never happen.")
 			return 0
+		end
+		
+		--Secondary Get() with proper target ID.
+		if (skill.stype == "Pet") then 
+			realskilldata = ActionList:Get(skillid,11) 
+		else 
+			realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
 		end
 		
 		SkillMgr.CurrentSkill = skill
@@ -2295,7 +2392,16 @@ function ffxiv_task_skill_cast:task_complete_eval()
 				SkillMgr.nextSkillPrio = ""
 			end
 			
-			if (skilldata.recasttime == 2.5 and not SkillMgr.IsComboBreaker(skill.id)) then
+			local isComboSkill = (skilldata.recasttime == 2.5 and not SkillMgr.IsComboBreaker(skill.id))
+			if (skill.comboskill ~= "Auto") then
+				if (skill.comboskill == "False") then
+					isComboSkill = false
+				else
+					isComboSkill = true
+				end
+			end
+			
+			if (isComboSkill) then
 				SkillMgr.prevComboSkillID = skilldata.id
 				SkillMgr.latencyTimer = Now() + 500
 			end
@@ -2303,6 +2409,12 @@ function ffxiv_task_skill_cast:task_complete_eval()
 			SkillMgr.prevSkillID = skill.id
 			SkillMgr.nextSkillID = tostring(skill.nskill)
 			SkillMgr.nextSkillPrio = tostring(skill.nskillprio)
+			
+			if (skill.chainstart == "1") then
+				SkillMgr.currentChain = skill.chainname
+			elseif (skill.chainend == "1") then
+				SkillMgr.currentChain = ""
+			end
 			
 			return true
 		end
@@ -2501,6 +2613,39 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	conditional = { name = "Chain Check"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+	
+		
+		if (skill.chainstart == "0") then
+			if (skill.chainname ~= SkillMgr.currentChain) then
+				return true
+			end
+		else
+			if (SkillMgr.currentChain ~= "") then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	
+	conditional = { name = "Ready Check (System Defined)"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (not realskilldata.isready) then
+			return true
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
 	conditional = { name = "Min Range (System Defined)"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -2519,7 +2664,7 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	conditional = { name = "Min Range Check (User Defined)"
+	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
@@ -2528,7 +2673,8 @@ function SkillMgr.AddDefaultConditions()
 		local ppos = shallowcopy(Player.pos)
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
 		local minRange = tonumber(skill.minRange)
-		if (minRange > 0 and dist < minRange) then
+		local maxRange = tonumber(skill.maxRange)
+		if ((minRange > 0 and dist < minRange) or (maxRange > 0 and (dist - target.hitradius) > maxRange)) then
 			return true
 		end
 		return false
@@ -2543,8 +2689,20 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		if (skill.trg == "Target") then
-			if (not ActionList:CanCast(skill.id,target.id)) then
-				return true
+			if (gAssistUseAutoFace == "0") then
+				if (not ActionList:CanCast(skill.id,target.id)) then
+					return true
+				end	
+			else
+				if (ActionList:CanCast(skill.id,target.id)) then
+					return false
+				end	
+				local myPos = Player.pos
+				local tPos = target.pos
+				local dist = Distance3D(myPos.x,myPos.y,myPos.z,tPos.x,tPos.y,tPos.z)
+				if (not target.los or (dist - target.hitradius) > (realskilldata.range * .95)) then
+					return true
+				end
 			end	
 		end
 		
@@ -2573,11 +2731,17 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if (realskilldata.recasttime ~= 2.5) then
-			if (Player.incombat) then
-				if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
-					return true
+		if (skill.gcd == "Auto") then
+			if (realskilldata.recasttime ~= 2.5) then
+				if (Player.incombat) then
+					if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
+						return true
+					end
 				end
+			end
+		elseif (skill.gcd == "True") then
+			if ((SkillMgr.IsGCDReady() and not IsCaster(Player.job))) then
+				return true
 			end
 		end
 		return false
@@ -2589,12 +2753,38 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
-		if ( skill.skready ~= "") then
-			local actiontype = (skill.sktype == "Action") and 1 or 11
-			if ( not SkillMgr.IsReady( tonumber(skill.skready), actiontype)) then
-				return true
+		
+		if ( not IsNullString(skill.skready) ) then
+
+			for _orids in StringSplit(skill.skready,",") do
+				local ready = false
+				
+				for _andid in StringSplit(_orids,"+") do
+					ready = false
+					local actiontype = (skill.sktype == "Action") and 1 or 11
+					if ( SkillMgr.IsReady( tonumber(_andid), actiontype)) then
+						ready = true
+					end
+					if (not ready) then 
+						break
+					end
+				end
+				if (ready) then 
+					return false
+				end
 			end
+			
+			-- If we get here, none of the checks was ready, so it fails castable.
+			return true
+	
+			--for skillid in StringSplit(skill.skready,",") do
+				--local actiontype = (skill.sktype == "Action") and 1 or 11
+				--if ( not SkillMgr.IsReady( tonumber(skillid), actiontype)) then
+					--return true
+				--end
+			--end
 		end
+		
 		return false
 	end
 	}
@@ -2605,12 +2795,29 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		if ( not IsNullString(skill.skoffcd)) then
-			local actiontype = (skill.sktype == "Action") and 1 or 11
-			local cdTime = SkillMgr.GetCDTime(tonumber(skill.skoffcd), actiontype)
-			
-			if (not cdTime or cdTime ~= 0) then
-				return true
+			for _orids in StringSplit(skill.skoffcd,",") do
+				local ready = false
+				
+				for _andid in StringSplit(_orids,"+") do
+					ready = false
+					local actiontype = (skill.sktype == "Action") and 1 or 11
+					local cdTime = SkillMgr.GetCDTime(tonumber(_andid), actiontype)
+					
+					if (cdTime and cdTime == 0) then
+						ready = true
+					end
+				
+					if (not ready) then 
+						break
+					end
+				end
+				if (ready) then 
+					return false
+				end
 			end
+			
+			-- If we get here, none of the checks was ready, so it fails castable.
+			return true
 		end
 		return false
 	end
@@ -2635,21 +2842,6 @@ function SkillMgr.AddDefaultConditions()
 				return true
 			end
 		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	
-	conditional = { name = "Other Skill Not Ready"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		if ( not IsNullString(skill.sknready)) then
-			local actiontype = (skill.sktype == "Action") and 1 or 11
-			if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
-				return true
-			end
-		end		
 		return false
 	end
 	}
@@ -2739,7 +2931,6 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
-		
 		
 		if ( not IsNullString(skill.pskill)) then
 			if (not IsNullString(SkillMgr.prevSkillID)) then
@@ -2837,7 +3028,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		if (skill.punderattack == "1") then
-			local list = EntityList("nearest,alive,attackable,targetingme")
+			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=20")
 			if (list) then
 				for i,e in pairs(list) do
 					if (i and e) then
@@ -2846,6 +3037,18 @@ function SkillMgr.AddDefaultConditions()
 				end
 			end
 		end
+		
+		if (skill.punderattackmelee == "1") then
+			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=6")
+			if (list) then
+				for i,e in pairs(list) do
+					if (i and e) then
+						return true
+					end
+				end
+			end
+		end
+		
 		return false
 	end
 	}
@@ -3263,7 +3466,8 @@ function SkillMgr.AddDefaultConditions()
 		
 		if (not IsNullString(skill.tbuff)) then
 			local owner = (skill.tbuffowner == "Player") and PID or nil
-			if not HasBuffs(target, skill.tbuff, nil, owner) then 
+			local duration = tonumber(skill.tbuffdura) or 0
+			if not HasBuffs(target, skill.tbuff, duration, owner) then 
 				return true 
 			end 
 		end
@@ -3335,8 +3539,18 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local TID = SkillMgr.CurrentTID
 		
-		if (realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) then
-			TID = target.id
+		if (skill.tecenter == "Auto") then
+			if (skill.frontalconeaoe == "1") then
+				TID = Player.id
+			elseif ((realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) or skill.frontalconeaoe == "1") then
+				TID = target.id
+			end
+		else
+			if (skill.tecenter == "Self") then
+				TID = Player.id
+			elseif (skill.tecenter == "Target") then
+				TID = target.id
+			end
 		end
 		
 		local tecount = tonumber(skill.tecount) or 0
@@ -3345,7 +3559,24 @@ function SkillMgr.AddDefaultConditions()
 		
 		local tlistAE = nil
 		if (tecount > 0 or tecount2 > 0) then
+			local targets = {}
 			tlistAE = EntityList("alive,attackable,maxdistance="..tostring(terange)..",distanceto="..tostring(TID))
+			for i,entity in pairs(tlistAE) do
+				table.insert(targets,entity)
+			end
+			
+			--Remove all that are targeting me if it's an enmity AOE.
+			for i,entity in pairs(targets) do
+				if (skill.enmityaoe == "1" and entity.targetid == Player.id) then
+					targets[i] = nil
+				elseif (skill.frontalconeaoe == "1" and not EntityIsFront(entity.id)) then
+					targets[i] = nil
+				elseif (skill.tankedonlyaoe == "1" and entity.targetid == 0) then
+					targets[i] = nil
+				end
+			end
+			
+			tlistAE = targets
 			local attackTable = TableSize(tlistAE) or 0
 			
 			if (tlistAE) then
