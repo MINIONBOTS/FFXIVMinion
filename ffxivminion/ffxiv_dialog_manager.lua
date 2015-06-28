@@ -25,8 +25,9 @@ function ffxiv_dialog.Create(strName)
 		newDialog.name = strName
 		newDialog.visible = false
 		newDialog.elements = 0
-		newDialog.height = 100
-		newDialog.width = 250
+		newDialog.height = 50
+		newDialog.longestLine = 0
+		newDialog.width = 50
 		
 		local window = WindowManager:NewWindow(strName, 500, 350, newDialog.height, newDialog.width, false)
 		window:Hide()
@@ -55,11 +56,20 @@ function ffxiv_dialog:AddLabel(varLine)
 			for i,name in pairsByKeys(varLine) do
 				window:NewLabel(name)
 				self.elements = self.elements + 1
-				self.height = self.height + 18
+				self.height = self.height + 23.5
+				if (string.len(name) > self.longestLine) then
+					self.longestLine = string.len(name)
+					self.width = 50 + ((string.len(name) - 10) * 6)
+				end
 			end
 		elseif (type(varLine) == "string") then
 			window:NewLabel(varLine)
 			self.elements = self.elements + 1
+			self.height = self.height + 23.5
+			if (string.len(varLine) > self.longestLine) then
+				self.longestLine = string.len(varLine)
+				self.width = 50 + ((string.len(varLine) - 10) * 6)
+			end
 		end
 	end
 end
@@ -72,7 +82,7 @@ function ffxiv_dialog:AddButton(strName, strEvent)
 	if (window) then
 		window:NewButton(strName, strEvent)
 		self.elements = self.elements + 1
-		self.height = self.height + 18
+		self.height = self.height + 25
 	end
 end
 
@@ -86,7 +96,7 @@ end
 function ffxiv_dialog:Show()
 	local window = self.window
 	if (window) then
-		window:SetSize(250,self.height)
+		window:SetSize(self.width,self.height)
 		window:Show()
 	end
 end
@@ -131,6 +141,21 @@ function ffxiv_dialog_manager.IssueStopNotice(winTitle, message)
 	
 	if (gBotRunning == "1") then
 		ml_task_hub.ToggleRun()
+	end
+end
+
+function ffxiv_dialog_manager.IssueNotice(winTitle, message)
+	local message = message or ""
+	local winName = winTitle or "Notice"
+	local hide = function () ffxiv_dialog_manager:Hide(winName) end
+	local newDialog = ffxiv_dialog.Create(winName)
+	if (newDialog) then
+		if (newDialog.elements == 0) then
+			newDialog:AddButton("OK",winName.."_OKFunction")
+			newDialog:AddEvent(winName.."_OKFunction",hide)
+			newDialog:AddLabel(message)
+		end
+		newDialog:Show()
 	end
 end
 

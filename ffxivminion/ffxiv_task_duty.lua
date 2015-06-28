@@ -194,7 +194,7 @@ end
 
 c_joinduty = inheritsFrom( ml_cause )
 e_joinduty = inheritsFrom( ml_effect )
-function c_joinduty:evaluate()
+function c_joinduty:evaluate()	
 	if (not IsLoading() and not Player.incombat and IsPartyLeader() and NotQueued()) then			
 		if (Now() > ml_task_hub:ThisTask().joinTimer ) then
 			return true
@@ -213,7 +213,7 @@ function e_joinduty:execute()
 		ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 	else
 		if (ControlVisible("ContentsFinder") and Duty:SelectFilter(ffxiv_task_duty.category)) then
-			if (IsFullParty()) then
+			if (IsFullParty() or gDutySoloQueue == "1") then
 				if (not ffxiv_task_duty.dutySet and not ffxiv_task_duty.dutyCleared) then
 					Duty:ClearDutySelection()
 					ffxiv_task_duty.dutyCleared = true
@@ -225,7 +225,7 @@ function e_joinduty:execute()
 						ffxiv_task_duty.dutySet = true
 						ml_task_hub:ThisTask().joinTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 					end
-				elseif (ffxiv_task_duty.dutySet) then
+				elseif (ffxiv_task_duty.dutySet and ffxiv_task_duty.dutyCleared) then
 					ml_task_hub:ThisTask().joinTimer = Now() + (5000 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
 					PressDutyJoin()
 					ffxiv_task_duty.dutyCleared = false
@@ -298,6 +298,15 @@ c_changeleader = inheritsFrom( ml_cause )
 e_changeleader = inheritsFrom( ml_effect )
 e_changeleader.name = ""
 function c_changeleader:evaluate()
+	if (gDutySoloQueue == "1") then
+		if (ffxiv_task_duty.leader ~= Player.name) then
+			e_changeleader.name = Player.name
+			return true
+		else
+			return false
+		end
+	end
+	
 	if (not IsFullParty()) then
 		return false
 	end
@@ -408,6 +417,7 @@ function e_dutydatacheck:execute()
 		e_dutydatacheck.timer = Now() + 2000
 	else
 		if (Duty:SelectFilter(ffxiv_task_duty.category)) then
+			d("Select filter succeeded, setting task to refreshed.")
 			ml_task_hub:CurrentTask().refreshed = true
 			SendTextCommand("/dutyfinder")
 			e_dutydatacheck.timer = Now() + 1000
@@ -617,6 +627,9 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gPerformanceLevel == nil) then
 		Settings.FFXIVMINION.gPerformanceLevel = GetString("normal")
 	end
+	if (Settings.FFXIVMINION.gDutySoloQueue == nil) then
+        Settings.FFXIVMINION.gDutySoloQueue = "0"
+    end
 	if (gBotMode == GetString("dutyMode")) then
 		ffxiv_task_duty.UpdateProfiles()
 	end
@@ -637,6 +650,7 @@ function ffxiv_task_duty.UIInit()
     GUI_NewComboBox(winName,GetString("loot"),"gLootOption",group,GetStringList("need,greed,pass",","))
 	GUI_NewCheckbox(winName,GetString("telecast"),"gUseTelecast",group)
 	GUI_NewNumeric(winName,"Stop Count","gDutyStopCount",group,"0","100")
+	GUI_NewCheckbox(winName,"Solo Queue","gDutySoloQueue",group)
 
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,GetString("settings"))
@@ -646,6 +660,7 @@ function ffxiv_task_duty.UIInit()
 	gLootOption = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gLootOption,gLootOption_listitems,GetString("need"))
 	gDutyStopCount = Settings.FFXIVMINION.gDutyStopCount
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
+	gDutySoloQueue = Settings.FFXIVMINION.gDutySoloQueue
 	gPerformanceLevel = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gPerformanceLevel,gPerformanceLevel_listitems,GetString("normal"))
 end
 
@@ -682,13 +697,21 @@ function ffxiv_task_duty.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gPerformanceLevel")
         then
             SafeSetVar(tostring(k),v)
+		elseif (k == "gDutySoloQueue") then
+			if (v == "1") then
+				local message = {}
+				message[1] = "You must have the in-game option for undersized party enabled."
+				message[2] = "Failure to do so could result in unwanted teleport hacking."
+				ffxiv_dialog_manager.IssueNotice("FFXIV_Duty_SoloQueueNotify", message)
+			end
+			SafeSetVar(tostring(k),v)
         end
     end
     GUI_RefreshWindow(GetString("dutyMode"))
 end
 
 function ffxiv_task_duty.LoadProfile(strName)
-	ffxiv_task_duty.dutyInfo, e = persistence.load(ffxiv_task_duty.dutyPath..strName..".info")
+	ffxiv_task_duty.dutyInfo,e = persistence.load(ffxiv_task_duty.dutyPath..strName..".info")
 	if (ValidTable(ffxiv_task_duty.dutyInfo)) then
 		ffxiv_task_duty.mapID = ffxiv_task_duty.dutyInfo.MapID
 		ffxiv_task_duty.category = ffxiv_task_duty.dutyInfo.Category

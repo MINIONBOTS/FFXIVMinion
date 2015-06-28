@@ -1470,7 +1470,7 @@ function IsBehind(entity)
         local absDeviation = math.abs(deviation)
         local leftover = math.abs(absDeviation - math.pi)
 		
-        if (leftover > (math.pi * 1.75) or leftover < (math.pi * .25))then
+        if (leftover > (math.pi * 1.75) or leftover < (math.pi * .25)) then
             return true
         end
     end
@@ -1797,19 +1797,19 @@ function GetClosestFate(pos)
 		else
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and fate.status == 2) then	
-					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (dist <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
-						if (distance ~= 0) then
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = shallowcopy(fate)
-								nearestDistance = distance
-							end
+					local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
+					if (distance ~= 0) then
+						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+							nearestFate = shallowcopy(fate)
+							nearestDistance = distance
 						end
 					end
 				end
 			end
+		end
 		end
     
         if (nearestFate ~= nil) then
@@ -1945,6 +1945,32 @@ function GetPathDistance(pos1,pos2)
 	end
 	
 	return dist
+end
+
+function HasNavPath(pos1,pos2)
+	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
+	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
+	
+	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
+	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	
+	local dist1 = NavigationManager:GetPointToMeshDistance(pos1,true)
+	local dist2 = NavigationManager:GetPointToMeshDistance(pos2,true)
+	
+	if (dist1 > 15) then
+		d("Player position reports as distance :"..tostring(dist1).." from nearest mesh point.")
+	elseif (dist2 > 15) then
+		d("FATE position reports as distance :"..tostring(dist2).." from nearest mesh point.")
+	end
+	
+	if (p1 and p2) then
+		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+		if (ValidTable(path)) then
+			return true
+		end
+	end
+	
+	return false
 end
 
 function GetLinePoints(pos1,pos2,length)
@@ -2258,8 +2284,8 @@ function IsDismounting()
 end
 
 function IsPositionLocked()
-	--return not ActionIsReady(2,5)
-	return (not ActionIsReady(2) and not Player.ismounted)
+	return not ActionIsReady(2,5)
+	--return (not ActionIsReady(2) and not Player.ismounted)
 end
 
 function IsLoading()

@@ -45,7 +45,7 @@ function GetDutyTarget( maxHP )
 		end
 		
 		if (ml_task_hub:CurrentTask().encounterData["doKill"] == false) then
-			el = EntityList("nearest,alive,attackable,targetid=0,contentid="..bossIDs..",maxdistance="..tostring(radius))		
+			el = EntityList("nearest,alive,attackable,targeting=0,contentid="..bossIDs..",maxdistance="..tostring(radius))		
 			if (ValidTable(el)) then
 				for id, target in pairs(el) do
 					if (not maxHP or target.hp.percent > maxHP) then
@@ -185,7 +185,7 @@ function GetDutyLeaderPos()
 end
 
 function IsDutyLeader()
-	if (ffxiv_task_duty.independentMode) then
+	if (ffxiv_task_duty.independentMode or gDutySoloQueue == "1") then
 		return true
 	end
 	
@@ -197,14 +197,23 @@ function IsDutyLeader()
 end
 
 function IsPartyLeader()
+	if (gDutySoloQueue == "1") then
+		return true
+	end
+	
 	local partyLeader = GetPartyLeader()
 	if (partyLeader) then
 		return partyLeader.name == Player.name
 	end
+	
 	return false
 end
 
 function IsFullParty()
+	if (gDutySoloQueue == "1") then
+		return true
+	end
+	
 	local duty = GetDutyFromID(ffxiv_task_duty.mapID)
 	if (duty) then
 		local partySize = tonumber(duty.partysize)
@@ -249,16 +258,22 @@ function OnDutyMap()
 end
 
 function PartyInCombat()
-	local party = EntityList.myparty
-	if (ValidTable(party)) then
-		for i, member in pairs(party) do
-			if member.incombat then 
-				return true 
-			end
-			
-			local el = EntityList("alive,attackable,targeting="..tostring(member.id))
-			if (ValidTable(el)) then
-				return true
+	if (gDutySoloQueue == "1") then
+		if (Player.incombat) then
+			return true
+		end
+	else
+		local party = EntityList.myparty
+		if (ValidTable(party)) then
+			for i, member in pairs(party) do
+				if member.incombat then 
+					return true 
+				end
+				
+				local el = EntityList("alive,attackable,targeting="..tostring(member.id))
+				if (ValidTable(el)) then
+					return true
+				end
 			end
 		end
 	end
@@ -291,17 +306,21 @@ function GetDutyLeader()
 		if c_changeleader:evaluate() then e_changeleader:execute() end
 	end
 	
-	local party = EntityList.myparty
-	if (ValidTable(party)) then
-		if (ffxiv_task_duty.leader ~= "") then
-			for i, member in pairs(party) do
-				if (member.name == ffxiv_task_duty.leader) then
-					return member
+	if (gDutySoloQueue == "1") then
+		return Player
+	else
+		local party = EntityList.myparty
+		if (ValidTable(party)) then
+			if (ffxiv_task_duty.leader ~= "") then
+				for i, member in pairs(party) do
+					if (member.name == ffxiv_task_duty.leader) then
+						return member
+					end
 				end
 			end
-		end
-	end  
-	
+		end  
+	end
+		
 	return nil
 end
 
@@ -324,7 +343,7 @@ function IsValidCategory(category)
 	end
 	
 	local message = {}
-	message[1] = "Invalid category value passed in profile.\n"
+	message[1] = "Invalid category value passed in profile."
 	message[2] = "Valid values are as follows:"
 	message[3] = "0 - FILTER_DAILY_ROULETTE"
 	message[4] = "1 - FILTER_DUNGEONS_ARR"

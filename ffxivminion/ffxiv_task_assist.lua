@@ -246,14 +246,29 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gAssistPriority" or
 				k == "gStartCombat" or
 				k == "gConfirmDuty" or
-				k == "gQuestHelpers" or
 				k == "gAssistFilter1" or
 				k == "gAssistFilter2" or 
 				k == "gAssistFilter3" or
-				k == "gAssistFilter4" or
-				k == "gAssistFilter5" or
-				k == "gAssistUseAutoFace" ) 
+				k == "gAssistFilter4" or 
+				k == "gAssistFilter5") 
 		then
+			SafeSetVar(tostring(k),v)
+		elseif (k == "gQuestHelpers") then
+			if (v == "1") then
+				local message = {}
+				message[1] = "Quest helpers are beta functionality, and should be used with caution."
+				message[2] = "It is not advisable to use this feature on a main account at this time."
+				ffxiv_dialog_manager.IssueNotice("FFXIV_Assist_QuestHelpersNotify", message)
+			end
+			SafeSetVar(tostring(k),v)
+		elseif (k == "gAssistUseAutoFace") then
+			if (v == "1") then
+				local message = {}
+				message[1] = "You must have the in-game option for automatic face target."
+				message[2] = "Failure to do so could result in strange combat behavior and/or error messages."
+				message[3] = "This feature is considered beta functionality as this time, please report issues."
+				ffxiv_dialog_manager.IssueNotice("FFXIV_Assist_AutoFaceNotify", message)
+			end
 			SafeSetVar(tostring(k),v)
         end
     end
