@@ -3045,7 +3045,7 @@ function c_clearaggressive:evaluate()
 					local aggroChecks = GetAggroDetectionPoints(ppos,epos)
 					if (ValidTable(aggroChecks)) then
 						for k,navPos in pairsByKeys(aggroChecks) do
-							local aggressives = EntityList("aggressive,alive,attackable,targetid=0,minlevel="..tostring(Player.level - 10)..",exclude_contentid="..tostring(id))
+							local aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10)..",exclude_contentid="..tostring(id))
 							if (ValidTable(aggressives)) then
 								for _,aggressive in pairs(aggressives) do
 									local agpos = aggressive.pos
@@ -3068,9 +3068,9 @@ function c_clearaggressive:evaluate()
 				for k,navPos in pairsByKeys(aggroChecks) do
 					local aggressives = nil
 					if (gBotMode == "NavTest") then
-						local aggressives = EntityList("aggressive,alive,attackable,targetid=0")
+						local aggressives = EntityList("aggressive,alive,attackable,targeting=0")
 					else
-						local aggressives = EntityList("aggressive,alive,attackable,targetid=0,minlevel="..tostring(Player.level - 10))
+						local aggressives = EntityList("aggressive,alive,attackable,targeting=0,minlevel="..tostring(Player.level - 10))
 					end
 					if (ValidTable(aggressives)) then
 						for _,aggressive in pairs(aggressives) do

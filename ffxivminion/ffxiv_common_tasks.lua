@@ -608,6 +608,7 @@ function ffxiv_task_teleport.Create()
     newinst.mapID = 0
 	newinst.mesh = nil
     newinst.started = Now()
+	newinst.lastActivity = Now()
 	newinst.setEvac = false
 	newinst.setHomepoint = false
 	newinst.conversationIndex = 0
@@ -708,7 +709,14 @@ function ffxiv_task_teleport:task_complete_execute()
 end
 
 function ffxiv_task_teleport:task_fail_eval()
-	if (TimeSince(self.started) > 30000) then
+	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh) then
+		self.lastActivity = Now()
+		return false
+	end
+	
+	if (TimeSince(self.started) > 15000) then
+		return true
+	elseif (TimeSince(self.lastActivity) > 5000) then
 		return true
 	end
 end

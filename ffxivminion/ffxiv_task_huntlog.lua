@@ -357,11 +357,11 @@ function c_huntlogkill:evaluate()
 		end
 		
 		if (not ValidTable(el)) then
-			el = EntityList("onmesh,alive,attackable,targetid=0,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = EntityList("onmesh,alive,attackable,targeting=0,fateid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if (not ValidTable(el)) then
-			el = EntityList("onmesh,alive,attackable,targetid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
+			el = EntityList("onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if(ValidTable(el)) then
@@ -456,7 +456,7 @@ function e_huntlogmovetopos:execute()
 	
 	local id = ml_task_hub:CurrentTask().huntParams["id"]
 	local maxlevel = ffxiv_task_huntlog.GetMaxMobLevel()
-	local customSearch = "shortestpath,onmesh,alive,attackable,targetid=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
+	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
 	newTask.customSearch = customSearch
 	newTask.customSearchCompletes = true
 	
