@@ -31,6 +31,7 @@ ml_global_information.autoStartQueued = false
 ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
+ml_global_information.suppressRestTimer = 0
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -226,11 +227,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 				local list = Player:GetGatherableSlotList()
 				local synth = Crafting:SynthInfo()	
 		
-				if (ValidTable(list) or ValidTable(synth)) then
-					return false
+				if (not ValidTable(list) and not ValidTable(synth) and not Player.incombat) then
+					Repair()
 				end
-				
-				Repair()
 			end
 	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
@@ -240,11 +239,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 					local list = Player:GetGatherableSlotList()
 					local synth = Crafting:SynthInfo()	
 			
-					if (ValidTable(list) or ValidTable(synth)) then
-						return false
+					if (not ValidTable(list) and not ValidTable(synth)) then
+						Eat()
 					end
-					
-					Eat()
 				end
 			end
 			

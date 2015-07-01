@@ -289,6 +289,153 @@ function ffxiv_task_movetopos:task_fail_execute()
     self.valid = false
 end
 
+ffxiv_task_movetofate = inheritsFrom(ml_task)
+function ffxiv_task_movetofate.Create()
+    local newinst = inheritsFrom(ffxiv_task_movetofate)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movetopos members
+    newinst.name = "MOVETOFATE"
+	newinst.requiresPosRandomize = false
+	newinst.actualPos = 0
+    newinst.pos = 0
+    newinst.range = 2
+    newinst.fateid = 0
+    newinst.lastMove = 0
+	newinst.lastRandomize = 0
+    newinst.remainMounted = false
+    newinst.useFollowMovement = false
+	newinst.obstacleTimer = 0
+	newinst.use3d = false
+	newinst.dismountTimer = 0
+	newinst.dismountDistance = 15
+	newinst.failTimer = 0
+	
+	newinst.distanceCheckTimer = 0
+	newinst.lastPosition = nil
+	newinst.lastDistance = 0
+    
+    return newinst
+end
+
+function ffxiv_task_movetofate:Init()				
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
+    self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+    self:add( ke_mount, self.process_elements)
+    
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+    self:add( ke_sprint, self.process_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
+    
+    -- The parent needs to take care of checking and updating the position of this task!!	
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+    self:add( ke_walkToPos, self.process_elements)
+    
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_movetofate:task_complete_eval()	
+	local fate = GetFateByID(self.fateid)
+	if (ValidTable(fate)) then
+		if (not ffxiv_task_fate.RequiresSync(fate.level)) then
+			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
+			local el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(maxdistance)..",fateid="..tostring(fate.id))
+			if ( ValidTable(el) ) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					return true
+				end
+			end	
+		end 
+	
+		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+		if (not deepcompare(self.actualPos,fatePos,true)) then
+			self.pos = fatePos
+			self.actualPos = fatePos
+			self.requiresPosRandomize = true
+			self.lastMove = Now()
+		end
+		
+		if (self.requiresPosRandomize and TimeSince(self.lastRandomize) > 500) then
+			local newPos = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
+			if (not ValidTable(newPos)) then
+				newPos = NavigationManager:GetClosestPointOnMesh(self.pos.x,self.pos.y,self.pos.z,false)
+			end
+			if (ValidTable(newPos)) then
+				self.pos = newPos
+			end
+			self.requiresPosRandomize = false
+			self.lastRandomize = Now()
+		end
+		
+		--While the FATE is moving, follow it closely.
+		if (TimeSince(self.lastMove) > 3000) then
+			
+			if (ValidTable(self.pos)) then
+				local myPos = Player.pos
+				local gotoPos = self.pos
+				
+				local distance = 0.0
+				if (self.use3d) then
+					distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				else
+					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+				end 
+				
+				if (distance <= (self.range)) then
+					return true
+				end
+			end 
+		end 
+	end
+    return false
+end
+
+function ffxiv_task_movetofate:task_complete_execute()
+	d("movetofate completed.")
+	Player:Stop()
+	if (not self.remainMounted) then
+		Dismount()
+	end
+	self.completed = true
+end
+
+function ffxiv_task_movetofate:task_fail_eval()
+	local fate = GetFateByID(self.fateid)
+	if (not ValidTable(fate)) then
+		d("failed in block1.")
+		return true
+	end
+	
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+		if (self.failTimer == 0) then
+			self.failTimer = Now() + 3000
+		end
+	else
+		if (self.failTimer ~= 0) then
+			self.failTimer = 0
+		end
+	end
+	
+	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
+end
+function ffxiv_task_movetofate:task_fail_execute()
+	d("movetofate failed.")
+	Player:Stop()
+    self.valid = false
+end
+
 --++MOVE_TO_INTERACT
 ffxiv_task_movetointeract = inheritsFrom(ml_task)
 function ffxiv_task_movetointeract.Create()

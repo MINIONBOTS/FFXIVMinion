@@ -195,7 +195,7 @@ function GetNearestFateAttackable()
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-				epos = shallowcopy(e.pos)
+				local epos = e.pos
 				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 				if (dist <= fate.radius) then
 					return e
@@ -1715,6 +1715,8 @@ function GetApprovedFates()
 					table.insert(approvedFates,fate)
 				elseif (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent)) then
 					table.insert(approvedFates,fate)
+				elseif (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
+					table.insert(approvedFates,fate)
 				end
 			end
 		end
@@ -1736,6 +1738,10 @@ function IsFateApproved(fateid)
 				return true
 			end
 		end
+	end
+	
+	if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fateid) or ffxiv_task_fate.IsChain(Player.localmapid, fateid)) then
+		return true
 	end
 	
 	return false
@@ -1761,7 +1767,7 @@ function GetClosestFate(pos)
         local nearestFate = nil
         local nearestDistance = 9999
         local level = Player.level
-		local myPos = shallowcopy(Player.pos)
+		local myPos = Player.pos
 		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
 		local whitelistTable = {}
 		
@@ -1782,7 +1788,7 @@ function GetClosestFate(pos)
 			for k, fate in pairs(fateList) do
 				if (whitelistTable[fate.id] and	fate.status == 2) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					if (dist <= 5) then
+					if (p and dist <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
 						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
 						if (distance) then
@@ -1795,12 +1801,35 @@ function GetClosestFate(pos)
 				end
 			end
 		else
+			local validFates = {}
+			--Add fates tha are high priority or chains first.
 			for k, fate in pairs(fateList) do
-				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id) and fate.status == 2) then	
+				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+					if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
 						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					if (dist <= 5) then
-						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-					local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z) or 0
+						if (p and dist <= 20) then
+							table.insert(validFates,fate)
+						end
+					end
+				end
+			end
+			
+			if (not ValidTable(validFates)) then
+				for k, fate in pairs(fateList) do
+					if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+						if (fate.status == 2) then	
+							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+							if (p and dist <= 20) then
+								table.insert(validFates,fate)
+							end
+						end
+					end
+				end
+			end
+			
+			if (ValidTable(validFates)) then
+				for k, fate in pairs(validFates) do
+					local distance = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
 					if (distance ~= 0) then
 						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 							nearestFate = shallowcopy(fate)
@@ -1809,7 +1838,6 @@ function GetClosestFate(pos)
 					end
 				end
 			end
-		end
 		end
     
         if (nearestFate ~= nil) then
@@ -2493,7 +2521,9 @@ end
 
 function IsMap(itemid)
 	local itemid = tonumber(itemid) or 0
-	return (itemid >= 6687 and itemid <= 6692)
+	return ((itemid >= 6687 and itemid <= 6692) or
+		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
+		(itemid >= 12441 and itemid <= 12443))
 end
 
 function IsGardening(itemid)

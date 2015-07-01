@@ -212,7 +212,9 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gFateBossWaitPercent" or
 				k == "gFateGatherWaitPercent" or
 				k == "gFateDefenseWaitPercent" or
-				k == "gFateEscortWaitPercent" )
+				k == "gFateEscortWaitPercent" or
+				k == "gFateRandomDelayMin" or
+				k == "gFateRandomDelayMax")
 		then
 			SafeSetVar(tostring(k),tonumber(v))
 		elseif ( k == "gAtma") then
@@ -386,6 +388,12 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gFateWaitNearEvac == nil) then
         Settings.FFXIVMINION.gFateWaitNearEvac = "1"
     end
+	if (Settings.FFXIVMINION.gFateRandomDelayMin == nil) then
+        Settings.FFXIVMINION.gFateRandomDelayMin = 0
+    end
+	if (Settings.FFXIVMINION.gFateRandomDelayMax == nil) then
+        Settings.FFXIVMINION.gFateRandomDelayMax = 0
+    end
 	
 	local winName = GetString("grindMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -417,6 +425,8 @@ function ffxiv_task_grind.UIInit()
     GUI_NewField(winName, GetString("minFateLevel"), "gMinFateLevel", group)
 	GUI_NewNumeric(winName, GetString("fateTeleportPercent"), "gFateTeleportPercent", group, "0", "99")
 	GUI_NewCheckbox(winName, GetString("waitNearEvac"), "gFateWaitNearEvac",group)
+	GUI_NewNumeric(winName, "Min Random Delay (s)", "gFateRandomDelayMin", group, "0", "120")
+	GUI_NewNumeric(winName, "Max Random Delay (s)", "gFateRandomDelayMax", group, "0", "240")
 	
 	local group = "Details"
 	GUI_NewCheckbox(winName,"Battle Fates", "gDoBattleFates",group)
@@ -462,6 +472,8 @@ function ffxiv_task_grind.UIInit()
 	gFateEscortWaitPercent = Settings.FFXIVMINION.gFateEscortWaitPercent
 	gGrindDoHuntLog = Settings.FFXIVMINION.gGrindDoHuntLog
 	gFateWaitNearEvac = Settings.FFXIVMINION.gFateWaitNearEvac
+	gFateRandomDelayMin = Settings.FFXIVMINION.gFateRandomDelayMin
+	gFateRandomDelayMax = Settings.FFXIVMINION.gFateRandomDelayMax
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(GetString("monsters"),ffxiv_task_grind.BlacklistInitUI)

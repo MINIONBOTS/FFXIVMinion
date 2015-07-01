@@ -1598,7 +1598,8 @@ function c_companion:evaluate()
     if (gBotMode == GetString("pvpMode") or 
 		ml_task_hub:CurrentTask().name == "LT_USEITEM" or 
 		TimeSince(e_companion.lastSummon) < 5000 or 
-		Player.ismounted or IsMounting() or IsDismounting()) then
+		Player.ismounted or IsMounting() or IsDismounting() or
+		HasBuffs(Player,"2,149,201")) then
         return false
     end
 
@@ -1822,6 +1823,10 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
+	if (Now() < ml_global_information.suppressRestTimer and Player.hp.percent > 20) then
+		return false
+	end
+	
 	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
 	then
@@ -1841,14 +1846,6 @@ function c_rest:evaluate()
 		if  (ml_task_hub:ThisTask().name == "QUEST_DUTYKILL") then
 			local noRest = ml_task_hub:ThisTask().params["norest"]
 			if (noRest) then
-				return false
-			end
-		end
-		
-		if (ml_task_hub:ThisTask().suppressRestTimer and Now() > ml_task_hub:ThisTask().suppressRestTimer) then
-			local addMobList = EntityList("attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
-			if (TableSize(addMobList) == 0) then
-				--d("Not resting due to aggro check.")
 				return false
 			end
 		end
@@ -2299,8 +2296,7 @@ function c_autoequip:evaluate()
 		IsShopWindowOpen() or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
-		Player:GetGatherableSlotList() or
-		Player.job == FFXIV.JOBS.ASTROLOGIAN or Player.job == FFXIV.JOBS.MACHINIST or Player.job == FFXIV.JOBS.DARKKNIGHT) 
+		Player:GetGatherableSlotList()) 
 	then
 		return false
 	end
@@ -2385,6 +2381,9 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.NINJA] = {ui = 84, slot = 13},
 		[FFXIV.JOBS.MINER] = {ui = 28, slot = 1},
 		[FFXIV.JOBS.BOTANIST] = {ui = 30, slot = 1},
+		[FFXIV.JOBS.DARKKNIGHT] = {ui = 87, slot = 13},
+		[FFXIV.JOBS.MACHINIST] = {ui = 88, slot = 13},
+		[FFXIV.JOBS.ASTROLOGIAN] = {ui = 89, slot = 13},
 	}
 	
 	local soulStones = {
@@ -2440,12 +2439,14 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.PALADIN] = 1,
 		[FFXIV.JOBS.MARAUDER] = 1,
 		[FFXIV.JOBS.WARRIOR] = 1,
+		[FFXIV.JOBS.DARKKNIGHT] = 1,
 		[FFXIV.JOBS.PUGILIST] = 1,
 		[FFXIV.JOBS.MONK] = 1,
 		[FFXIV.JOBS.LANCER] = 1,
 		[FFXIV.JOBS.DRAGOON] = 1,
 		[FFXIV.JOBS.ARCHER] = 2,
 		[FFXIV.JOBS.BARD] = 2,
+		[FFXIV.JOBS.MACHINIST] = 2,
 		[FFXIV.JOBS.CONJURER] = 5,
 		[FFXIV.JOBS.WHITEMAGE] = 5,
 		[FFXIV.JOBS.THAUMATURGE] = 4,
@@ -2453,6 +2454,7 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.ARCANIST] = 4,
 		[FFXIV.JOBS.SUMMONER] = 4,
 		[FFXIV.JOBS.SCHOLAR] = 5,
+		[FFXIV.JOBS.ASTROLOGIAN] = 5,
 		[FFXIV.JOBS.ROGUE] = 2,
 		[FFXIV.JOBS.NINJA] = 2,
 		[FFXIV.JOBS.MINER] = 72,
@@ -2463,6 +2465,7 @@ function c_autoequip:evaluate()
 		[FFXIV.JOBS.PALADIN] = 3,
 		[FFXIV.JOBS.MARAUDER] = 3,
 		[FFXIV.JOBS.WARRIOR] = 3,
+		[FFXIV.JOBS.DARKKNIGHT] = 3,
 		[FFXIV.JOBS.MINER] = 73,
 		[FFXIV.JOBS.BOTANIST] = 73,
 	}

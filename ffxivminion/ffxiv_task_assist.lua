@@ -144,10 +144,10 @@ function ffxiv_task_assist.UIInit()
 	ffxivminion.Windows.Assist = { id = strings["us"].assistMode, Name = GetString("assistMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Assist)
 
-	if ( Settings.FFXIVMINION.gAssistMode == nil ) then
+	if (Settings.FFXIVMINION.gAssistMode == nil) then
         Settings.FFXIVMINION.gAssistMode = GetString("none")
     end
-    if ( Settings.FFXIVMINION.gAssistPriority == nil ) then
+    if (Settings.FFXIVMINION.gAssistPriority == nil) then
         Settings.FFXIVMINION.gAssistPriority = GetString("dps")
     end
 	if (Settings.FFXIVMINION.gStartCombat == nil) then
@@ -180,8 +180,8 @@ function ffxiv_task_assist.UIInit()
 	
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, "Teleport Nearest Current (HACK)", "ffxiv_task_assist.TeleportAetherCurrent")
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	GUI_NewButton(winName, "Teleport Nearest Current (HACK)", "ffxiv_task_assist.TeleportAetherCurrent")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")

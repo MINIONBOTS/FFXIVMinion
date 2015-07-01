@@ -16,10 +16,13 @@ function ffxiv_task_fate.Create()
     --ffxiv_task_fate members
     newinst.name = "LT_FATE"
     newinst.fateid = 0
-	newinst.fateDetails = {}
+	newinst.fatePos = {}
 	newinst.targetid = 0
     newinst.targetFunction = GetNearestFateAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
+	newinst.waitingForChain = false
+	newinst.nextFate = {}
+	newinst.randomDelayCompleted = false
 	
     --newinst.fateTimer = 0
     newinst.fateCompletion = 0
@@ -115,20 +118,34 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
 e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (ffxiv_task_grind.inFate or TimeSince(c_betterfatesearch.timer) < 10000) then
+    if (TimeSince(c_betterfatesearch.timer) < 10000) then
         return false
     end
-    
-    local myPos = Player.pos
-    local fate = GetClosestFate(myPos)
-	if (ValidTable(fate)) then
-		if (fate.id ~= ml_task_hub:ThisTask().fateid) then
-			c_betterfatesearch.timer = Now()
-			e_betterfatesearch.fateid = fate.id
-			return true	
+	
+	local thisFate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	if (ValidTable(thisFate)) then
+		local fatePos = {x = thisFate.x,y = thisFate.y,z = thisFate.z}
+		local myPos = Player.pos
+		local dist2d = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
+		
+		if (ffxiv_task_fate.IsChain(Player.localmapid,thisFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,thisFate.id)) then
+			return false
+		end
+		
+		local closestFate = GetClosestFate(myPos)
+		if (ValidTable(closestFate) and thisFate.id ~= closestFate.id) then
+			if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,closestFate.id)) then
+				c_betterfatesearch.timer = Now()
+				e_betterfatesearch.fateid = closestFate.id
+				return true	
+			elseif (dist2d > thisFate.radius + 20) then
+				c_betterfatesearch.timer = Now()
+				e_betterfatesearch.fateid = closestFate.id
+				return true	
+			end
 		end
 	end
-    
+   
     return false
 end
 function e_betterfatesearch:execute()
@@ -142,7 +159,11 @@ c_teletofate.radius = nil
 c_teletofate.pos = nil
 c_teletofate.lastTele = 0
 function c_teletofate:evaluate()
-	if (gTeleport == "0" or Now() < c_teletofate.lastTele or ml_task_hub:ThisTask().name ~= "LT_FATE") then
+	if (gTeleport == "0" or 
+		Now() < c_teletofate.lastTele or 
+		ml_task_hub:ThisTask().name ~= "LT_FATE" or 
+		not ml_task_hub:ThisTask().randomDelayCompleted) 
+	then
 		return false
 	end	
 	
@@ -180,7 +201,7 @@ function c_teletofate:evaluate()
 				end
 	
 				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
-				if (dist < 10) then
+				if (dest and dist < 10) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.radius = fate.radius
 						c_teletofate.pos = dest
@@ -207,103 +228,107 @@ function e_teletofate:execute()
 	ffxiv_task_grind.inFate = true
 end
 
+c_movetochainlocation = inheritsFrom( ml_cause )
+e_movetochainlocation = inheritsFrom( ml_effect )
+function c_movetochainlocation:evaluate()
+	if ( ml_task_hub:CurrentTask().fateid ~= nil and 
+		ml_task_hub:CurrentTask().fateid ~= 0 and 
+		ml_task_hub:CurrentTask().waitingForChain and 
+		ValidTable(ml_task_hub:CurrentTask().nextFate)) 
+	then
+
+        local fate = ml_task_hub:CurrentTask().nextFate
+		local myPos = Player.pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+		if (distance > 40) then				
+			return true
+		end
+	end
+    
+    return false
+end
+function e_movetochainlocation:execute()
+    local fate = ml_task_hub:CurrentTask().nextFate
+    if (ValidTable(fate)) then
+        local newTask = ffxiv_task_movetopos.Create()
+		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+        newTask.pos = fatePos
+		newTask.remainMounted = true
+		
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
+    end
+end
+
+c_movewithfate = inheritsFrom( ml_cause )
+e_movewithfate = inheritsFrom( ml_effect )
+function c_movewithfate:evaluate()
+	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
+	
+		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+		local currentFatePos = ml_task_hub:CurrentTask().fatePos
+		local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
+	
+		local tablesEqual = true
+		if (ValidTable(fate)) then
+			if (not ValidTable(currentFatePos)) then
+				currentFatePos = shallowcopy(newFatePos)
+				return false
+			elseif (ValidTable(currentFatePos) and not Player.incombat) then
+				if (not deepcompare(currentFatePos,newFatePos,true)) then
+					currentFatePos = shallowcopy(newFatePos)
+					return true
+				end
+			end
+		end
+	end
+    
+    return false
+end
+function e_movewithfate:execute()
+    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    if (ValidTable(fate)) then
+        local newTask = ffxiv_task_movetofate.Create()
+		local fatePos = ml_task_hub:CurrentTask().fatePos
+		newTask.fateid = ml_task_hub:CurrentTask().fateid
+        newTask.pos = fatePos
+		newTask.actualPos = fatePos
+		
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
+    end
+end
+
 -----------------------------------------------------------------------------------------------
 --MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
 --Moves within range of fate specified by ml_task_hub:CurrentTask().fateid
 ---------------------------------------------------------------------------------------------
 c_movetofate = inheritsFrom( ml_cause )
 e_movetofate = inheritsFrom( ml_effect )
-e_movetofate.radius = 0
 function c_movetofate:evaluate()
-    if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
+        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		
         if (ValidTable(fate)) then
             local myPos = Player.pos
             local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-            if ( ml_task_hub:ThisTask().moving) then
-                if (distance > fate.radius/4) then	
-					e_movetofate.radius = (fate.radius/4)
-                    return true
-                end
-            else
-                if (distance > fate.radius) then				
-                    return true
-                end
-            end
+			if (distance > fate.radius) then				
+				return true
+			end
         end
-		
     end
     
     return false
 end
 function e_movetofate:execute()
-    local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
-        local newTask = ffxiv_task_movetopos.Create()
-		newTask.remainMounted = true
-        newTask.pos = {x = fate.x, y = fate.y, z = fate.z}
+        local newTask = ffxiv_task_movetofate.Create()
+		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+		newTask.fateid = ml_task_hub:CurrentTask().fateid
+        newTask.pos = fatePos
+		newTask.actualPos = fatePos
 		
-        if ( ml_task_hub:ThisTask().moving) then
-            newTask.range = math.random(3, (e_movetofate.radius))
-        else
-            newTask.range = 4
-        end
-		
-		newTask.Init = function()
-			local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
-			newTask:add( ke_useNavInteraction, newTask.process_elements)
-
-			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
-			newTask:add( ke_mount, newTask.process_elements)
-
-			local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
-			newTask:add( ke_sprint, newTask.process_elements)
-	
-			local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
-			newTask:add( ke_walkToPos, newTask.process_elements)
-			
-			newTask:AddTaskCheckCEs()
-		end
-		
-        ml_task_hub:ThisTask():AddSubTask(newTask)
+        ml_task_hub:CurrentTask():AddSubTask(newTask)
     end
-end
-
-c_atfate = inheritsFrom( ml_cause )
-e_atfate = inheritsFrom( ml_effect )
-function c_atfate:evaluate()
-    if (ml_task_hub:CurrentTask().name == "MOVETOPOS" and ml_task_hub:ThisTask().subtask == ml_task_hub:CurrentTask()) then
-        if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
-            local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-            if (ValidTable(fate)) then
-                -- check to see if we have to sync for this fate...if we do, then we can't stop outside the radius for a target
-                local plevel = Player.level
-                if ((fate.level < plevel - 5) or (fate.level < 50 and plevel > 50)) then
-                    return false
-                end
-                
-                -- check for fate targets within combat range and stop if we find one instead of running into fate
-                local el = EntityList("shortestpath,alive,attackable,onmesh,maxpathdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-                if ( el ) then
-                    local i,e = next(el)
-                    if (i~=nil and e~=nil) then
-                        return ValidTable(e)
-                    end
-                end	
-            end
-        end
-    end
-    return false
-end
-function e_atfate:execute()
-    --Player:Stop()
-    -- call the complete logic so that bot will dismount
-    -- stay mounted since we have a target and we want to continue running to it
-    ml_task_hub:CurrentTask().remainMounted = true
-    ml_task_hub:CurrentTask():task_complete_execute()
-    ml_task_hub:CurrentTask():Terminate()
-	ffxiv_task_grind.inFate = true
 end
 
 ---------------------------------------------------------------------------------------------
@@ -319,9 +344,8 @@ function c_syncfatelevel:evaluate()
     local myPos = Player.pos
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
-	if ( fate and TableSize(fate)) then
+	if ( ValidTable(fate)) then
 		if (ffxiv_task_fate.RequiresSync(fate.level)) then
-			local myPos = Player.pos
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
 				return true
@@ -337,57 +361,29 @@ function e_syncfatelevel:execute()
 	ml_global_information.syncTimer = Now() + 1000
 end
 
-c_movingfate = inheritsFrom( ml_cause )
-e_movingfate = inheritsFrom( ml_effect )
-function c_movingfate:evaluate()
-    if ( ml_task_hub:ThisTask().moving) then
-        return false
-    end
-    
-    if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-        if (ValidTable(fate)) then
-            local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-            if ( TableSize(ml_task_hub:ThisTask().fatePos) == 0 ) then
-                ml_task_hub:ThisTask().fatePos = fatePos
-                return false
-            else
-                local oldFatePos = ml_task_hub:ThisTask().fatePos
-                local distance = Distance2D(oldFatePos.x, oldFatePos.z, fatePos.x, fatePos.z)
-                if (distance > 0) then
-                    return true
-                end
-            end
-        end
-    end
-    
-    return false
-end
-function e_movingfate:execute()
-    ml_task_hub:ThisTask().moving = true
-end
-
 c_updatefate = inheritsFrom( ml_cause )
 e_updatefate = inheritsFrom( ml_effect )
 function c_updatefate:evaluate()
 	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-	local fateDetails = ml_task_hub:ThisTask().fateDetails
+	local fatePos = ml_task_hub:ThisTask().fatePos
 	
 	local tablesEqual = true
 	if (ValidTable(fate)) then
-		if (not fateDetails) then
-			fateDetails = shallowcopy(fate) 
-		elseif (ValidTable(fateDetails)) then
+		if (not fatePos) then
+			fatePos = {x = fate.x, y = fate.y, z = fate.z}
+		elseif (ValidTable(fatePos) and not Player.incombat) then
 			if not deepcompare(fate,fateDetails,true) then
 				fateDetails = shallowcopy(fate)
 			end
 		end
+		
+		if (ml_task_hub:ThisTask().waitingForChain) then ml_task_hub:ThisTask().waitingForChain = false end
+		if (ValidTable(ml_task_hub:ThisTask().nextFate)) then ml_task_hub:ThisTask().nextFate = {} end
 	end
 	
 	return false
 end
 function e_updatefate:execute()
-	--This should never actually run, but just incase.
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -418,6 +414,30 @@ function c_resettarget:evaluate()
 end
 function e_resettarget:execute()
 	d("Dropping target outside FATE radius.")
+end
+
+c_faterandomdelay = inheritsFrom( ml_cause )
+e_faterandomdelay = inheritsFrom( ml_effect )
+function c_faterandomdelay:evaluate()
+	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	
+	if (ValidTable(fate) and not ml_task_hub:ThisTask().randomDelayCompleted) then
+		if (fate.completion == 0) then
+			return true
+		else
+			ml_task_hub:ThisTask().randomDelayCompleted = true
+		end
+	end
+    
+    return false
+end
+function e_faterandomdelay:execute()
+	local minWait = tonumber(gFateRandomDelayMin) * 1000
+	local maxWait = tonumber(gFateRandomDelayMax) * 1000
+	
+	ml_task_hub:CurrentTask():SetDelay(math.random(minWait,maxWait))
+	ml_task_hub:ThisTask().randomDelayCompleted = true
+	d("Random delay commenced.")
 end
 
 c_add_fatetarget = inheritsFrom( ml_cause )
@@ -468,42 +488,42 @@ end
 
 function ffxiv_task_fate:Init()
     --init processoverwatch 
-	local ke_fateEnd = ml_element:create( "FateEnd", c_endfate, e_endfate, 50)
+	local ke_fateEnd = ml_element:create( "FateEnd", c_endfate, e_endfate, 100)
     self:add( ke_fateEnd, self.overwatch_elements)
 	
-	local ke_updateFate = ml_element:create( "UpdateFateDetails", c_updatefate, e_updatefate, 18 )
+	local ke_updateFate = ml_element:create( "UpdateFateDetails", c_updatefate, e_updatefate, 90 )
     self:add( ke_updateFate, self.overwatch_elements)
 	
-	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 16 )
+	local ke_teleToFate = ml_element:create( "TeleportToFate", c_teletofate, e_teletofate, 70 )
     self:add( ke_teleToFate, self.overwatch_elements)
 	
-    local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 15 )
+    local ke_betterFate = ml_element:create( "BetterFateSearch", c_betterfatesearch, e_betterfatesearch, 60 )
     self:add( ke_betterFate, self.overwatch_elements)
             
-    local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 10 )
+    local ke_syncFate = ml_element:create( "SyncFateLevel", c_syncfatelevel, e_syncfatelevel, 50 )
     self:add( ke_syncFate, self.overwatch_elements)
-    
-    local ke_atFate = ml_element:create( "AtFate", c_atfate, e_atfate, 5 )
-    self:add( ke_atFate, self.overwatch_elements)
 	
 	--local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_resettarget, 3 )
 	--self:add( ke_resetTarget, self.overwatch_elements)
     
-    --init process
-    local ke_movingFate = ml_element:create( "SetFateMovingFlag", c_movingfate, e_movingfate, 30 )
-    self:add( ke_movingFate, self.process_elements)
-    
-    --local ke_quitFate = ml_element:create( "QuitFate", c_fatequit, e_fatequit, 25 )
-    --self:add( ke_quitFate, self.process_elements)
-    
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 20 )
+    --init process    	
+    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
     self:add( ke_rest, self.process_elements)
+	
+	local ke_fateRandomDelay = ml_element:create( "RandomFateDelay", c_faterandomdelay, e_faterandomdelay, 80 )
+    self:add( ke_fateRandomDelay, self.process_elements)
         
-    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
+    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 60 )
     self:add(ke_addKillTarget, self.process_elements)
     
-    local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 5 )
+	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 50 )
     self:add( ke_moveToFate, self.process_elements)
+	
+    local ke_moveWithFate = ml_element:create( "MoveWithFate", c_movewithfate, e_movewithfate, 45 )
+    self:add( ke_moveWithFate, self.process_elements)
+	
+	local ke_moveChainFate = ml_element:create( "MoveChainFate", c_movetochainlocation, e_movetochainlocation, 40 )
+    self:add( ke_moveChainFate, self.process_elements)
 end
 
 c_endfate = inheritsFrom( ml_cause )
@@ -522,12 +542,21 @@ function c_endfate:evaluate()
     return false
 end
 function e_endfate:execute()
-	ffxiv_task_grind.inFate = false
-	Player:Stop()
-	ml_task_hub:ThisTask().completed = true
-	ml_task_hub:ThisTask():DeleteSubTasks()
-	ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
-	ml_task_hub:ThisTask():ParentTask().suppressRestTimer = Now() + 5000
+	local isChain, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
+	
+	if (isChain and not isLast and ValidTable(nextFate)) then
+		Player:Stop()
+		ml_task_hub:ThisTask().fateid = nextFate.id
+		ml_task_hub:ThisTask().waitingForChain = true
+		ml_task_hub:ThisTask().nextFate = nextFate
+	else
+		ffxiv_task_grind.inFate = false
+		Player:Stop()
+		ml_task_hub:ThisTask().completed = true
+		ml_task_hub:ThisTask():DeleteSubTasks()
+		ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
+		ml_global_information.suppressRestTimer = Now() + 10000
+	end
 end
 
 function ffxiv_task_fate.RequiresSync(fateLevel)
@@ -536,8 +565,8 @@ function ffxiv_task_fate.RequiresSync(fateLevel)
 	
 	local requiresSync = false
 	if (fateLevel > 0) then
-		if (fateLevel < 50) then
-			if (playerLevel > 50 or fateLevel < (playerLevel - 5)) then
+		if (fateLevel < 49) then
+			if (fateLevel < (playerLevel - 5)) then
 				requiresSync = true
 			end
 		else
@@ -548,6 +577,68 @@ function ffxiv_task_fate.RequiresSync(fateLevel)
 	end
 		
 	return requiresSync
+end
+
+function ffxiv_task_fate.IsHighPriority(mapid, fateid)
+	local mapid = tonumber(mapid) or 0
+	local fateid = tonumber(fateid) or 0
+	
+	local highPriority = {
+		[147] = "644,645,646",
+	}
+	
+	local mapPriority = highPriority[mapid]
+	if (mapPriority) then
+		return MultiComp(fateid,mapPriority)
+	end
+	
+	return false
+end
+
+function ffxiv_task_fate.IsChain(mapid, fateid)
+	local mapid = tonumber(mapid) or 0
+	local fateid = tonumber(fateid) or 0
+	
+	local chains = {
+		[155] = {
+			[1] = {
+				{ id = 501, x = 278.2, y = 338.7, z = -505.9 },
+				{ id = 502, x = 261.5, y = 359.2, z = -662.6 },
+				{ id = 503, x = 263.0, y = 359.2, z = -663.6 },
+				{ id = 504, x = 263.0, y = 359.2, z = -663.6 },
+			},
+		},
+		[147] = {
+			[1] = {
+				{ id = 644, x = 243.6, y = 25.29, z = 45.5 },
+				{ id = 645, x = 243.6, y = 25.29, z = 45.5 },
+				{ id = 646, x = 243.6, y = 25.29, z = 45.5 },
+			},
+		},
+	}
+	
+	local mapChains = chains[mapid]
+	if (mapChains) then
+		for chainid,chaindata in pairs(mapChains) do
+			for order,fatedata in pairs(chaindata) do
+				if (fatedata.id == fateid) then
+					local lastChain = (order == TableSize(chaindata))
+					local nextFate = nil
+					
+					if (not lastChain) then
+						if (chaindata[order+1]) then
+							nextFate = chaindata[order+1]
+						end
+					end
+					
+					d("Is this the last chain member? "..tostring(lastChain))
+					return true, lastChain, nextFate
+				end
+			end
+		end
+	end
+	
+	return false, nil, nil
 end
 
 function ffxiv_task_fate.BlacklistInitUI()
