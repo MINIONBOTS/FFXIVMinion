@@ -310,13 +310,13 @@ function ffxiv_task_movetofate.Create()
     newinst.fateid = 0
     newinst.lastMove = 0
 	newinst.lastRandomize = 0
-    newinst.remainMounted = false
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
 	newinst.use3d = false
 	newinst.dismountTimer = 0
 	newinst.dismountDistance = 15
 	newinst.failTimer = 0
+	newinst.useSmoothTurns = true
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
@@ -361,14 +361,61 @@ function ffxiv_task_movetofate:task_complete_eval()
 	
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		if (not deepcompare(self.actualPos,fatePos,true)) then
-			self.pos = fatePos
+			--self.pos = fatePos
 			self.actualPos = fatePos
 			self.requiresPosRandomize = true
 			self.lastMove = Now()
 		end
 		
-		if (self.requiresPosRandomize and TimeSince(self.lastRandomize) > 500) then
-			local newPos = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
+		local dist = Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
+		if (self.requiresPosRandomize and 
+			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .90))) and
+			not Player:IsMoving()) 
+		then
+			local newPos = nil
+			
+			local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
+			if (ValidTable(npcs)) then
+				local heading = nil
+				for i,npc in pairs(npcs) do
+					local npos = npc.pos
+					local dist = Distance2D(self.actualPos.x,self.actualPos.z,npos.x,npos.z)
+					
+					if (dist < 10) then
+						heading = npos.h
+					end
+					if (heading) then
+						break
+					end
+				end
+				
+				if (heading) then
+					local mobRight = ConvertHeading((heading - (math.pi * (math.random(11,20)/100))))%(2*math.pi)
+					local mobLeft = ConvertHeading((heading + (math.pi * (math.random(11,20)/100))))%(2*math.pi)
+					--local mobRearLeft = ConvertHeading((heading + (math.pi * (math.random(70,90)/100))))%(2*math.pi)
+					--local mobRearRight = ConvertHeading((heading - (math.pi * (math.random(70,90)/100))))%(2*math.pi)
+					local mobFrontLeft = ConvertHeading((heading + (math.pi * (math.random(1,10)/100))))%(2*math.pi)
+					local mobFrontRight = ConvertHeading((heading - (math.pi * (math.random(1,10)/100))))%(2*math.pi)
+					
+					local options = {
+						GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontLeft),
+						GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontRight),
+						GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobLeft),
+						GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobRight),
+						--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearLeft),
+						--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearRight),
+					}
+					
+					local selection = options[math.random(1,TableSize(options))]
+					if (ValidTable(selection)) then
+						newPos = selection
+					end
+				end
+			end
+			
+			if (not ValidTable(newPos)) then
+				newPos = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
+			end
 			if (not ValidTable(newPos)) then
 				newPos = NavigationManager:GetClosestPointOnMesh(self.pos.x,self.pos.y,self.pos.z,false)
 			end
@@ -377,11 +424,14 @@ function ffxiv_task_movetofate:task_complete_eval()
 			end
 			self.requiresPosRandomize = false
 			self.lastRandomize = Now()
+		else
+			--d("Not randomizing position.")
+			--d("Requires Randomize:"..tostring(self.requiresPosRandomize))
+			--d("TimeSince Randomize:"..tostring(TimeSince(self.lastRandomize) > 1000))
 		end
 		
 		--While the FATE is moving, follow it closely.
 		if (TimeSince(self.lastMove) > 3000) then
-			
 			if (ValidTable(self.pos)) then
 				local myPos = Player.pos
 				local gotoPos = self.pos
@@ -403,18 +453,13 @@ function ffxiv_task_movetofate:task_complete_eval()
 end
 
 function ffxiv_task_movetofate:task_complete_execute()
-	d("movetofate completed.")
 	Player:Stop()
-	if (not self.remainMounted) then
-		Dismount()
-	end
 	self.completed = true
 end
 
 function ffxiv_task_movetofate:task_fail_eval()
 	local fate = GetFateByID(self.fateid)
 	if (not ValidTable(fate)) then
-		d("failed in block1.")
 		return true
 	end
 	
@@ -431,7 +476,6 @@ function ffxiv_task_movetofate:task_fail_eval()
 	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
 end
 function ffxiv_task_movetofate:task_fail_execute()
-	d("movetofate failed.")
 	Player:Stop()
     self.valid = false
 end

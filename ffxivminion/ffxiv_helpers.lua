@@ -1501,6 +1501,24 @@ function IsFront(entity)
     return false
 end
 
+function EntityIsFrontWide(entity)
+	if not entity or entity.id == Player.id then return false end
+	
+	local ppos = Player.pos
+	local epos = entity.pos
+	local playerHeading = ConvertHeading(ppos.h)
+	
+	local playerAngle = math.atan2(epos.x - ppos.x, epos.z - ppos.z) 
+	local deviation = playerAngle - playerHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .70) and leftover < (math.pi * 1.30)) then
+		return true
+	end
+    return false
+end
+
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	

@@ -1156,7 +1156,7 @@ end
 function e_walktopos:execute()
 	if (ValidTable(c_walktopos.pos)) then
 		local gotoPos = c_walktopos.pos
-		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1")
+		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 		if (not tonumber(path)) then
 			ml_debug("[e_walktopos] An error occurred in creating the path.")
 		elseif (path >= 0) then
