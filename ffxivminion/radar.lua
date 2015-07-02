@@ -44,13 +44,19 @@ function wt_radar.HandleInit()
     if ( Settings.FFXIVMINION.gRadarY == nil ) then
         Settings.FFXIVMINION.gRadarY = -1.0
     end	
-    if ( Settings.FFXIVMINION.gRadarSpecialTargets == nil ) then
-        Settings.FFXIVMINION.gRadarSpecialTargets = "2919,2920,2921,2922,2923,2924,2925,2926,2927,2928,2929,2930,2931,2932,2933,2934,2935,2936,2937,2938,2939,2940,2941,2942,2943,2944,2945,2946,2947,2948,2949,2950,2951,2952,2953,2954,2955,2956,2957,2958,2959,2960,2961,2962,2963,2964,2965,2966,2967,2968,2969"
-    end	
-	
-	
+	if ( Settings.FFXIVMINION.gRadarHuntTargets3 == nil ) then
+        Settings.FFXIVMINION.gRadarHuntTargets3 = "All"
+    end
+	if ( Settings.FFXIVMINION.gRadarHuntTargets2 == nil ) then
+        Settings.FFXIVMINION.gRadarHuntTargets2 = "All"
+    end
+	if ( Settings.FFXIVMINION.gRadarHuntTargetsSpecific == nil ) then
+        Settings.FFXIVMINION.gRadarHuntTargetsSpecific = ""
+    end
 
-    GUI_NewWindow(wt_radar.MainWindow.Name,wt_radar.MainWindow.x,wt_radar.MainWindow.y,wt_radar.MainWindow.width,wt_radar.MainWindow.height)	
+    GUI_NewWindow(wt_radar.MainWindow.Name,wt_radar.MainWindow.x,wt_radar.MainWindow.y,wt_radar.MainWindow.width,wt_radar.MainWindow.height)
+	GUI_NewButton(wt_radar.MainWindow.Name,"Toggle Radar","wt_radar.ToggleRadar")
+	
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enableRadar"),"gRadar","Radar" );
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enable2DRadar"),"g2dRadar","Radar" );
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("enable3DRadar"),"g3dRadar","Radar" );
@@ -61,11 +67,12 @@ function wt_radar.HandleInit()
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showBattleNPCs"),"gRadarShowBattleNPCs","RadarSettings" );
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showEventNPCs"),"gRadarShowEventNPCs","RadarSettings" );
     GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showEventObjects"),"gRadarShowEventObjs","RadarSettings" );
-    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showAetherytes"),"gRadarShowAetherytes","RadarSettings" )
+    GUI_NewCheckbox(wt_radar.MainWindow.Name,GetString("showAetherytes"),"gRadarShowAetherytes","RadarSettings" );
 	
-	GUI_NewField(wt_radar.MainWindow.Name,"SpecialTargetContentIDs","gRadarSpecialTargets","RadarSettings" )
+	GUI_NewComboBox(wt_radar.MainWindow.Name,"3.0 Hunt Targets","gRadarHuntTargets3","SpecialTargets","All,S Ranks,A Ranks,B Ranks,None")
+	GUI_NewComboBox(wt_radar.MainWindow.Name,"2.0 Hunt Targets","gRadarHuntTargets2","SpecialTargets","All,S Ranks,A Ranks,B Ranks,None")
+	GUI_NewField(wt_radar.MainWindow.Name,"Specific Targets","gRadarHuntTargetsSpecific","SpecialTargets")
 	
-
     GUI_NewNumeric(wt_radar.MainWindow.Name,GetString("xPos"),"gRadarX","RadarSettings" )
     GUI_NewNumeric(wt_radar.MainWindow.Name,GetString("yPos"),"gRadarY","RadarSettings" )
     
@@ -81,8 +88,14 @@ function wt_radar.HandleInit()
     gRadarShowAetherytes = Settings.FFXIVMINION.gRadarShowAetherytes
     gRadarX = Settings.FFXIVMINION.gRadarX
     gRadarY = Settings.FFXIVMINION.gRadarY
-    gRadarSpecialTargets = Settings.FFXIVMINION.gRadarSpecialTargets
+    gRadarHuntTargets3 = Settings.FFXIVMINION.gRadarHuntTargets3
+	gRadarHuntTargets2 = Settings.FFXIVMINION.gRadarHuntTargets2
+	gRadarHuntTargetsSpecific = Settings.FFXIVMINION.gRadarHuntTargetsSpecific
 	
+	GUI_SizeWindow(wt_radar.MainWindow.Name,wt_radar.MainWindow.width,wt_radar.MainWindow.height)
+	
+	gRadarSpecialTargets = ""
+	wt_radar.BuildSpecialTargets()
 
     if ( gRadar == "0") then GameHacks:SetRadarSettings("gRadar",false) else GameHacks:SetRadarSettings("gRadar",true) end
     if ( g2dRadar == "0") then GameHacks:SetRadarSettings("g2dRadar",false) else GameHacks:SetRadarSettings("g2dRadar",true) end
@@ -98,7 +111,6 @@ function wt_radar.HandleInit()
 	if ( tonumber(gRadarX) ~= nil) then GameHacks:SetRadarSettings("gRadarX",tonumber(gRadarX)) end
     if ( tonumber(gRadarY) ~= nil) then GameHacks:SetRadarSettings("gRadarY",tonumber(gRadarY)) end
     
-	
     GUI_WindowVisible(wt_radar.MainWindow.Name,false)
 end
 
@@ -122,7 +134,11 @@ function wt_radar.GUIVarUpdate(Event, NewVals, OldVals)
                 GameHacks:SetRadarSettings(k,true)
             end
         end
-		if ( k == "gRadarSpecialTargets" and gRadarSpecialTargets ~= nil ) then
+		if (k == "gRadarHuntTargetsSpecific" or
+			k == "gRadarHuntTargets3" or
+			k == "gRadarHuntTargets2")
+		then
+			wt_radar.BuildSpecialTargets()
 			SafeSetVar(tostring(k),v)
 			GameHacks:SetRadarSettings("gRadarSpecialTargetList", tostring(gRadarSpecialTargets))
 		end
@@ -136,6 +152,91 @@ function wt_radar.GUIVarUpdate(Event, NewVals, OldVals)
         end
     end
     GUI_RefreshWindow(wt_radar.MainWindow.Name)
+end
+
+function wt_radar.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" ) then
+		if (string.find("wt_radar.")) then
+			ExecuteFunction(Button)
+		end
+	end
+end
+
+function wt_radar.BuildSpecialTargets()
+	local hunts = {
+		["new"] = {
+			["S Ranks"] = "4374,4375,4376,4378,4379,4380",
+			["A Ranks"] = "4362,4363,4364,4365,4366,4367,4368,4369,4370,4371,4372,4373",
+			["B Ranks"] = "4350,4351,4352,4353,4354,4355,4356,4357,4358,4359,4360,4361",
+		},
+		["old"] = {
+			["S Ranks"] = "2953,2954,2955,2956,2957,2958,2959,2960,2961,2962,2963,2964,2965,2966,2967,2968,2969",
+			["A Ranks"] = "2936,2937,2938,2939,2940,2941,2942,2943,2944,2945,2946,2947,2948,2949,2950,2951,2952",
+			["B Ranks"] = "2919,2920,2921,2922,2923,2924,2925,2926,2927,2928,2929,2930,2931,2932,2933,2934,2935",
+		},
+	}
+	
+	local specialTargets = ""
+	
+	if (gRadarHuntTargets3 ~= "None") then
+		if (gRadarHuntTargets3 == "All") then
+			local newHunts = hunts.new
+			for rank,rankstring in pairs(newHunts) do
+				if (specialTargets == "") then
+					specialTargets = rankstring
+				else
+					specialTargets = specialTargets..","..rankstring
+				end
+			end
+		else
+			if (specialTargets == "") then
+				specialTargets = hunts.new[gRadarHuntTargets3]
+			else
+				specialTargets = specialTargets..","..hunts.new[gRadarHuntTargets3]
+			end
+		end
+	end
+	
+	if (gRadarHuntTargets2 ~= "None") then
+		if (gRadarHuntTargets2 == "All") then
+			local oldHunts = hunts.old
+			for rank,rankstring in pairs(oldHunts) do
+				if (specialTargets == "") then
+					specialTargets = rankstring
+				else
+					specialTargets = specialTargets..","..rankstring
+				end
+			end
+		else
+			if (specialTargets == "") then
+				specialTargets = hunts.old[gRadarHuntTargets2]
+			else
+				specialTargets = specialTargets..","..hunts.old[gRadarHuntTargets2]
+			end
+		end
+	end
+	
+	if (gRadarHuntTargetsSpecific ~= "") then
+		if (specialTargets == "") then
+			specialTargets = gRadarHuntTargetsSpecific
+		else
+			specialTargets = specialTargets..","..gRadarHuntTargetsSpecific
+		end
+	end
+	
+	gRadarSpecialTargets = specialTargets
+end
+
+function wt_radar.ToggleRadar()
+	if ( gRadar == "0") then 
+		gRadar = "1"
+		SafeSetVar("gRadar","1")
+		GameHacks:SetRadarSettings("gRadar",true) 
+	else 
+		gRadar = "0"
+		SafeSetVar("gRadar","0")
+		GameHacks:SetRadarSettings("gRadar",false) 
+	end
 end
 
 function wt_radar.ToggleMenu()
@@ -152,3 +253,4 @@ end
 RegisterEventHandler("Module.Initalize",wt_radar.HandleInit)
 RegisterEventHandler("Radar.toggle", wt_radar.ToggleMenu)
 RegisterEventHandler("GUI.Update",wt_radar.GUIVarUpdate)
+RegisterEventHandler("GUI.Item", wt_radar.HandleButtons )
