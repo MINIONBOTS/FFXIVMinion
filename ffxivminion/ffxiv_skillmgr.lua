@@ -2453,8 +2453,6 @@ function ffxiv_task_skill_cast:task_fail_execute()
     self.valid = false
 end
 
-
-
 -- Skillmanager Task for the mainbot & assistmode
 ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
 function ffxiv_task_skillmgrAttack.Create()
@@ -3569,7 +3567,7 @@ function SkillMgr.AddDefaultConditions()
 			for i,entity in pairs(targets) do
 				if (skill.enmityaoe == "1" and entity.targetid == Player.id) then
 					targets[i] = nil
-				elseif (skill.frontalconeaoe == "1" and not EntityIsFrontWide(entity.id)) then
+				elseif (skill.frontalconeaoe == "1" and not EntityIsFrontWide(entity)) then
 					targets[i] = nil
 				elseif (skill.tankedonlyaoe == "1" and entity.targetid == 0) then
 					targets[i] = nil
