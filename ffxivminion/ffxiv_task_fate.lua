@@ -584,7 +584,8 @@ function ffxiv_task_fate.IsHighPriority(mapid, fateid)
 	local fateid = tonumber(fateid) or 0
 	
 	local highPriority = {
-		[147] = "644,645,646",
+		[147] = "643,644,645,646",
+		[155] = "501,502,503,504",
 	}
 	
 	local mapPriority = highPriority[mapid]
@@ -610,6 +611,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 		},
 		[147] = {
 			[1] = {
+				{ id = 643, x = 243.6, y = 25.29, z = 45.5 },
 				{ id = 644, x = 243.6, y = 25.29, z = 45.5 },
 				{ id = 645, x = 243.6, y = 25.29, z = 45.5 },
 				{ id = 646, x = 243.6, y = 25.29, z = 45.5 },
