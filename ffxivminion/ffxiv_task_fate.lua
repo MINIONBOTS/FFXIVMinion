@@ -448,42 +448,44 @@ function c_add_fatetarget:evaluate()
 		local aggro = GetNearestAggro()
 		if ValidTable(aggro) then
 			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
-				c_add_killtarget.targetid = aggro.id
+				c_add_fatetarget.targetid = aggro.id
 				return true
 			end
 		end 
 	end
     
 	if (SkillMgr.Cast( Player, true)) then
-		c_add_killtarget.oocCastTimer = Now() + 1500
+		c_add_fatetarget.oocCastTimer = Now() + 1500
 		return false
 	end
 	
-	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+	if (ActionList:IsCasting() or Now() < c_add_fatetarget.oocCastTimer) then
 		return false
 	end
 	
-	local target = ml_task_hub:CurrentTask().targetFunction()
-    if (ValidTable(target)) then
-        if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-            c_add_killtarget.targetid = target.id
-            return true
-        end
-    end
+	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+	if (ValidTable(fate)) then
+		local myPos = Player.pos
+		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+		
+		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
+		if (not ffxiv_task_fate.RequiresSync(fate.level) or dist < fate.radius) then
+			local target = GetNearestFateAttackable()
+			if (ValidTable(target)) then
+				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+					c_add_fatetarget.targetid = target.id
+					return true
+				end
+			end
+		end
+	end
     
     return false
 end
 function e_add_fatetarget:execute()
-	if (ml_task_hub:ThisTask().killFunction ~= nil) then
-		local newTask = ml_task_hub:ThisTask().killFunction.Create()
-		newTask.targetid = c_add_killtarget.targetid
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	else
-		local newTask = ffxiv_task_killtarget.Create()
-		Player:SetTarget(c_add_killtarget.targetid)
-		newTask.targetid = c_add_killtarget.targetid
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
+	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.targetid = c_add_fatetarget.targetid
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 function ffxiv_task_fate:Init()
@@ -513,7 +515,7 @@ function ffxiv_task_fate:Init()
 	local ke_fateRandomDelay = ml_element:create( "RandomFateDelay", c_faterandomdelay, e_faterandomdelay, 80 )
     self:add( ke_fateRandomDelay, self.process_elements)
         
-    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 60 )
+    local ke_addKillTarget = ml_element:create( "AddFateTarget", c_add_fatetarget, e_add_fatetarget, 60 )
     self:add(ke_addKillTarget, self.process_elements)
     
 	local ke_moveToFate = ml_element:create( "MoveToFate", c_movetofate, e_movetofate, 50 )

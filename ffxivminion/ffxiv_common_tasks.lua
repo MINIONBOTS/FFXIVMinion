@@ -351,7 +351,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		local myPos = Player.pos
 		local fatedist = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
-		if (not ffxiv_task_fate.RequiresSync(fate.level) and fatedist >= fate.radius) then
+		if (not ffxiv_task_fate.RequiresSync(fate.level) or fatedist < fate.radius) then
 			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
 			local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(maxdistance)..",fateid="..tostring(fate.id))
 			if ( ValidTable(el) ) then
@@ -1360,6 +1360,8 @@ function ffxiv_task_grindCombat.Create()
 	newinst.pullPos1 = Player.pos
 	newinst.pullPos2 = Player.pos
 	
+	d("[GrindCombat]: Beginning new task.")
+	
     return newinst
 end
 
@@ -1383,7 +1385,7 @@ function ffxiv_task_grindCombat:Init()
 end
 
 function ffxiv_task_grindCombat:Process()	
-	target = EntityList:Get(self.targetid)
+	local target = EntityList:Get(self.targetid)
 	if ValidTable(target) then
 	
 		local currentTarget = Player:GetTarget()
@@ -1544,8 +1546,10 @@ function ffxiv_task_grindCombat:task_complete_eval()
 		d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
+	return false
 end
 function ffxiv_task_grindCombat:task_complete_execute()
+	d("[GrindCombat]: Task completing.")
 	if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 		if (Player:GetSyncLevel() ~= 0) then
 			if (ml_task_hub:CurrentTask():ParentTask()) then

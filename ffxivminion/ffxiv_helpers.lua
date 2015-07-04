@@ -1782,6 +1782,7 @@ end
 function GetClosestFate(pos)
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
+		--d("Found some approved fates.")
         local nearestFate = nil
         local nearestDistance = 9999
         local level = Player.level
@@ -1820,13 +1821,14 @@ function GetClosestFate(pos)
 			end
 		else
 			local validFates = {}
-			--Add fates tha are high priority or chains first.
+			--Add fates that are high priority or chains first.
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 					if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
 						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 						if (p and dist <= 20) then
 							table.insert(validFates,fate)
+							--d("Added 1 high priority fate.")
 						end
 					end
 				end
@@ -1839,6 +1841,7 @@ function GetClosestFate(pos)
 							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 							if (p and dist <= 20) then
 								table.insert(validFates,fate)
+								--d("Added 1 normal fate.")
 							end
 						end
 					end
@@ -1846,6 +1849,7 @@ function GetClosestFate(pos)
 			end
 			
 			if (ValidTable(validFates)) then
+				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
 					local distance = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
 					if (distance ~= 0) then
@@ -1859,7 +1863,7 @@ function GetClosestFate(pos)
 		end
     
         if (nearestFate ~= nil) then
-			--local fate = nearestFate
+			local fate = nearestFate
 			--d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
             return nearestFate
         end
@@ -3432,6 +3436,347 @@ function GetItemData(itemid)
 	local itemid = tonumber(itemid)
 	local itemDetails = ffxiv_item_data[itemid]
 	return itemDetails
+end
+
+function GetItemDetails(searchitem)
+	if (not ValidTable(searchitem)) then
+		d("Invalid item table passed.")
+		return nil
+	end
+	
+	local itemid = searchitem.id
+	if (searchitem.IsHQ == 1) then
+		itemid = (itemid - 1000000)
+	end
+	local dbitem = ffxiv_item_data[itemid]
+	if (dbitem) then
+		itemDetails = dbitem
+		itemDetails.hq = (searchitem.IsHQ == 1)
+		return itemDetails
+	end
+	
+	return nil
+end
+
+function GetItemStatWeight(searchitem)
+	if (not ValidTable(searchitem)) then
+		d("Invalid item table passed.")
+		return 0
+	end
+	
+	local itemDetails = nil
+	
+	local itemid = searchitem.id
+	if (searchitem.IsHQ == 1) then
+		itemid = (itemid - 1000000)
+	end
+	local dbitem = ffxiv_item_data[itemid]
+	if (dbitem) then
+		itemDetails = dbitem
+		itemDetails.hq = (searchitem.IsHQ == 1)
+	else
+		d("No item information was found for :"..tostring(searchitem.name))
+		return 0
+	end
+	
+	local statWeights = {
+		["Tanks"] = {
+			weights = {
+				pDamage = 8.732,
+				pDefense = .5,
+				mDefense = .5,
+				[1] = 1,
+				[22] = 0.204,
+				[27] = 0.204,
+				[44] = 0.325,
+				[45] = 0.178,
+				[3] = 1,
+				[19] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.GLADIATOR] = true,
+				[FFXIV.JOBS.PALADIN] = true,
+				[FFXIV.JOBS.MARAUDER] = true,
+				[FFXIV.JOBS.WARRIOR] = true,
+				[FFXIV.JOBS.DARKKNIGHT] = true,
+			},
+		},
+		["Healers"] = {
+			weights = {
+				mDamage = 8.732,
+				[5] = 1,
+				[22] = 0,
+				[27] = 0.204,
+				[44] = 0.325,
+				[46] = 0.178,
+				[3] = 0,
+				[6] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.CONJURER] = true,
+				[FFXIV.JOBS.WHITEMAGE] = true,
+				[FFXIV.JOBS.SCHOLAR] = true,
+				[FFXIV.JOBS.ASTROLOGIAN] = true,
+			},
+		},
+		["INT DPS"] = {
+			weights = {
+				mDamage = 8.732,
+				[4] = 1,
+				[22] = 0,
+				[27] = 0.234,
+				[44] = 0.246,
+				[46] = 0.281,
+				[3] = 0,
+				[6] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.THAUMATURGE] = true,
+				[FFXIV.JOBS.BLACKMAGE] = true,
+				[FFXIV.JOBS.ARCANIST] = true,
+				[FFXIV.JOBS.SUMMONER] = true,
+			},
+		},
+		["DEX DPS"] = {
+			weights = {
+				pDamage = 9.429,
+				[2] = 1,
+				[22] = 0,
+				[27] = 0.339,
+				[44] = 0.320,
+				[45] = 0.161,
+				[3] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.ARCHER] = true,
+				[FFXIV.JOBS.BARD] = true,
+				[FFXIV.JOBS.MACHINIST] = true,
+				[FFXIV.JOBS.ROGUE] = true,
+				[FFXIV.JOBS.NINJA] = true,
+			},
+		},
+		["STR DPS"] = {
+			weights = {
+				pDamage = 9.338,
+				[1] = 1,
+				[22] = 0,
+				[27] = 0.214,
+				[44] = 0.336,
+				[45] = 0.206,
+				[3] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.PUGILIST] = true,
+				[FFXIV.JOBS.MONK] = true,
+				[FFXIV.JOBS.LANCER] = true,
+				[FFXIV.JOBS.DRAGOON] = true,
+			},
+		},
+		["Gatherers"] = {
+			weights = {
+				pDamage = 9.338,
+				[10] = 1,
+				[72] = 1,
+				[73] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.MINER] = true,
+				[FFXIV.JOBS.BOTANIST] = true,
+				[FFXIV.JOBS.FISHER] = true,
+			},
+		},
+		["Crafters"] = {
+			weights = {
+				pDamage = 9.338,
+				[11] = 1,
+				[70] = 1,
+				[71] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.CARPENTER] 		= true,
+				[FFXIV.JOBS.BLACKSMITH] 	= true,
+				[FFXIV.JOBS.ARMORER] 		= true,
+				[FFXIV.JOBS.GOLDSMITH] 		= true,
+				[FFXIV.JOBS.LEATHERWORKER] 	= true,
+				[FFXIV.JOBS.WEAVER] 		= true,
+				[FFXIV.JOBS.ALCHEMIST] 		= true,
+				[FFXIV.JOBS.CULINARIAN] 	= true,
+			},
+		},
+	}
+	
+	local appliedStats = nil
+	for category,data in pairs(statWeights) do
+		if (data.appliesTo) then
+			for jobid,_ in pairs(data.appliesTo) do
+				if (jobid == Player.job) then
+					appliedStats = data.weights
+				end
+			end
+		end
+		if (appliedStats) then
+			break
+		end
+	end
+	
+	if (not ValidTable(appliedStats)) then
+		d("Appropriate stat weights not found for this class/job.")
+		return 0
+	end
+		
+	local statTotals = 0
+	if (ValidTable(itemDetails)) then
+		if (searchitem.slot == 0) then
+			-- Calculate weapon total.
+			
+			for stat,weight in pairs(appliedStats) do
+				if (stat == "pDamage") then
+					if (itemDetails.hq) then
+						local thisStat = itemDetails.pDamageHQ or 0
+						statTotals = statTotals + (thisStat * weight)
+					else
+						local thisStat = itemDetails.pDamage or 0
+						statTotals = statTotals + (thisStat * weight)
+					end
+				elseif (stat == "mDamage") then
+					if (itemDetails.hq) then
+						local thisStat = itemDetails.mDamageHQ or 0
+						statTotals = statTotals + (thisStat * weight)
+					else
+						local thisStat = itemDetails.mDamage or 0
+						statTotals = statTotals + (thisStat * weight)
+					end
+				end			
+			end
+			
+		elseif (searchitem.slot == 1) then
+			-- Calculate shield total.
+			
+			if (itemDetails.hq) then
+				local thisStat = itemDetails.shieldRateHQ or 0
+				statTotals = statTotals + (thisStat * 0.1)
+			else
+				local thisStat = itemDetails.shieldRate or 0
+				statTotals = statTotals + (thisStat * 0.1)
+			end
+			
+			if (itemDetails.hq) then
+				local thisStat = itemDetails.blockRateHQ or 0
+				statTotals = statTotals + (thisStat * 0.1)
+			else
+				local thisStat = itemDetails.blockRate or 0
+				statTotals = statTotals + (thisStat * 0.1)
+			end
+			
+		end
+		
+		for stat,weight in pairs(appliedStats) do
+			if (stat == "pDefense") then
+				if (itemDetails.hq) then
+					local thisStat = itemDetails.defenseHQ or 0
+					statTotals = statTotals + (thisStat * weight)
+				else
+					local thisStat = itemDetails.defense or 0
+					statTotals = statTotals + (thisStat * weight)
+				end
+			elseif (stat == "mDefense") then
+				if (itemDetails.hq) then
+					local thisStat = itemDetails.magicDefenseHQ or 0
+					statTotals = statTotals + (thisStat * weight)
+				else
+					local thisStat = itemDetails.magicDefense or 0
+					statTotals = statTotals + (thisStat * weight)
+				end
+			elseif (tonumber(stat) ~= nil) then
+				if (itemDetails.hq) then
+					local thisStat = itemDetails.statsHQ[stat] or 0
+					statTotals = statTotals + (thisStat * weight)
+				else
+					local thisStat = itemDetails.stats[stat] or 0
+					statTotals = statTotals + (thisStat * weight)
+				end
+			end	
+		end
+	end
+	
+	return statTotals
+end
+
+function FindUpgradesBySlot(slot,ui)
+	local slot = tonumber(slot)
+	local ui = tonumber(ui)
+	local items = {}
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (ValidTable(item) and item.requiredlevel > 0) then
+				if (item.requiredlevel <= Player.level) then
+					local itemDetails = GetItemDetails(item)
+					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
+						items[item.id] = item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = Inventory("type="..tostring(x))
+		for i, item in pairs(inv) do
+			if (ValidTable(item) and item.requiredlevel > 0) then
+				if (item.requiredlevel <= Player.level) then
+					local itemDetails = GetItemDetails(item)
+					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
+						items[item.id] = item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = Inventory("type=3300")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local itemDetails = GetItemDetails(item)
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
+					items[item.id] = item
+				end
+			end
+		end
+	end
+	
+	--Look through soulstone armory bag.
+	local inv = Inventory("type=3400")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local itemDetails = GetItemDetails(item)
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
+					items[item.id] = item
+				end
+			end
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = Inventory("type=3500")
+	for i, item in pairs(inv) do
+		if (ValidTable(item) and item.requiredlevel > 0) then
+			if (item.requiredlevel <= Player.level) then
+				local itemDetails = GetItemDetails(item)
+				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
+					items[item.id] = item
+				end
+			end
+		end
+	end
+	
+	return items
 end
 
 function FindItemsBySlot(slot,ui)

@@ -67,16 +67,9 @@ function c_add_killtarget:evaluate()
     return false
 end
 function e_add_killtarget:execute()
-	if (ml_task_hub:ThisTask().killFunction ~= nil) then
-		local newTask = ml_task_hub:ThisTask().killFunction.Create()
-		newTask.targetid = c_add_killtarget.targetid
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	else
-		local newTask = ffxiv_task_killtarget.Create()
-		Player:SetTarget(c_add_killtarget.targetid)
-		newTask.targetid = c_add_killtarget.targetid
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
-	end
+	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.targetid = c_add_killtarget.targetid
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_killaggrotarget = inheritsFrom( ml_cause )
@@ -110,7 +103,7 @@ function c_killaggrotarget:evaluate()
     return false
 end
 function e_killaggrotarget:execute()
-	local newTask = ffxiv_task_killtarget.Create()
+	local newTask = ffxiv_task_grindCombat.Create()
 	Player:SetTarget(c_killaggrotarget.targetid)
     newTask.targetid = c_killaggrotarget.targetid
     ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -235,7 +228,7 @@ end
 c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 c_add_fate.fate = {}
-function c_add_fate:evaluate()    
+function c_add_fate:evaluate()
     if (gBotMode == GetString("partyMode") and not IsLeader()) then
 		return false
     end
@@ -1545,6 +1538,8 @@ function c_mount:evaluate()
 			local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		
 			if (distance > tonumber(gMountDist)) then
+				
+				d("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
 				--Added mount verifications here.
 				--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
 				local mountID
@@ -2291,7 +2286,7 @@ c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
 e_autoequip.id = nil
 e_autoequip.slot = nil
-function c_autoequip:evaluate()
+function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
 		IsShopWindowOpen() or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
@@ -2339,12 +2334,21 @@ function c_autoequip:evaluate()
 	4 = Int
 	5 = Mind
 	6 = Piety
+	10 = GP
+	11 = CP
+	
 	19 = Parry
 	22 = Accuracy
 	27 = Critical Hit
 	44 = Determination
 	45 = Skill Speed
+	46 = Spell Speed
 	48 = Morale
+	
+	70 = Craftsmanship
+	71 = Control
+	72 = Gathering
+	73 = Perception
 	--]]
 	
 	local weaponTypes = {
@@ -2434,45 +2438,7 @@ function c_autoequip:evaluate()
 		[12] = 12,
 		[13] = 17,
 	}
-	local primaryStats = {
-		[FFXIV.JOBS.GLADIATOR] = 1,
-		[FFXIV.JOBS.PALADIN] = 1,
-		[FFXIV.JOBS.MARAUDER] = 1,
-		[FFXIV.JOBS.WARRIOR] = 1,
-		[FFXIV.JOBS.DARKKNIGHT] = 1,
-		[FFXIV.JOBS.PUGILIST] = 1,
-		[FFXIV.JOBS.MONK] = 1,
-		[FFXIV.JOBS.LANCER] = 1,
-		[FFXIV.JOBS.DRAGOON] = 1,
-		[FFXIV.JOBS.ARCHER] = 2,
-		[FFXIV.JOBS.BARD] = 2,
-		[FFXIV.JOBS.MACHINIST] = 2,
-		[FFXIV.JOBS.CONJURER] = 5,
-		[FFXIV.JOBS.WHITEMAGE] = 5,
-		[FFXIV.JOBS.THAUMATURGE] = 4,
-		[FFXIV.JOBS.BLACKMAGE] = 4,
-		[FFXIV.JOBS.ARCANIST] = 4,
-		[FFXIV.JOBS.SUMMONER] = 4,
-		[FFXIV.JOBS.SCHOLAR] = 5,
-		[FFXIV.JOBS.ASTROLOGIAN] = 5,
-		[FFXIV.JOBS.ROGUE] = 2,
-		[FFXIV.JOBS.NINJA] = 2,
-		[FFXIV.JOBS.MINER] = 72,
-		[FFXIV.JOBS.BOTANIST] = 72,
-	}
-	local secondaryStats = {
-		[FFXIV.JOBS.GLADIATOR] = 3,
-		[FFXIV.JOBS.PALADIN] = 3,
-		[FFXIV.JOBS.MARAUDER] = 3,
-		[FFXIV.JOBS.WARRIOR] = 3,
-		[FFXIV.JOBS.DARKKNIGHT] = 3,
-		[FFXIV.JOBS.MINER] = 73,
-		[FFXIV.JOBS.BOTANIST] = 73,
-	}
-	local tertiaryStats = {
-		[FFXIV.JOBS.MINER] = 10,
-		[FFXIV.JOBS.BOTANIST] = 10,
-	}
+	
 	local oneHanders = {
 		[2] = true,
 		[6] = true,
@@ -2481,349 +2447,323 @@ function c_autoequip:evaluate()
 		[30] = true,
 	}
 	
-	for slot=0,13 do
-		if (ffxiv_task_quest.lockedSlots[slot] == nil and not IsArmoryFull(slot)) then		
-		
-			local item = nil
-			local equippedItemDetails = nil
-			
-			local equipped = Inventory("type=1000")
-			for _,i in pairs(equipped) do
-				if (i.slot == slot) then
-					local itemid = i.id
-					if (i.IsHQ == 1) then
-						itemid = (itemid - 1000000)
-					end
-					local dbitem = ffxiv_item_data[itemid]
-					if (dbitem) then
-						item = i
-						equippedItemDetails = dbitem
-						equippedItemDetails.hq = (item.IsHQ == 1)
-					else
-						ml_debug("No item information was found for :"..tostring(i.name))
-					end
+	local statWeights = {
+		["Tanks"] = {
+			weights = {
+				pDamage = 8.732,
+				pDefense = .5,
+				mDefense = .5,
+				[1] = 1,
+				[22] = 0.204,
+				[27] = 0.204,
+				[44] = 0.325,
+				[45] = 0.178,
+				[3] = 1,
+				[19] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.GLADIATOR] = true,
+				[FFXIV.JOBS.PALADIN] = true,
+				[FFXIV.JOBS.MARAUDER] = true,
+				[FFXIV.JOBS.WARRIOR] = true,
+				[FFXIV.JOBS.DARKKNIGHT] = true,
+			},
+		},
+		["Healers"] = {
+			weights = {
+				mDamage = 8.732,
+				[5] = 1,
+				[22] = 0,
+				[27] = 0.204,
+				[44] = 0.325,
+				[46] = 0.178,
+				[3] = 0,
+				[6] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.CONJURER] = true,
+				[FFXIV.JOBS.WHITEMAGE] = true,
+				[FFXIV.JOBS.SCHOLAR] = true,
+				[FFXIV.JOBS.ASTROLOGIAN] = true,
+			},
+		},
+		["INT DPS"] = {
+			weights = {
+				mDamage = 8.732,
+				[4] = 1,
+				[22] = 0,
+				[27] = 0.234,
+				[44] = 0.246,
+				[46] = 0.281,
+				[3] = 0,
+				[6] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.THAUMATURGE] = true,
+				[FFXIV.JOBS.BLACKMAGE] = true,
+				[FFXIV.JOBS.ARCANIST] = true,
+				[FFXIV.JOBS.SUMMONER] = true,
+			},
+		},
+		["DEX DPS"] = {
+			weights = {
+				pDamage = 9.429,
+				[2] = 1,
+				[22] = 0,
+				[27] = 0.339,
+				[44] = 0.320,
+				[45] = 0.161,
+				[3] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.ARCHER] = true,
+				[FFXIV.JOBS.BARD] = true,
+				[FFXIV.JOBS.MACHINIST] = true,
+				[FFXIV.JOBS.ROGUE] = true,
+				[FFXIV.JOBS.NINJA] = true,
+			},
+		},
+		["STR DPS"] = {
+			weights = {
+				pDamage = 9.338,
+				[1] = 1,
+				[22] = 0,
+				[27] = 0.214,
+				[44] = 0.336,
+				[45] = 0.206,
+				[3] = 0,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.PUGILIST] = true,
+				[FFXIV.JOBS.MONK] = true,
+				[FFXIV.JOBS.LANCER] = true,
+				[FFXIV.JOBS.DRAGOON] = true,
+			},
+		},
+		["Gatherers"] = {
+			weights = {
+				pDamage = 9.338,
+				[10] = 1,
+				[72] = 1,
+				[73] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.MINER] = true,
+				[FFXIV.JOBS.BOTANIST] = true,
+				[FFXIV.JOBS.FISHER] = true,
+			},
+		},
+		["Crafters"] = {
+			weights = {
+				pDamage = 9.338,
+				[11] = 1,
+				[70] = 1,
+				[71] = 1,
+			},
+			appliesTo = {
+				[FFXIV.JOBS.CARPENTER] 		= true,
+				[FFXIV.JOBS.BLACKSMITH] 	= true,
+				[FFXIV.JOBS.ARMORER] 		= true,
+				[FFXIV.JOBS.GOLDSMITH] 		= true,
+				[FFXIV.JOBS.LEATHERWORKER] 	= true,
+				[FFXIV.JOBS.WEAVER] 		= true,
+				[FFXIV.JOBS.ALCHEMIST] 		= true,
+				[FFXIV.JOBS.CULINARIAN] 	= true,
+			},
+		},
+	}
+	
+	local appliedStats = nil
+	for category,data in pairs(statWeights) do
+		if (data.appliesTo) then
+			for jobid,_ in pairs(data.appliesTo) do
+				if (jobid == Player.job) then
+					appliedStats = data.weights
 				end
-				if (item) then
+			end
+		end
+		if (appliedStats) then
+			break
+		end
+	end
+	
+	if (not ValidTable(appliedStats)) then
+		return false
+	end
+	
+	local applicableSlots = {
+		[0] = true,
+		[1] = true,
+		[2] = true,
+		[3] = true,
+		[4] = true,
+		[5] = true,
+		[6] = true,
+		[7] = true,
+		[8] = true,
+		[9] = true,
+		[10] = true,
+		[11] = true,
+		[12] = true,
+		[13] = true,
+	}
+	
+	for slot,data in pairs(applicableSlots) do
+		if (ffxiv_task_quest.lockedSlots[slot] or IsArmoryFull(slot)) then
+			applicableSlots[slot] = nil
+		else
+			applicableSlots[slot] = {}
+			applicableSlots[slot].itemid = 0
+			applicableSlots[slot].equippedDetails = {}
+			applicableSlots[slot].equipped = 0
+			applicableSlots[slot].upgrade = 0
+			applicableSlots[slot].bestUpgrade = 0
+		end
+	end
+	
+	-- First, assign a value for all equipped items.
+	for slot,data in pairs(applicableSlots) do
+		local equippedItemDetails = nil
+		
+		local equipped = Inventory("type=1000")
+		if (ValidTable(equipped)) then
+			for _,i in pairs(equipped) do
+				local found = false
+				if (i.slot == slot) then
+					if (i.slot == 13) then
+						applicableSlots[slot] = nil
+						break
+					end
+					
+					found = true
+					data.equippedDetails = GetItemDetails(i)
+					data.equipped = GetItemStatWeight(i)
+				end
+				if (found) then
 					break
 				end
 			end
-			
-			if (item and equippedItemDetails and not ffxiv_task_quest.lockedSlots[slot]) then
-				--If there is an item equipped, use it's details as a base comparison factor.
-				local statTotals = 0
-				local possibleUpgrades = {}
-				if (slot == 0) then
-					local types = weaponTypes[Player.job]
-					if (type(types[1]) == "table") then
-						for _,data in ipairs(types) do
-							local upgrades = FindItemsBySlot(data.slot,data.ui)
+		end
+	end
+	
+	for slot,data in pairs(applicableSlots) do
+		local possibleUpgrades = {}
+		if (ValidTable(data.equippedDetails)) then
+			if (slot == 0) then
+				local types = weaponTypes[Player.job]
+				if (type(types[1]) == "table") then
+					for _,weapondata in ipairs(types) do
+						local upgrades = FindUpgradesBySlot(weapondata.slot,weapondata.ui)
+						if (ValidTable(upgrades)) then
 							for id,upgrade in pairs(upgrades) do
 								possibleUpgrades[id] = upgrade
 							end
 						end
-					else
-						possibleUpgrades = FindItemsBySlot(types.slot,types.ui)
 					end
-				elseif (slot == 1) then
+				else
+					possibleUpgrades = FindUpgradesBySlot(types.slot,types.ui)
+				end
+			elseif (slot == 1) then
+				--Before evaluating shields, check that the main hand is a one-hander.
+				weaponDetails = nil
+				local weaponInv = Inventory("type=1000")
+				for _,i in pairs(weaponInv) do
+					if (i.slot == 0) then
+						weaponDetails = GetItemDetails(i)						
+					end
+					if (weaponDetails) then
+						break
+					end
+				end
+				if (weaponDetails) then				
+					if (oneHanders[weaponDetails.ui]) then
+						possibleUpgrades = FindUpgradesBySlot(data.equippedDetails.slot,data.equippedDetails.ui)
+					end
+				end
+			else
+				possibleUpgrades = FindUpgradesBySlot(data.equippedDetails.slot,data.equippedDetails.ui)
+			end
+		else
+			local defaultSlot = defaultArmorSlot[slot]
+			local defaultUI = defaultArmorUI[slot]
+			if (slot ~= 13) then
+				if (slot == 1) then
+					if (Player.job == 16) then
+						defaultUI = defaultArmorUI[1][Player.job]
+					elseif (Player.job == 17) then
+						defaultUI = defaultArmorUI[1][Player.job]
+					else
+						defaultUI = defaultArmorUI[1][-1]
+					end
+				
 					--Before evaluating shields, check that the main hand is a one-hander.
+					weaponDetails = nil
 					local weaponInv = Inventory("type=1000")
-					local item = nil
-					local itemID = nil
 					for _,i in pairs(weaponInv) do
 						if (i.slot == 0) then
-							item = i
-							itemID = item.id							
+							weaponDetails = GetItemDetails(i)						
+						end
+						if (weaponDetails) then
+							break
 						end
 					end
-					if (item.IsHQ == 1) then
-						itemID = (itemID - 1000000)
-					end
-					local weaponDetails = ffxiv_item_data[itemID]
-					if (weaponDetails) then
-						weaponDetails.hq = (item.IsHQ == 1)
-						
+					if (weaponDetails) then				
 						if (oneHanders[weaponDetails.ui]) then
-							possibleUpgrades = FindItemsBySlot(equippedItemDetails.slot,equippedItemDetails.ui)
+							possibleUpgrades = FindUpgradesBySlot(defaultSlot,defaultUI)
 						end
 					end
 				else
-					possibleUpgrades = FindItemsBySlot(equippedItemDetails.slot,equippedItemDetails.ui)
-				end
-				
-				if (slot == 0) then
-					--Use physical or magical damage and item level.
-					if (equippedItemDetails.hq) then
-						statTotals = (equippedItemDetails.level * 1.1) + (equippedItemDetails.pDamageHQ * 4) + (equippedItemDetails.mDamageHQ * 4)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 1.5)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 1.5)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 1.5)
-					else
-						statTotals = (equippedItemDetails.level * 1.1) + (equippedItemDetails.pDamage * 4) + (equippedItemDetails.mDamage * 4)
-						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 1.5)
-						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 1.5)
-						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 1.5)
-					end
-				elseif (slot == 1) then
-					--Use shield stats and damage (not usually present, but just in case).
-					if (equippedItemDetails.hq) then
-						statTotals = (equippedItemDetails.level * 1.25) + equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
-						statTotals = statTotals + equippedItemDetails.shieldRateHQ + equippedItemDetails.blockRateHQ
-						statTotals = statTotals + equippedItemDetails.defenseHQ + equippedItemDetails.magicDefenseHQ
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
-					else
-						statTotals = (equippedItemDetails.level * 1.25) + equippedItemDetails.pDamage + equippedItemDetails.mDamage
-						statTotals = statTotals + equippedItemDetails.shieldRate + equippedItemDetails.blockRate
-						statTotals = statTotals + equippedItemDetails.defense + equippedItemDetails.magicDefense
-						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 2)
-					end
-				elseif (slot > 1 and slot <= 12) then
-					--Use physical and magical defense and item level.
-					if (equippedItemDetails.hq) then
-						if (Player.level < 50) then
-							statTotals = equippedItemDetails.level
-						end
-						statTotals = equippedItemDetails.pDamageHQ + equippedItemDetails.mDamageHQ
-						statTotals = statTotals + equippedItemDetails.defenseHQ * .15 + equippedItemDetails.magicDefenseHQ * .15
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[primaryStats[Player.job]] or 0) * 3)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[secondaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
-					else
-						if (Player.level < 50) then
-							statTotals = equippedItemDetails.level
-						end
-						statTotals = equippedItemDetails.pDamage + equippedItemDetails.mDamage
-						statTotals = statTotals + equippedItemDetails.defense * .15 + equippedItemDetails.magicDefense * .15
-						statTotals = statTotals + ((equippedItemDetails.stats[primaryStats[Player.job]] or 0) * 3)
-						statTotals = statTotals + ((equippedItemDetails.stats[secondaryStats[Player.job]] or 0) * 2)
-						statTotals = statTotals + ((equippedItemDetails.stats[tertiaryStats[Player.job]] or 0) * 2)							
-					end
-				end
-				
-				local highestStats = 0
-				local bestUpgrade = nil
-				local bestUpgradeID = nil
-				if (ValidTable(possibleUpgrades)) then
-					for id,data in pairs(possibleUpgrades) do
-						local newStatTotals = 0
-						if (slot == 0) then
-							--Use physical or magical damage and item level.
-							if (data.hq) then
-								newStatTotals = (data.level * 1.1) + (data.pDamageHQ * 4) + (data.mDamageHQ * 4)
-								newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 1.5)
-								newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 1.5)
-								newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 1.5)
-							else
-								newStatTotals = (data.level * 1.1) + (data.pDamage * 4) + (data.mDamage * 4)
-								newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 1.5)
-								newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 1.5)
-								newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 1.5)
-							end
-						elseif (slot == 1) then
-							--Use shield stats and damage (not usually present, but just in case).
-							--Before evaluating shields, check that the main hand is a one-hander.
-							local weaponInv = Inventory("type=1000")
-							local item = nil
-							local itemID = nil
-							for _,i in pairs(weaponInv) do
-								if (i.slot == 0) then
-									item = i
-									itemID = item.id
-								end
-							end
-							if (item.IsHQ == 1) then
-								itemID = (itemID - 1000000)
-							end
-							local weaponDetails = ffxiv_item_data[itemID]
-							if (weaponDetails) then
-								weaponDetails.hq = item.IsHQ == 1
-								
-								if (oneHanders[weaponDetails.ui]) then
-									if (data.hq) then
-										newStatTotals = (data.level * 1.25) + data.pDamageHQ + data.mDamageHQ
-										newStatTotals = newStatTotals + data.shieldRateHQ + data.blockRateHQ
-										newStatTotals = newStatTotals + data.defenseHQ + data.magicDefenseHQ
-										newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
-										newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
-										newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
-									else
-										newStatTotals = (data.level * 1.25) + data.pDamage + data.mDamage
-										newStatTotals = newStatTotals + data.shieldRate + data.blockRate
-										newStatTotals = newStatTotals + data.defense + data.magicDefense
-										newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
-										newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
-										newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
-									end
-								end		
-							end
-						elseif (slot > 1 and slot <= 12) then
-							--Use physical and magical defense and item level.
-							if ((Player.level == 50 and
-								((data.stats[primaryStats[Player.job]] or 0) > 0 or
-								(data.stats[secondaryStats[Player.job]] or 0) > 0 or
-								(data.stats[tertiaryStats[Player.job]] or 0) > 0)) or
-								Player.level < 50) 
-							then
-								if (data.hq) then
-									if (Player.level < 50) then
-										newStatTotals = data.level
-									end
-									newStatTotals = (data.pDamageHQ or 0) + (data.mDamageHQ or 0)
-									newStatTotals = newStatTotals + ((data.defenseHQ + data.magicDefenseHQ) * .15)
-									newStatTotals = newStatTotals + ((data.statsHQ[primaryStats[Player.job]]) or 0 * 3)
-									newStatTotals = newStatTotals + ((data.statsHQ[secondaryStats[Player.job]]) or 0 * 2)
-									newStatTotals = newStatTotals + ((data.statsHQ[tertiaryStats[Player.job]]) or 0 * 2)
-								else
-									if (Player.level < 50) then
-										newStatTotals = data.level
-									end
-									newStatTotals = data.pDamage + data.mDamage
-									newStatTotals = newStatTotals + ((data.defense + data.magicDefense) * .15)
-									newStatTotals = newStatTotals + ((data.stats[primaryStats[Player.job]] or 0) * 3)
-									newStatTotals = newStatTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
-									newStatTotals = newStatTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
-								end
-							end
-						end
-						
-						if (not bestUpgrade or newStatTotals > highestStats) then
-							--d(data.name.." being moved to best other option, with stat totals of "..tostring(newStatTotals))
-							bestUpgrade = data
-							bestUpgradeID = id
-							highestStats = newStatTotals
-						end
-					end
-				end
-				
-				if (bestUpgrade and highestStats > statTotals) then
-					--d("equip should be performed for slot:"..tostring(slot))
-					--d("currently equipped item is:"..tostring(item.name).." which has a stats total of:"..tostring(statTotals))
-					--d("new item will be:"..tostring(bestUpgrade.name).." which has a stats total of:"..tostring(highestStats))
-					e_autoequip.id = bestUpgradeID
-					e_autoequip.slot = slot
-					return true
+					possibleUpgrades = FindUpgradesBySlot(defaultSlot,defaultUI)
 				end
 			else
-				--If there is no item equipped, use the default type details as a base comparison factor.
-				--Don't try to equip weapons if none is equipped (which should never happen).
-				if (slot ~= 0) then
-					--Soul stones are handled separately.
-					if (slot ~= 13) then
-						local defaultSlot = defaultArmorSlot[slot]
-						local defaultUI = defaultArmorUI[slot]
-						if (slot == 1) then
-							if (Player.job == 16) then
-								defaultUI = defaultArmorUI[1][Player.job]
-							elseif (Player.job == 17) then
-								defaultUI = defaultArmorUI[1][Player.job]
-							else
-								defaultUI = defaultArmorUI[1][-1]
-							end
+				if (soulStones[Player.job] and Player:GetSyncLevel() == 0 and Player.level >= 30) then
+					if (type(soulStones[Player.job]) == "number") then
+						if (ItemCount(soulStones[Player.job]) == 1) then
+							e_autoequip.id = soulStones[Player.job]
+							e_autoequip.slot = 13
+							return true
 						end
-						local possibleUpgrades = FindItemsBySlot(defaultSlot,defaultUI)	
-						if (possibleUpgrades) then
-							local highestStats = 0
-							local bestUpgrade = nil
-							local bestUpgradeID = nil
-							for id,data in pairs(possibleUpgrades) do
-								local statTotals = 0
-								if (slot == 1) then
-									local weaponInv = Inventory("type=1000")
-									local item = nil
-									local itemID = nil
-									for _,i in pairs(weaponInv) do
-										if (i.slot == 0) then
-											item = i
-											itemID = i.id
-										end
-									end
-									
-									if (item.IsHQ == 1) then
-										itemID = (itemID - 1000000)
-									end
-									
-									local weaponDetails = ffxiv_item_data[itemID]
-									if (weaponDetails) then
-										weaponDetails.hq = item.IsHQ == 1
-										
-										if (oneHanders[weaponDetails.ui]) then
-											if (data.hq) then
-												statTotals = (data.level * 1.25) + data.pDamageHQ + data.mDamageHQ
-												statTotals = statTotals + data.shieldRateHQ + data.blockRateHQ
-												statTotals = statTotals + data.defenseHQ + data.magicDefenseHQ
-												statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 2)
-												statTotals = statTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
-												statTotals = statTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
-											else
-												statTotals = (data.level * 1.25) + data.pDamage + data.mDamage
-												statTotals = statTotals + data.shieldRate + data.blockRate
-												statTotals = statTotals + data.defense + data.magicDefense
-												statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 2)
-												statTotals = statTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
-												statTotals = statTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
-											end
-										end		
-									end
-								elseif (slot > 1 and slot <= 12) then
-									--Use physical and magical defense and item level.
-									if (data.hq) then
-										if (Player.level < 50) then
-											statTotals = data.level
-										end
-										statTotals = data.pDamageHQ + data.mDamageHQ
-										statTotals = statTotals + ((data.defenseHQ + data.magicDefenseHQ) * .15)
-										statTotals = statTotals + ((data.stats[primaryStats[Player.job]] or 0) * 3)
-										statTotals = statTotals + ((data.stats[secondaryStats[Player.job]] or 0) * 2)
-										statTotals = statTotals + ((data.stats[tertiaryStats[Player.job]] or 0) * 2)
-									else
-										if (Player.level < 50) then
-											statTotals = data.level
-										end
-										statTotals = data.pDamage + data.mDamage
-										statTotals = statTotals + ((data.defense + data.magicDefense) * .15)
-										statTotals = statTotals + ((data.statsHQ[primaryStats[Player.job]] or 0) * 3)
-										statTotals = statTotals + ((data.statsHQ[secondaryStats[Player.job]] or 0) * 2)
-										statTotals = statTotals + ((data.statsHQ[tertiaryStats[Player.job]] or 0) * 2)
-									end
-								end
-								
-								if (not bestUpgrade or statTotals > highestStats) then
-									--d(data.name.." being moved to best other option, with stat totals of "..tostring(statTotals))
-									bestUpgrade = data
-									bestUpgradeID = id
-									highestStats = statTotals
-								end
-							end
-						
-							if (bestUpgrade and highestStats > 0) then
-								e_autoequip.id = bestUpgradeID
-								e_autoequip.slot = slot
+					else
+						for id,stone in ipairs(soulStones[Player.job]) do
+							if (ItemCount(stone) == 1) then
+								e_autoequip.id = stone
+								e_autoequip.slot = 13
 								return true
 							end
 						end
-					elseif (slot == 13) then
-						if (soulStones[Player.job] and Player:GetSyncLevel() == 0 and Player.level >= 30) then
-							if (type(soulStones[Player.job]) == "number") then
-								if (ItemCount(soulStones[Player.job]) == 1) then
-									e_autoequip.id = soulStones[Player.job]
-									e_autoequip.slot = 13
-									return true
-								end
-							else
-								for id,stone in ipairs(soulStones[Player.job]) do
-									if (ItemCount(stone) == 1) then
-										e_autoequip.id = stone
-										e_autoequip.slot = 13
-										return true
-									end
-								end
-							end
-						end
 					end
 				end
+			end			
+		end
+		
+		if (ValidTable(possibleUpgrades)) then
+			local highestValue = 0
+			local highest = nil
+			
+			for id,item in pairs(possibleUpgrades) do
+				if (slot == 7) then
+					--d("Possible upgrades:"..tostring(item.name))
+				end
+				local statTotals = GetItemStatWeight(item)
+				--d("Stat totals:"..tostring(statTotals))
+				if (not highest or (highest and statTotals > highestValue)) then
+					highest = item
+					highestValue = statTotals
+				end
+			end
+			
+			if (highest) then
+				data.bestUpgrade = highest.id
+				data.upgrade = highestValue
+			end
+			
+			if (data.bestUpgrade ~= 0 and data.upgrade > data.equipped) then
+				d("Equip should be performed for slot:"..tostring(slot))
+				d("Currently equipped has a stats total of:"..tostring(data.equipped))
+				d("New item ["..tostring(data.bestUpgrade).."] has a stats total of:"..tostring(data.upgrade))
+				e_autoequip.id = data.bestUpgrade
+				e_autoequip.slot = slot
+				return true
 			end
 		end
 	end
@@ -2835,88 +2775,19 @@ function e_autoequip:execute()
 		local item = GetUnequippedItem(e_autoequip.id)
 		if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			item:Move(1000,e_autoequip.slot)
-			ml_task_hub:CurrentTask():SetDelay(500)
+			if (ml_task_hub:CurrentTask()) then
+				ml_task_hub:CurrentTask():SetDelay(500)
+			end
 		end
 	else
 		local equip = GetUnequippedItem(e_autoequip.id)
 		if (equip and equip.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 			equip:Move(1000,e_autoequip.slot)
-			ml_task_hub:CurrentTask():SetDelay(500)
-		end
-	end
-end
-
-c_equip = inheritsFrom( ml_cause )
-e_equip = inheritsFrom( ml_effect )
-function c_equip:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting() or Player.incombat or IsShopWindowOpen()) then
-		return false
-	end
-
-	if(ValidTable(e_equip.itemids)) then
-		return true
-	end
-
-	local itemIDsToEquip = {}
-	if(gBotMode == GetString("questMode") and gProfile ~= "") then
-		local profileTable = ml_global_information.itemIDsToEquip[gProfile]
-		if(ValidTable(profileTable)) then
-			itemIDsToEquip = profileTable[Player.job]
-		end
-	end
-	
-	local itemids = {}
-	if(ValidTable(itemIDsToEquip)) then
-		for id,data in pairs(itemIDsToEquip) do
-			local item = Inventory:Get(id)
-			if(ValidTable(item) and item.canequip) then
-				--transfer the id to the temp list for equipping and remove from the global list
-				itemids[id] = data
-				itemIDsToEquip[id] = nil
+			if (ml_task_hub:CurrentTask()) then
+				ml_task_hub:CurrentTask():SetDelay(500)
 			end
 		end
 	end
-	
-	if(TableSize(itemids) > 0) then
-		e_equip.itemids = itemids
-		
-		--write out changes to item equip table for settings
-		ml_global_information.itemIDsToEquip = itemIDsToEquip
-		Settings.FFXIVMINION.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
-		return true
-	end
-	
-	return false
-end
-function e_equip:execute()
-	local id, data = next(e_equip.itemids)
-	if (id) then
-		local newItem = Inventory:Get(id)
-		if(ValidTable(newItem)) then
-			--grab the current item in that slot
-			if(newItem.type == FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-				e_equip.itemids[id] = nil
-				ffxiv_task_quest.ignoreLevelItemIDs[id] = nil
-			else
-				local currItem = nil
-				if (ValidTable(data)) then
-					currItem = GetItemInSlot(data.type)
-				else
-					currItem = GetItemInSlot(GetEquipSlotForItem(newItem))
-				end
-				
-				local ignoreLevel = ffxiv_task_quest.ignoreLevelItemIDs[id]
-				if(not currItem or (currItem and ((currItem.level <= newItem.level) or ignoreLevel))) then
-					EquipItem(id, data.type)
-					ml_task_hub:CurrentTask():SetDelay(500)
-				else
-					e_equip.itemids[id] = nil
-					ffxiv_task_quest.ignoreLevelItemIDs[id] = nil
-				end
-			end
-		end
-	end
-	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )
