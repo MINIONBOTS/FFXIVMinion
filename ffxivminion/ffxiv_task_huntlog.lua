@@ -720,7 +720,7 @@ function ffxiv_task_huntlog.GetBestTarget(list)
 	local onMapTargets = {}
 	local offMapTargets = {}
 	local pmapid = Player.localmapid
-	local ppos = shallowcopy(Player.pos)
+	local ppos = Player.pos
 	local maxlevel = ffxiv_task_huntlog.GetMaxMobLevel()
 	
 	for id, data in pairs(list) do
@@ -810,7 +810,7 @@ function ffxiv_task_huntlog.GetBestTarget(list)
 					for id,data in pairs(nextNeighbor.gates) do
 						local pathdistUsed = false
 						local pathdist = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,data.x,data.y,data.z)
-						if ( pathdist ) then
+						if ( ValidTable(pathdist) ) then
 							local pdist = PathDistance(pathdist)
 							if ( pdist ~= nil ) then
 								pathdistUsed = true
