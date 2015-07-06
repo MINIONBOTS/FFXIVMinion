@@ -1706,6 +1706,10 @@ ffxiv_aoe_data =
 		[1392] = true,
 		[946] = true,
 		[556] = true,
+		[4684] = true,
+		[1941] = true,
+		[1435] = true,
+		[527] = true,
 	};
 	["circle"] = {
 		--Scourge of Nym
