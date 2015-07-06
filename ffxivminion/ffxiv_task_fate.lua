@@ -324,6 +324,7 @@ function e_movetofate:execute()
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		newTask.fateid = ml_task_hub:CurrentTask().fateid
+		newTask.allowRandomization = false
         newTask.pos = fatePos
 		newTask.actualPos = fatePos
 		
@@ -613,10 +614,10 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 		},
 		[147] = {
 			[1] = {
-				{ id = 643, x = 243.6, y = 25.29, z = 45.5 },
-				{ id = 644, x = 243.6, y = 25.29, z = 45.5 },
-				{ id = 645, x = 243.6, y = 25.29, z = 45.5 },
-				{ id = 646, x = 243.6, y = 25.29, z = 45.5 },
+				{ id = 643, x = 255.6, y = 25, z = 45.5 },
+				{ id = 644, x = 255.6, y = 25, z = 10 },
+				{ id = 645, x = 255.6, y = 25, z = 10 },
+				{ id = 646, x = 255.6, y = 25, z = 10 },
 			},
 		},
 	}
@@ -635,7 +636,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 						end
 					end
 					
-					d("Is this the last chain member? "..tostring(lastChain))
+					--d("Is this the last chain member? "..tostring(lastChain))
 					return true, lastChain, nextFate
 				end
 			end

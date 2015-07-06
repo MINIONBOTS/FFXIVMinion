@@ -372,46 +372,47 @@ function ffxiv_task_movetofate:task_complete_eval()
 		
 		local dist = Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
 		if (self.requiresPosRandomize and 
-			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .90))) and
-			not Player:IsMoving()) 
+			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .90)))) 
 		then
 			local newPos = nil
 			
-			local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
-			if (ValidTable(npcs)) then
-				local heading = nil
-				for i,npc in pairs(npcs) do
-					local npos = npc.pos
-					local dist = Distance2D(self.actualPos.x,self.actualPos.z,npos.x,npos.z)
-					
-					if (dist < 10) then
-						heading = npos.h
+			if (dist < (fate.radius * .90)) then
+				local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
+				if (ValidTable(npcs)) then
+					local heading = nil
+					for i,npc in pairs(npcs) do
+						local npos = npc.pos
+						local dist = Distance2D(self.actualPos.x,self.actualPos.z,npos.x,npos.z)
+						
+						if (dist < 10) then
+							heading = npos.h
+						end
+						if (heading) then
+							break
+						end
 					end
+					
 					if (heading) then
-						break
-					end
-				end
-				
-				if (heading) then
-					local mobRight = ConvertHeading((heading - (math.pi * (math.random(11,20)/100))))%(2*math.pi)
-					local mobLeft = ConvertHeading((heading + (math.pi * (math.random(11,20)/100))))%(2*math.pi)
-					--local mobRearLeft = ConvertHeading((heading + (math.pi * (math.random(70,90)/100))))%(2*math.pi)
-					--local mobRearRight = ConvertHeading((heading - (math.pi * (math.random(70,90)/100))))%(2*math.pi)
-					local mobFrontLeft = ConvertHeading((heading + (math.pi * (math.random(1,10)/100))))%(2*math.pi)
-					local mobFrontRight = ConvertHeading((heading - (math.pi * (math.random(1,10)/100))))%(2*math.pi)
-					
-					local options = {
-						GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontLeft),
-						GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontRight),
-						GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobLeft),
-						GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobRight),
-						--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearLeft),
-						--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearRight),
-					}
-					
-					local selection = options[math.random(1,TableSize(options))]
-					if (ValidTable(selection)) then
-						newPos = selection
+						local mobRight = ConvertHeading((heading - (math.pi * (math.random(11,20)/100))))%(2*math.pi)
+						local mobLeft = ConvertHeading((heading + (math.pi * (math.random(11,20)/100))))%(2*math.pi)
+						--local mobRearLeft = ConvertHeading((heading + (math.pi * (math.random(70,90)/100))))%(2*math.pi)
+						--local mobRearRight = ConvertHeading((heading - (math.pi * (math.random(70,90)/100))))%(2*math.pi)
+						local mobFrontLeft = ConvertHeading((heading + (math.pi * (math.random(1,10)/100))))%(2*math.pi)
+						local mobFrontRight = ConvertHeading((heading - (math.pi * (math.random(1,10)/100))))%(2*math.pi)
+						
+						local options = {
+							GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontLeft),
+							GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontRight),
+							GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobLeft),
+							GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobRight),
+							--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearLeft),
+							--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearRight),
+						}
+						
+						local selection = options[math.random(1,TableSize(options))]
+						if (ValidTable(selection)) then
+							newPos = selection
+						end
 					end
 				end
 			end

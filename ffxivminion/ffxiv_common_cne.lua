@@ -1535,7 +1535,7 @@ function c_mount:evaluate()
 		if (not Player.ismounted and not ActionList:IsCasting() and not IsMounting() and not Player.incombat) then
 			local myPos = Player.pos
 			local gotoPos = ml_task_hub:CurrentTask().pos
-			local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		
 			if (distance > tonumber(gMountDist)) then
 				
@@ -1589,25 +1589,30 @@ end
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 e_companion.lastSummon = 0
+e_companion.blockOnly = false
 function c_companion:evaluate()
+	--Reset tempvar.
+	e_companion.blockOnly = false
+	
+	if (Player.castinginfo.channelingid == 4868) then
+		e_companion.blockOnly = true
+		return true
+	end
+	
     if (gBotMode == GetString("pvpMode") or 
-		ml_task_hub:CurrentTask().name == "LT_USEITEM" or 
-		TimeSince(e_companion.lastSummon) < 5000 or 
+		TimeSince(e_companion.lastSummon) < 4000 or
 		Player.ismounted or IsMounting() or IsDismounting() or
-		HasBuffs(Player,"2,149,201")) then
+		IsCompanionSummoned()) 
+	then
         return false
     end
 
     if (((gChoco == GetString("grindMode") or gChoco == GetString("any")) and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
-		((gChoco == GetString("assistMode") or gChoco == GetString("any")) and gBotMode == GetString("assistMode"))) then
-		local acDismiss = ActionList:Get(2,6)
+		((gChoco == GetString("assistMode") or gChoco == GetString("any")) and gBotMode == GetString("assistMode")) or
+		((gChoco == GetString("questMode") or gChoco == GetString("any")) and gBotMode == GetString("questMode"))) 
+	then	
 		local item = Inventory:Get(4868)
-
-		if (not ValidTable(item)) then
-			return false
-		end
-
-		if ( not acDismiss.isready and item.isready) then
+		if (ValidTable(item) and item.isready) then
 			return true
 		end
     end
@@ -1616,11 +1621,17 @@ function c_companion:evaluate()
 end
 
 function e_companion:execute()
+	if (e_companion.blockOnly) then
+		return
+	end
+	
+	Player:Stop()
 	e_companion.lastSummon = Now()
-	local newTask = ffxiv_task_useitem.Create()
-	newTask.itemid = 4868
-	newTask.useTime = 3000
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	local item = Inventory:Get(4868)
+	item:Use()
+	
+	ml_task_hub:CurrentTask():SetDelay(2000)
+
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -1686,7 +1697,7 @@ function c_sprint:evaluate()
 				if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 					local myPos = Player.pos
 					local gotoPos = ml_task_hub:CurrentTask().pos
-					local distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+					local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 					
 					if (distance > tonumber(gSprintDist)) then		
 						return true

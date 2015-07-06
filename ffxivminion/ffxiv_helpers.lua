@@ -2127,7 +2127,7 @@ end
 function GetPartyLeader()
 	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
-		local el = EntityList("type=1,name="..gPartyLeaderName)
+			local el = EntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
@@ -4079,6 +4079,15 @@ function SoldieryCount()
 		end
 	end
 	return soldiery
+end
+
+function IsCompanionSummoned()
+	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
+	if (ValidTable(el)) then
+		return true
+	end
+	
+	return false
 end
 
 function IsShopWindowOpen()
