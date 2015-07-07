@@ -444,24 +444,16 @@ end
 c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
-function c_add_fatetarget:evaluate()	
-	if not (ml_task_hub:ThisTask().name == "LT_FATE" and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-		local aggro = GetNearestAggro()
-		if ValidTable(aggro) then
-			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
-				c_add_fatetarget.targetid = aggro.id
-				return true
-			end
-		end 
-	end
-    
-	if (SkillMgr.Cast( Player, true)) then
-		c_add_fatetarget.oocCastTimer = Now() + 1500
-		return false
-	end
-	
-	if (ActionList:IsCasting() or Now() < c_add_fatetarget.oocCastTimer) then
-		return false
+function c_add_fatetarget:evaluate()
+	if (not Player.incombat) then
+		if (SkillMgr.Cast( Player, true)) then
+			c_add_fatetarget.oocCastTimer = Now() + 1500
+			return false
+		end
+		
+		if (ActionList:IsCasting() or Now() < c_add_fatetarget.oocCastTimer) then
+			return false
+		end
 	end
 	
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
@@ -479,6 +471,16 @@ function c_add_fatetarget:evaluate()
 				end
 			end
 		end
+	end
+	
+	if (gFateKillAggro == "1") then
+		local aggro = GetNearestAggro()
+		if ValidTable(aggro) then
+			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+				c_add_fatetarget.targetid = aggro.id
+				return true
+			end
+		end 
 	end
     
     return false

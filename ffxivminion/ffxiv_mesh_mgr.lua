@@ -37,7 +37,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
 			-- Update IsMoving with exact data
 			ml_global_information.Player_IsMoving = Player:IsMoving() or false
-			ml_global_information.Player_Position = shallowcopy(Player.pos)
+			ml_global_information.Player_Position = Player.pos
 			-- Set all position data, pPos = Player pos, sPos = start omc pos and heading, ePos = end omc pos
 			local pPos = ml_global_information.Player_Position
 			local mPos,mDist = NavigationManager:GetClosestPointOnMesh(pPos)
@@ -170,7 +170,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1500 and Player:IsJumping()) then
 								Player:Stop()
 								return
-							elseif (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 300 and not Player:IsJumping()) then
+							elseif (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1000 and not Player:IsJumping()) then
 								ml_mesh_mgr.ResetOMC()
 							end
 						end
@@ -181,6 +181,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then		
 					
+						
 						local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
 						Player:SetFacing(facingPos)
 					
@@ -188,7 +189,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							Player:Move(FFXIV.MOVEMENT.FORWARD) 
 						end
 						
-						if (Player:IsJumping()) then
+						if (Player:IsJumping() and (pPos.y < (ePos.y - 1))) then
 							Player:Stop()
 							ml_mesh_mgr.ResetOMC()
 						end

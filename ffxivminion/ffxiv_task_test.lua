@@ -22,7 +22,7 @@ end
 
 c_gotomaptest = inheritsFrom( ml_cause )
 e_gotomaptest = inheritsFrom( ml_effect )
-function c_gotomaptest:evaluate()	
+function c_gotomaptest:evaluate()
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid ~= mapID) then
 		return true
@@ -38,7 +38,7 @@ end
 c_gotopostest = inheritsFrom( ml_cause )
 e_gotopostest = inheritsFrom( ml_effect )
 e_gotopostest.pos = nil
-function c_gotopostest:evaluate()	
+function c_gotopostest:evaluate()
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID) then
 		local ppos = shallowcopy(Player.pos)
@@ -74,7 +74,7 @@ function ffxiv_task_test.UIInit()
 	end
     ffxivminion.Windows.Test = { id = "Test", Name = "NavTest", x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Test)
-
+	
 	local winName = "NavTest"
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
@@ -97,6 +97,7 @@ function ffxiv_task_test.UIInit()
 end
 
 function ffxiv_task_test.OnUpdate( event, tickcount )
+	--[[
 	if (gBotRunning == "1") then
 		if (TimeSince(ffxiv_task_test.lastTick) >= 1000) then
 			ffxiv_task_test.lastTick = Now()
@@ -115,19 +116,23 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 				end
 			end
 			
-			local winName = "NavTest"
-			GUI_DeleteGroup(winName,"Tasks")
-			if (TableSize(tasks) > 0) then
-				for k,v in spairs(tasks) do
-					GUI_NewButton(winName, tostring(k).."("..v..")", "TestViewTask"..tostring(k), "Tasks")
+			if (not deepcompare(tasks,ffxiv_task_test.lastTaskSet,true)) then
+				local winName = "NavTest"
+				GUI_DeleteGroup(winName,"Tasks")
+				if (TableSize(tasks) > 0) then
+					for k,v in spairs(tasks) do
+						GUI_NewButton(winName, tostring(k).."("..v..")", "TestViewTask"..tostring(k), "Tasks")
+					end
+					GUI_UnFoldGroup(winName,"Tasks")
 				end
-				GUI_UnFoldGroup(winName,"Tasks")
+				ffxiv_task_test.lastTaskSet = tasks
 			end
 
 			ffxivminion.SizeWindow(winName)
 			GUI_RefreshWindow(winName)
 		end
 	end
+	--]]
 end
 
 function ffxiv_task_test.GetCurrentPosition()

@@ -394,6 +394,9 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gFateRandomDelayMax == nil) then
         Settings.FFXIVMINION.gFateRandomDelayMax = 0
     end
+	if (Settings.FFXIVMINION.gFateKillAggro == nil) then
+        Settings.FFXIVMINION.gFateKillAggro = "1"
+    end
 	
 	local winName = GetString("grindMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -420,6 +423,7 @@ function ffxiv_task_grind.UIInit()
     GUI_NewNumeric(winName, GetString("combatRangePercent"), "gCombatRangePercent", group, "1", "100")
 	
 	local group = GetString("fates")
+	GUI_NewCheckbox(winName, "Kill Non-Fate Aggro", "gFateKillAggro",group)
     GUI_NewCheckbox(winName, GetString("restInFates"), "gRestInFates",group)
     GUI_NewField(winName, GetString("maxFateLevel"), "gMaxFateLevel", group)
     GUI_NewField(winName, GetString("minFateLevel"), "gMinFateLevel", group)
@@ -474,6 +478,7 @@ function ffxiv_task_grind.UIInit()
 	gFateWaitNearEvac = Settings.FFXIVMINION.gFateWaitNearEvac
 	gFateRandomDelayMin = Settings.FFXIVMINION.gFateRandomDelayMin
 	gFateRandomDelayMax = Settings.FFXIVMINION.gFateRandomDelayMax
+	gFateKillAggro = Settings.FFXIVMINION.gFateKillAggro
     
     --add blacklist init function
     ml_blacklist_mgr.AddInitUI(GetString("monsters"),ffxiv_task_grind.BlacklistInitUI)
