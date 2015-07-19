@@ -89,7 +89,7 @@ function c_mooch:evaluate()
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
 			local mooch = ActionList:Get(297,1)
-			if (useMooch and mooch and moody.isready) then
+			if (useMooch and mooch and mooch.isready) then
 				local moochables = marker:GetFieldValue(GetString("Moochable Fish")) or ""
 				
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
