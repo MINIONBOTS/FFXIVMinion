@@ -156,8 +156,11 @@ QM.Variables = {
 	qTaskRewardSlotDRG = { default = "", 	profile = "rslotDRAGOON", 	cast = "number"},
 	qTaskRewardSlotPUG = { default = "", 	profile = "rslotPUGILIST", 	cast = "number"},
 	qTaskRewardSlotMNK = { default = "", 	profile = "rslotMONK", 	cast = "number"},
+	qTaskRewardSlotMCH = { default = "", 	profile = "rslotMACHINIST", 	cast = "number"},
+	qTaskRewardSlotDRK = { default = "", 	profile = "rslotDARKKNIGHT", 	cast = "number"},
+	qTaskRewardSlotAST = { default = "", 	profile = "rslotASTROLOGIAN", 	cast = "number"},
 	
-	eTaskRewardSlotDefault = { default = "", 	profile = "slotEditDEFAULT", 	cast = "number"},
+	eTaskRewardSlotDefault = { default = "", profile = "slotEditDEFAULT", 	cast = "number"},
 	eTaskRewardSlotACN = { default = "", 	profile = "slotEditARCANIST", 	cast = "number"},
 	eTaskRewardSlotSMN = { default = "", 	profile = "slotEditSUMMONER", 	cast = "number"},
 	eTaskRewardSlotSCH = { default = "", 	profile = "slotEditSCHOLAR", 	cast = "number"},
@@ -177,6 +180,9 @@ QM.Variables = {
 	eTaskRewardSlotDRG = { default = "", 	profile = "slotEditDRAGOON", 	cast = "number"},
 	eTaskRewardSlotPUG = { default = "", 	profile = "slotEditPUGILIST", 	cast = "number"},
 	eTaskRewardSlotMNK = { default = "", 	profile = "slotEditMONK", 	cast = "number"},
+	eTaskRewardSlotMCH = { default = "", 	profile = "slotEditMACHINIST", 	cast = "number"},
+	eTaskRewardSlotDRK = { default = "", 	profile = "slotEditDARKKNIGHT", 	cast = "number"},
+	eTaskRewardSlotAST = { default = "", 	profile = "slotEditASTROLOGIAN", 	cast = "number"},
 	--new
 	
 	eEncounterNum = 	{ default = "", 		profile = "" , 				cast = "number"},
@@ -216,8 +222,8 @@ QM.Strings = {
 		end,
 	QuestTasks = "start,accept,nav,interact,kill,dutykill,textcommand,useitem,useaction,vendor,finish,complete",
 	DutyTasks = "kill,loot,interact",
-	QuestJobs = "None,ARCANIST,ARCHER,BARD,BLACKMAGE,BOTANIST,CONJURER,DRAGOON,FISHER,GLADIATOR,LANCER,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
-	PreReqJobs = "All,ARCANIST,ARCHER,BARD,BLACKMAGE,BOTANIST,CONJURER,DRAGOON,FISHER,GLADIATOR,LANCER,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
+	QuestJobs = "None,ARCANIST,ARCHER,ASTROLOGIAN,BARD,BLACKMAGE,BOTANIST,CONJURER,DARKKNIGHT,DRAGOON,FISHER,GLADIATOR,LANCER,MACHINIST,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
+	PreReqJobs = "All,ARCANIST,ARCHER,ASTROLOGIAN,BARD,BLACKMAGE,BOTANIST,CONJURER,DARKKNIGHT,DRAGOON,FISHER,GLADIATOR,LANCER,MACHINIST,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
 }
 
 QM.EncounterTasks = {
@@ -449,6 +455,7 @@ QM.Builds = {
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepMap"),"qTaskMap",GetString("newQuestStep")},
 			{5, "GUI_NewComboBox",QM.Windows.StepManager.name,GetString("stepMesh"),"qTaskMesh",GetString("newQuestStep"), QM.Strings.Meshes },
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepTarget"),"qTaskNPC",GetString("newQuestStep")},
+			{4, "GUI_NewCheckbox",QM.Windows.StepManager.name,"Reward Table","qTaskUseRewardTable",GetString("newQuestStep")},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,GetString("stepReward"),"qTaskRewardSlot",GetString("newQuestStep")},
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepDelay"),"qTaskDelay",GetString("newQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepManager.name,GetString("questPullValues"), "QM.LoadAddCurrentValues",GetString("newQuestStep")},
@@ -474,6 +481,9 @@ QM.Builds = {
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"DRAGOON","qTaskRewardSlotDRG","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"PUGILIST","qTaskRewardSlotPUG","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"MONK","qTaskRewardSlotMNK","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"MACHINIST","qTaskRewardSlotMCH","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"DARKKNIGHT","qTaskRewardSlotDRK","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"ASTROLOGIAN","qTaskRewardSlotAST","Reward Table"},
 		},	
 	},
 	QuestTasksEdit = {
@@ -605,6 +615,9 @@ QM.Builds = {
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"DRAGOON","eTaskRewardSlotDRG","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"PUGILIST","eTaskRewardSlotPUG","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"MONK","eTaskRewardSlotMNK","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"MACHINIST","eTaskRewardSlotMCH","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"DARKKNIGHT","eTaskRewardSlotDRK","Reward Table"},
+			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"ASTROLOGIAN","eTaskRewardSlotAST","Reward Table"},
 		},	
 	},
 	DutyTasksEdit = {
@@ -720,6 +733,46 @@ function QM.LoadProfile()
 		else
 			QM.Quests = {}
 		end
+		
+		--Check to see if we can update names.
+		local requiredUpdate = false
+		for k,v in spairs(QM.Quests) do
+			if (not v.name or (v.name and v.name == "")) then
+				requiredUpdate = true
+				local found = false
+				for id,data in pairs(Quest:GetQuestList()) do
+					if (id == k) then
+						v.name = data.name
+						found = true
+					end
+					if (found) then
+						break
+					end
+				end
+				
+				if (not found) then
+					local questData = ffxiv_quest_data[k]
+					if (questData) then
+						local nameString = questData.name[gCurrentLanguage] or questData.name.us
+						if (nameString) then
+							found = true
+							v.name = nameString
+						end
+					end
+				end
+				
+				if (not found) then
+					v.name = tostring(k + 65536)
+				end
+			end
+		end
+		
+		if (requiredUpdate) then
+			local info = {}
+			info.quests = QM.Quests
+			persistence.store(QM.QuestPath..qProfileName..".info",info)
+		end
+		
 		QM.RefreshQuests()
 	end
 end
@@ -886,7 +939,8 @@ function QM.RefreshQuests()
 				local nameString = tostring(k).." ["..questData.name[gCurrentLanguage].."]" or questData.name.us
 				GUI_NewButton(QM.Windows.Main.name, nameString, "QMQuestEdit"..tostring(k), GetString("quests"))
 			else
-				GUI_NewButton(QM.Windows.Main.name, tostring(k), "QMQuestEdit"..tostring(k), GetString("quests"))
+				local questName = v.name or tostring((k + 65536))
+				GUI_NewButton(QM.Windows.Main.name, tostring(k).." ["..questName.."]", "QMQuestEdit"..tostring(k), GetString("quests"))
 			end
 		end
 		GUI_UnFoldGroup(QM.Windows.Main.name,GetString("quests"))
@@ -1911,7 +1965,7 @@ function QM.LoadWindows()
 end
 --**************************************************************************************************************************************
 function QM.WindowUpdate()	
-	
+
 	local WI = Settings.FFXIVMINION.qmWindow
 	local W = GUI_GetWindowInfo(QM.Windows.Main.name)
 	local WindowInfo = {}

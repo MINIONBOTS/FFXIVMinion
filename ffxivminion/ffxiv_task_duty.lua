@@ -627,9 +627,6 @@ function ffxiv_task_duty.UIInit()
 	if (Settings.FFXIVMINION.gPerformanceLevel == nil) then
 		Settings.FFXIVMINION.gPerformanceLevel = GetString("normal")
 	end
-	if (Settings.FFXIVMINION.gDutySoloQueue == nil) then
-        Settings.FFXIVMINION.gDutySoloQueue = "0"
-    end
 	if (gBotMode == GetString("dutyMode")) then
 		ffxiv_task_duty.UpdateProfiles()
 	end
@@ -660,8 +657,8 @@ function ffxiv_task_duty.UIInit()
 	gLootOption = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gLootOption,gLootOption_listitems,GetString("need"))
 	gDutyStopCount = Settings.FFXIVMINION.gDutyStopCount
 	gUseTelecast = Settings.FFXIVMINION.gUseTelecast
-	gDutySoloQueue = Settings.FFXIVMINION.gDutySoloQueue
 	gPerformanceLevel = ffxivminion.SafeComboBox(Settings.FFXIVMINION.gPerformanceLevel,gPerformanceLevel_listitems,GetString("normal"))
+	gDutySoloQueue = "0"
 end
 
 function ffxiv_task_duty.UpdateProfiles()

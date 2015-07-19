@@ -134,14 +134,16 @@ function c_betterfatesearch:evaluate()
 		
 		local closestFate = GetClosestFate(myPos)
 		if (ValidTable(closestFate) and thisFate.id ~= closestFate.id) then
-			if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,closestFate.id)) then
-				c_betterfatesearch.timer = Now()
-				e_betterfatesearch.fateid = closestFate.id
-				return true	
-			elseif (dist2d > thisFate.radius + 20) then
-				c_betterfatesearch.timer = Now()
-				e_betterfatesearch.fateid = closestFate.id
-				return true	
+			if (closestFate.status == 2) then
+				if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,closestFate.id)) then
+					c_betterfatesearch.timer = Now()
+					e_betterfatesearch.fateid = closestFate.id
+					return true	
+				elseif (dist2d > thisFate.radius + 20) then
+					c_betterfatesearch.timer = Now()
+					e_betterfatesearch.fateid = closestFate.id
+					return true	
+				end
 			end
 		end
 	end
@@ -236,13 +238,19 @@ function c_movetochainlocation:evaluate()
 		ml_task_hub:CurrentTask().waitingForChain and 
 		ValidTable(ml_task_hub:CurrentTask().nextFate)) 
 	then
-
         local fate = ml_task_hub:CurrentTask().nextFate
 		local myPos = Player.pos
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-		if (distance > 40) then				
+		if (distance > 5) then				
 			return true
+		else
+			d("Distance is "..tostring(distance).." from next chain location.")
 		end
+	else
+		d("One or more chain location objectives not satisfied.")
+		d("NextFate:"..tostring(ValidTable(ml_task_hub:CurrentTask().nextFate)))
+		d("FateID:"..tostring(ml_task_hub:CurrentTask().fateid))
+		d("WaitingForChain:"..tostring(ml_task_hub:CurrentTask().waitingForChain))
 	end
     
     return false
@@ -539,6 +547,7 @@ function c_endfate:evaluate()
         return true
     end
 	
+	local isChain, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,fate.id)
 	if (not IsFateApproved(fate.id)) then
 		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
 		return true
@@ -571,7 +580,7 @@ function ffxiv_task_fate.RequiresSync(fateLevel)
 	local requiresSync = false
 	if (fateLevel > 0) then
 		if (fateLevel < 49) then
-			if (fateLevel < (playerLevel - 5)) then
+			if ((fateLevel < (playerLevel - 5)) or Player.level > 50) then
 				requiresSync = true
 			end
 		else

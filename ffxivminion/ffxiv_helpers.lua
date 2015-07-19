@@ -1091,30 +1091,82 @@ function RoundUp(number, multiple)
 	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
 end
 
-function GetNearestGatherable(minlevel,maxlevel)
+function GetNearestGatherable(marker)
     local el = nil
     local whitelist = nil
     local blacklist = nil
+	local minlevel = 1
+	local maxlevel = 60
+	local radius = 0
+	local markerPos = nil
 	
-	if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-		whitelist = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
-		blacklist = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
+	if (ValidTable(marker) and gMarkerMgrMode ~= GetString("singleMarker")) then	
+		local mincontentlevel = marker:GetFieldValue(GetString("minContentLevel"))
+		if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
+			minlevel = tonumber(mincontentlevel)
+		end
+		
+		local maxcontentlevel = marker:GetFieldValue(GetString("maxContentLevel"))
+		if (tonumber(maxcontentlevel) and tonumber(maxcontentlevel) > 0) then
+			maxlevel = tonumber(maxcontentlevel)
+		end
+		
+		local maxradius = marker:GetFieldValue(GetString("maxRadius"))
+		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
+			radius = tonumber(maxradius)
+		end
+		
+		markerPos = marker:GetPosition()
+		whitelist = marker:GetFieldValue(GetString("contentIDEquals"))
+		blacklist = marker:GetFieldValue(GetString("NOTcontentIDEquals"))
 	end
     
-    if (whitelist and whitelist ~= "") then
-        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
-    elseif (blacklist and blacklist ~= "") then
-        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
-    else
-        el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
-    end
+	if (radius == 0 or radius > 200 or not ValidTable(markerPos)) then
+		if (whitelist and whitelist ~= "") then
+			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+		elseif (blacklist and blacklist ~= "") then
+			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+		else
+			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+		end
+		
+		if ( ValidTable(el) ) then
+			local i,e = next(el)
+			if (i~=nil and e~=nil) then
+				return e
+			end
+		end
+	elseif (ValidTable(markerPos)) then
+		if (whitelist and whitelist ~= "") then
+			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+		elseif (blacklist and blacklist ~= "") then
+			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+		else
+			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+		end
+		
+		local gatherables = {}
+		if (ValidTable(el)) then
+			for i,g in pairs(el) do
+				local gpos = g.pos
+				local dist = Distance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
+				
+				if (dist <= radius) then
+					table.insert(gatherables,g)
+				end
+			end
+		end
+		
+		if (ValidTable(gatherables)) then
+			table.sort(gatherables,	function(a,b) return a.pathdistance < b.pathdistance end)
+			
+			local i,g = next(gatherables)
+			if (i and g) then
+				return g
+			end
+		end
+	end
     
-    if ( el ) then
-        local i,e = next(el)
-        if (i~=nil and e~=nil) then
-            return e
-        end
-    end
     ml_debug("GetNearestGatherable() failed with no entity found matching params")
     return nil
 end
@@ -1477,27 +1529,66 @@ function IsBehind(entity)
     return false
 end
 
+function IsBehindSafe(entity)
+	if not entity or entity.id == Player.id then return false end
+	local entityHeading = nil
+	
+	if (entity.pos.h < 0) then
+		entityHeading = entity.pos.h + 2 * math.pi
+	else
+		entityHeading = entity.pos.h
+	end
+	
+	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+	local deviation = entityAngle - entityHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * 1.70) or leftover < (math.pi * .30)) then
+		return true
+	end
+    return false
+end
+
 function IsFront(entity)
 	if not entity or entity.id == Player.id then return false end
+	local entityHeading = nil
 	
-    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
-        local entityHeading = nil
-        
-        if (entity.pos.h < 0) then
-            entityHeading = entity.pos.h + 2 * math.pi
-        else
-            entityHeading = entity.pos.h
-        end
-		
-        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
-        local deviation = entityAngle - entityHeading
-        local absDeviation = math.abs(deviation)
-        local leftover = math.abs(absDeviation - math.pi)
-		
-        if (leftover > (math.pi * .75) and leftover < (math.pi * 1.25)) then
-            return true
-        end
-    end
+	if (entity.pos.h < 0) then
+		entityHeading = entity.pos.h + 2 * math.pi
+	else
+		entityHeading = entity.pos.h
+	end
+	
+	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
+	local deviation = entityAngle - entityHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .75) and leftover < (math.pi * 1.25)) then
+		return true
+	end
+    return false
+end
+
+function IsFrontSafe(entity)
+	if not entity or entity.id == Player.id then return false end
+	local entityHeading = nil
+	
+	if (entity.pos.h < 0) then
+		entityHeading = entity.pos.h + 2 * math.pi
+	else
+		entityHeading = entity.pos.h
+	end
+	
+	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
+	local deviation = entityAngle - entityHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .70) and leftover < (math.pi * 1.30)) then
+		return true
+	end
     return false
 end
 
@@ -1665,7 +1756,6 @@ function FindPointLeftRight(pos, angle, radius, relative)
 		--angleMin = angle-math.random(90,)
 		--angleMax = angle+math.random(45,60)
 	--end
-	
 
 	if angleMin < 0 then
 		angleMin = 360 + angleMin
@@ -1720,20 +1810,23 @@ function GetApprovedFates()
 			local minFateLevel = tonumber(gMinFateLevel) or 0
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
 			
+			local isChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
+			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
+			
 			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
 				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
 			then
-				if (fate.type == 0 and gDoBattleFates == "1" and fate.completion >= tonumber(gFateBattleWaitPercent)) then
+				if (not (isChain or isPrio) and (fate.type == 0 and gDoBattleFates == "1" and fate.completion >= tonumber(gFateBattleWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (fate.type == 1 and gDoBossFates == "1" and fate.completion >= tonumber(gFateBossWaitPercent)) then
+				elseif (not (isChain or isPrio) and (fate.type == 1 and gDoBossFates == "1" and fate.completion >= tonumber(gFateBossWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (fate.type == 2 and gDoGatherFates == "1" and fate.completion >= tonumber(gFateGatherWaitPercent)) then
+				elseif (not (isChain or isPrio) and (fate.type == 2 and gDoGatherFates == "1" and fate.completion >= tonumber(gFateGatherWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (fate.type == 3 and gDoDefenseFates == "1" and fate.completion >= tonumber(gFateDefenseWaitPercent)) then
+				elseif (not (isChain or isPrio) and (fate.type == 3 and gDoDefenseFates == "1" and fate.completion >= tonumber(gFateDefenseWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent)) then
+				elseif (not (isChain or isPrio) and (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
+				elseif ((isChain or isPrio) and (gDoChainFates == "1" and fate.completion >= tonumber(gFateChainWaitPercent))) then
 					table.insert(approvedFates,fate)
 				end
 			end
@@ -1824,11 +1917,13 @@ function GetClosestFate(pos)
 			--Add fates that are high priority or chains first.
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
-					if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
-						local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-						if (p and dist <= 20) then
-							table.insert(validFates,fate)
-							--d("Added 1 high priority fate.")
+					if (fate.status == 2) then	
+						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
+							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+							if (p and dist <= 20) then
+								table.insert(validFates,fate)
+								--d("Added 1 high priority fate.")
+							end
 						end
 					end
 				end
@@ -2132,6 +2227,16 @@ function GetPartyLeader()
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
 					return leaderentity, true
+				end
+			end
+			
+			local party = EntityList.myparty
+			if (ValidTable(party)) then
+				for i,member in pairs(party) do
+					if (member.name == gPartyLeaderName) then
+						leader = member
+						return leader, false
+					end
 				end
 			end
 		end
@@ -2545,7 +2650,7 @@ function IsMap(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 6687 and itemid <= 6692) or
 		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
-		(itemid >= 12441 and itemid <= 12443))
+		(itemid >= 12241 and itemid <= 12243))
 end
 
 function IsGardening(itemid)
@@ -2597,6 +2702,22 @@ function IsChocoboFoodSpecial(itemid)
 		[10095] = true,
 	}
 	return special[itemid]
+end
+
+function IsRareItem(itemid)
+	local itemid = tonumber(itemid) or 0
+	local rareItem = {
+		[8024] = true,
+		[5365] = true,
+		[10099] = true,
+		[10335] = true,
+	}
+	
+	return rareItem[itemid]
+end
+
+function IsRareItemSpecial(itemid)
+	
 end
 
 function IsUnspoiled(contentid)
@@ -3166,6 +3287,8 @@ function IsCityMap(mapid)
 		[129] = true,
 		[131] = true,
 		[130] = true,
+		[418] = true,
+		[419] = true,
 	}
 	return cityMaps[mapid]
 end
@@ -3392,498 +3515,30 @@ function GetBestGrindMap()
 	end
 end
 
-function CheckSlotLevels(slotids,level)
-	--[[
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
-	[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
-	--]]
-	
-	local slotids = tostring(slotids)
-	local level = tonumber(level)
-	for slot in StringSplit(slotids,",") do
-		local equipped = Inventory("type=1000")
-		local itemFound = false
-		for i,item in pairs(equipped) do
-			if (item.slot == tonumber(slot)) then
-				itemFound = true
-				if (item.level < level) then
-					return false
-				end
-			end
-		end
-		if (itemFound) then
-			break
-		end
-		if (not itemFound) then
-			return false
-		end
-	end
-	
-	return true
-end
-
-function GetItemData(itemid)
+function EquipItem(itemid, itemslot)
+	local itemtype = tonumber(itemslot)
 	local itemid = tonumber(itemid)
-	local itemDetails = ffxiv_item_data[itemid]
-	return itemDetails
+	
+	local item = Inventory:Get(itemid)
+	if (item and item.canequip) then
+		item:Move(1000,itemslot)
+	end
 end
 
-function GetItemDetails(searchitem)
-	if (not ValidTable(searchitem)) then
-		d("Invalid item table passed.")
-		return nil
-	end
+function UnequipItem(itemid)
+	local itemid = tonumber(itemid)
 	
-	local itemid = searchitem.id
-	if (searchitem.IsHQ == 1) then
-		itemid = (itemid - 1000000)
-	end
-	local dbitem = ffxiv_item_data[itemid]
-	if (dbitem) then
-		itemDetails = dbitem
-		itemDetails.hq = (searchitem.IsHQ == 1)
-		return itemDetails
-	end
-	
-	return nil
-end
-
-function GetItemStatWeight(searchitem)
-	if (not ValidTable(searchitem)) then
-		d("Invalid item table passed.")
-		return 0
-	end
-	
-	local itemDetails = nil
-	
-	local itemid = searchitem.id
-	if (searchitem.IsHQ == 1) then
-		itemid = (itemid - 1000000)
-	end
-	local dbitem = ffxiv_item_data[itemid]
-	if (dbitem) then
-		itemDetails = dbitem
-		itemDetails.hq = (searchitem.IsHQ == 1)
-	else
-		d("No item information was found for :"..tostring(searchitem.name))
-		return 0
-	end
-	
-	local statWeights = {
-		["Tanks"] = {
-			weights = {
-				pDamage = 8.732,
-				pDefense = .5,
-				mDefense = .5,
-				[1] = 1,
-				[22] = 0.204,
-				[27] = 0.204,
-				[44] = 0.325,
-				[45] = 0.178,
-				[3] = 1,
-				[19] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.GLADIATOR] = true,
-				[FFXIV.JOBS.PALADIN] = true,
-				[FFXIV.JOBS.MARAUDER] = true,
-				[FFXIV.JOBS.WARRIOR] = true,
-				[FFXIV.JOBS.DARKKNIGHT] = true,
-			},
-		},
-		["Healers"] = {
-			weights = {
-				mDamage = 8.732,
-				[5] = 1,
-				[22] = 0,
-				[27] = 0.204,
-				[44] = 0.325,
-				[46] = 0.178,
-				[3] = 0,
-				[6] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.CONJURER] = true,
-				[FFXIV.JOBS.WHITEMAGE] = true,
-				[FFXIV.JOBS.SCHOLAR] = true,
-				[FFXIV.JOBS.ASTROLOGIAN] = true,
-			},
-		},
-		["INT DPS"] = {
-			weights = {
-				mDamage = 8.732,
-				[4] = 1,
-				[22] = 0,
-				[27] = 0.234,
-				[44] = 0.246,
-				[46] = 0.281,
-				[3] = 0,
-				[6] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.THAUMATURGE] = true,
-				[FFXIV.JOBS.BLACKMAGE] = true,
-				[FFXIV.JOBS.ARCANIST] = true,
-				[FFXIV.JOBS.SUMMONER] = true,
-			},
-		},
-		["DEX DPS"] = {
-			weights = {
-				pDamage = 9.429,
-				[2] = 1,
-				[22] = 0,
-				[27] = 0.339,
-				[44] = 0.320,
-				[45] = 0.161,
-				[3] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.ARCHER] = true,
-				[FFXIV.JOBS.BARD] = true,
-				[FFXIV.JOBS.MACHINIST] = true,
-				[FFXIV.JOBS.ROGUE] = true,
-				[FFXIV.JOBS.NINJA] = true,
-			},
-		},
-		["STR DPS"] = {
-			weights = {
-				pDamage = 9.338,
-				[1] = 1,
-				[22] = 0,
-				[27] = 0.214,
-				[44] = 0.336,
-				[45] = 0.206,
-				[3] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.PUGILIST] = true,
-				[FFXIV.JOBS.MONK] = true,
-				[FFXIV.JOBS.LANCER] = true,
-				[FFXIV.JOBS.DRAGOON] = true,
-			},
-		},
-		["Gatherers"] = {
-			weights = {
-				pDamage = 9.338,
-				[10] = 1,
-				[72] = 1,
-				[73] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.MINER] = true,
-				[FFXIV.JOBS.BOTANIST] = true,
-				[FFXIV.JOBS.FISHER] = true,
-			},
-		},
-		["Crafters"] = {
-			weights = {
-				pDamage = 9.338,
-				[11] = 1,
-				[70] = 1,
-				[71] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.CARPENTER] 		= true,
-				[FFXIV.JOBS.BLACKSMITH] 	= true,
-				[FFXIV.JOBS.ARMORER] 		= true,
-				[FFXIV.JOBS.GOLDSMITH] 		= true,
-				[FFXIV.JOBS.LEATHERWORKER] 	= true,
-				[FFXIV.JOBS.WEAVER] 		= true,
-				[FFXIV.JOBS.ALCHEMIST] 		= true,
-				[FFXIV.JOBS.CULINARIAN] 	= true,
-			},
-		},
-	}
-	
-	local appliedStats = nil
-	for category,data in pairs(statWeights) do
-		if (data.appliesTo) then
-			for jobid,_ in pairs(data.appliesTo) do
-				if (jobid == Player.job) then
-					appliedStats = data.weights
+	local item = GetEquippedItem(itemid)
+	if (item) then
+		local itemData = GetItemData(item.id)
+		if (itemData) then
+			local armorySlot = GetArmorySlotForItem(itemData.slot)
+			if (armorySlot) then
+				local freeSlot = GetFirstFreeArmorySlot(armorySlot)
+				if (freeSlot) then
+					item:Move(armorySlot,freeSlot)
 				end
 			end
-		end
-		if (appliedStats) then
-			break
-		end
-	end
-	
-	if (not ValidTable(appliedStats)) then
-		d("Appropriate stat weights not found for this class/job.")
-		return 0
-	end
-		
-	local statTotals = 0
-	if (ValidTable(itemDetails)) then
-		if (searchitem.slot == 0) then
-			-- Calculate weapon total.
-			
-			for stat,weight in pairs(appliedStats) do
-				if (stat == "pDamage") then
-					if (itemDetails.hq) then
-						local thisStat = itemDetails.pDamageHQ or 0
-						statTotals = statTotals + (thisStat * weight)
-					else
-						local thisStat = itemDetails.pDamage or 0
-						statTotals = statTotals + (thisStat * weight)
-					end
-				elseif (stat == "mDamage") then
-					if (itemDetails.hq) then
-						local thisStat = itemDetails.mDamageHQ or 0
-						statTotals = statTotals + (thisStat * weight)
-					else
-						local thisStat = itemDetails.mDamage or 0
-						statTotals = statTotals + (thisStat * weight)
-					end
-				end			
-			end
-			
-		elseif (searchitem.slot == 1) then
-			-- Calculate shield total.
-			
-			if (itemDetails.hq) then
-				local thisStat = itemDetails.shieldRateHQ or 0
-				statTotals = statTotals + (thisStat * 0.1)
-			else
-				local thisStat = itemDetails.shieldRate or 0
-				statTotals = statTotals + (thisStat * 0.1)
-			end
-			
-			if (itemDetails.hq) then
-				local thisStat = itemDetails.blockRateHQ or 0
-				statTotals = statTotals + (thisStat * 0.1)
-			else
-				local thisStat = itemDetails.blockRate or 0
-				statTotals = statTotals + (thisStat * 0.1)
-			end
-			
-		end
-		
-		for stat,weight in pairs(appliedStats) do
-			if (stat == "pDefense") then
-				if (itemDetails.hq) then
-					local thisStat = itemDetails.defenseHQ or 0
-					statTotals = statTotals + (thisStat * weight)
-				else
-					local thisStat = itemDetails.defense or 0
-					statTotals = statTotals + (thisStat * weight)
-				end
-			elseif (stat == "mDefense") then
-				if (itemDetails.hq) then
-					local thisStat = itemDetails.magicDefenseHQ or 0
-					statTotals = statTotals + (thisStat * weight)
-				else
-					local thisStat = itemDetails.magicDefense or 0
-					statTotals = statTotals + (thisStat * weight)
-				end
-			elseif (tonumber(stat) ~= nil) then
-				if (itemDetails.hq) then
-					local thisStat = itemDetails.statsHQ[stat] or 0
-					statTotals = statTotals + (thisStat * weight)
-				else
-					local thisStat = itemDetails.stats[stat] or 0
-					statTotals = statTotals + (thisStat * weight)
-				end
-			end	
-		end
-	end
-	
-	return statTotals
-end
-
-function FindUpgradesBySlot(slot,ui)
-	local slot = tonumber(slot)
-	local ui = tonumber(ui)
-	local items = {}
-	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (ValidTable(item) and item.requiredlevel > 0) then
-				if (item.requiredlevel <= Player.level) then
-					local itemDetails = GetItemDetails(item)
-					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
-						items[item.id] = item
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = Inventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (ValidTable(item) and item.requiredlevel > 0) then
-				if (item.requiredlevel <= Player.level) then
-					local itemDetails = GetItemDetails(item)
-					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
-						items[item.id] = item
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = Inventory("type=3300")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local itemDetails = GetItemDetails(item)
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
-					items[item.id] = item
-				end
-			end
-		end
-	end
-	
-	--Look through soulstone armory bag.
-	local inv = Inventory("type=3400")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local itemDetails = GetItemDetails(item)
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
-					items[item.id] = item
-				end
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = Inventory("type=3500")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local itemDetails = GetItemDetails(item)
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui and itemDetails.classes[Player.job]) then
-					items[item.id] = item
-				end
-			end
-		end
-	end
-	
-	return items
-end
-
-function FindItemsBySlot(slot,ui)
-	local slot = tonumber(slot)
-	local ui = tonumber(ui)
-	local items = {}
-	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (ValidTable(item) and item.requiredlevel > 0) then
-				if (item.requiredlevel <= Player.level) then
-					local isHQ = item.IsHQ == 1
-					local itemid = (isHQ and (item.id - 1000000)) or item.id
-					local itemDetails = ffxiv_item_data[itemid]
-					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
-						itemDetails.hq = isHQ
-						items[item.id] = itemDetails
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = Inventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (ValidTable(item) and item.requiredlevel > 0) then
-				if (item.requiredlevel <= Player.level) then
-					local isHQ = item.IsHQ == 1
-					local itemid = (isHQ and (item.id - 1000000)) or item.id
-					local itemDetails = ffxiv_item_data[itemid]
-					if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
-						itemDetails.hq = isHQ
-						items[item.id] = itemDetails
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = Inventory("type=3300")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local isHQ = item.IsHQ == 1
-				local itemid = (isHQ and (item.id - 1000000)) or item.id
-				local itemDetails = ffxiv_item_data[itemid]
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
-					itemDetails.hq = isHQ
-					items[item.id] = itemDetails
-				end
-			end
-		end
-	end
-	
-	--Look through soulstone armory bag.
-	local inv = Inventory("type=3400")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local itemid = item.id
-				local itemDetails = ffxiv_item_data[itemid]
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
-					itemDetails.hq = false
-					items[item.id] = itemDetails
-				end
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = Inventory("type=3500")
-	for i, item in pairs(inv) do
-		if (ValidTable(item) and item.requiredlevel > 0) then
-			if (item.requiredlevel <= Player.level) then
-				local isHQ = item.IsHQ == 1
-				local itemid = (isHQ and (item.id - 1000000)) or item.id
-				local itemDetails = ffxiv_item_data[itemid]
-				if (itemDetails and itemDetails.slot == slot and itemDetails.ui == ui) then
-					itemDetails.hq = isHQ
-					items[item.id] = itemDetails
-				end
-			end
-		end
-	end
-	
-	for id,item in pairs(items) do
-		if (not item.classes[Player.job]) then
-			items[id] = nil
-		end
-	end
-	
-	return items
-end
-
-function EquipItem(itemID, itemtype)
-	local itemtype = itemtype or 0
-	local item = Inventory:Get(itemID)
-	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-		if (itemtype ~= 0) then
-			item:Move(1000,itemtype)
-		else
-			item:Move(1000,GetEquipSlotForItem(item))
 		end
 	end
 end
@@ -4090,6 +3745,18 @@ function IsCompanionSummoned()
 	return false
 end
 
+function GetCompanionEntity()
+	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
+	if (ValidTable(el)) then
+		local i,entity = next(el)
+		if (i and entity) then
+			return entity
+		end
+	end
+	
+	return nil
+end
+
 function IsShopWindowOpen()
 	return (ControlVisible("Shop") or ControlVisible("ShopExchangeItem") or ControlVisible("ShopExchangeCurrency")
 		or ControlVisible("ShopCard") or ControlVisible("ShopExchangeCoin"))
@@ -4246,75 +3913,48 @@ function GetUnequippedItem(itemid)
 	return nil
 end
 
-function GetEquipSlotForItem(item)
-	local equipSlot = 
-	{
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+function GetEquipSlotForItem(slot)
+	local slot = tonumber(slot)
+	local equipSlot = {
+		[1] = 0,
+		[2] = 1,
+		[3] = 2,
+		[4] = 3,
+		[5] = 4,
+		[6] = 5,
+		[7] = 6,
+		[8] = 7,
+		[9] = 8,
+		[10] = 9,
+		[11] = 10,
+		[12] = 11,
+		[13] = 0,
+		[17] = 13,
 	}
 	
-	return equipSlot[item.type]
+	return equipSlot[slot]
 end
 
-function CountItemsByID(id, includeHQ)
-	includeHQ = includeHQ or false
-	
-	local count = 0
-	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (item.id == id) then
-				count = count + item.count
-			end
-			--TODO: FIX INCLUDEHQ
-			--if (includeHQ) then
-				--if (item.id
-			--end
-		end
-	end
-	return count
-end
-
-function GetArmoryIDsTable()
-	local invTypes = 
-	{
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND] = 1,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD] = 2,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_BODY] = 3,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS] = 4,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST] = 5,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS] = 6,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_FEET] = 7,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_NECK] = 8,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_EARS] = 9,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST] = 10,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS] = 11,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL] = 12,
-		[FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND] = 0
+function GetArmorySlotForItem(slot)
+	local slot = tonumber(slot)
+	local armorySlot = {
+		[1] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
+		[13] = FFXIV.INVENTORYTYPE.INV_ARMORY_MAINHAND,
+		[2] = FFXIV.INVENTORYTYPE.INV_ARMORY_OFFHAND,
+		[3] = FFXIV.INVENTORYTYPE.INV_ARMORY_HEAD,
+		[4] = FFXIV.INVENTORYTYPE.INV_ARMORY_BODY,
+		[5] = FFXIV.INVENTORYTYPE.INV_ARMORY_HANDS,
+		[6] = FFXIV.INVENTORYTYPE.INV_ARMORY_WAIST,
+		[7] = FFXIV.INVENTORYTYPE.INV_ARMORY_LEGS,
+		[8] = FFXIV.INVENTORYTYPE.INV_ARMORY_FEET,
+		[9] = FFXIV.INVENTORYTYPE.INV_ARMORY_NECK,
+		[10] = FFXIV.INVENTORYTYPE.INV_ARMORY_EARS,
+		[11] = FFXIV.INVENTORYTYPE.INV_ARMORY_WRIST,
+		[12] = FFXIV.INVENTORYTYPE.INV_ARMORY_RINGS,
+		[17] = FFXIV.INVENTORYTYPE.INV_ARMORY_SOULCRYSTAL,
 	}
 	
-	local ids = {}
-	for key,_ in pairs(invTypes) do
-		local itemlist = Inventory("type="..tostring(key))
-		if(ValidTable(itemlist)) then
-			for id, item in pairs(itemlist) do
-				ids[item.id] = true
-			end
-		end
-	end
-	
-	return ids
+	return armorySlot[slot]
 end
 
 function SubtractHours(start, value)
