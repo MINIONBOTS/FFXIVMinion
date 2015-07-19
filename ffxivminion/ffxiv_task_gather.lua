@@ -84,7 +84,7 @@ function c_findgatherable:evaluate()
     end
     
     local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (gatherable ~= nil) then
+    if (ValidTable(gatherable)) then
         if (not gatherable.cangather) then
             return true 
         end
@@ -95,78 +95,22 @@ function c_findgatherable:evaluate()
     return false
 end
 function e_findgatherable:execute()
-    local minlevel = 1
-    local maxlevel = 60
-    if (ValidTable(ml_task_hub:CurrentTask().currentMarker) and
-		gMarkerMgrMode ~= GetString("singleMarker")) 
-	then
-		minlevel = ml_task_hub:CurrentTask().currentMarker:GetMinLevel()
-		if (minlevel and minlevel < 60) then
-			minlevel = RoundUp(minlevel,5)
-		end
-		maxlevel = ml_task_hub:CurrentTask().currentMarker:GetMaxLevel()
-		if (maxlevel and maxlevel < 60) then
-			maxlevel = RoundUp(maxlevel,5)
-		end
-    end
-	
-	ffxiv_task_gather.gatherStarted = false
-    
-    local gatherable = GetNearestGatherable(minlevel,maxlevel)
-    if (gatherable ~= nil) then
+	ffxiv_task_gather.gatherStarted = false    
+    local gatherable = GetNearestGatherable(ml_global_information.currentMarker)
+    if (ValidTable(gatherable)) then
 		-- reset blacklist vars for a new node
 		ml_task_hub:CurrentTask().failedTimer = 0		
 		ml_task_hub:CurrentTask().gatheredMap = false
         ml_task_hub:CurrentTask().gatherid = gatherable.id
 		ml_task_hub:CurrentTask().gatheruniqueid = gatherable.uniqueid
-				
-		-- setting the maxrange for the "return to marker" check, so we dont have a pingpong navigation between going to node and going back to marker		
-		if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-			local nodePos = gatherable.pos
-			local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-            
-			--just for testing
-			local distance2d = Distance2D(nodePos.x, nodePos.z, markerPos.x, markerPos.z)
-			ml_debug("Distance2D Node <-> current Marker: "..tostring(distance2d))		
-			local pathdist = NavigationManager:GetPath(nodePos.x,nodePos.y,nodePos.z,markerPos.x, markerPos.y,markerPos.z)
-			if ( pathdist ) then
-				local pdist = PathDistance(pathdist)
-				ml_debug("Path distance Node <-> current Marker : "..tostring(pdist))
-				if ( pdist > 50 ) then
-					ml_task_hub:CurrentTask().maxGatherDistance = pdist + 25
-					return
-				end
-			end			
-		end
-		--default 
-		ml_task_hub:CurrentTask().maxGatherDistance = 250
-    else
-		-- no gatherables nearby, try to walk to next gather marker by setting the current marker's timer to "exceeded"
-        if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then            
-			if ( TimeSince(ml_task_hub:CurrentTask().gatherTimer) > 1500 ) then
-                local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-				local pPos = Player.pos
-				-- we are nearby our marker and no nodes are nearby anymore, grab the next one
-				if (Distance2D(pPos.x, pPos.z, markerPos.x, markerPos.z) < 15) then
-					local t = ml_task_hub:CurrentTask().currentMarker:GetTime()
-					ml_task_hub:CurrentTask().markerTime = ml_task_hub:CurrentTask().markerTime - t
-				else
-					-- walk to the center of our marker first
-					if (markerPos ~= nil and markerPos ~= 0) then
-						Player:MoveTo(markerPos.x, markerPos.y, markerPos.z, 10, false, gRandomPaths=="1")
-                        ml_task_hub:CurrentTask().idleTimer = ml_global_information.Now
-					end
-				end
-            end
-        end
     end
 	
 	--idiotcheck for no usable markers found on this mesh
-	if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-        if not (gGatherUnspoiled == "1" and ffxiv_task_gather.IsIdleLocation()) then
-			ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
-		end
-	end
+	--if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
+        --if not (gGatherUnspoiled == "1" and ffxiv_task_gather.IsIdleLocation()) then
+			--ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
+		--end
+	--end
 	return false
 end
 
@@ -515,17 +459,9 @@ function c_nextgathermarker:evaluate()
 			
 			if (marker == nil) then
 				if (gGatherUnspoiled ~= "1") then
-					--local message = {
-						--[1] = "There are no appropriate markers",
-						--[2] = "for your level range in the list.",
-					--}
 					d("Currently no appropriate markers found in our level range.")
 					return false
-					--ffxiv_dialog_manager.IssueStopNotice("Gather_NextGatherMarker", message)
 				end
-				
-				--ml_task_hub:ThisTask().filterLevel = false
-				--marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			end
         end
         
@@ -537,33 +473,29 @@ function c_nextgathermarker:evaluate()
 						(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
 						Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
 					then
-						marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+						marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 					end
 				end
 			end
 			
-			-- next check to see if we can't find any gatherables at our current marker
-			if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then            
-				if ( ml_task_hub:ThisTask().idleTimer ~= 0 and TimeSince(ml_task_hub:ThisTask().idleTimer) > 30 * 1000 ) then
-					ml_task_hub:ThisTask().idleTimer = 0
-					local markerPos = ml_task_hub:ThisTask().currentMarker:GetPosition()
-					local pPos = Player.pos
-					-- we are nearby our marker and no nodes are nearby anymore, grab the next one
-					if (Distance2D(pPos.x, pPos.z, markerPos.x, markerPos.z) < 15) then
-						marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
-					end
+			if (gMarkerMgrMode == GetString("markerTeam")) then
+				local gatherid = ml_task_hub:CurrentTask().gatherid
+				if (gatherid == 0) then
+					marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 				end
 			end
 			
 			-- last check if our time has run out
-			if (marker == nil) then
-				if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-					local expireTime = ml_task_hub:ThisTask().markerTime
-					if (Now() > expireTime) then
-						ml_debug("Getting Next Marker, TIME IS UP!")
-						marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
-					else
-						return false
+			if (gMarkerMgrMode == GetString("markerList")) then
+				if (marker == nil) then
+					if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
+						local expireTime = ml_task_hub:ThisTask().markerTime
+						if (Now() > expireTime) then
+							ml_debug("Getting Next Marker, TIME IS UP!")
+							marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
+						else
+							return false
+						end
 					end
 				end
 			end
@@ -1528,8 +1460,8 @@ function e_gatherflee:execute()
 end
 
 function ffxiv_task_gather:Init()
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
-    self:add( ke_inventoryFull, self.overwatch_elements)
+	--local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
+    --self:add( ke_inventoryFull, self.overwatch_elements)
 	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
     self:add( ke_dead, self.overwatch_elements)
@@ -1546,35 +1478,35 @@ function ffxiv_task_gather:Init()
 	local ke_nextLocation = ml_element:create( "NextLocation", c_nextgatherlocation, e_nextgatherlocation, 4 )
     self:add(ke_nextLocation, self.overwatch_elements)
 	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 3 )
-    self:add( ke_nextMarker, self.overwatch_elements)
-	
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
     self:add( ke_autoEquip, self.process_elements)
 	
-	local ke_unspoiledPrep = ml_element:create( "UnspoiledPrep", c_unspoiledprep, e_unspoiledprep, 45 )
+	local ke_unspoiledPrep = ml_element:create( "UnspoiledPrep", c_unspoiledprep, e_unspoiledprep, 200 )
     self:add( ke_unspoiledPrep, self.process_elements)
 	
-	local ke_findunspoiledNode = ml_element:create( "FindUnspoiledNode", c_findunspoilednode, e_findunspoilednode, 40 )
+	local ke_findunspoiledNode = ml_element:create( "FindUnspoiledNode", c_findunspoilednode, e_findunspoilednode, 190 )
     self:add(ke_findunspoiledNode, self.process_elements)
 	
-	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 21 )
+	local ke_nextUnspoiledMarker = ml_element:create( "NextUnspoiledMarker", c_nextunspoiledmarker, e_nextunspoiledmarker, 180 )
     self:add( ke_nextUnspoiledMarker, self.process_elements)
 	
-	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 11 )
+	local ke_moveToUnspoiledMarker = ml_element:create( "MoveToUnspoiledMarker", c_movetounspoiledmarker, e_movetounspoiledmarker, 170 )
     self:add( ke_moveToUnspoiledMarker, self.process_elements)
 	
-	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
-    self:add( ke_returnToMarker, self.process_elements)
-	
-    local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 15 )
+	local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 100 )
     self:add(ke_findGatherable, self.process_elements)
 	
-    local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 10 )
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 90 )
+    self:add( ke_nextMarker, self.process_elements )
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 80 )
+    self:add( ke_returnToMarker, self.process_elements)
+	
+    local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 70 )
     self:add( ke_moveToGatherable, self.process_elements)
     
-    local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 5 )
-    self:add(ke_gather, self.process_elements)
+    local ke_gather = ml_element:create( "Gather", c_gather, e_gather, 10 )
+    self:add(ke_gather, self.process_elements)	
 	
     self:AddTaskCheckCEs()
 end
@@ -1804,6 +1736,9 @@ function ffxiv_task_gather.SetupMarkers()
     local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(GetString("botanyMarker"))
 	botanyMarker:ClearFields()
+	botanyMarker:AddField("int", GetString("minContentLevel"), 0)
+	botanyMarker:AddField("int", GetString("maxContentLevel"), 0)
+	botanyMarker:AddField("int", GetString("maxRadius"), 0)
 	botanyMarker:AddField("string", GetString("selectItem1"), "")
 	botanyMarker:AddField("string", GetString("selectItem2"), "")
 	botanyMarker:AddField("string", GetString("contentIDEquals"), "")
@@ -1812,6 +1747,10 @@ function ffxiv_task_gather.SetupMarkers()
 	botanyMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
 	botanyMarker:AddField("checkbox", GetString("gatherGardening"), "1")
 	botanyMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	botanyMarker:AddField("checkbox", "Rare Items", "1")
+	botanyMarker:AddField("checkbox", "Special Rare Items", "1")
+	botanyMarker:AddField("checkbox", GetString("useStealth"), "1")
+	botanyMarker:AddField("checkbox", GetString("dangerousArea"), "0")
 	botanyMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
@@ -1821,6 +1760,9 @@ function ffxiv_task_gather.SetupMarkers()
 	local miningMarker = ml_marker:Create("miningTemplate")
 	miningMarker:SetType(GetString("miningMarker"))
 	miningMarker:ClearFields()
+	miningMarker:AddField("int", GetString("minContentLevel"), 0)
+	miningMarker:AddField("int", GetString("maxContentLevel"), 0)
+	miningMarker:AddField("int", GetString("maxRadius"), 300)
 	miningMarker:AddField("string", GetString("selectItem1"), "")
 	miningMarker:AddField("string", GetString("selectItem2"), "")
 	miningMarker:AddField("string", GetString("contentIDEquals"), "")
@@ -1829,6 +1771,10 @@ function ffxiv_task_gather.SetupMarkers()
 	miningMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
 	miningMarker:AddField("checkbox", GetString("gatherGardening"), "1")
 	miningMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	miningMarker:AddField("checkbox", "Rare Items", "1")
+	miningMarker:AddField("checkbox", "Special Rare Items", "1")
+	miningMarker:AddField("checkbox", GetString("useStealth"), "1")
+	miningMarker:AddField("checkbox", GetString("dangerousArea"), "0")
 	miningMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
@@ -1838,12 +1784,19 @@ function ffxiv_task_gather.SetupMarkers()
 	local unspoiledMarker = ml_marker:Create("unspoiledTemplate")
 	unspoiledMarker:SetType(GetString("unspoiledMarker"))
 	unspoiledMarker:ClearFields()
+	unspoiledMarker:AddField("int", GetString("minContentLevel"), 0)
+	unspoiledMarker:AddField("int", GetString("maxContentLevel"), 0)
+	unspoiledMarker:AddField("int", GetString("maxRadius"), 300)
 	unspoiledMarker:AddField("string", GetString("minimumGP"), "0")
 	unspoiledMarker:AddField("string", GetString("selectItem1"), "")
 	unspoiledMarker:AddField("string", GetString("selectItem2"), "")
 	unspoiledMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
 	unspoiledMarker:AddField("checkbox", GetString("gatherGardening"), "1")
 	unspoiledMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
+	unspoiledMarker:AddField("checkbox", "Rare Items", "1")
+	unspoiledMarker:AddField("checkbox", "Special Rare Items", "1")
+	unspoiledMarker:AddField("checkbox", GetString("useStealth"), "1")
+	unspoiledMarker:AddField("checkbox", GetString("dangerousArea"), "0")
 	unspoiledMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     unspoiledMarker:SetTime(1800)
     unspoiledMarker:SetMinLevel(50)

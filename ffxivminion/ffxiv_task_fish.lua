@@ -1,4 +1,6 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
+ffxiv_task_fish.attemptedCasts = 0
+
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
     
@@ -23,6 +25,8 @@ function ffxiv_task_fish.Create()
     newinst.missingBait = false
 	newinst.networkLatency = 0
 	newinst.requiresAdjustment = false
+	
+	newinst.snapshot = GetSnapshot()
     
     return newinst
 end
@@ -67,6 +71,120 @@ function e_precastbuff:execute()
 	end	
 end
 
+c_mooch = inheritsFrom( ml_cause )
+e_mooch = inheritsFrom( ml_effect )
+function c_mooch:evaluate()
+	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
+		return false
+	end
+	
+	local useMooch = false
+	local marker = ml_task_hub:CurrentTask().currentMarker
+	if (ValidTable(marker)) then
+		useMooch = (marker:GetFieldValue(GetString("useMooch")) == "1")
+	end
+	
+    local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+        local fs = tonumber(Player:GetFishingState())
+        if (fs == 0 or fs == 4) then
+			local mooch = ActionList:Get(297,1)
+			if (useMooch and mooch and moody.isready) then
+				local moochables = marker:GetFieldValue(GetString("Moochable Fish")) or ""
+				
+				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+				if (not lastCatch or moochables == "") then
+					return true
+				elseif (lastCatch and moochables ~= "") then
+					for moochable in StringSplit(moochables,",") do
+						if (moochable == lastCatch) then
+							return true
+						end
+					end
+				end
+			end
+        end
+    end
+    return false
+end
+function e_mooch:execute()
+    local mooch = ActionList:Get(297,1)
+    if (mooch and mooch.isready) then
+        if (mooch:Cast()) then
+			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+		end
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+    end
+end
+
+c_release = inheritsFrom( ml_cause )
+e_release = inheritsFrom( ml_effect )
+function c_release:evaluate()
+	if (Now() < ml_task_hub:CurrentTask().networkLatency) then
+		return false
+	end
+	
+    local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+        local fs = tonumber(Player:GetFishingState())
+        if (fs == 0 or fs == 4) then
+			local release = ActionList:Get(300,1)
+			if (release and release.isready) then
+				local marker = ml_global_information.currentMarker
+				if (ValidTable(marker)) then
+					local whitelist = marker:GetFieldValue("Whitelist Fish")
+					local whitelistHQ = marker:GetFieldValue("Whitelist Fish (HQ)")
+					local blacklist = marker:GetFieldValue("Blacklist Fish")
+					local blacklistHQ = marker:GetFieldValue("Blacklist Fish (HQ)")
+					
+					local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+					if (lastCatch) then
+						if (hq) then
+							if (whitelistHQ and whitelistHQ ~= "") then
+								for mustkeep in StringSplit(whitelistHQ,",") do
+									if (mustkeep == lastCatch) then
+										return false
+									end
+								end
+							elseif (blacklistHQ and blacklistHQ ~= "") then
+								for throwaway in StringSplit(blacklistHQ,",") do
+									if (throwaway == lastCatch) then
+										return true
+									end
+								end
+							end
+						else
+							if (whitelist and whitelist ~= "") then
+								for mustkeep in StringSplit(whitelist,",") do
+									if (mustkeep == lastCatch) then
+										return false
+									end
+								end
+							elseif (blacklist and blacklist ~= "") then
+								for throwaway in StringSplit(blacklist,",") do
+									if (throwaway == lastCatch) then
+										return true
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+        end
+    end
+    return false
+end
+function e_release:execute()
+    local release = ActionList:Get(300,1)
+    if (release and release.isready) then
+        if (release:Cast()) then
+			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+		end
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+    end
+end
+
 c_cast = inheritsFrom( ml_cause )
 e_cast = inheritsFrom( ml_effect )
 function c_cast:evaluate()
@@ -78,31 +196,77 @@ function c_cast:evaluate()
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-            return true
+			local cast = ActionList:Get(289,1)
+			if (cast and cast.isready) then
+				return true
+			end
         end
     end
     return false
 end
 function e_cast:execute()
-	local marker = ml_task_hub:CurrentTask().currentMarker
-	local useMooch = false
-	if (ValidTable(marker)) then
-		useMooch = (marker:GetFieldValue(GetString("useMooch")) == "1")
-	elseif (gFishNoMarker == "1") then
-		useMooch = (gUseMooch == "1")
+	local cast = ActionList:Get(289,1)
+	if (cast and cast.isready) then	
+		if (cast:Cast()) then
+			ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
+			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+		end
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+	end
+end
+
+function GetSnapshot()
+	local currentSnapshot = {}
+	
+	local inv = Inventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
+    if (ValidTable(inv)) then
+        for k,item in pairs(inv) do
+            if currentSnapshot[item.name] == nil then
+                -- New item
+                currentSnapshot[item.name] = {}
+                currentSnapshot[item.name].HQcount = 0
+                currentSnapshot[item.name].count = 0
+            end
+            -- Increment item counts
+            if (item.IsHQ == 1) then
+                -- HQ
+                currentSnapshot[item.name].HQcount = currentSnapshot[item.name].HQcount + item.count
+            else
+                -- NQ
+                currentSnapshot[item.name].count = currentSnapshot[item.name].count + item.count
+            end
+        end
 	end
 	
-    local mooch = ActionList:Get(297,1)
-    if (mooch) and Player.level > 24 and (mooch.isready) and useMooch then
-        mooch:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
-    else
-        local cast = ActionList:Get(289,1)
-        if (cast and cast.isready) then	
-            cast:Cast()
-			ml_task_hub:CurrentTask().castTimer = Now() + 1500
-        end
-    end
+	return currentSnapshot
+end
+
+function GetNewInventory(snapshot)
+	local currentInventory = GetSnapshot()
+		
+	for name,item in pairs(currentInventory) do
+		if (snapshot[name] == nil) then
+			-- Item is new in inventory
+			if item.HQcount > 0 then
+				--d(name.." (HQ) is NEW")
+				return name, true
+			else
+				--d(name.." is NEW")
+				return name, false
+			end
+		else
+			-- Item already existed in inventory
+			if item.HQcount > snapshot[name].HQcount then
+				--d(name.." (HQ) has INCREMENTED")
+				return name, true
+			elseif item.count > snapshot[name].count then
+				--d(name.." has INCREMENTED")
+				return name, false
+			end
+		end
+	end
+	
+	return nil, nil
 end
 
 -- Has to get called, else the dude issnot moving thanks to "runforward" usage ;)
@@ -135,10 +299,78 @@ function c_bite:evaluate()
     return false
 end
 function e_bite:execute()
+	if (HasBuffs(Player,"764")) then
+		local precisionHook = ActionList:Get(4179,1)
+		local powerfulHook = ActionList:Get(4103,1)
+		
+		if (precisionHook and precisionHook.isready) then
+			precisionHook:Cast()
+			return
+		elseif (powerfulHook and powerfulHook.isready) then
+			powerfulHook:Cast()
+			return
+		end
+	end
+		
     local bite = ActionList:Get(296,1)
     if (bite and bite.isready) then
         bite:Cast()
     end
+end
+
+c_patience = inheritsFrom( ml_cause )
+e_patience = inheritsFrom( ml_effect )
+c_patience.action = 0
+function c_patience:evaluate()
+	--Reset tempvar.
+	c_patience.action = 0
+	
+	local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+		local marker = ml_global_information.currentMarker
+		if (ValidTable(marker)) then
+			local usePatience = (marker:GetFieldValue(GetString("usePatience")) == "1")
+			local usePatience2 = (marker:GetFieldValue(GetString("usePatience2")) == "1")
+			if (usePatience) then
+				local patience = ActionList:Get(4102,1)
+				if (patience and patience.isready) then	
+					c_patience.action = 4102
+					return true
+				end
+			elseif (usePatience2) then
+				local patience2 = ActionList:Get(4106,1)
+				if (patience2 and patience2.isready) then	
+					c_patience.action = 4106
+					return true
+				end
+			end
+		end
+	end
+	
+    return false
+end
+function e_patience:execute()
+    local patience = ActionList:Get(c_patience.action,1)
+    if (patience and patience.isready) then
+        patience:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1000
+    end
+end
+
+c_resetidle = inheritsFrom( ml_cause )
+e_resetidle = inheritsFrom( ml_effect )
+function c_resetidle:evaluate()
+	if (ffxiv_task_fish.attemptedCasts > 0) then
+		local fs = tonumber(Player:GetFishingState())
+		if ( fs == 9 ) then
+			return true
+		end
+	end
+    return false
+end
+function e_resetidle:execute()
+	d("Resetting idle status, waiting detected.")
+	ffxiv_task_fish.attemptedCasts = 0
 end
 
 c_setbait = inheritsFrom( ml_cause )
@@ -207,6 +439,13 @@ function c_nextfishingmarker:evaluate()
 				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
 			end	
 		end
+		
+		-- check if we've attempted a lot of casts with no bites
+		if (marker == nil) then
+            if (ffxiv_task_fish.attemptedCasts > 3) then
+				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
+			end
+        end
         
         -- next check to see if our level is out of range
         if (marker == nil) then
@@ -319,29 +558,37 @@ function ffxiv_task_fish:Init()
     self:add( ke_stealth, self.overwatch_elements)
   
     --init Process() cnes
-    --local ke_finishcast = ml_element:create( "FinishingCast", c_finishcast, e_finishcast, 30 )
-    --self:add(ke_finishcast, self.process_elements)
-    
-    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 25 )
-    self:add( ke_returnToMarker, self.process_elements)
-    
-    --nextmarker defined in ffxiv_task_gather.lua
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 20 )
+    local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 110 )
+    self:add(ke_resetIdle, self.process_elements)
+	
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 100 )
     self:add( ke_nextMarker, self.process_elements)
     
-    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 10 )
+    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 90 )
+    self:add( ke_returnToMarker, self.process_elements)
+    
+    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 80 )
     self:add(ke_setbait, self.process_elements)
 	
-	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 8)
+	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 70)
 	self:add(ke_syncadjust, self.process_elements)
 	
-	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 7 )
+	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 60 )
     self:add(ke_precast, self.process_elements)
+	
+	local ke_patience = ml_element:create( "Patience", c_patience, e_patience, 55 )
+    self:add(ke_patience, self.process_elements)
+	
+	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 50 )
+    self:add(ke_mooch, self.process_elements)
+	
+	local ke_release = ml_element:create( "Release", c_release, e_release, 40 )
+    self:add(ke_release, self.process_elements)	
     
-    local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 5 )
+    local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 30 )
     self:add(ke_cast, self.process_elements)
     
-    local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 5 )
+    local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 20 )
     self:add(ke_bite, self.process_elements)
    
     
@@ -380,7 +627,16 @@ function ffxiv_task_fish.SetupMarkers()
 	fishingMarker:SetType(GetString("fishingMarker"))
 	fishingMarker:AddField("string", GetString("baitName"), "")
 	fishingMarker:AddField("checkbox", GetString("useMooch"), "1")
-	fishingMarker:AddField("checkbox", GetString("useStealth"), "0")
+	fishingMarker:AddField("checkbox", GetString("usePatience"), "0")
+	fishingMarker:AddField("checkbox", GetString("usePatience2"), "0")
+	fishingMarker:AddField("string", GetString("moochableFish"), "")
+	fishingMarker:AddField("string", GetString("whitelistFish"), "")
+	fishingMarker:AddField("string", GetString("whitelistFishHQ"), "")
+	fishingMarker:AddField("string", GetString("blacklistFish"), "")
+	fishingMarker:AddField("string", GetString("blacklistFishHQ"), "")
+	fishingMarker:AddField("checkbox", GetString("useStealth"), "1")
+	fishingMarker:AddField("checkbox", GetString("dangerousArea"), "0")
+	
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)
     fishingMarker:SetMaxLevel(60)

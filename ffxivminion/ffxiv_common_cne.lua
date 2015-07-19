@@ -373,55 +373,33 @@ end
 
 c_avoid = inheritsFrom( ml_cause )
 e_avoid = inheritsFrom( ml_effect )
-c_avoid.target = nil
-e_avoid.lastavoid = {}
-c_avoid.lastavoidData = {}
-c_avoid.thisSpell = 0
+e_avoid.lastAvoid = {}
+c_avoid.newAvoid = {}
 function c_avoid:evaluate()	
 	if (gAvoidAOE == "0" or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent) then
 		return false
 	end
 	
 	--Reset tempvar.
-	c_avoid.lastavoidData = {}
-	c_avoid.thisSpell = 0
-
-	local ppos = shallowcopy(Player.pos)
-	local plevel = Player.level
-	local aoeData = ffxiv_aoe_data.dodge
+	c_avoid.newAvoid = {}
 	
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("targetingme,incombat,onmesh,maxdistance=30")
+	local el = EntityList("aggro,incombat,onmesh,maxdistance=30")
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
-			local casting = e.castinginfo.castingid or 0
-			local channeling = e.castinginfo.channelingid or 0
-			local channeltarget = e.castinginfo.channeltargetid
-			local secspassed = e.castinginfo.channeltime or 0
-			local casttime = e.castinginfo.casttime or 0
-			local casttargets = e.castinginfo.targets
-			
-			if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
-				local avoidSpell = (aoeData[channeling] and channeling) or casting
-				local epos = shallowcopy(e.pos)
-				local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
-				
-				if (casttime >= 1.3 and (secspassed >= casttime * .10) and
-					not (distance > 22 and channeltarget == e.id) and
-					not (plevel > (e.level + 8)))
-				then
-					local lastavoid = c_avoid.lastavoid
-					if (lastavoid) then
-						if (avoidSpell == lastavoid.spell and e.id == lastavoid.attacker and Now() < lastavoid.timer) then
-							return false							
-						end
+			local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+			if (shouldAvoid and spellData) then
+				local lastAvoid = c_avoid.lastAvoid
+				if (lastAvoid) then
+					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
+						d("Don't dodge, we already dodged this recently.")
+						return false							
 					end
-					
-					c_avoid.target = e
-					c_avoid.thisSpell = avoidSpell
-					c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
-					return true
 				end
+				
+				--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
+				c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+				return true
 			end
 		end
 	end
@@ -429,210 +407,47 @@ function c_avoid:evaluate()
 	local el = EntityList("alive,incombat,attackable,onmesh,maxdistance=25")
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
-			if (e.targetid ~= 0) then
-				local target = EntityList:Get(e.targetid)
-				local tpos = shallowcopy(e.pos)
-				if (Distance3D(ppos.x,ppos.y,ppos.z,tpos.x,tpos.y,tpos.z) < 10) then
-					local casting = e.castinginfo.castingid or 0
-					local channeling = e.castinginfo.channelingid or 0
-					local channeltarget = e.castinginfo.channeltargetid
-					local secspassed = e.castinginfo.channeltime or 0
-					local casttime = e.castinginfo.casttime or 0
-					local casttargets = e.castinginfo.targets
-					
-					if (ValidTable(e.castinginfo) and (aoeData[casting] or aoeData[channeling])) then
-						local avoidSpell = (aoeData[channeling] and channeling) or casting
-						local epos = shallowcopy(e.pos)
-						local distance = Distance3D(ppos.x,ppos.y,ppos.z,epos.x,epos.y,epos.z)
-	
-						if (casttime >= 1.3 and (secspassed >= casttime * .10) and
-							not (distance > 22 and channeltarget == e.id) and
-							not (plevel > (e.level + 8)))
-						then
-							local lastavoid = c_avoid.lastavoid
-							if (lastavoid) then
-								if (avoidSpell == lastavoid.spell and e.id == lastavoid.attacker and Now() < lastavoid.timer) then
-									return false							
-								end
-							end
-							
-							c_avoid.target = e
-							c_avoid.thisSpell = avoidSpell
-							c_avoid.lastavoidData = { timer = Now() + (casttime * 1000), spell = avoidSpell, attacker = e.id }
-							return true
-						end
+			local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
+			if (shouldAvoid and spellData) then
+				local lastAvoid = c_avoid.lastAvoid
+				if (lastAvoid) then
+					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
+						d("Don't dodge, we already dodged this recently.")
+						return false							
 					end
 				end
+				
+				--c_avoid.newAvoid = { timer = Now() + (castTime * 1000), spell = avoidableSpell, attacker = e, persistent = isPersistent }
+				c_avoid.newAvoid = { timer = Now() + (spellData.castTime * 1000), data = spellData, attacker = e }
+				return true
 			end
 		end
 	end
 	
 	return false
 end
-
-function e_avoid:execute() 	
-	local target = c_avoid.target
-	local ppos = Player.pos
-	local epos = target.pos
-	local escapePoint
-
-	local h = ConvertHeading(ppos.h)
-	local eh = ConvertHeading(epos.h)
+function e_avoid:execute() 			
+	local newPos,seconds,obstacle = AceLib.API.Avoidance.GetAvoidancePos(c_avoid.newAvoid)
 	
-	local mobRight = ConvertHeading((eh - (math.pi * .65)))%(2*math.pi)
-	local mobLeft = ConvertHeading((eh + (math.pi * .65)))%(2*math.pi)
-	local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
-	local mobFrontLeft = ConvertHeading((eh + (math.pi * .30)))%(2*math.pi)
-	local mobFrontRight = ConvertHeading((eh - (math.pi * .30)))%(2*math.pi)
-	
-	local playerRight = ConvertHeading((h - (math.pi/2)))%(2*math.pi)
-	local playerLeft = ConvertHeading((h + (math.pi/2)))%(2*math.pi)
-	local playerRearLeft = ConvertHeading((h + (math.pi * .65)))%(2*math.pi)
-	local playerRearRight = ConvertHeading((h - (math.pi * .65)))%(2*math.pi)
-	local playerRear = ConvertHeading((h - (math.pi)))%(2*math.pi)
-	
-	local dodgeDist = 0
-	if (target.hitradius < 2.5) then
-		dodgeDist = 9
-	elseif (target.hitradius >= 2.5 and target.hitradius < 4.5) then
-		dodgeDist = 11
-	elseif (target.hitradius >= 4.5 and target.hitradius < 7) then
-		dodgeDist = 14
-	else
-		dodgeDist = 18
-	end
-	
-	local sideDist = 8
-	
-	local rangeDist = nil
-	if (ml_global_information.AttackRange > 5) then
-		rangeDist = Distance3DT(ppos,epos)
-	else
-		rangeDist = target.hitradius + 3
-	end
-	local obst = nil
-	
-	if (ffxiv_aoe_data.oversized[c_avoid.thisSpell]) then
-		dodgeDist = dodgeDist + 5
-		sideDist = sideDist + 5
-		rangeDist = rangeDist + 5
-	end
-	
-	local options1 = {
-		GetPosFromDistanceHeading(epos, rangeDist, mobRear),
-		GetPosFromDistanceHeading(epos, rangeDist, mobRight),
-		GetPosFromDistanceHeading(epos, rangeDist, mobLeft),
-	}
-	
-	local options2 = {
-		GetPosFromDistanceHeading(ppos, sideDist, h),
-		GetPosFromDistanceHeading(ppos, sideDist, playerRight),
-		GetPosFromDistanceHeading(ppos, sideDist, playerLeft),
-	}
-	
-	local options3 = {
-		GetPosFromDistanceHeading(epos, dodgeDist, mobRear),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobRight),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobLeft),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontLeft),
-		GetPosFromDistanceHeading(epos, dodgeDist, mobFrontRight),
-		GetPosFromDistanceHeading(epos, dodgeDist + 3, playerRear),
-	}
-	
-	local isRanged = (ml_global_information.AttackRange > 5)
-	
-	local maxTime = 0
-	if (target.castinginfo.channeltargetid == target.id) then
-		local optionTable = nil
-		if (ffxiv_aoe_data.circle[target.castinginfo.channelingid] or ffxiv_aoe_data.circle[target.castinginfo.castingid]) then
-			optionTable = options3
-			if (ffxiv_aoe_data.persistent[c_avoid.thisSpell]) then
-				obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[c_avoid.thisSpell] * 1000), x = epos.x, y = epos.y, z = epos.z, r = (sideDist - 1.5) }
-			end
-			if (isRanged) then
-				maxTime = 0
-			else
-				maxTime = tonumber(target.castinginfo.casttime)
-			end
-		else
-			optionTable = options1
-			maxTime = 0
-		end
-		
-		-- If the casting target is the entity's own ID, it is a self-centered aoe, so either run away or move very far left and right.
-		local viable = {}
-		local i = 0
-		for _, pos in pairs(optionTable) do
-			i = i + 1
-			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
-			if (p and dist <= 5) then
-				viable[i] = p
-			end
-		end
-		
-		local closest = nil
-		local closestDistance = 99
-		for _, pos in pairs(viable) do
-			local distance = Distance3D(pos.x,pos.y,pos.z,ppos.x,ppos.y,ppos.z)
-			if (distance < closestDistance) then
-				closestDistance = distance
-				closest = pos
-			end
-		end
-		
-		escapePoint = closest
-	else
-		center = ppos
-		
-		if (ffxiv_aoe_data.persistent[c_avoid.thisSpell]) then
-			obst = { isnew = true, timer = Now() + (ffxiv_aoe_data.persistent[c_avoid.thisSpell] * 1000), x = ppos.x, y = ppos.y, z = ppos.z, r = (dodgeDist - 1.5) }
-		end
-			
-		-- If the casting target is not the entity's own ID, it's on us, so move left or right to dodge it.
-		if (isRanged) then
-			maxTime = 0
-		else
-			maxTime = tonumber(target.castinginfo.casttime)
-		end
-		local viable = {}
-		local i = 0
-		for _, pos in pairs(options2) do
-			i = i + 1
-			local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
-			if (p and dist <= 5) then
-				viable[i] = p
-			end
-		end
-		
-		local closest = nil
-		local closestDistance = 99
-		for _, pos in pairs(viable) do
-			local distance = Distance3D(pos.x,pos.y,pos.z,ppos.x,ppos.y,ppos.z)
-			if (distance < closestDistance) then
-				closestDistance = distance
-				closest = pos
-			end
-		end
-		
-		escapePoint = closest
-	end
-	
-	if (ValidTable(escapePoint)) then
-		local moveDist = Distance3D(ppos.x,ppos.y,ppos.z,escapePoint.x,escapePoint.y,escapePoint.z)
+	if (ValidTable(newPos)) then
+		local ppos = Player.pos
+		local moveDist = Distance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
 		if (moveDist > 1.5) then
-			if (obst) then
-				table.insert(ml_global_information.navObstacles,obst)
+			if (ValidTable(obstacle)) then
+				table.insert(ml_global_information.navObstacles,obstacle)
 				d("Adding nav obstacle.")
 			end
-			c_avoid.lastavoid = c_avoid.lastavoidData
+			c_avoid.lastAvoid = c_avoid.newAvoid
 			local newTask = ffxiv_task_avoid.Create()
-			newTask.pos = escapePoint
-			newTask.targetid = target.id
+			newTask.pos = newPos
+			newTask.targetid = c_avoid.newAvoid.attacker.id
 			newTask.interruptCasting = true
-			newTask.maxTime = maxTime
+			newTask.maxTime = seconds
 			ml_task_hub:ThisTask().preserveSubtasks = true
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
+	else
+		d("Can't dodge, didn't find a valid position.")
 	end
 end
 
@@ -909,7 +724,7 @@ function c_teleporttomap:evaluate()
                                                     Player.localmapid,
                                                     destMapID	)
 
-        if (ValidTable(ml_nav_manager.currPath)) then
+        if (TableSize(ml_nav_manager.currPath)>2) then
             local aethid = nil
 			local mapid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do
@@ -1520,7 +1335,7 @@ function c_mount:evaluate()
 	
 	noMountMaps = {
 		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,
-		[337] = true,[336] = true,[175] = true,[352] = true,
+		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
 	}
 	
     if (noMountMaps[Player.localmapid]) then
@@ -1597,6 +1412,10 @@ function c_companion:evaluate()
 	if (Player.castinginfo.channelingid == 4868) then
 		e_companion.blockOnly = true
 		return true
+	end
+	
+	if (ffxiv_task_quest.noCompanion == true) then
+		return false
 	end
 	
     if (gBotMode == GetString("pvpMode") or 
@@ -1836,9 +1655,13 @@ function c_rest:evaluate()
 	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
 	then
-	
 		if (Player.incombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
+			return false
+		end
+		
+		local aggrolist = EntityList("alive,aggro")
+		if (ValidTable(aggrolist)) then
 			return false
 		end
 		
@@ -1876,6 +1699,11 @@ c_flee = inheritsFrom( ml_cause )
 e_flee = inheritsFrom( ml_effect )
 e_flee.fleePos = {}
 function c_flee:evaluate()
+	local params = ml_task_hub:ThisTask().params
+	if (params and params.noflee and params.noflee == true) then
+		return false
+	end
+	
 	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			local fpos = ml_marker_mgr.markerList["evacPoint"]
@@ -2035,9 +1863,19 @@ function c_returntomarker:evaluate()
 			end
 		end		
 		
-        if  (gBotMode == GetString("gatherMode") and distance > 200) or
-			(gBotMode == GetString("fishMode") and distance > 3)
-        then
+		if (gBotMode == GetString("gatherMode")) then
+			local gatherid = ml_task_hub:CurrentTask().gatherid
+			if (gatherid == 0) then
+				return true
+			end
+			if (gMarkerMgrMode ~= GetString("markerTeam")) then
+				if (distance > 150) then
+					return true
+				end
+			end
+		end
+		
+        if (gBotMode == GetString("fishMode") and distance > 3) then
             return true
         end
     end
@@ -2080,7 +1918,13 @@ c_stealth = inheritsFrom( ml_cause )
 e_stealth = inheritsFrom( ml_effect )
 e_stealth.timer = 0
 function c_stealth:evaluate()
-	if (Now() < e_stealth.timer) then
+	local marker = ml_global_information.currentMarker
+	if (not ValidTable(marker)) then
+		return false
+	end
+	
+	local useStealth = (marker:GetFieldValue(GetString("useStealth")) == "1")
+	if (not useStealth or Now() < e_stealth.timer) then
 		return false
 	end
 	
@@ -2107,7 +1951,8 @@ function c_stealth:evaluate()
     end
 	
 	if (action) then
-		if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+		local dangerousArea = (marker:GetFieldValue(GetString("dangerousArea")) == "1")
+		if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 			local dest = ml_task_hub:CurrentTask().pos
 			local ppos = shallowcopy(Player.pos)
 			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
@@ -2124,7 +1969,7 @@ function c_stealth:evaluate()
 			if ( gatherid and gatherid ~= 0 ) then
 				local gatherable = EntityList:Get(gatherid)
 				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(tonumber(gAdvStealthDetect)*2)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 					if (TableSize(potentialAdds) > 0) then
 						if (not HasBuff(Player.id, 47)) then
 							return true
@@ -2136,7 +1981,7 @@ function c_stealth:evaluate()
 				
 				if (gatherable) then
 					if (gTeleport == "1" and c_teleporttopos:evaluate()) then
-						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=25,minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(gAdvStealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 						if (TableSize(potentialAdds) > 0) then
 							if (not HasBuff(Player.id, 47)) then
 								return true
@@ -2166,8 +2011,8 @@ function c_stealth:evaluate()
 			end
 		end
 		
-		local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=25")
-		local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=30")
+		local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
+		local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
 		
 		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
 		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
@@ -2233,7 +2078,7 @@ function c_completequest:evaluate()
 	return Quest:IsQuestRewardDialogOpen()
 end
 function e_completequest:execute()
-	Quest:CompleteQuestReward(1)
+	Quest:CompleteQuestReward(0)
 end
 
 c_teleporttopos = inheritsFrom( ml_cause )
@@ -2315,293 +2160,6 @@ function c_autoequip:evaluate()
 		end
 	end
 	
-	--[[
-	Slot numbers in ffxiv_item_data table.
-	
-	1 - 1-handed weapon
-	2 - offhand
-	3 - helmet
-	4 - chest
-	5 - glove
-	6 - belt
-	7 - leg
-	8 - boot
-	9 - earring
-	10 - necklace
-	11 - wrist
-	12 - ring
-	13 - 2-handed weapon
-	15 - covers chest and head
-	16,19,20,21 - seasonal - do not equip
-	17 - soulstone - do not equip
-	18 - legs that also cover feet
-	--]]	
-	
-	--[[
-	Sub-stats
-	1 = Strength
-	2 = Dexterity
-	3 = Vitality
-	4 = Int
-	5 = Mind
-	6 = Piety
-	10 = GP
-	11 = CP
-	
-	19 = Parry
-	22 = Accuracy
-	27 = Critical Hit
-	44 = Determination
-	45 = Skill Speed
-	46 = Spell Speed
-	48 = Morale
-	
-	70 = Craftsmanship
-	71 = Control
-	72 = Gathering
-	73 = Perception
-	--]]
-	
-	local weaponTypes = {
-		[FFXIV.JOBS.GLADIATOR] = {ui = 2, slot = 1},
-		[FFXIV.JOBS.PALADIN] = {ui = 2, slot = 1},
-		[FFXIV.JOBS.MARAUDER] = {ui = 3, slot = 13},
-		[FFXIV.JOBS.WARRIOR] = {ui = 3, slot = 13},
-		[FFXIV.JOBS.PUGILIST] = {ui = 1, slot = 13},
-		[FFXIV.JOBS.MONK] = {ui = 1, slot = 13},
-		[FFXIV.JOBS.LANCER] = {ui = 5, slot = 13},
-		[FFXIV.JOBS.DRAGOON] = {ui = 5, slot = 13},
-		[FFXIV.JOBS.ARCHER] = {ui = 4, slot = 13},
-		[FFXIV.JOBS.BARD] = {ui = 4, slot = 13},
-		[FFXIV.JOBS.CONJURER] = {
-			{ui = 8, slot = 1},
-			{ui = 9, slot = 13},
-		},
-		[FFXIV.JOBS.WHITEMAGE] = {
-			{ui = 8, slot = 1},
-			{ui = 9, slot = 13},
-		},
-		[FFXIV.JOBS.THAUMATURGE] = {
-			{ui = 6, slot = 1},
-			{ui = 7, slot = 13},
-		},
-		[FFXIV.JOBS.BLACKMAGE]= {
-			{ui = 6, slot = 1},
-			{ui = 7, slot = 13},
-		},
-		[FFXIV.JOBS.ARCANIST] = {ui = 10, slot = 13},
-		[FFXIV.JOBS.SUMMONER] = {ui = 10, slot = 13},
-		[FFXIV.JOBS.SCHOLAR] = {ui = 10, slot = 13},
-		[FFXIV.JOBS.ROGUE] = {ui = 84, slot = 13},
-		[FFXIV.JOBS.NINJA] = {ui = 84, slot = 13},
-		[FFXIV.JOBS.MINER] = {ui = 28, slot = 1},
-		[FFXIV.JOBS.BOTANIST] = {ui = 30, slot = 1},
-		[FFXIV.JOBS.DARKKNIGHT] = {ui = 87, slot = 13},
-		[FFXIV.JOBS.MACHINIST] = {ui = 88, slot = 13},
-		[FFXIV.JOBS.ASTROLOGIAN] = {ui = 89, slot = 13},
-	}
-	
-	local soulStones = {
-		[FFXIV.JOBS.GLADIATOR] = 4542,
-		[FFXIV.JOBS.MARAUDER] = 4544,
-		[FFXIV.JOBS.PUGILIST] = 4543,
-		[FFXIV.JOBS.LANCER] = 4545,
-		[FFXIV.JOBS.ARCHER] = 4546,
-		[FFXIV.JOBS.CONJURER] = 4547,
-		[FFXIV.JOBS.THAUMATURGE] = 4548,
-		[FFXIV.JOBS.ARCANIST] = {
-			[1] = 4549, [2] = 4550,
-		},
-		[FFXIV.JOBS.ROGUE] = 7886,
-	}
-	
-	local defaultArmorUI = {
-		[1] = {
-			[-1] = 11,
-			[16] = 29,
-			[17] = 31,
-		},
-		[2] = 34,
-		[3] = 35,
-		[4] = 37,
-		[5] = 39,
-		[6] = 36,
-		[7] = 38,
-		[8] = 41,
-		[9] = 40,
-		[10] = 42,
-		[11] = 43,
-		[12] = 43,
-		[13] = 62,
-	}
-	local defaultArmorSlot = {
-		[1] = 2,
-		[2] = 3,
-		[3] = 4,
-		[4] = 5,
-		[5] = 6,
-		[6] = 7,
-		[7] = 8,
-		[8] = 9,
-		[9] = 10,
-		[10] = 11,
-		[11] = 12,
-		[12] = 12,
-		[13] = 17,
-	}
-	
-	local oneHanders = {
-		[2] = true,
-		[6] = true,
-		[8] = true,
-		[28] = true,
-		[30] = true,
-	}
-	
-	local statWeights = {
-		["Tanks"] = {
-			weights = {
-				pDamage = 8.732,
-				pDefense = .5,
-				mDefense = .5,
-				[1] = 1,
-				[22] = 0.204,
-				[27] = 0.204,
-				[44] = 0.325,
-				[45] = 0.178,
-				[3] = 1,
-				[19] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.GLADIATOR] = true,
-				[FFXIV.JOBS.PALADIN] = true,
-				[FFXIV.JOBS.MARAUDER] = true,
-				[FFXIV.JOBS.WARRIOR] = true,
-				[FFXIV.JOBS.DARKKNIGHT] = true,
-			},
-		},
-		["Healers"] = {
-			weights = {
-				mDamage = 8.732,
-				[5] = 1,
-				[22] = 0,
-				[27] = 0.204,
-				[44] = 0.325,
-				[46] = 0.178,
-				[3] = 0,
-				[6] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.CONJURER] = true,
-				[FFXIV.JOBS.WHITEMAGE] = true,
-				[FFXIV.JOBS.SCHOLAR] = true,
-				[FFXIV.JOBS.ASTROLOGIAN] = true,
-			},
-		},
-		["INT DPS"] = {
-			weights = {
-				mDamage = 8.732,
-				[4] = 1,
-				[22] = 0,
-				[27] = 0.234,
-				[44] = 0.246,
-				[46] = 0.281,
-				[3] = 0,
-				[6] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.THAUMATURGE] = true,
-				[FFXIV.JOBS.BLACKMAGE] = true,
-				[FFXIV.JOBS.ARCANIST] = true,
-				[FFXIV.JOBS.SUMMONER] = true,
-			},
-		},
-		["DEX DPS"] = {
-			weights = {
-				pDamage = 9.429,
-				[2] = 1,
-				[22] = 0,
-				[27] = 0.339,
-				[44] = 0.320,
-				[45] = 0.161,
-				[3] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.ARCHER] = true,
-				[FFXIV.JOBS.BARD] = true,
-				[FFXIV.JOBS.MACHINIST] = true,
-				[FFXIV.JOBS.ROGUE] = true,
-				[FFXIV.JOBS.NINJA] = true,
-			},
-		},
-		["STR DPS"] = {
-			weights = {
-				pDamage = 9.338,
-				[1] = 1,
-				[22] = 0,
-				[27] = 0.214,
-				[44] = 0.336,
-				[45] = 0.206,
-				[3] = 0,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.PUGILIST] = true,
-				[FFXIV.JOBS.MONK] = true,
-				[FFXIV.JOBS.LANCER] = true,
-				[FFXIV.JOBS.DRAGOON] = true,
-			},
-		},
-		["Gatherers"] = {
-			weights = {
-				pDamage = 9.338,
-				[10] = 1,
-				[72] = 1,
-				[73] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.MINER] = true,
-				[FFXIV.JOBS.BOTANIST] = true,
-				[FFXIV.JOBS.FISHER] = true,
-			},
-		},
-		["Crafters"] = {
-			weights = {
-				pDamage = 9.338,
-				[11] = 1,
-				[70] = 1,
-				[71] = 1,
-			},
-			appliesTo = {
-				[FFXIV.JOBS.CARPENTER] 		= true,
-				[FFXIV.JOBS.BLACKSMITH] 	= true,
-				[FFXIV.JOBS.ARMORER] 		= true,
-				[FFXIV.JOBS.GOLDSMITH] 		= true,
-				[FFXIV.JOBS.LEATHERWORKER] 	= true,
-				[FFXIV.JOBS.WEAVER] 		= true,
-				[FFXIV.JOBS.ALCHEMIST] 		= true,
-				[FFXIV.JOBS.CULINARIAN] 	= true,
-			},
-		},
-	}
-	
-	local appliedStats = nil
-	for category,data in pairs(statWeights) do
-		if (data.appliesTo) then
-			for jobid,_ in pairs(data.appliesTo) do
-				if (jobid == Player.job) then
-					appliedStats = data.weights
-				end
-			end
-		end
-		if (appliedStats) then
-			break
-		end
-	end
-	
-	if (not ValidTable(appliedStats)) then
-		return false
-	end
-	
 	local applicableSlots = {
 		[0] = true,
 		[1] = true,
@@ -2616,7 +2174,6 @@ function c_autoequip:evaluate()
 		[10] = true,
 		[11] = true,
 		[12] = true,
-		[13] = true,
 	}
 	
 	for slot,data in pairs(applicableSlots) do
@@ -2624,179 +2181,68 @@ function c_autoequip:evaluate()
 			applicableSlots[slot] = nil
 		else
 			applicableSlots[slot] = {}
-			applicableSlots[slot].itemid = 0
-			applicableSlots[slot].equippedDetails = {}
-			applicableSlots[slot].equipped = 0
-			applicableSlots[slot].upgrade = 0
-			applicableSlots[slot].bestUpgrade = 0
+			applicableSlots[slot].equippedItem = 0
+			applicableSlots[slot].equippedValue = 0
+			applicableSlots[slot].unequippedItem = 0
+			applicableSlots[slot].unequippedValue = 0
 		end
 	end
 	
-	-- First, assign a value for all equipped items.
+	-- Fill with comparison data.
 	for slot,data in pairs(applicableSlots) do
-		local equippedItemDetails = nil
-		
 		local equipped = Inventory("type=1000")
 		if (ValidTable(equipped)) then
-			for _,i in pairs(equipped) do
+			for _,item in pairs(equipped) do
 				local found = false
-				if (i.slot == slot) then
-					if (i.slot == 13) then
-						applicableSlots[slot] = nil
-						break
-					end
-					
+				if (item.slot == slot) then
 					found = true
-					data.equippedDetails = GetItemDetails(i)
-					data.equipped = GetItemStatWeight(i)
+					--data.equippedDetails = GetItemDetails(i)
+					--data.equipped = GetItemStatWeight(i,slot)
+					
+					data.equippedValue = AceLib.API.Items.GetItemStatWeight(item,slot)
+					data.equippedItem = item
+					
+					--d("Slot ["..tostring(slot).."] Equipped item has a value of :"..tostring(data.equippedValue))
 				end
 				if (found) then
 					break
 				end
 			end
 		end
+		
+		if (slot == 0) then
+			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
+			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+		elseif (slot == 1) then
+			if (AceLib.API.Items.IsShieldEligible()) then
+				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
+				--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			end
+		else
+			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
+			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+		end
 	end
 	
 	for slot,data in pairs(applicableSlots) do
-		local possibleUpgrades = {}
-		if (ValidTable(data.equippedDetails)) then
-			if (slot == 0) then
-				local types = weaponTypes[Player.job]
-				if (type(types[1]) == "table") then
-					for _,weapondata in ipairs(types) do
-						local upgrades = FindUpgradesBySlot(weapondata.slot,weapondata.ui)
-						if (ValidTable(upgrades)) then
-							for id,upgrade in pairs(upgrades) do
-								possibleUpgrades[id] = upgrade
-							end
-						end
-					end
-				else
-					possibleUpgrades = FindUpgradesBySlot(types.slot,types.ui)
-				end
-			elseif (slot == 1) then
-				--Before evaluating shields, check that the main hand is a one-hander.
-				weaponDetails = nil
-				local weaponInv = Inventory("type=1000")
-				for _,i in pairs(weaponInv) do
-					if (i.slot == 0) then
-						weaponDetails = GetItemDetails(i)						
-					end
-					if (weaponDetails) then
-						break
-					end
-				end
-				if (weaponDetails) then				
-					if (oneHanders[weaponDetails.ui]) then
-						possibleUpgrades = FindUpgradesBySlot(data.equippedDetails.slot,data.equippedDetails.ui)
-					end
-				end
-			else
-				possibleUpgrades = FindUpgradesBySlot(data.equippedDetails.slot,data.equippedDetails.ui)
-			end
-		else
-			local defaultSlot = defaultArmorSlot[slot]
-			local defaultUI = defaultArmorUI[slot]
-			if (slot ~= 13) then
-				if (slot == 1) then
-					if (Player.job == 16) then
-						defaultUI = defaultArmorUI[1][Player.job]
-					elseif (Player.job == 17) then
-						defaultUI = defaultArmorUI[1][Player.job]
-					else
-						defaultUI = defaultArmorUI[1][-1]
-					end
-				
-					--Before evaluating shields, check that the main hand is a one-hander.
-					weaponDetails = nil
-					local weaponInv = Inventory("type=1000")
-					for _,i in pairs(weaponInv) do
-						if (i.slot == 0) then
-							weaponDetails = GetItemDetails(i)						
-						end
-						if (weaponDetails) then
-							break
-						end
-					end
-					if (weaponDetails) then				
-						if (oneHanders[weaponDetails.ui]) then
-							possibleUpgrades = FindUpgradesBySlot(defaultSlot,defaultUI)
-						end
-					end
-				else
-					possibleUpgrades = FindUpgradesBySlot(defaultSlot,defaultUI)
-				end
-			else
-				if (soulStones[Player.job] and Player:GetSyncLevel() == 0 and Player.level >= 30) then
-					if (type(soulStones[Player.job]) == "number") then
-						if (ItemCount(soulStones[Player.job]) == 1) then
-							e_autoequip.id = soulStones[Player.job]
-							e_autoequip.slot = 13
-							return true
-						end
-					else
-						for id,stone in ipairs(soulStones[Player.job]) do
-							if (ItemCount(stone) == 1) then
-								e_autoequip.id = stone
-								e_autoequip.slot = 13
-								return true
-							end
-						end
-					end
-				end
-			end			
-		end
-		
-		if (ValidTable(possibleUpgrades)) then
-			local highestValue = 0
-			local highest = nil
-			
-			for id,item in pairs(possibleUpgrades) do
-				if (slot == 7) then
-					--d("Possible upgrades:"..tostring(item.name))
-				end
-				local statTotals = GetItemStatWeight(item)
-				--d("Stat totals:"..tostring(statTotals))
-				if (not highest or (highest and statTotals > highestValue)) then
-					highest = item
-					highestValue = statTotals
-				end
-			end
-			
-			if (highest) then
-				data.bestUpgrade = highest.id
-				data.upgrade = highestValue
-			end
-			
-			if (data.bestUpgrade ~= 0 and data.upgrade > data.equipped) then
-				d("Equip should be performed for slot:"..tostring(slot))
-				d("Currently equipped has a stats total of:"..tostring(data.equipped))
-				d("New item ["..tostring(data.bestUpgrade).."] has a stats total of:"..tostring(data.upgrade))
-				e_autoequip.id = data.bestUpgrade
-				e_autoequip.slot = slot
-				return true
-			end
+		if (data.unequippedValue > data.equippedValue) then
+			--d("Equip should be performed for slot:"..tostring(slot))
+			--d("Currently equipped has a stats total of:"..tostring(data.equippedValue))
+			--d("New item ["..tostring(data.unequippedItem).."] has a stats total of:"..tostring(data.unequippedValue))
+			e_autoequip.id = data.unequippedItem
+			e_autoequip.slot = slot
+			return true
 		end
 	end
 	
 	return false
 end
 function e_autoequip:execute()
-	if (e_autoequip.slot ~= 13) then
-		local item = GetUnequippedItem(e_autoequip.id)
-		if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-			item:Move(1000,e_autoequip.slot)
-			if (ml_task_hub:CurrentTask()) then
-				ml_task_hub:CurrentTask():SetDelay(500)
-			end
-		end
-	else
-		local equip = GetUnequippedItem(e_autoequip.id)
-		if (equip and equip.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-			equip:Move(1000,e_autoequip.slot)
-			if (ml_task_hub:CurrentTask()) then
-				ml_task_hub:CurrentTask():SetDelay(500)
-			end
+	local item = GetUnequippedItem(e_autoequip.id)
+	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
+		item:Move(1000,e_autoequip.slot)
+		if (ml_task_hub:CurrentTask()) then
+			ml_task_hub:CurrentTask():SetDelay(500)
 		end
 	end
 end

@@ -372,11 +372,12 @@ function ffxiv_task_movetofate:task_complete_eval()
 		
 		local dist = Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
 		if (self.requiresPosRandomize and 
-			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .90)))) 
+			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .95)))) 
 		then
 			local newPos = nil
+			local skipRandomization = false
 			
-			if (dist < (fate.radius * .90)) then
+			if (dist < (fate.radius * .95)) then
 				local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
 				if (ValidTable(npcs)) then
 					local heading = nil
@@ -385,6 +386,11 @@ function ffxiv_task_movetofate:task_complete_eval()
 						local dist = Distance2D(self.actualPos.x,self.actualPos.z,npos.x,npos.z)
 						
 						if (dist < 10) then
+							if (IsFrontSafe(npc) and (npc.distance < fate.radius * .90)) then
+								self.pos = Player.pos
+								self.requiresPosRandomize = false
+								self.lastRandomize = Now()	
+							end
 							heading = npos.h
 						end
 						if (heading) then
@@ -395,18 +401,12 @@ function ffxiv_task_movetofate:task_complete_eval()
 					if (heading) then
 						local mobRight = ConvertHeading((heading - (math.pi * (math.random(11,20)/100))))%(2*math.pi)
 						local mobLeft = ConvertHeading((heading + (math.pi * (math.random(11,20)/100))))%(2*math.pi)
-						--local mobRearLeft = ConvertHeading((heading + (math.pi * (math.random(70,90)/100))))%(2*math.pi)
-						--local mobRearRight = ConvertHeading((heading - (math.pi * (math.random(70,90)/100))))%(2*math.pi)
 						local mobFrontLeft = ConvertHeading((heading + (math.pi * (math.random(1,10)/100))))%(2*math.pi)
 						local mobFrontRight = ConvertHeading((heading - (math.pi * (math.random(1,10)/100))))%(2*math.pi)
 						
 						local options = {
-							GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontLeft),
-							GetPosFromDistanceHeading(self.actualPos, math.random(5,12), mobFrontRight),
-							GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobLeft),
-							GetPosFromDistanceHeading(self.actualPos, math.random(3,6), mobRight),
-							--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearLeft),
-							--GetPosFromDistanceHeading(self.actualPos, math.random(3,7), mobRearRight),
+							GetPosFromDistanceHeading(self.actualPos, math.random(10,20), mobFrontLeft),
+							GetPosFromDistanceHeading(self.actualPos, math.random(10,20), mobFrontRight),
 						}
 						
 						local selection = options[math.random(1,TableSize(options))]
@@ -415,6 +415,8 @@ function ffxiv_task_movetofate:task_complete_eval()
 						end
 					end
 				end
+			else
+				newPos = self.actualPos
 			end
 			
 			if (not ValidTable(newPos)) then
@@ -423,11 +425,14 @@ function ffxiv_task_movetofate:task_complete_eval()
 			if (not ValidTable(newPos)) then
 				newPos = NavigationManager:GetClosestPointOnMesh(self.pos.x,self.pos.y,self.pos.z,false)
 			end
-			if (ValidTable(newPos)) then
-				self.pos = newPos
+			
+			if (self.requiresPosRandomize) then
+				if (ValidTable(newPos)) then
+					self.pos = newPos
+				end
+				self.requiresPosRandomize = false
+				self.lastRandomize = Now()
 			end
-			self.requiresPosRandomize = false
-			self.lastRandomize = Now()
 		else
 			--d("Not randomizing position.")
 			--d("Requires Randomize:"..tostring(self.requiresPosRandomize))
@@ -516,6 +521,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.forceLOS = false
 	newinst.pathRange = nil
 	newinst.interactRange = nil
+	newinst.dismountDistance = 15
 	
 	GameHacks:SkipDialogue(true)
 	
@@ -572,13 +578,17 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (Player.ismounted and Now() > self.delayTimer) then
 		local requiresDismount = false
 		if (self.interact == 0) then
-			local interacts = EntityList("nearest,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance="..tostring(self.dismountDistance))
+			if (ValidTable(interacts)) then
+				requiresDismount = true
+			end
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance="..tostring(self.dismountDistance))
 			if (ValidTable(interacts)) then
 				requiresDismount = true
 			end
 		else
 			local interact = EntityList:Get(tonumber(self.interact))
-			if (interact and interact.distance < 10) then
+			if (interact and interact.distance < self.dismountDistance) then
 				requiresDismount = true
 			end
 		end
@@ -591,26 +601,19 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	if (self.interact == 0) then
 		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("contentid="..tostring(self.uniqueid)..",maxdistance=15")
-			if (interacts) then
-				local best = {}
-				for i,interact in pairs(interacts) do
-					if (interact.targetable) then
-						best[i] = interact
-					end
+			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
 				end
-				if (best) then
-					local nearest = nil
-					local nearestDistance = 20
-					for i,interact in pairs(best) do
-						if (not nearest or (nearest and interact.distance < nearestDistance)) then
-							nearest = interact
-							nearestDistance = interact.pathdistance
-						end
-					end
-					if (nearest) then
-						self.interact = nearest.id
-					end
+			end
+			
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
 				end
 			end
 		end
@@ -632,29 +635,41 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	if (Player:GetTarget() and self.interact ~= 0 and Now() > self.lastinteract) then
 		if (not IsLoading() and not IsPositionLocked()) then
-			local interact = EntityList:Get(tonumber(self.interact))
-			local radius = (interact.hitradius >= 1 and interact.hitradius) or 1.25
-			local pathRange = self.pathRange or 10
-			local forceLOS = self.forceLOS
-			local range = self.interactRange or (radius * 4)
-			if (not forceLOS or (forceLOS and interact.los)) then
-				if (interact and interact.distance <= range and (interact.pathdistance < pathRange or interact.type == 5)) then
-					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
-					Player:Interact(interact.id)
-					self.lastDistance = interact.pathdistance
+			--d("Trying to find interactable.")
+			local interactable = EntityList:Get(tonumber(self.interact))
+			if (ValidTable(interactable)) then
+				--d("Found the interactable.")
+				local interact = ActionList:Get(2,1,interactable.id)
+				if ((interact and interact.isready2) or ((interactable.type == 5 or interactable.type == 7) and interactable.distance < 7)) then
+					--d("Met conditions in block1.")
+					if (not EntityIsFront(interactable)) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+					end
+					Player:Interact(interactable.id)
+					self.lastDistance = interactable.pathdistance
 					self.lastinteract = Now() + 500
+					return false
+				end
+				
+				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+				local pathRange = self.pathRange or 10
+				local forceLOS = self.forceLOS
+				local range = self.interactRange or (radius * 4)
+				if (not forceLOS or (forceLOS and interactable.los)) then
+					if (interactable and interactable.distance <= range) then
+						--d("Met conditions in block2.")
+						if (not EntityIsFront(interactable)) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						end
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Interact(interactable.id)
+						self.lastDistance = interactable.pathdistance
+						self.lastinteract = Now() + 500
+					end
 				end
 			end
 		end
 	end
-	
-	--[[
-	if (ValidTable(self.adjustedPos)) then
-		Player:MoveTo(self.adjustedPos.x,self.adjustedPos.y,self.adjustedPos.z)
-	elseif (ValidTable(self.pos)) then
-		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
-	end
-	--]]
 	
 	return false
 end
@@ -1355,6 +1370,7 @@ function ffxiv_task_grindCombat.Create()
 	newinst.lastMovement = 0
 	newinst.attackThrottle = false
 	newinst.attackThrottleTimer = 0
+	newinst.noFlee = false
 	
 	newinst.attemptPull = false
 	newinst.pullTimer = 0
@@ -1543,7 +1559,7 @@ end
 
 function ffxiv_task_grindCombat:task_complete_eval()
 	local target = EntityList:Get(self.targetid)
-    if (not target or not target.alive or target.hp.percent == 0 or not target.attackable) then
+    if (not target or not target.alive or not target.attackable) then
 		d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
@@ -1577,8 +1593,13 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		end
 	end
 	
-	if (not Player.alive or Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP)) then
-		d("[GrindCombat]: Task failure due to death or need to flee.")
+	if (not Player.alive) then
+		d("[GrindCombat]: Task failure due to death.")
+		return true
+	end
+	
+	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
+		d("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
 	
@@ -1848,4 +1869,80 @@ end
 function ffxiv_nav_interact:task_fail_execute()
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
     self.valid = false
+end
+
+ffxiv_task_movewithflight = inheritsFrom(ml_task)
+function ffxiv_task_movewithflight.Create()
+    local newinst = inheritsFrom(ffxiv_task_movewithflight)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    
+    --ffxiv_task_movewithflight members
+    newinst.name = "MOVE_WITH_FLIGHT"
+    newinst.pos = 0
+    newinst.range = 1.5
+    newinst.doFacing = false
+    newinst.pauseTimer = 0
+    newinst.gatherRange = 0.0
+    newinst.remainMounted = false
+    newinst.useFollowMovement = false
+	newinst.obstacleTimer = 0
+	
+	newinst.distanceCheckTimer = 0
+	newinst.lastPosition = nil
+	newinst.lastDistance = 0
+    
+    return newinst
+end
+
+function ffxiv_task_movewithflight:Init()			
+    self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_movewithflight:task_complete_eval()
+    if (ValidTable(self.pos)) then
+        local myPos = Player.pos
+		local gotoPos = self.pos
+		
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		
+		if (distance <= 10) then
+			return true
+		else
+			local path = ffxiv_task_test.GetPath()
+			if (ValidTable(path)) then
+				local nearestPoint = path[1]
+				local nextPoint = path[2]
+				
+				--local dist1 = Distance3D(myPos.x, myPos.y, myPos.z, nearestPoint.x, nearestPoint.y, nearestPoint.z)		
+				--if (dist1 > 5) then
+					--d("Attempting to move to 
+					--Player:SetFacing(nearestPoint.x,nearestPoint.y,nearestPoint.z)
+					--Player:MoveToStraight(nearestPoint.x,nearestPoint.y,nearestPoint.z)
+					--return false
+				--end
+				
+				local dist2 = Distance3D(myPos.x, myPos.y, myPos.z, nextPoint.x, nextPoint.y, nextPoint.z)	
+				if (dist2) then
+					d("Attempting to move to the position x = "..tostring(nextPoint.x)..",y = "..tostring(nextPoint.y)..",z = "..tostring(nextPoint.z))
+					d("Distance is "..tostring(dist2))
+					Player:SetFacing(nextPoint.x,nextPoint.y,nextPoint.z)
+					Player:Move(FFXIV.MOVEMENT.FORWARD)
+					return false
+				end
+			end
+		end
+    end    
+    return false
+end
+
+function ffxiv_task_movewithflight:task_complete_execute()
+    Player:Stop()
+	Dismount()
+    self.completed = true
 end

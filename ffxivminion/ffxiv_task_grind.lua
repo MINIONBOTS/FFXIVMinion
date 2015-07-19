@@ -199,6 +199,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gClaimFirst" or
 				k == "gClaimRange" or
 				k == "gClaimed" or
+				k == "gDoChainFates" or
 				k == "gDoBattleFates" or
 				k == "gDoGatherFates" or
 				k == "gDoDefenseFates" or
@@ -208,7 +209,8 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gFateWaitNearEvac" )
         then
             SafeSetVar(tostring(k),v)
-		elseif (k == "gFateBattleWaitPercent" or
+		elseif (k == "gFateChainWaitPercent" or
+				k == "gFateBattleWaitPercent" or
 				k == "gFateBossWaitPercent" or
 				k == "gFateGatherWaitPercent" or
 				k == "gFateDefenseWaitPercent" or
@@ -352,6 +354,9 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gKillAggroEnemies == nil) then
 		Settings.FFXIVMINION.gKillAggroEnemies = "0"
 	end
+	if (Settings.FFXIVMINION.gDoChainFates == nil) then
+        Settings.FFXIVMINION.gDoChainFates = "1"
+    end
 	if (Settings.FFXIVMINION.gDoBattleFates == nil) then
         Settings.FFXIVMINION.gDoBattleFates = "1"
     end
@@ -366,6 +371,9 @@ function ffxiv_task_grind.UIInit()
     end
 	if (Settings.FFXIVMINION.gDoEscortFates == nil) then
         Settings.FFXIVMINION.gDoEscortFates = "1"
+    end
+	if (Settings.FFXIVMINION.gFateChainWaitPercent == nil) then
+        Settings.FFXIVMINION.gFateChainWaitPercent = 0
     end
 	if (Settings.FFXIVMINION.gFateBattleWaitPercent == nil) then
         Settings.FFXIVMINION.gFateBattleWaitPercent = 0
@@ -433,6 +441,8 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewNumeric(winName, "Max Random Delay (s)", "gFateRandomDelayMax", group, "0", "240")
 	
 	local group = "Details"
+	GUI_NewCheckbox(winName,"Chain Fates", "gDoChainFates",group)
+	GUI_NewNumeric(winName,"Chain Fate Wait %", "gFateChainWaitPercent", group, "0", "99")
 	GUI_NewCheckbox(winName,"Battle Fates", "gDoBattleFates",group)
 	GUI_NewNumeric(winName,"Battle Fate Wait %", "gFateBattleWaitPercent", group, "0", "99")
 	GUI_NewCheckbox(winName,"Boss Fates", "gDoBossFates",group)
@@ -464,11 +474,13 @@ function ffxiv_task_grind.UIInit()
 	gFateTeleportPercent = Settings.FFXIVMINION.gFateTeleportPercent
     gFateBLTimer = Settings.FFXIVMINION.gFateBLTimer
 	gKillAggroEnemies = Settings.FFXIVMINION.gKillAggroEnemies
+	gDoChainFates = Settings.FFXIVMINION.gDoChainFates
 	gDoBattleFates = Settings.FFXIVMINION.gDoBattleFates
 	gDoBossFates = Settings.FFXIVMINION.gDoBossFates
 	gDoGatherFates = Settings.FFXIVMINION.gDoGatherFates
 	gDoDefenseFates = Settings.FFXIVMINION.gDoDefenseFates
 	gDoEscortFates = Settings.FFXIVMINION.gDoEscortFates
+	gFateChainWaitPercent = Settings.FFXIVMINION.gFateChainWaitPercent
 	gFateBattleWaitPercent = Settings.FFXIVMINION.gFateBattleWaitPercent
 	gFateBossWaitPercent = Settings.FFXIVMINION.gFateBossWaitPercent
 	gFateGatherWaitPercent = Settings.FFXIVMINION.gFateGatherWaitPercent
