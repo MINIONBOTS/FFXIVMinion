@@ -96,8 +96,10 @@ function ml_global_information.OnUpdate( event, tickcount )
 	end
 	
 	if (ml_global_information.autoStartQueued) then
-		ml_global_information.autoStartQueued = false
-		ml_task_hub:ToggleRun()
+		if (Player) then
+			ml_global_information.autoStartQueued = false
+			ml_task_hub:ToggleRun()
+		end
 	end
 	
 	if (ml_mesh_mgr and not IsLoading()) then
@@ -439,6 +441,8 @@ function ffxivminion.HandleInit()
 	if (Settings.FFXIVMINION.gAvoidHP == nil) then
         Settings.FFXIVMINION.gAvoidHP = "100"
     end
+	Settings.FFXIVMINION.gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect or 25
+	Settings.FFXIVMINION.gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove or 30
 	
 	local winName = ffxivminion.Windows.Main.Name
 	GUI_NewButton(winName, GetString("skillManager"), "SkillManager.toggle")
@@ -468,7 +472,6 @@ function ffxivminion.HandleInit()
     GUI_NewCheckbox(winName,GetString("useSprint"),"gUseSprint",group )
     GUI_NewNumeric(winName,GetString("sprintDist"),"gSprintDist",group )
 	GUI_NewComboBox(winName,GetString("companion"), "gChoco",group,"")
-	--GUI_NewField(winName,"Chocobo Name","gChocoName",group )
 	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
 	gChoco_listitems = GetString("none")..","..GetString("grindMode")..","..GetString("assistMode")..","..GetString("any")
 	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
@@ -501,6 +504,11 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,GetString("skipDialogue"),"gSkipDialogue",group )
 	GUI_NewCheckbox(winName,GetString("clickToTeleport"),"gClickToTeleport",group)
 	GUI_NewCheckbox(winName,GetString("clickToTravel"),"gClickToTravel",group)
+	
+	local group = GetString("advancedSettings")
+	GUI_NewNumeric(winName, "Stealth Detect Range", "gAdvStealthDetect", group, "1", "100")
+	GUI_NewNumeric(winName, "Stealth Remove Range", "gAdvStealthRemove", group, "1", "100")
+	GUI_NewButton(winName, "Use Defaults", "ffxivminion.ResetAdvancedDefaults",group)
 	
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
@@ -541,6 +549,9 @@ function ffxivminion.HandleInit()
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
 	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
+	
+	gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect
+	gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove
 	
 	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
 		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
@@ -605,6 +616,9 @@ function ffxivminion.HandleInit()
 				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 			end
 		end
+		ml_mesh_mgr.IsValidGameState = function ()
+			return (not IsLoading())
+		end
 		ml_mesh_mgr.averagegameunitsize = 1
 		ml_mesh_mgr.useQuaternion = false
 		
@@ -647,8 +661,10 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
 		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
 		-- Duties
-		ml_mesh_mgr.SetDefaultMesh(159, "The Wanderers Palace")
-		
+		--ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
+		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")
+		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
+		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
 				
 		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
 	end
@@ -661,7 +677,7 @@ function ffxivminion.HandleInit()
 		GameHacks:Disable3DRendering(true)
 	end
     if (gSkipCutscene == "1" ) then
-        GameHacks:SkipCutscene(true)
+        --GameHacks:SkipCutscene(true)
     end
     if (gSkipDialogue == "1" ) then
         GameHacks:SkipDialogue(true)
@@ -816,7 +832,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		
 		if ( k == "gSkipCutscene" ) then
 			if ( v == "1" ) then
-				GameHacks:SkipCutscene(true)
+				--GameHacks:SkipCutscene(true)
 			else
 				GameHacks:SkipCutscene(false)
 			end
@@ -939,7 +955,7 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			--GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			SendTextCommand("/busy off")
@@ -950,7 +966,7 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			--GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
@@ -973,7 +989,7 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			--GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
@@ -985,7 +1001,7 @@ function ffxivminion.SwitchMode(mode)
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
-			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			--GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
@@ -998,7 +1014,7 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-		GameHacks:SkipCutscene(gSkipCutscene == "1")
+		--GameHacks:SkipCutscene(gSkipCutscene == "1")
 		GameHacks:SkipDialogue(gSkipDialogue == "1")
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
@@ -1377,7 +1393,7 @@ function ml_global_information.Stop()
     if (Player:IsMoving()) then
         Player:Stop()
     end
-	GameHacks:SkipCutscene(gSkipCutscene == "1")
+	--GameHacks:SkipCutscene(gSkipCutscene == "1")
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end
 
@@ -1393,6 +1409,14 @@ function ffxivminion.ToggleAdvancedSettings()
     end
 end
 
+function ffxivminion.ResetAdvancedDefaults()
+	Settings.FFXIVMINION.gAdvStealthDetect = 25
+	gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect
+	
+	Settings.FFXIVMINION.gAdvStealthRemove = 30
+	gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove
+end
+
 function ffxivminion.ResizeWindow()
 	GUI_SizeWindow(ffxivminion.Windows.Main.Name,ml_global_information.MainWindow.width,ml_global_information.MainWindow.height)
 end
@@ -1403,6 +1427,8 @@ function ffxivminion.HandleButtons( Event, Button )
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then
 			BlacklistTarget()
+		elseif (string.find(Button,"ffxivminion.")) then
+			ExecuteFunction(Button)
 		end
 	end
 end

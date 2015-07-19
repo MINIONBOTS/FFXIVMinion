@@ -142,35 +142,34 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						local h = (math.floor(sPos.h * 100) / 100)
 						local ph = (math.floor(Player.pos.h * 100) / 100)
 						
-						if (not Player:IsJumping() and ml_mesh_mgr.OMCJumpStartedTimer == 0 ) then
-							if (ph ~= h) then
-								Player:SetFacing(sPos.h)
-								return
-							end
-						
-							if ((not Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 6) or 
-								(Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 7))
-							then
-								return
-							end
-		
-							if (ml_mesh_mgr.OMCJumpStartedTimer == 0 ) then
+						if (ml_mesh_mgr.OMCJumpStartedTimer == 0) then
+							if (not Player:IsJumping()) then
+								if (ph ~= h) then
+									Player:SetFacing(sPos.h)
+									return
+								end
+								
+								local hasStealth = HasBuffs(Player,"47")
+							
+								if ((not Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 6) or 
+									(Player.ismounted and Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) < 7))
+								then
+									return
+								end
+								
 								Player:Jump()
+							else
 								ml_mesh_mgr.OMCJumpStartedTimer = Now()
-								return
 							end
+							return
 						end
-						
-						--local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)										
-						--local dist2d = Distance2D(ePos.x,ePos.y,pPos.x,pPos.y)
-						--ml_mesh_mgr.OMCLastDistance = dist
 						
 						if (ml_mesh_mgr.OMCJumpStartedTimer ~= 0) then
 							ml_mesh_mgr.OMCThrottle = Now() + 100
-							if (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1500 and Player:IsJumping()) then
+							if (Player:IsJumping()) then
 								Player:Stop()
 								return
-							elseif (TimeSince(ml_mesh_mgr.OMCJumpStartedTimer) > 1000 and not Player:IsJumping()) then
+							elseif (not Player:IsJumping()) then
 								ml_mesh_mgr.ResetOMC()
 							end
 						end
@@ -179,9 +178,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_WALK" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 150
 					
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then		
-					
-						
+					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then								
 						local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
 						Player:SetFacing(facingPos)
 					
@@ -189,15 +186,17 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							Player:Move(FFXIV.MOVEMENT.FORWARD) 
 						end
 						
-						if (Player:IsJumping() and (pPos.y < (ePos.y - 1))) then
+						if (Player:IsJumping() and (pPos.y < (ePos.y - 3))) then
 							Player:Stop()
 							ml_mesh_mgr.ResetOMC()
 						end
 						
-						local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
-						if ((not Player.ismounted and dist < 1) or (Player.ismounted and dist < 1.5)) then
-							Player:Stop()
-							ml_mesh_mgr.ResetOMC()
+						if (not Player:IsJumping()) then
+							local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
+							if ((not Player.ismounted and dist < 1) or (Player.ismounted and dist < 1.5)) then
+								Player:Stop()
+								ml_mesh_mgr.ResetOMC()
+							end
 						end
 					end
 				
