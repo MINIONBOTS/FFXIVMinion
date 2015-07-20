@@ -1,5 +1,6 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.attemptedCasts = 0
+ffxiv_task_fish.biteDetected = 0
 
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
@@ -299,23 +300,29 @@ function c_bite:evaluate()
     return false
 end
 function e_bite:execute()
-	if (HasBuffs(Player,"764")) then
-		local precisionHook = ActionList:Get(4179,1)
-		local powerfulHook = ActionList:Get(4103,1)
-		
-		if (precisionHook and precisionHook.isready) then
-			precisionHook:Cast()
-			return
-		elseif (powerfulHook and powerfulHook.isready) then
-			powerfulHook:Cast()
-			return
+	if (ffxiv_task_fish.biteDetected == 0) then
+		ffxiv_task_fish.biteDetected = Now() + math.random(250,1000)
+		return
+	elseif (Now() > ffxiv_task_fish.biteDetected) then
+		if (HasBuffs(Player,"764")) then
+			local precisionHook = ActionList:Get(4179,1)
+			local powerfulHook = ActionList:Get(4103,1)
+			local status = Player.status
+			
+			if (status == 56 and precisionHook and precisionHook.isready) then
+				precisionHook:Cast()
+				return
+			elseif (status == 57 and powerfulHook and powerfulHook.isready) then
+				powerfulHook:Cast()
+				return
+			end
+		end
+			
+		local bite = ActionList:Get(296,1)
+		if (bite and bite.isready) then
+			bite:Cast()
 		end
 	end
-		
-    local bite = ActionList:Get(296,1)
-    if (bite and bite.isready) then
-        bite:Cast()
-    end
 end
 
 c_patience = inheritsFrom( ml_cause )
@@ -360,7 +367,7 @@ end
 c_resetidle = inheritsFrom( ml_cause )
 e_resetidle = inheritsFrom( ml_effect )
 function c_resetidle:evaluate()
-	if (ffxiv_task_fish.attemptedCasts > 0) then
+	if (ffxiv_task_fish.attemptedCasts > 0 or ffxiv_task_fish.biteDetected > 0) then
 		local fs = tonumber(Player:GetFishingState())
 		if ( fs == 9 ) then
 			return true
@@ -371,6 +378,7 @@ end
 function e_resetidle:execute()
 	d("Resetting idle status, waiting detected.")
 	ffxiv_task_fish.attemptedCasts = 0
+	ffxiv_task_fish.biteDetected = 0
 end
 
 c_setbait = inheritsFrom( ml_cause )
