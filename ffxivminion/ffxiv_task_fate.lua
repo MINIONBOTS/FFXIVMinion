@@ -542,12 +542,15 @@ end
 c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
+	if (ml_task_hub:ThisTask().waitingForChain) then
+		return false
+	end
+	
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
     if (not fate or fate.completion > 99) then
         return true
     end
 	
-	local isChain, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,fate.id)
 	if (not IsFateApproved(fate.id)) then
 		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
 		return true
@@ -557,7 +560,6 @@ function c_endfate:evaluate()
 end
 function e_endfate:execute()
 	local isChain, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
-	
 	if (isChain and not isLast and ValidTable(nextFate)) then
 		Player:Stop()
 		ml_task_hub:ThisTask().fateid = nextFate.id

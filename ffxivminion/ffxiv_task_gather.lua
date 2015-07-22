@@ -65,8 +65,10 @@ end
 
 c_findgatherable = inheritsFrom( ml_cause )
 e_findgatherable = inheritsFrom( ml_effect )
+c_findgatherable.id = 0
+c_findgatherable.uniqueid = 0
 function c_findgatherable:evaluate()
-	if (Now() < ffxiv_task_gather.timer) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
 		return false
 	end
 	
@@ -78,39 +80,46 @@ function c_findgatherable:evaluate()
     if (list ~= nil) then
         return false
     end
-
-    if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
-        return true
-    end
-    
-    local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+	
+	local needsUpdate = false
+	if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
+		needsUpdate = true
+	end
+	
+	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
     if (ValidTable(gatherable)) then
         if (not gatherable.cangather) then
-            return true 
+            needsUpdate = true
         end
     elseif (gatherable == nil) then
-        return true
+		needsUpdate = true
     end
+	
+	if (needsUpdate) then
+		ml_task_hub:CurrentTask().gatherid = 0
+		if (ValidTable(ml_global_information.currentMarker)) then
+			local gatherable = GetNearestGatherable(ml_global_information.currentMarker)
+			if (ValidTable(gatherable)) then
+				d("Found a gatherable with ID: "..tostring(gatherable.id))
+				-- reset blacklist vars for a new node
+				ml_task_hub:CurrentTask().failedTimer = 0		
+				ml_task_hub:CurrentTask().gatheredMap = false
+				ml_task_hub:CurrentTask().gatherid = gatherable.id
+				ml_task_hub:CurrentTask().gatheruniqueid = gatherable.uniqueid
+			end
+		end
+	end
     
     return false
 end
 function e_findgatherable:execute()
-	ffxiv_task_gather.gatherStarted = false    
-    local gatherable = GetNearestGatherable(ml_global_information.currentMarker)
-    if (ValidTable(gatherable)) then
-		-- reset blacklist vars for a new node
-		ml_task_hub:CurrentTask().failedTimer = 0		
-		ml_task_hub:CurrentTask().gatheredMap = false
-        ml_task_hub:CurrentTask().gatherid = gatherable.id
-		ml_task_hub:CurrentTask().gatheruniqueid = gatherable.uniqueid
-    end
-	
-	--idiotcheck for no usable markers found on this mesh
-	--if (ml_task_hub:CurrentTask().currentMarker ~= nil and ml_task_hub:CurrentTask().currentMarker ~= 0 and ml_task_hub:CurrentTask().currentMarker == false) then
-        --if not (gGatherUnspoiled == "1" and ffxiv_task_gather.IsIdleLocation()) then
-			--ml_error("THE LOADED NAVMESH HAS NO MINING/BOTANY MARKERS IN THE LEVELRANGE OF YOUR PLAYER")
-		--end
-	--end
+	d("Setting new gatherable.")
+	ffxiv_task_gather.gatherStarted = false
+	ml_task_hub:CurrentTask().failedTimer = 0		
+	ml_task_hub:CurrentTask().gatheredMap = false
+	ml_task_hub:CurrentTask().gatherid = c_findgatherable.id
+	ml_task_hub:CurrentTask().gatheruniqueid = c_findgatherable.uniqueid	
+
 	return false
 end
 
@@ -249,7 +258,7 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-	if (Now() < ffxiv_task_gather.timer) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading or Player:GetGatherableSlotList()) then
 		return false
 	end
 	
@@ -269,6 +278,7 @@ function c_movetogatherable:evaluate()
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
+			d("Moving to the gatherable with ID "..tostring(ml_task_hub:CurrentTask().gatherid))
             return true
         end
     end
@@ -418,16 +428,19 @@ c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
 	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
+		--d("Next gather marker, returning false in block1.")
 		return false
 	end
 	
 	--Check to make sure we have gathered any unspoiled nodes first.
 	if (gGatherUnspoiled == "1") then
 		if (not ffxiv_task_gather.IsIdleLocation()) then
+			--d("Next gather marker, returning false in block3.")
 			return false
 		else
 			if (Player.job ~= ffxiv_task_gather.location.class) then
 				ffxiv_task_gather.SwitchClass(ffxiv_task_gather.location.class)
+				--d("Next gather marker, returning false in block3.")
 				return false
 			end
 		end
@@ -435,6 +448,7 @@ function c_nextgathermarker:evaluate()
 	
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
+		--d("Next gather marker, returning false in block4.")
         return false
     end
 	
@@ -445,6 +459,7 @@ function c_nextgathermarker:evaluate()
 	end
     
     if ( ml_task_hub:ThisTask().currentMarker ~= nil and ml_task_hub:ThisTask().currentMarker ~= 0 ) then
+		d("Checking for new markers.")
         local marker = nil
         
         -- first check to see if we have no initialized marker
@@ -455,6 +470,8 @@ function c_nextgathermarker:evaluate()
             else
                 markerType = GetString("miningMarker")
             end
+			d("Marker type is ["..tostring(markerType).."]")
+			
             marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			
 			if (marker == nil) then
@@ -467,36 +484,52 @@ function c_nextgathermarker:evaluate()
         
         -- next check to see if our level is out of range
 		if (gMarkerMgrMode ~= GetString("singleMarker")) then
+			d("Checking secondary sections.")
 			if (marker == nil) then
-				if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-					if 	(ml_task_hub:ThisTask().filterLevel) and
-						(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
-						Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
-					then
-						marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
+				if (gMarkerMgrMode == GetString("markerTeam")) then
+					d("Checking marker team section.")
+					local gatherid = ml_task_hub:CurrentTask().gatherid or 0
+					if (gatherid == 0) then
+						marker = ml_marker_mgr.GetNextMarker(markerType, false)
+						if (ValidTable(marker)) then
+							d("Found a valid marker in team section.")
+						end
 					end
 				end
 			end
 			
-			if (gMarkerMgrMode == GetString("markerTeam")) then
-				local gatherid = ml_task_hub:CurrentTask().gatherid
-				if (gatherid == 0) then
-					marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
+			if (marker == nil) then
+				if (ValidTable(ml_global_information.currentMarker)) then
+					if 	(ml_task_hub:ThisTask().filterLevel) and
+						(Player.level < ml_global_information.currentMarker:GetMinLevel() or 
+						Player.level > ml_global_information.currentMarker:GetMaxLevel()) 
+					then
+						marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
+						if (ValidTable(marker)) then
+							d("Found a valid marker in level check section.")
+						end
+					end
 				end
 			end
 			
 			-- last check if our time has run out
 			if (gMarkerMgrMode == GetString("markerList")) then
+				d("Checking marker list section.")
 				if (marker == nil) then
-					if (ValidTable(ml_task_hub:CurrentTask().currentMarker)) then
-						local expireTime = ml_task_hub:ThisTask().markerTime
+					if (ValidTable(ml_global_information.currentMarker)) then
+						local expireTime = ml_global_information.MarkerTime
 						if (Now() > expireTime) then
 							ml_debug("Getting Next Marker, TIME IS UP!")
 							marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 						else
+							d("We haven't reached the expire time yet.")
 							return false
 						end
+					else
+						d("Current marker isn't valid so there is no expire time.")
 					end
+				else
+					d("Already found a replacement marker.")
 				end
 			end
 		end
@@ -505,11 +538,14 @@ function c_nextgathermarker:evaluate()
             e_nextgathermarker.marker = marker
             return true
         end
+	else
+		d("Next gather marker, returning false because current marker is still valid.")
     end
     
     return false
 end
 function e_nextgathermarker:execute()
+	d("Setting new marker.")
 	Player:Stop()
 	ml_global_information.currentMarker = e_nextgathermarker.marker
     ml_task_hub:ThisTask().currentMarker = e_nextgathermarker.marker
@@ -520,6 +556,7 @@ function e_nextgathermarker:execute()
 	ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
     ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+	ml_task_hub:CurrentTask().gatherid = 0
 end
 
 c_nextgatherlocation = inheritsFrom( ml_cause )

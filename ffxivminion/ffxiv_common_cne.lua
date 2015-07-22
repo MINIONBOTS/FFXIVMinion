@@ -1864,12 +1864,18 @@ function c_returntomarker:evaluate()
 		end		
 		
 		if (gBotMode == GetString("gatherMode")) then
-			local gatherid = ml_task_hub:CurrentTask().gatherid
+			local gatherid = ml_task_hub:CurrentTask().gatherid or 0
 			if (gatherid == 0) then
+				d("No gatherable currently, return to the next marker.")
 				return true
 			end
 			if (gMarkerMgrMode ~= GetString("markerTeam")) then
-				if (distance > 150) then
+				local radius = 150
+				local maxradius = ml_global_information.currentMarker:GetFieldValue(GetString("maxRadius"))
+				if (tonumber(maxradius) and tonumber(maxradius) > 0) then
+					radius = tonumber(maxradius)
+				end
+				if (distance > radius) then
 					return true
 				end
 			end
@@ -1895,8 +1901,8 @@ function e_returntomarker:execute()
 	end
 	
     local newTask = ffxiv_task_movetopos.Create()
-    local markerPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-    local markerType = ml_task_hub:CurrentTask().currentMarker:GetType()
+    local markerPos = ml_global_information.currentMarker:GetPosition()
+    local markerType = ml_global_information.currentMarker:GetType()
     newTask.pos = markerPos
     newTask.range = math.random(5,25)
 	if (markerType == GetString("huntMarker")) then
@@ -2142,12 +2148,14 @@ c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
 e_autoequip.id = nil
 e_autoequip.slot = nil
+c_autoequip.timer = 0
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
 		IsShopWindowOpen() or Player.targetid ~= 0 or
 		IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
-		Player:GetGatherableSlotList()) 
+		Player:GetGatherableSlotList() or
+		Now() < c_autoequip.timer) 
 	then
 		return false
 	end
@@ -2232,6 +2240,7 @@ function c_autoequip:evaluate()
 		end
 	end
 	
+	c_autoequip.timer = Now() + 30000
 	return false
 end
 function e_autoequip:execute()
