@@ -579,12 +579,12 @@ function ffxiv_task_fate.RequiresSync(fateLevel)
 	
 	local requiresSync = false
 	if (fateLevel > 0) then
-		if (fateLevel < 49) then
+		if (fateLevel < 50) then
 			if ((fateLevel < (playerLevel - 5)) or Player.level > 50) then
 				requiresSync = true
 			end
 		else
-			if (fateLevel < (playerLevel - 3)) then
+			if (fateLevel < (playerLevel - 4)) then
 				requiresSync = true
 			end
 		end

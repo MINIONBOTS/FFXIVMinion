@@ -639,16 +639,18 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			local interactable = EntityList:Get(tonumber(self.interact))
 			if (ValidTable(interactable)) then
 				--d("Found the interactable.")
-				local interact = ActionList:Get(2,1,interactable.id)
-				if ((interact and interact.isready2) or ((interactable.type == 5 or interactable.type == 7) and interactable.distance < 7)) then
-					--d("Met conditions in block1.")
-					if (not EntityIsFront(interactable)) then
-						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+				if (interactable.type == 2 or interactable.type == 3) then
+					local interact = ActionList:Get(2,1,interactable.id)
+					if ((interact and interact.isready2) or ((interactable.type == 5 or interactable.type == 7) and interactable.distance < 7)) then
+						--d("Met conditions in block1.")
+						if (not EntityIsFront(interactable)) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						end
+						Player:Interact(interactable.id)
+						self.lastDistance = interactable.pathdistance
+						self.lastinteract = Now() + 500
+						return false
 					end
-					Player:Interact(interactable.id)
-					self.lastDistance = interactable.pathdistance
-					self.lastinteract = Now() + 500
-					return false
 				end
 				
 				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25

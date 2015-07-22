@@ -1392,13 +1392,6 @@ function HasContentID(entity, contentIDs)
 	return false
 end
 
-function IsReviveSkill(skillID)
-    if (skillID == 173 or skillID == 125) then
-        return true
-    end
-    return false
-end
-
 function IsHealingSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -3029,11 +3022,17 @@ function GetAetheryteByMapID(id, p)
 		id = 129
 	elseif (id == 131 and mapid ~= 130) then
 		id = 130
+	elseif (id == 419 and mapid ~= 418) then
+		id = 418
+	elseif (id == 399 and mapid ~= 478) then
+		id = 478
 	end
 	
 	if 	(mapid == 131 and id == 130) or
 		(mapid == 128 and id == 129) or
-		(mapid == 133 and id == 133)
+		(mapid == 133 and id == 133) or
+		(mapid == 418 and (id == 419 or id == 439 or id == 427 or id == 456 or id == 433)) or
+		(mapid == 399 and id == 478)
 	then
 		return nil
 	end
@@ -3048,17 +3047,29 @@ function GetAetheryteByMapID(id, p)
 			[2] = { name = "Wineport", id = 12, x = 0, z = 0},
 		},
 		[138] = {name = "Western La Noscea",
-			[1] = { name = "Swiftperch", id = 13, x = 652, z = -507},
-			[2] = { name = "Aleport", id = 14, x = 261, z = 223},
+			[1] = { name = "Swiftperch", id = 13, x = 652, z = -507 },
+			[2] = { name = "Aleport", id = 14, x = 261, z = 223 },
 		},
 		[146] = {name = "Southern Thanalan",
-			[1] = { name = "Little Ala Mhigo", id = 19, x = -152, z = -419},
-			[2] = { name = "Forgotten Springs", id = 20, x = 330, z = 405},
+			[1] = { name = "Little Ala Mhigo", id = 19, x = -152, z = -419 },
+			[2] = { name = "Forgotten Springs", id = 20, x = 330, z = 405 },
 		},
 		[147] = {name = "Northern Thanalan",
-			[1] = { name = "Bluefog", id = 21, x = 24, z = 452},
-			[2] = { name = "Ceruleum", id = 22, x = -33, z = -32},
+			[1] = { name = "Bluefog", id = 21, x = 24, z = 452 },
+			[2] = { name = "Ceruleum", id = 22, x = -33, z = -32 },
 		},
+		[401] = {name = "Sea of Clouds",
+			[1] = { name = "OkZundu", id = 72, x = -611, z = 545 },
+			[2] = { name = "Cloudtop", id = 73, x = -606, z = -419 },
+		},
+		[398] = {name = "Dravanian Forelands",
+			[1] = { name = "Tailfeather", id = 76, x = 533, z = 35 },
+			[2] = { name = "Anyx", id = 77, x = -300, z = 30 },
+		},
+		[400] = {name = "Churning Mists",
+			[1] = { name = "Moghome", id = 78, x = 256, z = 599 },
+			[2] = { name = "Zenith", id = 79, x = -583, z = 316 },
+		},		
 	}
 	
 	local list = GetAttunedAetheryteList()
@@ -3070,12 +3081,12 @@ function GetAetheryteByMapID(id, p)
 		end
 	else
 		local map = sharedMaps[id]
-		if (id == 153 or id == 138 or id == 146 or id == 147) then
+		if (id == 137) then
+			return id, ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
+		else 
 			local distance1 = Distance2D(pos.x, pos.z, map[1].x, map[1].z)
 			local distance2 = Distance2D(pos.x, pos.z, map[2].x, map[2].z)
 			return id, ((distance1 < distance2) and map[1].id) or map[2].id
-		elseif (id == 137) then
-			return id, ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
 		end
 	end
 	
@@ -3086,6 +3097,12 @@ function GetAetheryteLocation(id)
 	local aethid = tonumber(id) or 0
 	aetherytes = 
 	{
+		[2] = {
+			mapid = 132, x = 30.390216827393, y = 1.8258748054504, z = 26.265508651733
+		},
+		[3] = {
+			mapid = 148, x = 13.585005760193, y = -1.1827243566513, z = 41.725193023682
+		},
 		[8] = {
 			mapid = 129, x = -85.681526184082, y = 18.800333023071, z = -6.4848699569702
 		},
@@ -3113,12 +3130,6 @@ function GetAetheryteLocation(id)
 		[16] = {
 			mapid = 180, x = -122.27465820313, y = 64.79615020752, z = -211.87341308594
 		},
-		[2] = {
-			mapid = 132, x = 30.390216827393, y = 1.8258748054504, z = 26.265508651733
-		},
-		[3] = {
-			mapid = 148, x = 13.585005760193, y = -1.1827243566513, z = 41.725193023682
-		},
 		[4] = {
 			mapid = 152, x = -189.0665435791, y = 4.4424576759338, z = 293.23275756836
 		},
@@ -3132,7 +3143,7 @@ function GetAetheryteLocation(id)
 			mapid = 154, x = -45.544578552246, y = -39.256271362305, z = 230.90368652344
 		},
 		[9] = {
-			mapid = 130, x = -143.30297851563, y = -3.1548881530762, z = -165.79141235352
+			mapid = 130, x = -141.2413, y = -3.154881, z = -166.22462
 		},
 		[17] = {
 			mapid = 140, x = 71.629104614258, y = 45.432174682617, z = -230.00273132324
@@ -3161,77 +3172,41 @@ function GetAetheryteLocation(id)
 		[24] = {
 			mapid = 156, x = 48.166370391846, y = 20.295000076294, z = -667.26159667969
 		},
-		[55] = {
-			mapid = 250, x = 41.127487182617, y = 5.5999984741211, z = -8.2964677810669
+		[70] = {
+			mapid = 418, x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203
+		},
+		[71] = {
+			mapid = 397, x = 477.33963012695, y = 213.68281555176, z = 712.01037597656
+		},
+		[72] = {
+			mapid = 401, x = -611.17010498047, y = -122.47959899902, z = 545.20111083984
+		},
+		[73] = {
+			mapid = 401, x = -606.52301025391, y = -51.05184173584, z = -419.39642333984
+		},
+		[74] = {
+			mapid = 402, x = -719.61926269531, y = -186.96055603027, z = -591.29595947266
+		},
+		[75] = {
+			mapid = 478, x = 70.658157348633, y = 209.25, z = -15.381930351257
+		},
+		[76] = {
+			mapid = 398, x = 533.27545166016, y = -50.119258880615, z = 35.244457244873
+		},
+		[77] = {
+			mapid = 398, x = -300.9377746582, y = -21.131076812744, z = 30.079961776733
+		},
+		[78] = {
+			mapid = 400, x = 256.49853515625, y = -41.158931732178, z = 599.15924072266
+		},
+		[79] = {
+			mapid = 400, x = -583.82263183594, y = 49.774040222168, z = 316.41677856445
 		},
 	}
 	
 	local aetheryte = aetherytes[aethid]
 	if (aetheryte) then
 		return {x = aetheryte.x, y = aetheryte.y, z = aetheryte.z}
-	end
-	
-	return nil
-end
-
-function GetClosestAetheryteToMapIDPos(id, p)
-	local pos = p
-	
-	local mapid = Player.localmapid
-	if (id == 133 and mapid ~= 132) then
-		id = 132
-	elseif (id == 128 and mapid ~= 129) then
-		id = 129
-	elseif (id == 131 and mapid ~= 130) then
-		id = 130
-	end
-	
-	if 	(mapid == 131 and id == 130) or
-		(mapid == 128 and id == 129) or
-		(mapid == 133 and id == 133)
-	then
-		return nil
-	end
-	
-	sharedMaps = {
-		[153] = { name = "South Shroud",
-			[1] = { name = "Quarrymill", id = 5, x = 177, z = -65},
-			[2] = { name = "Camp Tranquil", id = 6, x = -229, z = 352},
-		},
-		[137] = {name = "Eastern La Noscea",
-			[1] = { name = "Costa Del Sol", id = 11, x = 0, z = 0},
-			[2] = { name = "Wineport", id = 12, x = 0, z = 0},
-		},
-		[138] = {name = "Western La Noscea",
-			[1] = { name = "Swiftperch", id = 13, x = 652, z = -507},
-			[2] = { name = "Aleport", id = 14, x = 261, z = 223},
-		},
-		[146] = {name = "Southern Thanalan",
-			[1] = { name = "Little Ala Mhigo", id = 19, x = -152, z = -419},
-			[2] = { name = "Forgotten Springs", id = 20, x = 330, z = 405},
-		},
-		[147] = {name = "Northern Thanalan",
-			[1] = { name = "Bluefog", id = 21, x = 24, z = 452},
-			[2] = { name = "Ceruleum", id = 22, x = -33, z = -32},
-		},
-	}
-	
-	local list = GetAttunedAetheryteList()
-	if (sharedMaps[id] == nil) then
-		for index,aetheryte in ipairs(list) do
-			if (aetheryte.territory == id) then
-				return aetheryte.id
-			end
-		end
-	else
-		local map = sharedMaps[id]
-		if (id == 153 or id == 138 or id == 146 or id == 147) then
-			local distance1 = Distance2D(pos.x, pos.z, map[1].x, map[1].z)
-			local distance2 = Distance2D(pos.x, pos.z, map[2].x, map[2].z)
-			return ((distance1 < distance2) and map[1].id) or map[2].id
-		elseif (id == 137) then
-			return ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
-		end
 	end
 	
 	return nil

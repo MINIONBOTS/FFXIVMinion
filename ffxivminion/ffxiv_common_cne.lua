@@ -724,7 +724,7 @@ function c_teleporttomap:evaluate()
                                                     Player.localmapid,
                                                     destMapID	)
 
-        if (TableSize(ml_nav_manager.currPath)>2) then
+        if (ValidTable(ml_nav_manager.currPath)) then
             local aethid = nil
 			local mapid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do
@@ -2196,9 +2196,6 @@ function c_autoequip:evaluate()
 				local found = false
 				if (item.slot == slot) then
 					found = true
-					--data.equippedDetails = GetItemDetails(i)
-					--data.equipped = GetItemStatWeight(i,slot)
-					
 					data.equippedValue = AceLib.API.Items.GetItemStatWeight(item,slot)
 					data.equippedItem = item
 					
