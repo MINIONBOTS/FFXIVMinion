@@ -1667,9 +1667,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						end
 					else
 						local s = ActionList:Get(skill.id,11,TID)
+						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						
 						local attempt = 1
-						while (s.isready2 and attempt <= 3) do
+						while (s.isready and attempt <= 3) do
+							SkillMgr.DebugOutput(prio, "Attempting cast for pet skill, attempt #:"..tostring(attempt))
+							
 							ActionList:Cast(skill.id,TID,11)
 							s = ActionList:Get(skill.id,11)
 							attempt = attempt + 1
@@ -1704,7 +1707,25 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							
 							if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 								SkillMgr.latencyTimer = Now()
-								SkillMgr.queuedPrio = prio
+								
+								local castingskill = Player.castinginfo.castingid
+								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
+									SkillMgr.prevSkillID = castingskill
+									SkillMgr.prevSkillTimestamp = Now()
+									if (action.recasttime == 2.5) then
+										SkillMgr.prevGCDSkillID = castingskill
+									end
+									SkillMgr.UpdateLastCast(castingskill)
+									if (SkillMgr.UpdateChain(prio,castingskill)) then
+										SkillMgr.queuedPrio = 0
+									end
+									SkillMgr.failTimer = Now() + 6000
+								else
+									if (skill.chainstart == "1" or skill.chainend == "1") then
+										SkillMgr.queuedPrio = prio
+									end
+								end
+								
 								return true
 							end
 						end
@@ -1733,7 +1754,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									SkillMgr.failTimer = Now() + 6000
 								else
 									if (skill.chainstart == "1" or skill.chainend == "1") then
-										--d("Setting queuedPrio to :"..tostring(prio))
 										SkillMgr.queuedPrio = prio
 									end
 								end
@@ -2695,10 +2715,9 @@ function SkillMgr.AddDefaultConditions()
 		
 		if ((realskilldata.isready2) and (gAssistUseAutoFace == "1" or realskilldata.isfacing)) then
 			return false
-		elseif (realskilldata.recasttime == 2.5 and (gAssistUseAutoFace == "1" or realskilldata.isfacing) and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
-			
+		elseif (not realskilldata.isready and realskilldata.recasttime == 2.5 and (gAssistUseAutoFace == "1" or realskilldata.isfacing or skill.trg == "Ground Target") and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
 			return false
-		elseif (skill.trg == "Ground Target" and realskilldata.isready) then
+		elseif ((skill.trg == "Ground Target" or skill.type == "Pet") and realskilldata.isready) then
 			return false
 		end
 		return true
