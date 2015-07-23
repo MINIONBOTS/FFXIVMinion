@@ -207,7 +207,9 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_blacklist_mgr.UpdateEntryTime()
 		ml_blacklist_mgr.UpdateEntries(tickcount)
 		
-		ffxivminion.CheckClass()
+		if (SkillMgr) then
+			ffxivminion.CheckClass()
+		end
 	
 		ffxiv_unstuck.HandleUpdate(tickcount)		
 		
@@ -760,7 +762,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAvoidAOE" or
 			k == "gDevDebug" or
 			k == "gUseCurielRoot" or
-			k == "gAvoidHP"
+			k == "gAvoidHP" or
+			k == "gAdvStealthDetect" or
+			k == "gAdvStealthRemove"
 			)				
         then
 			SafeSetVar(tostring(k),v)

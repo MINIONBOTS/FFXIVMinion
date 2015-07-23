@@ -145,6 +145,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	newinst.lastDistance = 0
+	
+	newinst.abortFunction = nil
     
     return newinst
 end
@@ -178,6 +180,25 @@ end
 function ffxiv_task_movetopos:task_complete_eval()
 	if (IsPositionLocked() or IsLoading() or ml_mesh_mgr.loadingMesh ) then
 		return true
+	end
+	
+	if (self.abortFunction) then
+		if (type(self.abortFunction) == "function") then
+			local retval = self.abortFunction()
+			if (retval == true) then
+				return true
+			end
+		elseif (type(self.abortFunction) == "table") then
+			local abortFunctions = self.abortFunction
+			for i,fn in pairs(abortFunctions) do
+				if (type(fn) == "function") then
+					local retval = fn()
+					if (retval == true) then
+						return true
+					end
+				end
+			end
+		end
 	end
 
     if (ValidTable(self.pos)) then
@@ -1417,7 +1438,7 @@ function ffxiv_task_grindCombat:Process()
 			if (not self.noFateSync) then
 				local fateID = target.fateid
 				local fate = GetFateByID(fateID)
-				if ( fate and fate.completion < 99 and fate.status == 2) then
+				if ( fate and fate.completion < 100 and fate.status == 2) then
 					if (ffxiv_task_fate.RequiresSync(fate.level)) then
 						local myPos = Player.pos
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
@@ -1589,7 +1610,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
 			if (not fate or fate.completion > 99) then
-				d("[GrindCombat]: Task complete due fate target and fate ending.")
+				d("[GrindCombat]: Task complete due to fate target and fate ending.")
 				return true
 			end
 		end

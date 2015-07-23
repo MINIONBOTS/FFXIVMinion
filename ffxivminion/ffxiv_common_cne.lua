@@ -235,7 +235,7 @@ function c_add_fate:evaluate()
     
     if (gDoFates == "1") then
 		local fate = GetClosestFate(Player.pos)
-		if (fate and fate.completion < 99) then
+		if (fate and fate.completion < 100) then
 			c_add_fate.fate = shallowcopy(fate)
 			return true
 		end
@@ -1904,7 +1904,7 @@ function e_returntomarker:execute()
     local markerPos = ml_global_information.currentMarker:GetPosition()
     local markerType = ml_global_information.currentMarker:GetType()
     newTask.pos = markerPos
-    newTask.range = math.random(5,25)
+    newTask.range = math.random(3,5)
 	if (markerType == GetString("huntMarker") or
 		markerType == GetString("miningMarker") or
 		markerType == GetString("botanyMarker")) 

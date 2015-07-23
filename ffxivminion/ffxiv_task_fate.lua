@@ -426,7 +426,9 @@ function c_faterandomdelay:evaluate()
 	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 	
 	if (ValidTable(fate) and not ml_task_hub:ThisTask().randomDelayCompleted) then
-		if (fate.completion == 0) then
+		local dist = Distance2D(Player.pos.x,Player.pos.z,fate.x,fate.z)
+		
+		if (fate.completion == 0 and dist > (fate.radius + 20)) then
 			return true
 		else
 			ml_task_hub:ThisTask().randomDelayCompleted = true
@@ -635,6 +637,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 		for chainid,chaindata in pairs(mapChains) do
 			for order,fatedata in pairs(chaindata) do
 				if (fatedata.id == fateid) then
+					local firstChain = (order == 1)
 					local lastChain = (order == TableSize(chaindata))
 					local nextFate = nil
 					
@@ -645,7 +648,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 					end
 					
 					--d("Is this the last chain member? "..tostring(lastChain))
-					return true, lastChain, nextFate
+					return true, firstChain, lastChain, nextFate
 				end
 			end
 		end

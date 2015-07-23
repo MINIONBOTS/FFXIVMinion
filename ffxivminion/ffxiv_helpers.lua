@@ -351,7 +351,8 @@ function IsValidHealTarget(e)
 	if (ValidTable(e) and e.alive and e.targetable) then
 		return (e.chartype == 4) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
-			(e.chartype == 3 and e.type == 2)
+			(e.chartype == 3 and e.type == 2) or
+			(e.chartype == 5 and e.type == 2)
 	end
 	
 	return false
@@ -1802,7 +1803,7 @@ function GetApprovedFates()
 			local minFateLevel = tonumber(gMinFateLevel) or 0
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
 			
-			local isChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
+			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
 			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
 			
 			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
@@ -1818,8 +1819,10 @@ function GetApprovedFates()
 					table.insert(approvedFates,fate)
 				elseif (not (isChain or isPrio) and (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif ((isChain or isPrio) and (gDoChainFates == "1" and fate.completion >= tonumber(gFateChainWaitPercent))) then
-					table.insert(approvedFates,fate)
+				elseif ((isChain or isPrio) and gDoChainFates == "1") then
+					if (fate.completion >= tonumber(gFateChainWaitPercent) or not firstChain) then
+						table.insert(approvedFates,fate)
+					end
 				end
 			end
 		end
@@ -2416,6 +2419,36 @@ function GetMounts()
 	end
 	
 	return MountsList
+end
+
+function GetMountID()
+	local mountID
+	local mountIndex
+	local mountlist = ActionList("type=13")
+	
+	if (ValidTable(mountlist)) then
+		--First pass, look for our named mount.
+		for k,v in pairsByKeys(mountlist) do
+			if (v.name == gMount) then
+				local acMount = ActionList:Get(v.id,13)
+				if (acMount and acMount.isready) then
+					return v.id
+				end
+			end
+		end
+		
+		--Second pass, look for any mount as backup.
+		if (gMount == GetString("none")) then
+			for k,v in pairsByKeys(mountlist) do
+				local acMount = ActionList:Get(v.id,13)
+				if (acMount and acMount.isready) then
+					return v.id
+				end
+			end		
+		end
+	end
+	
+	return nil
 end
 
 function IsMounting()
@@ -3058,8 +3091,8 @@ function GetAetheryteByMapID(id, p)
 			[2] = { name = "Ceruleum", id = 22, x = -33, z = -32 },
 		},
 		[401] = {name = "Sea of Clouds",
-			[1] = { name = "OkZundu", id = 72, x = -611, z = 545 },
-			[2] = { name = "Cloudtop", id = 73, x = -606, z = -419 },
+			[1] = { name = "Cloudtop", id = 72, x = -611, z = 545 },
+			[2] = { name = "OkZundu", id = 73, x = -606, z = -419 },
 		},
 		[398] = {name = "Dravanian Forelands",
 			[1] = { name = "Tailfeather", id = 76, x = 533, z = 35 },
@@ -3073,7 +3106,7 @@ function GetAetheryteByMapID(id, p)
 	
 	local list = GetAttunedAetheryteList()
 	if (not pos or not sharedMaps[id]) then
-		for index,aetheryte in ipairs(list) do
+		for index,aetheryte in pairsByKeys(list) do
 			if (aetheryte.territory == id) then
 				return id, aetheryte.id
 			end
