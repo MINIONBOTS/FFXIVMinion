@@ -556,7 +556,7 @@ function c_endfate:evaluate()
     return false
 end
 function e_endfate:execute()
-	local isChain, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
+	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
 	if (isChain and not isLast and ValidTable(nextFate)) then
 		Player:Stop()
 		ml_task_hub:ThisTask().fateid = nextFate.id
