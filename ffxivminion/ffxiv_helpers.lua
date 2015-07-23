@@ -645,8 +645,7 @@ function GetBestHealTarget( npc, range )
 	end
 	
 	if (npc) then
-		el = EntityList("lowesthealth,alive,friendly,targetable,maxdistance="..tostring(range))
-		--el = EntityList("lowesthealth,alive,friendly,maxdistance="..tostring(range))
+		el = EntityList("lowesthealth,alive,targetable,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then

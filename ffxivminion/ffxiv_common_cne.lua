@@ -1865,8 +1865,8 @@ function c_returntomarker:evaluate()
 		
 		if (gBotMode == GetString("gatherMode")) then
 			local gatherid = ml_task_hub:CurrentTask().gatherid or 0
-			if (gatherid == 0) then
-				d("No gatherable currently, return to the next marker.")
+			if (gatherid == 0 and distance > 25) then
+				d("No gatherable currently, return to the marker.")
 				return true
 			end
 			if (gMarkerMgrMode ~= GetString("markerTeam")) then
@@ -1905,7 +1905,10 @@ function e_returntomarker:execute()
     local markerType = ml_global_information.currentMarker:GetType()
     newTask.pos = markerPos
     newTask.range = math.random(5,25)
-	if (markerType == GetString("huntMarker")) then
+	if (markerType == GetString("huntMarker") or
+		markerType == GetString("miningMarker") or
+		markerType == GetString("botanyMarker")) 
+	then
 		newTask.remainMounted = true
 	end
     if (markerType == GetString("fishingMarker")) then
@@ -1913,6 +1916,32 @@ function e_returntomarker:execute()
         newTask.range = 0.5
         newTask.doFacing = true
     end
+	
+	--[[
+	newTask.abortFunction = function()
+		if (gBotMode == GetString("grindMode")) then
+			local newTarget = GetNearestGrind()
+			if (ValidTable(newTarget)) then
+				return true
+			end
+			
+			if (gGather == "1") then
+				local node = eso_gather_manager.ClosestNode(true)
+				if (ValidTable(node)) then
+					return true
+				end
+			end
+		end
+		if (gBotMode == GetString("gatherMode")) then
+			local node = eso_gather_manager.ClosestNode(true)
+			if (ValidTable(node)) then
+				return true
+			end
+		end
+		return false
+	end
+	--]]
+	
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 

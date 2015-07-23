@@ -461,17 +461,16 @@ function c_nextgathermarker:evaluate()
     if ( ml_task_hub:ThisTask().currentMarker ~= nil and ml_task_hub:ThisTask().currentMarker ~= 0 ) then
 		d("Checking for new markers.")
         local marker = nil
-        
+        local markerType = ""
+		if (Player.job == FFXIV.JOBS.BOTANIST) then
+			markerType = GetString("botanyMarker")
+		else
+			markerType = GetString("miningMarker")
+		end
+		d("Marker type is ["..tostring(markerType).."]")
+		
         -- first check to see if we have no initialized marker
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
-            local markerType = ""
-            if (Player.job == FFXIV.JOBS.BOTANIST) then
-                markerType = GetString("botanyMarker")
-            else
-                markerType = GetString("miningMarker")
-            end
-			d("Marker type is ["..tostring(markerType).."]")
-			
             marker = ml_marker_mgr.GetNextMarker(markerType, ml_task_hub:ThisTask().filterLevel)
 			
 			if (marker == nil) then
@@ -1533,11 +1532,11 @@ function ffxiv_task_gather:Init()
 	local ke_findGatherable = ml_element:create( "FindGatherable", c_findgatherable, e_findgatherable, 100 )
     self:add(ke_findGatherable, self.process_elements)
 	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 90 )
-    self:add( ke_nextMarker, self.process_elements )
-	
-	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 80 )
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 90 )
     self:add( ke_returnToMarker, self.process_elements)
+	
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 80 )
+    self:add( ke_nextMarker, self.process_elements )
 	
     local ke_moveToGatherable = ml_element:create( "MoveToGatherable", c_movetogatherable, e_movetogatherable, 70 )
     self:add( ke_moveToGatherable, self.process_elements)

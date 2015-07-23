@@ -246,11 +246,6 @@ function c_movetochainlocation:evaluate()
 		else
 			d("Distance is "..tostring(distance).." from next chain location.")
 		end
-	else
-		d("One or more chain location objectives not satisfied.")
-		d("NextFate:"..tostring(ValidTable(ml_task_hub:CurrentTask().nextFate)))
-		d("FateID:"..tostring(ml_task_hub:CurrentTask().fateid))
-		d("WaitingForChain:"..tostring(ml_task_hub:CurrentTask().waitingForChain))
 	end
     
     return false
