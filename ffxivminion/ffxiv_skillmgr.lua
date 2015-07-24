@@ -3574,17 +3574,19 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local TID = SkillMgr.CurrentTID
 		
-		local target = EntityList:Get(TID)
-		if (target and target.fateid ~= 0) then
-			local fate = GetFateByID(target.fateid)
-			if (ValidTable(fate)) then
-				if (fate.status == 2) then
-					if (Player:GetSyncLevel() == 0 and ffxiv_task_fate.RequiresSync(fate.level)) then
-						return true
+		if (gBotMode ~= GetString("assistMode")) then
+			local target = EntityList:Get(TID)
+			if (target and target.fateid ~= 0) then
+				local fate = GetFateByID(target.fateid)
+				if (ValidTable(fate)) then
+					if (fate.status == 2) then
+						if (Player:GetSyncLevel() == 0 and ffxiv_task_fate.RequiresSync(fate.level)) then
+							return true
+						end
 					end
+				else
+					return true
 				end
-			else
-				return true
 			end
 		end
 		

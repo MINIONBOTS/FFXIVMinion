@@ -3571,6 +3571,8 @@ function EquippedItemLevel(slot)
 			end
 		end
 	end
+	
+	--d("Could not find an equipped item in slot ["..tostring(slot).."], returning 0.")
 	return 0
 end
 

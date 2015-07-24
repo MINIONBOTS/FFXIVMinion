@@ -25,6 +25,14 @@ ml_mesh_mgr.OMCType = nil
 ml_mesh_mgr.OMCIsHandled = false
 ml_mesh_mgr.OMCStartPositionReached = false
 ml_mesh_mgr.OMCJumpStartedTimer = 0
+ml_mesh_mgr.OMCFlightStarted = 0
+ml_mesh_mgr.OMCFlightJumps = 0
+ml_mesh_mgr.OMCAltitudeReached = 0
+ml_mesh_mgr.OMCFlightAscend = 0
+ml_mesh_mgr.OMCFlightForward = 0
+ml_mesh_mgr.OMCFlightStopped = 0
+ml_mesh_mgr.OMCMinAltitude = 0
+ml_mesh_mgr.OMCMounted = 0
 ml_mesh_mgr.OMCThrottle = 0
 ml_mesh_mgr.OMCLastDistance = 0
 ml_mesh_mgr.OMCStartingDistance = 0
@@ -112,6 +120,16 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
 							return
 						end
+					elseif (ml_mesh_mgr.OMCType == "OMC_PORTAL") then
+						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						ml_mesh_mgr.OMCMeshDistance = meshdist
+						if ((not Player.ismounted and meshdist < 1.7) or (Player.ismounted and meshdist < 2.5)) then
+							ml_mesh_mgr.OMCStartingDistance = meshdist
+							ml_mesh_mgr.OMCStartPositionReached = true
+							
+							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
+							return
+						end
 					else
 						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
@@ -193,7 +211,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						
 						if (not Player:IsJumping()) then
 							local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
-							if ((not Player.ismounted and dist < 1) or (Player.ismounted and dist < 1.5)) then
+							if ((not Player.ismounted and dist < 1.7) or (Player.ismounted and dist < 2.7)) then
 								Player:Stop()
 								ml_mesh_mgr.ResetOMC()
 							end
@@ -281,18 +299,148 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						ml_mesh_mgr.ResetOMC()
 						return
 					end
-					
+
 				elseif ( ml_mesh_mgr.OMCType == "OMC_PORTAL" ) then
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
-						if ( not ml_global_information.Player_IsMoving ) then Player:Move(FFXIV.MOVEMENT.FORWARD) end
-						local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
-						if ( dist < 1.00 ) then
-							d("OMC Endposition reached..")
-							ml_mesh_mgr.ResetOMC()
+					ml_mesh_mgr.OMCThrottle = Now() + 100
+					
+					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then						
+						if (ml_mesh_mgr.OMCMounted == 0) then
+							if (Player.ismounted) then
+								local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
+								if ( not ml_mesh_mgr.IsFacing(facingPos)) then
+									d("We are not facing the endpoint, face it now.")
+									d("Current position: x ["..tostring(pPos.x).."] y ["..tostring(pPos.y).."] z ["..tostring(pPos.z).."]")
+									d("End position: x ["..tostring(ePos.x).."] y ["..tostring(ePos.y).."] z ["..tostring(ePos.z).."]")
+									Player:SetFacing(ePos.x,ePos.y,ePos.z)
+								else
+									ml_mesh_mgr.OMCMounted = 1
+								end
+								
+								ml_mesh_mgr.OMCThrottle = Now() + 200
+								return
+							else
+								if (not IsMounting()) then
+									if (not Player.incombat) then								
+										local mountID = GetMountID()
+										if (mountID ~= nil) then
+											if (Player:IsMoving()) then
+												d("Throwing Stop() in mount block.")
+												Player:Stop()
+												ml_mesh_mgr.OMCThrottle = Now() + 100
+												return
+											else
+												Mount(mountID)
+												ml_mesh_mgr.OMCThrottle = Now() + 1000
+												return
+											end
+										end
+									else
+										d("Throwing Stop() in combat detection, mount block.")
+										Player:Stop()
+										ml_mesh_mgr.ResetOMC()
+										return
+									end
+								else
+									ml_mesh_mgr.OMCThrottle = Now() + 100
+									return
+								end
+							end
+						end
+						
+						if (ml_mesh_mgr.OMCFlightStarted == 0) then
+							d("Flight not yet started.")
+							if (ml_mesh_mgr.OMCFlightJumps < 3) then
+								d("Doing takeoff jumps.")
+								Player:Jump()
+								ml_mesh_mgr.OMCFlightJumps = ml_mesh_mgr.OMCFlightJumps + 1
+								ml_mesh_mgr.OMCThrottle = Now() + 200
+								return
+							else
+								ml_mesh_mgr.OMCFlightStarted = Now()
+							end
+						end
+						
+						if (ml_mesh_mgr.OMCAltitudeReached == 0) then
+							d("Minimum altitude is not yet reached.")
+							
+							if (ml_mesh_mgr.OMCMinAltitude == 0) then
+								local minaltitudes = {
+									[-1] = 200,
+									[397] = 200,
+								}
+							
+								local minaltitude = minaltitudes[Player.localmapid] or minaltitudes[-1]
+								if (Player.pos.y > minaltitude) then
+									ml_mesh_mgr.OMCMinAltitude = Player.pos.y + 20
+									d("Setting min altitude to "..tostring(Player.pos.y + 20))
+								else
+									ml_mesh_mgr.OMCMinAltitude = minaltitude
+									d("Setting min altitude to "..tostring(minaltitude))
+								end
+								return
+							end
+							
+							if (Player.pos.y < ml_mesh_mgr.OMCMinAltitude) then
+								if (ml_mesh_mgr.OMCFlightAscend == 0) then
+									d("Setting ascend.")
+									Player:Move(128)
+									ml_mesh_mgr.OMCFlightAscend = Now()
+								end
+								
+								ml_mesh_mgr.OMCThrottle = Now() + 200
+								return
+							else
+								d("Minimum altitude is reached.")
+								ml_mesh_mgr.OMCAltitudeReached = Now()
+								d("Throwing Stop() in altitude block.")
+								Player:Stop()
+								ml_mesh_mgr.OMCThrottle = Now() + 750
+								return
+							end
+						end
+						
+						local dist3D = Distance3D(pPos.x,pPos.y,pPos.z,ePos.x,ePos.y,ePos.z)
+						if (dist3D < 5) then
+							d("We are close enough to the endpoint to reset.")
 							Player:Stop()
-							ml_mesh_mgr.OMCThrottle = Now() + 2000
-						else
+							ml_mesh_mgr.ResetOMC()
 							return
+						else
+							d("We are not close enough to the endpoint to reset yet.")
+						end
+						
+						local dist = Distance2D(pPos.x,pPos.z,ePos.x,ePos.z)
+						if (dist > 7) then
+							if (ml_mesh_mgr.OMCFlightForward == 0) then
+								d("Initiating forward movement.")
+								Player:Move(348)
+								ml_mesh_mgr.OMCFlightForward = {x = Player.pos.x, y = Player.pos.y, z = Player.pos.z}
+							else
+								if (ValidTable(ml_mesh_mgr.OMCFlightForward)) then
+									local dist = Distance2D(Player.pos.x,Player.pos.z,ml_mesh_mgr.OMCFlightForward.x,ml_mesh_mgr.OMCFlightForward.z)
+									if (dist < 1) then
+										Player:Move(348)
+									end
+								end
+							end
+							
+							d("Current 2D distance from endpoint, "..tostring(dist))
+							ml_mesh_mgr.OMCThrottle = Now() + 200
+							return
+						else
+							if (ml_mesh_mgr.OMCFlightStopped == 0) then
+								d("Stopping flight, reached x,z.")
+								Player:Move(348)
+								Player:Stop()
+								ml_mesh_mgr.OMCFlightStopped = Now()
+								ml_mesh_mgr.OMCThrottle = Now() + 200
+								return
+							else
+								d("Dismounting to land.")
+								Dismount()
+								ml_mesh_mgr.OMCThrottle = Now() + 500
+								return
+							end
 						end
 					end
 				end
@@ -310,10 +458,33 @@ function ml_mesh_mgr.ResetOMC()
 	ml_mesh_mgr.OMCIsHandled = false
 	ml_mesh_mgr.OMCStartPositionReached = false
 	ml_mesh_mgr.OMCJumpStartedTimer = 0
+	ml_mesh_mgr.OMCFlightStarted = 0
+	ml_mesh_mgr.OMCFlightJumps = 0
+	ml_mesh_mgr.OMCAltitudeReached = 0
+	ml_mesh_mgr.OMCFlightAscend = 0
+	ml_mesh_mgr.OMCMounted = 0
 	ml_mesh_mgr.OMCThrottle = 0
 	ml_mesh_mgr.OMCLastDistance = 0
 	ml_mesh_mgr.OMCStartingDistance = 0
 	ml_mesh_mgr.OMCTarget = 0
+end
+
+function ml_mesh_mgr.IsFacing(pos)
+	local ppos = Player.pos
+	local epos = pos
+	local playerHeading = ConvertHeading(ppos.h)
+	
+	local playerAngle = math.atan2(epos.x - ppos.x, epos.z - ppos.z) 
+	local deviation = playerAngle - playerHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .99) and leftover < (math.pi * 1.01)) then
+		return true
+	else
+		d("Leftover return was :"..tostring(leftover))
+	end
+    return false
 end
 
 function ml_mesh_mgr.UnpackArgsForOMC( args )

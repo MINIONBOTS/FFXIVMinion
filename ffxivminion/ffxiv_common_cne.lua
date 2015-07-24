@@ -702,18 +702,21 @@ e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
 	if (IsPositionLocked() or ActionList:IsCasting() or GilCount() < 1500) then
+		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
 	end
 	
-	local el = EntityList("alive,attackable,onmesh,targetingme")
+	local el = EntityList("alive,attackable,onmesh,aggro")
 	if (ValidTable(el)) then
+		ml_debug("Cannot use teleport, we have aggro currently.")
 		return false
 	end
 	
 	--Only perform this check when dismounted.
 	if (not Player.ismounted) then
 		local teleport = ActionList:Get(7,5)
-		if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5 or Player.castinginfo.castingid == 5) then
+		if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5) then
+			ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
 			return false
 		end
 	end
@@ -744,10 +747,18 @@ function c_teleporttomap:evaluate()
 						e_teleporttomap.destMap = mapid
 						e_teleporttomap.aethid = aethid
 						return true
+					else
+						ml_debug("Cannot use teleport, not enough gil or not attuned.")
 					end
 				end
+			else
+				ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
             end
+		else
+			ml_debug("Cannot use teleport, the current path returned wasn't valid.")
         end
+	else
+		ml_debug("Cannot use teleport, no destination map ID was provided.")
     end
     
     return false
@@ -2269,7 +2280,6 @@ function c_autoequip:evaluate()
 		end
 	end
 	
-	c_autoequip.timer = Now() + 30000
 	return false
 end
 function e_autoequip:execute()

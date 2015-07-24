@@ -171,7 +171,7 @@ function c_teletofate:evaluate()
 	
     if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
         local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-        if (fate ~= nil and TableSize(fate) > 0) then
+        if (ValidTable(fate)) then
 		
 			local percent = tonumber(gFateTeleportPercent)
 			if (gTeleport == "1" and percent == 0) then
@@ -268,18 +268,20 @@ function c_movewithfate:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 	
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-		local currentFatePos = ml_task_hub:CurrentTask().fatePos
-		local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
-	
-		local tablesEqual = true
 		if (ValidTable(fate)) then
-			if (not ValidTable(currentFatePos)) then
-				currentFatePos = shallowcopy(newFatePos)
-				return false
-			elseif (ValidTable(currentFatePos) and not Player.incombat) then
-				if (not deepcompare(currentFatePos,newFatePos,true)) then
+			local currentFatePos = ml_task_hub:CurrentTask().fatePos
+			local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
+		
+			local tablesEqual = true
+			if (ValidTable(fate)) then
+				if (not ValidTable(currentFatePos)) then
 					currentFatePos = shallowcopy(newFatePos)
-					return true
+					return false
+				elseif (ValidTable(currentFatePos) and not Player.incombat) then
+					if (not deepcompare(currentFatePos,newFatePos,true)) then
+						currentFatePos = shallowcopy(newFatePos)
+						return true
+					end
 				end
 			end
 		end
