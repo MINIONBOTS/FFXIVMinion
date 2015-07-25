@@ -381,8 +381,13 @@ function c_updatefate:evaluate()
 			end
 		end
 		
-		if (ml_task_hub:ThisTask().waitingForChain) then ml_task_hub:ThisTask().waitingForChain = false end
-		if (ValidTable(ml_task_hub:ThisTask().nextFate)) then ml_task_hub:ThisTask().nextFate = {} end
+		if (ml_task_hub:ThisTask().waitingForChain) then 
+			ml_task_hub:ThisTask().waitingForChain = false 
+			ml_debug("Removing FATE wait flag.")
+		end
+		if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
+			ml_task_hub:ThisTask().nextFate = {} 
+		end
 	end
 	
 	return false
@@ -540,16 +545,18 @@ c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
 	if (ml_task_hub:ThisTask().waitingForChain) then
+		ml_debug("Currently waiting for chain, can't end.")
 		return false
 	end
 	
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
     if (not fate or fate.completion > 99) then
+		ml_debug("Ending fate.")
         return true
     end
 	
 	if (not IsFateApproved(fate.id)) then
-		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		ml_debug("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
 		return true
 	end
     
@@ -558,11 +565,13 @@ end
 function e_endfate:execute()
 	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
 	if (isChain and not isLast and ValidTable(nextFate)) then
+		ml_debug("Setting FATE to wait for next part of the chain.")
 		Player:Stop()
 		ml_task_hub:ThisTask().fateid = nextFate.id
 		ml_task_hub:ThisTask().waitingForChain = true
 		ml_task_hub:ThisTask().nextFate = nextFate
 	else
+		ml_debug("Setting FATE to end completely.")
 		ffxiv_task_grind.inFate = false
 		Player:Stop()
 		ml_task_hub:ThisTask().completed = true
@@ -607,6 +616,13 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 				{ id = 644, x = 255.6, y = 25, z = 10 },
 				{ id = 645, x = 255.6, y = 25, z = 10 },
 				{ id = 646, x = 255.6, y = 25, z = 10 },
+			},
+		},
+		[400] = {
+			[1] = {
+				{ id = 868, x = -214.5, y = 138.5, z = -644.5 },
+				{ id = 869, x = -214.5, y = 138.5, z = -644.5 },
+				{ id = 870, x = -214.5, y = 138.5, z = -644.5 },
 			},
 		},
 	}

@@ -251,5 +251,6 @@ end
 
 -- Register Event Handlers
 RegisterEventHandler("Module.Initalize",wt_radar.HandleInit)
+RegisterEventHandler("Radar.toggle", wt_radar.ToggleMenu)
 RegisterEventHandler("GUI.Update",wt_radar.GUIVarUpdate)
 RegisterEventHandler("GUI.Item", wt_radar.HandleButtons )
