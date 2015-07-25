@@ -659,6 +659,10 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
 		ml_mesh_mgr.SetDefaultMesh(177, "Limsa Lominsa - Inn")
 		
+		ml_mesh_mgr.SetDefaultMesh(181, "Limsa (Lower)")
+		ml_mesh_mgr.SetDefaultMesh(182, "Ul dah - Steps of Nald")
+		ml_mesh_mgr.SetDefaultMesh(183, "New Gridania")
+		
 		ml_mesh_mgr.SetDefaultMesh(203, "Ul dah - Heart of the Sworn")
 		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
 		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
