@@ -340,16 +340,16 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 										ml_mesh_mgr.ResetOMC()
 										return
 									end
-								else
-									ml_mesh_mgr.OMCThrottle = Now() + 100
-									return
 								end
 							end
+							
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+							return
 						end
 						
 						if (ml_mesh_mgr.OMCFlightStarted == 0) then
 							d("Flight not yet started.")
-							if (ml_mesh_mgr.OMCFlightJumps < 3) then
+							if (ml_mesh_mgr.OMCFlightJumps < 2) then
 								d("Doing takeoff jumps.")
 								Player:Jump()
 								ml_mesh_mgr.OMCFlightJumps = ml_mesh_mgr.OMCFlightJumps + 1
@@ -358,6 +358,9 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							else
 								ml_mesh_mgr.OMCFlightStarted = Now()
 							end
+							
+							ml_mesh_mgr.OMCThrottle = Now() + 100
+							return
 						end
 						
 						if (ml_mesh_mgr.OMCAltitudeReached == 0) then
@@ -386,7 +389,6 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 									Player:Move(128)
 									ml_mesh_mgr.OMCFlightAscend = Now()
 								end
-								
 								ml_mesh_mgr.OMCThrottle = Now() + 200
 								return
 							else
@@ -394,52 +396,57 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								ml_mesh_mgr.OMCAltitudeReached = Now()
 								d("Throwing Stop() in altitude block.")
 								Player:Stop()
-								ml_mesh_mgr.OMCThrottle = Now() + 750
+								ml_mesh_mgr.OMCThrottle = Now() + 250
 								return
 							end
+							
+							ml_mesh_mgr.OMCThrottle = Now() + 200
+							return
 						end
 						
 						local dist3D = Distance3D(pPos.x,pPos.y,pPos.z,ePos.x,ePos.y,ePos.z)
-						if (dist3D < 5) then
+						if (dist3D < 8) then
 							d("We are close enough to the endpoint to reset.")
 							Player:Stop()
 							ml_mesh_mgr.ResetOMC()
 							return
 						else
-							d("We are not close enough to the endpoint to reset yet.")
+							d("We are not close enough to the endpoint to reset yet, distance is "..tostring(dist3D))
 						end
 						
-						local dist = Distance2D(pPos.x,pPos.z,ePos.x,ePos.z)
-						if (dist > 7) then
-							if (ml_mesh_mgr.OMCFlightForward == 0) then
-								d("Initiating forward movement.")
-								Player:Move(348)
-								ml_mesh_mgr.OMCFlightForward = {x = Player.pos.x, y = Player.pos.y, z = Player.pos.z}
-							else
-								if (ValidTable(ml_mesh_mgr.OMCFlightForward)) then
-									local dist = Distance2D(Player.pos.x,Player.pos.z,ml_mesh_mgr.OMCFlightForward.x,ml_mesh_mgr.OMCFlightForward.z)
-									if (dist < 1) then
-										Player:Move(348)
+						if (ml_mesh_mgr.OMCAltitudeReached ~= 0) then
+							local dist = Distance2D(pPos.x,pPos.z,ePos.x,ePos.z)
+							if (dist > 7) then
+								if (ml_mesh_mgr.OMCFlightForward == 0) then
+									d("Initiating forward movement.")
+									Player:MoveToStraight(ePos.x,ePos.y,ePos.z)
+									ml_mesh_mgr.OMCFlightForward = {x = pPos.x, z = pPos.z}
+								else
+									if (ValidTable(ml_mesh_mgr.OMCFlightForward)) then
+										local diststart = Distance2D(pPos.x,pPos.z,ml_mesh_mgr.OMCFlightForward.x,ml_mesh_mgr.OMCFlightForward.z)
+										if (diststart < 1) then
+											Player:MoveToStraight(ePos.x,ePos.y,ePos.z)
+										end
 									end
 								end
-							end
-							
-							d("Current 2D distance from endpoint, "..tostring(dist))
-							ml_mesh_mgr.OMCThrottle = Now() + 200
-							return
-						else
-							if (ml_mesh_mgr.OMCFlightStopped == 0) then
-								d("Stopping flight, reached x,z.")
-								Player:Move(348)
-								Player:Stop()
-								ml_mesh_mgr.OMCFlightStopped = Now()
+								
+								d("Current 2D distance from endpoint, "..tostring(dist))
 								ml_mesh_mgr.OMCThrottle = Now() + 200
 								return
 							else
-								d("Dismounting to land.")
-								Dismount()
-								ml_mesh_mgr.OMCThrottle = Now() + 500
-								return
+								if (ml_mesh_mgr.OMCFlightStopped == 0) then
+									d("Stopping flight, reached x,z.")
+									Player:Move(348)
+									Player:Stop()
+									ml_mesh_mgr.OMCFlightStopped = Now()
+									ml_mesh_mgr.OMCThrottle = Now() + 200
+									return
+								else
+									d("Dismounting to land.")
+									Dismount()
+									ml_mesh_mgr.OMCThrottle = Now() + 500
+									return
+								end
 							end
 						end
 					end
@@ -462,6 +469,7 @@ function ml_mesh_mgr.ResetOMC()
 	ml_mesh_mgr.OMCFlightJumps = 0
 	ml_mesh_mgr.OMCAltitudeReached = 0
 	ml_mesh_mgr.OMCFlightAscend = 0
+	ml_mesh_mgr.OMCFlightForward = 0
 	ml_mesh_mgr.OMCMounted = 0
 	ml_mesh_mgr.OMCThrottle = 0
 	ml_mesh_mgr.OMCLastDistance = 0

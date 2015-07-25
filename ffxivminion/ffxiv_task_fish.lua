@@ -133,10 +133,10 @@ function c_release:evaluate()
 			if (release and release.isready) then
 				local marker = ml_global_information.currentMarker
 				if (ValidTable(marker)) then
-					local whitelist = marker:GetFieldValue("Whitelist Fish")
-					local whitelistHQ = marker:GetFieldValue("Whitelist Fish (HQ)")
-					local blacklist = marker:GetFieldValue("Blacklist Fish")
-					local blacklistHQ = marker:GetFieldValue("Blacklist Fish (HQ)")
+					local whitelist = marker:GetFieldValue(GetString("whitelistFish"))
+					local whitelistHQ = marker:GetFieldValue(GetString("whitelistFishHQ"))
+					local blacklist = marker:GetFieldValue(GetString("blacklistFish"))
+					local blacklistHQ = marker:GetFieldValue(GetString("blacklistFishHQ"))
 					
 					local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 					if (lastCatch) then
