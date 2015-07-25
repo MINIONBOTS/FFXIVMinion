@@ -1448,7 +1448,7 @@ function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
 
-function GetSkillByID(skillid)
+function GetSkillByID(skillid,skilltype)
 	local skillid = tonumber(skillid)
 	
 	local skilltypes = {
@@ -1457,12 +1457,23 @@ function GetSkillByID(skillid)
 		[8] = true,
 	}
 	
-	for id,_ in pairs(skilltypes) do
-		local al = ActionList("type="..tostring(id))
+	if (skilltype) then
+		local al = ActionList("type="..tostring(skilltype))
 		if (al) then
 			for id,skill in pairs(al) do
 				if (id == skillid) then
 					return skill
+				end
+			end
+		end
+	else
+		for id,_ in pairs(skilltypes) do
+			local al = ActionList("type="..tostring(id))
+			if (al) then
+				for id,skill in pairs(al) do
+					if (id == skillid) then
+						return skill
+					end
 				end
 			end
 		end

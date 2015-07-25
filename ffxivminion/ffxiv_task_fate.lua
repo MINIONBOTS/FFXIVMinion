@@ -243,8 +243,6 @@ function c_movetochainlocation:evaluate()
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 		if (distance > 5) then				
 			return true
-		else
-			d("Distance is "..tostring(distance).." from next chain location.")
 		end
 	end
     
@@ -351,7 +349,7 @@ function c_syncfatelevel:evaluate()
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
 	if ( ValidTable(fate)) then
-		if (ffxiv_task_fate.RequiresSync(fate.level)) then
+		if (AceLib.API.Fate.RequiresSync(fate.id)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
 				return true
@@ -469,7 +467,7 @@ function c_add_fatetarget:evaluate()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		
 		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
-		if (not ffxiv_task_fate.RequiresSync(fate.level) or dist < fate.radius) then
+		if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
 			local target = GetNearestFateAttackable()
 			if (ValidTable(target)) then
 				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
@@ -572,26 +570,6 @@ function e_endfate:execute()
 		ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
 		ml_global_information.suppressRestTimer = Now() + 10000
 	end
-end
-
-function ffxiv_task_fate.RequiresSync(fateLevel)
-	local fateLevel = tonumber(fateLevel) or 0
-	local playerLevel = Player.level
-	
-	local requiresSync = false
-	if (fateLevel > 0) then
-		if (fateLevel < 50) then
-			if ((fateLevel < (playerLevel - 5)) or Player.level > 50) then
-				requiresSync = true
-			end
-		else
-			if (fateLevel < (playerLevel - 4)) then
-				requiresSync = true
-			end
-		end
-	end
-		
-	return requiresSync
 end
 
 function ffxiv_task_fate.IsHighPriority(mapid, fateid)

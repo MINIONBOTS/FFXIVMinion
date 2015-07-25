@@ -1,5 +1,5 @@
 ﻿-- Skillmanager for adv. skill customization
-SkillMgr = { }
+SkillMgr = {}
 SkillMgr.version = "v2.0";
 SkillMgr.lastTick = 0
 SkillMgr.ConditionList = {}
@@ -68,8 +68,7 @@ SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.DARKKNIGHT] = 3617,
 }
 
-SkillMgr.StartingProfiles = 
-{
+SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.GLADIATOR] = "Gladiator",
 	[FFXIV.JOBS.PALADIN] = "Paladin",
     [FFXIV.JOBS.MARAUDER] = "Marauder",
@@ -97,8 +96,7 @@ SkillMgr.StartingProfiles =
 	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
 }
 
-SkillMgr.ActionTypes = 
-{
+SkillMgr.ActionTypes = {
 	ACTIONS = 1,
 	CRAFT = 9,
 	PET = 11,
@@ -1255,7 +1253,7 @@ function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-			local clientSkill = GetSkillByID(skill.id)
+			local clientSkill = GetSkillByID(skill.id,skill.type)
 			local skillFound = ValidTable(clientSkill)
 			local skillName = (clientSkill and clientSkill.name) or skill.name
 			local viewString = ""
@@ -1320,10 +1318,18 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	else
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "fighting") then
-				if (v.useData) then
-					SkillMgr.SkillProfile[newskillprio][v.profile] = realskilldata[v.useData] or v.default
+				if (v.profile == "stype") then
+					if (skType == 11) then
+						SkillMgr.SkillProfile[newskillprio][v.profile] = "Pet"
+					else
+						SkillMgr.SkillProfile[newskillprio][v.profile] = "Action"
+					end
 				else
-					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+					if (v.useData) then
+						SkillMgr.SkillProfile[newskillprio][v.profile] = realskilldata[v.useData] or v.default
+					else
+						SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+					end
 				end
 			end
 		end
@@ -1666,7 +1672,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end	
 						end
 					else
-						local s = ActionList:Get(skill.id,11,TID)
+						local s = ActionList:Get(skill.id,11)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						
 						local attempt = 1
@@ -2497,9 +2503,6 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	-- If the skill is a ninjutsu, and we don't have the mudra buff, it won't succeed.
 	-- If the skill is a mudra, and we cast it less than 600ms ago, don't recast.
 	if (castable) then
-		--if (IsNinjutsuSkill(skillid) and (MissingBuffs(Player,"496",3))) then
-			--castable = false
-		--end
 		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 600) then
 			castable = false
 		end
@@ -2717,7 +2720,7 @@ function SkillMgr.AddDefaultConditions()
 			return false
 		elseif (not realskilldata.isready and realskilldata.recasttime == 2.5 and (gAssistUseAutoFace == "1" or realskilldata.isfacing or skill.trg == "Ground Target") and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
 			return false
-		elseif ((skill.trg == "Ground Target" or skill.type == "Pet") and realskilldata.isready) then
+		elseif ((skill.trg == "Ground Target" or skill.type == 11) and realskilldata.isready) then
 			return false
 		end
 		return true
@@ -3580,7 +3583,7 @@ function SkillMgr.AddDefaultConditions()
 				local fate = GetFateByID(target.fateid)
 				if (ValidTable(fate)) then
 					if (fate.status == 2) then
-						if (Player:GetSyncLevel() == 0 and ffxiv_task_fate.RequiresSync(fate.level)) then
+						if (Player:GetSyncLevel() == 0 and AceLib.API.Fate.RequiresSync(fate.id)) then
 							return true
 						end
 					end

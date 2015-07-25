@@ -372,7 +372,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		local myPos = Player.pos
 		local fatedist = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
-		if (not ffxiv_task_fate.RequiresSync(fate.level) or fatedist < fate.radius) then
+		if (not AceLib.API.Fate.RequiresSync(fate.id) or fatedist < fate.radius) then
 			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
 			local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(maxdistance)..",fateid="..tostring(fate.id))
 			if ( ValidTable(el) ) then
@@ -1439,7 +1439,7 @@ function ffxiv_task_grindCombat:Process()
 				local fateID = target.fateid
 				local fate = GetFateByID(fateID)
 				if ( fate and fate.completion < 100 and fate.status == 2) then
-					if (ffxiv_task_fate.RequiresSync(fate.level)) then
+					if (AceLib.API.Fate.RequiresSync(fate.id)) then
 						local myPos = Player.pos
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 						if (distance <= fate.radius) then				
