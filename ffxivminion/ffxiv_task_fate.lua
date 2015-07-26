@@ -422,7 +422,7 @@ function c_resettarget:evaluate()
     return false
 end
 function e_resettarget:execute()
-	d("Dropping target outside FATE radius.")
+	ml_debug("Dropping target outside FATE radius.")
 end
 
 c_faterandomdelay = inheritsFrom( ml_cause )
@@ -448,7 +448,7 @@ function e_faterandomdelay:execute()
 	
 	ml_task_hub:CurrentTask():SetDelay(math.random(minWait,maxWait))
 	ml_task_hub:ThisTask().randomDelayCompleted = true
-	d("Random delay commenced.")
+	ml_debug("Random delay commenced.")
 end
 
 c_add_fatetarget = inheritsFrom( ml_cause )
@@ -607,7 +607,6 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 			[1] = {
 				{ id = 501, x = 278.2, y = 338.7, z = -505.9 },
 				{ id = 502, x = 266.5, y = 360.7, z = -624.6 },
-				{ id = 503, x = 231.8, y = 357.6, z = -664.8 },
 			},
 		},
 		[147] = {
@@ -642,7 +641,7 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 						end
 					end
 					
-					--d("Is this the last chain member? "..tostring(lastChain))
+					--ml_debug("Is this the last chain member? "..tostring(lastChain))
 					return true, firstChain, lastChain, nextFate
 				end
 			end

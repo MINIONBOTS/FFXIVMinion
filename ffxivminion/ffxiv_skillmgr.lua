@@ -510,7 +510,6 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
 	
-	
     GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
 	
     GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
@@ -1486,6 +1485,22 @@ function SkillMgr.IsMinuetAffected(skillid)
 		[113] = "Windbite",
 		[3558] = "EmpyrealArrow",
 		[3560] = "IronJaws"
+	}
+	
+	return affectedSkills[skillid]
+end
+
+function SkillMgr.IsGaussAffected(skillid)
+	local skillid = tonumber(skillid) or 0
+	local affectedSkills = {
+		[2866] = "Split Shot",
+		[2872] = "Hot Shot",
+		[2869] = "Lead Shot",
+		[2870] = "Spread Shot",
+		[2868] = "Slug Shot",
+		[2873] = "Clean Shot",		
+		[2871] = "Grenado Shot"
+
 	}
 	
 	return affectedSkills[skillid]
@@ -3808,7 +3823,7 @@ function SkillMgr.AddDefaultConditions()
 					return true
 				end
 			else
-				if (HasBuffs(Player,"865") and SkillMgr.IsMinuetAffected(skill.id)) then
+				if ((HasBuffs(Player,"865") and SkillMgr.IsMinuetAffected(skill.id)) or (HasBuffs(Player,"858") and SkillMgr.IsGaussAffected(skill.id)))  then
 					return true
 				end
 			end

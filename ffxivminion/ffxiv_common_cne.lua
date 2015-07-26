@@ -713,12 +713,10 @@ function c_teleporttomap:evaluate()
 	end
 	
 	--Only perform this check when dismounted.
-	if (not Player.ismounted) then
-		local teleport = ActionList:Get(7,5)
-		if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5) then
-			ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
-			return false
-		end
+	local teleport = ActionList:Get(7,5)
+	if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5) then
+		ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
+		return false
 	end
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
@@ -766,11 +764,6 @@ end
 function e_teleporttomap:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
-	end
-	
-	if (Player.ismounted) then
-		Dismount()
-		return
 	end
 	
 	if (ActionIsReady(7,5)) then
@@ -1927,6 +1920,9 @@ function e_returntomarker:execute()
         newTask.range = 0.5
         newTask.doFacing = true
     end
+	if	(gTeleport == "1") then
+		newTask.useTeleport = true
+	end
 	
 	--[[
 	newTask.abortFunction = function()
@@ -2137,7 +2133,6 @@ function c_teleporttopos:evaluate()
 	end
 	
 	local useTeleport = ml_task_hub:CurrentTask().useTeleport
-
 	if (ActionList:IsCasting() or IsPositionLocked() or IsLoading() or IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
 		not ValidTable(ml_task_hub:CurrentTask().pos) or not useTeleport) 
