@@ -1491,6 +1491,22 @@ function SkillMgr.IsMinuetAffected(skillid)
 	return affectedSkills[skillid]
 end
 
+function SkillMgr.IsGaussAffected(skillid)
+	local skillid = tonumber(skillid) or 0
+	local affectedSkills = {
+		[2866] = "Split Shot",
+		[2872] = "Hot Shot",
+		[2869] = "Lead Shot",
+		[2870] = "Spread Shot",
+		[2868] = "Slug Shot",
+		[2873] = "Clean Shot",		
+		[2871] = "Grenado Shot"
+
+	}
+	
+	return affectedSkills[skillid]
+end
+
 function SkillMgr.UpdateChain(prio,castedskill)
 	local prio = tonumber(prio) or 0
 	local castedskill = tonumber(castedskill) or 0
@@ -3808,7 +3824,7 @@ function SkillMgr.AddDefaultConditions()
 					return true
 				end
 			else
-				if (HasBuffs(Player,"865") and SkillMgr.IsMinuetAffected(skill.id)) then
+				if ((HasBuffs(Player,"865") and SkillMgr.IsMinuetAffected(skill.id)) or (HasBuffs(Player,"858") and SkillMgr.IsGaussAffected(skill.id)))  then
 					return true
 				end
 			end
