@@ -23,6 +23,7 @@ function ffxiv_task_fate.Create()
 	newinst.waitingForChain = false
 	newinst.nextFate = {}
 	newinst.randomDelayCompleted = false
+	newinst.specialDelay = 1000
 	
     --newinst.fateTimer = 0
     newinst.fateCompletion = 0
@@ -118,7 +119,7 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
 e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (TimeSince(c_betterfatesearch.timer) < 10000) then
+    if (TimeSince(c_betterfatesearch.timer) < 15000) then
         return false
     end
 	
@@ -151,6 +152,7 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
+	ml_debug("Found a better fate, switching to it.")
 	Player:Stop()
     ml_task_hub:ThisTask().fateid = e_betterfatesearch.fateid
 end
@@ -373,26 +375,30 @@ function c_updatefate:evaluate()
 	
 	local tablesEqual = true
 	if (ValidTable(fate)) then
-		if (not fatePos) then
-			fatePos = {x = fate.x, y = fate.y, z = fate.z}
-		elseif (ValidTable(fatePos) and not Player.incombat) then
-			if not deepcompare(fate,fateDetails,true) then
-				fateDetails = shallowcopy(fate)
+		if (fate.status == 2) then
+			if (not fatePos) then
+				fatePos = {x = fate.x, y = fate.y, z = fate.z}
+			elseif (ValidTable(fatePos) and not Player.incombat) then
+				if not deepcompare(fate,fateDetails,true) then
+					fateDetails = shallowcopy(fate)
+				end
 			end
-		end
-		
-		if (ml_task_hub:ThisTask().waitingForChain) then 
-			ml_task_hub:ThisTask().waitingForChain = false 
-			ml_debug("Removing FATE wait flag.")
-		end
-		if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
-			ml_task_hub:ThisTask().nextFate = {} 
+			
+			if (ml_task_hub:ThisTask().waitingForChain) then 
+				ml_task_hub:ThisTask().waitingForChain = false 
+				ml_debug("Removing FATE wait flag.")
+			end
+			if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
+				ml_task_hub:ThisTask().nextFate = {} 
+				ml_debug("Clearing next FATE.")
+			end
 		end
 	end
 	
 	return false
 end
 function e_updatefate:execute()
+	ml_debug("Updated FATE details.")
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -551,7 +557,7 @@ function c_endfate:evaluate()
 	
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
     if (not fate or fate.completion > 99) then
-		ml_debug("Ending fate.")
+		ml_debug("Ending fate, fate over.")
         return true
     end
 	
@@ -570,8 +576,10 @@ function e_endfate:execute()
 		ml_task_hub:ThisTask().fateid = nextFate.id
 		ml_task_hub:ThisTask().waitingForChain = true
 		ml_task_hub:ThisTask().nextFate = nextFate
+		ml_task_hub:ThisTask().specialDelay = nextFate.specialDelay
 	else
 		ml_debug("Setting FATE to end completely.")
+		ml_debug("isChain:"..tostring(isChain)..",isFirst:"..tostring(isFirst)..",isLast:"..tostring(isLast))
 		ffxiv_task_grind.inFate = false
 		Player:Stop()
 		ml_task_hub:ThisTask().completed = true
@@ -602,11 +610,13 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 	local mapid = tonumber(mapid) or 0
 	local fateid = tonumber(fateid) or 0
 	
+	--d("Checking to see if fateid:"..tostring(fateid).." is a chain for mapid:"..tostring(mapid))
+	
 	local chains = {
 		[155] = {
 			[1] = {
 				{ id = 501, x = 278.2, y = 338.7, z = -505.9 },
-				{ id = 502, x = 266.5, y = 360.7, z = -624.6 },
+				{ id = 502, x = 266.5, y = 360.7, z = -624.6, specialDelay = 10000 },
 			},
 		},
 		[147] = {
@@ -641,14 +651,14 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 						end
 					end
 					
-					--ml_debug("Is this the last chain member? "..tostring(lastChain))
+					ml_debug("IsChain:"..tostring(firstChain)..","..tostring(lastChain)..tostring(nextFate))
 					return true, firstChain, lastChain, nextFate
 				end
 			end
 		end
 	end
 	
-	return false, nil, nil
+	return false, nil, nil, nil
 end
 
 function ffxiv_task_fate.BlacklistInitUI()
