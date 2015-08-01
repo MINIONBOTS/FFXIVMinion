@@ -532,10 +532,12 @@ function ffxiv_task_duty:Process()
 			local encounter = encounters[self.encounterIndex]
 			
 			if (ValidTable(encounter)) then
-				self.state = "DUTY_NEXTENCOUNTER"
-				self.encounter = encounter
-				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
-				self.encounterCompleted = false
+				if (encounter.taskFunction ~= "ffxiv_task_loot.Create") then
+					self.state = "DUTY_NEXTENCOUNTER"
+					self.encounter = encounter
+					persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
+					self.encounterCompleted = false
+				end
 			else
 				ffxiv_task_duty.dutyInfo["EncounterIndex"] = 0
 				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )

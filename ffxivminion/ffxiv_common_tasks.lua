@@ -1559,7 +1559,7 @@ function ffxiv_task_grindCombat:Process()
 	else
 		if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 			if (ml_task_hub:CurrentTask():ParentTask()) then
-				d("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+				ml_debug("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
 			end
 			if (Player:GetSyncLevel() ~= 0) then
 				Player:SyncLevel()
@@ -1583,17 +1583,17 @@ end
 function ffxiv_task_grindCombat:task_complete_eval()
 	local target = EntityList:Get(self.targetid)
     if (not target or not target.alive or not target.attackable) then
-		d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
+		ml_debug("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
 	return false
 end
 function ffxiv_task_grindCombat:task_complete_execute()
-	d("[GrindCombat]: Task completing.")
+	ml_debug("[GrindCombat]: Task completing.")
 	if (not ml_task_hub:CurrentTask():ParentTask() or ml_task_hub:CurrentTask():ParentTask().name ~= "LT_FATE" and Now() > ml_global_information.syncTimer) then
 		if (Player:GetSyncLevel() ~= 0) then
 			if (ml_task_hub:CurrentTask():ParentTask()) then
-				d("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
+				ml_debug("ParentTask:["..ml_task_hub:CurrentTask():ParentTask().name.."] is not valid for sync, Player will be unsynced.")
 			end
 			Player:SyncLevel()
 			ml_global_information.syncTimer = Now() + 1000
@@ -1609,20 +1609,23 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		if (target.fateid ~= 0) then
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
-			if (not fate or fate.completion > 99) then
-				d("[GrindCombat]: Task complete due to fate target and fate ending.")
+			if (not fate) then
+				ml_debug("[GrindCombat]: Task complete due to fate target and fate not found.")
+				return true
+			elseif (fate and fate.completion > 99) then
+				ml_debug("[GrindCombat]: Task complete due to fate target and fate completion > 99 ["..tostring(fate.completion).."].")
 				return true
 			end
 		end
 	end
 	
 	if (not Player.alive) then
-		d("[GrindCombat]: Task failure due to death.")
+		ml_debug("[GrindCombat]: Task failure due to death.")
 		return true
 	end
 	
 	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
-		d("[GrindCombat]: Task failure due to flee.")
+		ml_debug("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
 	

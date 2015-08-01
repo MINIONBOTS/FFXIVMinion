@@ -3182,10 +3182,11 @@ function SkillMgr.AddDefaultConditions()
 			if (list) then
 				for i,e in pairs(list) do
 					if (i and e) then
-						return true
+						return false
 					end
 				end
 			end
+			return true
 		end
 		
 		if (skill.punderattackmelee == "1") then
@@ -3193,10 +3194,11 @@ function SkillMgr.AddDefaultConditions()
 			if (list) then
 				for i,e in pairs(list) do
 					if (i and e) then
-						return true
+						return false
 					end
 				end
 			end
+			return true
 		end
 		
 		return false

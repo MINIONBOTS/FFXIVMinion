@@ -384,7 +384,7 @@ function c_avoid:evaluate()
 	c_avoid.newAvoid = {}
 	
 	-- Check for nearby enemies casting things on us.
-	local el = EntityList("aggro,incombat,onmesh,maxdistance=30")
+	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			local shouldAvoid, spellData = AceLib.API.Avoidance.GetAvoidanceInfo(e)
@@ -392,7 +392,7 @@ function c_avoid:evaluate()
 				local lastAvoid = c_avoid.lastAvoid
 				if (lastAvoid) then
 					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-						d("Don't dodge, we already dodged this recently.")
+						--d("Don't dodge, we already dodged this recently.")
 						return false							
 					end
 				end
@@ -412,7 +412,7 @@ function c_avoid:evaluate()
 				local lastAvoid = c_avoid.lastAvoid
 				if (lastAvoid) then
 					if (spellData.id == lastAvoid.data.id and e.id == lastAvoid.attacker.id and Now() < lastAvoid.timer) then
-						d("Don't dodge, we already dodged this recently.")
+						--d("Don't dodge, we already dodged this recently.")
 						return false							
 					end
 				end

@@ -53,6 +53,9 @@ function c_fatewait:evaluate()
             Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z) > 15)
 end
 function e_fatewait:execute()
+	d("Moving to evac point to wait for next FATE.")
+	d("CurrentTask():"..tostring(ml_task_hub:CurrentTask().name))
+	
     local newTask = ffxiv_task_movetopos.Create()
 	newTask.destination = "FATE_WAIT"
     local evacPoint = ml_marker_mgr.markerList["evacPoint"]
@@ -76,41 +79,6 @@ function e_fatewait:execute()
 end
 
 ---------------------------------------------------------------------------------------------
---FATEQUIT: If (completion % has not changed over timer) Then (temporarily blacklist)
----------------------------------------------------------------------------------------------
---[[
-c_fatequit = inheritsFrom( ml_cause )
-e_fatequit = inheritsFrom( ml_effect )
-function c_fatequit:evaluate()
-    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-        if (fate ~= nil and TableSize(fate) > 0) then
-            if (ml_task_hub:CurrentTask().fateCompletion ~= nil and ml_task_hub:CurrentTask().fateCompletion == fate.completion) then
-                if (ml_task_hub:CurrentTask().fateTimer ~= nil and ml_task_hub:CurrentTask().fateTimer ~= 0) then
-                    if (TimeSince(ml_task_hub:CurrentTask().fateTimer) > (tonumber(gFateBLTimer)*1000)) then
-                        return true
-                    end
-                end
-            elseif (ml_task_hub:CurrentTask().fateCompletion ~= nil and ml_task_hub:CurrentTask().fateTimer ~= nil) then
-                ml_task_hub:CurrentTask().fateCompletion = fate.completion
-                ml_task_hub:CurrentTask().fateTimer = ml_global_information.Now
-            end
-        end
-    end
-    
-    return false
-end
-function e_fatequit:execute()
-    if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        -- blacklist fate for 5 minutes and terminate task
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
-        ml_blacklist.AddBlacklistEntry("Fates", fate.id, fate.name, ml_global_information.Now + 1800*1000)
-        ml_task_hub:CurrentTask():Terminate()
-    end
-end
---]]
-
----------------------------------------------------------------------------------------------
 --BETTERFATESEARCH: If (fate with < distance than current target exists) Then (select new fate)
 --Clears the current fate and adds a new one if it finds a better match along the route
 ---------------------------------------------------------------------------------------------
@@ -119,7 +87,7 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
 e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (TimeSince(c_betterfatesearch.timer) < 15000) then
+    if (TimeSince(c_betterfatesearch.timer) < 15000 or ml_task_hub:ThisTask().waitingForChain) then
         return false
     end
 	
@@ -152,7 +120,7 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
-	ml_debug("Found a better fate, switching to it.")
+	d("Found a better fate, switching to it.")
 	Player:Stop()
     ml_task_hub:ThisTask().fateid = e_betterfatesearch.fateid
 end
@@ -253,6 +221,7 @@ end
 function e_movetochainlocation:execute()
     local fate = ml_task_hub:CurrentTask().nextFate
     if (ValidTable(fate)) then
+		d("Moving into position for next fate in chain.")
         local newTask = ffxiv_task_movetopos.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
         newTask.pos = fatePos
@@ -269,18 +238,20 @@ function c_movewithfate:evaluate()
 	
 		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		if (ValidTable(fate)) then
-			local currentFatePos = ml_task_hub:CurrentTask().fatePos
-			local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
-		
-			local tablesEqual = true
-			if (ValidTable(fate)) then
-				if (not ValidTable(currentFatePos)) then
-					currentFatePos = shallowcopy(newFatePos)
-					return false
-				elseif (ValidTable(currentFatePos) and not Player.incombat) then
-					if (not deepcompare(currentFatePos,newFatePos,true)) then
+			if (fate.status == 2) then
+				local currentFatePos = ml_task_hub:CurrentTask().fatePos
+				local newFatePos = {x = fate.x, y = fate.y, z = fate.z}
+			
+				local tablesEqual = true
+				if (ValidTable(fate)) then
+					if (not ValidTable(currentFatePos)) then
 						currentFatePos = shallowcopy(newFatePos)
-						return true
+						return false
+					elseif (ValidTable(currentFatePos) and not Player.incombat) then
+						if (not deepcompare(currentFatePos,newFatePos,true)) then
+							currentFatePos = shallowcopy(newFatePos)
+							return true
+						end
 					end
 				end
 			end
@@ -292,6 +263,7 @@ end
 function e_movewithfate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
+		d("Moving with the FATE ["..tostring(fate.id))
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = ml_task_hub:CurrentTask().fatePos
 		newTask.fateid = ml_task_hub:CurrentTask().fateid
@@ -313,10 +285,12 @@ function c_movetofate:evaluate()
         local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 		
         if (ValidTable(fate)) then
-            local myPos = Player.pos
-            local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
-			if (distance > fate.radius) then				
-				return true
+			if (fate.status == 2) then
+				local myPos = Player.pos
+				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+				if (distance > fate.radius) then				
+					return true
+				end
 			end
         end
     end
@@ -326,6 +300,7 @@ end
 function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
+		d("Moving to the FATE ["..tostring(fate.id))
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		newTask.fateid = ml_task_hub:CurrentTask().fateid
@@ -376,21 +351,26 @@ function c_updatefate:evaluate()
 	local tablesEqual = true
 	if (ValidTable(fate)) then
 		if (fate.status == 2) then
+			d("Found active status for FATE ID:"..tostring(ml_task_hub:ThisTask().fateid))
 			if (not fatePos) then
 				fatePos = {x = fate.x, y = fate.y, z = fate.z}
-			elseif (ValidTable(fatePos) and not Player.incombat) then
+			elseif (ValidTable(fatePos)) then
 				if not deepcompare(fate,fateDetails,true) then
 					fateDetails = shallowcopy(fate)
 				end
 			end
 			
-			if (ml_task_hub:ThisTask().waitingForChain) then 
-				ml_task_hub:ThisTask().waitingForChain = false 
-				ml_debug("Removing FATE wait flag.")
-			end
-			if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
-				ml_task_hub:ThisTask().nextFate = {} 
-				ml_debug("Clearing next FATE.")
+			local nearestFateTarget = GetNearestFateAttackable()
+			if (ValidTable(nearestFateTarget)) then
+				d("Nearest FATE target details: fateid:"..tostring(nearestFateTarget.fateid)..",name:"..tostring(nearestFateTarget.name))
+				if (ml_task_hub:ThisTask().waitingForChain) then 
+					ml_task_hub:ThisTask().waitingForChain = false 
+					d("Removing FATE wait flag.")
+				end
+				if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
+					ml_task_hub:ThisTask().nextFate = {} 
+					ml_debug("Clearing next FATE.")
+				end
 			end
 		end
 	end
@@ -474,16 +454,18 @@ function c_add_fatetarget:evaluate()
 	
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (ValidTable(fate)) then
-		local myPos = Player.pos
-		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-		
-		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
-		if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
-			local target = GetNearestFateAttackable()
-			if (ValidTable(target)) then
-				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-					c_add_fatetarget.targetid = target.id
-					return true
+		if (fate.status == 2) then
+			local myPos = Player.pos
+			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+			
+			local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
+			if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
+				local target = GetNearestFateAttackable()
+				if (ValidTable(target)) then
+					if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+						c_add_fatetarget.targetid = target.id
+						return true
+					end
 				end
 			end
 		end
@@ -502,6 +484,7 @@ function c_add_fatetarget:evaluate()
     return false
 end
 function e_add_fatetarget:execute()
+	d("Adding FATE target to kill order.")
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -551,18 +534,21 @@ c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
 	if (ml_task_hub:ThisTask().waitingForChain) then
-		ml_debug("Currently waiting for chain, can't end.")
+		d("Currently waiting for chain, can't end.")
 		return false
 	end
 	
     local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
-    if (not fate or fate.completion > 99) then
-		ml_debug("Ending fate, fate over.")
+    if (not ValidTable(fate)) then
+		d("Ending fate, fate no longer exists.")
+        return true
+	elseif (fate and fate.completion > 99) then
+		d("Ending fate, fate completion:"..tostring(fate.completion))
         return true
     end
 	
 	if (not IsFateApproved(fate.id)) then
-		ml_debug("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
 		return true
 	end
     
@@ -571,15 +557,14 @@ end
 function e_endfate:execute()
 	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
 	if (isChain and not isLast and ValidTable(nextFate)) then
-		ml_debug("Setting FATE to wait for next part of the chain.")
+		d("Setting FATE to wait for next part of the chain.")
 		Player:Stop()
 		ml_task_hub:ThisTask().fateid = nextFate.id
 		ml_task_hub:ThisTask().waitingForChain = true
 		ml_task_hub:ThisTask().nextFate = nextFate
 		ml_task_hub:ThisTask().specialDelay = nextFate.specialDelay
 	else
-		ml_debug("Setting FATE to end completely.")
-		ml_debug("isChain:"..tostring(isChain)..",isFirst:"..tostring(isFirst)..",isLast:"..tostring(isLast))
+		d("Setting FATE to end completely.")
 		ffxiv_task_grind.inFate = false
 		Player:Stop()
 		ml_task_hub:ThisTask().completed = true

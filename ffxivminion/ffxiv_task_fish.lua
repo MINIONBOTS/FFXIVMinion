@@ -145,6 +145,8 @@ function c_release:evaluate()
 								for mustkeep in StringSplit(whitelistHQ,",") do
 									if (mustkeep == lastCatch) then
 										return false
+									else
+										return true
 									end
 								end
 							elseif (blacklistHQ and blacklistHQ ~= "") then
@@ -159,6 +161,8 @@ function c_release:evaluate()
 								for mustkeep in StringSplit(whitelist,",") do
 									if (mustkeep == lastCatch) then
 										return false
+									else
+										return true
 									end
 								end
 							elseif (blacklist and blacklist ~= "") then

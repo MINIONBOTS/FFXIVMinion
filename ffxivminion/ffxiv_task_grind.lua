@@ -135,11 +135,11 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 40 )
     self:add(ke_flee, self.overwatch_elements)
 	
-	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 35 )
-    self:add(ke_rest, self.overwatch_elements)
-	
 	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 30 )
     self:add(ke_atma, self.overwatch_elements)
+	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
+    self:add(ke_rest, self.process_elements)
     
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 45 )
     self:add( ke_autoEquip, self.process_elements)

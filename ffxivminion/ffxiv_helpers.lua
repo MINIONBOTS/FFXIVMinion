@@ -1,7 +1,6 @@
 -- This file holds global helper functions
+ff = {}
 
--- I needed to add the lowesthealth check in the bettertargetsearch, this would have collided with this one when terminating the current killtask to swtich to a better target. 
--- Using the lowest health in combatrange should do the job, if it cant find anything, then it grabs the nearest enemy and moves towards it
 function GetNearestGrindAttackable()
 	local huntString = GetWhitelistIDString()
 	local excludeString = GetBlacklistIDString()
@@ -144,7 +143,7 @@ function GetNearestGrindAttackable()
     --d("GetNearestGrindAttackable() failed with no entity found matching params")
     return nil
 end
-
+ff["GetNearestGrindAttackable"] = GetNearestGrindAttackable
 function GetNearestGrindPriority()
 	local huntString = GetWhitelistIDString
 	local excludeString = GetBlacklistIDString
@@ -165,7 +164,7 @@ function GetNearestGrindPriority()
 
 	return nil
 end
-
+ff["GetNearestGrindPriority"] = GetNearestGrindPriority
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = Player.pos
@@ -243,7 +242,7 @@ function GetNearestFateAttackable()
     
     return nil
 end
-
+ff["GetNearestFateAttackable"] = GetNearestFateAttackable
 function GetHuntTarget()
 	local nearest = nil
 	local nearestDistance = 9999
@@ -346,7 +345,7 @@ function GetHuntTarget()
 	
 	return nil
 end
-
+ff["GetHuntTarget"] = GetHuntTarget
 function IsValidHealTarget(e)
 	if (ValidTable(e) and e.alive and e.targetable) then
 		return (e.chartype == 4) or
@@ -357,7 +356,7 @@ function IsValidHealTarget(e)
 	
 	return false
 end
-
+ff["IsValidHealTarget"] = IsValidHealTarget
 function GetBestTankHealTarget( range )
 	range = range or ml_global_information.AttackRange
 	local lowest = nil
@@ -383,7 +382,7 @@ function GetBestTankHealTarget( range )
 	
 	return lowest
 end
-
+ff["GetBestTankHealTarget"] = GetBestTankHealTarget
 function GetBestPartyHealTarget( npc, range )
 	npc = npc or false
 	range = range or ml_global_information.AttackRange
@@ -424,7 +423,7 @@ function GetBestPartyHealTarget( npc, range )
 	
     return nil
 end
-
+ff["GetBestPartyHealTarget"] = GetBestPartyHealTarget
 function GetPetSkillRangeRadius(id)
 	local id = tonumber(id) or 0
 	
@@ -478,7 +477,7 @@ function GetPetSkillRangeRadius(id)
 	
 	return nil
 end
-
+ff["GetPetSkillRangeRadius"] = GetPetSkillRangeRadius
 function GetLowestHPParty( skill )
     npc = skill.npc == "1" and true or false
 	range = skill.range or ml_global_information.AttackRange
@@ -529,8 +528,7 @@ function GetLowestHPParty( skill )
 		return lowest
 	end
 end
-
-
+ff["GetLowestHPParty"] = GetLowestHPParty
 function GetLowestMPParty( range, role )
     local pID = Player.id
 	local lowest = nil
@@ -576,7 +574,7 @@ function GetLowestMPParty( range, role )
 	
 	return lowest
 end
-
+ff["GetLowestMPParty"] = GetLowestMPParty
 function GetLowestTPParty( range, role )
 	local lowest = nil
 	local lowestTP = 1001
@@ -628,7 +626,7 @@ function GetLowestTPParty( range, role )
 	
     return lowest
 end
-
+ff["GetLowestTPParty"] = GetLowestTPParty
 function GetBestHealTarget( npc, range )
 	npc = npc or false
 	range = range or ml_global_information.AttackRange
@@ -660,7 +658,7 @@ function GetBestHealTarget( npc, range )
     ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
-
+ff["GetBestHealTarget"] = GetBestHealTarget
 function GetBestBaneTarget()
 	local bestTarget = nil
 	local party = EntityList.myparty
@@ -692,7 +690,7 @@ function GetBestBaneTarget()
 	
     return nil
 end
-
+ff["GetBestBaneTarget"] = GetBestBaneTarget
 function GetBestDoTTarget()
 	local bestTarget = nil
 	local party = EntityList.myparty
@@ -723,7 +721,7 @@ function GetBestDoTTarget()
 	
     return nil
 end
-
+ff["GetBestDoTTarget"] = GetBestDoTTarget
 function GetClosestHealTarget()
     local pID = Player.id
     local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
@@ -746,7 +744,7 @@ function GetClosestHealTarget()
     --ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
-
+ff["GetClosestHealTarget"] = GetClosestHealTarget
 function GetBestRevive( party, role)
 	party = party or false
 	role = role or ""
@@ -805,7 +803,7 @@ function GetBestRevive( party, role)
 	
 	return nil
 end
-
+ff["GetBestRevive"] = GetBestRevive
 function GetPVPTarget()
     local targets = {}
     local bestTarget = nil
@@ -971,7 +969,7 @@ function GetPVPTarget()
 	
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
-
+ff["GetPVPTarget"] = GetPVPTarget
 function GetNearestGrindAggro()
 	taskName = ml_task_hub:ThisTask().name
 	
@@ -1027,7 +1025,7 @@ function GetNearestGrindAggro()
     
     return nil
 end
-
+ff["GetNearestGrindAggro"] = GetNearestGrindAggro
 function GetNearestAggro()
 	taskName = ml_task_hub:ThisTask().name
 	
@@ -1083,14 +1081,14 @@ function GetNearestAggro()
     
     return nil
 end
-
+ff["GetNearestAggro"] = GetNearestAggro
 function RoundUp(number, multiple)
 	local number = tonumber(number)
 	local multiple = tonumber(multiple)
 	
 	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
 end
-
+ff["RoundUp"] = RoundUp
 function GetNearestGatherable(marker)
     local el = nil
     local whitelist = nil
@@ -1170,7 +1168,7 @@ function GetNearestGatherable(marker)
     ml_debug("GetNearestGatherable() failed with no entity found matching params")
     return nil
 end
-
+ff["GetNearestGatherable"] = GetNearestGatherable
 function GetNearestUnspoiled(class)
 	--Rocky Outcrop = 6
 	--Mining Node = 5
@@ -1188,7 +1186,7 @@ function GetNearestUnspoiled(class)
 	
     return nil
 end
-
+ff["GetNearestUnspoiled"] = GetNearestUnspoiled
 function GetMaxAttackRange()
 	local target = Player:GetTarget()
 	
@@ -1214,7 +1212,7 @@ function GetMaxAttackRange()
 	
 	return 1
 end
-
+ff["GetMaxAttackRange"] = GetMaxAttackRange
 function HasBuff(targetid, buffID)
 	local buffID = tonumber(buffID) or 0
 	
@@ -1234,7 +1232,7 @@ function HasBuff(targetid, buffID)
     
     return false
 end
-
+ff["HasBuff"] = HasBuff
 function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
 	--for prio,skill in spairs(SkillMgr.SkillProfile)
@@ -1260,7 +1258,7 @@ function HasSkill( skillids )
 	end
 	return false
 end
-
+ff["HasSkill"] = HasSkill
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
@@ -1289,7 +1287,7 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	end
 	return false
 end
-
+ff["HasBuffs"] = HasBuffs
 function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
@@ -1324,13 +1322,13 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     
     return false
 end
-
+ff["MissingBuffs"] = MissingBuffs
 function GetFleeHP()
 	local attackingMobs = TableSize(EntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
 	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
 	return fleeHP
 end
-
+ff["GetFleeHP"] = GetFleeHP
 function HasInfiniteDuration(id)
 	infiniteDurationAbilities = {
 		[614] = true,
@@ -1338,11 +1336,10 @@ function HasInfiniteDuration(id)
 	
 	return infiniteDurationAbilities[id] or false
 end
-
+ff["HasInfiniteDuration"] = HasInfiniteDuration
 function ActionList:IsCasting()
 	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castid == 4)
 end
-
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
 	posY = tonumber(posY) or 0
@@ -1354,7 +1351,7 @@ function SetFacing( posX, posY, posZ)
 	
 	Player:SetFacing(posX, posY, posZ)
 end
-
+ff["SetFacing"] = SetFacing
 function isCasting(entity, actionIDs , minCasttime , targetid) 
 	local ci = entity.castinginfo 
 	minCasttime = minCasttime or 0
@@ -1380,7 +1377,7 @@ function isCasting(entity, actionIDs , minCasttime , targetid)
 
 	return false
 end
-
+ff["isCasting"] = isCasting
 function HasContentID(entity, contentIDs) 	
 	local cID = entity.contentid
 	
@@ -1391,7 +1388,7 @@ function HasContentID(entity, contentIDs)
 	end
 	return false
 end
-
+ff["HasContentID"] = HasContentID
 function IsHealingSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1409,7 +1406,7 @@ function IsHealingSkill(skillID)
     end
     return false
 end
-
+ff["IsHealingSkill"] = IsHealingSkill
 function IsMudraSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1423,7 +1420,7 @@ function IsMudraSkill(skillID)
     end
     return false
 end
-
+ff["IsMudraSkill"] = IsMudraSkill
 function IsNinjutsuSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1443,11 +1440,11 @@ function IsNinjutsuSkill(skillID)
     end
     return false
 end
-
+ff["IsNinjutsuSkill"] = IsNinjutsuSkill
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
-
+ff["IsUncoverSkill"] = IsUncoverSkill
 function GetSkillByID(skillid,skilltype)
 	local skillid = tonumber(skillid)
 	
@@ -1481,7 +1478,7 @@ function GetSkillByID(skillid,skilltype)
 	
 	return nil
 end
- 
+ff["GetSkillByID"] = GetSkillByID
  function IsFlanking(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1508,7 +1505,7 @@ end
 	
     return false
 end
-
+ff["IsFlanking"] = IsFlanking
 function IsBehind(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1532,7 +1529,7 @@ function IsBehind(entity)
     end
     return false
 end
-
+ff["IsBehind"] = IsBehind
 function IsBehindSafe(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1553,7 +1550,7 @@ function IsBehindSafe(entity)
 	end
     return false
 end
-
+ff["IsBehindSafe"] = IsBehindSafe
 function IsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1574,7 +1571,7 @@ function IsFront(entity)
 	end
     return false
 end
-
+ff["IsFront"] = IsFront
 function IsFrontSafe(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1595,7 +1592,7 @@ function IsFrontSafe(entity)
 	end
     return false
 end
-
+ff["IsFrontSafe"] = IsFrontSafe
 function EntityIsFrontWide(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1613,7 +1610,7 @@ function EntityIsFrontWide(entity)
 	end
     return false
 end
-
+ff["EntityIsFrontWide"] = EntityIsFrontWide
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1631,7 +1628,7 @@ function EntityIsFront(entity)
 	end
     return false
 end
-
+ff["EntityIsFront"] = EntityIsFront
 function EntityIsFrontTight(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1649,7 +1646,7 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
-
+ff["EntityIsFrontTight"] = EntityIsFrontTight
 function Distance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
@@ -1657,7 +1654,7 @@ function Distance3DT(pos1,pos2)
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	return distance
 end
-
+ff["Distance3DT"] = Distance3DT
 function ConvertHeading(heading)
 	if (heading < 0) then
 		return heading + 2 * math.pi
@@ -1665,23 +1662,23 @@ function ConvertHeading(heading)
 		return heading
 	end
 end
-
+ff["ConvertHeading"] = ConvertHeading
 function HeadingToRadians(heading)
 	return heading + math.pi
 end
-
+ff["HeadingToRadians"] = HeadingToRadians
 function RadiansToHeading(radians)
 	return radians - math.pi
 end
-
+ff["RadiansToHeading"] = RadiansToHeading
 function DegreesToHeading(degrees)
 	return RadiansToHeading(math.rad(degrees))
 end
-
+ff["DegreesToHeading"] = DegreesToHeading
 function HeadingToDegrees(heading)
 	return math.deg(HeadingToRadians(heading))
 end
-
+ff["HeadingToDegrees"] = HeadingToDegrees
 function TurnAround(sync)	
 	local sync = sync or false
 	local newHeading = HeadingToDegrees(Player.pos.h)
@@ -1696,7 +1693,7 @@ function TurnAround(sync)
 		Player:SetFacing(newHeading)
 	end
 end
-
+ff["TurnAround"] = TurnAround
 function PosIsEqual(pos1, pos2)
 	if (type(pos1) == "table" and type(pos2) == "table") then
 		if (pos1.x and pos1.y and pos1.z and pos2.x and pos2.y and pos2.z) then
@@ -1707,8 +1704,8 @@ function PosIsEqual(pos1, pos2)
 	end
 	return false
 end
-
- function AngleFromPos(pos1, pos2)
+ff["PosIsEqual"] = PosIsEqual
+function AngleFromPos(pos1, pos2)
 	if ( TableSize(pos1) < 3 or TableSize(pos2) < 3 ) then
 		return nil
 	else		
@@ -1720,7 +1717,7 @@ end
 		return angle
 	end
 end
-
+ff["AngleFromPos"] = AngleFromPos
 function FindPointOnCircle(pos, angle, radius)
 	local angleMin = angle - 20
 	local angleMax = angle + 20
@@ -1746,7 +1743,7 @@ function FindPointOnCircle(pos, angle, radius)
 	ReturnAngle.z = math.cos(math.rad(anew))*radius + pos.z
 	return ReturnAngle
 end 
-
+ff["FindPointOnCircle"] = FindPointOnCircle
 function FindPointLeftRight(pos, angle, radius, relative)
 	
 	relative = relative or true
@@ -1780,14 +1777,14 @@ function FindPointLeftRight(pos, angle, radius, relative)
 	local ReturnAngle = math.random(0,1) == 0 and ReturnAngle1 or ReturnAngle2
 	return ReturnAngle
 end
-
+ff["FindPointLeftRight"] = FindPointLeftRight
 function GetPosFromDistanceHeading(startPos, distance, heading)
 	local head = ConvertHeading(heading)
 	local newX = distance * math.sin(head) + startPos.x
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
 end
-
+ff["GetPosFromDistanceHeading"] = GetPosFromDistanceHeading
 function GetFateByID(fateID)
     local fate = nil
     local fateList = MapObject:GetFateList()
@@ -1803,7 +1800,7 @@ function GetFateByID(fateID)
     
     return fate
 end
-
+ff["GetFateByID"] = GetFateByID
 function GetApprovedFates()
 	local approvedFates = {}
 	
@@ -1841,7 +1838,7 @@ function GetApprovedFates()
 	
 	return approvedFates
 end
-
+ff["GetApprovedFates"] = GetApprovedFates
 function IsFateApproved(fateid)
 	local fateid = tonumber(fateid) or 0
 	if (fateid == 0) then
@@ -1863,7 +1860,7 @@ function IsFateApproved(fateid)
 	
 	return false
 end
-
+ff["IsFateApproved"] = IsFateApproved
 function IsInsideFate()
 	local closestFate = GetClosestFate()
 	if (ValidTable(closestFate)) then
@@ -1877,7 +1874,7 @@ function IsInsideFate()
 	
 	return false
 end
-
+ff["IsInsideFate"] = IsInsideFate
 function GetClosestFate(pos)
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
@@ -1972,7 +1969,7 @@ function GetClosestFate(pos)
     
     return nil
 end
-
+ff["GetClosestFate"] = GetClosestFate
 function IsOnMap(mapid)
 	local mapid = tonumber(mapid)
 	if (Player.localmapid == mapid) then
@@ -1981,7 +1978,7 @@ function IsOnMap(mapid)
 	
 	return false
 end
-
+ff["IsOnMap"] = IsOnMap
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -1996,7 +1993,7 @@ function ScanForMobs(ids,distance)
 	
 	return false
 end
-
+ff["ScanForMobs"] = ScanForMobs
 function ScanForCaster(ids,distance,spells)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
@@ -2015,7 +2012,7 @@ function ScanForCaster(ids,distance,spells)
 	
 	return false
 end
-
+ff["ScanForCaster"] = ScanForCaster
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -2030,7 +2027,7 @@ function ScanForObjects(ids,distance)
 	
 	return false
 end
-
+ff["ScanForObjects"] = ScanForObjects
 function DutyCanInteract(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -2057,7 +2054,7 @@ function DutyCanInteract(ids,distance)
 	
 	return false
 end
-
+ff["DutyCanInteract"] = DutyCanInteract
 function CanUseCannon()
 	if (IsPositionLocked()) then
 		local misc = ActionList("type=1,level=0")
@@ -2073,7 +2070,7 @@ function CanUseCannon()
 	end
 	return false
 end
-
+ff["CanUseCannon"] = CanUseCannon
 function GetPathDistance(pos1,pos2)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
@@ -2097,7 +2094,7 @@ function GetPathDistance(pos1,pos2)
 	
 	return dist
 end
-
+ff["GetPathDistance"] = GetPathDistance
 function HasNavPath(pos1,pos2)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
@@ -2123,7 +2120,7 @@ function HasNavPath(pos1,pos2)
 	
 	return false
 end
-
+ff["HasNavPath"] = HasNavPath
 function GetLinePoints(pos1,pos2,length)
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	local segments = math.floor(distance / length)
@@ -2144,7 +2141,7 @@ function GetLinePoints(pos1,pos2,length)
 	
 	return points
 end
-
+ff["GetLinePoints"] = GetLinePoints
 function GetAggroDetectionPoints(pos1,pos2)
 	assert(ValidTable(pos1),"First argument is not a valid position.")
 	assert(ValidTable(pos2),"Second argument is not a valid position.")
@@ -2175,7 +2172,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 	end
 	return points
 end
-
+ff["GetAggroDetectionPoints"] = GetAggroDetectionPoints
 function PathDistanceTable(gotoPos)
 	if (ValidTable(gotoPos)) then
 		local ppos = Player.pos
@@ -2206,7 +2203,7 @@ function PathDistanceTable(gotoPos)
 		--]]
 	end
 end
-
+ff["PathDistanceTable"] = PathDistanceTable
 function IsLeader()
 	local leader = nil
 	for i,m in pairs(EntityList.myparty) do
@@ -2224,7 +2221,7 @@ function IsLeader()
 		
     return false
 end
-
+ff["IsLeader"] = IsLeader
 function GetPartyLeader()
 	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
@@ -2277,7 +2274,7 @@ function GetPartyLeader()
     
     return nil	    
 end
-
+ff["GetPartyLeader"] = GetPartyLeader
 function GetPartyLeaderPos()
 	local pos = nil
 	
@@ -2290,7 +2287,7 @@ function GetPartyLeaderPos()
 	
 	return pos
 end
-
+ff["GetPartyLeaderPos"] = GetPartyLeaderPos
 function IsInParty(id)
 	local found = false
 	local party = EntityList.myparty
@@ -2303,7 +2300,7 @@ function IsInParty(id)
 	end
 	return false
 end
-
+ff["IsInParty"] = IsInParty
 function InCombatRange(targetid)
 	if (gBotRunning == "0") then
 		return false
@@ -2399,7 +2396,7 @@ function InCombatRange(targetid)
 	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
 	return ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
 end
-
+ff["InCombatRange"] = InCombatRange
 function CanAttack(targetid)
 	local target = {}
 	--Quick change here to allow passing of a target or just the ID.
@@ -2421,7 +2418,7 @@ function CanAttack(targetid)
 	canCast = ActionList:CanCast(testSkill,target.id)
 	return canCast
 end
-
+ff["CanAttack"] = CanAttack
 function GetMounts()
 	local MountsList = "None"
 	local eq = ActionList("type=13")
@@ -2431,7 +2428,7 @@ function GetMounts()
 	
 	return MountsList
 end
-
+ff["GetMounts"] = GetMounts
 function GetMountID()
 	local mountID
 	local mountIndex
@@ -2461,28 +2458,28 @@ function GetMountID()
 	
 	return nil
 end
-
+ff["GetMountID"] = GetMountID
 function IsMounting()
 	return (Player.action == 83 or Player.action == 84 or Player.action == 165)
 end
-
+ff["IsMounting"] = IsMounting
 function IsMounted()
 	return (Player.ismounted or Player.action == 166)
 end
-
+ff["IsMounted"] = IsMounted
 function IsDismounting()
 	return (Player.action == 32)
 end
-
+ff["IsDismounting"] = IsDismounting
 function IsPositionLocked()
 	return not ActionIsReady(2,5)
 	--return (not ActionIsReady(2) and not Player.ismounted)
 end
-
+ff["IsPositionLocked"] = IsPositionLocked
 function IsLoading()
 	return (Quest:IsLoading() or Player.localmapid == 0)
 end
-
+ff["IsLoading"] = IsLoading
 function HasAction(id, category)
 	id = tonumber(id) or 0
 	category = category or 1
@@ -2499,7 +2496,7 @@ function HasAction(id, category)
 	end
 	return false			
 end
-
+ff["HasAction"] = HasAction
 function ActionIsReady(id, category)
 	id = tonumber(id) or 0
 	category = category or 1
@@ -2512,7 +2509,7 @@ function ActionIsReady(id, category)
 	end
 	return false
 end
-
+ff["ActionIsReady"] = ActionIsReady
 function Mount(id)
 	local mountID = id or 0
 	local actions = nil
@@ -2561,7 +2558,7 @@ function Mount(id)
 		end
 	end			
 end
-
+ff["Mount"] = Mount
 function Dismount()
 	if (Player.ismounted) then
 		local mountlist = ActionList("type=13")
@@ -2584,7 +2581,7 @@ function Dismount()
 		end
 	end
 end
-
+ff["Dismount"] = Dismount
 function Repair()
 	if (gRepair == "1") then
 		local eq = Inventory("type=1000")
@@ -2595,7 +2592,7 @@ function Repair()
 		end
 	end
 end
-
+ff["Repair"] = Repair
 function ShouldEat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -2612,7 +2609,7 @@ function ShouldEat()
 	end
 	return false
 end
-
+ff["ShouldEat"] = ShouldEat
 function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -2628,7 +2625,7 @@ function Eat()
 		end
 	end
 end
-
+ff["Eat"] = Eat
 function NodeHasItem(itemName)
     local list = Player:GetGatherableSlotList()
     if (ValidTable(list)) then
@@ -2641,7 +2638,7 @@ function NodeHasItem(itemName)
     
     return false
 end
-
+ff["NodeHasItem"] = NodeHasItem
 function WhitelistTarget()
 	local target = Player:GetTarget()
 	if (target) then
@@ -2661,7 +2658,7 @@ function WhitelistTarget()
 		end
 	end
 end
-
+ff["WhitelistTarget"] = WhitelistTarget
 function BlacklistTarget()
 	local target = Player:GetTarget()
 	if (target) then
@@ -2681,21 +2678,21 @@ function BlacklistTarget()
 		end
 	end
 end
-
+ff["BlacklistTarget"] = BlacklistTarget
 function IsMap(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 6687 and itemid <= 6692) or
 		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
 		(itemid >= 12241 and itemid <= 12243))
 end
-
+ff["IsMap"] = IsMap
 function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 7715 and itemid <= 7767) 
 			or itemid == 8024
 			or itemid == 5365)
 end
-
+ff["IsGardening"] = IsGardening
 -- Ixali hidden items have a max item count of 5.
 function IsIxaliRare(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -2709,7 +2706,7 @@ function IsIxaliRare(itemid)
 	}
 	return rares[itemid]
 end
-
+ff["IsIxaliRare"] = IsIxaliRare
 -- Ixali "regular" items have a max item count of 15.
 function IsIxaliSemiRare(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -2723,13 +2720,13 @@ function IsIxaliSemiRare(itemid)
 	}
 	return rares[itemid]
 end
-
+ff["IsIxaliSemiRare"] = IsIxaliSemiRare
 function IsChocoboFood(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 10094 and itemid <= 10095) or
 			(itemid >= 10097 and itemid <= 10098))
 end
-
+ff["IsChocoboFood"] = IsChocoboFood
 function IsChocoboFoodSpecial(itemid)
 	local itemid = tonumber(itemid) or 0
 	
@@ -2739,7 +2736,7 @@ function IsChocoboFoodSpecial(itemid)
 	}
 	return special[itemid]
 end
-
+ff["IsChocoboFoodSpecial"] = IsChocoboFoodSpecial
 function IsRareItem(itemid)
 	local itemid = tonumber(itemid) or 0
 	local rareItem = {
@@ -2751,20 +2748,19 @@ function IsRareItem(itemid)
 	
 	return rareItem[itemid]
 end
-
+ff["IsRareItem"] = IsRareItem
 function IsRareItemSpecial(itemid)
 	
 end
-
+ff["IsRareItemSpecial"] = IsRareItemSpecial
 function IsUnspoiled(contentid)
 	return contentid == 5 or contentid == 6 or 
 			contentid == 7 or contentid == 8
 end
-
+ff["IsUnspoiled"] = IsUnspoiled
 --===========================
 --Class/Role Helpers
 --===========================
-
 function GetRoleString(jobID)
     if 
         jobID == FFXIV.JOBS.ARCANIST or
@@ -2799,7 +2795,7 @@ function GetRoleString(jobID)
         return GetString("tank")
     end
 end
-
+ff["GetRoleString"] = GetRoleString
 function GetRoleTable(rolestring)
 	if (rolestring == "DPS") then
 		return {
@@ -2843,7 +2839,7 @@ function GetRoleTable(rolestring)
 	end
 	return nil
 end
-
+ff["GetRoleTable"] = GetRoleTable
 function IsMeleeDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
@@ -2853,7 +2849,7 @@ function IsMeleeDPS(jobID)
 			jobID == FFXIV.JOBS.ROGUE or
 			jobID == FFXIV.JOBS.NINJA
 end
-
+ff["IsMeleeDPS"] = IsMeleeDPS
 function IsRangedDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -2864,7 +2860,7 @@ function IsRangedDPS(jobID)
 			jobID == FFXIV.JOBS.THAUMATURGE or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-
+ff["IsRangedDPS"] = IsRangedDPS
 function IsRanged(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -2879,7 +2875,7 @@ function IsRanged(jobID)
 			jobID == FFXIV.JOBS.ASTROLOGIAN or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-
+ff["IsRanged"] = IsRanged
 function IsPhysicalDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
@@ -2892,7 +2888,7 @@ function IsPhysicalDPS(jobID)
 			jobID == FFXIV.JOBS.BARD or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-
+ff["IsPhysicalDPS"] = IsPhysicalDPS
 function IsCasterDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -2900,7 +2896,7 @@ function IsCasterDPS(jobID)
 			jobID == FFXIV.JOBS.SUMMONER or
 			jobID == FFXIV.JOBS.THAUMATURGE
 end
-
+ff["IsCasterDPS"] = IsCasterDPS
 function IsCaster(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -2912,7 +2908,7 @@ function IsCaster(jobID)
 			jobID == FFXIV.JOBS.SCHOLAR or 
 			jobID == FFXIV.JOBS.ASTROLOGIAN
 end
-
+ff["IsCaster"] = IsCaster
 function IsTank(jobID)
 	local jobID = tonumber(jobID)
 	local tanks = {
@@ -2924,7 +2920,7 @@ function IsTank(jobID)
 	
 	return tanks[jobID]
 end
-
+ff["IsTank"] = IsTank
 function IsGatherer(jobID)
 	local jobID = tonumber(jobID)
 	if (jobID >= 16 and jobID <= 17) then
@@ -2933,7 +2929,7 @@ function IsGatherer(jobID)
 	
 	return false
 end
-
+ff["IsGatherer"] = IsGatherer
 function IsFighter(jobID)
 	local jobID = tonumber(jobID)
 	if ((jobID >= 0 and jobID <= 8) or
@@ -2944,7 +2940,7 @@ function IsFighter(jobID)
 	
 	return false
 end
-
+ff["IsFighter"] = IsFighter
 function IsCrafter(jobID)
 	local jobID = tonumber(jobID)
 	if (jobID >= 8 and jobID <= 15) then
@@ -2953,12 +2949,12 @@ function IsCrafter(jobID)
 	
 	return false
 end
-
+ff["IsCrafter"] = IsCrafter
 function IsFisher(jobID)
 	local jobID = tonumber(jobID)
 	return jobID == 18
 end
-
+ff["IsFisher"] = IsFisher
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	if (maxdistance==nil or maxdistance == "") then
 		maxdistance = 30
@@ -2976,7 +2972,7 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
-
+ff["PartyMemberWithBuff"] = PartyMemberWithBuff
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
@@ -2996,7 +2992,7 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
-
+ff["PartySMemberWithBuff"] = PartySMemberWithBuff
 function GetLocalAetheryte()
     local list = Player:GetAetheryteList()
     for index,aetheryte in ipairs(list) do
@@ -3007,7 +3003,7 @@ function GetLocalAetheryte()
     
     return nil
 end
-
+ff["GetLocalAetheryte"] = GetLocalAetheryte
 function GetAttunedAetheryteList()
 	local attuned = {}
 	local list = Player:GetAetheryteList()
@@ -3019,7 +3015,7 @@ function GetAttunedAetheryteList()
 	
 	return attuned
 end
-
+ff["GetAttunedAetheryteList"] = GetAttunedAetheryteList
 function GetHomepoint()
 	local homepoint = 0
 	
@@ -3033,7 +3029,7 @@ function GetHomepoint()
 	end
 	return homepoint
 end
-
+ff["GetHomepoint"] = GetHomepoint
 function GetAetheryteByID(id)
 	local aethid = tonumber(id) or 0
 	local list = Player:GetAetheryteList()
@@ -3045,7 +3041,7 @@ function GetAetheryteByID(id)
     
     return nil
 end
-
+ff["GetAetheryteByID"] = GetAetheryteByID
 function IsAetheryteUnattuned(id)
 	local aethid = tonumber(id) or 0
 	local aetheryte = GetAetheryteByID(aethid)
@@ -3054,7 +3050,7 @@ function IsAetheryteUnattuned(id)
 	end
 	return false
 end
-
+ff["IsAetheryteUnattuned"] = IsAetheryteUnattuned
 function GetAetheryteByMapID(id, p)
 	local pos = p
 	
@@ -3135,7 +3131,7 @@ function GetAetheryteByMapID(id, p)
 	
 	return nil
 end
-
+ff["GetAetheryteByMapID"] = GetAetheryteByMapID
 function GetAetheryteLocation(id)
 	local aethid = tonumber(id) or 0
 	aetherytes = 
@@ -3254,7 +3250,7 @@ function GetAetheryteLocation(id)
 	
 	return nil
 end
-
+ff["GetAetheryteLocation"] = GetAetheryteLocation
 function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
@@ -3268,7 +3264,7 @@ function CanUseAetheryte(aethid)
 	
 	return false
 end
-
+ff["CanUseAetheryte"] = CanUseAetheryte
 function GetOffMapMarkerList(strMeshName, strMarkerType)
 	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
 	if (FileExists(markerPath)) then
@@ -3295,7 +3291,7 @@ function GetOffMapMarkerList(strMeshName, strMarkerType)
 	
 	return nil
 end
-
+ff["GetOffMapMarkerList"] = GetOffMapMarkerList
 function IsCityMap(mapid)
 	local mapid = tonumber(mapid)
 	local cityMaps = {
@@ -3310,7 +3306,7 @@ function IsCityMap(mapid)
 	}
 	return cityMaps[mapid]
 end
-
+ff["IsCityMap"] = IsCityMap
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	local newMarkerPos = nil
 	
@@ -3347,7 +3343,7 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	
 	return newMarkerPos
 end
-
+ff["GetOffMapMarkerPos"] = GetOffMapMarkerPos
 function ShouldTeleport(pos)
 	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
@@ -3393,7 +3389,7 @@ function ShouldTeleport(pos)
 		end
 	end
 end
-
+ff["ShouldTeleport"] = ShouldTeleport
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
     local excludeString = ml_blacklist.GetExcludeString(GetString("monsters"))
@@ -3410,11 +3406,11 @@ function GetBlacklistIDString()
     
     return excludeString
 end
-
+ff["GetBlacklistIDString"] = GetBlacklistIDString
 function GetWhitelistIDString()	
     return ml_global_information.WhitelistContentID
 end
-
+ff["GetWhitelistIDString"] = GetWhitelistIDString
 function GetPartySize()
 	local count = 0
 	local party = EntityList.myparty
@@ -3429,7 +3425,7 @@ function GetPartySize()
 	
 	return count
 end
-
+ff["GetPartySize"] = GetPartySize
 function HasDutyUnlocked(dutyID)
 	local dutyID = tonumber(dutyID)
 	local dutyList = Duty:GetDutyList()
@@ -3447,7 +3443,7 @@ function HasDutyUnlocked(dutyID)
 	
 	return false
 end
-
+ff["HasDutyUnlocked"] = HasDutyUnlocked
 function HuntingLogsUnlocked()	
 	local requiredQuests = {
 		[1] = 253,
@@ -3469,7 +3465,7 @@ function HuntingLogsUnlocked()
 	
 	return false
 end
-
+ff["HuntingLogsUnlocked"] = HuntingLogsUnlocked
 function GetBestGrindMap()
 	local mapid = Player.localmapid
 	local level = Player.level
@@ -3532,7 +3528,7 @@ function GetBestGrindMap()
 		return 156 --mor dhona
 	end
 end
-
+ff["GetBestGrindMap"] = GetBestGrindMap
 function EquipItem(itemid, itemslot)
 	local itemtype = tonumber(itemslot)
 	local itemid = tonumber(itemid)
@@ -3542,7 +3538,7 @@ function EquipItem(itemid, itemslot)
 		item:Move(1000,itemslot)
 	end
 end
-
+ff["EquipItem"] = EquipItem
 function UnequipItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -3560,7 +3556,7 @@ function UnequipItem(itemid)
 		end
 	end
 end
-
+ff["UnequipItem"] = UnequipItem
 function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
 	local currEquippedItems = Inventory("type=1000")
@@ -3571,7 +3567,7 @@ function IsEquipped(itemid)
 	end
 	return false
 end
-
+ff["IsEquipped"] = IsEquipped
 function EquippedItemLevel(slot)
 	local slot = tonumber(slot)
 	local currEquippedItems = Inventory("type=1000")
@@ -3586,7 +3582,7 @@ function EquippedItemLevel(slot)
 	--d("Could not find an equipped item in slot ["..tostring(slot).."], returning 0.")
 	return 0
 end
-
+ff["EquippedItemLevel"] = EquippedItemLevel
 function GetItemInSlot(equipSlot)
 	local currEquippedItems = Inventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
@@ -3596,7 +3592,7 @@ function GetItemInSlot(equipSlot)
 	end
 	return nil
 end
-
+ff["GetItemInSlot"] = GetItemInSlot
 function ItemIsReady(itemid)
 	itemid = tonumber(itemid)
 	
@@ -3622,7 +3618,7 @@ function ItemIsReady(itemid)
 	
 	return false
 end
-
+ff["ItemIsReady"] = ItemIsReady
 function IsInventoryFull()
 	local itemcount = 0
 	
@@ -3640,7 +3636,7 @@ function IsInventoryFull()
 	
 	return false
 end
-
+ff["IsInventoryFull"] = IsInventoryFull
 function ItemCount(itemid)
 	local itemcount = 0
 	
@@ -3722,7 +3718,7 @@ function ItemCount(itemid)
 	
 	return itemcount
 end
-
+ff["ItemCount"] = ItemCount
 function GilCount()
 	local gil = 0
 	local inv = Inventory("type=2000")
@@ -3733,7 +3729,7 @@ function GilCount()
 	end
 	return gil
 end
-
+ff["GilCount"] = GilCount
 function PoeticCount()
 	local poetic = 0
 	local inv = Inventory("type=2000")
@@ -3744,7 +3740,7 @@ function PoeticCount()
 	end
 	return poetic
 end
-
+ff["PoeticCount"] = PoeticCount
 function SoldieryCount()
 	local soldiery = 0
 	local inv = Inventory("type=2000")
@@ -3755,16 +3751,21 @@ function SoldieryCount()
 	end
 	return soldiery
 end
-
+ff["SoldieryCount"] = SoldieryCount
 function IsCompanionSummoned()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
 		return true
 	end
 	
+	local dismiss = ActionList:Get(2,6)
+	if (dismiss and dismiss.isready) then
+		return true
+	end
+	
 	return false
 end
-
+ff["IsCompanionSummoned"] = IsCompanionSummoned
 function GetCompanionEntity()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
@@ -3776,12 +3777,12 @@ function GetCompanionEntity()
 	
 	return nil
 end
-
+ff["GetCompanionEntity"] = GetCompanionEntity
 function IsShopWindowOpen()
 	return (ControlVisible("Shop") or ControlVisible("ShopExchangeItem") or ControlVisible("ShopExchangeCurrency")
 		or ControlVisible("ShopCard") or ControlVisible("ShopExchangeCoin"))
 end
-
+ff["IsShopWindowOpen"] = IsShopWindowOpen
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
 	local xref = {
@@ -3815,7 +3816,7 @@ function IsArmoryFull(slot)
 	end
 	return false
 end
-
+ff["IsArmoryFull"] = IsArmoryFull
 function ArmoryItemCount(slot)
 	local slot = tonumber(slot)
 	local xref = {
@@ -3847,7 +3848,7 @@ function ArmoryItemCount(slot)
 	end
 	return 0
 end
-
+ff["ArmoryItemCount"] = ArmoryItemCount
 function GetFirstFreeArmorySlot(armoryType)
 	local armoryType = tonumber(armoryType)
 	local inv = Inventory("type="..tostring(armoryType))
@@ -3869,7 +3870,7 @@ function GetFirstFreeArmorySlot(armoryType)
 	end
 	return nil
 end
-
+ff["GetFirstFreeArmorySlot"] = GetFirstFreeArmorySlot
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -3882,7 +3883,7 @@ function GetEquippedItem(itemid)
 	
 	return nil
 end
-
+ff["GetEquippedItem"] = GetEquippedItem
 function GetUnequippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -3932,7 +3933,7 @@ function GetUnequippedItem(itemid)
 	
 	return nil
 end
-
+ff["GetUnequippedItem"] = GetUnequippedItem
 function GetEquipSlotForItem(slot)
 	local slot = tonumber(slot)
 	local equipSlot = {
@@ -3954,7 +3955,7 @@ function GetEquipSlotForItem(slot)
 	
 	return equipSlot[slot]
 end
-
+ff["GetEquipSlotForItem"] = GetEquipSlotForItem
 function GetArmorySlotForItem(slot)
 	local slot = tonumber(slot)
 	local armorySlot = {
@@ -3976,7 +3977,7 @@ function GetArmorySlotForItem(slot)
 	
 	return armorySlot[slot]
 end
-
+ff["GetArmorySlotForItem"] = GetArmorySlotForItem
 function SubtractHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start - value
@@ -3985,7 +3986,7 @@ function SubtractHours(start, value)
 	end
 	return newHour	
 end
-
+ff["SubtractHours"] = SubtractHours
 function SubtractHours12(start, value)
 	start = tonumber(start) or 1
 	local newHour = start - value
@@ -3994,7 +3995,7 @@ function SubtractHours12(start, value)
 	end
 	return newHour
 end
-
+ff["SubtractHours12"] = SubtractHours12
 function AddHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start + value
@@ -4003,7 +4004,7 @@ function AddHours(start, value)
 	end
 	return newHour	
 end
-
+ff["AddHours"] = AddHours
 function AddHours12(start, value)
 	start = tonumber(start) or 1
 	local newHour = start + value
@@ -4012,7 +4013,7 @@ function AddHours12(start, value)
 	end
 	return newHour	
 end
-
+ff["AddHours12"] = AddHours12
 function GetJPTime()
 	local jpTime = {}
 	jpTime.year = tonumber(os.date("!%Y"))
@@ -4032,7 +4033,7 @@ function GetJPTime()
 	
 	return jpTime
 end
-
+ff["GetJPTime"] = GetJPTime
 function GetUTCTime()
 	local utcTime = {}
 	utcTime.year = tonumber(os.date("!%Y"))
@@ -4045,7 +4046,7 @@ function GetUTCTime()
 	
 	return utcTime
 end
-
+ff["GetUTCTime"] = GetUTCTime
 function EorzeaTime()
 	local et = {}
     local ratioRealToGame = (1440 / 70)
@@ -4103,7 +4104,7 @@ function EorzeaTime()
 
 	return et
 end
-
+ff["EorzeaTime"] = EorzeaTime
 function GetQuestByID(questID)
 	local list = Quest:GetQuestList()
 	if(ValidTable(list)) then
@@ -4114,22 +4115,22 @@ function GetQuestByID(questID)
 		end
 	end
 end
-
+ff["GetQuestByID"] = GetQuestByID
 function IsLimsa(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 128 or mapid == 129)
 end
-
+ff["IsLimsa"] = IsLimsa
 function IsUldah(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 132 or mapid == 133)
 end
-
+ff["IsUldah"] = IsUldah
 function IsGridania(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 130 or mapid == 131)
 end
-
+ff["IsGridania"] = IsGridania
 function NewCheckbox(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))

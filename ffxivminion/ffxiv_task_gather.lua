@@ -68,18 +68,13 @@ e_findgatherable = inheritsFrom( ml_effect )
 c_findgatherable.id = 0
 c_findgatherable.uniqueid = 0
 function c_findgatherable:evaluate()
-	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading or ValidTable(Player:GetGatherableSlotList())) then
 		return false
 	end
 	
 	if (gGatherUnspoiled == "1" and not ffxiv_task_gather.IsIdleLocation()) then
 		return false
 	end
-	
-	local list = Player:GetGatherableSlotList()
-    if (list ~= nil) then
-        return false
-    end
 	
 	local needsUpdate = false
 	if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
@@ -258,7 +253,7 @@ end
 c_movetogatherable = inheritsFrom( ml_cause )
 e_movetogatherable = inheritsFrom( ml_effect )
 function c_movetogatherable:evaluate()
-	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading or Player:GetGatherableSlotList()) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading or ValidTable(Player:GetGatherableSlotList())) then
 		return false
 	end
 	
@@ -427,7 +422,7 @@ end
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (Now() < ffxiv_task_gather.timer or IsLoading() or ml_mesh_mgr.meshLoading or ValidTable(Player:GetGatherableSlotList())) then
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
@@ -445,12 +440,6 @@ function c_nextgathermarker:evaluate()
 			end
 		end
 	end
-	
-    local list = Player:GetGatherableSlotList()
-    if (list ~= nil) then
-		--d("Next gather marker, returning false in block4.")
-        return false
-    end
 	
 	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
