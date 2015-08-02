@@ -274,8 +274,6 @@ function ffxiv_task_movetopos:task_complete_eval()
 		
 		if (distance <= (self.range + self.gatherRange)) then
 			return true
-		--elseif (distance <= 4 and not Player:IsMoving()) then
-			--return true
 		end
     end    
     return false
@@ -543,6 +541,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.pathRange = nil
 	newinst.interactRange = nil
 	newinst.dismountDistance = 15
+	newinst.killParent = false
 	
 	GameHacks:SkipDialogue(true)
 	
@@ -700,17 +699,9 @@ end
 function ffxiv_task_movetointeract:task_complete_execute()
     Player:Stop()
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
-	if (ml_task_hub:ThisTask():ParentTask() and ml_task_hub:ThisTask():ParentTask().params) then
-		local params = ml_task_hub:ThisTask():ParentTask().params
-		if (params.type) then
-			if (params["type"] == "interact" and not
-				params["itemturnin"] and not
-				params["conversationindex"])
-			then
-				ml_task_hub:ThisTask():ParentTask().stepCompleted = true
-				ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
-			end
-		end
+	if (self.killParent) then
+		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
+		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
 	end
 	self.completed = true
 end
@@ -758,19 +749,19 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
-	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 50 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
 	
-    local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 15 )
+    local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 40 )
     self:add( ke_teleportToMap, self.overwatch_elements)
 	
-	local ke_transportGate = ml_element:create( "TransportGate", c_transportgate, e_transportgate, 12 )
+	local ke_transportGate = ml_element:create( "TransportGate", c_transportgate, e_transportgate, 50 )
     self:add( ke_transportGate, self.process_elements)
 	
-	local ke_interactGate = ml_element:create( "InteractGate", c_interactgate, e_interactgate, 11 )
+	local ke_interactGate = ml_element:create( "InteractGate", c_interactgate, e_interactgate, 40 )
     self:add( ke_interactGate, self.process_elements)
 
-    local ke_moveToGate = ml_element:create( "MoveToGate", c_movetogate, e_movetogate, 10 )
+    local ke_moveToGate = ml_element:create( "MoveToGate", c_movetogate, e_movetogate, 30 )
     self:add( ke_moveToGate, self.process_elements)
     
     self:AddTaskCheckCEs()

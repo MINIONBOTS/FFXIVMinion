@@ -666,8 +666,7 @@ e_movetogate = inheritsFrom( ml_effect )
 function c_movetogate:evaluate()
     if (ml_task_hub:CurrentTask().destMapID) then
         return 	Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and
-				not IsLoading() and
-				not ml_mesh_mgr.loadingMesh
+				not IsLoading() and not IsPositionLocked() and not ml_mesh_mgr.loadingMesh
 	end
 end
 function e_movetogate:execute()
@@ -688,7 +687,7 @@ function e_movetogate:execute()
 		newTask.range = 0.5
 		newTask.remainMounted = true
 		newTask.ignoreAggro = true
-		if(gTeleport == "1") then
+		if (gTeleport == "1") then
 			newTask.useTeleport = true
 		end
 		--newTask.useFollowMovement = true
@@ -1329,7 +1328,8 @@ e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 e_mount.timer = 0
 function c_mount:evaluate()
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+		or IsShopWindowOpen() or ml_mesh_mgr.loadingMesh) then
 		return false
 	end
 	
@@ -1454,7 +1454,6 @@ function e_companion:execute()
 	item:Use()
 	
 	ml_task_hub:CurrentTask():SetDelay(2000)
-
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -1675,13 +1674,6 @@ function c_rest:evaluate()
 				return not IsInsideFate()
 			end
 		end
-		
-		if  (ml_task_hub:ThisTask().name == "QUEST_DUTYKILL") then
-			local noRest = ml_task_hub:ThisTask().params["norest"]
-			if (noRest) then
-				return false
-			end
-		end
 	
 		return true
 	end
@@ -1819,17 +1811,14 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-    if (gBotMode == GetString("partyMode") and not IsLeader() ) then
+    if (gBotMode == GetString("partyMode") and not IsLeader()) then
         return false
     end
 	
-	-- never switch to a new marker when the gatherableitemselect window is up, happens in some rare occasions
-	if gBotMode == GetString("gatherMode") then
-        local list = Player:GetGatherableSlotList()
-        if (list ~= nil) then
-            return false
-        end
-    end
+	local list = Player:GetGatherableSlotList()
+	if (list ~= nil) then
+		return false
+	end
     
 	-- right now when randomize markers is active, it first walks to the marker and then checks for levelrange, this should probably get changed, but 
 	-- making this will most likely break the behavior on some badly made meshes 
@@ -1920,7 +1909,7 @@ function e_returntomarker:execute()
         newTask.range = 0.5
         newTask.doFacing = true
     end
-	if	(gTeleport == "1") then
+	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
 	
@@ -2186,18 +2175,16 @@ e_autoequip.slot = nil
 c_autoequip.timer = 0
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
-		IsShopWindowOpen() or Player.targetid ~= 0 or
-		IsPositionLocked() or IsLoading() or 
+		IsShopWindowOpen() or IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
-		Player:GetGatherableSlotList() or
-		Now() < c_autoequip.timer) 
+		Player:GetGatherableSlotList()) 
 	then
 		return false
 	end
 	
 	if (ValidTable(ffxiv_task_quest.lockedSlots)) then
-		for slot,quest in pairs(ffxiv_task_quest.lockedSlots) do
-			if (quest:hasBeenCompleted()) then
+		for slot,questid in pairs(ffxiv_task_quest.lockedSlots) do
+			if (Quest:IsQuestCompleted(questid)) then
 				ffxiv_task_quest.lockedSlots[slot] = nil
 			end
 		end
@@ -2342,6 +2329,8 @@ function c_inventoryfull:evaluate()
 end
 function e_inventoryfull:execute()
 	if (gBotRunning == "1") then
+		
+		
 		GUI_ToggleConsole(true)
 		d("Inventory is full, bot will stop.")
 		ml_task_hub:ToggleRun()
@@ -2469,4 +2458,13 @@ function e_clearaggressive:execute()
     newTask.targetid = c_questclearaggressive.targetid
 	Player:SetTarget(c_questclearaggressive.targetid)
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_isloading = inheritsFrom( ml_cause )
+e_isloading = inheritsFrom( ml_effect )
+function c_isloading:evaluate()
+	return IsLoading()
+end
+function e_isloading:execute()
+	d("Character is loading, prevent other actions and idle.")
 end

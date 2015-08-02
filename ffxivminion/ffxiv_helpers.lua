@@ -347,7 +347,7 @@ function GetHuntTarget()
 end
 ff["GetHuntTarget"] = GetHuntTarget
 function IsValidHealTarget(e)
-	if (ValidTable(e) and e.alive and e.targetable) then
+	if (ValidTable(e) and e.alive and e.targetable and not e.aggro) then
 		return (e.chartype == 4) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
 			(e.chartype == 3 and e.type == 2) or

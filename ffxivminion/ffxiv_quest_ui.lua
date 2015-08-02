@@ -751,12 +751,14 @@ function QM.LoadProfile()
 				end
 				
 				if (not found) then
-					local questData = ffxiv_quest_data[k]
-					if (questData) then
-						local nameString = questData.name[gCurrentLanguage] or questData.name.us
-						if (nameString) then
-							found = true
-							v.name = nameString
+					if (ffxiv_quest_data) then
+						local questData = ffxiv_quest_data[k]
+						if (questData) then
+							local nameString = questData.name[gCurrentLanguage] or questData.name.us
+							if (nameString) then
+								found = true
+								v.name = nameString
+							end
 						end
 					end
 				end
@@ -934,10 +936,12 @@ function QM.RefreshQuests()
 	if (TableSize(QM.Quests) > 0) then
 		for k,v in spairs(QM.Quests) do
 			--Check the quest list to see if we have it, tack on the quest name if we do.
-			local questData = ffxiv_quest_data[k]
-			if (questData) then
-				local nameString = tostring(k).." ["..questData.name[gCurrentLanguage].."]" or questData.name.us
-				GUI_NewButton(QM.Windows.Main.name, nameString, "QMQuestEdit"..tostring(k), GetString("quests"))
+			if (ffxiv_quest_data) then
+				local questData = ffxiv_quest_data[k]
+				if (questData) then
+					local nameString = tostring(k).." ["..questData.name[gCurrentLanguage].."]" or questData.name.us
+					GUI_NewButton(QM.Windows.Main.name, nameString, "QMQuestEdit"..tostring(k), GetString("quests"))
+				end
 			else
 				local questName = v.name or tostring((k + 65536))
 				GUI_NewButton(QM.Windows.Main.name, tostring(k).." ["..questName.."]", "QMQuestEdit"..tostring(k), GetString("quests"))
