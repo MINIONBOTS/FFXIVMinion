@@ -838,7 +838,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		
 		if ( k == "gSkipCutscene" ) then
 			if ( v == "1" ) then
-				--GameHacks:SkipCutscene(true)
+				GameHacks:SkipCutscene(true)
 			else
 				GameHacks:SkipCutscene(false)
 			end
@@ -958,10 +958,10 @@ function ffxivminion.SwitchMode(mode)
 			gTeleport = "1"
 			gParanoid = "0"
 			ffxiv_task_duty.UpdateProfiles()
-			gSkipCutscene = "1"
+			--gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			--GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			SendTextCommand("/busy off")
@@ -972,10 +972,10 @@ function ffxivminion.SwitchMode(mode)
 			end
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
-			gSkipCutscene = "1"
+			--gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			--GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
@@ -999,7 +999,7 @@ function ffxivminion.SwitchMode(mode)
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			--GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
@@ -1012,7 +1012,7 @@ function ffxivminion.SwitchMode(mode)
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
-			--GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
@@ -1026,7 +1026,7 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-		--GameHacks:SkipCutscene(gSkipCutscene == "1")
+		GameHacks:SkipCutscene(gSkipCutscene == "1")
 		GameHacks:SkipDialogue(gSkipDialogue == "1")
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
@@ -1405,7 +1405,7 @@ function ml_global_information.Stop()
     if (Player:IsMoving()) then
         Player:Stop()
     end
-	--GameHacks:SkipCutscene(gSkipCutscene == "1")
+	GameHacks:SkipCutscene(gSkipCutscene == "1")
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end
 
