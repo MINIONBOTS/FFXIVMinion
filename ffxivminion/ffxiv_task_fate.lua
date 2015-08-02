@@ -21,6 +21,7 @@ function ffxiv_task_fate.Create()
     newinst.targetFunction = GetNearestFateAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
 	newinst.waitingForChain = false
+	newinst.waitStart = 0
 	newinst.nextFate = {}
 	newinst.randomDelayCompleted = false
 	newinst.specialDelay = 1000
@@ -533,7 +534,9 @@ end
 c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
-	if (ml_task_hub:ThisTask().waitingForChain) then
+	if (ml_task_hub:ThisTask().waitingForChain and 
+		(ml_task_hub:ThisTask().waitStart == 0 or TimeSince(ml_task_hub:ThisTask().waitStart) < 30000)) 
+	then
 		d("Currently waiting for chain, can't end.")
 		return false
 	end
@@ -561,6 +564,7 @@ function e_endfate:execute()
 		Player:Stop()
 		ml_task_hub:ThisTask().fateid = nextFate.id
 		ml_task_hub:ThisTask().waitingForChain = true
+		ml_task_hub:ThisTask().waitStart = Now()
 		ml_task_hub:ThisTask().nextFate = nextFate
 		ml_task_hub:ThisTask().specialDelay = nextFate.specialDelay
 	else
