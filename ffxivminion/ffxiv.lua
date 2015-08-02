@@ -967,7 +967,9 @@ function ffxivminion.SwitchMode(mode)
 			SendTextCommand("/busy off")
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("questMode")) then
-			Questing.UpdateProfiles()
+			if (Questing) then
+				Questing.UpdateProfiles()
+			end
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
 			gSkipCutscene = "1"
