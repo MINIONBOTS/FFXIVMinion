@@ -965,10 +965,11 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			SendTextCommand("/busy off")
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("questMode")) then
+			Questing.UpdateProfiles()
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
-			ffxiv_task_quest.UpdateProfiles()
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
@@ -976,6 +977,7 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
+			gQuestAutoEquip = "1"
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
@@ -1001,6 +1003,7 @@ function ffxivminion.SwitchMode(mode)
 			gAvoidAOE = "1"
 			gProfile_listitems = "NA"
 			gProfile = "NA"
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		else
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
@@ -1013,6 +1016,7 @@ function ffxivminion.SwitchMode(mode)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gProfile_listitems = "NA"
 			gProfile = "NA"
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		end
 	end
 end
