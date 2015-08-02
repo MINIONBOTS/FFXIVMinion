@@ -336,6 +336,10 @@ function c_patience:evaluate()
 	--Reset tempvar.
 	c_patience.action = 0
 	
+	if (Player.gp.percent < 99) then
+		return false
+	end
+	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		local marker = ml_global_information.currentMarker
@@ -366,6 +370,19 @@ function e_patience:execute()
         patience:Cast()
 		ml_task_hub:CurrentTask().castTimer = Now() + 1000
     end
+end
+
+c_collectibleaddon = inheritsFrom( ml_cause )
+e_collectibleaddon = inheritsFrom( ml_effect )
+function c_collectibleaddon:evaluate()
+	if (ControlVisible("SelectYesNoItem")) then
+		return true
+	end
+	return false
+end
+function e_collectibleaddon:execute()
+	PressYesNoItem(true) 
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
 c_resetidle = inheritsFrom( ml_cause )
@@ -560,14 +577,18 @@ end
 
 function ffxiv_task_fish:Init()
     --init ProcessOverwatch() cnes
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 40 )
     self:add( ke_inventoryFull, self.overwatch_elements)
+	
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddon, e_collectibleaddon, 30 )
+    self:add( ke_collectible, self.overwatch_elements)
 	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
     self:add( ke_dead, self.overwatch_elements)
     
     local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
     self:add( ke_stealth, self.overwatch_elements)
+
   
     --init Process() cnes
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 110 )
