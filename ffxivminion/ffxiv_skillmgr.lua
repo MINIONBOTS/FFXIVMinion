@@ -121,6 +121,7 @@ SkillMgr.Variables = {
 	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
 	SKM_OnlySolo = { default = "0", cast = "string", profile = "onlysolo", section = "fighting"  },
 	SKM_OnlyParty = { default = "0", cast = "string", profile = "onlyparty", section = "fighting"  },
+	SKM_PartySizeLT = { default = "0", cast = "string", profile = "partysizelt", section = "fighting"  },
 	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting"  },
 	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting"  },
 	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
@@ -191,9 +192,11 @@ SkillMgr.Variables = {
 	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
 	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting"  },
 	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
+	
 	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", section = "fighting"  },
 	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting"  },
 	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", section = "fighting"   },
+	SKM_TNBuffOwner = { default = "Player", cast = "string", profile = "tnbuffowner", section = "fighting"  },
 	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting"  },
 	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
 	
@@ -411,6 +414,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter5"),"SKM_FilterFive",GetString("basicDetails"), "Ignore,Off,On")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlySolo"),"SKM_OnlySolo",GetString("basicDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Party Size <=","SKM_PartySizeLT",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
 	
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
@@ -496,6 +500,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
 	
@@ -2518,7 +2523,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	-- If the skill is a ninjutsu, and we don't have the mudra buff, it won't succeed.
 	-- If the skill is a mudra, and we cast it less than 600ms ago, don't recast.
 	if (castable) then
-		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 600) then
+		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 700) then
 			castable = false
 		end
 	end
@@ -3167,6 +3172,12 @@ function SkillMgr.AddDefaultConditions()
 				return true
 			end
 		end
+		
+		if ( tonumber(skill.partysizelt) > 0 ) then
+			if ((TableSize(plist) + 1) > tonumber(skill.partysizelt)) then
+				return true
+			end
+		end
 		return false
 	end
 	}
@@ -3630,8 +3641,9 @@ function SkillMgr.AddDefaultConditions()
 				return true 
 			end 
 		end
+		
 		if (not IsNullString(skill.tnbuff)) then
-			local owner = (skill.tbuffowner == "Player") and PID or nil
+			local owner = (skill.tnbuffowner == "Player") and PID or nil
 			local duration = tonumber(skill.tnbuffdura) or 0
 			if not MissingBuffs(target, skill.tnbuff, duration, owner) then 
 				return true 

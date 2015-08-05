@@ -372,7 +372,7 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gSkipDialogue = "0"
     end
     if ( Settings.FFXIVMINION.gDoUnstuck == nil) then
-        Settings.FFXIVMINION.gDoUnstuck = "1"
+        Settings.FFXIVMINION.gDoUnstuck = "0"
     end
 	if ( Settings.FFXIVMINION.gUseHQMats == nil) then
 		Settings.FFXIVMINION.gUseHQMats = "0"
