@@ -1338,7 +1338,7 @@ function c_mount:evaluate()
 	end
 	
 	noMountMaps = {
-		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,
+		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
 		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
 	}
 	
@@ -1357,8 +1357,6 @@ function c_mount:evaluate()
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		
 			if (distance > tonumber(gMountDist)) then
-				
-				d("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
 				--Added mount verifications here.
 				--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
 				local mountID
@@ -1400,6 +1398,7 @@ function e_mount:execute()
 		return
 	end
 	
+	ml_debug("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
     Player:Stop()
     Mount(e_mount.id)
 	e_mount.timer = Now() + 1200

@@ -439,8 +439,6 @@ function ffxiv_task_huntlog:Init()
 	
     self:AddTaskCheckCEs()
 end
-
-
 function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gDoGCHuntLog" )	then
@@ -449,7 +447,6 @@ function ffxiv_task_huntlog.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("huntlogMode"))
 end
-
 function ffxiv_task_huntlog.UIInit()
 	ffxivminion.Windows.HuntLog = { id = strings["us"].huntlogMode, Name = GetString("huntlogMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.HuntLog)
@@ -468,6 +465,23 @@ function ffxiv_task_huntlog.UIInit()
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
+end
+function ffxiv_task_huntlog:task_complete_eval()	
+	if (self.adHoc) then
+		local bestTarget = AceLib.API.Huntlog.GetBestTarget()
+		if (not ValidTable(bestTarget)) then
+			return true
+		else
+			if (not deepcompare(bestTarget,self.huntParams,true)) then
+				return true
+			end
+		end
+    end
+    
+    return false
+end
+function ffxiv_task_huntlog:task_complete_execute()
+    self.completed = true
 end
 
 RegisterEventHandler("GUI.Update",ffxiv_task_huntlog.GUIVarUpdate)

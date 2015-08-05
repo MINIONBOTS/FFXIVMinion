@@ -147,11 +147,15 @@ function ffxiv_task_movetopos.Create()
 	newinst.lastDistance = 0
 	
 	newinst.abortFunction = nil
+	ml_global_information.monitorStuck = true
     
     return newinst
 end
 
-function ffxiv_task_movetopos:Init()			
+function ffxiv_task_movetopos:Init()
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
+    self:add( ke_stuck, self.overwatch_elements)
+			
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
     self:add( ke_teleportToPos, self.process_elements)
 	
@@ -272,7 +276,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 		end
 		
-		if (distance <= (self.range + self.gatherRange)) then
+		if (distance < (self.range + self.gatherRange)) then
 			return true
 		end
     end    
@@ -340,11 +344,16 @@ function ffxiv_task_movetofate.Create()
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	newinst.lastDistance = 0
+	
+	ml_global_information.monitorStuck = true
     
     return newinst
 end
 
-function ffxiv_task_movetofate:Init()				
+function ffxiv_task_movetofate:Init()
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
+    self:add( ke_stuck, self.overwatch_elements)
+	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
@@ -483,6 +492,7 @@ end
 function ffxiv_task_movetofate:task_complete_execute()
 	Player:Stop()
 	self.completed = true
+	ml_global_information.monitorStuck = false
 end
 
 function ffxiv_task_movetofate:task_fail_eval()
@@ -506,6 +516,7 @@ end
 function ffxiv_task_movetofate:task_fail_execute()
 	Player:Stop()
     self.valid = false
+	ml_global_information.monitorStuck = false
 end
 
 --++MOVE_TO_INTERACT
@@ -544,11 +555,15 @@ function ffxiv_task_movetointeract.Create()
 	newinst.killParent = false
 	
 	GameHacks:SkipDialogue(true)
+	ml_global_information.monitorStuck = true
 	
     return newinst
 end
 
 function ffxiv_task_movetointeract:Init()
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
+    self:add( ke_stuck, self.overwatch_elements)
+	
 	local ke_unpackData = ml_element:create( "UnpackData", c_unpackdata, e_unpackdata, 50 )
 	self:add( ke_unpackData, self.process_elements)
 
@@ -1301,6 +1316,8 @@ function ffxiv_task_flee.Create()
     newinst.range = 1.5
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.failTimer = 0
+	
+
     
     return newinst
 end

@@ -32,6 +32,7 @@ ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
+ml_global_information.monitorStuck = false
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -209,9 +210,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 		
 		if (SkillMgr) then
 			ffxivminion.CheckClass()
-		end
-	
-		ffxiv_unstuck.HandleUpdate(tickcount)		
+		end		
 		
 		if (TimeSince(ml_global_information.windowTimer) > 10000) then
 			ml_global_information.windowTimer = tickcount
@@ -373,7 +372,7 @@ function ffxivminion.HandleInit()
         Settings.FFXIVMINION.gSkipDialogue = "0"
     end
     if ( Settings.FFXIVMINION.gDoUnstuck == nil) then
-        Settings.FFXIVMINION.gDoUnstuck = "0"
+        Settings.FFXIVMINION.gDoUnstuck = "1"
     end
 	if ( Settings.FFXIVMINION.gUseHQMats == nil) then
 		Settings.FFXIVMINION.gUseHQMats = "0"

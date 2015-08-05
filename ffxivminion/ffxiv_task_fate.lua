@@ -545,7 +545,7 @@ function c_endfate:evaluate()
     if (not ValidTable(fate)) then
 		d("Ending fate, fate no longer exists.")
         return true
-	elseif (fate and fate.completion > 99) then
+	elseif (fate and (fate.completion > 99 or fate.status ~= 2)) then
 		d("Ending fate, fate completion:"..tostring(fate.completion))
         return true
     end
