@@ -7,8 +7,8 @@ ffxiv_unstuck.count = 0
 ffxiv_unstuck.laststuck = 0
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 10 },
-	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, maxticks = 15 },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 25 },
+	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, maxticks = 30 },
 }
 
 c_stuck = inheritsFrom( ml_cause )
@@ -118,6 +118,7 @@ function ffxiv_unstuck.IsStuck()
 	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= .6) and
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= .6) and
 			not ActionList:IsCasting() and
+			Player:IsMoving() and 
 			not IsPositionLocked() and
 			not Player.incombat and
 			not ml_mesh_mgr.loadingMesh
