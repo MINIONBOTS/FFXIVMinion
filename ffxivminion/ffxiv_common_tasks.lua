@@ -134,7 +134,7 @@ function ffxiv_task_movetopos.Create()
     newinst.remainMounted = false
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
-	newinst.use3d = false
+	newinst.use3d = true
 	newinst.customSearch = ""
 	newinst.customSearchCompletes = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
@@ -297,7 +297,7 @@ end
 function ffxiv_task_movetopos:task_fail_eval()
 	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
-			self.failTimer = Now() + 1500
+			self.failTimer = Now() + 3000
 		end
 	else
 		if (self.failTimer ~= 0) then
@@ -335,7 +335,7 @@ function ffxiv_task_movetofate.Create()
 	newinst.lastRandomize = 0
     newinst.useFollowMovement = false
 	newinst.obstacleTimer = 0
-	newinst.use3d = false
+	newinst.use3d = true
 	newinst.dismountTimer = 0
 	newinst.dismountDistance = 15
 	newinst.failTimer = 0

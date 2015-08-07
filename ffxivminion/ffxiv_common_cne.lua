@@ -677,6 +677,7 @@ function e_movetogate:execute()
 	if (ValidTable(pos)) then
 		local newTask = ffxiv_task_movetopos.Create()
 		newTask.pos = pos
+		newTask.use3d = false
 		local newPos = { x = pos.x, y = pos.y, z = pos.z }
 		local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
 		
@@ -947,7 +948,7 @@ function c_walktopos:evaluate()
 		local range = ml_task_hub:CurrentTask().range or 0
 		if (range > 0) then
 			local distance = 0.0
-			if(ml_task_hub:CurrentTask().use3d) then
+			if (ml_task_hub:CurrentTask().use3d) then
 				distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 			else
 				distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -2158,8 +2159,12 @@ function e_teleporttopos:execute()
         local gotoPos = c_teleporttopos.pos
 		Player:Stop()
 		
-        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
-		--Player:SetFacingSynced(math.random())
+        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))		
+		if (c_teleporttopos.pos.h) then
+			ml_global_information.queueSync = {timer = Now() + 150, h = c_teleporttopos.pos.h}
+		else
+			ml_global_information.queueSync = {timer = Now() + 150, h = 1}
+		end
 		e_teleporttopos.teleCooldown = Now() + 1000
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")

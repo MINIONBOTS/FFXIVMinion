@@ -32,7 +32,7 @@ ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
-ml_global_information.monitorStuck = false
+ml_global_information.queueSync = nil
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -100,6 +100,15 @@ function ml_global_information.OnUpdate( event, tickcount )
 		if (Player) then
 			ml_global_information.autoStartQueued = false
 			ml_task_hub:ToggleRun()
+		end
+	end
+	
+	if (ml_global_information.queueSync) then
+		local timer = ml_global_information.queueSync.timer
+		local h = ml_global_information.queueSync.h or 1
+		if (timer and Now() > timer) then
+			Player:SetFacingSynced(h)
+			ml_global_information.queueSync = nil
 		end
 	end
 	
@@ -663,6 +672,8 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(203, "Ul dah - Heart of the Sworn")
 		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
 		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
+		
+		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
 		-- Duties
 		--ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
 		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")

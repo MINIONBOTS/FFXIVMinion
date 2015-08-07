@@ -244,7 +244,6 @@ function e_movetounspoiledmarker:execute()
 		newTask.pos = pos
 		newTask.destination = "UNSPOILED_MARKER"
 		newTask.range = 1.5
-		newTask.use3d = true
 		newTask.remainMounted = true
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
     end

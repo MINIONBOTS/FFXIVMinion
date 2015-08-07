@@ -20,7 +20,6 @@ function ffxiv_task_fish.Create()
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
 	
-    newinst.baitName = ""
     newinst.castFailTimer = 0
 	newinst.filterLevel = true
     newinst.missingBait = false
@@ -213,9 +212,9 @@ function e_cast:execute()
 	local cast = ActionList:Get(289,1)
 	if (cast and cast.isready) then	
 		if (cast:Cast()) then
-			ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
 			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
 		end
+		ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
@@ -372,16 +371,62 @@ function e_patience:execute()
     end
 end
 
-c_collectibleaddon = inheritsFrom( ml_cause )
-e_collectibleaddon = inheritsFrom( ml_effect )
-function c_collectibleaddon:evaluate()
+c_collectibleaddonfish = inheritsFrom( ml_cause )
+e_collectibleaddonfish = inheritsFrom( ml_effect )
+function c_collectibleaddonfish:evaluate()
 	if (ControlVisible("SelectYesNoItem")) then
-		return true
+		local info = Player:GetYesNoItemInfo()
+		if (ValidTable(info)) then
+			local validCollectible = false
+			
+			if (gFishCollectibleName1 and gFishCollectibleName1 ~= "" and tonumber(gFishCollectibleValue1) > 0) then
+				local itemid = AceLib.API.Items.GetIDByName(gFishCollectibleName1,47)
+				if (itemid) then
+					if (info.itemid == itemid) then
+						if (info.collectability >= tonumber(gFishCollectibleValue1)) then
+							validCollectible = true
+						else
+							d("Collectibility was too low ["..tostring(info.collectability).."].")
+						end
+					else
+						d("Collectible was not the item we are looking for.")
+						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+					end	
+				else
+					d("Could not find an item ID for:" .. gFishCollectibleName1)
+				end
+			end
+			
+			if (gFishCollectibleName2 and gFishCollectibleName2 ~= "" and tonumber(gFishCollectibleValue2) > 0) then
+				local itemid = AceLib.API.Items.GetIDByName(gFishCollectibleName2,47)
+				if (itemid) then
+					if (info.itemid == itemid) then
+						if (info.collectability >= tonumber(gFishCollectibleValue2)) then
+							validCollectible = true
+						else
+							d("Collectibility was too low ["..tostring(info.collectability).."].")
+						end
+					else
+						d("Collectible was not the item we are looking for.")
+						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+					end	
+				else
+					d("Could not find an item ID for:" .. gFishCollectibleName2)
+				end
+			end
+			
+			if (not validCollectible) then
+				PressYesNoItem(false) 
+				return true
+			else
+				PressYesNoItem(true) 
+				return true
+			end
+		end
 	end
 	return false
 end
-function e_collectibleaddon:execute()
-	PressYesNoItem(true) 
+function e_collectibleaddonfish:execute()
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 
@@ -397,7 +442,7 @@ function c_resetidle:evaluate()
     return false
 end
 function e_resetidle:execute()
-	d("Resetting idle status, waiting detected.")
+	ml_debug("Resetting idle status, waiting detected.")
 	ffxiv_task_fish.attemptedCasts = 0
 	ffxiv_task_fish.biteDetected = 0
 end
@@ -407,49 +452,82 @@ e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
 e_setbait.baitname = ""
 function c_setbait:evaluate()
-    if (ml_task_hub:CurrentTask().missingBait or gFishNoMarker == "1") then
-        return false
-    end
-    
-    local fs = tonumber(Player:GetFishingState())
+	local fs = tonumber(Player:GetFishingState())
     if (fs == 0 or fs == 4) then
-        local marker = ml_task_hub:CurrentTask().currentMarker
+		local marker = ml_global_information.currentMarker
         if (marker ~= nil and marker ~= false) then
-            local baitName = marker:GetFieldValue(GetString("baitName"))
-            if (baitName ~= "None" and baitName ~= ml_task_hub:CurrentTask().baitName) then
-                --check to see if we have the bait in inventory
-                ml_debug("Looking for bait named "..baitName)
-                for i = 0,3 do
-                    local inventory = Inventory("type="..tostring(i))
-                    if (inventory ~= nil and inventory ~= 0) then
-                        for _,item in pairs(inventory) do
-                            if item.name == baitName then
-                                e_setbait.baitid = item.id
-								e_setbait.baitname = item.name
-								return true
-                            end
-                        end
-                    end
-                end
-                ml_debug("Could not find bait! Attempting to use current bait")
-            end
-        end
-    end
+			local currentbait = Player:GetBait()
+			if (not currentbait or currentbait == 0) then
+				ml_debug("No bait is equipped, need to try to find something.")
+				return true
+			else
+				local baitFound = false
+				local markerBait = marker:GetFieldValue(GetString("baitName"))
+				if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
+					for bait in StringSplit(markerBait,",") do
+						if (tonumber(bait) ~= nil) then
+							if (currentbait == tonumber(bait)) then
+								baitFound = true
+							end
+						else
+							local thisID = AceLib.API.Items.GetIDByName(bait)
+							if (thisID) then
+								if (currentbait == thisID) then
+									baitFound = true
+								end
+							else
+								d("Could not find an item ID for:"..tostring(bait))
+								d("Please try specifying the bait in a different language or by content ID.")
+							end
+						end
+					end
+				else
+					return false
+				end
+				
+				if (not baitFound) then
+					ml_debug("Bait is equipped, but it's not specified in our marker, need to pick something different.")
+					return true
+				end
+			end
+		end
+	end
         
     return false
 end
 function e_setbait:execute()
-    Player:SetBait(e_setbait.baitid)
-    ml_task_hub:CurrentTask().baitName = e_setbait.baitname
+	local marker = ml_task_hub:CurrentTask().currentMarker
+	if (marker ~= nil and marker ~= false) then
+		local markerBait = marker:GetFieldValue(GetString("baitName"))
+		if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
+			for bait in StringSplit(markerBait,",") do
+				if (tonumber(bait) ~= nil) then
+					local item = Inventory:Get(tonumber(bait))
+					if (item) then
+						Player:SetBait(item.id)
+						return
+					end
+				else
+					local thisID = AceLib.API.Items.GetIDByName(bait)
+					if (thisID) then
+						local item = Inventory:Get(thisID)
+						if (item) then
+							Player:SetBait(item.id)
+							return
+						end
+					else
+						d("Could not find an item ID for:"..tostring(bait))
+						d("Please try specifying the bait in a different language or by content ID.")
+					end
+				end
+			end
+		end
+	end
 end
 
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
-	if (gFishNoMarker == "1") then	
-		return false
-	end
-	
 	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
 	else
@@ -553,14 +631,12 @@ function ffxiv_task_syncadjust.Create()
     
     return newinst
 end
-
 function ffxiv_task_syncadjust:Init()   
 	Player:Move(FFXIV.MOVEMENT.FORWARD)
 	self.timer = Now() + 500
 	
     self:AddTaskCheckCEs()
 end
-
 function ffxiv_task_syncadjust:task_complete_eval()		
 	if ( Now() > self.timer) then
 		return true
@@ -568,7 +644,6 @@ function ffxiv_task_syncadjust:task_complete_eval()
 	
 	return false
 end
-
 function ffxiv_task_syncadjust:task_complete_execute()
     Player:Stop()
 	self:ParentTask().requiresAdjustment = false
@@ -580,7 +655,7 @@ function ffxiv_task_fish:Init()
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 40 )
     self:add( ke_inventoryFull, self.overwatch_elements)
 	
-	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddon, e_collectibleaddon, 30 )
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 30 )
     self:add( ke_collectible, self.overwatch_elements)
 	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
@@ -624,14 +699,24 @@ function ffxiv_task_fish:Init()
     local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 20 )
     self:add(ke_bite, self.process_elements)
    
-    
     self:AddTaskCheckCEs()
 end
-
--- UI settings etc
 function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
+	
+	if (Settings.FFXIVMINION.gFishCollectibleName1 == nil) then
+		Settings.FFXIVMINION.gFishCollectibleName1 = ""
+	end
+	if (Settings.FFXIVMINION.gFishCollectibleName2 == nil) then
+		Settings.FFXIVMINION.gFishCollectibleName2 = ""
+	end
+	if (Settings.FFXIVMINION.gFishCollectibleValue1 == nil) then
+		Settings.FFXIVMINION.gFishCollectibleValue1 = 0
+	end
+	if (Settings.FFXIVMINION.gFishCollectibleValue2 == nil) then
+		Settings.FFXIVMINION.gFishCollectibleValue2 = 0
+	end
 	
 	local winName = GetString("fishMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -645,20 +730,45 @@ function ffxiv_task_fish.UIInit()
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	
+	local group = "Collectible"
+	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName1",group,AceLib.API.Items.BuildUIString(47,120))
+	GUI_NewField(winName,"Min Value","gFishCollectibleValue1",group)
+	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName2",group,AceLib.API.Items.BuildUIString(47,120))
+	GUI_NewField(winName,"Min Value","gFishCollectibleValue2",group)
+	
 	GUI_UnFoldGroup(winName,GetString("status"))
+	GUI_UnFoldGroup(winName,"Collectible")
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
-    
+	
+	gFishCollectibleName1 = Settings.FFXIVMINION.gFishCollectibleName1
+    gFishCollectibleValue1 = Settings.FFXIVMINION.gFishCollectibleValue1
+	gFishCollectibleName2 = Settings.FFXIVMINION.gFishCollectibleName2
+    gFishCollectibleValue2 = Settings.FFXIVMINION.gFishCollectibleValue2
+	
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 	
 	ffxiv_task_fish.SetupMarkers()
 end
-
+function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
+    for k,v in pairs(NewVals) do
+        if (	k == "gFishCollectibleValue1" or
+				k == "gFishCollectibleValue2") 
+		then
+			Settings.FFXIVMINION[tostring(k)] = v
+		elseif (k == "gFishCollectibleName1" or
+				k == "gFishCollectibleName2")		
+		then
+			Settings.FFXIVMINION[tostring(k)] = v
+        end
+    end
+    GUI_RefreshWindow(GetString("fishMode"))
+end
 function ffxiv_task_fish.SetupMarkers()
     -- add marker templates for fishing
     local fishingMarker = ml_marker:Create("fishingTemplate")
 	fishingMarker:SetType(GetString("fishingMarker"))
-	fishingMarker:AddField("string", GetString("baitName"), "")
+	fishingMarker:AddField("string", GetString("baitName"), "")	
 	fishingMarker:AddField("checkbox", GetString("useMooch"), "1")
 	fishingMarker:AddField("checkbox", GetString("usePatience"), "0")
 	fishingMarker:AddField("checkbox", GetString("usePatience2"), "0")

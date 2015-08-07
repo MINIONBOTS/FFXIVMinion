@@ -397,7 +397,6 @@ function e_huntlogmovetopos:execute()
 	local pos = ml_task_hub:CurrentTask().huntParams["pos"]
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
-	newTask.use3d = true
 	newTask.range = 5
 	if (gTeleport == "1") then
 		newTask.useTeleport = true

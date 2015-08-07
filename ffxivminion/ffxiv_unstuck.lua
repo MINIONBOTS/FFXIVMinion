@@ -1,6 +1,7 @@
 ffxiv_unstuck = {}
 ffxiv_unstuck.lastpos = nil
 ffxiv_unstuck.diffX = 0
+ffxiv_unstuck.diffY = 0
 ffxiv_unstuck.diffZ = 0
 ffxiv_unstuck.evaltime = 0
 ffxiv_unstuck.count = 0
@@ -30,6 +31,8 @@ function c_stuck:evaluate()
 	local currentPos = Player.pos
 	ffxiv_unstuck.diffX = math.abs(currentPos.x - ffxiv_unstuck.lastpos.x)
 	ml_debug("Current diffX:"..tostring(ffxiv_unstuck.diffX))
+	ffxiv_unstuck.diffY = math.abs(currentPos.y - ffxiv_unstuck.lastpos.y)
+	ml_debug("Current diffY:"..tostring(ffxiv_unstuck.diffY))
 	ffxiv_unstuck.diffZ = math.abs(currentPos.z - ffxiv_unstuck.lastpos.z)
 	ml_debug("Current diffZ:"..tostring(ffxiv_unstuck.diffZ))
 	
@@ -116,6 +119,7 @@ end
 
 function ffxiv_unstuck.IsStuck()
 	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= .6) and
+			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= .6) and
 			not ActionList:IsCasting() and
 			Player:IsMoving() and 
