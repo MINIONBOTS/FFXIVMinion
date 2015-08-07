@@ -1,0 +1,1088 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[618] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003943;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -37.295932769775;
+						["x"] = -336.01000976563;
+						["z"] = 242.92686462402;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "nav";
+					["itemturnin"] = false;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -37.494361877441;
+						["x"] = -344.76287841797;
+						["z"] = 240.2281036377;
+					};
+				};
+				[3] = {
+					["type"] = "killaggro";
+					["restartatstep"] = 2;
+					["ids"] = "1177";
+					["itemreward"] = false;
+					["mapid"] = 145;
+					["itemturnin"] = false;
+					["disableflagcheck"] = true;
+					["meshname"] = "Eastern Thanalan";
+					["failTime"] = 2000;
+					["pos"] = {
+						["y"] = -37.612091064453;
+						["x"] = -345.09140014648;
+						["z"] = 242.19110107422;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753471374512;
+						["x"] = -379.83984375;
+						["z"] = 107.59583282471;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003942;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -37.603317260742;
+						["x"] = -342.61053466797;
+						["z"] = 242.85353088379;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003944;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -37.452098846436;
+						["x"] = -337.02191162109;
+						["z"] = 244.75796508789;
+					};
+				};
+				[7] = {
+					["type"] = "complete";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 145;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000399;
+					};
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -55.753520965576;
+						["x"] = -379.43395996094;
+						["z"] = 107.91331481934;
+					};
+				};
+			};
+			["level"] = 17;
+			["prereq"] = {
+				[-1] = {
+					[1] = 510;
+				};
+			};
+		};
+		[620] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003969;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -16.219999313354;
+						["x"] = -505.60583496094;
+						["z"] = -2.7025163173676;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1005136;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -17.254262924194;
+						["x"] = -521.41815185547;
+						["z"] = 17.930198669434;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "useitem";
+					["itemid"] = 2000517;
+					["delay"] = 3000;
+					["id"] = 2001657;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -5.2621231079102;
+						["x"] = -542.17852783203;
+						["z"] = 45.692504882813;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753314971924;
+						["x"] = -379.79522705078;
+						["z"] = 107.84357452393;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 2001658;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -5.2621231079102;
+						["x"] = -542.17852783203;
+						["z"] = 45.692504882813;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1005136;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -16.881338119507;
+						["x"] = -523.45874023438;
+						["z"] = 19.45294380188;
+					};
+				};
+				[7] = {
+					["type"] = "complete";
+					["id"] = 1003929;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 2;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 145;
+					["equip"] = true;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753665924072;
+						["x"] = -379.24429321289;
+						["z"] = 107.90131378174;
+					};
+				};
+			};
+			["level"] = 18;
+			["prereq"] = {
+				[-1] = {
+					[1] = 619;
+				};
+			};
+		};
+		[622] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003978;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -55.694499969482;
+						["x"] = -442.12149047852;
+						["z"] = 92.027893066406;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003977;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -28.275482177734;
+						["x"] = -200.93104553223;
+						["z"] = 326.44256591797;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 2001410;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -28.097284317017;
+						["x"] = -96.809638977051;
+						["z"] = 274.39266967773;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753711700439;
+						["x"] = -379.3742980957;
+						["z"] = 107.71614837646;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1003977;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000390;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 145;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 7000;
+					["pos"] = {
+						["y"] = -28.283672332764;
+						["x"] = -199.99769592285;
+						["z"] = 326.04840087891;
+					};
+				};
+				[5] = {
+					["type"] = "interact";
+					["id"] = 1004323;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000390;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 145;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 7000;
+					["pos"] = {
+						["y"] = -55.694499969482;
+						["x"] = -444.71640014648;
+						["z"] = 92.497138977051;
+					};
+				};
+				[7] = {
+					["mapid"] = 145;
+					["type"] = "complete";
+					["itemrewardslot"] = {
+						[26] = 2;
+						[1] = 0;
+						[2] = 1;
+						[4] = 1;
+						[5] = 1;
+						[-1] = 3;
+						[3] = 0;
+						[6] = 2;
+						[7] = 2;
+					};
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = true;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -55.753341674805;
+						["x"] = -379.51452636719;
+						["z"] = 108.07797241211;
+					};
+				};
+			};
+			["level"] = 19;
+			["prereq"] = {
+				[-1] = {
+					[1] = 621;
+				};
+			};
+		};
+		[343] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["meshname"] = "Waking Sands";
+					["id"] = 1005116;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 1.214808344841;
+						["x"] = 38.575485229492;
+						["z"] = 2.3976140022278;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004584;
+					["itemreward"] = false;
+					["delay"] = 8000;
+					["pos"] = {
+						["y"] = -55.349998474121;
+						["x"] = -360.97543334961;
+						["z"] = 143.83489990234;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 2001592;
+					["itemreward"] = false;
+					["delay"] = 15000;
+					["pos"] = {
+						["y"] = -10.495455741882;
+						["x"] = -358.48919677734;
+						["z"] = -240.90000915527;
+					};
+				};
+				[4] = {
+					["mapid"] = 275;
+					["type"] = "dutykill";
+					["ids"] = "248;256;251;992";
+					["meshname"] = "Eastern Thanalan";
+					["itemreward"] = false;
+					["restartatstep"] = 3;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -24.563293457031;
+						["x"] = -56.506412506104;
+						["z"] = -565.68688964844;
+					};
+				};
+				[5] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Ifrit_Entrance";
+					["id"] = 1005017;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -25.211599349976;
+						["x"] = -62.549346923828;
+						["z"] = -556.49462890625;
+					};
+				};
+			};
+			["level"] = 20;
+			["prereq"] = {
+				[-1] = {
+					[1] = 272;
+				};
+			};
+		};
+		[509] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 140;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 17;
+					["conversationindex"] = 4;
+					["itemreward"] = false;
+					["meshname"] = "Western Thanalan";
+					["pos"] = {
+						["y"] = 45.916233062744;
+						["x"] = 65.218780517578;
+						["z"] = -224.79434204102;
+					};
+				};
+				[3] = {
+					["mapid"] = 140;
+					["type"] = "interact";
+					["meshname"] = "Western Thanalan";
+					["id"] = 1004603;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 21.005001068115;
+						["x"] = -490.31597900391;
+						["z"] = -383.01794433594;
+					};
+				};
+				[1] = {
+					["mapid"] = 130;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1001353;
+					["itemreward"] = false;
+					["meshname"] = "Ul dah - Steps of Nald";
+					["pos"] = {
+						["y"] = 6.9999957084656;
+						["x"] = 21.131235122681;
+						["z"] = -81.377838134766;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1005012;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 2;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 212;
+					["equip"] = true;
+					["meshname"] = "Waking Sands";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 1.0226526260376;
+						["x"] = 21.921213150024;
+						["z"] = -0.81541085243225;
+					};
+				};
+			};
+			["level"] = 17;
+			["prereq"] = {
+				[-1] = {
+					[1] = 660;
+				};
+			};
+		};
+		[510] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 212;
+					["type"] = "interact";
+					["delay"] = 6000;
+					["id"] = 1005119;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2000019550323;
+						["x"] = 33.043155670166;
+						["z"] = 4.7255125045776;
+					};
+				};
+				[3] = {
+					["mapid"] = 141;
+					["type"] = "interact";
+					["conversationindex"] = 4;
+					["delay"] = 3000;
+					["id"] = 53;
+					["itemreward"] = false;
+					["meshname"] = "Central Thanalan";
+					["pos"] = {
+						["y"] = -1.8789104223251;
+						["x"] = -16.149383544922;
+						["z"] = -169.533203125;
+					};
+				};
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["conversationindex"] = 1;
+					["meshname"] = "Waking Sands";
+					["id"] = 1003783;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 1.2000012397766;
+						["x"] = 39.298553466797;
+						["z"] = 2.6922233104706;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["conversationindex"] = 4;
+					["delay"] = 3000;
+					["id"] = 18;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -58.87574005127;
+						["x"] = -385.53900146484;
+						["z"] = 138.14796447754;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1003929;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 2;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 145;
+					["equip"] = true;
+					["delay"] = 3000;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -55.753471374512;
+						["x"] = -379.83984375;
+						["z"] = 107.59583282471;
+					};
+				};
+			};
+			["level"] = 17;
+			["prereq"] = {
+				[-1] = {
+					[1] = 509;
+				};
+			};
+		};
+		[660] = {
+			["steps"] = {
+				[6] = {
+					["type"] = "complete";
+					["id"] = 1001353;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 2;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 130;
+					["equip"] = true;
+					["meshname"] = "Ul dah - Steps of Nald";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.9999957084656;
+						["x"] = 21.131235122681;
+						["z"] = -81.377838134766;
+					};
+				};
+				[2] = {
+					["donothing"] = true;
+				};
+				[3] = {
+					["donothing"] = true;
+				};
+				[1] = {
+					["mapid"] = 130;
+					["type"] = "start";
+					["meshname"] = "Ul dah - Steps of Nald";
+					["id"] = 1001353;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.9999961853027;
+						["x"] = 21.463445663452;
+						["z"] = -80.627365112305;
+					};
+				};
+				[4] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["meshname"] = "Ul dah - Steps of Nald";
+					["id"] = 1004621;
+					["itemreward"] = false;
+					["delay"] = 20000;
+					["pos"] = {
+						["y"] = 6.9999928474426;
+						["x"] = 23.194843292236;
+						["z"] = -85.123832702637;
+					};
+				};
+				[5] = {
+					["mapid"] = 274;
+					["type"] = "dutykill";
+					["restartatstep"] = 4;
+					["ids"] = "990;989;991";
+					["meshname"] = "Ul dah - Steps of Nald";
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 4;
+						["x"] = 36.462329864502;
+						["z"] = -136.59620666504;
+					};
+				};
+			};
+			["level"] = 17;
+			["prereq"] = false;
+		};
+		[272] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1005116;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2000012397766;
+						["x"] = 39.748229980469;
+						["z"] = 2.7907094955444;
+					};
+				};
+				[2] = {
+					["type"] = "interact";
+					["id"] = 1001425;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000461;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 141;
+					["delay"] = 10000;
+					["meshname"] = "Central Thanalan";
+					["pos"] = {
+						["y"] = 31;
+						["x"] = 115.52136230469;
+						["z"] = -389.90536499023;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1005116;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 212;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000462;
+					};
+					["delay"] = 8000;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2000013589859;
+						["x"] = 38.586479187012;
+						["z"] = 3.1051270961761;
+					};
+				};
+			};
+			["level"] = 19;
+			["prereq"] = {
+				[-1] = {
+					[1] = 574;
+				};
+			};
+		};
+		[619] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003964;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -59.299999237061;
+						["x"] = -379.69345092773;
+						["z"] = 164.31425476074;
+					};
+				};
+				[2] = {
+					["type"] = "interact";
+					["id"] = 1003964;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000515;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 145;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -59.299999237061;
+						["x"] = -379.82040405273;
+						["z"] = 164.49331665039;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003967;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -59;
+						["x"] = -392.05383300781;
+						["z"] = 132.81199645996;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753520965576;
+						["x"] = -379.43395996094;
+						["z"] = 107.91331481934;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003966;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -56.930210113525;
+						["x"] = -375.142578125;
+						["z"] = 122.15498352051;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003965;
+					["itemreward"] = false;
+					["delay"] = 10000;
+					["pos"] = {
+						["y"] = -55.923221588135;
+						["x"] = -373.69595336914;
+						["z"] = 99.063102722168;
+					};
+				};
+				[7] = {
+					["mapid"] = 145;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -55.753314971924;
+						["x"] = -379.79522705078;
+						["z"] = 107.84357452393;
+					};
+				};
+			};
+			["level"] = 18;
+			["prereq"] = {
+				[-1] = {
+					[1] = 618;
+				};
+			};
+		};
+		[621] = {
+			["steps"] = {
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["delay"] = 12000;
+					["id"] = 1003975;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -0.27494576573372;
+						["x"] = -419.92376708984;
+						["z"] = -279.10821533203;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["delay"] = 5000;
+					["id"] = 1003976;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = 4.9853386878967;
+						["x"] = -549.65783691406;
+						["z"] = -267.16375732422;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "nav";
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -1.3363223075867;
+						["x"] = -426.21704101563;
+						["z"] = -278.6071472168;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -55.753665924072;
+						["x"] = -379.24429321289;
+						["z"] = 107.90131378174;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "killaggro";
+					["pos"] = {
+						["y"] = -1.137722492218;
+						["x"] = -424.90618896484;
+						["z"] = -278.76013183594;
+					};
+					["failTime"] = 2000;
+					["ids"] = "1218;1219";
+					["itemreward"] = false;
+					["restartatstep"] = 3;
+					["meshname"] = "Eastern Thanalan";
+				};
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -55.753711700439;
+						["x"] = -379.3742980957;
+						["z"] = 107.71614837646;
+					};
+					["delay"] = 2000;
+					["id"] = 1003929;
+					["itemreward"] = true;
+					["meshname"] = "Eastern Thanalan";
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 2;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+				};
+			};
+			["level"] = 19;
+			["prereq"] = {
+				[-1] = {
+					[1] = 620;
+				};
+			};
+		};
+		[574] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004556;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -57.300045013428;
+						["x"] = -394.06558227539;
+						["z"] = 172.08479309082;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1003929;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -55.753341674805;
+						["x"] = -379.51452636719;
+						["z"] = 108.07797241211;
+					};
+				};
+				[2] = {
+					["itemid"] = {
+						[-1] = {
+							[1] = 2995;
+							[2] = 3306;
+						};
+					};
+					["type"] = "equip";
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004506;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -54.150001525879;
+						["x"] = -415.71252441406;
+						["z"] = 96.906616210938;
+					};
+				};
+				[8] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004324;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -55.936225891113;
+						["x"] = -378.21081542969;
+						["z"] = 109.49838256836;
+					};
+				};
+				[9] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004330;
+					["itemreward"] = false;
+					["delay"] = 45000;
+					["pos"] = {
+						["y"] = -29.835983276367;
+						["x"] = -221.36422729492;
+						["z"] = 202.1042175293;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004327;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -48.150001525879;
+						["x"] = -410.5471496582;
+						["z"] = 101.64273071289;
+					};
+				};
+				[10] = {
+					["type"] = "complete";
+					["id"] = 1005116;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 2;
+						[1] = 0;
+						[2] = 1;
+						[4] = 1;
+						[5] = 1;
+						[-1] = 1;
+						[3] = 0;
+						[6] = 2;
+						[7] = 2;
+					};
+					["mapid"] = 212;
+					["equip"] = true;
+					["meshname"] = "Waking Sands";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 1.2000011205673;
+						["x"] = 39.902984619141;
+						["z"] = 3.2676591873169;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1004325;
+					["itemreward"] = false;
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -57.079990386963;
+						["x"] = -401.30569458008;
+						["z"] = 130.33325195313;
+					};
+				};
+				[6] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["meshname"] = "Eastern Thanalan";
+					["id"] = 1003947;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -57.079986572266;
+						["x"] = -370.50546264648;
+						["z"] = 138.90365600586;
+					};
+				};
+			};
+			["level"] = 19;
+			["prereq"] = {
+				[-1] = {
+					[1] = 622;
+				};
+			};
+		};
+	};
+}
+return obj1

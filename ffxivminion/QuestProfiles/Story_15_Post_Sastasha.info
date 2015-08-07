@@ -1,0 +1,151 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[677] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 26.053569793701;
+						["z"] = 116.0707244873;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["delay"] = 6000;
+					["id"] = 1004612;
+					["itemreward"] = false;
+					["meshname"] = "Central Shroud";
+					["pos"] = {
+						["y"] = -39.670272827148;
+						["x"] = -113.18798828125;
+						["z"] = 336.41351318359;
+					};
+				};
+			};
+			["level"] = 16;
+			["prereq"] = {
+				[-1] = {
+					[1] = 676;
+				};
+			};
+		};
+		[676] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 128;
+					["type"] = "start";
+					["delay"] = 1000;
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["y"] = 40.216011047363;
+						["x"] = 18.065439224243;
+						["z"] = -5.303572177887;
+					};
+				};
+				[2] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["conversationindex"] = 1;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1003597;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 40.000389099121;
+						["x"] = 7.5842456817627;
+						["z"] = 15.905426025391;
+					};
+				};
+				[4] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 26.053569793701;
+						["z"] = 116.0707244873;
+					};
+					["delay"] = 2000;
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 128;
+					["type"] = "interact";
+					["conversationindex"] = 2;
+					["meshname"] = "Limsa (Upper)";
+					["id"] = 1002695;
+					["itemreward"] = false;
+					["delay"] = 7000;
+					["pos"] = {
+						["y"] = 91.999969482422;
+						["x"] = -24.068405151367;
+						["z"] = -3.1544208526611;
+					};
+				};
+			};
+			["level"] = 15;
+			["prereq"] = {
+				[-1] = {
+					[1] = 675;
+				};
+			};
+		};
+		[675] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 128;
+					["type"] = "start";
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["y"] = 40.216011047363;
+						["x"] = 17.660003662109;
+						["z"] = -5.2463302612305;
+					};
+				};
+				[2] = {
+					["donothing"] = true;
+				};
+				[3] = {
+					["donothing"] = true;
+				};
+				[4] = {
+					["donothing"] = true;
+				};
+				[5] = {
+					["mapid"] = 128;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 40.216014862061;
+						["x"] = 17.896059036255;
+						["z"] = -4.0187759399414;
+					};
+					["delay"] = 5000;
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Lower)";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 15;
+			["prereq"] = false;
+		};
+	};
+}
+return obj1

@@ -1,0 +1,2083 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[756] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.35262298584;
+						["z"] = -5.361563205719;
+					};
+				};
+				[2] = {
+					["type"] = "useitem";
+					["id"] = 2001965;
+					["itemreward"] = false;
+					["mapid"] = 145;
+					["itemturnin"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["itemid"] = 2000604;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 23.169347763062;
+						["x"] = 313.78274536133;
+						["z"] = -253.96496582031;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1006196;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 2;
+						[1] = 0;
+						[2] = 1;
+						[4] = 1;
+						[5] = 1;
+						[-1] = 1;
+						[3] = 0;
+						[6] = 2;
+						[7] = 2;
+					};
+					["mapid"] = 145;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000935;
+					};
+					["equip"] = true;
+					["meshname"] = "Eastern Thanalan";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.315231323242;
+						["z"] = -5.2422246932983;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["id"] = 1997;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 145;
+					["itemturnin"] = false;
+					["disableflagcheck"] = true;
+					["delay"] = 2000;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = 23.169347763062;
+						["x"] = 313.78274536133;
+						["z"] = -253.96496582031;
+					};
+				};
+			};
+			["level"] = 25;
+			["prereq"] = {
+				[-1] = {
+					[1] = 752;
+				};
+			};
+		};
+		[757] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["conversationindex"] = 4;
+					["delay"] = 7000;
+					["id"] = 19;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138353347778;
+						["x"] = -156.85163879395;
+						["z"] = -411.51354980469;
+					};
+				};
+				[3] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["conversationindex"] = 1;
+					["delay"] = 4000;
+					["id"] = 19;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138353347778;
+						["x"] = -156.85163879395;
+						["z"] = -411.51354980469;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.315231323242;
+						["z"] = -5.2422246932983;
+					};
+				};
+				[4] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006211;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 26.257781982422;
+						["x"] = -216.80676269531;
+						["z"] = -360.10067749023;
+					};
+				};
+				[5] = {
+					["mapid"] = 146;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006215;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.32601928711;
+						["z"] = -352.72619628906;
+					};
+				};
+			};
+			["level"] = 25;
+			["prereq"] = {
+				[-1] = {
+					[1] = 756;
+				};
+			};
+		};
+		[774] = {
+			["steps"] = {
+				[2] = {
+					["type"] = "kill";
+					["id"] = 4;
+					["itemreward"] = false;
+					["killcount"] = 4;
+					["mapid"] = 153;
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 8.5985345840454;
+						["x"] = 281.47998046875;
+						["z"] = -183.40084838867;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000612;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 153;
+					["delay"] = 4000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 6.1036829948425;
+						["x"] = 207.75126647949;
+						["z"] = -38.068660736084;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 6.1037592887878;
+						["x"] = 208.09689331055;
+						["z"] = -38.279769897461;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000612;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 153;
+					["delay"] = 4000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.25189208984;
+						["z"] = -79.920059204102;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1006680;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 153;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000613;
+					};
+					["equip"] = true;
+					["delay"] = 2000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 6.1040334701538;
+						["x"] = 209.31729125977;
+						["z"] = -39.085845947266;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 765;
+				};
+			};
+		};
+		[744] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -3.7140398025513;
+						["x"] = 25.020942687988;
+						["z"] = 211.37049865723;
+					};
+				};
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "nav";
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 8.6720170974731;
+						["x"] = 190.69485473633;
+						["z"] = 187.63798522949;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000168;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 132;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000596;
+					};
+					["delay"] = 2000;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -0.50175905227661;
+						["x"] = -74.653549194336;
+						["z"] = -4.2205262184143;
+					};
+				};
+				[3] = {
+					["commandstring"] = "/lookout";
+					["type"] = "textcommand";
+					["itemturnin"] = false;
+					["mapid"] = 152;
+					["delay"] = 20000;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 8.6720170974731;
+						["x"] = 190.69485473633;
+						["z"] = 187.63798522949;
+					};
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 743;
+				};
+			};
+		};
+		[777] = {
+			["steps"] = {
+				[6] = {
+					["type"] = "complete";
+					["id"] = 1006215;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[7] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[26] = 1;
+					};
+					["mapid"] = 146;
+					["equip"] = true;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -225.37959289551;
+						["z"] = -352.84408569336;
+					};
+				};
+				[2] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006221;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.536813735962;
+						["x"] = -219.90019226074;
+						["z"] = -336.92022705078;
+					};
+				};
+				[3] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006222;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 27.521934509277;
+						["x"] = -206.96723937988;
+						["z"] = -332.60528564453;
+					};
+				};
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006215;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.12226867676;
+						["z"] = -352.66775512695;
+					};
+				};
+				[4] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006223;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.222988128662;
+						["x"] = -86.311302185059;
+						["z"] = -349.51641845703;
+					};
+				};
+				[5] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006224;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 27.638166427612;
+						["x"] = -78.118186950684;
+						["z"] = -326.39880371094;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 776;
+				};
+			};
+		};
+		[776] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 6.1036491394043;
+						["x"] = 207.42895507813;
+						["z"] = -38.311225891113;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1006215;
+					["itemreward"] = true;
+					["itemrewardslot"] = 0;
+					["mapid"] = 146;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000614;
+					};
+					["delay"] = 2000;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.12226867676;
+						["z"] = -352.66775512695;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 775;
+				};
+			};
+		};
+		[761] = {
+			["steps"] = {
+				[2] = {
+					["type"] = "interact";
+					["id"] = 1006702;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000607;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 146;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 3.6285791397095;
+						["x"] = -186.57992553711;
+						["z"] = -246.82907104492;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1006704;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000607;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 146;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 4.4304375648499;
+						["x"] = -173.16831970215;
+						["z"] = -164.41352844238;
+					};
+				};
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006217;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 28.283578872681;
+						["x"] = -181.49633789063;
+						["z"] = -401.02542114258;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1006703;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000607;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 146;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 9.0857982635498;
+						["x"] = -186.55012512207;
+						["z"] = -133.0704498291;
+					};
+				};
+				[5] = {
+					["mapid"] = 146;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006217;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 28.196157455444;
+						["x"] = -179.67788696289;
+						["z"] = -401.40103149414;
+					};
+				};
+			};
+			["level"] = 25;
+			["prereq"] = {
+				[-1] = {
+					[1] = 757;
+				};
+			};
+		};
+		[746] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1000168;
+					["itemreward"] = false;
+					["meshname"] = "New Gridania";
+					["pos"] = {
+						["y"] = -0.50175905227661;
+						["x"] = -74.653549194336;
+						["z"] = -4.2205262184143;
+					};
+				};
+				[2] = {
+					["mapid"] = 140;
+					["type"] = "interact";
+					["delay"] = 3000;
+					["id"] = 1003785;
+					["itemreward"] = false;
+					["meshname"] = "Western Thanalan";
+					["pos"] = {
+						["y"] = 21.005001068115;
+						["x"] = -490.98791503906;
+						["z"] = -381.49948120117;
+					};
+				};
+				[4] = {
+					["mapid"] = 212;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 1.2148081064224;
+						["x"] = 39.07400894165;
+						["z"] = 2.385594367981;
+					};
+					["delay"] = 3000;
+					["id"] = 1006688;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 140;
+					["type"] = "interact";
+					["meshname"] = "Western Thanalan";
+					["id"] = 2001711;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 17.074769973755;
+						["x"] = -481.25933837891;
+						["z"] = -386.88238525391;
+					};
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 744;
+				};
+			};
+		};
+		[514] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.49211120605;
+						["z"] = -80.159553527832;
+					};
+				};
+				[2] = {
+					["donothing"] = true;
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.45167541504;
+						["z"] = -80.119789123535;
+					};
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["donothing"] = true;
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 740;
+				};
+			};
+		};
+		[747] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["delay"] = 3000;
+					["id"] = 1006688;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2148081064224;
+						["x"] = 39.07400894165;
+						["z"] = 2.385594367981;
+					};
+				};
+				[2] = {
+					["mapid"] = 130;
+					["type"] = "interact";
+					["delay"] = 3000;
+					["id"] = 1004576;
+					["itemreward"] = false;
+					["meshname"] = "Ul dah - Steps of Nald";
+					["pos"] = {
+						["y"] = 4.1096730232239;
+						["x"] = -140.92613220215;
+						["z"] = -113.88012695313;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.282379150391;
+						["z"] = -5.4104962348938;
+					};
+					["delay"] = 3000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 746;
+				};
+			};
+		};
+		[763] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1006688;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2000012397766;
+						["x"] = 39.115047454834;
+						["z"] = 2.9977893829346;
+					};
+				};
+				[2] = {
+					["mapid"] = 212;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1007418;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = -3.0000014305115;
+						["x"] = 9.1184606552124;
+						["z"] = -55.29976272583;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1006219;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 3;
+						[1] = 4;
+						[2] = 4;
+						[4] = 4;
+						[5] = 0;
+						[-1] = 4;
+						[3] = 4;
+						[6] = 1;
+						[7] = 2;
+					};
+					["mapid"] = 153;
+					["equip"] = true;
+					["delay"] = 2000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 7.855128288269;
+						["x"] = 193.78039550781;
+						["z"] = -26.421022415161;
+					};
+				};
+			};
+			["level"] = 26;
+			["prereq"] = {
+				[-1] = {
+					[1] = 762;
+				};
+			};
+		};
+		[748] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1006206;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -29.436079025269;
+						["x"] = -90.962745666504;
+						["z"] = -57.790870666504;
+					};
+				};
+				[3] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1006204;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -11.000165939331;
+						["x"] = -29.210140228271;
+						["z"] = -9.0184097290039;
+					};
+				};
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.282379150391;
+						["z"] = -5.4104962348938;
+					};
+				};
+				[4] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1006205;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -6.014274597168;
+						["x"] = 14.87140750885;
+						["z"] = 5.5415902137756;
+					};
+				};
+				[5] = {
+					["mapid"] = 145;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.232292175293;
+						["z"] = -5.5406126976013;
+					};
+					["delay"] = 2000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 747;
+				};
+			};
+		};
+		[778] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006228;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 19.050149917603;
+						["x"] = -193.13700866699;
+						["z"] = -556.74786376953;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["id"] = 1984;
+					["itemreward"] = false;
+					["killcount"] = 2;
+					["mapid"] = 146;
+					["disableflagcheck"] = true;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 19.050149917603;
+						["x"] = -193.13700866699;
+						["z"] = -556.74786376953;
+					};
+				};
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006226;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.143095016479;
+						["x"] = -224.84255981445;
+						["z"] = -355.2385559082;
+					};
+				};
+				[4] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006228;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 19.050149917603;
+						["x"] = -193.13700866699;
+						["z"] = -556.74786376953;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1006215;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[7] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[26] = 1;
+					};
+					["mapid"] = 146;
+					["equip"] = true;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.3793182373;
+						["z"] = -351.82656860352;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 777;
+				};
+			};
+		};
+		[762] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["meshname"] = "Southern Thanalan";
+					["id"] = 1006217;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 28.196157455444;
+						["x"] = -179.67788696289;
+						["z"] = -401.40103149414;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1006688;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 4;
+						[1] = 0;
+						[2] = 1;
+						[4] = 3;
+						[5] = 4;
+						[-1] = 1;
+						[3] = 2;
+						[6] = 4;
+						[7] = 4;
+					};
+					["mapid"] = 212;
+					["equip"] = true;
+					["meshname"] = "Waking Sands";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 1.2000012397766;
+						["x"] = 39.115047454834;
+						["z"] = 2.9977893829346;
+					};
+				};
+			};
+			["level"] = 25;
+			["prereq"] = {
+				[-1] = {
+					[1] = 761;
+				};
+			};
+		};
+		[765] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["meshname"] = "South Shroud";
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.1037373542786;
+						["x"] = 208.09007263184;
+						["z"] = -38.03702545166;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1006219;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 7.6888475418091;
+						["x"] = 194.43670654297;
+						["z"] = -26.755836486816;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000332;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[7] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[26] = 1;
+					};
+					["mapid"] = 153;
+					["equip"] = true;
+					["meshname"] = "South Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.1037592887878;
+						["x"] = 208.09689331055;
+						["z"] = -38.279769897461;
+					};
+				};
+				[3] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1000327;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 8.6632671356201;
+						["x"] = 178.25228881836;
+						["z"] = -44.21854019165;
+					};
+				};
+			};
+			["level"] = 26;
+			["prereq"] = {
+				[-1] = {
+					[1] = 763;
+				};
+			};
+		};
+		[787] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2001985;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -66.456848144531;
+						["x"] = -231.60504150391;
+						["z"] = 379.33963012695;
+					};
+				};
+				[2] = {
+					["usepos"] = {
+						["y"] = -66.363212585449;
+						["x"] = -222.75425720215;
+						["z"] = 396.59188842773;
+					};
+					["type"] = "useitem";
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["itemid"] = 2000616;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -66.328727722168;
+						["x"] = -222.61454772949;
+						["z"] = 393.45126342773;
+					};
+				};
+				[8] = {
+					["type"] = "complete";
+					["id"] = 1006241;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 154;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000617;
+					};
+					["meshname"] = "North Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 15.818141937256;
+						["z"] = 260.35067749023;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2001988;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -66.141693115234;
+						["x"] = -219.25193786621;
+						["z"] = 390.87115478516;
+					};
+				};
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1006241;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 16.337911605835;
+						["z"] = 260.4826965332;
+					};
+				};
+				[4] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2001986;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -65.961441040039;
+						["x"] = -220.35426330566;
+						["z"] = 384.46676635742;
+					};
+				};
+				[5] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2001987;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -65.033233642578;
+						["x"] = -217.40281677246;
+						["z"] = 378.43621826172;
+					};
+				};
+				[7] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 2001984;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -67.100578308105;
+						["x"] = -230.05264282227;
+						["z"] = 387.95700073242;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 785;
+				};
+			};
+		};
+		[743] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.45167541504;
+						["z"] = -80.119789123535;
+					};
+				};
+				[2] = {
+					["type"] = "complete";
+					["id"] = 1000576;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000595;
+					};
+					["meshname"] = "East Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -4.4354901313782;
+						["x"] = 21.109014511108;
+						["z"] = 220.35354614258;
+					};
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 514;
+				};
+			};
+		};
+		[782] = {
+			["steps"] = {
+				[7] = {
+					["type"] = "interact";
+					["id"] = 1006215;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000973;
+						[2] = 2000974;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 146;
+					["delay"] = 6000;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -225.78486633301;
+						["z"] = -352.56118774414;
+					};
+				};
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1006215;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.3793182373;
+						["z"] = -351.82656860352;
+					};
+				};
+				[2] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["id"] = 2001980;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 28.016448974609;
+						["x"] = -202.58915710449;
+						["z"] = -319.36093139648;
+					};
+				};
+				[4] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["id"] = 1007616;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.161088943481;
+						["x"] = -99.925300598145;
+						["z"] = -340.58990478516;
+					};
+				};
+				[8] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["delay"] = 20000;
+					["disableflagcheck"] = true;
+					["id"] = 1006230;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 3.3969688415527;
+						["x"] = 34.936042785645;
+						["z"] = -345.05697631836;
+					};
+				};
+				[9] = {
+					["type"] = "dutykill";
+					["failtime"] = 5000;
+					["restartatstep"] = 8;
+					["itemreward"] = false;
+					["mapid"] = 306;
+					["ids"] = "245;253;1126;2068;2202;2067";
+					["delay"] = 2000;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 3.8355793952942;
+						["x"] = 39.490459442139;
+						["z"] = -364.19100952148;
+					};
+				};
+				[5] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["id"] = 1007617;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 39.398090362549;
+						["x"] = -113.39775085449;
+						["z"] = -340.7890625;
+					};
+				};
+				[10] = {
+					["type"] = "complete";
+					["id"] = 1006215;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[7] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[26] = 1;
+					};
+					["mapid"] = 146;
+					["equip"] = true;
+					["meshname"] = "Southern Thanalan";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -224.46089172363;
+						["z"] = -352.1584777832;
+					};
+				};
+				[3] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["id"] = 2001981;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.610336303711;
+						["x"] = -78.318954467773;
+						["z"] = -350.78176879883;
+					};
+				};
+				[6] = {
+					["mapid"] = 146;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 6000;
+					["id"] = 1006225;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 39.336681365967;
+						["x"] = -84.264045715332;
+						["z"] = -334.52340698242;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 778;
+				};
+			};
+		};
+		[783] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 146;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1006215;
+					["itemreward"] = false;
+					["meshname"] = "Southern Thanalan";
+					["pos"] = {
+						["y"] = 26.138355255127;
+						["x"] = -226.02597045898;
+						["z"] = -352.52401733398;
+					};
+				};
+				[2] = {
+					["mapid"] = 212;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 1.2148078680038;
+						["x"] = 36.625736236572;
+						["z"] = 0.3823507130146;
+					};
+					["delay"] = 2000;
+					["id"] = 1006688;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 782;
+				};
+			};
+		};
+		[752] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 145;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.232292175293;
+						["z"] = -5.5406126976013;
+					};
+				};
+				[2] = {
+					["mapid"] = 145;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 2001964;
+					["itemreward"] = false;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -11.117434501648;
+						["x"] = 98.036224365234;
+						["z"] = 154.74697875977;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1006196;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 145;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000601;
+					};
+					["delay"] = 2000;
+					["meshname"] = "Eastern Thanalan";
+					["pos"] = {
+						["y"] = -20.296237945557;
+						["x"] = -65.35262298584;
+						["z"] = -5.361563205719;
+					};
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 748;
+				};
+			};
+		};
+		[799] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1006240;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -44.865604400635;
+						["x"] = 13.217834472656;
+						["z"] = 259.32092285156;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1007541;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -51.73770904541;
+						["x"] = -302.94488525391;
+						["z"] = 330.69967651367;
+					};
+				};
+				[3] = {
+					["type"] = "complete";
+					["id"] = 1002780;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 154;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000861;
+					};
+					["meshname"] = "North Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -45.313217163086;
+						["x"] = -89.514961242676;
+						["z"] = 198.13388061523;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 787;
+					[2] = 786;
+				};
+			};
+		};
+		[784] = {
+			["steps"] = {
+				[7] = {
+					["type"] = "vendor";
+					["buyamount"] = 1;
+					["id"] = 1000232;
+					["itemreward"] = false;
+					["mapid"] = 133;
+					["conversationindex"] = 0;
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["delay"] = 4000;
+					["itemid"] = {
+						[-1] = 4674;
+					};
+					["pos"] = {
+						["y"] = 15.699931144714;
+						["x"] = 163.03187561035;
+						["z"] = -132.90507507324;
+					};
+				};
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1006688;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = 1.2000012397766;
+						["x"] = 39.194549560547;
+						["z"] = 3.2793805599213;
+					};
+				};
+				[2] = {
+					["mapid"] = 212;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 4000;
+					["id"] = 1007417;
+					["itemreward"] = false;
+					["meshname"] = "Waking Sands";
+					["pos"] = {
+						["y"] = -3.0000014305115;
+						["x"] = 1.5322360992432;
+						["z"] = -56.683330535889;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 7;
+					["itemreward"] = false;
+					["mapid"] = 154;
+					["conversationindex"] = 1;
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -39.315902709961;
+						["x"] = -45.82092666626;
+						["z"] = 234.74911499023;
+					};
+				};
+				[8] = {
+					["type"] = "interact";
+					["id"] = 1006240;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 4674;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -44.865604400635;
+						["x"] = 13.186736106873;
+						["z"] = 258.68133544922;
+					};
+				};
+				[9] = {
+					["mapid"] = 154;
+					["type"] = "textcommand";
+					["commandstring"] = "/soothe";
+					["meshname"] = "North Shroud";
+					["id"] = 1006240;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 13.082563400269;
+						["z"] = 260.83111572266;
+					};
+				};
+				[5] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1006240;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -44.865604400635;
+						["x"] = 13.412516593933;
+						["z"] = 258.97198486328;
+					};
+				};
+				[10] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "North Shroud";
+					["id"] = 1006240;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 13.082563400269;
+						["z"] = 260.83111572266;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 7;
+					["itemreward"] = false;
+					["mapid"] = 154;
+					["itemturnin"] = false;
+					["conversationindex"] = 4;
+					["delay"] = 10000;
+					["meshname"] = "North Shroud";
+					["pos"] = {
+						["y"] = -39.315902709961;
+						["x"] = -45.82092666626;
+						["z"] = 234.74911499023;
+					};
+				};
+				[6] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1006241;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 16.158906936646;
+						["z"] = 260.05783081055;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 783;
+				};
+			};
+		};
+		[800] = {
+			["steps"] = {
+				[2] = {
+					["type"] = "interact";
+					["id"] = 1000100;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000630;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 132;
+					["meshname"] = "New Gridania";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -8;
+						["x"] = 25.831489562988;
+						["z"] = 115.31172943115;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1000146;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000630;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 132;
+					["meshname"] = "New Gridania";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -1.453305721283;
+						["x"] = 50.093318939209;
+						["z"] = 52.743045806885;
+					};
+				};
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "North Shroud";
+					["id"] = 1002780;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -45.314296722412;
+						["x"] = -89.673332214355;
+						["z"] = 197.96084594727;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1000248;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 2000630;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 133;
+					["meshname"] = "Old Gridania";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 14.250335693359;
+						["x"] = 142.05632019043;
+						["z"] = -249.61418151855;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1006263;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 133;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000630;
+					};
+					["meshname"] = "Old Gridania";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 16.284854888916;
+						["x"] = 35.621150970459;
+						["z"] = -334.31637573242;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 799;
+				};
+			};
+		};
+		[785] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["meshname"] = "North Shroud";
+					["id"] = 1006241;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 16.099451065063;
+						["z"] = 260.2028503418;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "kill";
+					["killcount"] = 6;
+					["meshname"] = "North Shroud";
+					["id"] = 224;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -55.882007598877;
+						["x"] = -271.42404174805;
+						["z"] = 296.81872558594;
+					};
+				};
+				[3] = {
+					["mapid"] = 154;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "North Shroud";
+					["id"] = 1006241;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 16.337911605835;
+						["z"] = 260.4826965332;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 784;
+				};
+			};
+		};
+		[801] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 133;
+					["type"] = "start";
+					["meshname"] = "Old Gridania";
+					["id"] = 1006263;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 16.280227661133;
+						["x"] = 35.441177368164;
+						["z"] = -334.38818359375;
+					};
+				};
+				[2] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 2001999;
+					["itemreward"] = false;
+					["delay"] = 8000;
+					["pos"] = {
+						["y"] = 67.006156921387;
+						["x"] = -574.80963134766;
+						["z"] = 70.087249755859;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 800;
+				};
+			};
+		};
+		[786] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 154;
+					["type"] = "start";
+					["meshname"] = "North Shroud";
+					["id"] = 1006242;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 13.594627380371;
+						["z"] = 255.95599365234;
+					};
+				};
+				[2] = {
+					["mapid"] = 154;
+					["type"] = "interact";
+					["meshname"] = "North Shroud";
+					["id"] = 2001982;
+					["itemreward"] = false;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -56.524684906006;
+						["x"] = -259.34216308594;
+						["z"] = 308.10073852539;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1006242;
+					["itemreward"] = true;
+					["itemrewardslot"] = 0;
+					["mapid"] = 154;
+					["equip"] = true;
+					["meshname"] = "North Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -44.865600585938;
+						["x"] = 13.926447868347;
+						["z"] = 256.37594604492;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["restartatstep"] = 2;
+					["id"] = 1985;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 154;
+					["meshname"] = "North Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -57.155055999756;
+						["x"] = -261.29678344727;
+						["z"] = 311.12847900391;
+					};
+				};
+			};
+			["level"] = 28;
+			["prereq"] = {
+				[-1] = {
+					[1] = 785;
+				};
+			};
+		};
+		[775] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1006679;
+					["itemreward"] = false;
+					["delay"] = 22000;
+					["pos"] = {
+						["y"] = -2.4788444042206;
+						["x"] = 351.23321533203;
+						["z"] = 52.780708312988;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1006219;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 7.7383790016174;
+						["x"] = 194.14990234375;
+						["z"] = -26.781496047974;
+					};
+				};
+				[3] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 6.103654384613;
+						["x"] = 207.52117919922;
+						["z"] = -38.189968109131;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["meshname"] = "South Shroud";
+					["id"] = 1000332;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.103750705719;
+						["x"] = 207.94619750977;
+						["z"] = -38.479713439941;
+					};
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1006679;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -2.4934370517731;
+						["x"] = 351.36172485352;
+						["z"] = 52.84969329834;
+					};
+				};
+				[5] = {
+					["type"] = "kill";
+					["id"] = 2001;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 153;
+					["disableflagcheck"] = true;
+					["meshname"] = "South Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -2.48304271698;
+						["x"] = 351.16177368164;
+						["z"] = 52.816505432129;
+					};
+				};
+				[7] = {
+					["type"] = "complete";
+					["id"] = 1000332;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[26] = 1;
+						[1] = 0;
+						[2] = 0;
+						[4] = 0;
+						[5] = 0;
+						[-1] = 0;
+						[3] = 0;
+						[6] = 1;
+						[7] = 1;
+					};
+					["mapid"] = 153;
+					["equip"] = true;
+					["meshname"] = "South Shroud";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 6.1036491394043;
+						["x"] = 207.42895507813;
+						["z"] = -38.311225891113;
+					};
+				};
+			};
+			["level"] = 27;
+			["prereq"] = {
+				[-1] = {
+					[1] = 774;
+				};
+			};
+		};
+	};
+}
+return obj1

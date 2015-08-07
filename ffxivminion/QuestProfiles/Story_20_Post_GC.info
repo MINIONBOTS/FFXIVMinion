@@ -1,0 +1,1779 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[709] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000615;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.5448956489563;
+						["x"] = -246.7864074707;
+						["z"] = 281.03771972656;
+					};
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000557;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 2.7662267684937;
+						["x"] = -205.07473754883;
+						["z"] = 303.66400146484;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["delay"] = 1000;
+					["id"] = 1000540;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.5430722236633;
+						["x"] = -237.66757202148;
+						["z"] = 285.03430175781;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1000553;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 4.4425959587097;
+						["x"] = -188.67156982422;
+						["z"] = 293.09039306641;
+					};
+				};
+				[5] = {
+					["mapid"] = 152;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 3.5431835651398;
+						["x"] = -238.36906433105;
+						["z"] = 284.80892944336;
+					};
+					["delay"] = 2000;
+					["id"] = 1000540;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 20;
+			["prereq"] = {
+				[-1] = {
+					[1] = 708;
+				};
+			};
+		};
+		[725] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.7003242969513;
+						["x"] = 25.463798522949;
+						["z"] = 211.16592407227;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "interact";
+					["meshname"] = "New Gridania";
+					["id"] = 1000168;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -0.50175541639328;
+						["x"] = -74.683547973633;
+						["z"] = -4.2158932685852;
+					};
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.57437133789;
+						["z"] = -80.190452575684;
+					};
+				};
+				[3] = {
+					["mapid"] = 148;
+					["type"] = "interact";
+					["meshname"] = "Central Shroud";
+					["id"] = 1000734;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -1.2138164043427;
+						["x"] = -1.5548086166382;
+						["z"] = 39.086410522461;
+					};
+				};
+			};
+			["level"] = 22;
+			["prereq"] = {
+				[-1] = {
+					[1] = 724;
+				};
+			};
+		};
+		[710] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000766;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 9.0733995437622;
+						["x"] = -484.72482299805;
+						["z"] = 177.94834899902;
+					};
+				};
+				[3] = {
+					["type"] = "useitem";
+					["id"] = 2001902;
+					["itemreward"] = false;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["itemid"] = 2000571;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = -0.062528170645237;
+						["x"] = -386.67977905273;
+						["z"] = 191.00848388672;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000540;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.5431838035583;
+						["x"] = -238.36906433105;
+						["z"] = 284.80892944336;
+					};
+				};
+				[4] = {
+					["type"] = "kill";
+					["id"] = 33;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -0.051433742046356;
+						["x"] = -388.71078491211;
+						["z"] = 189.70094299316;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1000540;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000831;
+					};
+					["delay"] = 2000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.543408870697;
+						["x"] = -239.24543762207;
+						["z"] = 284.28280639648;
+					};
+				};
+			};
+			["level"] = 20;
+			["prereq"] = {
+				[-1] = {
+					[1] = 709;
+				};
+			};
+		};
+		[726] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 153;
+					["type"] = "useitem";
+					["delay"] = 8000;
+					["meshname"] = "South Shroud";
+					["id"] = 1002934;
+					["itemreward"] = false;
+					["itemid"] = 2000581;
+					["pos"] = {
+						["y"] = 8.3989992141724;
+						["x"] = -163.75454711914;
+						["z"] = -63.70336151123;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 2001925;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 9.4670505523682;
+						["x"] = -161.61654663086;
+						["z"] = -90.626350402832;
+					};
+				};
+				[3] = {
+					["mapid"] = 153;
+					["type"] = "useitem";
+					["delay"] = 4000;
+					["meshname"] = "South Shroud";
+					["id"] = 2001926;
+					["itemreward"] = false;
+					["itemid"] = 2000580;
+					["pos"] = {
+						["y"] = 6.12069272995;
+						["x"] = -146.85279846191;
+						["z"] = -96.227561950684;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.40284729004;
+						["z"] = -80.070777893066;
+					};
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 2001927;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 6.12069272995;
+						["x"] = -146.85279846191;
+						["z"] = -96.227561950684;
+					};
+				};
+				[5] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 2001928;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 6.12069272995;
+						["x"] = -146.85279846191;
+						["z"] = -96.227561950684;
+					};
+				};
+				[7] = {
+					["mapid"] = 153;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = true;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.94708251953;
+						["z"] = -80.048950195313;
+					};
+				};
+			};
+			["level"] = 22;
+			["prereq"] = {
+				[-1] = {
+					[1] = 725;
+				};
+			};
+		};
+		[513] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 212;
+					["type"] = "start";
+					["meshname"] = "Waking Sands";
+					["id"] = 1005128;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 1.2148079872131;
+						["x"] = 39.521926879883;
+						["z"] = 2.2790288925171;
+					};
+				};
+				[2] = {
+					["mapid"] = 132;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "New Gridania";
+					["id"] = 1000168;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -0.50175446271896;
+						["x"] = -74.785163879395;
+						["z"] = -4.1606426239014;
+					};
+				};
+			};
+			["level"] = 20;
+			["prereq"] = {
+				[-1] = {
+					[1] = 685;
+				};
+			};
+		};
+		[715] = {
+			["steps"] = {
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 3000;
+					["id"] = 1006188;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.5429711341858;
+						["x"] = -236.93186950684;
+						["z"] = 285.22634887695;
+					};
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -3.6996088027954;
+						["x"] = 24.957584381104;
+						["z"] = 210.90997314453;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1000540;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.543408870697;
+						["x"] = -239.24543762207;
+						["z"] = 284.28280639648;
+					};
+				};
+				[4] = {
+					["commandstring"] = "/dance";
+					["type"] = "textcommand";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["delay"] = 8000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -3.6996088027954;
+						["x"] = 24.957584381104;
+						["z"] = 210.90997314453;
+					};
+				};
+				[5] = {
+					["type"] = "complete";
+					["id"] = 1000580;
+					["itemreward"] = true;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000573;
+						[2] = 2000574;
+					};
+					["delay"] = 2000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -3.7125940322876;
+						["x"] = 25.199089050293;
+						["z"] = 211.40986633301;
+					};
+				};
+			};
+			["level"] = 21;
+			["prereq"] = {
+				[-1] = {
+					[1] = 710;
+				};
+			};
+		};
+		[514] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.49211120605;
+						["z"] = -80.159553527832;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1000393;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 3.2395758628845;
+						["x"] = -89.394149780273;
+						["z"] = -167.01655578613;
+					};
+				};
+			};
+			["level"] = 24;
+			["prereq"] = {
+				[-1] = {
+					[1] = 740;
+				};
+			};
+		};
+		[717] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000584;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -2.4196186065674;
+						["x"] = 43.537090301514;
+						["z"] = 232.53410339355;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1006674;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -3.8159909248352;
+						["x"] = 22.051538467407;
+						["z"] = 211.02635192871;
+					};
+				};
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000576;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -4.5520205497742;
+						["x"] = 20.009822845459;
+						["z"] = 221.68455505371;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000563;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -5.8386735916138;
+						["x"] = -3.2535765171051;
+						["z"] = 217.28482055664;
+					};
+				};
+				[8] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000578;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 8.1244602203369;
+						["x"] = 101.97134399414;
+						["z"] = 188.744140625;
+					};
+				};
+				[9] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000277;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 8.1244602203369;
+						["x"] = 101.97134399414;
+						["z"] = 188.744140625;
+					};
+				};
+				[5] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000585;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -5.7883324623108;
+						["x"] = 24.753660202026;
+						["z"] = 242.51069641113;
+					};
+				};
+				[10] = {
+					["mapid"] = 152;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -3.8043637275696;
+						["x"] = 22.126678466797;
+						["z"] = 210.88499450684;
+					};
+					["delay"] = 1000;
+					["id"] = 1006674;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000437;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -4.5520205497742;
+						["x"] = 20.009822845459;
+						["z"] = 221.68455505371;
+					};
+				};
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "textcommand";
+					["commandstring"] = "/dance";
+					["delay"] = 10000;
+					["id"] = 1000587;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = -8.3120813369751;
+						["x"] = -6.0340623855591;
+						["z"] = 267.41836547852;
+					};
+				};
+			};
+			["level"] = 21;
+			["prereq"] = {
+				[-1] = {
+					[1] = 715;
+				};
+			};
+		};
+		[733] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 138;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1003393;
+					["itemreward"] = false;
+					["meshname"] = "Western La Noscea";
+					["pos"] = {
+						["y"] = -36.325004577637;
+						["x"] = 306.21142578125;
+						["z"] = 351.25897216797;
+					};
+				};
+				[2] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Limsa (Lower)";
+					["id"] = 1003272;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 16.199977874756;
+						["x"] = -262.087890625;
+						["z"] = 50.55135345459;
+					};
+				};
+				[3] = {
+					["type"] = "vendor";
+					["buyamount"] = 1;
+					["id"] = 1001204;
+					["itemreward"] = false;
+					["mapid"] = 129;
+					["conversationindex"] = 0;
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["meshname"] = "Limsa (Lower)";
+					["itemid"] = {
+						[-1] = 4772;
+					};
+					["pos"] = {
+						["y"] = 18.200000762939;
+						["x"] = -130.58837890625;
+						["z"] = 25.855442047119;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "South Shroud";
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.94708251953;
+						["z"] = -80.048950195313;
+					};
+				};
+				[4] = {
+					["type"] = "interact";
+					["id"] = 1001208;
+					["itemreward"] = false;
+					["itemturninid"] = {
+						[1] = 4772;
+					};
+					["itemturnin"] = true;
+					["mapid"] = 129;
+					["delay"] = 6000;
+					["meshname"] = "Limsa (Lower)";
+					["pos"] = {
+						["y"] = 16;
+						["x"] = -228.68034362793;
+						["z"] = 48.655269622803;
+					};
+				};
+				[5] = {
+					["mapid"] = 129;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1007721;
+					["itemreward"] = false;
+					["meshname"] = "Limsa (Lower)";
+					["pos"] = {
+						["y"] = 0.99999070167542;
+						["x"] = -190.45109558105;
+						["z"] = 212.60530090332;
+					};
+				};
+				[7] = {
+					["type"] = "complete";
+					["id"] = 1006193;
+					["equip"] = true;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[-1] = 1;
+						[6] = 4;
+						[2] = 1;
+						[26] = 4;
+						[3] = 2;
+						[1] = 0;
+						[4] = 3;
+						[5] = 4;
+						[7] = 4;
+					};
+					["mapid"] = 139;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000587;
+					};
+					["delay"] = 2000;
+					["meshname"] = "Upper La Noscea";
+					["pos"] = {
+						["y"] = -1.4745033979416;
+						["x"] = -335.01473999023;
+						["z"] = 147.69285583496;
+					};
+				};
+			};
+			["level"] = 23;
+			["prereq"] = {
+				[-1] = {
+					[1] = 726;
+				};
+			};
+		};
+		[718] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001914;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -3.0197234153748;
+						["x"] = -36.950149536133;
+						["z"] = 324.6282043457;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1006675;
+					["itemreward"] = false;
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -3.7361314296722;
+						["x"] = 23.511213302612;
+						["z"] = 210.95385742188;
+					};
+				};
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000584;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -2.2492599487305;
+						["x"] = 44.307052612305;
+						["z"] = 230.29106140137;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001915;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -3.4153764247894;
+						["x"] = -81.229667663574;
+						["z"] = 193.45269775391;
+					};
+				};
+				[8] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001913;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -2.2284817695618;
+						["x"] = 3.7493751049042;
+						["z"] = 334.86047363281;
+					};
+				};
+				[9] = {
+					["type"] = "kill";
+					["id"] = 2157;
+					["itemreward"] = false;
+					["killcount"] = 5;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = 7.5987968444824;
+						["x"] = 43.053104400635;
+						["z"] = 444.0104675293;
+					};
+				};
+				[5] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001916;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -8.1558961868286;
+						["x"] = -41.874626159668;
+						["z"] = 223.21780395508;
+					};
+				};
+				[10] = {
+					["type"] = "complete";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000577;
+					};
+					["meshname"] = "East Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -3.7037298679352;
+						["x"] = 25.463777542114;
+						["z"] = 211.26766967773;
+					};
+				};
+				[3] = {
+					["type"] = "kill";
+					["id"] = 223;
+					["itemreward"] = false;
+					["killcount"] = 5;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -8.4119386672974;
+						["x"] = -38.37523651123;
+						["z"] = 258.12185668945;
+					};
+				};
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001917;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -8.7069120407104;
+						["x"] = -45.0608253479;
+						["z"] = 278.63568115234;
+					};
+				};
+			};
+			["level"] = 21;
+			["prereq"] = {
+				[-1] = {
+					[1] = 717;
+				};
+			};
+		};
+		[734] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 139;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "Upper La Noscea";
+					["id"] = 1006193;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -1.4745033979416;
+						["x"] = -335.01473999023;
+						["z"] = 147.69285583496;
+					};
+				};
+				[2] = {
+					["type"] = "kill";
+					["id"] = 28;
+					["itemreward"] = false;
+					["killcount"] = 5;
+					["mapid"] = 139;
+					["itemturnin"] = false;
+					["meshname"] = "Upper La Noscea";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.3999998569489;
+						["x"] = -615.67639160156;
+						["z"] = -15.483846664429;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1006193;
+					["equip"] = true;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[-1] = 4;
+						[6] = 1;
+						[2] = 4;
+						[7] = 2;
+						[3] = 4;
+						[1] = 4;
+						[4] = 4;
+						[5] = 0;
+						[26] = 3;
+					};
+					["mapid"] = 139;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000589;
+						[2] = 2000590;
+					};
+					["meshname"] = "Upper La Noscea";
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -1.4984744787216;
+						["x"] = -334.81552124023;
+						["z"] = 147.4979095459;
+					};
+				};
+				[3] = {
+					["type"] = "useitem";
+					["id"] = 2001945;
+					["itemreward"] = false;
+					["mapid"] = 139;
+					["itemturnin"] = false;
+					["meshname"] = "Upper La Noscea";
+					["itemid"] = 2000588;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.4000630378723;
+						["x"] = -619.39544677734;
+						["z"] = -49.535354614258;
+					};
+				};
+			};
+			["level"] = 23;
+			["prereq"] = {
+				[-1] = {
+					[1] = 733;
+				};
+			};
+		};
+		[719] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = -3.6875991821289;
+						["x"] = 25.355739593506;
+						["z"] = 210.73565673828;
+					};
+				};
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000585;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -5.7660322189331;
+						["x"] = 24.688558578491;
+						["z"] = 241.70989990234;
+					};
+				};
+				[8] = {
+					["type"] = "complete";
+					["id"] = 1000580;
+					["itemreward"] = true;
+					["equip"] = true;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000578;
+					};
+					["meshname"] = "East Shroud";
+					["delay"] = 9000;
+					["pos"] = {
+						["y"] = -3.6805560588837;
+						["x"] = 24.983974456787;
+						["z"] = 210.3529510498;
+					};
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000277;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 8.1493062973022;
+						["x"] = 102.80876159668;
+						["z"] = 188.82856750488;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -3.7037298679352;
+						["x"] = 25.463777542114;
+						["z"] = 211.26766967773;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000545;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 3.5430681705475;
+						["x"] = -242.58139038086;
+						["z"] = 285.68789672852;
+					};
+				};
+				[5] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000553;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = 4.4437694549561;
+						["x"] = -188.2631072998;
+						["z"] = 292.68185424805;
+					};
+				};
+				[7] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2001918;
+					["itemreward"] = false;
+					["delay"] = 9000;
+					["pos"] = {
+						["y"] = -8.1985006332397;
+						["x"] = -102.12503814697;
+						["z"] = 259.82470703125;
+					};
+				};
+			};
+			["level"] = 21;
+			["prereq"] = {
+				[-1] = {
+					[1] = 718;
+				};
+			};
+		};
+		[737] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 139;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["delay"] = 2000;
+					["id"] = 1006193;
+					["itemreward"] = false;
+					["meshname"] = "Upper La Noscea";
+					["pos"] = {
+						["y"] = -1.4984744787216;
+						["x"] = -334.81552124023;
+						["z"] = 147.4979095459;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 5000;
+					["id"] = 5;
+					["itemreward"] = false;
+					["conversationindex"] = 4;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.2841529846191;
+						["x"] = 176.94316101074;
+						["z"] = -70.137222290039;
+					};
+				};
+				[4] = {
+					["type"] = "complete";
+					["id"] = 1000590;
+					["equip"] = true;
+					["itemreward"] = true;
+					["itemrewardslot"] = {
+						[-1] = 1;
+						[6] = 2;
+						[2] = 1;
+						[7] = 2;
+						[3] = 0;
+						[1] = 0;
+						[26] = 2;
+						[5] = 1;
+						[4] = 1;
+					};
+					["mapid"] = 153;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000594;
+					};
+					["meshname"] = "South Shroud";
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.38478088379;
+						["z"] = -80.052291870117;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 5;
+					["itemreward"] = false;
+					["mapid"] = 153;
+					["conversationindex"] = 1;
+					["itemturnin"] = false;
+					["delay"] = 3000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.2841529846191;
+						["x"] = 176.94316101074;
+						["z"] = -70.137222290039;
+					};
+				};
+			};
+			["level"] = 23;
+			["prereq"] = {
+				[-1] = {
+					[1] = 734;
+				};
+			};
+		};
+		[738] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2001950;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 13.440433502197;
+						["x"] = 64.050567626953;
+						["z"] = -31.94176864624;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2001953;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 10.989243507385;
+						["x"] = -115.86946868896;
+						["z"] = -84.386413574219;
+					};
+				};
+				[3] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2001949;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 14.417146682739;
+						["x"] = -142.9361114502;
+						["z"] = -131.02516174316;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.38478088379;
+						["z"] = -80.052291870117;
+					};
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2001951;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 7.1028122901917;
+						["x"] = -82.655029296875;
+						["z"] = -22.446325302124;
+					};
+				};
+				[5] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 2001952;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 7.621452331543;
+						["x"] = 18.561063766479;
+						["z"] = -43.100002288818;
+					};
+				};
+				[7] = {
+					["mapid"] = 153;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 9.8692293167114;
+						["x"] = -167.50550842285;
+						["z"] = -80.159294128418;
+					};
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = true;
+					["meshname"] = "South Shroud";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 23;
+			["prereq"] = {
+				[-1] = {
+					[1] = 737;
+				};
+			};
+		};
+		[708] = {
+			["steps"] = {
+				[13] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000766;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 9.1103897094727;
+						["x"] = -485.09008789063;
+						["z"] = 177.83345031738;
+					};
+				};
+				[7] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2002612;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 6.8199620246887;
+						["x"] = -476.17181396484;
+						["z"] = 166.78675842285;
+					};
+				};
+				[1] = {
+					["mapid"] = 132;
+					["type"] = "start";
+					["itemturnin"] = false;
+					["meshname"] = "New Gridania";
+					["id"] = 1000168;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -0.50175446271896;
+						["x"] = -74.785163879395;
+						["z"] = -4.1606426239014;
+					};
+				};
+				[2] = {
+					["mapid"] = 133;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["id"] = 1000257;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 10.897559165955;
+						["x"] = 149.33335876465;
+						["z"] = -229.84831237793;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["delay"] = 10000;
+					["id"] = 4;
+					["itemreward"] = false;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 4.4333968162537;
+						["x"] = -188.33555603027;
+						["z"] = 295.47857666016;
+					};
+				};
+				[8] = {
+					["type"] = "kill";
+					["id"] = 1983;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = 6.5934085845947;
+						["x"] = -475.44137573242;
+						["z"] = 164.85122680664;
+					};
+				};
+				[9] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2002611;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 11.250136375427;
+						["x"] = -501.00061035156;
+						["z"] = 161.7032623291;
+					};
+				};
+				[5] = {
+					["type"] = "interact";
+					["id"] = 4;
+					["itemreward"] = false;
+					["mapid"] = 152;
+					["conversationindex"] = 1;
+					["itemturnin"] = false;
+					["delay"] = 3000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 4.4333968162537;
+						["x"] = -188.33555603027;
+						["z"] = 295.47857666016;
+					};
+				};
+				[10] = {
+					["type"] = "kill";
+					["id"] = 1983;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = 11.250136375427;
+						["x"] = -501.00061035156;
+						["z"] = 161.7032623291;
+					};
+				};
+				[14] = {
+					["type"] = "complete";
+					["id"] = 1006188;
+					["itemreward"] = false;
+					["itemrewardslot"] = 0;
+					["mapid"] = 152;
+					["itemturnin"] = true;
+					["itemturninid"] = {
+						[1] = 2000826;
+					};
+					["delay"] = 4000;
+					["meshname"] = "East Shroud";
+					["pos"] = {
+						["y"] = 3.5432000160217;
+						["x"] = -236.90145874023;
+						["z"] = 284.57144165039;
+					};
+				};
+				[11] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 2002610;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 9.1710147857666;
+						["x"] = -486.37158203125;
+						["z"] = 184.35626220703;
+					};
+				};
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["id"] = 1000766;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 9.0606136322021;
+						["x"] = -484.59854125977;
+						["z"] = 176.66668701172;
+					};
+				};
+				[12] = {
+					["type"] = "kill";
+					["id"] = 1983;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 152;
+					["itemturnin"] = false;
+					["meshname"] = "East Shroud";
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = 8.1818237304688;
+						["x"] = -481.73272705078;
+						["z"] = 191.21553039551;
+					};
+				};
+				[3] = {
+					["type"] = "interact";
+					["id"] = 1001263;
+					["itemreward"] = false;
+					["mapid"] = 133;
+					["conversationindex"] = 1;
+					["itemturnin"] = false;
+					["meshname"] = "Old Gridania";
+					["delay"] = 6000;
+					["pos"] = {
+						["y"] = -2.3313584327698;
+						["x"] = 180.85150146484;
+						["z"] = -241.52897644043;
+					};
+				};
+			};
+			["level"] = 20;
+			["prereq"] = {
+				[-1] = {
+					[1] = 513;
+				};
+			};
+		};
+		[724] = {
+			["steps"] = {
+				[6] = {
+					["mapid"] = 152;
+					["type"] = "complete";
+					["itemrewardslot"] = 0;
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 2000;
+					["pos"] = {
+						["y"] = -3.8014001846313;
+						["x"] = 24.747787475586;
+						["z"] = 212.84036254883;
+					};
+				};
+				[2] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["meshname"] = "East Shroud";
+					["id"] = 1002937;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -2.6542110443115;
+						["x"] = -72.091438293457;
+						["z"] = 188.24389648438;
+					};
+				};
+				[3] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 4000;
+					["pos"] = {
+						["y"] = -3.7132399082184;
+						["x"] = 25.357057571411;
+						["z"] = 211.50234985352;
+					};
+				};
+				[1] = {
+					["mapid"] = 152;
+					["type"] = "start";
+					["meshname"] = "East Shroud";
+					["id"] = 1000580;
+					["itemreward"] = false;
+					["delay"] = 1000;
+					["pos"] = {
+						["y"] = -3.6805560588837;
+						["x"] = 24.983974456787;
+						["z"] = 210.3529510498;
+					};
+				};
+				[4] = {
+					["mapid"] = 152;
+					["type"] = "interact";
+					["meshname"] = "East Shroud";
+					["id"] = 1002998;
+					["itemreward"] = false;
+					["delay"] = 30000;
+					["pos"] = {
+						["y"] = 12.208463668823;
+						["x"] = -283.33541870117;
+						["z"] = -38.669418334961;
+					};
+				};
+				[5] = {
+					["type"] = "dutykill";
+					["ids"] = "69;68;67;583";
+					["itemreward"] = false;
+					["mapid"] = 303;
+					["healerid"] = 620;
+					["meshname"] = "East Shroud";
+					["restartatstep"] = 4;
+					["delay"] = 5000;
+					["pos"] = {
+						["y"] = 12.548164367676;
+						["x"] = -288.45190429688;
+						["z"] = -52.159381866455;
+					};
+				};
+			};
+			["level"] = 22;
+			["prereq"] = {
+				[-1] = {
+					[1] = 719;
+				};
+			};
+		};
+		[740] = {
+			["steps"] = {
+				[7] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 3000;
+					["id"] = 1006202;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 10.454742431641;
+						["x"] = 79.147987365723;
+						["z"] = 41.17947769165;
+					};
+				};
+				[1] = {
+					["mapid"] = 153;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.50550842285;
+						["z"] = -80.159294128418;
+					};
+				};
+				[2] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["meshname"] = "South Shroud";
+					["id"] = 1006199;
+					["itemreward"] = false;
+					["delay"] = 3000;
+					["pos"] = {
+						["y"] = 9.3477439880371;
+						["x"] = -220.41459655762;
+						["z"] = -49.493259429932;
+					};
+				};
+				[4] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 8000;
+					["id"] = 1006201;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 4.3221616744995;
+						["x"] = -65.536560058594;
+						["z"] = -28.200132369995;
+					};
+				};
+				[8] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 48000;
+					["id"] = 1006203;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 10.687814712524;
+						["x"] = 33.09627532959;
+						["z"] = -11.331483840942;
+					};
+				};
+				[9] = {
+					["mapid"] = 232;
+					["type"] = "dutykill";
+					["ids"] = "546;2065;2066;57;2064";
+					["delay"] = 5000;
+					["restartatstep"] = 8;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 8.0389270782471;
+						["x"] = 40.381328582764;
+						["z"] = -10.166170120239;
+					};
+				};
+				[5] = {
+					["type"] = "kill";
+					["id"] = 59;
+					["itemreward"] = false;
+					["killcount"] = 1;
+					["mapid"] = 153;
+					["disableflagcheck"] = true;
+					["delay"] = 1000;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 3.9498944282532;
+						["x"] = -66.436492919922;
+						["z"] = -32.420516967773;
+					};
+				};
+				[10] = {
+					["mapid"] = 153;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 9.8692283630371;
+						["x"] = -167.3348236084;
+						["z"] = -80.002319335938;
+					};
+					["delay"] = 2000;
+					["id"] = 1000590;
+					["itemreward"] = true;
+					["meshname"] = "South Shroud";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1006200;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 15.070417404175;
+						["x"] = -255.11767578125;
+						["z"] = 3.9394888877869;
+					};
+				};
+				[6] = {
+					["mapid"] = 153;
+					["type"] = "interact";
+					["delay"] = 3000;
+					["id"] = 1006201;
+					["itemreward"] = false;
+					["meshname"] = "South Shroud";
+					["pos"] = {
+						["y"] = 4.2904863357544;
+						["x"] = -65.740951538086;
+						["z"] = -28.784545898438;
+					};
+				};
+			};
+			["level"] = 23;
+			["prereq"] = {
+				[-1] = {
+					[1] = 738;
+				};
+			};
+		};
+	};
+}
+return obj1

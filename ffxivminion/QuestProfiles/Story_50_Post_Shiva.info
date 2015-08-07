@@ -1,0 +1,272 @@
+-- Persistent Data
+local multiRefObjects = {
+
+} -- multiRefObjects
+local obj1 = {
+	["quests"] = {
+		[87] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 155;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1009976;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["pos"] = {
+						["y"] = 302.18597412109;
+						["x"] = 261.59799194336;
+						["z"] = -222.12716674805;
+					};
+				};
+				[2] = {
+					["mapid"] = 351;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -1.9957249164581;
+						["x"] = 2.3501987457275;
+						["z"] = -46.049968719482;
+					};
+					["delay"] = 2000;
+					["id"] = 1008969;
+					["itemreward"] = false;
+					["meshname"] = "Rising Stones";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 50;
+			["prereq"] = {
+				[-1] = {
+					[1] = 86;
+				};
+			};
+		};
+		[89] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 147;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1010063;
+					["itemreward"] = false;
+					["meshname"] = "Northern Thanalan";
+					["pos"] = {
+						["y"] = 71.544387817383;
+						["x"] = -207.92581176758;
+						["z"] = -132.0179901123;
+					};
+				};
+				[2] = {
+					["mapid"] = 351;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = -1.9957249164581;
+						["x"] = 3.0711710453033;
+						["z"] = -45.649936676025;
+					};
+					["delay"] = 2000;
+					["id"] = 1008969;
+					["itemreward"] = false;
+					["meshname"] = "Rising Stones";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 50;
+			["prereq"] = {
+				[-1] = {
+					[1] = 88;
+				};
+			};
+		};
+		[84] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 351;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1008969;
+					["itemreward"] = false;
+					["meshname"] = "Rising Stones";
+					["pos"] = {
+						["y"] = -1.9957249164581;
+						["x"] = 1.8504766225815;
+						["z"] = -45.874450683594;
+					};
+				};
+				[2] = {
+					["donothing"] = lol;
+				};
+				[3] = {
+					["mapid"] = 155;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 229.26161193848;
+						["x"] = -906.50433349609;
+						["z"] = -9.8824310302734;
+					};
+					["delay"] = 2000;
+					["id"] = 1010042;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 50;
+			["prereq"] = false;
+		};
+		[86] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 155;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1010042;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["pos"] = {
+						["y"] = 229.26161193848;
+						["x"] = -906.50433349609;
+						["z"] = -9.8824310302734;
+					};
+				};
+				[2] = {
+					["mapid"] = 155;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1009984;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["pos"] = {
+						["y"] = 233.47265625;
+						["x"] = -431.17477416992;
+						["z"] = -202.90713500977;
+					};
+				};
+				[4] = {
+					["mapid"] = 155;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 302.24264526367;
+						["x"] = 264.40634155273;
+						["z"] = -223.33805847168;
+					};
+					["delay"] = 2000;
+					["id"] = 1007603;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["itemrewardslot"] = 0;
+				};
+				[3] = {
+					["mapid"] = 155;
+					["type"] = "interact";
+					["delay"] = 2000;
+					["id"] = 1006384;
+					["itemreward"] = false;
+					["meshname"] = "Coerthas";
+					["pos"] = {
+						["y"] = 303.10000610352;
+						["x"] = 264.12731933594;
+						["z"] = -201.34503173828;
+					};
+				};
+			};
+			["level"] = 50;
+			["prereq"] = {
+				[-1] = {
+					[1] = 84;
+				};
+			};
+		};
+		[88] = {
+			["steps"] = {
+				[1] = {
+					["mapid"] = 351;
+					["type"] = "start";
+					["delay"] = 2000;
+					["id"] = 1008969;
+					["itemreward"] = false;
+					["meshname"] = "Rising Stones";
+					["pos"] = {
+						["y"] = -1.9957249164581;
+						["x"] = 2.3501987457275;
+						["z"] = -46.049968719482;
+					};
+				};
+				[2] = {
+					["mapid"] = 351;
+					["type"] = "interact";
+					["delay"] = 7000;
+					["id"] = 1010045;
+					["itemreward"] = false;
+					["meshname"] = "Rising Stones";
+					["pos"] = {
+						["y"] = 7.4505805969238e-009;
+						["x"] = -1.8110219240189;
+						["z"] = -7.7313108444214;
+					};
+				};
+				[3] = {
+					["mapid"] = 147;
+					["type"] = "interact";
+					["delay"] = 4000;
+					["id"] = 1010533;
+					["itemreward"] = false;
+					["meshname"] = "Northern Thanalan";
+					["pos"] = {
+						["y"] = 4;
+						["x"] = 45.497650146484;
+						["z"] = 453.5133972168;
+					};
+				};
+				[4] = {
+					["mapid"] = 147;
+					["type"] = "interact";
+					["delay"] = 40000;
+					["id"] = 1010046;
+					["itemreward"] = false;
+					["meshname"] = "Northern Thanalan";
+					["pos"] = {
+						["y"] = 58.348415374756;
+						["x"] = -141.09294128418;
+						["z"] = -82.00740814209;
+					};
+				};
+				[5] = {
+					["mapid"] = 410;
+					["type"] = "dutykill";
+					["ids"] = "3111;3117;3115;3116;3114;2120;3110;3113;3112";
+					["delay"] = 2000;
+					["restartatstep"] = 4;
+					["itemreward"] = false;
+					["meshname"] = "Northern Thanalan";
+					["pos"] = {
+						["y"] = 58.411277770996;
+						["x"] = -141.11346435547;
+						["z"] = -82.918281555176;
+					};
+				};
+				[6] = {
+					["mapid"] = 147;
+					["type"] = "complete";
+					["pos"] = {
+						["y"] = 71.544387817383;
+						["x"] = -207.92581176758;
+						["z"] = -132.0179901123;
+					};
+					["delay"] = 2000;
+					["id"] = 1010063;
+					["itemreward"] = false;
+					["meshname"] = "Northern Thanalan";
+					["itemrewardslot"] = 0;
+				};
+			};
+			["level"] = 50;
+			["prereq"] = {
+				[-1] = {
+					[1] = 87;
+				};
+			};
+		};
+	};
+}
+return obj1
