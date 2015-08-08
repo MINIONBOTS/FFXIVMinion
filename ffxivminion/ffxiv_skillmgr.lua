@@ -817,6 +817,26 @@ function SkillMgr.SetGUIVar(strName, value)
 	end
 end
 
+function SkillMgr.AceOnly()
+	local startingProfiles = SkillMgr.StartingProfiles
+	if (ValidTable(startingProfiles)) then
+		for jobid,profilename in pairs(startingProfiles) do
+			local profile = profilename
+			if (profile and profile ~= "") then
+				GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+				SkillMgr.SkillProfile = {}
+				SkillMgr.ReadFile(profile)
+				SkillMgr.RefreshSkillList()
+				GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+				GUI_RefreshWindow(SkillMgr.mainwindow.name)
+			else
+				d("Could not find profile ["..tostring(profile).."].")
+			end
+			SkillMgr.CheckProfileValidity()
+		end
+	end
+end
+
 function SkillMgr.CheckProfileValidity()
 	local profile = SkillMgr.SkillProfile
 	
