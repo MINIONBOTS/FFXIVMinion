@@ -118,9 +118,16 @@ function e_stuck:execute()
 end
 
 function ffxiv_unstuck.IsStuck()
-	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= .6) and
+	local requiredDist = .6
+	local hasStealth = HasBuff(Player.id, 47)
+	local isMounted = Player.ismounted
+	
+	if (hasStealth) then requiredDist = (requiredDist * .5) end
+	if (isMounted) then requiredDist = (requiredDist * 1.25) end
+	
+	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
 			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
-			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= .6) and
+			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
 			not ActionList:IsCasting() and
 			Player:IsMoving() and 
 			not IsPositionLocked() and
