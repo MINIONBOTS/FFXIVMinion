@@ -351,7 +351,8 @@ function c_updatefate:evaluate()
 	
 	local tablesEqual = true
 	if (ValidTable(fate)) then
-		if (fate.status == 2) then
+		local nearestFateTarget = GetNearestFateAttackable()
+		if (fate.status == 2 or ValidTable(nearestFateTarget)) then
 			d("Found active status for FATE ID:"..tostring(ml_task_hub:ThisTask().fateid))
 			if (not fatePos) then
 				fatePos = {x = fate.x, y = fate.y, z = fate.z}
@@ -361,17 +362,13 @@ function c_updatefate:evaluate()
 				end
 			end
 			
-			local nearestFateTarget = GetNearestFateAttackable()
-			if (ValidTable(nearestFateTarget)) then
-				d("Nearest FATE target details: fateid:"..tostring(nearestFateTarget.fateid)..",name:"..tostring(nearestFateTarget.name))
-				if (ml_task_hub:ThisTask().waitingForChain) then 
-					ml_task_hub:ThisTask().waitingForChain = false 
-					d("Removing FATE wait flag.")
-				end
-				if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
-					ml_task_hub:ThisTask().nextFate = {} 
-					ml_debug("Clearing next FATE.")
-				end
+			if (ml_task_hub:ThisTask().waitingForChain) then 
+				ml_task_hub:ThisTask().waitingForChain = false 
+				d("Removing FATE wait flag.")
+			end
+			if (ValidTable(ml_task_hub:ThisTask().nextFate)) then 
+				ml_task_hub:ThisTask().nextFate = {} 
+				ml_debug("Clearing next FATE.")
 			end
 		end
 	end
@@ -455,18 +452,16 @@ function c_add_fatetarget:evaluate()
 	
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (ValidTable(fate)) then
-		if (fate.status == 2) then
-			local myPos = Player.pos
-			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-			
-			local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
-			if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
-				local target = GetNearestFateAttackable()
-				if (ValidTable(target)) then
-					if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-						c_add_fatetarget.targetid = target.id
-						return true
-					end
+		local myPos = Player.pos
+		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+		
+		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
+		if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
+			local target = GetNearestFateAttackable()
+			if (ValidTable(target)) then
+				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+					c_add_fatetarget.targetid = target.id
+					return true
 				end
 			end
 		end
@@ -535,7 +530,7 @@ c_endfate = inheritsFrom( ml_cause )
 e_endfate = inheritsFrom( ml_effect )
 function c_endfate:evaluate()
 	if (ml_task_hub:ThisTask().waitingForChain and 
-		(ml_task_hub:ThisTask().waitStart == 0 or TimeSince(ml_task_hub:ThisTask().waitStart) < 30000)) 
+		(ml_task_hub:ThisTask().waitStart == 0 or TimeSince(ml_task_hub:ThisTask().waitStart) < 45000)) 
 	then
 		d("Currently waiting for chain, can't end.")
 		return false
@@ -545,9 +540,26 @@ function c_endfate:evaluate()
     if (not ValidTable(fate)) then
 		d("Ending fate, fate no longer exists.")
         return true
-	elseif (fate and (fate.completion > 99 or fate.status ~= 2)) then
+	elseif (fate and (fate.completion > 99)) then
 		d("Ending fate, fate completion:"..tostring(fate.completion))
-        return true
+		return true
+	elseif (fate.status ~= 2) then
+		local foundTargetable = false
+		local el = EntityList("fateid="..tostring(fate.id))
+		if (ValidTable(el)) then
+			for i,e in pairs(el) do
+				if (e.targetable) then
+					foundTargetable = true
+				end
+				if (foundTargetable) then
+					break
+				end
+			end
+		end        
+		
+		if (not foundTargetable) then
+			return true
+		end
     end
 	
 	if (not IsFateApproved(fate.id)) then
