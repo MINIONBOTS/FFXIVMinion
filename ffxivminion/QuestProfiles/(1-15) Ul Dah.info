@@ -1217,7 +1217,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Way of the Gladiator";
 			["prereq"] = {
-				[1] = {
+				[-1] = {
 					[1] = 568;
 				};
 			};
@@ -1318,7 +1318,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "Kicking the Hornet's Nest";
 			["prereq"] = {
-				[1] = {
+				[-1] = {
 					[1] = 253;
 				};
 			};
@@ -1575,7 +1575,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Ul'dah's Most Wanted";
 			["prereq"] = {
-				[1] = {
+				[-1] = {
 					[1] = 256;
 				};
 			};
@@ -1713,7 +1713,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "That Old Familiar Feeling";
 			["prereq"] = {
-				[1] = {
+				[-1] = {
 					[1] = 261;
 				};
 			};
@@ -4024,7 +4024,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65881";
 			["prereq"] = {
-				[7] = {
+				[-1] = {
 					[1] = 570;
 				};
 			};
@@ -4125,7 +4125,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65883";
 			["prereq"] = {
-				[7] = {
+				[-1] = {
 					[1] = 345;
 				};
 			};
@@ -4235,7 +4235,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65884";
 			["prereq"] = {
-				[7] = {
+				[-1] = {
 					[1] = 347;
 				};
 			};
@@ -6867,7 +6867,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "66104";
 			["prereq"] = {
-				[-1] = {
+				[1] = {
 					[1] = 594;
 				};
 			};
@@ -6966,7 +6966,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				[-1] = {
+				[2] = {
 					[1] = 594;
 				};
 			};
@@ -7065,7 +7065,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "66106";
 			["prereq"] = {
-				[-1] = {
+				[7] = {
 					[1] = 594;
 				};
 			};

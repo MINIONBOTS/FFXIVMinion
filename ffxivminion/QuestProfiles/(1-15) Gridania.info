@@ -132,7 +132,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Way of the Archer";
 			["prereq"] = {
-				[5] = {
+				[-1] = {
 					[1] = 123;
 				};
 			};
@@ -333,7 +333,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65559";
 			["prereq"] = {
-				[4] = {
+				[-1] = {
 					[1] = 85;
 				};
 			};
@@ -1445,7 +1445,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "A Matter of Perspective";
 			["prereq"] = {
-				[5] = {
+				[-1] = {
 					[1] = 21;
 				};
 			};
@@ -1634,7 +1634,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65583";
 			["prereq"] = {
-				[4] = {
+				[-1] = {
 					[1] = 23;
 				};
 			};
@@ -1786,7 +1786,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "Trial by Earth";
 			["prereq"] = {
-				[6] = {
+				[-1] = {
 					[1] = 22;
 				};
 			};
@@ -1904,7 +1904,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "A Dangerous Proposition";
 			["prereq"] = {
-				[4] = {
+				[-1] = {
 					[1] = 35;
 				};
 			};
@@ -2026,7 +2026,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65603";
 			["prereq"] = {
-				[5] = {
+				[-1] = {
 					[1] = 46;
 				};
 			};
@@ -2240,7 +2240,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Violators Will Be Shot";
 			["prereq"] = {
-				[5] = {
+				[-1] = {
 					[1] = 67;
 				};
 			};
@@ -2500,7 +2500,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65621";
 			["prereq"] = {
-				[-1] = {
+				[4] = {
 					[1] = 39;
 				};
 			};
@@ -2598,7 +2598,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Trial by Wind";
 			["prereq"] = {
-				[6] = {
+				[-1] = {
 					[1] = 48;
 				};
 			};
@@ -3048,7 +3048,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				[-1] = {
+				[5] = {
 					[1] = 39;
 				};
 			};
@@ -3146,7 +3146,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65660";
 			["prereq"] = {
-				[-1] = {
+				[6] = {
 					[1] = 39;
 				};
 			};
