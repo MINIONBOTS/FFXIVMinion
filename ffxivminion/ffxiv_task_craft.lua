@@ -67,7 +67,8 @@ end
 c_selectitem = inheritsFrom( ml_cause )
 e_selectitem = inheritsFrom( ml_effect )
 function c_selectitem:evaluate()
-	if (Now() < ml_task_hub:ThisTask().networkLatency or Player.cp.current < tonumber(gCraftMinCP)) then
+	local minCP = tonumber(gCraftMinCP) or 0
+	if (Now() < ml_task_hub:ThisTask().networkLatency or Player.cp.current < minCP) then
 		return false
 	end
 
@@ -162,10 +163,64 @@ function e_craft:execute()
 	ml_task_hub:ThisTask().networkLatency = Now() + 1000
 end
 
+c_collectibleaddoncraft = inheritsFrom( ml_cause )
+e_collectibleaddoncraft = inheritsFrom( ml_effect )
+function c_collectibleaddoncraft:evaluate()
+	if (ControlVisible("SelectYesNoItem")) then
+		local info = Player:GetYesNoItemInfo()
+		if (ValidTable(info)) then
+			local validCollectible = false
+			
+			local variables = {}
+			for i=8,15 do
+				local var = _G["gCraftCollectibleName"..tostring(i)]
+				local valuevar = _G["gCraftCollectibleValue"..tostring(i-7)]
+				if (var and valuevar and var ~= "") then
+					local id = AceLib.API.Items.GetRecipeIDByName(var,i)
+					if (id) then
+						variables[i] = { ["id"] = id, ["value"] = tonumber(valuevar) }
+					else
+						d("Could not find recipe ID for value-pair ["..tostring(var)..","..tostring(i).."]")
+					end
+				end
+			end
+			
+			if (ValidTable(variables)) then
+				for job,collectible in pairs(variables) do
+					if (info.itemid == collectible.id) then
+						if (info.collectability >= collectible.value) then
+							validCollectible = true
+						else
+							d("Collectibility was too low ["..tostring(info.collectability).."].")
+						end
+					end
+				end
+			else
+				d("No collectible value pairs are set up.")
+			end
+			
+			if (not validCollectible) then
+				PressYesNoItem(false) 
+				return true
+			else
+				PressYesNoItem(true) 
+				return true
+			end
+		end
+	end
+	return false
+end
+function e_collectibleaddoncraft:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 function ffxiv_task_craft:Init()
     --init Process() cnes
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 50 )
     self:add( ke_inventoryFull, self.overwatch_elements)
+	
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 35 )
+    self:add( ke_collectible, self.overwatch_elements)
 	
 	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 25 )
     self:add(ke_reachedCraftLimit, self.process_elements)
@@ -198,6 +253,54 @@ function ffxiv_task_craft.UIInit()
 	if ( Settings.FFXIVMINION.gCraftMaxItems == nil ) then
         Settings.FFXIVMINION.gCraftMaxItems = 0
     end
+	if (Settings.FFXIVMINION.gCraftCollectibleName8 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName8 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue1 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue1 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName9 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName9 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue2 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue2 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName10 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName10 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue3 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue3 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName11 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName11 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue4 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue4 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName12 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName12 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue5 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue5 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName13 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName13 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue6 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue6 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName14 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName14 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue7 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue7 = 0
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleName15 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleName15 = ""
+	end
+	if (Settings.FFXIVMINION.gCraftCollectibleValue8 == nil) then
+		Settings.FFXIVMINION.gCraftCollectibleValue8 = 0
+	end
 	
 	local winName = GetString("craftMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -207,17 +310,64 @@ function ffxiv_task_craft.UIInit()
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
 	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
-	local group = GetString("settings")
+	
+	group = GetString("settings")
 	GUI_NewField(winName,GetString("craftAmount"),"gCraftMaxItems",group)
     GUI_NewField(winName,GetString("minimumCP"),"gCraftMinCP",group)
 	
+	group = "Collectible"
+	local collectStringCraft1 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.CARPENTER,0,51)
+	local collectStringCraft2 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.BLACKSMITH,0,51)
+	local collectStringCraft3 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.ARMORER,0,51)
+	local collectStringCraft4 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.GOLDSMITH,0,51)
+	local collectStringCraft5 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.LEATHERWORKER,0,51)
+	local collectStringCraft6 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.WEAVER,0,51)
+	local collectStringCraft7 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.ALCHEMIST,0,51)
+	local collectStringCraft8 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.CULINARIAN,0,51)
+	
+	--local id = AceLib.API.Items.GetRecipeIDByName(v,job)
+	
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName8",group,collectStringCraft1)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue1",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName9",group,collectStringCraft2)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue2",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName10",group,collectStringCraft3)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue3",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName11",group,collectStringCraft4)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue4",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName12",group,collectStringCraft5)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue5",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName13",group,collectStringCraft6)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue6",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName14",group,collectStringCraft7)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue7",group)
+	GUI_NewComboBox(winName,"Collectible","gCraftCollectibleName15",group,collectStringCraft8)
+	GUI_NewField(winName,"Min Value","gCraftCollectibleValue8",group)
+	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,GetString("settings"))
+	GUI_UnFoldGroup(winName,"Collectible")
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gCraftMinCP = Settings.FFXIVMINION.gCraftMinCP
     gCraftMaxItems = Settings.FFXIVMINION.gCraftMaxItems
+	gCraftCollectibleName8 = Settings.FFXIVMINION.gCraftCollectibleName8
+	gCraftCollectibleName9 = Settings.FFXIVMINION.gCraftCollectibleName9
+	gCraftCollectibleName10 = Settings.FFXIVMINION.gCraftCollectibleName10
+	gCraftCollectibleName11 = Settings.FFXIVMINION.gCraftCollectibleName11
+	gCraftCollectibleName12 = Settings.FFXIVMINION.gCraftCollectibleName12
+	gCraftCollectibleName13 = Settings.FFXIVMINION.gCraftCollectibleName13
+	gCraftCollectibleName14 = Settings.FFXIVMINION.gCraftCollectibleName14
+	gCraftCollectibleName15 = Settings.FFXIVMINION.gCraftCollectibleName15
+	gCraftCollectibleValue1 = Settings.FFXIVMINION.gCraftCollectibleValue1
+	gCraftCollectibleValue2 = Settings.FFXIVMINION.gCraftCollectibleValue2
+	gCraftCollectibleValue3 = Settings.FFXIVMINION.gCraftCollectibleValue3
+	gCraftCollectibleValue4 = Settings.FFXIVMINION.gCraftCollectibleValue4
+	gCraftCollectibleValue5 = Settings.FFXIVMINION.gCraftCollectibleValue5
+	gCraftCollectibleValue6 = Settings.FFXIVMINION.gCraftCollectibleValue6
+	gCraftCollectibleValue7 = Settings.FFXIVMINION.gCraftCollectibleValue7
+	gCraftCollectibleValue8 = Settings.FFXIVMINION.gCraftCollectibleValue8
 	
     RegisterEventHandler("GUI.Update",ffxiv_task_craft.GUIVarUpdate)
 end
@@ -225,7 +375,8 @@ end
 function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if 	( 	k == "gCraftMinCP" or 
-				k == "gCraftMaxItems" ) 
+				k == "gCraftMaxItems" or
+				string.find(tostring(k),"gCraftCollectible"))				
 		then
             SafeSetVar(tostring(k),v)
         end
