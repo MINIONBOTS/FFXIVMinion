@@ -1483,9 +1483,100 @@ function e_gatherflee:execute()
 	end
 end
 
+--[[
+GatheringMasterpiece
+Player:GetCollectableInfo()
+.rarity
+.raritymax
+.wear
+.wearmax
+.chance
+.chancehq
+
+c_collectiblegame = inheritsFrom( ml_cause )
+e_collectiblegame = inheritsFrom( ml_effect )
+function c_collectiblegame:evaluate()
+	if (ControlVisible("GatheringMasterpiece")) then
+		local info = Player:GetCollectableInfo()
+		if (ValidTable(info)) then
+			
+		end
+	end
+	return false
+end
+function e_collectiblegame:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+--]]
+
+c_collectibleaddongather = inheritsFrom( ml_cause )
+e_collectibleaddongather = inheritsFrom( ml_effect )
+function c_collectibleaddongather:evaluate()
+	if (ControlVisible("SelectYesNoItem")) then
+		local info = Player:GetYesNoItemInfo()
+		if (ValidTable(info)) then
+			local validCollectible = false
+			
+			if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
+				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,47)
+				if (itemid) then
+					if (info.itemid == itemid) then
+						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
+							validCollectible = true
+						else
+							d("Collectibility was too low ["..tostring(info.collectability).."].")
+						end
+					else
+						d("Collectible was not the item we are looking for.")
+						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+					end	
+				else
+					d("Could not find an item ID for:" .. gMinerCollectibleName)
+				end
+			end
+			
+			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
+				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,47)
+				if (itemid) then
+					if (info.itemid == itemid) then
+						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
+							validCollectible = true
+						else
+							d("Collectibility was too low ["..tostring(info.collectability).."].")
+						end
+					else
+						d("Collectible was not the item we are looking for.")
+						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+					end	
+				else
+					d("Could not find an item ID for:" .. gBotanistCollectibleName)
+				end
+			end
+			
+			if (not validCollectible) then
+				PressYesNoItem(false) 
+				return true
+			else
+				PressYesNoItem(true) 
+				return true
+			end
+		end
+	end
+	return false
+end
+function e_collectibleaddongather:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 function ffxiv_task_gather:Init()
 	--local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 30 )
     --self:add( ke_inventoryFull, self.overwatch_elements)
+	
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddongather, e_collectibleaddongather, 35 )
+    self:add( ke_collectible, self.overwatch_elements)
+	
+	--local ke_collectibleGame = ml_element:create( "CollectibleGame", c_collectiblegame, e_collectiblegame, 30 )
+    --self:add( ke_collectibleGame, self.overwatch_elements)
 	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 25 )
     self:add( ke_dead, self.overwatch_elements)
@@ -1633,6 +1724,18 @@ function ffxiv_task_gather.UIInit()
 	if ( Settings.FFXIVMINION.gGatherUseCordials == nil ) then
 		Settings.FFXIVMINION.gGatherUseCordials = "1"
 	end
+	if (Settings.FFXIVMINION.gMinerCollectibleName == nil) then
+		Settings.FFXIVMINION.gMinerCollectibleName = ""
+	end
+	if (Settings.FFXIVMINION.gMinerCollectibleValue == nil) then
+		Settings.FFXIVMINION.gMinerCollectibleValue = 0
+	end
+	if (Settings.FFXIVMINION.gBotanistCollectibleName == nil) then
+		Settings.FFXIVMINION.gBotanistCollectibleName = ""
+	end
+	if (Settings.FFXIVMINION.gBotanistCollectibleValue == nil) then
+		Settings.FFXIVMINION.gBotanistCollectibleValue = 0
+	end
 	
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -1655,6 +1758,14 @@ function ffxiv_task_gather.UIInit()
 	gGatherStartLocation_listitems = ffxiv_task_gather.GetUnspoiledLocations()
 	GUI_NewField(winName,GetString("minerGearset"),"gGatherMinerGearset",group )
 	GUI_NewField(winName,GetString("botanistGearset"),"gGatherBotanistGearset",group )
+	
+	group = "Collectible"
+	local collectStringMiner = AceLib.API.Items.BuildUIString(48,115)
+	local collectStringBotanist = AceLib.API.Items.BuildUIString(45,115)
+	GUI_NewComboBox(winName,"Collectible","gMinerCollectibleName",group,collectStringMiner)
+	GUI_NewField(winName,"Min Value","gMinerCollectibleValue",group)
+	GUI_NewComboBox(winName,"Collectible","gBotanistCollectibleName",group,collectStringBotanist)
+	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue",group)
 	
 	group = GetString("newLocation")
 	GUI_NewField(winName,GetString("locationName"),"gGatherMapName",group)
@@ -1699,6 +1810,11 @@ function ffxiv_task_gather.UIInit()
 	gGatherBotanistGearset = Settings.FFXIVMINION.gGatherBotanistGearset
 	gGatherMapMarker = Settings.FFXIVMINION.gGatherMapMarker
 	gGatherUseCordials = Settings.FFXIVMINION.gGatherUseCordials
+	gMinerCollectibleName = Settings.FFXIVMINION.gMinerCollectibleName
+	gMinerCollectibleValue = Settings.FFXIVMINION.gMinerCollectibleValue
+	gBotanistCollectibleName = Settings.FFXIVMINION.gBotanistCollectibleName
+	gBotanistCollectibleValue = Settings.FFXIVMINION.gBotanistCollectibleValue
+	
 	
     ffxiv_task_gather.SetupMarkers()
     ffxiv_task_gather.RefreshGatherLocations()
