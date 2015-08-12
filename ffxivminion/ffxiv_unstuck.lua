@@ -5,18 +5,21 @@ ffxiv_unstuck.diffY = 0
 ffxiv_unstuck.diffZ = 0
 ffxiv_unstuck.evaltime = 0
 ffxiv_unstuck.count = 0
-ffxiv_unstuck.laststuck = 0
+ffxiv_unstuck.lastCorrection = 0
+
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, maxticks = 25 },
-	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, maxticks = 30 },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, minticks = 25, maxticks = 50 },
+	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, minticks = 30, maxticks = 30 },
 }
 
 c_stuck = inheritsFrom( ml_cause )
 e_stuck = inheritsFrom( ml_effect )
 c_stuck.state = {}
+c_stuck.blockOnly = false
 function c_stuck:evaluate()
 	c_stuck.state = {}
+	c_stuck.blockOnly = false
 	
 	if (gDoUnstuck == "0") then
 		return false
@@ -55,6 +58,13 @@ function c_stuck:evaluate()
 			if state.ticks >= state.maxticks then
 				e_stuck.state = state
 				return true
+			elseif state.ticks >= state.minticks then
+				if (TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
+					Player:Jump()
+					ffxiv_unstuck.lastCorrection = Now()
+				end
+				c_stuck.blockOnly = true
+				return true
 			end
 		end
 	end
@@ -62,6 +72,10 @@ function c_stuck:evaluate()
 	ffxiv_unstuck.lastpos = Player.pos
 end
 function e_stuck:execute()
+	if (c_stuck.blockOnly) then
+		return
+	end
+	
 	local state = e_stuck.state
 	ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
 	
