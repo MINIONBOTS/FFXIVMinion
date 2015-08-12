@@ -132,7 +132,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Way of the Archer";
 			["prereq"] = {
-				[-1] = {
+				[5] = {
 					[1] = 123;
 				};
 			};
@@ -1025,7 +1025,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65575";
 			["prereq"] = {
-				["(QuestCompleted(594) or QuestCompleted(107))"] = false;
+				["QuestCompleted(594) and QuestCompleted(107)"] = false;
 			};
 			["steps"] = {
 				[1] = {
@@ -2500,7 +2500,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65621";
 			["prereq"] = {
-				[4] = {
+				[-1] = {
 					[1] = 39;
 				};
 			};
@@ -3048,7 +3048,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				[5] = {
+				[-1] = {
 					[1] = 39;
 				};
 			};
@@ -3146,7 +3146,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65660";
 			["prereq"] = {
-				[6] = {
+				[-1] = {
 					[1] = 39;
 				};
 			};

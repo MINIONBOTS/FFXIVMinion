@@ -8,7 +8,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65643";
 			["prereq"] = {
-				["(QuestCompleted(594) or QuestCompleted(39))"] = false;
+				["QuestCompleted(594) and QuestCompleted(39)"] = false;
 			};
 			["steps"] = {
 				[1] = {
@@ -1168,7 +1168,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65658";
 			["prereq"] = {
-				["(QuestCompleted(108) or QuestCompleted(109))"] = true;
+				["QuestCompleted(108) or QuestCompleted(109)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4098,7 +4098,7 @@ local obj1 = {
 			["level"] = 4;
 			["name"] = "65998";
 			["prereq"] = {
-				["(QuestCompleted(108) or QuestCompleted(109))"] = true;
+				["QuestCompleted(108) or QuestCompleted(109)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7021,7 +7021,7 @@ local obj1 = {
 			["level"] = 4;
 			["name"] = "66199";
 			["prereq"] = {
-				["(QuestCompleted(108) or QuestCompleted(109))"] = true;
+				["QuestCompleted(108) or QuestCompleted(109)"] = true;
 			};
 			["steps"] = {
 				[1] = {

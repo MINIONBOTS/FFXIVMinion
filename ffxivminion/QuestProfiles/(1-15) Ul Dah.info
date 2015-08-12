@@ -7385,7 +7385,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "66130";
 			["prereq"] = {
-				["(QuestCompleted(39) or QuestCompleted(107))"] = false;
+				["QuestCompleted(39) and QuestCompleted(107)"] = false;
 			};
 			["steps"] = {
 				[1] = {
