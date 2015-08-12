@@ -6867,9 +6867,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "66104";
 			["prereq"] = {
-				[1] = {
-					[1] = 594;
-				};
+				["QuestCompleted(594) and IsOnMap(182)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -6966,9 +6964,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				[2] = {
-					[1] = 594;
-				};
+				["QuestCompleted(594) and IsOnMap(182)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7065,9 +7061,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "66106";
 			["prereq"] = {
-				[7] = {
-					[1] = 594;
-				};
+				["QuestCompleted(594) and IsOnMap(182)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7386,6 +7380,7 @@ local obj1 = {
 			["name"] = "66130";
 			["prereq"] = {
 				["QuestCompleted(39) and QuestCompleted(107)"] = false;
+				["IsOnMap(182)"] = true;
 			};
 			["steps"] = {
 				[1] = {

@@ -9,6 +9,7 @@ local obj1 = {
 			["name"] = "65643";
 			["prereq"] = {
 				["QuestCompleted(594) and QuestCompleted(39)"] = false;
+				["IsOnMap(181)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -59,9 +60,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65644";
 			["prereq"] = {
-				[3] = {
-					[1] = 107;
-				};
+				["QuestCompleted(107) and IsOnMap(181)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -159,9 +158,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65645";
 			["prereq"] = {
-				[26] = {
-					[1] = 107;
-				};
+				["QuestCompleted(107) and IsOnMap(181)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -259,9 +256,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65647";
 			["prereq"] = {
-				[-1] = {
-					[1] = 107;
-				};
+				["QuestCompleted(107) and IsOnMap(181)"] = true;
 			};
 			["steps"] = {
 				[1] = {
