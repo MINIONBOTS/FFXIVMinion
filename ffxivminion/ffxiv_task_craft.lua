@@ -175,9 +175,14 @@ function c_collectibleaddoncraft:evaluate()
 			for i=8,15 do
 				local var = _G["gCraftCollectibleName"..tostring(i)]
 				local valuevar = _G["gCraftCollectibleValue"..tostring(i-7)]
+				
+				--d("Checking selection [gCraftCollectibleName"..tostring(i).."], value:"..tostring(var))
+				--d("Checking selection [gCraftCollectibleValue"..tostring(i-7).."], value:"..tostring(valuevar))
+				
 				if (var and valuevar and var ~= "") then
 					local id = AceLib.API.Items.GetRecipeIDByName(var,i)
 					if (id) then
+						d("Setting variables[" .. i .. "] to use value-pair ["..tostring(var)..","..tostring(valuevar).."]")
 						variables[i] = { ["id"] = id, ["value"] = tonumber(valuevar) }
 					else
 						d("Could not find recipe ID for value-pair ["..tostring(var)..","..tostring(i).."]")
@@ -187,12 +192,16 @@ function c_collectibleaddoncraft:evaluate()
 			
 			if (ValidTable(variables)) then
 				for job,collectible in pairs(variables) do
-					if (info.itemid == collectible.id) then
+					--d("Checking variable ["..tostring(job).."]")
+					--d("id ["..tostring(collectible.id).."], value ["..tostring(collectible.value).."]")
+					if (string.find(tostring(info.itemid),tostring(collectible.id))) then
 						if (info.collectability >= collectible.value) then
 							validCollectible = true
 						else
 							d("Collectibility was too low ["..tostring(info.collectability).."].")
 						end
+					else
+						d("ItemID ["..tostring(info.itemid).."] does not match collectible ID.")
 					end
 				end
 			else
