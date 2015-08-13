@@ -96,6 +96,13 @@ SkillMgr.StartingProfiles = {
 	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
 }
 
+SkillMgr.ExtraProfiles = {
+	"BLM_50",
+	"Monk_50",
+	"Craft_Artisan_2Star_Token",
+	"Craft_Supra_3Star_Token",
+}
+
 SkillMgr.ActionTypes = {
 	ACTIONS = 1,
 	CRAFT = 9,
@@ -821,17 +828,29 @@ function SkillMgr.AceOnly()
 	local startingProfiles = SkillMgr.StartingProfiles
 	if (ValidTable(startingProfiles)) then
 		for jobid,profilename in pairs(startingProfiles) do
-			local profile = profilename
-			if (profile and profile ~= "") then
-				GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-				SkillMgr.SkillProfile = {}
-				SkillMgr.ReadFile(profile)
-				SkillMgr.RefreshSkillList()
-				GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
-				GUI_RefreshWindow(SkillMgr.mainwindow.name)
-			else
-				d("Could not find profile ["..tostring(profile).."].")
+			d("Checking profile ["..tostring(profilename).."]")
+			gSMprofile = profilename
+			local filename = SkillMgr.profilepath..profilename..".lua"
+			local profile,e = persistence.load(filename)
+			if (ValidTable(profile)) then
+				SkillMgr.SkillProfile = profile.skills
 			end
+			SkillMgr.ResetSkillTracking()
+			SkillMgr.CheckProfileValidity()
+		end
+	end
+	
+	local extraProfiles = SkillMgr.ExtraProfiles
+	if (ValidTable(extraProfiles)) then
+		for k,profilename in pairs(extraProfiles) do
+			d("Checking profile ["..tostring(profilename).."]")
+			gSMprofile = profilename
+			local filename = SkillMgr.profilepath..profilename..".lua"
+			local profile,e = persistence.load(filename)
+			if (ValidTable(profile)) then
+				SkillMgr.SkillProfile = profile.skills
+			end
+			SkillMgr.ResetSkillTracking()
 			SkillMgr.CheckProfileValidity()
 		end
 	end
@@ -903,8 +922,6 @@ function SkillMgr.CheckProfileValidity()
 							skill[v.profile] = tonumber(skill[v.profile])
 						elseif (v.cast == "string") then
 							skill[v.profile] = tonumber(skill[v.profile])
-						else
-							
 						end
 					end
 				end
@@ -917,6 +934,7 @@ function SkillMgr.CheckProfileValidity()
 	end
 	
 	if (requiredUpdate) then
+		d("Profile required an update, resaving.")
 		SkillMgr.SaveProfile()
 	end
 end
@@ -2543,7 +2561,9 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	-- If the skill is a ninjutsu, and we don't have the mudra buff, it won't succeed.
 	-- If the skill is a mudra, and we cast it less than 600ms ago, don't recast.
 	if (castable) then
-		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 700) then
+		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 800) then
+			castable = false
+		elseif (IsMudraSkill(SkillMgr.SkillProfile[SkillMgr.queuedPrio])) then
 			castable = false
 		end
 	end
