@@ -183,6 +183,7 @@ end
 
 function ffxiv_task_movetopos:task_complete_eval()
 	if (IsPositionLocked() or IsLoading() or ml_mesh_mgr.loadingMesh ) then
+		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
 	
@@ -224,7 +225,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 				if (ValidTable(entity)) then
 					if (self.customSearchCompletes) then
 						if (InCombatRange(entity.id)) then
-							d("Ending movetopos, found the target.")
+							ml_debug("[MOVETOPOS]: Ending movetopos, found the target.")
 							return true
 						end
 					end
@@ -232,7 +233,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 					if (ValidTable(p)) then
 						if (not deepcompare(self.pos,p,true)) then
 							self.pos = p
-							d("Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
+							ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
 						end
 					end
 				end
@@ -277,6 +278,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		end
 		
 		if (distance < (self.range + self.gatherRange)) then
+			ml_debug("[MOVETOPOS]: Completing due to range reached.")
 			return true
 		end
     end    
@@ -292,6 +294,7 @@ function ffxiv_task_movetopos:task_complete_execute()
 		Dismount()
 	end
     self.completed = true
+	ml_debug("[MOVETOPOS]: Task completing.")
 end
 
 function ffxiv_task_movetopos:task_fail_eval()
@@ -310,6 +313,7 @@ end
 function ffxiv_task_movetopos:task_fail_execute()
 	Player:Stop()
     self.valid = false
+	ml_debug("[MOVETOPOS]: Failing.")
 end
 
 ffxiv_task_movetofate = inheritsFrom(ml_task)
@@ -948,6 +952,10 @@ function ffxiv_task_teleport:task_complete_execute()
 end
 
 function ffxiv_task_teleport:task_fail_eval()
+	if (Player.incombat) then
+		return true
+	end
+	
 	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh) then
 		self.lastActivity = Now()
 		return false

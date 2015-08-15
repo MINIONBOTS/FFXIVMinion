@@ -64,7 +64,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						-- Check for inanimate objects, use those as first guess.
 						if (ml_mesh_mgr.OMCTarget == 0) then
 							local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=5")
-							d("Scanning for objects to interact with.")
+							d("Scanning for type 7 objects to interact with.")
 							if (interacts) then
 								local i, interact = next(interacts)
 								if (interact and interact.id and interact.id ~= 0) then
@@ -77,7 +77,19 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						-- Check for NPC's, use those as a backup guess.
 						if (ml_mesh_mgr.OMCTarget == 0) then
 							local interacts = EntityList("nearest,type=3,chartype=0,maxdistance=5")
-							d("Scanning for NPCs to interact with.")
+							d("Scanning for type 3 NPCs to interact with.")
+							if (interacts) then
+								local i, interact = next(interacts)
+								if (interact and interact.id and interact.id ~= 0) then
+									d("Chose NPC : "..interact.name)
+									ml_mesh_mgr.OMCTarget = interact.id
+								end
+							end
+						end
+						
+						if (ml_mesh_mgr.OMCTarget == 0) then
+							local interacts = EntityList("nearest,targetable,maxdistance=7")
+							d("Scanning for anything nearby that's targetable to interact with.")
 							if (interacts) then
 								local i, interact = next(interacts)
 								if (interact and interact.id and interact.id ~= 0) then
