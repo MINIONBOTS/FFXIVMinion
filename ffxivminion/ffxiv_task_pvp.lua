@@ -144,6 +144,7 @@ function c_startcombat:evaluate()
 				if (enemy.name == gPVPSpeedMatchPartner) then
 					local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
 					GameHacks:TeleportToXYZ(p.x,p.y,p.z)
+						Player:Jump()
 					return true
 				end
 			end
