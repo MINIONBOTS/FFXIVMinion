@@ -2177,6 +2177,7 @@ e_autoequip = inheritsFrom( ml_effect )
 e_autoequip.id = nil
 e_autoequip.slot = nil
 c_autoequip.timer = 0
+c_autoequip.lastRun = 0
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
 		IsShopWindowOpen() or IsPositionLocked() or IsLoading() or 
@@ -2185,6 +2186,13 @@ function c_autoequip:evaluate()
 	then
 		return false
 	end
+	
+	if (gBotMode ~= GetString("questMode")) then
+		if (TimeSince(c_autoequip.lastRun) < 10000) then
+			return false
+		end
+	end	
+	c_autoequip.lastRun = Now()
 	
 	if (ValidTable(ffxiv_task_quest.lockedSlots)) then
 		for slot,questid in pairs(ffxiv_task_quest.lockedSlots) do

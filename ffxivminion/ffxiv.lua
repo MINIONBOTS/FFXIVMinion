@@ -481,7 +481,7 @@ function ffxivminion.HandleInit()
     GUI_NewNumeric(winName,GetString("sprintDist"),"gSprintDist",group )
 	GUI_NewComboBox(winName,GetString("companion"), "gChoco",group,"")
 	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
-	gChoco_listitems = GetString("none")..","..GetString("grindMode")..","..GetString("assistMode")..","..GetString("any")
+	gChoco_listitems = GetString("none")..","..GetString("grindMode")..","..GetString("assistMode")..","..GetString("questMode")..","..GetString("any")
 	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
 	gChocoStance_listitems = GetString("stFree")..","..GetString("stDefender")..","..GetString("stAttacker")..","..GetString("stHealer")..","..GetString("stFollow")
 	GUI_NewComboBox(winName,GetString("food"),"gFood", group, "None")
@@ -1445,7 +1445,7 @@ end
 
 function ffxivminion.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" and string.find(Button,"Field_") ~= nil ) then
-		if (Button == "Field_"..GetString("whitelistTarget")) then
+		if (Button == "Field_Whitelist Target") then
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then
 			BlacklistTarget()
@@ -1457,6 +1457,7 @@ end
 
 -- Dont know where else to put this
 function ffxivminion.DrawMarker(marker)
+
 	local markertype = marker:GetType()
 	local pos = marker:GetPosition()
 	
@@ -1515,7 +1516,7 @@ function ffxivminion.LoadModes()
 	
 	local botModes = ffxivminion.Strings.BotModes()
 	gBotMode_listitems = botModes
-	gBotMode = Settings.FFXIVMINION.gBotMode
+	gBotMode = Retranslate(Settings.FFXIVMINION.gBotMode)
 	local modeFound = false
 	for i, entry in pairs(ffxivminion.modes) do
 		if (i == gBotMode) then

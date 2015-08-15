@@ -4000,7 +4000,7 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 	},    	
-	["kn"] =
+	["kr"] =
     {
         startStop                       = "StartStop",
         doPulse                         = "Pulse(Debug)",
@@ -4699,7 +4699,9 @@ function SetLanguage(event, arg)
 		elseif ( arg == "3" ) then gCurrentLanguage = "de" 
 		elseif ( arg == "4" ) then gCurrentLanguage = "fr"
         elseif ( arg == "5" ) then gCurrentLanguage = "ru"
-		elseif ( arg == "6" ) then gCurrentLanguage = "kn"
+		elseif ( arg == "6" ) then gCurrentLanguage = "kr"
+		else 
+			gCurrentLanguage = "us"
 		end
 	end	
 end
@@ -4711,6 +4713,41 @@ function GetString(stringName)
 	else
 		return strings[gCurrentLanguage][stringName]
 	end
+end
+
+function GetUSString(stringName)
+	if strings["us"][stringName] == nil then
+		return "%" .. tostring(stringName) .. "%"
+	else
+		return strings["us"][stringName]
+	end
+end
+
+function GetStringKey(translatedString)
+	local strings = strings
+	for language,data in pairs(strings) do
+		for skey,s in pairs(data) do
+			if (s == translatedString) then
+				return tostring(skey)
+			end
+		end
+	end
+	
+	return ""
+end
+
+function Retranslate(translatedString)
+	local stringTable = strings
+	for language,data in pairs(stringTable) do
+		for skey,s in pairs(data) do
+			if (s == translatedString) then
+				return GetString(skey)
+			end
+		end
+	end
+	
+	d("Could not find a translation for ["..translatedString.."].")
+	return translatedString
 end
 
 function GetStringList(stringList,delimiter)
