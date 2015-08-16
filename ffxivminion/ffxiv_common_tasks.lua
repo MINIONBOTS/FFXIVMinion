@@ -1422,20 +1422,26 @@ function ffxiv_task_grindCombat.Create()
 end
 
 function ffxiv_task_grindCombat:Init()
-    local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
+    local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 50 )
 	self:add( ke_avoidance, self.overwatch_elements)
 	
-	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
+	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 45)
 	self:add(ke_autoPotion, self.overwatch_elements)
 	
-	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 15 )
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 40 )
 	self:add( ke_rest, self.process_elements)
 	
-	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 8 )
+	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 35 )
 	self:add( ke_companion, self.process_elements)
 	
-	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 6 )
+	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 30 )
 	self:add( ke_stance, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+    self:add( ke_mount, self.process_elements)
+    
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+    self:add( ke_sprint, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
@@ -1448,6 +1454,8 @@ function ffxiv_task_grindCombat:Process()
 		if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
 			Player:SetTarget(target.id)
 		end
+		
+		self.pos = target.pos
 		
 		--Check to see if we would need to sync to attack this target, and do it if we are allowed to.
 		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
