@@ -280,6 +280,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 		if (distance < (self.range + self.gatherRange)) then
 			ml_debug("[MOVETOPOS]: Completing due to range reached.")
 			return true
+		else
+			-- For extremely small distances, allow to execute early if it's reasonably close.
+			if (not Player:IsMoving() and self.range < 1 and distance < 1) then
+				return true
+			end
 		end
     end    
     return false
