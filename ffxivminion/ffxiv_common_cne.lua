@@ -2192,7 +2192,6 @@ function c_autoequip:evaluate()
 			return false
 		end
 	end	
-	c_autoequip.lastRun = Now()
 	
 	if (ValidTable(ffxiv_task_quest.lockedSlots)) then
 		for slot,questid in pairs(ffxiv_task_quest.lockedSlots) do
@@ -2274,6 +2273,7 @@ function c_autoequip:evaluate()
 		end
 	end
 	
+	c_autoequip.lastRun = Now()
 	return false
 end
 function e_autoequip:execute()

@@ -63,7 +63,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						Player:Stop()
 						-- Check for inanimate objects, use those as first guess.
 						if (ml_mesh_mgr.OMCTarget == 0) then
-							local interacts = EntityList("nearest,type=7,chartype=0,maxdistance=5")
+							local interacts = EntityList("nearest,targetable,type=7,chartype=0,maxdistance=5")
 							d("Scanning for type 7 objects to interact with.")
 							if (interacts) then
 								local i, interact = next(interacts)
@@ -76,7 +76,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						
 						-- Check for NPC's, use those as a backup guess.
 						if (ml_mesh_mgr.OMCTarget == 0) then
-							local interacts = EntityList("nearest,type=3,chartype=0,maxdistance=5")
+							local interacts = EntityList("nearest,targetable,type=3,chartype=0,maxdistance=5")
 							d("Scanning for type 3 NPCs to interact with.")
 							if (interacts) then
 								local i, interact = next(interacts)
