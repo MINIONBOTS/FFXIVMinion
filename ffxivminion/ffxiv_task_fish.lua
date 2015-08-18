@@ -81,7 +81,7 @@ function c_mooch:evaluate()
 	local useMooch = false
 	local marker = ml_task_hub:CurrentTask().currentMarker
 	if (ValidTable(marker)) then
-		useMooch = (marker:GetFieldValue(GetString("useMooch")) == "1")
+		useMooch = (marker:GetFieldValue(GetUSString("useMooch")) == "1")
 	end
 	
     local castTimer = ml_task_hub:CurrentTask().castTimer
@@ -90,7 +90,7 @@ function c_mooch:evaluate()
         if (fs == 0 or fs == 4) then
 			local mooch = ActionList:Get(297,1)
 			if (useMooch and mooch and mooch.isready) then
-				local moochables = marker:GetFieldValue(GetString("Moochable Fish")) or ""
+				local moochables = marker:GetFieldValue(GetUSString("moochableFish")) or ""
 				
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 				if (not lastCatch or moochables == "") then
@@ -132,10 +132,10 @@ function c_release:evaluate()
 			if (release and release.isready) then
 				local marker = ml_global_information.currentMarker
 				if (ValidTable(marker)) then
-					local whitelist = marker:GetFieldValue(GetString("whitelistFish"))
-					local whitelistHQ = marker:GetFieldValue(GetString("whitelistFishHQ"))
-					local blacklist = marker:GetFieldValue(GetString("blacklistFish"))
-					local blacklistHQ = marker:GetFieldValue(GetString("blacklistFishHQ"))
+					local whitelist = marker:GetFieldValue(GetUSString("whitelistFish"))
+					local whitelistHQ = marker:GetFieldValue(GetUSString("whitelistFishHQ"))
+					local blacklist = marker:GetFieldValue(GetUSString("blacklistFish"))
+					local blacklistHQ = marker:GetFieldValue(GetUSString("blacklistFishHQ"))
 					
 					local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 					if (lastCatch) then
@@ -343,8 +343,8 @@ function c_patience:evaluate()
     if (Now() > castTimer) then
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(marker)) then
-			local usePatience = (marker:GetFieldValue(GetString("usePatience")) == "1")
-			local usePatience2 = (marker:GetFieldValue(GetString("usePatience2")) == "1")
+			local usePatience = (marker:GetFieldValue(GetUSString("usePatience")) == "1")
+			local usePatience2 = (marker:GetFieldValue(GetUSString("usePatience2")) == "1")
 			if (usePatience) then
 				local patience = ActionList:Get(4102,1)
 				if (patience and patience.isready) then	
@@ -462,7 +462,7 @@ function c_setbait:evaluate()
 				return true
 			else
 				local baitFound = false
-				local markerBait = marker:GetFieldValue(GetString("baitName"))
+				local markerBait = marker:GetFieldValue(GetUSString("baitName"))
 				if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
 					for bait in StringSplit(markerBait,",") do
 						if (tonumber(bait) ~= nil) then
@@ -498,7 +498,7 @@ end
 function e_setbait:execute()
 	local marker = ml_task_hub:CurrentTask().currentMarker
 	if (marker ~= nil and marker ~= false) then
-		local markerBait = marker:GetFieldValue(GetString("baitName"))
+		local markerBait = marker:GetFieldValue(GetUSString("baitName"))
 		if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
 			for bait in StringSplit(markerBait,",") do
 				if (tonumber(bait) ~= nil) then
@@ -764,21 +764,22 @@ function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("fishMode"))
 end
+
 function ffxiv_task_fish.SetupMarkers()
     -- add marker templates for fishing
     local fishingMarker = ml_marker:Create("fishingTemplate")
 	fishingMarker:SetType(GetString("fishingMarker"))
-	fishingMarker:AddField("string", GetString("baitName"), "")	
-	fishingMarker:AddField("checkbox", GetString("useMooch"), "1")
-	fishingMarker:AddField("checkbox", GetString("usePatience"), "0")
-	fishingMarker:AddField("checkbox", GetString("usePatience2"), "0")
-	fishingMarker:AddField("string", GetString("moochableFish"), "")
-	fishingMarker:AddField("string", GetString("whitelistFish"), "")
-	fishingMarker:AddField("string", GetString("whitelistFishHQ"), "")
-	fishingMarker:AddField("string", GetString("blacklistFish"), "")
-	fishingMarker:AddField("string", GetString("blacklistFishHQ"), "")
-	fishingMarker:AddField("checkbox", GetString("useStealth"), "1")
-	fishingMarker:AddField("checkbox", GetString("dangerousArea"), "0")
+	fishingMarker:AddField("string", GetUSString("baitName"), GetString("baitName"), "")	
+	fishingMarker:AddField("checkbox", GetUSString("useMooch"), GetString("useMooch"), "1")
+	fishingMarker:AddField("checkbox", GetUSString("usePatience"), GetString("usePatience"), "0")
+	fishingMarker:AddField("checkbox", GetUSString("usePatience2"), GetString("usePatience2"), "0")
+	fishingMarker:AddField("string", GetUSString("moochableFish"), GetString("moochableFish"), "")
+	fishingMarker:AddField("string", GetUSString("whitelistFish"), GetString("whitelistFish"), "")
+	fishingMarker:AddField("string", GetUSString("whitelistFishHQ"), GetString("whitelistFishHQ"), "")
+	fishingMarker:AddField("string", GetUSString("blacklistFish"), GetString("blacklistFish"), "")
+	fishingMarker:AddField("string", GetUSString("blacklistFishHQ"), GetString("blacklistFishHQ"), "")
+	fishingMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
+	fishingMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
 	
     fishingMarker:SetTime(300)
     fishingMarker:SetMinLevel(1)

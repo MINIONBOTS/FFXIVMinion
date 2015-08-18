@@ -122,8 +122,8 @@ function e_nextgrindmarker:execute()
 	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
     ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-    ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
-    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
+    ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("NOTcontentIDEquals"))
+    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 end
 
@@ -506,12 +506,13 @@ function ffxiv_task_grind.SetupMarkers()
     -- add marker templates for grinding
     local grindMarker = ml_marker:Create("grindTemplate")
 	grindMarker:SetType(GetString("grindMarker"))
-	grindMarker:AddField("string", GetString("contentIDEquals"), "")
-	grindMarker:AddField("button", GetString("whitelistTarget"), "")
-	grindMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
+	grindMarker:AddField("string", GetUSString("contentIDEquals"), GetString("contentIDEquals"), "")
+	grindMarker:AddField("button", GetUSString("whitelistTarget"), GetString("whitelistTarget"), "")
+	grindMarker:AddField("string", GetUSString("NOTcontentIDEquals"), GetString("NOTcontentIDEquals"), "")
     grindMarker:SetTime(300)
     grindMarker:SetMinLevel(1)
     grindMarker:SetMaxLevel(60)
+	
     ml_marker_mgr.AddMarkerTemplate(grindMarker)
     
     -- refresh the manager with the new templates

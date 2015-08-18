@@ -540,9 +540,9 @@ function e_nextgathermarker:execute()
 	ml_global_information.MarkerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
     ml_global_information.MarkerMinLevel = ml_task_hub:ThisTask().currentMarker:GetMinLevel()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
-	ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("NOTcontentIDEquals"))
-    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("contentIDEquals"))
-	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+	ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("NOTcontentIDEquals"))
+    ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
+	gStatusMarkerName = ml_global_information.currentMarker:GetName()
 	ml_task_hub:CurrentTask().gatherid = 0
 end
 
@@ -800,7 +800,7 @@ function e_gather:execute()
 				local itemsVisible = ml_task_hub:CurrentTask().itemsUncovered or not IsUnspoiled(thisNode.contentid)
 				if (itemsVisible and TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000) then
 					-- first try to get treasure maps
-					local gatherMaps = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherMaps"))
+					local gatherMaps = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetUSString("gatherMaps"))
 					if (gatherMaps ~= "None") then
 						if (not ml_task_hub:CurrentTask().gatheredMap) then
 							local hasMap = false
@@ -855,7 +855,7 @@ function e_gather:execute()
 					end
 					
 					-- second try to get gardening supplies
-					local gatherGardening = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherGardening"))
+					local gatherGardening = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetUSString("gatherGardening"))
 					if (not ml_task_hub:CurrentTask().gatheredGardening and gatherGardening == "1") then
 						for i, item in pairs(list) do
 							if 	(IsGardening(item.id)) then
@@ -922,7 +922,7 @@ function e_gather:execute()
 					end
 					
 					-- third pass to get chocobo items
-					local gatherChocoFood = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("gatherChocoFood"))
+					local gatherChocoFood = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetUSString("gatherChocoFood"))
 					if (not ml_task_hub:CurrentTask().gatheredChocoFood and gatherChocoFood == "1") then
 						for i, item in pairs(list) do
 							if (IsChocoboFoodSpecial(item.id)) then
@@ -1024,15 +1024,36 @@ function e_gather:execute()
 				end
 			
 				-- do 2 loops to allow prioritization of first item
-				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("selectItem1"))
-				local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetString("selectItem2"))
+				local item1 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetUSString("selectItem1"))
+				local item2 = ml_task_hub:CurrentTask().currentMarker:GetFieldValue(GetUSString("selectItem2"))
 				
-				if (item1 ~= "") then
+				local itemid1 = 0
+				local itemid2 = 0
+				
+				if (ValidString(item1)) then
+					itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
+					if (itemid1 == 0) then
+						d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
+					end
+				elseif (tonumber(item1) ~= nil) then
+					itemid1 = tonumber(item1)
+				end
+				
+				if (item2 and item2 ~= "") then
+					itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
+					if (itemid2 == 0) then
+						d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
+					end
+				elseif (tonumber(item2) ~= nil) then
+					itemid1 = tonumber(item2)
+				end
+				
+				if (itemid1 ~= 0) then
 					for i, item in pairs(list) do
 						local n = tonumber(item1)
 						if (n ~= nil) then
 							if (n > 8) then
-								if (item.id == id) then
+								if (item.id == itemid1) then
 									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
 										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
 										ml_error("Use the GatherMaps option for this marker to gather map items.")
@@ -1087,47 +1108,16 @@ function e_gather:execute()
 									end
 								end
 							end
-						else						
-							if (item.name == item1) then
-								if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-									ml_error("Use the GatherMaps option for this marker to gather map items.")
-									ml_error("Gardening and Map items set to slots will be ignored.")
-								end
-								if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
-									if (SkillMgr.Gather(item)) then
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2000
-										return
-									end
-							
-									local result = Player:Gather(item.index)
-									if (result == 65536) then
-										--d("Gathering item priority 1.")
-										ffxiv_task_gather.timer = Now() + 300
-										ffxiv_task_gather.awaitingSuccess = true
-										--return
-									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-										ml_task_hub:CurrentTask().gatherTimer = Now()
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 750
-										ffxiv_task_gather.awaitingSuccess = false
-										--return
-									end
-									return 
-								end
-							end
 						end
 					end
 				end
 				
-				if (item2 ~= "") then
+				if (itemid2 ~= 0) then
 					for i, item in pairs(list) do
 						local n = tonumber(item2)
 						if (n ~= nil) then
 							if (n > 8) then
-								if (item.id == id) then
+								if (item.id == itemid2) then
 									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
 										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
 										ml_error("Use the GatherMaps option for this marker to gather map items.")
@@ -1179,37 +1169,6 @@ function e_gather:execute()
 										end
 										return
 									end
-								end
-							end
-						else
-							if (item.name == item2) then
-								if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-									ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-									ml_error("Use the GatherMaps option for this marker to gather map items.")
-									ml_error("Gardening and Map items set to slots will be ignored.")
-								end
-								if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
-									if (SkillMgr.Gather(item)) then
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2000
-										return
-									end
-							
-									local result = Player:Gather(item.index)
-									if (result == 65536) then
-										--d("Gathering item priority 2.")
-										ffxiv_task_gather.timer = Now() + 300
-										ffxiv_task_gather.awaitingSuccess = true
-										--return
-									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-										ml_task_hub:CurrentTask().gatherTimer = Now()
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 750
-										ffxiv_task_gather.awaitingSuccess = false
-										--return
-									end
-									return
 								end
 							end
 						end
@@ -1373,14 +1332,14 @@ function c_nodeprebuff:evaluate()
 			return true
 		end
 		if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-			local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("skillProfile"))
+			local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("skillProfile"))
 			if (profile and profile ~= "None" and profile ~= "" and gSMprofile ~= profile) then
 				return true
 			end
 			
 			local markerType = ml_task_hub:ThisTask().currentMarker:GetType()
 			if (markerType == GetString("unspoiledMarker")) then
-				local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("minimumGP"))) or 0
+				local requiredGP = tonumber(ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("minimumGP"))) or 0
 				if (Player.gp.current < requiredGP) then
 					if (((requiredGP - Player.gp.current) > 50)) then
 						if (gGatherUseCordials == "1" and ItemIsReady(6141)) then
@@ -1412,7 +1371,7 @@ function e_nodeprebuff:execute()
 		Eat()
 	end
 	if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
-		local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetString("skillProfile"))
+		local profile = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("skillProfile"))
 		if (profile and profile ~= "None" and profile ~= "" and gSMprofile ~= profile) then
 			SkillMgr.UseProfile(profile)
 		end
@@ -1876,22 +1835,22 @@ function ffxiv_task_gather.SetupMarkers()
     local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(GetString("botanyMarker"))
 	botanyMarker:ClearFields()
-	botanyMarker:AddField("int", GetString("minContentLevel"), 0)
-	botanyMarker:AddField("int", GetString("maxContentLevel"), 0)
-	botanyMarker:AddField("int", GetString("maxRadius"), 0)
-	botanyMarker:AddField("string", GetString("selectItem1"), "")
-	botanyMarker:AddField("string", GetString("selectItem2"), "")
-	botanyMarker:AddField("string", GetString("contentIDEquals"), "")
-	botanyMarker:AddField("button", GetString("whitelistTarget"), "")
-	botanyMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
-	botanyMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
-	botanyMarker:AddField("checkbox", GetString("gatherGardening"), "1")
-	botanyMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
-	botanyMarker:AddField("checkbox", "Rare Items", "1")
-	botanyMarker:AddField("checkbox", "Special Rare Items", "1")
-	botanyMarker:AddField("checkbox", GetString("useStealth"), "1")
-	botanyMarker:AddField("checkbox", GetString("dangerousArea"), "0")
-	botanyMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
+	botanyMarker:AddField("int", GetUSString("minContentLevel"), GetString("minContentLevel"), 0)
+	botanyMarker:AddField("int", GetUSString("maxContentLevel"), GetString("maxContentLevel"), 0)
+	botanyMarker:AddField("int", GetUSString("maxRadius"), GetString("maxRadius"), 0)
+	botanyMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
+	botanyMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	botanyMarker:AddField("string", GetUSString("contentIDEquals"), GetString("contentIDEquals"), "")
+	botanyMarker:AddField("button", GetUSString("whitelistTarget"), GetString("whitelistTarget"), "")
+	botanyMarker:AddField("string", GetUSString("NOTcontentIDEquals"), GetString("NOTcontentIDEquals"), "")
+	botanyMarker:AddField("combobox", GetUSString("gatherMaps"), GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	botanyMarker:AddField("checkbox", GetUSString("gatherGardening"), GetString("gatherGardening"), "1")
+	botanyMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
+	botanyMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
+	botanyMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	botanyMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
+	botanyMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
+	botanyMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     botanyMarker:SetTime(300)
     botanyMarker:SetMinLevel(1)
     botanyMarker:SetMaxLevel(60)
@@ -1900,22 +1859,22 @@ function ffxiv_task_gather.SetupMarkers()
 	local miningMarker = ml_marker:Create("miningTemplate")
 	miningMarker:SetType(GetString("miningMarker"))
 	miningMarker:ClearFields()
-	miningMarker:AddField("int", GetString("minContentLevel"), 0)
-	miningMarker:AddField("int", GetString("maxContentLevel"), 0)
-	miningMarker:AddField("int", GetString("maxRadius"), 300)
-	miningMarker:AddField("string", GetString("selectItem1"), "")
-	miningMarker:AddField("string", GetString("selectItem2"), "")
-	miningMarker:AddField("string", GetString("contentIDEquals"), "")
-	miningMarker:AddField("button", GetString("whitelistTarget"), "")
-	miningMarker:AddField("string", GetString("NOTcontentIDEquals"), "")
-	miningMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
-	miningMarker:AddField("checkbox", GetString("gatherGardening"), "1")
-	miningMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
-	miningMarker:AddField("checkbox", "Rare Items", "1")
-	miningMarker:AddField("checkbox", "Special Rare Items", "1")
-	miningMarker:AddField("checkbox", GetString("useStealth"), "1")
-	miningMarker:AddField("checkbox", GetString("dangerousArea"), "0")
-	miningMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
+	miningMarker:AddField("int", GetUSString("minContentLevel"), GetString("minContentLevel"), 0)
+	miningMarker:AddField("int", GetUSString("maxContentLevel"), GetString("maxContentLevel"), 0)
+	miningMarker:AddField("int", GetUSString("maxRadius"), GetString("maxRadius"), 0)
+	miningMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
+	miningMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	miningMarker:AddField("string", GetUSString("contentIDEquals"), GetString("contentIDEquals"), "")
+	miningMarker:AddField("button", GetUSString("whitelistTarget"), GetString("whitelistTarget"), "")
+	miningMarker:AddField("string", GetUSString("NOTcontentIDEquals"), GetString("NOTcontentIDEquals"), "")
+	miningMarker:AddField("combobox", GetUSString("gatherMaps"), GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	miningMarker:AddField("checkbox", GetUSString("gatherGardening"), GetString("gatherGardening"), "1")
+	miningMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
+	miningMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
+	miningMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	miningMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
+	miningMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
+	miningMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     miningMarker:SetTime(300)
     miningMarker:SetMinLevel(1)
     miningMarker:SetMaxLevel(60)
@@ -1924,20 +1883,20 @@ function ffxiv_task_gather.SetupMarkers()
 	local unspoiledMarker = ml_marker:Create("unspoiledTemplate")
 	unspoiledMarker:SetType(GetString("unspoiledMarker"))
 	unspoiledMarker:ClearFields()
-	unspoiledMarker:AddField("int", GetString("minContentLevel"), 0)
-	unspoiledMarker:AddField("int", GetString("maxContentLevel"), 0)
-	unspoiledMarker:AddField("int", GetString("maxRadius"), 300)
-	unspoiledMarker:AddField("string", GetString("minimumGP"), "0")
-	unspoiledMarker:AddField("string", GetString("selectItem1"), "")
-	unspoiledMarker:AddField("string", GetString("selectItem2"), "")
-	unspoiledMarker:AddField("combobox", GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
-	unspoiledMarker:AddField("checkbox", GetString("gatherGardening"), "1")
-	unspoiledMarker:AddField("checkbox", GetString("gatherChocoFood"), "1")
-	unspoiledMarker:AddField("checkbox", "Rare Items", "1")
-	unspoiledMarker:AddField("checkbox", "Special Rare Items", "1")
-	unspoiledMarker:AddField("checkbox", GetString("useStealth"), "1")
-	unspoiledMarker:AddField("checkbox", GetString("dangerousArea"), "0")
-	unspoiledMarker:AddField("combobox", GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
+	unspoiledMarker:AddField("int", GetUSString("minContentLevel"), GetString("minContentLevel"), 0)
+	unspoiledMarker:AddField("int", GetUSString("maxContentLevel"), GetString("maxContentLevel"), 0)
+	unspoiledMarker:AddField("int", GetUSString("maxRadius"), GetString("maxRadius"), 300)
+	unspoiledMarker:AddField("string", GetUSString("minimumGP"), GetString("minimumGP"), "0")
+	unspoiledMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
+	unspoiledMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	unspoiledMarker:AddField("combobox", GetUSString("gatherMaps"), GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
+	unspoiledMarker:AddField("checkbox", GetUSString("gatherGardening"), GetString("gatherGardening"), "1")
+	unspoiledMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
+	unspoiledMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
+	unspoiledMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	unspoiledMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
+	unspoiledMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
+	unspoiledMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
     unspoiledMarker:SetTime(1800)
     unspoiledMarker:SetMinLevel(50)
     unspoiledMarker:SetMaxLevel(60)

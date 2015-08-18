@@ -1091,32 +1091,34 @@ end
 ff["RoundUp"] = RoundUp
 function GetNearestGatherable(marker)
     local el = nil
-    local whitelist = nil
-    local blacklist = nil
+    local whitelist = ""
+    local blacklist = ""
 	local minlevel = 1
 	local maxlevel = 60
 	local radius = 0
 	local markerPos = nil
 	
-	if (ValidTable(marker) and gMarkerMgrMode ~= GetString("singleMarker")) then	
-		local mincontentlevel = marker:GetFieldValue(GetString("minContentLevel"))
-		if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
-			minlevel = tonumber(mincontentlevel)
+	if (ValidTable(marker)) then
+		if (gMarkerMgrMode ~= GetString("singleMarker")) then	
+			local mincontentlevel = marker:GetFieldValue(GetUSString("minContentLevel"))
+			if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
+				minlevel = tonumber(mincontentlevel)
+			end
+			
+			local maxcontentlevel = marker:GetFieldValue(GetUSString("maxContentLevel"))
+			if (tonumber(maxcontentlevel) and tonumber(maxcontentlevel) > 0) then
+				maxlevel = tonumber(maxcontentlevel)
+			end
 		end
 		
-		local maxcontentlevel = marker:GetFieldValue(GetString("maxContentLevel"))
-		if (tonumber(maxcontentlevel) and tonumber(maxcontentlevel) > 0) then
-			maxlevel = tonumber(maxcontentlevel)
-		end
-		
-		local maxradius = marker:GetFieldValue(GetString("maxRadius"))
+		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
 		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 			radius = tonumber(maxradius)
 		end
 		
 		markerPos = marker:GetPosition()
-		whitelist = marker:GetFieldValue(GetString("contentIDEquals"))
-		blacklist = marker:GetFieldValue(GetString("NOTcontentIDEquals"))
+		whitelist = tostring(marker:GetFieldValue(GetUSString("contentIDEquals")))
+		blacklist = tostring(marker:GetFieldValue(GetUSString("NOTcontentIDEquals")))
 	end
     
 	if (radius == 0 or radius > 200 or not ValidTable(markerPos)) then
@@ -2642,19 +2644,20 @@ ff["NodeHasItem"] = NodeHasItem
 function WhitelistTarget()
 	local target = Player:GetTarget()
 	if (target) then
-		local whitelistGlobal = tostring(_G["Field_"..GetString("contentIDEquals")])
+		local key = GetUSString("contentIDEquals")
+		
+		local whitelistGlobal = tostring(_G["Field_"..key])
 		if (whitelistGlobal ~= "") then
 			whitelistGlobal = whitelistGlobal..";"..tostring(target.contentid)
 		else
 			whitelistGlobal = tostring(target.contentid)
 		end
-		_G["Field_"..GetString("contentIDEquals")] = whitelistGlobal
+		_G["Field_"..key] = whitelistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		local name = GetString("contentIDEquals")
 		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
-			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..GetString("contentIDEquals")])
-			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
+			ml_marker_mgr.WriteMarkerFile()
 		end
 	end
 end
@@ -2662,19 +2665,20 @@ ff["WhitelistTarget"] = WhitelistTarget
 function BlacklistTarget()
 	local target = Player:GetTarget()
 	if (target) then
-		local blacklistGlobal = tostring(_G["Field_"..GetString("NOTcontentIDEquals")])
+		local key = GetUSString("NOTcontentIDEquals")
+		
+		local blacklistGlobal = tostring(_G["Field_"..key])
 		if (blacklistGlobal ~= "") then
 			blacklistGlobal = blacklistGlobal..";"..tostring(target.contentid)
 		else
 			blacklistGlobal = tostring(target.contentid)
 		end
-		_G["Field_"..GetString("NOTcontentIDEquals")] = blacklistGlobal
+		_G["Field_"..key] = blacklistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		local name = GetString("NOTcontentIDEquals")
 		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
-			ml_marker_mgr.currentEditMarker:SetFieldValue(name, _G["Field_"..GetString("NOTcontentIDEquals")])
-			ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
+			ml_marker_mgr.WriteMarkerFile()
 		end
 	end
 end
@@ -4131,6 +4135,12 @@ function IsGridania(mapid)
 	return (mapid == 130 or mapid == 131)
 end
 ff["IsGridania"] = IsGridania
+function GameRegion()
+	if (GetGameRegion and GetGameRegion()) then
+		return GetGameRegion()
+	end
+	return 1
+end
 function NewCheckbox(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))

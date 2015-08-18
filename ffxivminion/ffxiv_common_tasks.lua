@@ -562,6 +562,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.interactRange = nil
 	newinst.dismountDistance = 15
 	newinst.killParent = false
+	newinst.interactDelay = 500
 	
 	GameHacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
@@ -602,13 +603,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return true
 	end
 	
+	local ppos = Player.pos
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
 			return true
 		end
 	else
-		local ppos = Player.pos
 		local epos = self.pos
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 10) then
@@ -685,14 +686,12 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				--d("Found the interactable.")
 				if (interactable.type == 2 or interactable.type == 3) then
 					local interact = ActionList:Get(2,1,interactable.id)
-					if ((interact and interact.isready2) or ((interactable.type == 5 or interactable.type == 7) and interactable.distance < 7)) then
-						--d("Met conditions in block1.")
-						if (not EntityIsFront(interactable)) then
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-						end
+					if (interact and interact.isready2) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
 						self.lastDistance = interactable.pathdistance
-						self.lastinteract = Now() + 500
+						self.lastinteract = Now() + self.interactDelay
+						self.interactDelay = self.interactDelay + 500
 						return false
 					end
 				end
@@ -700,17 +699,17 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 				local pathRange = self.pathRange or 10
 				local forceLOS = self.forceLOS
-				local range = self.interactRange or (radius * 4)
+				local range = self.interactRange or (radius * 3)
 				if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and interactable.distance <= range) then
-						--d("Met conditions in block2.")
-						if (not EntityIsFront(interactable)) then
+						local ydiff = math.abs(ppos.y - interactable.pos.y)
+						if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							Player:Interact(interactable.id)
+							self.lastDistance = interactable.pathdistance
+							self.lastinteract = Now() + self.interactDelay
+							self.interactDelay = self.interactDelay + 500
 						end
-						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-						Player:Interact(interactable.id)
-						self.lastDistance = interactable.pathdistance
-						self.lastinteract = Now() + 500
 					end
 				end
 			end

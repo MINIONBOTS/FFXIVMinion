@@ -719,6 +719,11 @@ function c_teleporttomap:evaluate()
 		return false
 	end
 	
+	local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+	if (noTeleportMaps[Player.localmapid]) then
+		return false
+	end
+	
 	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
@@ -1864,7 +1869,7 @@ function c_returntomarker:evaluate()
 			end
 			if (gMarkerMgrMode ~= GetString("markerTeam")) then
 				local radius = 150
-				local maxradius = ml_global_information.currentMarker:GetFieldValue(GetString("maxRadius"))
+				local maxradius = ml_global_information.currentMarker:GetFieldValue(GetUSString("maxRadius"))
 				if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 					radius = tonumber(maxradius)
 				end
@@ -1954,7 +1959,7 @@ function c_stealth:evaluate()
 		return false
 	end
 	
-	local useStealth = (marker:GetFieldValue(GetString("useStealth")) == "1")
+	local useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
 	if (not useStealth or Now() < e_stealth.timer) then
 		return false
 	end
@@ -1982,7 +1987,7 @@ function c_stealth:evaluate()
     end
 	
 	if (action) then
-		local dangerousArea = (marker:GetFieldValue(GetString("dangerousArea")) == "1")
+		local dangerousArea = (marker:GetFieldValue(GetUSString("dangerousArea")) == "1")
 		if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
 			local dest = ml_task_hub:CurrentTask().pos
 			local ppos = shallowcopy(Player.pos)
