@@ -277,7 +277,7 @@ end
 
 function ffxiv_task_assist.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" ) then
-		if (string.find(Button,"ffxiv_task_assist.")) then
+		if (string.find(Button,"ffxiv_task_assist%.")) then
 			ExecuteFunction(Button)
 		end
 	end

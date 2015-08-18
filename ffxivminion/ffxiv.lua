@@ -91,6 +91,30 @@ function ml_global_information.OnUpdate( event, tickcount )
 
     ml_global_information.Now = tickcount
 	
+	local gamestate;
+	if (GetGameState and GetGameState()) then
+		gamestate = GetGameState()
+	else
+		gamestate = 1
+	end
+	
+	-- Switch according to the gamestate
+	if ( gamestate == 1 ) then
+		ml_global_information.InGameOnUpdate( event, tickcount )
+	elseif (gamestate == 2 ) then
+		ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
+	elseif (gamestate == 3 ) then
+		ml_global_information.InTitleScreenOnUpdate( event, tickcount )
+	elseif (gamestate == 0 ) then
+		ml_global_information.InOpening( event, tickcount )
+	end
+end
+
+function ml_global_information.InOpening( event, tickcount )
+
+end
+
+function ml_global_information.InGameOnUpdate( event, tickcount )
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		gBotRunning = "0"
@@ -291,6 +315,14 @@ function ml_global_information.OnUpdate( event, tickcount )
             ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
         end
     end
+end
+
+function ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
+
+end
+
+function ml_global_information.InTitleScreenOnUpdate( event, tickcount )
+	
 end
 
 -- Module Event Handler
@@ -1200,7 +1232,6 @@ function ffxivminion.CheckClass()
 		return
 	end
     
-    --TODO check which class we are currently using and modify globals appropriately
     if (ml_global_information.CurrentClassID ~= Player.job) then
         ml_global_information.CurrentClass = playerClass
         ml_global_information.CurrentClassID = Player.job
@@ -1449,7 +1480,7 @@ function ffxivminion.HandleButtons( Event, Button )
 			WhitelistTarget()
 		elseif (Button == "Field_Blacklist Target") then
 			BlacklistTarget()
-		elseif (string.find(Button,"ffxivminion.")) then
+		elseif (string.find(Button,"ffxivminion%.")) then
 			ExecuteFunction(Button)
 		end
 	end

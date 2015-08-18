@@ -156,7 +156,7 @@ end
 
 function wt_radar.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" ) then
-		if (string.find(Button,"wt_radar.")) then
+		if (string.find(Button,"wt_radar%.")) then
 			ExecuteFunction(Button)
 		end
 	end
