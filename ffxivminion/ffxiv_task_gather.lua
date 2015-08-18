@@ -400,7 +400,7 @@ function c_nextunspoiledmarker:evaluate()
         return false
     end
 	
-    local marker = ml_marker_mgr.GetMarker(ffxiv_task_gather.location.marker)
+    local marker = ml_marker_mgr.GetMarkerByName(ffxiv_task_gather.location.marker)
 	if (ValidTable(marker) and ml_task_hub:ThisTask().currentMarker ~= marker) then
 		e_nextunspoiledmarker.marker = marker
 		return true
@@ -1029,6 +1029,8 @@ function e_gather:execute()
 				
 				local itemid1 = 0
 				local itemid2 = 0
+				local itemslot1 = 0
+				local itemslot2 = 0
 				
 				if (ValidString(item1)) then
 					itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
@@ -1036,7 +1038,7 @@ function e_gather:execute()
 						d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
 					end
 				elseif (tonumber(item1) ~= nil) then
-					itemid1 = tonumber(item1)
+					itemslot1 = tonumber(item1)
 				end
 				
 				if (item2 and item2 ~= "") then
@@ -1045,135 +1047,131 @@ function e_gather:execute()
 						d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
 					end
 				elseif (tonumber(item2) ~= nil) then
-					itemid1 = tonumber(item2)
+					itemslot2 = tonumber(item2)
 				end
 				
-				if (itemid1 ~= 0) then
-					for i, item in pairs(list) do
-						local n = tonumber(item1)
-						if (n ~= nil) then
-							if (n > 8) then
-								if (item.id == itemid1) then
-									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-										ml_error("Use the GatherMaps option for this marker to gather map items.")
-										ml_error("Gardening and Map items set to slots will be ignored.")
-									end
-									if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
-										(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
-									then
-										if (SkillMgr.Gather(item)) then
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 2000
-											return
-										end
-										
-										local result = Player:Gather(item.index)
-										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-										ml_task_hub:CurrentTask().gatherTimer = Now()
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 3000
-										return
-									end
+				for i, item in pairs(list) do
+					if (itemid1 ~= 0) then
+						if (item.id == itemid1) then
+							if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
+								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+								ml_error("Use the GatherMaps option for this marker to gather map items.")
+								ml_error("Gardening and Map items set to slots will be ignored.")
+							end
+							if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
+								(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+							then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
 								end
-							else
-								if (item.index == (n-1) and item.id ~= nil) then
-									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-										ml_error("Use the GatherMaps option for this marker to gather map items.")
-										ml_error("Gardening and Map items set to slots will be ignored.")
-									end
-									if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
-										if (SkillMgr.Gather(item)) then
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 2000
-											return
-										end
-										
-										local result = Player:Gather(n-1)
-										if (result == 65536) then
-											--d("Gathering item priority 1.")
-											ffxiv_task_gather.timer = Now() + 300
-											ffxiv_task_gather.awaitingSuccess = true
-											--return
-										elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-											ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-											ml_task_hub:CurrentTask().gatherTimer = Now()
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 750
-											ffxiv_task_gather.awaitingSuccess = false
-											--return
-										end
-										return
-									end
+								
+								local result = Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 3000
+								return
+							end
+						end
+					end
+						
+					if (itemslot1 ~= 0) then
+						if (item.index == (itemslot1-1) and item.id ~= nil) then
+							if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
+								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+								ml_error("Use the GatherMaps option for this marker to gather map items.")
+								ml_error("Gardening and Map items set to slots will be ignored.")
+							end
+							if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
 								end
+								
+								local result = Player:Gather(itemslot1-1)
+								if (result == 65536) then
+									--d("Gathering item priority 1.")
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+									--return
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = Now()
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+									--return
+								end
+								return
 							end
 						end
 					end
 				end
 				
-				if (itemid2 ~= 0) then
-					for i, item in pairs(list) do
-						local n = tonumber(item2)
-						if (n ~= nil) then
-							if (n > 8) then
-								if (item.id == itemid2) then
-									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-										ml_error("Use the GatherMaps option for this marker to gather map items.")
-										ml_error("Gardening and Map items set to slots will be ignored.")
-									end
-									if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
-										(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
-									then
-										if (SkillMgr.Gather(item)) then
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 2000
-											return
-										end
-								
-										local result = Player:Gather(item.index)
-										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-										ml_task_hub:CurrentTask().gatherTimer = Now()
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 3000
-									end
+				for i, item in pairs(list) do
+					if (itemid2 ~= 0) then
+						if (item.id == itemid2) then
+							if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
+								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+								ml_error("Use the GatherMaps option for this marker to gather map items.")
+								ml_error("Gardening and Map items set to slots will be ignored.")
+							end
+							if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id) and 
+								(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+							then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
 								end
-							else
-								if (item.index == (n-1) and item.id ~= nil) then
-									if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
-										ml_error("Use the GatherGardening option for this marker to gather gardening items.")
-										ml_error("Use the GatherMaps option for this marker to gather map items.")
-										ml_error("Gardening and Map items set to slots will be ignored.")
-									end
-									if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
-										if (SkillMgr.Gather(item)) then
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 2000
-											return
-										end
 								
-										local result = Player:Gather(n-1)
-										if (result == 65536) then
-											--d("Gathering item priority 2.")
-											ffxiv_task_gather.timer = Now() + 300
-											ffxiv_task_gather.awaitingSuccess = true
-											--return
-										elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-											ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-											ml_task_hub:CurrentTask().gatherTimer = Now()
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 750
-											ffxiv_task_gather.awaitingSuccess = false
-											--return
-										end
-										return
-									end
+								local result = Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 3000
+								return
+							end
+						end
+					end
+						
+					if (itemslot2 ~= 0) then
+						if (item.index == (itemslot2-1) and item.id ~= nil) then
+							if (IsGardening(item.id) or IsMap(item.id) or IsChocoboFood(item.id)) then
+								ml_error("Use the GatherGardening option for this marker to gather gardening items.")
+								ml_error("Use the GatherMaps option for this marker to gather map items.")
+								ml_error("Gardening and Map items set to slots will be ignored.")
+							end
+							if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFood(item.id)) then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
 								end
+								
+								local result = Player:Gather(itemslot2-1)
+								if (result == 65536) then
+									--d("Gathering item priority 1.")
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+									--return
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = Now()
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+									--return
+								end
+								return
 							end
 						end
 					end
 				end
+				
 				
 				-- Gather unknown items to unlock them.
 				for i,item in pairs(list) do

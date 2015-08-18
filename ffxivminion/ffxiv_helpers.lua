@@ -3274,16 +3274,25 @@ function GetOffMapMarkerList(strMeshName, strMarkerType)
 	if (FileExists(markerPath)) then
 		local markerList, e = persistence.load(markerPath)
 		if (markerList) then
-			local sublist = markerList[strMarkerType]
-			if (sublist) then
-				local namestring = ""
-				local markerNameList = GetComboBoxList(sublist)
-				if (markerNameList) then
-					namestring = markerNameList["keyList"]
+			local templateKey = ml_marker_mgr.GetTemplateKey(strMarkerType)
+			if (templateKey) then
+				local sublist = markerList[templateKey]
+				if (sublist) then
+					local namestring = ""
+					for k,marker in pairs(sublist) do
+						setmetatable(marker, {__index = ml_marker})
+						
+						local markerName = marker:GetName()
+						if (namestring == "") then
+							namestring = markerName
+						else
+							namestring = namestring..","..markerName
+						end
+					end
+					return namestring
+				else	
+					ml_debug("No markers found on map for type ["..strMarkerType.."].")
 				end
-				return namestring
-			else	
-				ml_debug("No markers found on map for type ["..strMarkerType.."].")
 			end
 		else
 			d("Marker file could not be loaded successfully for destination mesh ["..tostring(strMeshName).."].")
@@ -3321,17 +3330,21 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 		
 		local searchMarker = nil
 		if (markerList) then
-			for _, list in pairs(markerList) do
-				for name, marker in pairs(list) do
-					if (name == markerName) then
-						searchMarker = marker
+			for template, list in pairs(markerList) do
+				if (template ~= "evacPoint") then
+					for index, marker in pairs(list) do
+						setmetatable(marker, {__index = ml_marker})
+						
+						if (marker:GetName() == markerName) then
+							searchMarker = marker
+						end
+						if (searchMarker) then
+							break
+						end
 					end
 					if (searchMarker) then
 						break
 					end
-				end
-				if (searchMarker) then
-					break
 				end
 			end
 			if (searchMarker) then
