@@ -264,7 +264,6 @@ end
 function e_movewithfate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
-		d("Moving with the FATE ["..tostring(fate.id))
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = ml_task_hub:CurrentTask().fatePos
 		newTask.fateid = ml_task_hub:CurrentTask().fateid
@@ -301,7 +300,6 @@ end
 function e_movetofate:execute()
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
-		d("Moving to the FATE ["..tostring(fate.id))
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		newTask.fateid = ml_task_hub:CurrentTask().fateid
@@ -353,7 +351,6 @@ function c_updatefate:evaluate()
 	if (ValidTable(fate)) then
 		local nearestFateTarget = GetNearestFateAttackable()
 		if (fate.status == 2 or ValidTable(nearestFateTarget)) then
-			d("Found active status for FATE ID:"..tostring(ml_task_hub:ThisTask().fateid))
 			if (not fatePos) then
 				fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			elseif (ValidTable(fatePos)) then
@@ -480,7 +477,6 @@ function c_add_fatetarget:evaluate()
     return false
 end
 function e_add_fatetarget:execute()
-	d("Adding FATE target to kill order.")
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -532,7 +528,6 @@ function c_endfate:evaluate()
 	if (ml_task_hub:ThisTask().waitingForChain and 
 		(ml_task_hub:ThisTask().waitStart == 0 or TimeSince(ml_task_hub:ThisTask().waitStart) < 45000)) 
 	then
-		d("Currently waiting for chain, can't end.")
 		return false
 	end
 	
