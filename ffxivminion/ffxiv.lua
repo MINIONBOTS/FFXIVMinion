@@ -723,7 +723,7 @@ function ffxivminion.HandleInit()
 		GameHacks:Disable3DRendering(true)
 	end
     if (gSkipCutscene == "1" ) then
-        --GameHacks:SkipCutscene(true)
+        GameHacks:SkipCutscene(true)
     end
     if (gSkipDialogue == "1" ) then
         GameHacks:SkipDialogue(true)
@@ -1000,7 +1000,7 @@ function ffxivminion.SwitchMode(mode)
 			gTeleport = "1"
 			gParanoid = "0"
 			ffxiv_task_duty.UpdateProfiles()
-			--gSkipCutscene = "1"
+			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			GameHacks:SkipCutscene(gSkipCutscene == "1")
@@ -1014,7 +1014,7 @@ function ffxivminion.SwitchMode(mode)
 			end
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
-			--gSkipCutscene = "1"
+			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			GameHacks:SkipCutscene(gSkipCutscene == "1")

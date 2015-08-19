@@ -455,7 +455,9 @@ function c_nextgathermarker:evaluate()
 		else
 			markerType = GetString("miningMarker")
 		end
-		d("Marker type is ["..tostring(markerType).."]")
+		if (gMarkerMgrType ~= markerType) then
+			ml_marker_mgr.SetMarkerType(markerType)
+		end
 		
         -- first check to see if we have no initialized marker
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
@@ -1032,12 +1034,13 @@ function e_gather:execute()
 				local itemslot1 = 0
 				local itemslot2 = 0
 				
-				if (ValidString(item1)) then
+				if (item1 and item1 ~= "") then
 					itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 					if (itemid1 == 0) then
 						d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
 					end
-				elseif (tonumber(item1) ~= nil) then
+				end
+				if (tonumber(item1) ~= nil) then
 					itemslot1 = tonumber(item1)
 				end
 				
@@ -1046,7 +1049,8 @@ function e_gather:execute()
 					if (itemid2 == 0) then
 						d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
 					end
-				elseif (tonumber(item2) ~= nil) then
+				end
+				if (tonumber(item2) ~= nil) then
 					itemslot2 = tonumber(item2)
 				end
 				
