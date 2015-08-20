@@ -540,17 +540,20 @@ function c_nextfishingmarker:evaluate()
         -- first check to see if we have no initiailized marker
         if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
             marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
-        
+			
 			if (marker == nil) then
-				ml_task_hub:ThisTask().filterLevel = false
-				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
+				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), false)
 			end	
 		end
 		
 		-- check if we've attempted a lot of casts with no bites
 		if (marker == nil) then
-            if (ffxiv_task_fish.attemptedCasts > 3) then
+            if (ffxiv_task_fish.attemptedCasts > 2) then
 				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
+				
+				if (marker == nil) then
+					marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), false)
+				end
 			end
         end
         
@@ -597,6 +600,7 @@ function e_nextfishingmarker:execute()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 	ml_task_hub:CurrentTask().requiresAdjustment = true
+	ffxiv_task_fish.attemptedCasts = 0
 end
 
 c_syncadjust = inheritsFrom( ml_cause )
@@ -633,7 +637,7 @@ function ffxiv_task_syncadjust.Create()
 end
 function ffxiv_task_syncadjust:Init()   
 	Player:Move(FFXIV.MOVEMENT.FORWARD)
-	self.timer = Now() + 500
+	self.timer = Now() + 200
 	
     self:AddTaskCheckCEs()
 end

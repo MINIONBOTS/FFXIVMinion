@@ -28,12 +28,13 @@ QM.Windows = {
 		base = "QuestEditor", width = 250, height = 275
 	},
 }
+
 QM.Wrappers = {
 	Quest = "quests",
 	Duty = "Encounters",
 }
 
-QM.QuestPath = GetStartupPath()..[[\LuaMods\ffxivminion\QuestProfiles\]];
+QM.QuestPath = GetStartupPath()..[[\LuaMods\Questing\QuestProfiles\]];
 QM.DutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles\]];
 QM.WindowTick = 0
 
@@ -1412,6 +1413,10 @@ function QM.AddStep()
 	
 	local id = tonumber(eQuestID)
 	local step = tonumber(qStepNum)
+	
+	if (not QM.Quests[id].steps) then
+		QM.Quests[id].steps = {}
+	end
 	
 	if (ValidTable(QM.Quests[id].steps[step])) then
 		--If the task is nil and there's an itemturnin, add it in with the current task we are adding, and insert as-is.

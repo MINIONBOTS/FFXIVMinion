@@ -2628,15 +2628,19 @@ function Eat()
 	end
 end
 ff["Eat"] = Eat
-function NodeHasItem(itemName)
-    local list = Player:GetGatherableSlotList()
-    if (ValidTable(list)) then
-        for i,item in pairs(list) do
-            if (item.name == itemName) then
-                return true
-            end
-        end
-    end
+function NodeHasItem(searchItem)
+	if (searchItem and type(searchItem) == "string" and searchItem ~= "") then
+		for itemName in StringSplit(searchItem,",") do
+			local list = Player:GetGatherableSlotList()
+			if (ValidTable(list)) then
+				for i,item in pairs(list) do
+					if (item.name == itemName) then
+						return true
+					end
+				end
+			end
+		end
+	end
     
     return false
 end
