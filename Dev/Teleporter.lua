@@ -122,7 +122,7 @@ TP.AutoGroups={[5]="Aetheryte",[7]="Object",[3]="NPC",[2]="Beast",[100]="FATE"}
 
 function TP.ModuleInit()
 
-	if (Settings.Dev.TeleportWindow == nil or Settings.Dev.TeleportWindow == {}) then 
+	if (not ValidTable(Settings.Dev.TeleportWindow)) then 
 		local windowInfo = {} 
 		windowInfo.width = 380
 		windowInfo.height = 520
@@ -284,29 +284,6 @@ function TP.OnUpdate( Event, ticks )
 		end
 		TP.DoAutoAdd()
 	end
-end
-
-function spairs(t, order)
-    -- collect the keys
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
-
-    -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys 
-    if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        table.sort(keys)
-    end
-
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            return keys[i], t[keys[i]]
-        end
-    end
 end
 
 function CalculateTargetPosition( dest )
@@ -641,9 +618,11 @@ function TP.WindowUpdate()
 	local WI = shallowcopy(Settings.Dev.TeleportWindow)
 	local W = shallowcopy(GUI_GetWindowInfo(TP.WinName))
 	
-	local tablesEqual = deepcompare(WI,W,true)
-	if (not tablesEqual) then
-		Settings.Dev.TeleportWindow = W
+	if (ValidTable(W) and ValidTable(WI)) then
+		local tablesEqual = deepcompare(WI,W,true)
+		if (not tablesEqual) then
+			Settings.Dev.TeleportWindow = W
+		end
 	end
 end
 --**************************************************************************************************************************************
