@@ -333,7 +333,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65559";
 			["prereq"] = {
-				[-1] = {
+				[4] = {
 					[1] = 85;
 				};
 			};
@@ -612,7 +612,7 @@ local obj1 = {
 			["level"] = 4;
 			["name"] = "To the Bannock";
 			["prereq"] = {
-				["(QuestCompleted(85) or QuestCompleted(123) or QuestCompleted(124))"] = true;
+				["QuestCompleted(85) or QuestCompleted(123) or QuestCompleted(124)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -954,6 +954,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 1000218;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -971,6 +974,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 1;
+					};
 					["id"] = 1000214;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -986,6 +992,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 1000238;
 					["index"] = 1;
@@ -1025,8 +1034,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65575";
 			["prereq"] = {
-				["QuestCompleted(594) and QuestCompleted(107)"] = false;
-				["IsOnMap(183)"] = true;
+				["(QuestCompleted(594) or QuestCompleted(107))"] = false;
 			};
 			["steps"] = {
 				[1] = {
@@ -1446,7 +1454,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "A Matter of Perspective";
 			["prereq"] = {
-				[-1] = {
+				[5] = {
 					[1] = 21;
 				};
 			};
@@ -1635,7 +1643,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65583";
 			["prereq"] = {
-				[-1] = {
+				[4] = {
 					[1] = 23;
 				};
 			};
@@ -1656,6 +1664,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2000910;
 					["index"] = 1;
 					["itemid"] = 2000230;
@@ -1672,6 +1683,9 @@ local obj1 = {
 				[3] = {
 					["complete"] = {
 						["step"] = 2;
+					};
+					["condition"] = {
+						["I8AH"] = 1;
 					};
 					["id"] = 2000911;
 					["index"] = 1;
@@ -1706,6 +1720,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2000915;
 					["index"] = 3;
 					["itemreward"] = false;
@@ -1722,6 +1739,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 1;
+					};
 					["id"] = 2000914;
 					["index"] = 3;
 					["itemreward"] = false;
@@ -1737,6 +1757,9 @@ local obj1 = {
 				[7] = {
 					["complete"] = {
 						["step"] = 4;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 2000916;
 					["index"] = 3;
@@ -1787,7 +1810,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "Trial by Earth";
 			["prereq"] = {
-				[-1] = {
+				[6] = {
 					[1] = 22;
 				};
 			};
@@ -1905,7 +1928,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "A Dangerous Proposition";
 			["prereq"] = {
-				[-1] = {
+				[4] = {
 					[1] = 35;
 				};
 			};
@@ -2027,7 +2050,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65603";
 			["prereq"] = {
-				[-1] = {
+				[5] = {
 					[1] = 46;
 				};
 			};
@@ -2065,6 +2088,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 2001171;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -2081,6 +2107,9 @@ local obj1 = {
 					["actionid"] = 97;
 					["complete"] = {
 						["I8AL"] = 2;
+					};
+					["condition"] = {
+						["I8AL"] = 1;
 					};
 					["id"] = 2000940;
 					["index"] = 2;
@@ -2099,6 +2128,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 3;
 					};
+					["condition"] = {
+						["I8AL"] = 2;
+					};
 					["id"] = 2001173;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -2115,6 +2147,9 @@ local obj1 = {
 					["actionid"] = 97;
 					["complete"] = {
 						["I8AL"] = 4;
+					};
+					["condition"] = {
+						["I8AL"] = 3;
 					};
 					["id"] = 2000939;
 					["index"] = 2;
@@ -2133,6 +2168,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 5;
 					};
+					["condition"] = {
+						["I8AL"] = 4;
+					};
 					["id"] = 2000938;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -2149,6 +2187,9 @@ local obj1 = {
 					["actionid"] = 97;
 					["complete"] = {
 						["step"] = 3;
+					};
+					["condition"] = {
+						["I8AL"] = 5;
 					};
 					["id"] = 2000937;
 					["index"] = 2;
@@ -2182,6 +2223,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 8;
 					};
+					["condition"] = {
+						["GetQuestInfo(67,'I8AL') < 3"] = true;
+					};
 					["id"] = 39;
 					["index"] = 4;
 					["itemreward"] = false;
@@ -2195,6 +2239,12 @@ local obj1 = {
 					["type"] = "kill";
 				};
 				[11] = {
+					["complete"] = {
+						["step"] = 5;
+					};
+					["condition"] = {
+						["I8AL"] = 8;
+					};
 					["id"] = 12;
 					["index"] = 4;
 					["itemreward"] = false;
@@ -2208,6 +2258,9 @@ local obj1 = {
 					["type"] = "kill";
 				};
 				[12] = {
+					["complete"] = {
+						["step"] = 255;
+					};
 					["id"] = 1000199;
 					["index"] = 5;
 					["itemreward"] = false;
@@ -2241,7 +2294,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Violators Will Be Shot";
 			["prereq"] = {
-				[-1] = {
+				[5] = {
 					[1] = 67;
 				};
 			};
@@ -2501,7 +2554,9 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65621";
 			["prereq"] = {
-				["QuestCompleted(39) and IsOnMap(183)"] = true;
+				[-1] = {
+					[1] = 39;
+				};
 			};
 			["steps"] = {
 				[1] = {
@@ -2597,7 +2652,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Trial by Wind";
 			["prereq"] = {
-				[-1] = {
+				[6] = {
 					[1] = 48;
 				};
 			};
@@ -3047,7 +3102,9 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				["QuestCompleted(39) and IsOnMap(183)"] = true;
+				[-1] = {
+					[1] = 39;
+				};
 			};
 			["steps"] = {
 				[1] = {
@@ -3143,7 +3200,9 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65660";
 			["prereq"] = {
-				["QuestCompleted(39) and IsOnMap(183)"] = true;
+				[-1] = {
+					[1] = 39;
+				};
 			};
 			["steps"] = {
 				[1] = {
@@ -3409,6 +3468,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2000016;
 					["index"] = 1;
 					["itemid"] = 2000061;
@@ -3426,6 +3488,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 1;
+					};
 					["id"] = 2000017;
 					["index"] = 1;
 					["itemid"] = 2000061;
@@ -3442,6 +3507,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 2000018;
 					["index"] = 1;
@@ -3576,6 +3644,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 1000512;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -3591,6 +3662,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["I8AL"] = 2;
+					};
+					["condition"] = {
+						["I8AL"] = 1;
 					};
 					["id"] = 1000513;
 					["index"] = 2;
@@ -3608,6 +3682,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 3;
 					};
+					["condition"] = {
+						["I8AL"] = 2;
+					};
 					["id"] = 1000514;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -3624,6 +3701,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 4;
 					};
+					["condition"] = {
+						["I8AL"] = 3;
+					};
 					["id"] = 1000515;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -3639,6 +3719,9 @@ local obj1 = {
 				[7] = {
 					["complete"] = {
 						["step"] = 3;
+					};
+					["condition"] = {
+						["I8AL"] = 4;
 					};
 					["id"] = 1000516;
 					["index"] = 2;
@@ -4065,6 +4148,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2000043;
 					["index"] = 1;
 					["itemid"] = 2000100;
@@ -4083,6 +4169,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 1;
+					};
 					["id"] = 2000044;
 					["index"] = 1;
 					["itemid"] = 2000100;
@@ -4100,6 +4189,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 2000045;
 					["index"] = 1;
@@ -4158,6 +4250,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 1000484;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4175,6 +4270,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 2;
 					};
+					["condition"] = {
+						["I8AL"] = 1;
+					};
 					["id"] = 1000476;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4191,6 +4289,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 2;
+					};
+					["condition"] = {
+						["I8AL"] = 2;
 					};
 					["id"] = 1000483;
 					["index"] = 1;
@@ -4549,6 +4650,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 2;
 					};
+					["condition"] = {
+						["GetQuestInfo(174,'I8AL') < 3"] = true;
+					};
 					["id"] = 192;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4565,6 +4669,9 @@ local obj1 = {
 					["complete"] = {
 						["I8BH"] = 2;
 					};
+					["condition"] = {
+						["GetQuestInfo(174,'I8BH') < 2"] = true;
+					};
 					["id"] = 193;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4580,6 +4687,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8BH"] = 2;
 					};
 					["id"] = 194;
 					["index"] = 1;
@@ -4634,6 +4744,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2000141;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4650,6 +4763,9 @@ local obj1 = {
 				[3] = {
 					["complete"] = {
 						["I8BH"] = 1;
+					};
+					["condition"] = {
+						["I8AH"] = 1;
 					};
 					["id"] = 2000147;
 					["index"] = 1;
@@ -4668,6 +4784,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8BH"] = 1;
+					};
 					["id"] = 2000149;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -4684,6 +4803,9 @@ local obj1 = {
 				[5] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 2000148;
 					["index"] = 1;
@@ -5016,6 +5138,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 2000144;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5032,6 +5157,9 @@ local obj1 = {
 				[3] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AL"] = 1;
 					};
 					["id"] = 2000143;
 					["index"] = 1;
@@ -5279,6 +5407,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 1000794;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5295,6 +5426,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 2;
 					};
+					["condition"] = {
+						["I8AL"] = 1;
+					};
 					["id"] = 1000792;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5310,6 +5444,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AL"] = 2;
 					};
 					["id"] = 1000793;
 					["index"] = 1;
@@ -5379,6 +5516,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 2001000;
 					["index"] = 2;
 					["itemid"] = 2000242;
@@ -5396,6 +5536,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 2;
 					};
+					["condition"] = {
+						["I8AL"] = 1;
+					};
 					["id"] = 2001001;
 					["index"] = 2;
 					["itemid"] = 2000242;
@@ -5412,6 +5555,9 @@ local obj1 = {
 				[5] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AL"] = 2;
 					};
 					["id"] = 2001002;
 					["index"] = 2;
@@ -5471,6 +5617,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 1;
 					};
+					["condition"] = {
+						["I8AL"] = 0;
+					};
 					["id"] = 1000474;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5487,6 +5636,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AL"] = 2;
 					};
+					["condition"] = {
+						["I8AL"] = 1;
+					};
 					["id"] = 1000476;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5502,6 +5654,9 @@ local obj1 = {
 				[4] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AL"] = 2;
 					};
 					["id"] = 1000483;
 					["index"] = 1;
@@ -5633,6 +5788,7 @@ local obj1 = {
 					};
 					["exactpos"] = true;
 					["id"] = 2000750;
+					["exactpos"] = true;
 					["index"] = 1;
 					["itemreward"] = false;
 					["mapid"] = 148;
@@ -5654,6 +5810,7 @@ local obj1 = {
 					["exactpos"] = true;
 					["id"] = 2000751;
 					["index"] = 1;
+					["exactpos"] = true;
 					["itemreward"] = false;
 					["mapid"] = 148;
 					["meshname"] = "Central Shroud";
@@ -5673,6 +5830,7 @@ local obj1 = {
 					};
 					["exactpos"] = true;
 					["id"] = 2000749;
+					["exactpos"] = true;
 					["index"] = 1;
 					["itemreward"] = false;
 					["mapid"] = 148;
@@ -5693,6 +5851,7 @@ local obj1 = {
 					};
 					["exactpos"] = true;
 					["id"] = 2000748;
+					["exactpos"] = true;
 					["index"] = 1;
 					["itemreward"] = false;
 					["mapid"] = 148;
@@ -5744,6 +5903,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2001084;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -5760,6 +5922,9 @@ local obj1 = {
 				[3] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 1;
 					};
 					["id"] = 2001083;
 					["index"] = 1;
@@ -6323,6 +6488,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 1;
 					};
+					["condition"] = {
+						["I8AH"] = 0;
+					};
 					["id"] = 2001015;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -6339,6 +6507,9 @@ local obj1 = {
 				[3] = {
 					["complete"] = {
 						["I8AH"] = 2;
+					};
+					["condition"] = {
+						["I8AH"] = 1;
 					};
 					["id"] = 2001014;
 					["index"] = 1;
@@ -6357,6 +6528,9 @@ local obj1 = {
 					["complete"] = {
 						["step"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 2;
+					};
 					["id"] = 2001013;
 					["index"] = 1;
 					["itemreward"] = false;
@@ -6373,6 +6547,9 @@ local obj1 = {
 				[5] = {
 					["complete"] = {
 						["I8AH"] = 1;
+					};
+					["condition"] = {
+						["I8AH"] = 0;
 					};
 					["id"] = 1000502;
 					["index"] = 2;
@@ -6394,6 +6571,9 @@ local obj1 = {
 					["complete"] = {
 						["I8AH"] = 2;
 					};
+					["condition"] = {
+						["I8AH"] = 1;
+					};
 					["id"] = 1000507;
 					["index"] = 2;
 					["itemreward"] = false;
@@ -6413,6 +6593,9 @@ local obj1 = {
 				[7] = {
 					["complete"] = {
 						["step"] = 255;
+					};
+					["condition"] = {
+						["I8AH"] = 2;
 					};
 					["id"] = 1000505;
 					["index"] = 2;
@@ -7296,6 +7479,7 @@ local obj1 = {
 				};
 				[4] = {
 					["condition"] = {
+						["GameRegion() == 1 or GameRegion() == 2"] = true;
 						["step"] = 3;
 					};
 					["index"] = 3;
@@ -7308,6 +7492,29 @@ local obj1 = {
 						[4] = "                                  ";
 						[5] = "           Next Steps:            ";
 						[6] = "  Must complete Sastasha dungeon  ";
+					};
+					["pos"] = {
+						["x"] = -0.15;
+						["y"] = 0;
+						["z"] = 3.661;
+					};
+					["type"] = "endprofile";
+				};
+				[5] = {
+					["condition"] = {
+						["GameRegion() == 3"] = true;
+						["step"] = 3;
+					};
+					["index"] = 3;
+					["mapid"] = 177;
+					["meshname"] = "Limsa Lominsa - Inn";
+					["notes"] = {
+						[1] = "-=-=-=-=-=-=-= 축하 =-=-=-=-=-=-=-";
+						[2] = "                                 ";
+						[3] = "   완전한 지금 Gridania 1-15 단면도 ";
+						[4] = "									";
+						[5] = "		       다음 단계:            ";
+						[6] = "  Sastasha 지하 감옥을 완료해야 한다 ";
 					};
 					["pos"] = {
 						["x"] = -0.15;

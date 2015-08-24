@@ -1849,6 +1849,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Edelweiss, Edelweiss";
 			["prereq"] = {
+				["GameRegion() == 1"] = true;
 				[3] = {
 					[1] = 111;
 				};
@@ -6901,12 +6902,12 @@ local obj1 = {
 					["id"] = 417;
 					["index"] = 1;
 					["itemreward"] = false;
-					["mapid"] = 134;
+					["mapid"] = 135;
 					["meshname"] = "Middle La Noscea";
 					["pos"] = {
-						["x"] = -22.220941543579;
-						["y"] = 44.620044708252;
-						["z"] = 102.9273147583;
+						["x"] = 105.162;
+						["y"] = 43.393;
+						["z"] = 143.968;
 					};
 					["type"] = "kill";
 				};
