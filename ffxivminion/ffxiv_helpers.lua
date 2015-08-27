@@ -1993,6 +1993,7 @@ function ScanForMobs(ids,distance)
 		end
 	end
 	
+	
 	return false
 end
 ff["ScanForMobs"] = ScanForMobs
@@ -2752,13 +2753,41 @@ function IsRareItem(itemid)
 		[5365] = true,
 		[10099] = true,
 		[10335] = true,
+		
+		[12946] = true,
+		[12947] = true,
+		[12948] = true,
+		[12949] = true,
+		[12950] = true,
+		
+		
+		[12956] = true,
+		[12957] = true,
+		[12958] = true,
+		[12959] = true,
+		[12960] = true,
 	}
 	
 	return rareItem[itemid]
 end
 ff["IsRareItem"] = IsRareItem
 function IsRareItemSpecial(itemid)
+	local itemid = tonumber(itemid) or 0
+	local superRare = {
+		[12951] = true,
+		[12952] = true,
+		[12953] = true,
+		[12954] = true,
+		[12955] = true,
+		[12961] = true,
+		[12962] = true,
+		[12963] = true,
+		[12964] = true,
+		[12965] = true,
+		[12966] = true,
+	}
 	
+	return superRare[itemid]
 end
 ff["IsRareItemSpecial"] = IsRareItemSpecial
 function IsUnspoiled(contentid)

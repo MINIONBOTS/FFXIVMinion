@@ -676,9 +676,11 @@ function e_qsmovetogatherable:execute()
 			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredIxaliRare = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredSpecialRare = false
 			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount3 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount4 = -1
 			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
 			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
 			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
@@ -764,6 +766,7 @@ function ffxiv_task_qs_gather.Create()
 	newinst.gatheredGardening = false
 	newinst.gatheredChocoFood = false
 	newinst.gatheredIxaliRare = false
+	newinst.gatheredSpecialRare = false
     newinst.idleTimer = 0
 	newinst.swingCount = 0
 	newinst.slotsTried = {}
@@ -771,6 +774,7 @@ function ffxiv_task_qs_gather.Create()
 	newinst.rareCount = -1
 	newinst.rareCount2 = -1
 	newinst.rareCount3 = -1
+	newinst.rareCount4 = -1
 	newinst.mapCount = -1
     
     newinst.failedTimer = 0

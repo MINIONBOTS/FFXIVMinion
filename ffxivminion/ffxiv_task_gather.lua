@@ -40,6 +40,7 @@ function ffxiv_task_gather.Create()
 	newinst.gatheredGardening = false
 	newinst.gatheredChocoFood = false
 	newinst.gatheredIxaliRare = false
+	newinst.gatheredSpecialRare = false
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.swingCount = 0
@@ -50,6 +51,7 @@ function ffxiv_task_gather.Create()
 	newinst.rareCount = -1
 	newinst.rareCount2 = -1
 	newinst.rareCount3 = -1
+	newinst.rareCount4 = -1
 	newinst.mapCount = -1
     
     -- for blacklisting nodes
@@ -195,8 +197,11 @@ function e_findunspoilednode:execute()
 			ml_task_hub:CurrentTask():ParentTask().gatheredGardening = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredSpecialRare = false
 			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount3 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount4 = -1
 			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
 			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
 			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
@@ -315,8 +320,11 @@ function e_movetogatherable:execute()
 			ml_task_hub:CurrentTask():ParentTask().gatheredGardening = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredMap = false
 			ml_task_hub:CurrentTask():ParentTask().gatheredChocoFood = false
+			ml_task_hub:CurrentTask():ParentTask().gatheredSpecialRare = false
 			ml_task_hub:CurrentTask():ParentTask().rareCount = -1
 			ml_task_hub:CurrentTask():ParentTask().rareCount2 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount3 = -1
+			ml_task_hub:CurrentTask():ParentTask().rareCount4 = -1
 			ml_task_hub:CurrentTask():ParentTask().mapCount = -1
 			ml_task_hub:CurrentTask():ParentTask().swingCount = 0
 			ml_task_hub:CurrentTask():ParentTask().itemsUncovered = false
@@ -893,32 +901,111 @@ function e_gather:execute()
 						end
 					end
 					
-					-- Check for rare ixali items.
-					for i, item in pairs(list) do
-						if (IsIxaliRare(item.id)) then
-							local itemCount = ItemCount(item.id)
-							if (itemCount < 5) then
-								if (ml_task_hub:CurrentTask().rareCount3 == -1) then
-									ml_task_hub:CurrentTask().rareCount3 = itemCount
+					local gatherRares = ml_global_information.currentMarker:GetFieldValue("Rare Items")
+					local gatherSuperRares = ml_global_information.currentMarker:GetFieldValue("Special Rare Items")
+					if (gatherSuperRares == "1" or gatherRares == "1") then
+						for i, item in pairs(list) do
+							if (IsRareItemSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredSpecialRare and gatherSuperRares == "1") then
+								local itemCount = ItemCount(item.id)
+								if (ml_task_hub:CurrentTask().rareCount4 == -1) then
+									ml_task_hub:CurrentTask().rareCount4 = itemCount
 								end
-								if (itemCount == ml_task_hub:CurrentTask().rareCount) then
+								if (itemCount == ml_task_hub:CurrentTask().rareCount4) then
 									if (SkillMgr.Gather(item)) then
 										ml_task_hub:CurrentTask().failedTimer = Now()
 										ffxiv_task_gather.timer = Now() + 2000
 										return
 									end
-									
+											
 									local result = Player:Gather(item.index)
+									if (result == 65536) then
+										ffxiv_task_gather.timer = Now() + 300
+										ffxiv_task_gather.awaitingSuccess = true
+									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatherTimer = Now()
+										ml_task_hub:CurrentTask().failedTimer = Now()
+										ffxiv_task_gather.timer = Now() + 750
+										ffxiv_task_gather.awaitingSuccess = false
+									end
+									return
+								elseif (itemCount > ml_task_hub:CurrentTask().rareCount4) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatheredSpecialRare = true
+									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+								end
+							elseif (IsRareItem(item.id) and gatherRares == "1") then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
+								end
+										
+								local result = Player:Gather(item.index)
+								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
 									ml_task_hub:CurrentTask().gatherTimer = Now()
 									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 3000
-									return
-								elseif (itemCount > ml_task_hub:CurrentTask().rareCount3) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatheredIxaliRare = true
-									ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
 								end
+								return
+							end
+						end
+					end
+					
+						-- Check for rare ixali items.
+					if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
+						for i, item in pairs(list) do
+							if (IsIxaliRare(item.id)) then
+								local itemCount = ItemCount(item.id)
+								if (itemCount < 5) then
+									if (ml_task_hub:CurrentTask().rareCount3 == -1) then
+										ml_task_hub:CurrentTask().rareCount3 = itemCount
+									end
+									if (itemCount == ml_task_hub:CurrentTask().rareCount3) then
+										if (SkillMgr.Gather(item)) then
+											ml_task_hub:CurrentTask().failedTimer = Now()
+											ffxiv_task_gather.timer = Now() + 2000
+											return
+										end
+										
+										local result = Player:Gather(item.index)
+										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatherTimer = Now()
+										ml_task_hub:CurrentTask().failedTimer = Now()
+										ffxiv_task_gather.timer = Now() + 3500
+										return
+									elseif (itemCount > ml_task_hub:CurrentTask().rareCount3) then
+										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatheredIxaliRare = true
+										ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
+									end
+								end
+							end
+						end
+					end
+			
+					-- Check for semi-rare ixali items.
+					for i, item in pairs(list) do
+						if (IsIxaliSemiRare(item.id)) then
+							local itemCount = ItemCount(item.id)
+							if (itemCount < 15) then
+								if (SkillMgr.Gather(item)) then
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
+								end
+								
+								local result = Player:Gather(item.index)
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 3500
+								return
 							end
 						end
 					end
@@ -990,7 +1077,8 @@ function e_gather:execute()
 						if (item.isunknown) then
 							if ((not IsChocoboFood(item.id) or (IsChocoboFood(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
 								(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
-								(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)))
+								(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)) and 
+								(not IsRareItemSpecial(item.id) or (IsRareItemSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredSpecialRare)))
 							then
 								if (SkillMgr.Gather(item)) then
 									ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1010,6 +1098,8 @@ function e_gather:execute()
 										ml_task_hub:CurrentTask().gatheredGardening = true
 									elseif (IsMap(item.id)) then
 										ml_task_hub:CurrentTask().gatheredMap = true
+									elseif (IsRareItemSpecial(item.id)) then
+										ml_task_hub:CurrentTask().gatheredSpecialRare = true
 									end
 									
 									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
