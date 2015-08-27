@@ -6,7 +6,7 @@ local obj1 = {
 	["MapID"] = 164;
 	["Independent"] = true;
 	["Category"] = 1; 
-	["EncounterIndex"] = 0;
+	["EncounterIndex"] = 1;
 	["Encounters"] = {
 		-- Trash
 		[1] = {
@@ -26,7 +26,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[2] = {
 			["doWait"] = true;
@@ -45,7 +45,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[3] = {
 			["doWait"] = true;
@@ -64,7 +64,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[4] = {
 			["doWait"] = true;
@@ -83,7 +83,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[5] = {
 			["doWait"] = true;
@@ -102,7 +102,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[6] = {
 			["doWait"] = true;
@@ -121,7 +121,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		-- Boss 1
 		[7] = {
@@ -141,7 +141,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "79;109;455";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[8] = {
 			["doWait"] = true;
@@ -190,7 +190,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[11] = {
 			["doWait"] = true;
@@ -209,7 +209,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[12] = {
 			["doWait"] = true;
@@ -228,7 +228,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[13] = {
 			["doWait"] = true;
@@ -247,7 +247,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		-- Boss 2
 		[14] = {
@@ -267,7 +267,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "79;109;455";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[15] = {
 			["doWait"] = true;
@@ -315,7 +315,7 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[18] = {
 			["doWait"] = true;
@@ -334,28 +334,9 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
 		[19] = {
-			["doWait"] = true;
-			["waitTime"] = 2000;
-			["failTime"] = 5000;
-			["doKill"] = true;
-			["noImmune"] = true;             
-			["telecastAlways"] = true;
-			["taskFunction"] = "ffxiv_duty_kill_task.Create";
-			["startPos"] = {
-				["General"] = {
-					["x"] = -44.4214134216309;
-					["y"] = 29.63427734375;
-					["z"] = 96.1696109771729;
-				};
-			};
-			["bossIDs"] = "1271;144;143;145;146;111;284";
-			["prioritize"] = true;
-			["radius"] = 30;
-		};
-		[20] = {
 			["doWait"] = true;
 			["waitTime"] = 2000;
 			["failTime"] = 5000;
@@ -372,9 +353,9 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
-		[21] = {
+		[20] = {
 			["doWait"] = true;
 			["waitTime"] = 2000;
 			["failTime"] = 5000;
@@ -391,28 +372,9 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
-		[22] = {
-			["doWait"] = true;
-			["waitTime"] = 2000;
-			["failTime"] = 5000;
-			["doKill"] = true;
-			["noImmune"] = true;             
-			["telecastAlways"] = true;
-			["taskFunction"] = "ffxiv_duty_kill_task.Create";
-			["startPos"] = {
-				["General"] = {
-					["x"] = -165.69618225098;
-					["y"] = 35.526298522949;
-					["z"] = -3.4675040245056;
-				};
-			};
-			["bossIDs"] = "1271;144;143;145;146;111;284";
-			["prioritize"] = true;
-			["radius"] = 30;
-		};
-		[23] = {
+		[21] = {
 			["doWait"] = true;
 			["waitTime"] = 2000;
 			["failTime"] = 5000;
@@ -429,10 +391,29 @@ local obj1 = {
 			};
 			["bossIDs"] = "1271;144;143;145;146;111;284";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
+		};
+		[22] = {
+			["doWait"] = true;
+			["waitTime"] = 2000;
+			["failTime"] = 5000;
+			["doKill"] = true;
+			["noImmune"] = true;             
+			["telecastAlways"] = true;
+			["taskFunction"] = "ffxiv_duty_kill_task.Create";
+			["startPos"] = {
+				["General"] = {
+					["x"] = -165.69618225098;
+					["y"] = 20.526298522949;
+					["z"] = -3.4675040245056;
+				};
+			};
+			["bossIDs"] = "144;1271;143;145;146;111;284";
+			["prioritize"] = true;
+			["radius"] = 25;
 		};
 		-- Rosary 
-		[24] = {
+		[23] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
 			["taskFunction"] = "ffxiv_task_interact.Create";
@@ -447,7 +428,7 @@ local obj1 = {
 			["radius"] = 3;
 		};
 		-- Boss Trigger 
-		[25] = {
+		[24] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
 			["taskFunction"] = "ffxiv_task_interact.Create";
@@ -462,7 +443,7 @@ local obj1 = {
 			["radius"] = 5;
 		};
 		-- Boss 
-		[26] = {
+		[25] = {
 			["doWait"] = true;
 			["waitTime"] = 2000;
 			["failTime"] = 5000;
@@ -479,9 +460,9 @@ local obj1 = {
 			};
 			["bossIDs"] = "119;109;455";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
-		[27] = {
+		[26] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
 			["taskFunction"] = "ffxiv_task_loot.Create";
@@ -495,7 +476,7 @@ local obj1 = {
 			["lootid"] = 62;
 			["radius"] = 3;
 		};
-		[28] = {
+		[27] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
 			["taskFunction"] = "ffxiv_task_interact.Create";
@@ -509,9 +490,11 @@ local obj1 = {
 			["interactid"] = 2000067;
 			["radius"] = 3;
 		};
-		[29] = {
+		-- Final Boss CS
+		[28] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
+			["failTime"] = 2000;
 			["taskFunction"] = "ffxiv_task_interact.Create";
 			["startPos"] = {
 				["General"] = {
@@ -524,7 +507,7 @@ local obj1 = {
 			["radius"] = 3;
 		};
 		-- Final Boss 
-		[30] = {
+		[29] = {
 			["doWait"] = true;
 			["waitTime"] = 2000;
 			["failTime"] = 5000;
@@ -541,9 +524,9 @@ local obj1 = {
 			};
 			["bossIDs"] = "456;111;73";
 			["prioritize"] = true;
-			["radius"] = 30;
+			["radius"] = 25;
 		};
-		[31] = {
+		[30] = {
 			["doWait"] = true;
 			["waitTime"] = 5000;
 			["taskFunction"] = "ffxiv_task_loot.Create";
