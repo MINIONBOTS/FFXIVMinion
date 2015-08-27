@@ -2463,7 +2463,7 @@ function GetMountID()
 end
 ff["GetMountID"] = GetMountID
 function IsMounting()
-	return (Player.action == 83 or Player.action == 84 or Player.action == 165)
+	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165))
 end
 ff["IsMounting"] = IsMounting
 function IsMounted()
@@ -2471,7 +2471,7 @@ function IsMounted()
 end
 ff["IsMounted"] = IsMounted
 function IsDismounting()
-	return (Player.action == 32)
+	return (Player.ismounted and (Player.action == 32))
 end
 ff["IsDismounting"] = IsDismounting
 function IsPositionLocked()
