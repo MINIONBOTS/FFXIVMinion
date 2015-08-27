@@ -29,7 +29,7 @@ function ffxiv_dialog.Create(strName)
 		newDialog.longestLine = 0
 		newDialog.width = 50
 		
-		local window = WindowManager:NewWindow(strName, 500, 350, newDialog.height, newDialog.width, false)
+		local window = WindowManager:NewWindow(strName, 500, 350, newDialog.width, newDialog.height, true)
 		window:Hide()
 		newDialog.window = window
 		
