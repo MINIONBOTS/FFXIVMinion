@@ -956,7 +956,7 @@ function ffxiv_task_teleport:task_complete_execute()
 end
 
 function ffxiv_task_teleport:task_fail_eval()
-	if (Player.incombat) then
+	if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
@@ -1058,6 +1058,10 @@ function ffxiv_task_stealth:task_complete_execute()
 end
 
 function ffxiv_task_stealth:task_fail_eval()
+	if (not Player.alive) then
+		return true
+	end
+	
 	local list = Player:GetGatherableSlotList()
 	local fs = tonumber(Player:GetFishingState())
 	if (ValidTable(list) or fs ~= 0) then
@@ -1161,6 +1165,13 @@ end
 
 function ffxiv_task_useitem:task_complete_execute()
     self.completed = true
+end
+
+function ffxiv_task_useitem:task_fail_eval()
+    return (not Player.alive)
+end
+function ffxiv_task_useitem:task_fail_execute()
+    self.valid = false
 end
 
 --=======================AVOID TASK=========================-

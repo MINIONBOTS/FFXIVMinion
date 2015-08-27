@@ -129,8 +129,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	
 	if (ml_global_information.queueSync) then
 		local timer = ml_global_information.queueSync.timer
-		local h = ml_global_information.queueSync.h or 1
+		local pos = ml_global_information.queueSync.pos
+		local h = pos.h or 1
 		if (timer and Now() > timer) then
+			d("Attempting to resync.")
+			--Player:Jump()
+			GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
 			Player:SetFacingSynced(h)
 			ml_global_information.queueSync = nil
 		end
@@ -706,8 +710,19 @@ function ffxivminion.HandleInit()
 		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
 		
 		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
-		-- Duties
-		--ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
+		
+		ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
+		ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands")
+		ml_mesh_mgr.SetDefaultMesh(399, "The Dravanian Hinterlands")
+		ml_mesh_mgr.SetDefaultMesh(400, "The Churning Mists")
+		ml_mesh_mgr.SetDefaultMesh(401, "Sea of Clouds")
+		ml_mesh_mgr.SetDefaultMesh(402, "Azys Lla")
+		ml_mesh_mgr.SetDefaultMesh(418, "Ishgard - Foundation")
+		ml_mesh_mgr.SetDefaultMesh(419, "Ishgard - The Pillars")
+		ml_mesh_mgr.SetDefaultMesh(433, "Ishgard - Fortempts Manor")
+		ml_mesh_mgr.SetDefaultMesh(456, "Ishgard - Ruling Chamber")
+		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire")
+		
 		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")
 		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
 		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
@@ -1361,17 +1376,16 @@ function ffxivminion.SaveWindows()
 			local W = GUI_GetWindowInfo(window.Name)
 			local WindowInfo = {}
 			
-			if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
-			if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
-			if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
-			if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
-			
-			local tablesEqual = true
-			if (ValidTable(WindowInfo) and ValidTable(WI)) then
-				tablesEqual = deepcompare(WindowInfo,WI,true)
-			end
-			if (not tablesEqual) then 
-				SafeSetVar(tableName,WindowInfo)
+			if (ValidTable(WI) and ValidTable(W)) then
+				if (WI.width ~= W.width) then WindowInfo.width = W.width else WindowInfo.width = WI.width end
+				if (WI.height ~= W.height) then WindowInfo.height = W.height else WindowInfo.height = WI.height	end
+				if (WI.x ~= W.x) then WindowInfo.x = W.x else WindowInfo.x = WI.x end
+				if (WI.y ~= W.y) then WindowInfo.y = W.y else WindowInfo.y = WI.y end
+				
+				local tablesEqual = deepcompare(WindowInfo,WI,true)
+				if (not tablesEqual) then 
+					SafeSetVar(tableName,WindowInfo)
+				end
 			end
 		else
 			d(tostring(window.id or "unknown").." was invalid.")

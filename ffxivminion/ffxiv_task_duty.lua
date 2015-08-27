@@ -133,7 +133,8 @@ function e_followleaderduty:execute()
 				Player:Stop()
 				d("Teleporting in order to follow leader. Current MapID:"..tostring(Player.localmapid))
 				GameHacks:TeleportToXYZ(lpos.x, lpos.y, lpos.z)
-				Player:SetFacingSynced(Player.pos.h)
+				ml_global_information.queueSync = {timer = Now() + 500, pos = lpos}
+				--Player:SetFacingSynced(Player.pos.h)
 			else
 				ml_debug( "Following Leader: "..tostring(Player:FollowTarget(c_followleaderduty.leader.id)))
 			end
@@ -518,7 +519,8 @@ function ffxiv_task_duty:Process()
 						msg = msg.."IsDutyLeader ["..tostring(IsDutyLeader()).."], DutyQueueStatus ["..tostring(Duty:GetQueueStatus()).."]"
 						d(msg)
 						GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
-						Player:SetFacingSynced(tonumber(gotoPos.h))
+						ml_global_information.queueSync = {timer = Now() + 500, pos = gotoPos}
+						--Player:SetFacingSynced(tonumber(gotoPos.h))
 					else
 						ml_debug( "Moving to ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")	
 						Player:MoveTo( tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1.0, false, false)
@@ -532,12 +534,10 @@ function ffxiv_task_duty:Process()
 			local encounter = encounters[self.encounterIndex]
 			
 			if (ValidTable(encounter)) then
-				if (encounter.taskFunction ~= "ffxiv_task_loot.Create") then
-					self.state = "DUTY_NEXTENCOUNTER"
-					self.encounter = encounter
-					persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
-					self.encounterCompleted = false
-				end
+				self.state = "DUTY_NEXTENCOUNTER"
+				self.encounter = encounter
+				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
+				self.encounterCompleted = false
 			else
 				ffxiv_task_duty.dutyInfo["EncounterIndex"] = 0
 				persistence.store(ffxiv_task_duty.dutyPath..".info",ffxiv_task_duty.dutyInfo )
@@ -781,29 +781,6 @@ function e_deadduty:execute()
 			e_deadduty.justRevived = true
 			ml_task_hub:ThisTask():SetDelay(1000)
 		end
-		
-		-- if no res options available, teleport to a healer in the party
-		--[[
-		if (gTeleport == "1") then
-			d("teleport option is on and player is dead.")
-			local leader = GetDutyLeader()
-			local leaderPos = GetDutyLeaderPos()
-			if (ValidTable(leaderPos) and ValidTable(leader)) then
-				if (leader.name ~= Player.name) then
-					d("leader and leaderpos is valid.")
-					local myPos = Player.pos	
-					
-					local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
-					if (distance > 5) then
-						d("teleporting to the leader.")
-						GameHacks:TeleportToXYZ(leaderPos.x, leaderPos.y, leaderPos.z)
-						Player:SetFacingSynced(myPos.h)
-						return
-					end
-				end
-			end
-		end
-		--]]
 	end
 	
 	if (e_deadduty.justRevived and not IsLoading() and Player.alive) then
@@ -815,7 +792,8 @@ function e_deadduty:execute()
 			if (dist > 3 and InInstance()) then
 				d("Teleporting back to original location due to death. Current MapID:"..tostring(Player.localmapid))
 				GameHacks:TeleportToXYZ(opos.x, opos.y, opos.z)
-				Player:SetFacingSynced(Player.pos.h)
+				ml_global_information.queueSync = {timer = Now() + 500, pos = opos}
+				--Player:SetFacingSynced(Player.pos.h)
 			else
 				e_deadduty.originalPos = {}
 				e_deadduty.justRevived = false

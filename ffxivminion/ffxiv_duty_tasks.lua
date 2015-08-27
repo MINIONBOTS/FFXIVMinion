@@ -1100,7 +1100,6 @@ function ffxiv_task_loot:task_complete_execute()
 	self:ParentTask().encounterCompleted = true
 end
 
-
 --Loot Roll task
 c_roll = inheritsFrom( ml_cause )
 e_roll = inheritsFrom( ml_effect )
@@ -1124,45 +1123,36 @@ function e_roll:execute()
 	ml_task_hub:CurrentTask().isComplete = false
 	local loot = Inventory:GetLootList()
 	if (loot) then
-		if (not ControlVisible("NeedGreed")) then
-			for i,e in pairs(loot) do
-				if (ml_task_hub:CurrentTask().rollstate == "Need") then
-					e:Need()
-				elseif (ml_task_hub:CurrentTask().rollstate == "Greed") then
-					e:Greed()
-				else
-					e:Pass()
+		if (Inventory:OpenNeedGreed()) then
+			if (ml_task_hub:CurrentTask().rollstate == "Need") then
+				for i, e in pairs(loot) do 
+					d("Attempting to need on loot, result was:"..tostring(e:Need()))
 				end
-				ml_task_hub:CurrentTask().latencyTimer = Now() + 1000
+				ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				ml_task_hub:CurrentTask().rollstate = "Greed"
 				return
 			end
-		end
-		
-		if (ml_task_hub:CurrentTask().rollstate == "Need") then
-			for i, e in pairs(loot) do 
-				d("Attempting to need on loot, result was:"..tostring(e:Need()))
+			
+			if (ml_task_hub:CurrentTask().rollstate == "Greed") then
+				for i, e in pairs(loot) do
+					d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
+				end
+				ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+				ml_task_hub:CurrentTask().rollstate = "Pass"
+				return
 			end
-			ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
-			ml_task_hub:CurrentTask().rollstate = "Greed"
-			return
-		end
-		
-		if (ml_task_hub:CurrentTask().rollstate == "Greed") then
-			for i, e in pairs(loot) do
-				d("Attempting to greed on loot, result was:"..tostring(e:Greed()))			
+			
+			if (ml_task_hub:CurrentTask().rollstate == "Pass") then
+				for i, e in pairs(loot) do
+					d("Attempting to pass on loot, result was:"..tostring(e:Pass()))
+				end
+				ml_task_hub:CurrentTask().latencyTimer = Now()
+				ml_task_hub:CurrentTask().rollstate = "Complete"
 			end
-			ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
-			ml_task_hub:CurrentTask().rollstate = "Pass"
-			return
-		end
-		
-		if (ml_task_hub:CurrentTask().rollstate == "Pass") then
-			for i, e in pairs(loot) do
-				d("Attempting to pass on loot, result was:"..tostring(e:Pass()))
-			end
-			ml_task_hub:CurrentTask().latencyTimer = Now()
-			ml_task_hub:CurrentTask().rollstate = "Complete"
-		end
+		else
+			ml_task_hub:CurrentTask().latencyTimer = Now() + math.random(1000,1500)
+			return			
+		end		
 	end
 end
 

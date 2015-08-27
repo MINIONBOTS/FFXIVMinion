@@ -457,23 +457,25 @@ e_autopotion = inheritsFrom( ml_effect )
 c_autopotion.potions = "4554;4553;4552;4551"
 c_autopotion.ethers = "4558;4557;4556;4555"
 c_autopotion.itemid = 0
-function c_autopotion:evaluate()	
-	local potions = c_autopotion.potions
-	if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
-		for itemid in StringSplit(potions,";") do
-			if (ItemIsReady(tonumber(itemid))) then
-				c_autopotion.itemid = tonumber(itemid)
-				return true
+function c_autopotion:evaluate()
+	if (Player.alive) then
+		local potions = c_autopotion.potions
+		if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
+			for itemid in StringSplit(potions,";") do
+				if (ItemIsReady(tonumber(itemid))) then
+					c_autopotion.itemid = tonumber(itemid)
+					return true
+				end
 			end
 		end
-	end
-	
-	local ethers = c_autopotion.ethers
-	if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
-		for itemid in StringSplit(ethers,";") do
-			if (ItemIsReady(tonumber(itemid))) then
-				c_autopotion.itemid = tonumber(itemid)
-				return true
+		
+		local ethers = c_autopotion.ethers
+		if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
+			for itemid in StringSplit(ethers,";") do
+				if (ItemIsReady(tonumber(itemid))) then
+					c_autopotion.itemid = tonumber(itemid)
+					return true
+				end
 			end
 		end
 	end
@@ -2164,12 +2166,8 @@ function e_teleporttopos:execute()
         local gotoPos = c_teleporttopos.pos
 		Player:Stop()
 		
-        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))		
-		if (c_teleporttopos.pos.h) then
-			ml_global_information.queueSync = {timer = Now() + 150, h = c_teleporttopos.pos.h}
-		else
-			ml_global_information.queueSync = {timer = Now() + 150, h = 1}
-		end
+        GameHacks:TeleportToXYZ(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+		ml_global_information.queueSync = {timer = Now() + 150, pos = gotoPos}
 		e_teleporttopos.teleCooldown = Now() + 1000
     else
         ml_error(" Critical error in e_walktopos, c_walktopos.pos == 0!!")
