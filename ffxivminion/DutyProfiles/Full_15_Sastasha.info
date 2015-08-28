@@ -6,7 +6,7 @@ local obj1 = {
 	["MapID"] = 157;
 	["Independent"] = true;
 	["Category"] = 1; 
-	["EncounterIndex"] = 7;
+	["EncounterIndex"] = 1;
 	["Encounters"] = {
 		-- Trash
 		[1] = {
