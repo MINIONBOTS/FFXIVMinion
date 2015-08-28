@@ -3,6 +3,14 @@ local multiRefObjects = {
 
 } -- multiRefObjects
 local obj1 = {
+	["names"] = {
+		["us"] = "(1-15) Uldah";
+		["de"] = "(1-15) Uldah";
+		["fr"] = "(1-15) Uldah";
+		["jp"] = "(1-15) ウルダハ";
+		["cn"] = "(1-15} 乌尔达哈";
+		["kr"] = "(1-15) 울다하";
+	};
 	["quests"] = {
 		[149] = {
 			["level"] = 1;

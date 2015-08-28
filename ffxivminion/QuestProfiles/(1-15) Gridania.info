@@ -3,6 +3,14 @@ local multiRefObjects = {
 
 } -- multiRefObjects
 local obj1 = {
+	["names"] = {
+		["us"] = "(1-15) Gridania";
+		["de"] = "(1-15) Gridania";
+		["fr"] = "(1-15) Gridania";
+		["jp"] = "(1-15) グリダニア";
+		["cn"] = "(1-15} 格里达尼亚";
+		["kr"] = "(1-15) 그리다니아";
+	};
 	["quests"] = {
 		[1] = {
 			["level"] = 1;
