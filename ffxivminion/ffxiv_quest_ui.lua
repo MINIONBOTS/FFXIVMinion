@@ -39,6 +39,8 @@ QM.DutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles\]];
 QM.WindowTick = 0
 
 --Initialize all tracking tables.
+QM.Vars = {}
+QM.Names = {}
 QM.Quests = {}
 QM.Encounters = {}
 QM.DutyInfo = {}
@@ -729,9 +731,27 @@ function QM.LoadProfile()
 		QM.RefreshEncounters()
 	else
 		info = persistence.load(QM.QuestPath..qProfileName..".info")
-		if (ValidTable(info) and ValidTable(info.quests)) then
-			QM.Quests = info.quests
+		if (ValidTable(info)) then
+			if (ValidTable(info.names)) then
+				QM.Names = info.names
+			else
+				QM.Quests = {}
+			end
+			
+			if (ValidTable(info.vars)) then
+				QM.Vars = info.vars
+			else
+				QM.Quests = {}
+			end
+			
+			if (ValidTable(info.quests)) then
+				QM.Quests = info.quests
+			else
+				QM.Quests = {}
+			end
 		else
+			QM.Names = {}
+			QM.Vars = {}
 			QM.Quests = {}
 		end
 		
@@ -773,6 +793,8 @@ function QM.LoadProfile()
 		if (requiredUpdate) then
 			local info = {}
 			info.quests = QM.Quests
+			info.vars = QM.Vars
+			info.names = QM.Names
 			persistence.store(QM.QuestPath..qProfileName..".info",info)
 		end
 		
@@ -804,6 +826,9 @@ function QM.SaveProfile()
 	else
 		local info = {}
 		info.quests = QM.Quests
+		info.vars = QM.Vars
+		info.names = QM.Names
+		
 		persistence.store(QM.QuestPath..qProfileName..".info",info)
 	end
 	
@@ -2033,6 +2058,8 @@ function QM.OnUpdateHandler( Event, ticks )
 		if (altered) then
 			local info = {}
 			info.quests = quests
+			info.names = QM.Names
+			info.vars = QM.Vars
 			persistence.store(QM.QuestPath..qProfileName..".info",info)
 		end
 	end

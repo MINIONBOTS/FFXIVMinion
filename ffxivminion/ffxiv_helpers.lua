@@ -1,6 +1,32 @@
 -- This file holds global helper functions
 ff = {}
-
+function FilterByProximity(entities,center,radius,sortfield)
+	if (ValidTable(entities) and ValidTable(center) and tonumber(radius) > 0) then
+		local validEntities = {}
+		for i,e in pairs(entities) do
+			local epos = e.pos
+			local dist = Distance3D(center.x,center.y,center.z,epos.x,epos.y,epos.z)
+	
+			if (dist <= radius) then
+				table.insert(validEntities,e)
+			end
+		end
+		
+		if (ValidTable(validEntities)) then
+			if (sortfield and type(sortfield) == "string" and sortfield ~= "") then
+				table.sort(validEntities,function(a,b) return a[sortfield] < b[sortfield] end)
+				return validEntities
+			else
+				return validEntities
+			end
+		else
+			return nil
+		end
+	else
+		d("[FilterByProximity]: Entities list, center point, or radius was invalid.")
+	end
+end
+ff["FilterByProximity"] = FilterByProximity
 function GetNearestGrindAttackable()
 	local huntString = GetWhitelistIDString()
 	local excludeString = GetBlacklistIDString()
@@ -8,78 +34,175 @@ function GetNearestGrindAttackable()
 	local el = nil
 	local nearestGrind = nil
 	local nearestDistance = 9999
+	local marker = ml_global_information.currentMarker
 	local minLevel = ml_global_information.MarkerMinLevel 
 	local maxLevel = ml_global_information.MarkerMaxLevel
 	
 	if (ml_task_hub:CurrentTask().safeLevel) then
 		maxLevel = Player.level + 2
 	end
-
-	block = 1
-	if (gClaimFirst	== "1") then		
-		if (not IsNullString(huntString)) then
-			local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
-			if ( el ) then
-				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
-					if ((e.targetid == 0 or e.targetid == Player.id) and
-						e.pathdistance <= tonumber(gClaimRange)) then
-						--d("Grind returned, using block:"..tostring(block))
-						return e
+	
+	local radius = 0
+	local markerPos;
+	if (ValidTable(marker)) then
+		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
+		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
+			radius = tonumber(maxradius)
+		end
+		markerPos = marker:GetPosition()
+	end
+	
+	if (radius > 0 and ValidTable(markerPos)) then
+		if (gClaimFirst	== "1") then		
+			if (not IsNullString(huntString)) then
+				el = EntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
+				
+				if (ValidTable(el)) then
+					local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+					if (ValidTable(filtered)) then
+						for i,e in pairs(filtered) do
+							if (ValidTable(e) and e.uniqueid ~= 541) then
+								if ((e.targetid == 0 or e.targetid == Player.id) and
+									e.pathdistance <= tonumber(gClaimRange)) then
+									return e
+								end
+							end
+						end
+					end
+				end
+			end
+		end	
+		
+		--Prioritize the lowest health with aggro on player, non-fate mobs.
+		if (not IsNullString(excludeString)) then
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
+		else
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
+		end
+		
+		local party = EntityList.myparty
+		if ( party ) then
+			for i, member in pairs(party) do
+				if (member.id and member.id ~= 0 and member.mapid == Player.mapid) then
+					if (not IsNullString(excludeString)) then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
+					end
+					
+					if (ValidTable(el)) then
+						local filtered = FilterByProximity(el,markerPos,radius)
+						if (ValidTable(filtered)) then
+							for i,e in pairs(filtered) do
+								if (ValidTable(e) and e.uniqueid ~= 541) then
+									return e
+								end
+							end
+						end
 					end
 				end
 			end
 		end
-	end	
-    
-	--Prioritize the lowest health with aggro on player, non-fate mobs.
-	block = 2
-	if (not IsNullString(excludeString)) then
-		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
-	else
-		el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
-	end
-	
-	if ( el ) then
-		local i,e = next(el)
-		if (ValidTable(e) and e.uniqueid ~= 541) then
-			--d("Grind returned, using block:"..tostring(block))
-			return e
-		end
-	end	
-
-	--ml_debug("Grind failed check #1")
-
-	--Lowest health with aggro on anybody in player's party, non-fate mobs.
-	--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
-	block = 3
-	local party = EntityList.myparty
-	if ( party ) then
-		for i, member in pairs(party) do
-			if (member.id and member.id ~= 0) then
-				if (not IsNullString(excludeString)) then
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
-				else
-					el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
+		
+		
+		
+		if (ValidTable(Player.pet)) then
+			if (not IsNullString(excludeString)) then
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+			else
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+			end
+			
+			if (ValidTable(el)) then
+				local filtered = FilterByProximity(el,markerPos,radius)
+				if (ValidTable(filtered)) then
+					for i,e in pairs(filtered) do
+						if (ValidTable(e) and e.uniqueid ~= 541) then
+							return e
+						end
+					end
 				end
-				
+			end
+		end
+		
+		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
+		if (not IsNullString(huntString)) then
+			el = EntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh")
+			
+			if (ValidTable(el)) then
+				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				if (ValidTable(filtered)) then
+					for i,e in pairs(filtered) do
+						if (ValidTable(e) and e.uniqueid ~= 541) then
+							if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+								return e
+							end
+						end
+					end
+				end
+			end
+		end
+		
+		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
+		if (IsNullString(huntString)) then
+			if (not IsNullString(excludeString)) then
+				el = EntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+			end
+			
+			if (ValidTable(el)) then
+				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				if (ValidTable(filtered)) then
+					for i,e in pairs(filtered) do
+						if (ValidTable(e) and e.uniqueid ~= 541) then
+							return e
+						end
+					end
+				end
+			end
+		
+			if (not IsNullString(excludeString)) then
+				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+			end
+			
+			if (ValidTable(el)) then
+				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				if (ValidTable(filtered)) then
+					for i,e in pairs(filtered) do
+						if (ValidTable(e) and e.uniqueid ~= 541) then
+							return e
+						end
+					end
+				end
+			end
+		end
+	else
+		block = 1
+		if (gClaimFirst	== "1") then		
+			if (not IsNullString(huntString)) then
+				local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
 				if ( el ) then
 					local i,e = next(el)
 					if (ValidTable(e) and e.uniqueid ~= 541) then
-						--d("Grind returned, using block:"..tostring(block))
-						return e
+						if ((e.targetid == 0 or e.targetid == Player.id) and
+							e.pathdistance <= tonumber(gClaimRange)) then
+							--d("Grind returned, using block:"..tostring(block))
+							return e
+						end
 					end
 				end
 			end
-		end
-	end
-	
-	block = 4
-	if (ValidTable(Player.pet)) then
+		end	
+		
+		--Prioritize the lowest health with aggro on player, non-fate mobs.
+		block = 2
 		if (not IsNullString(excludeString)) then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
 		else
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
 		end
 		
 		if ( el ) then
@@ -88,54 +211,97 @@ function GetNearestGrindAttackable()
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
+		end	
+
+		--ml_debug("Grind failed check #1")
+
+		--Lowest health with aggro on anybody in player's party, non-fate mobs.
+		--Can't use aggrolist for party because chocobo doesn't get included, will eventually get railroaded.
+		block = 3
+		local party = EntityList.myparty
+		if ( party ) then
+			for i, member in pairs(party) do
+				if (member.id and member.id ~= 0) then
+					if (not IsNullString(excludeString)) then
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
+					else
+						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
+					end
+					
+					if ( el ) then
+						local i,e = next(el)
+						if (ValidTable(e) and e.uniqueid ~= 541) then
+							--d("Grind returned, using block:"..tostring(block))
+							return e
+						end
+					end
+				end
+			end
 		end
-	end
-	
-	--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
-	block = 5
-	if (not IsNullString(huntString)) then
-		el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
 		
-		if ( el ) then
-			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
-				if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+		block = 4
+		if (ValidTable(Player.pet)) then
+			if (not IsNullString(excludeString)) then
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+			else
+				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+			end
+			
+			if ( el ) then
+				local i,e = next(el)
+				if (ValidTable(e) and e.uniqueid ~= 541) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
 			end
 		end
-	end
-	
-	--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
-	if (IsNullString(huntString)) then
-		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-		end
 		
-		block = 6
-		if ( el ) then
-			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
-				--d("Grind returned, using block:"..tostring(block))
-				return e
+		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
+		block = 5
+		if (not IsNullString(huntString)) then
+			el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
+			
+			if ( el ) then
+				local i,e = next(el)
+				if (ValidTable(e) and e.uniqueid ~= 541) then
+					if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+						--d("Grind returned, using block:"..tostring(block))
+						return e
+					end
+				end
 			end
 		end
-	
-		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-		end
 		
-		block = 7
-		if ( el ) then
-			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
-				--d("Grind returned, using block:"..tostring(block))
-				return e
+		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
+		if (IsNullString(huntString)) then
+			if (not IsNullString(excludeString)) then
+				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+			end
+			
+			block = 6
+			if ( el ) then
+				local i,e = next(el)
+				if (ValidTable(e) and e.uniqueid ~= 541) then
+					--d("Grind returned, using block:"..tostring(block))
+					return e
+				end
+			end
+		
+			if (not IsNullString(excludeString)) then
+				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+			else
+				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+			end
+			
+			block = 7
+			if ( el ) then
+				local i,e = next(el)
+				if (ValidTable(e) and e.uniqueid ~= 541) then
+					--d("Grind returned, using block:"..tostring(block))
+					return e
+				end
 			end
 		end
 	end
@@ -1986,14 +2152,20 @@ function ScanForMobs(ids,distance)
 	local maxdistance = tonumber(distance) or 30
 	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
-		for i,e in pairs(el) do
-			if (ValidTable(e)) then
-				return true
-			end
+		local i,e = next(el)
+		if (i and e) then
+			return true
 		end
 	end
 	
-	
+	local el = EntityList("nearest,aggro,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		local i,e = next(el)
+		if (i and e) then
+			return true
+		end
+	end
+
 	return false
 end
 ff["ScanForMobs"] = ScanForMobs
@@ -2021,10 +2193,9 @@ function ScanForObjects(ids,distance)
 	local maxdistance = tonumber(distance) or 30
 	local el = EntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
-		for i,e in pairs(el) do
-			if (ValidTable(e)) then
-				return true
-			end
+		local i,e = next(el)
+		if (i and e) then
+			return true
 		end
 	end
 	

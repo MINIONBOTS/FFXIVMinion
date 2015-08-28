@@ -380,6 +380,13 @@ function c_avoid:evaluate()
 		return false
 	end
 	
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS" or 
+		ml_task_hub:CurrentTask().name == "MOVETOMAP" or
+		ml_task_hub:CurrentTask().name == "MOVETOINTERACT") 
+	then
+		return false
+	end
+	
 	--Reset tempvar.
 	c_avoid.newAvoid = {}
 	
@@ -975,13 +982,24 @@ end
 function e_walktopos:execute()
 	if (ValidTable(c_walktopos.pos)) then
 		local gotoPos = c_walktopos.pos
-		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
-		if (not tonumber(path)) then
-			ml_debug("[e_walktopos] An error occurred in creating the path.")
-		elseif (path >= 0) then
-			ml_debug("[e_walktopos] A path with " .. path .. " points was created.")
-		elseif (path <= -1 and path >= -10) then
-			ml_debug("[e_walktopos] A path could not be created towards the goal.")
+		local myPos = Player.pos
+		
+		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (dist >= 2) then
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
+			
+			if (not tonumber(path)) then
+				ml_debug("[e_walktopos] An error occurred in creating the path.")
+			elseif (path >= 0) then
+				ml_debug("[e_walktopos] A path with " .. path .. " points was created.")
+			elseif (path <= -1 and path >= -10) then
+				ml_debug("[e_walktopos] A path could not be created towards the goal.")
+			end
+		else
+			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
+			if (not Player:IsMoving()) then
+				Player:Move(FFXIV.MOVEMENT.FORWARD)
+			end
 		end
 	end
 	c_walktopos.pos = 0

@@ -211,10 +211,13 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local gotoPos = self.gatePos or self.pos
 		
 		local distance = 0.0
+		local distance2d = 0.0
 		if (self.use3d) then
 			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		else
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end 
 		local pathdistance = GetPathDistance(myPos,gotoPos)
 		
@@ -229,12 +232,19 @@ function ffxiv_task_movetopos:task_complete_eval()
 							return true
 						end
 					end
-					local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos,false)
-					if (ValidTable(p)) then
-						if (not deepcompare(self.pos,p,true)) then
-							self.pos = p
-							ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
-						end
+					if (not deepcompare(self.pos,entity.pos,true)) then
+						self.pos = entity.pos
+						gotoPos = self.pos
+						ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
+						
+						if (self.use3d) then
+							distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+							distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+						else
+							distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+							distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+						end 
+						pathdistance = GetPathDistance(myPos,gotoPos)
 					end
 				end
 			end
@@ -268,7 +278,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 						if (ValidTable(entity)) then
 							local epos = entity.pos
 							local usedist = Distance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
-							if (usedist > self.range) then
+							if (usedist > (self.range + entity.hitradius)) then
 								return false
 							end
 						end
@@ -278,11 +288,14 @@ function ffxiv_task_movetopos:task_complete_eval()
 		end
 		
 		if (distance < (self.range + self.gatherRange)) then
-			ml_debug("[MOVETOPOS]: Completing due to range reached.")
+			d("[MOVETOPOS]: Completing @ 3D range ["..tostring(distance).."].")
+			d("[MOVETOPOS]: Completing @ 2D range ["..tostring(distance2d).."].")
+			d("[MOVETOPOS]: Completing due to range ["..tostring(self.range + self.gatherRange).."] reached.")
 			return true
 		else
 			-- For extremely small distances, allow to execute early if it's reasonably close.
 			if (not Player:IsMoving() and self.range < 1 and distance < 1) then
+				d("[MOVETOPOS]: Completing due to range reached.")
 				return true
 			end
 		end
