@@ -226,25 +226,30 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (ValidTable(el)) then
 				local id,entity = next(el)
 				if (ValidTable(entity)) then
-					if (self.customSearchCompletes) then
-						if (InCombatRange(entity.id)) then
-							ml_debug("[MOVETOPOS]: Ending movetopos, found the target.")
-							return true
+					if (entity.alive) then
+						if (self.customSearchCompletes) then
+							if (InCombatRange(entity.id)) then
+								ml_debug("[MOVETOPOS]: Ending movetopos, found the target.")
+								return true
+							end
 						end
-					end
-					if (not deepcompare(self.pos,entity.pos,true)) then
-						self.pos = entity.pos
-						gotoPos = self.pos
-						ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
-						
-						if (self.use3d) then
-							distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-							distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-						else
-							distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-							distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-						end 
-						pathdistance = GetPathDistance(myPos,gotoPos)
+						local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos)
+						if (p) then
+							if (not deepcompare(self.pos,p,true)) then
+								self.pos = p
+								gotoPos = self.pos
+								ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
+								
+								if (self.use3d) then
+									distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+								else
+									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+								end 
+								pathdistance = GetPathDistance(myPos,gotoPos)
+							end
+						end
 					end
 				end
 			end
