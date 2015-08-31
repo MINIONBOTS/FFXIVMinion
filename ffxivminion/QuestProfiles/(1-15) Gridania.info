@@ -140,9 +140,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Way of the Archer";
 			["prereq"] = {
-				[5] = {
-					[1] = 123;
-				};
+				["QuestCompleted(123)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -341,9 +339,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65559";
 			["prereq"] = {
-				[4] = {
-					[1] = 85;
-				};
+				["QuestCompleted(85)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -811,8 +807,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Courage of Stone";
 			["prereq"] = {
-				["QuestCompleted(23)"] = true;
-				["QuestCompleted(47)"] = true;
+				["QuestCompleted(23) and QuestCompleted(47)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1462,9 +1457,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "A Matter of Perspective";
 			["prereq"] = {
-				[5] = {
-					[1] = 21;
-				};
+				["QuestCompleted(21)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1651,9 +1644,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65583";
 			["prereq"] = {
-				[4] = {
-					[1] = 23;
-				};
+				["QuestCompleted(23)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1818,9 +1809,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "Trial by Earth";
 			["prereq"] = {
-				[6] = {
-					[1] = 22;
-				};
+				["QuestCompleted(22)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1936,9 +1925,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "A Dangerous Proposition";
 			["prereq"] = {
-				[4] = {
-					[1] = 35;
-				};
+				["QuestCompleted(35)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -2058,9 +2045,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65603";
 			["prereq"] = {
-				[5] = {
-					[1] = 46;
-				};
+				["QuestCompleted(21) and QuestCompleted(46)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -2302,9 +2287,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Violators Will Be Shot";
 			["prereq"] = {
-				[5] = {
-					[1] = 67;
-				};
+				["QuestCompleted(67)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -2562,9 +2545,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65621";
 			["prereq"] = {
-				[-1] = {
-					[1] = 39;
-				};
+				["QuestCompleted(39)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -2660,9 +2641,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Trial by Wind";
 			["prereq"] = {
-				[6] = {
-					[1] = 48;
-				};
+				["QuestCompleted(22) and QuestCompleted(48)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3110,9 +3089,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Close to Home";
 			["prereq"] = {
-				[-1] = {
-					[1] = 39;
-				};
+				["QuestCompleted(39)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3208,9 +3185,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65660";
 			["prereq"] = {
-				[-1] = {
-					[1] = 39;
-				};
+				["QuestCompleted(39)"] = true;
 			};
 			["steps"] = {
 				[1] = {

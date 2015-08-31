@@ -1225,9 +1225,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "Way of the Gladiator";
 			["prereq"] = {
-				[-1] = {
-					[1] = 568;
-				};
+				["QuestCompleted(568)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1326,9 +1324,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "Kicking the Hornet's Nest";
 			["prereq"] = {
-				[-1] = {
-					[1] = 253;
-				};
+				["QuestCompleted(253)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1583,9 +1579,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Ul'dah's Most Wanted";
 			["prereq"] = {
-				[-1] = {
-					[1] = 256;
-				};
+				["QuestCompleted(253) and QuestCompleted(256)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1721,9 +1715,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "That Old Familiar Feeling";
 			["prereq"] = {
-				[-1] = {
-					[1] = 261;
-				};
+				["QuestCompleted(261)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3599,11 +3591,7 @@ local obj1 = {
 		[337] = {
 			["level"] = 10;
 			["name"] = "By the Toe";
-			["prereq"] = {
-				[-1] = {
-					[1] = 320;
-				};
-			};
+			["prereq"] = false;
 			["steps"] = {
 				[1] = {
 					["id"] = 1002058;
@@ -4032,9 +4020,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65881";
 			["prereq"] = {
-				[-1] = {
-					[1] = 570;
-				};
+				["GetQuestInfo(570,'I8AH') >= 2 or QuestCompleted(570)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4133,9 +4119,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65883";
 			["prereq"] = {
-				[-1] = {
-					[1] = 345;
-				};
+				["QuestCompleted(345)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4243,9 +4227,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65884";
 			["prereq"] = {
-				[-1] = {
-					[1] = 347;
-				};
+				["QuestCompleted(345) and QuestCompleted(347)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4389,9 +4371,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "The Threat of Superiority";
 			["prereq"] = {
-				[-1] = {
-					[1] = 348;
-				};
+				["QuestCompleted(348)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -6201,9 +6181,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "66090";
 			["prereq"] = {
-				[2] = {
-					[1] = 533;
-				};
+				["QuestCompleted(533)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -6440,9 +6418,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "66091";
 			["prereq"] = {
-				[2] = {
-					[1] = 554;
-				};
+				["QuestCompleted(533) and QuestCompleted(554)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -6610,9 +6586,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "66094";
 			["prereq"] = {
-				[2] = {
-					[1] = 555;
-				};
+				["QuestCompleted(555)"] = true;
 			};
 			["steps"] = {
 				[1] = {

@@ -1249,7 +1249,7 @@ local obj1 = {
 			["level"] = 1;
 			["name"] = "65847";
 			["prereq"] = {
-				["GetQuestInfo(108,'step') == 255"] = true;
+				["(GetQuestInfo(108,'step') == 255) or QuestCompleted(108)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1349,9 +1349,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65849";
 			["prereq"] = {
-				[-1] = {
-					[1] = 311;
-				};
+				["QuestCompleted(311)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1638,9 +1636,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "Wake of Destruction";
 			["prereq"] = {
-				[-1] = {
-					[1] = 313;
-				};
+				["QuestCompleted(311) and QuestCompleted(313)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -1724,9 +1720,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Brutal Strength";
 			["prereq"] = {
-				[-1] = {
-					[1] = 314;
-				};
+				["QuestCompleted(314)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3692,9 +3686,7 @@ local obj1 = {
 			["level"] = 5;
 			["name"] = "65991";
 			["prereq"] = {
-				[-1] = {
-					[1] = 453;
-				};
+				["QuestCompleted(453)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3825,9 +3817,7 @@ local obj1 = {
 			["level"] = 10;
 			["name"] = "65992";
 			["prereq"] = {
-				[-1] = {
-					[1] = 455;
-				};
+				["QuestCompleted(453) and QuestCompleted(455)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -3983,9 +3973,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Over the Rails";
 			["prereq"] = {
-				[-1] = {
-					[1] = 1103;
-				};
+				["QuestCompleted(1103)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7289,9 +7277,7 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "Topaz Teachings";
 			["prereq"] = {
-				[-1] = {
-					[1] = 456;
-				};
+				["QuestCompleted(456)"] = true;
 			};
 			["steps"] = {
 				[1] = {
