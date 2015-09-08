@@ -402,7 +402,7 @@ c_dutydatacheck = inheritsFrom( ml_cause )
 e_dutydatacheck = inheritsFrom( ml_effect )
 e_dutydatacheck.timer = 0
 function c_dutydatacheck:evaluate()
-    if (not IsLoading() and not Player.incombat and NotQueued() and not ml_task_hub:CurrentTask().refreshed) then
+    if (not IsLoading() and not Player.incombat and not ml_task_hub:CurrentTask().refreshed) then
 		return true
     end	
 	
