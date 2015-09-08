@@ -941,7 +941,11 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (ControlVisible("SelectYesno")) then
-		PressYesNo(true)
+		if (ControlVisible("_NotificationParty")) then
+			PressYesNo(false)
+		else
+			PressYesNo(true)
+		end
 	end
 	
 	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh or Player.localmapid ~= self.mapID) then
