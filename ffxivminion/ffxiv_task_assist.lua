@@ -55,14 +55,14 @@ function ffxiv_task_assist:GetHealingTarget()
     local target = nil
     if ( gAssistMode == GetString("lowestHealth")) then	
         local target = GetBestHealTarget()		
-    
     elseif ( gAssistMode == GetString("nearest") ) then	
         local target = GetClosestHealTarget()	
     end
     
-    if ( target~=nil and target.hp.percent < SkillMgr.GetHealSpellHPLimit() ) then
+    if ( target and target.hp.percent < SkillMgr.GetHealSpellHPLimit() ) then
         return target
     end
+	
     return nil
 end
 
@@ -71,21 +71,50 @@ function ffxiv_task_assist:GetAttackTarget()
     local target = nil
     if ( gAssistMode == GetString("lowestHealth")) then	
         local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( el ) then
+        if ( ValidTable(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
             end
-        end	
-    
+        end
     elseif ( gAssistMode == GetString("nearest") ) then	
         local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( el ) then
+        if ( ValidTable(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
             end
         end	
+	 elseif ( gAssistMode == GetString("tankAssist") ) then
+		local party = EntityList("myparty")
+		if (ValidTable(party)) then
+			local tanks = {}
+			for i,member in pairs(party) do
+				if (member.role == 1) then
+					table.insert(tanks,member)
+				end
+			end
+			
+			if (ValidTable(tanks)) then
+				local closest = nil
+				local closestDistance = 999
+				for i,tank in pairs(tanks) do
+					if (not closest or (closest and tank.distance < closestDistance)) then
+						closest = tank
+						closestDistance = tank.distance
+					end
+				end
+				
+				if (closest) then
+					if (closest.targetid ~= 0) then
+						local targeted = EntityList:Get(closest.targetid)
+						if (targeted and targeted.attackable and targeted.alive) then
+							target = targeted
+						end
+					end
+				end
+			end
+		end
     end
     
     return target
@@ -116,15 +145,18 @@ function ffxiv_task_assist:Process()
             target = newTarget
 			Player:SetTarget(target.id)  
         end
-    end	
-
-    if ( target and target.alive and (target.attackable or target.chartype==2 or target.chartype==5 or target.chartype==4) and target.distance <= 35 ) then
+    end
+	
+	local casted = false
+    if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and target.distance <= 35 ) then
 		if (gStartCombat == "1" or (gStartCombat == "0" and Player.incombat)) then
-			SkillMgr.Cast( target )
+			if (SkillMgr.Cast( target )) then
+				casted = true
+			end
 		end
     end
 	
-	if ( target == nil and not ActionList:IsCasting()) then
+	if (not casted) then
 		SkillMgr.Cast( Player, true )
 	end
 
@@ -197,7 +229,7 @@ function ffxiv_task_assist.UIInit()
 	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)
     
 	local group = GetString("settings")
-    GUI_NewComboBox(winName,GetString("assistMode"),"gAssistMode", group,GetStringList("none,lowestHealth,nearest",","))
+    GUI_NewComboBox(winName,GetString("assistMode"),"gAssistMode", group,GetStringList("none,lowestHealth,nearest,tankAssist",","))
     GUI_NewComboBox(winName,GetString("assistPriority"),"gAssistPriority",group,GetStringList("dps,healer",","))
 	GUI_NewCheckbox(winName,"Use Autoface","gAssistUseAutoFace",group)
     GUI_NewCheckbox(winName,GetString("startCombat"),"gStartCombat",group)
