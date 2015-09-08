@@ -4006,8 +4006,7 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 	},    	
-	["kr"] =
-    {
+	{
         startStop                       = "시작중지",
         doPulse                         = "중지(디버그)",
         pulseTime                       = "펄스시간(밀리초)",
@@ -4408,6 +4407,7 @@ strings =
         combatType                      = "전투 유형",
         nearest                         = "가까운",
         lowestHealth                    = "적은 체력",
+		tankAssist						= "Tank Assist",
         pvpTargetOne                    = "우선순위 1",
         pvpTargetTwo                    = "우선순위 2",
 		pvpTargetThree					= "우선순위 3",
@@ -4693,7 +4693,7 @@ strings =
 		whitelistFishHQ					= "화이트리스트 낚시 (HQ)",
 		blacklistFish					= "블랙리스트 낚시",
 		blacklistFishHQ					= "블랙리스트 낚시 (HQ)",
-    },                                  
+    },                               
 }
 
 function SetLanguage(event, arg)
