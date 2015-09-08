@@ -1157,10 +1157,16 @@ function e_gather:execute()
 								end
 								
 								local result = Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = Now()
-								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 3000
+								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = Now()
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+								end
 								return
 							end
 						end
@@ -1219,10 +1225,16 @@ function e_gather:execute()
 								end
 								
 								local result = Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = Now()
-								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 3000
+								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = Now()
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+								end
 								return
 							end
 						end
@@ -1541,6 +1553,7 @@ function c_collectiblegame:evaluate()
 		local info = Player:GetCollectableInfo()
 		if (ValidTable(info)) then
 			
+			PressCollectReturn(true/false)
 		end
 	end
 	return false
@@ -1786,7 +1799,7 @@ function ffxiv_task_gather.UIInit()
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"")
 	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
+	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group, ffxivminion.Strings.Meshes())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
@@ -1855,7 +1868,6 @@ function ffxiv_task_gather.UIInit()
 	gMinerCollectibleValue = Settings.FFXIVMINION.gMinerCollectibleValue
 	gBotanistCollectibleName = Settings.FFXIVMINION.gBotanistCollectibleName
 	gBotanistCollectibleValue = Settings.FFXIVMINION.gBotanistCollectibleValue
-	
 	
     ffxiv_task_gather.SetupMarkers()
     ffxiv_task_gather.RefreshGatherLocations()
