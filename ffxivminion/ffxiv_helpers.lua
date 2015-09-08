@@ -356,6 +356,7 @@ function GetNearestFateAttackable()
 			end
 		end
 		
+		
 		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
@@ -379,6 +380,16 @@ function GetNearestFateAttackable()
 				end
             end
         end
+		
+		if (gFateKillAggro == "1") then
+			el = EntityList("shortestpath,alive,attackable,aggro,onmesh")
+			if (ValidTable(el)) then
+				local i,e = next(el)
+				if (i~=nil and e~=nil) then
+					return e
+				end
+			end	
+		end
 		
         el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
@@ -3124,6 +3135,7 @@ function IsTank(jobID)
 		[FFXIV.JOBS.MARAUDER] = true,
 		[FFXIV.JOBS.PALADIN] = true,
 		[FFXIV.JOBS.WARRIOR] = true,
+		[FFXIV.JOBS.DARKKNIGHT] = true,
 	}
 	
 	return tanks[jobID]

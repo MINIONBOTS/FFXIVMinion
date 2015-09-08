@@ -271,7 +271,11 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
 					if (ControlVisible("SelectYesno")) then
-						PressYesNo(true)
+						if (ControlVisible("_NotificationParty")) then
+							PressYesNo(false)
+						else
+							PressYesNo(true)
+						end
 						ml_mesh_mgr.OMCThrottle = Now() + 500
 						return
 					end

@@ -33,6 +33,18 @@ ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
 ml_global_information.queueSync = nil
+ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
+ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
+ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
+	
+ml_global_information.chocoStance = {
+	[GetString("stFollow")] = 3,
+	[GetString("stFree")] = 4,
+	[GetString("stDefender")] = 5,
+	[GetString("stAttacker")] = 6,
+	[GetString("stHealer")] = 7,
+}
+ml_global_information.blacklistedAetherytes = {}
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -42,6 +54,143 @@ ffxivminion.foods = {}
 ffxivminion.foodsHQ = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
+
+function ffxivminion.SetupOverrides()
+	-- setup marker manager callbacks and vars
+	ml_marker_mgr.GetPosition = 	function () return Player.pos end
+	ml_marker_mgr.GetLevel = 		function () return Player.level end
+	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
+	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
+	ml_node.DistanceTo	= 			ffxivminion.NodeDistance
+	
+	-- setup meshmanager
+	if ( ml_mesh_mgr ) then
+		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
+		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
+		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
+		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
+		ml_mesh_mgr.SetEvacPoint = function ()
+			if (gmeshname ~= "" and Player.onmesh) then
+				ml_marker_mgr.markerList["evacPoint"] = shallowcopy(Player.pos)
+				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+			end
+		end
+		
+		ml_mesh_mgr.GetString = function (inputString)
+			if (ValidString(inputString)) then
+				if (not string.find(inputString,'%s%-%s%[.+%]')) then
+					local allowedMaps = ml_mesh_mgr.GetAllowedMaps(inputString)
+					if (ValidTable(allowedMaps)) then
+						local mapid,dup = next(allowedMaps)
+						local mapname = AceLib.API.Map.GetMapName(mapid)
+						if (mapname and mapname ~= "") then
+							return inputString.." - ["..mapname.."]"
+						end
+					end
+				end
+			end
+			return inputString
+		end
+			
+		ml_mesh_mgr.GetFileName = function (inputString) 
+			if (ValidString(inputString)) then
+				if (string.find(inputString,'%s%-%s%[.+%]')) then
+					inputString = string.gsub(inputString,'%s%-%s%[.+%]',"")
+				end
+			end
+			return inputString 
+		end
+		
+		ml_mesh_mgr.AllowedMapsLookup = function (mapid) 
+			local placeid = AceLib.API.Map.GetPlaceID(mapid) or 0
+			if (placeid ~= 0) then
+				local allowedMaps = AceLib.API.Map.GetValidMaps(placeid)
+				if (ValidTable(allowedMaps)) then
+					return allowedMaps
+				end
+			end
+			return { [mapid] = mapid }
+		end
+		
+		ml_mesh_mgr.IsValidLuaState = function ()
+			if (ValidTable(ffxivminion.modesToLoad)) then
+				d("Prevented loading during an invalid state.")
+				return false
+			end
+			return true
+		end
+
+		ml_mesh_mgr.averagegameunitsize = 1
+		ml_mesh_mgr.useQuaternion = false
+		
+		-- Set default meshes SetDefaultMesh(mapid, filename)
+		ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(135, "Lower La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(137, "Eastern La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(138, "Western La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(139, "Upper La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(140, "Western Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(141, "Central Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(145, "Eastern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(146, "Southern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(147, "Northern Thanalan")
+		ml_mesh_mgr.SetDefaultMesh(148, "Central Shroud")
+		ml_mesh_mgr.SetDefaultMesh(152, "East Shroud")
+		ml_mesh_mgr.SetDefaultMesh(153, "South Shroud")
+		ml_mesh_mgr.SetDefaultMesh(154, "North Shroud")
+		ml_mesh_mgr.SetDefaultMesh(155, "Coerthas")
+		ml_mesh_mgr.SetDefaultMesh(156, "Mor Dhona")
+		ml_mesh_mgr.SetDefaultMesh(180, "Outer La Noscea")
+		ml_mesh_mgr.SetDefaultMesh(337, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(130, "Ul dah - Steps of Nald")
+		ml_mesh_mgr.SetDefaultMesh(131, "Ul dah - Steps of Thal")
+		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
+		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Lower)")
+		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
+		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
+		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
+		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter")
+		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
+		ml_mesh_mgr.SetDefaultMesh(179, "Gridania - Inn")
+		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
+		ml_mesh_mgr.SetDefaultMesh(177, "Limsa Lominsa - Inn")
+		
+		ml_mesh_mgr.SetDefaultMesh(210, "Ul dah - Heart of the Sworn")
+		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
+		ml_mesh_mgr.SetDefaultMesh(198, "Limsa Lominsa - Command")
+		ml_mesh_mgr.SetDefaultMesh(204, "Gridania - First Bow")
+		ml_mesh_mgr.SetDefaultMesh(286, "ImOnABoat")
+		
+		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
+		
+		ml_mesh_mgr.SetDefaultMesh(331, "Garuda_Entrance")
+		ml_mesh_mgr.SetDefaultMesh(351, "Rising Stones")
+		ml_mesh_mgr.SetDefaultMesh(395, "Intercessory")
+		ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
+		ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands")
+		ml_mesh_mgr.SetDefaultMesh(399, "The Dravanian Hinterlands")
+		ml_mesh_mgr.SetDefaultMesh(400, "The Churning Mists")
+		ml_mesh_mgr.SetDefaultMesh(401, "Sea of Clouds")
+		ml_mesh_mgr.SetDefaultMesh(402, "Azys Lla")
+		ml_mesh_mgr.SetDefaultMesh(418, "Ishgard - Foundation")
+		ml_mesh_mgr.SetDefaultMesh(419, "Ishgard - The Pillars")
+		ml_mesh_mgr.SetDefaultMesh(427, "Ishgard - Scholasticate")
+		ml_mesh_mgr.SetDefaultMesh(439, "Ishgard - Chocobo Proving Grounds")
+		ml_mesh_mgr.SetDefaultMesh(433, "Ishgard - Fortempts Manor")
+		ml_mesh_mgr.SetDefaultMesh(456, "Ishgard - Ruling Chamber")
+		ml_mesh_mgr.SetDefaultMesh(463, "Matoyas Cave")
+		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire") 
+		
+		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")
+		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
+		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
+				
+		ml_mesh_mgr.InitMarkers()
+	end
+end
 
 ffxivminion.Strings = {
 	BotModes = 
@@ -77,7 +226,7 @@ ffxivminion.Strings = {
 			if ( ValidTable(meshfilelist)) then
 				for i, meshname in pairs(meshfilelist) do
 					meshname = string.gsub(meshname, ".obj", "")
-					meshlist = meshlist..","..meshname
+					meshlist = meshlist..","..ml_mesh_mgr.GetString(meshname)
 				end
 			end
 			
@@ -133,8 +282,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		local h = pos.h or 1
 		if (timer and Now() > timer) then
 			d("Attempting to resync.")
-			--Player:Jump()
-			GameHacks:TeleportToXYZ(pos.x,pos.y,pos.z)
+			Player:Stop()
+			Player:SetFacing(pos.x,pos.y,pos.z)
 			Player:SetFacingSynced(h)
 			ml_global_information.queueSync = nil
 		end
@@ -332,19 +481,7 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 		
-	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-	ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
-	ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
-	
-	ml_global_information.chocoStance = {
-		[GetString("stFollow")] = 3,
-		[GetString("stFree")] = 4,
-		[GetString("stDefender")] = 5,
-		[GetString("stAttacker")] = 6,
-		[GetString("stHealer")] = 7,
-	}
-	
-	ml_global_information.blacklistedAetherytes = {}
+	ffxivminion.SetupOverrides()
 	
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
 	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
@@ -641,94 +778,7 @@ function ffxivminion.HandleInit()
 		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
 	
-	-- setup marker manager callbacks and vars
-	ml_marker_mgr.GetPosition = 	function () return Player.pos end
-	ml_marker_mgr.GetLevel = 		function () return Player.level end
-	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
-	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
-	ml_node.DistanceTo	= 			ffxivminion.NodeDistance
 	
--- setup meshmanager
-	if ( ml_mesh_mgr ) then
-		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
-		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
-		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
-		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
-		ml_mesh_mgr.SetEvacPoint = function ()
-			if (gmeshname ~= "" and Player.onmesh) then
-				ml_marker_mgr.markerList["evacPoint"] = shallowcopy(Player.pos)
-				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
-			end
-		end
-		ml_mesh_mgr.IsValidGameState = function ()
-			return (not IsLoading())
-		end
-		ml_mesh_mgr.averagegameunitsize = 1
-		ml_mesh_mgr.useQuaternion = false
-		
-	-- Set default meshes SetDefaultMesh(mapid, filename)
-		ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(135, "Lower La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(137, "Eastern La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(138, "Western La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(139, "Upper La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(140, "Western Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(141, "Central Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(145, "Eastern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(146, "Southern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(147, "Northern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(148, "Central Shroud")
-		ml_mesh_mgr.SetDefaultMesh(152, "East Shroud")
-		ml_mesh_mgr.SetDefaultMesh(153, "South Shroud")
-		ml_mesh_mgr.SetDefaultMesh(154, "North Shroud")
-		ml_mesh_mgr.SetDefaultMesh(155, "Coerthas")
-		ml_mesh_mgr.SetDefaultMesh(156, "Mor Dhona")
-		ml_mesh_mgr.SetDefaultMesh(180, "Outer La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(337, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(130, "Ul dah - Steps of Nald")
-		ml_mesh_mgr.SetDefaultMesh(131, "Ul dah - Steps of Thal")
-		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
-		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Lower)")
-		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
-		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
-		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
-		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter")
-		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
-		ml_mesh_mgr.SetDefaultMesh(179, "Gridania - Inn")
-		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
-		ml_mesh_mgr.SetDefaultMesh(177, "Limsa Lominsa - Inn")
-		
-		ml_mesh_mgr.SetDefaultMesh(181, "Limsa (Lower)")
-		ml_mesh_mgr.SetDefaultMesh(182, "Ul dah - Steps of Nald")
-		ml_mesh_mgr.SetDefaultMesh(183, "New Gridania")
-		
-		ml_mesh_mgr.SetDefaultMesh(203, "Ul dah - Heart of the Sworn")
-		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
-		ml_mesh_mgr.SetDefaultMesh(204, "Limsa Lominsa - Command")
-		
-		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
-		
-		ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
-		ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands")
-		ml_mesh_mgr.SetDefaultMesh(399, "The Dravanian Hinterlands")
-		ml_mesh_mgr.SetDefaultMesh(400, "The Churning Mists")
-		ml_mesh_mgr.SetDefaultMesh(401, "Sea of Clouds")
-		ml_mesh_mgr.SetDefaultMesh(402, "Azys Lla")
-		ml_mesh_mgr.SetDefaultMesh(418, "Ishgard - Foundation")
-		ml_mesh_mgr.SetDefaultMesh(419, "Ishgard - The Pillars")
-		ml_mesh_mgr.SetDefaultMesh(433, "Ishgard - Fortempts Manor")
-		ml_mesh_mgr.SetDefaultMesh(456, "Ishgard - Ruling Chamber")
-		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire")
-		
-		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")
-		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
-		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
-				
-		ml_mesh_mgr.InitMarkers() -- Update the Markers-group in the mesher UI
-	end
 	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
@@ -1549,6 +1599,7 @@ function ffxivminion.AddMode(name, task)
 end
 
 function ffxivminion.LoadModes()
+	local _gmeshname = gmeshname
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		for modeName,task in pairs(ffxivminion.modesToLoad) do
 			ffxivminion.modes[modeName] = task
@@ -1558,6 +1609,7 @@ function ffxivminion.LoadModes()
 		-- Empty out the table to prevent reloading.
 		ffxivminion.modesToLoad = {}
 	end
+	gmeshname = _gmeshname
 	
 	local botModes = ffxivminion.Strings.BotModes()
 	gBotMode_listitems = botModes
