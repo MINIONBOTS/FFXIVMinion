@@ -25,7 +25,7 @@ function imp.ModuleInit()
 	ffxivminion.Windows.Importer = { id = strings["us"].importExport, Name = GetString("importExport"), x=50, y=50, width=260, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Importer)
 	
-	if not file_exists(imp.globalSettings) then
+	if not FileExists(imp.globalSettings) then
 		persistence.store(imp.globalSettings,imp.structure)
 	end
 	
@@ -91,7 +91,7 @@ end
 function imp.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if (gExportAutoGlobal == "1") then
-			if not file_exists(imp.globalSettings) then
+			if not FileExists(imp.globalSettings) then
 				persistence.store(imp.globalSettings,imp.structure)
 			end
 			local importSettings,e = persistence.load(imp.globalSettings)
@@ -248,7 +248,7 @@ function imp.Export(key)
 			local file = imp.filesPath..nameString..".info"
 			local gatherLocations = Settings.FFXIVMINION.gGatherLocations
 			persistence.store(file,gatherLocations)
-			if (file_exists(file)) then
+			if (FileExists(file)) then
 				d(file.." was created successfully.")
 			end
 		elseif (key == "HuntLocations") then
@@ -260,7 +260,7 @@ function imp.Export(key)
 			local file = imp.filesPath..nameString..".info"
 			local huntLocations = Settings.FFXIVMINION.gHuntLocations
 			persistence.store(file,huntLocations)
-			if (file_exists(file)) then
+			if (FileExists(file)) then
 				d(file.." was created successfully.")
 			end
 		end
