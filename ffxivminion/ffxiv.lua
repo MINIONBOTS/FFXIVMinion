@@ -480,7 +480,7 @@ end
 
 -- Module Event Handler
 function ffxivminion.HandleInit()
-		
+	
 	ffxivminion.SetupOverrides()
 	
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
@@ -491,7 +491,7 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
 	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
 	ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
-	ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
+	--ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
 	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
 	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
@@ -1062,9 +1062,11 @@ function ffxivminion.SwitchMode(mode)
 		
 		--Setup default options.
 		if (gBotMode == GetString("dutyMode")) then
+			if (Duties) then
+				Duties.UpdateProfiles()
+			end
 			gTeleport = "1"
 			gParanoid = "0"
-			ffxiv_task_duty.UpdateProfiles()
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
