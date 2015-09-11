@@ -90,7 +90,7 @@ function ffxiv_task_assist:GetAttackTarget()
 		if (ValidTable(party)) then
 			local tanks = {}
 			for i,member in pairs(party) do
-				if (member.role == 1) then
+				if (member.role == 1 and member.id ~= Player.id) then
 					table.insert(tanks,member)
 				end
 			end
