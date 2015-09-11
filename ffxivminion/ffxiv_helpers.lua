@@ -2213,33 +2213,6 @@ function ScanForObjects(ids,distance)
 	return false
 end
 ff["ScanForObjects"] = ScanForObjects
-function DutyCanInteract(ids,distance)
-	local ids = (type(ids) == "string" and ids) or tostring(ids)
-	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
-		local tempvars = ffxiv_task_duty.tempvars
-		if (ValidTable(tempvars["interactprocesslist"])) then
-			local processlist = tempvars["interactprocesslist"]
-			for i,e in pairs(el) do
-				if (ValidTable(e)) then
-					if (not processlist[e.id] or (processlist[e.id] and Now() > processlist[e.id].blocked)) then
-						return true
-					end
-				end
-			end
-		else
-			for i,e in pairs(el) do
-				if (ValidTable(e)) then
-					return true
-				end
-			end
-		end
-	end
-	
-	return false
-end
-ff["DutyCanInteract"] = DutyCanInteract
 function CanUseCannon()
 	if (IsPositionLocked()) then
 		local misc = ActionList("type=1,level=0")
