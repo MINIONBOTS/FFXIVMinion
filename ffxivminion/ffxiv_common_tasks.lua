@@ -790,7 +790,7 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
-	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 50 )
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 50 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
 	
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 40 )

@@ -2501,3 +2501,17 @@ end
 function e_isloading:execute()
 	d("Character is loading, prevent other actions and idle.")
 end
+
+c_mapyesno = inheritsFrom( ml_cause )
+e_mapyesno = inheritsFrom( ml_effect )
+function c_mapyesno:evaluate()
+	return ControlVisible("SelectYesno")
+end
+function e_mapyesno:execute()
+	if (ControlVisible("_NotificationParty")) then
+		PressYesNo(false)
+	else
+		PressYesNo(true)
+	end
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
