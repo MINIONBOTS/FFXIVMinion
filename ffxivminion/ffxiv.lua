@@ -491,7 +491,6 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
 	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
 	ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
-	--ffxivminion.AddMode(GetString("dutyMode"), ffxiv_task_duty)
 	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
 	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
@@ -873,8 +872,8 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gUseCurielRoot" or
 			k == "gAvoidHP" or
 			k == "gAdvStealthDetect" or
-			k == "gAdvStealthRemove"
-			)				
+			k == "gAdvStealthRemove" or
+			k == "gQuestAutoEquip")				
         then
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "gMount" ) then
