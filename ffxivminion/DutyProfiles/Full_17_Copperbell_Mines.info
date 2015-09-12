@@ -3,6 +3,14 @@ local multiRefObjects = {
 
 } -- multiRefObjects
 local obj1 = {
+	["names"] = {
+		["us"] = "Full_17_Copperbell Mines";
+		["de"] = "Compleet_17_Kupferglocken-Mine";
+		["fr"] = "complet_17_Mines de Clochecuivre";
+		["jp"] = "完全な_17_カッパーベル銅山";
+		["kr"] = "완전한_17_구리종 광산";
+		["cn"] = "完整_17_铜铃铜山";
+	};
 	["MapID"] = 161;
 	["Independent"] = true;
 	["Category"] = 1; 
@@ -29,8 +37,7 @@ local obj1 = {
 			["condition"] = {
 				[1] = {
 					["DutyCanInteract('2000159',50)"] = true;
-					["Player.role == 1"] = false;
-					["Player.role == 4"] = false;
+					["ScanForMobs('117;1303;1302;1342;97;984;629;631;987;986',25)"] = false;
 				};
 			};
 			["reaction"] = {
@@ -246,8 +253,7 @@ local obj1 = {
 			["condition"] = {
 				[1] = {
 					["DutyCanInteract('2000169',50)"] = true;
-					["Player.role == 1"] = false;
-					["Player.role == 4"] = false;
+					["ScanForMobs('117;1303;1302;1342;97;984;629;631;987;986',25)"] = false;
 				};
 			};
 			["reaction"] = {
@@ -281,6 +287,7 @@ local obj1 = {
 			["condition"] = {
 				[1] = {
 					["DutyCanInteract('2000172',100)"] = true;
+					["ScanForMobs('117;1303;1302;1342;97;984;629;631;987;986',25)"] = false;
 				};
 			};
 			["reaction"] = {
@@ -462,8 +469,7 @@ local obj1 = {
 			["condition"] = {
 				[1] = {
 					["DutyCanInteract('2000179',50)"] = true;
-					["Player.role == 1"] = false;
-					["Player.role == 4"] = false;
+					["ScanForMobs('117;1303;1302;1342;97;984;629;631;987;986',25)"] = false;
 				};
 			};
 			["reaction"] = {
@@ -497,8 +503,7 @@ local obj1 = {
 			["condition"] = {
 				[1] = {
 					["DutyCanInteract('2001531',50)"] = true;
-					["Player.role == 1"] = false;
-					["Player.role == 4"] = false;
+					["ScanForMobs('117;1303;1302;1342;97;984;629;631;987;986',25)"] = false;
 				};
 			};
 			["reaction"] = {

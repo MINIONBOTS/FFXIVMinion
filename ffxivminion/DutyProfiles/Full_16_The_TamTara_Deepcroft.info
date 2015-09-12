@@ -3,6 +3,14 @@ local multiRefObjects = {
 
 } -- multiRefObjects
 local obj1 = {
+	["names"] = {
+		["us"] = "Full_16_The Tam-Tara Deepcroft";
+		["de"] = "Compleet_16_Totenacker Tam-Tara";
+		["fr"] = "complet_16_Hypogée de Tam-Tara";
+		["jp"] = "完全な_16_タムタラの墓所";
+		["kr"] = "완전한_16_탐타라 묘소";
+		["cn"] = "完整_16_塔姆·塔拉墓园";
+	};
 	["MapID"] = 164;
 	["Independent"] = true;
 	["Category"] = 1; 
