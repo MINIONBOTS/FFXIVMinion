@@ -4012,6 +4012,7 @@ strings =
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
 	},    	
+	["kr"] = 
 	{
         startStop                       = "시작중지",
         doPulse                         = "중지(디버그)",
