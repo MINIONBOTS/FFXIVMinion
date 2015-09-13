@@ -328,6 +328,37 @@ function e_bite:execute()
 	end
 end
 
+c_chum = inheritsFrom( ml_cause )
+e_chum = inheritsFrom( ml_effect )
+function c_chum:evaluate()
+	if (HasBuffs(Player,"763")) then
+		return false
+	end
+	
+	local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+		local marker = ml_global_information.currentMarker
+		if (ValidTable(marker)) then
+			local useChum = (marker:GetFieldValue(GetUSString("useChum")) == "1")
+			if (useChum) then
+				local chum = ActionList:Get(4104,1)
+				if (chum and chum.isready) then	
+					return true
+				end
+			end
+		end
+	end
+	
+    return false
+end
+function e_chum:execute()
+	local chum = ActionList:Get(4104,1)
+	if (chum and chum.isready) then	
+		chum:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1000
+	end
+end
+
 c_patience = inheritsFrom( ml_cause )
 e_patience = inheritsFrom( ml_effect )
 c_patience.action = 0
@@ -670,37 +701,40 @@ function ffxiv_task_fish:Init()
 
   
     --init Process() cnes
-    local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 110 )
+    local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 120 )
     self:add(ke_resetIdle, self.process_elements)
 	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 100 )
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 110 )
     self:add( ke_nextMarker, self.process_elements)
     
-    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 90 )
+    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
     
-    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 80 )
+    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 90 )
     self:add(ke_setbait, self.process_elements)
 	
-	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 70)
+	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
 	self:add(ke_syncadjust, self.process_elements)
 	
-	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 60 )
+	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 70 )
     self:add(ke_precast, self.process_elements)
 	
-	local ke_patience = ml_element:create( "Patience", c_patience, e_patience, 55 )
+	local ke_chum = ml_element:create( "Chum", c_chum, e_chum, 60 )
+    self:add(ke_chum, self.process_elements)
+	
+	local ke_patience = ml_element:create( "Patience", c_patience, e_patience, 50 )
     self:add(ke_patience, self.process_elements)
 	
-	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 50 )
+	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 40 )
     self:add(ke_mooch, self.process_elements)
 	
-	local ke_release = ml_element:create( "Release", c_release, e_release, 40 )
+	local ke_release = ml_element:create( "Release", c_release, e_release, 30 )
     self:add(ke_release, self.process_elements)	
     
-    local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 30 )
+    local ke_cast = ml_element:create( "Cast", c_cast, e_cast, 20 )
     self:add(ke_cast, self.process_elements)
     
-    local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 20 )
+    local ke_bite = ml_element:create( "Bite", c_bite, e_bite, 10 )
     self:add(ke_bite, self.process_elements)
    
     self:AddTaskCheckCEs()
@@ -777,6 +811,7 @@ function ffxiv_task_fish.SetupMarkers()
 	fishingMarker:AddField("checkbox", GetUSString("useMooch"), GetString("useMooch"), "1")
 	fishingMarker:AddField("checkbox", GetUSString("usePatience"), GetString("usePatience"), "0")
 	fishingMarker:AddField("checkbox", GetUSString("usePatience2"), GetString("usePatience2"), "0")
+	fishingMarker:AddField("checkbox", GetUSString("useChum"), GetString("useChum"), "0")
 	fishingMarker:AddField("string", GetUSString("moochableFish"), GetString("moochableFish"), "")
 	fishingMarker:AddField("string", GetUSString("whitelistFish"), GetString("whitelistFish"), "")
 	fishingMarker:AddField("string", GetUSString("whitelistFishHQ"), GetString("whitelistFishHQ"), "")

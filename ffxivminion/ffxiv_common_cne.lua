@@ -738,8 +738,10 @@ function c_teleporttomap:evaluate()
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
                                                     destMapID	)
-
-        if (ValidTable(ml_nav_manager.currPath)) then
+		local ppos = Player.pos
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		
+        if (ValidTable(ml_nav_manager.currPath) and dist > 120) then
             local aethid = nil
 			local mapid = nil
             for _, node in pairsByKeys(ml_nav_manager.currPath) do

@@ -2735,7 +2735,8 @@ function Dismount()
 				acMount:Cast()
 			end
 		else
-			ml_error("You need to select a Mount in the Minion Settings!")
+			SendTextCommand("/mount")
+			--ml_error("You need to select a Mount in the Minion Settings!")
 		end
 	end
 end

@@ -106,10 +106,12 @@ function ffxiv_task_assist:GetAttackTarget()
 				end
 				
 				if (closest) then
-					if (closest.targetid ~= 0) then
+					if (closest.targetid ~= 0 and closest.incombat) then
 						local targeted = EntityList:Get(closest.targetid)
 						if (targeted and targeted.attackable and targeted.alive) then
-							target = targeted
+							if (targeted.incombat and targeted.hp.percent < 100) then
+								target = targeted
+							end
 						end
 					end
 				end
