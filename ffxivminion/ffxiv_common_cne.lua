@@ -738,39 +738,41 @@ function c_teleporttomap:evaluate()
         local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
                                                     Player.localmapid,
                                                     destMapID	)
-		local ppos = Player.pos
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		
-        if (ValidTable(ml_nav_manager.currPath) and dist > 120) then
-            local aethid = nil
-			local mapid = nil
-            for _, node in pairsByKeys(ml_nav_manager.currPath) do
-                if (node.id ~= Player.localmapid) then
-					local map,aeth = GetAetheryteByMapID(node.id, ml_task_hub:ThisTask().pos)
-                    if (aeth) then
-						mapid = map
-						aethid = aeth
-					end
-                end
-            end
-            
-            if (aethid) then
-				local aetheryte = GetAetheryteByID(aethid)
-				if (aetheryte) then
-					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-						e_teleporttomap.destMap = mapid
-						e_teleporttomap.aethid = aethid
-						return true
-					else
-						ml_debug("Cannot use teleport, not enough gil or not attuned.")
+		if (ValidTable(pos)) then
+			local ppos = Player.pos
+			local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+			
+			if (ValidTable(ml_nav_manager.currPath) and dist > 120) then
+				local aethid = nil
+				local mapid = nil
+				for _, node in pairsByKeys(ml_nav_manager.currPath) do
+					if (node.id ~= Player.localmapid) then
+						local map,aeth = GetAetheryteByMapID(node.id, ml_task_hub:ThisTask().pos)
+						if (aeth) then
+							mapid = map
+							aethid = aeth
+						end
 					end
 				end
+				
+				if (aethid) then
+					local aetheryte = GetAetheryteByID(aethid)
+					if (aetheryte) then
+						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+							e_teleporttomap.destMap = mapid
+							e_teleporttomap.aethid = aethid
+							return true
+						else
+							ml_debug("Cannot use teleport, not enough gil or not attuned.")
+						end
+					end
+				else
+					ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
+				end
 			else
-				ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
-            end
-		else
-			ml_debug("Cannot use teleport, the current path returned wasn't valid.")
-        end
+				ml_debug("Cannot use teleport, the current path returned wasn't valid.")
+			end
+		end
 	else
 		ml_debug("Cannot use teleport, no destination map ID was provided.")
     end
