@@ -21,6 +21,7 @@ SkillMgr.lastQueued = 0
 SkillMgr.queuedPrio = 0
 SkillMgr.currentChain = ""
 SkillMgr.prevSkillID = ""
+SkillMgr.prevGatherSkillID = ""
 SkillMgr.prevSkillTimestamp = 0
 SkillMgr.prevGCDSkillID = ""
 SkillMgr.prevSkillList = {}
@@ -188,6 +189,7 @@ SkillMgr.Variables = {
 	SKM_EnmityAOE = { default = "0", cast = "string", profile = "enmityaoe", section = "fighting"   },
 	SKM_FrontalConeAOE = { default = "0", cast = "string", profile = "frontalconeaoe", section = "fighting"   },
 	SKM_TankedOnly = { default = "0", cast = "string", profile = "tankedonlyaoe", section = "fighting"   },
+	SKM_TEHPAvgGT = { default = 0, cast = "number", profile = "tehpavggt", section = "fighting"   },
 	
 	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting" , useData = "radius" },
 	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", section = "fighting"  },
@@ -262,8 +264,11 @@ SkillMgr.Variables = {
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
 	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
-	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},
+	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
+	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
+	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
 	
+	SKM_SingleUse = { default = "0", cast = "string", profile = "singleuse", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
@@ -273,6 +278,10 @@ SkillMgr.Variables = {
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
 	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
+	SKM_CollRarityLT = { default = 0, cast = "number", profile = "collraritylt", section = "gathering"},
+	SKM_CollRarityLTPct = { default = 0, cast = "number", profile = "collrarityltpct", section = "gathering"},
+	SKM_CollWearLT = { default = 0, cast = "number", profile = "collwearlt", section = "gathering"},
+	SKM_CollWearLTPct = { default = 0, cast = "number", profile = "collwearltpct", section = "gathering"},
 	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 }
@@ -490,6 +499,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
@@ -556,6 +566,8 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Whistle Stack >","SKM_WHSTACKMIN",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_crafting.name,"Whistle Stack =","SKM_WHSTACK",GetString("skillDetails"))
 	
     GUI_NewComboBox(SkillMgr.editwindow_crafting.name,GetString("condition"),"SKM_CONDITION",GetString("skillDetails"),GetString("notused")..","..GetString("excellent")..","..GetString("good")..","..GetString("normal")..","..GetString("poor"))
 	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",GetString("skillDetails"));
@@ -577,8 +589,13 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
     GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
     GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("singleUse"),"SKM_SingleUse",GetString("skillDetails"))	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmin"),"SKM_GPMIN",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity <=","SKM_CollRarityLT",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity % <=","SKM_CollRarityLTPct",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear <=","SKM_CollWearLT",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear % <=","SKM_CollWearLTPct",GetString("skillDetails"));	
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
@@ -1887,6 +1904,7 @@ SkillMgr.lastquality = 0
 SkillMgr.currentSHStack = 0
 SkillMgr.currentIQStack = 0
 SkillMgr.currentToTUses = 0
+SkillMgr.currentWhistleStack = 0
 SkillMgr.currentHTSuccesses = 0
 SkillMgr.manipulationUses = 0
 SkillMgr.checkHT = false
@@ -1925,6 +1943,15 @@ function SkillMgr.Craft()
 			end
 		else
 			SkillMgr.currentIQStack = 0 
+		end
+		
+		-- Update Whistle Stacks
+		if (HasBuffs(Player,"880")) then
+			if (SkillMgr.currentWhistleStack == 0) then
+				SkillMgr.currentWhistleStack = 11
+			end
+		else
+			SkillMgr.currentWhistleStack = 0 
 		end
 		
         for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
@@ -1985,6 +2012,24 @@ function SkillMgr.Craft()
 						castable = false
 					end
 					
+					if (tonumber(skill.whstackmin) > 0 and SkillMgr.currentWhistleStack < tonumber(skill.whstackmin)) then
+						castable = false
+					end
+					if (skill.whstack ~= "") then
+						local valid = false
+						for stacknum in StringSplit(skill.whstack,",") do
+							if (tonumber(stacknum) == SkillMgr.currentWhistleStack) then
+								valid = true
+							end
+							if (valid) then
+								break
+							end
+						end
+						if (not valid) then
+							castable = false
+						end
+					end
+					
 					if (tonumber(skill.manipmax) > 0 and SkillMgr.manipulationUses >= tonumber(skill.manipmax)) then
 						castable = false
 					end
@@ -2014,6 +2059,13 @@ function SkillMgr.Craft()
 								SkillMgr.checkHT = true
 							elseif (skid == 278) then
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
+							end
+							
+							if (SkillMgr.currentWhistleStack > 0) then
+								local retranslation = Retranslate(synth.description)
+								if (retranslation == GetString("good") or retranslation == GetString("excellent")) then
+									SkillMgr.currentWhistleStack = SkillMgr.currentWhistleStack - 1
+								end
 							end
 							
 							if (MultiComp(skid,"281,244,245,246,247,249,248,250,251")) then
@@ -2065,12 +2117,36 @@ function SkillMgr.Gather(item)
 						then castable = false 
 					end
 					
-					if (tonumber(skill.itemchancemax) > 0 and item and item.chance > tonumber(skill.itemchancemax)) then
-						castable = false
-					end
-					
-					if (tonumber(skill.itemhqchancemin) > 0 and item and (item.hqchance == 255 or item.hqchance < tonumber(skill.itemhqchancemin))) then
-						castable = false
+					if (ControlVisible("GatheringMasterpiece")) then
+						local info = Player:GetCollectableInfo()
+						if (ValidTable(info)) then
+							if (tonumber(skill.collraritylt) > 0 and info.rarity > tonumber(skill.collraritylt)) then
+								castable = false
+							end
+							if (tonumber(skill.collwearlt) > 0 and info.wear > tonumber(skill.collwearlt)) then
+								castable = false
+							end
+							
+							local rarityPct = ((info.rarity / info.raritymax) * 100)
+							local wearPct = ((info.wear / info.wearmax) * 100)
+							
+							if (tonumber(skill.collrarityltpct) > 0 and rarityPct > tonumber(skill.collrarityltpct)) then
+								castable = false
+							end
+							if (tonumber(skill.collwearltpct) > 0 and wearPct > tonumber(skill.collwearltpct)) then
+								castable = false
+							end
+						end
+					else
+						if (ValidTable(item)) then
+							if (tonumber(skill.itemchancemax) > 0 and item and item.chance > tonumber(skill.itemchancemax)) then
+								castable = false
+							end
+							
+							if (tonumber(skill.itemhqchancemin) > 0 and item and (item.hqchance == 255 or item.hqchance < tonumber(skill.itemhqchancemin))) then
+								castable = false
+							end
+						end
 					end
 					
 					if ( skill.gpbuff and skill.gpbuff ~= "" ) then
@@ -2092,7 +2168,7 @@ function SkillMgr.Gather(item)
 						if ( ActionList:Cast(skillid,Player.id)) then	
 							--d("CASTING (gathering) : "..tostring(skill.name))
 							SkillMgr.SkillProfile[prio].lastcast = Now()
-							SkillMgr.prevSkillID = tostring(skillid)
+							SkillMgr.prevGatherSkillID = tostring(skillid)
 							--After a skill is used here, mark it unusable for the rest of the duration of the node.
 							SkillMgr.prevSkillList[skillid] = true
 							
@@ -3823,6 +3899,21 @@ function SkillMgr.AddDefaultConditions()
 				if entity.level > level then
 					return true
 				end
+			end
+		end
+		
+		if (ValidTable(tlistAE) and tonumber(skill.tehpavggt) > 0) then
+			local enemies = TableSize(tlistAE)
+			local hptotal = 0
+			
+			for _, entity in pairs(tlistAE) do
+				hptotal = hptotal + entity.hp.percent
+			end
+			
+			local avghp = hptotal / enemies
+			if (avghp < tonumber(skill.tehpavggt)) then
+				SkillMgr.DebugOutput(skill.prio, "Average HP was reported as ["..tostring(avghp).."], this does not pass the check requirement ["..tostring(skill.tehpavggt).."].")
+				return true
 			end
 		end
 		

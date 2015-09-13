@@ -90,7 +90,7 @@ function ffxiv_task_assist:GetAttackTarget()
 		if (ValidTable(party)) then
 			local tanks = {}
 			for i,member in pairs(party) do
-				if (member.role == 1 and member.id ~= Player.id) then
+				if (IsTank(member.jobid) and member.id ~= Player.id) then
 					table.insert(tanks,member)
 				end
 			end
@@ -106,12 +106,10 @@ function ffxiv_task_assist:GetAttackTarget()
 				end
 				
 				if (closest) then
-					if (closest.targetid ~= 0 and closest.incombat) then
+					if (closest.targetid ~= 0) then
 						local targeted = EntityList:Get(closest.targetid)
 						if (targeted and targeted.attackable and targeted.alive) then
-							if (targeted.incombat and targeted.hp.percent < 100) then
-								target = targeted
-							end
+							target = targeted
 						end
 					end
 				end
