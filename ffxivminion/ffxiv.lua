@@ -33,9 +33,19 @@ ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
 ml_global_information.queueSync = nil
+ml_global_information.queueSyncForce = false
+ml_global_information.queueSyncForced = false
 ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
 ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
 ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
+--Setup Globals
+ml_global_information.lastUpdate = 0
+ml_global_information.Player_Position = {}
+ml_global_information.Player_Map = 0
+ml_global_information.Player_HP = {}
+ml_global_information.Player_MP = {}
+ml_global_information.Player_TP = {}
+ml_global_information.Player_Casting = {}
 	
 ml_global_information.chocoStance = {
 	[GetString("stFollow")] = 3,
@@ -57,7 +67,7 @@ ffxivminion.modesToLoad = {}
 
 function ffxivminion.SetupOverrides()
 	-- setup marker manager callbacks and vars
-	ml_marker_mgr.GetPosition = 	function () return Player.pos end
+	ml_marker_mgr.GetPosition = 	function () return ml_global_information.Player_Position end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
 	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
@@ -68,10 +78,10 @@ function ffxivminion.SetupOverrides()
 		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
 		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
 		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
-		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
+		ml_mesh_mgr.GetPlayerPos = function () return ml_global_information.Player_Position end
 		ml_mesh_mgr.SetEvacPoint = function ()
 			if (gmeshname ~= "" and Player.onmesh) then
-				ml_marker_mgr.markerList["evacPoint"] = shallowcopy(Player.pos)
+				ml_marker_mgr.markerList["evacPoint"] = ml_global_information.Player_Position
 				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 			end
 		end
@@ -273,6 +283,18 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		if (Player) then
 			ml_global_information.autoStartQueued = false
 			ml_task_hub:ToggleRun()
+		end
+	end
+	
+	if (TimeSince(ml_global_information.lastUpdate) > 100) then
+		ml_global_information.lastUpdate = tickcount
+		if (Player) then
+			ml_global_information.Player_Position = Player.pos
+			ml_global_information.Player_Map = Player.localmapid
+			ml_global_information.Player_HP = Player.hp
+			ml_global_information.Player_MP = Player.mp
+			ml_global_information.Player_TP = Player.tp
+			ml_global_information.Player_Casting = Player.castinginfo
 		end
 	end
 	
@@ -1088,6 +1110,18 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
 			gQuestAutoEquip = "1"
+		elseif (gBotMode == GetString("fishMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
+			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+			ffxiv_task_fish.UpdateProfiles()
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid

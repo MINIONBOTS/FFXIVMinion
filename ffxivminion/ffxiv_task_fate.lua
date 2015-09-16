@@ -47,7 +47,7 @@ function c_fatewait:evaluate()
 		return false
 	end
 	
-    local myPos = Player.pos
+    local myPos = ml_global_information.Player_Position
     local gotoPos = ml_marker_mgr.markerList["evacPoint"]
     return  (gFateWaitNearEvac == "1" and gFatesOnly == "1" and gDoFates == "1" and TableSize(gotoPos) > 0 and 
             NavigationManager:IsOnMesh(gotoPos.x, gotoPos.y, gotoPos.z) and
@@ -95,7 +95,7 @@ function c_betterfatesearch:evaluate()
 	local thisFate = GetFateByID(ml_task_hub:ThisTask().fateid)
 	if (ValidTable(thisFate)) then
 		local fatePos = {x = thisFate.x,y = thisFate.y,z = thisFate.z}
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local dist2d = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
 		
 		if (ffxiv_task_fate.IsChain(Player.localmapid,thisFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,thisFate.id)) then
@@ -151,7 +151,7 @@ function c_teletofate:evaluate()
 			end
 			
 			if fate.completion > percent then
-				local myPos = Player.pos
+				local myPos = ml_global_information.Player_Position
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				
 				if (gParanoid == "1") then
@@ -196,7 +196,7 @@ function e_teletofate:execute()
 	if (newdest) then
 		GameHacks:TeleportToXYZ(newdest.x,newdest.y,newdest.z)
 	end
-	Player:SetFacingSynced(Player.pos.h)
+	Player:SetFacingSynced(ml_global_information.Player_Position.h)
 	c_teletofate.lastTele = Now() + 10000
 	ffxiv_task_grind.inFate = true
 end
@@ -210,7 +210,7 @@ function c_movetochainlocation:evaluate()
 		ValidTable(ml_task_hub:CurrentTask().nextFate)) 
 	then
         local fate = ml_task_hub:CurrentTask().nextFate
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 		if (distance > 5) then				
 			return true
@@ -286,7 +286,7 @@ function c_movetofate:evaluate()
 		
         if (ValidTable(fate)) then
 			if (fate.status == 2) then
-				local myPos = Player.pos
+				local myPos = ml_global_information.Player_Position
 				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 				if (distance > fate.radius) then				
 					return true
@@ -321,7 +321,7 @@ function c_syncfatelevel:evaluate()
         return false
     end
 	
-    local myPos = Player.pos
+    local myPos = ml_global_information.Player_Position
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = GetFateByID(fateID)
 	if ( ValidTable(fate)) then
@@ -412,7 +412,8 @@ function c_faterandomdelay:evaluate()
 	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
 	
 	if (ValidTable(fate) and not ml_task_hub:ThisTask().randomDelayCompleted) then
-		local dist = Distance2D(Player.pos.x,Player.pos.z,fate.x,fate.z)
+		local myPos = ml_global_information.Player_Position
+		local dist = Distance2D(myPos.x,myPos.z,fate.x,fate.z)
 		
 		if (fate.completion == 0 and dist > (fate.radius + 20)) then
 			return true
@@ -449,7 +450,7 @@ function c_add_fatetarget:evaluate()
 	
 	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (ValidTable(fate)) then
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 		
 		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
@@ -462,16 +463,6 @@ function c_add_fatetarget:evaluate()
 				end
 			end
 		end
-	end
-	
-	if (gFateKillAggro == "1") then
-		local aggro = GetNearestAggro()
-		if ValidTable(aggro) then
-			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
-				c_add_fatetarget.targetid = aggro.id
-				return true
-			end
-		end 
 	end
     
     return false

@@ -207,7 +207,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 	end
 
     if (ValidTable(self.pos)) then
-        local myPos = Player.pos
+        local myPos = ml_global_information.Player_Position
 		local gotoPos = self.gatePos or self.pos
 		
 		local distance = 0.0
@@ -403,7 +403,7 @@ end
 function ffxiv_task_movetofate:task_complete_eval()	
 	local fate = GetFateByID(self.fateid)
 	if (ValidTable(fate)) then
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local fatedist = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
 		if (not AceLib.API.Fate.RequiresSync(fate.id) or fatedist < fate.radius) then
@@ -425,7 +425,8 @@ function ffxiv_task_movetofate:task_complete_eval()
 			self.lastMove = Now()
 		end
 		
-		local dist = Distance3D(Player.pos.x,Player.pos.y,Player.pos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
+		local myPos = ml_global_information.Player_Position
+		local dist = Distance3D(myPos.x,myPos.y,myPos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
 		if (self.requiresPosRandomize and 
 			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .95)))) 
 		then
@@ -442,7 +443,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						
 						if (dist < 10) then
 							if (IsFrontSafe(npc) and (npc.distance < fate.radius * .90)) then
-								self.pos = Player.pos
+								self.pos = myPos
 								self.requiresPosRandomize = false
 								self.lastRandomize = Now()	
 							end
@@ -497,7 +498,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		--While the FATE is moving, follow it closely.
 		if (TimeSince(self.lastMove) > 3000) then
 			if (ValidTable(self.pos)) then
-				local myPos = Player.pos
+				local myPos = ml_global_information.Player_Position
 				local gotoPos = self.pos
 				
 				local distance = 0.0
@@ -621,7 +622,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return true
 	end
 	
-	local ppos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
@@ -1231,7 +1232,7 @@ function ffxiv_task_avoid:task_complete_eval()
 			return true
 		end
 	else
-		local ppos = shallowcopy(Player.pos)
+		local ppos = ml_global_information.Player_Position
 		local topos = self.pos
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
 		if (dist < 1) then
@@ -1450,8 +1451,8 @@ function ffxiv_task_grindCombat.Create()
 	
 	newinst.attemptPull = false
 	newinst.pullTimer = 0
-	newinst.pullPos1 = Player.pos
-	newinst.pullPos2 = Player.pos
+	newinst.pullPos1 = ml_global_information.Player_Position
+	newinst.pullPos2 = ml_global_information.Player_Position
 	
 	d("[GrindCombat]: Beginning new task.")
 	
@@ -1501,7 +1502,7 @@ function ffxiv_task_grindCombat:Process()
 				local fate = GetFateByID(fateID)
 				if ( fate and fate.completion < 100 and fate.status == 2) then
 					if (AceLib.API.Fate.RequiresSync(fate.id)) then
-						local myPos = Player.pos
+						local myPos = ml_global_information.Player_Position
 						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 						if (distance <= fate.radius) then				
 							Player:SyncLevel()
@@ -1512,8 +1513,8 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local teleport = ShouldTeleport(target.pos)
-		local pos = shallowcopy(target.pos)
-		local ppos = shallowcopy(Player.pos)
+		local pos = target.pos
+		local ppos = ml_global_information.Player_Position
 		local pullpos1 = self.pullPos1
 		local pullpos2 = self.pullPos2
 		local range = ml_global_information.AttackRange
@@ -1994,7 +1995,7 @@ end
 
 function ffxiv_task_movewithflight:task_complete_eval()
     if (ValidTable(self.pos)) then
-        local myPos = Player.pos
+        local myPos = ml_global_information.Player_Position
 		local gotoPos = self.pos
 		
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		

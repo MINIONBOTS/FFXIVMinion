@@ -2899,7 +2899,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		local ppos = shallowcopy(Player.pos)
+		local ppos = ml_global_information.Player_Position
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
 		local minRange = tonumber(skill.minRange)
 		local maxRange = tonumber(skill.maxRange)

@@ -257,7 +257,7 @@ function c_huntlogmovetomap:evaluate()
 		local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
 		if (mapID and mapID > 0) then
 			if (Player.localmapid ~= mapID) then
-				local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
+				local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
 															Player.localmapid,
 															mapID	)
 				if (ValidTable(pos)) then
@@ -383,8 +383,9 @@ function c_huntlogmovetopos:evaluate()
 		local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
 		if (mapID and mapID > 0) then
 			if (Player.localmapid == mapID) then
+				local ppos = ml_global_information.Player_Position
 				local pos = ml_task_hub:ThisTask().huntParams["pos"]
-				if (Distance3D(Player.pos.x, Player.pos.y, Player.pos.z, pos.x, pos.y, pos.z) > 15) then
+				if (Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) > 15) then
 					return true
 				end
 			end

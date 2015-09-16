@@ -16,7 +16,7 @@ function c_partysyncfatelevel:evaluate()
 		return false
 	end
     
-    local myPos = Player.pos
+    local myPos = ml_global_information.Player_Position
     local fate = GetClosestFate(myPos)
 	if (ValidTable(fate)) then
 		if (AceLib.API.Fate.RequiresSync(fate.id)) then

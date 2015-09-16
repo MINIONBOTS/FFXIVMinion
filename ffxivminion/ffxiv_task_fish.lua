@@ -1,6 +1,10 @@
 ffxiv_task_fish = inheritsFrom(ml_task)
 ffxiv_task_fish.attemptedCasts = 0
 ffxiv_task_fish.biteDetected = 0
+ffxiv_task_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfiles\]]
+ffxiv_task_fish.profileData = {}
+ffxiv_task_fish.currentTask = {}
+ffxiv_task_fish.currentTaskIndex = 0
 
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
@@ -27,6 +31,8 @@ function ffxiv_task_fish.Create()
 	newinst.requiresAdjustment = false
 	
 	newinst.snapshot = GetSnapshot()
+	ffxiv_task_fish.currentTask = {}
+	ffxiv_task_fish.currentTaskIndex = 0
     
     return newinst
 end
@@ -79,8 +85,11 @@ function c_mooch:evaluate()
 	end
 	
 	local useMooch = false
-	local marker = ml_task_hub:CurrentTask().currentMarker
-	if (ValidTable(marker)) then
+	local marker = ml_global_information.currentMarker
+	local task = ffxiv_task_fish.currentTask
+	if (ValidTable(task)) then
+		useMooch = (task.usemooch == true) or false
+	elseif (ValidTable(marker)) then
 		useMooch = (marker:GetFieldValue(GetUSString("useMooch")) == "1")
 	end
 	
@@ -90,7 +99,14 @@ function c_mooch:evaluate()
         if (fs == 0 or fs == 4) then
 			local mooch = ActionList:Get(297,1)
 			if (useMooch and mooch and mooch.isready) then
-				local moochables = marker:GetFieldValue(GetUSString("moochableFish")) or ""
+				local moochables = ""
+				if (ValidTable(task)) then
+					if (task.moochables) then
+						moochables = task.moochables
+					end
+				elseif (ValidTable(marker)) then
+					moochables = marker:GetFieldValue(GetUSString("moochableFish")) or ""
+				end
 				
 				local lastCatch = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 				if (not lastCatch or moochables == "") then
@@ -130,45 +146,57 @@ function c_release:evaluate()
         if (fs == 0 or fs == 4) then
 			local release = ActionList:Get(300,1)
 			if (release and release.isready) then
+				
+				local whitelist = ""
+				local whitelistHQ = ""
+				local blacklist = ""
+				local blacklistHQ = ""
+				
+				local task = ffxiv_task_fish.currentTask
 				local marker = ml_global_information.currentMarker
-				if (ValidTable(marker)) then
-					local whitelist = marker:GetFieldValue(GetUSString("whitelistFish"))
-					local whitelistHQ = marker:GetFieldValue(GetUSString("whitelistFishHQ"))
-					local blacklist = marker:GetFieldValue(GetUSString("blacklistFish"))
-					local blacklistHQ = marker:GetFieldValue(GetUSString("blacklistFishHQ"))
+				if (ValidTable(task)) then
+					whitelist = IsNull(task.whitelist,"")
+					whitelistHQ = IsNull(task.whitelisthq,"")
+					blacklist = IsNull(task.blacklist,"")
+					blacklistHQ = IsNull(task.blacklisthq,"")
+				elseif (ValidTable(marker)) then
+					whitelist = IsNull(marker:GetFieldValue(GetUSString("whitelistFish")),"")
+					whitelistHQ = IsNull(marker:GetFieldValue(GetUSString("whitelistFishHQ")),"")
+					blacklist = IsNull(marker:GetFieldValue(GetUSString("blacklistFish")),"")
+					blacklistHQ = IsNull(marker:GetFieldValue(GetUSString("blacklistFishHQ")),"")
+				end
 					
-					local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
-					if (lastCatch) then
-						if (hq) then
-							if (whitelistHQ and whitelistHQ ~= "") then
-								for mustkeep in StringSplit(whitelistHQ,",") do
-									if (mustkeep == lastCatch) then
-										return false
-									else
-										return true
-									end
-								end
-							elseif (blacklistHQ and blacklistHQ ~= "") then
-								for throwaway in StringSplit(blacklistHQ,",") do
-									if (throwaway == lastCatch) then
-										return true
-									end
+				local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
+				if (lastCatch) then
+					if (hq) then
+						if (whitelistHQ and whitelistHQ ~= "") then
+							for mustkeep in StringSplit(whitelistHQ,",") do
+								if (mustkeep == lastCatch) then
+									return false
+								else
+									return true
 								end
 							end
-						else
-							if (whitelist and whitelist ~= "") then
-								for mustkeep in StringSplit(whitelist,",") do
-									if (mustkeep == lastCatch) then
-										return false
-									else
-										return true
-									end
+						elseif (blacklistHQ and blacklistHQ ~= "") then
+							for throwaway in StringSplit(blacklistHQ,",") do
+								if (throwaway == lastCatch) then
+									return true
 								end
-							elseif (blacklist and blacklist ~= "") then
-								for throwaway in StringSplit(blacklist,",") do
-									if (throwaway == lastCatch) then
-										return true
-									end
+							end
+						end
+					else
+						if (whitelist and whitelist ~= "") then
+							for mustkeep in StringSplit(whitelist,",") do
+								if (mustkeep == lastCatch) then
+									return false
+								else
+									return true
+								end
+							end
+						elseif (blacklist and blacklist ~= "") then
+							for throwaway in StringSplit(blacklist,",") do
+								if (throwaway == lastCatch) then
+									return true
 								end
 							end
 						end
@@ -213,6 +241,11 @@ function e_cast:execute()
 	if (cast and cast.isready) then	
 		if (cast:Cast()) then
 			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+		end
+		if (ValidTable(ffxiv_task_fish.currentTask)) then
+			if (ffxiv_task_fish.currentTask.taskStarted == 0) then
+				ffxiv_task_fish.currentTask.taskStarted = Now()
+			end
 		end
 		ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
@@ -337,14 +370,21 @@ function c_chum:evaluate()
 	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
+		
+		local useChum = false
+				
+		local task = ffxiv_task_fish.currentTask
 		local marker = ml_global_information.currentMarker
-		if (ValidTable(marker)) then
-			local useChum = (marker:GetFieldValue(GetUSString("useChum")) == "1")
-			if (useChum) then
-				local chum = ActionList:Get(4104,1)
-				if (chum and chum.isready) then	
-					return true
-				end
+		if (ValidTable(task)) then
+			useChum = IsNull(task.usechum,false)
+		elseif (ValidTable(marker)) then
+			useChum = (IsNull(marker:GetFieldValue(GetUSString("useChum")),"0") == "1")
+		end
+	
+		if (useChum) then
+			local chum = ActionList:Get(4104,1)
+			if (chum and chum.isready) then	
+				return true
 			end
 		end
 	end
@@ -372,22 +412,31 @@ function c_patience:evaluate()
 	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
+		
+		local usePatience = false
+		local usePatience2 = false
+		
+		local task = ffxiv_task_fish.currentTask
 		local marker = ml_global_information.currentMarker
-		if (ValidTable(marker)) then
-			local usePatience = (marker:GetFieldValue(GetUSString("usePatience")) == "1")
-			local usePatience2 = (marker:GetFieldValue(GetUSString("usePatience2")) == "1")
-			if (usePatience) then
-				local patience = ActionList:Get(4102,1)
-				if (patience and patience.isready) then	
-					c_patience.action = 4102
-					return true
-				end
-			elseif (usePatience2) then
-				local patience2 = ActionList:Get(4106,1)
-				if (patience2 and patience2.isready) then	
-					c_patience.action = 4106
-					return true
-				end
+		if (ValidTable(task)) then
+			usePatience = IsNull(task.usepatience,false)
+			usePatience2 = IsNull(task.usepatience2,false)
+		elseif (ValidTable(marker)) then
+			usePatience = (IsNull(marker:GetFieldValue(GetUSString("usePatience")),"0") == "1")
+			usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") == "1")
+		end
+		
+		if (usePatience) then
+			local patience = ActionList:Get(4102,1)
+			if (patience and patience.isready) then	
+				c_patience.action = 4102
+				return true
+			end
+		elseif (usePatience2) then
+			local patience2 = ActionList:Get(4106,1)
+			if (patience2 and patience2.isready) then	
+				c_patience.action = 4106
+				return true
 			end
 		end
 	end
@@ -485,41 +534,44 @@ e_setbait.baitname = ""
 function c_setbait:evaluate()
 	local fs = tonumber(Player:GetFishingState())
     if (fs == 0 or fs == 4) then
+		local baitChoice = ""
+		
+		local task = ffxiv_task_fish.currentTask
 		local marker = ml_global_information.currentMarker
-        if (marker ~= nil and marker ~= false) then
-			local currentbait = Player:GetBait()
-			if (not currentbait or currentbait == 0) then
-				ml_debug("No bait is equipped, need to try to find something.")
-				return true
-			else
-				local baitFound = false
-				local markerBait = marker:GetFieldValue(GetUSString("baitName"))
-				if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
-					for bait in StringSplit(markerBait,",") do
-						if (tonumber(bait) ~= nil) then
-							if (currentbait == tonumber(bait)) then
+		if (ValidTable(task)) then
+			baitChoice = IsNull(task.baitname,"")
+		elseif (ValidTable(marker)) then
+			baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
+		end
+		
+		local currentbait = Player:GetBait()
+		if (not currentbait or currentbait == 0) then
+			ml_debug("No bait is equipped, need to try to find something.")
+			return true
+		else
+			local baitFound = false
+			if (baitChoice ~= "") then
+				for bait in StringSplit(baitChoice,",") do
+					if (tonumber(bait) ~= nil) then
+						if (currentbait == tonumber(bait)) then
+							baitFound = true
+						end
+					else
+						local thisID = AceLib.API.Items.GetIDByName(bait)
+						if (thisID) then
+							if (currentbait == thisID) then
 								baitFound = true
-							end
-						else
-							local thisID = AceLib.API.Items.GetIDByName(bait)
-							if (thisID) then
-								if (currentbait == thisID) then
-									baitFound = true
-								end
-							else
-								d("Could not find an item ID for:"..tostring(bait))
-								d("Please try specifying the bait in a different language or by content ID.")
 							end
 						end
 					end
-				else
-					return false
 				end
-				
-				if (not baitFound) then
-					ml_debug("Bait is equipped, but it's not specified in our marker, need to pick something different.")
-					return true
-				end
+			else
+				return false
+			end
+			
+			if (not baitFound) then
+				ml_debug("Bait is equipped, but it's not specified in our marker, need to pick something different.")
+				return true
 			end
 		end
 	end
@@ -527,28 +579,31 @@ function c_setbait:evaluate()
     return false
 end
 function e_setbait:execute()
-	local marker = ml_task_hub:CurrentTask().currentMarker
-	if (marker ~= nil and marker ~= false) then
-		local markerBait = marker:GetFieldValue(GetUSString("baitName"))
-		if (type(markerBait) == "string" and markerBait ~= "None" and markerBait ~= "") then
-			for bait in StringSplit(markerBait,",") do
-				if (tonumber(bait) ~= nil) then
-					local item = Inventory:Get(tonumber(bait))
+	local baitChoice = ""
+	
+	local task = ffxiv_task_fish.currentTask
+	local marker = ml_global_information.currentMarker
+	if (ValidTable(task)) then
+		baitChoice = IsNull(task.baitname,"")
+	elseif (ValidTable(marker)) then
+		baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
+	end
+
+	if (baitChoice ~= "") then
+		for bait in StringSplit(baitChoice,",") do
+			if (tonumber(bait) ~= nil) then
+				local item = Inventory:Get(tonumber(bait))
+				if (item) then
+					Player:SetBait(item.id)
+					return
+				end
+			else
+				local thisID = AceLib.API.Items.GetIDByName(bait)
+				if (thisID) then
+					local item = Inventory:Get(thisID)
 					if (item) then
 						Player:SetBait(item.id)
 						return
-					end
-				else
-					local thisID = AceLib.API.Items.GetIDByName(bait)
-					if (thisID) then
-						local item = Inventory:Get(thisID)
-						if (item) then
-							Player:SetBait(item.id)
-							return
-						end
-					else
-						d("Could not find an item ID for:"..tostring(bait))
-						d("Please try specifying the bait in a different language or by content ID.")
 					end
 				end
 			end
@@ -559,17 +614,21 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
+	if (gProfile ~= GetString("none")) then
+		return false
+	end
+	
 	if (gMarkerMgrMode == GetString("singleMarker")) then
 		ml_task_hub:ThisTask().filterLevel = false
 	else
 		ml_task_hub:ThisTask().filterLevel = true
 	end
 	
-    if ( ml_task_hub:ThisTask().currentMarker ~= nil and ml_task_hub:ThisTask().currentMarker ~= 0 ) then
+    if ( ml_global_information.currentMarker ~= nil and ml_global_information.currentMarker ~= 0 ) then
         local marker = nil
         
         -- first check to see if we have no initiailized marker
-        if (ml_task_hub:ThisTask().currentMarker == false) then --default init value
+        if (ml_global_information.currentMarker == false) then --default init value
             marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
 			
 			if (marker == nil) then
@@ -592,8 +651,8 @@ function c_nextfishingmarker:evaluate()
         if (marker == nil) then
             if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
                 if 	(ml_task_hub:ThisTask().filterLevel) and
-					(Player.level < ml_task_hub:ThisTask().currentMarker:GetMinLevel() or 
-                    Player.level > ml_task_hub:ThisTask().currentMarker:GetMaxLevel()) 
+					(Player.level < ml_global_information.currentMarker:GetMinLevel() or 
+                    Player.level > ml_global_information.currentMarker:GetMaxLevel()) 
                 then
                     marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
                 end
@@ -602,11 +661,11 @@ function c_nextfishingmarker:evaluate()
         
         -- last check if our time has run out
         if (marker == nil) then
-			if (ValidTable(ml_task_hub:ThisTask().currentMarker)) then
+			if (ValidTable(ml_global_information.currentMarker)) then
 				local expireTime = ml_task_hub:ThisTask().markerTime
 				if (Now() > expireTime) then
 					ml_debug("Getting Next Marker, TIME IS UP!")
-					marker = ml_marker_mgr.GetNextMarker(ml_task_hub:ThisTask().currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
+					marker = ml_marker_mgr.GetNextMarker(ml_global_information.currentMarker:GetType(), ml_task_hub:ThisTask().filterLevel)
 				else
 					return false
 				end
@@ -632,6 +691,483 @@ function e_nextfishingmarker:execute()
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 	ml_task_hub:CurrentTask().requiresAdjustment = true
 	ffxiv_task_fish.attemptedCasts = 0
+end
+
+c_fishnexttask = inheritsFrom( ml_cause )
+e_fishnexttask = inheritsFrom( ml_effect )
+function c_fishnexttask:evaluate()
+	if (not Player.alive or IsLoading() or ActionList:IsCasting() or not ValidTable(ffxiv_task_fish.profileData)) then
+		return false
+	end
+	
+	local fs = tonumber(Player:GetFishingState())
+	if (fs == 0 or fs == 4) then
+	
+		d("Checking if task can be re-evaluated.")
+		
+		local evaluate = false
+		local invalid = false
+		local currentTask = ffxiv_task_fish.currentTask
+		if (not ValidTable(currentTask)) then
+			d("No current task, set invalid flag.")
+			invalid = true
+		else
+			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
+				d("Task marked interruptable or low priority.")
+				evaluate = true
+			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
+					 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
+			then
+				d("Task has no high/normal priority markings, allow re-evaluation.")
+				evaluate = true
+			else
+				d("Task didn't fall into an always evaluate.")
+			end
+			
+			if (ffxiv_task_fish.attemptedCasts > 2) then
+				invalid = true
+			end
+			
+			if (not invalid) then
+				local weather = AceLib.API.Weather.Get(currentTask.mapid)
+				local weatherLast = weather.last or ""
+				local weatherNow = weather.now or ""
+				local weatherNext = weather.next or ""
+				if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
+					invalid = true
+				elseif (currentTask.weathernow and currentTask.weathernow ~= weatherNow) then
+					invalid = true
+				elseif (currentTask.weathernext and currentTask.weathernext ~= weatherNext) then
+					invalid = true
+				end
+			end
+			
+			if (not invalid) then
+				local shifts = AceLib.API.Weather.GetShifts()
+				local lastShift = shifts.lastShift
+				local nextShift = shifts.nextShift
+				if (currentTask.lastshiftmin and currentTask.lastshiftmin < lastShift) then
+					invalid = true
+				elseif (currentTask.lastshiftmax and currentTask.lastshiftmin > lastShift) then
+					invalid = true
+				elseif (currentTask.nextshiftmin and currentTask.nextshiftmin < nextShift) then
+					invalid = true
+				elseif (currentTask.nextshiftmax and currentTask.nextshiftmax > nextShift) then
+					invalid = true
+				end
+			end
+			
+			if (not invalid) then
+				if (IsNull(currentTask.maxtime,0) > 0) then
+					if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
+						invalid = true
+					else
+						d("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].")
+					end
+				end
+				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
+					local eTime = EorzeaTime()
+					local eHour = eTime.hour
+					
+					local validHour = false
+					local i = currentTask.eorzeaminhour
+					while (i ~= currentTask.eorzeamaxhour) do
+						if (thisHour == eHour) then
+							validHour = true
+							i = currentTask.eorzeamaxhour
+						else
+							i = AddHours(i,1)
+						end
+					end
+					
+					if (not validHour) then
+						invalid = true
+					end
+				end
+			end
+			
+			if (currentTask.complete) then
+				local conditions = shallowcopy(currentTask.complete)
+				for condition,value in pairs(conditions) do
+					local f = assert(loadstring("return " .. condition))()
+					if (f ~= nil) then
+						if (f == value) then
+							invalid = true
+						end
+						conditions[condition] = nil
+					end
+					if (invalid) then
+						break
+					end
+				end
+			end
+		end
+		
+		if (evaluate or invalid) then
+			local profileData = ffxiv_task_fish.profileData
+			if (ValidTable(profileData.tasks)) then
+				local highPriority = {}
+				local validTasks = deepcopy(profileData.tasks,true)
+				for i,data in pairs(validTasks) do
+					local valid = true
+					if (data.levelmin and Player.level < data.levelmin) then
+						valid = false
+					elseif (data.levelmax and Player.level > data.levelmax) then
+						valid = false
+					end
+					
+					if (valid) then
+						local weather = AceLib.API.Weather.Get(data.mapid)
+						local weatherLast = weather.last or ""
+						local weatherNow = weather.now or ""
+						local weatherNext = weather.next or ""
+						if (data.weatherlast and data.weatherlast ~= weatherLast) then
+							valid = false
+						elseif (data.weathernow and data.weathernow ~= weatherNow) then
+							valid = false
+						elseif (data.weathernext and data.weathernext ~= weatherNext) then
+							valid = false
+						end
+					end
+					
+					if (valid) then
+						local shifts = AceLib.API.Weather.GetShifts()
+						local lastShift = shifts.lastShift
+						local nextShift = shifts.nextShift
+						if (data.lastshiftmin and data.lastshiftmin < lastShift) then
+							valid = false
+						elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
+							valid = false
+						elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
+							valid = false
+						elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
+							valid = false
+						end
+					end
+					
+					if (valid) then
+						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
+							local eTime = EorzeaTime()
+							local eHour = eTime.hour
+							
+							local validHour = false
+							local i = data.eorzeaminhour
+							while (i ~= data.eorzeamaxhour) do
+								if (thisHour == eHour) then
+									validHour = true
+									i = data.eorzeamaxhour
+								else
+									i = AddHours(i,1)
+								end
+							end
+							
+							if (not validHour) then
+								valid = false
+							end
+						end
+					end
+					
+					if (valid) then
+						if (data.condition) then
+							local conditions = shallowcopy(data.condition)
+							for condition,value in pairs(conditions) do
+								local f = assert(loadstring("return " .. condition))()
+								if (f ~= nil) then
+									if (f ~= value) then
+										valid = false
+									end
+									conditions[condition] = nil
+								end
+								if (not valid) then
+									break
+								end
+							end
+						end
+					end
+					
+					if (not valid) then
+						validTasks[i] = nil
+					end
+				end
+				
+				if (ValidTable(validTasks)) then
+					local highPriority = {}
+					local normalPriority = {}
+					local lowPriority = {}
+					
+					for i,data in pairsByKeys(validTasks) do
+						-- Items with weather requirements go into high priority
+						if (data.weatherlast or data.weathernow or data.weathernext or data.highpriority) then
+							highPriority[i] = data
+						elseif (data.eorzeaminhour or data.eorzeamaxhour or data.normalpriority) then
+							normalPriority[i] = data
+						else
+							d("Added task at ["..tostring(i).."] to the low priority queue.")
+							lowPriority[i] = data
+						end
+					end
+					
+					local currentTask = ffxiv_task_fish.currentTask
+					local currentIndex = ffxiv_task_fish.currentTaskIndex
+					
+					local lowestIndex = 9999
+					local best = nil
+					for i,data in pairsByKeys(highPriority) do
+						if (not best or (best and i < lowestIndex)) then
+							best = data
+							lowestIndex = i
+						end
+					end
+					
+					if (not best) then
+						lowestIndex = 9999
+						best = nil
+						for i,data in pairsByKeys(normalPriority) do
+							if (not best or (best and i < lowestIndex)) then
+								best = data
+								lowestIndex = i
+							end
+						end
+					end
+					
+					if (invalid and not best) then
+						lowestIndex = 9999
+						best = nil
+						for i,data in pairsByKeys(lowPriority) do
+							if (i > currentIndex) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+						
+						if (not best) then
+							for i,data in pairsByKeys(lowPriority) do
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+					end
+					
+					if (best) then
+						ffxiv_task_fish.currentTaskIndex = lowestIndex
+						ffxiv_task_fish.currentTask = best
+						return true
+					end
+				end
+			end
+		end
+	end
+					
+	return false
+end
+function e_fishnexttask:execute()
+	local task = ffxiv_task_fish.currentTask
+	task.taskStarted = 0
+end
+
+c_fishnextprofilemap = inheritsFrom( ml_cause )
+e_fishnextprofilemap = inheritsFrom( ml_effect )
+function c_fishnextprofilemap:evaluate()
+    if (not ValidTable(ffxiv_task_fish.currentTask)) then
+		return false
+	end
+    
+	local task = ffxiv_task_fish.currentTask
+	if (ValidTable(task)) then
+		if (Player.localmapid ~= task.mapid) then
+			return true
+		end
+	end
+    
+    return false
+end
+function e_fishnextprofilemap:execute()
+	local index = ffxiv_task_fish.currentTaskIndex
+	local task = ffxiv_task_fish.currentTask
+	
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		local finishcast = ActionList:Get(299,1)
+		if (finishcast and finishcast.isready) then
+			finishcast:Cast()
+		end
+		return
+	end
+
+	local mapID = task.mapid
+	local taskPos = task.pos
+	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)
+	if(ValidTable(pos)) then		
+		local newTask = ffxiv_task_movetomap.Create()
+		newTask.destMapID = mapID
+		newTask.pos = task.pos
+		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	else
+		if (mapID and taskPos) then
+			local map,aeth = GetAetheryteByMapID(mapID, taskPos)
+			if (aeth) then
+				local aetheryte = GetAetheryteByID(aeth)
+				if (aetheryte) then
+					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+						if (Player:IsMoving()) then
+							Player:Stop()
+							return
+						end
+						
+						local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+						if (noTeleportMaps[Player.localmapid]) then
+							return
+						end
+						
+						if (ActionIsReady(7,5)) then
+							if (Player:Teleport(aeth)) then	
+								local newTask = ffxiv_task_teleport.Create()
+								newTask.setHomepoint = false
+								newTask.aetheryte = aeth
+								newTask.mapID = map
+								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+							end
+						end
+						return
+					end
+				end
+			end
+		end
+		
+		ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
+	end
+end
+
+c_fishnextprofilepos = inheritsFrom( ml_cause )
+e_fishnextprofilepos = inheritsFrom( ml_effect )
+function c_fishnextprofilepos:evaluate()
+    if (not ValidTable(ffxiv_task_fish.currentTask)) then
+		return false
+	end
+    
+	local task = ffxiv_task_fish.currentTask
+	if (task.mapid == Player.localmapid) then
+		local pos = task.pos
+		local myPos = ml_global_information.Player_Position
+		local dist = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+		if (dist > 5) then
+			return true
+		end
+	end
+    
+    return false
+end
+function e_fishnextprofilepos:execute()
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		local finishcast = ActionList:Get(299,1)
+		if (finishcast and finishcast.isready) then
+			finishcast:Cast()
+		end
+		return
+	end
+	
+    local newTask = ffxiv_task_movetopos.Create()
+	local task = ffxiv_task_fish.currentTask
+    newTask.pos = task.pos
+	newTask.range = 0.5
+	newTask.doFacing = true
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+	ml_task_hub:CurrentTask().requiresAdjustment = true
+    ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_fishstealth = inheritsFrom( ml_cause )
+e_fishstealth = inheritsFrom( ml_effect )
+e_fishstealth.timer = 0
+function c_fishstealth:evaluate()
+	local useStealth = false
+	local task = ffxiv_task_fish.currentTask
+	local marker = ml_global_information.currentMarker
+	if (ValidTable(task)) then
+		useStealth = IsNull(task.usestealth,false)
+	elseif (ValidTable(marker)) then
+		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+	end
+	
+	if (useStealth) then
+		if (Player.incombat) then
+			return false
+		end
+		
+		local fs = tonumber(Player:GetFishingState())
+		if (fs ~= 0) then
+			return false
+		end
+		
+		local stealth = ActionList:Get(298)
+		if (stealth) then
+			local dangerousArea = false
+			local destPos = {}
+			local myPos = ml_global_information.Player_Position
+			local task = ffxiv_task_fish.currentTask
+			local marker = ml_global_information.currentMarker
+			if (ValidTable(task)) then
+				dangerousArea = IsNull(task.dangerousarea,false)
+				destPos = task.pos
+			elseif (ValidTable(marker)) then
+				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) == "1"
+				destPos = marker:GetPosition()
+			end
+		
+			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+				local dest = ml_task_hub:CurrentTask().pos
+				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 75) then
+					if (HasBuff(Player.id, 47)) then
+						return true
+					else
+						return false
+					end
+				end
+			end
+			
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+			if (distance <= 6) then
+				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
+				if (TableSize(potentialAdds) > 0) then
+					if (not HasBuff(Player.id, 47)) then
+						return true
+					else
+						return false
+					end
+				end
+			end
+			
+			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
+			local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
+			
+			if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
+			  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
+			then
+				return true
+			end
+		end
+	end
+ 
+    return false
+end
+function e_fishstealth:execute()
+	e_fishstealth.timer = Now() + 3000
+	
+	local newTask = ffxiv_task_stealth.Create()
+	if (HasBuffs(Player,"47")) then
+		newTask.droppingStealth = true
+	else
+		newTask.addingStealth = true
+	end
+	ml_task_hub:ThisTask().preserveSubtasks = true
+	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
 c_syncadjust = inheritsFrom( ml_cause )
@@ -696,16 +1232,24 @@ function ffxiv_task_fish:Init()
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
     self:add( ke_dead, self.overwatch_elements)
     
-    local ke_stealth = ml_element:create( "Stealth", c_stealth, e_stealth, 15 )
+    local ke_stealth = ml_element:create( "Stealth", c_fishstealth, e_fishstealth, 15 )
     self:add( ke_stealth, self.overwatch_elements)
-
   
     --init Process() cnes
-    local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 120 )
+    local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
 	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 110 )
+	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
+    self:add( ke_nextTask, self.process_elements)
+	
+	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_fishnextprofilemap, e_fishnextprofilemap, 160 )
+    self:add( ke_nextProfileMap, self.process_elements)
+	
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 150 )
     self:add( ke_nextMarker, self.process_elements)
+	
+	local ke_nextProfilePos = ml_element:create( "NextProfilePos", c_fishnextprofilepos, e_fishnextprofilepos, 100 )
+    self:add( ke_nextProfilePos, self.process_elements)
     
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
@@ -743,6 +1287,9 @@ function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
 	
+	if (Settings.FFXIVMINION.gLastFishProfile == nil) then
+        Settings.FFXIVMINION.gLastFishProfile = GetString("none")
+    end
 	if (Settings.FFXIVMINION.gFishCollectibleName1 == nil) then
 		Settings.FFXIVMINION.gFishCollectibleName1 = ""
 	end
@@ -763,6 +1310,7 @@ function ffxiv_task_fish.UIInit()
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
+	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
 	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
@@ -790,7 +1338,10 @@ function ffxiv_task_fish.UIInit()
 end
 function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
-        if (	k == "gFishCollectibleValue1" or
+		if (	k == "gProfile" and gBotMode == GetString("fishMode")) then
+			ffxiv_task_fish.LoadProfile(v)
+			Settings.FFXIVMINION["gLastFishProfile"] = v
+        elseif (	k == "gFishCollectibleValue1" or
 				k == "gFishCollectibleValue2") 
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
@@ -802,7 +1353,40 @@ function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("fishMode"))
 end
-
+function ffxiv_task_fish.UpdateProfiles()
+    local profiles = GetString("none")
+    local found = GetString("none")	
+    local profilelist = dirlist(ffxiv_task_fish.profilePath,".*lua")
+    if ( TableSize(profilelist) > 0) then
+		for i,profile in pairs(profilelist) do			
+            profile = string.gsub(profile, ".lua", "")
+            profiles = profiles..","..profile
+            if ( Settings.FFXIVMINION.gLastFishProfile ~= nil and Settings.FFXIVMINION.gLastFishProfile == profile ) then
+                found = profile
+            end
+        end		
+    end
+	
+    gProfile_listitems = profiles
+    gProfile = found
+	ffxiv_task_fish.LoadProfile(gProfile)
+end
+function ffxiv_task_fish.LoadProfile(strName)
+	if (strName ~= GetString("none")) then
+		if (FileExists(ffxiv_task_fish.profilePath..strName..".lua")) then
+			ffxiv_task_fish.profileData,e = persistence.load(ffxiv_task_fish.profilePath..strName..".lua")
+			if (ValidTable(ffxiv_task_fish.profileData)) then
+				d("Fishing profile ["..strName.."] loaded successfully.")
+			else
+				if (e) then
+					d("Encountered error loading fishing profile ["..e.."].")
+				end
+			end
+		end
+	else
+		ffxiv_task_fish.profileData = {}
+	end
+end
 function ffxiv_task_fish.SetupMarkers()
     -- add marker templates for fishing
     local fishingMarker = ml_marker:Create("fishingTemplate")

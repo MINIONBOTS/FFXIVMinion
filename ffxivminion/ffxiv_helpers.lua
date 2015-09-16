@@ -333,7 +333,7 @@ end
 ff["GetNearestGrindPriority"] = GetNearestGrindPriority
 function GetNearestFateAttackable()
 	local el = nil
-    local myPos = Player.pos
+    local myPos = ml_global_information.Player_Position
     local fate = GetClosestFate(myPos)
 	
     if (fate ~= nil) then
@@ -434,7 +434,7 @@ function GetHuntTarget()
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
-				local myPos = Player.pos
+				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
 				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
@@ -457,7 +457,7 @@ function GetHuntTarget()
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
-				local myPos = Player.pos
+				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
 				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
@@ -481,7 +481,7 @@ function GetHuntTarget()
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
-					local myPos = Player.pos
+					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
 					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
@@ -504,7 +504,7 @@ function GetHuntTarget()
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
-					local myPos = Player.pos
+					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
 					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
@@ -1669,8 +1669,9 @@ ff["GetSkillByID"] = GetSkillByID
         else
             entityHeading = entity.pos.h
         end
-
-        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+		
+		local myPos = ml_global_information.Player_Position
+        local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
         local leftover = math.abs(absDeviation - math.pi)
@@ -1697,7 +1698,8 @@ function IsBehind(entity)
             entityHeading = entity.pos.h
         end
         
-        local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+		local myPos = ml_global_information.Player_Position
+        local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
         local leftover = math.abs(absDeviation - math.pi)
@@ -1719,7 +1721,8 @@ function IsBehindSafe(entity)
 		entityHeading = entity.pos.h
 	end
 	
-	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z)        
+	local myPos = ml_global_information.Player_Position
+	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
 	local deviation = entityAngle - entityHeading
 	local absDeviation = math.abs(deviation)
 	local leftover = math.abs(absDeviation - math.pi)
@@ -1740,7 +1743,8 @@ function IsFront(entity)
 		entityHeading = entity.pos.h
 	end
 	
-	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
+	local myPos = ml_global_information.Player_Position
+	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z) 
 	local deviation = entityAngle - entityHeading
 	local absDeviation = math.abs(deviation)
 	local leftover = math.abs(absDeviation - math.pi)
@@ -1761,7 +1765,8 @@ function IsFrontSafe(entity)
 		entityHeading = entity.pos.h
 	end
 	
-	local entityAngle = math.atan2(Player.pos.x - entity.pos.x, Player.pos.z - entity.pos.z) 
+	local myPos = ml_global_information.Player_Position
+	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z) 
 	local deviation = entityAngle - entityHeading
 	local absDeviation = math.abs(deviation)
 	local leftover = math.abs(absDeviation - math.pi)
@@ -1775,7 +1780,7 @@ ff["IsFrontSafe"] = IsFrontSafe
 function EntityIsFrontWide(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -1793,7 +1798,7 @@ ff["EntityIsFrontWide"] = EntityIsFrontWide
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -1811,7 +1816,7 @@ ff["EntityIsFront"] = EntityIsFront
 function EntityIsFrontTight(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -1860,7 +1865,7 @@ end
 ff["HeadingToDegrees"] = HeadingToDegrees
 function TurnAround(sync)	
 	local sync = sync or false
-	local newHeading = HeadingToDegrees(Player.pos.h)
+	local newHeading = HeadingToDegrees(ml_global_information.Player_Position.h)
 	newHeading = newHeading + 180
 	if (newHeading > 360) then
 		newHeading = newHeading - 360
@@ -2044,7 +2049,7 @@ function IsInsideFate()
 	local closestFate = GetClosestFate()
 	if (ValidTable(closestFate)) then
 		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
 		if (dist < closestFate.radius) then
 			return true
@@ -2061,7 +2066,7 @@ function GetClosestFate(pos)
         local nearestFate = nil
         local nearestDistance = 9999
         local level = Player.level
-		local myPos = Player.pos
+		local myPos = ml_global_information.Player_Position
 		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
 		local whitelistTable = {}
 		
@@ -2333,7 +2338,7 @@ end
 ff["GetAggroDetectionPoints"] = GetAggroDetectionPoints
 function PathDistanceTable(gotoPos)
 	if (ValidTable(gotoPos)) then
-		local ppos = Player.pos
+		local ppos = ml_global_information.Player_Position
 		local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z)
 		
 		local prevPos = nil
@@ -4421,4 +4426,16 @@ function NewButton(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
 	
 	_G[strVarName] = Settings.FFXIVMINION[strVarName]
+end
+
+function IsNull(variant,default)
+	if (variant == nil) then
+		if (default == nil) then
+			return true
+		else
+			return default
+		end
+	else
+		return variant
+	end
 end

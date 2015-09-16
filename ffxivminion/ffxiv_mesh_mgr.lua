@@ -45,7 +45,6 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
 			-- Update IsMoving with exact data
 			ml_global_information.Player_IsMoving = Player:IsMoving() or false
-			ml_global_information.Player_Position = Player.pos
 			-- Set all position data, pPos = Player pos, sPos = start omc pos and heading, ePos = end omc pos
 			local pPos = ml_global_information.Player_Position
 			local mPos,mDist = NavigationManager:GetClosestPointOnMesh(pPos)
@@ -170,7 +169,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
 						-- We are at our start OMC point and are facing the correct direction, now start moving forward and jump
 						local h = (math.floor(sPos.h * 100) / 100)
-						local ph = (math.floor(Player.pos.h * 100) / 100)
+						local ph = (math.floor(pPos.h * 100) / 100)
 						
 						if (ml_mesh_mgr.OMCJumpStartedTimer == 0) then
 							if (not Player:IsJumping()) then
@@ -389,9 +388,9 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								}
 							
 								local minaltitude = minaltitudes[Player.localmapid] or minaltitudes[-1]
-								if (Player.pos.y > minaltitude) then
-									ml_mesh_mgr.OMCMinAltitude = Player.pos.y + 20
-									d("Setting min altitude to "..tostring(Player.pos.y + 20))
+								if (pPos.y > minaltitude) then
+									ml_mesh_mgr.OMCMinAltitude = pPos.y + 20
+									d("Setting min altitude to "..tostring(pPos.y + 20))
 								else
 									ml_mesh_mgr.OMCMinAltitude = minaltitude
 									d("Setting min altitude to "..tostring(minaltitude))
@@ -399,7 +398,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								return
 							end
 							
-							if (Player.pos.y < ml_mesh_mgr.OMCMinAltitude) then
+							if (pPos.y < ml_mesh_mgr.OMCMinAltitude) then
 								if (ml_mesh_mgr.OMCFlightAscend == 0) then
 									d("Setting ascend.")
 									Player:Move(128)
@@ -494,7 +493,7 @@ function ml_mesh_mgr.ResetOMC()
 end
 
 function ml_mesh_mgr.IsFacing(pos)
-	local ppos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	local epos = pos
 	local playerHeading = ConvertHeading(ppos.h)
 	

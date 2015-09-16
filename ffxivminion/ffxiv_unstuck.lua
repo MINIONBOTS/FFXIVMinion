@@ -28,10 +28,10 @@ function c_stuck:evaluate()
 	if 	(ffxiv_unstuck.lastpos == nil) or
 		(ffxiv_unstuck.lastpos and type(ffxiv_unstuck.lastpos) ~= "table")
 	then
-		ffxiv_unstuck.lastpos = Player.pos
+		ffxiv_unstuck.lastpos = ml_global_information.Player_Position
 	end
 	
-	local currentPos = Player.pos
+	local currentPos = ml_global_information.Player_Position
 	ffxiv_unstuck.diffX = math.abs(currentPos.x - ffxiv_unstuck.lastpos.x)
 	ml_debug("Current diffX:"..tostring(ffxiv_unstuck.diffX))
 	ffxiv_unstuck.diffY = math.abs(currentPos.y - ffxiv_unstuck.lastpos.y)
@@ -69,7 +69,7 @@ function c_stuck:evaluate()
 		end
 	end
 	
-	ffxiv_unstuck.lastpos = Player.pos
+	ffxiv_unstuck.lastpos = ml_global_information.Player_Position
 end
 function e_stuck:execute()
 	if (c_stuck.blockOnly) then
@@ -87,7 +87,7 @@ function e_stuck:execute()
 		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
 		message[4] = "Bot will be stopped, please report mesh stuck issues with the following details:"
 		message[5] = "MapID :"..tostring(Player.localmapid)
-		message[6] = "X = "..tostring(Player.pos.x)..",Y = "..tostring(Player.pos.y)..",Z = "..tostring(Player.pos.z)
+		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 		requireStop = true
 	else
 		message[1] = state.name..tostring(state.maxticks).." ticks reached."
@@ -95,13 +95,13 @@ function e_stuck:execute()
 		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
 		message[4] = "Please report mesh stuck issues with the following details:"
 		message[5] = "MapID :"..tostring(Player.localmapid)
-		message[6] = "X = "..tostring(Player.pos.x)..",Y = "..tostring(Player.pos.y)..",Z = "..tostring(Player.pos.z)
+		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 	end
 	
 	local teleported = false
 	local teleport = ActionList:Get(7,5)
 	if (teleport and teleport.isready and Player.castinginfo.channelingid ~= 5) then
-		local map,aeth = GetAetheryteByMapID(Player.localmapid, Player.pos)
+		local map,aeth = GetAetheryteByMapID(Player.localmapid, ml_global_information.Player_Position)
 		if (aeth) then
 			local aetheryte = GetAetheryteByID(aeth)
 			if (ValidTable(aetheryte)) then

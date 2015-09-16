@@ -167,7 +167,7 @@ end
 function e_findunspoilednode:execute()
    local pos = e_findunspoilednode.pos	
     if (ValidTable(pos)) then
-		local ppos = shallowcopy(Player.pos)
+		local ppos = shallowcopy(ml_global_information.Player_Position)
 		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		ml_task_hub:ThisTask().pos = pos
 		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
@@ -235,7 +235,7 @@ function c_movetounspoiledmarker:evaluate()
 	
 	--If we're less greater than 25 away, go to the marker
 	local destPos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
-	local myPos = Player.pos
+	local myPos = ml_global_information.Player_Position
 	local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
 	if (distance >= 50) then
 		return true
@@ -291,7 +291,7 @@ function e_movetogatherable:execute()
     local pos = EntityList:Get(ml_task_hub:CurrentTask().gatherid).pos
     if (pos ~= nil and pos ~= 0) then
 		--local newTask = ffxiv_task_movetopos.Create()
-		local ppos = shallowcopy(Player.pos)
+		local ppos = ml_global_information.Player_Position
 		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
 			local eh = ConvertHeading(pos.h)
@@ -1511,16 +1511,16 @@ e_gatherflee = inheritsFrom( ml_effect )
 e_gatherflee.fleePos = {}
 function c_gatherflee:evaluate()
 	if (Player.incombat and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+		local ppos = ml_global_information.Player_Position
+		
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
 			local fpos = ml_marker_mgr.markerList["evacPoint"]
-			local ppos = Player.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
 				e_gatherflee.fleePos = fpos
 				return true
 			end
 		end
 		
-		local ppos = Player.pos
 		local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 		if (ValidTable(newPos)) then
 			e_gatherflee.fleePos = newPos
