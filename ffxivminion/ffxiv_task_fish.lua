@@ -729,6 +729,14 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (not invalid) then
+				if (currentTask.minlevel and Player.level < currentTask.minlevel) then
+					invalid = true
+				elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
+					invalid = true
+				end
+			end
+			
+			if (not invalid) then
 				local weather = AceLib.API.Weather.Get(currentTask.mapid)
 				local weatherLast = weather.last or ""
 				local weatherNow = weather.now or ""
@@ -810,9 +818,9 @@ function c_fishnexttask:evaluate()
 				local validTasks = deepcopy(profileData.tasks,true)
 				for i,data in pairs(validTasks) do
 					local valid = true
-					if (data.levelmin and Player.level < data.levelmin) then
+					if (data.minlevel and Player.level < data.minlevel) then
 						valid = false
-					elseif (data.levelmax and Player.level > data.levelmax) then
+					elseif (data.maxlevel and Player.level > data.maxlevel) then
 						valid = false
 					end
 					
