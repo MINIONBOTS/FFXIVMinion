@@ -248,6 +248,7 @@ function e_cast:execute()
 			end
 		end
 		ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
+		d("[Cast]: Attempt #"..tostring(ffxiv_task_fish.attemptedCasts))
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
@@ -725,6 +726,7 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (ffxiv_task_fish.attemptedCasts > 2) then
+				d("Attempted casts reached 3, check for a new location.")
 				invalid = true
 			end
 			
@@ -939,6 +941,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (invalid and not best) then
+						d("Re-evaluate the low priority queue, current task is invalid. Current index")
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(lowPriority) do
@@ -961,6 +964,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (best) then
+						d("Selected index ["..tostring(lowestIndex).."] as the best task.")
 						ffxiv_task_fish.currentTaskIndex = lowestIndex
 						ffxiv_task_fish.currentTask = best
 						return true
@@ -973,8 +977,8 @@ function c_fishnexttask:evaluate()
 	return false
 end
 function e_fishnexttask:execute()
-	local task = ffxiv_task_fish.currentTask
-	task.taskStarted = 0
+	ffxiv_task_fish.currentTask.taskStarted = 0
+	ffxiv_task_fish.attemptedCasts = 0
 end
 
 c_fishnextprofilemap = inheritsFrom( ml_cause )

@@ -35,9 +35,7 @@ ml_global_information.suppressRestTimer = 0
 ml_global_information.queueSync = nil
 ml_global_information.queueSyncForce = false
 ml_global_information.queueSyncForced = false
-ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
-ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
+
 --Setup Globals
 ml_global_information.lastUpdate = 0
 ml_global_information.Player_Position = {}
@@ -66,6 +64,10 @@ ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
 
 function ffxivminion.SetupOverrides()
+	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
+	ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
+	ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
+
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return ml_global_information.Player_Position end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
