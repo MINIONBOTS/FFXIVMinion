@@ -782,7 +782,7 @@ function c_fishnexttask:evaluate()
 					local validHour = false
 					local i = currentTask.eorzeaminhour
 					while (i ~= currentTask.eorzeamaxhour) do
-						if (thisHour == eHour) then
+						if (i == eHour) then
 							validHour = true
 							i = currentTask.eorzeamaxhour
 						else
@@ -863,7 +863,7 @@ function c_fishnexttask:evaluate()
 							local validHour = false
 							local i = data.eorzeaminhour
 							while (i ~= data.eorzeamaxhour) do
-								if (thisHour == eHour) then
+								if (i == eHour) then
 									validHour = true
 									i = data.eorzeamaxhour
 								else
@@ -990,7 +990,7 @@ function c_fishnextprofilemap:evaluate()
     
 	local task = ffxiv_task_fish.currentTask
 	if (ValidTable(task)) then
-		if (Player.localmapid ~= task.mapid) then
+		if (ml_global_information.Player_Map ~= task.mapid) then
 			return true
 		end
 	end
@@ -1012,7 +1012,7 @@ function e_fishnextprofilemap:execute()
 
 	local mapID = task.mapid
 	local taskPos = task.pos
-	local pos = ml_nav_manager.GetNextPathPos(Player.pos,Player.localmapid,mapID)
+	local pos = ml_nav_manager.GetNextPathPos(Player.pos,ml_global_information.Player_Map,mapID)
 	if(ValidTable(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
@@ -1031,7 +1031,7 @@ function e_fishnextprofilemap:execute()
 						end
 						
 						local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-						if (noTeleportMaps[Player.localmapid]) then
+						if (noTeleportMaps[ml_global_information.Player_Map]) then
 							return
 						end
 						
@@ -1050,7 +1050,7 @@ function e_fishnextprofilemap:execute()
 			end
 		end
 		
-		ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
+		ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
 	end
 end
 
@@ -1062,7 +1062,7 @@ function c_fishnextprofilepos:evaluate()
 	end
     
 	local task = ffxiv_task_fish.currentTask
-	if (task.mapid == Player.localmapid) then
+	if (task.mapid == ml_global_information.Player_Map) then
 		local pos = task.pos
 		local myPos = ml_global_information.Player_Position
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
