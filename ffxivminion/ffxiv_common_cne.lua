@@ -730,9 +730,53 @@ function e_movetogate:execute()
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
-		--newTask.useFollowMovement = true
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
+
+c_leavelockedarea = inheritsFrom( ml_cause )
+e_leavelockedarea = inheritsFrom( ml_effect )
+e_leavelockedarea.map = 0
+function c_leavelockedarea:evaluate()
+	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+		return false
+	end
+	
+	e_leavelockedarea.map = 0
+	
+    if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
+        local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+													ml_global_information.Player_Map,
+													ml_task_hub:CurrentTask().destMapID	)
+		if (not ValidTable(pos)) then
+			-- No valid path forward, set a new destination for the nearest map.
+			local currNode = ml_nav_manager.GetNode(ml_global_information.Player_Map)
+			if (ValidTable(currNode)) then
+				local neighbors = currNode:ValidNeighbors()
+				if (ValidTable(neighbors)) then
+					local nearest = nil
+					local nearestDistance = math.huge
+					local ppos = ml_global_information.Player_Position
+					
+					for id,entries in pairs(neighbors) do
+						for _,gate in pairs(entries) do
+							local dist = Distance3D(ppos.x,ppos.y,ppos.z,gate.x,gate.y,gate.z)
+							if (not nearest or (nearest and dist < nearestDistance)) then
+								nearest = id
+								nearestDistance = dist
+							end
+						end
+					end
+					
+					if (nearest) then
+						e_leavelockedarea.map = nearest
+					end
+				end
+			end
+		end
+	end
+end
+function e_leavelockedarea:execute()
+	ml_task_hub:CurrentTask().destMapID = e_leavelockedarea.map
 end
 
 c_teleporttomap = inheritsFrom( ml_cause )
@@ -799,8 +843,22 @@ function c_teleporttomap:evaluate()
 				else
 					ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
 				end
+			end
 		else
-				ml_debug("Cannot use teleport, the current path returned wasn't valid.")
+			local aethData = ffxiv_aetheryte_data[destMapID]
+			if (ValidTable(aethData)) then
+				for k,aeth in pairs(aethData) do
+					if (ValidTable(aeth)) then
+						local aetheryte = GetAetheryteByID(aeth.aethid)
+						if (aetheryte) then
+							if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+								e_teleporttomap.destMap = destMapID
+								e_teleporttomap.aethid = aetheryte.id
+								return true
+							end
+						end
+					end
+				end
 			end
 		end
 	else
