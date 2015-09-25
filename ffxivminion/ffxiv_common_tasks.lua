@@ -715,6 +715,16 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					end
 				end
 				
+				if (interactable.type == 5) then
+					if (interactable.distance <= 5.5) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Interact(interactable.id)
+						self.lastDistance = interactable.pathdistance
+						self.lastinteract = Now() + self.interactDelay
+						self.interactDelay = self.interactDelay + 500
+					end
+				end
+				
 				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 				local pathRange = self.pathRange or 10
 				local forceLOS = self.forceLOS
@@ -794,8 +804,8 @@ function ffxiv_task_movetomap:Init()
 	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 50 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
 	
-    local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 40 )
-    self:add( ke_teleportToMap, self.overwatch_elements)
+    local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 60 )
+    self:add( ke_teleportToMap, self.process_elements)
 	
 	local ke_transportGate = ml_element:create( "TransportGate", c_transportgate, e_transportgate, 50 )
     self:add( ke_transportGate, self.process_elements)
@@ -810,7 +820,11 @@ function ffxiv_task_movetomap:Init()
 end
 
 function ffxiv_task_movetomap:task_complete_eval()
-    return Player.localmapid == ml_task_hub:ThisTask().destMapID
+	if (IsLoading() or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
+		return true
+	end
+	
+	return false
 end
 
 --=======================SUMMON CHOCO TASK=========================-
@@ -899,8 +913,8 @@ function c_sethomepoint:evaluate()
 	
     local currentTask = ml_task_hub:CurrentTask()
 	if (not currentTask.setHomepoint or IsLoading() or ActionList:IsCasting() or 
-		IsPositionLocked() or ml_mesh_mgr.loadingMesh or Player.localmapid ~= currentTask.mapID or 
-		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(Player.localmapid)) 
+		IsPositionLocked() or ml_mesh_mgr.loadingMesh or ml_global_information.Player_Map ~= currentTask.mapID or 
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map)) 
 	then
 		return false
 	end
@@ -949,11 +963,11 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh or Player.localmapid ~= self.mapID) then
+	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh or ml_global_information.Player_Map ~= self.mapID) then
 		return false
 	end
 	
-	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
+	if (self.setHomepoint and not IsCityMap(ml_global_information.Player_Map)) then
 		local homepoint = GetHomepoint()
 		if (homepoint ~= self.mapID) then
 			return false
@@ -1305,11 +1319,11 @@ function ffxiv_task_rest:task_complete_eval()
 		return false
 	end
 	
-    if ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
+    if ((ml_global_information.Player_HP.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (ml_global_information.Player_MP.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
 		return true
 	end
 	
-	if (Player.hp.percent > math.random(90,95) and TimeSince(self.timer) > 120000) then
+	if (ml_global_information.Player_HP.percent > math.random(90,95) and TimeSince(self.timer) > 120000) then
 		return true
 	end
 	
@@ -1394,7 +1408,7 @@ function ffxiv_task_flee:task_complete_eval()
         end
     end
 	
-	return not Player.incombat or (Player.hp.percent > tonumber(gRestHP) and Player.mp.percent > tonumber(gRestMP))
+	return not Player.incombat or (ml_global_information.Player_HP.percent > tonumber(gRestHP) and ml_global_information.Player_MP.percent > tonumber(gRestMP))
 end
 
 function ffxiv_task_flee:task_complete_execute()
@@ -1520,7 +1534,17 @@ function ffxiv_task_grindCombat:Process()
 		local range = ml_global_information.AttackRange
 		local eh = ConvertHeading(pos.h)
 		local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
-		local nearbyMobs = TableSize(EntityList("alive,aggressive,attackable,distanceto="..tostring(target.id)..",maxdistance=8"))
+		local nearbyMobCount = 0
+		local nearbyMobs = EntityList("alive,aggressive,attackable,distanceto="..tostring(target.id)..",maxdistance=8")
+		
+		if (ValidTable(nearbyMobs)) then
+			nearbyMobCount = TableSize(nearbyMobs)
+			for i,mob in pairs(nearbyMobs) do
+				if (mob.id == target.id or mob.id == Player.id or mob.targetid == Player.id) then
+					nearbyMobCount = nearbyMobCount - 1
+				end
+			end
+		end
 		
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
@@ -1565,7 +1589,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 		else
 			if (not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) then
-				if (not self.attemptPull or nearbyMobs == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
+				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 						local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1597,7 +1621,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
-				if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobs > 0) then
+				if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
 					Player:Stop()
 					local pullPos = nil
 					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
@@ -1686,7 +1710,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
+	if (not self.noFlee and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
 		ml_debug("[GrindCombat]: Task failure due to flee.")
 		return true
 	end

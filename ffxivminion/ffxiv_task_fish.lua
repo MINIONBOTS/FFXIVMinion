@@ -742,13 +742,41 @@ function c_fishnexttask:evaluate()
 				local weather = AceLib.API.Weather.Get(currentTask.mapid)
 				local weatherLast = weather.last or ""
 				local weatherNow = weather.now or ""
-				local weatherNext = weather.next or ""
-				if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
-					invalid = true
-				elseif (currentTask.weathernow and currentTask.weathernow ~= weatherNow) then
-					invalid = true
-				elseif (currentTask.weathernext and currentTask.weathernext ~= weatherNext) then
-					invalid = true
+				local weatherNext = weather.next or ""				
+				if (currentTask.weatherlast) then
+					local found = false
+					for strWeather in StringSplit(currentTask.weatherlast,",") do
+						if (strWeather == weatherLast) then
+							found = true
+						end
+					end
+					if (not found) then
+						invalid = true
+					end
+				end
+				
+				if (currentTask.weathernow) then
+					local found = false
+					for strWeather in StringSplit(currentTask.weathernow,",") do
+						if (strWeather == weatherNow) then
+							found = true
+						end
+					end
+					if (not found) then
+						invalid = true
+					end
+				end
+				
+				if (currentTask.weathernext) then
+					local found = false
+					for strWeather in StringSplit(currentTask.weathernext,",") do
+						if (strWeather == weatherNext) then
+							found = true
+						end
+					end
+					if (not found) then
+						invalid = true
+					end
 				end
 			end
 			
@@ -831,12 +859,40 @@ function c_fishnexttask:evaluate()
 						local weatherLast = weather.last or ""
 						local weatherNow = weather.now or ""
 						local weatherNext = weather.next or ""
-						if (data.weatherlast and data.weatherlast ~= weatherLast) then
-							valid = false
-						elseif (data.weathernow and data.weathernow ~= weatherNow) then
-							valid = false
-						elseif (data.weathernext and data.weathernext ~= weatherNext) then
-							valid = false
+						if (data.weatherlast) then
+							local found = false
+							for strWeather in StringSplit(data.weatherlast,",") do
+								if (strWeather == weatherLast) then
+									found = true
+								end
+							end
+							if (not found) then
+								valid = false
+							end
+						end	
+						
+						if (data.weathernow) then
+							local found = false
+							for strWeather in StringSplit(data.weathernow,",") do
+								if (strWeather == weatherNow) then
+									found = true
+								end
+							end
+							if (not found) then
+								valid = false
+							end
+						end	
+						
+						if (data.weathernext) then
+							local found = false
+							for strWeather in StringSplit(data.weathernext,",") do
+								if (strWeather == weatherNext) then
+									found = true
+								end
+							end
+							if (not found) then
+								valid = false
+							end
 						end
 					end
 					
@@ -1012,7 +1068,7 @@ function e_fishnextprofilemap:execute()
 
 	local mapID = task.mapid
 	local taskPos = task.pos
-	local pos = ml_nav_manager.GetNextPathPos(Player.pos,ml_global_information.Player_Map,mapID)
+	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,ml_global_information.Player_Map,mapID)
 	if(ValidTable(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
@@ -1248,6 +1304,9 @@ function ffxiv_task_fish:Init()
     self:add( ke_stealth, self.overwatch_elements)
   
     --init Process() cnes
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
+    self:add( ke_autoEquip, self.process_elements)
+	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
 	

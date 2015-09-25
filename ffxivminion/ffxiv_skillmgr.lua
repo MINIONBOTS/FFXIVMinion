@@ -668,15 +668,16 @@ function SkillMgr.OnUpdate( event, tickcount )
 	if (gamestate == 1) then
 		if ((tickcount - SkillMgr.lastTick) > 150) then
 			SkillMgr.lastTick = tickcount
+			local pcast = ml_global_information.Player_Casting
 			
 			local job = Player.job
-			if (Player.castinginfo.channelingid ~= 0) then
-				local channelingskill = Player.castinginfo.channelingid
+			if (pcast.channelingid ~= 0) then
+				local channelingskill = pcast.channelingid
 				SkillMgr.UpdateLastCast(channelingskill)
 			end
 			
-			if (Player.castinginfo.castingid ~= 0) then
-				local castingskill = Player.castinginfo.castingid
+			if (pcast.castingid ~= 0) then
+				local castingskill = pcast.castingid
 				if ( job >= 8 and job <=15 ) then
 					local action = ActionList:Get(castingskill,9)
 					if (action) then
@@ -1186,6 +1187,20 @@ function SkillMgr.UpdateProfiles()
     gSMprofile = found
 	
 	return profiles
+end
+
+function SkillMgr.HasProfile(strProfile)
+	local profilelist = dirlist(SkillMgr.profilepath,".*lua")
+	if (ValidTable(profilelist)) then
+		for i,profile in pairs(profilelist) do
+			local profileName = string.gsub(profile,"%..+$","")
+			if (profileName == strProfile) then
+				return true
+			end
+		end
+	end
+	
+	return false
 end
 
 function SkillMgr.CopySkill()
@@ -1798,7 +1813,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 								SkillMgr.latencyTimer = Now()
 								
-								local castingskill = Player.castinginfo.castingid
+								local castingskill = ml_global_information.Player_Casting.castingid
 								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 									SkillMgr.prevSkillID = castingskill
 									SkillMgr.prevSkillTimestamp = Now()
@@ -1828,7 +1843,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if (action:Cast(TID)) then
 								SkillMgr.latencyTimer = Now()
 								
-								local castingskill = Player.castinginfo.castingid
+								local castingskill = ml_global_information.Player_Casting.castingid
 								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 									--d(tostring(action.name).." was detected immediately.")
 									--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
@@ -1862,7 +1877,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				if (IsCaster(Player.job)) then
 					local realskilldata = ActionList:Get(skill.id)
 					if ( realskilldata and not realskilldata.isready and skill.mplock == "1") then
-						if ( (realskilldata.cost > Player.mp.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > Player.mp.current) ) then
+						if ( (realskilldata.cost > ml_global_information.Player_MP.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > ml_global_information.Player_MP.current) ) then
 							SkillMgr.mplock = true
 							SkillMgr.mplockTimer = Now() + 10000
 							SkillMgr.mplockPercent = tonumber(skill.mplockper)
@@ -2049,8 +2064,8 @@ function SkillMgr.Craft()
 					
 					local currentQuality = synth.quality
 					if ( castable ) then
-						d("CASTING(Crafting): "..tostring(skill.name))	
 						if ( ActionList:Cast(skid,0) ) then	
+							d("CASTING(Crafting): "..tostring(skill.name))	
 							SkillMgr.lastquality = currentQuality
 							
 							if (skid == 100098) then
@@ -2078,6 +2093,7 @@ function SkillMgr.Craft()
 							
 							SkillMgr.SkillProfile[prio].lastcast = Now()
 							SkillMgr.prevSkillID = tostring(skill.id)
+							ml_task_hub:CurrentTask():SetDelay(750)
 							return true
 						end	
 					end
@@ -2751,7 +2767,7 @@ end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
     local target = Player:GetTarget()
-    if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and Player.castinginfo.channelingid == nil)) then
+    if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and ml_global_information.Player_Casting.channelingid == nil)) then
 		ml_task_hub:CurrentTask().suppressFollow = false
         return true
     end
@@ -3410,7 +3426,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		if ( SkillMgr.mplock ) then
-			if ( (Player.mp.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
+			if ( (ml_global_information.Player_MP.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
 				SkillMgr.mplock = false
 				SkillMgr.mplockPercent = 0
 			else
@@ -3453,10 +3469,10 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ((tonumber(skill.phpl) > 0 and tonumber(skill.phpl) > Player.hp.percent)	or 
-			(tonumber(skill.phpb) > 0 and tonumber(skill.phpb) < Player.hp.percent)	or 
-			(tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > Player.tp)	or 
-			(tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < Player.tp)) 
+		if ((tonumber(skill.phpl) > 0 and tonumber(skill.phpl) > ml_global_information.Player_HP.percent)	or 
+			(tonumber(skill.phpb) > 0 and tonumber(skill.phpb) < ml_global_information.Player_HP.percent)	or 
+			(tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > ml_global_information.Player_TP)	or 
+			(tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < ml_global_information.Player_TP)) 
 		then 
 			return true
 		end				
@@ -3471,8 +3487,8 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ((tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > Player.mp.current) or 
-			(tonumber(skill.pmppl) > 0 and tonumber(skill.pmppl) > Player.mp.percent)) 
+		if ((tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > ml_global_information.Player_MP.current) or 
+			(tonumber(skill.pmppl) > 0 and tonumber(skill.pmppl) > ml_global_information.Player_MP.percent)) 
 		then 
 			--[[
 			if (skill.mplock == "1" ) then
@@ -3482,8 +3498,8 @@ function SkillMgr.AddDefaultConditions()
 			end
 			--]]
 			return true
-		elseif ((tonumber(skill.ppowb) > 0 and tonumber(skill.ppowb) < Player.mp.current) or
-				(tonumber(skill.pmppb) > 0 and tonumber(skill.pmppb) < Player.mp.percent)) 
+		elseif ((tonumber(skill.ppowb) > 0 and tonumber(skill.ppowb) < ml_global_information.Player_MP.current) or
+				(tonumber(skill.pmppb) > 0 and tonumber(skill.pmppb) < ml_global_information.Player_MP.percent)) 
 		then 
 			return true 
 		end			
@@ -3654,7 +3670,7 @@ function SkillMgr.AddDefaultConditions()
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
 			(thpcb > 0 and thpcb < target.hp.current) or
-			(thpadv > 0 and (((Player.hp.max * thpadv) > target.hp.max) and target.uniqueid ~= 541))) 
+			(thpadv > 0 and (((ml_global_information.Player_HP.max * thpadv) > target.hp.max) and target.uniqueid ~= 541))) 
 		then 
 			return true 
 		end

@@ -258,7 +258,7 @@ function c_nextatma:evaluate()
 		return false
 	end
 	
-	local map = Player.localmapid
+	local map = ml_global_information.Player_Map
 	local mapFound = false
 	local mapItem = nil
 	local itemFound = false
@@ -376,7 +376,7 @@ e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 function c_avoid:evaluate()	
-	if (gAvoidAOE == "0" or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent) then
+	if (gAvoidAOE == "0" or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < ml_global_information.Player_HP.percent) then
 		return false
 	end
 	
@@ -467,7 +467,7 @@ c_autopotion.itemid = 0
 function c_autopotion:evaluate()
 	if (Player.alive) then
 		local potions = c_autopotion.potions
-		if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
+		if (tonumber(gPotionHP) > 0 and ml_global_information.Player_HP.percent < tonumber(gPotionHP)) then
 			for itemid in StringSplit(potions,";") do
 				if (ItemIsReady(tonumber(itemid))) then
 					c_autopotion.itemid = tonumber(itemid)
@@ -477,7 +477,7 @@ function c_autopotion:evaluate()
 		end
 		
 		local ethers = c_autopotion.ethers
-		if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
+		if (tonumber(gPotionMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gPotionMP)) then
 			for itemid in StringSplit(ethers,";") do
 				if (ItemIsReady(tonumber(itemid))) then
 					c_autopotion.itemid = tonumber(itemid)
@@ -582,31 +582,33 @@ end
 ---------------------------------------------------------------------------------------------
 c_interactgate = inheritsFrom( ml_cause )
 e_interactgate = inheritsFrom( ml_effect )
-c_interactgate.lastInteract = 0
+e_interactgate.timer = 0
 e_interactgate.id = 0
+e_interactgate.selector = 0
 function c_interactgate:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting()) then
+	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
 		return false
 	end
 	
+	e_interactgate.id = 0
+	e_interactgate.selector = 0
+	
     if (ml_task_hub:CurrentTask().destMapID) then
-		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
-			local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position, Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
+		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID) then
+			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position, 
+														ml_global_information.Player_Map,	
+														ml_task_hub:CurrentTask().destMapID	)
 
-			if (ValidTable(pos) and pos.g) then
-				local interacts = EntityList("type=7,chartype=0,maxdistance=3")
-				for i, interactable in pairs(interacts) do
-					if interactable.uniqueid == tonumber(pos.g) then
-						if (interactable.targetable) then
-							if (c_interactgate.lastInteract == 0 or Now() > c_interactgate.lastInteract) then
-								Player:SetTarget(interactable.id)
-								e_interactgate.id = interactable.id
-								c_interactgate.lastInteract = Now() + 1000
-								return true
-							else
-								return false
-							end
+			if (ValidTable(pos) and pos.g) then				
+				local interacts = EntityList("targetable,maxdistance=4,contentid="..tostring(pos.g))
+				if (ValidTable(interacts)) then
+					local i,interactable = next(interacts)
+					if (i and interactable) then
+						e_interactgate.id = interactable.id
+						if (pos.i) then
+							e_interactgate.selector = pos.i
 						end
+						return true
 					end
 				end
 			end
@@ -616,41 +618,60 @@ function c_interactgate:evaluate()
 	return false
 end
 function e_interactgate:execute()
-	Player:Stop()
+	if (Now() < e_interactgate.timer) then
+		return false
+	end
+	
+	if (Player:IsMoving()) then
+		Player:Stop()
+	end
+	
+	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+		local selector = e_interactgate.selector
+		SelectConversationIndex(selector)
+		e_interactgate.timer = Now() + 1500
+		return
+	end
 	
 	local gate = EntityList:Get(e_interactgate.id)
 	local pos = gate.pos
 	SetFacing(pos.x,pos.y,pos.z)
 	Player:Interact(gate.id)
+	e_interactgate.timer = Now() + 1500
 end
 
 c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting()) then
+	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
 		return false
 	end
 	
 	if (ml_task_hub:ThisTask().destMapID) then
-		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
-			local pos = ml_nav_manager.GetNextPathPos( ml_global_information.Player_Position,	Player.localmapid,	ml_task_hub:CurrentTask().destMapID	)
-			ml_task_hub:ThisTask().pos = pos
-			if (not c_usenavinteraction:evaluate()) then
-				if (ValidTable(pos) and pos.b) then
-					local details = {}
-					details.uniqueid = pos.b
-					details.pos = { x = pos.x, y = pos.y, z = pos.z }
-					details.conversationIndex = pos.i or 0
-					e_transportgate.details = details
-					return true
-				elseif (ValidTable(pos) and pos.a) then
-					local details = {}
-					details.uniqueid = pos.a
-					details.pos = { x = pos.x, y = pos.y, z = pos.z }
-					details.conversationIndex = pos.i or 0
-					e_transportgate.details = details
-					return true
+		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
+			local pos = ml_nav_manager.GetNextPathPos( 	ml_global_information.Player_Position,	
+														ml_global_information.Player_Map,	
+														ml_task_hub:CurrentTask().destMapID	)
+			
+			if (ValidTable(pos)) then
+				ml_task_hub:ThisTask().pos = pos
+				if (not c_usenavinteraction:evaluate()) then
+					if (ValidTable(pos) and pos.b) then
+						local details = {}
+						details.uniqueid = pos.b
+						details.pos = { x = pos.x, y = pos.y, z = pos.z }
+						details.conversationIndex = pos.i or 0
+						e_transportgate.details = details
+						return true
+					elseif (ValidTable(pos) and pos.a) then
+						local details = {}
+						details.uniqueid = pos.a
+						details.pos = { x = pos.x, y = pos.y, z = pos.z }
+						details.conversationIndex = pos.i or 0
+						e_transportgate.details = details
+						return true
+					end
 				end
 			end
 		end
@@ -672,37 +693,46 @@ end
 
 c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
+e_movetogate.pos = {}
 function c_movetogate:evaluate()
-    if (ml_task_hub:CurrentTask().destMapID) then
-        return 	Player.localmapid ~= ml_task_hub:CurrentTask().destMapID and
-				not IsLoading() and not IsPositionLocked() and not ml_mesh_mgr.loadingMesh
+	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+		return false
 	end
+	
+	e_movetogate.pos = {}
+	
+    if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
+        local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+													ml_global_information.Player_Map,
+													ml_task_hub:CurrentTask().destMapID	)
+		if (ValidTable(pos)) then
+			e_movetogate.pos = pos
+			return true
+		end
+	end
+	
+	return false
 end
 function e_movetogate:execute()
-    ml_debug( "Moving to gate for next map" )
-	local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-												Player.localmapid,
-												ml_task_hub:CurrentTask().destMapID	)
-	if (ValidTable(pos)) then
-		local newTask = ffxiv_task_movetopos.Create()
-		newTask.pos = pos
-		newTask.use3d = false
-		local newPos = { x = pos.x, y = pos.y, z = pos.z }
-		local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
-		
-		if (not pos.g and not pos.b and not pos.a) then
-			newTask.gatePos = newPos
-		end
-		
-		newTask.range = 0.5
-		newTask.remainMounted = true
-		newTask.ignoreAggro = true
-		if (gTeleport == "1") then
-			newTask.useTeleport = true
-		end
-		--newTask.useFollowMovement = true
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = e_movetogate.pos
+	newTask.use3d = false
+	local newPos = { x = e_movetogate.pos.x, y = e_movetogate.pos.y, z = e_movetogate.pos.z }
+	local newPos = GetPosFromDistanceHeading(newPos, 5, e_movetogate.pos.h)
+	
+	if (not e_movetogate.pos.g and not e_movetogate.pos.b and not e_movetogate.pos.a) then
+		newTask.gatePos = newPos
 	end
+	
+	newTask.range = 0.5
+	newTask.remainMounted = true
+	newTask.ignoreAggro = true
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+		--newTask.useFollowMovement = true
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
 end
 
 c_teleporttomap = inheritsFrom( ml_cause )
@@ -723,20 +753,20 @@ function c_teleporttomap:evaluate()
 	
 	--Only perform this check when dismounted.
 	local teleport = ActionList:Get(7,5)
-	if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5) then
+	if (not teleport or not teleport.isready or ml_global_information.Player_Casting.channelingid == 5) then
 		ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
 		return false
 	end
 	
 	local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-	if (noTeleportMaps[Player.localmapid]) then
+	if (noTeleportMaps[ml_global_information.Player_Map]) then
 		return false
 	end
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-                                                    Player.localmapid,
+                                                    ml_global_information.Player_Map,
                                                     destMapID	)
 		if (ValidTable(pos)) then
 			local ppos = ml_global_information.Player_Position
@@ -746,7 +776,7 @@ function c_teleporttomap:evaluate()
 				local aethid = nil
 				local mapid = nil
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
-					if (node.id ~= Player.localmapid) then
+					if (node.id ~= ml_global_information.Player_Map) then
 						local map,aeth = GetAetheryteByMapID(node.id, ml_task_hub:ThisTask().pos)
 						if (aeth) then
 							mapid = map
@@ -769,7 +799,7 @@ function c_teleporttomap:evaluate()
 				else
 					ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
 				end
-			else
+		else
 				ml_debug("Cannot use teleport, the current path returned wasn't valid.")
 			end
 		end
@@ -1010,7 +1040,7 @@ function e_walktopos:execute()
 end
 
 c_usenavinteraction = inheritsFrom( ml_cause )
-e_usenavinteraction = inheritsFrom( ml_effect)
+e_usenavinteraction = inheritsFrom( ml_effect )
 c_usenavinteraction.blockOnly = false
 e_usenavinteraction.task = nil
 e_usenavinteraction.timer = 0
@@ -1019,7 +1049,9 @@ function c_usenavinteraction:evaluate()
 	
 	c_usenavinteraction.blockOnly = false
 	
-	assert(type(gotoPos) == "table","Destination position is invalid.")
+	if (not ValidTable(gotoPos)) then
+		return false
+	end
 	
 	requiresTransport = {
 		[139] = { name = "Upper La Noscea",
@@ -1308,9 +1340,9 @@ function c_usenavinteraction:evaluate()
 		},
 	}
 	
-	if (requiresTransport[Player.localmapid]) then
-		e_usenavinteraction.task = requiresTransport[Player.localmapid].reaction
-		return requiresTransport[Player.localmapid].test()
+	if (requiresTransport[ml_global_information.Player_Map]) then
+		e_usenavinteraction.task = requiresTransport[ml_global_information.Player_Map].reaction
+		return requiresTransport[ml_global_information.Player_Map].test()
 	end
 	
 	return false
@@ -1388,7 +1420,7 @@ function c_mount:evaluate()
 		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
 	}
 	
-    if (noMountMaps[Player.localmapid]) then
+    if (noMountMaps[ml_global_information.Player_Map]) then
 		return false
 	end
 	
@@ -1458,7 +1490,7 @@ function c_companion:evaluate()
 	--Reset tempvar.
 	e_companion.blockOnly = false
 	
-	if (Player.castinginfo.channelingid == 4868) then
+	if (ml_global_information.Player_Casting.channelingid == 4868) then
 		e_companion.blockOnly = true
 		return true
 	end
@@ -1505,39 +1537,24 @@ end
 c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
-    if (gBotMode == GetString("pvpMode")) then
-        return false
-    end
-	
-	local eval = {
-		[GetString("grindMode")] = true,
-		[GetString("partyMode")] = true,
-		[GetString("assistMode")] = true,
-	}
-
-    if ( gChoco ~= GetString("none") and eval[tostring(gBotMode)]) then
-
-		local al = ActionList("type=6")
-		local dismiss = al[2]
-		local acDismiss = ActionList:Get(dismiss.id,6)
-
-		if ( acDismiss.isready) then
-			if ( ml_global_information.stanceTimer == 0 and TimeSince(ml_global_information.summonTimer) >= 6000 ) then
-				return true
-			elseif ( TimeSince(ml_global_information.stanceTimer) >= 30000 ) then
-				return true
+	if (IsCompanionSummoned() and ValidString(gChocoStance)) then
+		
+		if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
+			local stanceAction = ml_global_information.chocoStance[gChocoStance]
+			if (stanceAction) then
+				local acStance = ActionList:Get(stanceAction,6)		
+				if (acStance and acStance.isready) then
+					acStance:Cast(Player.id)
+					return true
+				end
 			end
 		end
-    end
+	end
     
     return false
 end
 
 function e_stance:execute()
-	local stanceList = ActionList("type=6")
-	local stance = stanceList[ml_global_information.chocoStance[gChocoStance]]
-    local acStance = ActionList:Get(stance.id,6)		
-	acStance:Cast(Player.id)
 	ml_global_information.stanceTimer = Now()
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
@@ -1560,7 +1577,7 @@ function c_sprint:evaluate()
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill and skill.isready) then
-			if (gUseSprint == "1" or IsCityMap(Player.localmapid)) then
+			if (gUseSprint == "1" or IsCityMap(ml_global_information.Player_Map)) then
 				if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 					local myPos = ml_global_information.Player_Position
 					local gotoPos = ml_task_hub:CurrentTask().pos
@@ -1696,12 +1713,12 @@ end
 c_rest = inheritsFrom( ml_cause )
 e_rest = inheritsFrom( ml_effect )
 function c_rest:evaluate()
-	if (Now() < ml_global_information.suppressRestTimer and Player.hp.percent > 20) then
+	if (Now() < ml_global_information.suppressRestTimer and ml_global_information.Player_HP.percent > 20) then
 		return false
 	end
 	
-	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
-		( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)))
+	if (( tonumber(gRestHP) > 0 and ml_global_information.Player_HP.percent < tonumber(gRestHP)) or
+		( tonumber(gRestMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gRestMP)))
 	then
 		if (Player.incombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
@@ -1745,7 +1762,7 @@ function c_flee:evaluate()
 		return false
 	end
 	
-	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
+	if ((Player.incombat) and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
 		local ppos = ml_global_information.Player_Position
 		
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
@@ -1890,7 +1907,7 @@ function c_returntomarker:evaluate()
 		end
 		
 		if (gBotMode == GetString("pvpMode")) then
-			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
+			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (ml_global_information.Player_Map ~= 376 and ml_global_information.Player_Map ~= 422)) then
 				if (distance > 25) then
 					return true
 				end
@@ -2227,7 +2244,7 @@ function c_autoequip:evaluate()
 	if (gQuestAutoEquip == "0" or 
 		IsShopWindowOpen() or IsPositionLocked() or IsLoading() or 
 		not Player.alive or Player.incombat or
-		Player:GetGatherableSlotList()) 
+		Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
 	then
 		return false
 	end
@@ -2351,17 +2368,15 @@ function c_returntomap:evaluate()
 		return false
 	end
 	
-	if (ml_task_hub:ThisTask().correctMap and ml_task_hub:ThisTask().correctMap ~= Player.localmapid) then
+	if (ml_task_hub:ThisTask().correctMap and (ml_task_hub:ThisTask().correctMap ~= ml_global_information.Player_Map)) then
 		local mapID = ml_task_hub:ThisTask().correctMap
 		if (mapID and mapID > 0) then
 			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-														Player.localmapid,
+														ml_global_information.Player_Map,
 														mapID	)
 			if(ValidTable(pos)) then
 				e_returntomap.mapID = mapID
 				return true
-			else
-				--ml_debug("No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
 			end
 		end
 	end

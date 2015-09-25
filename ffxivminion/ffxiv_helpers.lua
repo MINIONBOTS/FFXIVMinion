@@ -697,9 +697,9 @@ function GetLowestHPParty( skill )
 			end
 		end
 		
-		if (Player.alive and Player.hp.percent < lowestHP) then
+		if (Player.alive and ml_global_information.Player_HP.percent < lowestHP) then
 			lowest = Player
-			lowestHP = Player.hp.percent
+			lowestHP = ml_global_information.Player_HP.percent
 		end
 		
 		return lowest
@@ -744,9 +744,9 @@ function GetLowestMPParty( range, role )
         end
     end
 	
-	if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
+	if (Player.alive and mpUsers[Player.job] and ml_global_information.Player_MP.percent < lowestMP) then
 		lowest = Player
-		lowestMP = Player.mp.percent
+		lowestMP = ml_global_information.Player_MP.percent
 	end
 	
 	return lowest
@@ -796,9 +796,9 @@ function GetLowestTPParty( range, role )
         end
     end
 	
-	if (Player.alive and tpUsers[Player.job] and Player.tp < lowestTP) then
+	if (Player.alive and tpUsers[Player.job] and ml_global_information.Player_TP < lowestTP) then
 		lowest = Player
-		lowestTP = Player.tp
+		lowestTP = ml_global_information.Player_TP
 	end
 	
     return lowest
@@ -988,7 +988,7 @@ function GetPVPTarget()
 	local lowestHealth = nil
     
 	local enemyParty = nil
-	if (Player.localmapid == 376 or Player.localmapid == 422) then
+	if (ml_global_information.Player_Map == 376 or ml_global_information.Player_Map == 422) then
 		enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
 		if(not ValidTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
@@ -1517,7 +1517,7 @@ function HasInfiniteDuration(id)
 end
 ff["HasInfiniteDuration"] = HasInfiniteDuration
 function ActionList:IsCasting()
-	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castid == 4)
+	return (ml_global_information.Player_Casting.channelingid ~= 0 or ml_global_information.Player_Casting.castid == 4)
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
@@ -1995,8 +1995,8 @@ function GetApprovedFates()
 			local minFateLevel = tonumber(gMinFateLevel) or 0
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
 			
-			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
-			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
+			local isChain,firstChain = ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fate.id)
+			local isPrio = ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fate.id)
 			
 			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
 				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
@@ -2038,7 +2038,7 @@ function IsFateApproved(fateid)
 		end
 	end
 	
-	if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fateid) or ffxiv_task_fate.IsChain(Player.localmapid, fateid)) then
+	if (ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fateid) or ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fateid)) then
 		return true
 	end
 	
@@ -2076,7 +2076,7 @@ function GetClosestFate(pos)
 				if (delimiter ~= nil and delimiter ~= 0) then
 					local mapid = entry:sub(0,delimiter-1)
 					local fateid = entry:sub(delimiter+1)
-					if (tonumber(mapid) == Player.localmapid) then
+					if (tonumber(mapid) == ml_global_information.Player_Map) then
 						whitelistTable[fateid] = true
 					end
 				end
@@ -2105,7 +2105,7 @@ function GetClosestFate(pos)
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 					if (fate.status == 2) then	
-						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
+						if (ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fate.id) or ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fate.id)) then
 							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 							if (p and dist <= 20) then
 								table.insert(validFates,fate)
@@ -2156,7 +2156,7 @@ end
 ff["GetClosestFate"] = GetClosestFate
 function IsOnMap(mapid)
 	local mapid = tonumber(mapid)
-	if (Player.localmapid == mapid) then
+	if (ml_global_information.Player_Map == mapid) then
 		return true
 	end
 	
@@ -2499,7 +2499,7 @@ function InCombatRange(targetid)
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
-	if ( Player.castinginfo.channelingid ~= nil and Player.castinginfo.channeltargetid == targetid) then
+	if ( ml_global_information.Player_Casting.channelingid ~= nil and ml_global_information.Player_Casting.channeltargetid == targetid) then
 		return true
 	end
 	
@@ -2640,7 +2640,7 @@ function IsPositionLocked()
 end
 ff["IsPositionLocked"] = IsPositionLocked
 function IsLoading()
-	return (Quest:IsLoading() or Player.localmapid == 0)
+	return (Quest:IsLoading() or ml_global_information.Player_Map == 0)
 end
 ff["IsLoading"] = IsLoading
 function HasAction(id, category)
@@ -3253,7 +3253,7 @@ ff["IsAetheryteUnattuned"] = IsAetheryteUnattuned
 function GetAetheryteByMapID(id, p)
 	local pos = p
 	
-	local mapid = Player.localmapid
+	local mapid = ml_global_information.Player_Map
 	if (id == 133 and mapid ~= 132) then
 		id = 132
 	elseif (id == 128 and mapid ~= 129) then
@@ -3679,7 +3679,7 @@ function HuntingLogsUnlocked()
 end
 ff["HuntingLogsUnlocked"] = HuntingLogsUnlocked
 function GetBestGrindMap()
-	local mapid = Player.localmapid
+	local mapid = ml_global_information.Player_Map
 	local level = Player.level
 	
 	local inthanalan = 	mapid == 140 or
@@ -4438,4 +4438,44 @@ function IsNull(variant,default)
 	else
 		return variant
 	end
+end
+
+function CanUseAirship()
+	if (GilCount() < 100) then
+		return false
+	else
+		return ((Quest:HasQuest(674) and Quest:GetQuestCurrentStep(674) == 255) or Quest:IsQuestCompleted(674))
+	end
+	return false
+end
+
+function CanAccessMap(mapid)
+	local mapid = tonumber(mapid) or 0
+	
+	if (mapid ~= 0) then
+		if (ml_global_information.Player_Map ~= mapid) then
+			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+														ml_global_information.Player_Map,
+														mapid	)
+			if (ValidTable(pos)) then
+				return true
+			end
+			
+			local aethData = ffxiv_aetheryte_data[mapid]
+			if (ValidTable(aethData)) then
+				for k,aeth in pairs(aethData) do
+					if (ValidTable(aeth)) then
+						local aetheryte = GetAetheryteByID(aeth.aethid)
+						if (aetheryte) then
+							if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false
 end
