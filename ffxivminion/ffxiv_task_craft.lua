@@ -1,5 +1,7 @@
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
+ffxiv_task_craft.orders = {}
+ffxiv_task_craft.ordersVisible = false
 
 function ffxiv_task_craft.Create()
     local newinst = inheritsFrom(ffxiv_task_craft)
@@ -47,7 +49,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency or ActionList:IsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
+	if ( Now() < ml_task_hub:ThisTask().networkLatency or ml_global_information.Player_IsCasting or not ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
 	
@@ -225,10 +227,10 @@ end
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 50 )
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.overwatch_elements)
 	
-	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 35 )
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 140 )
     self:add( ke_collectible, self.overwatch_elements)
 	
 	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 25 )
@@ -378,8 +380,30 @@ function ffxiv_task_craft.UIInit()
 	gCraftCollectibleValue7 = Settings.FFXIVMINION.gCraftCollectibleValue7
 	gCraftCollectibleValue8 = Settings.FFXIVMINION.gCraftCollectibleValue8
 	
+	ffxivminion.Windows.CraftOrders = { id = "Craft Orders", Name = "Craft Orders", x=50, y=50, width=350, height=300, hideModule = false }
+	ffxivminion.CreateWindow(ffxivminion.Windows.CraftOrders)
+	winName = ffxivminion.Windows.CraftOrders.Name
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
     RegisterEventHandler("GUI.Update",ffxiv_task_craft.GUIVarUpdate)
 end
+
+function ffxiv_task_craft.ShowCraftOrders()
+	local winName = ffxivminion.Windows.CraftOrders.Name
+	
+	if (ffxiv_task_craft.ordersVisible ) then
+        GUI_WindowVisible(winName,false)	
+        ffxiv_task_craft.ordersVisible = false
+    else
+        local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Craft.Name)
+		GUI_MoveWindow( winName, wnd.x+wnd.width,wnd.y) 
+		ffxivminion.SizeWindow(winName)
+		GUI_WindowVisible(winName, true)
+        ffxiv_task_craft.ordersVisible  = true
+    end
+end
+
 
 function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
@@ -392,3 +416,13 @@ function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("craftMode"))
 end
+
+function ffxiv_task_craft.HandleButtons( Event, Button )	
+	if ( Event == "GUI.Item" ) then
+		if (string.find(Button,"ffxiv_task_craft%.")) then
+			ExecuteFunction(Button)
+		end
+	end
+end
+
+RegisterEventHandler("GUI.Item", ffxiv_task_craft.HandleButtons )

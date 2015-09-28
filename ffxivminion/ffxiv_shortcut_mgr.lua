@@ -297,8 +297,8 @@ function sck.OnUpdate( event, tickcount )
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
 			TimeSince(sck.onOffTimer) >= 1000) 
 	then
-			ml_task_hub.ToggleRun()
-			sck.onOffTimer = tickcount
+		ml_task_hub.ToggleRun()
+		sck.onOffTimer = tickcount
 	end	
 	
 	CC = Settings.FFXIVMINION.ClickCombo["Speed Hack"]
@@ -308,7 +308,7 @@ function sck.OnUpdate( event, tickcount )
 	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
 		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
-			not Player.incombat) 
+			not ml_global_information.Player_InCombat) 
 	then
 		if ( Player.ismounted and sck.currentSpeed ~= 18 ) then
 			Player:SetSpeed(FFXIV.MOVEMENT.FORWARD, 18)

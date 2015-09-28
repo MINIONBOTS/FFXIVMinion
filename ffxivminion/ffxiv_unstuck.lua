@@ -86,7 +86,7 @@ function e_stuck:execute()
 		message[2] = "Assuming player is stuck."
 		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
 		message[4] = "Bot will be stopped, please report mesh stuck issues with the following details:"
-		message[5] = "MapID :"..tostring(Player.localmapid)
+		message[5] = "MapID :"..tostring(ml_global_information.Player_Map)
 		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 		requireStop = true
 	else
@@ -94,19 +94,19 @@ function e_stuck:execute()
 		message[2] = "Assuming player is stuck."
 		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
 		message[4] = "Please report mesh stuck issues with the following details:"
-		message[5] = "MapID :"..tostring(Player.localmapid)
+		message[5] = "MapID :"..tostring(ml_global_information.Player_Map)
 		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 	end
 	
 	local teleported = false
 	local teleport = ActionList:Get(7,5)
-	if (teleport and teleport.isready and Player.castinginfo.channelingid ~= 5) then
-		local map,aeth = GetAetheryteByMapID(Player.localmapid, ml_global_information.Player_Position)
+	if (teleport and teleport.isready and ml_global_information.Player_Casting.channelingid ~= 5) then
+		local map,aeth = GetAetheryteByMapID(ml_global_information.Player_Map, ml_global_information.Player_Position)
 		if (aeth) then
 			local aetheryte = GetAetheryteByID(aeth)
 			if (ValidTable(aetheryte)) then
 				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-					if (Player:IsMoving()) then
+					if (ml_global_information.Player_IsMoving) then
 						Player:Stop()
 					end
 					
@@ -142,16 +142,16 @@ function ffxiv_unstuck.IsStuck()
 	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
 			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
-			not ActionList:IsCasting() and
-			Player:IsMoving() and 
-			not IsPositionLocked() and
-			not Player.incombat and
-			not ml_mesh_mgr.loadingMesh
+			not ml_global_information.Player_IsCasting and
+			not ml_global_information.Player_IsMoving and 
+			not ml_global_information.Player_IsLocked and
+			not ml_global_information.Player_InCombat and
+			not ml_global_information.Player_IsLoading
 end
 
 function ffxiv_unstuck.IsOffMesh()
-	if (not gmeshname or gmeshname == "" or gmeshname == "none" or ml_mesh_mgr.loadingMesh) then
+	if (not gmeshname or gmeshname == "" or gmeshname == "none" or ml_global_information.IsLoading) then
 		return false
 	end
-	return not Player.onmesh and not ActionList:IsCasting()
+	return not Player.onmesh and not ml_global_information.Player_IsCasting
 end

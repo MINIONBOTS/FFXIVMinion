@@ -43,7 +43,15 @@ ml_global_information.Player_Map = 0
 ml_global_information.Player_HP = {}
 ml_global_information.Player_MP = {}
 ml_global_information.Player_TP = {}
+ml_global_information.Player_Buffs = {}
 ml_global_information.Player_Casting = {}
+ml_global_information.Player_Target = nil
+ml_global_information.Player_InCombat = false
+ml_global_information.Player_IsLocked = false
+ml_global_information.Player_IsLoading = false
+ml_global_information.Player_IsCasting = false
+ml_global_information.Player_IsMoving = false
+ml_global_information.Player_Flying = {}
 	
 ml_global_information.chocoStance = {
 	[GetString("stFollow")] = 3,
@@ -52,6 +60,7 @@ ml_global_information.chocoStance = {
 	[GetString("stAttacker")] = 6,
 	[GetString("stHealer")] = 7,
 }
+
 ml_global_information.blacklistedAetherytes = {}
 
 FFXIVMINION = {}
@@ -288,7 +297,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (TimeSince(ml_global_information.lastUpdate) > 100) then
+	if (TimeSince(ml_global_information.lastUpdate) >= 100) then
 		ml_global_information.lastUpdate = tickcount
 		if (Player) then
 			ml_global_information.Player_Position = Player.pos
@@ -296,7 +305,15 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			ml_global_information.Player_HP = Player.hp
 			ml_global_information.Player_MP = Player.mp
 			ml_global_information.Player_TP = Player.tp
+			ml_global_information.Player_Buffs = Player.buffs
 			ml_global_information.Player_Casting = Player.castinginfo
+			ml_global_information.Player_Target = Player:GetTarget()
+			ml_global_information.Player_InCombat = Player.incombat
+			ml_global_information.Player_IsLocked = IsPositionLocked()
+			ml_global_information.Player_IsLoading = IsLoading()
+			ml_global_information.Player_IsCasting = ActionList:IsCasting()
+			ml_global_information.Player_IsMoving = Player:IsMoving()
+			ml_global_information.Player_Flying = Player.flying
 		end
 	end
 	
@@ -440,13 +457,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				local list = Player:GetGatherableSlotList()
 				local synth = Crafting:SynthInfo()	
 		
-				if (not ValidTable(list) and not ValidTable(synth) and not Player.incombat) then
+				if (not ValidTable(list) and not ValidTable(synth) and not ml_global_information.Player_InCombat) then
 					Repair()
 				end
 			end
 	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
-				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
+				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not ml_global_information.Player_IsMoving) then
 					ml_global_information.foodCheckTimer = tickcount
 					
 					local list = Player:GetGatherableSlotList()
@@ -1544,7 +1561,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-    if (Player:IsMoving()) then
+    if (ml_global_information.Player_IsMoving) then
         Player:Stop()
     end
 	GameHacks:SkipCutscene(gSkipCutscene == "1")
@@ -1668,34 +1685,34 @@ function ffxivminion.LoadModes()
 end
 
 function ffxivminion.NodeDistance(self, id)
-	
+
 	local neighbor = self:GetNeighbor(id)
     if (neighbor) then
 		local cost = neighbor.cost or 5
 		local levelmin = neighbor.levelmin or 0
 		if (levelmin > 0 and Player.level < levelmin and Player:GetSyncLevel() == 0) then
 			cost = cost * 3
-		end
+							end
 		local requiredlevel = neighbor.requiredlevel or 0
 		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
 			cost = 999
-		end
+						end
 		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
 			if ((not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) or
 				GilCount() < 100) 
 			then
 				cost = 999
-			end
-		end
+						end
+					end
 		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].b ~= nil) then
 			if (GilCount() < 120) then
 				cost = 999
-			end
-		end
+				end
+			end			
 		
         return cost
-    end
-    
+		end
+		
     return nil
 end
 

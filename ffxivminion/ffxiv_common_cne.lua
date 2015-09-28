@@ -52,13 +52,14 @@ function c_add_killtarget:evaluate()
 		return false
 	end
 	
-	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+	if (ml_global_information.Player_IsCasting or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
 	
 	local target = ml_task_hub:CurrentTask().targetFunction()
     if (ValidTable(target)) then
         if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+			d("Picked target in normal block.")
             c_add_killtarget.targetid = target.id
             return true
         end
@@ -254,7 +255,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or Player.incombat or ffxiv_task_grind.inFate or IsLoading()) then
+	if (gAtma == "0" or ml_global_information.Player_InCombat or ffxiv_task_grind.inFate or ml_global_information.Player_IsLoading) then
 		return false
 	end
 	
@@ -586,7 +587,7 @@ e_interactgate.timer = 0
 e_interactgate.id = 0
 e_interactgate.selector = 0
 function c_interactgate:evaluate()
-	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
@@ -622,7 +623,7 @@ function e_interactgate:execute()
 		return false
 	end
 	
-	if (Player:IsMoving()) then
+	if (ml_global_information.Player_IsMoving) then
 		Player:Stop()
 	end
 	
@@ -644,12 +645,12 @@ c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
-	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
 	if (ml_task_hub:ThisTask().destMapID) then
-		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID and not IsLoading() and not ml_mesh_mgr.loadingMesh) then
+		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID) then
 			local pos = ml_nav_manager.GetNextPathPos( 	ml_global_information.Player_Position,	
 														ml_global_information.Player_Map,	
 														ml_task_hub:CurrentTask().destMapID	)
@@ -695,7 +696,7 @@ c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
-	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
@@ -737,7 +738,7 @@ c_leavelockedarea = inheritsFrom( ml_cause )
 e_leavelockedarea = inheritsFrom( ml_effect )
 e_leavelockedarea.map = 0
 function c_leavelockedarea:evaluate()
-	if (IsLoading() or IsPositionLocked() or ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
@@ -784,7 +785,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aethid = 0
 e_teleporttomap.destMap = 0
 function c_teleporttomap:evaluate()
-	if (IsPositionLocked() or ActionList:IsCasting() or GilCount() < 1500) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting or GilCount() < 1500) then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
 	end
@@ -868,7 +869,7 @@ function c_teleporttomap:evaluate()
     return false
 end
 function e_teleporttomap:execute()
-	if (Player:IsMoving()) then
+	if (ml_global_information.Player_IsMoving) then
 		Player:Stop()
 	end
 	
@@ -893,7 +894,7 @@ c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == GetString("partyMode") and IsLeader() or ActionList:IsCasting()) then
+	if (gBotMode == GetString("partyMode") and IsLeader() or ml_global_information.Player_IsCasting) then
         return false
     end
 	
@@ -937,7 +938,7 @@ function e_followleader:execute()
 		
 		if (gUseMount == "1" and gMount ~= "None" and c_followleader.hasEntity) then
 			if (((leader.castinginfo.channelingid == 4 or leader.ismounted) or distance >= tonumber(gMountDist)) and not Player.ismounted) then
-				if (not ActionList:IsCasting()) then
+				if (not ml_global_information.Player_IsCasting) then
 					Player:Stop()
 					Mount()
 				end
@@ -967,7 +968,7 @@ function e_followleader:execute()
 		else
 			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),false,false)))	
 		end
-		if ( not Player:IsMoving()) then
+		if ( not ml_global_information.Player_IsMoving) then
 			if ( ml_global_information.AttackRange < 5 ) then
 				c_followleader.range = math.random(4,6)
 			else
@@ -976,7 +977,7 @@ function e_followleader:execute()
 		end
 		e_followleader.isFollowing = true
 	else
-		if ( not Player:IsMoving() ) then
+		if ( not ml_global_information.Player_IsMoving ) then
 			FollowResult = Player:FollowTarget(leader.id)
 			ml_debug( "Following Leader: "..tostring(FollowResult))
 		end
@@ -998,8 +999,8 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
-		(ActionList:IsCasting() and not ml_task_hub:CurrentTask().interruptCasting)) 
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
+		(ml_global_information.Player_IsCasting and not ml_task_hub:CurrentTask().interruptCasting)) 
 	then
 		return false
 	end
@@ -1089,7 +1090,7 @@ function e_walktopos:execute()
 			end
 		else
 			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
-			if (not Player:IsMoving()) then
+			if (not ml_global_information.Player_IsMoving) then
 				Player:Move(FFXIV.MOVEMENT.FORWARD)
 			end
 		end
@@ -1191,18 +1192,18 @@ function c_usenavinteraction:evaluate()
 			reaction = function()
 				local myPos = ml_global_information.Player_Position
 				if ((myPos.x > 218 and myPos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(12) and not Player.incombat) then
-						if (Player:IsMoving()) then
+					if (CanUseAetheryte(12) and not ml_global_information.Player_InCombat) then
+						if (ml_global_information.Player_IsMoving) then
 							Player:Stop()
-							c_usenavinteraction.blockOnly = true
-							return true
+							ml_task_hub:CurrentTask():SetDelay(500)
+							return
 						end
 						if (Player.ismounted) then
 							Dismount()
-							c_usenavinteraction.blockOnly = true
-							return true
+							ml_task_hub:CurrentTask():SetDelay(1000)
+							return
 						end
-						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
+						if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
 							if (Player:Teleport(12)) then	
 								local newTask = ffxiv_task_teleport.Create()
 								newTask.aetheryte = 12
@@ -1217,18 +1218,18 @@ function c_usenavinteraction:evaluate()
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 					end
 				elseif (not (myPos.x > 218 and myPos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(11) and not Player.incombat) then
-						if (Player:IsMoving()) then
+					if (CanUseAetheryte(11) and not ml_global_information.Player_InCombat) then
+						if (ml_global_information.Player_IsMoving) then
 							Player:Stop()
-							c_usenavinteraction.blockOnly = true
-							return true
+							ml_task_hub:CurrentTask():SetDelay(500)
+							return
 						end
 						if (Player.ismounted) then
 							Dismount()
-							c_usenavinteraction.blockOnly = true
-							return true
+							ml_task_hub:CurrentTask():SetDelay(1000)
+							return
 						end
-						if (ActionIsReady(7,5) and not ActionList:IsCasting() and not IsPositionLocked()) then
+						if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
 							if (Player:Teleport(11)) then
 								local newTask = ffxiv_task_teleport.Create()
 								newTask.aetheryte = 11
@@ -1406,7 +1407,7 @@ function c_usenavinteraction:evaluate()
 	return false
 end
 function e_usenavinteraction:execute()
-	if (ActionList:IsCasting() or Now() < e_usenavinteraction.timer or c_usenavinteraction.blockOnly) then
+	if (ml_global_information.Player_IsCasting or Now() < e_usenavinteraction.timer or c_usenavinteraction.blockOnly) then
 		return false
 	end
 	
@@ -1427,12 +1428,12 @@ function c_bettertargetsearch:evaluate()
 		return false
 	end
 	
-	if (ActionList:IsCasting() or Now() < c_add_killtarget.oocCastTimer) then
+	if (ml_global_information.Player_IsCasting or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
     
 	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:RootTask().name == "LT_GRIND") then
-		if (not Player.incombat) then
+		if (not ml_global_information.Player_InCombat) then
 			local bettertarget = GetNearestGrindAttackable()
 			if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
 				c_bettertargetsearch.targetid = bettertarget.id
@@ -1464,8 +1465,8 @@ e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 e_mount.timer = 0
 function c_mount:evaluate()
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or ml_mesh_mgr.loadingMesh) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+		or IsShopWindowOpen()) then
 		return false
 	end
 	
@@ -1487,7 +1488,7 @@ function c_mount:evaluate()
 	end
 	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
-		if (not Player.ismounted and not ActionList:IsCasting() and not IsMounting() and not Player.incombat) then
+		if (not Player.ismounted and not ml_global_information.Player_IsCasting and not IsMounting() and not ml_global_information.Player_InCombat) then
 			local myPos = ml_global_information.Player_Position
 			local gotoPos = ml_task_hub:CurrentTask().pos
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
@@ -1627,11 +1628,11 @@ function c_sprint:evaluate()
         return false
     end
 	
-	if (IsPositionLocked() or IsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
 		return false
 	end
 
-    if not HasBuff(Player.id, 50) and Player:IsMoving() then
+    if not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving then
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill and skill.isready) then
@@ -1778,7 +1779,7 @@ function c_rest:evaluate()
 	if (( tonumber(gRestHP) > 0 and ml_global_information.Player_HP.percent < tonumber(gRestHP)) or
 		( tonumber(gRestMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gRestMP)))
 	then
-		if (Player.incombat or not Player.alive) then
+		if (ml_global_information.Player_InCombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
 			return false
 		end
@@ -1820,7 +1821,7 @@ function c_flee:evaluate()
 		return false
 	end
 	
-	if ((Player.incombat) and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
+	if ((ml_global_information.Player_InCombat) and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
 		local ppos = ml_global_information.Player_Position
 		
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
@@ -1913,10 +1914,10 @@ c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == GetString("assistMode")) then
-		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not IsLoading())
+		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not ml_global_information.Player_IsLoading)
 	end
 	
-    return (ControlVisible("ContentsFinderConfirm") and not IsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3)
+    return (ControlVisible("ContentsFinderConfirm") and not ml_global_information.Player_IsLoading and Player.revivestate ~= 2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)
@@ -2083,7 +2084,7 @@ function c_stealth:evaluate()
 		return false
 	end
 	
-	if (Player.incombat or 
+	if (ml_global_information.Player_InCombat or 
 		(Player.job ~= FFXIV.JOBS.MINER and
 		Player.job ~= FFXIV.JOBS.BOTANIST and
 		Player.job ~= FFXIV.JOBS.FISHER)) then
@@ -2246,7 +2247,7 @@ function c_teleporttopos:evaluate()
 	end
 	
 	local useTeleport = ml_task_hub:CurrentTask().useTeleport
-	if (ActionList:IsCasting() or IsPositionLocked() or IsLoading() or IsMounting() or 
+	if (ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
 		not ValidTable(ml_task_hub:CurrentTask().pos) or not useTeleport) 
 	then
@@ -2300,8 +2301,8 @@ c_autoequip.timer = 0
 c_autoequip.lastRun = 0
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
-		IsShopWindowOpen() or IsPositionLocked() or IsLoading() or 
-		not Player.alive or Player.incombat or
+		IsShopWindowOpen() or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or 
+		not Player.alive or ml_global_information.Player_InCombat or
 		Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
 	then
 		return false
@@ -2422,7 +2423,7 @@ c_returntomap = inheritsFrom( ml_cause )
 e_returntomap = inheritsFrom( ml_effect )
 e_returntomap.mapID = 0
 function c_returntomap:evaluate()
-	if (IsPositionLocked() or IsLoading() or not Player.alive) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or not Player.alive) then
 		return false
 	end
 	
@@ -2516,7 +2517,7 @@ c_clearaggressive = inheritsFrom( ml_cause )
 e_clearaggressive = inheritsFrom( ml_effect )
 c_clearaggressive.targetid = 0
 function c_clearaggressive:evaluate()
-	if (ActionList:IsCasting() or IsPositionLocked() or IsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		return false
 	end
 	
@@ -2594,7 +2595,7 @@ end
 c_isloading = inheritsFrom( ml_cause )
 e_isloading = inheritsFrom( ml_effect )
 function c_isloading:evaluate()
-	return IsLoading()
+	return ml_global_information.Player_IsLoading
 end
 function e_isloading:execute()
 	d("Character is loading, prevent other actions and idle.")

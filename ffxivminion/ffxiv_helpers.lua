@@ -53,6 +53,7 @@ function GetNearestGrindAttackable()
 	end
 	
 	if (radius > 0 and ValidTable(markerPos)) then
+		d("Checking marker with radius section.")
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
 				el = EntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
@@ -180,6 +181,7 @@ function GetNearestGrindAttackable()
 			end
 		end
 	else
+		d("Checking marker without radius section.")
 		block = 1
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
@@ -259,6 +261,7 @@ function GetNearestGrindAttackable()
 		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
 		block = 5
 		if (not IsNullString(huntString)) then
+			d("Checking whitelist section.")
 			el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
 			
 			if ( el ) then
@@ -274,6 +277,7 @@ function GetNearestGrindAttackable()
 		
 		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
 		if (IsNullString(huntString)) then
+			d("Checking non-whitelist section.")
 			if (not IsNullString(excludeString)) then
 				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
@@ -550,7 +554,7 @@ function GetBestTankHealTarget( range )
         end
     end
 	
-	local ptrg = Player:GetTarget()
+	local ptrg = ml_global_information.Player_Target
 	if (ptrg and Player.pet) then
 		if (lowest == nil and ptrg.targetid == Player.pet.id) then
 			lowest = Player.pet
@@ -1367,7 +1371,7 @@ function GetNearestUnspoiled(class)
 end
 ff["GetNearestUnspoiled"] = GetNearestUnspoiled
 function GetMaxAttackRange()
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	
 	if (target and target.id ~= nil) then
 		local highestRange = 1
@@ -1395,19 +1399,28 @@ ff["GetMaxAttackRange"] = GetMaxAttackRange
 function HasBuff(targetid, buffID)
 	local buffID = tonumber(buffID) or 0
 	
-    local entity = EntityList:Get(targetid)
-    if (ValidTable(entity)) then
-        local buffs = entity.buffs
-        if (buffs ~= nil and TableSize(buffs) > 0) then
-            for i, buff in pairs(buffs) do
-                if (buff.id == buffID) then
-                    return true
-                end
-            end
-        end
-    else
-        return nil
-    end
+	if (targetid == Player.id) then
+		local buffs = ml_global_information.Player_Buffs
+		if (ValidTable(buffs)) then
+			for i, buff in pairs(buffs) do
+				if (buff.id == buffID) then
+					return true
+				end
+			end
+		end
+	else
+		local entity = EntityList:Get(targetid)
+		if (ValidTable(entity)) then
+			local buffs = entity.buffs
+			if (ValidTable(buffs)) then
+				for i, buff in pairs(buffs) do
+					if (buff.id == buffID) then
+						return true
+					end
+				end
+			end
+		end
+	end
     
     return false
 end
@@ -1442,26 +1455,34 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
 	
-    local buffs = entity.buffs
-	if (buffs == nil or TableSize(buffs) == 0) then return false end
-	for _orids in StringSplit(buffIDs,",") do
-		local found = false
-		for _andid in StringSplit(_orids,"+") do
-			found = false
-			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) 
-					and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
-					and (owner == 0 or buff.ownerid == owner)) 
-				then 
-					found = true 
+	if (ValidTable(entity)) then
+		local buffs;
+		if (entity.id == Player.id) then
+			buffs = ml_global_information.Player_Buffs
+		else
+			buffs = entity.buffs
+		end
+		if (ValidTable(buffs)) then
+			for _orids in StringSplit(buffIDs,",") do
+				local found = false
+				for _andid in StringSplit(_orids,"+") do
+					found = false
+					for i, buff in pairs(buffs) do
+						if (buff.id == tonumber(_andid) 
+							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
+							and (owner == 0 or buff.ownerid == owner)) 
+						then 
+							found = true 
+						end
+					end
+					if (not found) then 
+						break
+					end
+				end
+				if (found) then 
+					return true 
 				end
 			end
-			if (not found) then 
-				break
-			end
-		end
-		if (found) then 
-			return true 
 		end
 	end
 	return false
@@ -1471,35 +1492,43 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
 	
-	--If we have no buffs, we are missing everything.
-    local buffs = entity.buffs
-    if (buffs == nil or TableSize(buffs) == 0) then 
-    	return true
-    end
-    
-    --Start by assuming we have no buffs, so they are missing.
-    local missing = true
-    for _orids in StringSplit(buffIDs,",") do
-    	missing = true
-		for _andid in StringSplit(_orids,"+") do
-			for i, buff in pairs(buffs) do
-				if (buff.id == tonumber(_andid) 
-					and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id))
-					and (owner == 0 or buff.ownerid == owner)) 
-				then
-					missing = false 
+	if (ValidTable(entity)) then
+		--If we have no buffs, we are missing everything.
+		local buffs;
+		if (entity.id == Player.id) then
+			buffs = ml_global_information.Player_Buffs
+		else
+			buffs = entity.buffs
+		end
+		
+		if (ValidTable(buffs)) then
+			--Start by assuming we have no buffs, so they are missing.
+			local missing = true
+			for _orids in StringSplit(buffIDs,",") do
+				missing = true
+				for _andid in StringSplit(_orids,"+") do
+					for i, buff in pairs(buffs) do
+						if (buff.id == tonumber(_andid) 
+							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id))
+							and (owner == 0 or buff.ownerid == owner)) 
+						then
+							missing = false 
+						end
+					end
+					if (not missing) then 
+						break
+					end
+				end
+				if (missing) then 
+					return true
 				end
 			end
-			if (not missing) then 
-				break
-			end
+			
+			return false
 		end
-		if (missing) then 
-			return true
-		end
-    end
+	end
     
-    return false
+    return true
 end
 ff["MissingBuffs"] = MissingBuffs
 function GetFleeHP()
@@ -1517,7 +1546,7 @@ function HasInfiniteDuration(id)
 end
 ff["HasInfiniteDuration"] = HasInfiniteDuration
 function ActionList:IsCasting()
-	return (ml_global_information.Player_Casting.channelingid ~= 0 or ml_global_information.Player_Casting.castid == 4)
+	return (ml_global_information.Player_Casting.channelingid ~= 0)
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
@@ -2219,7 +2248,7 @@ function ScanForObjects(ids,distance)
 end
 ff["ScanForObjects"] = ScanForObjects
 function CanUseCannon()
-	if (IsPositionLocked()) then
+	if (ml_global_information.Player_IsLocked) then
 		local misc = ActionList("type=1,level=0")
 		if (ValidTable(misc)) then
 			for i,skill in pairsByKeys(misc) do
@@ -2640,7 +2669,7 @@ function IsPositionLocked()
 end
 ff["IsPositionLocked"] = IsPositionLocked
 function IsLoading()
-	return (Quest:IsLoading() or ml_global_information.Player_Map == 0)
+	return (Quest:IsLoading() or ml_global_information.Player_Map == 0 or ml_mesh_mgr.meshLoading)
 end
 ff["IsLoading"] = IsLoading
 function HasAction(id, category)
@@ -2808,7 +2837,7 @@ function NodeHasItem(searchItem)
 end
 ff["NodeHasItem"] = NodeHasItem
 function WhitelistTarget()
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	if (target) then
 		local key = GetUSString("contentIDEquals")
 		
@@ -2829,7 +2858,7 @@ function WhitelistTarget()
 end
 ff["WhitelistTarget"] = WhitelistTarget
 function BlacklistTarget()
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	if (target) then
 		local key = GetUSString("NOTcontentIDEquals")
 		
@@ -3557,7 +3586,7 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 end
 ff["GetOffMapMarkerPos"] = GetOffMapMarkerPos
 function ShouldTeleport(pos)
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
 	

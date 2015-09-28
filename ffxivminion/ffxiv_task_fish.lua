@@ -697,7 +697,7 @@ end
 c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 function c_fishnexttask:evaluate()
-	if (not Player.alive or IsLoading() or ActionList:IsCasting() or not ValidTable(ffxiv_task_fish.profileData)) then
+	if (not Player.alive or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or not ValidTable(ffxiv_task_fish.profileData)) then
 		return false
 	end
 	
@@ -1081,7 +1081,7 @@ function e_fishnextprofilemap:execute()
 				local aetheryte = GetAetheryteByID(aeth)
 				if (aetheryte) then
 					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-						if (Player:IsMoving()) then
+						if (ml_global_information.Player_IsMoving) then
 							Player:Stop()
 							return
 						end
@@ -1165,7 +1165,7 @@ function c_fishstealth:evaluate()
 	end
 	
 	if (useStealth) then
-		if (Player.incombat) then
+		if (ml_global_information.Player_InCombat) then
 			return false
 		end
 		

@@ -100,7 +100,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						
 						-- If our target isn't 0 anymore, select it, and attempt to interact with it.
 						if (ml_mesh_mgr.OMCTarget ~= 0) then
-							local target = Player:GetTarget()
+							local target = ml_global_information.Player_Target
 							if (not target or (target and target.id ~= ml_mesh_mgr.OMCTarget)) then
 								local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
 								if (interact and interact.targetable) then
@@ -279,7 +279,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						return
 					end
 					
-					if (IsLoading()) then
+					if (ml_global_information.Player_IsLoading) then
 						ml_mesh_mgr.OMCThrottle = Now() + 500
 						ml_mesh_mgr.ResetOMC()
 						return
@@ -298,7 +298,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						return
 					end
 					
-					local target = Player:GetTarget()
+					local target = ml_global_information.Player_Target
 					if (target and target.id == ml_mesh_mgr.OMCTarget) then						
 						local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
 						local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
@@ -335,10 +335,10 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								return
 							else
 								if (not IsMounting()) then
-									if (not Player.incombat) then								
+									if (not ml_global_information.Player_InCombat) then								
 										local mountID = GetMountID()
 										if (mountID ~= nil) then
-											if (Player:IsMoving()) then
+											if (ml_global_information.Player_IsMoving) then
 												d("Throwing Stop() in mount block.")
 												Player:Stop()
 												ml_mesh_mgr.OMCThrottle = Now() + 100
@@ -387,7 +387,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 									[397] = 200,
 								}
 							
-								local minaltitude = minaltitudes[Player.localmapid] or minaltitudes[-1]
+								local minaltitude = minaltitudes[ml_global_information.Player_Map] or minaltitudes[-1]
 								if (pPos.y > minaltitude) then
 									ml_mesh_mgr.OMCMinAltitude = pPos.y + 20
 									d("Setting min altitude to "..tostring(pPos.y + 20))

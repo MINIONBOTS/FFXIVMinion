@@ -182,7 +182,7 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if (IsPositionLocked() or IsLoading() or ml_mesh_mgr.loadingMesh ) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -299,7 +299,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			return true
 		else
 			-- For extremely small distances, allow to execute early if it's reasonably close.
-			if (not Player:IsMoving() and self.range < 1 and distance < 1) then
+			if (not ml_global_information.Player_IsMoving and self.range < 1 and distance < 1) then
 				d("[MOVETOPOS]: Completing due to range reached.")
 				return true
 			end
@@ -321,7 +321,7 @@ function ffxiv_task_movetopos:task_complete_execute()
 end
 
 function ffxiv_task_movetopos:task_fail_eval()
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -529,7 +529,7 @@ function ffxiv_task_movetofate:task_fail_eval()
 		return true
 	end
 	
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -564,8 +564,9 @@ function ffxiv_task_movetointeract.Create()
 	newinst.started = Now()
 	newinst.uniqueid = 0
 	newinst.interact = 0
-    newinst.lastinteract = 0
-	newinst.delayTimer = 0
+    newinst.lastInteract = 0
+	newinst.lastDismountCheck = 0
+	newinst.lastInteractableSearch = 0
 	newinst.pos = false
 	newinst.adjustedPos = false
 	newinst.range = nil
@@ -592,9 +593,6 @@ end
 function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
     self:add( ke_stuck, self.overwatch_elements)
-	
-	local ke_unpackData = ml_element:create( "UnpackData", c_unpackdata, e_unpackdata, 50 )
-	self:add( ke_unpackData, self.process_elements)
 
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
     self:add( ke_teleportToPos, self.process_elements)
@@ -618,11 +616,13 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return true
 	end
 	
+	local myTarget = ml_global_information.Player_Target
 	local ppos = ml_global_information.Player_Position
+	
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
@@ -639,33 +639,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end			
 	end
 	
-	if (Player.ismounted and Now() > self.delayTimer) then
-		local requiresDismount = false
-		if (self.interact == 0) then
-			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance="..tostring(self.dismountDistance))
-			if (ValidTable(interacts)) then
-				requiresDismount = true
-			end
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance="..tostring(self.dismountDistance))
-			if (ValidTable(interacts)) then
-				requiresDismount = true
-			end
-		else
-			local interact = EntityList:Get(tonumber(self.interact))
-			if (interact and interact.distance < self.dismountDistance) then
-				requiresDismount = true
-			end
-		end
-		if (requiresDismount) then
-			Dismount()
-			self.delayTimer = 1000
-			return false
-		end
-	end
-	
-	if (self.interact == 0) then
+	local interactable = nil
+	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
 		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -673,21 +650,36 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				end
 			end
 			
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
 					self.interact = interact.id
 				end
 			end
+			self.lastInteractableSearch = Now()
 		end
 	end
 	
-	if (not Player:GetTarget() and self.interact ~= 0) then
-		local interact = EntityList:Get(tonumber(self.interact))
-		if (interact and interact.targetable and interact.distance < 10) then
-			Player:SetTarget(interact.id)
-			local ipos = shallowcopy(interact.pos)
+	if (self.interact ~= 0) then
+		interactable = EntityList:Get(self.interact)
+	else
+		return false
+	end
+	
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 750) then
+		local requiresDismount = false
+		if (interactable and interactable.distance < self.dismountDistance) then
+			Dismount()
+			return false
+		end
+		self.lastDismountCheck = Now()
+	end
+	
+	if (not myTarget) then
+		if (interactable and interactable.targetable and interactable.distance < 10) then
+			Player:SetTarget(interactable.id)
+			local ipos = shallowcopy(interactable.pos)
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
 			if (ValidTable(p)) then
 				if (not deepcompare(self.pos,p,true)) then
@@ -697,48 +689,41 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	end
 	
-	if (Player:GetTarget() and self.interact ~= 0 and Now() > self.lastinteract) then
-		if (not IsLoading() and not IsPositionLocked()) then
-			--d("Trying to find interactable.")
-			local interactable = EntityList:Get(tonumber(self.interact))
-			if (ValidTable(interactable)) then
-				--d("Found the interactable.")
-				if (interactable.type == 2 or interactable.type == 3) then
-					local interact = ActionList:Get(2,1,interactable.id)
-					if (interact and interact.isready2) then
+	if (myTarget and TimeSince(self.lastInteract) > 750) then
+		if (ValidTable(interactable)) then
+			if (interactable.type == 2 or interactable.type == 3) then
+				local interact = ActionList:Get(2,1,interactable.id)
+				if (interact and interact.isready2) then
+					Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+					Player:Interact(interactable.id)
+					self.lastDistance = interactable.pathdistance
+					self.lastInteract = Now()
+					return false
+				end
+			end
+			
+			if (interactable.type == 5) then
+				if (interactable.distance <= 5.5) then
+					Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+					Player:Interact(interactable.id)
+					self.lastDistance = interactable.pathdistance
+					self.lastInteract = Now()
+					return false
+				end
+			end
+			
+			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+			local pathRange = self.pathRange or 10
+			local forceLOS = self.forceLOS
+			local range = self.interactRange or (radius * 3)
+			if (not forceLOS or (forceLOS and interactable.los)) then
+				if (interactable and interactable.distance <= range) then
+					local ydiff = math.abs(ppos.y - interactable.pos.y)
+					if (ydiff < 3.5 or interactable.los) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
 						self.lastDistance = interactable.pathdistance
-						self.lastinteract = Now() + self.interactDelay
-						self.interactDelay = self.interactDelay + 500
-						return false
-					end
-				end
-				
-				if (interactable.type == 5) then
-					if (interactable.distance <= 5.5) then
-						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-						Player:Interact(interactable.id)
-						self.lastDistance = interactable.pathdistance
-						self.lastinteract = Now() + self.interactDelay
-						self.interactDelay = self.interactDelay + 500
-					end
-				end
-				
-				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-				local pathRange = self.pathRange or 10
-				local forceLOS = self.forceLOS
-				local range = self.interactRange or (radius * 3)
-				if (not forceLOS or (forceLOS and interactable.los)) then
-					if (interactable and interactable.distance <= range) then
-						local ydiff = math.abs(ppos.y - interactable.pos.y)
-						if (ydiff < 3.5 or interactable.los) then
-							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-							Player:Interact(interactable.id)
-							self.lastDistance = interactable.pathdistance
-							self.lastinteract = Now() + self.interactDelay
-							self.interactDelay = self.interactDelay + 500
-						end
+						self.lastInteract = Now()
 					end
 				end
 			end
@@ -759,7 +744,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 end
 
 function ffxiv_task_movetointeract:task_fail_eval()
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -820,7 +805,7 @@ function ffxiv_task_movetomap:Init()
 end
 
 function ffxiv_task_movetomap:task_complete_eval()
-	if (IsLoading() or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
 		return true
 	end
 	
@@ -912,8 +897,8 @@ function c_sethomepoint:evaluate()
 	e_sethomepoint.aethpos = {}
 	
     local currentTask = ml_task_hub:CurrentTask()
-	if (not currentTask.setHomepoint or IsLoading() or ActionList:IsCasting() or 
-		IsPositionLocked() or ml_mesh_mgr.loadingMesh or ml_global_information.Player_Map ~= currentTask.mapID or 
+	if (not currentTask.setHomepoint or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or 
+		ml_global_information.Player_IsLocked or ml_global_information.Player_Map ~= currentTask.mapID or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map)) 
 	then
 		return false
@@ -963,7 +948,7 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh or ml_global_information.Player_Map ~= self.mapID) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_Map ~= self.mapID) then
 		return false
 	end
 	
@@ -993,11 +978,11 @@ function ffxiv_task_teleport:task_complete_execute()
 end
 
 function ffxiv_task_teleport:task_fail_eval()
-	if (Player.incombat or not Player.alive) then
+	if (ml_global_information.Player_InCombat or not Player.alive) then
 		return true
 	end
 	
-	if (IsLoading() or ActionList:IsCasting() or IsPositionLocked() or ml_mesh_mgr.loadingMesh) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked) then
 		self.lastActivity = Now()
 		return false
 	end
@@ -1044,7 +1029,7 @@ end
 
 function ffxiv_task_stealth:task_complete_eval()
 	if (self.droppingStealth) then
-		if (Player:IsMoving()) then
+		if (ml_global_information.Player_IsMoving) then
 			Player:Stop()
 			return false
 		end
@@ -1076,7 +1061,7 @@ function ffxiv_task_stealth:task_complete_eval()
 		if (HasBuffs(Player,"47")) then
 			return true
 		end
-		if (action and action.isoncd and Player:IsMoving()) then
+		if (action and action.isoncd and ml_global_information.Player_IsMoving) then
 			Player:Stop()
 		end
 	end
@@ -1168,11 +1153,11 @@ function ffxiv_task_useitem:task_complete_eval()
 		return false
 	end
 	
-	if (Player:IsMoving()) then
+	if (ml_global_information.Player_IsMoving) then
 		Player:Stop()
 	end
 	
-	if (ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsCasting) then
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return false 
 	end
@@ -1270,7 +1255,7 @@ end
 function ffxiv_task_avoid:task_complete_execute()
     Player:Stop()
     
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	if (target ~= nil) then
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
@@ -1339,7 +1324,7 @@ function ffxiv_task_rest:task_fail_eval()
 		return true
 	end
 	
-	if (Player.incombat) then
+	if (ml_global_information.Player_InCombat) then
 		local el = EntityList("alive,attackable,targetingme,maxdistance=25")
 		if(ValidTable(el)) then
 			return true
@@ -1396,11 +1381,11 @@ function ffxiv_task_flee:Init()
 end
 
 function ffxiv_task_flee:task_complete_eval()
-	if (IsLoading() or ml_mesh_mgr.loadingMesh ) then
+	if (ml_global_information.Player_IsLoading) then
 		return true
 	end
 	
-	if not HasBuff(Player.id, 50) and Player:IsMoving() then
+	if not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving then
         local skills = ActionList("type=1")
         local skill = skills[3]
         if (skill and skill.isready) then
@@ -1408,7 +1393,7 @@ function ffxiv_task_flee:task_complete_eval()
         end
     end
 	
-	return not Player.incombat or (ml_global_information.Player_HP.percent > tonumber(gRestHP) and ml_global_information.Player_MP.percent > tonumber(gRestMP))
+	return not ml_global_information.Player_InCombat or (ml_global_information.Player_HP.percent > tonumber(gRestHP) and ml_global_information.Player_MP.percent > tonumber(gRestMP))
 end
 
 function ffxiv_task_flee:task_complete_execute()
@@ -1420,7 +1405,7 @@ function ffxiv_task_flee:task_complete_execute()
 end
 
 function ffxiv_task_flee:task_fail_eval()
-	if (((not c_walktopos:evaluate() and not Player:IsMoving()) and Player.incombat)) then
+	if (((not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) and ml_global_information.Player_InCombat)) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 5000
 		end
@@ -1502,7 +1487,7 @@ function ffxiv_task_grindCombat:Process()
 	local target = EntityList:Get(self.targetid)
 	if ValidTable(target) then
 	
-		local currentTarget = Player:GetTarget()
+		local currentTarget = ml_global_information.Player_Target
 		if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
 			Player:SetTarget(target.id)
 		end
@@ -1548,7 +1533,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
-			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ActionList:IsCasting()) then
+			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1567,7 +1552,7 @@ function ffxiv_task_grindCombat:Process()
 				if (Player.ismounted) then
 					Dismount()
 				end
-				if (Player:IsMoving() and (target.los or CanAttack(target.id))) then
+				if (ml_global_information.Player_IsMoving and (target.los or CanAttack(target.id))) then
 					Player:Stop()
 					if (IsCaster(Player.job)) then
 						return
@@ -1772,7 +1757,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 	end
 	
 	if (self.interact ~= 0) then
-		local target = Player:GetTarget()
+		local target = ml_global_information.Player_Target
 		if (not target or (target and target.id ~= self.interact)) then
 			local interact = EntityList:Get(tonumber(self.interact))
 			if (interact and interact.targetable) then
@@ -1782,7 +1767,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 		end
 		
 		if (target and target.id == self.interact and Now() > self.interactLatency) then
-			if (not IsLoading() and not IsPositionLocked()) then
+			if (not ml_global_information.Player_IsLoading and not ml_global_information.Player_IsLocked) then
 				local interact = EntityList:Get(tonumber(self.interact))
 				local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
 				if (interact and interact.distance < (radius * 4)) then
@@ -1796,7 +1781,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 	end
 	
 	local interact = EntityList:Get(tonumber(self.interact))
-	if (not interact or not interact.targetable or IsLoading() or interact.distance > 6) then
+	if (not interact or not interact.targetable or ml_global_information.Player_IsLoading or interact.distance > 6) then
 		return true
 	end
 end
@@ -1809,7 +1794,7 @@ function ffxiv_mesh_interact:task_complete_execute()
 end
 
 function ffxiv_mesh_interact:task_fail_eval()
-    if (Player.incombat or not Player.alive) then
+    if (ml_global_information.Player_InCombat or not Player.alive) then
 		return true
 	end
 	
@@ -1881,7 +1866,7 @@ function ffxiv_nav_interact:Init()
 end
 
 function ffxiv_nav_interact:task_complete_eval()
-	if (IsPositionLocked() and self.addedMoveElement) then
+	if (ml_global_information.Player_IsLocked and self.addedMoveElement) then
 		for i, element in pairs(self.process_elements) do
 			if (element.name == "TeleportToPos" or element.name == "Mount") then
 				table.remove(self.process_elements,i)
@@ -1889,11 +1874,11 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (IsLoading() and not self.areaChanged) then
+	if (ml_global_information.Player_IsLoading and not self.areaChanged) then
 		self.areaChanged = true
 	end
 	
-	if (not IsLoading() and self.areaChanged and not ml_mesh_mgr.meshLoading and Player.onmesh) then
+	if (not ml_global_information.Player_IsLoading and self.areaChanged and not ml_mesh_mgr.meshLoading and Player.onmesh) then
 		return true
 	end
 
@@ -1908,7 +1893,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (IsPositionLocked() or IsLoading() or ControlVisible("SelectYesno")) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno")) then
 		Player:Stop()
 		return false
 	end	
@@ -1933,7 +1918,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (not Player:GetTarget() and self.interact ~= 0) then
+	if (not ml_global_information.Player_Target and self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (interact and interact.targetable) then
 			Player:SetTarget(self.interact)
@@ -1944,8 +1929,8 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (Player:GetTarget() and self.interact ~= 0 and Now() > self.lastinteract) then
-		if (not IsLoading() and not IsPositionLocked()) then
+	if (ml_global_information.Player_Target and self.interact ~= 0 and Now() > self.lastinteract) then
+		if (not ml_global_information.Player_IsLoading and not ml_global_information.Player_IsLocked) then
 			local interact = EntityList:Get(tonumber(self.interact))
 			local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
 			if (interact and interact.distance < (radius * 4)) then
@@ -1971,7 +1956,7 @@ function ffxiv_nav_interact:task_complete_execute()
 end
 
 function ffxiv_nav_interact:task_fail_eval()
-    if (Player.incombat or not Player.alive) then
+    if (ml_global_information.Player_InCombat or not Player.alive) then
 		return true
 	end
 	

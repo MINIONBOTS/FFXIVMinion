@@ -123,7 +123,7 @@ end
 
 function ffxiv_task_assist:Process()
 
-    local target = Player:GetTarget()
+    local target = ml_global_information.Player_Target
     
     if ( gAssistMode ~= GetString("none") ) then
         local newTarget = nil
@@ -149,7 +149,7 @@ function ffxiv_task_assist:Process()
 	
 	local casted = false
     if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and target.distance <= 35 ) then
-		if (gStartCombat == "1" or (gStartCombat == "0" and Player.incombat)) then
+		if (gStartCombat == "1" or (gStartCombat == "0" and ml_global_information.Player_InCombat)) then
 			if (SkillMgr.Cast( target )) then
 				casted = true
 			end

@@ -37,7 +37,7 @@ function ffxiv_task_grind.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	newinst.filterLevel = true
-	newinst.correctMap = Player.localmapid
+	newinst.correctMap = ml_global_information.Player_Map
 	newinst.suppressRestTimer = 0
 	newinst.safeLevel = false
 	ffxiv_task_grind.inFate = false
@@ -231,7 +231,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxiv_task_grind.BlacklistTarget()
-    local target = Player:GetTarget()
+    local target = ml_global_information.Player_Target
     if ValidTable(target) then
         ml_blacklist.AddBlacklistEntry(GetString("monsters"), target.contentid, target.name, true)
         ml_debug("Blacklisted "..target.name)
@@ -299,7 +299,7 @@ function ffxiv_task_grind.HuntingUI()
 end
 
 function ffxiv_task_grind.HuntTarget()
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	if ValidTable(target) then
 		ml_blacklist.AddBlacklistEntry(GetString("huntMonsters"), target.contentid, target.name, true)
 	end
@@ -535,7 +535,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
                 fafound = true
                 gFateName = string.gsub(f.name,",","")
                 gFateID = f.id
-				gFateMapID = Player.localmapid
+				gFateMapID = ml_global_information.Player_Map
             end
         end
         if (not fafound) then
@@ -544,7 +544,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 			gFateMapID = 0
         end
         
-        local target = Player:GetTarget()
+        local target = ml_global_information.Player_Target
         if target and target.attackable then
             gTargetName = target.name
         else

@@ -297,7 +297,7 @@ function ffxiv_task_qs_grind.Create()
     --ffxiv_task_grind members
     newinst.name = "LT_QS_GRIND"
     newinst.targetid = 0
-	newinst.correctMap = Player.localmapid
+	newinst.correctMap = ml_global_information.Player_Map
 	newinst.startingPosition = shallowcopy(Player.pos)
 	newinst.killFunction = ffxiv_task_grindCombat
 	newinst.targetFunction = GetQuickGrindTarget
@@ -367,7 +367,7 @@ function c_gathersimple:evaluate()
 		
     local list = Player:GetGatherableSlotList()
 	if (list) then
-		if (Player:IsMoving()) then
+		if (ml_global_information.Player_IsMoving) then
 			Player:Stop()
 		end
 		return true
@@ -383,7 +383,7 @@ function e_gathersimple:execute()
 	
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-		local node = Player:GetTarget()
+		local node = ml_global_information.Player_Target
 		if (not ValidTable(node) or not node.cangather) then
 			return
 		end

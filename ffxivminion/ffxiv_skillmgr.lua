@@ -1714,12 +1714,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				
 	--Check for current target cast preventions first.
 	local cp = Settings.FFXIVMINION.cpOptions
-	local target = Player:GetTarget()
+	local target = ml_global_information.Player_Target
 	if (target) then
 		for k,v in pairs(cp) do
 			if ( v.castids and v.castids ~= "" ) then
 				if (isCasting(target, v.castids, nil, nil )) then
-					if (ActionList:IsCasting()) then
+					if (ml_global_information.Player_IsCasting) then
 						ActionList:Cast(2,Player.id,5)
 					end
 					return false
@@ -1929,7 +1929,7 @@ function SkillMgr.Craft()
 	local al = ActionList("type=8")
 	
     local synth = Crafting:SynthInfo()
-    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile) and not ActionList:IsCasting()) then
+    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
 		
 		if (SkillMgr.newCraft) then
 			SkillMgr.currentIQStack = 0 
@@ -2108,8 +2108,8 @@ function SkillMgr.Gather(item)
 	-- This is required to refresh the available action list abilities.
 	local al = ActionList("type=1")
 	
-    local node = Player:GetTarget()
-    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ActionList:IsCasting()) then
+    local node = ml_global_information.Player_Target
+    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
         
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
@@ -2766,7 +2766,7 @@ function ffxiv_task_skillmgrAttack:Process()
 end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
-    local target = Player:GetTarget()
+    local target = ml_global_information.Player_Target
     if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and ml_global_information.Player_Casting.channelingid == nil)) then
 		ml_task_hub:CurrentTask().suppressFollow = false
         return true
@@ -2788,7 +2788,7 @@ function c_triggersuppressions:evaluate()
 		return false
 	end
 	
-	if (not IsDutyLeader() and OnDutyMap() and not IsLoading() and Player.incombat and not ml_task_hub:CurrentTask().suppressFollow) then
+	if (not IsDutyLeader() and OnDutyMap() and not ml_global_information.Player_IsLoading and ml_global_information.Player_InCombat and not ml_task_hub:CurrentTask().suppressFollow) then
 		local leader = GetDutyLeader()
 		if leader.dead then
 			return true
@@ -3365,10 +3365,10 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local preCombat = SkillMgr.preCombat
 		
-		if (((skill.combat == "Out of Combat") and Player.incombat) or
+		if (((skill.combat == "Out of Combat") and ml_global_information.Player_InCombat) or
 			((skill.combat == "In Combat") and (preCombat == true)) or
-			((skill.combat == "In Combat") and not Player.incombat and skill.trg ~= "Target") or
-			((skill.combat == "In Combat") and not Player.incombat and not target.attackable))
+			((skill.combat == "In Combat") and not ml_global_information.Player_InCombat and skill.trg ~= "Target") or
+			((skill.combat == "In Combat") and not ml_global_information.Player_InCombat and not target.attackable))
 		then 
 			return true
 		end

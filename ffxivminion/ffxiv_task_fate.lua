@@ -43,7 +43,7 @@ end
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate()
-	if (IsLoading() or ml_mesh_mgr.meshLoading or ActionList:IsCasting()) then
+	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
@@ -98,14 +98,14 @@ function c_betterfatesearch:evaluate()
 		local myPos = ml_global_information.Player_Position
 		local dist2d = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
 		
-		if (ffxiv_task_fate.IsChain(Player.localmapid,thisFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,thisFate.id)) then
+		if (ffxiv_task_fate.IsChain(ml_global_information.Player_Map,thisFate.id) or ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map,thisFate.id)) then
 			return false
 		end
 		
 		local closestFate = GetClosestFate(myPos)
 		if (ValidTable(closestFate) and thisFate.id ~= closestFate.id) then
 			if (closestFate.status == 2) then
-				if (ffxiv_task_fate.IsChain(Player.localmapid,closestFate.id) or ffxiv_task_fate.IsHighPriority(Player.localmapid,closestFate.id)) then
+				if (ffxiv_task_fate.IsChain(ml_global_information.Player_Map,closestFate.id) or ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map,closestFate.id)) then
 					c_betterfatesearch.timer = Now()
 					e_betterfatesearch.fateid = closestFate.id
 					return true	
@@ -248,7 +248,7 @@ function c_movewithfate:evaluate()
 					if (not ValidTable(currentFatePos)) then
 						currentFatePos = shallowcopy(newFatePos)
 						return false
-					elseif (ValidTable(currentFatePos) and not Player.incombat) then
+					elseif (ValidTable(currentFatePos) and not ml_global_information.Player_InCombat) then
 						if (not deepcompare(currentFatePos,newFatePos,true)) then
 							currentFatePos = shallowcopy(newFatePos)
 							return true
@@ -437,13 +437,13 @@ c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
 function c_add_fatetarget:evaluate()
-	if (not Player.incombat) then
+	if (not ml_global_information.Player_InCombat) then
 		if (SkillMgr.Cast( Player, true)) then
 			c_add_fatetarget.oocCastTimer = Now() + 1500
 			return false
 		end
 		
-		if (ActionList:IsCasting() or Now() < c_add_fatetarget.oocCastTimer) then
+		if (ml_global_information.Player_IsCasting or Now() < c_add_fatetarget.oocCastTimer) then
 			return false
 		end
 	end
@@ -556,7 +556,7 @@ function c_endfate:evaluate()
     return false
 end
 function e_endfate:execute()
-	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(Player.localmapid,ml_task_hub:ThisTask().fateid)
+	local isChain, isFirst, isLast, nextFate = ffxiv_task_fate.IsChain(ml_global_information.Player_Map,ml_task_hub:ThisTask().fateid)
 	if (isChain and not isLast and ValidTable(nextFate)) then
 		d("Setting FATE to wait for next part of the chain.")
 		Player:Stop()
