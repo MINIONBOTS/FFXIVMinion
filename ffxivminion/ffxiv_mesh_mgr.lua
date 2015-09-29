@@ -43,8 +43,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 		ml_global_information.lastrun = Now()
 		
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
-			-- Update IsMoving with exact data
-			ml_global_information.Player_IsMoving = Player:IsMoving() or false
+			ffxivminion.UpdateGlobals()
+			
 			-- Set all position data, pPos = Player pos, sPos = start omc pos and heading, ePos = end omc pos
 			local pPos = ml_global_information.Player_Position
 			local mPos,mDist = NavigationManager:GetClosestPointOnMesh(pPos)

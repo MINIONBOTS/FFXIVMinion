@@ -297,26 +297,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (TimeSince(ml_global_information.lastUpdate) >= 100) then
-		ml_global_information.lastUpdate = tickcount
-		if (Player) then
-			ml_global_information.Player_Position = Player.pos
-			ml_global_information.Player_Map = Player.localmapid
-			ml_global_information.Player_HP = Player.hp
-			ml_global_information.Player_MP = Player.mp
-			ml_global_information.Player_TP = Player.tp
-			ml_global_information.Player_Buffs = Player.buffs
-			ml_global_information.Player_Casting = Player.castinginfo
-			ml_global_information.Player_Target = Player:GetTarget()
-			ml_global_information.Player_InCombat = Player.incombat
-			ml_global_information.Player_IsLocked = IsPositionLocked()
-			ml_global_information.Player_IsLoading = IsLoading()
-			ml_global_information.Player_IsCasting = ActionList:IsCasting()
-			ml_global_information.Player_IsMoving = Player:IsMoving()
-			ml_global_information.Player_Flying = Player.flying
-		end
-	end
-	
 	if (ml_global_information.queueSync) then
 		local timer = ml_global_information.queueSync.timer
 		local pos = ml_global_information.queueSync.pos
@@ -369,6 +349,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
     if (TimeSince(ml_global_information.lastrun) > pulseTime) then
         ml_global_information.lastrun = tickcount
+		
+		ffxivminion.UpdateGlobals()
 		
 		-- close any social addons that might screw up behavior first
 		if(	gBotRunning == "1" and 
@@ -1505,6 +1487,25 @@ function ffxivminion.OpenSettings()
 	local winTable = ffxivminion.GetWindowSize(winName)
 	GUI_SizeWindow(winName,wnd.width,winTable.height)
 	GUI_WindowVisible(winName,true)
+end
+
+function ffxivminion.UpdateGlobals()
+	if (Player) then
+		ml_global_information.Player_Position = Player.pos
+		ml_global_information.Player_Map = Player.localmapid
+		ml_global_information.Player_HP = Player.hp
+		ml_global_information.Player_MP = Player.mp
+		ml_global_information.Player_TP = Player.tp
+		ml_global_information.Player_Buffs = Player.buffs
+		ml_global_information.Player_Casting = Player.castinginfo
+		ml_global_information.Player_Target = Player:GetTarget()
+		ml_global_information.Player_InCombat = Player.incombat
+		ml_global_information.Player_IsLocked = IsPositionLocked()
+		ml_global_information.Player_IsLoading = IsLoading()
+		ml_global_information.Player_IsCasting = ActionList:IsCasting()
+		ml_global_information.Player_IsMoving = Player:IsMoving()
+		ml_global_information.Player_Flying = Player.flying
+	end
 end
 
 function ffxivminion.UpdateFood(var)

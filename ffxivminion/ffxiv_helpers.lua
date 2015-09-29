@@ -1270,6 +1270,35 @@ function RoundUp(number, multiple)
 	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
 end
 ff["RoundUp"] = RoundUp
+function GetNearestFromList(strList,pos,radius)
+	local el = EntityList(strList)
+	if (ValidTable(el)) then
+		local filteredList = {}
+		for i,e in pairs(el) do
+			if (not radius or (radius > 200)) then
+				table.insert(filteredList,e)
+			else
+				local epos = e.pos
+				local dist = Distance3D(pos.x,pos.y,pos.z,epos.x,epos.y,epos.z)
+				
+				if (dist <= radius) then
+					table.insert(filteredList,e)
+				end
+			end
+		end
+		
+		if (ValidTable(filteredList)) then
+			table.sort(filteredList,function(a,b) return a.pathdistance < b.pathdistance end)
+			
+			local i,e = next(filteredList)
+			if (i and e) then
+				return e
+			end
+		end
+	end
+	
+	return nil
+end
 function GetNearestGatherable(marker)
     local el = nil
     local whitelist = ""
