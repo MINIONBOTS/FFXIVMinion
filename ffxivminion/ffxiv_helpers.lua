@@ -3010,8 +3010,7 @@ function IsRareItemSpecial(itemid)
 end
 ff["IsRareItemSpecial"] = IsRareItemSpecial
 function IsUnspoiled(contentid)
-	return contentid == 5 or contentid == 6 or 
-			contentid == 7 or contentid == 8
+	return (contentid >= 5 and contentid <= 8)
 end
 ff["IsUnspoiled"] = IsUnspoiled
 --===========================

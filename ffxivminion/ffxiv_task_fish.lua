@@ -1020,10 +1020,11 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (best) then
-						d("Selected index ["..tostring(lowestIndex).."] as the best task.")
-						ffxiv_task_fish.currentTaskIndex = lowestIndex
-						ffxiv_task_fish.currentTask = best
-						return true
+						if (ffxiv_task_fish.currentTaskIndex ~= lowestIndex) then
+							ffxiv_task_fish.currentTaskIndex = lowestIndex
+							ffxiv_task_fish.currentTask = best
+							return true
+						end
 					end
 				end
 			end

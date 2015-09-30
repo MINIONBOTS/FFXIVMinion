@@ -143,7 +143,7 @@ function ffxiv_unstuck.IsStuck()
 			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
 			not ml_global_information.Player_IsCasting and
-			not ml_global_information.Player_IsMoving and 
+			ml_global_information.Player_IsMoving and
 			not ml_global_information.Player_IsLocked and
 			not ml_global_information.Player_InCombat and
 			not ml_global_information.Player_IsLoading
