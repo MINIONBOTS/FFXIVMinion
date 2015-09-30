@@ -82,12 +82,12 @@ function ffxivminion.SetupOverrides()
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
 	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
-	ml_node.DistanceTo	= 			ffxivminion.NodeDistance
+	ml_node.ValidNeighbors = 		ffxivminion.NodeNeighbors
 	
 	-- setup meshmanager
 	if ( ml_mesh_mgr ) then
 		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
-		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
+		ml_mesh_mgr.GetMapID = function () return ml_global_information.Player_Map end
 		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
 		ml_mesh_mgr.GetPlayerPos = function () return ml_global_information.Player_Position end
 		ml_mesh_mgr.SetEvacPoint = function ()
@@ -1685,35 +1685,35 @@ function ffxivminion.LoadModes()
 	end
 end
 
-function ffxivminion.NodeDistance(self, id)
+function ffxivminion.NodeNeighbors(self)
+	if (ValidTable(self.neighbors)) then
+		local validNeighbors = deepcopy(self.neighbors)
 
-	local neighbor = self:GetNeighbor(id)
-    if (neighbor) then
-		local cost = neighbor.cost or 5
-		local levelmin = neighbor.levelmin or 0
-		if (levelmin > 0 and Player.level < levelmin and Player:GetSyncLevel() == 0) then
-			cost = cost * 3
+		for id,entries in pairs(validNeighbors) do
+			for i,entrydata in pairs(entries) do
+				if (entrydata.requires) then
+					local add = true
+					local requirements = shallowcopy(entrydata.requires)
+					for requirement,value in pairs(requirements) do
+						local f = assert(loadstring("return " .. requirement))()
+						if (f ~= nil) then
+							if (f ~= value) then
+								add = false
 							end
-		local requiredlevel = neighbor.requiredlevel or 0
-		if (requiredlevel > 0 and Player.level < requiredlevel and Player:GetSyncLevel() == 0) then
-			cost = 999
 						end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].a ~= nil) then
-			if ((not (Quest:HasQuest(674) and (Quest:GetQuestCurrentStep(674) == 255)) and not Quest:IsQuestCompleted(674)) or
-				GilCount() < 100) 
-			then
-				cost = 999
+						if (not add) then
+							break
 						end
 					end
-		if (TableSize(neighbor.gates) == 1 and neighbor.gates[1].b ~= nil) then
-			if (GilCount() < 120) then
-				cost = 999
+					if (not add) then
+						validNeighbors[id][i] = nil
+					end
 				end
 			end			
-		
-        return cost
 		end
 		
+		return validNeighbors
+	end
     return nil
 end
 
