@@ -1566,9 +1566,9 @@ function c_companion:evaluate()
         return false
     end
 
-    if (((gChoco == GetString("grindMode") or gChoco == GetString("any")) and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
-		((gChoco == GetString("assistMode") or gChoco == GetString("any")) and gBotMode == GetString("assistMode")) or
-		((gChoco == GetString("questMode") or gChoco == GetString("any")) and gBotMode == GetString("questMode"))) 
+    if ((gChocoGrind == "1" and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
+		(gChocoAssist == "1" and gBotMode == GetString("assistMode")) or
+		(gChocoQuest == "1" and gBotMode == GetString("questMode"))) 
 	then	
 		local item = Inventory:Get(4868)
 		if (ValidTable(item) and item.isready) then

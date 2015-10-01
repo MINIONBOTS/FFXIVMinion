@@ -7,6 +7,9 @@ sck.filterTime5 = 0
 sck.onOffTimer = 0
 sck.currentSpeed = 6
 sck.psTimer = 0
+sck.prevModeTimer = 0
+sck.nextModeTimer = 0
+sck.ctoggleTimer = 0
 
 sck.mainwindow = { name = GetString("shortcutManager"), x = 50, y = 50, width = 250, height = 200}
 sck.Shortcuts = {
@@ -18,13 +21,16 @@ sck.Shortcuts = {
 	["Start/Stop"] = 6,
 	["Speed Hack"] = 7,
 	["PermaSprint"] = 8,
+	["Previous Mode"] = 9,
+	["Next Mode"] = 10,
+	["Toggle Companion"] = 11,
 }
 
 ffxivminion.Strings.Shortcuts = 
 	function ()
 		local shortcuts = ""
 		local sort_func = function( t,a,b ) return t[a] < t[b] end
-		for k,v in spairs(sck.Shortcuts) do
+		for k,v in spairs(sck.Shortcuts,sort_func) do
 			if (shortcuts == "") then
 				shortcuts = k
 			else
@@ -292,11 +298,13 @@ function sck.OnUpdate( event, tickcount )
 	local value1 = CC.value1
 	local value2 = CC.value2
 	local value3 = CC.value3
+	
 	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
 		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
 		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
-			TimeSince(sck.onOffTimer) >= 1000) 
+			TimeSince(sck.onOffTimer) >= 750) 
 	then
+		d("Both keys are pressed.")
 		ml_task_hub.ToggleRun()
 		sck.onOffTimer = tickcount
 	end	
@@ -341,6 +349,90 @@ function sck.OnUpdate( event, tickcount )
 			sck.psTimer = tickcount
 	end	
 	
+	CC = Settings.FFXIVMINION.ClickCombo["Previous Mode"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.prevModeTimer) >= 150) 
+	then
+		local lastMode = ""
+		local modeFound = false
+		
+		local botModes = ""
+		if (ValidTable(ffxivminion.modes)) then
+			local modes = ffxivminion.modes
+			for i,entry in spairs(modes, function(modes,a,b) return a < b end) do
+				if (i == gBotMode) then
+					modeFound = true
+				end
+				if (modeFound) then
+					break
+				end
+				lastMode = i
+			end				
+		end
+		
+		if (lastMode ~= "") then
+			ffxivminion.SwitchMode(lastMode)
+			SafeSetVar("gBotMode",lastMode)
+		end
+		sck.prevModeTimer = tickcount
+	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Next Mode"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.nextModeTimer) >= 150) 
+	then
+		local nextMode = ""
+		local modeFound = false
+		
+		local botModes = ""
+		if (ValidTable(ffxivminion.modes)) then
+			local modes = ffxivminion.modes
+			for i,entry in spairs(modes, function(modes,a,b) return a < b end) do
+				if (modeFound) then
+					nextMode = i
+					break
+				end
+				if (i == gBotMode) then
+					modeFound = true
+				end
+			end				
+		end
+		
+		if (nextMode ~= "") then
+			ffxivminion.SwitchMode(nextMode)
+			SafeSetVar("gBotMode",nextMode)
+		end
+		sck.nextModeTimer = tickcount
+	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Toggle Companion"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.ctoggleTimer) >= 150) 
+	then
+		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
+			SetGUIVar("gChocoGrind",gChocoGrind == "0" and "1" or "0")
+		elseif (gBotMode == GetString("assistMode")) then
+			SetGUIVar("gChocoAssist",gChocoAssist == "0" and "1" or "0")
+		elseif (gBotMode == GetString("questMode")) then
+			SetGUIVar("gChocoQuest",gChocoQuest == "0" and "1" or "0")
+		end
+		sck.ctoggleTimer = tickcount
+	end	
 end
 
 sck.ModifierKeys = {

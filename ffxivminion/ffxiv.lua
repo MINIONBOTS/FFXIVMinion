@@ -35,6 +35,7 @@ ml_global_information.suppressRestTimer = 0
 ml_global_information.queueSync = nil
 ml_global_information.queueSyncForce = false
 ml_global_information.queueSyncForced = false
+ml_global_information.lastInventorySnapshot = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -217,8 +218,9 @@ ffxivminion.Strings = {
 	BotModes = 
 		function ()
 			local botModes = ""
-			if ( TableSize(ffxivminion.modes) > 0) then
-				for i, entry in pairs(ffxivminion.modes) do
+			if (ValidTable(ffxivminion.modes)) then
+				local modes = ffxivminion.modes
+				for i,entry in spairs(modes, function(modes,a,b) return a < b end) do
 					if (botModes == "") then
 						botModes = i
 					else
@@ -587,8 +589,14 @@ function ffxivminion.HandleInit()
     if ( Settings.FFXIVMINION.gClickToTravel == nil) then
 		Settings.FFXIVMINION.gClickToTravel = "0"
 	end
-	if ( Settings.FFXIVMINION.gChoco == nil) then
-		Settings.FFXIVMINION.gChoco = GetString("none")
+	if ( Settings.FFXIVMINION.gChocoAssist == nil) then
+		Settings.FFXIVMINION.gChocoAssist = "0"
+	end
+	if ( Settings.FFXIVMINION.gChocoGrind == nil) then
+		Settings.FFXIVMINION.gChocoGrind = "0"
+	end
+	if ( Settings.FFXIVMINION.gChocoQuest == nil) then
+		Settings.FFXIVMINION.gChocoQuest = "0"
 	end
 	if ( Settings.FFXIVMINION.gMount == nil) then
 		Settings.FFXIVMINION.gMount = GetString("none")
@@ -674,11 +682,6 @@ function ffxivminion.HandleInit()
     GUI_NewNumeric(winName,GetString("mountDist"),"gMountDist",group )
     GUI_NewCheckbox(winName,GetString("useSprint"),"gUseSprint",group )
     GUI_NewNumeric(winName,GetString("sprintDist"),"gSprintDist",group )
-	GUI_NewComboBox(winName,GetString("companion"), "gChoco",group,"")
-	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
-	gChoco_listitems = GetString("none")..","..GetString("grindMode")..","..GetString("assistMode")..","..GetString("questMode")..","..GetString("any")
-	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
-	gChocoStance_listitems = GetString("stFree")..","..GetString("stDefender")..","..GetString("stAttacker")..","..GetString("stHealer")..","..GetString("stFollow")
 	GUI_NewComboBox(winName,GetString("food"),"gFood", group, "None")
 	GUI_NewComboBox(winName,GetString("foodHQ"),"gFoodHQ", group, "None")
 	GUI_NewCheckbox(winName,GetString("avoidAOE"), "gAvoidAOE",group )
@@ -686,6 +689,14 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,GetString("randomMovement"),"gRandomMovement",group )
 	GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
+	
+	local group = GetString("companion")
+	GUI_NewCheckbox(winName,GetString("assistMode"),"gChocoAssist",group )
+	GUI_NewCheckbox(winName,GetString("grindMode"),"gChocoGrind",group )
+	GUI_NewCheckbox(winName,GetString("questMode"),"gChocoQuest",group )
+	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
+	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
+	gChocoStance_listitems = GetString("stFree")..","..GetString("stDefender")..","..GetString("stAttacker")..","..GetString("stHealer")..","..GetString("stFollow")
 	
 	local group = GetString("playerHPMPTP")
 	GUI_NewNumeric(winName, GetString("avoidHP"), "gAvoidHP", group, "0", "100")
@@ -734,8 +745,13 @@ function ffxivminion.HandleInit()
     gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
     gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
     gClickToTravel = Settings.FFXIVMINION.gClickToTravel
-	gChoco = Settings.FFXIVMINION.gChoco
+	
+	gChocoAssist = Settings.FFXIVMINION.gChocoAssist
+	gChocoGrind = Settings.FFXIVMINION.gChocoGrind
+	gChocoQuest = Settings.FFXIVMINION.gChocoQuest
+	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
 	gChocoStance = Settings.FFXIVMINION.gChocoStance
+	
 	gMount = Settings.FFXIVMINION.gMount
 	gRepair = Settings.FFXIVMINION.gRepair
 	gTeleport = Settings.FFXIVMINION.gTeleport
@@ -751,8 +767,6 @@ function ffxivminion.HandleInit()
     gFleeMP = Settings.FFXIVMINION.gFleeMP
 	gPotionHP = Settings.FFXIVMINION.gPotionHP
 	gPotionMP = Settings.FFXIVMINION.gPotionMP
-	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
-	
 	gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect
 	gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove
 	
@@ -880,7 +894,9 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gConfirmDuty" or
             k == "gDoUnstuck" or
             k == "gRandomPaths" or
-			k == "gChoco" or
+			k == "gChocoAssist" or
+			k == "gChocoGrind" or
+			k == "gChocoQuest" or
 			k == "gChocoStance" or
 			k == "gMount" or
 			k == "gTeleport" or

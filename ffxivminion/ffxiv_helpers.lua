@@ -3906,6 +3906,158 @@ function IsInventoryFull()
 	return false
 end
 ff["IsInventoryFull"] = IsInventoryFull
+function GetInventorySnapshot()
+	local currentSnapshot = {}
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		if (ValidTable(inv)) then
+			for k,item in pairs(inv) do
+				if currentSnapshot[item.id] == nil then
+					-- New item
+					currentSnapshot[item.id] = {}
+					currentSnapshot[item.id].HQcount = 0
+					currentSnapshot[item.id].count = 0
+				end
+				-- Increment item counts
+				if (item.IsHQ == 1) then
+					-- HQ
+					currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+				else
+					-- NQ
+					currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+				end
+			end
+		end
+	end
+	
+	--Look through equipped items bag.
+	local inv = Inventory("type=1000")
+	if (ValidTable(inv)) then
+		for k,item in pairs(inv) do
+			if currentSnapshot[item.id] == nil then
+				-- New item
+				currentSnapshot[item.id] = {}
+				currentSnapshot[item.id].HQcount = 0
+				currentSnapshot[item.id].count = 0
+			end
+			-- Increment item counts
+			if (item.IsHQ == 1) then
+				-- HQ
+				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+			else
+				-- NQ
+				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+			end
+		end
+	end
+	
+	--Look through currency bag.
+	local inv = Inventory("type=2000")
+	if (ValidTable(inv)) then
+		for k,item in pairs(inv) do
+			if currentSnapshot[item.id] == nil then
+				-- New item
+				currentSnapshot[item.id] = {}
+				currentSnapshot[item.id].HQcount = 0
+				currentSnapshot[item.id].count = 0
+			end
+			-- Increment item counts
+			if (item.IsHQ == 1) then
+				-- HQ
+				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+			else
+				-- NQ
+				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+			end
+		end
+	end
+	
+	--Look through crystals bag.
+	local inv = Inventory("type=2001")
+	if (ValidTable(inv)) then
+		for k,item in pairs(inv) do
+			if currentSnapshot[item.id] == nil then
+				-- New item
+				currentSnapshot[item.id] = {}
+				currentSnapshot[item.id].HQcount = 0
+				currentSnapshot[item.id].count = 0
+			end
+			-- Increment item counts
+			if (item.IsHQ == 1) then
+				-- HQ
+				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+			else
+				-- NQ
+				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+			end
+		end
+	end
+	
+	--Look through key items bag.
+	local inv = Inventory("type=2004")
+	if (ValidTable(inv)) then
+		for k,item in pairs(inv) do
+			if currentSnapshot[item.id] == nil then
+				-- New item
+				currentSnapshot[item.id] = {}
+				currentSnapshot[item.id].HQcount = 0
+				currentSnapshot[item.id].count = 0
+			end
+			-- Increment item counts
+			if (item.IsHQ == 1) then
+				-- HQ
+				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+			else
+				-- NQ
+				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+			end
+		end
+	end
+	
+	return currentSnapshot
+end
+ff["GetInventorySnapshot"] = GetInventorySnapshot
+function GetInventoryItemGains(itemid,hqonly)
+	local itemid = tonumber(itemid) or 0
+	if (hqonly == nil) then hqonly = false end
+	local originalCount = 0
+	local newCount = 0
+	
+	local original = ml_global_information.lastInventorySnapshot
+	
+	if (ValidTable(original)) then
+		for id,item in pairs(original) do
+			if (id == itemid) then
+				if (hqonly) then
+					originalCount = item.HQcount
+				else
+					originalCount = item.count + item.HQcount
+				end
+			end
+		end
+	end
+	
+	local new = GetInventorySnapshot()
+	
+	if (ValidTable(new)) then
+		for id,item in pairs(new) do
+			if (id == itemid) then
+				if (hqonly) then
+					newCount = item.HQcount
+				else
+					newCount = item.count + item.HQcount
+				end
+			end
+		end
+	end
+	
+	local gained = newCount - originalCount
+		
+	return gained
+end
+ff["GetInventoryItemGains"] = GetInventoryItemGains
 function ItemCount(itemid)
 	local itemcount = 0
 	
