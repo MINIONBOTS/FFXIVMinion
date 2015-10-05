@@ -656,7 +656,7 @@ function c_transportgate:evaluate()
 														ml_task_hub:CurrentTask().destMapID	)
 			
 			if (ValidTable(pos)) then
-				ml_task_hub:ThisTask().pos = pos
+				--ml_task_hub:ThisTask().pos = pos
 				if (not c_usenavinteraction:evaluate()) then
 					if (ValidTable(pos) and pos.b) then
 						local details = {}
@@ -715,11 +715,27 @@ function c_movetogate:evaluate()
 	return false
 end
 function e_movetogate:execute()
+	local pos = e_movetogate.pos
+	
+	local mapid = ml_task_hub:CurrentTask().destMapID
+	if (mapid == 399 and ml_global_information.Player_Map == 478) then
+		local destPos = ml_task_hub:CurrentTask().pos
+		if (ValidTable(destPos)) then
+			if (GetHinterlandsSection(destPos) == 1) then
+				d("Destination is hinterlands section 1.")
+				pos = {x = 73.259323120117, y = 205, z = 143.04707336426, h = -0.52216768264771}
+			else
+				d("Destination is hinterlands section 2.")
+				pos = {x = 147.0463, y = 207, z = 115.8594, h = 0.9793}
+			end
+		end
+	end
+	
 	local newTask = ffxiv_task_movetopos.Create()
-	newTask.pos = e_movetogate.pos
 	newTask.use3d = false
-	local newPos = { x = e_movetogate.pos.x, y = e_movetogate.pos.y, z = e_movetogate.pos.z }
-	local newPos = GetPosFromDistanceHeading(newPos, 5, e_movetogate.pos.h)
+	newTask.pos = pos
+	local newPos = { x = pos.x, y = pos.y, z = pos.z }
+	local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
 	
 	if (not e_movetogate.pos.g and not e_movetogate.pos.b and not e_movetogate.pos.a) then
 		newTask.gatePos = newPos
@@ -817,7 +833,7 @@ function c_teleporttomap:evaluate()
 			local ppos = ml_global_information.Player_Position
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
-			if (ValidTable(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) == 2 and dist > 120))) then
+			if (ValidTable(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
 				local aethid = nil
 				local mapid = nil
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
@@ -850,12 +866,30 @@ function c_teleporttomap:evaluate()
 			if (ValidTable(aethData)) then
 				for k,aeth in pairs(aethData) do
 					if (ValidTable(aeth)) then
-						local aetheryte = GetAetheryteByID(aeth.aethid)
-						if (aetheryte) then
-							if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-								e_teleporttomap.destMap = destMapID
-								e_teleporttomap.aethid = aetheryte.id
-								return true
+						local valid = true
+						if (aeth.requires) then
+							local requirements = shallowcopy(aeth.requires)
+							for requirement,value in pairs(requirements) do
+								local f = assert(loadstring("return " .. requirement))()
+								if (f ~= nil) then
+									if (f ~= value) then
+										valid = false
+									end
+								end
+								if (not valid) then
+									break
+								end
+							end
+						end
+						
+						if (valid) then
+							local aetheryte = GetAetheryteByID(aeth.aethid)
+							if (aetheryte) then
+								if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+									e_teleporttomap.destMap = destMapID
+									e_teleporttomap.aethid = aetheryte.id
+									return true
+								end
 							end
 						end
 					end
@@ -1394,6 +1428,22 @@ function c_usenavinteraction:evaluate()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
 				newTask.uniqueid = 1004609
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end,
+		},
+		[399] = { name = "Dravanian Hinterlands",
+			test = function()
+				local myPos = ml_global_information.Player_Position
+				if (GetHinterlandsSection(myPos) ~= GetHinterlandsSection(gotoPos)) then
+					return true
+				end
+				return false
+			end,
+			reaction = function()
+				local myPos = ml_global_information.Player_Position
+				local mapID = 478
+				local newTask = ffxiv_task_movetomap.Create()
+				newTask.destMapID = mapID
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end,
 		},

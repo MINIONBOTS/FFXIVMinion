@@ -692,7 +692,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (myTarget and TimeSince(self.lastInteract) > 750) then
 		if (ValidTable(interactable)) then			
 			if (interactable.type == 5) then
-				if (interactable.distance <= 5.5) then
+				if (interactable.distance <= 7.5) then
 					Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 					Player:Interact(interactable.id)
 					self.lastDistance = interactable.pathdistance

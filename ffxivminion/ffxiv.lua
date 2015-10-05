@@ -84,6 +84,7 @@ function ffxivminion.SetupOverrides()
 	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
 	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
 	ml_node.ValidNeighbors = 		ffxivminion.NodeNeighbors
+	ml_node.GetClosestNeighborPos = ffxivminion.NodeClosestNeighbor
 	
 	-- setup meshmanager
 	if ( ml_mesh_mgr ) then
@@ -1704,7 +1705,7 @@ end
 function ffxivminion.NodeNeighbors(self)
 	if (ValidTable(self.neighbors)) then
 		local validNeighbors = deepcopy(self.neighbors)
-
+		
 		for id,entries in pairs(validNeighbors) do
 			for i,entrydata in pairs(entries) do
 				if (entrydata.requires) then
@@ -1712,6 +1713,7 @@ function ffxivminion.NodeNeighbors(self)
 					local requirements = shallowcopy(entrydata.requires)
 					for requirement,value in pairs(requirements) do
 						local f = assert(loadstring("return " .. requirement))()
+						--d("Checking requirement ["..tostring(requirement).."] against value ["..tostring(value).."].")
 						if (f ~= nil) then
 							if (f ~= value) then
 								add = false
@@ -1722,7 +1724,13 @@ function ffxivminion.NodeNeighbors(self)
 						end
 					end
 					if (not add) then
-						validNeighbors[id][i] = nil
+						if (TableSize(validNeighbors[id]) > 1) then
+							--d("Requirement not met, removing neighbor ["..tostring(id).."], entry # ["..tostring(i).."].")
+							validNeighbors[id][i] = nil
+						elseif (TableSize(validNeighbors[id]) == 1) then	
+							--d("Requirement not met, removing neighbor ["..tostring(id).."] entirely.")
+							validNeighbors[id] = nil
+						end
 					end
 				end
 			end			
@@ -1730,6 +1738,52 @@ function ffxivminion.NodeNeighbors(self)
 		
 		return validNeighbors
 	end
+    return nil
+end
+
+function ffxivminion.NodeClosestNeighbor(self, origin, id)
+	local neighbor = self:GetNeighbor(id)
+	if (ValidTable(neighbor)) then
+		if (TableSize(neighbor) > 1) then
+			local bestPos = nil
+			local bestDist = math.huge
+			for id, posTable in pairs(neighbor) do
+				local valid = true
+				if (posTable.requires) then
+					local requirements = shallowcopy(posTable.requires)
+					for requirement,value in pairs(requirements) do
+						local f = assert(loadstring("return " .. requirement))()
+						if (f ~= nil) then
+							if (f ~= value) then
+								valid = false
+							end
+						end
+						if (not valid) then
+							break
+						end
+					end
+				end
+				
+				if (valid) then
+					local dist = Distance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
+					if (dist < bestDist) then
+						bestPos = posTable
+						bestDist = dist
+					end
+				end
+			end
+			
+			if (ValidTable(bestPos)) then
+				return bestPos
+			end
+		elseif (TableSize(neighbor == 1)) then
+			local i,best = next(neighbor)
+			if (i and best) then
+				return best
+			end
+		end
+    end
+    
     return nil
 end
 

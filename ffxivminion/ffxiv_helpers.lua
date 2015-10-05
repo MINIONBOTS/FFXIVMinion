@@ -564,31 +564,47 @@ function GetBestTankHealTarget( range )
 	return lowest
 end
 ff["GetBestTankHealTarget"] = GetBestTankHealTarget
-function GetBestPartyHealTarget( npc, range )
-	npc = npc or false
-	range = range or ml_global_information.AttackRange
+function GetBestPartyHealTarget( npc, range, hp )	
+	local npc = npc
+	if (npc == nil) then npc = false end
+	local range = range or ml_global_information.AttackRange
+	local hp = hp or 95
 	
-	local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	--local el = EntityList("lowesthealth,alive,friendly,chartype=4,myparty,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
-        local i,e = next(el)
-		if (i and e) then
-			if (i and e and IsValidHealTarget(e)) then
-				return e
+	local healables = {}
+	
+	local el = EntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	if ( ValidTable(el) ) then
+		for i,e in pairs(el) do
+			if (IsValidHealTarget(e) and e.hp.percent <= hp) then
+				healables[i] = e
 			end
 		end
-    end
+	end
 	
 	if (npc) then
-		el = EntityList("lowesthealth,alive,friendly,myparty,targetable,maxdistance="..tostring(range))
-		--el = EntityList("lowesthealth,alive,friendly,myparty,maxdistance="..tostring(range))
+		el = EntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
-			local i,e = next(el)
-			if (i and e) then
-				if (i and e and IsValidHealTarget(e)) then
-					return e
+			for i,e in pairs(el) do
+				if (IsValidHealTarget(e) and e.hp.percent <= hp) then
+					healables[i] = e
 				end
 			end
+		end
+	end
+	
+	if (ValidTable(healables)) then
+		local lowest = nil
+		local lowesthp = 100
+		
+		for i,e in pairs(healables) do
+			if (not lowest or (lowest and e.hp.percent < lowesthp)) then
+				lowest = e
+				lowesthp = e.hp.percent
+			end
+		end
+		
+		if (lowest) then
+			return lowest
 		end
 	end
 	
@@ -596,7 +612,7 @@ function GetBestPartyHealTarget( npc, range )
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
-			if (leaderentity and leaderentity.distance <= range) then
+			if (leaderentity and leaderentity.distance <= range and leaderentity.hp.percent <= hp) then
 				return leaderentity
 			end
 		end
@@ -808,31 +824,53 @@ function GetLowestTPParty( range, role )
     return lowest
 end
 ff["GetLowestTPParty"] = GetLowestTPParty
-function GetBestHealTarget( npc, range )
-	npc = npc or false
-	range = range or ml_global_information.AttackRange
+function GetBestHealTarget( npc, range, reqhp )
+	local npc = npc
+	if (npc == nil) then npc = false end
+	local range = range or ml_global_information.AttackRange
+	local reqhp = tonumber(reqhp) or 95
 	
-	local el = nil
-	el = EntityList("lowesthealth,alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	--el = EntityList("lowesthealth,alive,friendly,chartype=4,maxdistance="..tostring(range))
+	--d("[GetBestHealTarget]: Params:"..tostring(npc)..","..tostring(range)..","..tostring(reqhp))
+	
+	local healables = {}
+	
+	local el = EntityList("alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	if ( ValidTable(el) ) then
-		local i,e = next(el)
-		if (i~=nil and e~=nil) then
-			if (IsValidHealTarget(e)) then
-				return e
+		for i,e in pairs(el) do
+			if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
+				--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
+				healables[i] = e
 			end
 		end
 	end
 	
 	if (npc) then
-		el = EntityList("lowesthealth,alive,targetable,maxdistance="..tostring(range))
+		--d("[GetBestHealTarget]: Checking non-players section.")
+		local el = EntityList("alive,targetable,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
-			local i,e = next(el)
-			if (i~=nil and e~=nil) then
-				if (IsValidHealTarget(e)) then
-					return e
+			for i,e in pairs(el) do
+				if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
+					--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
+					healables[i] = e
 				end
 			end
+		end
+	end
+	
+	if (ValidTable(healables)) then
+		local lowest = nil
+		local lowesthp = 100
+		
+		for i,e in pairs(healables) do
+			if (not lowest or (lowest and e.hp.percent < lowesthp)) then
+				lowest = e
+				lowesthp = e.hp.percent
+				--d("[GetBestHealTarget]: "..tostring(e.name).." is the lowest target with ["..tostring(e.hp.percent).."] HP %.")
+			end
+		end
+		
+		if (lowest) then
+			return lowest
 		end
 	end
    
@@ -2301,11 +2339,11 @@ function GetPathDistance(pos1,pos2)
 	local p1,dist1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
 	local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
 	
-	local pathdist = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-	if (ValidTable(pathdist)) then
-		local pdist = PathDistance(pathdist)
-		if (ValidTable(pdist)) then
-			dist = pdist
+	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+	if (ValidTable(path)) then
+		local pathdist = PathDistance(path)
+		if (ValidTable(pathdist)) then
+			dist = pathdist
 		end
 	end	
 	
@@ -2316,6 +2354,8 @@ function GetPathDistance(pos1,pos2)
 	return dist
 end
 ff["GetPathDistance"] = GetPathDistance
+--d(tostring(HasNavPath({x = 74.20,y = 53.83,z = 146.82},{x = -261.51,y = 149.58,z = 20.098554611206})))
+--d(NavigationManager:GetPointToMeshDistance(Player.pos,true))
 function HasNavPath(pos1,pos2)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
@@ -2323,19 +2363,116 @@ function HasNavPath(pos1,pos2)
 	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
 	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
 	
-	local dist1 = NavigationManager:GetPointToMeshDistance(pos1,true)
-	local dist2 = NavigationManager:GetPointToMeshDistance(pos2,true)
+	local dist1 = NavigationManager:GetPointToMeshDistance(pos1,false)
+	local dist2 = NavigationManager:GetPointToMeshDistance(pos2,false)
 	
 	if (dist1 > 15) then
-		d("Player position reports as distance :"..tostring(dist1).." from nearest mesh point.")
-	elseif (dist2 > 15) then
-		d("FATE position reports as distance :"..tostring(dist2).." from nearest mesh point.")
+		d("Position 1 is a distance of :"..tostring(dist1).." from nearest mesh point.")
+	end
+	if (dist2 > 15) then
+		d("Position 2 is a distance of :"..tostring(dist2).." from nearest mesh point.")
 	end
 	
 	if (p1 and p2) then
+		--[[
+		local omcs = {}
+		local omcfile = ml_marker_mgr.markerPath..ml_mesh_mgr.GetFileName(gmeshname)..".nxi"
+		local inFile,err = io.open(omcfile, "r")
+		if (not err) then
+			for line in inFile:lines() do
+				local omc = StringToTable(line, '%s')
+				if (omc) then
+					local startingPoint = {x = omc[2], y = omc[3], z - omc[4]}
+					local endingPoint = {x = omc[5], y = omc[6], z - omc[7]}
+					if (ValidTable(startingPoint) and ValidTable(endingPoint)) then
+						table.insert(omcs,omc)
+					end
+				end
+			end
+
+			inFile:close()
+		end
+		
+		--]]
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 		if (ValidTable(path)) then
-			return true
+		
+			local lastPos = path[TableSize(path)]
+			if (ValidTable(lastPos)) then
+				local finaldist = Distance3D(prevPos.x,prevPos.y,prevPos.z,p2.x,p2.y,p2.z)
+				if (finaldist > 5) then
+					local minipoints = GetLinePoints(prevPos,p2,5)
+					if (ValidTable(minipoints)) then
+						local validCounter = 0
+						local invalidCounter = 0
+						
+						for i,pos in pairsByKeys(minipoints) do
+							local meshdist = NavigationManager:GetPointToMeshDistance(pos,false)
+							if (meshdist > 4) then
+								invalidCounter = invalidCounter + 1
+							else
+								validCounter = validCounter + 1
+							end
+						end						
+					end
+				else
+					return true
+				end
+			end
+			
+			--[[
+			local points = {}
+			
+			local x = 1
+			local prevPos = pos1
+			
+			for i,pos in pairsByKeys(path) do
+				--Add the previous points list.
+				points[x] = prevPos
+				x = x + 1
+				
+				local dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
+				if (dist > 5) then
+					local minipoints = GetLinePoints(prevPos,pos,5)
+					if (ValidTable(minipoints)) then
+						for i,pos in pairsByKeys(minipoints) do
+							points[x] = pos
+							x = x + 1
+						end
+					end
+				end
+				prevPos = {x = pos.x, y = pos.y, z = pos.z}
+			end
+			
+			local finaldist = Distance3D(prevPos.x,prevPos.y,prevPos.z,p2.x,p2.y,p2.z)
+			if (finaldist > 5) then
+				local minipoints = GetLinePoints(prevPos,p2,5)
+				if (ValidTable(minipoints)) then
+					for i,pos in pairsByKeys(minipoints) do
+						points[x] = pos
+						x = x + 1
+					end
+				end
+			end
+			
+			if (ValidTable(points)) then
+				ffxiv_task_test.RenderPoints(points)	
+				local validPath = true
+				for i,point in pairsByKeys(points) do
+					local meshdist = NavigationManager:GetPointToMeshDistance(point,false)
+					if (meshdist > 10) then
+						d("Point x="..tostring(point.x)..",y="..tostring(point.y)..",z="..tostring(point.z).." has no nearby mesh.")
+						validPath = false
+					else
+						d("Point x="..tostring(point.x)..",y="..tostring(point.y)..",z="..tostring(point.z).." has nearby mesh at a distance of ["..tostring(meshdist).."].")
+					end
+				end
+				
+				if (validPath) then
+					return true
+				end
+			end
+			--]]
 		end
 	end
 	
@@ -3164,6 +3301,14 @@ function IsCaster(jobID)
 			jobID == FFXIV.JOBS.ASTROLOGIAN
 end
 ff["IsCaster"] = IsCaster
+function IsHealer(jobID)
+	local jobID = tonumber(jobID)
+	return 	jobID == FFXIV.JOBS.WHITEMAGE or
+			jobID == FFXIV.JOBS.CONJURER or
+			jobID == FFXIV.JOBS.SCHOLAR or 
+			jobID == FFXIV.JOBS.ASTROLOGIAN
+end
+ff["IsHealer"] = IsHealer
 function IsTank(jobID)
 	local jobID = tonumber(jobID)
 	local tanks = {
@@ -4674,10 +4819,31 @@ function CanAccessMap(mapid)
 			if (ValidTable(aethData)) then
 				for k,aeth in pairs(aethData) do
 					if (ValidTable(aeth)) then
-						local aetheryte = GetAetheryteByID(aeth.aethid)
-						if (aetheryte) then
-							if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-								return true
+
+						local valid = true
+						if (aeth.requires) then
+							d("Checking aetheryte requirement data.")
+							local requirements = shallowcopy(aeth.requires)
+							for requirement,value in pairs(requirements) do
+								local f = assert(loadstring("return " .. requirement))()
+								if (f ~= nil) then
+									if (f ~= value) then
+										d("Aetheryte failed requirement ["..tostring(requirement).."].")
+										valid = false
+									end
+								end
+								if (not valid) then
+									break
+								end
+							end
+						end
+						
+						if (valid) then
+							local aetheryte = GetAetheryteByID(aeth.aethid)
+							if (aetheryte) then
+								if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+									return true
+								end
 							end
 						end
 					end
@@ -4687,4 +4853,48 @@ function CanAccessMap(mapid)
 	end
 	
 	return false
+end
+
+function GetHinterlandsSection(pos)
+	local sections = {
+		[1] = {
+			a = {x = -953, z = -334},
+			b = {x = -302, z = -317},
+			c = {x = -239, z = -133},
+			d = {x = -953, z = -125},
+			x = {x = -532, z = -188},
+		},
+		[2] = {
+			a = {x = -953, z = -125},
+			b = {x = -196, z = -199},
+			c = {x = -130, z = 517},
+			d = {x = -953, z = 546},
+			x = {x = -548, z = 201},
+		},
+		[3] = {
+			a = {x = -953, z = 546},
+			b = {x = 458, z = 551},
+			c = {x = 517, z = 960},
+			d = {x = -953, z = 878},
+			x = {x = -265, z = 704},
+		},
+	}
+	
+	local sec = 2
+	if (ValidTable(pos)) then
+		local ent1Dist = Distance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
+		if (ent1Dist <= 200) then
+			sec = 1
+		else
+			for i,section in pairs(sections) do
+				local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+				if (isInsideRect) then
+					sec = 1
+					break
+				end
+			end
+		end
+	end
+	
+	return sec
 end
