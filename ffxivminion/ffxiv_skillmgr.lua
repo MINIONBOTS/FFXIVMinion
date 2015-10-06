@@ -1,7 +1,6 @@
 ﻿-- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.version = "v2.0";
-SkillMgr.lastTick = 0
 SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
 SkillMgr.CurrentSkillData = {}
@@ -657,7 +656,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     end
 end
 
-function SkillMgr.OnUpdate( event, tickcount )
+function SkillMgr.OnUpdate()
 	local gamestate;
 	if (GetGameState and GetGameState()) then
 		gamestate = GetGameState()
@@ -666,57 +665,54 @@ function SkillMgr.OnUpdate( event, tickcount )
 	end
 	
 	if (gamestate == 1) then
-		if ((tickcount - SkillMgr.lastTick) > 150) then
-			SkillMgr.lastTick = tickcount
-			local pcast = ml_global_information.Player_Casting
-			
-			local job = Player.job
-			if (pcast.channelingid ~= 0) then
-				local channelingskill = pcast.channelingid
-				SkillMgr.UpdateLastCast(channelingskill)
-			end
-			
-			if (pcast.castingid ~= 0) then
-				local castingskill = pcast.castingid
-				if ( job >= 8 and job <=15 ) then
-					local action = ActionList:Get(castingskill,9)
+		local pcast = Player.castinginfo
+		
+		local job = Player.job
+		if (pcast.channelingid ~= 0) then
+			local channelingskill = pcast.channelingid
+			SkillMgr.UpdateLastCast(channelingskill)
+		end
+		
+		if (pcast.castingid ~= 0) then
+			local castingskill = pcast.castingid
+			if ( job >= 8 and job <=15 ) then
+				local action = ActionList:Get(castingskill,9)
+				if (action) then
+					SkillMgr.prevSkillID = castingskill
+					SkillMgr.UpdateLastCast(castingskill)
+				end
+			else
+				if (SkillMgr.prevSkillID ~= castingskill) then
+					local action = ActionList:Get(castingskill,1)
 					if (action) then
+						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
-						SkillMgr.UpdateLastCast(castingskill)
-					end
-				else
-					if (SkillMgr.prevSkillID ~= castingskill) then
-						local action = ActionList:Get(castingskill,1)
-						if (action) then
-							--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
-							SkillMgr.prevSkillID = castingskill
-							SkillMgr.prevSkillTimestamp = Now()
-							if (action.recasttime == 2.5) then
-								SkillMgr.prevGCDSkillID = castingskill
-							end
-							SkillMgr.UpdateLastCast(castingskill)
-							SkillMgr.failTimer = Now() + 6000
+						SkillMgr.prevSkillTimestamp = Now()
+						if (action.recasttime == 2.5) then
+							SkillMgr.prevGCDSkillID = castingskill
 						end
+						SkillMgr.UpdateLastCast(castingskill)
+						SkillMgr.failTimer = Now() + 6000
 					end
-					if (SkillMgr.queuedPrio ~= 0) then
-						local action = ActionList:Get(castingskill,1)
-						if (action) then
-							if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
-								--d("Updating chain information.")
-								SkillMgr.queuedPrio = 0
-							end
+				end
+				if (SkillMgr.queuedPrio ~= 0) then
+					local action = ActionList:Get(castingskill,1)
+					if (action) then
+						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
+							--d("Updating chain information.")
+							SkillMgr.queuedPrio = 0
 						end
 					end
 				end
 			end
-			
-			if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
-				--d("Resetting failTimer.")
-				SkillMgr.prevGCDSkillID = ""
-				SkillMgr.currentChain = ""
-				SkillMgr.failTimer = 0
-				SkillMgr.queuedPrio = 0
-			end
+		end
+		
+		if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
+			--d("Resetting failTimer.")
+			SkillMgr.prevGCDSkillID = ""
+			SkillMgr.currentChain = ""
+			SkillMgr.failTimer = 0
+			SkillMgr.queuedPrio = 0
 		end
 	end
 end
@@ -2488,15 +2484,17 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			[4] = skill.hprio4,
 		}
 		
+		local requiredHP = tonumber(skill.hpriohp)
+		
 		local healTargets = {}
 		healTargets["Self"] = Player
 		healTargets["Tank"] = GetBestTankHealTarget( maxrange )
 		if ( skill.npc == "1" ) then
 			healTargets["Party"] = GetBestPartyHealTarget( true, maxrange )
-			healTargets["Any"] = GetBestHealTarget( true, maxrange )
+			healTargets["Any"] = GetBestHealTarget( true, maxrange, requiredHP )
 		else
 			healTargets["Party"] = GetBestPartyHealTarget( false, maxrange )
-			healTargets["Any"] = GetBestHealTarget( false, maxrange ) 
+			healTargets["Any"] = GetBestHealTarget( false, maxrange, requiredHP ) 
 		end
 		
 		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
@@ -2587,7 +2585,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	if (realskilldata.recasttime ~= 2.5) then
-		if (TimeSince(SkillMgr.latencyTimer) < 300 or (SkillMgr.queuedPrio ~= 0 and TimeSince(SkillMgr.latencyTimer) < 1000)) then
+		if (TimeSince(SkillMgr.latencyTimer) < 300 or (SkillMgr.queuedPrio ~= 0 and TimeSince(SkillMgr.latencyTimer) < 1500)) then
 			return 0
 		end
 	end
@@ -4004,8 +4002,6 @@ function SkillMgr.AddDefaultConditions()
 	SkillMgr.AddConditional(conditional)
 end
 
-
-RegisterEventHandler("Gameloop.Update",SkillMgr.OnUpdate)
 RegisterEventHandler("GUI.Item",SkillMgr.ButtonHandler)
 RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",SkillMgr.GUIVarUpdate)

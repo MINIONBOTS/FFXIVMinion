@@ -2,6 +2,7 @@ ml_global_information = {}
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.lastrun = 0
+ml_global_information.lastrun2 = 0
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
 ml_global_information.AttackRange = 2
@@ -350,6 +351,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	end 
 	
 	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
+	local skillPulse = (pulseTime/2)
+	
+	if (TimeSince(ml_global_information.lastrun2) > skillPulse) then
+		ml_global_information.lastrun2 = tickcount
+		SkillMgr.OnUpdate()
+	end
+	
     if (TimeSince(ml_global_information.lastrun) > pulseTime) then
         ml_global_information.lastrun = tickcount
 		
@@ -1139,6 +1147,18 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			ffxiv_task_fish.UpdateProfiles()
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
+		elseif (gBotMode == GetString("gatherMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
+			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+			ffxiv_task_gather.UpdateProfiles()
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
