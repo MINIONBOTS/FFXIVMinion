@@ -199,7 +199,34 @@ function e_movetonode:execute()
 			newTask.pos = pos
 			newTask.useTeleport = false
 			
-			if (gTeleport == "1" and dist3d > 10) then
+			local minimumGP = 0
+			local task = ffxiv_task_gather.currentTask
+			local marker = ml_global_information.currentMarker
+			if (ValidTable(task)) then
+				minimumGP = IsNull(task.mingp,0)
+			elseif (ValidTable(marker)) then
+				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+			end
+			
+			if (Player.gp.current < minimumGP) then
+				if (dist3d > 8) then
+					local eh = ConvertHeading(pos.h)
+					local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
+					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
+					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					if (p) then
+						local alternateTask = ffxiv_task_movetopos.Create()
+						alternateTask.pos = p
+						alternateTask.useTeleport = (gTeleport == "1")
+						alternateTask.range = 3
+						alternateTask.remainMounted = true
+						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+					end
+				end
+				return
+			end
+			
+			if (gTeleport == "1" and dist3d > 8) then
 				local eh = ConvertHeading(pos.h)
 				local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
