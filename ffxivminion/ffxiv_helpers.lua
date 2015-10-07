@@ -4671,6 +4671,17 @@ function EorzeaTime()
 	return et
 end
 ff["EorzeaTime"] = EorzeaTime
+function GetCurrentTime()
+	local t = os.date('!*t')
+	local thisTime = os.time(t)
+	return thisTime
+end
+ff["GetCurrentTime"] = GetCurrentTime
+function TimePassed(t1, t2)
+	local diff = os.difftime(t1, t2)
+	return diff
+end
+ff["TimePassed"] = TimePassed
 function GetQuestByID(questID)
 	local list = Quest:GetQuestList()
 	if(ValidTable(list)) then

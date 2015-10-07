@@ -918,6 +918,8 @@ function e_gather:execute()
 		local itemslot1 = 0
 		local itemslot2 = 0
 		
+		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
+		
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
@@ -1731,7 +1733,7 @@ function c_gathernexttask:evaluate()
 			if (not invalid) then
 				local lastGather = ffxiv_task_gather.GetLastGather(gProfile,currentTaskIndex)
 				if (lastGather ~= 0) then
-					if (TimeSince(lastGather) < 1320000) then
+					if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 						invalid = true
 					end
 				end
@@ -1831,7 +1833,7 @@ function c_gathernexttask:evaluate()
 					if (valid) then
 						local lastGather = ffxiv_task_gather.GetLastGather(gProfile,i)
 						if (lastGather ~= 0) then
-							if (TimeSince(lastGather) < 1320000) then
+							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 								valid = false
 								d("Task ["..tostring(i).."] not valid due to last gather.")
 							end
@@ -2298,7 +2300,11 @@ function ffxiv_task_gather.UIInit()
 	--Add it to the main tracking table, so that we can save positions for it.
 	ffxivminion.Windows.Gather = { id = strings["us"].gatherMode, Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Gather)
-
+	
+	if (Settings.FFXIVMINION.gGatherVersion == nil) then
+		Settings.FFXIVMINION.gGatherVersion = 2.0
+		Settings.FFXIVMINION.gLastGathered = nil
+	end
 	if (Settings.FFXIVMINION.gLastGatherProfile == nil) then
         Settings.FFXIVMINION.gLastGatherProfile = GetString("none")
     end
@@ -2610,7 +2616,7 @@ function ffxiv_task_gather.SetLastGather(profile,task)
 		lastGather[profile] = {}
 	end
 	
-	lastGather[profile][task] = Now()
+	lastGather[profile][task] = GetCurrentTime()
 	Settings.FFXIVMINION.gLastGather = lastGather
 end
 
