@@ -4870,7 +4870,7 @@ function GetHinterlandsSection(pos)
 	local sections = {
 		[1] = {
 			a = {x = -953, z = -334},
-			b = {x = -302, z = -317},
+			b = {x = -302, z = -330},
 			c = {x = -239, z = -133},
 			d = {x = -953, z = -125},
 			x = {x = -532, z = -188},

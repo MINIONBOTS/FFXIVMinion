@@ -87,7 +87,7 @@ function c_findnode:evaluate()
 		ml_task_hub:CurrentTask().gatherid = 0
 		
 		local whitelist = ""
-		local radius = 500
+		local radius = 150
 		local nodeminlevel = 1
 		local nodemaxlevel = 60
 		local basePos = {}
@@ -96,52 +96,61 @@ function c_findnode:evaluate()
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			whitelist = IsNull(task.whitelist,"")
-			radius = IsNull(task.radius,500)
+			radius = IsNull(task.radius,150)
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			nodemaxlevel = IsNull(task.nodemaxlevel,60)
 			basePos = task.pos
-		elseif (ValidTable(marker)) then
+		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
 			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"")
-			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),500)
-			if (radius == 0) then radius = 500 end
+			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
+			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker:GetFieldValue(GetUSString("minContentLevel")),1)
 			if (nodeminlevel == 0) then nodeminlevel = 1 end
 			nodemaxlevel = IsNull(marker:GetFieldValue(GetUSString("maxContentLevel")),60)
 			if (nodemaxlevel == 0) then nodemaxlevel = 60 end
 			basePos = marker:GetPosition()
-		end
-	
-		local filter = ""
-		if (whitelist ~= "") then
-			filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
 		else
-			filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
+			return false
+		end
+		
+		if (ValidTable(basePos)) then
+			local myPos = ml_global_information.Player_Position
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
+			if (distance <= radius) then
+				local filter = ""
+				if (whitelist ~= "") then
+					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
+				else
+					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
+				end
+			
+				local gatherable = GetNearestFromList(filter,basePos,radius)
+				if (ValidTable(gatherable)) then
+					d("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].")
+					-- reset blacklist vars for a new node
+					ml_task_hub:CurrentTask().failedTimer = 0		
+					ml_task_hub:CurrentTask().gatherid = gatherable.id	
+					
+					ml_task_hub:CurrentTask().gatheredMap = false
+					ml_task_hub:CurrentTask().gatheredMap = false
+					ml_task_hub:CurrentTask().gatheredGardening = false
+					ml_task_hub:CurrentTask().gatheredChocoFood = false
+					ml_task_hub:CurrentTask().gatheredIxaliRare = false
+					ml_task_hub:CurrentTask().gatheredSpecialRare = false
+					
+					ml_task_hub:CurrentTask().rareCount = -1
+					ml_task_hub:CurrentTask().rareCount2 = -1
+					ml_task_hub:CurrentTask().rareCount3 = -1
+					ml_task_hub:CurrentTask().rareCount4 = -1
+					ml_task_hub:CurrentTask().mapCount = -1
+					ml_task_hub:CurrentTask().swingCount = 0
+					ml_task_hub:CurrentTask().itemsUncovered = false
+					SkillMgr.prevSkillList = {}
+					return true
+				end
+			end
 		end
 	
-		local gatherable = GetNearestFromList(filter,basePos,radius)
-		if (ValidTable(gatherable)) then
-			d("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].")
-			-- reset blacklist vars for a new node
-			ml_task_hub:CurrentTask().failedTimer = 0		
-			ml_task_hub:CurrentTask().gatherid = gatherable.id	
-			
-			ml_task_hub:CurrentTask().gatheredMap = false
-			ml_task_hub:CurrentTask().gatheredMap = false
-			ml_task_hub:CurrentTask().gatheredGardening = false
-			ml_task_hub:CurrentTask().gatheredChocoFood = false
-			ml_task_hub:CurrentTask().gatheredIxaliRare = false
-			ml_task_hub:CurrentTask().gatheredSpecialRare = false
-			
-			ml_task_hub:CurrentTask().rareCount = -1
-			ml_task_hub:CurrentTask().rareCount2 = -1
-			ml_task_hub:CurrentTask().rareCount3 = -1
-			ml_task_hub:CurrentTask().rareCount4 = -1
-			ml_task_hub:CurrentTask().mapCount = -1
-			ml_task_hub:CurrentTask().swingCount = 0
-			ml_task_hub:CurrentTask().itemsUncovered = false
-			SkillMgr.prevSkillList = {}
-			return true
-		end
 	end
     
 	ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
@@ -262,7 +271,7 @@ function c_returntobase:evaluate()
 			if (task.mapid ~= ml_global_information.Player_Map) then
 				return false
 			end
-		elseif (ValidTable(marker)) then
+		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
 			basePos = marker:GetPosition()
 		end
 
@@ -406,7 +415,6 @@ function e_nextgathermarker:execute()
 	gStatusMarkerName = ml_global_information.currentMarker:GetName()
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
-	d("Setting new marker as ["..ml_global_information.currentMarker.name.."].")
 end
 
 c_gather = inheritsFrom( ml_cause )
@@ -1252,7 +1260,7 @@ function c_nodeprebuff:evaluate()
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
-	elseif (ValidTable(marker)) then
+	elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	end
@@ -1276,14 +1284,24 @@ function c_nodeprebuff:evaluate()
 		end
 	end
 	
-	if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
-		if (useCordials and ItemIsReady(6141)) then
-			e_nodeprebuff.activity = "usecordial"
-			e_nodeprebuff.requiresStop = true
-			e_nodeprebuff.requiresDismount = true
-			return true
-		end
-	end
+	if ( not ml_global_information.Player_IsMoving and 
+		ml_task_hub:ThisTask().gatherid ~= nil and 
+		ml_task_hub:ThisTask().gatherid ~= 0 ) 
+	then
+        local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
+        if (gatherable and gatherable.cangather) then
+			if (gatherable.distance <= 10) then
+				if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
+					if (useCordials and ItemIsReady(6141)) then
+						e_nodeprebuff.activity = "usecordial"
+						e_nodeprebuff.requiresStop = true
+						e_nodeprebuff.requiresDismount = true
+						return true
+					end
+				end
+			end
+        end
+    end
 	
 	if (taskType ~= "") then
 		if (taskType == "botany") then
@@ -1604,7 +1622,7 @@ function c_collectibleaddongather:evaluate()
 			if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
 							validCollectible = true
 						else
@@ -1617,7 +1635,7 @@ function c_collectibleaddongather:evaluate()
 			if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" and tonumber(gMinerCollectibleValue2) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue2)) then
 							validCollectible = true
 						else
@@ -1630,7 +1648,7 @@ function c_collectibleaddongather:evaluate()
 			if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" and tonumber(gMinerCollectibleValue3) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue3)) then
 							validCollectible = true
 						else
@@ -1643,7 +1661,7 @@ function c_collectibleaddongather:evaluate()
 			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gBotanistCollectibleValue) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue)) then
 							validCollectible = true
 						else
@@ -1656,7 +1674,7 @@ function c_collectibleaddongather:evaluate()
 			if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" and tonumber(gBotanistCollectibleValue2) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue2)) then
 							validCollectible = true
 						else
@@ -1669,7 +1687,7 @@ function c_collectibleaddongather:evaluate()
 			if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" and tonumber(gBotanistCollectibleValue3) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 				if (itemid) then
-					if (info.itemid == itemid) then
+					if (string.find(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue3)) then
 							validCollectible = true
 						else
@@ -2009,6 +2027,11 @@ function c_gathernexttask:evaluate()
 end
 function e_gathernexttask:execute()
 	d("Chose next task ["..tostring(ffxiv_task_gather.currentTaskIndex).."].")
+	
+	ml_global_information.currentMarker = false
+	gStatusMarkerName = ""
+	ml_task_hub:CurrentTask().gatherid = 0
+	ml_task_hub:CurrentTask().failedSearches = 0
 	ffxiv_task_gather.currentTask.taskStarted = 0
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
@@ -2086,8 +2109,10 @@ function c_gatherstealth:evaluate()
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		useStealth = IsNull(task.usestealth,false)
-	elseif (ValidTable(marker)) then
+	elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
 		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+	else
+		return false
 	end
 	
 	if (useStealth) then
