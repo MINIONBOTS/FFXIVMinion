@@ -2397,16 +2397,16 @@ function ffxiv_task_gather.UIInit()
 	gGatherUseCordials = Settings.FFXIVMINION.gGatherUseCordials
 	gMinerCollectibleName = Settings.FFXIVMINION.gMinerCollectibleName
 	gMinerCollectibleValue = Settings.FFXIVMINION.gMinerCollectibleValue
-	gMinerCollectibleName2 = Settings.FFXIVMINION.gMinerCollectibleName
-	gMinerCollectibleValue2 = Settings.FFXIVMINION.gMinerCollectibleValue
-	gMinerCollectibleName3 = Settings.FFXIVMINION.gMinerCollectibleName
-	gMinerCollectibleValue3 = Settings.FFXIVMINION.gMinerCollectibleValue
+	gMinerCollectibleName2 = Settings.FFXIVMINION.gMinerCollectibleName2
+	gMinerCollectibleValue2 = Settings.FFXIVMINION.gMinerCollectibleValue2
+	gMinerCollectibleName3 = Settings.FFXIVMINION.gMinerCollectibleName3
+	gMinerCollectibleValue3 = Settings.FFXIVMINION.gMinerCollectibleValue3
 	gBotanistCollectibleName = Settings.FFXIVMINION.gBotanistCollectibleName
 	gBotanistCollectibleValue = Settings.FFXIVMINION.gBotanistCollectibleValue
-	gBotanistCollectibleName2 = Settings.FFXIVMINION.gBotanistCollectibleName
-	gBotanistCollectibleValue2 = Settings.FFXIVMINION.gBotanistCollectibleValue
-	gBotanistCollectibleName3 = Settings.FFXIVMINION.gBotanistCollectibleName
-	gBotanistCollectibleValue3 = Settings.FFXIVMINION.gBotanistCollectibleValue
+	gBotanistCollectibleName2 = Settings.FFXIVMINION.gBotanistCollectibleName2
+	gBotanistCollectibleValue2 = Settings.FFXIVMINION.gBotanistCollectibleValue2
+	gBotanistCollectibleName3 = Settings.FFXIVMINION.gBotanistCollectibleName3
+	gBotanistCollectibleValue3 = Settings.FFXIVMINION.gBotanistCollectibleValue3
 	
     ffxiv_task_gather.SetupMarkers()
     RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
