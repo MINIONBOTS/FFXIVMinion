@@ -1462,7 +1462,7 @@ function e_collectiblegame:execute()
 	local info = Player:GetCollectableInfo()
 	if (ValidTable(info)) then
 		if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,47)
+			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gMinerCollectibleValue)) or 
@@ -1483,7 +1483,7 @@ function e_collectiblegame:execute()
 		end
 		
 		if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" and tonumber(gMinerCollectibleValue2) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,47)
+			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gMinerCollectibleValue2)) or 
@@ -1504,7 +1504,7 @@ function e_collectiblegame:execute()
 		end
 		
 		if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" and tonumber(gMinerCollectibleValue3) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,47)
+			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gMinerCollectibleValue3)) or 
@@ -1525,7 +1525,7 @@ function e_collectiblegame:execute()
 		end
 		
 		if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gBotanistCollectibleValue) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,47)
+			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gBotanistCollectibleValue)) or 
@@ -1546,7 +1546,7 @@ function e_collectiblegame:execute()
 		end
 		
 		if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" and tonumber(gBotanistCollectibleValue2) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,47)
+			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gBotanistCollectibleValue2)) or 
@@ -1567,7 +1567,7 @@ function e_collectiblegame:execute()
 		end
 		
 		if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" and tonumber(gBotanistCollectibleValue3) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,47)
+			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
 					if ((info.rarity >= tonumber(gBotanistCollectibleValue3)) or 
@@ -1602,7 +1602,7 @@ function c_collectibleaddongather:evaluate()
 			local validCollectible = false
 			
 			if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,47)
+				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
@@ -1615,7 +1615,7 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" and tonumber(gMinerCollectibleValue2) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,47)
+				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue2)) then
@@ -1628,7 +1628,7 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" and tonumber(gMinerCollectibleValue3) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,47)
+				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue3)) then
@@ -1641,7 +1641,7 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gBotanistCollectibleValue) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,47)
+				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue)) then
@@ -1654,7 +1654,7 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" and tonumber(gBotanistCollectibleValue2) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,47)
+				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue2)) then
@@ -1667,7 +1667,7 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" and tonumber(gBotanistCollectibleValue3) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,47)
+				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 				if (itemid) then
 					if (info.itemid == itemid) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue3)) then
