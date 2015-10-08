@@ -101,8 +101,6 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(task.nodemaxlevel,60)
 			basePos = task.pos
 		elseif (ValidTable(marker)) then
-			d("Marker is valid, setting up search params...")
-			
 			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"")
 			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),500)
 			if (radius == 0) then radius = 500 end
@@ -119,8 +117,6 @@ function c_findnode:evaluate()
 		else
 			filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
 		end
-		
-		d("Final search filter ["..filter.."].")
 	
 		local gatherable = GetNearestFromList(filter,basePos,radius)
 		if (ValidTable(gatherable)) then
@@ -1261,13 +1257,22 @@ function c_nodeprebuff:evaluate()
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	end
 	
-	if (skillProfile ~= "" and skillProfile ~= GetString("none") and gSMprofile ~= skillProfile) then
+	if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
 		if (SkillMgr.HasProfile(skillProfile)) then
 			SkillMgr.UseProfile(skillProfile)
 			e_nodeprebuff.activity = "switchprofile"
 			e_nodeprebuff.requiresStop = false
 			e_nodeprebuff.requiresDismount = false
 			return true
+		else
+			if (skillProfile == GetString("none")) then
+				SkillMgr.UseProfile(skillProfile)
+				e_nodeprebuff.activity = "switchprofile"
+				e_nodeprebuff.requiresStop = false
+				e_nodeprebuff.requiresDismount = false
+				return true
+			end
+			d("Profile ["..skillProfile.."] was not found.")
 		end
 	end
 	
@@ -2031,7 +2036,7 @@ function e_gathernextprofilemap:execute()
 	local mapID = task.mapid
 	local taskPos = task.pos
 	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,ml_global_information.Player_Map,mapID)
-	if(ValidTable(pos)) then		
+	if (ValidTable(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
 		newTask.pos = task.pos
@@ -2594,6 +2599,7 @@ end
 
 --d(ffxiv_task_gather.GetLastGather("Example",1))
 --d(ffxiv_task_gather.SetLastGather("Example",1))
+--d(TimePassed(GetCurrentTime(),1400000))
 
 function ffxiv_task_gather.GetLastGather(profile,task)
 	if (Settings.FFXIVMINION.gLastGather ~= nil) then

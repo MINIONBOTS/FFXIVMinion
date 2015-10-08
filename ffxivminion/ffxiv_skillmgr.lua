@@ -1189,7 +1189,7 @@ function SkillMgr.HasProfile(strProfile)
 	local profilelist = dirlist(SkillMgr.profilepath,".*lua")
 	if (ValidTable(profilelist)) then
 		for i,profile in pairs(profilelist) do
-			local profileName = string.gsub(profile,"%..+$","")
+			local profileName = string.gsub(profile,"%.lua","")
 			if (profileName == strProfile) then
 				return true
 			end
@@ -1226,7 +1226,11 @@ function SkillMgr.UpdateCurrentProfileData()
 	if (profile and profile ~= "") then
 		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 		SkillMgr.SkillProfile = {}
-		SkillMgr.ReadFile(profile)
+			
+		if (profile ~= GetString("none")) then
+			SkillMgr.ReadFile(profile)
+		end
+		
 		SkillMgr.RefreshSkillList()
 		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 		GUI_RefreshWindow(SkillMgr.mainwindow.name)
