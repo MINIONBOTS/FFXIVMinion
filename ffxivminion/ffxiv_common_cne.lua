@@ -1826,8 +1826,11 @@ function c_rest:evaluate()
 		return false
 	end
 	
+	local isDOL = (Player.job >= 16 and Player.job <= 18)
+	local isDOH = (Player.job >= 8 and Player.job <= 15)
+	
 	if (( tonumber(gRestHP) > 0 and ml_global_information.Player_HP.percent < tonumber(gRestHP)) or
-		( tonumber(gRestMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gRestMP)))
+		(( tonumber(gRestMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gRestMP)) and not isDOL and not isDOH))
 	then
 		if (ml_global_information.Player_InCombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
