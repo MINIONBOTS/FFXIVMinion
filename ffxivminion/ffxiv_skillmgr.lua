@@ -267,7 +267,7 @@ SkillMgr.Variables = {
 	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
 	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
 	
-	SKM_SingleUse = { default = "0", cast = "string", profile = "singleuse", section = "gathering"},
+	SKM_SingleUse = { default = "1", cast = "string", profile = "singleuseonly", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
@@ -283,6 +283,7 @@ SkillMgr.Variables = {
 	SKM_CollWearLTPct = { default = 0, cast = "number", profile = "collwearltpct", section = "gathering"},
 	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
+	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", section = "gathering"},
 }
 
 function SkillMgr.ModuleInit() 	
@@ -604,6 +605,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",GetString("skillDetails"));
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("prevSkillID"),"SKM_PSkillIDG",GetString("skillDetails"));
 
     GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,GetString("skillDetails"))
     GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
@@ -2133,6 +2135,13 @@ function SkillMgr.Gather(item)
 						then castable = false 
 					end
 					
+					--Previous gathering skill check
+					if (not IsNullString(skill.pskillg)) then
+						if (tonumber(SkillMgr.prevGatherSkillID) ~= tonumber(skill.pskillg)) then
+							castable = false
+						end
+					end
+					
 					if (ControlVisible("GatheringMasterpiece")) then
 						local info = Player:GetCollectableInfo()
 						if (ValidTable(info)) then
@@ -2176,7 +2185,8 @@ function SkillMgr.Gather(item)
 						end								
                     end	
 					
-					if (SkillMgr.prevSkillList[skillid]) then
+					--Single use check
+					if (skill.singleuseonly == "1" and SkillMgr.prevSkillList[skillid]) then
 						castable = false
 					end
 					
@@ -2187,7 +2197,7 @@ function SkillMgr.Gather(item)
 							SkillMgr.prevGatherSkillID = tostring(skillid)
 							--After a skill is used here, mark it unusable for the rest of the duration of the node.
 							SkillMgr.prevSkillList[skillid] = true
-							
+
 							if IsUncoverSkill(skillid) then
 								ml_task_hub:CurrentTask().itemsUncovered = true
 							end
