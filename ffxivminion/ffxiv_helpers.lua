@@ -4826,6 +4826,7 @@ function CanAccessMap(mapid)
 				return true
 			end
 			
+			
 			local aethData = ffxiv_aetheryte_data[mapid]
 			if (ValidTable(aethData)) then
 				for k,aeth in pairs(aethData) do
@@ -4860,6 +4861,18 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+			
+			-- Fall back check to see if we can get to Foundation, and from there to the destination.
+			local aetheryte = GetAetheryteByID(70)
+			if (aetheryte) then
+				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
+					if (ValidTable(backupPos)) then
+						return true
+					end
+				end
+			end
 		end
 	end
 	
@@ -4878,12 +4891,12 @@ function GetHinterlandsSection(pos)
 		[2] = {
 			a = {x = -953, z = -125},
 			b = {x = -196, z = -199},
-			c = {x = -130, z = 517},
-			d = {x = -953, z = 546},
+			c = {x = -130, z = 551},
+			d = {x = -953, z = 551},
 			x = {x = -548, z = 201},
 		},
 		[3] = {
-			a = {x = -953, z = 546},
+			a = {x = -953, z = 551},
 			b = {x = 458, z = 551},
 			c = {x = 517, z = 960},
 			d = {x = -953, z = 878},

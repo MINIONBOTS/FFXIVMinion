@@ -709,6 +709,15 @@ function c_movetogate:evaluate()
 		if (ValidTable(pos)) then
 			e_movetogate.pos = pos
 			return true
+		else
+			local backupPos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+																ml_global_information.Player_Map,
+																156	)
+			if (ValidTable(backupPos)) then
+				ml_task_hub:CurrentTask().destMapID = 156
+				e_movetogate.pos = backupPos
+				return true
+			end
 		end
 	end
 	

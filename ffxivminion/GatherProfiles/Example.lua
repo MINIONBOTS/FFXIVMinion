@@ -37,6 +37,7 @@ Variants above support the following example inputs:
 * "radius" - integer - default: 500 - specifies the search range of nodes - ex: ["radius"] = 50; (note: the entitylist can generally only scan up to about 120, so anything past this is basically unnecessary.
 * "nodeminlevel" - integer - default: 1 - specifies the min level of nodes for this task - ex: ["nodeminlevel"] = 5;
 * "nodemaxlevel" - integer - default: 60 - specifies the max level of nodes for this task - ex: ["nodemaxlevel"] = 10;
+* "unspoiled" - boolean - default: nil - performs automatic whitelisting/blacklisting of nodes - ex: ["unspoiled"] = true; would whitelist only unspoiled nodes, whereas ["unspoiled"] = false; would blacklist them and find only regular nodes.
 
 
 ::: Further

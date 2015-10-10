@@ -691,6 +691,8 @@ strings =
 		whitelistFishHQ					= "Whitelist Fish (HQ)",
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
+		singleUse						= "Single Use",
+		--us end
     },                                  
     ["cn"] =                            
     {                               
@@ -1392,6 +1394,8 @@ strings =
 		whitelistFishHQ					= "Whitelist Fish (HQ)",
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
+		singleUse						= "Single Use",
+		--cn end
 	},
     ["jp"] =
     {
@@ -2046,6 +2050,8 @@ strings =
         whitelistFishHQ                 = "ホワイトリスト(HQ)",
         blacklistFish                   = "ブラックリスト",
         blacklistFishHQ                 = "ブラックリスト(HQ)",
+		singleUse						= "Single Use",
+		--jp end
 	},   
     ["de"] =
     {
@@ -2702,6 +2708,8 @@ strings =
 		whitelistFishHQ					= "Whitelist Fish (HQ)",
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
+		singleUse						= "Single Use",
+		--de end
 	},     
     ["fr"] =
     {
@@ -3357,6 +3365,8 @@ strings =
 		whitelistFishHQ					= "Whitelist Fish (HQ)",
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
+		singleUse						= "Single Use",
+		--us end
 	},       
     ["ru"] =
     {
@@ -4011,6 +4021,8 @@ strings =
 		whitelistFishHQ					= "Whitelist Fish (HQ)",
 		blacklistFish					= "Blacklist Fish",
 		blacklistFishHQ					= "Blacklist Fish (HQ)",
+		singleUse						= "Single Use",
+		--ru end
 	},    	
 	["kr"] = 
 	{
@@ -4701,6 +4713,8 @@ strings =
 		whitelistFishHQ					= "화이트리스트 낚시 (HQ)",
 		blacklistFish					= "블랙리스트 낚시",
 		blacklistFishHQ					= "블랙리스트 낚시 (HQ)",
+		singleUse						= "Single Use",
+		--kr end
     },                               
 }
 
