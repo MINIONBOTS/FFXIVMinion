@@ -61,6 +61,22 @@ function ffxiv_task_gather.Create()
     return newinst
 end
 
+function gd(var,level)
+	local level = tonumber(level) or 3
+
+	if ( gGatherDebug == "1" ) then
+		if ( level <= tonumber(gGatherDebugLevel)) then
+			if (type(var) == "string") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
+			elseif (type(var) == "number" or type(var) == "boolean") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
+			elseif (type(var) == "table") then
+				outputTable(var)
+			end
+		end
+	end
+end
+
 c_findnode = inheritsFrom( ml_cause )
 e_findnode = inheritsFrom( ml_effect )
 function c_findnode:evaluate()
@@ -91,6 +107,7 @@ function c_findnode:evaluate()
 		local nodeminlevel = 1
 		local nodemaxlevel = 60
 		local basePos = {}
+		local blacklist = ""
 	
 		local task = ffxiv_task_gather.currentTask
 		local marker = ml_global_information.currentMarker
@@ -100,8 +117,14 @@ function c_findnode:evaluate()
 			nodeminlevel = IsNull(task.nodeminlevel,1)
 			nodemaxlevel = IsNull(task.nodemaxlevel,60)
 			basePos = task.pos
+			
+			if (task.unspoiled and task.unspoiled == false) then
+				blacklist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
+			elseif (task.unspoiled and task.unspoiled == true) then
+				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
+			end
 		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
-			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"")
+			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"1;2;3;4")
 			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker:GetFieldValue(GetUSString("minContentLevel")),1)
@@ -117,16 +140,25 @@ function c_findnode:evaluate()
 			local myPos = ml_global_information.Player_Position
 			local distance = Distance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
 			if (distance <= radius) then
+			
+				if (ValidTable(ffxiv_task_gather.currentTask)) then
+					if (ffxiv_task_gather.currentTask.taskStarted == 0) then
+						ffxiv_task_gather.currentTask.taskStarted = Now()
+					end
+				end
+			
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
+				elseif (blacklist ~= "") then
+					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
 				else
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
 				end
 			
 				local gatherable = GetNearestFromList(filter,basePos,radius)
 				if (ValidTable(gatherable)) then
-					d("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].")
+					gd("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].",3)
 					-- reset blacklist vars for a new node
 					ml_task_hub:CurrentTask().failedTimer = 0		
 					ml_task_hub:CurrentTask().gatherid = gatherable.id	
@@ -157,12 +189,7 @@ function c_findnode:evaluate()
     return false
 end
 function e_findnode:execute()
-	if (ValidTable(ffxiv_task_gather.currentTask)) then
-		if (ffxiv_task_gather.currentTask.taskStarted == 0) then
-			ffxiv_task_gather.currentTask.taskStarted = Now()
-		end
-	end
-	d("Found a new node.")
+	gd("Found a new node.",3)
 end
 
 c_movetonode = inheritsFrom( ml_cause )
@@ -520,20 +547,22 @@ function e_gather:execute()
 					
 					if not hasMap then
 						for i, item in pairs(list) do
-							local attemptGather = false
-							if ((gatherMaps == "Any" or gatherMaps == true) and IsMap(item.id)) then
-								attemptGather = true
-							elseif (string.find(gatherMaps,",")) then
-								for map in StringSplit(gatherMaps,",") do
-									if (tonumber(map) ~= nil and tonumber(map) == item.id) then
-										attemptGather = true
+							if (IsMap(item.id)) then
+								local attemptGather = false
+								if (gatherMaps == "Any" or gatherMaps == true) then
+									attemptGather = true
+								elseif (type(gatherMaps) == "string" and string.find(gatherMaps,",")) then
+									for map in StringSplit(gatherMaps,",") do
+										if (tonumber(map) ~= nil and tonumber(map) == item.id) then
+											attemptGather = true
+										end
+										if attemptGather then break end
 									end
-									if attemptGather then break end
+								elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
+									attemptGather = true
+								elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
+									attemptGather = true
 								end
-							elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
-								attemptGather = true
-							elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
-								attemptGather = true
 							end
 							
 							if (attemptGather) then
@@ -927,7 +956,7 @@ function e_gather:execute()
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
+				gd("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",3)
 			end
 		end
 		if (tonumber(item1) ~= nil) then
@@ -937,7 +966,7 @@ function e_gather:execute()
 		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
 			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
+				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",3)
 			end
 		end
 		if (tonumber(item2) ~= nil) then
@@ -1127,7 +1156,6 @@ function e_gather:execute()
 		
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
-			d("Checking for unknown items.")
 			if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
 				if ((not IsChocoboFoodSpecial(item.id) or (IsChocoboFoodSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
 					(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
@@ -1169,7 +1197,6 @@ function e_gather:execute()
 			
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
-			d("Checking for misc items with good chance.")
 			if (item.chance > 50 and not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and not IsRareItemSpecial(item.id)) then
 				if (SkillMgr.Gather(item)) then
 					ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1195,7 +1222,6 @@ function e_gather:execute()
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
-			d("Checking for misc items.")
 			if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and not IsRareItemSpecial(item.id)) then
 				if (SkillMgr.Gather(item)) then
 					ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1280,7 +1306,7 @@ function c_nodeprebuff:evaluate()
 				e_nodeprebuff.requiresDismount = false
 				return true
 			end
-			d("Profile ["..skillProfile.."] was not found.")
+			gd("Profile ["..skillProfile.."] was not found.",3)
 		end
 	end
 	
@@ -1400,10 +1426,8 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "useunspoiledfinder") then
-		d("Using locator buff.")
 		ffxiv_task_gather.LocatorBuff(Player.job)
 		ml_task_hub:ThisTask():SetDelay(2000)
-		d("Finished using locator buff.")
 		return
 	end
 end
@@ -1479,13 +1503,89 @@ function e_collectiblegame:execute()
 	
 	local info = Player:GetCollectableInfo()
 	if (ValidTable(info)) then
+		
+		local valuepairs = {
+			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
+			[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
+			[gMinerCollectibleName3 or ""] = gMinerCollectibleValue3 or 0,
+			[gBotanistCollectibleName or ""] = gBotanistCollectibleValue or 0,
+			[gBotanistCollectibleName2 or ""] = gBotanistCollectibleValue2 or 0,
+			[gBotanistCollectibleName3 or ""] = gBotanistCollectibleValue3 or 0,
+		}
+
+		for k,v in pairs(valuepairs) do
+			if ((not k or k == "") or
+				(not v or tonumber(v) <= 0))
+			then
+				valuepairs[k] = nil
+			end
+		end
+		
+		for cname,cval in pairs(valuepairs) do
+			local itemid = AceLib.API.Items.GetIDByName(cname)
+			if (itemid) then
+				if (ffxiv_task_gather.lastItemAttempted == itemid) then
+					gd("Item current rarity ["..tostring(info.rarity).."].",3)
+					gd("Item required rarity (GUI) ["..tostring(cval).."].",3)
+					gd("Item current wear ["..tostring(info.rarity).."].",3)
+					gd("Item max wear ["..tostring(info.wearmax).."].",3)
+				
+					if ((info.rarity >= tonumber(cval)) or 
+						(info.rarity == info.raritymax) or
+						(info.wear == info.wearmax))
+					then
+						PressCollectReturn(true)
+						e_collectiblegame.timer = Now() + 500
+						return
+					else
+						if (SkillMgr.Gather()) then
+							e_collectiblegame.timer = Now() + 1500
+							return
+						else
+							local methodicals = {
+								[16] = 4075,
+								[17] = 4089,
+							}
+							local discernings = {
+								[16] = 4078,
+								[17] = 4092,
+							}
+							
+							local methodical = ActionList:Get(methodicals[Player.job])
+							local discerning = ActionList:Get(descernings[Player.job])
+							
+							if (discerning and discerning.isready and info.rarity <= 1) then
+								if (not HasBuffs(Player,"757")) then
+									discerning:Cast()
+									e_collectiblegame.timer = Now() + 1500
+									return
+								end
+							end
+							
+							if (methodical and methodical.isready) then
+								methodical:Cast()
+								e_collectiblegame.timer = Now() + 1500
+								return
+							end
+						end
+					end
+				end	
+			end
+		end
+		
+		--[[
 		if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
 			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gMinerCollectibleValue)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+				
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax))) 
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1504,9 +1604,14 @@ function e_collectiblegame:execute()
 			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gMinerCollectibleValue2)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue2).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+				
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue2)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax))) 
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1525,9 +1630,14 @@ function e_collectiblegame:execute()
 			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gMinerCollectibleValue3)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue3).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+				
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue3)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax)))  
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1546,9 +1656,14 @@ function e_collectiblegame:execute()
 			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gBotanistCollectibleValue)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+					
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax))) 
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1567,9 +1682,14 @@ function e_collectiblegame:execute()
 			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gBotanistCollectibleValue2)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue2).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+				
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue2)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax))) 
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1588,9 +1708,14 @@ function e_collectiblegame:execute()
 			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 			if (itemid) then
 				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					if ((info.rarity >= tonumber(gBotanistCollectibleValue3)) or 
+					d("Item current rarity ["..tostring(info.rarity).."].")
+					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue3).."].")
+					d("Item current wear ["..tostring(info.rarity).."].")
+					d("Item max wear ["..tostring(info.wearmax).."].")
+				
+					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue3)) or 
 						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)) 
+						(info.wear == info.wearmax))) 
 					then
 						PressCollectReturn(true)
 						e_collectiblegame.timer = Now() + 500
@@ -1604,9 +1729,7 @@ function e_collectiblegame:execute()
 				end	
 			end
 		end
-		
-		--Fallback plan, just collect it.
-		PressCollectReturn(true)
+		--]]
 	end
 end
 
@@ -1626,7 +1749,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1639,7 +1762,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gMinerCollectibleValue2)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1652,7 +1775,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gMinerCollectibleValue3)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1665,7 +1788,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gBotanistCollectibleValue)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1678,7 +1801,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gBotanistCollectibleValue2)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1691,7 +1814,7 @@ function c_collectibleaddongather:evaluate()
 						if (info.collectability >= tonumber(gBotanistCollectibleValue3)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
 				end
@@ -1720,10 +1843,7 @@ function c_gathernexttask:evaluate()
 	end
 	
 	local list = Player:GetGatherableSlotList()
-	if (not ValidTable(list)) then
-	
-		d("Checking if task can be re-evaluated.")
-		
+	if (not ValidTable(list)) then		
 		local evaluate = false
 		local invalid = false
 		local currentTask = ffxiv_task_gather.currentTask
@@ -1797,7 +1917,7 @@ function c_gathernexttask:evaluate()
 						invalid = true
 					else
 						if (currentTask.taskStarted ~= 0) then
-							d("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].")
+							gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].",3)
 						end
 					end
 				end
@@ -1847,6 +1967,12 @@ function c_gathernexttask:evaluate()
 				for i,data in pairs(validTasks) do
 				
 					local valid = true
+
+					if (data.enabled and data.enabled ~="1") then
+						valid = false
+						gd("Task ["..tostring(i).."] not enabled.",3)
+					end
+
 					if (data.minlevel and Player.level < data.minlevel) then
 						valid = false
 					elseif (data.maxlevel and Player.level > data.maxlevel) then
@@ -1858,7 +1984,7 @@ function c_gathernexttask:evaluate()
 						if (lastGather ~= 0) then
 							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 								valid = false
-								d("Task ["..tostring(i).."] not valid due to last gather.")
+								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
 							end
 						end
 					end
@@ -1876,7 +2002,7 @@ function c_gathernexttask:evaluate()
 							valid = false
 						end
 						if (not valid) then
-							d("Task ["..tostring(i).."] not valid due to weather.")
+							gd("Task ["..tostring(i).."] not valid due to weather.",3)
 						end
 					end
 					
@@ -1894,7 +2020,7 @@ function c_gathernexttask:evaluate()
 							valid = false
 						end
 						if (not valid) then
-							d("Task ["..tostring(i).."] not valid due to shift.")
+							gd("Task ["..tostring(i).."] not valid due to shift.",3)
 						end
 					end
 					
@@ -1919,7 +2045,7 @@ function c_gathernexttask:evaluate()
 							end
 						end
 						if (not valid) then
-							d("Task ["..tostring(i).."] not valid due to eorzea time.")
+							gd("Task ["..tostring(i).."] not valid due to eorzea time.",3)
 						end
 					end
 					
@@ -1942,7 +2068,7 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (not valid) then
-						d("Removing task ["..tostring(i).."] from valid tasks.")
+						gd("Removing task ["..tostring(i).."] from valid tasks.",3)
 						validTasks[i] = nil
 					end
 				end
@@ -1955,13 +2081,13 @@ function c_gathernexttask:evaluate()
 					for i,data in pairsByKeys(validTasks) do
 						-- Items with weather requirements go into high priority
 						if (data.weatherlast or data.weathernow or data.weathernext or data.highpriority) then
-							d("Added task at ["..tostring(i).."] to the high priority queue.")
+							gd("Added task at ["..tostring(i).."] to the high priority queue.",3)
 							highPriority[i] = data
 						elseif (data.eorzeaminhour or data.eorzeamaxhour or data.normalpriority) then
-							d("Added task at ["..tostring(i).."] to the normal priority queue.")
+							gd("Added task at ["..tostring(i).."] to the normal priority queue.",3)
 							normalPriority[i] = data
 						else
-							d("Added task at ["..tostring(i).."] to the low priority queue.")
+							gd("Added task at ["..tostring(i).."] to the low priority queue.",3)
 							lowPriority[i] = data
 						end
 					end
@@ -2026,7 +2152,8 @@ function c_gathernexttask:evaluate()
 	return false
 end
 function e_gathernexttask:execute()
-	d("Chose next task ["..tostring(ffxiv_task_gather.currentTaskIndex).."].")
+	local taskName = ffxiv_task_gather.currentTask.name or ffxiv_task_gather.currentTaskIndex
+	gStatusTaskName = taskName
 	
 	ml_global_information.currentMarker = false
 	gStatusMarkerName = ""
@@ -2312,7 +2439,9 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gBotanistCollectibleName3" or
 				k == "gBotanistCollectibleValue" or
 				k == "gBotanistCollectibleValue2" or
-				k == "gBotanistCollectibleValue3") then
+				k == "gBotanistCollectibleValue3" or
+				k == "gGatherDebug" or
+				k == "gGatherDebugLevel") then
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "Field_Name") then
 			--Capture the marker name changes, incase it affects our marker lists.
@@ -2381,6 +2510,13 @@ function ffxiv_task_gather.UIInit()
 		Settings.FFXIVMINION.gLastGathered = {}
 	end
 	
+	if (Settings.FFXIVMINION.gGatherDebug == nil) then
+		Settings.FFXIVMINION.gGatherDebug = "0"
+	end
+	if (Settings.FFXIVMINION.gGatherDebugLevel == nil) then
+		Settings.FFXIVMINION.gGatherDebugLevel = "1"
+	end	
+	
 	local winName = GetString("gatherMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
@@ -2394,6 +2530,9 @@ function ffxiv_task_gather.UIInit()
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
+	GUI_NewField(winName,"Current Task","gStatusTaskName",group )
+	GUI_NewCheckbox(winName,"Gather Debug","gGatherDebug",group)
+	GUI_NewComboBox(winName,"Gather Level","gGatherDebugLevel",group,"1,2,3")
 	
 	group = GetString("settings")
 	GUI_NewCheckbox(winName,GetString("useCordials"), "gGatherUseCordials",group)
@@ -2401,19 +2540,19 @@ function ffxiv_task_gather.UIInit()
 	group = "Collectible"
 	local collectStringMiner = AceLib.API.Items.BuildUIString(48,115)
 	local collectStringBotanist = AceLib.API.Items.BuildUIString(45,115)
-	GUI_NewComboBox(winName,"Collectible","gMinerCollectibleName",group,collectStringMiner)
+	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName",group,collectStringMiner)
 	GUI_NewField(winName,"Min Value","gMinerCollectibleValue",group)
-	GUI_NewComboBox(winName,"Collectible","gMinerCollectibleName2",group,collectStringMiner)
+	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName2",group,collectStringMiner)
 	GUI_NewField(winName,"Min Value","gMinerCollectibleValue2",group)
-	GUI_NewComboBox(winName,"Collectible","gMinerCollectibleName3",group,collectStringMiner)
+	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName3",group,collectStringMiner)
 	GUI_NewField(winName,"Min Value","gMinerCollectibleValue3",group)
-	GUI_NewComboBox(winName,"Collectible","gBotanistCollectibleName",group,collectStringBotanist)
+	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName",group,collectStringBotanist)
 	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue",group)
-	GUI_NewComboBox(winName,"Collectible","gBotanistCollectibleName2",group,collectStringBotanist)
+	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName2",group,collectStringBotanist)
 	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue2",group)
-	GUI_NewComboBox(winName,"Collectible","gBotanistCollectibleName3",group,collectStringBotanist)
+	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName3",group,collectStringBotanist)
 	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue3",group)
-
+	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,GetString("settings"))
 	ffxivminion.SizeWindow(winName)
@@ -2432,6 +2571,8 @@ function ffxiv_task_gather.UIInit()
 	gBotanistCollectibleValue2 = Settings.FFXIVMINION.gBotanistCollectibleValue2
 	gBotanistCollectibleName3 = Settings.FFXIVMINION.gBotanistCollectibleName3
 	gBotanistCollectibleValue3 = Settings.FFXIVMINION.gBotanistCollectibleValue3
+	gGatherDebug = Settings.FFXIVMINION.gGatherDebug
+	gGatherDebugLevel = Settings.FFXIVMINION.gGatherDebugLevel
 	
     ffxiv_task_gather.SetupMarkers()
     RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
@@ -2459,10 +2600,10 @@ function ffxiv_task_gather.LoadProfile(strName)
 		if (FileExists(ffxiv_task_gather.profilePath..strName..".lua")) then
 			ffxiv_task_gather.profileData,e = persistence.load(ffxiv_task_gather.profilePath..strName..".lua")
 			if (ValidTable(ffxiv_task_gather.profileData)) then
-				d("Gathering profile ["..strName.."] loaded successfully.")
+				gd("Gathering profile ["..strName.."] loaded successfully.")
 			else
 				if (e) then
-					d("Encountered error loading gathering profile ["..e.."].")
+					gd("Encountered error loading gathering profile ["..e.."].")
 				end
 			end
 		end
