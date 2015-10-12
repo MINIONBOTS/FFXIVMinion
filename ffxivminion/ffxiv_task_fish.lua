@@ -170,12 +170,14 @@ function c_release:evaluate()
 				if (lastCatch) then
 					if (hq) then
 						if (whitelistHQ and whitelistHQ ~= "") then
+							local release = true
 							for mustkeep in StringSplit(whitelistHQ,",") do
 								if (mustkeep == lastCatch) then
-									return false
-								else
-									return true
+									release = false
 								end
+							end
+							if (release) then
+								return true
 							end
 						elseif (blacklistHQ and blacklistHQ ~= "") then
 							for throwaway in StringSplit(blacklistHQ,",") do
@@ -186,12 +188,14 @@ function c_release:evaluate()
 						end
 					else
 						if (whitelist and whitelist ~= "") then
+							local release = true
 							for mustkeep in StringSplit(whitelist,",") do
 								if (mustkeep == lastCatch) then
-									return false
-								else
-									return true
+									release = false
 								end
+							end
+							if (release) then
+								return true
 							end
 						elseif (blacklist and blacklist ~= "") then
 							for throwaway in StringSplit(blacklist,",") do
@@ -1221,6 +1225,10 @@ function c_fishstealth:evaluate()
 			then
 				return true
 			end
+		end
+	else
+		if (HasBuffs(Player,"47")) then
+			return true
 		end
 	end
  
