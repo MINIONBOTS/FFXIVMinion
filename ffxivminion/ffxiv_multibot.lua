@@ -43,6 +43,10 @@ function mb.ModuleInit()
 	GUI_SizeWindow(mb.mainwindow.name,mb.mainwindow.w,mb.mainwindow.h)	
     GUI_WindowVisible(mb.mainwindow.name,false)
 	
+	mb.StartupHandler()
+end
+
+function mb.StartupHandler()
 	if (gMultiBotEnabled == "1" and MultiBotIsConnected() ) then
 		MultiBotJoinChannel(gMultiChannel)
 	end
