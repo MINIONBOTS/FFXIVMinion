@@ -40,6 +40,7 @@ ml_global_information.lastInventorySnapshot = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
+ml_global_information.Player_Aetherytes = {}
 ml_global_information.Player_Position = {}
 ml_global_information.Player_Map = 0
 ml_global_information.Player_HP = {}
@@ -265,6 +266,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 
     ml_global_information.Now = tickcount
 	
+
 	local gamestate;
 	if (GetGameState and GetGameState()) then
 		gamestate = GetGameState()
@@ -293,7 +295,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ffxivminion.LoadModes()
 		gBotRunning = "0"
 	end
-	
+
 	if (ml_global_information.autoStartQueued) then
 		if (Player) then
 			ml_global_information.autoStartQueued = false
@@ -1528,6 +1530,7 @@ end
 
 function ffxivminion.UpdateGlobals()
 	if (Player) then
+		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 		ml_global_information.Player_Position = Player.pos
 		ml_global_information.Player_Map = Player.localmapid
 		ml_global_information.Player_HP = Player.hp

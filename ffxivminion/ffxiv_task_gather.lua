@@ -99,7 +99,6 @@ function c_findnode:evaluate()
     end
 	
 	if (needsUpdate) then
-		d("Attempting to find gathering node.")
 		ml_task_hub:CurrentTask().gatherid = 0
 		
 		local whitelist = ""
@@ -158,6 +157,12 @@ function c_findnode:evaluate()
 			
 				local gatherable = GetNearestFromList(filter,basePos,radius)
 				if (ValidTable(gatherable)) then
+					if (ValidTable(ffxiv_task_gather.currentTask)) then
+						if (ffxiv_task_gather.currentTask.taskFailed ~= 0) then
+							ffxiv_task_gather.currentTask.taskFailed = 0
+						end
+					end
+	
 					gd("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].",3)
 					-- reset blacklist vars for a new node
 					ml_task_hub:CurrentTask().failedTimer = 0		
@@ -182,7 +187,12 @@ function c_findnode:evaluate()
 				end
 			end
 		end
+	end
 	
+	if (ValidTable(ffxiv_task_gather.currentTask)) then
+		if (ffxiv_task_gather.currentTask.taskFailed == 0) then
+			ffxiv_task_gather.currentTask.taskFailed = Now()
+		end
 	end
     
 	ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
@@ -203,14 +213,25 @@ function c_movetonode:evaluate()
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
 			local gpos = gatherable.pos
-			if (gatherable.distance > 3.15) then
+			if (gatherable.distance > 3.3) then
 				return true
 			else
-				Player:SetTarget(gatherable.id)
-				Player:SetFacing(gpos.x,gpos.y,gpos.z)
-				Player:Interact(gatherable.id)
-				ml_task_hub:CurrentTask():SetDelay(1000)
-				return true
+				local minimumGP = 0
+				local task = ffxiv_task_gather.currentTask
+				local marker = ml_global_information.currentMarker
+				if (ValidTable(task)) then
+					minimumGP = IsNull(task.mingp,0)
+				elseif (ValidTable(marker)) then
+					minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+				end
+				
+				if (Player.gp.current >= minimumGP) then
+					Player:SetTarget(gatherable.id)
+					Player:SetFacing(gpos.x,gpos.y,gpos.z)
+					Player:Interact(gatherable.id)
+					ml_task_hub:CurrentTask():SetDelay(1000)
+					return true
+				end
 			end
         end
     end
@@ -271,7 +292,7 @@ function e_movetonode:execute()
 			
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.use3d = true
-			newTask.interactRange = 3.15
+			newTask.interactRange = 3.3
 			newTask.pathRange = 5
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 		end
@@ -519,10 +540,14 @@ function e_gather:execute()
 			item2 = IsNull(task.item2,"")
 		elseif (ValidTable(marker)) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
-			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"")
-			gatherRares = IsNull(marker:GetFieldValue("Rare Items"),false)
-			gatherSuperRares = IsNull(marker:GetFieldValue("Special Rare Items"),false)
-			gatherChocoFood = IsNull(marker:GetFieldValue(GetUSString("gatherChocoFood")),false)
+			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
+			gatherGardening = (gatherGardening == "1")
+			gatherRares = IsNull(marker:GetFieldValue("Rare Items"),"0")
+			gatherRares = (gatherRares == "1")
+			gatherSuperRares = IsNull(marker:GetFieldValue("Special Rare Items"),"0")
+			gatherSuperRares = (gatherChocoFood == "1")
+			gatherChocoFood = IsNull(marker:GetFieldValue(GetUSString("gatherChocoFood")),"0")
+			gatherChocoFood = (gatherChocoFood == "1")
 			item1 = IsNull(marker:GetFieldValue(GetUSString("selectItem1")),"")
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
@@ -1850,19 +1875,14 @@ function c_gathernexttask:evaluate()
 		local currentTaskIndex = ffxiv_task_gather.currentTaskIndex
 		
 		if (not ValidTable(currentTask)) then
-			--d("No current task, set invalid flag.")
 			invalid = true
 		else
 			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
-				--d("Task marked interruptable or low priority.")
 				evaluate = true
 			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
 					 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
 			then
-				--d("Task has no high/normal priority markings, allow re-evaluation.")
 				evaluate = true
-			else
-				--d("Task didn't fall into an always evaluate.")
 			end
 			
 			if (not invalid) then
@@ -1918,6 +1938,15 @@ function c_gathernexttask:evaluate()
 					else
 						if (currentTask.taskStarted ~= 0) then
 							gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].",3)
+						end
+					end
+				end
+				if (IsNull(currentTask.timeout,0) > 0) then
+					if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
+						invalid = true
+					else
+						if (currentTask.taskFailed ~= 0) then
+							gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(currentTask.taskFailed)).."].",3)
 						end
 					end
 				end
@@ -2160,6 +2189,7 @@ function e_gathernexttask:execute()
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
 	ffxiv_task_gather.currentTask.taskStarted = 0
+	ffxiv_task_gather.currentTask.taskFailed = 0
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 
@@ -2532,7 +2562,7 @@ function ffxiv_task_gather.UIInit()
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	GUI_NewField(winName,"Current Task","gStatusTaskName",group )
 	GUI_NewCheckbox(winName,"Gather Debug","gGatherDebug",group)
-	GUI_NewComboBox(winName,"Gather Level","gGatherDebugLevel",group,"1,2,3")
+	GUI_NewComboBox(winName,"Debug Level","gGatherDebugLevel",group,"1,2,3")
 	
 	group = GetString("settings")
 	GUI_NewCheckbox(winName,GetString("useCordials"), "gGatherUseCordials",group)

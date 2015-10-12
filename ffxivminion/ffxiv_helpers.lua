@@ -3407,7 +3407,7 @@ end
 ff["GetLocalAetheryte"] = GetLocalAetheryte
 function GetAttunedAetheryteList()
 	local attuned = {}
-	local list = Player:GetAetheryteList()
+	local list = ml_global_information.Player_Aetherytes
 	for id,aetheryte in pairsByKeys(list) do
 		if (aetheryte.isattuned) then
 			table.insert(attuned, aetheryte)
@@ -3417,6 +3417,44 @@ function GetAttunedAetheryteList()
 	return attuned
 end
 ff["GetAttunedAetheryteList"] = GetAttunedAetheryteList
+function GetUnattunedAetheryteList()
+	local aethList = {}
+	for map,aethdata in pairs(ffxiv_aetheryte_data) do
+		for k,aeth in pairs(aethdata) do
+			local valid = true
+			if (aeth.requires) then
+				local requirements = shallowcopy(aeth.requires)
+				for requirement,value in pairs(requirements) do
+					local f = assert(loadstring("return " .. requirement))()
+					if (f ~= nil) then
+						if (f ~= value) then
+							valid = false
+						end
+					end
+					if (not valid) then
+						break
+					end
+				end
+			end
+			
+			if (valid) then
+				aethList[aeth.aethid] = aeth
+			end
+		end
+	end
+	
+	if (ValidTable(aethList)) then
+		local list = ml_global_information.Player_Aetherytes
+		for id,aetheryte in pairsByKeys(list) do
+			if (aetheryte.isattuned and aethList[aetheryte.id]) then
+				aethList[aetheryte.id] = nil
+			end
+		end
+	end
+	
+	return aethList
+end
+ff["GetUnattunedAetheryteList"] = GetUnattunedAetheryteList
 function GetHomepoint()
 	local homepoint = 0
 	
