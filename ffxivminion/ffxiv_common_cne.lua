@@ -117,7 +117,7 @@ c_assistleader = inheritsFrom( ml_cause )
 e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
 function c_assistleader:evaluate()
-    if (gBotMode == GetString("partyMode") and IsLeader() ) then
+    if (gBotMode == GetString("partyMode") and IsLeader()) then
         return false
     end
 	
@@ -235,7 +235,7 @@ function c_add_fate:evaluate()
     end
     
     if (gDoFates == "1") then
-		local fate = GetClosestFate(ml_global_information.Player_Position)
+		local fate = GetClosestFate(ml_global_information.Player_Position,true)
 		if (fate and fate.completion < 100) then
 			c_add_fate.fate = shallowcopy(fate)
 			return true
@@ -656,8 +656,7 @@ function c_transportgate:evaluate()
 														ml_task_hub:CurrentTask().destMapID	)
 			
 			if (ValidTable(pos)) then
-				--ml_task_hub:ThisTask().pos = pos
-				if (not c_usenavinteraction:evaluate()) then
+				if (not c_usenavinteraction:evaluate(pos)) then
 					if (ValidTable(pos) and pos.b) then
 						local details = {}
 						details.uniqueid = pos.b
@@ -1146,8 +1145,8 @@ e_usenavinteraction = inheritsFrom( ml_effect )
 c_usenavinteraction.blockOnly = false
 e_usenavinteraction.task = nil
 e_usenavinteraction.timer = 0
-function c_usenavinteraction:evaluate()
-	local gotoPos = ml_task_hub:ThisTask().pos
+function c_usenavinteraction:evaluate(pos)
+	local gotoPos = pos or ml_task_hub:ThisTask().pos
 	
 	c_usenavinteraction.blockOnly = false
 	

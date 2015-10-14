@@ -338,9 +338,9 @@ ff["GetNearestGrindPriority"] = GetNearestGrindPriority
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = ml_global_information.Player_Position
-    local fate = GetClosestFate(myPos)
+    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	
-    if (fate ~= nil) then
+    if (ValidTable(fate)) then
 		if (fate.type == 1) then
 			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
 			if (ValidTable(el)) then
@@ -2090,6 +2090,7 @@ function GetApprovedFates()
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = tonumber(gMinFateLevel) or 0
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
+			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local isChain,firstChain = ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fate.id)
 			local isPrio = ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fate.id)
@@ -2155,9 +2156,21 @@ function IsInsideFate()
 	return false
 end
 ff["IsInsideFate"] = IsInsideFate
-function GetClosestFate(pos)
+function GetClosestFate(pos,pathcheck)
+	if (pathcheck == nil) then pathcheck = false end
+	
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
+		
+		if (pathcheck) then
+			for k,fate in pairs(fateList) do
+				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+				if (not HasNavPath(pos,fatePos)) then
+					fateList[k] = nil
+				end
+			end
+		end
+		
 		--d("Found some approved fates.")
         local nearestFate = nil
         local nearestDistance = 9999
@@ -2354,131 +2367,109 @@ function GetPathDistance(pos1,pos2)
 	return dist
 end
 ff["GetPathDistance"] = GetPathDistance
---d(tostring(HasNavPath({x = 74.20,y = 53.83,z = 146.82},{x = -261.51,y = 149.58,z = 20.098554611206})))
---d(NavigationManager:GetPointToMeshDistance(Player.pos,true))
+
+--d(HasNavPath({x = 468.58,y = 212.54,z = 722.04},{x = -472.2,y = 168.90,z = 62.9}))
+--d(HasNavPath({x = 468.58,y = 212.54,z = 722.04},{x = -472.2,y = 168.90,z = 62.9}))
+
+--[[
 function HasNavPath(pos1,pos2)
-	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
-	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
-	
 	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
 	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
 	
-	local dist1 = NavigationManager:GetPointToMeshDistance(pos1,false)
-	local dist2 = NavigationManager:GetPointToMeshDistance(pos2,false)
-	
-	if (dist1 > 15) then
-		d("Position 1 is a distance of :"..tostring(dist1).." from nearest mesh point.")
-	end
-	if (dist2 > 15) then
-		d("Position 2 is a distance of :"..tostring(dist2).." from nearest mesh point.")
-	end
-	
-	if (p1 and p2) then
-		--[[
-		local omcs = {}
-		local omcfile = ml_marker_mgr.markerPath..ml_mesh_mgr.GetFileName(gmeshname)..".nxi"
-		local inFile,err = io.open(omcfile, "r")
-		if (not err) then
-			for line in inFile:lines() do
-				local omc = StringToTable(line, '%s')
-				if (omc) then
-					local startingPoint = {x = omc[2], y = omc[3], z - omc[4]}
-					local endingPoint = {x = omc[5], y = omc[6], z - omc[7]}
-					if (ValidTable(startingPoint) and ValidTable(endingPoint)) then
-						table.insert(omcs,omc)
-					end
-				end
-			end
-
-			inFile:close()
-		end
-		
-		--]]
+	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 		if (ValidTable(path)) then
-		
-			local lastPos = path[TableSize(path)]
-			if (ValidTable(lastPos)) then
-				local finaldist = Distance3D(prevPos.x,prevPos.y,prevPos.z,p2.x,p2.y,p2.z)
-				if (finaldist > 5) then
-					local minipoints = GetLinePoints(prevPos,p2,5)
-					if (ValidTable(minipoints)) then
-						local validCounter = 0
-						local invalidCounter = 0
-						
-						for i,pos in pairsByKeys(minipoints) do
-							local meshdist = NavigationManager:GetPointToMeshDistance(pos,false)
-							if (meshdist > 4) then
-								invalidCounter = invalidCounter + 1
-							else
-								validCounter = validCounter + 1
+			local lastPos = path[TableSize(path)-1]
+			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+			if (finalDist < 2) then
+				--d("Distance from last to end is small, we have a valid path.")
+				return true
+			else
+				local tries = 1
+				while (tries < 10) do
+					--d("Beginning path check # ["..tostring(tries).."].")
+					local startPos = lastPos
+					path = NavigationManager:GetPath(startPos.x,startPos.y,startPos.z,p2.x,p2.y,p2.z)
+					if (ValidTable(path)) then
+						lastPos = path[TableSize(path)-1]
+						local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,startPos.x,startPos.y,startPos.z)
+						if (startDist < 2) then
+							--d("Distance from last end to new end is too small, no valid path.")
+							return false
+						else
+							--d("Distance from last end to new end: ["..tostring(startDist).."].")
+							local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+							if (finalDist < 2) then
+								--d("Distance from last to end is small, we have a valid path.")
+								return true
 							end
-						end						
-					end
-				else
-					return true
-				end
-			end
-			
-			--[[
-			local points = {}
-			
-			local x = 1
-			local prevPos = pos1
-			
-			for i,pos in pairsByKeys(path) do
-				--Add the previous points list.
-				points[x] = prevPos
-				x = x + 1
-				
-				local dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
-				if (dist > 5) then
-					local minipoints = GetLinePoints(prevPos,pos,5)
-					if (ValidTable(minipoints)) then
-						for i,pos in pairsByKeys(minipoints) do
-							points[x] = pos
-							x = x + 1
 						end
-					end
-				end
-				prevPos = {x = pos.x, y = pos.y, z = pos.z}
-			end
-			
-			local finaldist = Distance3D(prevPos.x,prevPos.y,prevPos.z,p2.x,p2.y,p2.z)
-			if (finaldist > 5) then
-				local minipoints = GetLinePoints(prevPos,p2,5)
-				if (ValidTable(minipoints)) then
-					for i,pos in pairsByKeys(minipoints) do
-						points[x] = pos
-						x = x + 1
-					end
-				end
-			end
-			
-			if (ValidTable(points)) then
-				ffxiv_task_test.RenderPoints(points)	
-				local validPath = true
-				for i,point in pairsByKeys(points) do
-					local meshdist = NavigationManager:GetPointToMeshDistance(point,false)
-					if (meshdist > 10) then
-						d("Point x="..tostring(point.x)..",y="..tostring(point.y)..",z="..tostring(point.z).." has no nearby mesh.")
-						validPath = false
 					else
-						d("Point x="..tostring(point.x)..",y="..tostring(point.y)..",z="..tostring(point.z).." has nearby mesh at a distance of ["..tostring(meshdist).."].")
+						--d("Found no path from last position to end point.")
+						return false
 					end
-				end
-				
-				if (validPath) then
-					return true
+					tries = tries + 1
 				end
 			end
-			--]]
 		end
 	end
 	
 	return false
 end
 ff["HasNavPath"] = HasNavPath
+--]]
+function HasNavPath(pos1,pos2)
+	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
+	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	
+	if (p1 and p2) then		
+		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+		if (ValidTable(path)) then
+			local lastPos = path[TableSize(path)-1]
+			
+			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+			if (finalDist < 2) then
+				--d("Distance from last to end is small, we have a valid path.")
+				return true
+			else
+				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+				if (startDist < 2) then
+					return false
+				else
+					return HasNavPath(lastPos,p2)
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function GetNavPath(pos1,pos2)
+	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
+	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	
+	if (p1 and p2) then		
+		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+		if (ValidTable(path)) then
+			local lastPos = path[TableSize(path)-1]
+			
+			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+			if (finalDist < 2) then
+				--d("Distance from last to end is small, we have a valid path.")
+				return true
+			else
+				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+				if (startDist < 2) then
+					return false
+				else
+					return GetNavPath(lastPos,p2)
+				end
+			end
+		end
+	end
+end
+
 function GetLinePoints(pos1,pos2,length)
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	local segments = math.floor(distance / length)
@@ -3976,8 +3967,14 @@ function GetBestGrindMap()
 		return 137 --eastern la noscea
 	elseif (level >= 35 and level < 45) then
 		return 155 --coerthas
-	elseif (level >= 45) then
-		return 156 --mor dhona
+	elseif (level < 50 or (level > 50 and not QuestCompleted(1583))) then
+		return 147 --north than
+	elseif (level <= 53 and QuestCompleted(1583) and CanAccessMap(397)) then
+		return 397
+	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
+		return 397
+	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
+		return 398
 	end
 end
 ff["GetBestGrindMap"] = GetBestGrindMap
@@ -4241,23 +4238,24 @@ function GetInventoryItemGains(itemid,hqonly)
 	return gained
 end
 ff["GetInventoryItemGains"] = GetInventoryItemGains
-function ItemCount(itemid)
+function ItemCount(itemid,includehq)
+	includehq = includehq or false
 	local itemcount = 0
 	
 	--Look through regular bags first.
 	for x=0,3 do
 		local inv = Inventory("type="..tostring(x))
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 				itemcount = itemcount + item.count
 			end
 		end
 	end
-	
+
 	--Look through equipped items bag.
 	local inv = Inventory("type=1000")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
 		end
 	end
@@ -4265,7 +4263,7 @@ function ItemCount(itemid)
 	--Look through currency bag.
 	local inv = Inventory("type=2000")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = item.count
 		end
 	end
@@ -4273,7 +4271,7 @@ function ItemCount(itemid)
 	--Look through crystals bag.
 	local inv = Inventory("type=2001")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = item.count
 		end
 	end
@@ -4282,7 +4280,7 @@ function ItemCount(itemid)
 	for x=3200,3209 do
 		local inv = Inventory("type="..tostring(x))
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 				itemcount = itemcount + 1
 			end
 		end
@@ -4291,7 +4289,7 @@ function ItemCount(itemid)
 	--Look through rings armory bag.
 	local inv = Inventory("type=3300")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
 		end
 	end
@@ -4299,7 +4297,7 @@ function ItemCount(itemid)
 	--Look through soulstones armory bag.
 	local inv = Inventory("type=3400")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
 		end
 	end
@@ -4307,7 +4305,7 @@ function ItemCount(itemid)
 	--Look through weapons armory bag.
 	local inv = Inventory("type=3500")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
 		end
 	end
@@ -4315,7 +4313,7 @@ function ItemCount(itemid)
 	--Look through quest/key items bag.
 	local inv = Inventory("type=2004")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + item.count
 		end
 	end

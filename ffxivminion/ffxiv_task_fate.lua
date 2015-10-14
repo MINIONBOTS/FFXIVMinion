@@ -92,6 +92,8 @@ function c_betterfatesearch:evaluate()
         return false
     end
 	
+	c_betterfatesearch.timer = Now()
+	
 	local thisFate = GetFateByID(ml_task_hub:ThisTask().fateid)
 	if (ValidTable(thisFate)) then
 		local fatePos = {x = thisFate.x,y = thisFate.y,z = thisFate.z}
@@ -102,15 +104,13 @@ function c_betterfatesearch:evaluate()
 			return false
 		end
 		
-		local closestFate = GetClosestFate(myPos)
+		local closestFate = GetClosestFate(myPos,true)
 		if (ValidTable(closestFate) and thisFate.id ~= closestFate.id) then
 			if (closestFate.status == 2) then
 				if (ffxiv_task_fate.IsChain(ml_global_information.Player_Map,closestFate.id) or ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map,closestFate.id)) then
-					c_betterfatesearch.timer = Now()
 					e_betterfatesearch.fateid = closestFate.id
 					return true	
 				elseif (dist2d > thisFate.radius + 20) then
-					c_betterfatesearch.timer = Now()
 					e_betterfatesearch.fateid = closestFate.id
 					return true	
 				end
@@ -548,10 +548,10 @@ function c_endfate:evaluate()
 		end
     end
 	
-	if (not IsFateApproved(fate.id)) then
-		d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
-		return true
-	end
+	--if (not IsFateApproved(fate.id)) then
+		--d("FATE "..tostring(fate.id).." no longer meets its approval requirements, task ending.")
+		--return true
+	--end
     
     return false
 end

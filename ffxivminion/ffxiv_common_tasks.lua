@@ -1827,7 +1827,8 @@ function ffxiv_nav_interact.Create()
 	
 	newinst.uniqueid = 0
 	newinst.interact = 0
-    newinst.lastinteract = 0
+    newinst.lastInteract = 0
+	newinst.lastInteractableSearch = 0
 	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
 	newinst.pos = false
@@ -1835,6 +1836,15 @@ function ffxiv_nav_interact.Create()
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
 	newinst.use3d = true
+	newinst.lastDistance = nil
+	newinst.useTeleport = true
+	newinst.failTimer = 0
+	newinst.forceLOS = false
+	newinst.pathRange = nil
+	newinst.interactRange = nil
+	newinst.dismountDistance = 15
+	newinst.killParent = false
+	newinst.interactDelay = 500
 	
 	GameHacks:SkipDialogue(true)
 	
@@ -1855,9 +1865,12 @@ function ffxiv_nav_interact:Init()
 end
 
 function ffxiv_nav_interact:task_complete_eval()
+	local myTarget = ml_global_information.Player_Target
+	local ppos = ml_global_information.Player_Position
+	
 	if (ml_global_information.Player_IsLocked and self.addedMoveElement) then
 		for i, element in pairs(self.process_elements) do
-			if (element.name == "TeleportToPos" or element.name == "Mount") then
+			if (element.name == "TeleportToPos" or element.name == "Mount" or element.name == "WalkToPos") then
 				table.remove(self.process_elements,i)
 			end
 		end
@@ -1878,6 +1891,10 @@ function ffxiv_nav_interact:task_complete_eval()
 			
 			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
 			self:add( ke_mount, self.process_elements)
+			
+			local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+			self:add( ke_walkToPos, self.process_elements)
+	
 			self.addedMoveElement = true
 		end
 	end
@@ -1887,54 +1904,76 @@ function ffxiv_nav_interact:task_complete_eval()
 		return false
 	end	
 	
-	if (Player.ismounted and Now() > self.delayTimer) then
-		local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
-		if (ValidTable(interacts)) then
-			Dismount()
-			self.delayTimer = 1000
+	local interactable = nil
+	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
+		if (self.uniqueid ~= 0) then
+			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
+				end
+			end
+			
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
+				end
+			end
+			self.lastInteractableSearch = Now()
 		end
 	end
 	
-	if (self.interact == 0) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
-			if (ValidTable(interacts)) then
-				local i,interact = next(interacts)
-				if (interact) then
-					self.interact = interact.id
+	if (self.interact ~= 0) then
+		interactable = EntityList:Get(self.interact)
+	else
+		return false
+	end
+	
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 750) then
+		local requiresDismount = false
+		if (interactable and interactable.distance < self.dismountDistance) then
+			Dismount()
+			return false
+		end
+		self.lastDismountCheck = Now()
+	end
+	
+	if (not myTarget) then
+		if (interactable and interactable.targetable and interactable.distance < 10) then
+			Player:SetTarget(interactable.id)
+			local ipos = shallowcopy(interactable.pos)
+			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			if (ValidTable(p)) then
+				if (not deepcompare(self.pos,p,true)) then
+					self.pos = p
 				end
 			end
 		end
 	end
 	
-	if (not ml_global_information.Player_Target and self.interact ~= 0) then
-		local interact = EntityList:Get(tonumber(self.interact))
-		if (interact and interact.targetable) then
-			Player:SetTarget(self.interact)
-			local ipos = shallowcopy(interact.pos)
-			if (not deepcompare(ipos,self.pos)) then
-				self.pos = shallowcopy(ipos)
+	if (myTarget and TimeSince(self.lastInteract) > 750) then
+		if (ValidTable(interactable)) then			
+			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+			local pathRange = self.pathRange or 10
+			local forceLOS = self.forceLOS
+			local range = self.interactRange or (radius * 3)
+			if (not forceLOS or (forceLOS and interactable.los)) then
+				if (interactable and interactable.distance <= range) then
+					local ydiff = math.abs(ppos.y - interactable.pos.y)
+					if (ydiff < 3.5 or interactable.los) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Interact(interactable.id)
+						self.lastDistance = interactable.pathdistance
+						self.lastInteract = Now()
+					end
+				end
 			end
 		end
 	end
 	
-	if (ml_global_information.Player_Target and self.interact ~= 0 and Now() > self.lastinteract) then
-		if (not ml_global_information.Player_IsLoading and not ml_global_information.Player_IsLocked) then
-			local interact = EntityList:Get(tonumber(self.interact))
-			local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
-			if (interact and interact.distance < (radius * 4)) then
-				Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
-				Player:Interact(interact.id)
-				self.lastDistance = interact.distance
-				self.lastinteract = Now() + 500
-			end
-		end
-	end
-	
-	if (ValidTable(self.pos)) then
-		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
-	end
-
 	return false
 end
 

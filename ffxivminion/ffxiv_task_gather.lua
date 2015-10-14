@@ -591,7 +591,7 @@ function e_gather:execute()
 							end
 							
 							if (attemptGather) then
-								local itemCount = ItemCount(item.id)
+								local itemCount = ItemCount(item.id,true)
 								if (ml_task_hub:CurrentTask().mapCount == -1) then
 									ml_task_hub:CurrentTask().mapCount = itemCount
 								end
@@ -647,7 +647,7 @@ function e_gather:execute()
 						end
 						
 						if (attemptGather) then
-							local itemCount = ItemCount(item.id)
+							local itemCount = ItemCount(item.id,true)
 							if (ml_task_hub:CurrentTask().rareCount == -1) then
 								ml_task_hub:CurrentTask().rareCount = itemCount
 							end
@@ -701,7 +701,7 @@ function e_gather:execute()
 						end
 						
 						if (attemptGather) then
-							local itemCount = ItemCount(item.id)
+							local itemCount = ItemCount(item.id,true)
 							if (ml_task_hub:CurrentTask().rareCount4 == -1) then
 								ml_task_hub:CurrentTask().rareCount4 = itemCount
 							end
@@ -780,7 +780,7 @@ function e_gather:execute()
 			if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
 				for i, item in pairs(list) do
 					if (IsIxaliRare(item.id)) then
-						local itemCount = ItemCount(item.id)
+						local itemCount = ItemCount(item.id,true)
 						if (itemCount < 5) then
 							if (ml_task_hub:CurrentTask().rareCount3 == -1) then
 								ml_task_hub:CurrentTask().rareCount3 = itemCount
@@ -811,7 +811,7 @@ function e_gather:execute()
 			-- 6th pass, semi-rare ixali items
 			for i, item in pairs(list) do
 				if (IsIxaliSemiRare(item.id)) then
-					local itemCount = ItemCount(item.id)
+					local itemCount = ItemCount(item.id,true)
 					if (itemCount < 15) then
 						if (SkillMgr.Gather(item)) then
 							ml_task_hub:CurrentTask().failedTimer = Now()
@@ -850,7 +850,7 @@ function e_gather:execute()
 						end
 						
 						if (attemptGather) then
-							local itemCount = ItemCount(item.id)
+							local itemCount = ItemCount(item.id,true)
 							if (ml_task_hub:CurrentTask().rareCount2 == -1) then
 								ml_task_hub:CurrentTask().rareCount2 = itemCount
 							end
@@ -1008,7 +1008,7 @@ function e_gather:execute()
 					end
 					if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and 
 						not IsRareItem(item.id) and not IsRareItemSpecial(item.id) and
-						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15))) 
 					then
 						if (SkillMgr.Gather(item)) then
 							ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1042,7 +1042,7 @@ function e_gather:execute()
 					end
 					if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and 
 						not IsRareItem(item.id) and not IsRareItemSpecial(item.id) and
-						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15))) 
 					then
 						if (SkillMgr.Gather(item)) then
 							ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1078,7 +1078,7 @@ function e_gather:execute()
 					end
 					if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and 
 						not IsRareItem(item.id) and not IsRareItemSpecial(item.id) and
-						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15))) 
 					then
 						if (SkillMgr.Gather(item)) then
 							ml_task_hub:CurrentTask().failedTimer = Now()
@@ -1112,7 +1112,7 @@ function e_gather:execute()
 					end
 					if (not IsGardening(item.id) and not IsMap(item.id) and not IsChocoboFoodSpecial(item.id) and 
 						not IsRareItem(item.id) and not IsRareItemSpecial(item.id) and
-						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id) < 15))) 
+						(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15))) 
 					then
 						if (SkillMgr.Gather(item)) then
 							ml_task_hub:CurrentTask().failedTimer = Now()
