@@ -2162,7 +2162,7 @@ function GetClosestFate(pos,pathcheck)
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then
 		
-		if (pathcheck) then
+		if (pathcheck and gTeleport == "0") then
 			for k,fate in pairs(fateList) do
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 				if (not HasNavPath(pos,fatePos)) then
