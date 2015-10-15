@@ -3967,7 +3967,9 @@ function GetBestGrindMap()
 		return 137 --eastern la noscea
 	elseif (level >= 35 and level < 45) then
 		return 155 --coerthas
-	elseif (level < 50 or (level > 50 and not QuestCompleted(1583))) then
+	elseif (level < 49) then
+		return 156
+	elseif (level <= 49 or (level > 49 and not QuestCompleted(1583))) then
 		return 147 --north than
 	elseif (level <= 53 and QuestCompleted(1583) and CanAccessMap(397)) then
 		return 397
