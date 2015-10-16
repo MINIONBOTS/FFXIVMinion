@@ -1123,7 +1123,7 @@ function ffxiv_task_useitem:Init()
 end
 
 function ffxiv_task_useitem:task_complete_eval()
-	local itemcount = ItemCount(self.itemid) or 0
+	local itemcount = ItemCount(self.itemid,true) or 0
 	if (self.startingCount == 0) then
 		self.startingCount = itemcount
 	end
@@ -1144,6 +1144,8 @@ function ffxiv_task_useitem:task_complete_eval()
 	
 	if (ml_global_information.Player_IsMoving) then
 		Player:Stop()
+		ml_task_hub:CurrentTask():SetDelay(500)
+		return false
 	end
 	
 	if (ml_global_information.Player_IsCasting) then
@@ -1179,7 +1181,12 @@ function ffxiv_task_useitem:task_complete_execute()
 end
 
 function ffxiv_task_useitem:task_fail_eval()
-    return (not Player.alive)
+	local fs = Player:GetFishingState()
+	if ((fs ~= 0 and fs ~= 4) or ControlVisible("Gathering")) then	
+		return true
+	end
+	
+    return (not Player.alive or ml_global_information.Player_IsLoading)
 end
 function ffxiv_task_useitem:task_fail_execute()
     self.valid = false

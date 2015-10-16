@@ -216,7 +216,7 @@ function c_movetonode:evaluate()
 			if (gatherable.distance > 3.3) then
 				return true
 			else
-				local minimumGP = 0
+				local minimumGP = 0				
 				local task = ffxiv_task_gather.currentTask
 				local marker = ml_global_information.currentMarker
 				if (ValidTable(task)) then
@@ -253,15 +253,18 @@ function e_movetonode:execute()
 			newTask.useTeleport = false
 			
 			local minimumGP = 0
+			local useCordials = (gGatherUseCordials == "1")
+			
 			local task = ffxiv_task_gather.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				minimumGP = IsNull(task.mingp,0)
+				useCordials = IsNull(task.usecordials,useCordials)
 			elseif (ValidTable(marker)) then
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
 			
-			if (Player.gp.current < minimumGP) then
+			if (Player.gp.current < minimumGP or (useCordials and ItemIsReady(6141) and Player.gp.percent <= 30)) then
 				if (dist3d > 8) then
 					local eh = ConvertHeading(pos.h)
 					local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
