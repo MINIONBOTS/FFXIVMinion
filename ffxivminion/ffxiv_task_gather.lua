@@ -559,69 +559,80 @@ function e_gather:execute()
 		if (itemsVisible and TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000) then
 			-- 1st pass, maps
 			if (not ml_task_hub:CurrentTask().gatheredMap) then
+				gd("[1] We haven't gathered a map, continue processing...",3)
 				if (gatherMaps ~= "" and gatherMaps ~= false and gatherMaps ~= "None") then
+					gd("[2] Options are set to allow map gathering, continue processing...",3)
 					local hasMap = false
 					for x=0,3 do
 						local inv = Inventory("type="..tostring(x))
-						local i, item = next(inv)
-						while (i) do
+						for i,item in pairs(inv) do
 							if (IsMap(item.id)) then
+								gd("[XXX] Found a map in the inventory, processing will stop.",3)
 								hasMap = true
 								break
 							end
-							i,item = next(inv, i)
+						end
+						if (hasMap) then
+							break
 						end
 					end
 					
 					if not hasMap then
+						gd("[3] Found no maps in the inventory, continue processing...",3)
 						for i, item in pairs(list) do
 							if (IsMap(item.id)) then
+								gd("[4] Found a map to gather, continue processing...",3)
 								local attemptGather = false
 								if (gatherMaps == "Any" or gatherMaps == true) then
 									attemptGather = true
+									gd("[5] Allowed to gather any map, continue processing...",3)
 								elseif (type(gatherMaps) == "string" and string.find(gatherMaps,",")) then
 									for map in StringSplit(gatherMaps,",") do
 										if (tonumber(map) ~= nil and tonumber(map) == item.id) then
+											gd("[5] Allowed to gather this particular map, continue processing...",3)
 											attemptGather = true
 										end
 										if attemptGather then break end
 									end
 								elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
+									gd("[5] Allowed to gather this particular map, continue processing...",3)
 									attemptGather = true
 								elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
+									gd("[5] Allowed to gather this Peisteskin map, continue processing...",3)
 									attemptGather = true
 								end
-							end
 							
-							if (attemptGather) then
-								local itemCount = ItemCount(item.id,true)
-								if (ml_task_hub:CurrentTask().mapCount == -1) then
-									ml_task_hub:CurrentTask().mapCount = itemCount
-								end
-								if (itemCount == ml_task_hub:CurrentTask().mapCount) then
-									if (SkillMgr.Gather(item)) then
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 2000
-										return
+								if (attemptGather) then
+									gd("[6] Attempting to gather map, continue processing...",3)
+									local itemCount = ItemCount(item.id,true)
+									if (ml_task_hub:CurrentTask().mapCount == -1) then
+										ml_task_hub:CurrentTask().mapCount = itemCount
 									end
+									if (itemCount == ml_task_hub:CurrentTask().mapCount) then
+										if (SkillMgr.Gather(item)) then
+											ml_task_hub:CurrentTask().failedTimer = Now()
+											ffxiv_task_gather.timer = Now() + 2000
+											return
+										end
 
-									local result = Player:Gather(item.index)
-									if (result == 65536) then
-										ffxiv_task_gather.timer = Now() + 300
-										ffxiv_task_gather.awaitingSuccess = true
-										return
-									elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+										local result = Player:Gather(item.index)
+										if (result == 65536) then
+											ffxiv_task_gather.timer = Now() + 300
+											ffxiv_task_gather.awaitingSuccess = true
+											return
+										elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+											ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+											ml_task_hub:CurrentTask().gatherTimer = Now()
+											ml_task_hub:CurrentTask().failedTimer = Now()
+											ffxiv_task_gather.timer = Now() + 750
+											ffxiv_task_gather.awaitingSuccess = false
+											return
+										end
+									elseif (itemCount > ml_task_hub:CurrentTask().mapCount) then
 										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+										ml_task_hub:CurrentTask().gatheredMap = true
 										ml_task_hub:CurrentTask().gatherTimer = Now()
-										ml_task_hub:CurrentTask().failedTimer = Now()
-										ffxiv_task_gather.timer = Now() + 750
-										ffxiv_task_gather.awaitingSuccess = false
-										return
 									end
-								elseif (itemCount > ml_task_hub:CurrentTask().mapCount) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatheredMap = true
-									ml_task_hub:CurrentTask().gatherTimer = Now()
 								end
 							end
 						end
