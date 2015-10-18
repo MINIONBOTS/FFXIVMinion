@@ -1591,7 +1591,7 @@ function e_collectiblegame:execute()
 							}
 							
 							local methodical = ActionList:Get(methodicals[Player.job])
-							local discerning = ActionList:Get(descernings[Player.job])
+							local discerning = ActionList:Get(discernings[Player.job])
 							
 							if (discerning and discerning.isready and info.rarity <= 1) then
 								if (not HasBuffs(Player,"757")) then

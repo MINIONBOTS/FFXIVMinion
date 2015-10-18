@@ -11,6 +11,24 @@
 "nextshiftmax" - used to evaluate a maximum amount of time (in seconds) until next weather shift
 "maxtime" - used to evaluate the maximum amount of time spent at low priority nodes (works like marker timers).
 
+:::: Fish Specific Parameters
+
+["usemooch"] = true/false;
+["usepatience"] = true/false;
+["usepatience2"] = true/false;
+["usechum"] = true/false;
+["usefisheyes"] = true/false;
+["baitname"] = "Bloodworm,Butterworm";	
+
+["whitelist"] = "Some Fish,Someother Fish"
+["whitelistHQ"] = "Some Fish,Someother Fish"
+["blacklist"] = "Some Fish,Someother Fish"
+["blacklistHQ"] = "Some Fish,Someother Fish,Andthis Fishtoo"
+
+:::: General Parameters
+["usestealth"] - boolean - default: false - should stealth be used for this task - ex: ["usestealth"] = true; 
+["dangerousarea"] - boolean - default: false - should extra stealth precaution be taken in this area - ex: ["dangerousarea"] = true; 
+
 ::: Further
 using the weather or eorzea time tags automatically configure a task as high priority.
 high priority tasks with lower indexes will take priority if multiple high priority tasks are viable.

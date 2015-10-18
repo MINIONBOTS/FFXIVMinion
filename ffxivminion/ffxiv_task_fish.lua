@@ -268,7 +268,7 @@ function e_cast:execute()
 			end
 		end
 		ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
-		d("[Cast]: Attempt #"..tostring(ffxiv_task_fish.attemptedCasts))
+		fd("[Cast]: Attempt #"..tostring(ffxiv_task_fish.attemptedCasts))
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
@@ -420,6 +420,42 @@ function e_chum:execute()
 	end
 end
 
+c_fisheyes = inheritsFrom( ml_cause )
+e_fisheyes = inheritsFrom( ml_effect )
+function c_fisheyes:evaluate()
+	if (HasBuffs(Player,"762")) then
+		return false
+	end
+	
+	local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+		
+		local useFE = false
+				
+		local task = ffxiv_task_fish.currentTask
+		local marker = ml_global_information.currentMarker
+		if (ValidTable(task)) then
+			useFE = IsNull(task.usefisheyes,false)
+		end
+	
+		if (useFE) then
+			local fisheyes = ActionList:Get(4105,1)
+			if (fisheyes and fisheyes.isready) then	
+				return true
+			end
+		end
+	end
+	
+    return false
+end
+function e_fisheyes:execute()
+	local fisheyes = ActionList:Get(4105,1)
+	if (fisheyes and fisheyes.isready) then	
+		fisheyes:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1000
+	end
+end
+
 c_patience = inheritsFrom( ml_cause )
 e_patience = inheritsFrom( ml_effect )
 c_patience.action = 0
@@ -487,14 +523,14 @@ function c_collectibleaddonfish:evaluate()
 						if (info.collectability >= tonumber(gFishCollectibleValue1)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							fd("Collectibility was too low ["..tostring(info.collectability).."].")
 						end
 					else
-						d("Collectible was not the item we are looking for.")
-						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+						fd("Collectible was not the item we are looking for.")
+						fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
 					end	
 				else
-					d("Could not find an item ID for:" .. gFishCollectibleName1)
+					fd("Could not find an item ID for:" .. gFishCollectibleName1)
 				end
 			end
 			
@@ -505,14 +541,14 @@ function c_collectibleaddonfish:evaluate()
 						if (info.collectability >= tonumber(gFishCollectibleValue2)) then
 							validCollectible = true
 						else
-							d("Collectibility was too low ["..tostring(info.collectability).."].")
+							fd("Collectibility was too low ["..tostring(info.collectability).."].")
 						end
 					else
-						d("Collectible was not the item we are looking for.")
-						d("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+						fd("Collectible was not the item we are looking for.")
+						fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
 					end	
 				else
-					d("Could not find an item ID for:" .. gFishCollectibleName2)
+					fd("Could not find an item ID for:" .. gFishCollectibleName2)
 				end
 			end
 			
@@ -730,29 +766,29 @@ function c_fishnexttask:evaluate()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs == 0 or fs == 4) then
 	
-		d("Checking if task can be re-evaluated.")
+		fd("Checking if task can be re-evaluated.")
 		
 		local evaluate = false
 		local invalid = false
 		local currentTask = ffxiv_task_fish.currentTask
 		if (not ValidTable(currentTask)) then
-			d("No current task, set invalid flag.")
+			fd("No current task, set invalid flag.")
 			invalid = true
 		else
 			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
-				d("Task marked interruptable or low priority.")
+				fd("Task marked interruptable or low priority.")
 				evaluate = true
 			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
 					 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
 			then
-				d("Task has no high/normal priority markings, allow re-evaluation.")
+				fd("Task has no high/normal priority markings, allow re-evaluation.")
 				evaluate = true
 			else
-				d("Task didn't fall into an always evaluate.")
+				fd("Task didn't fall into an always evaluate.")
 			end
 			
 			if (ffxiv_task_fish.attemptedCasts > 2) then
-				d("Attempted casts reached 3, check for a new location.")
+				fd("Attempted casts reached 3, check for a new location.")
 				invalid = true
 			end
 			
@@ -826,7 +862,7 @@ function c_fishnexttask:evaluate()
 					if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
 						invalid = true
 					else
-						d("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].")
+						fd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].")
 					end
 				end
 				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
@@ -994,7 +1030,7 @@ function c_fishnexttask:evaluate()
 						elseif (data.eorzeaminhour or data.eorzeamaxhour or data.normalpriority) then
 							normalPriority[i] = data
 						else
-							d("Added task at ["..tostring(i).."] to the low priority queue.")
+							fd("Added task at ["..tostring(i).."] to the low priority queue.")
 							lowPriority[i] = data
 						end
 					end
@@ -1023,7 +1059,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (invalid and not best) then
-						d("Re-evaluate the low priority queue, current task is invalid. Current index")
+						fd("Re-evaluate the low priority queue, current task is invalid. Current index")
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(lowPriority) do
@@ -1488,10 +1524,10 @@ function ffxiv_task_fish.LoadProfile(strName)
 		if (FileExists(ffxiv_task_fish.profilePath..strName..".lua")) then
 			ffxiv_task_fish.profileData,e = persistence.load(ffxiv_task_fish.profilePath..strName..".lua")
 			if (ValidTable(ffxiv_task_fish.profileData)) then
-				d("Fishing profile ["..strName.."] loaded successfully.")
+				fd("Fishing profile ["..strName.."] loaded successfully.")
 			else
 				if (e) then
-					d("Encountered error loading fishing profile ["..e.."].")
+					fd("Encountered error loading fishing profile ["..e.."].")
 				end
 			end
 		end
