@@ -37,6 +37,22 @@ function ffxiv_task_fish.Create()
     return newinst
 end
 
+function fd(var,level)
+	local level = tonumber(level) or 3
+
+	if ( gGatherDebug == "1" ) then
+		if ( level <= tonumber(gFishDebugLevel)) then
+			if (type(var) == "string") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
+			elseif (type(var) == "number" or type(var) == "boolean") then
+				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..tostring(var))
+			elseif (type(var) == "table") then
+				outputTable(var)
+			end
+		end
+	end
+end
+
 c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
 e_precastbuff.id = 0
@@ -549,11 +565,13 @@ function c_setbait:evaluate()
 			baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
 		end
 		
+		fd("baitChoice ["..tostring(baitChoice).."].",3)
 		local currentbait = Player:GetBait()
 		if (not currentbait or currentbait == 0) then
-			ml_debug("No bait is equipped, need to try to find something.")
+			fd("No bait is equipped, need to try to find something.",2)
 			return true
 		else
+			fd("Current bait equipped is ["..tostring(currentbait).."].",3)
 			local baitFound = false
 			if (baitChoice ~= "") then
 				for bait in StringSplit(baitChoice,",") do
@@ -562,20 +580,23 @@ function c_setbait:evaluate()
 							baitFound = true
 						end
 					else
+						fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
 						local thisID = AceLib.API.Items.GetIDByName(bait)
 						if (thisID) then
 							if (currentbait == thisID) then
+								fd("Found bait and it is the one we want, processing will cease.",3)
 								baitFound = true
 							end
 						end
 					end
 				end
 			else
+				fd("No bait choices selected, processing will cease.",3)
 				return false
 			end
 			
 			if (not baitFound) then
-				ml_debug("Bait is equipped, but it's not specified in our marker, need to pick something different.")
+				fd("Bait is equipped, but it's not the one we want, need to pick something different.",2)
 				return true
 			end
 		end
@@ -702,6 +723,7 @@ c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 function c_fishnexttask:evaluate()
 	if (not Player.alive or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or not ValidTable(ffxiv_task_fish.profileData)) then
+		d("Cannot evaluate profile.")
 		return false
 	end
 	
@@ -1382,6 +1404,12 @@ function ffxiv_task_fish.UIInit()
 	if (Settings.FFXIVMINION.gFishCollectibleValue2 == nil) then
 		Settings.FFXIVMINION.gFishCollectibleValue2 = 0
 	end
+	if (Settings.FFXIVMINION.gFishDebug == nil) then
+		Settings.FFXIVMINION.gFishDebug = "0"
+	end
+	if (Settings.FFXIVMINION.gFishDebugLevel == nil) then
+		Settings.FFXIVMINION.gFishDebugLevel = "1"
+	end	
 	
 	local winName = GetString("fishMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
@@ -1395,6 +1423,8 @@ function ffxiv_task_fish.UIInit()
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
+	GUI_NewCheckbox(winName,"Fish Debug","gFishDebug",group)
+	GUI_NewComboBox(winName,"Debug Level","gFishDebugLevel",group,"1,2,3")
 	
 	local group = "Collectible"
 	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName1",group,AceLib.API.Items.BuildUIString(47,120))
@@ -1411,6 +1441,8 @@ function ffxiv_task_fish.UIInit()
     gFishCollectibleValue1 = Settings.FFXIVMINION.gFishCollectibleValue1
 	gFishCollectibleName2 = Settings.FFXIVMINION.gFishCollectibleName2
     gFishCollectibleValue2 = Settings.FFXIVMINION.gFishCollectibleValue2
+	gFishDebug = Settings.FFXIVMINION.gFishDebug
+	gFishDebugLevel = Settings.FFXIVMINION.gFishDebugLevel
 	
     RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
 	
@@ -1421,12 +1453,12 @@ function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
 		if (	k == "gProfile" and gBotMode == GetString("fishMode")) then
 			ffxiv_task_fish.LoadProfile(v)
 			Settings.FFXIVMINION["gLastFishProfile"] = v
-        elseif (	k == "gFishCollectibleValue1" or
-				k == "gFishCollectibleValue2") 
-		then
-			Settings.FFXIVMINION[tostring(k)] = v
-		elseif (k == "gFishCollectibleName1" or
-				k == "gFishCollectibleName2")		
+        elseif (k == "gFishCollectibleValue1" or
+				k == "gFishCollectibleValue2" or
+				k == "gFishCollectibleName1" or
+				k == "gFishCollectibleName2" or
+				k == "gFishDebug" or
+				k == "gFishDebugLevel")		
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
         end
