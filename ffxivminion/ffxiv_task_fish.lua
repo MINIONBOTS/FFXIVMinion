@@ -1401,6 +1401,9 @@ function ffxiv_task_fish:Init()
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 70 )
     self:add(ke_precast, self.process_elements)
 	
+	local ke_fisheyes = ml_element:create( "FishEyes", c_fisheyes, e_fisheyes, 65 )
+    self:add(ke_fisheyes, self.process_elements)
+	
 	local ke_chum = ml_element:create( "Chum", c_chum, e_chum, 60 )
     self:add(ke_chum, self.process_elements)
 	
