@@ -1836,12 +1836,14 @@ function ffxiv_nav_interact.Create()
 	newinst.interact = 0
     newinst.lastInteract = 0
 	newinst.lastInteractableSearch = 0
+	newinst.lastDismountCheck = 0
 	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
 	newinst.pos = false
 	newinst.range = 1.5
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
+	newinst.removedMoveElement = false
 	newinst.use3d = true
 	newinst.lastDistance = nil
 	newinst.useTeleport = true
@@ -1875,19 +1877,21 @@ function ffxiv_nav_interact:task_complete_eval()
 	local myTarget = ml_global_information.Player_Target
 	local ppos = ml_global_information.Player_Position
 	
-	if (ml_global_information.Player_IsLocked and self.addedMoveElement) then
+	if (ml_global_information.Player_IsLocked and self.addedMoveElement and not self.removedMoveElement) then
 		for i, element in pairs(self.process_elements) do
 			if (element.name == "TeleportToPos" or element.name == "Mount" or element.name == "WalkToPos") then
 				table.remove(self.process_elements,i)
 			end
 		end
+		Player:Stop()
+		self.removedMoveElement = true
 	end
 	
 	if (ml_global_information.Player_IsLoading and not self.areaChanged) then
 		self.areaChanged = true
 	end
 	
-	if (not ml_global_information.Player_IsLoading and self.areaChanged and not ml_mesh_mgr.meshLoading and Player.onmesh) then
+	if (not ml_global_information.Player_IsLoading and self.areaChanged) then
 		return true
 	end
 
@@ -1906,10 +1910,12 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno")) then
-		Player:Stop()
-		return false
-	end	
+	if (ml_global_information.Player_IsMoving) then
+		if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno")) then
+			Player:Stop()
+			return false
+		end	
+	end
 	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
@@ -1966,7 +1972,7 @@ function ffxiv_nav_interact:task_complete_eval()
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 			local pathRange = self.pathRange or 10
 			local forceLOS = self.forceLOS
-			local range = self.interactRange or (radius * 3)
+			local range = self.interactRange or (radius * 4)
 			if (not forceLOS or (forceLOS and interactable.los)) then
 				if (interactable and interactable.distance <= range) then
 					local ydiff = math.abs(ppos.y - interactable.pos.y)
