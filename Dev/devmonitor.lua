@@ -513,7 +513,13 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Miner","ps_Miner","PlayerStats")
 	GUI_NewField("Dev","Botanist","ps_Botanist","PlayerStats")
 	GUI_NewField("Dev","Fisher","ps_Fisher","PlayerStats")
-	GUI_NewField("Dev","Arcanist","ps_Arcanist","PlayerStats")	
+	GUI_NewField("Dev","Arcanist","ps_Arcanist","PlayerStats")
+	GUI_NewField("Dev","Rogue","ps_Rogue","PlayerStats")
+	GUI_NewField("Dev","Machinist","ps_Machinist","PlayerStats")
+	GUI_NewField("Dev","DarkKnight","ps_DarkKnight","PlayerStats")
+	GUI_NewField("Dev","Astrologian","ps_Astrologian","PlayerStats")
+
+
 	--GUI_NewField("Dev","Rogue","ps_Rogue","PlayerStats") -- needs to be added
 	
 	-- General Functions
@@ -1685,6 +1691,10 @@ function Dev.UpdateWindow()
 		ps_Botanist = pl[17]
 		ps_Fisher = pl[18]
 		ps_Arcanist = pl[26]
+		ps_Rogue = pl[29]
+		ps_Machinist = pl[31]
+		ps_DarkKnight = pl[32]
+		ps_Astrologian = pl[33]
 	end
 	
 	general_selectstringvisible = tostring(ControlVisible("SelectString"))
