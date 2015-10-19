@@ -18,6 +18,7 @@
 ["usepatience2"] = true/false;
 ["usechum"] = true/false;
 ["usefisheyes"] = true/false;
+["usesnagging"] = true/false;
 ["baitname"] = "Bloodworm,Butterworm";	
 
 ["whitelist"] = "Some Fish,Someother Fish"
