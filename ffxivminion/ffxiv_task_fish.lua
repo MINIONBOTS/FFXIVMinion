@@ -385,24 +385,27 @@ end
 c_chum = inheritsFrom( ml_cause )
 e_chum = inheritsFrom( ml_effect )
 function c_chum:evaluate()
-	if (HasBuffs(Player,"763")) then
-		return false
-	end
-	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
-		local useChum = false
-				
+		local useBuff = false
 		local task = ffxiv_task_fish.currentTask
-		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
-			useChum = IsNull(task.usechum,false)
-		elseif (ValidTable(marker)) then
-			useChum = (IsNull(marker:GetFieldValue(GetUSString("useChum")),"0") == "1")
+			useBuff = IsNull(task.usechum,false)
 		end
-	
-		if (useChum) then
+		
+		local requiresCast = false
+		if (useBuff) then
+			if (MissingBuffs(Player,"763")) then
+				requiresCast = true
+			end
+		else
+			if (HasBuffs(Player,"763")) then
+				requiresCast = true
+			end
+		end
+		
+		if (requiresCast) then
 			local chum = ActionList:Get(4104,1)
 			if (chum and chum.isready) then	
 				return true
@@ -416,29 +419,34 @@ function e_chum:execute()
 	local chum = ActionList:Get(4104,1)
 	if (chum and chum.isready) then	
 		chum:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1000
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
 
 c_fisheyes = inheritsFrom( ml_cause )
 e_fisheyes = inheritsFrom( ml_effect )
 function c_fisheyes:evaluate()
-	if (HasBuffs(Player,"762")) then
-		return false
-	end
-	
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
-		local useFE = false
-				
+		local useBuff = false
 		local task = ffxiv_task_fish.currentTask
-		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
-			useFE = IsNull(task.usefisheyes,false)
+			useBuff = IsNull(task.usefisheyes,false)
 		end
-	
-		if (useFE) then
+		
+		local requiresCast = false
+		if (useBuff) then
+			if (MissingBuffs(Player,"762")) then
+				requiresCast = true
+			end
+		else
+			if (HasBuffs(Player,"762")) then
+				requiresCast = true
+			end
+		end
+		
+		if (requiresCast) then
 			local fisheyes = ActionList:Get(4105,1)
 			if (fisheyes and fisheyes.isready) then	
 				return true
@@ -452,7 +460,48 @@ function e_fisheyes:execute()
 	local fisheyes = ActionList:Get(4105,1)
 	if (fisheyes and fisheyes.isready) then	
 		fisheyes:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1000
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+	end
+end
+
+c_snagging = inheritsFrom( ml_cause )
+e_snagging = inheritsFrom( ml_effect )
+function c_snagging:evaluate()
+	local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+		
+		local useBuff = false
+		local task = ffxiv_task_fish.currentTask
+		if (ValidTable(task)) then
+			useBuff = IsNull(task.usesnagging,false)
+		end
+		
+		local requiresCast = false
+		if (useBuff) then
+			if (MissingBuffs(Player,"761")) then
+				requiresCast = true
+			end
+		else
+			if (HasBuffs(Player,"761")) then
+				requiresCast = true
+			end
+		end
+		
+		if (requiresCast) then
+			local snagging = ActionList:Get(4100,1)
+			if (snagging and snagging.isready) then	
+				return true
+			end
+		end
+	end
+	
+    return false
+end
+function e_snagging:execute()
+	local snagging = ActionList:Get(4100,1)
+	if (snagging and snagging.isready) then	
+		snagging:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
 
@@ -1400,6 +1449,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 70 )
     self:add(ke_precast, self.process_elements)
+	
+	local ke_snagging = ml_element:create( "Snagging", c_snagging, e_snagging, 68 )
+    self:add(ke_snagging, self.process_elements)
 	
 	local ke_fisheyes = ml_element:create( "FishEyes", c_fisheyes, e_fisheyes, 65 )
     self:add(ke_fisheyes, self.process_elements)
