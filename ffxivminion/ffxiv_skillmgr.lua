@@ -474,7 +474,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
@@ -1798,7 +1798,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						if (entity) then
 							local tpos = entity.pos
 							if (skill.pgtrg == "Behind") then
-								local eh = ConvertHeading(tpos.h)
+								local eh = AceLib.API.Math.ConvertHeading(epos.h)
 								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 								local rangePercent = tonumber(gCombatRangePercent) * 0.01
 								local dist = (entity.hitradius * rangePercent)
@@ -1807,6 +1807,35 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 						
 								local newpos = GetPosFromDistanceHeading(tpos, dist, mobRear)
+								if (newpos) then
+									tpos = newpos
+								end
+							elseif (skill.pgtrg == "Near") then
+								local eh = AceLib.API.Math.ConvertHeading(epos.h)
+								
+								local randomFront = (math.random(1,5) / 100)
+								local randomRearFlank = (math.random(65,80) / 100)
+								local randomFrontFlank = (math.random(20,35) / 100)
+								local randomFlank = (math.random(40,60) / 100)
+								local randomRear = (math.random(90,100) / 100)
+								
+								local positions = {
+									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh) - (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRearFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRearFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRear)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRear)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFrontFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFrontFlank)))%(2*math.pi),
+								}
+								
+								local draw = math.random(1,11)
+								local range = (math.random(30,110) / 100)
+								local newpos = AceLib.API.Math.GetPosFromDistanceHeading(epos, range, positions[draw])
 								if (newpos) then
 									tpos = newpos
 								end
