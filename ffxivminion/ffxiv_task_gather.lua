@@ -149,10 +149,13 @@ function c_findnode:evaluate()
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
+					gd("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
+					gd("Using blacklist filter ["..filter.."].",3)
 				else
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
+					gd("Using filter ["..filter.."].",3)
 				end
 			
 				local gatherable = GetNearestFromList(filter,basePos,radius)

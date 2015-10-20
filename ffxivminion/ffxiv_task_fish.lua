@@ -40,7 +40,7 @@ end
 function fd(var,level)
 	local level = tonumber(level) or 3
 
-	if ( gGatherDebug == "1" ) then
+	if ( gFishDebug == "1" ) then
 		if ( level <= tonumber(gFishDebugLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)

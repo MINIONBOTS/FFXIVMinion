@@ -1490,17 +1490,26 @@ function ffxiv_task_grindCombat:Process()
 		
 		self.pos = target.pos
 		
-		--Check to see if we would need to sync to attack this target, and do it if we are allowed to.
-		if (target.fateid ~= 0 and Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
-			if (not self.noFateSync) then
-				local fateID = target.fateid
-				local fate = GetFateByID(fateID)
-				if ( fate and fate.completion < 100 and fate.status == 2) then
-					if (AceLib.API.Fate.RequiresSync(fate.id)) then
-						local myPos = ml_global_information.Player_Position
-						local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
-						if (distance <= fate.radius) then				
+		if (target.fateid ~= 0) then
+			local fateID = target.fateid
+			local fate = GetFateByID(fateID)
+			if ( fate and fate.completion < 100 and fate.status == 2) then
+				if (AceLib.API.Fate.RequiresSync(fate.id)) then
+					local myPos = ml_global_information.Player_Position
+					local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
+					if (distance > (fate.radius * .98)) then
+						local newTask = ffxiv_task_movetofate.Create()
+						local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+						newTask.fateid = fateID
+						newTask.allowRandomization = false
+						newTask.pos = fatePos
+						newTask.actualPos = fatePos
+						ml_task_hub:CurrentTask():AddSubTask(newTask)
+						return
+					elseif (distance <= fate.radius) then	
+						if (Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
 							Player:SyncLevel()
+							ml_global_information.syncTimer = Now() + 2000
 						end
 					end
 				end

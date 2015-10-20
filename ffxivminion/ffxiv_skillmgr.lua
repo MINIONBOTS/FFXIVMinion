@@ -1798,7 +1798,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						if (entity) then
 							local tpos = entity.pos
 							if (skill.pgtrg == "Behind") then
-								local eh = AceLib.API.Math.ConvertHeading(epos.h)
+								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
 								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
 								local rangePercent = tonumber(gCombatRangePercent) * 0.01
 								local dist = (entity.hitradius * rangePercent)
@@ -1811,7 +1811,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									tpos = newpos
 								end
 							elseif (skill.pgtrg == "Near") then
-								local eh = AceLib.API.Math.ConvertHeading(epos.h)
+								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
 								
 								local randomFront = (math.random(1,5) / 100)
 								local randomRearFlank = (math.random(65,80) / 100)
@@ -1835,7 +1835,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								
 								local draw = math.random(1,11)
 								local range = (math.random(30,110) / 100)
-								local newpos = AceLib.API.Math.GetPosFromDistanceHeading(epos, range, positions[draw])
+								local newpos = AceLib.API.Math.GetPosFromDistanceHeading(tpos, range, positions[draw])
 								if (newpos) then
 									tpos = newpos
 								end

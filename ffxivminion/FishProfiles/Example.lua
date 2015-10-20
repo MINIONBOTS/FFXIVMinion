@@ -22,9 +22,9 @@
 ["baitname"] = "Bloodworm,Butterworm";	
 
 ["whitelist"] = "Some Fish,Someother Fish"
-["whitelistHQ"] = "Some Fish,Someother Fish"
+["whitelisthq"] = "Some Fish,Someother Fish"
 ["blacklist"] = "Some Fish,Someother Fish"
-["blacklistHQ"] = "Some Fish,Someother Fish,Andthis Fishtoo"
+["blacklisthq"] = "Some Fish,Someother Fish,Andthis Fishtoo"
 
 :::: General Parameters
 ["usestealth"] - boolean - default: false - should stealth be used for this task - ex: ["usestealth"] = true; 
