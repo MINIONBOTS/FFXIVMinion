@@ -22,6 +22,7 @@ function ffxiv_task_craft.Create()
     
     --ffxiv_task_craft members
 	newinst.networkLatency = 0
+	ffxiv_task_craft.ResetOrders()
     
     return newinst
 end
@@ -70,7 +71,7 @@ function c_craftlimit:evaluate()
 			end
 			
 			local canCraft = AceLib.API.Items.CanCraft(recipe.id)
-			d("[CraftLimit]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].")
+			cd("[CraftLimit]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
 			if ((requiredItems > 0 and itemcount >= (requiredItems + startingCount)) or
 				not canCraft) 
 			then
@@ -88,6 +89,7 @@ function c_craftlimit:evaluate()
     return false
 end
 function e_craftlimit:execute()
+	cd("[CraftLimit]: Profile has reached the preset requirements.",3)
 	if (ffxiv_task_craft.UsingProfile()) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
 		ffxiv_task_craft.orders[recipeid].completed = true
@@ -151,7 +153,7 @@ function c_startcraft:evaluate()
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
-				d("[StartCraft]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].")
+				cd("[StartCraft]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
 				
 				if ((ml_task_hub:ThisTask().requiredItems > 0 and itemcount >= (ml_task_hub:ThisTask().requiredItems + ml_task_hub:ThisTask().startingCount)) or canCraft) 
 				then
@@ -240,6 +242,7 @@ function c_precraftbuff:evaluate()
 	local synth = Crafting:SynthInfo()	
 	if (not synth) then
 		if (NeedsRepair()) then
+			cd("[PreCraftBuff]: Need to repair.",3)
 			e_precraftbuff.activity = "repair"
 			return true
 		end
@@ -254,7 +257,8 @@ function c_precraftbuff:evaluate()
 		if foodID ~= 0 then
 			local food = Inventory:Get(foodID)
 			if (ValidTable(food) and MissingBuffs(Player,"48")) then
-				e_precraftbuff.activity = "repair"
+				cd("[PreCraftBuff]: Need to eat.",3)
+				e_precraftbuff.activity = "eat"
 				e_precraftbuff.id = foodID
 				return true
 			end
@@ -264,6 +268,7 @@ function c_precraftbuff:evaluate()
 			local recipe = ml_task_hub:CurrentTask().recipe
 			local jobRequired = recipe.class + 8
 			if (Player.job ~= jobRequired) then
+				cd("[PreCraftBuff]: Need to switch class.",3)
 				e_precraftbuff.activity = "switchclass"
 				return true
 			end
@@ -281,6 +286,7 @@ function e_precraftbuff:execute()
 	
 	local activity = e_precraftbuff.activity
 	if (activity == "repair") then
+		cd("[PreCraftBuff]: Attempting repairs.",3)
 		Repair()
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return
@@ -289,6 +295,7 @@ function e_precraftbuff:execute()
 	if (activity == "eat") then
 		local food = Inventory:Get(e_precraftbuff.id)
 		if (food) then
+			cd("[PreCraftBuff]: Attempting to eat.",3)
 			food:Use()
 			ml_task_hub:CurrentTask():SetDelay(3000)
 			return
@@ -298,8 +305,8 @@ function e_precraftbuff:execute()
 	if (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local jobRequired = recipe.class + 8
-		
 		local gearset = _G["gCraftGearset"..tostring(jobRequired)]
+		cd("[PreCraftBuff]: Attempting to switch to gearset ["..tostring(gearset).."].",3)
 		local commandString = "/gearset change "..tostring(gearset)
 		SendTextCommand(commandString)
 		ml_task_hub:CurrentTask():SetDelay(3000)
@@ -417,7 +424,22 @@ function c_selectcraft:evaluate()
 		return false
 	end
 	
-	return true
+	if (ffxiv_task_craft.UsingProfile()) then
+		local orders = ffxiv_task_craft.orders
+		for id,order in pairs(orders) do
+			if (order.completed == nil) then
+				orders[id].completed = false
+			end
+			if (order.completed == false) then
+				cd("[SelectCraft]: Found an incomplete order, select a new craft.",3)
+				return true
+			end
+		end
+	else
+		return true
+	end
+
+	return false
 end
 function e_selectcraft:execute()
 	local newTask = ffxiv_task_craftitems.Create()
@@ -431,32 +453,37 @@ function e_selectcraft:execute()
 		
 		local foundSelection = false
 		for id,order in spairs(orders, sortfunc) do
+			if (not order.completed) then
+				local canCraft = AceLib.API.Items.CanCraft(id)
+				if (canCraft) then
 			
-			local canCraft = AceLib.API.Items.CanCraft(id)
-			if (not order.completed and canCraft) then
-			
-				local itemcount = 0
-				local itemid = order.item
-				if (order.requirehq) then
-					if (itemid < 1000000) then
-						itemid = itemid + 1000000
+					local itemcount = 0
+					local itemid = order.item
+					if (order.requirehq) then
+						if (itemid < 1000000) then
+							itemid = itemid + 1000000
+						end
+						itemcount = ItemCount(itemid,false)
+					else
+						itemcount = ItemCount(itemid,order.counthq)
 					end
-					itemcount = ItemCount(itemid,false)
+					
+					newTask.startingCount = itemcount
+					newTask.requiredItems = order.amount
+					newTask.requireHQ = order.requirehq
+					newTask.countHQ = order.counthq
+					newTask.itemid = order.item
+					newTask.useQuick = order.usequick
+					newTask.useHQ = order.useHQ
+					newTask.skillProfile = order.profile
+					newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
+					
+					foundSelection = true
 				else
-					itemcount = ItemCount(itemid,order.counthq)
+					cd("[SelectCraft]: Cannot undertake ["..tostring(id).."], not craftable.",3)
 				end
-				
-				newTask.startingCount = itemcount
-				newTask.requiredItems = order.amount
-				newTask.requireHQ = order.requirehq
-				newTask.countHQ = order.counthq
-				newTask.itemid = order.item
-				newTask.useQuick = order.usequick
-				newTask.useHQ = order.useHQ
-				newTask.skillProfile = order.profile
-				newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
-
-				foundSelection = true
+			else
+				cd("[SelectCraft]: Cannot undertake ["..tostring(id).."] as it has been completed.",3)
 			end
 			
 			if (foundSelection) then
@@ -546,7 +573,6 @@ end
 function ffxiv_task_craftitems:task_fail_execute()
     self.valid = false
 end
-
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
@@ -949,9 +975,7 @@ function ffxiv_task_craft.LoadProfile(strName)
 			local info,e = persistence.load(ffxiv_task_craft.profilePath..strName..".lua")
 			if (ValidTable(info)) then
 				ffxiv_task_craft.orders = info.orders
-				for k,order in pairs(ffxiv_task_craft.orders) do
-					order.completed = false
-				end
+				ffxiv_task_craft.ResetOrders()
 			else
 				if (e) then
 					d("Encountered error loading crafting profile ["..e.."].")
@@ -963,6 +987,13 @@ function ffxiv_task_craft.LoadProfile(strName)
 	end
 	
 	ffxiv_task_craft.RefreshOrders(false)
+end
+
+function ffxiv_task_craft.ResetOrders()
+	local orders = ffxiv_task_craft.orders
+	for id,order in pairs(orders) do
+		orders[id].completed = false
+	end
 end
 
 function ffxiv_task_craft.SaveProfile(strName)

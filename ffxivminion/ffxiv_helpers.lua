@@ -2944,7 +2944,6 @@ function Repair()
 				end
 				if (blacklist[e.id] < 3) then
 					e:Repair()
-				else
 					blacklist[e.id] = blacklist[e.id] + 1
 				end
 			else
@@ -2968,8 +2967,6 @@ function NeedsRepair()
 				end
 				if (blacklist[e.id] < 3) then
 					return true
-				else
-					blacklist[e.id] = blacklist[e.id] + 1
 				end
 			else
 				if (blacklist[e.id]) then
