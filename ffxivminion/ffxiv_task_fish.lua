@@ -188,7 +188,14 @@ function c_release:evaluate()
 						if (whitelistHQ and whitelistHQ ~= "") then
 							local release = true
 							for mustkeep in StringSplit(whitelistHQ,",") do
-								if (mustkeep == lastCatch) then
+								local mustkeepid = 0
+								if (tonumber(mustkeep) ~= nil) then
+									mustkeepid = tonumber(mustkeep)
+								else
+									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep,47)
+								end
+								
+								if (mustkeepid == lastCatch) then
 									release = false
 								end
 							end
@@ -197,7 +204,14 @@ function c_release:evaluate()
 							end
 						elseif (blacklistHQ and blacklistHQ ~= "") then
 							for throwaway in StringSplit(blacklistHQ,",") do
-								if (throwaway == lastCatch) then
+								local throwawayid = 0
+								if (tonumber(throwaway) ~= nil) then
+									throwawayid = tonumber(throwaway)
+								else
+									throwawayid = AceLib.API.Items.GetIDByName(throwaway,47)
+								end
+								
+								if (throwawayid == lastCatch) then
 									return true
 								end
 							end
@@ -206,16 +220,27 @@ function c_release:evaluate()
 						if (whitelist and whitelist ~= "") then
 							local release = true
 							for mustkeep in StringSplit(whitelist,",") do
-								if (mustkeep == lastCatch) then
+								local mustkeepid = 0
+								if (tonumber(mustkeep) ~= nil) then
+									mustkeepid = tonumber(mustkeep)
+								else
+									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep,47)
+								end
+								
+								if (mustkeepid == lastCatch) then
 									release = false
 								end
 							end
-							if (release) then
-								return true
-							end
 						elseif (blacklist and blacklist ~= "") then
 							for throwaway in StringSplit(blacklist,",") do
-								if (throwaway == lastCatch) then
+								local throwawayid = 0
+								if (tonumber(throwaway) ~= nil) then
+									throwawayid = tonumber(throwaway)
+								else
+									throwawayid = AceLib.API.Items.GetIDByName(throwaway,47)
+								end
+								
+								if (throwawayid == lastCatch) then
 									return true
 								end
 							end
@@ -279,19 +304,21 @@ function GetSnapshot()
 	local inv = Inventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
     if (ValidTable(inv)) then
         for k,item in pairs(inv) do
-            if currentSnapshot[item.name] == nil then
+			local itemid = item.id
+			if (itemid > 1000000) then itemid = itemid - 1000000 end
+            if currentSnapshot[itemid] == nil then
                 -- New item
-                currentSnapshot[item.name] = {}
-                currentSnapshot[item.name].HQcount = 0
-                currentSnapshot[item.name].count = 0
+                currentSnapshot[itemid] = {}
+                currentSnapshot[itemid].HQcount = 0
+                currentSnapshot[itemid].count = 0
             end
             -- Increment item counts
             if (item.IsHQ == 1) then
                 -- HQ
-                currentSnapshot[item.name].HQcount = currentSnapshot[item.name].HQcount + item.count
+                currentSnapshot[itemid].HQcount = currentSnapshot[itemid].HQcount + item.count
             else
                 -- NQ
-                currentSnapshot[item.name].count = currentSnapshot[item.name].count + item.count
+                currentSnapshot[itemid].count = currentSnapshot[itemid].count + item.count
             end
         end
 	end
@@ -302,24 +329,24 @@ end
 function GetNewInventory(snapshot)
 	local currentInventory = GetSnapshot()
 		
-	for name,item in pairs(currentInventory) do
-		if (snapshot[name] == nil) then
+	for itemid,item in pairs(currentInventory) do
+		if (snapshot[itemid] == nil) then
 			-- Item is new in inventory
 			if item.HQcount > 0 then
 				--d(name.." (HQ) is NEW")
-				return name, true
+				return itemid, true
 			else
 				--d(name.." is NEW")
-				return name, false
+				return itemid, false
 			end
 		else
 			-- Item already existed in inventory
-			if item.HQcount > snapshot[name].HQcount then
+			if item.HQcount > snapshot[itemid].HQcount then
 				--d(name.." (HQ) has INCREMENTED")
-				return name, true
-			elseif item.count > snapshot[name].count then
+				return itemid, true
+			elseif item.count > snapshot[itemid].count then
 				--d(name.." has INCREMENTED")
-				return name, false
+				return itemid, false
 			end
 		end
 	end

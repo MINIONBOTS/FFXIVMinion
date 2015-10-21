@@ -37,6 +37,7 @@ ml_global_information.queueSync = nil
 ml_global_information.queueSyncForce = false
 ml_global_information.queueSyncForced = false
 ml_global_information.lastInventorySnapshot = {}
+ml_global_information.repairBlacklist = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -514,6 +515,13 @@ function ml_global_information.InTitleScreenOnUpdate( event, tickcount )
 	
 end
 
+function ffxivminion.GetSetting(strSetting,default)
+	if (Settings.FFXIVMINION[strSetting] == nil) then
+		Settings.FFXIVMINION[strSetting] = default
+	end
+	return Settings.FFXIVMINION[strSetting]
+end
+
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	
@@ -538,133 +546,6 @@ function ffxivminion.HandleInit()
 	
 	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=350 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
-
-	if ( Settings.FFXIVMINION.version == nil ) then
-        Settings.FFXIVMINION.version = 1.0
-        Settings.FFXIVMINION.gEnableLog = "0"
-    end
-    if ( Settings.FFXIVMINION.gFFXIVMINIONPulseTime == nil ) then
-        Settings.FFXIVMINION.gFFXIVMINIONPulseTime = "150"
-    end
-    if ( Settings.FFXIVMINION.gEnableLog == nil ) then
-        Settings.FFXIVMINION.gEnableLog = "0"
-    end
-    if ( Settings.FFXIVMINION.gLogCNE == nil ) then
-        Settings.FFXIVMINION.gLogCNE = "0"
-    end
-    if ( Settings.FFXIVMINION.gBotMode == nil ) then
-        Settings.FFXIVMINION.gBotMode = GetString("grindMode")
-    end
-    if ( Settings.FFXIVMINION.gUseMount == nil ) then
-        Settings.FFXIVMINION.gUseMount = "0"
-    end
-    if ( Settings.FFXIVMINION.gUseSprint == nil ) then
-        Settings.FFXIVMINION.gUseSprint = "0"
-    end
-    if ( Settings.FFXIVMINION.gMountDist == nil ) then
-        Settings.FFXIVMINION.gMountDist = "75"
-    end
-    if ( Settings.FFXIVMINION.gSprintDist == nil ) then
-        Settings.FFXIVMINION.gSprintDist = "50"
-    end
-    if ( Settings.FFXIVMINION.gRandomPaths == nil ) then
-        Settings.FFXIVMINION.gRandomPaths = "0"
-	end	
-	if ( Settings.FFXIVMINION.gDisableDrawing == nil ) then
-		Settings.FFXIVMINION.gDisableDrawing = "0"
-	end
-	if ( Settings.FFXIVMINION.gAutoStart == nil ) then
-		Settings.FFXIVMINION.gAutoStart = "0"
-	end	
-	if ( Settings.FFXIVMINION.gTeleport == nil) then
-        Settings.FFXIVMINION.gTeleport = "0"
-    end
-	if ( Settings.FFXIVMINION.gParanoid == nil) then
-        Settings.FFXIVMINION.gParanoid = "1"
-    end
-    if ( Settings.FFXIVMINION.gSkipCutscene == nil) then
-        Settings.FFXIVMINION.gSkipCutscene = "0"
-    end
-    if ( Settings.FFXIVMINION.gSkipDialogue == nil) then
-        Settings.FFXIVMINION.gSkipDialogue = "0"
-    end
-    if ( Settings.FFXIVMINION.gDoUnstuck == nil) then
-        Settings.FFXIVMINION.gDoUnstuck = "0"
-    end
-	if ( Settings.FFXIVMINION.gUseHQMats == nil) then
-		Settings.FFXIVMINION.gUseHQMats = "0"
-	end
-    if ( Settings.FFXIVMINION.gClickToTeleport == nil) then
-		Settings.FFXIVMINION.gClickToTeleport = "0"
-	end
-    if ( Settings.FFXIVMINION.gClickToTravel == nil) then
-		Settings.FFXIVMINION.gClickToTravel = "0"
-	end
-	if ( Settings.FFXIVMINION.gChocoAssist == nil) then
-		Settings.FFXIVMINION.gChocoAssist = "0"
-	end
-	if ( Settings.FFXIVMINION.gChocoGrind == nil) then
-		Settings.FFXIVMINION.gChocoGrind = "0"
-	end
-	if ( Settings.FFXIVMINION.gChocoQuest == nil) then
-		Settings.FFXIVMINION.gChocoQuest = "0"
-	end
-	if ( Settings.FFXIVMINION.gMount == nil) then
-		Settings.FFXIVMINION.gMount = GetString("none")
-	end
-    if ( Settings.FFXIVMINION.gChocoStance == nil) then
-		Settings.FFXIVMINION.gChocoStance = GetString("stFree")
-	end
-	if ( Settings.FFXIVMINION.gRepair == nil) then
-		Settings.FFXIVMINION.gRepair = "1"
-	end
-	if ( Settings.FFXIVMINION.gGatherPS == nil) then
-		Settings.FFXIVMINION.gGatherPS = "0" 
-	end
-	if ( Settings.FFXIVMINION.gPermaSwiftCast == nil) then
-		Settings.FFXIVMINION.gPermaSwiftCast = "0" 
-	end
-	if ( Settings.FFXIVMINION.gFoodHQ == nil) then
-		Settings.FFXIVMINION.gFoodHQ = "None" 
-	end
-	if ( Settings.FFXIVMINION.gFood == nil) then
-		Settings.FFXIVMINION.gFood = "None" 
-	end
-	if ( Settings.FFXIVMINION.gAvoidAOE == nil) then
-		Settings.FFXIVMINION.gAvoidAOE = "0" 
-	end
-	if (Settings.FFXIVMINION.gRestHP == nil) then
-        Settings.FFXIVMINION.gRestHP = "70"
-    end
-    if (Settings.FFXIVMINION.gRestMP == nil) then
-        Settings.FFXIVMINION.gRestMP = "0"
-    end
-    if (Settings.FFXIVMINION.gFleeHP == nil) then
-        Settings.FFXIVMINION.gFleeHP = "20"
-    end
-    if (Settings.FFXIVMINION.gFleeMP == nil) then
-        Settings.FFXIVMINION.gFleeMP = "0"
-    end
-	if (Settings.FFXIVMINION.gPotionHP == nil) then
-        Settings.FFXIVMINION.gPotionHP = "50"
-    end
-	if (Settings.FFXIVMINION.gPotionMP == nil) then
-        Settings.FFXIVMINION.gPotionMP = "0"
-    end
-	if (Settings.FFXIVMINION.gUseCurielRoot == nil) then
-        Settings.FFXIVMINION.gUseCurielRoot = "0"
-    end
-	if (Settings.FFXIVMINION.gQuestAutoEquip == nil) then
-		Settings.FFXIVMINION.gQuestAutoEquip = "1"
-	end
-	if (Settings.FFXIVMINION.gRandomMovement == nil) then
-		Settings.FFXIVMINION.gRandomMovement = "0"
-	end
-	if (Settings.FFXIVMINION.gAvoidHP == nil) then
-        Settings.FFXIVMINION.gAvoidHP = "100"
-    end
-	Settings.FFXIVMINION.gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect or 25
-	Settings.FFXIVMINION.gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove or 30
 	
 	local winName = ffxivminion.Windows.Main.Name
 	GUI_NewButton(winName, GetString("skillManager"), "SkillManager.toggle")
@@ -738,48 +619,49 @@ function ffxivminion.HandleInit()
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
-	gEnableLog = Settings.FFXIVMINION.gEnableLog
-    gFFXIVMINIONPulseTime = Settings.FFXIVMINION.gFFXIVMINIONPulseTime
-    gUseMount = Settings.FFXIVMINION.gUseMount
-    gUseSprint = Settings.FFXIVMINION.gUseSprint
-    gMountDist = Settings.FFXIVMINION.gMountDist
-    gSprintDist = Settings.FFXIVMINION.gSprintDist
-    gRandomPaths = Settings.FFXIVMINION.gRandomPaths
-	gRandomMovement = Settings.FFXIVMINION.gRandomMovement
-	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-	gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
-    gAutoStart = Settings.FFXIVMINION.gAutoStart
-    gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
-    gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
-	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-    gDoUnstuck = Settings.FFXIVMINION.gDoUnstuck
-    gUseHQMats = Settings.FFXIVMINION.gUseHQMats	
-    gClickToTeleport = Settings.FFXIVMINION.gClickToTeleport
-    gClickToTravel = Settings.FFXIVMINION.gClickToTravel
-	
-	gChocoAssist = Settings.FFXIVMINION.gChocoAssist
-	gChocoGrind = Settings.FFXIVMINION.gChocoGrind
-	gChocoQuest = Settings.FFXIVMINION.gChocoQuest
-	gUseCurielRoot = Settings.FFXIVMINION.gUseCurielRoot
-	gChocoStance = Settings.FFXIVMINION.gChocoStance
-	
-	gMount = Settings.FFXIVMINION.gMount
-	gRepair = Settings.FFXIVMINION.gRepair
-	gTeleport = Settings.FFXIVMINION.gTeleport
-	gParanoid = Settings.FFXIVMINION.gParanoid
-	gGatherPS = Settings.FFXIVMINION.gGatherPS
-	gPermaSwiftCast = Settings.FFXIVMINION.gPermaSwiftCast
-	gFoodHQ = Settings.FFXIVMINION.gFoodHQ
-	gFood = Settings.FFXIVMINION.gFood
-	gAvoidHP = Settings.FFXIVMINION.gAvoidHP
-	gRestHP = Settings.FFXIVMINION.gRestHP
-    gRestMP = Settings.FFXIVMINION.gRestMP
-    gFleeHP = Settings.FFXIVMINION.gFleeHP
-    gFleeMP = Settings.FFXIVMINION.gFleeMP
-	gPotionHP = Settings.FFXIVMINION.gPotionHP
-	gPotionMP = Settings.FFXIVMINION.gPotionMP
-	gAdvStealthDetect = Settings.FFXIVMINION.gAdvStealthDetect
-	gAdvStealthRemove = Settings.FFXIVMINION.gAdvStealthRemove
+	Settings.FFXIVMINION.version = 1.0
+	gFFXIVMINIONPulseTime = ffxivminion.GetSetting("gFFXIVMINIONPulseTime",150)
+	gEnableLog = ffxivminion.GetSetting("gEnableLog","0")
+	gLogCNE = ffxivminion.GetSetting("gLogCNE","0")
+	gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
+	gMount = ffxivminion.GetSetting("gMount",GetString("none"))
+	gUseMount = ffxivminion.GetSetting("gUseMount","0")
+	gMountDist = ffxivminion.GetSetting("gMountDist","75")
+	gUseSprint = ffxivminion.GetSetting("gUseSprint","0")
+	gSprintDist = ffxivminion.GetSetting("gSprintDist","50")
+	gRandomPaths = ffxivminion.GetSetting("gRandomPaths","0")
+	gAutoStart = ffxivminion.GetSetting("gAutoStart","0")
+	gTeleport = ffxivminion.GetSetting("gTeleport","0")
+	gParanoid = ffxivminion.GetSetting("gParanoid","1")
+	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene","0")
+	gSkipDialogue = ffxivminion.GetSetting("gSkipDialogue","0")
+	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing","0")
+	gDoUnstuck = ffxivminion.GetSetting("gDoUnstuck","0")
+	gUseHQMats = ffxivminion.GetSetting("gUseHQMats","0")
+	gClickToTeleport = ffxivminion.GetSetting("gClickToTeleport","0")
+	gClickToTravel = ffxivminion.GetSetting("gClickToTravel","0")
+	gChocoAssist = ffxivminion.GetSetting("gChocoAssist","0")
+	gChocoGrind = ffxivminion.GetSetting("gChocoGrind","0")
+	gChocoQuest = ffxivminion.GetSetting("gChocoQuest","0")
+	gChocoStance = ffxivminion.GetSetting("gChocoStance",GetString("stFree"))
+	gRepair = ffxivminion.GetSetting("gRepair","1")
+	gGatherPS = ffxivminion.GetSetting("gGatherPS","0")
+	gPermaSwiftCast = ffxivminion.GetSetting("gPermaSwiftCast","0")
+	gFoodHQ = ffxivminion.GetSetting("gFoodHQ",GetString("none"))
+	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
+
+	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE","0")
+	gAvoidHP = ffxivminion.GetSetting("gAvoidHP","100")
+	gRestHP = ffxivminion.GetSetting("gRestHP","70")
+	gRestMP = ffxivminion.GetSetting("gRestMP","0")
+	gFleeHP = ffxivminion.GetSetting("gFleeHP","20")
+	gFleeMP = ffxivminion.GetSetting("gFleeMP","0")
+	gPotionHP = ffxivminion.GetSetting("gPotionHP","50")
+	gPotionMP = ffxivminion.GetSetting("gPotionMP","0")
+	gUseCurielRoot = ffxivminion.GetSetting("gUseCurielRoot","0")
+	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip","1")
+	gAdvStealthDetect = ffxivminion.GetSetting("gAdvStealthDetect","25")
+	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
 	
 	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
 		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
@@ -824,7 +706,6 @@ function ffxivminion.HandleInit()
 	if not ml_blacklist.BlacklistExists(GetString("aoe")) then
 		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
-	
 	
 	
 	-- gAutoStart
@@ -1161,6 +1042,18 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			ffxiv_task_gather.UpdateProfiles()
+			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
+		elseif (gBotMode == GetString("craftMode")) then
+			gTeleport = Settings.FFXIVMINION.gTeleport
+			gParanoid = Settings.FFXIVMINION.gParanoid
+			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+			gSkipDialogue = Settings.FFXIVMINION.gSkipDialogue
+			GameHacks:SkipCutscene(gSkipCutscene == "1")
+			GameHacks:SkipDialogue(gSkipDialogue == "1")
+			GameHacks:Disable3DRendering(gDisableDrawing == "1")
+			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+			ffxiv_task_craft.UpdateProfiles()
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport

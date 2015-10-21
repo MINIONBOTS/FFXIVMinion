@@ -2932,17 +2932,56 @@ function Dismount()
 	end
 end
 ff["Dismount"] = Dismount
+
 function Repair()
 	if (gRepair == "1") then
+		local blacklist = ml_global_information.repairBlacklist
 		local eq = Inventory("type=1000")
 		for i,e in pairs(eq) do
 			if (e.condition <= 30) then
-				e:Repair()
+				if (blacklist[e.id] == nil) then
+					blacklist[e.id] = 0
+				end
+				if (blacklist[e.id] < 3) then
+					e:Repair()
+				else
+					blacklist[e.id] = blacklist[e.id] + 1
+				end
+			else
+				if (blacklist[e.id]) then
+					blacklist[e.id] = nil
+				end
 			end
 		end
 	end
 end
 ff["Repair"] = Repair
+
+function NeedsRepair()
+	if (gRepair == "1") then
+		local blacklist = ml_global_information.repairBlacklist
+		local eq = Inventory("type=1000")
+		for i,e in pairs(eq) do
+			if (e.condition <= 30) then
+				if (blacklist[e.id] == nil) then
+					blacklist[e.id] = 0
+				end
+				if (blacklist[e.id] < 3) then
+					return true
+				else
+					blacklist[e.id] = blacklist[e.id] + 1
+				end
+			else
+				if (blacklist[e.id]) then
+					blacklist[e.id] = nil
+				end
+			end
+		end
+	end
+	return false
+end
+ff["NeedsRepair"] = NeedsRepair
+
 function ShouldEat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -4241,7 +4280,7 @@ function GetInventoryItemGains(itemid,hqonly)
 end
 ff["GetInventoryItemGains"] = GetInventoryItemGains
 function ItemCount(itemid,includehq)
-	includehq = includehq or false
+	includehq = IsNull(includehq,false)
 	local itemcount = 0
 	
 	--Look through regular bags first.
@@ -4843,8 +4882,22 @@ function IsNull(variant,default)
 	end
 end
 
+function IIF(test,truepart,falsepart)
+	if (ValidString(test)) then
+		local f = assert(loadstring("return (" .. test .. ")"))()
+		if (f ~= nil) then
+			if (f == true) then
+				return truepart
+			end
+		end
+	elseif (test == true) then
+		return truepart
+	end
+	return falsepart
+end
+
 function CanUseAirship()
-	if (GilCount() < 100) then
+	if (GilCount() < 120) then
 		return false
 	else
 		return ((Quest:HasQuest(674) and Quest:GetQuestCurrentStep(674) == 255) or Quest:IsQuestCompleted(674))
