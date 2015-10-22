@@ -231,6 +231,7 @@ c_precraftbuff = inheritsFrom( ml_cause )
 e_precraftbuff = inheritsFrom( ml_effect )
 e_precraftbuff.id = 0
 e_precraftbuff.activity = ""
+e_precraftbuff.requiresLogClose = false
 function c_precraftbuff:evaluate()
 	if ( Now() < ml_task_hub:ThisTask().networkLatency ) then
 		return false
@@ -238,12 +239,14 @@ function c_precraftbuff:evaluate()
 	
 	e_precraftbuff.id = 0
 	e_precraftbuff.activity = ""
+	e_precraftbuff.requiresLogClose = false
 	
 	local synth = Crafting:SynthInfo()	
 	if (not synth) then
 		if (NeedsRepair()) then
 			cd("[PreCraftBuff]: Need to repair.",3)
 			e_precraftbuff.activity = "repair"
+			e_precraftbuff.requiresLogClose = false
 			return true
 		end
 		
@@ -260,6 +263,7 @@ function c_precraftbuff:evaluate()
 				cd("[PreCraftBuff]: Need to eat.",3)
 				e_precraftbuff.activity = "eat"
 				e_precraftbuff.id = foodID
+				e_precraftbuff.requiresLogClose = true
 				return true
 			end
 		end
@@ -270,6 +274,7 @@ function c_precraftbuff:evaluate()
 			if (Player.job ~= jobRequired) then
 				cd("[PreCraftBuff]: Need to switch class.",3)
 				e_precraftbuff.activity = "switchclass"
+				e_precraftbuff.requiresLogClose = true
 				return true
 			end
 		end		
@@ -278,10 +283,13 @@ function c_precraftbuff:evaluate()
 	return false
 end
 function e_precraftbuff:execute()
-	if ( Crafting:IsCraftingLogOpen()) then
-		Crafting:ToggleCraftingLog()
-		ml_task_hub:CurrentTask().networkLatency = Now() + 1500
-		return
+	if (e_precraftbuff.requiresLogClose) then
+		if ( Crafting:IsCraftingLogOpen()) then
+			Crafting:ToggleCraftingLog()
+			ml_task_hub:CurrentTask().allowWindowOpen = true
+			ml_task_hub:CurrentTask():SetDelay(1500)
+			return
+		end
 	end
 	
 	local activity = e_precraftbuff.activity
@@ -289,20 +297,14 @@ function e_precraftbuff:execute()
 		cd("[PreCraftBuff]: Attempting repairs.",3)
 		Repair()
 		ml_task_hub:CurrentTask():SetDelay(500)
-		return
-	end
-	
-	if (activity == "eat") then
+	elseif (activity == "eat") then
 		local food = Inventory:Get(e_precraftbuff.id)
 		if (food) then
 			cd("[PreCraftBuff]: Attempting to eat.",3)
 			food:Use()
 			ml_task_hub:CurrentTask():SetDelay(3000)
-			return
 		end	
-	end
-	
-	if (activity == "switchclass") then
+	elseif (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local jobRequired = recipe.class + 8
 		local gearset = _G["gCraftGearset"..tostring(jobRequired)]
@@ -310,11 +312,7 @@ function e_precraftbuff:execute()
 		local commandString = "/gearset change "..tostring(gearset)
 		SendTextCommand(commandString)
 		ml_task_hub:CurrentTask():SetDelay(3000)
-		return
 	end
-		
-	
-	ml_task_hub:CurrentTask().allowWindowOpen = true
 end
 
 c_craft = inheritsFrom( ml_cause )
