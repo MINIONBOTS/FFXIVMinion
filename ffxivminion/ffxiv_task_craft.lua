@@ -71,7 +71,7 @@ function c_craftlimit:evaluate()
 			end
 			
 			local canCraft = AceLib.API.Items.CanCraft(recipe.id)
-			cd("[CraftLimit]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
+			cd("[CraftLimit]: Checking if item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
 			if ((requiredItems > 0 and itemcount >= (requiredItems + startingCount)) or
 				not canCraft) 
 			then
@@ -93,6 +93,8 @@ function e_craftlimit:execute()
 	if (ffxiv_task_craft.UsingProfile()) then
 		local recipeid = ml_task_hub:CurrentTask().recipe.id
 		ffxiv_task_craft.orders[recipeid].completed = true
+		
+		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
 		ml_task_hub:CurrentTask().completed = true
 	else
 		ml_task_hub:ToggleRun()
@@ -173,6 +175,7 @@ function e_startcraft:execute()
 	if (ffxiv_task_craft.UsingProfile()) then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
+			cd("Recipe set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
@@ -329,6 +332,7 @@ function c_craft:evaluate()
     return false
 end
 function e_craft:execute()
+	ml_task_hub:CurrentTask().recipeSelected = false
 	if (ml_task_hub:ThisTask().attemptedStarts > 0) then
 		ml_task_hub:ThisTask().attemptedStarts = 0
 		ml_task_hub:ThisTask().synthStarted = true
@@ -426,10 +430,11 @@ function c_selectcraft:evaluate()
 		local orders = ffxiv_task_craft.orders
 		for id,order in pairs(orders) do
 			if (order.completed == nil) then
+				cd("[SelectCraft]: Initializing the completion status for id ["..tostring(id).."].",3)
 				orders[id].completed = false
 			end
 			if (order.completed == false) then
-				cd("[SelectCraft]: Found an incomplete order, select a new craft.",3)
+				cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
 				return true
 			end
 		end
@@ -454,7 +459,7 @@ function e_selectcraft:execute()
 			if (not order.completed) then
 				local canCraft = AceLib.API.Items.CanCraft(id)
 				if (canCraft) then
-			
+					
 					local itemcount = 0
 					local itemid = order.item
 					if (order.requirehq) then
@@ -475,6 +480,9 @@ function e_selectcraft:execute()
 					newTask.useHQ = order.useHQ
 					newTask.skillProfile = order.profile
 					newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
+					
+					cd("[SelectCraft]: Can craft id ["..tostring(id).."], recipe details [ id = "..tostring(order.id).."].",3)
+					cd("[SelectCraft]: RecipeDetails ["..tostring(order.class)..","..tostring(order.page)..","..tostring(order.index).."].",3)
 					
 					foundSelection = true
 				else
@@ -574,11 +582,11 @@ end
 
 function ffxiv_task_craft:Init()
     --init Process() cnes
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
-    self:add( ke_inventoryFull, self.overwatch_elements)
-	
-	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 140 )
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddoncraft, e_collectibleaddoncraft, 150 )
     self:add( ke_collectible, self.overwatch_elements)
+	
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 140 )
+    self:add( ke_inventoryFull, self.process_elements)
 	
 	local ke_selectCraft = ml_element:create( "SelectCraft", c_selectcraft, e_selectcraft, 130 )
     self:add(ke_selectCraft, self.process_elements)
