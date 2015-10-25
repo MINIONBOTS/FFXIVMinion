@@ -467,7 +467,10 @@ function ffxiv_task_movetofate:task_complete_eval()
 						
 						local selection = options[math.random(1,TableSize(options))]
 						if (ValidTable(selection)) then
-							newPos = selection
+							local p,dist = NavigationManager:GetClosestPointOnMesh(selection)
+							if (p) then
+								newPos = p
+							end
 						end
 					end
 				end
@@ -476,7 +479,13 @@ function ffxiv_task_movetofate:task_complete_eval()
 			end
 			
 			if (not ValidTable(newPos)) then
-				newPos = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
+				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
+				if (IsTable(randomPoint)) then
+					local p,dist = NavigationManager:GetClosestPointOnMesh(randomPoint)
+					if (p) then
+						newPos = p
+					end
+				end
 			end
 			if (not ValidTable(newPos)) then
 				newPos = NavigationManager:GetClosestPointOnMesh(self.pos.x,self.pos.y,self.pos.z,false)

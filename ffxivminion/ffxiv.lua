@@ -38,6 +38,7 @@ ml_global_information.queueSyncForce = false
 ml_global_information.queueSyncForced = false
 ml_global_information.lastInventorySnapshot = {}
 ml_global_information.repairBlacklist = {}
+ml_global_information.avoidanceAreas = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -612,8 +613,9 @@ function ffxivminion.HandleInit()
 	GUI_NewCheckbox(winName,GetString("clickToTravel"),"gClickToTravel",group)
 	
 	local group = GetString("advancedSettings")
-	GUI_NewNumeric(winName, "Stealth Detect Range", "gAdvStealthDetect", group, "1", "100")
-	GUI_NewNumeric(winName, "Stealth Remove Range", "gAdvStealthRemove", group, "1", "100")
+	GUI_NewNumeric(winName, "Stealth - Detect Range", "gAdvStealthDetect", group, "1", "100")
+	GUI_NewNumeric(winName, "Stealth - Remove Range", "gAdvStealthRemove", group, "1", "100")
+	GUI_NewCheckbox(winName, "Stealth - Risky Mode", "gAdvStealthRisky", group)
 	GUI_NewButton(winName, "Use Defaults", "ffxivminion.ResetAdvancedDefaults",group)
 	
 	ffxivminion.SizeWindow(winName)
@@ -662,6 +664,7 @@ function ffxivminion.HandleInit()
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip","1")
 	gAdvStealthDetect = ffxivminion.GetSetting("gAdvStealthDetect","25")
 	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
+	gAdvStealthRisky = ffxivminion.GetSetting("gAdvStealthRisky","0")
 	
 	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
 		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
@@ -804,6 +807,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAvoidHP" or
 			k == "gAdvStealthDetect" or
 			k == "gAdvStealthRemove" or
+			k == "gAdvStealthRisky" or
 			k == "gQuestAutoEquip")				
         then
 			SafeSetVar(tostring(k),v)
@@ -1350,9 +1354,11 @@ function ffxivminion.CreateWindow(window)
 	
 	if (ValidTable(wi)) then
 		if (window.hideModule) then
-			GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
+			WindowManager:NewWindow(wname,wi.x,wi.y,wi.width,wi.height,true)
+			--GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height,"",true)
 		else
-			GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
+			WindowManager:NewWindow(wname,wi.x,wi.y,wi.width,wi.height)
+			--GUI_NewWindow	(wname,wi.x,wi.y,wi.width,wi.height)
 		end
 	end
 end
@@ -1595,7 +1601,7 @@ function ffxivminion.LoadModes()
 		end
 		
 		-- Empty out the table to prevent reloading.
-		ffxivminion.modesToLoad = {}
+		ClearTable(ffxivminion.modesToLoad)
 	end
 	gmeshname = _gmeshname
 	

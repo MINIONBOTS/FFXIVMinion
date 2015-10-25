@@ -1,7 +1,7 @@
 -- This file holds global helper functions
 ff = {}
 function FilterByProximity(entities,center,radius,sortfield)
-	if (ValidTable(entities) and ValidTable(center) and tonumber(radius) > 0) then
+	if (IsTable(entities) and IsTable(center) and tonumber(radius) > 0) then
 		local validEntities = {}
 		for i,e in pairs(entities) do
 			local epos = e.pos
@@ -12,7 +12,7 @@ function FilterByProximity(entities,center,radius,sortfield)
 			end
 		end
 		
-		if (ValidTable(validEntities)) then
+		if (IsTable(validEntities)) then
 			if (sortfield and type(sortfield) == "string" and sortfield ~= "") then
 				table.sort(validEntities,function(a,b) return a[sortfield] < b[sortfield] end)
 				return validEntities
@@ -44,7 +44,7 @@ function GetNearestGrindAttackable()
 	
 	local radius = 0
 	local markerPos;
-	if (ValidTable(marker)) then
+	if (IsTable(marker)) then
 		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
 		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 			radius = tonumber(maxradius)
@@ -52,17 +52,17 @@ function GetNearestGrindAttackable()
 		markerPos = marker:GetPosition()
 	end
 	
-	if (radius > 0 and ValidTable(markerPos)) then
-		d("Checking marker with radius section.")
+	if (radius > 0 and IsTable(markerPos)) then
+		--d("Checking marker with radius section.")
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
 				el = EntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
 				
-				if (ValidTable(el)) then
+				if (IsTable(el)) then
 					local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
-					if (ValidTable(filtered)) then
+					if (IsTable(filtered)) then
 						for i,e in pairs(filtered) do
-							if (ValidTable(e) and e.uniqueid ~= 541) then
+							if (IsTable(e) and e.uniqueid ~= 541) then
 								if ((e.targetid == 0 or e.targetid == Player.id) and
 									e.pathdistance <= tonumber(gClaimRange)) then
 									return e
@@ -91,11 +91,11 @@ function GetNearestGrindAttackable()
 						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
 					end
 					
-					if (ValidTable(el)) then
+					if (IsTable(el)) then
 						local filtered = FilterByProximity(el,markerPos,radius)
-						if (ValidTable(filtered)) then
+						if (IsTable(filtered)) then
 							for i,e in pairs(filtered) do
-								if (ValidTable(e) and e.uniqueid ~= 541) then
+								if (IsTable(e) and e.uniqueid ~= 541) then
 									return e
 								end
 							end
@@ -107,18 +107,18 @@ function GetNearestGrindAttackable()
 		
 		
 		
-		if (ValidTable(Player.pet)) then
+		if (IsTable(Player.pet)) then
 			if (not IsNullString(excludeString)) then
 				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			else
 				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
 			end
 			
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius)
-				if (ValidTable(filtered)) then
+				if (IsTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (IsTable(e) and e.uniqueid ~= 541) then
 							return e
 						end
 					end
@@ -130,11 +130,11 @@ function GetNearestGrindAttackable()
 		if (not IsNullString(huntString)) then
 			el = EntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh")
 			
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
-				if (ValidTable(filtered)) then
+				if (IsTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (IsTable(e) and e.uniqueid ~= 541) then
 							if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
 								return e
 							end
@@ -152,11 +152,11 @@ function GetNearestGrindAttackable()
 				el = EntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
-				if (ValidTable(filtered)) then
+				if (IsTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (IsTable(e) and e.uniqueid ~= 541) then
 							return e
 						end
 					end
@@ -169,11 +169,11 @@ function GetNearestGrindAttackable()
 				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
-				if (ValidTable(filtered)) then
+				if (IsTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (IsTable(e) and e.uniqueid ~= 541) then
 							return e
 						end
 					end
@@ -181,14 +181,14 @@ function GetNearestGrindAttackable()
 			end
 		end
 	else
-		d("Checking marker without radius section.")
+		--d("Checking marker without radius section.")
 		block = 1
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
 				local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
 				if ( el ) then
 					local i,e = next(el)
-					if (ValidTable(e) and e.uniqueid ~= 541) then
+					if (IsTable(e) and e.uniqueid ~= 541) then
 						if ((e.targetid == 0 or e.targetid == Player.id) and
 							e.pathdistance <= tonumber(gClaimRange)) then
 							--d("Grind returned, using block:"..tostring(block))
@@ -209,7 +209,7 @@ function GetNearestGrindAttackable()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (IsTable(e) and e.uniqueid ~= 541) then
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
@@ -232,7 +232,7 @@ function GetNearestGrindAttackable()
 					
 					if ( el ) then
 						local i,e = next(el)
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (IsTable(e) and e.uniqueid ~= 541) then
 							--d("Grind returned, using block:"..tostring(block))
 							return e
 						end
@@ -242,7 +242,7 @@ function GetNearestGrindAttackable()
 		end
 		
 		block = 4
-		if (ValidTable(Player.pet)) then
+		if (IsTable(Player.pet)) then
 			if (not IsNullString(excludeString)) then
 				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			else
@@ -251,7 +251,7 @@ function GetNearestGrindAttackable()
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (IsTable(e) and e.uniqueid ~= 541) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -261,12 +261,12 @@ function GetNearestGrindAttackable()
 		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
 		block = 5
 		if (not IsNullString(huntString)) then
-			d("Checking whitelist section.")
+			--d("Checking whitelist section.")
 			el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (IsTable(e) and e.uniqueid ~= 541) then
 					if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
 						--d("Grind returned, using block:"..tostring(block))
 						return e
@@ -277,7 +277,7 @@ function GetNearestGrindAttackable()
 		
 		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
 		if (IsNullString(huntString)) then
-			d("Checking non-whitelist section.")
+			--d("Checking non-whitelist section.")
 			if (not IsNullString(excludeString)) then
 				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
@@ -287,7 +287,7 @@ function GetNearestGrindAttackable()
 			block = 6
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (IsTable(e) and e.uniqueid ~= 541) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -302,7 +302,7 @@ function GetNearestGrindAttackable()
 			block = 7
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (IsTable(e) and e.uniqueid ~= 541) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -340,10 +340,10 @@ function GetNearestFateAttackable()
     local myPos = ml_global_information.Player_Position
     local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
 	
-    if (ValidTable(fate)) then
+    if (IsTable(fate)) then
 		if (fate.type == 1) then
 			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local bestTarget = nil
 				local highestHP = 0
 				
@@ -362,7 +362,7 @@ function GetNearestFateAttackable()
 		
 		
 		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if (ValidTable(el)) then
+        if (IsTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				local epos = e.pos
@@ -374,7 +374,7 @@ function GetNearestFateAttackable()
         end	
     
         el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
-        if (ValidTable(el)) then
+        if (IsTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 epos = shallowcopy(e.pos)
@@ -387,7 +387,7 @@ function GetNearestFateAttackable()
 		
 		if (gFateKillAggro == "1") then
 			el = EntityList("shortestpath,alive,attackable,aggro,onmesh")
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
 					return e
@@ -396,7 +396,7 @@ function GetNearestFateAttackable()
 		end
 		
         el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if (ValidTable(el)) then
+        if (IsTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				epos = shallowcopy(e.pos)
@@ -409,7 +409,7 @@ function GetNearestFateAttackable()
     
         el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fate.id))            
             
-        if (ValidTable(el)) then
+        if (IsTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 epos = shallowcopy(e.pos)
@@ -436,7 +436,7 @@ function GetHuntTarget()
 		else
 			el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
 		end
-		if (ValidTable(el)) then
+		if (IsTable(el)) then
 			for i,e in pairs(el) do
 				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
@@ -447,7 +447,7 @@ function GetHuntTarget()
 				end
 			end
 			
-			if (ValidTable(nearest)) then
+			if (IsTable(nearest)) then
 				return "S", nearest
 			end
 		end
@@ -459,7 +459,7 @@ function GetHuntTarget()
 		else
 			el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
 		end
-		if (ValidTable(el)) then
+		if (IsTable(el)) then
 			for i,e in pairs(el) do
 				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
@@ -470,7 +470,7 @@ function GetHuntTarget()
 				end
 			end
 			
-			if (ValidTable(nearest)) then
+			if (IsTable(nearest)) then
 				return "A", nearest
 			end
 		end
@@ -483,7 +483,7 @@ function GetHuntTarget()
 			else
 				el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
 			end
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				for i,e in pairs(el) do
 					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
@@ -494,7 +494,7 @@ function GetHuntTarget()
 					end
 				end
 				
-				if (ValidTable(nearest)) then
+				if (IsTable(nearest)) then
 					return "B", nearest
 				end
 			end
@@ -506,7 +506,7 @@ function GetHuntTarget()
 			else
 				el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
 			end
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				for i,e in pairs(el) do
 					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
@@ -517,7 +517,7 @@ function GetHuntTarget()
 					end
 				end
 				
-				if (ValidTable(nearest)) then
+				if (IsTable(nearest)) then
 					return "B", nearest
 				end
 			end
@@ -528,7 +528,7 @@ function GetHuntTarget()
 end
 ff["GetHuntTarget"] = GetHuntTarget
 function IsValidHealTarget(e)
-	if (ValidTable(e) and e.alive and e.targetable and not e.aggro) then
+	if (IsTable(e) and e.alive and e.targetable and not e.aggro) then
 		return (e.chartype == 4) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
 			(e.chartype == 3 and e.type == 2) or
@@ -545,7 +545,7 @@ function GetBestTankHealTarget( range )
 
     local el = EntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
 	--local el = EntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( IsTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsTank(e.job) and e.hp.percent < lowestHP ) then
 				lowest = e
@@ -573,7 +573,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	local healables = {}
 	
 	local el = EntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	if ( ValidTable(el) ) then
+	if ( IsTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= hp) then
 				healables[i] = e
@@ -583,7 +583,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	
 	if (npc) then
 		el = EntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
-		if ( ValidTable(el) ) then
+		if ( IsTable(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= hp) then
 					healables[i] = e
@@ -592,7 +592,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 		end
 	end
 	
-	if (ValidTable(healables)) then
+	if (IsTable(healables)) then
 		local lowest = nil
 		local lowesthp = 100
 		
@@ -706,7 +706,7 @@ function GetLowestHPParty( skill )
 			--el = EntityList("myparty,alive,maxdistance="..tostring(range))
 		end
 		
-		if ( ValidTable(el) ) then
+		if ( IsTable(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e)) then
 					if (not lowest or e.hp.percent < lowestHP) then
@@ -755,7 +755,7 @@ function GetLowestMPParty( range, role )
 	
     local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
 	--local el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( IsTable(el) ) then
 		for i,e in pairs(el) do
 			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
 				lowest = e
@@ -805,7 +805,7 @@ function GetLowestTPParty( range, role )
 	
     local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
 	--local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( IsTable(el) ) then
         for i,e in pairs(el) do
 			if (e.job and tpUsers[e.job]) then
 				if (e.tp < lowestTP) then
@@ -835,7 +835,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	local healables = {}
 	
 	local el = EntityList("alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	if ( ValidTable(el) ) then
+	if ( IsTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
 				--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
@@ -847,7 +847,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	if (npc) then
 		--d("[GetBestHealTarget]: Checking non-players section.")
 		local el = EntityList("alive,targetable,maxdistance="..tostring(range))
-		if ( ValidTable(el) ) then
+		if ( IsTable(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
 					--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
@@ -857,7 +857,7 @@ function GetBestHealTarget( npc, range, reqhp )
 		end
 	end
 	
-	if (ValidTable(healables)) then
+	if (IsTable(healables)) then
 		local lowest = nil
 		local lowesthp = 100
 		
@@ -886,7 +886,7 @@ function GetBestBaneTarget()
 	--Check the original diseased target, make sure it has all the required buffs, and that they're all 3 or more, blow it up, reset the best dot target.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player)) then
+		if (IsTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player)) then
 			SkillMgr.bestAOE = 0
 			return e
 		end
@@ -918,7 +918,7 @@ function GetBestDoTTarget()
 	--Check for the original DoT target, if it exists, and is still missing debuffs, keep using it.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player)) then
+		if (IsTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player)) then
 			return e
 		end
 	end
@@ -945,7 +945,7 @@ function GetClosestHealTarget()
     local pID = Player.id
     local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	--local el = EntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( ValidTable(el) ) then
+    if ( IsTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
@@ -954,7 +954,7 @@ function GetClosestHealTarget()
     
     local el = EntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	--local el = EntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( ValidTable(el) ) then
+    if ( IsTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
@@ -1032,31 +1032,31 @@ function GetPVPTarget()
 	local enemyParty = nil
 	if (ml_global_information.Player_Map == 376 or ml_global_information.Player_Map == 422) then
 		enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=15")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=15")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not IsTable(enemyParty)) then
 			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,maxdistance=45")
 		end
 	else
 		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
 	end
-    if (ValidTable(enemyParty)) then
+    if (IsTable(enemyParty)) then
         local id, entity = next(enemyParty)
         while (id ~= nil and entity ~= nil) do	
 			local beingSlept = false
@@ -1310,7 +1310,7 @@ end
 ff["RoundUp"] = RoundUp
 function GetNearestFromList(strList,pos,radius)
 	local el = EntityList(strList)
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		local filteredList = {}
 		for i,e in pairs(el) do
 			if (not radius or (radius > 200)) then
@@ -1325,7 +1325,7 @@ function GetNearestFromList(strList,pos,radius)
 			end
 		end
 		
-		if (ValidTable(filteredList)) then
+		if (IsTable(filteredList)) then
 			table.sort(filteredList,function(a,b) return a.pathdistance < b.pathdistance end)
 			
 			local i,e = next(filteredList)
@@ -1346,7 +1346,7 @@ function GetNearestGatherable(marker)
 	local radius = 0
 	local markerPos = nil
 	
-	if (ValidTable(marker)) then
+	if (IsTable(marker)) then
 		if (gMarkerMgrMode ~= GetString("singleMarker")) then	
 			local mincontentlevel = marker:GetFieldValue(GetUSString("minContentLevel"))
 			if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
@@ -1369,7 +1369,7 @@ function GetNearestGatherable(marker)
 		blacklist = tostring(marker:GetFieldValue(GetUSString("NOTcontentIDEquals")))
 	end
     
-	if (radius == 0 or radius > 200 or not ValidTable(markerPos)) then
+	if (radius == 0 or radius > 200 or not IsTable(markerPos)) then
 		if (whitelist and whitelist ~= "") then
 			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
@@ -1378,13 +1378,13 @@ function GetNearestGatherable(marker)
 			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
 		end
 		
-		if ( ValidTable(el) ) then
+		if ( IsTable(el) ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
 				return e
 			end
 		end
-	elseif (ValidTable(markerPos)) then
+	elseif (IsTable(markerPos)) then
 		if (whitelist and whitelist ~= "") then
 			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
@@ -1394,7 +1394,7 @@ function GetNearestGatherable(marker)
 		end
 		
 		local gatherables = {}
-		if (ValidTable(el)) then
+		if (IsTable(el)) then
 			for i,g in pairs(el) do
 				local gpos = g.pos
 				local dist = Distance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
@@ -1405,7 +1405,7 @@ function GetNearestGatherable(marker)
 			end
 		end
 		
-		if (ValidTable(gatherables)) then
+		if (IsTable(gatherables)) then
 			table.sort(gatherables,	function(a,b) return a.pathdistance < b.pathdistance end)
 			
 			local i,g = next(gatherables)
@@ -1468,7 +1468,7 @@ function HasBuff(targetid, buffID)
 	
 	if (targetid == Player.id) then
 		local buffs = ml_global_information.Player_Buffs
-		if (ValidTable(buffs)) then
+		if (IsTable(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
 					return true
@@ -1477,9 +1477,9 @@ function HasBuff(targetid, buffID)
 		end
 	else
 		local entity = EntityList:Get(targetid)
-		if (ValidTable(entity)) then
+		if (IsTable(entity)) then
 			local buffs = entity.buffs
-			if (ValidTable(buffs)) then
+			if (IsTable(buffs)) then
 				for i, buff in pairs(buffs) do
 					if (buff.id == buffID) then
 						return true
@@ -1496,7 +1496,7 @@ function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
 	--for prio,skill in spairs(SkillMgr.SkillProfile)
 	
-	if (not ValidTable(skills)) then return false end
+	if (not IsTable(skills)) then return false end
 	
 	for _orids in StringSplit(skillids,",") do
 		local found = false
@@ -1522,14 +1522,14 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
 	
-	if (ValidTable(entity)) then
+	if (IsTable(entity)) then
 		local buffs;
 		if (entity.id == Player.id) then
 			buffs = ml_global_information.Player_Buffs
 		else
 			buffs = entity.buffs
 		end
-		if (ValidTable(buffs)) then
+		if (IsTable(buffs)) then
 			for _orids in StringSplit(buffIDs,",") do
 				local found = false
 				for _andid in StringSplit(_orids,"+") do
@@ -1559,7 +1559,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
 	
-	if (ValidTable(entity)) then
+	if (IsTable(entity)) then
 		--If we have no buffs, we are missing everything.
 		local buffs;
 		if (entity.id == Player.id) then
@@ -1568,7 +1568,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 			buffs = entity.buffs
 		end
 		
-		if (ValidTable(buffs)) then
+		if (IsTable(buffs)) then
 			--Start by assuming we have no buffs, so they are missing.
 			local missing = true
 			for _orids in StringSplit(buffIDs,",") do
@@ -1873,6 +1873,28 @@ function IsFrontSafe(entity)
     return false
 end
 ff["IsFrontSafe"] = IsFrontSafe
+function IsFrontSafer(entity,pos)
+	pos = pos or ml_global_information.Player_Position
+	if not entity or entity.id == Player.id then return false end
+	local entityHeading = nil
+	
+	if (entity.pos.h < 0) then
+		entityHeading = entity.pos.h + 2 * math.pi
+	else
+		entityHeading = entity.pos.h
+	end
+	
+	local entityAngle = math.atan2(pos.x - entity.pos.x, pos.z - entity.pos.z) 
+	local deviation = entityAngle - entityHeading
+	local absDeviation = math.abs(deviation)
+	local leftover = math.abs(absDeviation - math.pi)
+	
+	if (leftover > (math.pi * .60) and leftover < (math.pi * 1.40)) then
+		return true
+	end
+    return false
+end
+ff["IsFrontSafer"] = IsFrontSafer
 function EntityIsFrontWide(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -2086,7 +2108,7 @@ function GetApprovedFates()
 	
 	local level = Player.level
 	local fatelist = MapObject:GetFateList()
-	if (ValidTable(fatelist)) then
+	if (IsTable(fatelist)) then
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = tonumber(gMinFateLevel) or 0
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
@@ -2144,7 +2166,7 @@ end
 ff["IsFateApproved"] = IsFateApproved
 function IsInsideFate()
 	local closestFate = GetClosestFate()
-	if (ValidTable(closestFate)) then
+	if (IsTable(closestFate)) then
 		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
 		local myPos = ml_global_information.Player_Position
 		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
@@ -2160,7 +2182,7 @@ function GetClosestFate(pos,pathcheck)
 	if (pathcheck == nil) then pathcheck = false end
 	
 	local fateList = GetApprovedFates()
-	if (ValidTable(fateList)) then
+	if (IsTable(fateList)) then
 		
 		if (pathcheck and gTeleport == "0") then
 			for k,fate in pairs(fateList) do
@@ -2192,7 +2214,7 @@ function GetClosestFate(pos,pathcheck)
 			end
 		end
 		
-		if (ValidTable(whitelistTable)) then
+		if (IsTable(whitelistTable)) then
 			for k, fate in pairs(fateList) do
 				if (whitelistTable[fate.id] and	fate.status == 2) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
@@ -2225,7 +2247,7 @@ function GetClosestFate(pos,pathcheck)
 				end
 			end
 			
-			if (not ValidTable(validFates)) then
+			if (not IsTable(validFates)) then
 				for k, fate in pairs(fateList) do
 					if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 						if (fate.status == 2) then	
@@ -2239,7 +2261,7 @@ function GetClosestFate(pos,pathcheck)
 				end
 			end
 			
-			if (ValidTable(validFates)) then
+			if (IsTable(validFates)) then
 				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
 					local distance = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
@@ -2276,7 +2298,7 @@ function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
 	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2284,7 +2306,7 @@ function ScanForMobs(ids,distance)
 	end
 	
 	local el = EntityList("nearest,aggro,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2300,7 +2322,7 @@ function ScanForCaster(ids,distance,spells)
 	
 	local maxdistance = tonumber(distance) or 30
 	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
 				if (MultiComp(e.castinginfo.channelingid,spells) or MultiComp(e.castinginfo.castingid,spells)) then
@@ -2317,7 +2339,7 @@ function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
 	local el = EntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2330,7 +2352,7 @@ ff["ScanForObjects"] = ScanForObjects
 function CanUseCannon()
 	if (ml_global_information.Player_IsLocked) then
 		local misc = ActionList("type=1,level=0")
-		if (ValidTable(misc)) then
+		if (IsTable(misc)) then
 			for i,skill in pairsByKeys(misc) do
 				if (skill.id == 1134 or skill.id == 1437 or skill.id == 2630 or skill.id == 1128 or skill.id == 2434) then
 					if (skill.isready) then
@@ -2353,9 +2375,9 @@ function GetPathDistance(pos1,pos2)
 	local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
 	
 	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-	if (ValidTable(path)) then
+	if (IsTable(path)) then
 		local pathdist = PathDistance(path)
-		if (ValidTable(pathdist)) then
+		if (IsTable(pathdist)) then
 			dist = pathdist
 		end
 	end	
@@ -2378,7 +2400,7 @@ function HasNavPath(pos1,pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-		if (ValidTable(path)) then
+		if (IsTable(path)) then
 			local lastPos = path[TableSize(path)-1]
 			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
 			if (finalDist < 2) then
@@ -2390,7 +2412,7 @@ function HasNavPath(pos1,pos2)
 					--d("Beginning path check # ["..tostring(tries).."].")
 					local startPos = lastPos
 					path = NavigationManager:GetPath(startPos.x,startPos.y,startPos.z,p2.x,p2.y,p2.z)
-					if (ValidTable(path)) then
+					if (IsTable(path)) then
 						lastPos = path[TableSize(path)-1]
 						local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,startPos.x,startPos.y,startPos.z)
 						if (startDist < 2) then
@@ -2424,7 +2446,7 @@ function HasNavPath(pos1,pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-		if (ValidTable(path)) then
+		if (IsTable(path)) then
 			local lastPos = path[TableSize(path)-1]
 			
 			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
@@ -2451,7 +2473,7 @@ function GetNavPath(pos1,pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-		if (ValidTable(path)) then
+		if (IsTable(path)) then
 			local lastPos = path[TableSize(path)-1]
 			
 			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
@@ -2492,8 +2514,8 @@ function GetLinePoints(pos1,pos2,length)
 end
 ff["GetLinePoints"] = GetLinePoints
 function GetAggroDetectionPoints(pos1,pos2)
-	assert(ValidTable(pos1),"First argument is not a valid position.")
-	assert(ValidTable(pos2),"Second argument is not a valid position.")
+	assert(IsTable(pos1),"First argument is not a valid position.")
+	assert(IsTable(pos2),"Second argument is not a valid position.")
 	
 	local points = {}
 	local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
@@ -2509,7 +2531,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 			local dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
 			if (dist > 5) then
 				local minipoints = GetLinePoints(prevPos,pos,5)
-				if (ValidTable(minipoints)) then
+				if (IsTable(minipoints)) then
 					for i,pos in pairsByKeys(minipoints) do
 						points[x] = pos
 						x = x + 1
@@ -2523,7 +2545,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 end
 ff["GetAggroDetectionPoints"] = GetAggroDetectionPoints
 function PathDistanceTable(gotoPos)
-	if (ValidTable(gotoPos)) then
+	if (IsTable(gotoPos)) then
 		local ppos = ml_global_information.Player_Position
 		local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z)
 		
@@ -2575,7 +2597,7 @@ function GetPartyLeader()
 	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 			local el = EntityList("type=1,name="..gPartyLeaderName)
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
 					return leaderentity, true
@@ -2583,7 +2605,7 @@ function GetPartyLeader()
 			end
 			
 			local party = EntityList.myparty
-			if (ValidTable(party)) then
+			if (IsTable(party)) then
 				for i,member in pairs(party) do
 					if (member.name == gPartyLeaderName) then
 						leader = member
@@ -2596,7 +2618,7 @@ function GetPartyLeader()
 		local leader = nil
 		local isEntity = false
 		local party = EntityList.myparty
-		if (ValidTable(party)) then
+		if (IsTable(party)) then
 			for i,member in pairs(party) do
 				if member.isleader then
 					leader = member
@@ -2607,7 +2629,7 @@ function GetPartyLeader()
 		
 		if (leader) then
 			local el = EntityList("type=1,name="..leader.name)
-			if (ValidTable(el)) then
+			if (IsTable(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
 					leader = leaderentity
@@ -2640,7 +2662,7 @@ ff["GetPartyLeaderPos"] = GetPartyLeaderPos
 function IsInParty(id)
 	local found = false
 	local party = EntityList.myparty
-	if (ValidTable(party)) then
+	if (IsTable(party)) then
 		for i, member in pairs(party) do
 			if member.id == id then
 				return true
@@ -2783,7 +2805,7 @@ function GetMountID()
 	local mountIndex
 	local mountlist = ActionList("type=13")
 	
-	if (ValidTable(mountlist)) then
+	if (IsTable(mountlist)) then
 		--First pass, look for our named mount.
 		for k,v in pairsByKeys(mountlist) do
 			if (v.name == gMount) then
@@ -2835,7 +2857,7 @@ function HasAction(id, category)
 	
 	if (id ~= 0) then
 		local actions = ActionList("type="..tostring(category))
-		if (ValidTable(actions)) then
+		if (IsTable(actions)) then
 			for k,v in pairsByKeys(actions) do
 				if (v.id == id) then
 					return true
@@ -2881,7 +2903,7 @@ function Mount(id)
 	--Check to see if the mountID is not 1, in which case the chocobo companion needs to be dismissed first.
 	if (mountID ~= 1) then
 		actions = ActionList("type=6")
-		if (ValidTable(actions)) then
+		if (IsTable(actions)) then
 			for k,v in pairsByKeys(actions) do
 				if (v.id == 2) then
 					local acDismiss = ActionList:Get(2,6)
@@ -3016,7 +3038,7 @@ function NodeHasItem(searchItem)
 	if (searchItem and type(searchItem) == "string" and searchItem ~= "") then
 		for itemName in StringSplit(searchItem,",") do
 			local list = Player:GetGatherableSlotList()
-			if (ValidTable(list)) then
+			if (IsTable(list)) then
 				for i,item in pairs(list) do
 					if (item.name == itemName) then
 						return true
@@ -3043,7 +3065,7 @@ function WhitelistTarget()
 		_G["Field_"..key] = whitelistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+		if (IsTable(ml_marker_mgr.currentEditMarker)) then
 			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
 			ml_marker_mgr.WriteMarkerFile()
 		end
@@ -3064,7 +3086,7 @@ function BlacklistTarget()
 		_G["Field_"..key] = blacklistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+		if (IsTable(ml_marker_mgr.currentEditMarker)) then
 			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
 			ml_marker_mgr.WriteMarkerFile()
 		end
@@ -3390,7 +3412,7 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
 	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
@@ -3406,7 +3428,7 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
  
 	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
 	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
@@ -3470,7 +3492,7 @@ function GetUnattunedAetheryteList()
 		end
 	end
 	
-	if (ValidTable(aethList)) then
+	if (IsTable(aethList)) then
 		local list = ml_global_information.Player_Aetherytes
 		for id,aetheryte in pairsByKeys(list) do
 			if (aetheryte.isattuned and aethList[aetheryte.id]) then
@@ -3486,7 +3508,7 @@ function GetHomepoint()
 	local homepoint = 0
 	
 	local attuned = GetAttunedAetheryteList()
-	if (ValidTable(attuned)) then
+	if (IsTable(attuned)) then
 		for id,aetheryte in pairsByKeys(attuned) do
 			if (aetheryte.ishomepoint) then
 				homepoint = aetheryte.territory
@@ -4130,7 +4152,7 @@ function GetInventorySnapshot()
 	--Look through regular bags first.
 	for x=0,3 do
 		local inv = Inventory("type="..tostring(x))
-		if (ValidTable(inv)) then
+		if (IsTable(inv)) then
 			for k,item in pairs(inv) do
 				if currentSnapshot[item.id] == nil then
 					-- New item
@@ -4152,7 +4174,7 @@ function GetInventorySnapshot()
 	
 	--Look through equipped items bag.
 	local inv = Inventory("type=1000")
-	if (ValidTable(inv)) then
+	if (IsTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
 				-- New item
@@ -4173,7 +4195,7 @@ function GetInventorySnapshot()
 	
 	--Look through currency bag.
 	local inv = Inventory("type=2000")
-	if (ValidTable(inv)) then
+	if (IsTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
 				-- New item
@@ -4194,7 +4216,7 @@ function GetInventorySnapshot()
 	
 	--Look through crystals bag.
 	local inv = Inventory("type=2001")
-	if (ValidTable(inv)) then
+	if (IsTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
 				-- New item
@@ -4215,7 +4237,7 @@ function GetInventorySnapshot()
 	
 	--Look through key items bag.
 	local inv = Inventory("type=2004")
-	if (ValidTable(inv)) then
+	if (IsTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
 				-- New item
@@ -4245,7 +4267,7 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local original = ml_global_information.lastInventorySnapshot
 	
-	if (ValidTable(original)) then
+	if (IsTable(original)) then
 		for id,item in pairs(original) do
 			if (id == itemid) then
 				if (hqonly) then
@@ -4259,7 +4281,7 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local new = GetInventorySnapshot()
 	
-	if (ValidTable(new)) then
+	if (IsTable(new)) then
 		for id,item in pairs(new) do
 			if (id == itemid) then
 				if (hqonly) then
@@ -4394,7 +4416,7 @@ end
 ff["SoldieryCount"] = SoldieryCount
 function IsCompanionSummoned()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		return true
 	end
 	
@@ -4408,7 +4430,7 @@ end
 ff["IsCompanionSummoned"] = IsCompanionSummoned
 function GetCompanionEntity()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
-	if (ValidTable(el)) then
+	if (IsTable(el)) then
 		local i,entity = next(el)
 		if (i and entity) then
 			return entity
@@ -4511,6 +4533,29 @@ function GetFirstFreeArmorySlot(armoryType)
 	return nil
 end
 ff["GetFirstFreeArmorySlot"] = GetFirstFreeArmorySlot
+function GetFirstFreeInventorySlot()
+	for x = 0,3 do
+		local inv = Inventory("type="..tostring(x))
+		if (inv) then
+			for i=1,25 do
+				local found = false
+				for id,item in pairs(inv) do
+					if (item.slot == i) then
+						if (item and item.id ~= 0) then
+							found = true
+						end
+					end
+				end
+				if (not found) then
+					d("bag = "..tostring(x)..", slot = "..tostring(i))
+					return x,i
+				end
+			end
+		end
+	end
+	return nil,nil
+end
+ff["GetFirstFreeInventorySlot"] = GetFirstFreeInventorySlot
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -4758,7 +4803,7 @@ end
 ff["TimePassed"] = TimePassed
 function GetQuestByID(questID)
 	local list = Quest:GetQuestList()
-	if(ValidTable(list)) then
+	if(IsTable(list)) then
 		for id, quest in pairs(list) do
 			if(id == questID) then
 				return quest
@@ -4893,6 +4938,21 @@ function IIF(test,truepart,falsepart)
 	return falsepart
 end
 
+function ClearTable(t)
+	if (t ~= nil and type(t) == "table") then
+		for k,v in pairs(t) do
+			t[k] = nil
+		end
+	end
+end
+
+function IsTable(t)
+	if (t ~= nil and type(t) == "table") then
+		return true
+	end
+	return false
+end
+
 function CanUseAirship()
 	if (GilCount() < 120) then
 		return false
@@ -4910,15 +4970,15 @@ function CanAccessMap(mapid)
 			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
 														ml_global_information.Player_Map,
 														mapid	)
-			if (ValidTable(pos)) then
+			if (IsTable(pos)) then
 				return true
 			end
 			
 			
 			local aethData = ffxiv_aetheryte_data[mapid]
-			if (ValidTable(aethData)) then
+			if (IsTable(aethData)) then
 				for k,aeth in pairs(aethData) do
-					if (ValidTable(aeth)) then
+					if (IsTable(aeth)) then
 
 						local valid = true
 						if (aeth.requires) then
@@ -4956,7 +5016,7 @@ function CanAccessMap(mapid)
 				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
-					if (ValidTable(backupPos)) then
+					if (IsTable(backupPos)) then
 						return true
 					end
 				end
@@ -4993,7 +5053,7 @@ function GetHinterlandsSection(pos)
 	}
 	
 	local sec = 2
-	if (ValidTable(pos)) then
+	if (IsTable(pos)) then
 		local ent1Dist = Distance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
 		if (ent1Dist <= 200) then
 			sec = 1

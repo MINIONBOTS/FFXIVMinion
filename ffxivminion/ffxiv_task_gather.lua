@@ -313,7 +313,7 @@ function c_returntobase:evaluate()
 		return false
 	end
 	
-	e_returntobase.pos = {}
+	ClearTable(e_returntobase.pos)
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil or ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local basePos = {}
@@ -2359,13 +2359,34 @@ function c_gatherstealth:evaluate()
 				end
 			end
 			
+			
 			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
 			local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
-			
-			if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
-			  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
-			then
+			if (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) then
 				return true
+			elseif (ValidTable(addMobList)) then
+				if (gAdvStealthRisky == "1") then
+					local ph = ConvertHeading(ml_global_information.Player_Position.h)
+					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
+					local nextPos = IsNull(GetPosFromDistanceHeading(ml_global_information.Player_Position, 8, playerFront),ml_global_information.Player_Position)
+				
+					for i,entity in pairs(addMobList) do
+						if ((IsFrontSafer(entity) or (IsFrontSafer(entity,nextPos) and entity.los)) and entity.targetid == 0) then
+							if (not HasBuff(Player.id, 47)) then
+								return true
+							else
+								return false
+							end
+						end
+					end
+					if (HasBuff(Player.id, 47)) then
+						return true
+					end
+				else
+					if (not HasBuff(Player.id, 47)) then
+						return true
+					end		
+				end
 			end
 		end
 	else
@@ -2416,7 +2437,10 @@ function ffxiv_task_gather:Init()
 	local ke_flee = ml_element:create( "Flee", c_gatherflee, e_gatherflee, 140 )
     self:add( ke_flee, self.overwatch_elements)
 	
-	local ke_stealth = ml_element:create( "Stealth", c_gatherstealth, e_stealth, 130 )
+	local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
+    self:add( ke_avoidAggressives, self.overwatch_elements)
+	
+	local ke_stealth = ml_element:create( "Stealth", c_gatherstealth, e_stealth, 120 )
     self:add( ke_stealth, self.overwatch_elements)
 	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )

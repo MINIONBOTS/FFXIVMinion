@@ -234,6 +234,8 @@ function c_add_fate:evaluate()
 		return false
     end
     
+	ClearTable(c_add_fate.fate)
+    
     if (gDoFates == "1") then
 		local fate = GetClosestFate(ml_global_information.Player_Position,true)
 		if (fate and fate.completion < 100) then
@@ -389,7 +391,7 @@ function c_avoid:evaluate()
 	end
 	
 	--Reset tempvar.
-	c_avoid.newAvoid = {}
+	ClearTable(c_avoid.newAvoid)
 	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
@@ -699,7 +701,7 @@ function c_movetogate:evaluate()
 		return false
 	end
 	
-	e_movetogate.pos = {}
+	ClearTable(e_movetogate.pos)
 	
     if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
@@ -1139,6 +1141,66 @@ function e_walktopos:execute()
 	end
 	c_walktopos.pos = 0
 end
+
+c_avoidaggressives = inheritsFrom( ml_cause )
+e_avoidaggressives = inheritsFrom( ml_effect )
+function c_avoidaggressives:evaluate()
+	local needsUpdate = false
+	
+	local aggressives = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=50")
+	if (ValidTable(aggressives)) then
+		local avoidanceAreas = ml_global_information.avoidanceAreas
+		for i,entity in pairs(aggressives) do
+			local hasEntry = false
+			for i,area in pairs(avoidanceAreas) do
+				if (area.id == entity.id and area.expiration > Now()) then
+					hasEntry = true
+				end
+			end
+			
+			if (not hasEntry) then
+				--d("Setting avoidance area for ["..tostring(entity.name).."].")
+				avoidanceAreas[#avoidanceAreas+1] = { id = entity.id, x = entity.pos.x, y = entity.pos.y, z = entity.pos, level = entity.level, r = 30, expiration = Now() + 5000, source = "c_avoidaggressives" }
+				needsUpdate = true
+			end
+		end		
+	else
+		local avoidanceAreas = ml_global_information.avoidanceAreas
+		if (ValidTable(avoidanceAreas)) then
+			for i,area in pairs(avoidanceAreas) do
+				if (area.source == "c_avoidaggressives") then
+					if (TableSize(avoidanceAreas) > 1) then
+						table.remove(avoidanceAreas,i)
+						needsUpdate = true
+					else
+						ClearTable(ml_global_information.avoidanceAreas)
+						needsUpdate = true
+						break
+					end
+				end
+			end
+			
+		end
+	end
+	
+	if (needsUpdate) then
+		local avoidanceAreas = ml_global_information.avoidanceAreas
+		if (ValidTable(avoidanceAreas)) then
+			--d("Setting avoidance areas.")
+			NavigationManager:SetAvoidanceAreas(avoidanceAreas)
+		else
+			NavigationManager:ClearAvoidanceAreas()
+		end
+		return true
+	end
+	
+	return false
+end
+function e_avoidaggressives:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+
 
 c_usenavinteraction = inheritsFrom( ml_cause )
 e_usenavinteraction = inheritsFrom( ml_effect )
@@ -1882,6 +1944,8 @@ function c_flee:evaluate()
 		return false
 	end
 	
+	ClearTable(e_flee.fleePos)
+	
 	if ((ml_global_information.Player_InCombat) and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
 		local ppos = ml_global_information.Player_Position
 		
@@ -2230,11 +2294,27 @@ function c_stealth:evaluate()
 		
 		local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
 		local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
-		
-		if(TableSize(addMobList) > 0 and not HasBuff(Player.id, 47)) or
-		  (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) 
-		then
+		if (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) then
 			return true
+		elseif (ValidTable(addMobList)) then
+			if (gAdvStealthRisky == "1") then
+				for i,entity in pairs(addMobList) do
+					if (IsFrontSafe(entity)) then
+						if (not HasBuff(Player.id, 47)) then
+							return true
+						else
+							return false
+						end
+					end
+				end
+				if (HasBuff(Player.id, 47)) then
+					return true
+				end
+			else
+				if (not HasBuff(Player.id, 47)) then
+			return true
+		end
+	end
 		end
 	end
  
