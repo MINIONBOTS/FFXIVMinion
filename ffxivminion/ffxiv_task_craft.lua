@@ -198,7 +198,7 @@ function e_startcraft:execute()
 					local itemid = ml_task_hub:CurrentTask().itemid
 					local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 					local wantedAmount = ml_task_hub:ThisTask().requiredItems
-					if (wantedAmount <= maxAmount and wantedAmount <= 99) then
+					if (wantedAmount > 0 and wantedAmount <= maxAmount and wantedAmount <= 99) then
 						Crafting:CraftSelectedItem(wantedAmount)
 					else
 						if (maxAmount > 99) then
@@ -543,10 +543,13 @@ function ffxiv_task_craftitems.Create()
 end
 
 function ffxiv_task_craftitems:Init()
-	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 100 )
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
+    self:add( ke_inventoryFull, self.process_elements)
+	
+	local ke_reachedCraftLimit = ml_element:create( "ReachedCraftLimit", c_craftlimit, e_craftlimit, 140 )
     self:add(ke_reachedCraftLimit, self.process_elements)
 	
-	local ke_precraftbuff = ml_element:create( "PreCraftBuff", c_precraftbuff, e_precraftbuff, 90 )
+	local ke_precraftbuff = ml_element:create( "PreCraftBuff", c_precraftbuff, e_precraftbuff, 120 )
     self:add(ke_precraftbuff, self.process_elements)
 	
 	local ke_quickSynth = ml_element:create( "QuickSynth", c_quicksynth, e_quicksynth, 80 )
@@ -1284,7 +1287,8 @@ function ffxiv_task_craft.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gCraftMaxItems" or
 				k == "gCraftDebug" or
 				k == "gCraftDebugLevel" or
-				string.find(tostring(k),"gCraftCollectible"))				
+				string.find(tostring(k),"gCraftCollectible") or
+				string.find(tostring(k),"gCraftGearset"))				
 		then
             SafeSetVar(tostring(k),v)
 		elseif (k == "gCraftOrderSelect") then
