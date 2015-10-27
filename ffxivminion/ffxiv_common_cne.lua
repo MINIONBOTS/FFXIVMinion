@@ -233,7 +233,7 @@ function c_add_fate:evaluate()
     if (gBotMode == GetString("partyMode") and not IsLeader()) then
 		return false
     end
-    
+	
 	ClearTable(c_add_fate.fate)
     
     if (gDoFates == "1") then
@@ -2312,9 +2312,9 @@ function c_stealth:evaluate()
 				end
 			else
 				if (not HasBuff(Player.id, 47)) then
-			return true
-		end
-	end
+					return true
+				end		
+			end
 		end
 	end
  
@@ -2436,10 +2436,11 @@ end
 
 c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
-e_autoequip.id = nil
+e_autoequip.item = nil
+e_autoequip.bag = nil
 e_autoequip.slot = nil
-c_autoequip.timer = 0
-c_autoequip.lastRun = 0
+--e_autoequip.id = nil
+--e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
 		IsShopWindowOpen() or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or 
@@ -2449,11 +2450,9 @@ function c_autoequip:evaluate()
 		return false
 	end
 	
-	if (gBotMode ~= GetString("questMode")) then
-		if (TimeSince(c_autoequip.lastRun) < 10000) then
-			return false
-		end
-	end	
+	e_autoequip.item = nil
+	e_autoequip.bag = nil
+	e_autoequip.slot = nil
 	
 	if (ValidTable(ffxiv_task_quest.lockedSlots)) then
 		for slot,questid in pairs(ffxiv_task_quest.lockedSlots) do
@@ -2497,7 +2496,7 @@ function c_autoequip:evaluate()
 		if (ValidTable(equipped)) then
 			for _,item in pairs(equipped) do
 				local found = false
-				if (item.slot == slot) then
+				if (item.slot == slot and item.id ~= 0) then
 					found = true
 					data.equippedValue = AceLib.API.Items.GetItemStatWeight(item,slot)
 					data.equippedItem = item
@@ -2524,12 +2523,62 @@ function c_autoequip:evaluate()
 		end
 	end
 	
-	for slot,data in pairs(applicableSlots) do
+	for slot,data in pairs(applicableSlots) do		
 		if (data.unequippedValue > data.equippedValue) then
-			--d("Equip should be performed for slot:"..tostring(slot))
-			--d("Currently equipped has a stats total of:"..tostring(data.equippedValue))
-			--d("New item ["..tostring(data.unequippedItem).."] has a stats total of:"..tostring(data.unequippedValue))
-			e_autoequip.id = data.unequippedItem
+			if (ArmoryItemCount(slot) == 25) then
+				local firstBag,firstSlot = GetFirstFreeInventorySlot()
+				if (firstBag ~= nil) then
+					if (slot == 0) then
+						local downgrades = AceLib.API.Items.FindWeaponDowngrades()
+						if (ValidTable(downgrades)) then
+							for i,item in pairs(downgrades) do
+								if (item.bag > 3) then
+									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+									
+									e_autoequip.item = item
+									e_autoequip.bag = firstBag
+									e_autoequip.slot = firstSlot
+									return true
+								end
+							end
+						end
+					elseif (slot == 1) then
+						local downgrades = AceLib.API.Items.FindShieldDowngrades()
+						if (ValidTable(downgrades)) then
+							for i,item in pairs(downgrades) do
+								if (item.bag > 3) then
+									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+									
+									e_autoequip.item = item
+									e_autoequip.bag = firstBag
+									e_autoequip.slot = firstSlot
+									return true
+								end
+							end
+						end
+					else
+						local downgrades = AceLib.API.Items.FindArmorDowngrades(slot)
+						if (ValidTable(downgrades)) then
+							for i,item in pairs(downgrades) do
+								if (item.bag > 3) then
+									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+									
+									e_autoequip.item = item
+									e_autoequip.bag = firstBag
+									e_autoequip.slot = firstSlot
+									return true
+								end
+							end
+						end
+					end
+				end
+				
+				d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
+				return false
+			end
+			
+			e_autoequip.item = data.unequippedItem
+			e_autoequip.bag = 1000
 			e_autoequip.slot = slot
 			return true
 		end
@@ -2539,6 +2588,16 @@ function c_autoequip:evaluate()
 	return false
 end
 function e_autoequip:execute()
+	local item = e_autoequip.item
+	if (ValidTable(item)) then
+		--d("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		item:Move(e_autoequip.bag,e_autoequip.slot)
+	end
+	if (ml_task_hub:CurrentTask()) then
+		ml_task_hub:CurrentTask():SetDelay(500)
+	end
+	
+	--[[
 	local item = GetUnequippedItem(e_autoequip.id)
 	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
 		item:Move(1000,e_autoequip.slot)
@@ -2546,6 +2605,7 @@ function e_autoequip:execute()
 			ml_task_hub:CurrentTask():SetDelay(500)
 		end
 	end
+	--]]
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )
