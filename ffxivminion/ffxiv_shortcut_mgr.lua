@@ -10,6 +10,8 @@ sck.psTimer = 0
 sck.prevModeTimer = 0
 sck.nextModeTimer = 0
 sck.ctoggleTimer = 0
+sck.trackTargetTimer = 0
+sck.followTargetTimer = 0
 
 sck.mainwindow = { name = GetString("shortcutManager"), x = 50, y = 50, width = 250, height = 200}
 sck.Shortcuts = {
@@ -24,6 +26,8 @@ sck.Shortcuts = {
 	["Previous Mode"] = 9,
 	["Next Mode"] = 10,
 	["Toggle Companion"] = 11,
+	["Follow Target"] = 12,
+	["Track Target"] = 13,
 }
 
 ffxivminion.Strings.Shortcuts = 
@@ -432,6 +436,32 @@ function sck.OnUpdate( event, tickcount )
 			SetGUIVar("gChocoQuest",gChocoQuest == "0" and "1" or "0")
 		end
 		sck.ctoggleTimer = tickcount
+	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Track Target"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.trackTargetTimer) >= 150) 
+	then
+		SetGUIVar("gAssistTrackTarget",gAssistTrackTarget == "0" and "1" or "0")
+		sck.trackTargetTimer = tickcount
+	end	
+	
+	CC = Settings.FFXIVMINION.ClickCombo["Follow Target"]
+	local value1 = CC.value1
+	local value2 = CC.value2
+	local value3 = CC.value3
+	if ((value1 == 0 or MeshManager:IsKeyPressed(value1)) and 
+		(value2 == 0 or MeshManager:IsKeyPressed(value2)) and
+		(value3 ~= 0 and MeshManager:IsKeyPressed(value3)) and
+			TimeSince(sck.followTargetTimer) >= 150) 
+	then
+		SetGUIVar("gAssistFollowTarget",gAssistFollowTarget == "0" and "1" or "0")
+		sck.followTargetTimer = tickcount
 	end	
 end
 

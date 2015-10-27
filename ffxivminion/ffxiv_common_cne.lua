@@ -234,12 +234,12 @@ function c_add_fate:evaluate()
 		return false
     end
 	
-	ClearTable(c_add_fate.fate)
+	c_add_fate.fate = {}
     
     if (gDoFates == "1") then
 		local fate = GetClosestFate(ml_global_information.Player_Position,true)
 		if (fate and fate.completion < 100) then
-			c_add_fate.fate = shallowcopy(fate)
+			c_add_fate.fate = fate
 			return true
 		end
     end
@@ -391,7 +391,7 @@ function c_avoid:evaluate()
 	end
 	
 	--Reset tempvar.
-	ClearTable(c_avoid.newAvoid)
+	c_avoid.newAvoid = {}
 	
 	-- Check for nearby enemies casting things on us.
 	local el = EntityList("aggro,incombat,onmesh,maxdistance=40")
@@ -701,7 +701,7 @@ function c_movetogate:evaluate()
 		return false
 	end
 	
-	ClearTable(e_movetogate.pos)
+	e_movetogate.pos = {}
 	
     if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
@@ -1173,7 +1173,7 @@ function c_avoidaggressives:evaluate()
 						table.remove(avoidanceAreas,i)
 						needsUpdate = true
 					else
-						ClearTable(ml_global_information.avoidanceAreas)
+						ml_global_information.avoidanceAreas = {}
 						needsUpdate = true
 						break
 					end
@@ -1944,7 +1944,7 @@ function c_flee:evaluate()
 		return false
 	end
 	
-	ClearTable(e_flee.fleePos)
+	e_flee.fleePos = {}
 	
 	if ((ml_global_information.Player_InCombat) and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(gFleeMP))) then
 		local ppos = ml_global_information.Player_Position
@@ -2023,12 +2023,12 @@ function e_dead:execute()
 
 	if (Player.revivestate == 2) then
 		-- try raise first
-		if(PressYesNo(true)) then
+		if (PressYesNo(true)) then
 			c_dead.timer = 0
 			return
 		end
 		-- press ok
-		if(PressOK()) then
+		if (PressOK()) then
 			c_dead.timer = 0
 			return
 		end

@@ -480,7 +480,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			
 			if (not ValidTable(newPos)) then
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
-				if (IsTable(randomPoint)) then
+				if (ValidTable(randomPoint)) then
 					local p,dist = NavigationManager:GetClosestPointOnMesh(randomPoint)
 					if (p) then
 						newPos = p
@@ -2025,80 +2025,4 @@ end
 function ffxiv_nav_interact:task_fail_execute()
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
     self.valid = false
-end
-
-ffxiv_task_movewithflight = inheritsFrom(ml_task)
-function ffxiv_task_movewithflight.Create()
-    local newinst = inheritsFrom(ffxiv_task_movewithflight)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_movewithflight members
-    newinst.name = "MOVE_WITH_FLIGHT"
-    newinst.pos = 0
-    newinst.range = 1.5
-    newinst.doFacing = false
-    newinst.pauseTimer = 0
-    newinst.gatherRange = 0.0
-    newinst.remainMounted = false
-    newinst.useFollowMovement = false
-	newinst.obstacleTimer = 0
-	
-	newinst.distanceCheckTimer = 0
-	newinst.lastPosition = nil
-	newinst.lastDistance = 0
-    
-    return newinst
-end
-
-function ffxiv_task_movewithflight:Init()			
-    self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_movewithflight:task_complete_eval()
-    if (ValidTable(self.pos)) then
-        local myPos = ml_global_information.Player_Position
-		local gotoPos = self.pos
-		
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		
-		if (distance <= 10) then
-			return true
-		else
-			local path = ffxiv_task_test.GetPath()
-			if (ValidTable(path)) then
-				local nearestPoint = path[1]
-				local nextPoint = path[2]
-				
-				--local dist1 = Distance3D(myPos.x, myPos.y, myPos.z, nearestPoint.x, nearestPoint.y, nearestPoint.z)		
-				--if (dist1 > 5) then
-					--d("Attempting to move to 
-					--Player:SetFacing(nearestPoint.x,nearestPoint.y,nearestPoint.z)
-					--Player:MoveToStraight(nearestPoint.x,nearestPoint.y,nearestPoint.z)
-					--return false
-				--end
-				
-				local dist2 = Distance3D(myPos.x, myPos.y, myPos.z, nextPoint.x, nextPoint.y, nextPoint.z)	
-				if (dist2) then
-					d("Attempting to move to the position x = "..tostring(nextPoint.x)..",y = "..tostring(nextPoint.y)..",z = "..tostring(nextPoint.z))
-					d("Distance is "..tostring(dist2))
-					Player:SetFacing(nextPoint.x,nextPoint.y,nextPoint.z)
-					Player:Move(FFXIV.MOVEMENT.FORWARD)
-					return false
-				end
-			end
-		end
-    end    
-    return false
-end
-
-function ffxiv_task_movewithflight:task_complete_execute()
-    Player:Stop()
-	Dismount()
-    self.completed = true
 end

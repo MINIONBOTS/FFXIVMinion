@@ -15,6 +15,7 @@ function ffxiv_task_assist.Create()
     --ffxiv_task_assist members
     newinst.name = "LT_ASSIST"
     newinst.targetid = 0
+	newinst.movementDelay = 0
     
     return newinst
 end
@@ -33,8 +34,8 @@ function ffxiv_task_assist:Init()
 	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
     self:add(ke_completeQuest, self.process_elements)
 	
-	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_questyesno, e_questyesno, 23 )
-    self:add(ke_yesnoQuest, self.process_elements)
+	local ke_yesnoAssist = ml_element:create( "QuestYesNo", c_assistyesno, e_assistyesno, 23 )
+    self:add(ke_yesnoAssist, self.process_elements)
 	
 	local ke_avoid = ml_element:create( "Avoid", c_avoid, e_avoid, 20)
 	self:add(ke_avoid, self.process_elements)
@@ -49,6 +50,11 @@ function ffxiv_task_assist:Init()
     self:add( ke_stance, self.process_elements)
   
     self:AddTaskCheckCEs()
+	self:InitAddon()
+end
+
+function ffxiv_task_assist:InitAddon()
+	--nothing
 end
 
 function ffxiv_task_assist:GetHealingTarget()
@@ -123,41 +129,97 @@ end
 
 function ffxiv_task_assist:Process()
 
-    local target = ml_global_information.Player_Target
-    
-    if ( gAssistMode ~= GetString("none") ) then
-        local newTarget = nil
-        
-        if ( gAssistPriority == GetString("healer") ) then
-            newTarget = ffxiv_task_assist:GetHealingTarget()
-            if ( newTarget == nil ) then
-                newTarget = ffxiv_task_assist:GetAttackTarget()				
-            end		
+	if (Player.alive) then
+		local target = ml_global_information.Player_Target
+		
+		if ( gAssistMode ~= GetString("none") ) then
+			local newTarget = nil
+			
+			if ( gAssistPriority == GetString("healer") ) then
+				newTarget = ffxiv_task_assist:GetHealingTarget()
+				if ( newTarget == nil ) then
+					newTarget = ffxiv_task_assist:GetAttackTarget()				
+				end		
 
-        elseif ( gAssistPriority == GetString("dps") ) then
-            newTarget = ffxiv_task_assist:GetAttackTarget()
-            if ( newTarget == nil ) then
-                newTarget = ffxiv_task_assist:GetHealingTarget()				
-            end			
-        end
-        
-        if ( newTarget ~= nil and (not target or newTarget.id ~= target.id)) then
-            target = newTarget
-			Player:SetTarget(target.id)  
-        end
-    end
-	
-	local casted = false
-    if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and target.distance <= 35 ) then
-		if (gStartCombat == "1" or (gStartCombat == "0" and ml_global_information.Player_InCombat)) then
-			if (SkillMgr.Cast( target )) then
-				casted = true
+			elseif ( gAssistPriority == GetString("dps") ) then
+				newTarget = ffxiv_task_assist:GetAttackTarget()
+				if ( newTarget == nil ) then
+					newTarget = ffxiv_task_assist:GetHealingTarget()				
+				end			
+			end
+			
+			if ( newTarget ~= nil and (not target or newTarget.id ~= target.id)) then
+				target = newTarget
+				Player:SetTarget(target.id)  
 			end
 		end
-    end
-	
-	if (not casted) then
-		SkillMgr.Cast( Player, true )
+		
+		local casted = false
+		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance <= 35 or gAssistFollowTarget == "1")) then
+			if (gStartCombat == "1" or (gStartCombat == "0" and ml_global_information.Player_InCombat)) then
+				
+				if (gAssistFollowTarget == "1") then
+					local ppos = ml_global_information.Player_Position
+					local pos = target.pos
+					--local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+					
+					if (ml_global_information.AttackRange > 5) then
+						if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
+							if (Now() > self.movementDelay) then
+								local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
+								self.movementDelay = Now() + 1000
+							end
+						end
+						if (InCombatRange(target.id)) then
+							if (Player.ismounted) then
+								Dismount()
+							end
+							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
+								Player:Stop()
+								if (IsCaster(Player.job)) then
+									return
+								end
+							end
+							if (not EntityIsFrontTight(target)) then
+								Player:SetFacing(pos.x,pos.y,pos.z) 
+							end
+						end
+						if (InCombatRange(target.id) and target.attackable and target.alive) then
+							SkillMgr.Cast( target )
+						end
+					else
+						if (not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) then
+							Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
+						end
+						if (target.distance <= 15) then
+							if (Player.ismounted) then
+								Dismount()
+							end
+						end
+						if (InCombatRange(target.id)) then
+							Player:SetFacing(pos.x,pos.y,pos.z) 
+							if (Player:IsMoving(FFXIV.MOVEMENT.FORWARD) and (target.los or CanAttack(target.id))) then
+								Player:Stop()
+							end
+						end
+						if (SkillMgr.Cast( target )) then
+							Player:Stop()
+						end
+					end
+					
+				elseif (gAssistFollowTarget == "1") then
+					Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
+				end
+				
+				if (SkillMgr.Cast( target )) then
+					casted = true
+				end
+			end
+		end
+		
+		if (not casted) then
+			SkillMgr.Cast( Player, true )
+		end
 	end
 
     if (TableSize(self.process_elements) > 0) then
@@ -220,6 +282,8 @@ function ffxiv_task_assist.UIInit()
 	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
 	GUI_NewComboBox(winName,GetString("navmesh") ,"gmeshname",group,ffxivminion.Strings.Meshes())
 	GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
+	GUI_NewCheckbox(winName,"Follow Target","gAssistFollowTarget",group)
+	GUI_NewCheckbox(winName,"Track Target","gAssistTrackTarget",group)
 	
 	local group = "Filters"
 	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
@@ -272,6 +336,26 @@ function ffxiv_task_assist.TeleportAetherCurrent()
 	return false
 end
 
+c_assistyesno = inheritsFrom( ml_cause )
+e_assistyesno = inheritsFrom( ml_effect )
+function c_assistyesno:evaluate()
+	if ((gBotMode == GetString("assistMode") and gQuestHelpers == "0") or
+		ControlVisible("_NotificationParty") or
+		ControlVisible("_NotificationTelepo") or
+		ControlVisible("_NotificationFcJoin") or
+		not Player.alive)
+	then
+		return false
+	end
+	return ControlVisible("SelectYesno")
+end
+function e_assistyesno:execute()
+	PressYesNo(true)
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+_G["c_questyesno"] = c_questyesno
+_G["e_questyesno"] = e_questyesno
+
 function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if 	( 	k == "gAssistMode" or
@@ -282,9 +366,15 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gAssistFilter2" or 
 				k == "gAssistFilter3" or
 				k == "gAssistFilter4" or 
-				k == "gAssistFilter5") 
+				k == "gAssistFilter5" or
+				k == "gAssistTrackTarget") 
 		then
 			SafeSetVar(tostring(k),v)
+		elseif (k == "gAssistFollowTarget") then
+			SafeSetVar(tostring(k),v)
+			if (v == "0") then
+				Player:Stop()
+			end
 		elseif (k == "gQuestHelpers") then
 			if (v == "1") then
 				local message = {}

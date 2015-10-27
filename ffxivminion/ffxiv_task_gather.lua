@@ -87,16 +87,16 @@ function c_findnode:evaluate()
 	local needsUpdate = false
 	if ( ml_task_hub:CurrentTask().gatherid == nil or ml_task_hub:CurrentTask().gatherid == 0 ) then
 		needsUpdate = true
+	else
+		local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
+		if (ValidTable(gatherable)) then
+			if (not gatherable.cangather) then
+				needsUpdate = true
+			end
+		elseif (gatherable == nil) then
+			needsUpdate = true
+		end
 	end
-	
-	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
-    if (ValidTable(gatherable)) then
-        if (not gatherable.cangather) then
-            needsUpdate = true
-        end
-    elseif (gatherable == nil) then
-		needsUpdate = true
-    end
 	
 	if (needsUpdate) then
 		ml_task_hub:CurrentTask().gatherid = 0
@@ -313,7 +313,7 @@ function c_returntobase:evaluate()
 		return false
 	end
 	
-	ClearTable(e_returntobase.pos)
+	e_returntobase.pos = {}
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil or ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local basePos = {}
@@ -323,6 +323,7 @@ function c_returntobase:evaluate()
 		if (ValidTable(task)) then
 			basePos = task.pos
 			if (task.mapid ~= ml_global_information.Player_Map) then
+				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
 			end
 		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
@@ -335,7 +336,11 @@ function c_returntobase:evaluate()
 			if (distance >= 50) then
 				e_returntobase.pos = basePos
 				return true
+			else
+				gd("[ReturnToBase]: Close to base position already.",3)
 			end
+		else
+			gd("[ReturnToBase]: Base position was not found.",3)
 		end
     end
     
@@ -1411,7 +1416,7 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	if ((Player.job == FFXIV.JOBS.MINER or Player.job == FFXIV.JOBS.BOTANIST) and 
-		Player.level >= 50 and 
+		Player.level >= 46 and 
 		MissingBuffs(Player,"221+222"))
 	then
 		e_nodeprebuff.activity = "useunspoiledfinder"
@@ -2368,10 +2373,10 @@ function c_gatherstealth:evaluate()
 				if (gAdvStealthRisky == "1") then
 					local ph = ConvertHeading(ml_global_information.Player_Position.h)
 					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
-					local nextPos = IsNull(GetPosFromDistanceHeading(ml_global_information.Player_Position, 8, playerFront),ml_global_information.Player_Position)
+					local nextPos = IsNull(GetPosFromDistanceHeading(ml_global_information.Player_Position, 10, playerFront),ml_global_information.Player_Position)
 				
 					for i,entity in pairs(addMobList) do
-						if ((IsFrontSafer(entity) or (IsFrontSafer(entity,nextPos) and entity.los)) and entity.targetid == 0) then
+						if ((IsFrontSafer(entity) or IsFrontSafer(entity,nextPos)) and entity.targetid == 0) then
 							if (not HasBuff(Player.id, 47)) then
 								return true
 							else
