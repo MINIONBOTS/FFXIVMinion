@@ -146,7 +146,7 @@ function ffxivminion.SetupOverrides()
 			end
 			return true
 		end
-
+		
 		ml_mesh_mgr.averagegameunitsize = 1
 		ml_mesh_mgr.useQuaternion = false
 		
@@ -322,23 +322,25 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	end
 	
-	if (ml_global_information.navObstacles and Now() > ml_global_information.navObstaclesTimer) then
+	if (ValidTable(ml_global_information.navObstacles) and Now() > ml_global_information.navObstaclesTimer) then
 		ml_global_information.navObstaclesTimer = Now() + 1000
 		
 		local needsClearing = false
 		local hasNew = false
 		--Check for expired obstacles and remove them from viability.
 		local obstacles = ml_global_information.navObstacles
-		for i,obstacle in pairs(obstacles) do
-			if (Now() > obstacle.timer) then
-				--d("Nav obstacle " .. i .. " was removed because its timer expired.")
-				obstacles[i] = nil
-				needsClearing = true
-			else
-				if (obstacle.isnew) then
-					--d("Found a new obstacle.")
-					hasNew = true
-					obstacle.isnew = false
+		if (ValidTable(obstacles)) then
+			for i,obstacle in pairs(obstacles) do
+				if (Now() > obstacle.timer) then
+					--d("Nav obstacle " .. i .. " was removed because its timer expired.")
+					obstacles[i] = nil
+					needsClearing = true
+				else
+					if (obstacle.isnew) then
+						--d("Found a new obstacle.")
+						hasNew = true
+						obstacle.isnew = false
+					end
 				end
 			end
 		end
@@ -1601,7 +1603,7 @@ function ffxivminion.LoadModes()
 		end
 		
 		-- Empty out the table to prevent reloading.
-		ClearTable(ffxivminion.modesToLoad)
+		ffxivminion.modesToLoad = {}
 	end
 	gmeshname = _gmeshname
 	

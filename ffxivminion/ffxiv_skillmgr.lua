@@ -819,7 +819,18 @@ function SkillMgr.ReadFile(strFile)
 		SkillMgr.SkillProfile = profile.skills
 	end
 	SkillMgr.ResetSkillTracking()
-	SkillMgr.CheckProfileValidity()
+	
+	local isdefault = false
+	local startingProfiles = SkillMgr.StartingProfiles
+	for job,name in pairs(startingProfiles) do
+		if (strFile == name) then
+			isdefault = true
+			break
+		end		
+	end
+	if (not isdefault) then
+		SkillMgr.CheckProfileValidity()
+	end
 end
 
 --All writes to the profiles should come through this function.

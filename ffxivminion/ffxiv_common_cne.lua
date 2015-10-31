@@ -1160,7 +1160,8 @@ function c_avoidaggressives:evaluate()
 			
 			if (not hasEntry) then
 				--d("Setting avoidance area for ["..tostring(entity.name).."].")
-				avoidanceAreas[#avoidanceAreas+1] = { id = entity.id, x = entity.pos.x, y = entity.pos.y, z = entity.pos, level = entity.level, r = 30, expiration = Now() + 5000, source = "c_avoidaggressives" }
+				local newArea = { id = entity.id, x = entity.pos.x, y = entity.pos.y, z = entity.pos.z, level = entity.level, r = 10, expiration = Now() + 5000, source = "c_avoidaggressives" }
+				table.insert(avoidanceAreas,newArea)
 				needsUpdate = true
 			end
 		end		
@@ -1179,7 +1180,6 @@ function c_avoidaggressives:evaluate()
 					end
 				end
 			end
-			
 		end
 	end
 	
@@ -1199,7 +1199,6 @@ end
 function e_avoidaggressives:execute()
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
-
 
 
 c_usenavinteraction = inheritsFrom( ml_cause )
@@ -2012,6 +2011,42 @@ function c_dead:evaluate()
     return false
 end
 function e_dead:execute()
+	if (ml_task_hub:ThisTask().name == "LT_GRIND") then
+		ml_task_hub:ThisTask().targetid = 0
+		ml_task_hub:ThisTask().markerTime = 0
+		ml_task_hub:ThisTask().currentMarker = false
+		ml_global_information.currentMarker = false
+		ffxiv_task_grind.inFate = false
+	elseif (ml_task_hub:ThisTask().name == "LT_GATHER") then
+		ml_task_hub:ThisTask().gatherid = 0
+		ml_task_hub:ThisTask().markerTime = 0
+		ml_task_hub:ThisTask().currentMarker = false
+		ml_global_information.currentMarker = false
+		ml_task_hub:ThisTask().gatheredMap = false
+		ml_task_hub:ThisTask().gatheredGardening = false
+		ml_task_hub:ThisTask().gatheredChocoFood = false
+		ml_task_hub:ThisTask().gatheredIxaliRare = false
+		ml_task_hub:ThisTask().gatheredSpecialRare = false
+		ml_task_hub:ThisTask().idleTimer = 0
+		ml_task_hub:ThisTask().swingCount = 0
+		ml_task_hub:ThisTask().itemsUncovered = false
+		ml_task_hub:ThisTask().slotsTried = {}
+		ml_task_hub:ThisTask().rareCount = -1
+		ml_task_hub:ThisTask().rareCount2 = -1
+		ml_task_hub:ThisTask().rareCount3 = -1
+		ml_task_hub:ThisTask().rareCount4 = -1
+		ml_task_hub:ThisTask().mapCount = -1
+		ml_task_hub:ThisTask().failedSearches = 0 
+	elseif (ml_task_hub:ThisTask().name == "LT_FISH") then
+		ml_task_hub:ThisTask().castTimer = 0
+		ml_task_hub:ThisTask().markerTime = 0
+		ml_task_hub:ThisTask().currentMarker = false
+		ml_global_information.currentMarker = false
+		ml_task_hub:ThisTask().networkLatency = 0
+		ml_task_hub:ThisTask().requiresAdjustment = false
+		ml_task_hub:ThisTask().snapshot = GetSnapshot()
+	end
+	
 	if (e_dead.blockOnly) then
 		e_dead.blockOnly = false
 		return

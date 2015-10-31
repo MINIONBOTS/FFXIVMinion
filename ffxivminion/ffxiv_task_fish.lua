@@ -24,9 +24,7 @@ function ffxiv_task_fish.Create()
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
 	
-    newinst.castFailTimer = 0
 	newinst.filterLevel = true
-    newinst.missingBait = false
 	newinst.networkLatency = 0
 	newinst.requiresAdjustment = false
 	
@@ -499,8 +497,11 @@ function c_snagging:evaluate()
 		
 		local useBuff = false
 		local task = ffxiv_task_fish.currentTask
+		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usesnagging,false)
+		elseif (ValidTable(marker)) then
+			useBuff = (IsNull(marker:GetFieldValue(GetUSString("useSnagging")),"0") == "1")
 		end
 		
 		local requiresCast = false
@@ -811,7 +812,6 @@ function c_nextfishingmarker:evaluate()
         end
         
         if (ValidTable(marker)) then
-            ml_task_hub:CurrentTask().missingBait = false
             e_nextfishingmarker.marker = marker
             return true
         end
@@ -835,7 +835,6 @@ c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 function c_fishnexttask:evaluate()
 	if (not Player.alive or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or not ValidTable(ffxiv_task_fish.profileData)) then
-		d("Cannot evaluate profile.")
 		return false
 	end
 	

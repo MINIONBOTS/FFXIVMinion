@@ -275,13 +275,19 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						else
 							PressYesNo(true)
 						end
-						ml_mesh_mgr.OMCThrottle = Now() + 500
+						ml_mesh_mgr.OMCThrottle = Now() + 1500
 						return
 					end
 					
 					if (ml_global_information.Player_IsLoading) then
-						ml_mesh_mgr.OMCThrottle = Now() + 500
+						ml_mesh_mgr.OMCThrottle = Now() + 1500
 						ml_mesh_mgr.ResetOMC()
+						return
+					end
+					
+					if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+						SelectConversationIndex(1)
+						ml_mesh_mgr.OMCThrottle = Now() + 1000
 						return
 					end
 					
