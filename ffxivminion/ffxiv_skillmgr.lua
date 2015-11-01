@@ -659,63 +659,54 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function SkillMgr.OnUpdate()
-	local gamestate;
-	if (GetGameState and GetGameState()) then
-		gamestate = GetGameState()
-	else
-		gamestate = 1
+	local pcast = Player.castinginfo
+	
+	local job = Player.job
+	if (pcast.channelingid ~= 0) then
+		local channelingskill = pcast.channelingid
+		SkillMgr.UpdateLastCast(channelingskill)
 	end
 	
-	if (gamestate == 1) then
-		local pcast = Player.castinginfo
-		
-		local job = Player.job
-		if (pcast.channelingid ~= 0) then
-			local channelingskill = pcast.channelingid
-			SkillMgr.UpdateLastCast(channelingskill)
-		end
-		
-		if (pcast.castingid ~= 0) then
-			local castingskill = pcast.castingid
-			if ( job >= 8 and job <=15 ) then
-				local action = ActionList:Get(castingskill,9)
+	if (pcast.castingid ~= 0) then
+		local castingskill = pcast.castingid
+		if ( job >= 8 and job <=15 ) then
+			local action = ActionList:Get(castingskill,9)
+			if (action) then
+				SkillMgr.prevSkillID = castingskill
+				SkillMgr.UpdateLastCast(castingskill)
+			end
+		else
+			if (SkillMgr.prevSkillID ~= castingskill) then
+				local action = ActionList:Get(castingskill,1)
 				if (action) then
+					--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 					SkillMgr.prevSkillID = castingskill
-					SkillMgr.UpdateLastCast(castingskill)
-				end
-			else
-				if (SkillMgr.prevSkillID ~= castingskill) then
-					local action = ActionList:Get(castingskill,1)
-					if (action) then
-						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
-						SkillMgr.prevSkillID = castingskill
-						SkillMgr.prevSkillTimestamp = Now()
-						if (action.recasttime == 2.5) then
-							SkillMgr.prevGCDSkillID = castingskill
-						end
-						SkillMgr.UpdateLastCast(castingskill)
-						SkillMgr.failTimer = Now() + 6000
+					SkillMgr.prevSkillTimestamp = Now()
+					if (action.recasttime == 2.5) then
+						SkillMgr.prevGCDSkillID = castingskill
 					end
+					SkillMgr.UpdateLastCast(castingskill)
+					SkillMgr.failTimer = Now() + 6000
 				end
-				if (SkillMgr.queuedPrio ~= 0) then
-					local action = ActionList:Get(castingskill,1)
-					if (action) then
-						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
-							--d("Updating chain information.")
-							SkillMgr.queuedPrio = 0
-						end
+			end
+			if (SkillMgr.queuedPrio ~= 0) then
+				local action = ActionList:Get(castingskill,1)
+				if (action) then
+					if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
+						--d("Updating chain information.")
+						SkillMgr.queuedPrio = 0
 					end
 				end
 			end
 		end
-		
-		if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
-			--d("Resetting failTimer.")
-			SkillMgr.prevGCDSkillID = ""
-			SkillMgr.currentChain = ""
-			SkillMgr.failTimer = 0
-			SkillMgr.queuedPrio = 0
-		end
+	end
+	
+	if (SkillMgr.failTimer ~= 0 and Now() > SkillMgr.failTimer) then
+		--d("Resetting failTimer.")
+		SkillMgr.prevGCDSkillID = ""
+		SkillMgr.currentChain = ""
+		SkillMgr.failTimer = 0
+		SkillMgr.queuedPrio = 0
 	end
 end
 
@@ -3970,7 +3961,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		end
 		
-		if (ValidTable(tlistAE) and tonumber(skill.tehpavggt) > 0) then
+		if (ValidTable(tlistAE) and IsNull(tonumber(skill.tehpavggt),0) > 0) then
 			local enemies = TableSize(tlistAE)
 			local hptotal = 0
 			
