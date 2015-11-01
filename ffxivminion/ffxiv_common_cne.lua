@@ -2569,6 +2569,7 @@ function c_autoequip:evaluate()
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
 									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+									d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 									
 									e_autoequip.item = item
 									e_autoequip.bag = firstBag

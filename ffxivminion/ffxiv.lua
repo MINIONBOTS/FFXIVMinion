@@ -39,6 +39,7 @@ ml_global_information.queueSyncForced = false
 ml_global_information.lastInventorySnapshot = {}
 ml_global_information.repairBlacklist = {}
 ml_global_information.avoidanceAreas = {}
+ml_global_information.lastMeasure = 0
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -66,6 +67,7 @@ ml_global_information.chocoStance = {
 	[GetString("stHealer")] = 7,
 }
 
+ml_global_information.classes = {}
 ml_global_information.blacklistedAetherytes = {}
 
 FFXIVMINION = {}
@@ -147,6 +149,65 @@ function ffxivminion.SetupOverrides()
 			return true
 		end
 		
+		ml_mesh_mgr.ProcessShortcuts = function ()
+			--Left Alt + Right Mouse
+			if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
+				local mousepos = MeshManager:GetMousePos()
+				if (ValidTable(mousepos)) then	
+					if (MeshManager:DeleteRasterTriangle(mousepos)) then
+						d("Deletion was successful.")
+					end
+				end
+			end	
+			
+			if ( gMeshrec == "1" and gMeshChange == "0" and  MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2)) then
+				ml_mesh_mgr.CreateSingleCell()
+			end	
+			
+			-- Record Mesh & Gamedata
+			if ( gMeshrec == "1" or gMeshChange == "1") then
+				-- Key-Input-Handler
+				-- 162 = Left CTRL + Left Mouse
+				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
+
+					MeshManager:RecForce(true)
+				else
+					MeshManager:RecForce(false)
+				end			
+				
+				-- 162 = Left CTRL 
+				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
+					-- show the mesh if it issnt shown
+					if ( gShowMesh == "0" ) then
+						MeshManager:ShowTriMesh(true)
+					end
+					MeshManager:RecSteeper(true)
+				else
+					if ( gShowMesh == "0" ) then
+						MeshManager:ShowTriMesh(false)
+					end
+					MeshManager:RecSteeper(false)
+				end
+				
+				-- 160 = Left Shift
+				if ( MeshManager:IsKeyPressed(160) ) then
+					MeshManager:RecSize(2*tonumber(gRecAreaSize))
+				else
+					MeshManager:RecSize(tonumber(gRecAreaSize))
+				end		 
+			end
+			
+			--Left Alt + Right Mouse
+			if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
+				local mousepos = MeshManager:GetMousePos()
+				if ( TableSize(mousepos) > 0 ) then	
+					if (MeshManager:DeleteRasterTriangle(mousepos)) then
+						d("Deletion was successful.")
+					end
+				end
+			end	
+		end
+
 		ml_mesh_mgr.averagegameunitsize = 1
 		ml_mesh_mgr.useQuaternion = false
 		
@@ -172,6 +233,9 @@ function ffxivminion.SetupOverrides()
 		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
+		
+		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock")
+		
 		ml_mesh_mgr.SetDefaultMesh(130, "Ul dah - Steps of Nald")
 		ml_mesh_mgr.SetDefaultMesh(131, "Ul dah - Steps of Thal")
 		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
@@ -329,18 +393,16 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		local hasNew = false
 		--Check for expired obstacles and remove them from viability.
 		local obstacles = ml_global_information.navObstacles
-		if (ValidTable(obstacles)) then
-			for i,obstacle in pairs(obstacles) do
-				if (Now() > obstacle.timer) then
-					--d("Nav obstacle " .. i .. " was removed because its timer expired.")
-					obstacles[i] = nil
-					needsClearing = true
-				else
-					if (obstacle.isnew) then
-						--d("Found a new obstacle.")
-						hasNew = true
-						obstacle.isnew = false
-					end
+		for i,obstacle in pairs(obstacles) do
+			if (Now() > obstacle.timer) then
+				--d("Nav obstacle " .. i .. " was removed because its timer expired.")
+				obstacles[i] = nil
+				needsClearing = true
+			else
+				if (obstacle.isnew) then
+					--d("Found a new obstacle.")
+					hasNew = true
+					obstacle.isnew = false
 				end
 			end
 		end
@@ -354,7 +416,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			--d("Adding nav obstacles.")
 			NavigationManager:AddNavObstacles(obstacles)
 		end
-	end 
+	end
 	
 	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
 	local skillPulse = (pulseTime/2)
@@ -368,6 +430,11 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
         ml_global_information.lastrun = tickcount
 		
 		ffxivminion.UpdateGlobals()
+
+		local thisMeasure = collectgarbage("count")/1024
+		gMemoryUsage = tostring(thisMeasure)
+		gMemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
+		ml_global_information.lastMeasure = thisMeasure
 		
 		-- close any social addons that might screw up behavior first
 		if(	gBotRunning == "1" and 
@@ -377,7 +444,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			ffxivminion.ClearAddons()
 		end
 		
-        if( ml_task_hub:CurrentTask() ~= nil) then
+        if (ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
 		
@@ -427,16 +494,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		-- ffxiv_task_fate.lua
 		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 		
-		-- ml_blacklist.lua
-		ml_blacklist.ClearBlacklists()
-		
 		-- ml_blacklist_mgr.lua
 		ml_blacklist_mgr.UpdateEntryTime()
 		ml_blacklist_mgr.UpdateEntries(tickcount)
 		
 		if (SkillMgr) then
 			ffxivminion.CheckClass()
-		end		
+		end
 		
 		if (TimeSince(ml_global_information.windowTimer) > 10000) then
 			ml_global_information.windowTimer = tickcount
@@ -449,14 +513,13 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 		
 		if (gBotRunning == "1") then
-			
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
 				ml_global_information.repairTimer = tickcount
 				
 				local list = Player:GetGatherableSlotList()
 				local synth = Crafting:SynthInfo()	
 		
-				if (not ValidTable(list) and not ValidTable(synth) and not ml_global_information.Player_InCombat) then
+				if (not ValidTable(list) and not ValidTable(synth) and not ml_global_information.Player_InCombat and NeedsRepair()) then
 					Repair()
 				end
 			end
@@ -528,6 +591,7 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	
+	collectgarbage("collect")
 	ffxivminion.SetupOverrides()
 	
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
@@ -568,6 +632,8 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,GetString("taskDelay"),"gTaskDelay",group )
 	GUI_NewField(winName,GetString("idlePulseCount"),"gIdlePulseCount",group )
 	GUI_NewField(winName,GetString("eorzeaTime"),"gEorzeaTime", group)
+	GUI_NewField(winName,"Memory Usage","gMemoryUsage", group)
+	GUI_NewField(winName,"Memory Gain","gMemoryGain", group)
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,GetString("autoStartBot"),"gAutoStart",group)
@@ -1214,47 +1280,48 @@ function ffxivminion.UseClassSettings()
 end
 
 function ffxivminion.CheckClass()
-
-    local classes = 
-    {
-        [FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
-        [FFXIV.JOBS.ARCHER]			= ffxiv_combat_archer,
-        [FFXIV.JOBS.BARD]			= ffxiv_combat_bard,
-        [FFXIV.JOBS.BLACKMAGE]		= ffxiv_combat_blackmage,
-        [FFXIV.JOBS.CONJURER]		= ffxiv_combat_conjurer,
-        [FFXIV.JOBS.DRAGOON]		= ffxiv_combat_dragoon,
-        [FFXIV.JOBS.GLADIATOR] 		= ffxiv_combat_gladiator,
-        [FFXIV.JOBS.LANCER]			= ffxiv_combat_lancer,
-        [FFXIV.JOBS.MARAUDER] 		= ffxiv_combat_marauder,
-        [FFXIV.JOBS.MONK] 			= ffxiv_combat_monk,
-		[FFXIV.JOBS.NINJA] 			= ffxiv_combat_ninja,
-		[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
-        [FFXIV.JOBS.PALADIN] 		= ffxiv_combat_paladin,
-        [FFXIV.JOBS.PUGILIST] 		= ffxiv_combat_pugilist,
-        [FFXIV.JOBS.SCHOLAR] 		= ffxiv_combat_scholar,
-        [FFXIV.JOBS.SUMMONER] 		= ffxiv_combat_summoner,
-        [FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
-        [FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
-        [FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
-		[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
-		[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
-		[FFXIV.JOBS.MACHINIST]		= ffxiv_combat_machinist,
-		[FFXIV.JOBS.DARKKNIGHT]		= ffxiv_combat_darkknight,
-		[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,		
-        [FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
-        [FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
-        [FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
-		
-		[FFXIV.JOBS.CARPENTER] 		= ffxiv_crafting_carpenter,
-        [FFXIV.JOBS.BLACKSMITH] 	= ffxiv_crafting_blacksmith,
-		[FFXIV.JOBS.ARMORER] 		= ffxiv_crafting_armorer,
-		[FFXIV.JOBS.GOLDSMITH] 		= ffxiv_crafting_goldsmith,
-		[FFXIV.JOBS.LEATHERWORKER] 	= ffxiv_crafting_leatherworker,
-		[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
-		[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
-		[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
-    }
+	if (not ValidTable(ml_global_information.classes)) then
+		ml_global_information.classes = {
+			[FFXIV.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
+			[FFXIV.JOBS.ARCHER]			= ffxiv_combat_archer,
+			[FFXIV.JOBS.BARD]			= ffxiv_combat_bard,
+			[FFXIV.JOBS.BLACKMAGE]		= ffxiv_combat_blackmage,
+			[FFXIV.JOBS.CONJURER]		= ffxiv_combat_conjurer,
+			[FFXIV.JOBS.DRAGOON]		= ffxiv_combat_dragoon,
+			[FFXIV.JOBS.GLADIATOR] 		= ffxiv_combat_gladiator,
+			[FFXIV.JOBS.LANCER]			= ffxiv_combat_lancer,
+			[FFXIV.JOBS.MARAUDER] 		= ffxiv_combat_marauder,
+			[FFXIV.JOBS.MONK] 			= ffxiv_combat_monk,
+			[FFXIV.JOBS.NINJA] 			= ffxiv_combat_ninja,
+			[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
+			[FFXIV.JOBS.PALADIN] 		= ffxiv_combat_paladin,
+			[FFXIV.JOBS.PUGILIST] 		= ffxiv_combat_pugilist,
+			[FFXIV.JOBS.SCHOLAR] 		= ffxiv_combat_scholar,
+			[FFXIV.JOBS.SUMMONER] 		= ffxiv_combat_summoner,
+			[FFXIV.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
+			[FFXIV.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
+			[FFXIV.JOBS.WHITEMAGE] 	 	= ffxiv_combat_whitemage,
+			[FFXIV.JOBS.ROGUE]			= ffxiv_combat_rogue,
+			[FFXIV.JOBS.NINJA]			= ffxiv_combat_ninja,
+			[FFXIV.JOBS.MACHINIST]		= ffxiv_combat_machinist,
+			[FFXIV.JOBS.DARKKNIGHT]		= ffxiv_combat_darkknight,
+			[FFXIV.JOBS.ASTROLOGIAN]	= ffxiv_combat_astrologian,		
+			[FFXIV.JOBS.BOTANIST] 		= ffxiv_gather_botanist,
+			[FFXIV.JOBS.FISHER] 		= ffxiv_gather_fisher,
+			[FFXIV.JOBS.MINER] 			= ffxiv_gather_miner,
+			
+			[FFXIV.JOBS.CARPENTER] 		= ffxiv_crafting_carpenter,
+			[FFXIV.JOBS.BLACKSMITH] 	= ffxiv_crafting_blacksmith,
+			[FFXIV.JOBS.ARMORER] 		= ffxiv_crafting_armorer,
+			[FFXIV.JOBS.GOLDSMITH] 		= ffxiv_crafting_goldsmith,
+			[FFXIV.JOBS.LEATHERWORKER] 	= ffxiv_crafting_leatherworker,
+			[FFXIV.JOBS.WEAVER] 		= ffxiv_crafting_weaver,
+			[FFXIV.JOBS.ALCHEMIST] 		= ffxiv_crafting_alchemist,
+			[FFXIV.JOBS.CULINARIAN] 	= ffxiv_crafting_culinarian,
+		}
+	end
 	
+	local classes = ml_global_information.classes
 	local playerClass = classes[Player.job]
 	if (not playerClass) then
 		ffxiv_dialog_manager.IssueStopNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
@@ -1717,7 +1784,7 @@ function ffxivminion.ClearAddons()
 	Player:CheckTradeWindow()
 	
 	--party invite
-	if(ControlVisible("_NotificationParty") and ControlVisible("SelectYesno")) then
+	if (ControlVisible("_NotificationParty") and ControlVisible("SelectYesno")) then
 		if(not ffxivminion.declineTimer) then
 			ffxivminion.declineTimer = Now() + math.random(3000,5000)
 		elseif(Now() > ffxivminion.declineTimer) then

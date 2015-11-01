@@ -4538,7 +4538,7 @@ function GetFirstFreeInventorySlot()
 	for x = 0,3 do
 		local inv = Inventory("type="..tostring(x))
 		if (inv) then
-			for i=1,25 do
+			for i=0,24 do
 				local found = false
 				for id,item in pairs(inv) do
 					if (item.slot == i) then
