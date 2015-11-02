@@ -170,11 +170,7 @@ function ffxiv_task_movetopos:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
     self:add( ke_falling, self.process_elements)
-	
-	--local ke_clearAggressive = ml_element:create( "ClearAggressive", c_clearaggressive, e_clearaggressive, 8 )
-    --self:add( ke_clearAggressive, self.process_elements)
-    
-    -- The parent needs to take care of checking and updating the position of this task!!	
+    	
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
     self:add( ke_walkToPos, self.process_elements)
     
@@ -1887,6 +1883,18 @@ function ffxiv_nav_interact:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
     self:add( ke_falling, self.process_elements)
+	
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+	self:add( ke_teleportToPos, self.process_elements)
+			
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	self:add( ke_mount, self.process_elements)
+			
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+    self:add( ke_falling, self.process_elements)
+			
+	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+	self:add( ke_walkToPos, self.process_elements)
 
 	self:AddTaskCheckCEs()
 end
@@ -1894,16 +1902,6 @@ end
 function ffxiv_nav_interact:task_complete_eval()
 	local myTarget = ml_global_information.Player_Target
 	local ppos = ml_global_information.Player_Position
-	
-	if (ml_global_information.Player_IsLocked and self.addedMoveElement and not self.removedMoveElement) then
-		for i, element in pairs(self.process_elements) do
-			if (element.name == "TeleportToPos" or element.name == "Mount" or element.name == "WalkToPos") then
-				table.remove(self.process_elements,i)
-			end
-		end
-		Player:Stop()
-		self.removedMoveElement = true
-	end
 	
 	if (ml_global_information.Player_IsLoading and not self.areaChanged) then
 		self.areaChanged = true
@@ -1913,21 +1911,6 @@ function ffxiv_nav_interact:task_complete_eval()
 		return true
 	end
 
-	if (self.pos and ValidTable(self.pos)) then
-		if (not self.addedMoveElement) then
-			local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
-			self:add( ke_teleportToPos, self.process_elements)
-			
-			local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
-			self:add( ke_mount, self.process_elements)
-			
-			local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
-			self:add( ke_walkToPos, self.process_elements)
-	
-			self.addedMoveElement = true
-		end
-	end
-	
 	if (ml_global_information.Player_IsMoving) then
 		if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno")) then
 			Player:Stop()

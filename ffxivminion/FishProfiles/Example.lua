@@ -19,12 +19,14 @@
 ["usechum"] = true/false;
 ["usefisheyes"] = true/false;
 ["usesnagging"] = true/false;
+["usecollect"] = true/false;
 ["baitname"] = "Bloodworm,Butterworm";	
 
-["whitelist"] = "Some Fish,Someother Fish"
-["whitelisthq"] = "Some Fish,Someother Fish"
-["blacklist"] = "Some Fish,Someother Fish"
-["blacklisthq"] = "Some Fish,Someother Fish,Andthis Fishtoo"
+["whitelist"] = "Some Fish,Someother Fish";
+["whitelisthq"] = "Some Fish,Someother Fish";
+["blacklist"] = "Some Fish,Someother Fish";
+["blacklisthq"] = "Some Fish,Someother Fish,Andthis Fishtoo";
+["moochables"] = "Some Fish,Someother Fish";
 
 :::: General Parameters
 ["usestealth"] - boolean - default: false - should stealth be used for this task - ex: ["usestealth"] = true; 

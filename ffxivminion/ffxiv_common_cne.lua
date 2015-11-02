@@ -1209,13 +1209,14 @@ e_usenavinteraction.timer = 0
 function c_usenavinteraction:evaluate(pos)
 	local gotoPos = pos or ml_task_hub:ThisTask().pos
 	
+	e_usenavinteraction.task = nil
 	c_usenavinteraction.blockOnly = false
 	
 	if (not ValidTable(gotoPos)) then
 		return false
 	end
 	
-	requiresTransport = {
+	ml_global_information.requiresTransport = {
 		[139] = { name = "Upper La Noscea",
 			test = function()
 				local myPos = ml_global_information.Player_Position
@@ -1518,6 +1519,7 @@ function c_usenavinteraction:evaluate(pos)
 		},
 	}
 	
+	local requiresTransport = ml_global_information.requiresTransport
 	if (requiresTransport[ml_global_information.Player_Map]) then
 		e_usenavinteraction.task = requiresTransport[ml_global_information.Player_Map].reaction
 		return requiresTransport[ml_global_information.Player_Map].test()

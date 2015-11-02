@@ -552,6 +552,50 @@ function e_snagging:execute()
 	end
 end
 
+c_usecollect = inheritsFrom( ml_cause )
+e_usecollect = inheritsFrom( ml_effect )
+function c_usecollect:evaluate()
+	local castTimer = ml_task_hub:CurrentTask().castTimer
+    if (Now() > castTimer) then
+		
+		local useBuff = false
+		local task = ffxiv_task_fish.currentTask
+		local marker = ml_global_information.currentMarker
+		if (ValidTable(task)) then
+			useBuff = IsNull(task.usecollect,false)
+		elseif (ValidTable(marker)) then
+			useBuff = (IsNull(marker:GetFieldValue(GetUSString("useCollect")),"0") == "1")
+		end
+		
+		local requiresCast = false
+		if (useBuff) then
+			if (MissingBuffs(Player,"805")) then
+				requiresCast = true
+			end
+		else
+			if (HasBuffs(Player,"805")) then
+				requiresCast = true
+			end
+		end
+		
+		if (requiresCast) then
+			local collect = ActionList:Get(4101,1)
+			if (collect and collect.isready) then	
+				return true
+			end
+		end
+	end
+	
+    return false
+end
+function e_usecollect:execute()
+	local collect = ActionList:Get(4101,1)
+	if (collect and collect.isready) then	
+		collect:Cast()
+		ml_task_hub:CurrentTask().castTimer = Now() + 1500
+	end
+end
+
 c_patience = inheritsFrom( ml_cause )
 e_patience = inheritsFrom( ml_effect )
 c_patience.action = 0
@@ -1518,7 +1562,10 @@ function ffxiv_task_fish:Init()
 	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 70 )
     self:add(ke_precast, self.process_elements)
 	
-	local ke_snagging = ml_element:create( "Snagging", c_snagging, e_snagging, 68 )
+	local ke_collect = ml_element:create( "Collect", c_usecollect, e_usecollect, 68 )
+    self:add(ke_collect, self.process_elements)
+	
+	local ke_snagging = ml_element:create( "Snagging", c_snagging, e_snagging, 67 )
     self:add(ke_snagging, self.process_elements)
 	
 	local ke_fisheyes = ml_element:create( "FishEyes", c_fisheyes, e_fisheyes, 65 )
