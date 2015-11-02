@@ -5,6 +5,23 @@ ffxiv_task_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfi
 ffxiv_task_fish.profileData = {}
 ffxiv_task_fish.currentTask = {}
 ffxiv_task_fish.currentTaskIndex = 0
+ffxiv_task_fish.collectibles = {
+	{ name = AceLib.API.Items.GetNameByID(12713,47), id = "Icepick", minimum = 106 },
+	{ name = AceLib.API.Items.GetNameByID(12724,47), id = "Glacier Core", minimum = 310 },
+	{ name = AceLib.API.Items.GetNameByID(12721,47), id = "Whilom Catfish", minimum = 459 },
+	{ name = AceLib.API.Items.GetNameByID(12726,47), id = "Sorcerer Fish", minimum = 646 },
+	{ name = AceLib.API.Items.GetNameByID(12739,47), id = "Bubble Eye", minimum = 162 },
+	{ name = AceLib.API.Items.GetNameByID(12742,47), id = "Dravanian Squeaker", minimum = 158 },
+	{ name = AceLib.API.Items.GetNameByID(12767,47), id = "Warmwater Bichir", minimum = 683 },
+	{ name = AceLib.API.Items.GetNameByID(12768,47), id = "Noontide Oscar", minimum = 258 },
+	{ name = AceLib.API.Items.GetNameByID(12792,47), id = "Weston Bowfin", minimum = 376 },
+	{ name = AceLib.API.Items.GetNameByID(12804,47), id = "Illuminati Perch", minimum = 826 },
+	{ name = AceLib.API.Items.GetNameByID(12774,47), id = "Tiny Axolotl", minimum = 320 },
+	{ name = AceLib.API.Items.GetNameByID(12828,47), id = "Thunderbolt Eel", minimum = 813 },
+	{ name = AceLib.API.Items.GetNameByID(12837,47), id = "Capelin", minimum = 89 },
+	{ name = AceLib.API.Items.GetNameByID(12830,47), id = "Loosetongue", minimum = 2441 },
+	{ name = AceLib.API.Items.GetNameByID(12825,47), id = "Stupendemys", minimum = 1526 },
+}
 
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
@@ -31,6 +48,8 @@ function ffxiv_task_fish.Create()
 	newinst.snapshot = GetSnapshot()
 	ffxiv_task_fish.currentTask = {}
 	ffxiv_task_fish.currentTaskIndex = 0
+	ffxiv_task_fish.attemptedCasts = 0
+	ffxiv_task_fish.biteDetected = 0
     
     return newinst
 end
@@ -593,7 +612,30 @@ function c_collectibleaddonfish:evaluate()
 		if (ValidTable(info)) then
 			local validCollectible = false
 			
-			if (gFishCollectibleName1 and gFishCollectibleName1 ~= "" and tonumber(gFishCollectibleValue1) > 0) then
+			for i = 1,15 do
+				local var = _G["gFishCollectibleName"..tostring(i)]
+				local valuevar = _G["gFishCollectibleValue1"..tostring(i)]
+				
+				if (var and var ~= "" and tonumber(valuevar) > 0) then
+					local itemid = AceLib.API.Items.GetIDByName(var,47)
+					if (itemid) then
+						if (info.itemid == itemid) then
+							if (info.collectability >= tonumber(valuevar)) then
+								validCollectible = true
+							else
+								fd("Collectibility was too low ["..tostring(info.collectability).."].")
+							end
+						else
+							fd("Collectible was not the item we are looking for.")
+							fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+						end	
+					else
+						fd("Could not find an item ID for:" .. var)
+					end
+				end
+			end
+			
+			--[[if (gFishCollectibleName1 and gFishCollectibleName1 ~= "" and tonumber(gFishCollectibleValue1) > 0) then
 				local itemid = AceLib.API.Items.GetIDByName(gFishCollectibleName1,47)
 				if (itemid) then
 					if (info.itemid == itemid) then
@@ -627,7 +669,7 @@ function c_collectibleaddonfish:evaluate()
 				else
 					fd("Could not find an item ID for:" .. gFishCollectibleName2)
 				end
-			end
+			end--]]
 			
 			if (not validCollectible) then
 				PressYesNoItem(false) 
@@ -1506,10 +1548,24 @@ function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
 	
+	if (Settings.FFXIVMINION.gFishVersion == nil) then
+		Settings.FFXIVMINION.gFishVersion = 1.0
+		Settings.FFXIVMINION.gFishCollectibleName1 = nil
+		Settings.FFXIVMINION.gFishCollectibleName2 = nil
+		Settings.FFXIVMINION.gFishCollectibleValue1 = nil
+		Settings.FFXIVMINION.gFishCollectibleValue2 = nil
+	end
+	
 	if (Settings.FFXIVMINION.gLastFishProfile == nil) then
         Settings.FFXIVMINION.gLastFishProfile = GetString("none")
     end
-	if (Settings.FFXIVMINION.gFishCollectibleName1 == nil) then
+	
+	for i = 1,15 do
+		Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)],ffxiv_task_fish.collectibles[i].name)
+		Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)],ffxiv_task_fish.collectibles[i].minimum)
+	end
+	
+	--[[if (Settings.FFXIVMINION.gFishCollectibleName1 == nil) then
 		Settings.FFXIVMINION.gFishCollectibleName1 = ""
 	end
 	if (Settings.FFXIVMINION.gFishCollectibleName2 == nil) then
@@ -1520,7 +1576,7 @@ function ffxiv_task_fish.UIInit()
 	end
 	if (Settings.FFXIVMINION.gFishCollectibleValue2 == nil) then
 		Settings.FFXIVMINION.gFishCollectibleValue2 = 0
-	end
+	end--]]
 	if (Settings.FFXIVMINION.gFishDebug == nil) then
 		Settings.FFXIVMINION.gFishDebug = "0"
 	end
@@ -1544,20 +1600,32 @@ function ffxiv_task_fish.UIInit()
 	GUI_NewComboBox(winName,"Debug Level","gFishDebugLevel",group,"1,2,3")
 	
 	local group = "Collectible"
-	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName1",group,AceLib.API.Items.BuildUIString(47,120))
+	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	for i = 1,15 do
+		GUI_NewComboBox(winName,"Collectible","gFishCollectibleName"..tostring(i),group,uistring)
+		GUI_NewField(winName,"Min Value","gFishCollectibleValue"..tostring(i),group)
+	end
+	
+	--[[GUI_NewComboBox(winName,"Collectible","gFishCollectibleName1",group,AceLib.API.Items.BuildUIString(47,120))
 	GUI_NewField(winName,"Min Value","gFishCollectibleValue1",group)
 	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName2",group,AceLib.API.Items.BuildUIString(47,120))
-	GUI_NewField(winName,"Min Value","gFishCollectibleValue2",group)
+	GUI_NewField(winName,"Min Value","gFishCollectibleValue2",group)--]]
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,"Collectible")
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
-	gFishCollectibleName1 = Settings.FFXIVMINION.gFishCollectibleName1
+	for i = 1,15 do
+		_G["gFishCollectibleName"..tostring(i)] = Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)]
+		_G["gFishCollectibleValue"..tostring(i)] = Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)]
+	end
+	
+	--[[gFishCollectibleName1 = Settings.FFXIVMINION.gFishCollectibleName1
     gFishCollectibleValue1 = Settings.FFXIVMINION.gFishCollectibleValue1
 	gFishCollectibleName2 = Settings.FFXIVMINION.gFishCollectibleName2
-    gFishCollectibleValue2 = Settings.FFXIVMINION.gFishCollectibleValue2
+    gFishCollectibleValue2 = Settings.FFXIVMINION.gFishCollectibleValue2--]]
+	
 	gFishDebug = Settings.FFXIVMINION.gFishDebug
 	gFishDebugLevel = Settings.FFXIVMINION.gFishDebugLevel
 	
@@ -1570,10 +1638,8 @@ function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
 		if (	k == "gProfile" and gBotMode == GetString("fishMode")) then
 			ffxiv_task_fish.LoadProfile(v)
 			Settings.FFXIVMINION["gLastFishProfile"] = v
-        elseif (k == "gFishCollectibleValue1" or
-				k == "gFishCollectibleValue2" or
-				k == "gFishCollectibleName1" or
-				k == "gFishCollectibleName2" or
+        elseif (string.find(k,"gFishCollectibleValue") or
+				string.find(k,"gFishCollectibleName") or
 				k == "gFishDebug" or
 				k == "gFishDebugLevel")		
 		then
