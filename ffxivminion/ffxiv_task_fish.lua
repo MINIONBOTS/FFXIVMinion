@@ -658,7 +658,7 @@ function c_collectibleaddonfish:evaluate()
 			
 			for i = 1,15 do
 				local var = _G["gFishCollectibleName"..tostring(i)]
-				local valuevar = _G["gFishCollectibleValue1"..tostring(i)]
+				local valuevar = _G["gFishCollectibleValue"..tostring(i)]
 				
 				if (var and var ~= "" and tonumber(valuevar) > 0) then
 					local itemid = AceLib.API.Items.GetIDByName(var,47)
