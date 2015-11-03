@@ -2445,7 +2445,13 @@ function HasNavPath(pos1,pos2)
 	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
 	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
 	
-	if (p1 and p2) then		
+	if (p1 and p2) then
+		if (Player.flying.canflyinzone and ValidTable(ffxiv_task_test.flightMesh)) then
+			if (ffxiv_task_test.GetPath(p1,p2)) then
+				return true
+			end
+		end
+		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 		if (ValidTable(path)) then
 			local lastPos = path[TableSize(path)-1]
@@ -5070,4 +5076,284 @@ function GetHinterlandsSection(pos)
 	end
 	
 	return sec
+end
+
+function Transport139(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (GilCount() > 100) then
+		if (pos1.x < 0 and pos2.x > 0) then
+			--d("Need  to move from west to east.")
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -341.24, y = -1, z = 112.098}
+				newTask.uniqueid = 1003586
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		elseif (pos1.x > 0 and pos2.x < 0) then
+			--d("Need  to move from west to east.")
+			return true, function ()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
+				newTask.uniqueid = 1003587
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+	
+	return false			
+end
+
+function Transport156(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if ((pos1.y < -150 and pos1.x < 12 and pos1.x > -10 and pos1.z < 16.5 and pos1.z > -14.1) and 
+		not (pos2.y < -150 and pos2.x < 12 and pos2.x > -10 and pos2.z < 16.5 and pos2.z > -14.1)) then
+		--d("Need  to move from west to east.")
+		return true, function ()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = .70, y = -157, z = 16.2}
+			newTask.uniqueid = 2002502
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (not (pos1.y < -150 and pos1.x < 12 and pos1.x > -10 and pos1.z < 16.5 and pos1.z > -14.1) and 
+			(pos2.y < -150 and pos2.x < 12 and pos2.x > -10 and pos2.z < 16.5 and pos2.z > -14.1)) then
+		--d("Need  to move from west to east.")
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 21.9, y = 20.7, z = -682}
+			newTask.uniqueid = 1006530
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+	
+	return false			
+end
+
+function Transport137(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (GilCount() > 100) then
+		if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
+			--d("Need to move from Costa area to Wineport.")
+			return true, function()
+				if (CanUseAetheryte(12) and not ml_global_information.Player_InCombat) then
+					if (ml_global_information.Player_IsMoving) then
+						Player:Stop()
+						ml_task_hub:CurrentTask():SetDelay(500)
+						return
+					end
+					if (Player.ismounted) then
+						Dismount()
+						ml_task_hub:CurrentTask():SetDelay(1000)
+						return
+					end
+					if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
+						if (Player:Teleport(12)) then	
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 12
+							newTask.mapID = 137
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				else
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
+					newTask.uniqueid = 1003588
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		elseif (not (pos1.x > 218 and pos1.z > 51) and (pos2.x > 218 and pos2.z > 51)) then
+			--d("Need to move from Wineport to Costa area.")
+			return true, function()
+				if (CanUseAetheryte(11) and not ml_global_information.Player_InCombat) then
+					if (ml_global_information.Player_IsMoving) then
+						Player:Stop()
+						ml_task_hub:CurrentTask():SetDelay(500)
+						return
+					end
+					if (Player.ismounted) then
+						Dismount()
+						ml_task_hub:CurrentTask():SetDelay(1000)
+						return
+					end
+					if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
+						if (Player:Teleport(11)) then
+							local newTask = ffxiv_task_teleport.Create()
+							newTask.aetheryte = 11
+							newTask.mapID = 137
+							ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+						end
+					end
+				else
+					local newTask = ffxiv_nav_interact.Create()
+					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
+					newTask.uniqueid = 1003589
+					ml_task_hub:CurrentTask():AddSubTask(newTask)
+				end
+			end
+		end
+	end
+	
+	return false			
+end
+
+function Transport138(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (GilCount() > 100) then
+		if (not (pos1.x < -170 and pos1.z > 390) and (pos2.x <-170 and pos2.z > 390)) then
+			return true, function()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = 318.314, y = -36, z = 351.376}
+				newTask.uniqueid = 1003584
+				newTask.conversationIndex = 3
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		elseif ((pos1.x < -170 and pos1.z > 390) and not (pos2.x <-170 and pos2.z > 390)) then
+			return true, function()
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -290, y = -41.263, z = 407.726}
+				newTask.uniqueid = 1005239
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+	
+	return false			
+end
+
+function Transport130(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (pos1.y < 40 and pos2.y > 50) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = -20.760, y = 10, z = -45.3617}
+			newTask.uniqueid = 1001834
+			newTask.conversationIndex = 1
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (pos1.y > 50 and pos2.y < 40) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
+			newTask.uniqueid = 1004339
+			newTask.conversationIndex = 2
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return false			
+end
+
+function Transport128(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (pos1.y < 60 and pos2.y > 70) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 7.802, y = 40, z = 16.158}
+			newTask.uniqueid = 1003597
+			newTask.conversationIndex = 1
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (pos1.y > 70 and pos2.y < 60) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
+			newTask.uniqueid = 1003583
+			newTask.conversationIndex = 1
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return false			
+end
+
+function Transport212(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if ((pos1.x < 23.85 and pos1.x > -15.46) and not (pos2.x < 23.85 and pos2.x > -15.46)) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 22.386226654053, y = 0.99999862909317, z = -0.097462706267834}
+			newTask.uniqueid = 2001715
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (not (pos1.x < 23.85 and pos1.x > -15.46) and (pos2.x < 23.85 and pos2.x > -15.46 )) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 26.495914459229, y = 1.0000013113022, z = -0.018158292397857}
+			newTask.uniqueid = 2001717
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return false			
+end
+
+function Transport351(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if ((pos1.z < 27.394 and pos1.z > -27.20) and not (pos2.z < 27.39 and pos2.z > -27.20)) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
+			newTask.uniqueid = 2002878
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (not (pos1.z < 27.394 and pos1.z > -27.20) and (pos2.z < 27.39 and pos2.z > -27.20)) then
+		return true, function()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 0.010291699320078, y = -2, z = -29.227424621582}
+			newTask.uniqueid = 2002880
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return false			
+end
+
+function Transport146(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	local distance = Distance3D(pos1.x,pos1.y,pos1.z,-60.55,-25.107,-556.96)
+	if (pos1.y < -15 and distance < 40) then
+		if (Quest:IsQuestCompleted(343) or (Quest:HasQuest(343) and Quest:GetQuestCurrentStep(343) > 3)) then
+			return true, function()
+				local myPos = ml_global_information.Player_Position
+				local newTask = ffxiv_nav_interact.Create()
+				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
+				newTask.uniqueid = 1004609
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+		end
+	end
+
+	return false			
+end
+
+function Transport399(pos1,pos2)
+	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos2 = pos2
+	
+	if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
+		return true, function()
+			local newTask = ffxiv_task_movetomap.Create()
+			newTask.destMapID = 478
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+
+	return false			
 end

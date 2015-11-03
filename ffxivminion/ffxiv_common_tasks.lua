@@ -377,19 +377,22 @@ function ffxiv_task_movetofate.Create()
 end
 
 function ffxiv_task_movetofate:Init()
-	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
-	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 100 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
+	
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
+    self:add( ke_flyToPos, self.process_elements)
     
-    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
     
     -- The parent needs to take care of checking and updating the position of this task!!	
@@ -1884,6 +1887,9 @@ function ffxiv_nav_interact:Init()
 	local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
     self:add( ke_convIndex, self.overwatch_elements)
 	
+	local ke_isLoading = ml_element:create( "IsLoading", c_gatherisloading, e_gatherisloading, 250 )
+    self:add( ke_isLoading, self.process_elements)
+	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
     self:add( ke_falling, self.process_elements)
 	
@@ -1908,18 +1914,19 @@ function ffxiv_nav_interact:task_complete_eval()
 	
 	if (ml_global_information.Player_IsLoading and not self.areaChanged) then
 		self.areaChanged = true
+		return false
 	end
 	
 	if (not ml_global_information.Player_IsLoading and self.areaChanged) then
 		return true
 	end
-
-	if (ml_global_information.Player_IsMoving) then
-		if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno")) then
+	
+	if (ml_global_information.Player_IsLocked or ControlVisible("SelectYesno")) then
+		if (ml_global_information.Player_IsMoving) then
 			Player:Stop()
-			return false
-		end	
-	end
+		end
+		return false
+	end	
 	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then

@@ -204,7 +204,6 @@ function c_flytopos:evaluate()
 	c_flytopos.path = nil
 	
     if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then
-		
 		local myPos = ml_global_information.Player_Position
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
@@ -594,7 +593,7 @@ function ffxiv_task_test.GetFlightPoints(basePos)
 	--Wing,Cube,Matrix,Laser,LaserX
 	
 	local points = {}
-	if (gTestRecordPattern == "Basic") then
+	if (IsNull(gTestRecordPattern,"Basic") == "Basic") then
 		points = {
 			thisPos
 		}
@@ -781,33 +780,36 @@ function ffxiv_task_test.SaveFlightMesh()
 end
 
 function ffxiv_task_test.GetPath(from,to)
-	if (ValidTable(from) and ValidTable(to)) then	
-		local allowed = false
-		local point1 = from
-		local point2 = ffxiv_task_test.GetNearestFlightJunction(to)
-		
-		if (Player.flying.isflying) then
-			allowed = true
-		else
-			local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(from)
-			local farJunction = point2
-			local myPos = ml_global_information.Player_Position
+	if (ValidTable(ffxiv_task_test.flightMesh)) then
+		if (ValidTable(from) and ValidTable(to)) then	
+			local allowed = false
+			local point1 = from
+			local point2 = ffxiv_task_test.GetNearestFlightJunction(to)
 			
-			local myDist = Distance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
-			local nearDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
-			--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
-			
-			if (myDist > 100) then
-				point1 = nearestJunction
+			if (Player.flying.isflying) then
 				allowed = true
+			else
+				local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(from)
+				local farJunction = point2
+				local myPos = ml_global_information.Player_Position
+				
+				local myDist = Distance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
+				local nearDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
+				local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
+				--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
+				
+				if (myDist > 100 and spanDist > 50) then
+					point1 = nearestJunction
+					allowed = true
+				end
 			end
-		end
-		
-		if (allowed) then
-			local path = path( point1, point2, ffxiv_task_test.flightMesh, true)
-			if (path ~= nil and type(path) == "table") then
-				d("Returning path.")
-				return path,nearestJunction,farJunction
+			
+			if (allowed) then
+				local path = path( point1, point2, ffxiv_task_test.flightMesh, true)
+				if (path ~= nil and type(path) == "table") then
+					d("Returning path.")
+					return path,nearestJunction,farJunction
+				end
 			end
 		end
 	end
@@ -1049,7 +1051,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 					if (allowed) then
 						--d("Passed first check.")
 						local p,dist = NavigationManager:GetClosestPointOnMesh(v)
-						if (not p or (p and (dist > 5 or dist == 0))) then
+						if (not p or (p and (dist > 2 or dist == 0))) then
 							v.id = TableSize(mesh)
 							table.insert(mesh,v)
 							table.insert(renderedPoints,v)
