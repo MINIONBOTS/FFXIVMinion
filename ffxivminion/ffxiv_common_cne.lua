@@ -1216,6 +1216,7 @@ function c_usenavinteraction:evaluate(pos)
 		return false
 	end
 	
+	--[[
 	ml_global_information.requiresTransport = {
 		[139] = { name = "Upper La Noscea",
 			test = function()
@@ -1518,12 +1519,22 @@ function c_usenavinteraction:evaluate(pos)
 			end,
 		},
 	}
+	--]]
 	
-	local requiresTransport = ml_global_information.requiresTransport
+	local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
+	if (transportFunction ~= nil and type(transportFunction) == "function") then
+		local retval,task = transportFunction(ml_global_information.Player_Position,gotoPos)
+		if (retval == true) then
+			e_usenavinteraction.task = task
+			return true
+		end
+	end
+	
+	--[[local requiresTransport = ml_global_information.requiresTransport
 	if (requiresTransport[ml_global_information.Player_Map]) then
 		e_usenavinteraction.task = requiresTransport[ml_global_information.Player_Map].reaction
 		return requiresTransport[ml_global_information.Player_Map].test()
-	end
+	end--]]
 	
 	return false
 end

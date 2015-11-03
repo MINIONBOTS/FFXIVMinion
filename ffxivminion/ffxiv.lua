@@ -40,6 +40,9 @@ ml_global_information.lastInventorySnapshot = {}
 ml_global_information.repairBlacklist = {}
 ml_global_information.avoidanceAreas = {}
 ml_global_information.lastMeasure = 0
+ml_global_information.requiresTransport = {}
+ml_global_information.landing = false
+ml_global_information.queueLoader = false
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -382,8 +385,19 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (ml_mesh_mgr and not IsLoading()) then
-		ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+	if (ml_mesh_mgr) then
+		if (not IsLoading()) then
+			if (ml_global_information.queueLoader == true) then
+				ffxiv_task_test.ReadFlightMesh()
+				ml_global_information.queueLoader = false
+			end
+			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+		else
+			if (ml_global_information.queueLoader == false) then
+				ffxiv_task_test.ReadFlightMesh()
+				ml_global_information.queueLoader = true
+			end
+		end
 	end
 	
 	if (ValidTable(ml_global_information.navObstacles) and Now() > ml_global_information.navObstaclesTimer) then
@@ -1498,21 +1512,38 @@ end
 
 function ffxivminion.UpdateGlobals()
 	if (Player) then
-		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
-		ml_global_information.Player_Position = Player.pos
-		ml_global_information.Player_Map = Player.localmapid
-		ml_global_information.Player_HP = Player.hp
-		ml_global_information.Player_MP = Player.mp
-		ml_global_information.Player_TP = Player.tp
-		ml_global_information.Player_Buffs = Player.buffs
-		ml_global_information.Player_Casting = Player.castinginfo
-		ml_global_information.Player_Target = Player:GetTarget()
-		ml_global_information.Player_InCombat = Player.incombat
-		ml_global_information.Player_IsLocked = IsPositionLocked()
-		ml_global_information.Player_IsLoading = IsLoading()
-		ml_global_information.Player_IsCasting = ActionList:IsCasting()
-		ml_global_information.Player_IsMoving = Player:IsMoving()
-		ml_global_information.Player_Flying = Player.flying
+		local p = Player
+		local aethlist = p:GetAetheryteList()
+		local ppos = p.pos
+		local pmap = p.localmapid
+		local php = p.hp
+		local pmp = p.mp
+		local ptp = p.tp
+		local pbuffs = p.buffs
+		local pcastinginfo = p.castinginfo
+		local ptarget = p:GetTarget()
+		local pcombat = p.incombat
+		local plocked = IsPositionLocked()
+		local ploading = IsLoading()
+		local pcasting = ActionList:IsCasting()
+		local pmoving = p:IsMoving()
+		local pflying = p.flying
+		
+		ml_global_information.Player_Aetherytes = aethlist
+		ml_global_information.Player_Position = ppos
+		ml_global_information.Player_Map = pmap
+		ml_global_information.Player_HP = php
+		ml_global_information.Player_MP = pmp
+		ml_global_information.Player_TP = ptp
+		ml_global_information.Player_Buffs = pbuffs
+		ml_global_information.Player_Casting = pcastinginfo
+		ml_global_information.Player_Target = ptarget
+		ml_global_information.Player_InCombat = pcombat
+		ml_global_information.Player_IsLocked = plocked
+		ml_global_information.Player_IsLoading = ploading
+		ml_global_information.Player_IsCasting = pcasting
+		ml_global_information.Player_IsMoving = pmoving
+		ml_global_information.Player_Flying = pflying
 	end
 end
 

@@ -1483,6 +1483,11 @@ c_gatherflee = inheritsFrom( ml_cause )
 e_gatherflee = inheritsFrom( ml_effect )
 e_gatherflee.fleePos = {}
 function c_gatherflee:evaluate()
+	local list = Player:GetGatherableSlotList()
+	if (ValidTable(list)) then
+		return false
+	end
+	
 	if (ml_global_information.Player_InCombat and not ml_global_information.Player_IsMoving and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
 		local ppos = ml_global_information.Player_Position
 		
@@ -2427,7 +2432,7 @@ end
 c_gatherislocked = inheritsFrom( ml_cause )
 e_gatherislocked = inheritsFrom( ml_effect )
 function c_gatherislocked:evaluate()
-	return ml_global_information.Player_IsLocked
+	return ml_global_information.Player_IsLocked and not Player.flying.isflying
 end
 function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
@@ -2880,5 +2885,5 @@ function ffxiv_task_gather.HandleButtons( Event, Button )
 	end
 end
 
-RegisterEventHandler("Gameloop.Update",ffxiv_task_gather.OnUpdate)
+--RegisterEventHandler("Gameloop.Update",ffxiv_task_gather.OnUpdate)
 RegisterEventHandler("GUI.Item",ffxiv_task_gather.HandleButtons)
