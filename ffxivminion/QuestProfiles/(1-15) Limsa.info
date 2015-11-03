@@ -4106,18 +4106,6 @@ local obj1 = {
 					["type"] = "start";
 				};
 				[2] = {
-					["id"] = 52;
-					["itemreward"] = false;
-					["mapid"] = 134;
-					["meshname"] = "Middle La Noscea";
-					["pos"] = {
-						["x"] = 223.76995849609;
-						["y"] = 113.09999084473;
-						["z"] = -254.19450378418;
-					};
-					["type"] = "interact";
-				};
-				[3] = {
 					["id"] = 1002626;
 					["itemreward"] = true;
 					["itemrewardslot"] = 1;
