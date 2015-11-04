@@ -2446,7 +2446,7 @@ function HasNavPath(pos1,pos2)
 	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
 	
 	if (p1 and p2) then
-		if (Player.flying.canflyinzone and ValidTable(ffxiv_task_test.flightMesh)) then
+		if (CanFlyInZone() and ValidTable(ffxiv_task_test.flightMesh)) then
 			if (ffxiv_task_test.GetPath(p1,p2)) then
 				return true
 			end
@@ -5356,4 +5356,29 @@ function Transport399(pos1,pos2)
 	end
 
 	return false			
+end
+
+function CanFlyInZone()
+	if (Player.flying) then
+		if (Player.flying.canflyinzone) then
+			return true
+		end
+	end
+	return false
+end
+
+function IsFlying()
+	if (Player.flying) then
+		if (Player.flying.isflying) then
+			return true
+		end
+	end
+	return false
+end
+
+function GetPitch()
+	if (Player.flying) then
+		return Player.flying.pitch
+	end
+	return false
 end

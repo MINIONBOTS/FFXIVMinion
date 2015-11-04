@@ -145,6 +145,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	newinst.lastDistance = 0
+	newinst.noFlight = false
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
@@ -181,7 +182,7 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if ((ml_global_information.Player_IsLocked and not Player.flying.isflying) or ml_global_information.Player_IsLoading) then
+	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end

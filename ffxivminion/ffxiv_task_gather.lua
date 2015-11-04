@@ -2432,7 +2432,7 @@ end
 c_gatherislocked = inheritsFrom( ml_cause )
 e_gatherislocked = inheritsFrom( ml_effect )
 function c_gatherislocked:evaluate()
-	return ml_global_information.Player_IsLocked and not Player.flying.isflying
+	return ml_global_information.Player_IsLocked and not IsFlying()
 end
 function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")

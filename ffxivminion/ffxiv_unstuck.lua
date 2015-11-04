@@ -21,7 +21,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (gDoUnstuck == "0" or Player.flying.isflying) then
+	if (gDoUnstuck == "0" or IsFlying()) then
 		return false
 	end
 	
