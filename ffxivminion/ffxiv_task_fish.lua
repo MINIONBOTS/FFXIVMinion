@@ -436,23 +436,23 @@ function c_chum:evaluate()
 		local task = ffxiv_task_fish.currentTask
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usechum,false)
-		end
-		
-		local requiresCast = false
-		if (useBuff) then
-			if (MissingBuffs(Player,"763")) then
-				requiresCast = true
+			
+			local requiresCast = false
+			if (useBuff) then
+				if (MissingBuffs(Player,"763")) then
+					requiresCast = true
+				end
+			else
+				if (HasBuffs(Player,"763")) then
+					requiresCast = true
+				end
 			end
-		else
-			if (HasBuffs(Player,"763")) then
-				requiresCast = true
-			end
-		end
-		
-		if (requiresCast) then
-			local chum = ActionList:Get(4104,1)
-			if (chum and chum.isready) then	
-				return true
+			
+			if (requiresCast) then
+				local chum = ActionList:Get(4104,1)
+				if (chum and chum.isready) then	
+					return true
+				end
 			end
 		end
 	end
@@ -477,23 +477,23 @@ function c_fisheyes:evaluate()
 		local task = ffxiv_task_fish.currentTask
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usefisheyes,false)
-		end
-		
-		local requiresCast = false
-		if (useBuff) then
-			if (MissingBuffs(Player,"762")) then
-				requiresCast = true
+			
+			local requiresCast = false
+			if (useBuff) then
+				if (MissingBuffs(Player,"762")) then
+					requiresCast = true
+				end
+			else
+				if (HasBuffs(Player,"762")) then
+					requiresCast = true
+				end
 			end
-		else
-			if (HasBuffs(Player,"762")) then
-				requiresCast = true
-			end
-		end
-		
-		if (requiresCast) then
-			local fisheyes = ActionList:Get(4105,1)
-			if (fisheyes and fisheyes.isready) then	
-				return true
+			
+			if (requiresCast) then
+				local fisheyes = ActionList:Get(4105,1)
+				if (fisheyes and fisheyes.isready) then	
+					return true
+				end
 			end
 		end
 	end
@@ -519,25 +519,23 @@ function c_snagging:evaluate()
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usesnagging,false)
-		elseif (ValidTable(marker)) then
-			useBuff = (IsNull(marker:GetFieldValue(GetUSString("useSnagging")),"0") == "1")
-		end
 		
-		local requiresCast = false
-		if (useBuff) then
-			if (MissingBuffs(Player,"761")) then
-				requiresCast = true
+			local requiresCast = false
+			if (useBuff) then
+				if (MissingBuffs(Player,"761")) then
+					requiresCast = true
+				end
+			else
+				if (HasBuffs(Player,"761")) then
+					requiresCast = true
+				end
 			end
-		else
-			if (HasBuffs(Player,"761")) then
-				requiresCast = true
-			end
-		end
-		
-		if (requiresCast) then
-			local snagging = ActionList:Get(4100,1)
-			if (snagging and snagging.isready) then	
-				return true
+			
+			if (requiresCast) then
+				local snagging = ActionList:Get(4100,1)
+				if (snagging and snagging.isready) then	
+					return true
+				end
 			end
 		end
 	end
@@ -563,25 +561,23 @@ function c_usecollect:evaluate()
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usecollect,false)
-		elseif (ValidTable(marker)) then
-			useBuff = (IsNull(marker:GetFieldValue(GetUSString("useCollect")),"0") == "1")
-		end
-		
-		local requiresCast = false
-		if (useBuff) then
-			if (MissingBuffs(Player,"805")) then
-				requiresCast = true
+				
+			local requiresCast = false
+			if (useBuff) then
+				if (MissingBuffs(Player,"805")) then
+					requiresCast = true
+				end
+			else
+				if (HasBuffs(Player,"805")) then
+					requiresCast = true
+				end
 			end
-		else
-			if (HasBuffs(Player,"805")) then
-				requiresCast = true
-			end
-		end
-		
-		if (requiresCast) then
-			local collect = ActionList:Get(4101,1)
-			if (collect and collect.isready) then	
-				return true
+			
+			if (requiresCast) then
+				local collect = ActionList:Get(4101,1)
+				if (collect and collect.isready) then	
+					return true
+				end
 			end
 		end
 	end
