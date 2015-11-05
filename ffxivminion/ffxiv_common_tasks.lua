@@ -145,6 +145,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	newinst.lastDistance = 0
+	
+	newinst.flightPath = nil
 	newinst.noFlight = false
 	
 	newinst.abortFunction = nil
@@ -166,13 +168,22 @@ function ffxiv_task_movetopos:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 70 )
+	--local ke_flyLanding = ml_element:create( "FlyLanding", c_flylanding, e_flylanding, 75 )
+    --self:add( ke_flyLanding, self.process_elements)
+	
+	--local ke_checkFlightPath = ml_element:create( "GetFlightPath", c_getflightpath, e_getflightpath, 70 )
+    --self:add( ke_checkFlightPath, self.process_elements)
+	
+	--local ke_flyAscend = ml_element:create( "FlyAscend", c_flyascend, e_flyascend, 65 )
+    --self:add( ke_flyAscend, self.process_elements)
+	
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
     self:add( ke_flyToPos, self.process_elements)
     
-    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 60 )
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 20 )
     self:add( ke_sprint, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 50 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
     self:add( ke_falling, self.process_elements)
     	
     local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
@@ -603,22 +614,25 @@ function ffxiv_task_movetointeract.Create()
 end
 
 function ffxiv_task_movetointeract:Init()
-	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
     self:add( ke_teleportToPos, self.process_elements)
 	
-	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
     self:add( ke_useNavInteraction, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
+	
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
+    self:add( ke_flyToPos, self.process_elements)
     
-    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
 	
 	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )

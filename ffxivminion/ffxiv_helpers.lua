@@ -2442,30 +2442,33 @@ end
 ff["HasNavPath"] = HasNavPath
 --]]
 function HasNavPath(pos1,pos2)
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+	--local p1,dist1 = NavigationManager:GetClosestPointOnMesh(pos1)
+	--local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2)
 	
-	if (p1 and p2) then
+	if (pos1 and pos2) then
 		if (CanFlyInZone() and ValidTable(ffxiv_task_test.flightMesh)) then
-			if (ffxiv_task_test.GetPath(p1,p2)) then
+			if (ffxiv_task_test.GetPath(pos1,pos2)) then
 				return true
 			end
 		end
 		
-		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (ValidTable(path)) then
 			local lastPos = path[TableSize(path)-1]
 			
-			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos2.x,pos2.y,pos2.z)
 			if (finalDist <= 1.5) then
-				--d("Distance from last to end is small, we have a valid path.")
-				return true
+				local raycast = MeshManager:RayCast(lastPos.x, lastPos.y, lastPos.z, pos2.x, pos2.y, pos2.z)
+				if (raycast == nil) then	
+					--d("Distance from last to end is small, we have a valid path.")
+					return true
+				end
 			else
-				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos1.x,pos1.y,pos1.z)
 				if (startDist <= 1.5) then
 					return false
 				else
-					return HasNavPath(lastPos,p2)
+					return HasNavPath(lastPos,pos2)
 				end
 			end
 		end
