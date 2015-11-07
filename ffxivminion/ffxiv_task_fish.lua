@@ -248,6 +248,9 @@ function c_release:evaluate()
 									release = false
 								end
 							end
+							if (release) then
+								return true
+							end
 						elseif (blacklist and blacklist ~= "") then
 							for throwaway in StringSplit(blacklist,",") do
 								local throwawayid = 0
