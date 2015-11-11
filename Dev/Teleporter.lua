@@ -263,26 +263,37 @@ function TP.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function TP.OnUpdate( Event, ticks ) 	
-	if (TimeSince(TP.ClickTPTick) > 50 ) then
-		TP.ClickTPTick = ticks
-		TP.TargetPort()
+	local gamestate;
+	if (GetGameState and GetGameState()) then
+		gamestate = GetGameState()
+	else
+		gamestate = 1
 	end
 	
-	if (TimeSince(TP.WindowTick) > 1000) then
-		TP.WindowTick = ticks
-		TP.WindowUpdate()
-	end
-	
-	if (TimeSince(TP.UpdateWaypointTick) > 1000) then
-		TP.UpdateWaypointTick = ticks
-		if (not IsLoading()) then
-			local p = shallowcopy(Player.pos)
-			gPlayerPOS = string.format("%.2f",p.x).." | "..string.format("%.2f",p.y).." | "..string.format("%.2f",p.z).." | "..string.format("%.2f",p.h)
-			if (TP.MapID ~= Player.localmapid) then
-				TP.Refresh()
-			end
+	-- Switch according to the gamestate
+	if ( gamestate == 1 ) then
+		if (TimeSince(TP.ClickTPTick) > 150 ) then
+			TP.ClickTPTick = ticks
+			TP.TargetPort()
 		end
-		TP.DoAutoAdd()
+		
+		if (TimeSince(TP.WindowTick) > 1000) then
+			TP.WindowTick = ticks
+			TP.WindowUpdate()
+		end
+		
+		if (TimeSince(TP.UpdateWaypointTick) > 1000) then
+			TP.UpdateWaypointTick = ticks
+			
+			if (not ml_global_information.Player_IsLoading) then
+				local p = Player.pos
+				gPlayerPOS = string.format("%.2f",p.x).." | "..string.format("%.2f",p.y).." | "..string.format("%.2f",p.z).." | "..string.format("%.2f",p.h)
+				if (TP.MapID ~= ml_global_information.Player_Map) then
+					TP.Refresh()
+				end
+			end
+			TP.DoAutoAdd()
+		end
 	end
 end
 
@@ -324,7 +335,7 @@ function TP.DoAutoAdd()
 			local i,e = next(el)
 			local dirty = false
 			while (i~=nil and e ~= nil) do
-				if (e.targetable and (e.type == 3 or e.type==5 or e.type==7 or (gAutoRecordMobs == "1" and e.type == 2)) and e.uniqueid ~= 0) then
+				if (e.targetable and (e.type == 3 or e.type==5 or e.type==7 or (gAutoRecordMobs == "1" and e.type == 2 and e.fateid == 0)) and e.uniqueid ~= 0) then
 					obj = { }
 					obj.ID = e.uniqueid
 					obj.CONTENTID = e.contentid
@@ -335,6 +346,10 @@ function TP.DoAutoAdd()
 					if (TP.AutoList[obj.ID] == nil) then
 						TP.AutoList[obj.ID] = obj
 						dirty = true
+					end
+				else
+					if (e.uniqueid == 1004598) then
+						d("Not recording mob ["..tostring(e.name).."], ID [")
 					end
 				end
 				i,e = next(el,i)  
