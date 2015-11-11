@@ -112,7 +112,7 @@ function mb.RunConnectionHandler()
 end
 
 function mb.OnUpdate( event, tickcount )
-    if ( tickcount - mb.lasttick > 500 ) then
+    if ( tickcount - mb.lasttick > 2500 ) then
         mb.lasttick = tickcount
         mb.RunConnectionHandler()
     end

@@ -18,7 +18,8 @@ e_stuck = inheritsFrom( ml_effect )
 c_stuck.state = {}
 c_stuck.blockOnly = false
 function c_stuck:evaluate()
-	c_stuck.state = {}
+
+	ClearTable(c_stuck.state)
 	c_stuck.blockOnly = false
 	
 	if (gDoUnstuck == "0" or IsFlying()) then
@@ -32,28 +33,32 @@ function c_stuck:evaluate()
 	end
 	
 	local currentPos = ml_global_information.Player_Position
-	ffxiv_unstuck.diffX = math.abs(currentPos.x - ffxiv_unstuck.lastpos.x)
-	ml_debug("Current diffX:"..tostring(ffxiv_unstuck.diffX))
-	ffxiv_unstuck.diffY = math.abs(currentPos.y - ffxiv_unstuck.lastpos.y)
-	ml_debug("Current diffY:"..tostring(ffxiv_unstuck.diffY))
-	ffxiv_unstuck.diffZ = math.abs(currentPos.z - ffxiv_unstuck.lastpos.z)
-	ml_debug("Current diffZ:"..tostring(ffxiv_unstuck.diffZ))
+	ffxiv_unstuck.diffX = math.abs(IsNull(currentPos.x,0) - IsNull(ffxiv_unstuck.lastpos.x,0))
+	--ml_debug("Current diffX:"..tostring(ffxiv_unstuck.diffX))
+	ffxiv_unstuck.diffY = math.abs(IsNull(currentPos.y,0) - IsNull(ffxiv_unstuck.lastpos.y,0))
+	--ml_debug("Current diffY:"..tostring(ffxiv_unstuck.diffY))
+	ffxiv_unstuck.diffZ = math.abs(IsNull(currentPos.z,0) - IsNull(ffxiv_unstuck.lastpos.z,0))
+	--ml_debug("Current diffZ:"..tostring(ffxiv_unstuck.diffZ))
 	
 	if ffxiv_unstuck.IsStuck() then
 		ml_debug("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
 		ffxiv_unstuck.State.STUCK.ticks = ffxiv_unstuck.State.STUCK.ticks + 1
 	else
-		ml_debug("Removing stuck ticks.")
-		ffxiv_unstuck.State.STUCK.ticks = 0
+		if (ffxiv_unstuck.State.STUCK.ticks ~= 0) then
+			ml_debug("Removing stuck ticks.")
+			ffxiv_unstuck.State.STUCK.ticks = 0
+		end
 	end
 	
 	if ffxiv_unstuck.IsOffMesh() then
 		ffxiv_unstuck.State.OFFMESH.ticks = ffxiv_unstuck.State.OFFMESH.ticks + 1
 	else
-		ffxiv_unstuck.State.OFFMESH.ticks = 0
+		if (ffxiv_unstuck.State.OFFMESH.ticks ~= 0) then
+			ffxiv_unstuck.State.OFFMESH.ticks = 0
+		end
 	end
 	
-	for i,state in pairs(ffxiv_unstuck.State) do
+	for name,state in pairs(ffxiv_unstuck.State) do
 		if state.ticks ~= 0 then
 			if state.ticks >= state.maxticks then
 				e_stuck.state = state
@@ -98,24 +103,18 @@ function e_stuck:execute()
 		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 	end
 	
+	if (ml_global_information.Player_IsMoving) then
+		Player:Stop()
+		return
+	end
+	
 	local teleported = false
 	local teleport = ActionList:Get(7,5)
 	if (teleport and teleport.isready and ml_global_information.Player_Casting.channelingid ~= 5) then
-		local map,aeth = GetAetheryteByMapID(ml_global_information.Player_Map, ml_global_information.Player_Position)
-		if (aeth) then
-			local aetheryte = GetAetheryteByID(aeth)
-			if (ValidTable(aetheryte)) then
-				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-					if (ml_global_information.Player_IsMoving) then
-						Player:Stop()
-					end
-					
-					if (ActionIsReady(7,5)) then
-						if (Player:Teleport(aeth)) then
-							teleported = true
-						end
-					end
-				end
+		local aetheryte = GetAetheryteByMapID(ml_global_information.Player_Map, ml_global_information.Player_Position)
+		if (aetheryte) then
+			if (Player:Teleport(aetheryte.id)) then
+				teleported = true
 			end
 		end
 	end	
@@ -150,7 +149,7 @@ function ffxiv_unstuck.IsStuck()
 end
 
 function ffxiv_unstuck.IsOffMesh()
-	if (not gmeshname or gmeshname == "" or gmeshname == "none" or ml_global_information.IsLoading) then
+	if (not gmeshname or gmeshname == "" or gmeshname == "none" or ml_global_information.Player_IsLoading) then
 		return false
 	end
 	return not Player.onmesh and not ml_global_information.Player_IsCasting

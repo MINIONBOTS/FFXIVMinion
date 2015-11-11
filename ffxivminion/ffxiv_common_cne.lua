@@ -808,13 +808,17 @@ end
 
 c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
-e_teleporttomap.aethid = 0
-e_teleporttomap.destMap = 0
+e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting or GilCount() < 1500) then
+	if (ml_global_information.Player_IsLoading or 
+		ml_global_information.Player_IsLocked or 
+		ml_global_information.Player_IsCasting or GilCount() < 1500) 
+	then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
 	end
+	
+	e_teleporttomap.aeth = nil
 	
 	local el = EntityList("alive,attackable,onmesh,aggro")
 	if (ValidTable(el)) then
@@ -844,66 +848,33 @@ function c_teleporttomap:evaluate()
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			if (ValidTable(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
-				local aethid = nil
-				local mapid = nil
+				
+				local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
+				if (aeth) then
+					e_teleporttomap.aeth = aeth
+					return true
+				end
+				
+				local lastAeth = nil
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
 					if (node.id ~= ml_global_information.Player_Map) then
-						local map,aeth = GetAetheryteByMapID(node.id, ml_task_hub:ThisTask().pos)
+						local aeth = GetAetheryteByMapID(node.id)
 						if (aeth) then
-							mapid = map
-							aethid = aeth
+							lastAeth = aeth
 						end
 					end
 				end
 				
-				if (aethid) then
-					local aetheryte = GetAetheryteByID(aethid)
-					if (aetheryte) then
-						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-							e_teleporttomap.destMap = mapid
-							e_teleporttomap.aethid = aethid
-							return true
-						else
-							ml_debug("Cannot use teleport, not enough gil or not attuned.")
-						end
-					end
-				else
-					ml_debug("Cannot use teleport, couldn't find the aetheryte ID.")
+				if (lastAeth ~= nil) then
+					e_teleporttomap.aeth = lastAeth
+					return true
 				end
 			end
 		else
-			local aethData = ffxiv_aetheryte_data[destMapID]
-			if (ValidTable(aethData)) then
-				for k,aeth in pairs(aethData) do
-					if (ValidTable(aeth)) then
-						local valid = true
-						if (aeth.requires) then
-							local requirements = shallowcopy(aeth.requires)
-							for requirement,value in pairs(requirements) do
-								local f = assert(loadstring("return " .. requirement))()
-								if (f ~= nil) then
-									if (f ~= value) then
-										valid = false
-									end
-								end
-								if (not valid) then
-									break
-								end
-							end
-						end
-						
-						if (valid) then
-							local aetheryte = GetAetheryteByID(aeth.aethid)
-							if (aetheryte) then
-								if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-									e_teleporttomap.destMap = destMapID
-									e_teleporttomap.aethid = aetheryte.id
-									return true
-								end
-							end
-						end
-					end
-				end
+			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
+			if (aeth) then
+				e_teleporttomap.aeth = aeth
+				return true
 			end
 		end
 	else
@@ -918,11 +889,11 @@ function e_teleporttomap:execute()
 	end
 	
 	if (ActionIsReady(7,5)) then
-		if (Player:Teleport(e_teleporttomap.aethid)) then	
+		if (Player:Teleport(e_teleporttomap.aeth.id)) then	
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.setHomepoint = ml_task_hub:ThisTask().setHomepoint
-			newTask.aetheryte = e_teleporttomap.aethid
-			newTask.mapID = e_teleporttomap.destMap
+			newTask.aetheryte = e_teleporttomap.aeth.id
+			newTask.mapID = e_teleporttomap.aeth.territory
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
 	end
@@ -1043,8 +1014,12 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 function c_walktopos:evaluate()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
-		(ml_global_information.Player_IsCasting and not ml_task_hub:CurrentTask().interruptCasting)) 
+	if (ml_global_information.Player_IsLocked or 
+		ml_global_information.Player_IsLoading or 
+		IsMounting() or 
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
+		IsShopWindowOpen() or
+		(ml_global_information.Player_IsCasting and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
 		return false
 	end
@@ -1091,7 +1066,7 @@ function c_walktopos:evaluate()
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist < 5) then
+			if (p and dist > 2) then
 				gotoPos = p
 			end
 		end
@@ -1123,7 +1098,7 @@ function e_walktopos:execute()
 		
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist >= 2) then
-			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
 			if (not tonumber(path)) then
 				ml_debug("[e_walktopos] An error occurred in creating the path.")
@@ -1215,311 +1190,6 @@ function c_usenavinteraction:evaluate(pos)
 	if (not ValidTable(gotoPos)) then
 		return false
 	end
-	
-	--[[
-	ml_global_information.requiresTransport = {
-		[139] = { name = "Upper La Noscea",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (GilCount() > 100) then
-					if (myPos.x < 0 and gotoPos.x > 0) then
-						--d("Need  to move from west to east.")
-						return true
-					elseif (myPos.x > 0 and gotoPos.x < 0) then
-						--d("Need  to move from west to east.")
-						return true
-					end
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if (myPos.x < 0 and gotoPos.x > 0) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -341.24, y = -1, z = 112.098}
-					newTask.uniqueid = 1003586
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (myPos.x > 0 and gotoPos.x < 0) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
-					newTask.uniqueid = 1003587
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[156] = { name = "Mor Dhona - Cid's Workshop",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
-					not (gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) then
-					--d("Need  to move from west to east.")
-					return true
-				elseif (not (myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
-						(gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) then
-					--d("Need  to move from west to east.")
-					return true
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
-					not (gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) 
-				then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = .70, y = -157, z = 16.2}
-					newTask.uniqueid = 2002502
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (not (myPos.y < -150 and myPos.x < 12 and myPos.x > -10 and myPos.z < 16.5 and myPos.z > -14.1) and 
-						(gotoPos.y < -150 and gotoPos.x < 12 and gotoPos.x > -10 and gotoPos.z < 16.5 and gotoPos.z > -14.1)) 
-				then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 21.9, y = 20.7, z = -682}
-					newTask.uniqueid = 1006530
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[137] = { name = "Eastern La Noscea",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (GilCount() > 100) then
-					if ((myPos.x > 218 and myPos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-						--d("Need to move from Costa area to Wineport.")
-						return true
-					elseif (not (myPos.x > 218 and myPos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-						--d("Need to move from Wineport to Costa area.")
-						return true
-					end
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.x > 218 and myPos.z > 51) and not (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(12) and not ml_global_information.Player_InCombat) then
-						if (ml_global_information.Player_IsMoving) then
-							Player:Stop()
-							ml_task_hub:CurrentTask():SetDelay(500)
-							return
-						end
-						if (Player.ismounted) then
-							Dismount()
-							ml_task_hub:CurrentTask():SetDelay(1000)
-							return
-						end
-						if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
-							if (Player:Teleport(12)) then	
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.aetheryte = 12
-								newTask.mapID = 137
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-							end
-						end
-					else
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
-						newTask.uniqueid = 1003588
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				elseif (not (myPos.x > 218 and myPos.z > 51) and (gotoPos.x > 218 and gotoPos.z > 51)) then
-					if (CanUseAetheryte(11) and not ml_global_information.Player_InCombat) then
-						if (ml_global_information.Player_IsMoving) then
-							Player:Stop()
-							ml_task_hub:CurrentTask():SetDelay(500)
-							return
-						end
-						if (Player.ismounted) then
-							Dismount()
-							ml_task_hub:CurrentTask():SetDelay(1000)
-							return
-						end
-						if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
-							if (Player:Teleport(11)) then
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.aetheryte = 11
-								newTask.mapID = 137
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-							end
-						end
-					else
-						local newTask = ffxiv_nav_interact.Create()
-						newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
-						newTask.uniqueid = 1003589
-						ml_task_hub:CurrentTask():AddSubTask(newTask)
-					end
-				end
-			end,
-		},
-		[138] = { name = "Western La Noscea",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (GilCount() > 100) then
-					if (not (myPos.x < -170 and myPos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
-						return true
-					elseif ((myPos.x < -170 and myPos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
-						return true
-					end
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if (not (myPos.x < -170 and myPos.z > 390) and (gotoPos.x <-170 and gotoPos.z > 390)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 318.314, y = -36, z = 351.376}
-					newTask.uniqueid = 1003584
-					newTask.conversationIndex = 3
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif ((myPos.x < -170 and myPos.z > 390) and not (gotoPos.x <-170 and gotoPos.z > 390)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -290, y = -41.263, z = 407.726}
-					newTask.uniqueid = 1005239
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[130] = { name = "Uldah Airstrip",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (myPos.y < 40 and gotoPos.y > 50) then
-					return true
-				elseif (myPos.y > 50 and gotoPos.y < 40) then
-					return true
-				end
-				return false
-			end,
-			reaction = function()	
-				local myPos = ml_global_information.Player_Position
-				if (myPos.y < 40 and gotoPos.y > 50) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -20.760, y = 10, z = -45.3617}
-					newTask.uniqueid = 1001834
-					newTask.conversationIndex = 1
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (myPos.y > 50 and gotoPos.y < 40) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
-					newTask.uniqueid = 1004339
-					newTask.conversationIndex = 2
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[128] = { name = "Limsa Airstrip",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (myPos.y < 60 and gotoPos.y > 70) then
-					return true
-				elseif (myPos.y > 70 and gotoPos.y < 60) then
-					return true
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if (myPos.y < 60 and gotoPos.y > 70) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 7.802, y = 40, z = 16.158}
-					newTask.uniqueid = 1003597
-					newTask.conversationIndex = 1
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (myPos.y > 70 and gotoPos.y < 60) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
-					newTask.uniqueid = 1003583
-					newTask.conversationIndex = 1
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[212] = { name = "Waking Sands",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.x < 23.85 and myPos.x > -15.46) and not (gotoPos.x < 23.85 and gotoPos.x > -15.46)) then
-					return true
-				elseif (not (myPos.x < 23.85 and myPos.x > -15.46) and (gotoPos.x < 23.85 and gotoPos.x > -15.46 )) then
-					return true
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.x < 23.85 and myPos.x > -15.46) and not (gotoPos.x < 23.85 and gotoPos.x > -15.46)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 22.386226654053, y = 0.99999862909317, z = -0.097462706267834}
-					newTask.uniqueid = 2001715
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (not (myPos.x < 23.85 and myPos.x > -15.46) and (gotoPos.x < 23.85 and gotoPos.x > -15.46)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 26.495914459229, y = 1.0000013113022, z = -0.018158292397857}
-					newTask.uniqueid = 2001717
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[351] = { name = "Rising Sands",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.z < 27.394 and myPos.z > -27.20) and not (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
-					return true
-				elseif (not (myPos.z < 27.394 and myPos.z > -27.20) and (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
-					return true
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				if ((myPos.z < 27.394 and myPos.z > -27.20) and not (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
-					newTask.uniqueid = 2002878
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				elseif (not (myPos.z < 27.394 and myPos.z > -27.20) and (gotoPos.z < 27.39 and gotoPos.z > -27.20)) then
-					local newTask = ffxiv_nav_interact.Create()
-					newTask.pos = {x = 0.010291699320078, y = -2, z = -29.227424621582}
-					newTask.uniqueid = 2002880
-					ml_task_hub:CurrentTask():AddSubTask(newTask)
-				end
-			end,
-		},
-		[146] = { name = "Ifrit Cave",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				local distance = Distance3D(myPos.x,myPos.y,myPos.z,-60.55,-25.107,-556.96)
-				if (myPos.y < -15 and distance < 40) then
-					if (Quest:IsQuestCompleted(343) or (Quest:HasQuest(343) and Quest:GetQuestCurrentStep(343) > 3)) then
-						return true
-					end
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				local newTask = ffxiv_nav_interact.Create()
-				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
-				newTask.uniqueid = 1004609
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
-			end,
-		},
-		[399] = { name = "Dravanian Hinterlands",
-			test = function()
-				local myPos = ml_global_information.Player_Position
-				if (GetHinterlandsSection(myPos) ~= GetHinterlandsSection(gotoPos)) then
-					return true
-				end
-				return false
-			end,
-			reaction = function()
-				local myPos = ml_global_information.Player_Position
-				local mapID = 478
-				local newTask = ffxiv_task_movetomap.Create()
-				newTask.destMapID = mapID
-				ml_task_hub:CurrentTask():AddSubTask(newTask)
-			end,
-		},
-	}
-	--]]
 	
 	local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
 	if (transportFunction ~= nil and type(transportFunction) == "function") then
@@ -2431,7 +2101,7 @@ e_teleporttopos = inheritsFrom( ml_effect )
 c_teleporttopos.pos = 0
 e_teleporttopos.teleCooldown = 0
 function c_teleporttopos:evaluate()
-	if (Now() < e_teleporttopos.teleCooldown) then
+	if (Now() < e_teleporttopos.teleCooldown or gTeleport == "0") then
 		return false
 	end
 	

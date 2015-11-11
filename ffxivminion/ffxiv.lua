@@ -332,10 +332,8 @@ ffxivminion.Strings = {
 ffxivminion.settingsVisible = false
 
 function ml_global_information.OnUpdate( event, tickcount )
-
     ml_global_information.Now = tickcount
 	
-
 	local gamestate;
 	if (GetGameState and GetGameState()) then
 		gamestate = GetGameState()
@@ -389,12 +387,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		if (not IsLoading()) then
 			if (ml_global_information.queueLoader == true) then
 				ffxiv_task_test.ReadFlightMesh()
+				ml_global_information.Player_Aetherytes = GetAetheryteList(true)
 				ml_global_information.queueLoader = false
 			end
 			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 		else
 			if (ml_global_information.queueLoader == false) then
-				ffxiv_task_test.ReadFlightMesh()
 				ml_global_information.queueLoader = true
 			end
 		end
@@ -642,6 +640,8 @@ function ffxivminion.HandleInit()
 	GUI_NewField(winName,GetString("pulseTime"),"gFFXIVMINIONPulseTime",group )
     GUI_NewCheckbox(winName,GetString("enableLog"),"gEnableLog",group )
     GUI_NewCheckbox(winName,GetString("logCNE"),"gLogCNE",group )
+	GUI_NewComboBox(winName,"Log Level","gLogLevel",group,"1,2,3")
+	
     GUI_NewField(winName,GetString("task"),"gFFXIVMINIONTask",group )
 	GUI_NewField(winName,GetString("taskDelay"),"gTaskDelay",group )
 	GUI_NewField(winName,GetString("idlePulseCount"),"gIdlePulseCount",group )
@@ -707,6 +707,7 @@ function ffxivminion.HandleInit()
 	gFFXIVMINIONPulseTime = ffxivminion.GetSetting("gFFXIVMINIONPulseTime",150)
 	gEnableLog = ffxivminion.GetSetting("gEnableLog","0")
 	gLogCNE = ffxivminion.GetSetting("gLogCNE","0")
+	gLogLevel = ffxivminion.GetSetting("gLogLevel","1")
 	gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
 	gMount = ffxivminion.GetSetting("gMount",GetString("none"))
 	gUseMount = ffxivminion.GetSetting("gUseMount","0")
@@ -860,6 +861,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			SafeSetVar(tostring(k),v)
         elseif (
             k == "gLogCNE" or
+			k == "gLogLevel" or
             k == "gFFXIVMINIONPulseTime" or
             k == "gBotMode" or 
             k == "gMountDist" or

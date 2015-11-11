@@ -165,7 +165,7 @@ function c_findnode:evaluate()
 							ffxiv_task_gather.currentTask.taskFailed = 0
 						end
 					end
-	
+				
 					gd("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].",3)
 					-- reset blacklist vars for a new node
 					ml_task_hub:CurrentTask().failedTimer = 0		
@@ -190,6 +190,8 @@ function c_findnode:evaluate()
 				end
 			end
 		end
+	else
+		return false
 	end
 	
 	if (ValidTable(ffxiv_task_gather.currentTask)) then
@@ -1410,8 +1412,8 @@ function c_nodeprebuff:evaluate()
 	
 	if (MissingBuffs(Player,"217+225")) then
 		e_nodeprebuff.activity = "uselocator"
-		e_nodeprebuff.requiresStop = true
-		e_nodeprebuff.requiresDismount = true
+		e_nodeprebuff.requiresStop = false
+		e_nodeprebuff.requiresDismount = false
 		return true
 	end
 	
@@ -1420,8 +1422,8 @@ function c_nodeprebuff:evaluate()
 		MissingBuffs(Player,"221+222"))
 	then
 		e_nodeprebuff.activity = "useunspoiledfinder"
-		e_nodeprebuff.requiresStop = true
-		e_nodeprebuff.requiresDismount = true
+		e_nodeprebuff.requiresStop = false
+		e_nodeprebuff.requiresDismount = false
 		return true
 	end		
 	
@@ -2250,33 +2252,28 @@ function e_gathernextprofilemap:execute()
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
 		if (mapID and taskPos) then
-			local map,aeth = GetAetheryteByMapID(mapID, taskPos)
+			local aeth = GetAetheryteByMapID(mapID, taskPos)
 			if (aeth) then
-				local aetheryte = GetAetheryteByID(aeth)
-				if (aetheryte) then
-					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-						if (ml_global_information.Player_IsMoving) then
-							Player:Stop()
-							return
-						end
-						
-						local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-						if (noTeleportMaps[ml_global_information.Player_Map]) then
-							return
-						end
-						
-						if (ActionIsReady(7,5)) then
-							if (Player:Teleport(aeth)) then	
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.setHomepoint = false
-								newTask.aetheryte = aeth
-								newTask.mapID = map
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-							end
-						end
-						return
+				if (ml_global_information.Player_IsMoving) then
+					Player:Stop()
+					return
+				end
+				
+				local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+				if (noTeleportMaps[ml_global_information.Player_Map]) then
+					return
+				end
+				
+				if (ActionIsReady(7,5)) then
+					if (Player:Teleport(aeth.id)) then	
+						local newTask = ffxiv_task_teleport.Create()
+						newTask.setHomepoint = false
+						newTask.aetheryte = aeth.id
+						newTask.mapID = aeth.territory
+						ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 					end
 				end
+				return
 			end
 		end
 		
@@ -2288,6 +2285,10 @@ c_gatherstealth = inheritsFrom( ml_cause )
 e_gatherstealth = inheritsFrom( ml_effect )
 e_gatherstealth.timer = 0
 function c_gatherstealth:evaluate()
+	if (IsFlying() or ml_task_hub:CurrentTask().name == "MOVE_WITH_FLIGHT") then
+		return false
+	end
+	
 	local useStealth = false
 	local task = ffxiv_task_gather.currentTask
 	local marker = ml_global_information.currentMarker

@@ -58,6 +58,7 @@ ffxiv_nav_data =
 			{id = 129, cost = 3, x = -486.74, y = 23.99, z = -331.675, h = -2, b = 1004037
 				, requires =  {
 					["Player.level >= 12"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -71,6 +72,7 @@ ffxiv_nav_data =
 			{id = 130, cost = 3, x = 471.744293,	z = 159.596161,	    y = 96.620567,	h = 1.362059
 				, requires =  {
 					["Player.level >= 12"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -238,6 +240,7 @@ ffxiv_nav_data =
 			{id = 154, cost = 5, x = -501.604462,	z = -355.052673,	y = 74.197563,	h = 3.075810
 				, requires =  {
 					["Player.level >= 25"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -279,6 +282,7 @@ ffxiv_nav_data =
 			{id = 148, cost = 5, x = 18.537865,	z = 531.396240,	 y = -54.870895, h = 0.723304
 				, requires =  {
 					["Player.level >= 25"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -349,6 +353,7 @@ ffxiv_nav_data =
 			{id = 140, cost = 3, x = -359.895, y = 8, z = 41.566, h = -1, b = 1003540
 				, requires = {
 					["Player.level >= 12"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -356,6 +361,7 @@ ffxiv_nav_data =
 			{id = 138, cost = 3, x = -190.834, y = 1, z = 210.829, h = -1, b = 1000868, i = 1
 				, requires = {
 					["Player.level >= 15"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -363,6 +369,7 @@ ffxiv_nav_data =
 			{id = 137, cost = 3, x = -190.834, y = 1, z = 210.829, h = -1, b = 1000868, i = 2
 				, requires = {
 					["Player.level >= 30"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -404,6 +411,7 @@ ffxiv_nav_data =
 			{id = 129, cost = 3, x = 606.901, y = 11.6, z = 391.991, h = -1, b = 1003585, i = 1
 				, requires = {
 					["Player.level >= 30"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -424,6 +432,8 @@ ffxiv_nav_data =
 			{id = 129, cost = 3, x = 318.314, y = -36, z = 351.376, h = -1, b = 1003584, i = 1
 				, requires = {
 					["Player.level >= 15"] = true,
+					["CanUseAirship()"] = true,
+					
 				},
 			},
 		},
@@ -431,6 +441,7 @@ ffxiv_nav_data =
 			{id = 135, cost = 3, x = 318.314, y = -36, z = 351.376, h = -1, b = 1003584, i = 2
 				, requires = {
 					["Player.level >= 15"] = true,
+					["CanUseAirship()"] = true,
 				},
 			},
 		},
@@ -643,6 +654,12 @@ ffxiv_nav_data =
 			},
 		},
 	},	
+	[210] =
+	{
+		[130] = {
+			{id = 130, cost = 1, x = 0, y = 0, z = 10, h = 0, g = 2001695},
+		},
+	},
 }-- set reference for mesh mgr
 
 ffxiv_aetheryte_data = {
@@ -720,9 +737,7 @@ ffxiv_aetheryte_data = {
 	[401] = {
 		{id = 401, aethid = 72, x = -611.17010498047, y = -122.47959899902, z = 545.20111083984},
 		{id = 401, aethid = 73, x = -613, y = -49.5, z = -415, 
-			requires = {
-				["QuestCompleted(1643)"] = true,
-			}
+			requires = function () return QuestCompleted(1643) end,
 		},
 	},
 	[402] = {

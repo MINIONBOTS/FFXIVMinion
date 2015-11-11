@@ -1299,33 +1299,28 @@ function e_fishnextprofilemap:execute()
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
 		if (mapID and taskPos) then
-			local map,aeth = GetAetheryteByMapID(mapID, taskPos)
+			local aeth = GetAetheryteByMapID(mapID, taskPos)
 			if (aeth) then
-				local aetheryte = GetAetheryteByID(aeth)
-				if (aetheryte) then
-					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-						if (ml_global_information.Player_IsMoving) then
-							Player:Stop()
-							return
-						end
-						
-						local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-						if (noTeleportMaps[ml_global_information.Player_Map]) then
-							return
-						end
-						
-						if (ActionIsReady(7,5)) then
-							if (Player:Teleport(aeth)) then	
-								local newTask = ffxiv_task_teleport.Create()
-								newTask.setHomepoint = false
-								newTask.aetheryte = aeth
-								newTask.mapID = map
-								ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-							end
-						end
-						return
+				if (ml_global_information.Player_IsMoving) then
+					Player:Stop()
+					return
+				end
+				
+				local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
+				if (noTeleportMaps[ml_global_information.Player_Map]) then
+					return
+				end
+				
+				if (ActionIsReady(7,5)) then
+					if (Player:Teleport(aeth.id)) then	
+						local newTask = ffxiv_task_teleport.Create()
+						newTask.setHomepoint = false
+						newTask.aetheryte = aeth.id
+						newTask.mapID = aeth.territory
+						ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 					end
 				end
+				return
 			end
 		end
 		
@@ -1378,6 +1373,10 @@ c_fishstealth = inheritsFrom( ml_cause )
 e_fishstealth = inheritsFrom( ml_effect )
 e_fishstealth.timer = 0
 function c_fishstealth:evaluate()
+	if (IsFlying() or ml_task_hub:CurrentTask().name == "MOVE_WITH_FLIGHT") then
+		return false
+	end
+
 	local useStealth = false
 	local task = ffxiv_task_fish.currentTask
 	local marker = ml_global_information.currentMarker

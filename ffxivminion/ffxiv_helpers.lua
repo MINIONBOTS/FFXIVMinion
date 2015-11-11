@@ -1,5 +1,4 @@
 -- This file holds global helper functions
-ff = {}
 function FilterByProximity(entities,center,radius,sortfield)
 	if (ValidTable(entities) and ValidTable(center) and tonumber(radius) > 0) then
 		local validEntities = {}
@@ -26,7 +25,6 @@ function FilterByProximity(entities,center,radius,sortfield)
 		d("[FilterByProximity]: Entities list, center point, or radius was invalid.")
 	end
 end
-ff["FilterByProximity"] = FilterByProximity
 function GetNearestGrindAttackable()
 	local huntString = GetWhitelistIDString()
 	local excludeString = GetBlacklistIDString()
@@ -313,7 +311,6 @@ function GetNearestGrindAttackable()
     --d("GetNearestGrindAttackable() failed with no entity found matching params")
     return nil
 end
-ff["GetNearestGrindAttackable"] = GetNearestGrindAttackable
 function GetNearestGrindPriority()
 	local huntString = GetWhitelistIDString
 	local excludeString = GetBlacklistIDString
@@ -334,7 +331,6 @@ function GetNearestGrindPriority()
 
 	return nil
 end
-ff["GetNearestGrindPriority"] = GetNearestGrindPriority
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = ml_global_information.Player_Position
@@ -423,7 +419,6 @@ function GetNearestFateAttackable()
     
     return nil
 end
-ff["GetNearestFateAttackable"] = GetNearestFateAttackable
 function GetHuntTarget()
 	local nearest = nil
 	local nearestDistance = 9999
@@ -526,7 +521,6 @@ function GetHuntTarget()
 	
 	return nil
 end
-ff["GetHuntTarget"] = GetHuntTarget
 function IsValidHealTarget(e)
 	if (ValidTable(e) and e.alive and e.targetable and not e.aggro) then
 		return (e.chartype == 4) or
@@ -537,7 +531,6 @@ function IsValidHealTarget(e)
 	
 	return false
 end
-ff["IsValidHealTarget"] = IsValidHealTarget
 function GetBestTankHealTarget( range )
 	range = range or ml_global_information.AttackRange
 	local lowest = nil
@@ -563,7 +556,6 @@ function GetBestTankHealTarget( range )
 	
 	return lowest
 end
-ff["GetBestTankHealTarget"] = GetBestTankHealTarget
 function GetBestPartyHealTarget( npc, range, hp )	
 	local npc = npc
 	if (npc == nil) then npc = false end
@@ -620,7 +612,6 @@ function GetBestPartyHealTarget( npc, range, hp )
 	
     return nil
 end
-ff["GetBestPartyHealTarget"] = GetBestPartyHealTarget
 function GetPetSkillRangeRadius(id)
 	local id = tonumber(id) or 0
 	
@@ -674,7 +665,6 @@ function GetPetSkillRangeRadius(id)
 	
 	return nil
 end
-ff["GetPetSkillRangeRadius"] = GetPetSkillRangeRadius
 function GetLowestHPParty( skill )
     npc = skill.npc == "1" and true or false
 	range = skill.range or ml_global_information.AttackRange
@@ -725,7 +715,6 @@ function GetLowestHPParty( skill )
 		return lowest
 	end
 end
-ff["GetLowestHPParty"] = GetLowestHPParty
 function GetLowestMPParty( range, role )
     local pID = Player.id
 	local lowest = nil
@@ -771,7 +760,6 @@ function GetLowestMPParty( range, role )
 	
 	return lowest
 end
-ff["GetLowestMPParty"] = GetLowestMPParty
 function GetLowestTPParty( range, role )
 	local lowest = nil
 	local lowestTP = 1001
@@ -823,7 +811,6 @@ function GetLowestTPParty( range, role )
 	
     return lowest
 end
-ff["GetLowestTPParty"] = GetLowestTPParty
 function GetBestHealTarget( npc, range, reqhp )
 	local npc = npc
 	if (npc == nil) then npc = false end
@@ -877,7 +864,6 @@ function GetBestHealTarget( npc, range, reqhp )
     ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
-ff["GetBestHealTarget"] = GetBestHealTarget
 function GetBestBaneTarget()
 	local bestTarget = nil
 	local party = EntityList.myparty
@@ -909,7 +895,6 @@ function GetBestBaneTarget()
 	
     return nil
 end
-ff["GetBestBaneTarget"] = GetBestBaneTarget
 function GetBestDoTTarget()
 	local bestTarget = nil
 	local party = EntityList.myparty
@@ -940,7 +925,6 @@ function GetBestDoTTarget()
 	
     return nil
 end
-ff["GetBestDoTTarget"] = GetBestDoTTarget
 function GetClosestHealTarget()
     local pID = Player.id
     local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
@@ -963,7 +947,6 @@ function GetClosestHealTarget()
     --ml_debug("GetBestHealTarget() failed with no entity found matching params")
     return nil
 end
-ff["GetClosestHealTarget"] = GetClosestHealTarget
 function GetBestRevive( party, role)
 	party = party or false
 	role = role or ""
@@ -1022,7 +1005,6 @@ function GetBestRevive( party, role)
 	
 	return nil
 end
-ff["GetBestRevive"] = GetBestRevive
 function GetPVPTarget()
     local targets = {}
     local bestTarget = nil
@@ -1188,7 +1170,6 @@ function GetPVPTarget()
 	
 	ml_error("Bad, we shouldn't have gotten to this point!")
 end
-ff["GetPVPTarget"] = GetPVPTarget
 function GetNearestGrindAggro()
 	taskName = ml_task_hub:ThisTask().name
 	
@@ -1244,7 +1225,6 @@ function GetNearestGrindAggro()
     
     return nil
 end
-ff["GetNearestGrindAggro"] = GetNearestGrindAggro
 function GetNearestAggro()
 	taskName = ml_task_hub:ThisTask().name
 	
@@ -1300,14 +1280,12 @@ function GetNearestAggro()
     
     return nil
 end
-ff["GetNearestAggro"] = GetNearestAggro
 function RoundUp(number, multiple)
 	local number = tonumber(number)
 	local multiple = tonumber(multiple)
 	
 	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
 end
-ff["RoundUp"] = RoundUp
 function GetNearestFromList(strList,pos,radius)
 	local el = EntityList(strList)
 	if (ValidTable(el)) then
@@ -1418,7 +1396,6 @@ function GetNearestGatherable(marker)
     ml_debug("GetNearestGatherable() failed with no entity found matching params")
     return nil
 end
-ff["GetNearestGatherable"] = GetNearestGatherable
 function GetNearestUnspoiled(class)
 	--Rocky Outcrop = 6
 	--Mining Node = 5
@@ -1436,7 +1413,6 @@ function GetNearestUnspoiled(class)
 	
     return nil
 end
-ff["GetNearestUnspoiled"] = GetNearestUnspoiled
 function GetMaxAttackRange()
 	local target = ml_global_information.Player_Target
 	
@@ -1462,7 +1438,6 @@ function GetMaxAttackRange()
 	
 	return 1
 end
-ff["GetMaxAttackRange"] = GetMaxAttackRange
 function HasBuff(targetid, buffID)
 	local buffID = tonumber(buffID) or 0
 	
@@ -1491,7 +1466,6 @@ function HasBuff(targetid, buffID)
     
     return false
 end
-ff["HasBuff"] = HasBuff
 function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
 	--for prio,skill in spairs(SkillMgr.SkillProfile)
@@ -1517,7 +1491,6 @@ function HasSkill( skillids )
 	end
 	return false
 end
-ff["HasSkill"] = HasSkill
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
@@ -1554,7 +1527,6 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	end
 	return false
 end
-ff["HasBuffs"] = HasBuffs
 function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
@@ -1597,13 +1569,11 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     
     return true
 end
-ff["MissingBuffs"] = MissingBuffs
 function GetFleeHP()
 	local attackingMobs = TableSize(EntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
 	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
 	return fleeHP
 end
-ff["GetFleeHP"] = GetFleeHP
 function HasInfiniteDuration(id)
 	infiniteDurationAbilities = {
 		[614] = true,
@@ -1611,7 +1581,6 @@ function HasInfiniteDuration(id)
 	
 	return infiniteDurationAbilities[id] or false
 end
-ff["HasInfiniteDuration"] = HasInfiniteDuration
 function ActionList:IsCasting()
 	return (ml_global_information.Player_Casting.channelingid ~= 0)
 end
@@ -1626,7 +1595,6 @@ function SetFacing( posX, posY, posZ)
 	
 	Player:SetFacing(posX, posY, posZ)
 end
-ff["SetFacing"] = SetFacing
 function isCasting(entity, actionIDs , minCasttime , targetid) 
 	local ci = entity.castinginfo 
 	minCasttime = minCasttime or 0
@@ -1652,7 +1620,6 @@ function isCasting(entity, actionIDs , minCasttime , targetid)
 
 	return false
 end
-ff["isCasting"] = isCasting
 function HasContentID(entity, contentIDs) 	
 	local cID = entity.contentid
 	
@@ -1663,7 +1630,6 @@ function HasContentID(entity, contentIDs)
 	end
 	return false
 end
-ff["HasContentID"] = HasContentID
 function IsHealingSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1681,7 +1647,6 @@ function IsHealingSkill(skillID)
     end
     return false
 end
-ff["IsHealingSkill"] = IsHealingSkill
 function IsMudraSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1695,7 +1660,6 @@ function IsMudraSkill(skillID)
     end
     return false
 end
-ff["IsMudraSkill"] = IsMudraSkill
 function IsNinjutsuSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -1715,11 +1679,9 @@ function IsNinjutsuSkill(skillID)
     end
     return false
 end
-ff["IsNinjutsuSkill"] = IsNinjutsuSkill
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
-ff["IsUncoverSkill"] = IsUncoverSkill
 function GetSkillByID(skillid,skilltype)
 	local skillid = tonumber(skillid)
 	
@@ -1753,8 +1715,7 @@ function GetSkillByID(skillid,skilltype)
 	
 	return nil
 end
-ff["GetSkillByID"] = GetSkillByID
- function IsFlanking(entity)
+function IsFlanking(entity)
 	if not entity or entity.id == Player.id then return false end
 	
     if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
@@ -1781,7 +1742,6 @@ ff["GetSkillByID"] = GetSkillByID
 	
     return false
 end
-ff["IsFlanking"] = IsFlanking
 function IsBehind(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1806,7 +1766,6 @@ function IsBehind(entity)
     end
     return false
 end
-ff["IsBehind"] = IsBehind
 function IsBehindSafe(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1828,7 +1787,6 @@ function IsBehindSafe(entity)
 	end
     return false
 end
-ff["IsBehindSafe"] = IsBehindSafe
 function IsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1850,7 +1808,6 @@ function IsFront(entity)
 	end
     return false
 end
-ff["IsFront"] = IsFront
 function IsFrontSafe(entity)
 	if not entity or entity.id == Player.id then return false end
 	local entityHeading = nil
@@ -1872,7 +1829,6 @@ function IsFrontSafe(entity)
 	end
     return false
 end
-ff["IsFrontSafe"] = IsFrontSafe
 function IsFrontSafer(entity,pos)
 	pos = pos or ml_global_information.Player_Position
 	if not entity or entity.id == Player.id then return false end
@@ -1894,7 +1850,6 @@ function IsFrontSafer(entity,pos)
 	end
     return false
 end
-ff["IsFrontSafer"] = IsFrontSafer
 function EntityIsFrontWide(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1912,7 +1867,6 @@ function EntityIsFrontWide(entity)
 	end
     return false
 end
-ff["EntityIsFrontWide"] = EntityIsFrontWide
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1930,7 +1884,6 @@ function EntityIsFront(entity)
 	end
     return false
 end
-ff["EntityIsFront"] = EntityIsFront
 function EntityIsFrontTight(entity)
 	if not entity or entity.id == Player.id then return false end
 	
@@ -1948,7 +1901,6 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
-ff["EntityIsFrontTight"] = EntityIsFrontTight
 function Distance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
@@ -1956,7 +1908,6 @@ function Distance3DT(pos1,pos2)
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	return distance
 end
-ff["Distance3DT"] = Distance3DT
 function ConvertHeading(heading)
 	if (heading < 0) then
 		return heading + 2 * math.pi
@@ -1964,23 +1915,18 @@ function ConvertHeading(heading)
 		return heading
 	end
 end
-ff["ConvertHeading"] = ConvertHeading
 function HeadingToRadians(heading)
 	return heading + math.pi
 end
-ff["HeadingToRadians"] = HeadingToRadians
 function RadiansToHeading(radians)
 	return radians - math.pi
 end
-ff["RadiansToHeading"] = RadiansToHeading
 function DegreesToHeading(degrees)
 	return RadiansToHeading(math.rad(degrees))
 end
-ff["DegreesToHeading"] = DegreesToHeading
 function HeadingToDegrees(heading)
 	return math.deg(HeadingToRadians(heading))
 end
-ff["HeadingToDegrees"] = HeadingToDegrees
 function TurnAround(sync)	
 	local sync = sync or false
 	local newHeading = HeadingToDegrees(ml_global_information.Player_Position.h)
@@ -1995,7 +1941,6 @@ function TurnAround(sync)
 		Player:SetFacing(newHeading)
 	end
 end
-ff["TurnAround"] = TurnAround
 function PosIsEqual(pos1, pos2)
 	if (type(pos1) == "table" and type(pos2) == "table") then
 		if (pos1.x and pos1.y and pos1.z and pos2.x and pos2.y and pos2.z) then
@@ -2006,7 +1951,6 @@ function PosIsEqual(pos1, pos2)
 	end
 	return false
 end
-ff["PosIsEqual"] = PosIsEqual
 function AngleFromPos(pos1, pos2)
 	if ( TableSize(pos1) < 3 or TableSize(pos2) < 3 ) then
 		return nil
@@ -2019,7 +1963,6 @@ function AngleFromPos(pos1, pos2)
 		return angle
 	end
 end
-ff["AngleFromPos"] = AngleFromPos
 function FindPointOnCircle(pos, angle, radius)
 	local angleMin = angle - 20
 	local angleMax = angle + 20
@@ -2045,7 +1988,6 @@ function FindPointOnCircle(pos, angle, radius)
 	ReturnAngle.z = math.cos(math.rad(anew))*radius + pos.z
 	return ReturnAngle
 end 
-ff["FindPointOnCircle"] = FindPointOnCircle
 function FindPointLeftRight(pos, angle, radius, relative)
 	
 	relative = relative or true
@@ -2079,14 +2021,12 @@ function FindPointLeftRight(pos, angle, radius, relative)
 	local ReturnAngle = math.random(0,1) == 0 and ReturnAngle1 or ReturnAngle2
 	return ReturnAngle
 end
-ff["FindPointLeftRight"] = FindPointLeftRight
 function GetPosFromDistanceHeading(startPos, distance, heading)
 	local head = ConvertHeading(heading)
 	local newX = distance * math.sin(head) + startPos.x
 	local newZ = distance * math.cos(head) + startPos.z
 	return {x = newX, y = startPos.y, z = newZ}
 end
-ff["GetPosFromDistanceHeading"] = GetPosFromDistanceHeading
 function GetFateByID(fateID)
     local fate = nil
     local fateList = MapObject:GetFateList()
@@ -2102,7 +2042,6 @@ function GetFateByID(fateID)
     
     return fate
 end
-ff["GetFateByID"] = GetFateByID
 function GetApprovedFates()
 	local approvedFates = {}
 	
@@ -2141,7 +2080,6 @@ function GetApprovedFates()
 	
 	return approvedFates
 end
-ff["GetApprovedFates"] = GetApprovedFates
 function IsFateApproved(fateid)
 	local fateid = tonumber(fateid) or 0
 	if (fateid == 0) then
@@ -2163,7 +2101,6 @@ function IsFateApproved(fateid)
 	
 	return false
 end
-ff["IsFateApproved"] = IsFateApproved
 function IsInsideFate()
 	local closestFate = GetClosestFate()
 	if (ValidTable(closestFate)) then
@@ -2177,7 +2114,6 @@ function IsInsideFate()
 	
 	return false
 end
-ff["IsInsideFate"] = IsInsideFate
 function GetClosestFate(pos,pathcheck)
 	if (pathcheck == nil) then pathcheck = false end
 	
@@ -2285,7 +2221,6 @@ function GetClosestFate(pos,pathcheck)
     
     return nil
 end
-ff["GetClosestFate"] = GetClosestFate
 function IsOnMap(mapid)
 	local mapid = tonumber(mapid)
 	if (ml_global_information.Player_Map == mapid) then
@@ -2294,7 +2229,6 @@ function IsOnMap(mapid)
 	
 	return false
 end
-ff["IsOnMap"] = IsOnMap
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -2316,7 +2250,6 @@ function ScanForMobs(ids,distance)
 
 	return false
 end
-ff["ScanForMobs"] = ScanForMobs
 function ScanForCaster(ids,distance,spells)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
@@ -2335,7 +2268,6 @@ function ScanForCaster(ids,distance,spells)
 	
 	return false
 end
-ff["ScanForCaster"] = ScanForCaster
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
@@ -2349,7 +2281,6 @@ function ScanForObjects(ids,distance)
 	
 	return false
 end
-ff["ScanForObjects"] = ScanForObjects
 function CanUseCannon()
 	if (ml_global_information.Player_IsLocked) then
 		local misc = ActionList("type=1,level=0")
@@ -2365,7 +2296,6 @@ function CanUseCannon()
 	end
 	return false
 end
-ff["CanUseCannon"] = CanUseCannon
 function GetPathDistance(pos1,pos2)
 	assert(pos1 and pos1.x and pos1.y and pos1.z,"First argument to GetPathDistance is invalid.")
 	assert(pos2 and pos2.x and pos2.y and pos2.z,"Second argument to GetPathDistance is invalid.")
@@ -2389,62 +2319,7 @@ function GetPathDistance(pos1,pos2)
 	
 	return dist
 end
-ff["GetPathDistance"] = GetPathDistance
-
---d(HasNavPath({x = 468.58,y = 212.54,z = 722.04},{x = -472.2,y = 168.90,z = 62.9}))
---d(HasNavPath({x = 468.58,y = 212.54,z = 722.04},{x = -472.2,y = 168.90,z = 62.9}))
-
---[[
 function HasNavPath(pos1,pos2)
-	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
-	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
-	
-	if (p1 and p2) then		
-		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-		if (ValidTable(path)) then
-			local lastPos = path[TableSize(path)-1]
-			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
-			if (finalDist < 2) then
-				--d("Distance from last to end is small, we have a valid path.")
-				return true
-			else
-				local tries = 1
-				while (tries < 10) do
-					--d("Beginning path check # ["..tostring(tries).."].")
-					local startPos = lastPos
-					path = NavigationManager:GetPath(startPos.x,startPos.y,startPos.z,p2.x,p2.y,p2.z)
-					if (ValidTable(path)) then
-						lastPos = path[TableSize(path)-1]
-						local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,startPos.x,startPos.y,startPos.z)
-						if (startDist < 2) then
-							--d("Distance from last end to new end is too small, no valid path.")
-							return false
-						else
-							--d("Distance from last end to new end: ["..tostring(startDist).."].")
-							local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
-							if (finalDist < 2) then
-								--d("Distance from last to end is small, we have a valid path.")
-								return true
-							end
-						end
-					else
-						--d("Found no path from last position to end point.")
-						return false
-					end
-					tries = tries + 1
-				end
-			end
-		end
-	end
-	
-	return false
-end
-ff["HasNavPath"] = HasNavPath
---]]
-function HasNavPath(pos1,pos2)
-	--local p1,dist1 = NavigationManager:GetClosestPointOnMesh(pos1)
-	--local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2)
-	
 	if (pos1 and pos2) then
 		if (CanFlyInZone() and ValidTable(ffxiv_task_test.flightMesh)) then
 			if (ffxiv_task_test.GetPath(pos1,pos2)) then
@@ -2452,22 +2327,30 @@ function HasNavPath(pos1,pos2)
 			end
 		end
 		
+		-- See if there is a transport function required to reach this area first.
+		local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
+		if (transportFunction ~= nil and type(transportFunction) == "function") then
+			local retval = transportFunction(pos1,pos2)
+			if (retval == true) then
+				return true
+			end
+		end
+	
+		
 		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		if (ValidTable(path)) then
 			local lastPos = path[TableSize(path)-1]
-			
 			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos2.x,pos2.y,pos2.z)
-			if (finalDist <= 1.5) then
-				local raycast = MeshManager:RayCast(lastPos.x, lastPos.y, lastPos.z, pos2.x, pos2.y, pos2.z)
-				if (raycast == nil) then	
-					--d("Distance from last to end is small, we have a valid path.")
-					return true
-				end
+			if (finalDist <= 2) then	
+				--d("Distance from last to end is small, we have a valid path.")
+				return true
 			else
 				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos1.x,pos1.y,pos1.z)
-				if (startDist <= 1.5) then
+				if (startDist <= 2) then
+					--d("We jumped a very small distance or none at all in this iteration, no path.")
 					return false
 				else
+					--d("Assume path is long and we have further iterations to check.")
 					return HasNavPath(lastPos,pos2)
 				end
 			end
@@ -2476,7 +2359,6 @@ function HasNavPath(pos1,pos2)
 	
 	return false
 end
-
 function GetNavPath(pos1,pos2)
 	local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
 	local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
@@ -2501,7 +2383,6 @@ function GetNavPath(pos1,pos2)
 		end
 	end
 end
-
 function GetLinePoints(pos1,pos2,length)
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	local segments = math.floor(distance / length)
@@ -2522,7 +2403,6 @@ function GetLinePoints(pos1,pos2,length)
 	
 	return points
 end
-ff["GetLinePoints"] = GetLinePoints
 function GetAggroDetectionPoints(pos1,pos2)
 	assert(ValidTable(pos1),"First argument is not a valid position.")
 	assert(ValidTable(pos2),"Second argument is not a valid position.")
@@ -2553,7 +2433,6 @@ function GetAggroDetectionPoints(pos1,pos2)
 	end
 	return points
 end
-ff["GetAggroDetectionPoints"] = GetAggroDetectionPoints
 function PathDistanceTable(gotoPos)
 	if (ValidTable(gotoPos)) then
 		local ppos = ml_global_information.Player_Position
@@ -2584,7 +2463,6 @@ function PathDistanceTable(gotoPos)
 		--]]
 	end
 end
-ff["PathDistanceTable"] = PathDistanceTable
 function IsLeader()
 	local leader = nil
 	for i,m in pairs(EntityList.myparty) do
@@ -2602,7 +2480,6 @@ function IsLeader()
 		
     return false
 end
-ff["IsLeader"] = IsLeader
 function GetPartyLeader()
 	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
@@ -2655,7 +2532,6 @@ function GetPartyLeader()
     
     return nil	    
 end
-ff["GetPartyLeader"] = GetPartyLeader
 function GetPartyLeaderPos()
 	local pos = nil
 	
@@ -2668,7 +2544,6 @@ function GetPartyLeaderPos()
 	
 	return pos
 end
-ff["GetPartyLeaderPos"] = GetPartyLeaderPos
 function IsInParty(id)
 	local found = false
 	local party = EntityList.myparty
@@ -2681,7 +2556,6 @@ function IsInParty(id)
 	end
 	return false
 end
-ff["IsInParty"] = IsInParty
 function InCombatRange(targetid)
 	if (gBotRunning == "0") then
 		return false
@@ -2777,7 +2651,6 @@ function InCombatRange(targetid)
 	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
 	return ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
 end
-ff["InCombatRange"] = InCombatRange
 function CanAttack(targetid)
 	local target = {}
 	--Quick change here to allow passing of a target or just the ID.
@@ -2799,7 +2672,6 @@ function CanAttack(targetid)
 	canCast = ActionList:CanCast(testSkill,target.id)
 	return canCast
 end
-ff["CanAttack"] = CanAttack
 function GetMounts()
 	local MountsList = "None"
 	local eq = ActionList("type=13")
@@ -2809,7 +2681,6 @@ function GetMounts()
 	
 	return MountsList
 end
-ff["GetMounts"] = GetMounts
 function GetMountID()
 	local mountID
 	local mountIndex
@@ -2839,28 +2710,21 @@ function GetMountID()
 	
 	return nil
 end
-ff["GetMountID"] = GetMountID
 function IsMounting()
 	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165))
 end
-ff["IsMounting"] = IsMounting
 function IsMounted()
 	return (Player.ismounted or Player.action == 166)
 end
-ff["IsMounted"] = IsMounted
 function IsDismounting()
 	return (Player.ismounted and (Player.action == 32))
 end
-ff["IsDismounting"] = IsDismounting
 function IsPositionLocked()
 	return not ActionIsReady(2,5)
-	--return (not ActionIsReady(2) and not Player.ismounted)
 end
-ff["IsPositionLocked"] = IsPositionLocked
 function IsLoading()
 	return (Quest:IsLoading() or ml_global_information.Player_Map == 0 or ml_mesh_mgr.meshLoading)
 end
-ff["IsLoading"] = IsLoading
 function HasAction(id, category)
 	id = tonumber(id) or 0
 	category = category or 1
@@ -2877,20 +2741,18 @@ function HasAction(id, category)
 	end
 	return false			
 end
-ff["HasAction"] = HasAction
 function ActionIsReady(id, category)
 	id = tonumber(id) or 0
 	category = category or 1
 	
-	if (HasAction(id, category)) then
-		local action = ActionList:Get(id,category)
-		if (action and action.isready) then
+	local action = ActionList:Get(id,category)
+	if (IsNull(action,0) ~= 0) then
+		if (action.isready) then
 			return true
 		end
 	end
 	return false
 end
-ff["ActionIsReady"] = ActionIsReady
 function Mount(id)
 	local mountID = id or 0
 	local actions = nil
@@ -2910,22 +2772,6 @@ function Mount(id)
 		end
 	end
 		
-	--Check to see if the mountID is not 1, in which case the chocobo companion needs to be dismissed first.
-	if (mountID ~= 1) then
-		actions = ActionList("type=6")
-		if (ValidTable(actions)) then
-			for k,v in pairsByKeys(actions) do
-				if (v.id == 2) then
-					local acDismiss = ActionList:Get(2,6)
-					if (acDismiss and acDismiss.isready) then
-						acDismiss:Cast()
-						return 
-					end
-				end
-			end
-		end
-	end
-
 	if (mountID ~= 0) then
 		actions = ActionList("type=13")
 		for k,v in pairsByKeys(actions) do
@@ -2939,7 +2785,6 @@ function Mount(id)
 		end
 	end			
 end
-ff["Mount"] = Mount
 function Dismount()
 	if (Player.ismounted) then
 		local mountlist = ActionList("type=13")
@@ -2963,8 +2808,6 @@ function Dismount()
 		end
 	end
 end
-ff["Dismount"] = Dismount
-
 function Repair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
@@ -2986,8 +2829,6 @@ function Repair()
 		end
 	end
 end
-ff["Repair"] = Repair
-
 function NeedsRepair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
@@ -3009,8 +2850,6 @@ function NeedsRepair()
 	end
 	return false
 end
-ff["NeedsRepair"] = NeedsRepair
-
 function ShouldEat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -3027,7 +2866,6 @@ function ShouldEat()
 	end
 	return false
 end
-ff["ShouldEat"] = ShouldEat
 function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
@@ -3043,7 +2881,6 @@ function Eat()
 		end
 	end
 end
-ff["Eat"] = Eat
 function NodeHasItem(searchItem)
 	if (searchItem and type(searchItem) == "string" and searchItem ~= "") then
 		for itemName in StringSplit(searchItem,",") do
@@ -3060,7 +2897,6 @@ function NodeHasItem(searchItem)
     
     return false
 end
-ff["NodeHasItem"] = NodeHasItem
 function WhitelistTarget()
 	local target = ml_global_information.Player_Target
 	if (target) then
@@ -3081,7 +2917,6 @@ function WhitelistTarget()
 		end
 	end
 end
-ff["WhitelistTarget"] = WhitelistTarget
 function BlacklistTarget()
 	local target = ml_global_information.Player_Target
 	if (target) then
@@ -3102,21 +2937,18 @@ function BlacklistTarget()
 		end
 	end
 end
-ff["BlacklistTarget"] = BlacklistTarget
 function IsMap(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 6687 and itemid <= 6692) or
 		(itemid == 7884 or itemid == 8156 or itemid == 9900) or
 		(itemid >= 12241 and itemid <= 12243))
 end
-ff["IsMap"] = IsMap
 function IsGardening(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 7715 and itemid <= 7767) 
 			or itemid == 8024
 			or itemid == 5365)
 end
-ff["IsGardening"] = IsGardening
 -- Ixali hidden items have a max item count of 5.
 function IsIxaliRare(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -3130,7 +2962,6 @@ function IsIxaliRare(itemid)
 	}
 	return rares[itemid]
 end
-ff["IsIxaliRare"] = IsIxaliRare
 -- Ixali "regular" items have a max item count of 15.
 function IsIxaliSemiRare(itemid)
 	local itemid = tonumber(itemid) or 0
@@ -3144,13 +2975,11 @@ function IsIxaliSemiRare(itemid)
 	}
 	return rares[itemid]
 end
-ff["IsIxaliSemiRare"] = IsIxaliSemiRare
 function IsChocoboFood(itemid)
 	local itemid = tonumber(itemid) or 0
 	return ((itemid >= 10094 and itemid <= 10095) or
 			(itemid >= 10097 and itemid <= 10098))
 end
-ff["IsChocoboFood"] = IsChocoboFood
 function IsChocoboFoodSpecial(itemid)
 	local itemid = tonumber(itemid) or 0
 	
@@ -3160,7 +2989,6 @@ function IsChocoboFoodSpecial(itemid)
 	}
 	return special[itemid]
 end
-ff["IsChocoboFoodSpecial"] = IsChocoboFoodSpecial
 function IsRareItem(itemid)
 	local itemid = tonumber(itemid) or 0
 	local rareItem = {
@@ -3185,7 +3013,6 @@ function IsRareItem(itemid)
 	
 	return rareItem[itemid]
 end
-ff["IsRareItem"] = IsRareItem
 function IsRareItemSpecial(itemid)
 	local itemid = tonumber(itemid) or 0
 	local superRare = {
@@ -3204,11 +3031,9 @@ function IsRareItemSpecial(itemid)
 	
 	return superRare[itemid]
 end
-ff["IsRareItemSpecial"] = IsRareItemSpecial
 function IsUnspoiled(contentid)
 	return (contentid >= 5 and contentid <= 8)
 end
-ff["IsUnspoiled"] = IsUnspoiled
 --===========================
 --Class/Role Helpers
 --===========================
@@ -3246,7 +3071,6 @@ function GetRoleString(jobID)
         return GetString("tank")
     end
 end
-ff["GetRoleString"] = GetRoleString
 function GetRoleTable(rolestring)
 	if (rolestring == "DPS") then
 		return {
@@ -3290,7 +3114,6 @@ function GetRoleTable(rolestring)
 	end
 	return nil
 end
-ff["GetRoleTable"] = GetRoleTable
 function IsMeleeDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
@@ -3300,7 +3123,6 @@ function IsMeleeDPS(jobID)
 			jobID == FFXIV.JOBS.ROGUE or
 			jobID == FFXIV.JOBS.NINJA
 end
-ff["IsMeleeDPS"] = IsMeleeDPS
 function IsRangedDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -3311,7 +3133,6 @@ function IsRangedDPS(jobID)
 			jobID == FFXIV.JOBS.THAUMATURGE or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-ff["IsRangedDPS"] = IsRangedDPS
 function IsRanged(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -3326,7 +3147,6 @@ function IsRanged(jobID)
 			jobID == FFXIV.JOBS.ASTROLOGIAN or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-ff["IsRanged"] = IsRanged
 function IsPhysicalDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.MONK or
@@ -3339,7 +3159,6 @@ function IsPhysicalDPS(jobID)
 			jobID == FFXIV.JOBS.BARD or
 			jobID == FFXIV.JOBS.MACHINIST
 end
-ff["IsPhysicalDPS"] = IsPhysicalDPS
 function IsCasterDPS(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -3347,7 +3166,6 @@ function IsCasterDPS(jobID)
 			jobID == FFXIV.JOBS.SUMMONER or
 			jobID == FFXIV.JOBS.THAUMATURGE
 end
-ff["IsCasterDPS"] = IsCasterDPS
 function IsCaster(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.ARCANIST or
@@ -3359,7 +3177,6 @@ function IsCaster(jobID)
 			jobID == FFXIV.JOBS.SCHOLAR or 
 			jobID == FFXIV.JOBS.ASTROLOGIAN
 end
-ff["IsCaster"] = IsCaster
 function IsHealer(jobID)
 	local jobID = tonumber(jobID)
 	return 	jobID == FFXIV.JOBS.WHITEMAGE or
@@ -3367,7 +3184,6 @@ function IsHealer(jobID)
 			jobID == FFXIV.JOBS.SCHOLAR or 
 			jobID == FFXIV.JOBS.ASTROLOGIAN
 end
-ff["IsHealer"] = IsHealer
 function IsTank(jobID)
 	local jobID = tonumber(jobID)
 	local tanks = {
@@ -3380,7 +3196,6 @@ function IsTank(jobID)
 	
 	return tanks[jobID]
 end
-ff["IsTank"] = IsTank
 function IsGatherer(jobID)
 	local jobID = tonumber(jobID)
 	if (jobID >= 16 and jobID <= 17) then
@@ -3389,7 +3204,6 @@ function IsGatherer(jobID)
 	
 	return false
 end
-ff["IsGatherer"] = IsGatherer
 function IsFighter(jobID)
 	local jobID = tonumber(jobID)
 	if ((jobID >= 0 and jobID <= 8) or
@@ -3400,7 +3214,6 @@ function IsFighter(jobID)
 	
 	return false
 end
-ff["IsFighter"] = IsFighter
 function IsCrafter(jobID)
 	local jobID = tonumber(jobID)
 	if (jobID >= 8 and jobID <= 15) then
@@ -3409,12 +3222,10 @@ function IsCrafter(jobID)
 	
 	return false
 end
-ff["IsCrafter"] = IsCrafter
 function IsFisher(jobID)
 	local jobID = tonumber(jobID)
 	return jobID == 18
 end
-ff["IsFisher"] = IsFisher
 function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	if (maxdistance==nil or maxdistance == "") then
 		maxdistance = 30
@@ -3432,7 +3243,6 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
-ff["PartyMemberWithBuff"] = PartyMemberWithBuff
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
@@ -3452,48 +3262,61 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
-ff["PartySMemberWithBuff"] = PartySMemberWithBuff
+
+ml_global_information.lastAetheryteCache = 0
+function GetAetheryteList(force)
+	local force = IsNull(force,false)
+	
+	if (force == true) then
+		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+		ml_global_information.lastAetheryteCache = Now()
+	else
+		if not (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
+				ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+				ml_global_information.lastAetheryteCache = Now()
+			end
+		end
+	end
+	
+	return ml_global_information.Player_Aetherytes
+end
 function GetLocalAetheryte()
-    local list = Player:GetAetheryteList()
-    for index,aetheryte in ipairs(list) do
-        if (aetheryte.islocalmap) then
-            return aetheryte.id
-        end
-    end
+    local list = ml_global_information.Player_Aetherytes
+	if (ValidTable(list)) then
+		for index,aetheryte in pairsByKeys(list) do
+			if (aetheryte.islocalmap) then
+				return aetheryte.id
+			end
+		end
+	end
     
     return nil
 end
-ff["GetLocalAetheryte"] = GetLocalAetheryte
-function GetAttunedAetheryteList()
+function GetAttunedAetheryteList(force)
+	local force = IsNull(force,false)
+	
 	local attuned = {}
-	local list = ml_global_information.Player_Aetherytes
-	for id,aetheryte in pairsByKeys(list) do
-		if (aetheryte.isattuned) then
-			table.insert(attuned, aetheryte)
+	
+	local list = GetAetheryteList(force)
+	if (ValidTable(list)) then
+		for id,aetheryte in pairsByKeys(list) do
+			if (aetheryte.isattuned) then
+				table.insert(attuned, aetheryte)
+			end
 		end
 	end
 	
 	return attuned
 end
-ff["GetAttunedAetheryteList"] = GetAttunedAetheryteList
 function GetUnattunedAetheryteList()
 	local aethList = {}
 	for map,aethdata in pairs(ffxiv_aetheryte_data) do
 		for k,aeth in pairs(aethdata) do
 			local valid = true
-			if (aeth.requires) then
-				local requirements = shallowcopy(aeth.requires)
-				for requirement,value in pairs(requirements) do
-					local f = assert(loadstring("return " .. requirement))()
-					if (f ~= nil) then
-						if (f ~= value) then
-							valid = false
-						end
-					end
-					if (not valid) then
-						break
-					end
-				end
+			local requirement = aeth.requires
+			if (requirement ~= nil and type(requirement) == "function") then
+				valid = IsNull(requirement(),false)
 			end
 			
 			if (valid) then
@@ -3504,16 +3327,17 @@ function GetUnattunedAetheryteList()
 	
 	if (ValidTable(aethList)) then
 		local list = ml_global_information.Player_Aetherytes
-		for id,aetheryte in pairsByKeys(list) do
-			if (aetheryte.isattuned and aethList[aetheryte.id]) then
-				aethList[aetheryte.id] = nil
+		if (ValidTable(list)) then
+			for id,aetheryte in pairsByKeys(list) do
+				if (aetheryte.isattuned and aethList[aetheryte.id]) then
+					aethList[aetheryte.id] = nil
+				end
 			end
 		end
 	end
 	
 	return aethList
 end
-ff["GetUnattunedAetheryteList"] = GetUnattunedAetheryteList
 function GetHomepoint()
 	local homepoint = 0
 	
@@ -3527,242 +3351,173 @@ function GetHomepoint()
 	end
 	return homepoint
 end
-ff["GetHomepoint"] = GetHomepoint
-function GetAetheryteByID(id)
+function GetAetheryteByID(id,force)
 	local aethid = tonumber(id) or 0
-	local list = Player:GetAetheryteList()
-    for index,aetheryte in pairsByKeys(list) do
-        if (aetheryte.id == aethid) then
-            return aetheryte
-        end
-    end
+	local force = IsNull(force,false)
+	
+	local list = GetAetheryteList(force)
+	if (ValidTable(list)) then
+		for index,aetheryte in pairsByKeys(list) do
+			if (aetheryte.id == aethid) then
+				return aetheryte
+			end
+		end
+	end
     
     return nil
 end
-ff["GetAetheryteByID"] = GetAetheryteByID
 function IsAetheryteUnattuned(id)
 	local aethid = tonumber(id) or 0
-	local aetheryte = GetAetheryteByID(aethid)
+	local aetheryte = GetAetheryteByID(aethid,true)
 	if (aetheryte) then
 		return not aetheryte.isattuned
 	end
 	return false
 end
-ff["IsAetheryteUnattuned"] = IsAetheryteUnattuned
-function GetAetheryteByMapID(id, p)
+function GetAetheryteByMapID(mapid, p)
 	local pos = p
 	
-	local mapid = ml_global_information.Player_Map
-	if (id == 133 and mapid ~= 132) then
-		id = 132
-	elseif (id == 128 and mapid ~= 129) then
-		id = 129
-	elseif (id == 131 and mapid ~= 130) then
-		id = 130
-	elseif (id == 419 and mapid ~= 418) then
-		id = 418
-	elseif (id == 399 and mapid ~= 478) then
-		id = 478
+	local myMap = ml_global_information.Player_Map
+	if (mapid == 133 and myMap ~= 132) then
+		mapid = 132
+	elseif (mapid == 128 and myMap ~= 129) then
+		mapid = 129
+	elseif (mapid == 131 and myMap ~= 130) then
+		mapid = 130
+	elseif (mapid == 419 and myMap ~= 418) then
+		mapid = 418
+	elseif (mapid == 399 and myMap ~= 478) then
+		mapid = 478
 	end
 	
-	if 	(mapid == 131 and id == 130) or
-		(mapid == 128 and id == 129) or
-		(mapid == 133 and id == 133) or
-		(mapid == 418 and (id == 419 or id == 439 or id == 427 or id == 456 or id == 433)) or
-		(mapid == 399 and id == 478)
+	if 	(myMap == 131 and mapid == 130) or
+		(myMap == 128 and mapid == 129) or
+		(myMap == 133 and mapid == 133) or
+		(myMap == 418 and (mapid == 419 or mapid == 439 or mapid == 427 or mapid == 456 or mapid == 433)) or
+		(myMap == 399 and mapid == 478)
 	then
 		return nil
 	end
 	
 	sharedMaps = {
 		[153] = { name = "South Shroud",
-			[1] = { name = "Quarrymill", id = 5, x = 181, z = -66},
-			[2] = { name = "Camp Tranquil", id = 6, x = -226, z = 355},
+			[1] = { name = "Quarrymill", aethid = 5, x = 181, z = -66},
+			[2] = { name = "Camp Tranquil", aethid = 6, x = -226, z = 355},
 		},
 		[137] = {name = "Eastern La Noscea",
-			[1] = { name = "Costa Del Sol", id = 11, x = 0, z = 0},
-			[2] = { name = "Wineport", id = 12, x = 0, z = 0},
+			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0},
+			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0},
 		},
 		[138] = {name = "Western La Noscea",
-			[1] = { name = "Swiftperch", id = 13, x = 652, z = 509 },
-			[2] = { name = "Aleport", id = 14, x = 261, z = 223 },		
+			[1] = { name = "Swiftperch", aethid = 13, x = 652, z = 509 },
+			[2] = { name = "Aleport", aethid = 14, x = 261, z = 223 },		
 		},
 		[146] = {name = "Southern Thanalan",
-			[1] = { name = "Little Ala Mhigo", id = 19, x = -165, z = -414 },
-			[2] = { name = "Forgotten Springs", id = 20, x = -320, z = 406 },
+			[1] = { name = "Little Ala Mhigo", aethid = 19, x = -165, z = -414 },
+			[2] = { name = "Forgotten Springs", aethid = 20, x = -320, z = 406 },
 		},
 		[147] = {name = "Northern Thanalan",
-			[1] = { name = "Bluefog", id = 21, x = 24, z = 458 },
-			[2] = { name = "Ceruleum", id = 22, x = -24, z = -27 },
+			[1] = { name = "Bluefog", aethid = 21, x = 24, z = 458 },
+			[2] = { name = "Ceruleum", aethid = 22, x = -24, z = -27 },
 		},
 		[401] = {name = "Sea of Clouds",
-			[1] = { name = "Cloudtop", id = 72, x = -611, z = 545 },
-			[2] = { name = "OkZundu", id = 73, x = -606, z = -419 },
+			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545 },
+			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419 },
 		},
 		[398] = {name = "Dravanian Forelands",
-			[1] = { name = "Tailfeather", id = 76, x = 533, z = 35 },
-			[2] = { name = "Anyx", id = 77, x = -300, z = 30 },
+			[1] = { name = "Tailfeather", id = aethid, x = 533, z = 35 },
+			[2] = { name = "Anyx", id = aethid, x = -300, z = 30 },
 		},
 		[400] = {name = "Churning Mists",
-			[1] = { name = "Moghome", id = 78, x = 256, z = 599 },
-			[2] = { name = "Zenith", id = 79, x = -583, z = 316 },
+			[1] = { name = "Moghome", aethid = 78, x = 256, z = 599 },
+			[2] = { name = "Zenith", aethid = 79, x = -583, z = 316 },
 		},		
 	}
 	
 	local list = GetAttunedAetheryteList()
-	if (not pos or not sharedMaps[id]) then
+	if (not pos or not sharedMaps[mapid]) then
 		for index,aetheryte in pairsByKeys(list) do
-			if (aetheryte.territory == id) then
-				return id, aetheryte.id
+			if (aetheryte.territory == mapid) then
+				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+					return aetheryte
+				end
 			end
 		end
 	else
-		local map = sharedMaps[id]
-		if (id == 137) then
-			return id, ((pos.x > 218 and pos.z > 51) and map[1].id) or map[2].id
-		else 
-			local distance1 = Distance2D(pos.x, pos.z, map[1].x, map[1].z)
-			local distance2 = Distance2D(pos.x, pos.z, map[2].x, map[2].z)
-			return id, ((distance1 < distance2) and map[1].id) or map[2].id
+		local bestID = nil
+		
+		local sharedMap = sharedMaps[mapid]
+		local choices = {}
+		for _,sharedData in pairs(sharedMap) do
+			for index,aetheryte in pairsByKeys(list) do
+				if (aetheryte.id == sharedData.aethid) then
+					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+						choices[#choices+1] = sharedData
+					end
+				end
+			end
+		end
+		
+		local size = TableSize(choices)
+		if (size > 1) then
+		
+			if (mapid == 137) then
+				bestID = ((pos.x > 218 and pos.z > 51) and 11) or 12
+			else 
+				local distance1 = Distance2D(pos.x, pos.z, choices[1].x, choices[1].z)
+				local distance2 = Distance2D(pos.x, pos.z, choices[2].x, choices[2].z)
+				bestID = ((distance1 < distance2) and choices[1].aethid) or choices[2].aethid
+			end
+			
+			if (bestID ~= nil) then
+				for index,aetheryte in pairsByKeys(list) do
+					if (aetheryte.id == bestID) then
+						return aetheryte
+					end
+				end
+			end
+		elseif (size == 1) then
+			for index,aetheryte in pairsByKeys(list) do
+				if (aetheryte.id == choices[1].aethid) then
+					return aetheryte
+				end
+			end
 		end
 	end
 	
 	return nil
 end
-ff["GetAetheryteByMapID"] = GetAetheryteByMapID
 function GetAetheryteLocation(id)
 	local aethid = tonumber(id) or 0
-	aetherytes = 
-	{
-		[2] = {
-			mapid = 132, x = 30.390216827393, y = 1.8258748054504, z = 26.265508651733
-		},
-		[3] = {
-			mapid = 148, x = 13.585005760193, y = -1.1827243566513, z = 41.725193023682
-		},
-		[8] = {
-			mapid = 129, x = -85.681526184082, y = 18.800333023071, z = -6.4848699569702
-		},
-		[52] = {
-			mapid = 134, x = 224.27067565918, y = 113.09999084473, z = -261.05822753906
-		},
-		[10] = {
-			mapid = 135, x = 156.93988037109, y = 14.09584903717, z = 668.01940917969
-		},
-		[11] = {
-			mapid = 137, x = 490.56713867188, y = 17.416807174683, z = 474.01110839844
-		},
-		[12] = {
-			mapid = 137, x = -20.159227371216, y = 70.599250793457, z = 7.4133810997009
-		},
-		[14] = {
-			mapid = 138, x = 259.89932250977, y = -22.75, z = 223.38513183594
-		},
-		[13] = {
-			mapid = 138, x = 652.9736328125, y = 9.2408666610718, z = 509.41586303711
-		},
-		[15] = {
-			mapid = 139, x = 433.61944580078, y = 3.6090106964111, z = 92.736114501953
-		},
-		[16] = {
-			mapid = 180, x = -122.27465820313, y = 64.79615020752, z = -211.87341308594
-		},
-		[4] = {
-			mapid = 152, x = -189.0665435791, y = 4.4424576759338, z = 293.23275756836
-		},
-		[5] = {
-			mapid = 153, x = 181.93789672852, y = 8.6657190322876, z = -66.213958740234
-		},
-		[6] = {
-			mapid = 153, x = -226.1929473877, y = 21.010675430298, z = 355.90420532227
-		},
-		[7] = {
-			mapid = 154, x = -45.544578552246, y = -39.256271362305, z = 230.90368652344
-		},
-		[9] = {
-			mapid = 130, x = -141.2413, y = -3.154881, z = -166.22462
-		},
-		[17] = {
-			mapid = 140, x = 71.629104614258, y = 45.432174682617, z = -230.00273132324
-		},
-		[53] = {
-			mapid = 141, x = -15.56315612793, y = -1.8785282373428, z = -169.75825500488
-		},
-		[18] = {
-			mapid = 145, x = -379.7414855957, y = -59, z = 142.57489013672
-		},
-		[19] = {
-			mapid = 146, x = -165.46360778809, y = 26.138355255127, z = -414.46130371094
-		},
-		[20] = {
-			mapid = 146, x = -321.84567260742, y = 8.2604389190674, z = 406.19985961914
-		},
-		[21] = {
-			mapid = 147, x = 21.909135818481, y = 6.9785833358765, z = 458.83193969727
-		},
-		[22] = {
-			mapid = 147, x = -24.236480712891, y = 48.309478759766, z = -27.79927444458
-		},
-		[23] = {
-			mapid = 155, x = 227.28480529785, y = 312, z = -229.6822052002
-		},
-		[24] = {
-			mapid = 156, x = 48.166370391846, y = 20.295000076294, z = -667.26159667969
-		},
-		[70] = {
-			mapid = 418, x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203
-		},
-		[71] = {
-			mapid = 397, x = 477.33963012695, y = 213.68281555176, z = 712.01037597656
-		},
-		[72] = {
-			mapid = 401, x = -611.17010498047, y = -122.47959899902, z = 545.20111083984
-		},
-		[73] = {
-			mapid = 401, x = -606.52301025391, y = -51.05184173584, z = -419.39642333984
-		},
-		[74] = {
-			mapid = 402, x = -719.61926269531, y = -186.96055603027, z = -591.29595947266
-		},
-		[75] = {
-			mapid = 478, x = 70.658157348633, y = 209.25, z = -15.381930351257
-		},
-		[76] = {
-			mapid = 398, x = 533.27545166016, y = -50.119258880615, z = 35.244457244873
-		},
-		[77] = {
-			mapid = 398, x = -300.9377746582, y = -21.131076812744, z = 30.079961776733
-		},
-		[78] = {
-			mapid = 400, x = 256.49853515625, y = -41.158931732178, z = 599.15924072266
-		},
-		[79] = {
-			mapid = 400, x = -583.82263183594, y = 49.774040222168, z = 316.41677856445
-		},
-	}
 	
-	local aetheryte = aetherytes[aethid]
-	if (aetheryte) then
-		return {x = aetheryte.x, y = aetheryte.y, z = aetheryte.z}
+	local aetheryteData = ffxiv_aetheryte_data
+	for mapid,mapdata in pairs(aetheryteData) do
+		for k,aethdata in pairs(mapdata) do
+			if (aethdata.aethid == aethid) then
+				return {x = aethdata.x, y = aethdata.y, z = aethdata.z}
+			end
+		end
 	end
 	
 	return nil
 end
-ff["GetAetheryteLocation"] = GetAetheryteLocation
 function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
-		local aetheryte = GetAetheryteByID(aethid)
-		if (aetheryte) then
-			if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-				return true
+		local list = GetAttunedAetheryteList()
+		if (ValidTable(list)) then
+			for k,aetheryte in pairs(list) do
+				if (aetheryte.id == aethid) then
+					if (GilCount() >= aetheryte.price) then
+						return true
+					end
+				end
 			end
 		end
 	end
 	
 	return false
 end
-ff["CanUseAetheryte"] = CanUseAetheryte
 function GetOffMapMarkerList(strMeshName, strMarkerType)
 	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
 	if (FileExists(markerPath)) then
@@ -3798,7 +3553,6 @@ function GetOffMapMarkerList(strMeshName, strMarkerType)
 	
 	return nil
 end
-ff["GetOffMapMarkerList"] = GetOffMapMarkerList
 function IsCityMap(mapid)
 	local mapid = tonumber(mapid)
 	local cityMaps = {
@@ -3813,7 +3567,6 @@ function IsCityMap(mapid)
 	}
 	return cityMaps[mapid]
 end
-ff["IsCityMap"] = IsCityMap
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	local newMarkerPos = nil
 	
@@ -3854,7 +3607,6 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	
 	return newMarkerPos
 end
-ff["GetOffMapMarkerPos"] = GetOffMapMarkerPos
 function ShouldTeleport(pos)
 	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
@@ -3900,7 +3652,6 @@ function ShouldTeleport(pos)
 		end
 	end
 end
-ff["ShouldTeleport"] = ShouldTeleport
 function GetBlacklistIDString()
     -- otherwise first grab the global blacklist exclude string
     local excludeString = ml_blacklist.GetExcludeString(GetString("monsters"))
@@ -3917,11 +3668,9 @@ function GetBlacklistIDString()
     
     return excludeString
 end
-ff["GetBlacklistIDString"] = GetBlacklistIDString
 function GetWhitelistIDString()	
     return ml_global_information.WhitelistContentID
 end
-ff["GetWhitelistIDString"] = GetWhitelistIDString
 function GetPartySize()
 	local count = 0
 	local party = EntityList.myparty
@@ -3936,7 +3685,6 @@ function GetPartySize()
 	
 	return count
 end
-ff["GetPartySize"] = GetPartySize
 function HasDutyUnlocked(dutyID)
 	local dutyID = tonumber(dutyID)
 	local dutyList = Duty:GetDutyList()
@@ -3954,7 +3702,6 @@ function HasDutyUnlocked(dutyID)
 	
 	return false
 end
-ff["HasDutyUnlocked"] = HasDutyUnlocked
 function HuntingLogsUnlocked()	
 	local requiredQuests = {
 		[1] = 253,
@@ -3976,7 +3723,6 @@ function HuntingLogsUnlocked()
 	
 	return false
 end
-ff["HuntingLogsUnlocked"] = HuntingLogsUnlocked
 function GetBestGrindMap()
 	local mapid = ml_global_information.Player_Map
 	local level = Player.level
@@ -4047,7 +3793,6 @@ function GetBestGrindMap()
 		return 398
 	end
 end
-ff["GetBestGrindMap"] = GetBestGrindMap
 function EquipItem(itemid, itemslot)
 	local itemtype = tonumber(itemslot)
 	local itemid = tonumber(itemid)
@@ -4057,7 +3802,6 @@ function EquipItem(itemid, itemslot)
 		item:Move(1000,itemslot)
 	end
 end
-ff["EquipItem"] = EquipItem
 function UnequipItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -4075,7 +3819,6 @@ function UnequipItem(itemid)
 		end
 	end
 end
-ff["UnequipItem"] = UnequipItem
 function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
 	local currEquippedItems = Inventory("type=1000")
@@ -4086,7 +3829,6 @@ function IsEquipped(itemid)
 	end
 	return false
 end
-ff["IsEquipped"] = IsEquipped
 function EquippedItemLevel(slot)
 	local slot = tonumber(slot)
 	local currEquippedItems = Inventory("type=1000")
@@ -4101,7 +3843,6 @@ function EquippedItemLevel(slot)
 	--d("Could not find an equipped item in slot ["..tostring(slot).."], returning 0.")
 	return 0
 end
-ff["EquippedItemLevel"] = EquippedItemLevel
 function GetItemInSlot(equipSlot)
 	local currEquippedItems = Inventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
@@ -4111,7 +3852,6 @@ function GetItemInSlot(equipSlot)
 	end
 	return nil
 end
-ff["GetItemInSlot"] = GetItemInSlot
 function ItemIsReady(itemid)
 	itemid = tonumber(itemid)
 	
@@ -4137,7 +3877,6 @@ function ItemIsReady(itemid)
 	
 	return false
 end
-ff["ItemIsReady"] = ItemIsReady
 function IsInventoryFull()
 	local itemcount = 0
 	
@@ -4155,7 +3894,6 @@ function IsInventoryFull()
 	
 	return false
 end
-ff["IsInventoryFull"] = IsInventoryFull
 function GetInventorySnapshot()
 	local currentSnapshot = {}
 	
@@ -4268,7 +4006,6 @@ function GetInventorySnapshot()
 	
 	return currentSnapshot
 end
-ff["GetInventorySnapshot"] = GetInventorySnapshot
 function GetInventoryItemGains(itemid,hqonly)
 	local itemid = tonumber(itemid) or 0
 	if (hqonly == nil) then hqonly = false end
@@ -4307,7 +4044,6 @@ function GetInventoryItemGains(itemid,hqonly)
 		
 	return gained
 end
-ff["GetInventoryItemGains"] = GetInventoryItemGains
 function ItemCount(itemid,includehq)
 	includehq = IsNull(includehq,false)
 	local itemcount = 0
@@ -4390,7 +4126,6 @@ function ItemCount(itemid,includehq)
 	
 	return itemcount
 end
-ff["ItemCount"] = ItemCount
 function GilCount()
 	local gil = 0
 	local inv = Inventory("type=2000")
@@ -4401,7 +4136,6 @@ function GilCount()
 	end
 	return gil
 end
-ff["GilCount"] = GilCount
 function PoeticCount()
 	local poetic = 0
 	local inv = Inventory("type=2000")
@@ -4412,7 +4146,6 @@ function PoeticCount()
 	end
 	return poetic
 end
-ff["PoeticCount"] = PoeticCount
 function SoldieryCount()
 	local soldiery = 0
 	local inv = Inventory("type=2000")
@@ -4423,7 +4156,6 @@ function SoldieryCount()
 	end
 	return soldiery
 end
-ff["SoldieryCount"] = SoldieryCount
 function IsCompanionSummoned()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
@@ -4437,7 +4169,6 @@ function IsCompanionSummoned()
 	
 	return false
 end
-ff["IsCompanionSummoned"] = IsCompanionSummoned
 function GetCompanionEntity()
 	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
@@ -4449,12 +4180,10 @@ function GetCompanionEntity()
 	
 	return nil
 end
-ff["GetCompanionEntity"] = GetCompanionEntity
 function IsShopWindowOpen()
 	return (ControlVisible("Shop") or ControlVisible("ShopExchangeItem") or ControlVisible("ShopExchangeCurrency")
 		or ControlVisible("ShopCard") or ControlVisible("ShopExchangeCoin"))
 end
-ff["IsShopWindowOpen"] = IsShopWindowOpen
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
 	local xref = {
@@ -4488,7 +4217,6 @@ function IsArmoryFull(slot)
 	end
 	return false
 end
-ff["IsArmoryFull"] = IsArmoryFull
 function ArmoryItemCount(slot)
 	local slot = tonumber(slot)
 	local xref = {
@@ -4520,7 +4248,6 @@ function ArmoryItemCount(slot)
 	end
 	return 0
 end
-ff["ArmoryItemCount"] = ArmoryItemCount
 function GetFirstFreeArmorySlot(armoryType)
 	local armoryType = tonumber(armoryType)
 	local inv = Inventory("type="..tostring(armoryType))
@@ -4542,7 +4269,6 @@ function GetFirstFreeArmorySlot(armoryType)
 	end
 	return nil
 end
-ff["GetFirstFreeArmorySlot"] = GetFirstFreeArmorySlot
 function GetFirstFreeInventorySlot()
 	for x = 0,3 do
 		local inv = Inventory("type="..tostring(x))
@@ -4565,7 +4291,6 @@ function GetFirstFreeInventorySlot()
 	end
 	return nil,nil
 end
-ff["GetFirstFreeInventorySlot"] = GetFirstFreeInventorySlot
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -4578,7 +4303,6 @@ function GetEquippedItem(itemid)
 	
 	return nil
 end
-ff["GetEquippedItem"] = GetEquippedItem
 function GetUnequippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
@@ -4628,7 +4352,6 @@ function GetUnequippedItem(itemid)
 	
 	return nil
 end
-ff["GetUnequippedItem"] = GetUnequippedItem
 function GetEquipSlotForItem(slot)
 	local slot = tonumber(slot)
 	local equipSlot = {
@@ -4650,7 +4373,6 @@ function GetEquipSlotForItem(slot)
 	
 	return equipSlot[slot]
 end
-ff["GetEquipSlotForItem"] = GetEquipSlotForItem
 function GetArmorySlotForItem(slot)
 	local slot = tonumber(slot)
 	local armorySlot = {
@@ -4672,7 +4394,6 @@ function GetArmorySlotForItem(slot)
 	
 	return armorySlot[slot]
 end
-ff["GetArmorySlotForItem"] = GetArmorySlotForItem
 function SubtractHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start - value
@@ -4681,7 +4402,6 @@ function SubtractHours(start, value)
 	end
 	return newHour	
 end
-ff["SubtractHours"] = SubtractHours
 function SubtractHours12(start, value)
 	start = tonumber(start) or 1
 	local newHour = start - value
@@ -4690,7 +4410,6 @@ function SubtractHours12(start, value)
 	end
 	return newHour
 end
-ff["SubtractHours12"] = SubtractHours12
 function AddHours(start, value)
 	start = tonumber(start) or 0
 	local newHour = start + value
@@ -4699,7 +4418,6 @@ function AddHours(start, value)
 	end
 	return newHour	
 end
-ff["AddHours"] = AddHours
 function AddHours12(start, value)
 	start = tonumber(start) or 1
 	local newHour = start + value
@@ -4708,7 +4426,6 @@ function AddHours12(start, value)
 	end
 	return newHour	
 end
-ff["AddHours12"] = AddHours12
 function GetJPTime()
 	local jpTime = {}
 	jpTime.year = tonumber(os.date("!%Y"))
@@ -4728,7 +4445,6 @@ function GetJPTime()
 	
 	return jpTime
 end
-ff["GetJPTime"] = GetJPTime
 function GetUTCTime()
 	local utcTime = {}
 	utcTime.year = tonumber(os.date("!%Y"))
@@ -4741,7 +4457,6 @@ function GetUTCTime()
 	
 	return utcTime
 end
-ff["GetUTCTime"] = GetUTCTime
 function EorzeaTime()
 	local et = {}
     local ratioRealToGame = (1440 / 70)
@@ -4799,18 +4514,15 @@ function EorzeaTime()
 
 	return et
 end
-ff["EorzeaTime"] = EorzeaTime
 function GetCurrentTime()
 	local t = os.date('!*t')
 	local thisTime = os.time(t)
 	return thisTime
 end
-ff["GetCurrentTime"] = GetCurrentTime
 function TimePassed(t1, t2)
 	local diff = os.difftime(t1, t2)
 	return diff
 end
-ff["TimePassed"] = TimePassed
 function GetQuestByID(questID)
 	local list = Quest:GetQuestList()
 	if(ValidTable(list)) then
@@ -4821,22 +4533,18 @@ function GetQuestByID(questID)
 		end
 	end
 end
-ff["GetQuestByID"] = GetQuestByID
 function IsLimsa(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 128 or mapid == 129)
 end
-ff["IsLimsa"] = IsLimsa
 function IsUldah(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 132 or mapid == 133)
 end
-ff["IsUldah"] = IsUldah
 function IsGridania(mapid)
 	local mapid = tonumber(mapid)
 	return (mapid == 130 or mapid == 131)
 end
-ff["IsGridania"] = IsGridania
 function GameRegion()
 	if (GetGameRegion and GetGameRegion()) then
 		return GetGameRegion()
@@ -4858,7 +4566,6 @@ function NewCheckbox(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	
 	_G[strVarName] = Settings.FFXIVMINION[strVarName]
 end
-
 function NewComboBox(strWinName,strText,strVarName,varDefaultValue,strGroup,strOptions)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
@@ -4874,7 +4581,6 @@ function NewComboBox(strWinName,strText,strVarName,varDefaultValue,strGroup,strO
 	
 	_G[strVarName] = Settings.FFXIVMINION[strVarName]
 end
-
 function NewField(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
@@ -4890,7 +4596,6 @@ function NewField(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	
 	_G[strVarName] = Settings.FFXIVMINION[strVarName]
 end
-
 function NewNumeric(strWinName,strText,strVarName,varDefaultValue,strGroup,lngMin,lngMax)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
@@ -4905,7 +4610,6 @@ function NewNumeric(strWinName,strText,strVarName,varDefaultValue,strGroup,lngMi
 	
 	_G[strVarName] = Settings.FFXIVMINION[strVarName]
 end
-
 function NewButton(strWinName,strText,strVarName,varDefaultValue,strGroup)
 	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
 	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
@@ -4984,46 +4688,16 @@ function CanAccessMap(mapid)
 				return true
 			end
 			
-			
-			local aethData = ffxiv_aetheryte_data[mapid]
-			if (ValidTable(aethData)) then
-				for k,aeth in pairs(aethData) do
-					if (ValidTable(aeth)) then
-
-						local valid = true
-						if (aeth.requires) then
-							d("Checking aetheryte requirement data.")
-							local requirements = shallowcopy(aeth.requires)
-							for requirement,value in pairs(requirements) do
-								local f = assert(loadstring("return " .. requirement))()
-								if (f ~= nil) then
-									if (f ~= value) then
-										d("Aetheryte failed requirement ["..tostring(requirement).."].")
-										valid = false
-									end
-								end
-								if (not valid) then
-									break
-								end
-							end
-						end
-						
-						if (valid) then
-							local aetheryte = GetAetheryteByID(aeth.aethid)
-							if (aetheryte) then
-								if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-									return true
-								end
-							end
-						end
-					end
+			local attunedAetherytes = GetAttunedAetheryteList()
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
+					return true
 				end
 			end
 			
 			-- Fall back check to see if we can get to Foundation, and from there to the destination.
-			local aetheryte = GetAetheryteByID(70)
-			if (aetheryte) then
-				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
 					if (ValidTable(backupPos)) then

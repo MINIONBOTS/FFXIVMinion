@@ -1,5 +1,6 @@
 ffxiv_task_test = inheritsFrom(ml_task)
 ffxiv_task_test.lastTick = 0
+ffxiv_task_test.lastPathCheck = 0
 ffxiv_task_test.flightMesh = {}
 ffxiv_task_test.lastTaskSet = {}
 ffxiv_task_test.lastRect = {}
@@ -157,7 +158,7 @@ function c_flighttakeoff:evaluate()
 		local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(ppos)
 		if (nearestJunction) then
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,nearestJunction.x,nearestJunction.y,nearestJunction.z)
-			if (dist < 10) then
+			if (dist <= 15) then
 				return true
 			else
 				d("Attempt to take off.")
@@ -179,7 +180,7 @@ function e_flighttakeoff:execute()
 				--First pass, look for our named mount.
 				local mountValid = false
 				for k,v in pairsByKeys(mountlist) do
-					if (v.name == gMount and ffxiv_task_test.flyMounts[v.id]) then
+					if (v.name == gMount and v.canfly) then
 						mountValid = true
 						local acMount = ActionList:Get(v.id,13)
 						if (acMount and acMount.isready) then
@@ -196,15 +197,6 @@ function e_flighttakeoff:execute()
 				end
 				
 				if (mountID) then
-					if (mountID ~= 1) then
-						local acDismiss = ActionList:Get(2,6)
-						if ( acDismiss.isready and item and item.isready) then
-							acDismiss:Cast()
-							ml_task_hub:CurrentTask():SetDelay(1500)
-							return
-						end	
-					end
-
 					local acMount = ActionList:Get(mountID,13)
 					if (acMount and acMount.isready) then
 						acMount:Cast()
@@ -228,8 +220,7 @@ function c_walktotakeoff:evaluate()
 		local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(ppos)
 		if (nearestJunction) then
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,nearestJunction.x,nearestJunction.y,nearestJunction.z)
-			if (dist >= 10) then
-				d("We need to walk to the nearest junction point.")
+			if (dist > 15) then
 				local meshPoint = NavigationManager:GetClosestPointOnMesh(nearestJunction)
 				e_walktotakeoff.pos = meshPoint or nearestJunction
 				return true
@@ -247,7 +238,7 @@ function e_walktotakeoff:execute()
 	newTask.remainMounted = true
 	newTask.noFlight = true
 	newTask.pos = e_walktotakeoff.pos
-	newTask.range = 4
+	newTask.range = 5
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -409,7 +400,7 @@ function c_flytopos:evaluate()
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist < 10) then
+			if (p and dist > 2) then
 				gotoPos = p
 			end
 		end
@@ -711,7 +702,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 		local gotoPos = self.pos
 		
 		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		
-		if (distance <= 10) then
+		if (distance <= 5) then
 			--d("Close to the destination, we can stop now.")
 			return true
 		else
@@ -742,7 +733,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 							end
 							self.lastDistance = distNext
 							
-							if (distNext <= 3.5 and raycast == nil) then
+							if (distNext <= 4 and raycast == nil) then
 								self.pathIndex = self.pathIndex+1
 								--d("Moving forward in the path to index ["..tostring(self.pathIndex).."].")
 								self.lastDistance = math.huge
@@ -750,7 +741,8 @@ function ffxiv_task_movewithflight:task_complete_eval()
 								return false
 							end
 							
-							Player:SetFacing(travelPoint.x,travelPoint.y,travelPoint.z)
+							--Player:SetFacing(travelPoint.x,travelPoint.y,travelPoint.z)
+							SmartTurn(travelPoint)
 							local pitch = math.atan2((myPos.y - travelPoint.y), distNext)
 							--local pitch = math.asin((myPos.y - travelPoint.y)/distNext)
 							if (GetPitch() ~= pitch) then
@@ -759,7 +751,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 							end
 						else
 							local distCurrent = Distance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
-							if (distCurrent <= 3.5) then
+							if (distCurrent <= 4) then
 								d("No travel point and we are close to the current point.")
 								return true
 							end
@@ -946,8 +938,8 @@ function ffxiv_task_test.RenderPoints(points,altcolor,altsize,altheight)
 	d("Received a points collection with ["..tostring(TableSize(points)).."] to render.")
 	for i,pos in pairs(points) do
 		local color = altcolor or 0
-		local s = altsize or .3 -- size
-		local h = altheight or .5 -- height
+		local s = altsize or .2 -- size
+		local h = altheight or .2 -- height
 		
 		local t = { 
 			[1] = { pos.x-s, pos.y+s+h, pos.z-s, color },
@@ -1037,6 +1029,10 @@ function ffxiv_task_test.SaveFlightMesh()
 end
 
 function ffxiv_task_test.GetPath(from,to)
+	if (Now() < ffxiv_task_test.lastPathCheck) then
+		return false
+	end
+	
 	if (ValidTable(ffxiv_task_test.flightMesh)) then
 		if (ValidTable(from) and ValidTable(to)) then	
 			local allowed = false
@@ -1055,9 +1051,11 @@ function ffxiv_task_test.GetPath(from,to)
 				local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
 				--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
 				
-				if (myDist > 40 and spanDist > 40) then
+				if (myDist > 25 and spanDist > 25) then
 					point1 = nearestJunction
 					allowed = true
+				else
+					d("Distance verifications not met.")
 				end
 			end
 			
@@ -1066,12 +1064,15 @@ function ffxiv_task_test.GetPath(from,to)
 				if (path ~= nil and type(path) == "table") then
 					--d("Returning path.")
 					return path,nearestJunction,farJunction
+				else
+					d("Attempted to find a path but could not.")
 				end
 			end
 		end
 	end
 	
 	--d("No path.")
+	ffxiv_task_test.lastPathCheck = Now() + 5000
 	return nil,nil,nil
 end
 
@@ -1099,46 +1100,16 @@ function ffxiv_task_test.GetPath(dest)
 end
 --]]
 
-function ffxiv_task_test.FaceNextPath()
-	local myPos = ml_global_information.Player_Position
-	local pos = {}
-	pos.x = tonumber(gTestMapX)
-	pos.y = tonumber(gTestMapY)
-	pos.z = tonumber(gTestMapZ)
-
-	local path = ffxiv_task_test.GetPath(myPos,pos)
-	if (ValidTable(path)) then
-		local nearestPoint = path[1]
-		local nextPoint = path[2]
-		
-		local dist = Distance3D(myPos.x,myPos.y,myPos.z,nextPoint.x,nextPoint.y,nextPoint.z)
-		Player:SetFacing(nextPoint.x,nextPoint.y,nextPoint.z)
-		local pitch = math.atan2((myPos.y - nextPoint.y), dist)
-		d("pitch value:"..tostring(pitch))
-		Player:SetPitch(pitch)
-		
-		--pitch = asin(V.y / length(V));
-	--yaw = asin( V.x / (cos(pitch)*length(V)) ); //Beware cos(pitch)==0, catch this exception!
-	--roll = 0;
-		
-		--[[
-			-.785 (up)
-			0 (level)
-			1.38 (down)
-		
-		]]
+function ffxiv_task_test.NearestMeshPoint()
+	local myPos = Player.pos
+	local p,dist = NavigationManager:GetClosestPointOnMesh({x = myPos.x, y = myPos.y, z = myPos.z})
+	if (p) then
+		d(p)
+		d("Closest mesh point distance ["..tostring(dist).."].")
 	end
 end
 
-function ffxiv_task_test.TowardPath()
-	local path = ffxiv_task_test.GetPath()
-	if (ValidTable(path)) then
-		local nearestPoint = path[1]
-		local nextPoint = path[2]
-		
-		Player:Move(FFXIV.MOVEMENT.FORWARD)
-	end
-end
+--d(NavigationManager:GetClosestPointOnMesh({x = , y = , z = })
 
 function ffxiv_task_test.GetNearestFlightJunction(pos)
 	local mesh = ffxiv_task_test.flightMesh
@@ -1150,7 +1121,7 @@ function ffxiv_task_test.GetNearestFlightJunction(pos)
 			for k,v in pairs(mesh) do
 				local vpos = {x = v.x, y = v.y, z = v.z }
 				local p,pdist = NavigationManager:GetClosestPointOnMesh(vpos)
-				if (p and pdist ~= 0 and pdist < 15) then
+				if (p and pdist < 15) then
 					local dist = Distance3D(pos.x,pos.y,pos.z,v.x,v.y,v.z)
 					if (not closest or (closest and dist < closestDistance)) then
 						closest = v
@@ -1228,7 +1199,7 @@ function ffxiv_task_test.UIInit()
 	GUI_NewButton(winName, 	"Get Path", 	"ffxiv_task_test.GetPath", "FlightMesh")
 	
 	GUI_NewButton(winName, "Face Next Path", "ffxiv_task_test.FaceNextPath", "FlightMesh")
-	GUI_NewButton(winName, "Drive Toward Path", "ffxiv_task_test.TowardPath", "FlightMesh")
+	GUI_NewButton(winName, "Nearest Mesh Point", "ffxiv_task_test.NearestMeshPoint", "FlightMesh")
 	
     GUI_NewField(winName, "MapID:", "gTestMapID","NavTest")
 	GUI_NewField(winName, "X:", "gTestMapX","NavTest")
@@ -1695,3 +1666,229 @@ function quadrasectTest()
 	end
 end
 
+Vector = {}
+Vector.__index = Vector
+function Vector.Create(posA,posB)
+    local newinst = {}
+    
+	newinst.origin = posA
+	newinst.goal = posB
+	newinst.x = IIF(posA.x ~= nil and posB.x ~= nil,(posB.x - posA.x),0)
+	newinst.y = IIF(posA.y ~= nil and posB.y ~= nil,(posB.y - posA.y),0)
+	newinst.z = IIF(posA.z ~= nil and posB.z ~= nil,(posB.z - posA.z),0)
+
+	setmetatable( newinst, Vector )
+    return newinst
+end
+
+function Vector:DotProduct(vectorB)
+	return (self.x * vectorB.x) + (self.z * vectorB.z)	
+end
+
+function Vector:CrossProduct(vectorB)
+	return (self.x * vectorB.z) - (self.z * vectorB.x)
+end
+
+function Vector:AngleBetween(vectorB)
+	local atan2 = math.atan2
+	return (atan2(self:CrossProduct(vectorB),self:DotProduct(vectorB)))
+end
+
+function ToDegrees(ANGLE)
+	return ANGLE * (180 / math.pi)
+end
+
+function ToRadians(ANGLE)
+	return ANGLE * (math.pi / 180)
+end
+
+function Vector:Magnitude()
+	local sqrt = math.sqrt
+	return sqrt((self.x * self.x) + (self.y * self.y) + (self.z * self.z))
+end
+
+function Vector:Rotate(degrees)
+	local newinst = deepcopy(self)
+	
+	local radians = ToRadians(degrees)
+	local ca = math.cos(radians)
+	local sa = math.sin(radians)
+	
+	local newX = ((ca * newinst.x) - (sa * newinst.z))
+	local newZ = ((sa * newinst.x) + (ca * newinst.z))
+	
+	newinst.goal = { x = (newX + newinst.origin.x), y = IsNull(newinst.origin.y,0), z = (newZ + newinst.origin.z) }
+	
+	newinst.x = newX
+	newinst.z = newZ
+
+    return newinst
+end
+
+function Vector:Normalize()
+	local newinst = deepcopy(self)
+	
+	local magnitude = self:Magnitude()
+	newinst.x = IIF(newinst.x ~= 0,newinst.x / magnitude,0)
+	newinst.y = IIF(newinst.y ~= 0,newinst.y / magnitude,0)
+	newinst.z = IIF(newinst.z ~= 0,newinst.z / magnitude,0)
+	
+	newinst.goal = { x = (newinst.x + newinst.origin.x), y = (newinst.y  + newinst.origin.y), z = (newinst.z + newinst.origin.z) }
+end
+
+function Vector:RatioAdjust(ratio)		
+	local newinst = deepcopy(self)
+	
+	local newX = (newinst.x * ratio)
+	local newY = (newinst.y * ratio)
+	local newZ = (newinst.z * ratio)
+	
+	newinst.goal = { x = (newX + newinst.origin.x), y = (newY + newinst.origin.y), z = (newZ + newinst.origin.z) }
+	
+	newinst.x = newX
+	newinst.y = newY
+	newinst.z = newZ
+	
+	return newinst
+end
+
+function Vector:RayCast()
+	local raycast_b,hitX,hitY,hitZ = MeshManager:RayCast(self.origin.x,self.origin.y,self.origin.z,self.goal.x,self.goal.y,self.goal.z)
+	if (raycast_b == true) then
+		return { x = hitX, y = hitY, z = hitZ }
+	end
+	
+	return nil
+end
+
+function vector(posA,posB)
+	return { x = (posB.x - posA.x), y = (posB.y - posA.y), z = (posB.z - posA.z) }	
+end
+
+function dot(vectorA,vectorB)
+	return (vectorA.x *vectorB.x) + (vectorA.z * vectorB.z)		
+end
+
+function cross(vectorA,vectorB)
+	return (vectorA.x * vectorB.z) - (vectorA.z * vectorB.x)	
+end
+
+function angle(vectorA,vectorB)
+	return (math.atan2(cross(vectorA,vectorB),dot(vectorA,vectorB)))
+end
+
+function toDegrees(angleA)
+	return angleA * (180 / math.pi)
+end
+
+function toRadians(angleA)
+	return angleA * (math.pi / 180)
+end
+
+function rotateVector(vector, degrees)
+	local radians = toRadians(degrees)
+	local ca = math.cos(radians)
+	local sa = math.sin(radians)
+	return { x = ((ca * vector.x) - (sa * vector.z)), z = ((sa * vector.x) + (ca * vector.z)) }
+end
+
+function pointFromVector(vector,pos)
+	return { x = (vector.x + pos.x), z = (vector.z + pos.z) }
+end
+
+--[[
+function ffxiv_task_test.FaceNextPath()
+	local myPos = ml_global_information.Player_Position
+	local forwardPos = GetPosFromDistanceHeading(Player.pos, 8, Player.pos.h)
+	local newPos = IIF(math.random(1,2) == 1,testPosC,testPosE)
+	
+	local currentVector = Vector.Create(ml_global_information.Player_Position,forwardPos)
+	local goalVector = Vector.Create(myPos,newPos)
+	local differenceAngle = ToDegrees(currentVector:AngleBetween(goalVector))
+	
+	if (math.abs(differenceAngle) > 60) then
+		if (differenceAngle < 0) then
+			local rotatedVector = currentVector:Rotate(-60)
+			local newPoint = rotatedVector.goal
+			Player:SetFacing(newPoint.x,0,newPoint.z)
+		else
+			local rotatedVector = currentVector:Rotate(60)
+			local newPoint = rotatedVector.goal
+			Player:SetFacing(newPoint.x,0,newPoint.z)
+		end
+	else
+		Player:SetFacing(newPos.x,newPos.y,newPos.z)
+	end
+end
+-]]
+
+--[[
+function ffxiv_task_test.FaceNextPath()
+	local newPoints = {}
+	
+	local myPos = ml_global_information.Player_Position
+	local forwardPos = GetPosFromDistanceHeading(myPos, 15, myPos.h)
+	table.insert(newPoints,forwardPos)
+	
+	local currentVector = Vector.Create(myPos,forwardPos)
+	local reducedVector = currentVector:RatioAdjust(.80)
+	local magnifiedVector = currentVector:RatioAdjust(1.20)
+	
+	table.insert(newPoints,reducedVector.goal)
+	table.insert(newPoints,magnifiedVector.goal)
+	
+	ffxiv_task_test.RenderPoints(newPoints)
+end--]]
+
+function ffxiv_task_test.FaceNextPath()	
+	local newPoints = {}
+	
+	local target = Player:GetTarget()
+	if (target ~= nil) then
+	
+		local myPos = ml_global_information.Player_Position
+		myPos = { x = myPos.x, y = myPos.y + 1.60, z = myPos.z }
+		local epos = target.pos
+		
+		local currentVector = Vector.Create(myPos,epos)
+		local reducedVector = currentVector:RatioAdjust(.80)
+		local magnifiedVector = currentVector:RatioAdjust(1.20)
+		
+		table.insert(newPoints,magnifiedVector.goal)
+		local hitPoint = magnifiedVector:RayCast()
+		
+		if (hitPoint ~= nil) then
+			table.insert(newPoints,hitPoint)
+			
+			local dist = Distance3D(hitPoint.x,hitPoint.y,hitPoint.z,epos.x,epos.y,epos.z)
+			d("distance from entity:"..tostring(dist))
+			d("hitradius:"..tostring(target.hitradius))
+			
+			dist = Distance3D(hitPoint.x,hitPoint.y,hitPoint.z,myPos.x,myPos.y,myPos.z)
+			d("distance from wall:"..tostring(dist))
+		end
+		
+		ffxiv_task_test.RenderPoints(newPoints)
+	end
+end
+
+function SmartTurn(newPos)	
+	local myPos = Player.pos
+	local forwardPos = GetPosFromDistanceHeading(myPos, 8, myPos.h)
+	
+	local currentVector = Vector.Create(myPos,forwardPos)
+	local goalVector = Vector.Create(myPos,newPos)
+	local differenceAngle = ToDegrees(currentVector:AngleBetween(goalVector))
+	
+	if (math.abs(differenceAngle) > 60) then
+		if (differenceAngle < 0) then
+			local rotatedVector = currentVector:Rotate(-60)
+			local newPos = rotatedVector.goal
+		else
+			local rotatedVector = currentVector:Rotate(60)
+			local newPos = rotatedVector.goal
+		end
+	end
+	
+	Player:SetFacing(newPos.x,newPos.y,newPos.z)
+end

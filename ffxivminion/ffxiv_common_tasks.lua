@@ -642,7 +642,7 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return true
 	end
 	
@@ -1533,9 +1533,11 @@ function ffxiv_task_grindCombat:Process()
 						ml_task_hub:CurrentTask():AddSubTask(newTask)
 						return
 					elseif (distance <= fate.radius) then	
-						if (Player:GetSyncLevel() == 0 and Now() > ml_global_information.syncTimer) then
-							Player:SyncLevel()
-							ml_global_information.syncTimer = Now() + 2000
+						if (Player:GetSyncLevel() == 0) then
+							if (Now() > ml_global_information.syncTimer) then
+								Player:SyncLevel()
+								ml_global_information.syncTimer = Now() + 2000
+							end
 						end
 					end
 				end

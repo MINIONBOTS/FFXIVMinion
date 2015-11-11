@@ -527,5 +527,4 @@ function ml_mesh_mgr.UnpackArgsForOMC( args )
 	 end
 end
 
-
 RegisterEventHandler("Gameloop.OffMeshConnectionReached",ml_mesh_mgr.HandleOMC)
