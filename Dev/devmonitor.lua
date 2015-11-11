@@ -212,6 +212,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Level","invlvl","InventoryInfo")
 	GUI_NewField("Dev","RequiredLevel","invreqlvl","InventoryInfo")
 	GUI_NewField("Dev","Category","invcategory","InventoryInfo")
+	GUI_NewField("Dev","UICategory","invuicategory","InventoryInfo")
+	GUI_NewField("Dev","SearchCategory","invsearchcategory","InventoryInfo")
 	GUI_NewField("Dev","Class","invclass","InventoryInfo")	
 	GUI_NewField("Dev","CanEquip","invequipable","InventoryInfo")
 	GUI_NewButton("Dev","UseItem","Dev.UseItem","InventoryInfo")	
@@ -1253,6 +1255,8 @@ function Dev.UpdateWindow()
 			invlvl = item.level
 			invreqlvl = item.requiredlevel
 			invcategory = item.category
+			invuicategory = tostring(item.uicategory)
+			invsearchcategory = tostring(item.searchcategory)
 			invclass = item.class
 			invequipable = tostring(item.canequip)
 			invHQ = tostring(item.IsHQ)
@@ -1269,6 +1273,8 @@ function Dev.UpdateWindow()
 		invmaxcount = 0
 		invcond = 0
 		invcategory = 0
+		invuicategory = 0
+		invsearchcategory = 0
 		invclass = 0
 		invequipable = false
 	end	
