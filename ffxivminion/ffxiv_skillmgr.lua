@@ -39,7 +39,7 @@ SkillMgr.latencyTimer = 0
 SkillMgr.forceStop = false
 SkillMgr.preCombat = false
 SkillMgr.knownDebuffs = "1,3,4,5,6,7,9,10,14,15,17,18,19,20,26,28,30,32,34,36,38,54,55,58,59,62,67,181,19​3,210,213,215,216,240,250,267,275,280,284,268,285,235,269,270,271,272,273,283,28​6,287,288,320,339,343,407,442,48​2,485,503,509,530,532,533,534,535,559,560,561,5​64,569,571,605,610,619,620,642,643,666,677,686,723,785,801,893,910,926"
---SkillMgr.logger = logging.rolling_file(GetStartupPath()..[[\LuaMods\ffxivminion\logs\]].."skm.log", 102400, 5)
+SkillMgr.doLoad = false
 
 SkillMgr.GCDSkills = {
 	[FFXIV.JOBS.GLADIATOR] = 9,
@@ -615,11 +615,6 @@ function SkillMgr.ModuleInit()
 	GUI_NewButton(SkillMgr.editwindow_gathering.name,"COPY","SKMCopySkill")
     GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
     GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
-
-    SkillMgr.SkillBook = {}
-	SkillMgr.UpdateProfiles()
-    SkillMgr.UpdateCurrentProfileData()
-    GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 	
 	SkillMgr.AddDefaultConditions()
 	
@@ -659,6 +654,14 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function SkillMgr.OnUpdate()
+	if (SkillMgr.doLoad == true) then
+		SkillMgr.SkillBook = {}
+		SkillMgr.UpdateProfiles()
+		SkillMgr.UpdateCurrentProfileData()
+		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+		SkillMgr.doLoad = false
+	end
+	
 	local pcast = Player.castinginfo
 	
 	local job = Player.job
