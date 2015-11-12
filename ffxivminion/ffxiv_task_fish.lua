@@ -662,7 +662,7 @@ function c_collectibleaddonfish:evaluate()
 				if (var and var ~= "" and tonumber(valuevar) > 0) then
 					local itemid = AceLib.API.Items.GetIDByName(var,47)
 					if (itemid) then
-						if (info.itemid == itemid) then
+						if (string.find(tostring(info.itemid),tostring(itemid))) then
 							if (info.collectability >= tonumber(valuevar)) then
 								validCollectible = true
 							else
@@ -715,10 +715,14 @@ function c_collectibleaddonfish:evaluate()
 			end--]]
 			
 			if (not validCollectible) then
-				PressYesNoItem(false) 
+				fd("Cannot collect item, collectibility rating not approved.",3)
+				--PressYesNoItem(false) 
+				PressYesNoItem(true) 
 				return true
 			else
-				PressYesNoItem(true) 
+				fd("Attempting to collect item, collectibility rating approved.",3)
+				--PressYesNoItem(true) 
+				PressYesNoItem(false) 
 				return true
 			end
 		end
