@@ -656,7 +656,7 @@ function c_collectibleaddonfish:evaluate()
 	if (ControlVisible("SelectYesNoItem")) then
 		local info = Player:GetYesNoItemInfo()
 		if (ValidTable(info)) then
-			d(info)
+			fd(info,2)			
 			local validCollectible = false
 			
 			for i = 1,15 do
@@ -724,7 +724,7 @@ function c_collectibleaddonfish:evaluate()
 				return true
 			else
 				fd("Attempting to collect item, collectibility rating approved.",2)
-				PressYesNoItem(false) 
+				PressYesNoItem(true) 
 				return true
 			end
 		end
