@@ -1119,14 +1119,14 @@ function e_walktopos:execute()
 			e_walktopos.lastRun = Now()
 			
 			if (not tonumber(path)) then
-				ml_error("[e_walktopos] An error occurred in creating the path.")
+				ml_debug("[e_walktopos] An error occurred in creating the path.")
 				if (path ~= nil) then
-					d(path)
+					ml_debug(path)
 				end
 			elseif (path >= 0) then
 				ml_debug("[e_walktopos] A path with ["..tostring(path).."] points was created.")
 			elseif (path <= -1) then
-				ml_error("[e_walktopos] A path could not be created towards the goal, error code ["..tostring(path).."].")
+				ml_debug("[e_walktopos] A path could not be created towards the goal, error code ["..tostring(path).."].")
 			end
 		else
 			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
