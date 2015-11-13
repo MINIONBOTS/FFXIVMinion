@@ -656,6 +656,7 @@ function c_collectibleaddonfish:evaluate()
 	if (ControlVisible("SelectYesNoItem")) then
 		local info = Player:GetYesNoItemInfo()
 		if (ValidTable(info)) then
+			d(info)
 			local validCollectible = false
 			
 			for i = 1,15 do
@@ -669,14 +670,14 @@ function c_collectibleaddonfish:evaluate()
 							if (info.collectability >= tonumber(valuevar)) then
 								validCollectible = true
 							else
-								fd("Collectibility was too low ["..tostring(info.collectability).."].")
+								fd("Collectibility was too low ["..tostring(info.collectability).."].",2)
 							end
 						else
-							fd("Collectible was not the item we are looking for.")
-							fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
+							fd("Collectible was not the item we are looking for.",2)
+							fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]",2)
 						end	
 					else
-						fd("Could not find an item ID for:" .. var)
+						fd("Could not find an item ID for:" .. var,2)
 					end
 				end
 			end
@@ -718,13 +719,11 @@ function c_collectibleaddonfish:evaluate()
 			end--]]
 			
 			if (not validCollectible) then
-				fd("Cannot collect item, collectibility rating not approved.",3)
-				--PressYesNoItem(false) 
-				PressYesNoItem(true) 
+				fd("Cannot collect item, collectibility rating not approved.",2)
+				PressYesNoItem(false) 
 				return true
 			else
-				fd("Attempting to collect item, collectibility rating approved.",3)
-				--PressYesNoItem(true) 
+				fd("Attempting to collect item, collectibility rating approved.",2)
 				PressYesNoItem(false) 
 				return true
 			end
