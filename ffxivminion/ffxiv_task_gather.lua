@@ -758,47 +758,6 @@ function e_gather:execute()
 					end
 				end
 			end
-			
-			-- 4th pass, regular rare items
-			if (gatherRares ~= "" and gatherRares ~= false and gatherRares ~= "0") then
-				for i, item in pairs(list) do
-					local attemptGather = false
-					if ((gatherRares == "1" or gatherRares == true) and IsRareItem(item.id)) then
-						attemptGather = true
-					elseif (tonumber(gatherRares) ~= nil and tonumber(gatherRares) == item.id) then
-						attemptGather = true
-					elseif (type(gatherRares) == "string" and string.find(gatherRares,",")) then
-						for rareitem in StringSplit(gatherRares,",") do
-							if (tonumber(rareitem) ~= nil and tonumber(rareitem) == item.id) then
-								attemptGather = true
-							end
-							if attemptGather then break end
-						end
-					end
-					
-					if (attemptGather) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						ffxiv_task_gather.lastItemAttempted	= item.id	
-						local result = Player:Gather(item.index)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
-						end
-						return
-					end
-				end
-			end
 							
 			-- 5th pass, ixali rare items
 			if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
@@ -907,47 +866,88 @@ function e_gather:execute()
 					end
 				end
 			end
-			
-			-- 7th pass to get chocobo items
-			if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
-				for i, item in pairs(list) do
-					local attemptGather = false
-					if (IsChocoboFood(item.id)) then
-						if (gatherChocoFood == "1" or gatherChocoFood == true) then
+		end
+		
+		-- 4th pass, regular rare items
+		if (gatherRares ~= "" and gatherRares ~= false and gatherRares ~= "0") then
+			for i, item in pairs(list) do
+				local attemptGather = false
+				if ((gatherRares == "1" or gatherRares == true) and IsRareItem(item.id)) then
+					attemptGather = true
+				elseif (tonumber(gatherRares) ~= nil and tonumber(gatherRares) == item.id) then
+					attemptGather = true
+				elseif (type(gatherRares) == "string" and string.find(gatherRares,",")) then
+					for rareitem in StringSplit(gatherRares,",") do
+						if (tonumber(rareitem) ~= nil and tonumber(rareitem) == item.id) then
 							attemptGather = true
-						elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
-							attemptGather = true
-						elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
-							for chocoitem in StringSplit(gatherChocoFood,",") do
-								if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
-									attemptGather = true
-								end
-								if attemptGather then break end
-							end
 						end
+						if attemptGather then break end
 					end
-						
-					if (attemptGather) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						ffxiv_task_gather.lastItemAttempted	= item.id
-						local result = Player:Gather(item.index)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
-						end
+				end
+				
+				if (attemptGather) then
+					if (SkillMgr.Gather(item)) then
+						ml_task_hub:CurrentTask().failedTimer = Now()
+						ffxiv_task_gather.timer = Now() + 2000
 						return
 					end
+					
+					ffxiv_task_gather.lastItemAttempted	= item.id	
+					local result = Player:Gather(item.index)
+					if (result == 65536) then
+						ffxiv_task_gather.timer = Now() + 300
+						ffxiv_task_gather.awaitingSuccess = true
+					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+						ml_task_hub:CurrentTask().gatherTimer = Now()
+						ml_task_hub:CurrentTask().failedTimer = Now()
+						ffxiv_task_gather.timer = Now() + 750
+						ffxiv_task_gather.awaitingSuccess = false
+					end
+					return
+				end
+			end
+		end
+		
+		-- 7th pass to get chocobo items
+		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
+			for i, item in pairs(list) do
+				local attemptGather = false
+				if (IsChocoboFood(item.id)) then
+					if (gatherChocoFood == "1" or gatherChocoFood == true) then
+						attemptGather = true
+					elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
+						attemptGather = true
+					elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
+						for chocoitem in StringSplit(gatherChocoFood,",") do
+							if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
+								attemptGather = true
+							end
+							if attemptGather then break end
+						end
+					end
+				end
+					
+				if (attemptGather) then
+					if (SkillMgr.Gather(item)) then
+						ml_task_hub:CurrentTask().failedTimer = Now()
+						ffxiv_task_gather.timer = Now() + 2000
+						return
+					end
+					
+					ffxiv_task_gather.lastItemAttempted	= item.id
+					local result = Player:Gather(item.index)
+					if (result == 65536) then
+						ffxiv_task_gather.timer = Now() + 300
+						ffxiv_task_gather.awaitingSuccess = true
+					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+						ml_task_hub:CurrentTask().gatherTimer = Now()
+						ml_task_hub:CurrentTask().failedTimer = Now()
+						ffxiv_task_gather.timer = Now() + 750
+						ffxiv_task_gather.awaitingSuccess = false
+					end
+					return
 				end
 			end
 		end
@@ -2277,7 +2277,7 @@ function e_gathernextprofilemap:execute()
 			end
 		end
 		
-		ffxiv_dialog_manager.IssueStopNotice("Gather_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
+		--ffxiv_dialog_manager.IssueStopNotice("Gather_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
 	end
 end
 

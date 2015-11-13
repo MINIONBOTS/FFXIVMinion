@@ -1063,6 +1063,7 @@ function ffxiv_task_test.GetPath(from,to)
 				local path = path( point1, point2, ffxiv_task_test.flightMesh, true)
 				if (path ~= nil and type(path) == "table") then
 					--d("Returning path.")
+					ffxiv_task_test.lastPathCheck = Now() + 5000
 					return path,nearestJunction,farJunction
 				else
 					d("Attempted to find a path but could not.")

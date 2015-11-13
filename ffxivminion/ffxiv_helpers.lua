@@ -3282,7 +3282,7 @@ ml_global_information.lastAetheryteCache = 0
 function GetAetheryteList(force)
 	local force = IsNull(force,false)
 	
-	if (force == true) then
+	if (force == true or ml_global_information.Player_Aetherytes == nil) then
 		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 		ml_global_information.lastAetheryteCache = Now()
 	else
@@ -3440,8 +3440,8 @@ function GetAetheryteByMapID(mapid, p)
 			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419 },
 		},
 		[398] = {name = "Dravanian Forelands",
-			[1] = { name = "Tailfeather", id = aethid, x = 533, z = 35 },
-			[2] = { name = "Anyx", id = aethid, x = -300, z = 30 },
+			[1] = { name = "Tailfeather", aethid = 76, x = 533, z = 35 },
+			[2] = { name = "Anyx", aethid = 77, x = -300, z = 30 },
 		},
 		[400] = {name = "Churning Mists",
 			[1] = { name = "Moghome", aethid = 78, x = 256, z = 599 },
@@ -3450,54 +3450,61 @@ function GetAetheryteByMapID(mapid, p)
 	}
 	
 	local list = GetAttunedAetheryteList()
-	if (not pos or not sharedMaps[mapid]) then
-		for index,aetheryte in pairsByKeys(list) do
-			if (aetheryte.territory == mapid) then
-				if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-					return aetheryte
-				end
-			end
-		end
-	else
-		local bestID = nil
-		
-		local sharedMap = sharedMaps[mapid]
-		local choices = {}
-		for _,sharedData in pairs(sharedMap) do
+	if (ValidTable(list)) then
+		if (not pos or not sharedMaps[mapid]) then
+			--d("This is not a shared map or we were not given a position.")
 			for index,aetheryte in pairsByKeys(list) do
-				if (aetheryte.id == sharedData.aethid) then
+				if (aetheryte.territory == mapid) then
 					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-						choices[#choices+1] = sharedData
-					end
-				end
-			end
-		end
-		
-		local size = TableSize(choices)
-		if (size > 1) then
-		
-			if (mapid == 137) then
-				bestID = ((pos.x > 218 and pos.z > 51) and 11) or 12
-			else 
-				local distance1 = Distance2D(pos.x, pos.z, choices[1].x, choices[1].z)
-				local distance2 = Distance2D(pos.x, pos.z, choices[2].x, choices[2].z)
-				bestID = ((distance1 < distance2) and choices[1].aethid) or choices[2].aethid
-			end
-			
-			if (bestID ~= nil) then
-				for index,aetheryte in pairsByKeys(list) do
-					if (aetheryte.id == bestID) then
 						return aetheryte
 					end
 				end
 			end
-		elseif (size == 1) then
-			for index,aetheryte in pairsByKeys(list) do
-				if (aetheryte.id == choices[1].aethid) then
-					return aetheryte
+		else
+			--d("This is a shared map and we were given a position.")
+			local bestID = nil
+			
+			local sharedMap = sharedMaps[mapid]
+			local choices = {}
+			for _,sharedData in pairs(sharedMap) do
+				for index,aetheryte in pairsByKeys(list) do
+					if (aetheryte.id == sharedData.aethid) then
+						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+							
+							choices[#choices+1] = sharedData
+						end
+					end
+				end
+			end
+			
+			local size = TableSize(choices)
+			if (size > 1) then
+			
+				if (mapid == 137) then
+					bestID = ((pos.x > 218 and pos.z > 51) and 11) or 12
+				else 
+					local distance1 = Distance2D(pos.x, pos.z, choices[1].x, choices[1].z)
+					local distance2 = Distance2D(pos.x, pos.z, choices[2].x, choices[2].z)
+					bestID = ((distance1 < distance2) and choices[1].aethid) or choices[2].aethid
+				end
+				
+				if (bestID ~= nil) then
+					for index,aetheryte in pairsByKeys(list) do
+						if (aetheryte.id == bestID) then
+							return aetheryte
+						end
+					end
+				end
+			elseif (size == 1) then
+				for index,aetheryte in pairsByKeys(list) do
+					if (aetheryte.id == choices[1].aethid) then
+						return aetheryte
+					end
 				end
 			end
 		end
+	else
+		--d("No attuned aetherytes found.")
 	end
 	
 	return nil

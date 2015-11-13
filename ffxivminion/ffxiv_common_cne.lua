@@ -871,10 +871,24 @@ function c_teleporttomap:evaluate()
 				end
 			end
 		else
+			d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
 			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
 			if (aeth) then
 				e_teleporttomap.aeth = aeth
 				return true
+			end
+			
+			local attunedAetherytes = GetAttunedAetheryteList()
+			-- Fall back check to see if we can get to Foundation, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,destMapID)
+					if (ValidTable(backupPos)) then
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
 			end
 		end
 	else
@@ -1013,9 +1027,11 @@ end
 c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
+e_walktopos.lastRun = 0
 function c_walktopos:evaluate()
 	if (ml_global_information.Player_IsLocked or 
 		ml_global_information.Player_IsLoading or 
+		TimeSince(e_walktopos.lastRun) < 1000 or 
 		IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
 		IsShopWindowOpen() or
@@ -1100,17 +1116,23 @@ function e_walktopos:execute()
 		if (dist >= 2) then
 			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
+			e_walktopos.lastRun = Now()
+			
 			if (not tonumber(path)) then
-				ml_debug("[e_walktopos] An error occurred in creating the path.")
+				ml_error("[e_walktopos] An error occurred in creating the path.")
+				if (path ~= nil) then
+					d(path)
+				end
 			elseif (path >= 0) then
-				ml_debug("[e_walktopos] A path with " .. path .. " points was created.")
-			elseif (path <= -1 and path >= -10) then
-				ml_debug("[e_walktopos] A path could not be created towards the goal.")
+				ml_debug("[e_walktopos] A path with ["..tostring(path).."] points was created.")
+			elseif (path <= -1) then
+				ml_error("[e_walktopos] A path could not be created towards the goal, error code ["..tostring(path).."].")
 			end
 		else
 			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
 			if (not ml_global_information.Player_IsMoving) then
 				Player:Move(FFXIV.MOVEMENT.FORWARD)
+				e_walktopos.lastRun = Now()
 			end
 		end
 	end

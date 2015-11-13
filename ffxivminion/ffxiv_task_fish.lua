@@ -1330,7 +1330,7 @@ function e_fishnextprofilemap:execute()
 			end
 		end
 		
-		ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
+		--ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
 	end
 end
 
