@@ -437,25 +437,28 @@ function c_chum:evaluate()
 		
 		local useBuff = false
 		local task = ffxiv_task_fish.currentTask
+		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usechum,false)
-			
-			local requiresCast = false
-			if (useBuff) then
-				if (MissingBuffs(Player,"763")) then
-					requiresCast = true
-				end
-			else
-				if (HasBuffs(Player,"763")) then
-					requiresCast = true
-				end
+		elseif (ValidTable(marker)) then
+			useBuff = (marker:GetFieldValue(GetUSString("useChum")) == "1")
+		end
+		
+		local requiresCast = false
+		if (useBuff) then
+			if (MissingBuffs(Player,"763")) then
+				requiresCast = true
 			end
-			
-			if (requiresCast) then
-				local chum = ActionList:Get(4104,1)
-				if (chum and chum.isready) then	
-					return true
-				end
+		else
+			if (HasBuffs(Player,"763")) then
+				requiresCast = true
+			end
+		end
+		
+		if (requiresCast) then
+			local chum = ActionList:Get(4104,1)
+			if (chum and chum.isready) then	
+				return true
 			end
 		end
 	end

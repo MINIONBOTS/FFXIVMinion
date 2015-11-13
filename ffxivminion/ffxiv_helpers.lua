@@ -2319,7 +2319,14 @@ function GetPathDistance(pos1,pos2)
 	
 	return dist
 end
-function HasNavPath(pos1,pos2)
+ml_global_information.lastPathGet = 0
+function HasNavPath(pos1,pos2,previousDistance)
+	if (true) then
+		return true
+	end
+	
+	local previousDistance = IsNull(previousDistance,0)
+	
 	if (pos1 and pos2) then
 		if (CanFlyInZone() and ValidTable(ffxiv_task_test.flightMesh)) then
 			if (ffxiv_task_test.GetPath(pos1,pos2)) then
@@ -2328,30 +2335,38 @@ function HasNavPath(pos1,pos2)
 		end
 		
 		-- See if there is a transport function required to reach this area first.
+		--[[
 		local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
 		if (transportFunction ~= nil and type(transportFunction) == "function") then
 			local retval = transportFunction(pos1,pos2)
 			if (retval == true) then
 				return true
 			end
-		end
-	
+		end--]]
 		
-		local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
-		if (ValidTable(path)) then
-			local lastPos = path[TableSize(path)-1]
-			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos2.x,pos2.y,pos2.z)
-			if (finalDist <= 2) then	
-				--d("Distance from last to end is small, we have a valid path.")
-				return true
-			else
-				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,pos1.x,pos1.y,pos1.z)
-				if (startDist <= 2) then
-					--d("We jumped a very small distance or none at all in this iteration, no path.")
-					return false
-				else
-					--d("Assume path is long and we have further iterations to check.")
-					return HasNavPath(lastPos,pos2)
+		local p1 = NavigationManager:GetClosestPointOnMesh(pos1)
+		local p2 = NavigationManager:GetClosestPointOnMesh(pos2)
+		
+		if (p1 and p2) then
+			if (TimeSince(ml_global_information.lastPathGet) > 2000 or ml_global_information.lastPathGet == Now()) then
+				ml_global_information.lastPathGet = Now()
+				local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
+				if (ValidTable(path)) then
+					local lastPos = path[TableSize(path)-1]
+					local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+					if (finalDist <= 2) then	
+						--d("Distance from last to end is small, we have a valid path.")
+						return true
+					else
+						local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+						if (startDist <= 2) then
+							--d("We jumped a very small distance or none at all in this iteration, no path.")
+							return false
+						else
+							--d("Assume path is long and we have further iterations to check.")
+							return HasNavPath(lastPos,p2)
+						end
+					end
 				end
 			end
 		end
@@ -4671,7 +4686,12 @@ function CanUseAirship()
 	if (GilCount() < 120) then
 		return false
 	else
-		return ((Quest:HasQuest(674) and Quest:GetQuestCurrentStep(674) == 255) or Quest:IsQuestCompleted(674))
+		if ((Quest:IsQuestCompleted(107) and Quest:IsQuestCompleted(546)) or -- Limsa Starter
+			(Quest:IsQuestCompleted(594) and Quest:IsQuestCompleted(528)) or -- Uldah Starter
+			(Quest:IsQuestCompleted(39) and Quest:IsQuestCompleted(507))) -- Gridania Starter
+		then
+			return true
+		end
 	end
 	return false
 end
@@ -4690,7 +4710,15 @@ function CanAccessMap(mapid)
 			
 			local attunedAetherytes = GetAttunedAetheryteList()
 			for k,aetheryte in pairs(attunedAetherytes) do
+				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
+					return true
+				end
+			end
+			
+			local nearestAetheryte = GetAetheryteByMapID(mapid)
+			if (nearestAetheryte) then
+				if (GilCount() >= nearestAetheryte.price) then
 					return true
 				end
 			end
@@ -4705,6 +4733,8 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+		else
+			return true
 		end
 	end
 	

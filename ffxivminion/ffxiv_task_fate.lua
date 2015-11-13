@@ -121,7 +121,7 @@ function c_betterfatesearch:evaluate()
     return false
 end
 function e_betterfatesearch:execute()
-	d("Found a better fate, switching to it.")
+	d("Found a better fate ["..tostring(e_betterfatesearch.fateid).."], switching away from ["..tostring(ml_task_hub:ThisTask().fateid).."].")
 	Player:Stop()
     ml_task_hub:ThisTask().fateid = e_betterfatesearch.fateid
 end
