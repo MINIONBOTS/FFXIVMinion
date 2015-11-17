@@ -29,6 +29,7 @@ ml_global_information.lastMode = ""
 ml_global_information.itemIDsToEquip = {}
 ml_global_information.idlePulseCount = 0
 ml_global_information.autoStartQueued = false
+ml_global_information.loadCompleted = false
 ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
 ml_global_information.navObstaclesTimer = 0
@@ -345,22 +346,30 @@ function ml_global_information.OnUpdate( event, tickcount )
 	if ( gamestate == 1 ) then
 		ml_global_information.InGameOnUpdate( event, tickcount )
 	elseif (gamestate == 2 ) then
-		ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
-	elseif (gamestate == 3 ) then
 		ml_global_information.InTitleScreenOnUpdate( event, tickcount )
+	elseif (gamestate == 3 ) then
+		ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
 	elseif (gamestate == 0 ) then
 		ml_global_information.InOpening( event, tickcount )
 	end
 end
 
 function ml_global_information.InOpening( event, tickcount )
-
+	--d("In the game opening.")
 end
 
 function ml_global_information.InGameOnUpdate( event, tickcount )
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
-		gBotRunning = "0"
+		gBotRunning = "0"		
+	end
+	
+	if (not ml_global_information.loadCompleted) then
+		if (Player) then
+			NavigationManager:SetAreaCost(3,5)
+			ffxivminion.UpdateFoodOptions()
+			ml_global_information.loadCompleted = true
+		end
 	end
 
 	if (ml_global_information.autoStartQueued) then
@@ -586,11 +595,11 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 end
 
 function ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
-
+	--d("In the character select screen.")
 end
 
 function ml_global_information.InTitleScreenOnUpdate( event, tickcount )
-	
+	--d("In the title screen.")
 end
 
 function ffxivminion.GetSetting(strSetting,default)
@@ -618,6 +627,7 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
+	--ffxivminion.LoadModes()
 	
 	if ( not ffxivminion.Windows ) then
 		ffxivminion.Windows = {}
@@ -705,10 +715,10 @@ function ffxivminion.HandleInit()
 	
 	Settings.FFXIVMINION.version = 1.0
 	gFFXIVMINIONPulseTime = ffxivminion.GetSetting("gFFXIVMINIONPulseTime",150)
+	gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
 	gEnableLog = ffxivminion.GetSetting("gEnableLog","0")
 	gLogCNE = ffxivminion.GetSetting("gLogCNE","0")
 	gLogLevel = ffxivminion.GetSetting("gLogLevel","1")
-	gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
 	gMount = ffxivminion.GetSetting("gMount",GetString("none"))
 	gUseMount = ffxivminion.GetSetting("gUseMount","0")
 	gMountDist = ffxivminion.GetSetting("gMountDist","75")
@@ -753,13 +763,9 @@ function ffxivminion.HandleInit()
 		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
 	end
 	
-	if (ValidTable(ffxivminion.modesToLoad)) then
-		ffxivminion.LoadModes()
-	end
-	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
-	ml_global_information.lastMode = gBotMode
+	ml_global_information.lastMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
     
     -- setup parent window for minionlib modules
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
@@ -772,27 +778,21 @@ function ffxivminion.HandleInit()
     if not ml_blacklist.BlacklistExists(GetString("fates")) then
         ml_blacklist.CreateBlacklist(GetString("fates"))
     end
-	
 	if not ml_blacklist.BlacklistExists("FATE Whitelist") then
         ml_blacklist.CreateBlacklist("FATE Whitelist")
     end
-    
     if not ml_blacklist.BlacklistExists(GetString("monsters")) then
         ml_blacklist.CreateBlacklist(GetString("monsters"))
     end
-    
     if not ml_blacklist.BlacklistExists(GetString("gatherMode")) then
         ml_blacklist.CreateBlacklist(GetString("gatherMode"))
     end
-	
 	if not ml_blacklist.BlacklistExists(GetString("huntMonsters")) then
 		ml_blacklist.CreateBlacklist(GetString("huntMonsters"))
 	end
-	
 	if not ml_blacklist.BlacklistExists(GetString("aoe")) then
 		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
-	
 	
 	-- gAutoStart
 	if ( gAutoStart == "1" ) then
@@ -821,11 +821,7 @@ function ffxivminion.HandleInit()
     end
 	if (gPermaSwiftCast == "1") then
         GameHacks:SetPermaSwiftCast(true)
-    end
-	
-	NavigationManager:SetAreaCost(3,5)
-	
-	ffxivminion.UpdateFoodOptions()
+    end	
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
@@ -1698,6 +1694,7 @@ function ffxivminion.LoadModes()
 	local _gmeshname = gmeshname
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		for modeName,task in pairs(ffxivminion.modesToLoad) do
+			--d("Loading mode ["..tostring(modeName).."].")
 			ffxivminion.modes[modeName] = task
 			task:UIInit()
 		end
@@ -1719,8 +1716,10 @@ function ffxivminion.LoadModes()
 	end
 	
 	if (modeFound) then
+		--d("Switching mode to ["..tostring(gBotMode).."].")
 		ffxivminion.SwitchMode(gBotMode)
 	else
+		--d("Mode not found, switching mode to ["..tostring(gBotMode).."].")
 		gBotMode = GetString("grindMode")
 		ffxivminion.SwitchMode(gBotMode)
 	end
