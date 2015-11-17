@@ -697,7 +697,7 @@ c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+	if (ml_global_information.Player_IsLoading or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsCasting) then
 		return false
 	end
 	
@@ -811,7 +811,7 @@ e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if (ml_global_information.Player_IsLoading or 
-		ml_global_information.Player_IsLocked or 
+		(ml_global_information.Player_IsLocked and not IsFlying()) or 
 		ml_global_information.Player_IsCasting or GilCount() < 1500) 
 	then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
@@ -1040,69 +1040,40 @@ function c_walktopos:evaluate()
 		return false
 	end
 	
-    if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then
-		--[[
-		if (not ml_task_hub:ThisTask().distanceCheckTimer or 
-			not ml_task_hub:ThisTask().stuckTicks) 
-		then
-			ml_task_hub:ThisTask().distanceCheckTimer = 0
-			ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-			ml_task_hub:ThisTask().stuckTicks = 0
-		end
-		
-		if (ml_task_hub:ThisTask().distanceCheckTimer) then
-			if (Now() > ml_task_hub:ThisTask().distanceCheckTimer) then
-				if (not ml_task_hub:ThisTask().lastPosition) then
-					ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-				else
-					local lastPos = ml_task_hub:ThisTask().lastPosition
-					local distanceTraveled = Distance3D(myPos.x,myPos.y,myPos.z,lastPos.x,lastPos.y,lastPos.z)
-					
-					--d("Distance traveled was "..tostring(distanceTraveled))
-					
-					if (distanceTraveled < 3) then
-						ml_task_hub:ThisTask().stuckTicks = ml_task_hub:ThisTask().stuckTicks + 1
-					else
-						ml_task_hub:ThisTask().stuckTicks = 0
-					end
-	
-					--d("Current stuck ticks: "..tostring(ml_task_hub:ThisTask().stuckTicks))
-					
-					ml_task_hub:ThisTask().lastPosition = shallowcopy(Player.pos)
-					ml_task_hub:ThisTask().distanceCheckTimer = Now() + 1000
-				end
-			end
-		end
-		--]]
-		
+    if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then		
 		local myPos = ml_global_information.Player_Position
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
+			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
 			if (p and dist > 2) then
+				ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
 				gotoPos = p
 			end
+			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
-		local range = ml_task_hub:CurrentTask().range or 0
-		if (range > 0) then
-			local distance = 0.0
-			if (ml_task_hub:CurrentTask().use3d) then
-				distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (ValidTable(gotoPos)) then
+			local range = ml_task_hub:CurrentTask().range or 0
+			if (range > 0) then
+				local distance = 0.0
+				if (ml_task_hub:CurrentTask().use3d) then
+					distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				else
+					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+				end
+			
+				if (distance > ml_task_hub:CurrentTask().range) then
+					c_walktopos.pos = gotoPos
+					return true
+				end
 			else
-				distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-			end
-		
-			if (distance > ml_task_hub:CurrentTask().range) then
 				c_walktopos.pos = gotoPos
 				return true
 			end
-		else
-			c_walktopos.pos = gotoPos
-			return true
 		end
     end
     return false
@@ -1112,6 +1083,8 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
 		
+		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
+		
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist >= 2) then
 			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
@@ -1119,14 +1092,14 @@ function e_walktopos:execute()
 			e_walktopos.lastRun = Now()
 			
 			if (not tonumber(path)) then
-				ml_debug("[e_walktopos] An error occurred in creating the path.")
+				ml_debug("[e_walktopos]: An error occurred in creating the path.")
 				if (path ~= nil) then
 					ml_debug(path)
 				end
 			elseif (path >= 0) then
-				ml_debug("[e_walktopos] A path with ["..tostring(path).."] points was created.")
+				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.")
 			elseif (path <= -1) then
-				ml_debug("[e_walktopos] A path could not be created towards the goal, error code ["..tostring(path).."].")
+				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].")
 			end
 		else
 			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
@@ -1141,7 +1114,12 @@ end
 
 c_avoidaggressives = inheritsFrom( ml_cause )
 e_avoidaggressives = inheritsFrom( ml_effect )
+e_avoidaggressives.timer = 0
 function c_avoidaggressives:evaluate()
+	if (Now() < e_avoidaggressives.timer) then
+		return false
+	end
+	
 	local needsUpdate = false
 	
 	local aggressives = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance=50")
@@ -1194,6 +1172,7 @@ function c_avoidaggressives:evaluate()
 	return false
 end
 function e_avoidaggressives:execute()
+	e_avoidaggressives.timer = Now() + 2000
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 

@@ -4,6 +4,9 @@ ffxiv_task_test.lastPathCheck = 0
 ffxiv_task_test.flightMesh = {}
 ffxiv_task_test.lastTaskSet = {}
 ffxiv_task_test.lastRect = {}
+ffxiv_task_test.cubePath = GetStartupPath() .. [[\Navigation\]] .. "cube.test"
+ffxiv_task_test.storageCube = {}
+
 ffxiv_task_test.flyMounts = {
 	[1] = true,
 	[5] = true,
@@ -159,9 +162,10 @@ function c_flighttakeoff:evaluate()
 		if (nearestJunction) then
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,nearestJunction.x,nearestJunction.y,nearestJunction.z)
 			if (dist <= 15) then
+				d("Attempt to take off.")
 				return true
 			else
-				d("Attempt to take off.")
+				d("Need to move closer to junction.")
 			end
 		end	
 	end
@@ -221,8 +225,8 @@ function c_walktotakeoff:evaluate()
 		if (nearestJunction) then
 			local dist = Distance3D(ppos.x,ppos.y,ppos.z,nearestJunction.x,nearestJunction.y,nearestJunction.z)
 			if (dist > 15) then
-				local meshPoint = NavigationManager:GetClosestPointOnMesh(nearestJunction)
-				e_walktotakeoff.pos = meshPoint or nearestJunction
+				--local meshPoint = NavigationManager:GetClosestPointOnMesh(nearestJunction)
+				e_walktotakeoff.pos = nearestJunction
 				return true
 			end
 		end
@@ -749,6 +753,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 								--d("Adjusting pitch to ["..tostring(pitch).."].")
 								Player:SetPitch(pitch)
 							end
+							ml_global_information.idlePulseCount = 0
 						else
 							local distCurrent = Distance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
 							if (distCurrent <= 4) then
@@ -829,7 +834,10 @@ function ffxiv_task_test.GetFlightPoints(basePos)
 		
 		for i,vertices in pairs(container) do
 			for k,v in pairs(vertices) do
-				table.insert(points,v)
+				local raycast = MeshManager:RayCast(thisPos.x,thisPos.y,thisPos.z,v.x,v.y,v.z)
+				if (raycast == nil) then
+					table.insert(points,v)
+				end
 			end
 		end
 	elseif (gTestRecordPattern == "Matrix") then
@@ -891,7 +899,10 @@ function ffxiv_task_test.GetFlightPoints(basePos)
 		
 		for i,vertices in pairs(container) do
 			for k,v in pairs(vertices) do
-				table.insert(points,v)
+				local raycast = MeshManager:RayCast(thisPos.x,thisPos.y,thisPos.z,v.x,v.y,v.z)
+				if (raycast == nil) then
+					table.insert(points,v)
+				end
 			end
 		end
 	elseif (gTestRecordPattern == "Laser") then
@@ -963,10 +974,45 @@ function ffxiv_task_test.RenderPoints(points,altcolor,altsize,altheight)
 	end
 end
 
+function ffxiv_task_test.PruneFlightMesh()
+	local prunedPoints = 0
+	local allowedPoints = 0
+	
+	local mesh = ffxiv_task_test.flightMesh
+	if (ValidTable(mesh)) then
+		for k,v in pairs(mesh) do
+			allowedPoints = 0
+			local neighbors = findNeighbors(ffxiv_task_test.storageCube,v,false)
+			if (ValidTable(neighbors)) then
+				--d("Found ["..tostring(TableSize(neighbors)).."] neighbors for point.")
+				for i,neighbor in pairs(neighbors) do
+					local dist = Distance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
+					if (dist < 5) then
+						table.remove(mesh,k)
+						removeFromCube(ffxiv_task_test.storageCube,v)
+						prunedPoints = prunedPoints + 1
+						break
+					else
+						allowedPoints = allowedPoints + 1
+					end
+				end
+				--d("Allowed ["..tostring(allowedPoints).."] neighbors.")
+			end
+		end
+	end
+	
+	if (prunedPoints > 0) then
+		d("Pruned ["..tostring(prunedPoints).."].")
+		ffxiv_task_test.SaveFlightMesh()
+	end
+end
+
 function ffxiv_task_test.ReadFlightMesh()
 	local file = Player.localmapid .. ".flight"
 	local path = GetStartupPath() .. [[\Navigation\]]
 	local fullPath = path .. file
+	
+	ffxiv_task_test.CreateStorage()
 	
 	local info = {}
 	if (FileExists(fullPath)) then
@@ -974,6 +1020,13 @@ function ffxiv_task_test.ReadFlightMesh()
 		if (ValidTable(info) and ValidTable(info.mesh)) then
 			ffxiv_task_test.flightMesh = info.mesh
 			ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
+			
+			local mesh = ffxiv_task_test.flightMesh
+			if (ValidTable(mesh)) then
+				for k,v in pairs(mesh) do
+					insertIntoCube(ffxiv_task_test.storageCube,v)
+				end
+			end
 			return true
 		end
 	end
@@ -990,41 +1043,22 @@ function ffxiv_task_test.SaveFlightMesh()
 	d("Attempting to save flight mesh at path :"..tostring(fullPath))
 	d("Mesh contains "..tostring(TableSize(ffxiv_task_test.flightMesh)).." points.")
 	
-	--[[
-	if (ValidTable(ffxiv_task_test.flightMesh)) then
-		local mesh = ffxiv_task_test.flightMesh
-		
-		local atan2 = math.atan2
-		local dist_3d = Distance3D
-		local MIN_DIST = 6
-		local MAX_DIST = 20
-		
-		local timeStarted = os.clock()
-		for k,data in pairs(mesh) do
-			data.neighbors = {}
-			local neighbors = data.neighbors
-			for j,neighbor in pairs(mesh) do
-				local raycast_b = MeshManager:RayCast(data.x,data.y,data.z,neighbor.x,neighbor.y,neighbor.z)
-				if (raycast_b == nil) then	
-					local nodedist = dist_3d(data.x,data.y,data.z,neighbor.x,neighbor.y,neighbor.z)
-					if (nodedist >= MIN_DIST and nodedist < MAX_DIST) then
-						local pitch = atan2((data.y - neighbor.y),nodedist)
-						if (pitch >= -.785 and pitch <= 1.38) then
-							table.insert(neighbors,neighbor.id)
-						end
-					end					
-				end
-			end
-		end
-		
-		local timeFinished = os.clock()
-		local timeDiff = os.difftime(timeFinished,timeStarted)
-		d("Took ["..tostring(timeDiff).."] seconds to iterate.")
-	end
-	--]]
-	
 	local info = {}
-	info.mesh = ffxiv_task_test.flightMesh
+	
+	local newmesh = {}
+	local newsize = 0
+	
+	for k,v in pairsByKeys(ffxiv_task_test.flightMesh) do
+		newsize = #newmesh+1
+		newmesh[newsize] = v
+		newmesh[newsize].id = newsize
+		newmesh[newsize].neighbors = nil
+		newmesh[newsize].h = nil
+	end
+	
+	info.mesh = newmesh
+	ffxiv_task_test.flightMesh = newmesh
+	
 	persistence.store(fullPath,info)
 end
 
@@ -1051,7 +1085,7 @@ function ffxiv_task_test.GetPath(from,to)
 				local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
 				--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
 				
-				if (myDist > 25 and spanDist > 25) then
+				if (myDist > 20 and spanDist > 10) then
 					point1 = nearestJunction
 					allowed = true
 				else
@@ -1101,6 +1135,7 @@ function ffxiv_task_test.GetPath(dest)
 end
 --]]
 
+--[[
 function ffxiv_task_test.NearestMeshPoint()
 	local myPos = Player.pos
 	local p,dist = NavigationManager:GetClosestPointOnMesh({x = myPos.x, y = myPos.y, z = myPos.z})
@@ -1108,6 +1143,305 @@ function ffxiv_task_test.NearestMeshPoint()
 		d(p)
 		d("Closest mesh point distance ["..tostring(dist).."].")
 	end
+end
+--]]
+
+function ffxiv_task_test.InsertIntoTree()
+	local mesh = ffxiv_task_test.flightMesh
+	if (ValidTable(mesh)) then
+		for k,v in pairs(mesh) do
+			insertIntoCube(ffxiv_task_test.storageCube,v)
+		end
+	end
+	
+	--persistence.store(ffxiv_task_test.cubePath,ffxiv_task_test.storageCube)
+end
+
+function ffxiv_task_test.FindNeighbors()
+	local renderedPoints = {}
+	
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,Player.pos)
+	if (ValidTable(neighbors)) then
+		for i,neighbor in pairs(neighbors) do
+			table.insert(renderedPoints,neighbor)
+		end
+	end
+	
+	if (ValidTable(renderedPoints)) then
+		ffxiv_task_test.RenderPoints(renderedPoints,1)
+	end
+end
+
+function insertIntoCube(cube,pos)
+	local storageUnit = findContainer(cube,pos)
+	if (storageUnit.points == nil) then storageUnit.points = {} end
+	storageUnit.points[#storageUnit.points+1] = pos
+end
+
+function removeFromCube(cube,pos)
+	local storageUnit = findContainer(cube,pos)
+	if (ValidTable(storageUnit.points)) then
+		for k,v in pairs(points) do
+			if (v.id == pos.id) then
+				storageUnit.points[k] = nil
+			end
+		end
+	end
+end
+
+function findNeighbors(cube,pos,validonly)
+	local validonly = IsNull(validonly,true)
+	local neighbors = {}
+
+	local storageUnit,storageUnitParent = findClosestChild(cube,pos)
+	local nearestVertex = getNearestVertex(storageUnit.vertices,pos)
+	local neighborUnits = findAllContainers(cube,nearestVertex)
+	
+	local neighborSubset = {}
+	for i,neighborUnit in pairs(neighborUnits) do
+		local points = getAllPoints(neighborUnit)
+		if (ValidTable(points)) then
+			for j,point in pairs(points) do
+				neighborSubset[#neighborSubset+1] = point
+			end
+		end
+	end
+	
+	local insert = table.insert
+	local atan2 = math.atan2
+	local dist_between = dist_between
+	
+	local MIN_DIST = 7
+	local MAX_DIST = 50
+	
+	local neighbors = {}
+	if (validonly) then
+		for _, node in pairs(neighborSubset) do
+			local nodedist = dist_between(pos,node)
+			if (nodedist >= MIN_DIST and nodedist <= MAX_DIST) then
+				local raycast = MeshManager:RayCast(pos.x,pos.y,pos.z,node.x,node.y,node.z)
+				if (raycast == nil) then
+					local raycastlow = MeshManager:RayCast(pos.x,(pos.y-1.6),pos.z,node.x,(node.y-1.6),node.z)
+					if (raycastlow == nil) then
+						local pitch = atan2((pos.y - node.y),nodedist)
+						if (pitch >= -.785 and pitch <= 1.38) then
+							neighbors[#neighbors+1] = node
+						end
+					end
+				end
+			end
+		end
+	else
+		for _, node in pairs(neighborSubset) do
+			local nodedist = dist_between(pos,node)
+			if (nodedist > 0) then
+				neighbors[#neighbors+1] = node
+			end
+		end
+	end
+	
+	return neighbors
+end
+
+function getNearestVertex(vertices,pos)
+	local nearest = nil
+	local nearestDistance = math.huge
+		
+	if (ValidTable(vertices)) then
+		for i,vertex in pairs(vertices) do
+			local dist = Distance3D(vertex.x,vertex.y,vertex.z,pos.x,pos.y,pos.z)
+			if (not nearest or (nearest and dist < nearestDistance)) then
+				nearest = vertex
+				nearestDistance = dist
+			end
+		end
+	end
+	return nearest
+end
+
+function getVertices(cube)
+	local vertices = {}
+	local size = cube.size
+	local half = size * 0.5
+
+	-- Upper Right - Positive Axis
+	vertices[1] = { x = (cube.x + half), y = (cube.y + half), z = (cube.z + half) }
+	-- Upper Left - Positive Axis
+	vertices[2] = { x = (cube.x - half), y = (cube.y + half), z = (cube.z + half) }
+	-- Lower Right - Positive Axis
+	vertices[3] = { x = (cube.x + half), y = (cube.y + half), z = (cube.z - half) }
+	-- Lower Left - Positive Axis
+	vertices[4] = { x = (cube.x - half), y = (cube.y + half), z = (cube.z - half) }
+	-- Upper Right - Negative Axis
+	vertices[5] = { x = (cube.x + half), y = (cube.y - half), z = (cube.z + half) }
+	-- Upper Left - Positive Axis
+	vertices[6] = { x = (cube.x - half), y = (cube.y - half), z = (cube.z + half) }
+	-- Lower Right - Negative Axis
+	vertices[7] = { x = (cube.x + half), y = (cube.y - half), z = (cube.z - half) }
+	-- Lower Left - Positive Axis
+	vertices[8] = { x = (cube.x - half), y = (cube.y - half), z = (cube.z - half) }
+	
+	return vertices
+end
+
+function getBoundaries(cube)
+	local size = cube.size
+	local half = size * 0.5
+	
+	local boundaries = {
+		xmin = cube.x - half, xmax = cube.x + half,
+		ymin = cube.y - half, ymax = cube.y + half,
+		zmin = cube.z - half, zmax = cube.z + half,
+	}
+	
+	return boundaries
+end
+
+function bisectionalSearch(cube,pos)
+	local nearest = nil
+	local secondary = nil
+	local nearestDist = math.huge
+	local secondaryDist = math.huge
+	
+	for i,child in pairs(cube.children) do
+		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		if (not nearest or (nearest and dist < nearestDist)) then
+			nearestDist = dist
+			nearest = child
+		else
+			if (not secondary or (secondary and dist < secondaryDist)) then
+				secondaryDist = dist
+				secondary = child
+			end
+		end
+	end
+	
+	local closestChild,closestChildParent = findClosestChild(nearest,pos)
+	local secondaryChild,secondaryChildParent = findClosestChild(secondary,pos)
+	
+	return closestChildParent,secondaryChildParent
+end
+
+function findContainer(cube,pos)
+	local container = nil
+	for i,child in pairs(cube.children) do
+		if (child.boundaries.xmin <= pos.x and pos.x <= child.boundaries.xmax) then
+			if (child.boundaries.ymin <= pos.y and pos.y <= child.boundaries.ymax) then
+				if (child.boundaries.zmin <= pos.z and pos.z <= child.boundaries.zmax) then
+					container = child
+				end
+			end
+		end
+		
+		if (container) then
+			break
+		end
+	end
+	
+	if (ValidTable(container.children)) then
+		return findContainer(container,pos)
+	else
+		return container
+	end
+end
+
+function findAllContainers(cube,pos)
+	local returnables = {}
+	local containers = findContainers(cube,pos)
+	
+	if (ValidTable(containers)) then
+		local open = containers
+		local closed = {}
+	 
+		while TableSize(open) > 0 do
+			local i,container = next(open)
+			
+			if (ValidTable(container.children)) then
+				local newcontainers = findContainers(container,pos)
+				if (ValidTable(newcontainers)) then
+					for j,child in pairs(newcontainers) do
+						table.insert(open,child)
+					end
+				end
+			else
+				table.insert(closed,container)
+			end
+			table.remove(open,i)
+		end
+		
+		return closed
+	end
+	return nil
+end
+
+function findContainers(cube,pos)
+	local containers = {}
+	for i,child in pairs(cube.children) do
+		if (child.boundaries.xmin <= pos.x and pos.x <= child.boundaries.xmax) then
+			if (child.boundaries.ymin <= pos.y and pos.y <= child.boundaries.ymax) then
+				if (child.boundaries.zmin <= pos.z and pos.z <= child.boundaries.zmax) then
+					table.insert(containers,child)
+				end
+			end
+		end
+	end
+	
+	return containers
+end
+
+function findClosestChild(cube,pos)
+	local nearest = nil
+	local nearestDist = math.huge
+	
+	for i,child in pairs(cube.children) do
+		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		if (not nearest or (nearest and dist < nearestDist)) then
+			nearestDist = dist
+			nearest = child
+		end
+	end
+	
+	if (ValidTable(nearest.children)) then
+		return findClosestChild(nearest,pos)
+	else
+		-- Return the child and the parent for easy access
+		return nearest,cube
+	end
+end
+
+function findCloseChildren(cube,pos,returnables)
+	returnables = IsNull(returnables,{})
+	
+	local nearest = nil
+	local nearestDist = math.huge
+	
+	for i,child in pairs(cube.children) do
+		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		if (not nearest or (nearest and dist < nearestDist)) then
+			nearestDist = dist
+			nearest = child
+		elseif (nearest and dist == nearestDist) then
+			returnables[#returnables+1] = child
+		end
+	end
+	
+	if (ValidTable(nearest.children)) then
+		return findCloseChildren(nearest,pos)
+	else
+		-- Return the child and the parent for easy access
+		return nearest,cube
+	end
+end
+
+function getAllPoints(cube)
+	local points = {}
+	if (ValidTable(cube.points)) then
+		for _,point in pairs(cube.points) do
+			points[#points+1] = point
+		end
+	end
+	
+	return points
 end
 
 --d(NavigationManager:GetClosestPointOnMesh({x = , y = , z = })
@@ -1122,7 +1456,7 @@ function ffxiv_task_test.GetNearestFlightJunction(pos)
 			for k,v in pairs(mesh) do
 				local vpos = {x = v.x, y = v.y, z = v.z }
 				local p,pdist = NavigationManager:GetClosestPointOnMesh(vpos)
-				if (p and pdist < 15) then
+				if (p and pdist ~= 0 and pdist < 15) then
 					local dist = Distance3D(pos.x,pos.y,pos.z,v.x,v.y,v.z)
 					if (not closest or (closest and dist < closestDistance)) then
 						closest = v
@@ -1197,10 +1531,13 @@ function ffxiv_task_test.UIInit()
 	GUI_NewField(winName,	"Fly Height",	"gTestFlyHeight","FlightMesh")
 	GUI_NewButton(winName, 	"Save Mesh", 	"ffxiv_task_test.SaveFlightMesh", "FlightMesh")
 	GUI_NewButton(winName, 	"Read Mesh", 	"ffxiv_task_test.ReadFlightMesh", "FlightMesh")
+	GUI_NewButton(winName, 	"Prune Mesh", 	"ffxiv_task_test.PruneFlightMesh", "FlightMesh")
 	GUI_NewButton(winName, 	"Get Path", 	"ffxiv_task_test.GetPath", "FlightMesh")
 	
 	GUI_NewButton(winName, "Face Next Path", "ffxiv_task_test.FaceNextPath", "FlightMesh")
-	GUI_NewButton(winName, "Nearest Mesh Point", "ffxiv_task_test.NearestMeshPoint", "FlightMesh")
+	--GUI_NewButton(winName, "Nearest Mesh Point", "ffxiv_task_test.NearestMeshPoint", "FlightMesh")
+	GUI_NewButton(winName, "Insert Into Tree", "ffxiv_task_test.InsertIntoTree", "FlightMesh")
+	GUI_NewButton(winName, "Find Neighbors", "ffxiv_task_test.FindNeighbors", "FlightMesh")
 	
     GUI_NewField(winName, "MapID:", "gTestMapID","NavTest")
 	GUI_NewField(winName, "X:", "gTestMapX","NavTest")
@@ -1227,6 +1564,12 @@ function ffxiv_task_test.UIInit()
 	GUI_UnFoldGroup(winName,"NavTest")
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
+end
+
+function ffxiv_task_test.CreateStorage()
+	ffxiv_task_test.storageCube = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
+	quadrasectCube(ffxiv_task_test.storageCube,1,5)
+	--persistence.store(ffxiv_task_test.cubePath,ffxiv_task_test.storageCube)
 end
 
 function ffxiv_task_test.GUIVarUpdate(Event, NewVals, OldVals)
@@ -1264,35 +1607,48 @@ function ffxiv_task_test.IsInsideRect()
 end
 
 function ffxiv_task_test.OnUpdate( event, tickcount )
-	if (TimeSince(ffxiv_task_test.lastTick) >= 1000) then
+	if (TimeSince(ffxiv_task_test.lastTick) >= 2000) then
 		ffxiv_task_test.lastTick = Now()
 		
 		if (gTestRecordFlight == "1") then
 			local mesh = ffxiv_task_test.flightMesh
 			local newPoints = ffxiv_task_test.GetFlightPoints()
+			local ppos = Player.pos
 			local renderedPoints = {}
 			
 			if (ValidTable(newPoints)) then
 				--d("Have new points to check.")
 				for k,v in pairs(newPoints) do
 					local allowed = true
-					for i,j in pairs(mesh) do
-						local dist = Distance3D(j.x,j.y,j.z,v.x,v.y,v.z)
-						if (dist < 8) then
-							allowed = false
-							break
+					
+					local neighbors = findNeighbors(ffxiv_task_test.storageCube,v,false)
+					if (ValidTable(neighbors)) then
+						for i,neighbor in pairs(neighbors) do
+							local dist = Distance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
+							if (dist < 7) then
+								allowed = false
+								break
+							end
 						end
 					end
-					
+
 					if (allowed) then
-						--d("Passed first check.")
-						local p,dist = NavigationManager:GetClosestPointOnMesh(v)
-						if (not p or (p and (dist > 2 or dist == 0))) then
+						local raycast = MeshManager:RayCast(ppos.x,ppos.y,ppos.z,v.x,v.y,v.z)
+						if (raycast == nil) then
 							v.id = TableSize(mesh)+1
 							table.insert(mesh,v)
+							insertIntoCube(ffxiv_task_test.storageCube,v)
 							table.insert(renderedPoints,v)
-							--d("Adding a new point.")
 						end
+						
+						--d("Passed first check.")
+						--local p,dist = NavigationManager:GetClosestPointOnMesh(v)
+						--if (not p or (p and (dist > 2 or dist == 0))) then
+							--v.id = TableSize(mesh)+1
+							--table.insert(mesh,v)
+							--table.insert(renderedPoints,v)
+							--d("Adding a new point.")
+						--end
 					end
 				end
 				
@@ -1445,7 +1801,12 @@ function lowest_f_score ( set, f_score )
 	return bestNode
 end
 
-function neighbor_nodes ( theNode, nodes )
+function neighbor_nodes(thisNode, nodes)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,{x = thisNode.x, y = thisNode.y, z = thisNode.z})
+	return neighbors
+end
+
+--[[function neighbor_nodes ( theNode, nodes )
 	local insert = table.insert
 	local atan2 = math.atan2
 	local dist_between = dist_between
@@ -1471,6 +1832,7 @@ function neighbor_nodes ( theNode, nodes )
 	
 	return neighbors
 end
+--]]
 
 function not_in ( set, theNode )
 	for _, node in pairs ( set ) do
@@ -1568,18 +1930,19 @@ end
 
 local base = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
 --local base = { size = 20, x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
-local newcube = {}
 local count = 0
 local insert = table.insert
 
 function quadrasectCube(cube,depth,maxdepth)
 	local depth = depth or 1
 	local maxdepth = maxdepth or 6
+	local newcube = {}
 	
 	if (IsTable(cube)) then
 		local size = cube.size * 0.5
 		local half = size * 0.5
 		for x = 1,8 do
+			newcube = {}
 			if (x == 1) then
 				-- Upper Right - Positive Axis
 				newcube = { size = size, x = (cube.x + half), y = (cube.y + half), z = (cube.z + half), children = {} }
@@ -1607,6 +1970,8 @@ function quadrasectCube(cube,depth,maxdepth)
 			end
 			if (newcube.y >= -500 and newcube.y <= 500) then
 				if (cube.children == nil) then cube.children = {} end
+				newcube.vertices = getVertices(newcube)
+				newcube.boundaries = getBoundaries(newcube)
 				insert(cube.children,newcube)
 			end
 		end
