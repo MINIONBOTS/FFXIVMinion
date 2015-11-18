@@ -168,7 +168,11 @@ function c_flighttakeoff:evaluate()
 end
 function e_flighttakeoff:execute()
 	if (Player.ismounted) then
-		Player:Stop()
+		if (Player:IsMoving()) then
+			Player:Stop()
+			ml_task_hub:CurrentTask():SetDelay(500)
+		end
+		Player:Jump()
 		Player:Jump()
 		Player:Jump()
 		ml_task_hub:CurrentTask():SetDelay(1000)
@@ -405,7 +409,7 @@ function c_flytopos:evaluate()
 		end
 		
 		if (ffxiv_task_test.HasJunction(myPos)) then
-			if (ffxiv_task_test.HasJunction(myPos)) then
+			if (ffxiv_task_test.HasJunction(gotoPos)) then
 				local path = ffxiv_task_test.GetPath(myPos,gotoPos)
 				if (ValidTable(path)) then
 					c_flytopos.pos = gotoPos
