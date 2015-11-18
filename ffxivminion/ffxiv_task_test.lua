@@ -7,7 +7,6 @@ ffxiv_task_test.lastRect = {}
 ffxiv_task_test.cubePath = GetStartupPath() .. [[\Navigation\]] .. "cube.test"
 ffxiv_task_test.storageCube = {}
 ffxiv_task_test.courseFlight = {}
-ffxiv_task_test.junctionCube = {}
 
 ffxiv_task_test.flyMounts = {
 	[1] = true,
@@ -156,11 +155,11 @@ end
 
 c_flighttakeoff = inheritsFrom( ml_cause )
 e_flighttakeoff = inheritsFrom( ml_effect )
+c_flighttakeoff.timer = 0
 function c_flighttakeoff:evaluate()
-	if (not IsFlying() and CanFlyInZone()) then
-
+	if (not IsFlying() and CanFlyInZone() and (Player.ismounted or not Player.incombat)) then
 		local ppos = ml_global_information.Player_Position
-		local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(ppos)
+		local nearestJunction = ffxiv_task_test.HasJunction(ppos)
 		if (nearestJunction) then
 			return true
 		end	
@@ -169,8 +168,10 @@ function c_flighttakeoff:evaluate()
 end
 function e_flighttakeoff:execute()
 	if (Player.ismounted) then
+		Player:Stop()
 		Player:Jump()
 		Player:Jump()
+		ml_task_hub:CurrentTask():SetDelay(1000)
 	else
 		if (not IsMounting()) then
 			local mountID = nil
@@ -401,17 +402,21 @@ function c_flytopos:evaluate()
 			gotoPos = ml_task_hub:CurrentTask().gatePos
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
-			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist > 2) then
-				gotoPos = p
-			end
 		end
 		
-		local path = ffxiv_task_test.GetPath(myPos,gotoPos)
-		if (ValidTable(path)) then
-			c_flytopos.pos = gotoPos
-			c_flytopos.path = path
-			return true
+		if (ffxiv_task_test.HasJunction(myPos)) then
+			if (ffxiv_task_test.HasJunction(myPos)) then
+				local path = ffxiv_task_test.GetPath(myPos,gotoPos)
+				if (ValidTable(path)) then
+					c_flytopos.pos = gotoPos
+					c_flytopos.path = path
+					return true
+				end
+			else
+				d("Destination has no junction areas.")
+			end
+		else
+			d("Our position has no junction areas.")
 		end
     end
 	
@@ -750,6 +755,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 									d("Altering path.")
 									return false
 								else
+									d("Could not find alternative path, quitting flight.")
 									return true
 								end
 							end
@@ -790,7 +796,7 @@ function ffxiv_task_movewithflight:task_complete_execute()
     self.completed = true
 end
 function ffxiv_task_movewithflight:task_fail_eval()
-	if (not IsFlying() and not Player.ismounted) then
+	if (not IsFlying() and not Player.ismounted and not IsMounting()) then
 		if (Player.incombat) then
 			d("Quitting flight attempt, in combat.")
 			return true
@@ -800,6 +806,8 @@ function ffxiv_task_movewithflight:task_fail_eval()
 	return false
 end
 function ffxiv_task_movewithflight:task_fail_execute()
+	Player:Stop()
+	Dismount()
     self.valid = false
 end
 
@@ -983,10 +991,16 @@ function ffxiv_task_test.CreateStorage()
 	ffxiv_task_test.storageCube = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
 	quadrasectCube(ffxiv_task_test.storageCube,1,5,0)
 	
-	ffxiv_task_test.junctionCube = { size = 2000, x = 0, y = 0, z = 0, children = {} }
-	quadrasectCube(ffxiv_task_test.junctionCube,1,5,0)
-	
 	--persistence.store(ffxiv_task_test.cubePath,ffxiv_task_test.storageCube)
+end
+
+function ffxiv_task_test.HasJunction(pos)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false)
+	if (ValidTable(neighbors)) then
+		return true
+	end
+	
+	return false
 end
 
 function ffxiv_task_test.GetNearestFlightJunction(pos)
@@ -1005,7 +1019,6 @@ function ffxiv_task_test.GetNearestFlightJunction(pos)
 		return closest
 	end
 	
-	d("Found no neighbors for "..tostring(pos)..".")
 	return nil
 end
 
@@ -1064,7 +1077,6 @@ function ffxiv_task_test.ReadFlightMesh()
 				for k,v in pairs(mesh) do
 					insertIntoCube(ffxiv_task_test.storageCube,v)
 					if (v.isjunction == true) then
-						insertIntoCube(ffxiv_task_test.junctionCube,v)
 						renderJunction[#renderJunction+1] = v
 					else
 						renderNonJunction[#renderNonJunction+1] = v
@@ -1649,9 +1661,18 @@ function ffxiv_task_test.GUIVarUpdate(Event, NewVals, OldVals)
 			if (v == "1") then
 				ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
 				gTestDeleteFlight = "0"
+				gTestUpdateFlight = "0"
 			end
 		elseif (k == "gTestDeleteFlight") then
 			if (v == "1") then
+				ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
+				gTestRecordFlight = "0"
+				gTestUpdateFlight = "0"
+			end
+		elseif (k == "gTestUpdateFlight") then
+			if (v == "1") then
+				ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
+				gTestDeleteFlight = "0"
 				gTestRecordFlight = "0"
 			end
 		end
