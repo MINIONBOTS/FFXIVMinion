@@ -6,6 +6,8 @@ ffxiv_task_test.lastTaskSet = {}
 ffxiv_task_test.lastRect = {}
 ffxiv_task_test.cubePath = GetStartupPath() .. [[\Navigation\]] .. "cube.test"
 ffxiv_task_test.storageCube = {}
+ffxiv_task_test.courseFlight = {}
+ffxiv_task_test.junctionCube = {}
 
 ffxiv_task_test.flyMounts = {
 	[1] = true,
@@ -160,13 +162,7 @@ function c_flighttakeoff:evaluate()
 		local ppos = ml_global_information.Player_Position
 		local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(ppos)
 		if (nearestJunction) then
-			local dist = Distance3D(ppos.x,ppos.y,ppos.z,nearestJunction.x,nearestJunction.y,nearestJunction.z)
-			if (dist <= 15) then
-				d("Attempt to take off.")
-				return true
-			else
-				d("Need to move closer to junction.")
-			end
+			return true
 		end	
 	end
 	return false
@@ -212,6 +208,7 @@ function e_flighttakeoff:execute()
 	end
 end
 
+--[[
 c_walktotakeoff = inheritsFrom( ml_cause )
 e_walktotakeoff = inheritsFrom( ml_effect )
 e_walktotakeoff.pos = nil
@@ -245,6 +242,7 @@ function e_walktotakeoff:execute()
 	newTask.range = 5
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
+--]]
 
 --[[
 c_flylanding = inheritsFrom( ml_cause )
@@ -694,8 +692,8 @@ function ffxiv_task_movewithflight:Init()
 	local ke_takeOff = ml_element:create( "TakeOff", c_flighttakeoff, e_flighttakeoff, 80 )
     self:add( ke_takeOff, self.process_elements)
 	
-	local ke_moveToTakeOff = ml_element:create( "MoveToTakeOff", c_walktotakeoff, e_walktotakeoff, 75 )
-    self:add( ke_moveToTakeOff, self.process_elements)
+	--local ke_moveToTakeOff = ml_element:create( "MoveToTakeOff", c_walktotakeoff, e_walktotakeoff, 75 )
+    --self:add( ke_moveToTakeOff, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
@@ -745,6 +743,17 @@ function ffxiv_task_movewithflight:task_complete_eval()
 								return false
 							end
 							
+							if (raycast == true) then
+								local newPath = ffxiv_task_test.GetPath(Player.pos,self.pos)
+								if (ValidTable(newPath)) then
+									self.path = newPath
+									d("Altering path.")
+									return false
+								else
+									return true
+								end
+							end
+							
 							--Player:SetFacing(travelPoint.x,travelPoint.y,travelPoint.z)
 							SmartTurn(travelPoint)
 							local pitch = math.atan2((myPos.y - travelPoint.y), distNext)
@@ -780,26 +789,20 @@ function ffxiv_task_movewithflight:task_complete_execute()
 	ml_global_information.landing = true
     self.completed = true
 end
-
---[[
-function ffxiv_task_test.GetFlightPoints(basePos)
-	local thisPos = renderpos or Player.pos
-	local heading = thisPos.h
+function ffxiv_task_movewithflight:task_fail_eval()
+	if (not IsFlying() and not Player.ismounted) then
+		if (Player.incombat) then
+			d("Quitting flight attempt, in combat.")
+			return true
+		end
+	end
 	
-	local playerForward = ConvertHeading(heading)%(2*math.pi)
-	local playerRight = ConvertHeading((heading - (math.pi/2)))%(2*math.pi)
-	local playerLeft = ConvertHeading((heading + (math.pi/2)))%(2*math.pi)
-	local playerRear = ConvertHeading((heading - (math.pi)))%(2*math.pi)
-	
-	local points = {
-		GetPosFromDistanceHeading(thisPos, 0.75, playerForward),
-		GetPosFromDistanceHeading(thisPos, 0.75, playerRight),
-		GetPosFromDistanceHeading(thisPos, 0.75, playerLeft),
-		GetPosFromDistanceHeading(thisPos, 0.75, playerRear),
-	}
-	return points
+	return false
 end
---]]
+function ffxiv_task_movewithflight:task_fail_execute()
+    self.valid = false
+end
+
 
 function ffxiv_task_test.GetFlightPoints(basePos)
 	local thisPos = renderpos or Player.pos
@@ -916,30 +919,32 @@ function ffxiv_task_test.GetFlightPoints(basePos)
 			table.insert(points,l)
 		end
 	elseif (gTestRecordPattern == "LaserX") then
-		--[[
-		for i = 1,20 do
-			local f = GetPosFromDistanceHeading(thisPos, ((tonumber(gTestRecordTolerance) or 5) * i), playerForward)
-			local r = GetPosFromDistanceHeading(thisPos, ((tonumber(gTestRecordTolerance) or 5) * i), playerRight),
-			local l = GetPosFromDistanceHeading(thisPos, ((tonumber(gTestRecordTolerance) or 5) * i), playerLeft),
-			
-			table.insert(points,f)
-			table.insert(points,r)
-			table.insert(points,l)
-		end
+		local recordTolerance = tonumber(gTestRecordTolerance) or 5
 		
-		local container = {}
-		container.base = {
-			f = GetPosFromDistanceHeading(thisPos, tonumber(gTestRecordTolerance) or 5, playerForward),
-			r = GetPosFromDistanceHeading(thisPos, tonumber(gTestRecordTolerance) or 5, playerRight),
-			l = GetPosFromDistanceHeading(thisPos, tonumber(gTestRecordTolerance) or 5, playerLeft,
-			b = GetPosFromDistanceHeading(thisPos, tonumber(gTestRecordTolerance) or 5, playerRear),
-		}
-		for i,vertices in pairs(container) do
-			for k,v in pairs(vertex) do
-				table.insert(points,v)
+		local f = GetPosFromDistanceHeading(thisPos, recordTolerance, playerForward)
+		local r = GetPosFromDistanceHeading(thisPos, recordTolerance, playerRight)
+		local l = GetPosFromDistanceHeading(thisPos, recordTolerance, playerLeft)
+		
+		for i = 1,25 do
+			local f = GetPosFromDistanceHeading(f, (recordTolerance * i), playerForward)
+			local r = GetPosFromDistanceHeading(r, (recordTolerance * i), playerForward)
+			local l = GetPosFromDistanceHeading(l, (recordTolerance * i), playerForward)
+			
+			local raycast = MeshManager:RayCast(thisPos.x,thisPos.y,thisPos.z,f.x,f.y,f.z)
+			if (raycast == nil) then
+				table.insert(points,f)
+			end
+			
+			local raycast = MeshManager:RayCast(thisPos.x,thisPos.y,thisPos.z,r.x,r.y,r.z)
+			if (raycast == nil) then
+				table.insert(points,r)
+			end
+			
+			local raycast = MeshManager:RayCast(thisPos.x,thisPos.y,thisPos.z,l.x,l.y,l.z)
+			if (raycast == nil) then
+				table.insert(points,l)
 			end
 		end
-		--]]
 	end		
 	
 	return points
@@ -972,6 +977,36 @@ function ffxiv_task_test.RenderPoints(points,altcolor,altsize,altheight)
 		
 		RenderManager:AddObject(t)	
 	end
+end
+
+function ffxiv_task_test.CreateStorage()
+	ffxiv_task_test.storageCube = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
+	quadrasectCube(ffxiv_task_test.storageCube,1,5,0)
+	
+	ffxiv_task_test.junctionCube = { size = 2000, x = 0, y = 0, z = 0, children = {} }
+	quadrasectCube(ffxiv_task_test.junctionCube,1,5,0)
+	
+	--persistence.store(ffxiv_task_test.cubePath,ffxiv_task_test.storageCube)
+end
+
+function ffxiv_task_test.GetNearestFlightJunction(pos)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false)
+	if (ValidTable(neighbors)) then
+		local closest = nil
+		local closestDistance = 9999
+			
+		for i,neighbor in pairs(neighbors) do
+			local dist = Distance3D(pos.x,pos.y,pos.z,neighbor.x,neighbor.y,neighbor.z)
+			if (not closest or (closest and dist < closestDistance)) then
+				closest,closestDistance = neighbor,dist
+			end
+		end
+		
+		return closest
+	end
+	
+	d("Found no neighbors for "..tostring(pos)..".")
+	return nil
 end
 
 function ffxiv_task_test.PruneFlightMesh()
@@ -1015,17 +1050,51 @@ function ffxiv_task_test.ReadFlightMesh()
 	ffxiv_task_test.CreateStorage()
 	
 	local info = {}
+	local requiresUpdate = false
 	if (FileExists(fullPath)) then
 		info = persistence.load(fullPath)
 		if (ValidTable(info) and ValidTable(info.mesh)) then
 			ffxiv_task_test.flightMesh = info.mesh
-			ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
+			
+			local renderNonJunction = {}
+			local renderJunction = {}
 			
 			local mesh = ffxiv_task_test.flightMesh
 			if (ValidTable(mesh)) then
 				for k,v in pairs(mesh) do
 					insertIntoCube(ffxiv_task_test.storageCube,v)
+					if (v.isjunction == true) then
+						insertIntoCube(ffxiv_task_test.junctionCube,v)
+						renderJunction[#renderJunction+1] = v
+					else
+						renderNonJunction[#renderNonJunction+1] = v
+					end
 				end
+			end
+			
+			--ffxiv_task_test.RenderPoints(renderNonJunction)
+			--ffxiv_task_test.RenderPoints(renderJunction,4)
+			
+			--[[
+			ffxiv_task_test.RenderPoints(ffxiv_task_test.courseMesh,4)
+			local mesh = ffxiv_task_test.courseMesh
+			if (ValidTable(mesh)) then
+				for k,v in pairs(mesh) do
+					if (v.isjunction == nil) then
+						v = isJunction(v)
+						mesh[k] = v
+						requiresUpdate = true
+					end
+					insertIntoCube(ffxiv_task_test.storageCube,v)
+					if (v.isjunction == true) then
+						insertIntoCube(ffxiv_task_test.junctionCube,v)
+					end
+				end
+			end
+			--]]
+			
+			if (requiresUpdate) then
+				ffxiv_task_test.SaveFlightMesh()
 			end
 			return true
 		end
@@ -1073,24 +1142,30 @@ function ffxiv_task_test.GetPath(from,to)
 			local point1 = from
 			local point2 = ffxiv_task_test.GetNearestFlightJunction(to)
 			
-			if (IsFlying()) then
-				allowed = true
-			else
-				local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(from)
-				local farJunction = point2
-				local myPos = ml_global_information.Player_Position
-				
-				local myDist = Distance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
-				local nearDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
-				local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
-				--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
-				
-				if (myDist > 20 and spanDist > 10) then
-					point1 = nearestJunction
+			if (point2) then
+				if (IsFlying()) then
 					allowed = true
 				else
-					d("Distance verifications not met.")
+					local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(from)
+					if (nearestJunction) then
+						local farJunction = point2
+						local myPos = ml_global_information.Player_Position
+						
+						local myDist = Distance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
+						local nearDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
+						local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
+						--local farDist = Distance3D(farJunction.x,farJunction.y,farJunction.z,to.x,to.y,to.z)
+						
+						if (myDist > 20 and spanDist > 10) then
+							point1 = nearestJunction
+							allowed = true
+						else
+							d("Distance verifications not met.")
+						end
+					end
 				end
+			else
+				d("Could not find goal point.")
 			end
 			
 			if (allowed) then
@@ -1212,7 +1287,7 @@ function findNeighbors(cube,pos,validonly)
 	local dist_between = dist_between
 	
 	local MIN_DIST = 7
-	local MAX_DIST = 50
+	local MAX_DIST = 30
 	
 	local neighbors = {}
 	if (validonly) then
@@ -1221,12 +1296,9 @@ function findNeighbors(cube,pos,validonly)
 			if (nodedist >= MIN_DIST and nodedist <= MAX_DIST) then
 				local raycast = MeshManager:RayCast(pos.x,pos.y,pos.z,node.x,node.y,node.z)
 				if (raycast == nil) then
-					local raycastlow = MeshManager:RayCast(pos.x,(pos.y-1.6),pos.z,node.x,(node.y-1.6),node.z)
-					if (raycastlow == nil) then
-						local pitch = atan2((pos.y - node.y),nodedist)
-						if (pitch >= -.785 and pitch <= 1.38) then
-							neighbors[#neighbors+1] = node
-						end
+					local pitch = atan2((pos.y - node.y),nodedist)
+					if (pitch >= -.785 and pitch <= 1.38) then
+						neighbors[#neighbors+1] = node
 					end
 				end
 			end
@@ -1444,31 +1516,23 @@ function getAllPoints(cube)
 	return points
 end
 
---d(NavigationManager:GetClosestPointOnMesh({x = , y = , z = })
-
-function ffxiv_task_test.GetNearestFlightJunction(pos)
-	local mesh = ffxiv_task_test.flightMesh
-	
-	if (ValidTable(mesh)) then
-		if (ValidTable(pos)) then
-			local closest = nil
-			local closestDistance = 9999
-			for k,v in pairs(mesh) do
-				local vpos = {x = v.x, y = v.y, z = v.z }
-				local p,pdist = NavigationManager:GetClosestPointOnMesh(vpos)
-				if (p and pdist ~= 0 and pdist < 15) then
-					local dist = Distance3D(pos.x,pos.y,pos.z,v.x,v.y,v.z)
-					if (not closest or (closest and dist < closestDistance)) then
-						closest = v
-						closestDistance = dist
-					end
-				end
-			end
-			
-			return closest
-		end
+function isJunction(point)
+	local raycast = MeshManager:RayCast(point.x,point.y,point.z,point.x,point.y - 10,point.z)
+	if (raycast == true) then
+		local raycast2,hitX,hitY,hitZ = MeshManager:RayCast(point.x,point.y,point.z,point.x,point.y - 4,point.z)
+		if (raycast2 == nil) then
+			point.isjunction = true
+			return point
+		elseif (raycast2 == true) then
+			local dist = Distance3D(point.x,point.y,point.z,hitX,hitY,hitZ)
+			point.y = point.y + (4 - dist)
+			point.isjunction = true
+			return point
+		end		
 	end
-	return nil
+	
+	point.isjunction = false
+	return point
 end
 
 function ffxiv_task_test:Init()
@@ -1495,10 +1559,12 @@ function ffxiv_task_test.UIInit()
 	if (Settings.FFXIVMINION.gTestRecordTolerance == nil) then
 		Settings.FFXIVMINION.gTestRecordTolerance = 5
 	end
-	if (Settings.FFXIVMINION.gTestFlyHeight == nil) then
-		Settings.FFXIVMINION.gTestFlyHeight = 200
+	if (Settings.FFXIVMINION.gTestRecordPadding == nil) then
+		Settings.FFXIVMINION.gTestRecordPadding = 7
 	end
-	
+	if (Settings.FFXIVMINION.gTestRecordThrottle == nil) then
+		Settings.FFXIVMINION.gTestRecordThrottle = 1500
+	end
 	if (Settings.FFXIVMINION.gTestMapID == nil) then
 		Settings.FFXIVMINION.gTestMapID = ""
 	end
@@ -1511,10 +1577,7 @@ function ffxiv_task_test.UIInit()
 	if (Settings.FFXIVMINION.gTestMapZ == nil) then
 		Settings.FFXIVMINION.gTestMapZ = ""
 	end
-	if (Settings.FFXIVMINION.gTestUseFlight == nil) then
-		Settings.FFXIVMINION.gTestUseFlight = "0"
-	end
-
+	
 	local winName = "NavTest"
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
@@ -1526,9 +1589,12 @@ function ffxiv_task_test.UIInit()
 	
 	GUI_NewCheckbox(winName,"Record Flight Points","gTestRecordFlight","FlightMesh")
 	GUI_NewCheckbox(winName,"Delete Flight Points","gTestDeleteFlight","FlightMesh")
+	GUI_NewCheckbox(winName,"Update Flight Points","gTestUpdateFlight","FlightMesh")
 	GUI_NewComboBox(winName,"Record Pattern","gTestRecordPattern","FlightMesh","Basic,Cube,Matrix,Laser,LaserX")
 	GUI_NewField(winName,"Tolerance","gTestRecordTolerance","FlightMesh")
-	GUI_NewField(winName,	"Fly Height",	"gTestFlyHeight","FlightMesh")
+	GUI_NewField(winName,"Padding","gTestRecordPadding","FlightMesh")
+	GUI_NewField(winName,"Throttle","gTestRecordThrottle","FlightMesh")
+	
 	GUI_NewButton(winName, 	"Save Mesh", 	"ffxiv_task_test.SaveFlightMesh", "FlightMesh")
 	GUI_NewButton(winName, 	"Read Mesh", 	"ffxiv_task_test.ReadFlightMesh", "FlightMesh")
 	GUI_NewButton(winName, 	"Prune Mesh", 	"ffxiv_task_test.PruneFlightMesh", "FlightMesh")
@@ -1552,7 +1618,8 @@ function ffxiv_task_test.UIInit()
 	
 	gTestRecordTolerance = Settings.FFXIVMINION.gTestRecordTolerance
 	gTestRecordPattern = Settings.FFXIVMINION.gTestRecordPattern
-	gTestFlyHeight = Settings.FFXIVMINION.gTestFlyHeight
+	gTestRecordPadding = Settings.FFXIVMINION.gTestRecordPadding
+	gTestRecordThrottle = Settings.FFXIVMINION.gTestRecordThrottle
 	gTestMapID = Settings.FFXIVMINION.gTestMapID
 	gTestMapX = Settings.FFXIVMINION.gTestMapX
 	gTestMapY = Settings.FFXIVMINION.gTestMapY
@@ -1566,12 +1633,6 @@ function ffxiv_task_test.UIInit()
 	GUI_WindowVisible(winName, false)
 end
 
-function ffxiv_task_test.CreateStorage()
-	ffxiv_task_test.storageCube = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
-	quadrasectCube(ffxiv_task_test.storageCube,1,5)
-	--persistence.store(ffxiv_task_test.cubePath,ffxiv_task_test.storageCube)
-end
-
 function ffxiv_task_test.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (k == "gTestMapX" or
@@ -1579,11 +1640,14 @@ function ffxiv_task_test.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gTestMapZ" or 
 			k == "gTestUseFlight" or
 			k == "gTestRecordTolerance" or
-			k == "gTestRecordPattern") 
+			k == "gTestRecordPattern" or
+			k == "gTestRecordPadding" or
+			k == "gTestRecordThrottle") 
 		then
 			Settings.FFXIVMINION[tostring(k)] = v
 		elseif (k == "gTestRecordFlight") then
 			if (v == "1") then
+				ffxiv_task_test.RenderPoints(ffxiv_task_test.flightMesh)
 				gTestDeleteFlight = "0"
 			end
 		elseif (k == "gTestDeleteFlight") then
@@ -1607,7 +1671,8 @@ function ffxiv_task_test.IsInsideRect()
 end
 
 function ffxiv_task_test.OnUpdate( event, tickcount )
-	if (TimeSince(ffxiv_task_test.lastTick) >= 2000) then
+	local recordSpeed = tonumber(gTestRecordThrottle) or 1000
+	if (TimeSince(ffxiv_task_test.lastTick) >= recordSpeed) then
 		ffxiv_task_test.lastTick = Now()
 		
 		if (gTestRecordFlight == "1") then
@@ -1615,6 +1680,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 			local newPoints = ffxiv_task_test.GetFlightPoints()
 			local ppos = Player.pos
 			local renderedPoints = {}
+			local recordPadding = tonumber(gTestRecordPadding) or 8
 			
 			if (ValidTable(newPoints)) then
 				--d("Have new points to check.")
@@ -1625,7 +1691,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 					if (ValidTable(neighbors)) then
 						for i,neighbor in pairs(neighbors) do
 							local dist = Distance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
-							if (dist < 7) then
+							if (dist < recordPadding) then
 								allowed = false
 								break
 							end
@@ -1664,6 +1730,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 			local renderedPoints = {}
 			
 			local v = ml_global_information.Player_Position
+			
 			for i,j in pairs(mesh) do
 				local dist = Distance3D(j.x,j.y,j.z,v.x,v.y,v.z)
 				if (dist < 8) then
@@ -1676,7 +1743,29 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 				--d("Rendering new points.")
 				ffxiv_task_test.RenderPoints(renderedPoints,1)
 			end
-		end				
+		end		
+
+		if (gTestUpdateFlight == "1") then		
+			local mesh = ffxiv_task_test.flightMesh
+			local renderedPoints = {}
+			
+			local v = ml_global_information.Player_Position
+			local neighbors = findNeighbors(ffxiv_task_test.storageCube,v,false)
+			if (ValidTable(neighbors)) then
+				for i,neighbor in pairs(neighbors) do
+					neighbor = isJunction(neighbor)
+					if (neighbor.isjunction == true) then
+						table.insert(renderedPoints,neighbor)
+					end
+					--d("altering id ["..tostring(neighbor.id).."].")
+					mesh[neighbor.id] = neighbor
+				end
+			end
+			
+			if (ValidTable(renderedPoints)) then
+				ffxiv_task_test.RenderPoints(renderedPoints,4)
+			end
+		end
 	end
 	
 	--[[
@@ -1932,11 +2021,15 @@ local base = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
 --local base = { size = 20, x = Player.pos.x, y = Player.pos.y, z = Player.pos.z }
 local count = 0
 local insert = table.insert
+local courseFlight = ffxiv_task_test.courseFlight
 
-function quadrasectCube(cube,depth,maxdepth)
+function quadrasectCube(cube,depth,maxdepth,raylevel)
 	local depth = depth or 1
 	local maxdepth = maxdepth or 6
+	local raylevel = raylevel or 5
 	local newcube = {}
+	
+	local courseFlight = ffxiv_task_test.courseFlight
 	
 	if (IsTable(cube)) then
 		local size = cube.size * 0.5
@@ -1970,6 +2063,12 @@ function quadrasectCube(cube,depth,maxdepth)
 			end
 			if (newcube.y >= -500 and newcube.y <= 500) then
 				if (cube.children == nil) then cube.children = {} end
+				if (raylevel ~= 0 and depth == raylevel) then
+					local raycast = MeshManager:RayCast(newcube.x,newcube.y,newcube.z,newcube.x,newcube.y - 150,newcube.z)
+					if (raycast == true) then
+						table.insert(ffxiv_task_test.courseFlight,{x = newcube.x, y = newcube.y, newcube.z})
+					end
+				end
 				newcube.vertices = getVertices(newcube)
 				newcube.boundaries = getBoundaries(newcube)
 				insert(cube.children,newcube)
