@@ -155,7 +155,6 @@ end
 
 c_flighttakeoff = inheritsFrom( ml_cause )
 e_flighttakeoff = inheritsFrom( ml_effect )
-c_flighttakeoff.timer = 0
 function c_flighttakeoff:evaluate()
 	if (not IsFlying() and CanFlyInZone() and (Player.ismounted or not Player.incombat)) then
 		local ppos = ml_global_information.Player_Position
@@ -175,7 +174,6 @@ function e_flighttakeoff:execute()
 		Player:Jump()
 		Player:Jump()
 		Player:Jump()
-		ml_task_hub:CurrentTask():SetDelay(1000)
 	else
 		if (not IsMounting()) then
 			local mountID = nil
