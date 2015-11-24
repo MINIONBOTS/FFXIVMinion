@@ -2437,10 +2437,16 @@ end
 c_clearaggressive = inheritsFrom( ml_cause )
 e_clearaggressive = inheritsFrom( ml_effect )
 c_clearaggressive.targetid = 0
+c_clearaggressive.timer = 0
 function c_clearaggressive:evaluate()
 	if (ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		return false
 	end
+	
+	if (Now() < c_clearaggressive.timer) then
+		return false
+	end
+	c_clearaggressive.timer = Now() + 2500
 	
 	--Reset the tempvar.
 	c_clearaggressive.targetid = 0

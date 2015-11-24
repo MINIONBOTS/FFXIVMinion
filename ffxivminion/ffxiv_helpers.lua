@@ -103,8 +103,6 @@ function GetNearestGrindAttackable()
 			end
 		end
 		
-		
-		
 		if (ValidTable(Player.pet)) then
 			if (not IsNullString(excludeString)) then
 				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
@@ -120,6 +118,21 @@ function GetNearestGrindAttackable()
 							return e
 						end
 					end
+				end
+			end
+		end
+		
+		local companion = GetCompanionEntity()
+		if (companion) then
+			if (not IsNullString(excludeString)) then
+				el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
+			else
+				el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30")
+			end
+			if (ValidTable(el)) then
+				local id, target = next(el)
+				if (ValidTable(target) and myTarget == 0) then
+					return target
 				end
 			end
 		end
@@ -373,7 +386,7 @@ function GetNearestFateAttackable()
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-                epos = shallowcopy(e.pos)
+                local epos = e.pos
 				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 				if (dist <= fate.radius) then
 					return e
@@ -381,8 +394,19 @@ function GetNearestFateAttackable()
             end
         end
 		
+		local companion = GetCompanionEntity()
+		if (companion) then
+			el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+			if (ValidTable(el)) then
+				local id, target = next(el)
+				if (ValidTable(target) and myTarget == 0) then
+					return target
+				end
+			end
+		end
+		
 		if (gFateKillAggro == "1") then
-			el = EntityList("shortestpath,alive,attackable,aggro,onmesh")
+			el = EntityList("nearest,alive,attackable,aggro,onmesh")
 			if (ValidTable(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
@@ -395,7 +419,7 @@ function GetNearestFateAttackable()
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-				epos = shallowcopy(e.pos)
+				local epos = e.pos
 				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 				if (dist <= fate.radius) then
 					return e
@@ -404,11 +428,10 @@ function GetNearestFateAttackable()
         end	
     
         el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fate.id))            
-            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
-                epos = shallowcopy(e.pos)
+                local epos = e.pos
 				local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 				if (dist <= fate.radius) then
 					return e
@@ -2688,13 +2711,13 @@ function CanAttack(targetid)
 	return canCast
 end
 function GetMounts()
-	local MountsList = "None"
+	local mounts = "None"
 	local eq = ActionList("type=13")
-	for k,v in pairs(eq) do
-		MountsList = MountsList..","..v.name
+	for k,v in pairsByKeys(eq) do
+		mounts = mounts..","..v.name
 	end
 	
-	return MountsList
+	return mounts
 end
 function GetMountID()
 	local mountID

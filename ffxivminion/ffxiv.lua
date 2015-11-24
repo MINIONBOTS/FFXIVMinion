@@ -42,8 +42,9 @@ ml_global_information.repairBlacklist = {}
 ml_global_information.avoidanceAreas = {}
 ml_global_information.lastMeasure = 0
 ml_global_information.requiresTransport = {}
-ml_global_information.landing = false
+ml_global_information.landing = nil
 ml_global_information.queueLoader = false
+ml_global_information.mainLoaded = false
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -359,24 +360,25 @@ function ml_global_information.InOpening( event, tickcount )
 end
 
 function ml_global_information.InGameOnUpdate( event, tickcount )
+	if (not ml_global_information.mainLoaded) then
+		if (Player) then
+			ffxivminion.CreateMainWindow()
+			NavigationManager:SetAreaCost(3,5)
+			ffxivminion.UpdateFoodOptions()
+			ml_global_information.mainLoaded = true
+		else
+			return false
+		end
+	end
+	
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		gBotRunning = "0"		
 	end
 	
-	if (not ml_global_information.loadCompleted) then
-		if (Player) then
-			NavigationManager:SetAreaCost(3,5)
-			ffxivminion.UpdateFoodOptions()
-			ml_global_information.loadCompleted = true
-		end
-	end
-
 	if (ml_global_information.autoStartQueued) then
-		if (Player) then
-			ml_global_information.autoStartQueued = false
-			ml_task_hub:ToggleRun()
-		end
+		ml_global_information.autoStartQueued = false
+		ml_task_hub:ToggleRun()
 	end
 	
 	if (ml_global_information.queueSync) then
@@ -393,7 +395,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	end
 	
 	if (ml_mesh_mgr) then
-		if (not IsLoading()) then
+		if (not ml_global_information.Player_IsLoading) then
 			if (ml_global_information.queueLoader == true) then
 				ffxiv_task_test.ReadFlightMesh()
 				ml_global_information.Player_Aetherytes = GetAetheryteList(true)
@@ -609,30 +611,7 @@ function ffxivminion.GetSetting(strSetting,default)
 	return Settings.FFXIVMINION[strSetting]
 end
 
--- Module Event Handler
-function ffxivminion.HandleInit()
-	
-	collectgarbage("collect")
-	ffxivminion.SetupOverrides()
-	
-	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
-	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
-	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
-	ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
-	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
-	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
-	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
-	ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
-	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
-	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
-	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
-	ffxivminion.AddMode("NavTest", ffxiv_task_test)
-	--ffxivminion.LoadModes()
-	
-	if ( not ffxivminion.Windows ) then
-		ffxivminion.Windows = {}
-	end
-	
+function ffxivminion.CreateMainWindow()
 	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=350 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
 	
@@ -744,7 +723,6 @@ function ffxivminion.HandleInit()
 	gPermaSwiftCast = ffxivminion.GetSetting("gPermaSwiftCast","0")
 	gFoodHQ = ffxivminion.GetSetting("gFoodHQ",GetString("none"))
 	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
-
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE","0")
 	gAvoidHP = ffxivminion.GetSetting("gAvoidHP","100")
 	gRestHP = ffxivminion.GetSetting("gRestHP","70")
@@ -759,8 +737,57 @@ function ffxivminion.HandleInit()
 	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
 	gAdvStealthRisky = ffxivminion.GetSetting("gAdvStealthRisky","0")
 	
-	if (ValidTable(Settings.FFXIVMINION.itemIDsToEquip)) then
-		ml_global_information.itemIDsToEquip = Settings.FFXIVMINION.itemIDsToEquip
+	-- gAutoStart
+	if ( gAutoStart == "1" ) then
+		ml_global_information.autoStartQueued = true		
+	end
+	if (gDisableDrawing == "1" ) then
+		GameHacks:Disable3DRendering(true)
+	end
+    if (gSkipCutscene == "1" ) then
+        GameHacks:SkipCutscene(true)
+    end
+    if (gSkipDialogue == "1" ) then
+        GameHacks:SkipDialogue(true)
+    end
+	if (gUseHQMats == "1") then
+		Crafting:UseHQMats(true)
+	end
+	if (gClickToTeleport == "1") then
+		GameHacks:SetClickToTeleport(true)
+	end
+	if (gClickToTravel == "1") then
+		GameHacks:SetClickToTravel(true)
+	end
+	if (gGatherPS == "1") then
+        GameHacks:SetPermaSprint(true)
+    end
+	if (gPermaSwiftCast == "1") then
+        GameHacks:SetPermaSwiftCast(true)
+    end	
+end
+
+-- Module Event Handler
+function ffxivminion.HandleInit()
+	
+	collectgarbage("collect")
+	ffxivminion.SetupOverrides()
+	
+	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
+	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
+	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
+	ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
+	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
+	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
+	ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
+	ffxivminion.AddMode(GetString("frontlines"), ffxiv_task_frontlines)
+	ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
+	ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
+	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
+	ffxivminion.AddMode("NavTest", ffxiv_task_test)
+	
+	if ( not ffxivminion.Windows ) then
+		ffxivminion.Windows = {}
 	end
 	
 	gFFXIVMINIONTask = ""
@@ -793,35 +820,6 @@ function ffxivminion.HandleInit()
 	if not ml_blacklist.BlacklistExists(GetString("aoe")) then
 		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
-	
-	-- gAutoStart
-	if ( gAutoStart == "1" ) then
-		ml_global_information.autoStartQueued = true		
-	end
-	if (gDisableDrawing == "1" ) then
-		GameHacks:Disable3DRendering(true)
-	end
-    if (gSkipCutscene == "1" ) then
-        GameHacks:SkipCutscene(true)
-    end
-    if (gSkipDialogue == "1" ) then
-        GameHacks:SkipDialogue(true)
-    end
-	if (gUseHQMats == "1") then
-		Crafting:UseHQMats(true)
-	end
-	if (gClickToTeleport == "1") then
-		GameHacks:SetClickToTeleport(true)
-	end
-	if (gClickToTravel == "1") then
-		GameHacks:SetClickToTravel(true)
-	end
-	if (gGatherPS == "1") then
-        GameHacks:SetPermaSprint(true)
-    end
-	if (gPermaSwiftCast == "1") then
-        GameHacks:SetPermaSwiftCast(true)
-    end	
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
@@ -1359,23 +1357,26 @@ function ffxivminion.CheckClass()
 		ffxivminion.UseClassSettings()
 		
 		-- autosetting the correct botmode
-		local newModeName = ""
-		if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
-			newModeName = GetString("gatherMode")
-		elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
-			newModeName = GetString("fishMode")
-		elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
-				or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
-				or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
-				or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
-			newModeName = GetString("craftMode")
-		--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-		elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
-			newModeName = GetString("grindMode")				
-		end
+		
+		if (gBotMode ~= GetString("questMode")) then
+			local newModeName = ""
+			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
+				newModeName = GetString("gatherMode")
+			elseif ( ml_global_information.CurrentClass == ffxiv_gather_fisher ) then
+				newModeName = GetString("fishMode")
+			elseif ( ml_global_information.CurrentClass == ffxiv_crafting_carpenter or ml_global_information.CurrentClass == ffxiv_crafting_blacksmith 
+					or ml_global_information.CurrentClass == ffxiv_crafting_armorer or ml_global_information.CurrentClass == ffxiv_crafting_goldsmith
+					or ml_global_information.CurrentClass == ffxiv_crafting_leatherworker or ml_global_information.CurrentClass == ffxiv_crafting_weaver
+					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
+				newModeName = GetString("craftMode")
+			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
+			elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
+				newModeName = GetString("assistMode")				
+			end
 					
-		if (gBotMode ~= newModeName and newModeName ~= "") then
-			ffxivminion.SwitchMode(newModeName)
+			if (gBotMode ~= newModeName and newModeName ~= "") then
+				ffxivminion.SwitchMode(newModeName)
+			end
 		end
     end
 end

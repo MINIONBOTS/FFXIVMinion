@@ -70,12 +70,16 @@ function c_craftlimit:evaluate()
 				itemcount = ItemCount(itemid,countHQ)
 			end
 			
-			local canCraft = AceLib.API.Items.CanCraft(recipe.id)
-			cd("[CraftLimit]: Checking if item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
-			if ((requiredItems > 0 and itemcount >= (requiredItems + startingCount)) or
-				not canCraft) 
-			then
+			local canCraft = AceLib.API.Items.CanCraft(recipe.id)			
+			if (not canCraft) then
+				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
 				return true
+			else
+				if (requiredItems > 0 and itemcount >= (requiredItems + startingCount))	then
+					return true
+				else
+					cd("[CraftLimit]: Current item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."], no need to start more.",3)
+				end
 			end
 		else
 			if ((ml_task_hub:CurrentTask().maxItems > 0 and ml_task_hub:CurrentTask().itemsCrafted == ml_task_hub:CurrentTask().maxItems) or 
@@ -155,11 +159,14 @@ function c_startcraft:evaluate()
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
-				cd("[StartCraft]: Checking if itemcount ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."].",3)
-				
-				if ((ml_task_hub:ThisTask().requiredItems > 0 and itemcount >= (ml_task_hub:ThisTask().requiredItems + ml_task_hub:ThisTask().startingCount)) or canCraft) 
-				then
-					return true
+				if (canCraft) then
+					if (((requiredItems > 0 and itemcount < (requiredItems + startingCount)) or requiredItems == 0)) then
+						return true
+					else
+						cd("[StartCraft]: Current item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."], no need to start more.",3)
+					end
+				else
+					cd("[StartCraft]: Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
 				end
 			end
 		else
@@ -218,6 +225,10 @@ function e_startcraft:execute()
 				end
 				ml_task_hub:CurrentTask():SetDelay(2500)
 				return
+			else
+				cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
+				ffxiv_task_craft.orders[recipe.id].completed = true
+				ml_task_hub:CurrentTask().completed = true
 			end			
 		end
 	else
@@ -445,6 +456,8 @@ function c_selectcraft:evaluate()
 	return false
 end
 function e_selectcraft:execute()
+	ml_task_hub:ThisTask().networkLatency = Now() + 2500
+	
 	local newTask = ffxiv_task_craftitems.Create()
 	
 	if (ffxiv_task_craft.UsingProfile()) then
@@ -481,8 +494,8 @@ function e_selectcraft:execute()
 					newTask.skillProfile = order.profile
 					newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
 					
-					cd("[SelectCraft]: Can craft id ["..tostring(id).."], recipe details [ id = "..tostring(order.id).."].",3)
-					cd("[SelectCraft]: RecipeDetails ["..tostring(order.class)..","..tostring(order.page)..","..tostring(order.index).."].",3)
+					cd("[SelectCraft]: Can craft id ["..tostring(id).."], recipe details [ id = "..tostring(order.id).."].",2)
+					cd("[SelectCraft]: RecipeDetails ["..tostring(order.class)..","..tostring(order.page)..","..tostring(order.index).."].",2)
 					
 					foundSelection = true
 				else

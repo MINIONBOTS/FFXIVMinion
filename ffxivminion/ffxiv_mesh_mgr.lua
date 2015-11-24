@@ -38,7 +38,115 @@ ml_mesh_mgr.OMCLastDistance = 0
 ml_mesh_mgr.OMCStartingDistance = 0
 ml_mesh_mgr.OMCMeshDistance = 0
 ml_mesh_mgr.OMCTarget = 0
-function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount ) 
+
+ml_mesh_mgr.receivedInstructions = {}
+function ml_mesh_mgr.ParseInstructions(data)
+	d("Received instruction set.")
+	ml_mesh_mgr.receivedInstructions = {}
+	
+	if (ValidTable(data)) then
+		local itype,iparams = nil,nil
+		for i,instruction in pairsByKeys(data) do
+			itype,iparams = instruction[1],instruction[2]
+			if (itype == "Ascend") then
+				table.insert(ml_mesh_mgr.receivedInstructions,
+					function ()
+						if (IsFlying()) then
+							Player:Move(128) 
+							return true
+						else
+							Player:Jump()
+							Player:Jump()
+							ml_mesh_mgr.AddThrottleTime(500)
+							return false
+						end
+					end
+				)
+			elseif (itype == "Stop") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						Player:Stop()
+						return true
+					end
+				)
+			elseif (itype == "Wait") then
+				local length = tonumber(iparams[1]) or 150
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						ml_mesh_mgr.AddThrottleTime(length)
+						return true						
+					end
+				)
+			elseif (itype == "Jump") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						Player:Jump()
+						return true						
+					end
+				)
+			elseif (itype == "FacePosition") then
+				local pos = { x = iparams[1] or 0, y = iparams[2] or 0, z = iparams[3] or 0}
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						Player:SetFacing(pos.x,pos.y,pos.z) 
+						return true
+					end
+				)
+			elseif (itype == "MoveForward") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						Player:Move(FFXIV.MOVEMENT.FORWARD) 
+						return true
+					end
+				)
+			elseif (itype == "Descend") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						--Player:SetPitch(1.377) 
+						SendTextCommand("/mount")
+						return true
+					end
+				)
+			elseif (itype == "CheckIfLocked") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						return IsPositionLocked()
+					end
+				)
+			elseif (itype == "CheckIfMoveable") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						return not IsPositionLocked()
+					end
+				)
+			end
+		end
+	end
+end
+
+function ml_mesh_mgr.AddThrottleTime(t)
+	ml_mesh_mgr.OMCThrottle = Now() + t
+end
+
+function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+	if (ValidTable(ml_mesh_mgr.receivedInstructions)) then
+		--d("Running instruction set.")
+		ml_global_information.lastrun = Now()
+		
+		if (Now() > ml_mesh_mgr.OMCThrottle) then
+			ffxivminion.UpdateGlobals()
+			
+			local newInstruction = ml_mesh_mgr.receivedInstructions[1]
+			if (newInstruction and type(newInstruction) == "function") then
+				local retval = newInstruction()
+				if (retval == true) then
+					table.remove(ml_mesh_mgr.receivedInstructions,1)
+				end
+			end			
+		end
+		return
+	end
+ 
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
 		ml_global_information.lastrun = Now()
 		
@@ -475,6 +583,29 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			end
 		end
 	end
+end
+
+function ml_mesh_mgr.ResetSpecial()
+	d("Special handler was reset.")
+	ml_mesh_mgr.OMCStartPosition = nil
+	ml_mesh_mgr.OMCEndposition = nil
+	ml_mesh_mgr.OMCFacingDirection = nil
+	ml_mesh_mgr.OMCType = nil
+	ml_mesh_mgr.OMCIsHandled = false
+	ml_mesh_mgr.OMCStartPositionReached = false
+	ml_mesh_mgr.OMCJumpStartedTimer = 0
+	ml_mesh_mgr.OMCFlightStarted = 0
+	ml_mesh_mgr.OMCFlightJumps = 0
+	ml_mesh_mgr.OMCAltitudeReached = 0
+	ml_mesh_mgr.OMCFlightAscend = 0
+	ml_mesh_mgr.OMCFlightForward = 0
+	ml_mesh_mgr.OMCMounted = 0
+	ml_mesh_mgr.OMCThrottle = 0
+	ml_mesh_mgr.OMCLastDistance = 0
+	ml_mesh_mgr.OMCStartingDistance = 0
+	ml_mesh_mgr.OMCTarget = 0
+	
+	ml_mesh_mgr.HandlingSpecial = false
 end
 
 function ml_mesh_mgr.ResetOMC()

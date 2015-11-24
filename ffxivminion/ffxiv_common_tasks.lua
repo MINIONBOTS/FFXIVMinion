@@ -666,9 +666,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	local interactable = nil
-	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
+	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			local interacts = nil
+			interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -676,7 +677,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				end
 			end
 			
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -693,11 +694,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 750) then
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
 		local requiresDismount = false
 		if (interactable and interactable.distance < self.dismountDistance) then
 			Dismount()
-			return false
 		end
 		self.lastDismountCheck = Now()
 	end
@@ -705,9 +705,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (not myTarget) then
 		if (interactable and interactable.targetable and interactable.distance < 10) then
 			Player:SetTarget(interactable.id)
-			local ipos = shallowcopy(interactable.pos)
+			local ipos = interactable.pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (ValidTable(p)) then
+			if (p and dist ~= 0) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
@@ -715,7 +715,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	end
 	
-	if (myTarget and TimeSince(self.lastInteract) > 750) then
+	if (myTarget and TimeSince(self.lastInteract) > 500) then
 		if (ValidTable(interactable)) then			
 			if (interactable.type == 5) then
 				if (interactable.distance <= 7.5) then
@@ -730,7 +730,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 			local pathRange = self.pathRange or 10
 			local forceLOS = self.forceLOS
-			local range = self.interactRange or (radius * 3)
+			local range = self.interactRange or (radius * 3.5)
 			if (not forceLOS or (forceLOS and interactable.los)) then
 				if (interactable and interactable.distance <= range) then
 					local ydiff = math.abs(ppos.y - interactable.pos.y)
