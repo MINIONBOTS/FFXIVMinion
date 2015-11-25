@@ -241,11 +241,15 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Moves Backward","mimovb","MovementInfo")
 	GUI_NewField("Dev","Moves Left","mimovl","MovementInfo")
 	GUI_NewField("Dev","Moves Right","mimovr","MovementInfo")
+	GUI_NewField("Dev","Moves Up","mimoup","MovementInfo")
+	GUI_NewField("Dev","Moves Down","mimodo","MovementInfo")	
 	GUI_NewButton("Dev","Move Random","Dev.MoveRandom","MovementInfo")
 	GUI_NewButton("Dev","MoveForward","Dev.MoveF","MovementInfo")
 	GUI_NewButton("Dev","MoveBackward","Dev.MoveB","MovementInfo")
 	GUI_NewButton("Dev","MoveLeft","Dev.MoveL","MovementInfo")
 	GUI_NewButton("Dev","MoveRight","Dev.MoveR","MovementInfo")
+	GUI_NewButton("Dev","MoveUp","Dev.MoveU","MovementInfo")
+	GUI_NewButton("Dev","MoveDown","Dev.MoveD","MovementInfo")
 	GUI_NewButton("Dev","Stop","Dev.MoveS","MovementInfo")
 	GUI_NewNumeric("Dev","Set Speed","mimovss","MovementInfo")
 	GUI_NewComboBox("Dev","Set SpeedDirection","mimovssdir","MovementInfo","Forward,Backward,Left,Right");
@@ -648,13 +652,17 @@ function Dev.HandleButtons( Event, arg )
 				--ml_task_hub:CurrentTask().lastMovement = Now()
 			end
 		elseif ( arg == "Dev.MoveF") then
-			Player:Move(348)
+			Player:Move(FFXIV.MOVEMENT.FORWARD)
 		elseif ( arg == "Dev.MoveB") then
-			Player:Move(332)
+			Player:Move(FFXIV.MOVEMENT.BACKWARD)
 		elseif ( arg == "Dev.MoveL") then
-			Player:Move(324)
+			Player:Move(FFXIV.MOVEMENT.LEFT)
 		elseif ( arg == "Dev.MoveR") then
-			Player:Move(276)
+			Player:Move(FFXIV.MOVEMENT.RIGHT)
+		elseif ( arg == "Dev.MoveU") then
+			Player:Move(FFXIV.MOVEMENT.UP)
+		elseif ( arg == "Dev.MoveD") then
+			Player:Move(FFXIV.MOVEMENT.DOWN)			
 		elseif ( arg == "Dev.MoveS") then
 			Player:Stop()
 		elseif ( dir == "Dev.SetSpeed" and tonumber(mimovss) > 0) then
@@ -1317,6 +1325,8 @@ function Dev.UpdateWindow()
 	mimovb = tostring(Player:IsMoving(FFXIV.MOVEMENT.BACKWARD)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.BACKWARD))..")"
 	mimovl = tostring(Player:IsMoving(FFXIV.MOVEMENT.LEFT)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.LEFT))..")"
 	mimovr = tostring(Player:IsMoving(FFXIV.MOVEMENT.RIGHT)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.RIGHT))..")"
+	mimoup = tostring(Player:IsMoving(FFXIV.MOVEMENT.UP)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.UP))..")"
+	mimodo = tostring(Player:IsMoving(FFXIV.MOVEMENT.DOWN)).."   ("..tostring(Player:GetSpeed(FFXIV.MOVEMENT.DOWN))..")"
 	
 	-- AetheryteList
 	local aefound = false
