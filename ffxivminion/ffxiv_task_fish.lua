@@ -44,6 +44,7 @@ function ffxiv_task_fish.Create()
 	newinst.filterLevel = true
 	newinst.networkLatency = 0
 	newinst.requiresAdjustment = false
+	newinst.requiresRelocate = false
 	
 	newinst.snapshot = GetSnapshot()
 	ffxiv_task_fish.currentTask = {}
@@ -381,7 +382,7 @@ function c_finishcast:evaluate()
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
-        if (fs ~= 4 and c_returntomarker:evaluate()) then
+        if (fs ~= 0 and c_returntomarker:evaluate()) then
             return true
         end
     end
@@ -1225,7 +1226,6 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (invalid and not best) then
-						fd("Re-evaluate the low priority queue, current task is invalid. Current index")
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(lowPriority) do
@@ -1249,6 +1249,7 @@ function c_fishnexttask:evaluate()
 					
 					if (best) then
 						if (ffxiv_task_fish.currentTaskIndex ~= lowestIndex) then
+							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
 							ffxiv_task_fish.currentTaskIndex = lowestIndex
 							ffxiv_task_fish.currentTask = best
 							return true
@@ -1264,6 +1265,16 @@ end
 function e_fishnexttask:execute()
 	ffxiv_task_fish.currentTask.taskStarted = 0
 	ffxiv_task_fish.attemptedCasts = 0
+	ml_task_hub:CurrentTask().requiresRelocate = true
+	
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		local finishcast = ActionList:Get(299,1)
+		if (finishcast and finishcast.isready) then
+			finishcast:Cast()
+			ml_task_hub:CurrentTask():SetDelay(1500)
+		end
+	end
 end
 
 c_fishnextprofilemap = inheritsFrom( ml_cause )
@@ -1291,6 +1302,7 @@ function e_fishnextprofilemap:execute()
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
 			finishcast:Cast()
+			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 		return
 	end
@@ -1346,7 +1358,7 @@ function c_fishnextprofilepos:evaluate()
 		local pos = task.pos
 		local myPos = ml_global_information.Player_Position
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
-		if (dist > 5) then
+		if (dist > 5 or ml_task_hub:CurrentTask().requiresRelocate) then
 			return true
 		end
 	end
@@ -1359,6 +1371,7 @@ function e_fishnextprofilepos:execute()
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
 			finishcast:Cast()
+			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 		return
 	end

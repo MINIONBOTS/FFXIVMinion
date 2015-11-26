@@ -35,7 +35,7 @@ QM.Wrappers = {
 }
 
 QM.QuestPath = GetStartupPath()..[[\LuaMods\Questing\QuestProfiles\]];
-QM.DutyPath = GetStartupPath()..[[\LuaMods\ffxivminion\DutyProfiles\]];
+QM.DutyPath = GetStartupPath()..[[\LuaMods\Duties\DutyProfiles\]];
 QM.WindowTick = 0
 
 --Initialize all tracking tables.
@@ -94,19 +94,19 @@ QM.Variables = {
 	eTaskKillCount = 	{ default = 0, 		profile = "killcount", 		cast = "number"},
 	qTaskDelay = 		{ default = 0, 		profile = "delay", 			cast = "number"},
 	eTaskDelay = 		{ default = 0, 		profile = "delay", 			cast = "number"},
-	qTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},--new
-	eTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},--new
+	--qTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},--new
+	--eTaskRewardSlot = 	{ default = 0, 		profile = "itemrewardslot", cast = "number"},--new
 	
-	qTaskUseRewardTable = { default = "0",	profile = "userewardtable", 	cast = "boolean"},--new
-	eTaskUseRewardTable = { default = "0",	profile = "userewardtable", 	cast = "boolean"},--new
+	--qTaskUseRewardTable = { default = "0",	profile = "userewardtable", 	cast = "boolean"},--new
+	--eTaskUseRewardTable = { default = "0",	profile = "userewardtable", 	cast = "boolean"},--new
 	
 	qTaskConvoIndex = 	{ default = 0,		profile = "conversationindex", cast = "number"},
 	eTaskConvoIndex = 	{ default = 0,		profile = "conversationindex", cast = "number"},
 	qTaskItemJobReq = 	{ default = -1, 	profile = "", 				cast = "number"},
 	qTaskItemAmount = 	{ default = 1, 		profile = "buyamount", 		cast = "number"},
 	eTaskItemAmount = 	{ default = 1, 		profile = "buyamount", 		cast = "number"},	
-	qTaskRestartStep = 	{ default = 0, 		profile = "restartatstep", 	cast = "number"}, --new
-	eTaskRestartStep = 	{ default = 0, 		profile = "restartatstep", 	cast = "number"},	--new
+	--qTaskRestartStep = 	{ default = 0, 		profile = "restartatstep", 	cast = "number"}, --new
+	--eTaskRestartStep = 	{ default = 0, 		profile = "restartatstep", 	cast = "number"},	--new
 	qTaskFailTime = 	{ default = 0, 		profile = "failtime", 		cast = "number"}, --new
 	eTaskFailTime = 	{ default = 0, 		profile = "failtime", 		cast = "number"},	--new
 	
@@ -132,13 +132,19 @@ QM.Variables = {
 	qTaskDisableTargetCheck = { default = "0",	profile = "disabletargetcheck", 	cast = "boolean"},--new
 	eTaskDisableTargetCheck = { default = "0",	profile = "disabletargetcheck", 	cast = "boolean"},--new
 	
-	qTaskUseRewardTable = { default = "0",		profile = "userewardtable", 	cast = "boolean"},--new
-	eTaskUseRewardTable = { default = "0",		profile = "userewardtable", 	cast = "boolean"},--new
+	qTaskIgnoreAggressive = { default = "0",	profile = "ignoreaggressive", 	cast = "boolean"},--new
+	eTaskIgnoreAggressive = { default = "0",	profile = "ignoreaggressive", 	cast = "boolean"},--new
+	qTaskIgnoreAggro = { default = "0",	profile = "ignoreaggro", 	cast = "boolean"},--new
+	eTaskIgnoreAggro = { default = "0",	profile = "ignoreaggro", 	cast = "boolean"},--new
+	
+	--qTaskUseRewardTable = { default = "0",		profile = "userewardtable", 	cast = "boolean"},--new
+	--eTaskUseRewardTable = { default = "0",		profile = "userewardtable", 	cast = "boolean"},--new
 	
 	qTaskIndex = { default = 1,	profile = "index" , 	cast = "number"},--new
 	eTaskIndex = { default = 1,	profile = "index" , 	cast = "number"},--new
 	
 	--new
+	--[[
 	qTaskRewardSlotDefault = { default = "", 	profile = "rslotDEFAULT", 	cast = "number"},
 	qTaskRewardSlotACN = { default = "", 	profile = "rslotARCANIST", 	cast = "number"},
 	qTaskRewardSlotSMN = { default = "", 	profile = "rslotSUMMONER", 	cast = "number"},
@@ -186,6 +192,7 @@ QM.Variables = {
 	eTaskRewardSlotMCH = { default = "", 	profile = "slotEditMACHINIST", 	cast = "number"},
 	eTaskRewardSlotDRK = { default = "", 	profile = "slotEditDARKKNIGHT", 	cast = "number"},
 	eTaskRewardSlotAST = { default = "", 	profile = "slotEditASTROLOGIAN", 	cast = "number"},
+	--]]
 	--new
 	
 	eEncounterNum = 	{ default = "", 		profile = "" , 				cast = "number"},
@@ -197,18 +204,17 @@ QM.Variables = {
 
 QM.Strings = {
 	Meshes = 
-		function()
+		function ()
+			local count = 0
 			local meshlist = "none"
 			local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
-			if ( TableSize(meshfilelist) > 0) then
-				local i,meshname = next ( meshfilelist)
-				while i and meshname do
+			if ( ValidTable(meshfilelist)) then
+				for i, meshname in pairs(meshfilelist) do
 					meshname = string.gsub(meshname, ".obj", "")
-					--table.insert(mm.meshfiles, meshname) not needed anymore with new ml_mesh_mgr.lua
 					meshlist = meshlist..","..meshname
-					i,meshname = next ( meshfilelist,i)
 				end
 			end
+			
 			return meshlist
 		end,
 	QuestIDs = 
@@ -223,7 +229,7 @@ QM.Strings = {
 			end
 			return questlist
 		end,
-	QuestTasks = "start,accept,nav,interact,kill,dutykill,textcommand,useitem,useaction,vendor,finish,complete",
+	QuestTasks = "start,nav,interact,kill,dutykill,textcommand,useitem,useaction,vendor,complete",
 	DutyTasks = "kill,loot,interact",
 	QuestJobs = "None,ARCANIST,ARCHER,ASTROLOGIAN,BARD,BLACKMAGE,BOTANIST,CONJURER,DARKKNIGHT,DRAGOON,FISHER,GLADIATOR,LANCER,MACHINIST,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
 	PreReqJobs = "All,ARCANIST,ARCHER,ASTROLOGIAN,BARD,BLACKMAGE,BOTANIST,CONJURER,DARKKNIGHT,DRAGOON,FISHER,GLADIATOR,LANCER,MACHINIST,MARAUDER,MINER,MONK,NINJA,PALADIN,PUGILIST,ROGUE,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE",
@@ -246,6 +252,7 @@ QM.Builds = {
 	LoadTypeOptions = {
 		{QM.Windows.Main.name, GetString("newEncounter")},
 		{QM.Windows.Main.name, GetString("newQuest")},
+		{QM.Windows.Main.name, "Profile Details"},
 		{QM.Windows.Main.name, "Encounters"},
 		{QM.Windows.Main.name, GetString("quests")},
 	},
@@ -253,7 +260,7 @@ QM.Builds = {
 		{4, "GUI_NewField",		QM.Windows.Main.name,"MapID",			"qEncounterSettingMapID",			"Profile Details"},
 		{4, "GUI_NewCheckbox",	QM.Windows.Main.name,"Independent",		"qEncounterSettingIndependent",		"Profile Details"},
 		{4, "GUI_NewNumeric",	QM.Windows.Main.name,"StartingIndex",	"qEncounterSettingEncounterIndex",	"Profile Details"},
-		{5, "GUI_NewComboBox",	QM.Windows.Main.name,"Task",									"qEncounterTask",	GetString("newEncounter"), QM.Strings.DutyTasks},
+		{5, "GUI_NewComboBox",	QM.Windows.Main.name,"Task",            "qEncounterTask",	GetString("newEncounter"), QM.Strings.DutyTasks},
 		{4, "GUI_NewButton", 	QM.Windows.Main.name,GetString("addEncounter"), 	"QM.AddEncounter", 	GetString("newEncounter")},
 	},
 	Quest = {
@@ -630,12 +637,6 @@ QM.Builds = {
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Wait Time",	"eEncounterWaitTime",	"Edit Encounter Step"},
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Fail Time",	"eEncounterFailTime",	"Edit Encounter Step"},
 			{4, "GUI_NewNumeric",	QM.Windows.EncounterEditor.name,"Radius",		"eEncounterRadius",		"Edit Encounter Step"},
-			--[[
-			{4, "GUI_NewField",		QM.Windows.StepEditor.name,GetString("stepMap"),"eTaskMap",	GetString("editQuestStep")},
-			{5, "GUI_NewComboBox",	QM.Windows.StepEditor.name,GetString("stepMesh"),"eTaskMesh",GetString("editQuestStep"), QM.Strings.Meshes },
-			{4, "GUI_NewField",		QM.Windows.StepEditor.name,GetString("stepTarget"),"eTaskNPC",GetString("editQuestStep")},
-			{4, "GUI_NewButton",	QM.Windows.StepEditor.name,GetString("questPullValues"), "QM.LoadEditCurrentValues",GetString("editQuestStep")},
-			--]]
 		},
 		["interact"] = {
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,GetString("stepCurrent"),		"eEncounterNum",	"Edit Encounter Step"},
@@ -643,13 +644,6 @@ QM.Builds = {
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Wait Time",	"eEncounterWaitTime",	"Edit Encounter Step"},
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Fail Time",	"eEncounterFailTime",	"Edit Encounter Step"},
 			{4, "GUI_NewNumeric",	QM.Windows.EncounterEditor.name,"Radius",		"eEncounterRadius",		"Edit Encounter Step"},
-			--[[
-			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepQuestID"),	"eTaskQuestID",	GetString("editQuestStep")},
-			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepMap"),"eTaskMap",	GetString("editQuestStep")},
-			{5, "GUI_NewComboBox",QM.Windows.StepEditor.name,GetString("stepMesh"),"eTaskMesh",GetString("editQuestStep"), QM.Strings.Meshes },
-			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepTarget"),"eTaskNPC",GetString("editQuestStep")},
-			{4, "GUI_NewButton",	QM.Windows.StepEditor.name,GetString("questPullValues"), "QM.LoadEditCurrentValues",GetString("editQuestStep")},
-			--]]
 		},
 		["loot"] = {
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,GetString("stepCurrent"),		"eEncounterNum",	"Edit Encounter Step"},
@@ -657,17 +651,11 @@ QM.Builds = {
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Wait Time",	"eEncounterWaitTime",	"Edit Encounter Step"},
 			{4, "GUI_NewField",		QM.Windows.EncounterEditor.name,"Fail Time",	"eEncounterFailTime",	"Edit Encounter Step"},
 			{4, "GUI_NewNumeric",	QM.Windows.EncounterEditor.name,"Radius",		"eEncounterRadius",		"Edit Encounter Step"},
-			--[[
-			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepMap"),	"eTaskMap",	GetString("editQuestStep")},
-			{5, "GUI_NewComboBox",QM.Windows.StepEditor.name,GetString("stepMesh"),"eTaskMesh",GetString("editQuestStep"), QM.Strings.Meshes },
-			{4, "GUI_NewButton",	QM.Windows.StepEditor.name,GetString("questPullValues"), "QM.LoadEditCurrentValues",GetString("editQuestStep")},
-			--]]
 		},
 	},
 }
 
 function QM.Init()
-
 	if (not ValidTable(Settings.FFXIVMINION.qmWindow)) then 
 		local windowInfo = {} 
 		windowInfo.width = 250
@@ -981,8 +969,28 @@ function QM.RefreshQuests()
 end
 --**************************************************************************************************************************************
 function QM.AddEncounter()
+	local encounter = {}
 	local newEncounterIndex = TableSize(QM.Encounters) + 1
-	QM.Encounters[newEncounterIndex] = { name = qEncounterName }
+	encounter.name = qEncounterName
+	encounter.waitTime = 1000;
+	encounter.failTime = 1000;
+	encounter.startPos = {}
+	local ppos = ml_global_information.Player_Position
+	encounter.startPos.General = {
+		["x"] = ppos.x,
+		["y"] = ppos.y,
+		["z"] = ppos.z,
+		["h"] = ppos.h,
+	}
+	
+	for task,shortName in pairs(QM.EncounterTasks) do
+		if (shortName == qEncounterTask) then
+			encounter.taskFunction = task
+		end
+	end
+
+	local newEncounterIndex = TableSize(QM.Encounters) + 1
+	QM.Encounters[newEncounterIndex] = encounter
 	QM.RefreshEncounters()
 end
 --**************************************************************************************************************************************
@@ -1069,11 +1077,12 @@ function QM.SaveEncounter()
 		end
 	end
 	
-	local pos = Player.pos
+	local ppos = ml_global_information.Player_Position
 	task.pos = {
-		["x"] = pos.x;
-		["y"] = pos.y;
-		["z"] = pos.z;
+		["x"] = ppos.x;
+		["y"] = ppos.y;
+		["z"] = ppos.z;
+		["h"] = ppos.h;
 	};
 	
 	QM.Encounters[encounterid] = task
@@ -1429,7 +1438,7 @@ function QM.AddStep()
 		end
 	end
 	
-	local pos = Player.pos
+	local pos = ml_global_information.Player_Position
 	task.pos = {
 		["x"] = pos.x;
 		["y"] = pos.y;
@@ -1544,7 +1553,7 @@ function QM.SaveStep()
 		end
 	end
 	
-	local pos = Player.pos
+	local pos = ml_global_information.Player_Position
 	task.pos = {
 		["x"] = pos.x;
 		["y"] = pos.y;
@@ -1884,26 +1893,26 @@ function QM.LoadCurrentValues(strWindow)
 			qTaskKillTarget = target.uniqueid
 			qTaskNPC = target.uniqueid
 		end
-		local pos = shallowcopy(Player.pos)
+		local pos = ml_global_information.Player_Position
 		qTaskIndex = Quest:GetQuestCurrentStep(questid)
 		qTaskUsePosX = 	pos.x
 		qTaskUsePosY = 	pos.y
 		qTaskUsePosZ = 	pos.z
-		qTaskMesh = tostring(gmeshname)
-		qTaskMap = Player.localmapid
+		qTaskMesh = ml_mesh_mgr.GetFileName(gmeshname)
+		qTaskMap = ml_global_information.Player_Map
 	elseif (strWindow == "edit") then
 		local target = Player:GetTarget()
 		if (target ~= nil) then
 			eTaskKillTarget = target.uniqueid
 			eTaskNPC = target.uniqueid
 		end
-		local pos = shallowcopy(Player.pos)
+		local pos = ml_global_information.Player_Position
 		eTaskIndex = Quest:GetQuestCurrentStep(questid)
 		eTaskUsePosX = 	pos.x
 		eTaskUsePosY = 	pos.y
 		eTaskUsePosZ = 	pos.z
-		eTaskMesh = tostring(gmeshname)
-		eTaskMap = Player.localmapid
+		eTaskMesh = ml_mesh_mgr.GetFileName(gmeshname)
+		eTaskMap = ml_global_information.Player_Map
 	end
 		
 	QM.PushVariables()
@@ -2050,7 +2059,6 @@ function QM.OnUpdateHandler( Event, ticks )
 							altered = true
 						end
 					end
-				else
 				end
 			end
 		end

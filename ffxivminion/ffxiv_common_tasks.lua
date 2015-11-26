@@ -148,9 +148,13 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.flightPath = nil
 	newinst.noFlight = false
+	newinst.stealthFunction = nil
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
+	ml_global_information.needsStealth = false
+	
+	newinst.destMapID = 0
     
     return newinst
 end
@@ -159,8 +163,14 @@ function ffxiv_task_movetopos:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 			
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 140 )
     self:add( ke_teleportToPos, self.process_elements)
+	
+	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 130 )
+    self:add( ke_teleportToMap, self.process_elements)
+	
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
+    self:add( ke_stealth, self.process_elements)
 	
 	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 90 )
     self:add( ke_useNavInteraction, self.process_elements)
@@ -168,17 +178,8 @@ function ffxiv_task_movetopos:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
-	--local ke_flyLanding = ml_element:create( "FlyLanding", c_flylanding, e_flylanding, 75 )
-    --self:add( ke_flyLanding, self.process_elements)
-	
-	--local ke_checkFlightPath = ml_element:create( "GetFlightPath", c_getflightpath, e_getflightpath, 70 )
-    --self:add( ke_checkFlightPath, self.process_elements)
-	
-	--local ke_flyAscend = ml_element:create( "FlyAscend", c_flyascend, e_flyascend, 65 )
-    --self:add( ke_flyAscend, self.process_elements)
-	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
-    self:add( ke_flyToPos, self.process_elements)
+	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
+    --self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 20 )
     self:add( ke_sprint, self.process_elements)

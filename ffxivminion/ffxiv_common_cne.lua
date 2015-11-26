@@ -713,9 +713,9 @@ function c_movetogate:evaluate()
 		else
 			local backupPos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
 																ml_global_information.Player_Map,
-																156	)
+																155	)
 			if (ValidTable(backupPos)) then
-				ml_task_hub:CurrentTask().destMapID = 156
+				ml_task_hub:CurrentTask().destMapID = 155
 				e_movetogate.pos = backupPos
 				return true
 			end
@@ -754,6 +754,7 @@ function e_movetogate:execute()
 	newTask.range = 0.5
 	newTask.remainMounted = true
 	newTask.ignoreAggro = true
+	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
@@ -812,7 +813,9 @@ e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if (ml_global_information.Player_IsLoading or 
 		(ml_global_information.Player_IsLocked and not IsFlying()) or 
-		ml_global_information.Player_IsCasting or GilCount() < 1500) 
+		ml_global_information.Player_IsCasting or GilCount() < 1500 or
+		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
+		IsNull(ml_task_hub:ThisTask().destMapID,0) == ml_global_information.Player_Map) 
 	then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
@@ -900,6 +903,7 @@ end
 function e_teleporttomap:execute()
 	if (ml_global_information.Player_IsMoving) then
 		Player:Stop()
+		return
 	end
 	
 	if (ActionIsReady(7,5)) then
@@ -1029,7 +1033,7 @@ e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 e_walktopos.lastRun = 0
 function c_walktopos:evaluate()
-	if (ml_global_information.Player_IsLocked or 
+	if ((ml_global_information.Player_IsLocked and not IsFlying()) or 
 		ml_global_information.Player_IsLoading or 
 		TimeSince(e_walktopos.lastRun) < 1000 or 
 		IsMounting() or 
@@ -1086,7 +1090,7 @@ function e_walktopos:execute()
 		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
 		
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (dist >= 2) then
+		if (dist > 2) then
 			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
 			e_walktopos.lastRun = Now()
@@ -2243,7 +2247,7 @@ function c_autoequip:evaluate()
 	end
 	
 	for slot,data in pairs(applicableSlots) do		
-		if (data.unequippedValue > data.equippedValue) then
+		if (data.unequippedItem ~= 0 and data.unequippedValue > data.equippedValue) then
 			if (ArmoryItemCount(slot) == 25) then
 				local firstBag,firstSlot = GetFirstFreeInventorySlot()
 				if (firstBag ~= nil) then

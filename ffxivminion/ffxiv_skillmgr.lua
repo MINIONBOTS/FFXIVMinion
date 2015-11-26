@@ -32,7 +32,11 @@ SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
 
 SkillMgr.bestAOE = 0
+
 SkillMgr.lastCast = 0
+SkillMgr.lastCastUnique = 0
+SkillMgr.throw = {}
+
 SkillMgr.comboQueue = {}
 SkillMgr.otherQueue = {}
 SkillMgr.latencyTimer = 0
@@ -223,6 +227,7 @@ SkillMgr.Variables = {
 	--SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
 	
 	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
+	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting" },
 	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", section = "fighting" },
 	SKM_OffGCDTime = { default = .5, cast = "number", profile = "gcdtime", section = "fighting" },
@@ -291,6 +296,8 @@ function SkillMgr.ModuleInit()
     Settings.FFXIVMINION.gSMlastprofile = Settings.FFXIVMINION.gSMlastprofile or "None"
 	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles or {}	
 	Settings.FFXIVMINION.gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing or "0"
+	Settings.FFXIVMINION.gSkillManagerDebug = Settings.FFXIVMINION.gSkillManagerDebug or "0"
+	Settings.FFXIVMINION.gSkillManagerDebugPriorities = Settings.FFXIVMINION.gSkillManagerDebugPriorities or ""
 	
 	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
@@ -432,6 +439,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,"Party Size <=","SKM_PartySizeLT",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,"Secs Passed Unique","SKM_SecsPassedUnique",GetString("basicDetails"))
 	
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("name"),"SKM_CHAINNAME",GetString("chain"))
@@ -625,7 +633,9 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		
         if (k == "gSMactive" or
-			k == "gSkillManagerQueueing") 
+			k == "gSkillManagerQueueing" or 
+			k == "gSkillManagerDebug" or
+			k == "gSkillManagerDebugPriorities") 
 		then			
             SafeSetVar(tostring(k),v)	
 		elseif ( k == "gSMprofile" ) then
@@ -679,25 +689,50 @@ function SkillMgr.OnUpdate()
 				SkillMgr.UpdateLastCast(castingskill)
 			end
 		else
-			if (SkillMgr.prevSkillID ~= castingskill) then
-				local action = ActionList:Get(castingskill,1)
-				if (action) then
-					--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
-					SkillMgr.prevSkillID = castingskill
-					SkillMgr.prevSkillTimestamp = Now()
-					if (action.recasttime == 2.5) then
-						SkillMgr.prevGCDSkillID = castingskill
-					end
-					SkillMgr.UpdateLastCast(castingskill)
-					SkillMgr.failTimer = Now() + 6000
-				end
+			local caughtMudra = 0
+			if (Player.action == 235 and SkillMgr.prevSkillID ~= 2263) then
+				--d("Detected Jin.")
+				caughtMudra = 2263
+			elseif (Player.action == 234 and SkillMgr.prevSkillID ~= 2261) then
+				--d("Detected Chi.")
+				caughtMudra = 2261
+			elseif (Player.action == 233 and SkillMgr.prevSkillID ~= 2259) then
+				--d("Detected Ten.")
+				caughtMudra = 2259
 			end
-			if (SkillMgr.queuedPrio ~= 0) then
-				local action = ActionList:Get(castingskill,1)
-				if (action) then
-					if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
-						--d("Updating chain information.")
+			
+			if (caughtMudra ~= 0) then
+				SkillMgr.prevSkillID = caughtMudra
+				SkillMgr.prevSkillTimestamp = Now()
+				
+				if (SkillMgr.queuedPrio ~= 0) then
+					if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,caughtMudra)) then
 						SkillMgr.queuedPrio = 0
+					end
+				end
+				SkillMgr.UpdateLastCast(caughtMudra)
+				SkillMgr.failTimer = Now() + 6000
+			else
+				if (SkillMgr.prevSkillID ~= castingskill) then
+					local action = ActionList:Get(castingskill,1)
+					if (action) then
+						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
+						SkillMgr.prevSkillID = castingskill
+						SkillMgr.prevSkillTimestamp = Now()
+						if (action.recasttime == 2.5) then
+							SkillMgr.prevGCDSkillID = castingskill
+						end
+						SkillMgr.UpdateLastCast(castingskill)
+						SkillMgr.failTimer = Now() + 6000
+					end
+				end
+				if (SkillMgr.queuedPrio ~= 0) then
+					local action = ActionList:Get(castingskill,1)
+					if (action) then
+						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
+							--d("Updating chain information.")
+							SkillMgr.queuedPrio = 0
+						end
 					end
 				end
 			end
@@ -1366,6 +1401,7 @@ function SkillMgr.ResetSkillTracking()
 	if (ValidTable(skills)) then
 		for prio,skill in pairs(skills) do
 			skill.lastcast = 0
+			skill.lastcastunique = {}
 		end
 	end
 end
@@ -1560,6 +1596,18 @@ function SkillMgr.UpdateLastCast(skillid)
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			if (tonumber(skill.id) == skillid) then
 				SkillMgr.SkillProfile[prio].lastcast = Now()
+				
+				if (SkillMgr.throw[skillid]) then
+					local catch = SkillMgr.throw[skillid]
+					if (Now() < catch.expiration) then
+						if (not ValidTable(SkillMgr.SkillProfile[prio].lastcastunique)) then
+							SkillMgr.SkillProfile[prio].lastcastunique = {}
+						end
+						SkillMgr.SkillProfile[prio].lastcastunique[catch.targetid] = Now()
+					else
+						SkillMgr.throw[skillid] = nil
+					end
+				end
 			end
 		end
 	end
@@ -1879,6 +1927,15 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if (action:Cast(TID)) then
 								SkillMgr.latencyTimer = Now()
 								
+								-- If we want to try the unique last cast, throw it to the stack.
+								if (IsNull(tonumber(skill.secspassedu),0) > 0) then
+									SkillMgr.throw[action.id] = { 
+										expiration = Now() + 2500,  
+										targetid = TID,
+										prio = prio,
+									}
+								end
+							
 								local castingskill = ml_global_information.Player_Casting.castingid
 								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 									--d(tostring(action.name).." was detected immediately.")
@@ -2621,19 +2678,21 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	--Some special processing for mudras.
-	if (IsMudraSkill(skillid)) then
-		dependentskill = ActionList:Get(2260)
-		if (not dependentskill or (dependentskill and dependentskill.isoncd)) then
-			return 0
-		end
-	end
+	--if (IsMudraSkill(skillid)) then
+		--dependentskill = ActionList:Get(2260)
+		--if (not dependentskill or (dependentskill and dependentskill.isoncd)) then
+			--SkillMgr.DebugOutput( prio, "Mudra failed dependent skill check." )
+			--return 0
+		--end
+	--end
 	
 	if (Player.ismounted) then
 		return 0
 	end
 	
 	if (realskilldata.recasttime ~= 2.5) then
-		if (TimeSince(SkillMgr.latencyTimer) < 300 or (SkillMgr.queuedPrio ~= 0 and TimeSince(SkillMgr.latencyTimer) < 1500)) then
+		if (TimeSince(SkillMgr.latencyTimer) < 150 or (SkillMgr.queuedPrio ~= 0 and TimeSince(SkillMgr.latencyTimer) < 1000)) then
+			SkillMgr.DebugOutput( prio, "Skill cannot be casted due to latency timer." )
 			return 0
 		end
 	end
@@ -2708,9 +2767,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	-- If the skill is a ninjutsu, and we don't have the mudra buff, it won't succeed.
 	-- If the skill is a mudra, and we cast it less than 600ms ago, don't recast.
 	if (castable) then
-		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 800) then
+		if (IsMudraSkill(skillid) and TimeSince(skill.lastcast) < 150) then
+			SkillMgr.DebugOutput( prio, "Mudra cannot be cast, it was cast too recently.")
 			castable = false
 		elseif (IsMudraSkill(SkillMgr.SkillProfile[SkillMgr.queuedPrio])) then
+			SkillMgr.DebugOutput( prio, "Cannot cast anything, there is still a mudra queued.")
 			castable = false
 		end
 	end
@@ -2926,6 +2987,8 @@ function SkillMgr.AddDefaultConditions()
 		if ((realskilldata.isready2) and (gAssistUseAutoFace == "1" or realskilldata.isfacing)) then
 			return false
 		elseif (not realskilldata.isready and realskilldata.recasttime == 2.5 and (gAssistUseAutoFace == "1" or realskilldata.isfacing or skill.trg == "Ground Target") and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
+			return false
+		elseif (not realskilldata.isready and IsMudraSkill(skill.id) and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
 			return false
 		elseif ((skill.trg == "Ground Target" or skill.type == 11) and realskilldata.isready) then
 			return false
@@ -3457,6 +3520,27 @@ function SkillMgr.AddDefaultConditions()
 			return true
 		elseif (SkillMgr.IsPetSummonSkill(skill.id) and skill.lastcast and TimeSince(skill.lastcast) < (8000)) then
 			return true
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
+	conditional = { name = "Secs Passed Unique Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		local secspassedu = tonumber(skill.secspassedu) or 0
+		if ( secspassedu > 0 and ValidTable(skill.lastcastunique)) then
+			local entry = skill.lastcastunique[target.id]
+			if (entry and entry > 0) then
+				if (TimeSince(entry) < (secspassedu * 1000)) then 
+					return true
+				end
+			end
 		end
 		
 		return false
