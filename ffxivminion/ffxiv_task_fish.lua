@@ -1384,8 +1384,75 @@ function e_fishnextprofilepos:execute()
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
+	newTask.stealthFunction = ffxiv_task_fish.NeedsStealth
+	
+	ml_task_hub:CurrentTask().requiresRelocate = false
 	ml_task_hub:CurrentTask().requiresAdjustment = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+function ffxiv_task_fish.NeedsStealth()
+	if (IsFlying()) then
+		return false
+	end
+
+	local useStealth = false
+	local task = ffxiv_task_fish.currentTask
+	local marker = ml_global_information.currentMarker
+	if (ValidTable(task)) then
+		useStealth = IsNull(task.usestealth,false)
+	elseif (ValidTable(marker)) then
+		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+	end
+	
+	if (useStealth) then		
+		local stealth = ActionList:Get(298)
+		if (stealth) then
+			local dangerousArea = false
+			local myPos = ml_global_information.Player_Position
+			local destPos = ml_task_hub:CurrentTask().pos
+			local task = ffxiv_task_fish.currentTask
+			local marker = ml_global_information.currentMarker
+			if (ValidTable(task)) then
+				dangerousArea = IsNull(task.dangerousarea,false)
+				--destPos = task.pos
+			elseif (ValidTable(marker)) then
+				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) == "1"
+				--destPos = marker:GetPosition()
+			end
+		
+			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+				local dest = ml_task_hub:CurrentTask().pos
+				if (Distance3D(myPos.x,myPos.y,myPos.z,dest.x,dest.y,dest.z) > 75) then
+					return false
+				end
+			end
+			
+			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+			if (distance <= 6) then
+				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10))
+				if (ValidTable(potentialAdds)) then
+					return true
+				end
+			end
+			
+			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
+			if (ValidTable(addMobList)) then
+				return true
+			end
+			
+			local hasStealth = HasBuff(Player.id,47)
+			if (hasStealth) then
+				local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
+				if (ValidTable(removeMobList)) then
+					--d("Still detecting enemies, need to keep stealth.")
+					return true
+				end
+			end
+		end
+	end
+	
+	return false
 end
 
 c_fishstealth = inheritsFrom( ml_cause )
@@ -1545,8 +1612,8 @@ function ffxiv_task_fish:Init()
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
     self:add( ke_dead, self.overwatch_elements)
     
-    local ke_stealth = ml_element:create( "Stealth", c_fishstealth, e_fishstealth, 15 )
-    self:add( ke_stealth, self.overwatch_elements)
+    --local ke_stealth = ml_element:create( "Stealth", c_fishstealth, e_fishstealth, 15 )
+    --self:add( ke_stealth, self.overwatch_elements)
   
     --init Process() cnes
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )

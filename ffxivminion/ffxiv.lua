@@ -45,6 +45,10 @@ ml_global_information.requiresTransport = {}
 ml_global_information.landing = nil
 ml_global_information.queueLoader = false
 ml_global_information.mainLoaded = false
+ml_global_information.needsStealth = false
+
+ml_global_information.gatherid = 0
+ml_global_information.targetid = 0
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -478,6 +482,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			gIdlePulseCount = ""
 		end
 		
+		gStatusStealth = tostring(ml_global_information.needsStealth)
+		
 		--update delay time
 		if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():IsDelayed()) then
 			gTaskDelay = tostring(ml_task_hub:CurrentTask():GetDelay())
@@ -637,6 +643,7 @@ function ffxivminion.CreateMainWindow()
 	GUI_NewField(winName,GetString("eorzeaTime"),"gEorzeaTime", group)
 	GUI_NewField(winName,"Memory Usage","gMemoryUsage", group)
 	GUI_NewField(winName,"Memory Gain","gMemoryGain", group)
+	GUI_NewField(winName,"Stealth","gStatusStealth", group)
 	
 	local group = GetString("generalSettings")
     GUI_NewCheckbox(winName,GetString("autoStartBot"),"gAutoStart",group)

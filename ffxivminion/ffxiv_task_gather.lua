@@ -100,6 +100,7 @@ function c_findnode:evaluate()
 	
 	if (needsUpdate) then
 		ml_task_hub:CurrentTask().gatherid = 0
+		ml_global_information.gatherid = 0
 		
 		local whitelist = ""
 		local radius = 150
@@ -113,8 +114,8 @@ function c_findnode:evaluate()
 		if (ValidTable(task)) then
 			whitelist = IsNull(task.whitelist,"")
 			radius = IsNull(task.radius,150)
-			nodeminlevel = IsNull(task.nodeminlevel,1)
 			nodemaxlevel = IsNull(task.nodemaxlevel,60)
+			nodeminlevel = IsNull(task.nodeminlevel,1)
 			basePos = task.pos
 			
 			if (task.unspoiled and task.unspoiled == false) then
@@ -170,6 +171,7 @@ function c_findnode:evaluate()
 					-- reset blacklist vars for a new node
 					ml_task_hub:CurrentTask().failedTimer = 0		
 					ml_task_hub:CurrentTask().gatherid = gatherable.id	
+					ml_global_information.gatherid = gatherable.id
 					
 					ml_task_hub:CurrentTask().gatheredMap = false
 					ml_task_hub:CurrentTask().gatheredMap = false
@@ -281,6 +283,7 @@ function e_movetonode:execute()
 						alternateTask.useTeleport = (gTeleport == "1")
 						alternateTask.range = 3
 						alternateTask.remainMounted = true
+						alternateTask.stealthFunction = ffxiv_task_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 					end
 				end
@@ -302,6 +305,7 @@ function e_movetonode:execute()
 			newTask.use3d = true
 			newTask.interactRange = 3.3
 			newTask.pathRange = 5
+			newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 		end
 	end
@@ -357,6 +361,7 @@ function e_returntobase:execute()
 	newTask.useTeleport = (gTeleport == "1")
 	newTask.range = 3
 	newTask.remainMounted = true
+	newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -475,6 +480,7 @@ function e_nextgathermarker:execute()
     ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
 	gStatusMarkerName = ml_global_information.currentMarker:GetName()
 	ml_task_hub:CurrentTask().gatherid = 0
+	ml_global_information.gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
 end
 
@@ -1897,7 +1903,7 @@ function c_gathernexttask:evaluate()
 	end
 	
 	local list = Player:GetGatherableSlotList()
-	if (not ValidTable(list)) then		
+	if (not ValidTable(list)) then	
 		local evaluate = false
 		local invalid = false
 		local currentTask = ffxiv_task_gather.currentTask
@@ -2216,6 +2222,7 @@ function e_gathernexttask:execute()
 	ml_global_information.currentMarker = false
 	gStatusMarkerName = ""
 	ml_task_hub:CurrentTask().gatherid = 0
+	ml_global_information.gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
 	ffxiv_task_gather.currentTask.taskStarted = 0
 	ffxiv_task_gather.currentTask.taskFailed = 0
@@ -2421,6 +2428,117 @@ function e_gatherstealth:execute()
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
+function ffxiv_task_gather.NeedsStealth()
+	if (IsFlying()) then
+		return false
+	end
+
+	local useStealth = false
+	local task = ffxiv_task_gather.currentTask
+	local marker = ml_global_information.currentMarker
+	if (ValidTable(task)) then
+		useStealth = IsNull(task.usestealth,false)
+	elseif (ValidTable(marker)) then
+		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+	end
+	
+	if (useStealth) then	
+		local stealth = nil
+		if (Player.job == FFXIV.JOBS.BOTANIST) then
+			stealth = ActionList:Get(212)
+		elseif (Player.job == FFXIV.JOBS.MINER) then
+			stealth = ActionList:Get(229)
+		end
+		
+		if (stealth) then
+			local dangerousArea = false
+			local destPos = ml_task_hub:CurrentTask().pos
+			local myPos = ml_global_information.Player_Position
+			local task = ffxiv_task_gather.currentTask
+			local marker = ml_global_information.currentMarker
+			if (ValidTable(task)) then
+				dangerousArea = IsNull(task.dangerousarea,false)
+			elseif (ValidTable(marker)) then
+				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) == "1"
+			end
+			
+			if (destPos) then
+				if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+					local dist = Distance3D(myPos.x,myPos.y,myPos.z,destPos.x,destPos.y,destPos.z)
+					if (dist > 75) then
+						--d("Too far from destination to use stealth.")
+						return false
+					end
+				end
+			end
+			
+			local gatherid = ml_global_information.gatherid
+			if ( gatherid and gatherid ~= 0 ) then
+				local gatherable = EntityList:Get(gatherid)
+				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
+					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(tonumber(gAdvStealthDetect)*2)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+					if (ValidTable(potentialAdds)) then
+						return true
+					end
+				end
+				
+				if (gatherable) then
+					if (gTeleport == "1" and c_teleporttopos:evaluate()) then
+						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(gAdvStealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
+						if (ValidTable(potentialAdds)) then
+							return true
+						end
+					end
+				end
+			end
+			
+			local hasStealth = HasBuff(Player.id,47)
+			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
+			if (ValidTable(addMobList)) then
+				if (gAdvStealthRisky == "1" and not dangerousArea) then
+					local ph = ConvertHeading(ml_global_information.Player_Position.h)
+					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
+					local nextPos = IsNull(GetPosFromDistanceHeading(ml_global_information.Player_Position, 10, playerFront),ml_global_information.Player_Position)
+				
+					for i,entity in pairs(addMobList) do
+						if (entity.targetid == 0) then
+							local epos = entity.pos
+							local ray1 = MeshManager:RayCast(epos.x,(epos.y+1.5),epos.z,myPos.x,(myPos.y+1.5),myPos.z)
+							local ray2 = MeshManager:RayCast(epos.x,(epos.y+1.5),epos.z,nextPos.x,(nextPos.y+1.5),nextPos.z)
+							if ((IsFrontSafer(entity) and ray1 == nil) or 
+								(IsFrontSafer(entity,nextPos) and ray2 == nil)) 
+							then
+								--d("Aggressive enemy within los, need stealth.")
+								return true
+							end
+						end
+					end
+				else
+					--d("Potential adds within our detection distance.")
+					return true
+				end
+			end
+			
+			if (hasStealth) then
+				if (gAdvStealthRisky == "0") then
+					local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
+					if (ValidTable(removeMobList)) then
+						--d("Still detecting enemies, need to keep stealth.")
+						return true
+					end
+				end
+			end
+		else
+			--d("Could not find stealth action.")
+		end
+	else
+		--d("Task is not set to use stealth.")
+	end
+	
+	--d("Defaulted out of function.")
+	return false
+end
+
 c_gatherisloading = inheritsFrom( ml_cause )
 e_gatherisloading = inheritsFrom( ml_effect )
 function c_gatherisloading:evaluate()
@@ -2451,8 +2569,8 @@ function ffxiv_task_gather:Init()
 	local ke_avoidAggressives = ml_element:create( "AvoidAggressives", c_avoidaggressives, e_avoidaggressives, 130 )
     self:add( ke_avoidAggressives, self.overwatch_elements)
 	
-	local ke_stealth = ml_element:create( "Stealth", c_gatherstealth, e_stealth, 120 )
-    self:add( ke_stealth, self.overwatch_elements)
+	--local ke_stealth = ml_element:create( "Stealth", c_gatherstealth, e_stealth, 120 )
+    --self:add( ke_stealth, self.overwatch_elements)
 	
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )
     self:add( ke_inventoryFull, self.overwatch_elements)

@@ -152,7 +152,6 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
-	ml_global_information.needsStealth = false
 	
 	newinst.destMapID = 0
     
@@ -231,7 +230,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end 
-		local pathdistance = GetPathDistance(myPos,gotoPos)
+		--local pathdistance = GetPathDistance(myPos,gotoPos)
 		
 		if (distance < 40 and self.customSearch ~= "") then
 			local el = EntityList(self.customSearch)
@@ -246,7 +245,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 							end
 						end
 						local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos)
-						if (p) then
+						if (p and dist ~= 0) then
 							if (not deepcompare(self.pos,p,true)) then
 								self.pos = p
 								gotoPos = self.pos
@@ -259,7 +258,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 								end 
-								pathdistance = GetPathDistance(myPos,gotoPos)
+								--pathdistance = GetPathDistance(myPos,gotoPos)
 							end
 						end
 					end
@@ -271,7 +270,7 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         ml_debug("Task Range: "..tostring(self.range))
         ml_debug("Current Distance: "..tostring(distance))
-		ml_debug("Path Distance: "..tostring(pathdistance))
+		--ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
 
 		if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
@@ -608,6 +607,8 @@ function ffxiv_task_movetointeract.Create()
 	newinst.killParent = false
 	newinst.interactDelay = 500
 	
+	newinst.stealthFunction = nil
+	
 	GameHacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
 	
@@ -617,6 +618,9 @@ end
 function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
+	
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
+    self:add( ke_stealth, self.process_elements)
 
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
     self:add( ke_teleportToPos, self.process_elements)
@@ -1044,13 +1048,6 @@ function ffxiv_task_stealth:Init()
 end
 
 function ffxiv_task_stealth:task_complete_eval()
-	if (self.droppingStealth) then
-		if (ml_global_information.Player_IsMoving) then
-			Player:Stop()
-			return false
-		end
-	end
-	
 	if (self.addingStealth) then
 		if (Player.ismounted) then
 			Dismount()
@@ -1083,15 +1080,19 @@ function ffxiv_task_stealth:task_complete_eval()
 	end
 	
 	if (action and not action.isoncd) then
-		if (Now() > self.timer) then
-			action:Cast()
-			self.timer = Now() + 2500
+		if (action:Cast()) then
+			return true
 		end
     end
 	
 	return false
 end
 function ffxiv_task_stealth:task_complete_execute()
+	-- Need this or the Player will continue moving at slow speeds.
+	if (self.droppingStealth and ml_global_information.Player_IsMoving) then
+		Player:Stop()
+		Player:Move(FFXIV.MOVEMENT.FORWARD)
+	end
     self.completed = true
 end
 
@@ -1571,13 +1572,13 @@ function ffxiv_task_grindCombat:Process()
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-					if (dist < 5) then
+					if (p and dist ~= 0) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
 					end
 				else
 					if (Now() > self.movementDelay) then
-						local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
 						self.movementDelay = Now() + 1000
 					end
 				end

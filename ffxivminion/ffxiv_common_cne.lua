@@ -1032,10 +1032,10 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 e_walktopos.lastRun = 0
+e_walktopos.lastStealth = 0
 function c_walktopos:evaluate()
 	if ((ml_global_information.Player_IsLocked and not IsFlying()) or 
-		ml_global_information.Player_IsLoading or 
-		TimeSince(e_walktopos.lastRun) < 1000 or 
+		ml_global_information.Player_IsLoading or
 		IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
 		IsShopWindowOpen() or
@@ -1083,6 +1083,28 @@ function c_walktopos:evaluate()
     return false
 end
 function e_walktopos:execute()
+	local needsStealth = ml_global_information.needsStealth
+	local hasStealth = HasBuff(Player.id,47)
+	if (not hasStealth and needsStealth) then
+		if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+			local newTask = ffxiv_task_stealth.Create()
+			newTask.addingStealth = true
+			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+			e_walktopos.lastStealth = Now()
+			d("adding stealth.")
+			return
+		end
+	elseif (hasStealth and not needsStealth) then
+		if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+			local newTask = ffxiv_task_stealth.Create()
+			newTask.droppingStealth = true
+			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+			e_walktopos.lastStealth = Now()
+			d("dropping stealth.")
+			return
+		end
+	end
+	
 	if (ValidTable(c_walktopos.pos)) then
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
@@ -1100,10 +1122,12 @@ function e_walktopos:execute()
 				if (path ~= nil) then
 					ml_debug(path)
 				end
+				Player:Stop()
 			elseif (path >= 0) then
 				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.")
 			elseif (path <= -1) then
 				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].")
+				Player:Stop()
 			end
 		else
 			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
@@ -1290,7 +1314,7 @@ function c_mount:evaluate()
 		return false
 	end
 	
-	if (HasBuffs(Player,"47")) then
+	if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
 		return false
 	end
 	
@@ -1886,6 +1910,14 @@ function e_returntomarker:execute()
 		newTask.useTeleport = true
 	end
 	
+	if (markerType == GetString("miningMarker") or
+		markerType == GetString("botanyMarker"))
+	then
+		newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
+	elseif (markerType == GetString("fishingMarker")) then
+		newTask.stealthFunction = ffxiv_task_fish.NeedsStealth
+	end
+	
 	--[[
 	newTask.abortFunction = function()
 		if (gBotMode == GetString("grindMode")) then
@@ -1914,147 +1946,80 @@ function e_returntomarker:execute()
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
----------------------------------------------------------------------------------------------
---STEALTH: If (distance to aggro < 18) Then (cast stealth)
---Uses stealth when gathering to avoid aggro
----------------------------------------------------------------------------------------------
-c_stealth = inheritsFrom( ml_cause )
-e_stealth = inheritsFrom( ml_effect )
-e_stealth.timer = 0
-function c_stealth:evaluate()
-	local marker = ml_global_information.currentMarker
-	if (not ValidTable(marker)) then
-		return false
-	end
-	
-	local useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
-	if (not useStealth or Now() < e_stealth.timer) then
-		return false
-	end
-	
-	if (ml_global_information.Player_InCombat or 
-		(Player.job ~= FFXIV.JOBS.MINER and
-		Player.job ~= FFXIV.JOBS.BOTANIST and
-		Player.job ~= FFXIV.JOBS.FISHER)) then
-		return false
-	end
-	
-	local list = Player:GetGatherableSlotList()
-	local fs = tonumber(Player:GetFishingState())
-	if (ValidTable(list) or fs ~= 0) then
-		return false
-	end
-	
-	local action = nil
-    if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = ActionList:Get(212)
-    elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = ActionList:Get(229)
-    elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = ActionList:Get(298)
-    end
-	
-	if (action) then
-		local dangerousArea = (marker:GetFieldValue(GetUSString("dangerousArea")) == "1")
-		if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-			local dest = ml_task_hub:CurrentTask().pos
-			local ppos = shallowcopy(ml_global_information.Player_Position)
-			if (Distance3D(ppos.x,ppos.y,ppos.z,dest.x,dest.y,dest.z) > 75) then
-				if (HasBuff(Player.id, 47)) then
-					return true
-				else
-					return false
-				end
-			end
+--------------------------------------------------------------------------------------------
+--  Keep track of whether we need stealth or not so other cne's know if they can break it.
+--------------------------------------------------------------------------------------------
+c_stealthupdate = inheritsFrom( ml_cause )
+e_stealthupdate = inheritsFrom( ml_effect )
+c_stealthupdate.timer = 0
+function c_stealthupdate:evaluate()	
+	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
+	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
+		
+		local list = Player:GetGatherableSlotList()
+		local fs = tonumber(Player:GetFishingState())
+		if (ValidTable(list) or fs ~= 0) then
+			return false
 		end
 		
-		if (gBotMode == GetString("gatherMode")) then
-			local gatherid = ml_task_hub:ThisTask().gatherid
-			if ( gatherid and gatherid ~= 0 ) then
-				local gatherable = EntityList:Get(gatherid)
-				if (gatherable and (gatherable.distance < 10) and IsUnspoiled(gatherable.contentid)) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(tonumber(gAdvStealthDetect)*2)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-					if (TableSize(potentialAdds) > 0) then
-						if (not HasBuff(Player.id, 47)) then
-							return true
-						else
-							return false
-						end
-					end
-				end
-				
-				if (gatherable) then
-					if (gTeleport == "1" and c_teleporttopos:evaluate()) then
-						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(gAdvStealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
-						if (TableSize(potentialAdds) > 0) then
-							if (not HasBuff(Player.id, 47)) then
-								return true
-							else
-								return false
-							end
-						end
-					end
-				end
-			end
-		elseif (gBotMode == GetString("fishMode")) then
-			local currentMarker = ml_task_hub:ThisTask().currentMarker
-			if (currentMarker) then
-				local destPos = currentMarker:GetPosition()
-				local myPos = ml_global_information.Player_Position
-				local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
-				if (distance <= 6) then
-					local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
-					if (TableSize(potentialAdds) > 0) then
-						if (not HasBuff(Player.id, 47)) then
-							return true
-						else
-							return false
-						end
-					end
-				end
-			end
+		local needsStealth = stealthFunction()
+		if (ml_global_information.needsStealth ~= needsStealth) then
+			ml_global_information.needsStealth = needsStealth
+		end
+	else
+		if (ml_global_information.needsStealth ~= false) then
+			ml_global_information.needsStealth = true
+		end	
+	end
+	
+	return false
+end
+function e_stealthupdate:execute()
+	--Nothing here, just update the variable.
+end
+
+--[[
+c_stealthmove = inheritsFrom( ml_cause )
+e_stealthmove = inheritsFrom( ml_effect )
+e_stealthmove.addDrop = ""
+function c_stealthmove:evaluate()
+	--Tempvar reset.
+	e_stealthmove.addDrop = ""
+	
+	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
+	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
+		
+		local list = Player:GetGatherableSlotList()
+		local fs = tonumber(Player:GetFishingState())
+		if (ValidTable(list) or fs ~= 0) then
+			return false
 		end
 		
-		local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthDetect))
-		local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(gAdvStealthRemove))
-		if (TableSize(removeMobList) == 0 and HasBuff(Player.id, 47)) then
+		local needsStealth = stealthFunction()
+		local hasStealth = HasBuff(Player.id,47)
+		if (not hasStealth and needsStealth) then
+			e_stealthmove.addDrop = "add"
 			return true
-		elseif (ValidTable(addMobList)) then
-			if (gAdvStealthRisky == "1") then
-				for i,entity in pairs(addMobList) do
-					if (IsFrontSafe(entity)) then
-						if (not HasBuff(Player.id, 47)) then
-							return true
-						else
-							return false
-						end
-					end
-				end
-				if (HasBuff(Player.id, 47)) then
-					return true
-				end
-			else
-				if (not HasBuff(Player.id, 47)) then
-					return true
-				end		
-			end
+		elseif (hasStealth and not needsStealth) then
+			e_stealthmove.addDrop = "drop"
+			return true
 		end
 	end
  
     return false
 end
-function e_stealth:execute()
-	e_stealth.timer = Now() + 3000
-	
+function e_stealthmove:execute()
 	local newTask = ffxiv_task_stealth.Create()
-	if (HasBuffs(Player,"47")) then
+	if (e_stealthmove.addDrop == "drop") then
 		newTask.droppingStealth = true
+		ml_global_information.needsStealth = false
 	else
 		newTask.addingStealth = true
+		ml_global_information.needsStealth = true
 	end
-	ml_task_hub:ThisTask().preserveSubtasks = true
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
+--]]
 
 c_acceptquest = inheritsFrom( ml_cause )
 e_acceptquest = inheritsFrom( ml_effect )
@@ -2450,7 +2415,6 @@ function c_clearaggressive:evaluate()
 	if (Now() < c_clearaggressive.timer) then
 		return false
 	end
-	c_clearaggressive.timer = Now() + 2500
 	
 	--Reset the tempvar.
 	c_clearaggressive.targetid = 0
@@ -2465,6 +2429,7 @@ function c_clearaggressive:evaluate()
 				local i,entity = next(el)
 				if (i and entity) then
 					local epos = entity.pos
+					c_clearaggressive.timer = Now() + 5000
 					local aggroChecks = GetAggroDetectionPoints(ppos,epos)
 					if (ValidTable(aggroChecks)) then
 						for k,navPos in pairsByKeys(aggroChecks) do
@@ -2486,6 +2451,7 @@ function c_clearaggressive:evaluate()
 			end
 		elseif (ml_task_hub:CurrentTask().pos) then
 			local dest = ml_task_hub:CurrentTask().pos
+			c_clearaggressive.timer = Now() + 5000
 			local aggroChecks = GetAggroDetectionPoints(ppos,dest)
 			if (ValidTable(aggroChecks)) then
 				for k,navPos in pairsByKeys(aggroChecks) do

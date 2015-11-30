@@ -344,6 +344,7 @@ function GetNearestGrindPriority()
 
 	return nil
 end
+
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = ml_global_information.Player_Position
@@ -370,7 +371,7 @@ function GetNearestFateAttackable()
 		end
 		
 		
-		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+		el = EntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -382,7 +383,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
+        el = EntityList("nearest,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -415,7 +416,7 @@ function GetNearestFateAttackable()
 			end	
 		end
 		
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -427,7 +428,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = EntityList("shortestpath,alive,attackable,onmesh,fateid="..tostring(fate.id))            
+        el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -5118,4 +5119,29 @@ function GetPitch()
 		return Player.flying.pitch
 	end
 	return false
+end
+
+function ValidTable(t)
+	if ( t ~= nil and type(t) == "table" ) then
+		for k,v in pairs(t) do
+			if (k ~= nil and v ~= nil) then
+				return true
+			end
+		end
+	end
+	
+    return false
+end
+
+function TableSize(t)
+	if ( t == nil or type(t) ~= "table" ) then
+		return 0
+	end
+	
+	local count = 0
+	for k,v in pairs(t) do
+		count = count + 1
+	end
+
+	return count
 end

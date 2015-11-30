@@ -30,8 +30,10 @@ SkillMgr.failTimer = 0
 SkillMgr.teleCastTimer = 0
 SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
-
 SkillMgr.bestAOE = 0
+
+SkillMgr.actionWatch = {}
+SkillMgr.actionWatchResult = false
 
 SkillMgr.lastCast = 0
 SkillMgr.lastCastUnique = 0
@@ -680,6 +682,19 @@ function SkillMgr.OnUpdate()
 		SkillMgr.UpdateLastCast(channelingskill)
 	end
 	
+	local actionWatch = SkillMgr.actionWatch
+	if (ValidTable(actionWatch)) then
+		if (Now() > actionWatch.expiration) then
+			actionWatch = {}
+		else
+			local action = actionWatch.action
+			if (Player.action == action) then
+				SkillMgr.actionWatchResult = true
+				SkillMgr.actionWatch = {}
+			end
+		end
+	end
+	
 	if (pcast.castingid ~= 0) then
 		local castingskill = pcast.castingid
 		if ( job >= 8 and job <=15 ) then
@@ -716,7 +731,7 @@ function SkillMgr.OnUpdate()
 				if (SkillMgr.prevSkillID ~= castingskill) then
 					local action = ActionList:Get(castingskill,1)
 					if (action) then
-						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
+						d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
 						SkillMgr.prevSkillTimestamp = Now()
 						if (action.recasttime == 2.5) then

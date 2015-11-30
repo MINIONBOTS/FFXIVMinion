@@ -160,7 +160,7 @@ function c_startcraft:evaluate()
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
 				if (canCraft) then
-					if (((requiredItems > 0 and itemcount < (requiredItems + startingCount)) or requiredItems == 0)) then
+					if (requiredItems == 0 or (requiredItems > 0 and itemcount < (requiredItems + startingCount))) then
 						return true
 					else
 						cd("[StartCraft]: Current item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."], no need to start more.",3)
