@@ -1968,7 +1968,7 @@ function c_stealthupdate:evaluate()
 		end
 	else
 		if (ml_global_information.needsStealth ~= false) then
-			ml_global_information.needsStealth = true
+			ml_global_information.needsStealth = false
 		end	
 	end
 	
