@@ -196,10 +196,10 @@ function e_startcraft:execute()
 			ml_task_hub:CurrentTask():SetDelay(1000)
 			return
 		else
+			local usehq = ml_task_hub:CurrentTask().useHQ
+			Crafting:UseHQMats(usehq)
+				
 			if (Crafting:CanCraftSelectedItem()) then
-				local usehq = ml_task_hub:CurrentTask().useHQ
-				Crafting:UseHQMats(usehq)
-
 				local usequick = ml_task_hub:CurrentTask().useQuick
 				if (usequick) then
 					local itemid = ml_task_hub:CurrentTask().itemid

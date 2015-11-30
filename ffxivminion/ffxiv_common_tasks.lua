@@ -161,12 +161,12 @@ end
 function ffxiv_task_movetopos:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
-			
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 140 )
-    self:add( ke_teleportToPos, self.process_elements)
 	
-	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 130 )
+	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
     self:add( ke_teleportToMap, self.process_elements)
+			
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
+    self:add( ke_teleportToPos, self.process_elements)
 	
 	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
     self:add( ke_stealth, self.process_elements)
@@ -1909,10 +1909,10 @@ function ffxiv_nav_interact:Init()
 	local ke_isLoading = ml_element:create( "IsLoading", c_gatherisloading, e_gatherisloading, 250 )
     self:add( ke_isLoading, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
-    self:add( ke_falling, self.process_elements)
+	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
+    self:add( ke_teleportToMap, self.process_elements)
 	
-	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
 	self:add( ke_teleportToPos, self.process_elements)
 			
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )

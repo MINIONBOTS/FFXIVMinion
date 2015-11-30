@@ -687,6 +687,7 @@ function e_transportgate:execute()
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
+	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
 	newTask.pos = gateDetails.pos
 	newTask.uniqueid = gateDetails.uniqueid
 	newTask.conversationIndex = gateDetails.conversationIndex
