@@ -200,6 +200,7 @@ function e_startcraft:execute()
 			Crafting:UseHQMats(usehq)
 				
 			if (Crafting:CanCraftSelectedItem()) then
+				ml_task_hub:CurrentTask().failedAttempts = 0
 				local usequick = ml_task_hub:CurrentTask().useQuick
 				if (usequick) then
 					local itemid = ml_task_hub:CurrentTask().itemid
@@ -226,9 +227,16 @@ function e_startcraft:execute()
 				ml_task_hub:CurrentTask():SetDelay(2500)
 				return
 			else
-				cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
-				ffxiv_task_craft.orders[recipe.id].completed = true
-				ml_task_hub:CurrentTask().completed = true
+				if (ml_task_hub:CurrentTask().failedAttempts < 3) then
+					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
+					ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
+					ml_task_hub:CurrentTask():SetDelay(1000)
+					return
+				else
+					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
+					ffxiv_task_craft.orders[recipe.id].completed = true
+					ml_task_hub:CurrentTask().completed = true
+				end
 			end			
 		end
 	else
@@ -551,6 +559,8 @@ function ffxiv_task_craftitems.Create()
 	newinst.recipeSelected = false
 	newinst.skillProfile = ""
 	newinst.quickTimer = 0
+	
+	newinst.failedAttempts = 0
     
     return newinst
 end

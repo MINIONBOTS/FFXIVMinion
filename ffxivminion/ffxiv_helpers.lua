@@ -352,6 +352,7 @@ function GetNearestFateAttackable()
 	
     if (ValidTable(fate)) then
 		if (fate.type == 1) then
+				
 			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
 			if (ValidTable(el)) then
 				local bestTarget = nil
@@ -365,13 +366,40 @@ function GetNearestFateAttackable()
 				end
 				
 				if (bestTarget) then
+					if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
+						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
+						el = EntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
+						if (ValidTable(el)) then
+							local nearestQuick = nil
+							local nearestQuickDistance = 500
+							
+							for i,e in pairs(el) do
+								local epos = e.pos
+								local ehp = e.hp
+								local mhp = ml_global_information.Player_HP
+								local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
+								if (dist <= fate.radius and 
+									(ehp.max <= (mhp.max * 1.1) or (ehp.current < (mhp.max * 1.1)))) 
+								then
+									if (not nearestQuick or (nearestQuick and dist < nearestQuickDistance)) then
+										nearestQuick,nearestQuickDistance = e,dist
+									end
+								end
+							end
+							
+							if (nearestQuick) then
+								return nearestQuick
+							end						
+						end	
+					end
+					
+				
 					return bestTarget
 				end
 			end
 		end
 		
-		
-		el = EntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -383,7 +411,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = EntityList("nearest,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
+        el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -407,7 +435,7 @@ function GetNearestFateAttackable()
 		end
 		
 		if (gFateKillAggro == "1") then
-			el = EntityList("nearest,alive,attackable,aggro,onmesh")
+			el = EntityList("shortestpath,alive,attackable,aggro,onmesh")
 			if (ValidTable(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
@@ -416,7 +444,7 @@ function GetNearestFateAttackable()
 			end	
 		end
 		
-        el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then

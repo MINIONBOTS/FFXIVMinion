@@ -198,6 +198,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 		return true
 	end
 	
+	if (self.destMapID and ml_global_information.Player_Map == self.destMapID) then
+		return true
+	end
+	
 	if (self.abortFunction) then
 		if (type(self.abortFunction) == "function") then
 			local retval = self.abortFunction()

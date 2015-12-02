@@ -147,7 +147,7 @@ function c_mooch:evaluate()
 					return true
 				elseif (lastCatch and moochables ~= "") then
 					for moochable in StringSplit(moochables,",") do
-						if (moochable == lastCatch) then
+						if (AceLib.API.Items.GetIDByName(moochable,47) == lastCatch) then
 							return true
 						end
 					end

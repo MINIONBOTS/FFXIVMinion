@@ -698,7 +698,11 @@ c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
-	if (ml_global_information.Player_IsLoading or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsCasting) then
+	if (ml_global_information.Player_IsLoading or 
+		(ml_global_information.Player_IsLocked and not IsFlying()) or 
+		ml_global_information.Player_IsCasting or
+		ml_global_information.Player_Map == 0) 
+	then
 		return false
 	end
 	
