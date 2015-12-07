@@ -52,8 +52,13 @@ function ml_mesh_mgr.ParseInstructions(data)
 				table.insert(ml_mesh_mgr.receivedInstructions,
 					function ()
 						if (IsFlying()) then
-							Player:Move(128) 
-							return true
+							if (Player:IsMoving(FFXIV.MOVEMENT.UP)) then
+								return true
+							else
+								Player:Move(128) 
+								ml_mesh_mgr.AddThrottleTime(300)
+								return false
+							end
 						else
 							Player:Jump()
 							Player:Jump()
@@ -65,8 +70,13 @@ function ml_mesh_mgr.ParseInstructions(data)
 			elseif (itype == "Stop") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
-						Player:Stop()
-						return true
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_mesh_mgr.AddThrottleTime(150)
+							return false
+						else
+							return true
+						end
 					end
 				)
 			elseif (itype == "Wait") then
@@ -103,8 +113,13 @@ function ml_mesh_mgr.ParseInstructions(data)
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
 						--Player:SetPitch(1.377) 
-						SendTextCommand("/mount")
-						return true
+						if (Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
+							SendTextCommand("/mount")
+							ml_mesh_mgr.AddThrottleTime(300)
+							return false
+						else
+							return true
+						end
 					end
 				)
 			elseif (itype == "CheckIfLocked") then

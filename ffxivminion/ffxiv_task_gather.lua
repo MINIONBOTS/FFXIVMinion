@@ -195,14 +195,17 @@ function c_findnode:evaluate()
 	else
 		return false
 	end
-	
-	if (ValidTable(ffxiv_task_gather.currentTask)) then
-		if (ffxiv_task_gather.currentTask.taskFailed == 0) then
-			ffxiv_task_gather.currentTask.taskFailed = Now()
-		end
-	end
     
 	ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
+	
+	if (ml_task_hub:CurrentTask().failedSearches > 1) then
+		if (ValidTable(ffxiv_task_gather.currentTask)) then
+			if (ffxiv_task_gather.currentTask.taskFailed == 0) then
+				ffxiv_task_gather.currentTask.taskFailed = Now()
+			end
+		end
+	end
+	
     return false
 end
 function e_findnode:execute()
@@ -354,6 +357,11 @@ function c_returntobase:evaluate()
 end
 function e_returntobase:execute()
 	ml_task_hub:CurrentTask().failedSearches = 0
+	if (ValidTable(ffxiv_task_gather.currentTask)) then
+		if (ffxiv_task_gather.currentTask.taskFailed ~= 0) then
+			ffxiv_task_gather.currentTask.taskFailed = 0
+		end
+	end
 	
 	local pos = e_returntobase.pos
 	local newTask = ffxiv_task_movetopos.Create()
@@ -2144,14 +2152,23 @@ function c_gathernexttask:evaluate()
 					
 					for i,data in pairsByKeys(validTasks) do
 						-- Items with weather requirements go into high priority
-						if (data.weatherlast or data.weathernow or data.weathernext or data.highpriority) then
-							gd("Added task at ["..tostring(i).."] to the high priority queue.",3)
+						if (data.highpriority) then
+							gd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
-						elseif (data.eorzeaminhour or data.eorzeamaxhour or data.normalpriority) then
-							gd("Added task at ["..tostring(i).."] to the normal priority queue.",3)
+						elseif (data.normalpriority) then
+							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
+							normalPriority[i] = data
+						elseif (data.lowpriority) then
+							gd("Added task at ["..tostring(i).."] to the low priority queue.")
+							lowPriority[i] = data
+						elseif (data.weatherlast or data.weathernow or data.weathernext) then
+							gd("Added task at ["..tostring(i).."] to the high priority queue.")
+							highPriority[i] = data
+						elseif (data.eorzeaminhour or data.eorzeamaxhour) then
+							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
 							normalPriority[i] = data
 						else
-							gd("Added task at ["..tostring(i).."] to the low priority queue.",3)
+							gd("Added task at ["..tostring(i).."] to the low priority queue.")
 							lowPriority[i] = data
 						end
 					end
@@ -2168,7 +2185,7 @@ function c_gathernexttask:evaluate()
 						end
 					end
 					
-					if (not best) then
+					if (not best and not currentTask.highpriority) then
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(normalPriority) do

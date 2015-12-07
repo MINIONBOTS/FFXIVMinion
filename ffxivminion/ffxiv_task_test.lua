@@ -178,7 +178,7 @@ function e_flighttakeoff:execute()
 		
 		local instructions = {
 			{"Ascend", {}},
-			{"Wait", { 1000 }},
+			{"Wait", { 500 }},
 			{"Stop", {}},
 		}
 		ml_mesh_mgr.ParseInstructions(instructions)
@@ -224,11 +224,15 @@ e_flytopos = inheritsFrom( ml_effect )
 c_flytopos.pos = nil
 c_flytopos.path = nil
 function c_flytopos:evaluate()
+	if (true) then
+		return false
+	end
+	
 	if (not CanFlyInZone() or not ValidTable(ffxiv_task_test.flightMesh) or ml_task_hub:CurrentTask().noFlight) then
-		if (IsFlying()) then
-			Dismount()
-			ml_task_hub:CurrentTask():SetDelay(2000)
-		end
+		--if (IsFlying()) then
+			--Dismount()
+			--ml_task_hub:CurrentTask():SetDelay(2000)
+		--end
 		return false
 	end
 	
@@ -257,20 +261,25 @@ function c_flytopos:evaluate()
 			gotoPos = ml_task_hub:CurrentTask().pos
 		end
 		
-		if (ffxiv_task_test.HasJunction(myPos)) then
-			if (ffxiv_task_test.HasJunction(gotoPos)) then
-				local path = ffxiv_task_test.GetPath(myPos,gotoPos)
-				if (ValidTable(path)) then
-					c_flytopos.pos = gotoPos
-					c_flytopos.path = path
-					return true
+		local dist = Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+		if (dist >= 20) then
+			if (ffxiv_task_test.HasJunction(myPos)) then
+				if (ffxiv_task_test.HasJunction(gotoPos)) then
+					local path = ffxiv_task_test.GetPath(myPos,gotoPos)
+					if (ValidTable(path)) then
+						c_flytopos.pos = gotoPos
+						c_flytopos.path = path
+						return true
+					end
+				else
+					--d("Destination has no junction areas.")
 				end
 			else
-				d("Destination has no junction areas.")
+				--d("Our position has no junction areas.")
 			end
-		else
-			d("Our position has no junction areas.")
 		end
+	else
+		--d("No position passed.")
     end
 	
     return false
@@ -278,7 +287,11 @@ end
 function e_flytopos:execute()
 	local newTask = ffxiv_task_movewithflight.Create()
 	newTask.path = c_flytopos.path
-	newTask.remainMounted = true
+	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
+		newTask.remainMounted = true
+	else
+		newTask.remainMounted = false
+	end
 	newTask.pos = c_flytopos.pos
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -555,7 +568,15 @@ function ffxiv_task_movewithflight:task_complete_eval()
 		else
 			local path = self.path
 			if (ValidTable(path)) then
-				if (IsFlying()) then					
+				if (IsFlying()) then	
+					
+					if (not Player:IsMoving()) then
+						d("starting forward movement.")
+						Player:Move(FFXIV.MOVEMENT.FORWARD)
+						ml_task_hub:CurrentTask():SetDelay(500)
+						return false
+					end
+					
 					local currentPoint = nil
 					if (self.pathIndex == 0) then
 						currentPoint = Player.pos
@@ -564,6 +585,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 					end
 					
 					if (currentPoint) then
+						--d("have current point. x = "..tostring(currentPoint.x)..", y = "..tostring(currentPoint.y)..", z = "..tostring(currentPoint.z))
 						local travelPoint = nil
 						if ((self.pathIndex+1) > TableSize(self.path)) then
 							travelPoint = gotoPos
@@ -572,66 +594,39 @@ function ffxiv_task_movewithflight:task_complete_eval()
 								travelPoint = p
 							end
 						else
+							d("Setting to next path index ["..tostring(self.pathIndex).."].")
 							travelPoint = path[self.pathIndex+1]
 						end
 						
 						if (travelPoint) then
+							d("have travel point. x = "..tostring(travelPoint.x)..", y = "..tostring(travelPoint.y)..", z = "..tostring(travelPoint.z))
 							local distNext = Distance3D(myPos.x, myPos.y, myPos.z, travelPoint.x, travelPoint.y, travelPoint.z)
-							local raycast,hitX,hitY,hitZ = MeshManager:RayCast(myPos.x, myPos.y, myPos.z, travelPoint.x, travelPoint.y, travelPoint.z)
-							
+							d("distnext:"..tostring(distNext))
 							if (distNext == self.lastDistance) then
 								self.stuckTicks = self.stuckTicks + 1
 								d("Adding one stuck tick, total now ["..tostring(self.stuckTicks).."].")
 							end
 							
+							--[[
 							if (self.stuckTicks >= 2) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
 								self.lastDistance = math.huge
 								self.stuckTicks = 0
 								return false
 							end
+							--]]
 							
 							self.lastDistance = distNext
 							
 							if (distNext <= 4) then
-								d("Switching at a distance of ["..tostring(distNext).."].")
-								local canSwitch = true
-								
-								if (raycast == nil) then
-									--d("Ray did not connect, we're safe.")
-								else
-									local raydist = Distance3D(myPos.x,myPos.y,myPos.z,hitX,hitY,hitZ)
-									d("Ray connected at a distance of ["..tostring(raydist).."]., possible turbulence.")
-								end
-								
-								if (canSwitch) then
-									self.pathIndex = self.pathIndex+1
-									--d("Moving forward in the path to index ["..tostring(self.pathIndex).."].")
-									self.lastDistance = math.huge
-									self.stuckTicks = 0
-									return false
-								end
+								--d("Switching at a distance of ["..tostring(distNext).."].")
+								self.pathIndex = self.pathIndex+1
+								--d("Moving forward in the path to index ["..tostring(self.pathIndex).."].")
+								self.lastDistance = math.huge
+								self.stuckTicks = 0
+								return false
 							end
 							
-							--if (raycast == true) then
-								--local newPath = ffxiv_task_test.GetPath(Player.pos,self.pos)
-								--if (ValidTable(newPath)) then
-									--self.path = newPath
-									--self.pathIndex = 1
-									--d("Altering path.")
-									--return false
-								--else
-									--d("Could not find alternative path, quitting flight.")
-									--return true
-								--end
-							--end
-							
-							--Player:SetFacing(travelPoint.x,travelPoint.y,travelPoint.z)
-							if (not self.movementStarted) then
-								Player:Move(FFXIV.MOVEMENT.FORWARD)
-								self.movementStarted = true
-							end
-									
 							SmartTurn(travelPoint)
 							local pitch = math.atan2((myPos.y - travelPoint.y), distNext)
 							--local pitch = math.asin((myPos.y - travelPoint.y)/distNext)
@@ -639,6 +634,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 								--d("Adjusting pitch to ["..tostring(pitch).."].")
 								Player:SetPitch(pitch)
 							end
+
 							ml_global_information.idlePulseCount = 0
 						else
 							local distCurrent = Distance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
@@ -890,7 +886,7 @@ function ffxiv_task_test.CreateStorage()
 end
 
 function ffxiv_task_test.HasJunction(pos)
-	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false,nil,4)
 	if (ValidTable(neighbors)) then
 		return true
 	end
@@ -899,7 +895,7 @@ function ffxiv_task_test.HasJunction(pos)
 end
 
 function ffxiv_task_test.GetNearestFlightJunction(pos)
-	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,pos,true,false,nil,4)
 	if (ValidTable(neighbors)) then
 		local closest = nil
 		local closestDistance = 9999
@@ -1081,7 +1077,7 @@ function ffxiv_task_test.GetPath(from,to)
 					ffxiv_task_test.lastPathCheck = Now() + 5000
 					return path,nearestJunction,farJunction
 				else
-					d("Attempted to find a flight path but could not.")
+					--d("Attempted to find a flight path but could not.")
 				end
 			end
 		end
@@ -1100,8 +1096,20 @@ function ffxiv_task_test.GetPath(dest)
 	pos.y = tonumber(gTestMapY)
 	pos.z = tonumber(gTestMapZ)
 	
-	local pos1 = ffxiv_task_test.GetNearestFlightPoint(ppos)
-	local pos2 = ffxiv_task_test.GetNearestFlightPoint(pos)
+	--local pos1 = ffxiv_task_test.GetNearestFlightPoint(ppos)
+	--local pos2 = ffxiv_task_test.GetNearestFlightPoint(pos)
+	local points = {}
+	
+	local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+	if (ValidTable(path)) then
+		for k,v in pairs(path) do
+			table.insert(points,v)
+		end
+	else
+		d("No path returned.")
+	end
+	
+	ffxiv_task_test.RenderPoints(points,1)
 		
 	local path = path( pos1, pos2, ffxiv_task_test.flightMesh, true, is_valid_node )
 	if not path then
@@ -1190,7 +1198,8 @@ function removeFromCube(cube,pos)
 	end
 end
 
-function findNeighbors(cube,pos,validonly,goal)
+function findNeighbors(cube,pos,validonly,goal,maxpathlength)
+	local maxpathlength = tonumber(maxpathlength) or 2
 	local validonly = IsNull(validonly,true)
 	local neighbors = {}
 
@@ -1217,19 +1226,22 @@ function findNeighbors(cube,pos,validonly,goal)
 	local atan2 = math.atan2
 	local dist_between = dist_between
 	
-	local MIN_DIST = 3
-	local MAX_DIST = 35
+	local MIN_DIST = 5
+	local MAX_DIST = 40
 	
 	local neighbors = {}
 	if (validonly) then
 		for _, node in pairs(neighborSubset) do
 			local nodedist = dist_between(pos,node)
 			if (nodedist >= MIN_DIST and nodedist <= MAX_DIST) then
-				local raycast = MeshManager:RayCast(pos.x,pos.y,pos.z,node.x,node.y,node.z)
-				if (raycast == nil) then
-					local pitch = atan2((pos.y - node.y),nodedist)
-					if (pitch >= -.785 and pitch <= 1.377) then
+				local pitch = atan2((pos.y - node.y),nodedist)
+				if (pitch >= -.785 and pitch <= 1.377) then
+					local path = NavigationManager:GetPath(pos.x,pos.y,pos.z,node.x,node.y,node.z)
+					local tsize = TableSize(path)
+					if (tsize >= 2 and tsize <= maxpathlength) then
 						neighbors[#neighbors+1] = node
+					else
+						--d("node had ["..tostring(TableSize(path)).."] path points.")
 					end
 				end
 			end
@@ -1832,7 +1844,7 @@ function lowest_f_score ( set, f_score )
 end
 
 function neighbor_nodes(thisNode, goal)
-	local neighbors = findNeighbors(ffxiv_task_test.storageCube,{x = thisNode.x, y = thisNode.y, z = thisNode.z},true,goal)
+	local neighbors = findNeighbors(ffxiv_task_test.storageCube,{x = thisNode.x, y = thisNode.y, z = thisNode.z},true,goal,2)
 	return neighbors
 end
 
@@ -1935,11 +1947,11 @@ function a_star ( start, goal, nodes, valid_node_func )
 					end
 				end
 			end
-		else
-			local unavailable = {}
-			table.insert(unavailable,current)
-			ffxiv_task_test.RenderPoints(unavailable,1)
-			d("neighbor has no nodes.")
+		--else
+			--local unavailable = {}
+			--table.insert(unavailable,current)
+			--ffxiv_task_test.RenderPoints(unavailable,4)
+			--d("node has no neighbors")
 		end
 	end
 	return nil
@@ -2286,7 +2298,8 @@ function ffxiv_task_test.FaceNextPath()
 	end
 end
 
-function SmartTurn(newPos)	
+function SmartTurn(newPos)
+	local originalPos = newPos
 	local myPos = Player.pos
 	local forwardPos = GetPosFromDistanceHeading(myPos, 8, myPos.h)
 	

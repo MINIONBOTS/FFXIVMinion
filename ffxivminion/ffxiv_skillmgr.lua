@@ -695,8 +695,8 @@ function SkillMgr.OnUpdate()
 		end
 	end
 	
-	if (pcast.castingid ~= 0) then
-		local castingskill = pcast.castingid
+	if (pcast.lastcastid ~= 0) then
+		local castingskill = pcast.lastcastid
 		if ( job >= 8 and job <=15 ) then
 			local action = ActionList:Get(castingskill,9)
 			if (action) then
@@ -1778,7 +1778,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	preCombat = preCombat or false
 	forceStop = forceStop or false
 	
-	if (not entity) then
+	if (not entity or IsFlying()) then
 		return false
 	end
 				
@@ -1912,7 +1912,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 								SkillMgr.latencyTimer = Now()
 								
-								local castingskill = ml_global_information.Player_Casting.castingid
+								local castingskill = Player.castinginfo.lastcastid
 								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 									SkillMgr.prevSkillID = castingskill
 									SkillMgr.prevSkillTimestamp = Now()
@@ -1951,7 +1951,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									}
 								end
 							
-								local castingskill = ml_global_information.Player_Casting.castingid
+								local castingskill = Player.castinginfo.lastcastid
 								if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 									--d(tostring(action.name).." was detected immediately.")
 									--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")

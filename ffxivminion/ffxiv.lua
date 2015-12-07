@@ -1607,9 +1607,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-    if (ml_global_information.Player_IsMoving) then
-        Player:Stop()
-    end
+	Stop()
 	GameHacks:SkipCutscene(gSkipCutscene == "1")
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end

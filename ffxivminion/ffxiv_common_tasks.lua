@@ -177,8 +177,8 @@ function ffxiv_task_movetopos:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
-	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
-    --self:add( ke_flyToPos, self.process_elements)
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
+    self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 20 )
     self:add( ke_sprint, self.process_elements)
@@ -402,8 +402,8 @@ function ffxiv_task_movetofate:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
 	
-	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
-    --self:add( ke_flyToPos, self.process_elements)
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
+    self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
@@ -635,8 +635,8 @@ function ffxiv_task_movetointeract:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
 	
-	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
-    --self:add( ke_flyToPos, self.process_elements)
+	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
+    self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
@@ -1276,7 +1276,7 @@ function ffxiv_task_avoid:task_complete_eval()
 		return true
 	end
 
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z)
+	MoveTo(self.pos.x,self.pos.y,self.pos.z,1,false,false,false)
     return false
 end
 
@@ -1512,8 +1512,16 @@ function ffxiv_task_grindCombat:Init()
 end
 
 function ffxiv_task_grindCombat:Process()	
+	ml_cne_hub.clear_queue()
+	ml_cne_hub.eval_elements(self.process_elements)
+	ml_cne_hub.queue_to_execute()
+	local executed = ml_cne_hub.execute()
+	if (executed) then
+		return true
+	end
+		
 	local target = EntityList:Get(self.targetid)
-	if ValidTable(target) then
+	if (ValidTable(target)) then
 	
 		local currentTarget = ml_global_information.Player_Target
 		if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
@@ -1582,8 +1590,11 @@ function ffxiv_task_grindCombat:Process()
 					end
 				else
 					if (Now() > self.movementDelay) then
-						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
-						self.movementDelay = Now() + 1000
+						if (not c_mount:evaluate() and not IsMounting()) then
+							MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+							--Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
+							self.movementDelay = Now() + 1000
+						end
 					end
 				end
 			end
@@ -1622,7 +1633,10 @@ function ffxiv_task_grindCombat:Process()
 							self.teleportThrottle = Now() + 1500
 						end
 					else
-						Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
+						if (not c_mount:evaluate() and not IsMounting()) then
+							--Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
+							MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
+						end
 					end
 					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
 					local dist2 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
@@ -1679,6 +1693,7 @@ function ffxiv_task_grindCombat:Process()
 	end
       
     --Process regular elements.
+	--[[
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
@@ -1688,6 +1703,7 @@ function ffxiv_task_grindCombat:Process()
 	else
 		ml_debug("no elements in process table")
 	end
+	--]]
 end
 
 function ffxiv_task_grindCombat:task_complete_eval()

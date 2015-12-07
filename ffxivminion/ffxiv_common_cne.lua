@@ -1037,7 +1037,10 @@ c_walktopos = inheritsFrom( ml_cause )
 e_walktopos = inheritsFrom( ml_effect )
 c_walktopos.pos = 0
 e_walktopos.lastRun = 0
+e_walktopos.lastPath = 0
+e_walktopos.lastFail = 0
 e_walktopos.lastStealth = 0
+c_walktopos.lastPos = {}
 function c_walktopos:evaluate()
 	if ((ml_global_information.Player_IsLocked and not IsFlying()) or 
 		ml_global_information.Player_IsLoading or
@@ -1054,15 +1057,15 @@ function c_walktopos:evaluate()
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
-			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
+			--ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
 			if (p and dist > 2) then
-				ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
+				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
 				gotoPos = p
 			end
-			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
+			--ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
 		if (ValidTable(gotoPos)) then
@@ -1096,7 +1099,7 @@ function e_walktopos:execute()
 			newTask.addingStealth = true
 			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 			e_walktopos.lastStealth = Now()
-			d("adding stealth.")
+			--d("adding stealth.")
 			return
 		end
 	elseif (hasStealth and not needsStealth) then
@@ -1105,7 +1108,7 @@ function e_walktopos:execute()
 			newTask.droppingStealth = true
 			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 			e_walktopos.lastStealth = Now()
-			d("dropping stealth.")
+			--d("dropping stealth.")
 			return
 		end
 	end
@@ -1114,31 +1117,52 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
 		
+		if (ValidTable(c_walktopos.lastPos)) then
+			local lastPos = c_walktopos.lastPos
+			local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			if (dist < 1) then
+				if ((TimeSince(e_walktopos.lastPath) < 20000 and Player:IsMoving()) or
+					(TimeSince(e_walktopos.lastPath) < 5000) or
+					(TimeSince(e_walktopos.lastFail) < 10000)) 
+				then
+					return
+				end
+			else
+				d("distance is greater than 1 ["..tostring(dist).."], allow it.")
+			end
+		end
+		
 		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
 		
 		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist > 2) then
+		
+			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
 			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
-			e_walktopos.lastRun = Now()
-			
+			c_walktopos.lastPos = gotoPos
 			if (not tonumber(path)) then
-				ml_debug("[e_walktopos]: An error occurred in creating the path.")
+				ml_debug("[e_walktopos]: An error occurred in creating the path.", "gLogCNE", 2)
 				if (path ~= nil) then
 					ml_debug(path)
 				end
 				Player:Stop()
+				e_walktopos.lastFail = Now()
 			elseif (path >= 0) then
 				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.")
+				e_walktopos.lastPath = Now()
 			elseif (path <= -1) then
-				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].")
+				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].", "gLogCNE", 2)
 				Player:Stop()
+				e_walktopos.lastFail = Now()
 			end
 		else
-			Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
-			if (not ml_global_information.Player_IsMoving) then
-				Player:Move(FFXIV.MOVEMENT.FORWARD)
-				e_walktopos.lastRun = Now()
+			if (not IsFlying()) then
+				Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
+				if (not ml_global_information.Player_IsMoving) then
+					Player:Move(FFXIV.MOVEMENT.FORWARD)
+					e_walktopos.lastRun = Now()
+				end
 			end
 		end
 	end
@@ -1291,18 +1315,15 @@ function e_bettertargetsearch:execute()
 	Player:SetTarget(c_bettertargetsearch.targetid)        
 end
 
-
-
 -----------------------------------------------------------------------------------------------
 --MOUNT: If (distance to pos > ? or < ?) Then (mount or unmount)
 ---------------------------------------------------------------------------------------------
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
-e_mount.timer = 0
 function c_mount:evaluate()
 	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen()) then
+		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) then
 		return false
 	end
 	
@@ -1323,42 +1344,42 @@ function c_mount:evaluate()
 		return false
 	end
 	
+	e_mount.id = 0
+	
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
-		if (not Player.ismounted and not ml_global_information.Player_IsCasting and not IsMounting() and not ml_global_information.Player_InCombat) then
-			local myPos = ml_global_information.Player_Position
-			local gotoPos = ml_task_hub:CurrentTask().pos
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		
-			if (distance > tonumber(gMountDist)) then
-				--Added mount verifications here.
-				--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
-				local mountID
-				local mountIndex
-				local mountlist = ActionList("type=13")
-				
-				if (ValidTable(mountlist)) then
-					--First pass, look for our named mount.
-					for k,v in pairsByKeys(mountlist) do
-						if (v.name == gMount) then
-							local acMount = ActionList:Get(v.id,13)
-							if (acMount and acMount.isready) then
-								e_mount.id = v.id
-								return true
-							end
+		local myPos = ml_global_information.Player_Position
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+	
+		if (distance > tonumber(gMountDist)) then
+			--Added mount verifications here.
+			--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
+			local mountID
+			local mountIndex
+			local mountlist = ActionList("type=13")
+			
+			if (ValidTable(mountlist)) then
+				--First pass, look for our named mount.
+				for k,v in pairsByKeys(mountlist) do
+					if (v.name == gMount) then
+						local acMount = ActionList:Get(v.id,13)
+						if (acMount and acMount.isready) then
+							e_mount.id = v.id
+							return true
 						end
 					end
-					
-					--Second pass, look for any mount as backup.
-					if (gMount == GetString("none")) then
-						for k,v in pairsByKeys(mountlist) do
-							local acMount = ActionList:Get(v.id,13)
-							if (acMount and acMount.isready) then
-								SetGUIVar("gMount", v.name)
-								e_mount.id = v.id
-								return true
-							end
-						end		
-					end
+				end
+				
+				--Second pass, look for any mount as backup.
+				if (gMount == GetString("none")) then
+					for k,v in pairsByKeys(mountlist) do
+						local acMount = ActionList:Get(v.id,13)
+						if (acMount and acMount.isready) then
+							SetGUIVar("gMount", v.name)
+							e_mount.id = v.id
+							return true
+						end
+					end		
 				end
 			end
 		end
@@ -1367,14 +1388,21 @@ function c_mount:evaluate()
     return false
 end
 function e_mount:execute()
-	if (IsMounting() or Now() < e_mount.timer) then
+	if (Player:IsMoving()) then
+		Player:Stop()
 		return
 	end
 	
-	ml_debug("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
+	if (IsMounting()) then
+		d("Adding a wait.")
+		DoWait(1200)
+		return
+	end
+	
+	--d("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
     Player:Stop()
     Mount(e_mount.id)
-	e_mount.timer = Now() + 1200
+	DoWait(250)
 end
 
 c_companion = inheritsFrom( ml_cause )

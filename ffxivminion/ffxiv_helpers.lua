@@ -1,4 +1,9 @@
 -- This file holds global helper functions
+ff = {}
+ff.lastPos = {}
+ff.lastPath = 0
+ff.lastFail = 0
+
 function FilterByProximity(entities,center,radius,sortfield)
 	if (ValidTable(entities) and ValidTable(center) and tonumber(radius) > 0) then
 		local validEntities = {}
@@ -2778,10 +2783,10 @@ function GetMountID()
 	return nil
 end
 function IsMounting()
-	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165))
+	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165 or Player.lastaction == 165))
 end
 function IsMounted()
-	return (Player.ismounted or Player.action == 166)
+	return (Player.ismounted)
 end
 function IsDismounting()
 	return (Player.ismounted and (Player.action == 32))
@@ -2846,14 +2851,16 @@ function Mount(id)
 				local acMount = ActionList:Get(mountID,13)
 				if (acMount and acMount.isready) then
 					acMount:Cast()
-					ml_task_hub:CurrentTask():SetDelay(1200)
+					DoWait(150)
 				end
 			end
 		end
 	end			
 end
 function Dismount()
-	if (Player.ismounted) then
+	local isflying = IsFlying()
+	
+	if (Player.ismounted and (not isflying or (isflying and not Player:IsMoving()))) then
 		local mountlist = ActionList("type=13")
 		
 		if ( TableSize( mountlist) > 0 ) then
@@ -4764,6 +4771,7 @@ function CanAccessMap(mapid)
 														ml_global_information.Player_Map,
 														mapid	)
 			if (ValidTable(pos)) then
+				--d("Found a nav path for mapid ["..tostring(mapid).."].")
 				return true
 			end
 			
@@ -4771,6 +4779,7 @@ function CanAccessMap(mapid)
 			for k,aetheryte in pairs(attunedAetherytes) do
 				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
+					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -4778,6 +4787,7 @@ function CanAccessMap(mapid)
 			local nearestAetheryte = GetAetheryteByMapID(mapid)
 			if (nearestAetheryte) then
 				if (GilCount() >= nearestAetheryte.price) then
+					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -4788,6 +4798,7 @@ function CanAccessMap(mapid)
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
 					if (ValidTable(backupPos)) then
+						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						return true
 					end
 				end
@@ -5172,4 +5183,57 @@ function TableSize(t)
 	end
 
 	return count
+end
+
+function DoWait(ms)
+	ms = tonumber(ms) or 150
+	local instructions = {
+		{"Wait", { ms }},
+	}
+	ml_mesh_mgr.ParseInstructions(instructions)
+end
+
+function Stop()
+	local instructions = {
+		{"Stop", {}},
+	}
+	ml_mesh_mgr.ParseInstructions(instructions)
+end
+
+function MoveTo(x,y,z,range,useFollowMovement,useRandomPath,useSmoothTurns)
+	local gotoPos = {x = x, y = y, z = z}
+	local myPos = Player.pos
+		
+	if (ValidTable(ff.lastPos)) then
+		local lastPos = ff.lastPos
+		local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		if (dist < 1) then
+			if ((TimeSince(ff.lastPath) < 20000 and Player:IsMoving()) or
+				(TimeSince(ff.lastPath) < 1000) or
+				(TimeSince(ff.lastFail) < 10000)) 
+			then
+				return
+			end
+		end
+	end
+		
+	local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),range,useFollowMovement,useRandomPath,useSmoothTurns)
+	ff.lastPos = gotoPos
+	
+	if (not tonumber(path)) then
+		ml_debug("[MoveTo]: An error occurred in creating the path.", "gLogCNE", 2)
+		if (path ~= nil) then
+			ml_debug(path)
+		end
+		Stop()
+		ff.lastFail = Now()
+	elseif (path >= 0) then
+		ml_debug("[MoveTo]: A path with ["..tostring(path).."] points was created.", "gLogCNE", 2)
+		ff.lastPos = gotoPos
+		ff.lastPath = Now()
+	elseif (path <= -1) then
+		ml_debug("[MoveTo]: A path could not be created towards the goal, error code ["..tostring(path).."].", "gLogCNE", 2)
+		Stop()
+		ff.lastFail = Now()
+	end
 end

@@ -956,6 +956,7 @@ function c_fishnexttask:evaluate()
 			
 			if (ffxiv_task_fish.attemptedCasts > 2) then
 				fd("Attempted casts reached 3, check for a new location.")
+				ffxiv_task_fish.SetLockout(gProfile,ffxiv_task_fish.currentTaskIndex)
 				invalid = true
 			end
 			
@@ -1084,6 +1085,18 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (valid) then
+						local lockout = ffxiv_task_fish.GetLockout(gProfile,i)
+						if (lockout ~= 0) then
+							local lockoutTime = data.lockout or 300
+							
+							if (TimePassed(GetCurrentTime(), lockout) < lockoutTime) then
+								valid = false
+								fd("Task ["..tostring(i).."] not valid due to lockout.",3)
+							end
+						end
+					end
+					
+					if (valid) then
 						local weather = AceLib.API.Weather.Get(data.mapid)
 						local weatherLast = weather.last or ""
 						local weatherNow = weather.now or ""
@@ -1192,9 +1205,20 @@ function c_fishnexttask:evaluate()
 					
 					for i,data in pairsByKeys(validTasks) do
 						-- Items with weather requirements go into high priority
-						if (data.weatherlast or data.weathernow or data.weathernext or data.highpriority) then
+						if (data.highpriority) then
+							fd("Added task at ["..tostring(i).."] to the high priority queue.")
 							highPriority[i] = data
-						elseif (data.eorzeaminhour or data.eorzeamaxhour or data.normalpriority) then
+						elseif (data.normalpriority) then
+							fd("Added task at ["..tostring(i).."] to the normal priority queue.")
+							normalPriority[i] = data
+						elseif (data.lowpriority) then
+							fd("Added task at ["..tostring(i).."] to the low priority queue.")
+							lowPriority[i] = data
+						elseif (data.weatherlast or data.weathernow or data.weathernext) then
+							fd("Added task at ["..tostring(i).."] to the high priority queue.")
+							highPriority[i] = data
+						elseif (data.eorzeaminhour or data.eorzeamaxhour) then
+							fd("Added task at ["..tostring(i).."] to the normal priority queue.")
 							normalPriority[i] = data
 						else
 							fd("Added task at ["..tostring(i).."] to the low priority queue.")
@@ -1214,7 +1238,7 @@ function c_fishnexttask:evaluate()
 						end
 					end
 					
-					if (not best) then
+					if (not best and not currentTask.highpriority) then
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(normalPriority) do
@@ -1812,6 +1836,32 @@ function ffxiv_task_fish.LoadProfile(strName)
 	else
 		ffxiv_task_fish.profileData = {}
 	end
+end
+function ffxiv_task_fish.GetLockout(profile,task)
+	if (Settings.FFXIVMINION.gFishLockout ~= nil) then
+		lockout = Settings.FFXIVMINION.gFishLockout
+		if (ValidTable(lockout[profile])) then
+			return lockout[profile][task] or 0
+		end
+	end
+	
+	return 0
+end
+function ffxiv_task_fish.SetLockout(profile,task)
+	if (Settings.FFXIVMINION.gFishLockout == nil or type(Settings.FFXIVMINION.gFishLockout) ~= "table") then
+		Settings.FFXIVMINION.gFishLockout = {}
+	end
+	
+	local lockout = Settings.FFXIVMINION.gFishLockout
+	if (lockout[profile] == nil or type(lockout[profile]) ~= "table") then
+		lockout[profile] = {}
+	end
+	
+	lockout[profile][task] = GetCurrentTime()
+	Settings.FFXIVMINION.gFishLockout = lockout
+end
+function ffxiv_task_fish.ResetLastGather()
+	Settings.FFXIVMINION.gFishLockout = {}
 end
 function ffxiv_task_fish.SetupMarkers()
     -- add marker templates for fishing
