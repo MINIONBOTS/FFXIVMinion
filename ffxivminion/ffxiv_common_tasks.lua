@@ -1517,20 +1517,32 @@ function ffxiv_task_grindCombat:Process()
 	ml_cne_hub.queue_to_execute()
 	local executed = ml_cne_hub.execute()
 	if (executed) then
-		return true
+		--d("Executed a CNE.")
+		return false
+	end
+	
+	if (TimeSince(self.delayTime) < self.delayTimer) then
+		d("task is delayed.")
+		return false
 	end
 		
 	local target = EntityList:Get(self.targetid)
 	if (ValidTable(target)) then
-	
-		local currentTarget = ml_global_information.Player_Target
-		if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
-			Player:SetTarget(target.id)
+		
+		--d("Target is valid, commence checks.")
+		
+		if (target.targetable) then
+			local currentTarget = ml_global_information.Player_Target
+			if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
+				--d("Set the target.")
+				Player:SetTarget(target.id)
+			end
 		end
 		
 		self.pos = target.pos
 		
 		if (target.fateid ~= 0) then
+			--d("Check fate details.")
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
 			if ( fate and fate.completion < 100 and fate.status == 2) then
@@ -1580,6 +1592,7 @@ function ffxiv_task_grindCombat:Process()
 		
 		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
+			--d("Ranged class, check if we're in combat range and such..")
 			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
@@ -1590,30 +1603,37 @@ function ffxiv_task_grindCombat:Process()
 					end
 				else
 					if (Now() > self.movementDelay) then
-						if (not c_mount:evaluate() and not IsMounting()) then
-							MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
-							--Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
-							self.movementDelay = Now() + 1000
-						end
+						--d("Ranged class needs to move closer, fire moveto..")
+						--MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						self.movementDelay = Now() + 1000
 					end
 				end
 			end
+			--d("Checking if we are in combat range now.")
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
+					--d("Need to dismount if we are close.")
 					Dismount()
 				end
 				if (ml_global_information.Player_IsMoving and (target.los or CanAttack(target.id))) then
 					Player:Stop()
+					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
 						return
 					end
 				end
 				if (not EntityIsFrontTight(target)) then
+					--d("Need to face the enemy so we can cast.")
 					Player:SetFacing(pos.x,pos.y,pos.z) 
 				end
+			else
+				--d("We were not in combat range.")
 			end
+			--d("Checking if we are in combat range and the target was attackable.")
 			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+					--d("FIRE AWAY")
 					SkillMgr.Cast( target )
 					if (self.attackThrottle) then
 						if (Player.level > target.level) then
@@ -1621,8 +1641,11 @@ function ffxiv_task_grindCombat:Process()
 						end
 					end
 				end
+			else
+				--d("Not in combat range or target is not attackable or alive.")
 			end
 		else
+			--d("Melee class, check if we're in combat range and such..")
 			if (not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) then
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
@@ -1633,10 +1656,9 @@ function ffxiv_task_grindCombat:Process()
 							self.teleportThrottle = Now() + 1500
 						end
 					else
-						if (not c_mount:evaluate() and not IsMounting()) then
-							--Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
-							MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
-						end
+						--d("Melee class needs to move closer, fire moveto..")
+						Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
+						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
 					end
 					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
 					local dist2 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
@@ -1664,13 +1686,13 @@ function ffxiv_task_grindCombat:Process()
 					local pullPos = nil
 					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
 					if (dist1 > 6) then
-						d("using pullpos 1")
+						--d("using pullpos 1")
 						pullPos = self.pullPos1
 					else
-						d("using pullpos 2")
+						--d("using pullpos 2")
 						pullPos = self.pullPos2
 					end
-					Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false)
+					Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
 					self.pullTimer = Now() + 5000
 				end
 				if (self.attackThrottle) then
@@ -1691,19 +1713,6 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 	end
-      
-    --Process regular elements.
-	--[[
-    if (TableSize(self.process_elements) > 0) then
-		ml_cne_hub.clear_queue()
-		ml_cne_hub.eval_elements(self.process_elements)
-		ml_cne_hub.queue_to_execute()
-		ml_cne_hub.execute()
-		return false
-	else
-		ml_debug("no elements in process table")
-	end
-	--]]
 end
 
 function ffxiv_task_grindCombat:task_complete_eval()
@@ -1733,6 +1742,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 	local target = EntityList:Get(self.targetid)
 	if (target) then
 		if (target.fateid ~= 0) then
+			--d("checking if task should fail due to fate.")
 			local fateID = target.fateid
 			local fate = GetFateByID(fateID)
 			if (not fate) then

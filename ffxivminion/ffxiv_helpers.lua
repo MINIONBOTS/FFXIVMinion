@@ -79,9 +79,9 @@ function GetNearestGrindAttackable()
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
 		end
 		
 		local party = EntityList.myparty
@@ -218,9 +218,9 @@ function GetNearestGrindAttackable()
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		block = 2
 		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxpathdistance=30") 
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxpathdistance=30") 
+			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
 		end
 		
 		if ( el ) then
@@ -2663,7 +2663,7 @@ function InCombatRange(targetid)
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
-	if ( ml_global_information.Player_Casting.channelingid ~= nil and ml_global_information.Player_Casting.channeltargetid == targetid) then
+	if ( Player.castinginfo.channelingid ~= nil and Player.castinginfo.channeltargetid == targetid) then
 		return true
 	end
 	
@@ -2783,7 +2783,7 @@ function GetMountID()
 	return nil
 end
 function IsMounting()
-	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165 or Player.lastaction == 165))
+	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 89 or Player.action == 90 or Player.action == 91 or Player.action == 165))
 end
 function IsMounted()
 	return (Player.ismounted)
@@ -2827,35 +2827,32 @@ function ActionIsReady(id, category)
 end
 function Mount(id)
 	local mountID = id or 0
-	local actions = nil
 	
 	if (IsMounted() or IsMounting()) then
 		ml_debug("Cannot mount while mounted or mounting.")
 		return
 	end
 	
-	--If we weren't passed an id (party-grind), look it up.
-	if (mountID == 0) then
-		actions = ActionList("type=13")
-		for k,v in pairsByKeys(actions) do
-			if (v.name == gMount) then
-				mountID = v.id
-			end
-		end
-	end
-		
-	if (mountID ~= 0) then
-		actions = ActionList("type=13")
-		for k,v in pairsByKeys(actions) do
-			if (v.id == mountID) then
-				local acMount = ActionList:Get(mountID,13)
-				if (acMount and acMount.isready) then
-					acMount:Cast()
-					DoWait(150)
+	local mounts = ActionList("type=13")
+	if (ValidTable(mounts)) then
+		--If we weren't passed an id (party-grind), look it up.
+		if (mountID == 0) then
+			for k,v in pairsByKeys(mounts) do
+				if (v.name == gMount) then
+					mountID = v.id
 				end
 			end
 		end
-	end			
+			
+		if (mountID ~= 0) then
+			for k,acmount in pairsByKeys(mounts) do
+				if (acmount.id == mountID and acmount.isready) then
+					d("Casted the mount.")
+					acmount:Cast()
+				end
+			end
+		end	
+	end
 end
 function Dismount()
 	local isflying = IsFlying()

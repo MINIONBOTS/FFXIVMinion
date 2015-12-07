@@ -1091,25 +1091,27 @@ function c_walktopos:evaluate()
     return false
 end
 function e_walktopos:execute()
-	local needsStealth = ml_global_information.needsStealth
-	local hasStealth = HasBuff(Player.id,47)
-	if (not hasStealth and needsStealth) then
-		if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-			local newTask = ffxiv_task_stealth.Create()
-			newTask.addingStealth = true
-			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-			e_walktopos.lastStealth = Now()
-			--d("adding stealth.")
-			return
-		end
-	elseif (hasStealth and not needsStealth) then
-		if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
-			local newTask = ffxiv_task_stealth.Create()
-			newTask.droppingStealth = true
-			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-			e_walktopos.lastStealth = Now()
-			--d("dropping stealth.")
-			return
+	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+		local needsStealth = ml_global_information.needsStealth
+		local hasStealth = HasBuff(Player.id,47)
+		if (not hasStealth and needsStealth) then
+			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+				local newTask = ffxiv_task_stealth.Create()
+				newTask.addingStealth = true
+				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+				e_walktopos.lastStealth = Now()
+				--d("adding stealth.")
+				return
+			end
+		elseif (hasStealth and not needsStealth) then
+			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
+				local newTask = ffxiv_task_stealth.Create()
+				newTask.droppingStealth = true
+				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+				e_walktopos.lastStealth = Now()
+				--d("dropping stealth.")
+				return
+			end
 		end
 	end
 	
@@ -1117,18 +1119,21 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
 		
-		if (ValidTable(c_walktopos.lastPos)) then
-			local lastPos = c_walktopos.lastPos
-			local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-			if (dist < 1) then
-				if ((TimeSince(e_walktopos.lastPath) < 20000 and Player:IsMoving()) or
-					(TimeSince(e_walktopos.lastPath) < 5000) or
-					(TimeSince(e_walktopos.lastFail) < 10000)) 
-				then
-					return
+		if (IsFighter(Player.job)) then
+			if (ValidTable(c_walktopos.lastPos)) then
+				local lastPos = c_walktopos.lastPos
+				--d("Checking if last wanted position was the same position.")
+				local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				if (dist < 1) then
+					if ((TimeSince(e_walktopos.lastPath) < 20000 and Player:IsMoving()) or
+						(TimeSince(e_walktopos.lastPath) < 5000) or
+						(TimeSince(e_walktopos.lastFail) < 10000)) 
+					then
+						return
+					end
+				else
+					--d("distance is greater than 1 ["..tostring(dist).."], allow it.")
 				end
-			else
-				d("distance is greater than 1 ["..tostring(dist).."], allow it.")
 			end
 		end
 		
@@ -1157,6 +1162,7 @@ function e_walktopos:execute()
 				e_walktopos.lastFail = Now()
 			end
 		else
+			--d("We are very close, make sure we aren't flying.")
 			if (not IsFlying()) then
 				Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
 				if (not ml_global_information.Player_IsMoving) then
@@ -1323,7 +1329,8 @@ e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 function c_mount:evaluate()
 	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) then
+		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
+	then
 		return false
 	end
 	
@@ -1390,19 +1397,19 @@ end
 function e_mount:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
+		--d("Stopped.")
 		return
 	end
 	
 	if (IsMounting()) then
-		d("Adding a wait.")
-		DoWait(1200)
+		--d("Adding a wait.")
+		ml_task_hub:CurrentTask():SetDelay(1200)
 		return
 	end
 	
-	--d("Mounting because current distance ["..tostring(distance).."] is greater than :"..tostring(gMountDist))
-    Player:Stop()
     Mount(e_mount.id)
-	DoWait(250)
+	--d("Set a delay for 500")
+	ml_task_hub:CurrentTask():SetDelay(500)
 end
 
 c_companion = inheritsFrom( ml_cause )
