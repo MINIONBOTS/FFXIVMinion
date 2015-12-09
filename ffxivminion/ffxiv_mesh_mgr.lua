@@ -134,6 +134,27 @@ function ml_mesh_mgr.ParseInstructions(data)
 						return not IsPositionLocked()
 					end
 				)
+			elseif (itype == "Action") then
+				local actionid = iparams[1] or 0
+				local actiontype = iparams[2] or 0 
+				local targetid = iparams[3] or 0
+				
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 						
+						if (action) then
+							if (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+								d("Action on cooldown for an extended period, skip it.")
+								return true
+							else
+								if (action:Cast(targetid)) then
+									d("Action casted successfully.")
+									return true
+								end
+							end
+						end
+						return false
+					end
+				)				
 			end
 		end
 	end
@@ -240,7 +261,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							ml_mesh_mgr.OMCThrottle = Now() + 100
 						end
 					elseif (ml_mesh_mgr.OMCType == "OMC_LIFT") then
-						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
 						if ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1)) then
 							Player:SetFacing(sPos.h) -- Set heading
@@ -255,7 +276,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							return
 						end
 					elseif (ml_mesh_mgr.OMCType == "OMC_PORTAL") then
-						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
 						if ((not Player.ismounted and meshdist < 1.7) or (Player.ismounted and meshdist < 2.5)) then
 							ml_mesh_mgr.OMCStartingDistance = meshdist
@@ -265,7 +286,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							return
 						end
 					else
-						local meshdist = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
 						if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
 							(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
@@ -344,7 +365,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						end
 						
 						if (not Player:IsJumping()) then
-							local dist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
+							local dist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
 							if ((not Player.ismounted and dist < 1.7) or (Player.ismounted and dist < 2.7)) then
 								Player:Stop()
 								ml_mesh_mgr.ResetOMC()
@@ -372,7 +393,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
 						if ( ml_global_information.Player_IsMoving ) then Player:Stop() end
 						-- Add playerdetection when distance to OMCEndposition is > xxx
-						local enddist = Distance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
+						local enddist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
 						if ( enddist > 2.20 ) then
 							--if ( TableSize(EntityList("nearest,player,maxdistance=15"))>0 ) then
 								--ml_log("Need to teleport but players are nearby..waiting..")
@@ -420,7 +441,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					end
 					
 					-- If we're now not on the starting spot, we were moved somewhere.
-					local movedDistance = Distance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
+					local movedDistance = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 					if (movedDistance > 3) then
 						ml_mesh_mgr.OMCThrottle = Now() + 100
 						ml_mesh_mgr.ResetOMC()
@@ -548,7 +569,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							return
 						end
 						
-						local dist3D = Distance3D(pPos.x,pPos.y,pPos.z,ePos.x,ePos.y,ePos.z)
+						local dist3D = PDistance3D(pPos.x,pPos.y,pPos.z,ePos.x,ePos.y,ePos.z)
 						if (dist3D < 8) then
 							d("We are close enough to the endpoint to reset.")
 							Player:Stop()

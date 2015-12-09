@@ -16,7 +16,6 @@ function ffxiv_task_fate.Create()
     --ffxiv_task_fate members
     newinst.name = "LT_FATE"
     newinst.fateid = 0
-	newinst.fatePos = {}
 	newinst.targetid = 0
     newinst.targetFunction = GetNearestFateAttackable
 	newinst.killFunction = ffxiv_task_grindCombat
@@ -27,6 +26,7 @@ function ffxiv_task_fate.Create()
 	newinst.specialDelay = 1000
 	
     --newinst.fateTimer = 0
+	newinst.fateMap = Player.localmapid
     newinst.fateCompletion = 0
     newinst.started = false
     newinst.moving = false
@@ -88,13 +88,13 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
 e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (TimeSince(c_betterfatesearch.timer) < 15000 or ml_task_hub:ThisTask().waitingForChain) then
+    if (TimeSince(c_betterfatesearch.timer) < 10000 or ml_task_hub:ThisTask().waitingForChain) then
         return false
     end
 	
 	c_betterfatesearch.timer = Now()
 	
-	local thisFate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	local thisFate = MGetFateByID(ml_task_hub:ThisTask().fateid)
 	if (ValidTable(thisFate)) then
 		local fatePos = {x = thisFate.x,y = thisFate.y,z = thisFate.z}
 		local myPos = ml_global_information.Player_Position
@@ -107,12 +107,17 @@ function c_betterfatesearch:evaluate()
 		local closestFate = GetClosestFate(myPos,true)
 		if (ValidTable(closestFate) and thisFate.id ~= closestFate.id) then
 			if (closestFate.status == 2) then
-				if (ffxiv_task_fate.IsChain(ml_global_information.Player_Map,closestFate.id) or ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map,closestFate.id)) then
+				if (ffxiv_task_fate.IsChain(ml_global_information.Player_Map,closestFate.id) or 
+					ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map,closestFate.id)) 
+				then
 					e_betterfatesearch.fateid = closestFate.id
 					return true	
-				elseif (dist2d > thisFate.radius + 20) then
-					e_betterfatesearch.fateid = closestFate.id
-					return true	
+				else
+					local newdist2d = Distance2D(myPos.x,myPos.z,closestFate.x,closestFate.z)
+					if ((newdist2d < closestFate.radius + 20) and (newdist2d < dist2d)) then
+						e_betterfatesearch.fateid = closestFate.id
+						return true	
+					end
 				end
 			end
 		end
@@ -141,7 +146,7 @@ function c_teletofate:evaluate()
 	end	
 	
     if ( ml_task_hub:ThisTask().fateid ~= nil and ml_task_hub:ThisTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+        local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
         if (ValidTable(fate)) then
 		
 			local percent = tonumber(gFateTeleportPercent)
@@ -211,7 +216,7 @@ function c_movetochainlocation:evaluate()
 	then
         local fate = ml_task_hub:CurrentTask().nextFate
 		local myPos = ml_global_information.Player_Position
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 		if (distance > 5) then				
 			return true
 		end
@@ -237,7 +242,7 @@ e_movewithfate = inheritsFrom( ml_effect )
 function c_movewithfate:evaluate()
 	if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
 	
-		local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+		local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 		if (ValidTable(fate)) then
 			if (fate.status == 2) then
 				local currentFatePos = ml_task_hub:CurrentTask().fatePos
@@ -262,7 +267,7 @@ function c_movewithfate:evaluate()
     return false
 end
 function e_movewithfate:execute()
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = ml_task_hub:CurrentTask().fatePos
@@ -274,6 +279,28 @@ function e_movewithfate:execute()
     end
 end
 
+c_movetofatemap = inheritsFrom( ml_cause )
+e_movetofatemap = inheritsFrom( ml_effect )
+function c_movetofatemap:evaluate()
+	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
+		return false
+	end
+	
+	local mapID = IsNull(ml_task_hub:CurrentTask().fateMap,0)
+	if (mapID < 0 and Player.localmapid ~= mapID) then
+		e_movetofatemap.mapID = mapID
+		return true
+	end
+	
+	return false
+end
+function e_movetofatemap:execute()
+	local newTask = ffxiv_task_movetomap.Create()
+	newTask.destMapID = e_movetofatemap.mapID
+	newTask.pos = ml_task_hub:CurrentTask().fatePos
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
 -----------------------------------------------------------------------------------------------
 --MOVETOFATE: If (current fate distance > fate.radius) Then (add movetofate task)
 --Moves within range of fate specified by ml_task_hub:CurrentTask().fateid
@@ -282,12 +309,12 @@ c_movetofate = inheritsFrom( ml_cause )
 e_movetofate = inheritsFrom( ml_effect )
 function c_movetofate:evaluate()
     if ( ml_task_hub:CurrentTask().fateid ~= nil and ml_task_hub:CurrentTask().fateid ~= 0 ) then
-        local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+        local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 		
         if (ValidTable(fate)) then
 			if (fate.status == 2) then
 				local myPos = ml_global_information.Player_Position
-				local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 				if (distance > fate.radius) then				
 					return true
 				end
@@ -298,7 +325,7 @@ function c_movetofate:evaluate()
     return false
 end
 function e_movetofate:execute()
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
     if (ValidTable(fate)) then
         local newTask = ffxiv_task_movetofate.Create()
 		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
@@ -323,7 +350,7 @@ function c_syncfatelevel:evaluate()
 	
     local myPos = ml_global_information.Player_Position
 	local fateID = ml_task_hub:ThisTask().fateid
-	local fate = GetFateByID(fateID)
+	local fate = MGetFateByID(fateID)
 	if ( ValidTable(fate)) then
 		if (AceLib.API.Fate.RequiresSync(fate.id)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
@@ -344,7 +371,7 @@ end
 c_updatefate = inheritsFrom( ml_cause )
 e_updatefate = inheritsFrom( ml_effect )
 function c_updatefate:evaluate()
-	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
 	local fatePos = ml_task_hub:ThisTask().fatePos
 	
 	local tablesEqual = true
@@ -381,7 +408,7 @@ c_resettarget = inheritsFrom( ml_cause )
 e_resettarget = inheritsFrom( ml_effect )
 function c_resettarget:evaluate()
 	local subtask = ml_task_hub:ThisTask().subtask
-	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
 	
 	if (ValidTable(fate)) then
 		if (subtask and subtask.name == "GRIND_COMBAT" and subtask.targetid and subtask.targetid > 0) then
@@ -409,7 +436,7 @@ end
 c_faterandomdelay = inheritsFrom( ml_cause )
 e_faterandomdelay = inheritsFrom( ml_effect )
 function c_faterandomdelay:evaluate()
-	local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
 	
 	if (ValidTable(fate) and not ml_task_hub:ThisTask().randomDelayCompleted) then
 		local myPos = ml_global_information.Player_Position
@@ -448,18 +475,24 @@ function c_add_fatetarget:evaluate()
 		end
 	end
 	
-	local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+	local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 	if (ValidTable(fate)) then
-		local myPos = ml_global_information.Player_Position
-		local fatePos = {x = fate.x, y = fate.y, z = fate.z}
-		
-		local dist = Distance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
-		if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
-			local target = GetNearestFateAttackable()
-			if (ValidTable(target)) then
-				if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
-					c_add_fatetarget.targetid = target.id
-					return true
+		if (fate.status == 2) then
+			--d("status:"..tostring(fate.status))
+			--d("completion:"..tostring(fate.completion))
+			--d("name:"..tostring(fate.name))
+			
+			local myPos = ml_global_information.Player_Position
+			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
+			
+			local dist = PDistance3D(myPos.x,myPos.y,myPos.z,fatePos.x,fatePos.y,fatePos.z)
+			if (not AceLib.API.Fate.RequiresSync(fate.id) or dist < fate.radius) then
+				local target = GetNearestFateAttackable()
+				if (ValidTable(target)) then
+					if(target.hp.current > 0 and target.id ~= nil and target.id ~= 0) then
+						c_add_fatetarget.targetid = target.id
+						return true
+					end
 				end
 			end
 		end
@@ -468,6 +501,7 @@ function c_add_fatetarget:evaluate()
     return false
 end
 function e_add_fatetarget:execute()
+	d("Adding a new fate target.")
 	local newTask = ffxiv_task_grindCombat.Create()
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -493,7 +527,10 @@ function ffxiv_task_fate:Init()
 	--local ke_resetTarget = ml_element:create( "ResetTarget", c_resettarget, e_resettarget, 3 )
 	--self:add( ke_resetTarget, self.overwatch_elements)
     
-    --init process    	
+    --init process
+	local ke_moveToFateMap = ml_element:create( "MoveToFateMap", c_movetofatemap, e_movetofatemap, 100 )
+    self:add( ke_moveToFateMap, self.process_elements)
+	
     local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
     self:add( ke_rest, self.process_elements)
 	
@@ -522,7 +559,11 @@ function c_endfate:evaluate()
 		return false
 	end
 	
-    local fate = GetFateByID(ml_task_hub:ThisTask().fateid)
+	if (Player.localmapid ~= ml_task_hub:ThisTask().fateMap) then
+		return false
+	end
+	
+    local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
     if (not ValidTable(fate)) then
 		d("Ending fate, fate no longer exists.")
         return true

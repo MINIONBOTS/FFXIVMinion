@@ -335,7 +335,7 @@ function ffxiv_task_qs_grind:Init()
 end
 
 function ffxiv_task_qs_grind:Process()
-	if (IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (IsLoading() or ml_mesh_mgr.loadingMesh) then
 		return false
 	end
 	
@@ -646,7 +646,7 @@ function e_qsmovetogatherable:execute()
     if (pos ~= nil and pos ~= 0) then
 		--local newTask = ffxiv_task_movetopos.Create()
 		local ppos = shallowcopy(Player.pos)
-		local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (gTeleport == "1" and dist3d > 10 and ShouldTeleport(pos)) then
 			local eh = ConvertHeading(pos.h)
 			local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)

@@ -322,7 +322,7 @@ end
 function GetSnapshot()
 	local currentSnapshot = {}
 	
-	local inv = Inventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
+	local inv = MInventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
     if (ValidTable(inv)) then
         for k,item in pairs(inv) do
 			local itemid = item.id
@@ -1381,7 +1381,7 @@ function c_fishnextprofilepos:evaluate()
 	if (task.mapid == ml_global_information.Player_Map) then
 		local pos = task.pos
 		local myPos = ml_global_information.Player_Position
-		local dist = Distance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
+		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)
 		if (dist > 5 or ml_task_hub:CurrentTask().requiresRelocate) then
 			return true
 		end
@@ -1452,7 +1452,7 @@ function ffxiv_task_fish.NeedsStealth()
 				end
 			end
 			
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
 			if (distance <= 6) then
 				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=50,minlevel="..tostring(Player.level - 10))
 				if (ValidTable(potentialAdds)) then
@@ -1532,7 +1532,7 @@ function c_fishstealth:evaluate()
 				end
 			end
 			
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
+			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, destPos.x, destPos.y, destPos.z)
 			if (distance <= 6) then
 				local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance=100,minlevel="..tostring(Player.level - 10))
 				if (TableSize(potentialAdds) > 0) then

@@ -9,6 +9,10 @@ ffxiv_task_gather.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GatherP
 ffxiv_task_gather.profileData = {}
 ffxiv_task_gather.currentTask = {}
 ffxiv_task_gather.currentTaskIndex = 0
+ffxiv_task_gather.collectors = {
+	[16] = 4074,
+	[17] = 4088,
+}
 
 --unspoiled mining = content id 5
 --unspoiled botany = content id 6
@@ -138,7 +142,7 @@ function c_findnode:evaluate()
 		
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
+			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
 			if (distance <= radius) then
 			
 				if (ValidTable(ffxiv_task_gather.currentTask)) then
@@ -256,7 +260,7 @@ function e_movetonode:execute()
 		local pos = gatherable.pos
 		local ppos = ml_global_information.Player_Position
 		if (ValidTable(pos)) then
-			local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			local newTask = ffxiv_task_movetointeract.Create()
 			newTask.pos = pos
@@ -341,7 +345,7 @@ function c_returntobase:evaluate()
 
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
+			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
 			if (distance >= 50) then
 				e_returntobase.pos = basePos
 				return true
@@ -981,29 +985,38 @@ function e_gather:execute()
 							return
 						end
 						
-						ffxiv_task_gather.lastItemAttempted	= item.id	
-						local result = Player:Gather(item.index)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							if (IsChocoboFoodSpecial(item.id)) then
-								ml_task_hub:CurrentTask().gatheredChocoFood = true
-							elseif (IsGardening(item.id)) then
-								ml_task_hub:CurrentTask().gatheredGardening = true
-							elseif (IsMap(item.id)) then
-								ml_task_hub:CurrentTask().gatheredMap = true
-							elseif (IsRareItemSpecial(item.id)) then
-								ml_task_hub:CurrentTask().gatheredSpecialRare = true
+						if (not HasBuffs(Player,"805")) then
+							ffxiv_task_gather.lastItemAttempted	= item.id	
+							local result = Player:Gather(item.index)
+							if (result == 65536) then
+								ffxiv_task_gather.timer = Now() + 300
+								ffxiv_task_gather.awaitingSuccess = true
+							elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+								if (IsChocoboFoodSpecial(item.id)) then
+									ml_task_hub:CurrentTask().gatheredChocoFood = true
+								elseif (IsGardening(item.id)) then
+									ml_task_hub:CurrentTask().gatheredGardening = true
+								elseif (IsMap(item.id)) then
+									ml_task_hub:CurrentTask().gatheredMap = true
+								elseif (IsRareItemSpecial(item.id)) then
+									ml_task_hub:CurrentTask().gatheredSpecialRare = true
+								end
+								
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 750
+								ffxiv_task_gather.awaitingSuccess = false
 							end
-							
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
+							return
+						else
+							local collect = GetAction(ffxiv_task_gather.collectors[Player.job],1)
+							if (collect and collect.isready) then
+								collect:Cast()
+								ffxiv_task_gather.timer = Now() + 2000
+								return
+							end
 						end
-						return
 					end
 				end
 			end
@@ -2481,7 +2494,7 @@ function ffxiv_task_gather.NeedsStealth()
 			
 			if (destPos) then
 				if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-					local dist = Distance3D(myPos.x,myPos.y,myPos.z,destPos.x,destPos.y,destPos.z)
+					local dist = PDistance3D(myPos.x,myPos.y,myPos.z,destPos.x,destPos.y,destPos.z)
 					if (dist > 75) then
 						--d("Too far from destination to use stealth.")
 						return false

@@ -82,6 +82,9 @@ ml_global_information.blacklistedAetherytes = {}
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
 
+memoize = {}
+pmemoize = {}
+
 ffxivminion = {}
 ffxivminion.foods = {}
 ffxivminion.foodsHQ = {}
@@ -398,6 +401,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
+	if (ValidTable(memoize)) then
+		memoize = {}
+	end
+	
 	if (ml_mesh_mgr) then
 		if (not ml_global_information.Player_IsLoading) then
 			if (ml_global_information.queueLoader == true) then
@@ -571,12 +578,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					ml_global_information.rootCheckTimer = tickcount
 					
 					if (not Player.ismounted and not IsMounting()) then
-						local al = ActionList("type=6")
-						local dismiss = al[2]
-						local acDismiss = ActionList:Get(dismiss.id,6)
+						local acDismiss = ActionList:Get(2,6)
 						local item = Inventory:Get(7894)
 
-						if ( acDismiss.isready and item and item.isready) then
+						if ( acDismiss and acDismiss.isready and item and item.isready) then
 							local el = EntityList("nearest,myparty,type=2,chartype=3")
 							if (ValidTable(el)) then
 								local i, choco = next(el)
@@ -1518,38 +1523,21 @@ end
 
 function ffxivminion.UpdateGlobals()
 	if (Player) then
-		local p = Player
-		local aethlist = p:GetAetheryteList()
-		local ppos = p.pos
-		local pmap = p.localmapid
-		local php = p.hp
-		local pmp = p.mp
-		local ptp = p.tp
-		local pbuffs = p.buffs
-		local pcastinginfo = p.castinginfo
-		local ptarget = p:GetTarget()
-		local pcombat = p.incombat
-		local plocked = IsPositionLocked()
-		local ploading = IsLoading()
-		local pcasting = ActionList:IsCasting()
-		local pmoving = p:IsMoving()
-		local pflying = p.flying
-		
-		ml_global_information.Player_Aetherytes = aethlist
-		ml_global_information.Player_Position = ppos
-		ml_global_information.Player_Map = pmap
-		ml_global_information.Player_HP = php
-		ml_global_information.Player_MP = pmp
-		ml_global_information.Player_TP = ptp
-		ml_global_information.Player_Buffs = pbuffs
-		ml_global_information.Player_Casting = pcastinginfo
-		ml_global_information.Player_Target = ptarget
-		ml_global_information.Player_InCombat = pcombat
-		ml_global_information.Player_IsLocked = plocked
-		ml_global_information.Player_IsLoading = ploading
-		ml_global_information.Player_IsCasting = pcasting
-		ml_global_information.Player_IsMoving = pmoving
-		ml_global_information.Player_Flying = pflying
+		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+		ml_global_information.Player_Position = Player.pos
+		ml_global_information.Player_Map = Player.localmapid
+		ml_global_information.Player_HP = Player.hp
+		ml_global_information.Player_MP = Player.mp
+		ml_global_information.Player_TP = Player.tp
+		ml_global_information.Player_Buffs = Player.buffs
+		ml_global_information.Player_Casting = Player.castinginfo
+		ml_global_information.Player_Target = Player:GetTarget()
+		ml_global_information.Player_InCombat = Player.incombat
+		ml_global_information.Player_IsLocked = IsPositionLocked()
+		ml_global_information.Player_IsLoading = IsLoading()
+		ml_global_information.Player_IsCasting = ActionList:IsCasting()
+		ml_global_information.Player_IsMoving = Player:IsMoving()
+		ml_global_information.Player_Flying = Player.flying
 	end
 end
 
@@ -1607,7 +1595,9 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-	Stop()
+    if (ml_global_information.Player_IsMoving) then
+        Player:Stop()
+    end
 	GameHacks:SkipCutscene(gSkipCutscene == "1")
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end
@@ -1794,7 +1784,7 @@ function ffxivminion.NodeClosestNeighbor(self, origin, id)
 				end
 				
 				if (valid) then
-					local dist = Distance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
+					local dist = PDistance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
 					if (dist < bestDist) then
 						bestPos = posTable
 						bestDist = dist

@@ -127,8 +127,31 @@ function e_nextgrindmarker:execute()
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 end
 
+c_grindisloading = inheritsFrom( ml_cause )
+e_grindisloading = inheritsFrom( ml_effect )
+function c_grindisloading:evaluate()
+	return ml_global_information.Player_IsLoading
+end
+function e_grindisloading:execute()
+	ml_debug("Character is loading, prevent other actions and idle.")
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_grindislocked = inheritsFrom( ml_cause )
+e_grindislocked = inheritsFrom( ml_effect )
+function c_grindislocked:evaluate()
+	return ml_global_information.Player_IsLocked and not IsFlying()
+end
+function e_grindislocked:execute()
+	ml_debug("Character is loading, prevent other actions and idle.")
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
+	local ke_isLoading = ml_element:create( "IsLoading", c_grindisloading, e_grindisloading, 250 )
+    self:add( ke_isLoading, self.overwatch_elements)
+	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 45 )
     self:add(ke_dead, self.overwatch_elements)
 	
@@ -138,10 +161,16 @@ function ffxiv_task_grind:Init()
 	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 30 )
     self:add(ke_atma, self.overwatch_elements)
 	
+	local ke_isLocked = ml_element:create( "IsLocked", c_grindislocked, e_grindislocked, 180 )
+    self:add( ke_isLocked, self.process_elements)
+	
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
     self:add(ke_rest, self.process_elements)
+	
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
+    self:add( ke_inventoryFull, self.process_elements)
     
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 45 )
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
     self:add( ke_autoEquip, self.process_elements)
 	
 	local ke_addHuntlog = ml_element:create( "AddHuntlog", c_grind_addhuntlogtask, e_grind_addhuntlogtask, 40 )
@@ -169,7 +198,7 @@ function ffxiv_task_grind:Init()
 end
 
 function ffxiv_task_grind:Process()
-	if (IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (IsLoading() or ml_mesh_mgr.loadingMesh) then
 		return false
 	end
 	
@@ -528,7 +557,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
         -- update fate name in gui
         ffxiv_task_grind.ticks = tickcount
         local fafound = false
-        local falist = MapObject:GetFateList()
+        local falist = MFateList()
         if ( falist ) then
             local f = falist[tonumber(gFateIndex)]
             if ( f ) then

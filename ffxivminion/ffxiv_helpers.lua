@@ -9,7 +9,7 @@ function FilterByProximity(entities,center,radius,sortfield)
 		local validEntities = {}
 		for i,e in pairs(entities) do
 			local epos = e.pos
-			local dist = Distance3D(center.x,center.y,center.z,epos.x,epos.y,epos.z)
+			local dist = PDistance3D(center.x,center.y,center.z,epos.x,epos.y,epos.z)
 	
 			if (dist <= radius) then
 				table.insert(validEntities,e)
@@ -59,7 +59,7 @@ function GetNearestGrindAttackable()
 		--d("Checking marker with radius section.")
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
-				el = EntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
+				el = MEntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
 				
 				if (ValidTable(el)) then
 					local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
@@ -79,9 +79,9 @@ function GetNearestGrindAttackable()
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
+			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
+			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
 		end
 		
 		local party = EntityList.myparty
@@ -89,9 +89,9 @@ function GetNearestGrindAttackable()
 			for i, member in pairs(party) do
 				if (member.id and member.id ~= 0 and member.mapid == Player.mapid) then
 					if (not IsNullString(excludeString)) then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
 					end
 					
 					if (ValidTable(el)) then
@@ -110,9 +110,9 @@ function GetNearestGrindAttackable()
 		
 		if (ValidTable(Player.pet)) then
 			if (not IsNullString(excludeString)) then
-				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			else
-				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
 			end
 			
 			if (ValidTable(el)) then
@@ -130,9 +130,9 @@ function GetNearestGrindAttackable()
 		local companion = GetCompanionEntity()
 		if (companion) then
 			if (not IsNullString(excludeString)) then
-				el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
+				el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
 			else
-				el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30")
+				el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30")
 			end
 			if (ValidTable(el)) then
 				local id, target = next(el)
@@ -144,7 +144,7 @@ function GetNearestGrindAttackable()
 		
 		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
 		if (not IsNullString(huntString)) then
-			el = EntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh")
+			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh")
 			
 			if (ValidTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
@@ -163,9 +163,9 @@ function GetNearestGrindAttackable()
 		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
 		if (IsNullString(huntString)) then
 			if (not IsNullString(excludeString)) then
-				el = EntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+				el = MEntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
-				el = EntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+				el = MEntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
 			if (ValidTable(el)) then
@@ -180,9 +180,9 @@ function GetNearestGrindAttackable()
 			end
 		
 			if (not IsNullString(excludeString)) then
-				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
-				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
 			if (ValidTable(el)) then
@@ -201,7 +201,7 @@ function GetNearestGrindAttackable()
 		block = 1
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
-				local el = EntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
+				local el = MEntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
 				if ( el ) then
 					local i,e = next(el)
 					if (ValidTable(e) and e.uniqueid ~= 541) then
@@ -218,9 +218,9 @@ function GetNearestGrindAttackable()
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		block = 2
 		if (not IsNullString(excludeString)) then
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
+			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		else
-			el = EntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
+			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
 		end
 		
 		if ( el ) then
@@ -241,9 +241,9 @@ function GetNearestGrindAttackable()
 			for i, member in pairs(party) do
 				if (member.id and member.id ~= 0) then
 					if (not IsNullString(excludeString)) then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
 					end
 					
 					if ( el ) then
@@ -260,9 +260,9 @@ function GetNearestGrindAttackable()
 		block = 4
 		if (ValidTable(Player.pet)) then
 			if (not IsNullString(excludeString)) then
-				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
+				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			else
-				el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
+				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
 			end
 			
 			if ( el ) then
@@ -278,7 +278,7 @@ function GetNearestGrindAttackable()
 		block = 5
 		if (not IsNullString(huntString)) then
 			--d("Checking whitelist section.")
-			el = EntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
+			el = MEntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
 			
 			if ( el ) then
 				local i,e = next(el)
@@ -295,9 +295,9 @@ function GetNearestGrindAttackable()
 		if (IsNullString(huntString)) then
 			--d("Checking non-whitelist section.")
 			if (not IsNullString(excludeString)) then
-				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+				el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
-				el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+				el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
 			block = 6
@@ -310,9 +310,9 @@ function GetNearestGrindAttackable()
 			end
 		
 			if (not IsNullString(excludeString)) then
-				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			else
-				el = EntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
+				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
 			end
 			
 			block = 7
@@ -336,7 +336,7 @@ function GetNearestGrindPriority()
 	
 	if (gClaimFirst	== "1") then
 		if (not IsNullString(huntString)) then
-			local el = EntityList("shortestpath,contentid="..tostring(huntString)..",targeting=0,notincombat,alive,attackable,onmesh")
+			local el = MEntityList("shortestpath,contentid="..tostring(huntString)..",targeting=0,notincombat,alive,attackable,onmesh")
 			if ( el ) then
 				local i,e = next(el)
 				if ( i~= nil and e~= nil and 
@@ -353,12 +353,12 @@ end
 function GetNearestFateAttackable()
 	local el = nil
     local myPos = ml_global_information.Player_Position
-    local fate = GetFateByID(ml_task_hub:CurrentTask().fateid)
+    local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 	
-    if (ValidTable(fate)) then
+    if (fate and fate.status == 2 and fate.completion < 100) then
 		if (fate.type == 1) then
 				
-			el = EntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
+			el = MEntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
 			if (ValidTable(el)) then
 				local bestTarget = nil
 				local highestHP = 0
@@ -373,7 +373,7 @@ function GetNearestFateAttackable()
 				if (bestTarget) then
 					if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
 						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
-						el = EntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
+						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,fateid=0,maxdistance=25")
 						if (ValidTable(el)) then
 							local nearestQuick = nil
 							local nearestQuickDistance = 500
@@ -404,7 +404,7 @@ function GetNearestFateAttackable()
 			end
 		end
 		
-		el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+		el = MEntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -416,7 +416,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = EntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
+        el = MEntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -430,7 +430,15 @@ function GetNearestFateAttackable()
 		
 		local companion = GetCompanionEntity()
 		if (companion) then
-			el = EntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+			el = MEntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id)..",targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
+			if (ValidTable(el)) then
+				local id, target = next(el)
+				if (ValidTable(target) and myTarget == 0) then
+					return target
+				end
+			end
+			
+			el = MEntityList("nearest,alive,attackable,onmesh,fateid=0,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
 			if (ValidTable(el)) then
 				local id, target = next(el)
 				if (ValidTable(target) and myTarget == 0) then
@@ -440,7 +448,7 @@ function GetNearestFateAttackable()
 		end
 		
 		if (gFateKillAggro == "1") then
-			el = EntityList("shortestpath,alive,attackable,aggro,onmesh")
+			el = MEntityList("shortestpath,alive,attackable,aggro,fateid=0,onmesh")
 			if (ValidTable(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
@@ -449,7 +457,7 @@ function GetNearestFateAttackable()
 			end	
 		end
 		
-        el = EntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+        el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -461,7 +469,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = EntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id))            
+        el = MEntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -484,15 +492,15 @@ function GetHuntTarget()
 	
 	if (gHuntSRankHunt == "1") then
 		if (excludeString) then
-			el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 		else
-			el = EntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
+			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
 				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
-				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
 					nearest = e
 					nearestDistance = distance
@@ -507,15 +515,15 @@ function GetHuntTarget()
 	
 	if (gHuntARankHunt == "1") then
 		if (excludeString) then
-			el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 		else
-			el = EntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
+			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
 				local myPos = ml_global_information.Player_Position
 				local tpos = e.pos
-				local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
 					nearest = e
 					nearestDistance = distance
@@ -531,15 +539,15 @@ function GetHuntTarget()
 	if (gHuntBRankHunt == "1") then
 		if (gHuntBRankHuntID ~= "") then
 			if (excludeString) then
-				el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 			else
-				el = EntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
+				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
 					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
-					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
 						nearest = e
 						nearestDistance = distance
@@ -554,15 +562,15 @@ function GetHuntTarget()
 		
 		if (gHuntBRankHuntAny == "1") then
 			if (excludeString) then
-				el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 			else
-				el = EntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
+				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
 					local myPos = ml_global_information.Player_Position
 					local tpos = e.pos
-					local distance = Distance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
+					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
 						nearest = e
 						nearestDistance = distance
@@ -593,8 +601,8 @@ function GetBestTankHealTarget( range )
 	local lowest = nil
 	local lowestHP = 101
 
-    local el = EntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	--local el = EntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
+    local el = MEntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	--local el = MEntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsTank(e.job) and e.hp.percent < lowestHP ) then
@@ -621,7 +629,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	
 	local healables = {}
 	
-	local el = EntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
+	local el = MEntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
 	if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= hp) then
@@ -631,7 +639,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	end
 	
 	if (npc) then
-		el = EntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
+		el = MEntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= hp) then
@@ -723,7 +731,7 @@ function GetPetSkillRangeRadius(id)
 	return nil
 end
 function GetLowestHPParty( skill )
-    npc = skill.npc == "1" and true or false
+    npc = (skill.npc == "1")
 	range = skill.range or ml_global_information.AttackRange
 	count = skill.ptcount or 0
 	minHP = skill.pthpb or 0
@@ -746,11 +754,11 @@ function GetLowestHPParty( skill )
 		return false
 	else
 		if (not npc) then
-			el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-			--el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
+			el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+			--el = MEntityList("myparty,alive,type=1,maxdistance="..tostring(range))
 		else
-			el = EntityList("myparty,alive,targetable,maxdistance="..tostring(range))
-			--el = EntityList("myparty,alive,maxdistance="..tostring(range))
+			el = MEntityList("myparty,alive,targetable,maxdistance="..tostring(range))
+			--el = MEntityList("myparty,alive,maxdistance="..tostring(range))
 		end
 		
 		if ( ValidTable(el) ) then
@@ -799,8 +807,8 @@ function GetLowestMPParty( range, role )
 		end
 	end
 	
-    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	--local el = EntityList("myparty,alive,type=1,maxdistance="..tostring(range))
+    local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+	--local el = MEntityList("myparty,alive,type=1,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
 			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
@@ -848,8 +856,8 @@ function GetLowestTPParty( range, role )
 		end
 	end
 	
-    local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	--local el = EntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+    local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
+	--local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
         for i,e in pairs(el) do
 			if (e.job and tpUsers[e.job]) then
@@ -878,7 +886,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	
 	local healables = {}
 	
-	local el = EntityList("alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
+	local el = MEntityList("alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
 	if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
@@ -890,7 +898,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	
 	if (npc) then
 		--d("[GetBestHealTarget]: Checking non-players section.")
-		local el = EntityList("alive,targetable,maxdistance="..tostring(range))
+		local el = MEntityList("alive,targetable,maxdistance="..tostring(range))
 		if ( ValidTable(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
@@ -938,7 +946,7 @@ function GetBestBaneTarget()
 	--If the original target is not found, check the best target with clustered, blow it up, reset the best dot target.
 	for i,member in pairs(party) do
 		if (member.id ~= 0) then
-			local el = EntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
+			local el = MEntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
 			if ( el ) then
 				for k,e in pairs(el) do
 					if HasBuffs(e, "179+180+189", 3, Player) then
@@ -968,7 +976,7 @@ function GetBestDoTTarget()
 	--Check for a new target that is clustered and missing all 3 buffs
 	for i,member in pairs(party) do
 		if (member.id ~= 0) then
-			local el = EntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
+			local el = MEntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
 			if ( el ) then
 				for k,e in pairs(el) do
 					if MissingBuffs(e, "179+180+189", 3, Player) then
@@ -984,8 +992,8 @@ function GetBestDoTTarget()
 end
 function GetClosestHealTarget()
     local pID = Player.id
-    local el = EntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-	--local el = EntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+    local el = MEntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	--local el = MEntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
     if ( ValidTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -993,8 +1001,8 @@ function GetClosestHealTarget()
         end
     end
     
-    local el = EntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-	--local el = EntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+    local el = MEntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
+	--local el = MEntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
     if ( ValidTable(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
@@ -1005,20 +1013,20 @@ function GetClosestHealTarget()
     return nil
 end
 function GetBestRevive( party, role)
-	party = party or false
+	party = IsNull(party,false)
 	role = role or ""
 	range = 30
 	
 	local el = nil
 	if (party) then
-		el = EntityList("myparty,targtable,dead,maxdistance="..tostring(range))
+		el = MEntityList("myparty,friendly,chartype=4,targtable,dead,maxdistance="..tostring(range))
 	else
-		el = EntityList("dead,targetable,maxdistance="..tostring(range))
+		el = MEntityList("friendly,dead,chartype=4,targetable,maxdistance="..tostring(range))
 	end 
 	
 	-- Filter out the inappropriate roles.
 	local targets = {}
-	if (el) then
+	if (ValidTable(el)) then
 		local roleTable = GetRoleTable(role)
 		if (roleTable) then
 			for id,entity in pairs(el) do
@@ -1070,30 +1078,30 @@ function GetPVPTarget()
     
 	local enemyParty = nil
 	if (ml_global_information.Player_Map == 376 or ml_global_information.Player_Map == 422) then
-		enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
+		enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
+			enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=15")
+			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=15")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=25")
+			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=25")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=15")
+			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,maxdistance=15")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("lowesthealth,onmesh,attackable,alive,maxdistance=25")
+			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,maxdistance=25")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
+			enemyParty = MEntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 		end
 		if(not ValidTable(enemyParty)) then
-			enemyParty = EntityList("shortestpath,onmesh,attackable,alive,maxdistance=45")
+			enemyParty = MEntityList("shortestpath,onmesh,attackable,alive,maxdistance=45")
 		end
 	else
-		enemyParty = EntityList("onmesh,attackable,alive,chartype=4")
+		enemyParty = MEntityList("onmesh,attackable,alive,chartype=4")
 	end
     if (ValidTable(enemyParty)) then
         local id, entity = next(enemyParty)
@@ -1232,15 +1240,15 @@ function GetNearestGrindAggro()
 	
 	if (not IsNullString(excludeString)) then
 		if (taskName == "LT_GRIND") then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
 		else
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
 		end
 	else
 		if (taskName == "LT_GRIND") then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
 		else
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
 		end
 	end
 	
@@ -1258,15 +1266,15 @@ function GetNearestGrindAggro()
 			if (member.id and member.id ~= 0) then
 				if (not IsNullString(excludeString)) then
 					if (taskName == "LT_GRIND") then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
 					end
 				else
 					if (taskName == "LT_GRIND") then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
 					end
 				end
 				
@@ -1287,15 +1295,15 @@ function GetNearestAggro()
 	
 	if (not IsNullString(excludeString)) then
 		if (taskName == "LT_GRIND") then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=30") 
 		else
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,exclude_contentid="..excludeString..",maxdistance=30") 
 		end
 	else
 		if (taskName == "LT_GRIND") then
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=30") 
 		else
-			el = EntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targetingme,maxdistance=30") 
 		end
 	end
 	
@@ -1313,15 +1321,15 @@ function GetNearestAggro()
 			if (member.id and member.id ~= 0) then
 				if (not IsNullString(excludeString)) then
 					if (taskName == "LT_GRIND") then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",exclude_contentid="..excludeString..",maxdistance=30")
 					end
 				else
 					if (taskName == "LT_GRIND") then
-						el = EntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,fateid=0,targeting="..tostring(member.id)..",maxdistance=30")
 					else
-						el = EntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
+						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",maxdistance=30")
 					end
 				end
 				
@@ -1344,7 +1352,7 @@ function RoundUp(number, multiple)
 	return (math.floor(((number + (multiple - 1)) / multiple)) * multiple)
 end
 function GetNearestFromList(strList,pos,radius)
-	local el = EntityList(strList)
+	local el = MEntityList(strList)
 	if (ValidTable(el)) then
 		local filteredList = {}
 		for i,e in pairs(el) do
@@ -1352,7 +1360,7 @@ function GetNearestFromList(strList,pos,radius)
 				table.insert(filteredList,e)
 			else
 				local epos = e.pos
-				local dist = Distance3D(pos.x,pos.y,pos.z,epos.x,epos.y,epos.z)
+				local dist = PDistance3D(pos.x,pos.y,pos.z,epos.x,epos.y,epos.z)
 				
 				if (dist <= radius) then
 					table.insert(filteredList,e)
@@ -1406,11 +1414,11 @@ function GetNearestGatherable(marker)
     
 	if (radius == 0 or radius > 200 or not ValidTable(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
 		else
-			el = EntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		if ( ValidTable(el) ) then
@@ -1421,18 +1429,18 @@ function GetNearestGatherable(marker)
 		end
 	elseif (ValidTable(markerPos)) then
 		if (whitelist and whitelist ~= "") then
-			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
-			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",exclude_contentid="..blacklist)
 		else
-			el = EntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
+			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
 		end
 		
 		local gatherables = {}
 		if (ValidTable(el)) then
 			for i,g in pairs(el) do
 				local gpos = g.pos
-				local dist = Distance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
+				local dist = PDistance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
 				
 				if (dist <= radius) then
 					table.insert(gatherables,g)
@@ -1459,7 +1467,7 @@ function GetNearestUnspoiled(class)
 	--Mature Tree = 7
 	--Vegetation = 8
 	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
-    local el = EntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
+    local el = MEntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
     
     if ( el ) then
         local i,e = next(el)
@@ -1627,7 +1635,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
     return true
 end
 function GetFleeHP()
-	local attackingMobs = TableSize(EntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
+	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
 	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
 	return fleeHP
 end
@@ -1639,7 +1647,7 @@ function HasInfiniteDuration(id)
 	return infiniteDurationAbilities[id] or false
 end
 function ActionList:IsCasting()
-	return (ml_global_information.Player_Casting.channelingid ~= 0)
+	return (Player.castinginfo.channelingid ~= 0)
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
@@ -1738,39 +1746,6 @@ function IsNinjutsuSkill(skillID)
 end
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
-end
-function GetSkillByID(skillid,skilltype)
-	local skillid = tonumber(skillid)
-	
-	local skilltypes = {
-		[1] = true,
-		[11] = true,
-		[8] = true,
-	}
-	
-	if (skilltype) then
-		local al = ActionList("type="..tostring(skilltype))
-		if (al) then
-			for id,skill in pairs(al) do
-				if (id == skillid) then
-					return skill
-				end
-			end
-		end
-	else
-		for id,_ in pairs(skilltypes) do
-			local al = ActionList("type="..tostring(id))
-			if (al) then
-				for id,skill in pairs(al) do
-					if (id == skillid) then
-						return skill
-					end
-				end
-			end
-		end
-	end
-	
-	return nil
 end
 function IsFlanking(entity)
 	if not entity or entity.id == Player.id then return false end
@@ -1958,11 +1933,11 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
-function Distance3DT(pos1,pos2)
+function PDistance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
 	
-	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+	local distance = PDistance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	return distance
 end
 function ConvertHeading(heading)
@@ -2085,25 +2060,22 @@ function GetPosFromDistanceHeading(startPos, distance, heading)
 	return {x = newX, y = startPos.y, z = newZ}
 end
 function GetFateByID(fateID)
-    local fate = nil
-    local fateList = MapObject:GetFateList()
-    if (fateList ~= nil and fateList ~= 0) then
-        local _, fate = next(fateList)
-        while (_ ~= nil and fate ~= nil) do
-            if (fate.id == fateID) then
+    local fateList = MFateList()
+	if (ValidTable(fateList)) then
+		for _,fate in pairs(fateList) do
+			 if (fate.id == fateID) then
                 return fate
             end
-            _, fate = next(fateList, _)
-        end
-    end
-    
-    return fate
+		end	
+	end
+	
+	return nil
 end
 function GetApprovedFates()
 	local approvedFates = {}
 	
 	local level = Player.level
-	local fatelist = MapObject:GetFateList()
+	local fatelist = MFateList()
 	if (ValidTable(fatelist)) then
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = tonumber(gMinFateLevel) or 0
@@ -2214,7 +2186,7 @@ function GetClosestFate(pos,pathcheck)
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 					if (p and dist <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-						local distance = Distance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
+						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
 						if (distance) then
 							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 								nearestFate = fate
@@ -2258,7 +2230,7 @@ function GetClosestFate(pos,pathcheck)
 			if (ValidTable(validFates)) then
 				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
-					local distance = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
+					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
 					if (distance ~= 0) then
 						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 							nearestFate = fate
@@ -2289,7 +2261,7 @@ end
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = MEntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
@@ -2297,7 +2269,7 @@ function ScanForMobs(ids,distance)
 		end
 	end
 	
-	local el = EntityList("nearest,aggro,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = MEntityList("nearest,aggro,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
@@ -2312,7 +2284,7 @@ function ScanForCaster(ids,distance,spells)
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
 	
 	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = MEntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
@@ -2328,7 +2300,7 @@ end
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
-	local el = EntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el = MEntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
@@ -2371,7 +2343,7 @@ function GetPathDistance(pos1,pos2)
 	end	
 	
 	if (dist == nil) then
-		dist = Distance3DT(pos1,pos2)
+		dist = PDistance3DT(pos1,pos2)
 	end
 	
 	return dist
@@ -2410,12 +2382,12 @@ function HasNavPath(pos1,pos2,previousDistance)
 				local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 				if (ValidTable(path)) then
 					local lastPos = path[TableSize(path)-1]
-					local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+					local finalDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
 					if (finalDist <= 2) then	
 						--d("Distance from last to end is small, we have a valid path.")
 						return true
 					else
-						local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+						local startDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
 						if (startDist <= 2) then
 							--d("We jumped a very small distance or none at all in this iteration, no path.")
 							return false
@@ -2440,12 +2412,12 @@ function GetNavPath(pos1,pos2)
 		if (ValidTable(path)) then
 			local lastPos = path[TableSize(path)-1]
 			
-			local finalDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
+			local finalDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
 			if (finalDist < 2) then
 				--d("Distance from last to end is small, we have a valid path.")
 				return true
 			else
-				local startDist = Distance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
+				local startDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p1.x,p1.y,p1.z)
 				if (startDist < 2) then
 					return false
 				else
@@ -2456,12 +2428,12 @@ function GetNavPath(pos1,pos2)
 	end
 end
 function GetLinePoints(pos1,pos2,length)
-	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+	local distance = PDistance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	local segments = math.floor(distance / length)
 	
 	local points = {}
 	for x=1,segments do
-		local thisDist = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+		local thisDist = PDistance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 		local ratio = length / thisDist
 		
 		local newX = pos1.x + (ratio * (pos2.x - pos1.x))
@@ -2490,7 +2462,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 			points[x] = prevPos
 			x = x + 1
 			
-			local dist = Distance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
+			local dist = PDistance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
 			if (dist > 5) then
 				local minipoints = GetLinePoints(prevPos,pos,5)
 				if (ValidTable(minipoints)) then
@@ -2527,10 +2499,10 @@ function PathDistanceTable(gotoPos)
 			if ( pdist ~= nil ) then
 				dist = pdist
 			else
-				dist = Distance3DT(gotoPos,ppos)
+				dist = PDistance3DT(gotoPos,ppos)
 			end
 		else
-			dist = Distance3DT(gotoPos,ppos)
+			dist = PDistance3DT(gotoPos,ppos)
 		end	
 		--]]
 	end
@@ -2555,7 +2527,7 @@ end
 function GetPartyLeader()
 	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
-			local el = EntityList("type=1,name="..gPartyLeaderName)
+			local el = MEntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
@@ -2587,7 +2559,7 @@ function GetPartyLeader()
 		end
 		
 		if (leader) then
-			local el = EntityList("type=1,name="..leader.name)
+			local el = MEntityList("type=1,name="..leader.name)
 			if (ValidTable(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
@@ -2629,7 +2601,7 @@ function IsInParty(id)
 	return false
 end
 function InCombatRange(targetid)
-	if (gBotRunning == "0") then
+	if (gBotRunning == "0" or IsFlying()) then
 		return false
 	end
 	
@@ -2783,7 +2755,7 @@ function GetMountID()
 	return nil
 end
 function IsMounting()
-	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 89 or Player.action == 90 or Player.action == 91 or Player.action == 165))
+	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165))
 end
 function IsMounted()
 	return (Player.ismounted)
@@ -2795,7 +2767,7 @@ function IsPositionLocked()
 	return not ActionIsReady(2,5)
 end
 function IsLoading()
-	return (Quest:IsLoading() or ml_global_information.Player_Map == 0 or ml_mesh_mgr.meshLoading)
+	return (Quest:IsLoading() or ml_global_information.Player_Map == 0 or ml_mesh_mgr.loadingMesh)
 end
 function HasAction(id, category)
 	id = tonumber(id) or 0
@@ -2858,31 +2830,13 @@ function Dismount()
 	local isflying = IsFlying()
 	
 	if (Player.ismounted and (not isflying or (isflying and not Player:IsMoving()))) then
-		local mountlist = ActionList("type=13")
-		
-		if ( TableSize( mountlist) > 0 ) then
-			for k,mount in pairs(mountlist) do
-				if (gMount == mount.name) then
-					mountID = mount.id
-				end
-			end
-		end
-		
-		local acMount = ActionList:Get(mountID,13)
-		if ( acMount ) then
-			if (acMount.isready) then
-				acMount:Cast()
-			end
-		else
-			SendTextCommand("/mount")
-			--ml_error("You need to select a Mount in the Minion Settings!")
-		end
+		SendTextCommand("/mount")
 	end
 end
 function Repair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
-		local eq = Inventory("type=1000")
+		local eq = MInventory("type=1000")
 		for i,e in pairs(eq) do
 			if (e.condition <= 30) then
 				if (blacklist[e.id] == nil) then
@@ -2903,7 +2857,7 @@ end
 function NeedsRepair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
-		local eq = Inventory("type=1000")
+		local eq = MInventory("type=1000")
 		for i,e in pairs(eq) do
 			if (e.condition <= 30) then
 				if (blacklist[e.id] == nil) then
@@ -3302,8 +3256,8 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 		maxdistance = 30
 	end
 	
-	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
-	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
+	local el = MEntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
+	--local el = MEntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
@@ -3317,8 +3271,8 @@ end
 function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance) 
 	maxdistance = maxdistance or 30
  
-	local el = EntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
-	--local el = EntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
+	local el = MEntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
+	--local el = MEntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
@@ -3701,7 +3655,7 @@ function ShouldTeleport(pos)
 			return true
 		else
 			local scanDistance = 50
-			local players = EntityList("type=1,maxdistance=".. scanDistance)
+			local players = MEntityList("type=1,maxdistance=".. scanDistance)
 			local nearbyPlayers = TableSize(players)
 			if nearbyPlayers > 0 then
 				return false
@@ -3715,7 +3669,7 @@ function ShouldTeleport(pos)
 					gotoPos = ml_task_hub:CurrentTask().pos
 				end
 				
-				local players = EntityList("type=1")
+				local players = MEntityList("type=1")
 				if (players) then
 					for i,entity in pairs(players) do
 						local epos = entity.pos
@@ -3899,7 +3853,7 @@ function UnequipItem(itemid)
 end
 function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
-	local currEquippedItems = Inventory("type=1000")
+	local currEquippedItems = MInventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
 		if (item.id == itemid) then
 			return true
@@ -3909,7 +3863,7 @@ function IsEquipped(itemid)
 end
 function EquippedItemLevel(slot)
 	local slot = tonumber(slot)
-	local currEquippedItems = Inventory("type=1000")
+	local currEquippedItems = MInventory("type=1000")
 	if (currEquippedItems) then
 		for id,item in pairs(currEquippedItems) do
 			if (item.slot == slot) then
@@ -3922,7 +3876,7 @@ function EquippedItemLevel(slot)
 	return 0
 end
 function GetItemInSlot(equipSlot)
-	local currEquippedItems = Inventory("type=1000")
+	local currEquippedItems = MInventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
 		if(item.slot == equipSlot) then
 			return item
@@ -3935,7 +3889,7 @@ function ItemIsReady(itemid)
 	
 	local hasItem = false
 	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			if (itemid == item.id) then
 				hasItem = true
@@ -3960,7 +3914,7 @@ function IsInventoryFull()
 	
 	--Look through regular bags first.
 	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			itemcount = itemcount + 1
 		end
@@ -3977,7 +3931,7 @@ function GetInventorySnapshot()
 	
 	--Look through regular bags first.
 	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for k,item in pairs(inv) do
 				if currentSnapshot[item.id] == nil then
@@ -3999,7 +3953,7 @@ function GetInventorySnapshot()
 	end
 	
 	--Look through equipped items bag.
-	local inv = Inventory("type=1000")
+	local inv = MInventory("type=1000")
 	if (ValidTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
@@ -4020,7 +3974,7 @@ function GetInventorySnapshot()
 	end
 	
 	--Look through currency bag.
-	local inv = Inventory("type=2000")
+	local inv = MInventory("type=2000")
 	if (ValidTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
@@ -4041,7 +3995,7 @@ function GetInventorySnapshot()
 	end
 	
 	--Look through crystals bag.
-	local inv = Inventory("type=2001")
+	local inv = MInventory("type=2001")
 	if (ValidTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
@@ -4062,7 +4016,7 @@ function GetInventorySnapshot()
 	end
 	
 	--Look through key items bag.
-	local inv = Inventory("type=2004")
+	local inv = MInventory("type=2004")
 	if (ValidTable(inv)) then
 		for k,item in pairs(inv) do
 			if currentSnapshot[item.id] == nil then
@@ -4086,7 +4040,8 @@ function GetInventorySnapshot()
 end
 function GetInventoryItemGains(itemid,hqonly)
 	local itemid = tonumber(itemid) or 0
-	if (hqonly == nil) then hqonly = false end
+	hqonly = IsNull(hqonly,false)
+	
 	local originalCount = 0
 	local newCount = 0
 	
@@ -4122,13 +4077,14 @@ function GetInventoryItemGains(itemid,hqonly)
 		
 	return gained
 end
+
 function ItemCount(itemid,includehq)
 	includehq = IsNull(includehq,false)
 	local itemcount = 0
 	
 	--Look through regular bags first.
 	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 				itemcount = itemcount + item.count
@@ -4137,7 +4093,7 @@ function ItemCount(itemid,includehq)
 	end
 
 	--Look through equipped items bag.
-	local inv = Inventory("type=1000")
+	local inv = MInventory("type=1000")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
@@ -4145,7 +4101,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through currency bag.
-	local inv = Inventory("type=2000")
+	local inv = MInventory("type=2000")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = item.count
@@ -4153,7 +4109,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through crystals bag.
-	local inv = Inventory("type=2001")
+	local inv = MInventory("type=2001")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = item.count
@@ -4162,7 +4118,7 @@ function ItemCount(itemid,includehq)
 	
 	--Look through armory bags for off-hand through wrists
 	for x=3200,3209 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 				itemcount = itemcount + 1
@@ -4171,7 +4127,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through rings armory bag.
-	local inv = Inventory("type=3300")
+	local inv = MInventory("type=3300")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
@@ -4179,7 +4135,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through soulstones armory bag.
-	local inv = Inventory("type=3400")
+	local inv = MInventory("type=3400")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
@@ -4187,7 +4143,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through weapons armory bag.
-	local inv = Inventory("type=3500")
+	local inv = MInventory("type=3500")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + 1
@@ -4195,7 +4151,7 @@ function ItemCount(itemid,includehq)
 	end
 	
 	--Look through quest/key items bag.
-	local inv = Inventory("type=2004")
+	local inv = MInventory("type=2004")
 	for i, item in pairs(inv) do
 		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
 			itemcount = itemcount + item.count
@@ -4206,7 +4162,7 @@ function ItemCount(itemid,includehq)
 end
 function GilCount()
 	local gil = 0
-	local inv = Inventory("type=2000")
+	local inv = MInventory("type=2000")
 	for i,item in pairs(inv) do
 		if (item.slot == 0) then
 			gil = item.count
@@ -4216,7 +4172,7 @@ function GilCount()
 end
 function PoeticCount()
 	local poetic = 0
-	local inv = Inventory("type=2000")
+	local inv = MInventory("type=2000")
 	for i,item in pairs(inv) do
 		if (item.slot == 6) then
 			poetic = item.count
@@ -4226,7 +4182,7 @@ function PoeticCount()
 end
 function SoldieryCount()
 	local soldiery = 0
-	local inv = Inventory("type=2000")
+	local inv = MInventory("type=2000")
 	for i,item in pairs(inv) do
 		if (item.slot == 7) then
 			soldiery = item.count
@@ -4235,7 +4191,7 @@ function SoldieryCount()
 	return soldiery
 end
 function IsCompanionSummoned()
-	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
+	local el = MEntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
 		return true
 	end
@@ -4248,7 +4204,7 @@ function IsCompanionSummoned()
 	return false
 end
 function GetCompanionEntity()
-	local el = EntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
+	local el = MEntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
 	if (ValidTable(el)) then
 		local i,entity = next(el)
 		if (i and entity) then
@@ -4280,7 +4236,7 @@ function IsArmoryFull(slot)
 		[12] = 3300, -- Rings		
 	}
 	if (slot ~= 13) then
-		local inv = Inventory("type="..tostring(xref[slot]))
+		local inv = MInventory("type="..tostring(xref[slot]))
 		if (inv) then
 			local occupiedSlots = 0
 			for i, item in pairs(inv) do
@@ -4313,7 +4269,7 @@ function ArmoryItemCount(slot)
 		[12] = 3300, -- Rings		
 	}
 	if (slot ~= 13) then
-		local inv = Inventory("type="..tostring(xref[slot]))
+		local inv = MInventory("type="..tostring(xref[slot]))
 		if (inv) then
 			local occupiedSlots = 0
 			for i, item in pairs(inv) do
@@ -4328,7 +4284,7 @@ function ArmoryItemCount(slot)
 end
 function GetFirstFreeArmorySlot(armoryType)
 	local armoryType = tonumber(armoryType)
-	local inv = Inventory("type="..tostring(armoryType))
+	local inv = MInventory("type="..tostring(armoryType))
 	if (inv) then
 		local maxslots = (armoryType == 3400 and 10) or 25
 		for i=0,maxslots do
@@ -4349,7 +4305,7 @@ function GetFirstFreeArmorySlot(armoryType)
 end
 function GetFirstFreeInventorySlot()
 	for x = 0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		if (inv) then
 			for i=0,24 do
 				local found = false
@@ -4372,7 +4328,7 @@ end
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
 	
-	local inv = Inventory("type=1000")
+	local inv = MInventory("type=1000")
 	for i, item in pairs(inv) do
 		if (item.id == itemid) then
 			return item
@@ -4386,7 +4342,7 @@ function GetUnequippedItem(itemid)
 	
 	--Look through regular bags first.
 	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			if (item.id == itemid) then
 				return item
@@ -4396,7 +4352,7 @@ function GetUnequippedItem(itemid)
 	
 	--Look through armory bags for off-hand through wrists
 	for x=3200,3209 do
-		local inv = Inventory("type="..tostring(x))
+		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
 			if (item.id == itemid) then
 				return item
@@ -4405,7 +4361,7 @@ function GetUnequippedItem(itemid)
 	end
 	
 	--Look through rings armory bag.
-	local inv = Inventory("type=3300")
+	local inv = MInventory("type=3300")
 	for i, item in pairs(inv) do
 		if (item.id == itemid) then
 			return item
@@ -4413,7 +4369,7 @@ function GetUnequippedItem(itemid)
 	end
 	
 	--Look through soulstones armory bag.
-	local inv = Inventory("type=3400")
+	local inv = MInventory("type=3400")
 	for i, item in pairs(inv) do
 		if (item.id == itemid) then
 			return item
@@ -4421,7 +4377,7 @@ function GetUnequippedItem(itemid)
 	end
 	
 	--Look through weapons armory bag.
-	local inv = Inventory("type=3500")
+	local inv = MInventory("type=3500")
 	for i, item in pairs(inv) do
 		if (item.id == itemid) then
 			return item
@@ -4835,7 +4791,7 @@ function GetHinterlandsSection(pos)
 	
 	local sec = 2
 	if (ValidTable(pos)) then
-		local ent1Dist = Distance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
+		local ent1Dist = PDistance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
 		if (ent1Dist <= 200) then
 			sec = 1
 		else
@@ -5101,7 +5057,7 @@ function Transport146(pos1,pos2)
 	local pos1 = pos1 or ml_global_information.Player_Position
 	local pos2 = pos2
 	
-	local distance = Distance3D(pos1.x,pos1.y,pos1.z,-60.55,-25.107,-556.96)
+	local distance = PDistance3D(pos1.x,pos1.y,pos1.z,-60.55,-25.107,-556.96)
 	if (pos1.y < -15 and distance < 40) then
 		if (Quest:IsQuestCompleted(343) or (Quest:HasQuest(343) and Quest:GetQuestCurrentStep(343) > 3)) then
 			return true, function()
@@ -5203,7 +5159,7 @@ function MoveTo(x,y,z,range,useFollowMovement,useRandomPath,useSmoothTurns)
 		
 	if (ValidTable(ff.lastPos)) then
 		local lastPos = ff.lastPos
-		local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist < 1) then
 			if ((TimeSince(ff.lastPath) < 20000 and Player:IsMoving()) or
 				(TimeSince(ff.lastPath) < 1000) or
@@ -5233,4 +5189,9 @@ function MoveTo(x,y,z,range,useFollowMovement,useRandomPath,useSmoothTurns)
 		Stop()
 		ff.lastFail = Now()
 	end
+end
+
+function UsingBattleItem()
+	local currentAction = Player.action
+	return (currentAction == 83 or currentAction == 84 or currentAction == 85 or currentAction == 89 or currentAction == 90 or currentAction == 91)
 end

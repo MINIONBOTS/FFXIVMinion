@@ -26,6 +26,7 @@ function c_add_killtarget:evaluate()
 			if ValidTable(aggro) then
 				if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
 					c_add_killtarget.targetid = aggro.id
+					d("Adding an aggro target in first block.")
 					return true
 				end
 			end
@@ -41,6 +42,7 @@ function c_add_killtarget:evaluate()
 		local aggro = GetNearestAggro()
 		if ValidTable(aggro) then
 			if (aggro.hp.current > 0 and aggro.id and aggro.id ~= 0 and aggro.distance <= 30) then
+				d("Adding an aggro target.")
 				c_add_killtarget.targetid = aggro.id
 				return true
 			end
@@ -365,7 +367,7 @@ function e_nextatma:execute()
 		ml_task_hub:ThisTask().correctMap = atma.map
 		
 		local newTask = ffxiv_task_teleport.Create()
-		d("Changing to new location for "..tostring(atma.name).." atma.")
+		--d("Changing to new location for "..tostring(atma.name).." atma.")
 		newTask.aetheryte = atma.tele
 		newTask.mapID = atma.map
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
@@ -441,7 +443,7 @@ function e_avoid:execute()
 	
 	if (ValidTable(newPos)) then
 		local ppos = ml_global_information.Player_Position
-		local moveDist = Distance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
+		local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
 		if (moveDist > 1.5) then
 			if (ValidTable(obstacle)) then
 				table.insert(ml_global_information.navObstacles,obstacle)
@@ -792,7 +794,7 @@ function c_leavelockedarea:evaluate()
 					
 					for id,entries in pairs(neighbors) do
 						for _,gate in pairs(entries) do
-							local dist = Distance3D(ppos.x,ppos.y,ppos.z,gate.x,gate.y,gate.z)
+							local dist = PDistance3D(ppos.x,ppos.y,ppos.z,gate.x,gate.y,gate.z)
 							if (not nearest or (nearest and dist < nearestDistance)) then
 								nearest = id
 								nearestDistance = dist
@@ -853,7 +855,7 @@ function c_teleporttomap:evaluate()
                                                     destMapID	)
 		if (ValidTable(pos)) then
 			local ppos = ml_global_information.Player_Position
-			local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+			local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			if (ValidTable(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
 				
@@ -879,7 +881,7 @@ function c_teleporttomap:evaluate()
 				end
 			end
 		else
-			d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
+			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
 			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
 			if (aeth) then
 				e_teleporttomap.aeth = aeth
@@ -940,7 +942,7 @@ function c_followleader:evaluate()
 	local leaderPos = GetPartyLeaderPos()
 	if (ValidTable(leaderPos) and ValidTable(leader)) then
 		local myPos = ml_global_information.Player_Position	
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
 		
 		if (((leader.incombat and distance > 5) or (distance > 10)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
 			c_followleader.leaderpos = leaderPos
@@ -1073,7 +1075,7 @@ function c_walktopos:evaluate()
 			if (range > 0) then
 				local distance = 0.0
 				if (ml_task_hub:CurrentTask().use3d) then
-					distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+					distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 				else
 					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 				end
@@ -1123,10 +1125,10 @@ function e_walktopos:execute()
 			if (ValidTable(c_walktopos.lastPos)) then
 				local lastPos = c_walktopos.lastPos
 				--d("Checking if last wanted position was the same position.")
-				local dist = Distance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 				if (dist < 1) then
-					if ((TimeSince(e_walktopos.lastPath) < 20000 and Player:IsMoving()) or
-						(TimeSince(e_walktopos.lastPath) < 5000) or
+					if ((TimeSince(e_walktopos.lastPath) < 30000 and Player:IsMoving()) or
+						(TimeSince(e_walktopos.lastPath) < 10000) or
 						(TimeSince(e_walktopos.lastFail) < 10000)) 
 					then
 						return
@@ -1139,7 +1141,7 @@ function e_walktopos:execute()
 		
 		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
 		
-		local dist = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist > 2) then
 		
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
@@ -1179,7 +1181,7 @@ c_avoidaggressives = inheritsFrom( ml_cause )
 e_avoidaggressives = inheritsFrom( ml_effect )
 e_avoidaggressives.timer = 0
 function c_avoidaggressives:evaluate()
-	if (Now() < e_avoidaggressives.timer) then
+	if (Now() < e_avoidaggressives.timer or IsFlying()) then
 		return false
 	end
 	
@@ -1356,7 +1358,7 @@ function c_mount:evaluate()
     if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
 		local myPos = ml_global_information.Player_Position
 		local gotoPos = ml_task_hub:CurrentTask().pos
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 	
 		if (distance > tonumber(gMountDist)) then
 			--Added mount verifications here.
@@ -1403,13 +1405,22 @@ function e_mount:execute()
 	
 	if (IsMounting()) then
 		--d("Adding a wait.")
-		ml_task_hub:CurrentTask():SetDelay(1200)
+		ml_task_hub:CurrentTask():SetDelay(1500)
 		return
 	end
 	
     Mount(e_mount.id)
 	--d("Set a delay for 500")
 	ml_task_hub:CurrentTask():SetDelay(500)
+end
+
+c_battleitem = inheritsFrom( ml_cause )
+e_battleitem = inheritsFrom( ml_effect )
+function c_battleitem:evaluate()
+	return UsingBattleItem()
+end
+function e_battleitem:execute()
+	--Do nothing, just block execution of other stuff.
 end
 
 c_companion = inheritsFrom( ml_cause )
@@ -1499,26 +1510,25 @@ function c_sprint:evaluate()
         return false
     end
 	
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted or gUseSprint == "0") then
 		return false
 	end
 
-    if not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving then
-        local skills = ActionList("type=1")
-        local skill = skills[3]
-        if (skill and skill.isready) then
-			if (gUseSprint == "1" or IsCityMap(ml_global_information.Player_Map)) then
-				if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
-					local myPos = ml_global_information.Player_Position
-					local gotoPos = ml_task_hub:CurrentTask().pos
-					local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-					
-					if (distance > tonumber(gSprintDist)) then		
+    if (not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving) then
+		if (IsCityMap(ml_global_information.Player_Map)) then
+			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
+				local myPos = ml_global_information.Player_Position
+				local gotoPos = ml_task_hub:CurrentTask().pos
+				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				
+				if (distance > tonumber(gSprintDist)) then	
+					local sprint = ActionList:Get(3)
+					if (sprint and sprint.isready) then
 						return true
 					end
 				end
 			end
-        end
+		end
     end
     
     return false
@@ -2111,7 +2121,7 @@ e_teleporttopos = inheritsFrom( ml_effect )
 c_teleporttopos.pos = 0
 e_teleporttopos.teleCooldown = 0
 function c_teleporttopos:evaluate()
-	if (Now() < e_teleporttopos.teleCooldown or gTeleport == "0") then
+	if (Now() < e_teleporttopos.teleCooldown or gTeleport == "0" or IsFlying()) then
 		return false
 	end
 	
@@ -2130,7 +2140,7 @@ function c_teleporttopos:evaluate()
 		return false
 	end
 	 
-	local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+	local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 	if (distance > 10) then
 		local properPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
@@ -2477,8 +2487,8 @@ function c_clearaggressive:evaluate()
 							if (ValidTable(aggressives)) then
 								for _,aggressive in pairs(aggressives) do
 									local agpos = aggressive.pos
-									local dist = Distance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
-									local tdist = Distance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
+									local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
+									local tdist = PDistance3D(navPos.x,navPos.y,navPos.z,epos.x,epos.y,epos.z)
 									if (dist <= 12 and dist < tdist) then
 										c_questclearaggressive.targetid = aggressive.id
 										return true
@@ -2504,7 +2514,7 @@ function c_clearaggressive:evaluate()
 					if (ValidTable(aggressives)) then
 						for _,aggressive in pairs(aggressives) do
 							local agpos = aggressive.pos
-							local dist = Distance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
+							local dist = PDistance3D(navPos.x,navPos.y,navPos.z,agpos.x,agpos.y,agpos.z)
 							if (dist <= 15) then
 								c_questclearaggressive.targetid = aggressive.id
 								return true

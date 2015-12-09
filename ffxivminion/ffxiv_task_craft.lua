@@ -198,8 +198,9 @@ function e_startcraft:execute()
 		else
 			local usehq = ml_task_hub:CurrentTask().useHQ
 			Crafting:UseHQMats(usehq)
-				
-			if (Crafting:CanCraftSelectedItem()) then
+			
+			--if (Crafting:CanCraftSelectedItem()) then
+			if (true) then
 				ml_task_hub:CurrentTask().failedAttempts = 0
 				local usequick = ml_task_hub:CurrentTask().useQuick
 				if (usequick) then

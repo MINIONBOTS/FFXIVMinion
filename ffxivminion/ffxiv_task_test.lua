@@ -27,7 +27,7 @@ local cachedPaths = nil
 local insert = table.insert
 local atan2 = math.atan2
 local asin = math.asin
-local dist_3d = Distance3D
+local dist_3d = PDistance3D
 
 function ffxiv_task_test.Create()
     local newinst = inheritsFrom(ffxiv_task_test)
@@ -261,7 +261,7 @@ function c_flytopos:evaluate()
 			gotoPos = ml_task_hub:CurrentTask().pos
 		end
 		
-		local dist = Distance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+		local dist = PDistance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
 		if (dist >= 20) then
 			if (ffxiv_task_test.HasJunction(myPos)) then
 				if (ffxiv_task_test.HasJunction(gotoPos)) then
@@ -396,7 +396,7 @@ function ffxiv_task_movetopos2:task_complete_eval()
 		local distance = 0.0
 		local distance2d = 0.0
 		if (self.use3d) then
-			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		else
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -424,7 +424,7 @@ function ffxiv_task_movetopos2:task_complete_eval()
 								ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
 								
 								if (self.use3d) then
-									distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+									distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 								else
 									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -455,7 +455,7 @@ function ffxiv_task_movetopos2:task_complete_eval()
 			if (params.type == "useitem") then
 				if (ValidTable(params.usepos)) then
 					local usepos = params.usepos
-					local usedist = Distance3D(myPos.x,myPos.y,myPos.z,usepos.x,usepos.y,usepos.z)
+					local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,usepos.x,usepos.y,usepos.z)
 					if (usedist > self.range) then
 						return false
 					end
@@ -465,7 +465,7 @@ function ffxiv_task_movetopos2:task_complete_eval()
 						local i,entity = next(el)
 						if (ValidTable(entity)) then
 							local epos = entity.pos
-							local usedist = Distance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
+							local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
 							if (usedist > (self.range + entity.hitradius)) then
 								return false
 							end
@@ -561,7 +561,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
         local myPos = ml_global_information.Player_Position
 		local gotoPos = self.pos
 		
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)		
 		if (distance <= 4) then
 			d("Close to the destination, we can stop now.")
 			return true
@@ -600,7 +600,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 						
 						if (travelPoint) then
 							d("have travel point. x = "..tostring(travelPoint.x)..", y = "..tostring(travelPoint.y)..", z = "..tostring(travelPoint.z))
-							local distNext = Distance3D(myPos.x, myPos.y, myPos.z, travelPoint.x, travelPoint.y, travelPoint.z)
+							local distNext = PDistance3D(myPos.x, myPos.y, myPos.z, travelPoint.x, travelPoint.y, travelPoint.z)
 							d("distnext:"..tostring(distNext))
 							if (distNext == self.lastDistance) then
 								self.stuckTicks = self.stuckTicks + 1
@@ -637,7 +637,7 @@ function ffxiv_task_movewithflight:task_complete_eval()
 
 							ml_global_information.idlePulseCount = 0
 						else
-							local distCurrent = Distance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
+							local distCurrent = PDistance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
 							if (distCurrent <= 4) then
 								d("No travel point and we are close to the current point.")
 								return true
@@ -666,7 +666,7 @@ function ffxiv_task_movewithflight:task_complete_execute()
 		if (raycast == nil) then
 			d("We were sent somewhere we cannot land, not good.. just wait for the user I guess.")
 		elseif (raycast == true) then
-			local connectDist = Distance3D(myPos.x, myPos.y, myPos.z, hitX, hitY, hitZ)
+			local connectDist = PDistance3D(myPos.x, myPos.y, myPos.z, hitX, hitY, hitZ)
 			local descentTime = math.floor(connectDist / 10) * 1000
 			d("Estimate a time of 10 units per second to descend.")
 			local instructions = {
@@ -901,7 +901,7 @@ function ffxiv_task_test.GetNearestFlightJunction(pos)
 		local closestDistance = 9999
 			
 		for i,neighbor in pairs(neighbors) do
-			local dist = Distance3D(pos.x,pos.y,pos.z,neighbor.x,neighbor.y,neighbor.z)
+			local dist = PDistance3D(pos.x,pos.y,pos.z,neighbor.x,neighbor.y,neighbor.z)
 			if (not closest or (closest and dist < closestDistance)) then
 				closest,closestDistance = neighbor,dist
 			end
@@ -925,7 +925,7 @@ function ffxiv_task_test.PruneFlightMesh()
 			if (ValidTable(neighbors)) then
 				--d("Found ["..tostring(TableSize(neighbors)).."] neighbors for point.")
 				for i,neighbor in pairs(neighbors) do
-					local dist = Distance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
+					local dist = PDistance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
 					if (dist < 5) then
 						table.remove(mesh,k)
 						removeFromCube(ffxiv_task_test.storageCube,v)
@@ -1034,6 +1034,7 @@ function ffxiv_task_test.SaveFlightMesh()
 	persistence.store(fullPath,info)
 end
 
+--[[
 function ffxiv_task_test.GetPath(from,to)
 	if (Now() < ffxiv_task_test.lastPathCheck) then
 		return false
@@ -1054,9 +1055,9 @@ function ffxiv_task_test.GetPath(from,to)
 					if (nearestJunction) then
 						local myPos = ml_global_information.Player_Position
 						
-						local myDist = Distance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
-						local nearDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
-						local spanDist = Distance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
+						local myDist = PDistance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
+						local nearDist = PDistance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
+						local spanDist = PDistance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
 						
 						if (myDist > 30 and spanDist > 20) then
 							point1 = nearestJunction
@@ -1086,6 +1087,27 @@ function ffxiv_task_test.GetPath(from,to)
 	--d("No path.")
 	ffxiv_task_test.lastPathCheck = Now() + 5000
 	return nil,nil,nil
+end
+--]]
+
+function ffxiv_task_test.GetPath()
+	local ppos = Player.pos
+	
+	local pos = {}
+	pos.x = tonumber(gTestMapX)
+	pos.y = tonumber(gTestMapY)
+	pos.z = tonumber(gTestMapZ)
+	
+	local timeS = os.clock()
+	local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+	if (ValidTable(path)) then
+		d("Path contains ["..tostring(TableSize(path)).."] points.")
+	else
+		d("No path returned.")
+	end
+	local timeF = os.clock()
+	d(timeS)
+	d(timeF)
 end
 
 --[[
@@ -1163,13 +1185,14 @@ end
 
 function ffxiv_task_test.TestInstructions()
 	local instructions = {
-		{"MoveForward", {}},
-		{"Wait", { 1000 }},
-		{"Jump", {}},
-		{"Wait", { 1300 }},
-		{"Stop", {}},
+		{"Action", {2263, 1, Player.id}},
+		{"Wait", { 100 }},
+		{"Action", {2261, 1, Player.id}},
+		{"Wait", { 100 }},
+		{"Action", {2259, 1, Player.id}},
+		{"Wait", { 100 }},
+		{"Action", {2260, 1, Player.id}},
 	}
-	
 	ml_mesh_mgr.ParseInstructions(instructions)
 end
 
@@ -1264,7 +1287,7 @@ function getNearestVertex(vertices,pos)
 		
 	if (ValidTable(vertices)) then
 		for i,vertex in pairs(vertices) do
-			local dist = Distance3D(vertex.x,vertex.y,vertex.z,pos.x,pos.y,pos.z)
+			local dist = PDistance3D(vertex.x,vertex.y,vertex.z,pos.x,pos.y,pos.z)
 			if (not nearest or (nearest and dist < nearestDistance)) then
 				nearest = vertex
 				nearestDistance = dist
@@ -1319,7 +1342,7 @@ function bisectionalSearch(cube,pos)
 	local secondaryDist = math.huge
 	
 	for i,child in pairs(cube.children) do
-		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		local dist = PDistance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
 		if (not nearest or (nearest and dist < nearestDist)) then
 			nearestDist = dist
 			nearest = child
@@ -1409,7 +1432,7 @@ function findClosestChild(cube,pos)
 	local nearestDist = math.huge
 	
 	for i,child in pairs(cube.children) do
-		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		local dist = PDistance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
 		if (not nearest or (nearest and dist < nearestDist)) then
 			nearestDist = dist
 			nearest = child
@@ -1431,7 +1454,7 @@ function findCloseChildren(cube,pos,returnables)
 	local nearestDist = math.huge
 	
 	for i,child in pairs(cube.children) do
-		local dist = Distance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
+		local dist = PDistance3D(pos.x,pos.y,pos.z,child.x,child.y,child.z)
 		if (not nearest or (nearest and dist < nearestDist)) then
 			nearestDist = dist
 			nearest = child
@@ -1467,7 +1490,7 @@ function isJunction(point)
 			point.isjunction = true
 			return point
 		elseif (raycast2 == true) then
-			local dist = Distance3D(point.x,point.y,point.z,hitX,hitY,hitZ)
+			local dist = PDistance3D(point.x,point.y,point.z,hitX,hitY,hitZ)
 			point.y = point.y + (4 - dist)
 			point.isjunction = true
 			return point
@@ -1643,7 +1666,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 					local neighbors = findNeighbors(ffxiv_task_test.storageCube,v,false)
 					if (ValidTable(neighbors)) then
 						for i,neighbor in pairs(neighbors) do
-							local dist = Distance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
+							local dist = PDistance3D(neighbor.x,neighbor.y,neighbor.z,v.x,v.y,v.z)
 							if (dist < recordPadding) then
 								allowed = false
 								break
@@ -1685,7 +1708,7 @@ function ffxiv_task_test.OnUpdate( event, tickcount )
 			local v = ml_global_information.Player_Position
 			
 			for i,j in pairs(mesh) do
-				local dist = Distance3D(j.x,j.y,j.z,v.x,v.y,v.z)
+				local dist = PDistance3D(j.x,j.y,j.z,v.x,v.y,v.z)
 				if (dist < 8) then
 					mesh[i] = nil
 					table.insert(renderedPoints,j)
@@ -1803,7 +1826,7 @@ local cachedPaths = nil
 local insert = table.insert
 local atan2 = math.atan2
 local asin = math.asin
-local dist_3d = Distance3D
+local dist_3d = PDistance3D
 
 function dist ( x1, y1, z1, x2, y2, z2 )
 	return dist_3d(x1,y1,z1,x2,y2,z2)
@@ -2286,11 +2309,11 @@ function ffxiv_task_test.FaceNextPath()
 		if (hitPoint ~= nil) then
 			table.insert(newPoints,hitPoint)
 			
-			local dist = Distance3D(hitPoint.x,hitPoint.y,hitPoint.z,epos.x,epos.y,epos.z)
+			local dist = PDistance3D(hitPoint.x,hitPoint.y,hitPoint.z,epos.x,epos.y,epos.z)
 			d("distance from entity:"..tostring(dist))
 			d("hitradius:"..tostring(target.hitradius))
 			
-			dist = Distance3D(hitPoint.x,hitPoint.y,hitPoint.z,myPos.x,myPos.y,myPos.z)
+			dist = PDistance3D(hitPoint.x,hitPoint.y,hitPoint.z,myPos.x,myPos.y,myPos.z)
 			d("distance from wall:"..tostring(dist))
 		end
 		

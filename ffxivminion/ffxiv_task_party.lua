@@ -20,7 +20,7 @@ function c_partysyncfatelevel:evaluate()
     local fate = GetClosestFate(myPos)
 	if (ValidTable(fate)) then
 		if (AceLib.API.Fate.RequiresSync(fate.id)) then
-			local distance = Distance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
+			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, fate.x, fate.y, fate.z)
 			if (distance < fate.radius) then				
 				return true
 			end
@@ -60,40 +60,41 @@ end
 
 function ffxiv_task_party:Init()
     --init ProcessOverWatch() elements
-    
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 30 )
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 100 )
     self:add( ke_dead, self.overwatch_elements)
     
-    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 27 )
+    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 95 )
     self:add( ke_flee, self.overwatch_elements)
-    
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 24 )
-    self:add( ke_rest, self.overwatch_elements)
-    
-    local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 21 ) --minion only
-    self:add( ke_psyncFate, self.overwatch_elements)
-    
-    local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 18 ) --leader only
-    self:add(ke_addFate, self.overwatch_elements)
 	
-	local ke_followleader = ml_element:create( "FollowLeader", c_followleader, e_followleader, 14 )--minion only
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
+    self:add( ke_rest, self.overwatch_elements)
+	
+	
+	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 85 ) --minion only
+    self:add( ke_psyncFate, self.overwatch_elements)
+	
+	local ke_followleader = ml_element:create( "FollowLeader", c_followleader, e_followleader, 80 ) --minion only
     self:add( ke_followleader, self.overwatch_elements )
-    
-    local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 11 )--minion only
+	
+	local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 60 )--minion only
     self:add( ke_assistleader, self.overwatch_elements )
 	
-    local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 30 )--leader only
+	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 20 ) --minion only
+    self:add(ke_killAggroTarget, self.process_elements)
+	
+    
+    local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 70 ) --leader only
+    self:add(ke_addFate, self.process_elements)
+	
+	local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 50 )--leader only
     self:add( ke_returnToMarker, self.process_elements)
 	
-    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 27 )--leader only
+    local ke_nextMarker = ml_element:create( "NextMarker", c_nextmarker, e_nextmarker, 40 )--leader only
     self:add( ke_nextMarker, self.process_elements)
 
-    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 ) --leader only
+    local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 30 ) --leader only
     self:add(ke_addKillTarget, self.process_elements)
 	
-	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 13 ) --minion only
-    self:add(ke_killAggroTarget, self.process_elements)
-    
     self:AddTaskCheckCEs()
 end
 

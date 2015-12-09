@@ -228,7 +228,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		local distance = 0.0
 		local distance2d = 0.0
 		if (self.use3d) then
-			distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		else
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -256,7 +256,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 								ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
 								
 								if (self.use3d) then
-									distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+									distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 								else
 									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
@@ -287,7 +287,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			if (params.type == "useitem") then
 				if (ValidTable(params.usepos)) then
 					local usepos = params.usepos
-					local usedist = Distance3D(myPos.x,myPos.y,myPos.z,usepos.x,usepos.y,usepos.z)
+					local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,usepos.x,usepos.y,usepos.z)
 					if (usedist > self.range) then
 						return false
 					end
@@ -297,7 +297,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 						local i,entity = next(el)
 						if (ValidTable(entity)) then
 							local epos = entity.pos
-							local usedist = Distance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
+							local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
 							if (usedist > (self.range + entity.hitradius)) then
 								return false
 							end
@@ -419,10 +419,10 @@ function ffxiv_task_movetofate:Init()
 end
 
 function ffxiv_task_movetofate:task_complete_eval()	
-	local fate = GetFateByID(self.fateid)
+	local fate = MGetFateByID(self.fateid)
 	if (ValidTable(fate)) then
 		local myPos = ml_global_information.Player_Position
-		local fatedist = Distance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
+		local fatedist = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
 		if (not AceLib.API.Fate.RequiresSync(fate.id) or fatedist < fate.radius) then
 			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
@@ -444,7 +444,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		end
 		
 		local myPos = ml_global_information.Player_Position
-		local dist = Distance3D(myPos.x,myPos.y,myPos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
+		local dist = PDistance3D(myPos.x,myPos.y,myPos.z,self.actualPos.x,self.actualPos.y,self.actualPos.z)
 		if (self.requiresPosRandomize and 
 			(TimeSince(self.lastRandomize) > math.random(2000,3000) or (dist > (fate.radius * .95)))) 
 		then
@@ -530,7 +530,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 				
 				local distance = 0.0
 				if (self.use3d) then
-					distance = Distance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+					distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 				else
 					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 				end 
@@ -551,7 +551,7 @@ function ffxiv_task_movetofate:task_complete_execute()
 end
 
 function ffxiv_task_movetofate:task_fail_eval()
-	local fate = GetFateByID(self.fateid)
+	local fate = MGetFateByID(self.fateid)
 	if (not ValidTable(fate)) then
 		return true
 	end
@@ -665,7 +665,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	else
 		local epos = self.pos
-		local dist = Distance3DT(ppos,epos)
+		local dist = PDistance3DT(ppos,epos)
 		if (dist <= 10) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
 			if (not ValidTable(interacts)) then
@@ -703,51 +703,53 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
-		local requiresDismount = false
-		if (interactable and interactable.distance < self.dismountDistance) then
-			Dismount()
+	if (IsFlying()) then
+		if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
+			local requiresDismount = false
+			if (interactable and interactable.distance < self.dismountDistance) then
+				Dismount()
+			end
+			self.lastDismountCheck = Now()
 		end
-		self.lastDismountCheck = Now()
-	end
-	
-	if (not myTarget) then
-		if (interactable and interactable.targetable and interactable.distance < 10) then
-			Player:SetTarget(interactable.id)
-			local ipos = interactable.pos
-			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0) then
-				if (not deepcompare(self.pos,p,true)) then
-					self.pos = p
+		
+		if (not myTarget) then
+			if (interactable and interactable.targetable and interactable.distance < 10) then
+				Player:SetTarget(interactable.id)
+				local ipos = interactable.pos
+				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				if (p and dist ~= 0) then
+					if (not deepcompare(self.pos,p,true)) then
+						self.pos = p
+					end
 				end
 			end
 		end
-	end
-	
-	if (myTarget and TimeSince(self.lastInteract) > 500) then
-		if (ValidTable(interactable)) then			
-			if (interactable.type == 5) then
-				if (interactable.distance <= 7.5) then
-					Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-					Player:Interact(interactable.id)
-					self.lastDistance = interactable.pathdistance
-					self.lastInteract = Now()
-					return false
-				end
-			end
-			
-			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-			local pathRange = self.pathRange or 10
-			local forceLOS = self.forceLOS
-			local range = self.interactRange or (radius * 3.5)
-			if (not forceLOS or (forceLOS and interactable.los)) then
-				if (interactable and interactable.distance <= range) then
-					local ydiff = math.abs(ppos.y - interactable.pos.y)
-					if (ydiff < 3.5 or interactable.los) then
+		
+		if (myTarget and TimeSince(self.lastInteract) > 500) then
+			if (ValidTable(interactable)) then			
+				if (interactable.type == 5) then
+					if (interactable.distance <= 7.5) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
 						self.lastDistance = interactable.pathdistance
 						self.lastInteract = Now()
+						return false
+					end
+				end
+				
+				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+				local pathRange = self.pathRange or 10
+				local forceLOS = self.forceLOS
+				local range = self.interactRange or (radius * 3.5)
+				if (not forceLOS or (forceLOS and interactable.los)) then
+					if (interactable and interactable.distance <= range) then
+						local ydiff = math.abs(ppos.y - interactable.pos.y)
+						if (ydiff < 3.5 or interactable.los) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							Player:Interact(interactable.id)
+							self.lastDistance = interactable.pathdistance
+							self.lastInteract = Now()
+						end
 					end
 				end
 			end
@@ -1261,7 +1263,7 @@ function ffxiv_task_avoid:task_complete_eval()
 	else
 		local ppos = ml_global_information.Player_Position
 		local topos = self.pos
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
+		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
 		if (dist < 1) then
 			return true
 		end
@@ -1389,9 +1391,7 @@ function ffxiv_task_flee.Create()
     newinst.range = 1.5
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.failTimer = 0
-	
 
-    
     return newinst
 end
 
@@ -1413,12 +1413,11 @@ function ffxiv_task_flee:task_complete_eval()
 		return true
 	end
 	
-	if not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving then
-        local skills = ActionList("type=1")
-        local skill = skills[3]
-        if (skill and skill.isready) then
-			skill:Cast()
-        end
+	if (ml_global_information.Player_IsMoving) then
+		local sprint = ActionList:Get(3)
+		if (sprint and sprint.isready) then
+			sprint:Cast()
+		end
     end
 	
 	return not ml_global_information.Player_InCombat or (ml_global_information.Player_HP.percent > tonumber(gRestHP) and ml_global_information.Player_MP.percent > tonumber(gRestMP))
@@ -1493,6 +1492,9 @@ function ffxiv_task_grindCombat:Init()
 	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 45)
 	self:add(ke_autoPotion, self.overwatch_elements)
 	
+	local ke_battleItem = ml_element:create( "BattleItem", c_battleitem, e_battleitem, 40 )
+    self:add( ke_battleItem, self.overwatch_elements)
+	
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 40 )
 	self:add( ke_rest, self.process_elements)
 	
@@ -1522,7 +1524,7 @@ function ffxiv_task_grindCombat:Process()
 	end
 	
 	if (TimeSince(self.delayTime) < self.delayTimer) then
-		d("task is delayed.")
+		--d("task is delayed.")
 		return false
 	end
 		
@@ -1544,7 +1546,7 @@ function ffxiv_task_grindCombat:Process()
 		if (target.fateid ~= 0) then
 			--d("Check fate details.")
 			local fateID = target.fateid
-			local fate = GetFateByID(fateID)
+			local fate = MGetFateByID(fateID)
 			if ( fate and fate.completion < 100 and fate.status == 2) then
 				if (AceLib.API.Fate.RequiresSync(fate.id)) then
 					local myPos = ml_global_information.Player_Position
@@ -1590,7 +1592,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 		end
 		
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
 			--d("Ranged class, check if we're in combat range and such..")
 			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
@@ -1605,7 +1607,11 @@ function ffxiv_task_grindCombat:Process()
 					if (Now() > self.movementDelay) then
 						--d("Ranged class needs to move closer, fire moveto..")
 						--MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
-						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						if (target.distance <= (target.hitradius + 1)) then
+							Player:MoveTo(pos.x,pos.y,pos.z, 3, false, false, false)
+						else
+							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+						end
 						self.movementDelay = Now() + 1000
 					end
 				end
@@ -1616,7 +1622,7 @@ function ffxiv_task_grindCombat:Process()
 					--d("Need to dismount if we are close.")
 					Dismount()
 				end
-				if (ml_global_information.Player_IsMoving and (target.los or CanAttack(target.id))) then
+				if (ml_global_information.Player_IsMoving and not IsFlying() and (target.los or CanAttack(target.id))) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
@@ -1660,8 +1666,8 @@ function ffxiv_task_grindCombat:Process()
 						Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
 						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
 					end
-					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
-					local dist2 = Distance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
+					local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos1.x,pullpos1.y,pullpos1.z)
+					local dist2 = PDistance3D(ppos.x,ppos.y,ppos.z,pullpos2.x,pullpos2.y,pullpos2.z)
 					if (dist1 > 10) then
 						self.pullPos2 = self.pullPos1
 						self.pullPos1 = {x = ppos.x, y = ppos.y, z = ppos.z}
@@ -1674,7 +1680,7 @@ function ffxiv_task_grindCombat:Process()
 					Dismount()
 				end
 			end
-			if (InCombatRange(target.id)) then
+			if (InCombatRange(target.id) and not IsFlying()) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
 				if (target.los or CanAttack(target.id)) then
 					Player:Stop()
@@ -1684,7 +1690,7 @@ function ffxiv_task_grindCombat:Process()
 				if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
 					Player:Stop()
 					local pullPos = nil
-					local dist1 = Distance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
+					local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
 					if (dist1 > 6) then
 						--d("using pullpos 1")
 						pullPos = self.pullPos1
@@ -1744,7 +1750,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		if (target.fateid ~= 0) then
 			--d("checking if task should fail due to fate.")
 			local fateID = target.fateid
-			local fate = GetFateByID(fateID)
+			local fate = MGetFateByID(fateID)
 			if (not fate) then
 				ml_debug("[GrindCombat]: Task complete due to fate target and fate not found.")
 				return true

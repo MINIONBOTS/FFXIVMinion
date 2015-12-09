@@ -31,6 +31,10 @@ SkillMgr.teleCastTimer = 0
 SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
 SkillMgr.bestAOE = 0
+SkillMgr.MacroThrottle = 0
+
+SkillMgr.highestRange = 0
+SkillMgr.highestRangeSkills = {}
 
 SkillMgr.actionWatch = {}
 SkillMgr.actionWatchResult = false
@@ -248,6 +252,88 @@ SkillMgr.Variables = {
 	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting" },
 	SKM_CHAINEND = { default = "0", cast = "string", profile = "chainend", section = "fighting" },
 	
+	-- Macro Vars.
+	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
+	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
+	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
+	
+	SKM_M2ACTIONID = { default = 0, cast = "number", profile = "m2actionid", section = "fighting" },
+	SKM_M2ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m2actiontarget", section = "fighting" },
+	SKM_M2ACTIONWAIT = { default = 100, cast = "number", profile = "m2actionwait", section = "fighting" },
+	
+	SKM_M3ACTIONID = { default = 0, cast = "number", profile = "m3actionid", section = "fighting" },
+	SKM_M3ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m3actiontarget", section = "fighting" },
+	SKM_M3ACTIONWAIT = { default = 100, cast = "number", profile = "m3actionwait", section = "fighting" },
+	
+	SKM_M4ACTIONID = { default = 0, cast = "number", profile = "m4actionid", section = "fighting" },
+	SKM_M4ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m4actiontarget", section = "fighting" },
+	SKM_M4ACTIONWAIT = { default = 100, cast = "number", profile = "m4actionwait", section = "fighting" },
+	
+	SKM_M5ACTIONID = { default = 0, cast = "number", profile = "m5actionid", section = "fighting" },
+	SKM_M5ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m5actiontarget", section = "fighting" },
+	SKM_M5ACTIONWAIT = { default = 100, cast = "number", profile = "m5actionwait", section = "fighting" },
+	
+	SKM_M6ACTIONID = { default = 0, cast = "number", profile = "m6actionid", section = "fighting" },
+	SKM_M6ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m6actiontarget", section = "fighting" },
+	SKM_M6ACTIONWAIT = { default = 100, cast = "number", profile = "m6actionwait", section = "fighting" },
+	
+	SKM_M7ACTIONID = { default = 0, cast = "number", profile = "m7actionid", section = "fighting" },
+	SKM_M7ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m7actiontarget", section = "fighting" },
+	SKM_M7ACTIONWAIT = { default = 100, cast = "number", profile = "m7actionwait", section = "fighting" },
+	
+	SKM_M8ACTIONID = { default = 0, cast = "number", profile = "m8actionid", section = "fighting" },
+	SKM_M8ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m8actiontarget", section = "fighting" },
+	SKM_M8ACTIONWAIT = { default = 100, cast = "number", profile = "m8actionwait", section = "fighting" },
+	
+	SKM_M9ACTIONID = { default = 0, cast = "number", profile = "m9actionid", section = "fighting" },
+	SKM_M9ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m9actiontarget", section = "fighting" },
+	SKM_M9ACTIONWAIT = { default = 100, cast = "number", profile = "m9actionwait", section = "fighting" },
+	
+	SKM_M10ACTIONID = { default = 0, cast = "number", profile = "m10actionid", section = "fighting" },
+	SKM_M10ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m10actiontarget", section = "fighting" },
+	SKM_M10ACTIONWAIT = { default = 100, cast = "number", profile = "m10actionwait", section = "fighting" },
+	
+	SKM_M11ACTIONID = { default = 0, cast = "number", profile = "m11actionid", section = "fighting" },
+	SKM_M11ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m11actiontarget", section = "fighting" },
+	SKM_M11ACTIONWAIT = { default = 100, cast = "number", profile = "m11actionwait", section = "fighting" },
+	
+	SKM_M12ACTIONID = { default = 0, cast = "number", profile = "m12actionid", section = "fighting" },
+	SKM_M12ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m12actiontarget", section = "fighting" },
+	SKM_M12ACTIONWAIT = { default = 100, cast = "number", profile = "m12actionwait", section = "fighting" },
+	
+	SKM_M13ACTIONID = { default = 0, cast = "number", profile = "m13actionid", section = "fighting" },
+	SKM_M13ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m13actiontarget", section = "fighting" },
+	SKM_M13ACTIONWAIT = { default = 100, cast = "number", profile = "m13actionwait", section = "fighting" },
+	
+	SKM_M14ACTIONID = { default = 0, cast = "number", profile = "m14actionid", section = "fighting" },
+	SKM_M14ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m14actiontarget", section = "fighting" },
+	SKM_M14ACTIONWAIT = { default = 100, cast = "number", profile = "m14actionwait", section = "fighting" },
+	
+	SKM_M15ACTIONID = { default = 0, cast = "number", profile = "m15actionid", section = "fighting" },
+	SKM_M15ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m15actiontarget", section = "fighting" },
+	SKM_M15ACTIONWAIT = { default = 100, cast = "number", profile = "m15actionwait", section = "fighting" },
+	
+	SKM_M16ACTIONID = { default = 0, cast = "number", profile = "m16actionid", section = "fighting" },
+	SKM_M16ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m16actiontarget", section = "fighting" },
+	SKM_M16ACTIONWAIT = { default = 100, cast = "number", profile = "m16actionwait", section = "fighting" },
+	
+	SKM_M17ACTIONID = { default = 0, cast = "number", profile = "m17actionid", section = "fighting" },
+	SKM_M17ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m17actiontarget", section = "fighting" },
+	SKM_M17ACTIONWAIT = { default = 100, cast = "number", profile = "m17actionwait", section = "fighting" },
+	
+	SKM_M18ACTIONID = { default = 0, cast = "number", profile = "m18actionid", section = "fighting" },
+	SKM_M18ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m18actiontarget", section = "fighting" },
+	SKM_M18ACTIONWAIT = { default = 100, cast = "number", profile = "m18actionwait", section = "fighting" },
+	
+	SKM_M19ACTIONID = { default = 0, cast = "number", profile = "m19actionid", section = "fighting" },
+	SKM_M19ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m19actiontarget", section = "fighting" },
+	SKM_M19ACTIONWAIT = { default = 100, cast = "number", profile = "m19actionwait", section = "fighting" },
+	
+	SKM_M20ACTIONID = { default = 0, cast = "number", profile = "m20actionid", section = "fighting" },
+	SKM_M20ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m20actiontarget", section = "fighting" },
+	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", section = "fighting" },
+	
+	
 	SKM_IgnoreMoving = { default = "0", cast = "string", profile = "ignoremoving", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
@@ -412,7 +498,7 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("alias"),"SKM_ALIAS",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet,Macro")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
@@ -535,6 +621,86 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M1 Skill ID","SKM_M1ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M1 Target","SKM_M1ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M2 Skill ID","SKM_M2ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M2 Target","SKM_M2ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M3 Skill ID","SKM_M3ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M3 Target","SKM_M3ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M4 Skill ID","SKM_M4ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M4 Target","SKM_M4ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M5 Skill ID","SKM_M5ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M5 Target","SKM_M5ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M6 Skill ID","SKM_M6ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M6 Target","SKM_M6ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M7 Skill ID","SKM_M7ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M7 Target","SKM_M7ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M8 Skill ID","SKM_M8ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M8 Target","SKM_M8ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M9 Skill ID","SKM_M9ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M9 Target","SKM_M9ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M10 Skill ID","SKM_M10ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M10 Target","SKM_M10ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M11 Skill ID","SKM_M11ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M11 Target","SKM_M11ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M12 Skill ID","SKM_M12ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M12 Target","SKM_M12ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M13 Skill ID","SKM_M13ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M13 Target","SKM_M13ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M14 Skill ID","SKM_M14ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M14 Target","SKM_M14ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M15 Skill ID","SKM_M15ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M15 Target","SKM_M15ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M16 Skill ID","SKM_M16ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M16 Target","SKM_M16ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M17 Skill ID","SKM_M17ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M17 Target","SKM_M17ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M18 Skill ID","SKM_M18ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M18 Target","SKM_M18ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M19 Skill ID","SKM_M19ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M19 Target","SKM_M19ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro")
+	
+	GUI_NewField(SkillMgr.editwindow.name,"M20 Skill ID","SKM_M20ACTIONID","Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,"M20 Target","SKM_M20ACTIONTARGET","Macro","Target,Player")
+	GUI_NewField(SkillMgr.editwindow.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro")
 	
 	--GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
@@ -665,7 +831,78 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     end
 end
 
+SkillMgr.receivedMacro = {}
+SkillMgr.macroVars = {}
+function SkillMgr.ParseMacro(data)
+	SkillMgr.receivedMacro = {}
+	
+	if (ValidTable(data)) then
+		local itype,iparams = nil,nil
+		for i,instruction in pairsByKeys(data) do
+			itype,iparams = instruction[1],instruction[2]
+			if (itype == "Wait") then
+				local length = tonumber(iparams[1]) or 150
+				table.insert(SkillMgr.receivedMacro, 
+					function () 
+						SkillMgr.AddThrottleTime(length)
+						return true						
+					end
+				)
+			elseif (itype == "Action") then
+				local actionid = iparams[1] or 0
+				local actiontype = iparams[2] or 0 
+				local targetid = iparams[3] or 0
+				
+				table.insert(SkillMgr.receivedMacro, 
+					function () 
+						local macroVars = SkillMgr.macroVars
+						local action = MGetAction(actionid,actiontype,targetid)
+						if (action) then
+							if (ValidTable(macroVars)) then
+								if (macroVars[1] == true) then
+									if (action.isoncd or Player.castinginfo.castingid == action.id) then
+										return true
+									end
+								end
+							else
+								if (action:Cast(targetid)) then
+									SkillMgr.macroVars[1] = true
+								elseif (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+									return true
+								end
+							end
+							
+						end
+						return false
+					end
+				)				
+			end
+		end
+	end
+end
+
+function SkillMgr.AddThrottleTime(t)
+	SkillMgr.MacroThrottle = Now() + t
+end
+
 function SkillMgr.OnUpdate()
+	if (ValidTable(SkillMgr.receivedMacro)) then
+		--d("Macro table size:"..tostring(TableSize(SkillMgr.receivedMacro)))
+		if (Now() > SkillMgr.MacroThrottle) then
+			ffxivminion.UpdateGlobals()
+			
+			local newInstruction = SkillMgr.receivedMacro[1]
+			if (newInstruction and type(newInstruction) == "function") then
+				local retval = newInstruction()
+				if (retval == true) then
+					table.remove(SkillMgr.receivedMacro,1)
+					SkillMgr.macroVars = {}
+				end
+			end			
+		end
+		return
+	end
+	
 	if (SkillMgr.doLoad == true) then
 		SkillMgr.SkillBook = {}
 		SkillMgr.UpdateProfiles()
@@ -731,7 +968,7 @@ function SkillMgr.OnUpdate()
 				if (SkillMgr.prevSkillID ~= castingskill) then
 					local action = ActionList:Get(castingskill,1)
 					if (action) then
-						d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
+						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
 						SkillMgr.prevSkillTimestamp = Now()
 						if (action.recasttime == 2.5) then
@@ -1387,13 +1624,12 @@ function SkillMgr.AddSkillToProfile(skilltype,skillid)
 	end
 end
 
-
 --+Rebuilds the UI Entries for the Profile-SkillList
 function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-			local clientSkill = GetSkillByID(skill.id,skill.type)
+			local clientSkill = MGetAction(skill.id,skill.type)
 			local skillFound = ValidTable(clientSkill)
 			local skillName = (clientSkill and clientSkill.name) or skill.name
 			local viewString = ""
@@ -1408,6 +1644,35 @@ function SkillMgr.RefreshSkillList()
 			GUI_NewButton(SkillMgr.mainwindow.name, viewString, "SKMEditSkill"..tostring(prio),"ProfileSkills")
 		end
 		GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+		
+		SkillMgr.highestRange = 0
+		SkillMgr.highestRangeSkills = {}
+		
+		for prio,skill in pairs(SkillMgr.SkillProfile) do
+			if (skill.used == "1" and skill.stype == "Action") then
+				local levelmin = tonumber(skill.levelmin) or 0
+				local levelmax = tonumber(skill.levelmax) or 0
+				local mylevel = Player.level
+				
+				if ((levelmin == 0 or (levelmin > 0 and levelmin <= mylevel)) and
+					(levelmax == 0 or (levelmax > 0 and levelmax >= mylevel)))
+				then
+					local skilldata = ActionList:Get(tonumber(skill.id))
+					if (skilldata) then
+						--d("do nothing")
+						if (skilldata.range > 0) then
+							if (skilldata.range > SkillMgr.highestRange) then
+								SkillMgr.highestRange = skilldata.range
+								SkillMgr.highestRangeSkills = {}
+								table.insert(SkillMgr.highestRangeSkills,tonumber(skill.id))
+							elseif (skilldata.range == SkillMgr.highestRange) then
+								table.insert(SkillMgr.highestRangeSkills,tonumber(skill.id))
+							end							
+						end						
+					end
+				end
+			end
+		end
     end
 end
 
@@ -1775,10 +2040,10 @@ function SkillMgr.GetTankedTarget( range )
 end
 
 function SkillMgr.Cast( entity , preCombat, forceStop )
-	preCombat = preCombat or false
-	forceStop = forceStop or false
+	preCombat = IsNull(preCombat,false)
+	forceStop = IsNull(forceStop,false)
 	
-	if (not entity or IsFlying()) then
+	if (not entity or IsFlying() or ValidTable(SkillMgr.receivedMacro)) then
 		return false
 	end
 				
@@ -1803,8 +2068,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	end	
 	
 	--This call is here to refresh the action list in case new skills are equipped.
-	local al = ActionList("type=1")
-	
 	if (SkillMgr.SkillProfile) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			
@@ -1833,31 +2096,86 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									tpos = newpos
 								end
 							end
-							local attempt = 1
-							while (s.isready and attempt <= 3) do
-								s:Cast(tpos.x, tpos.y, tpos.z)
-								s = ActionList:Get(skill.id,11)
-								attempt = attempt + 1
-							end	
+							
+							if (s:Cast(tpos.x, tpos.y, tpos.z)) then
+								if (SkillMgr.SkillProfile[prio]) then
+									SkillMgr.SkillProfile[prio].lastcast = Now()
+								else
+									d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+								end
+							end
+							
+							--local attempt = 1
+							--while (s.isready and attempt <= 3) do
+								--s:Cast(tpos.x, tpos.y, tpos.z)
+								--s = ActionList:Get(skill.id,11)
+								--attempt = attempt + 1
+							--end	
 						end
 					else
 						local s = ActionList:Get(skill.id,11)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
+						if (s:Cast(TID)) then
+							if (SkillMgr.SkillProfile[prio]) then
+								SkillMgr.SkillProfile[prio].lastcast = Now()
+							else
+								d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+							end
+						end
 						
-						local attempt = 1
-						while (s.isready and attempt <= 3) do
-							SkillMgr.DebugOutput(prio, "Attempting cast for pet skill, attempt #:"..tostring(attempt))
+						--local attempt = 1
+						--while (s.isready and attempt <= 3) do
+							--SkillMgr.DebugOutput(prio, "Attempting cast for pet skill, attempt #:"..tostring(attempt))
 							
-							ActionList:Cast(skill.id,TID,11)
-							s = ActionList:Get(skill.id,11)
-							attempt = attempt + 1
-						end		
-						if (SkillMgr.SkillProfile[prio]) then
-							SkillMgr.SkillProfile[prio].lastcast = Now()
+							--ActionList:Cast(skill.id,TID,11)
+							--s = ActionList:Get(skill.id,11)
+							--attempt = attempt + 1
+						--end		
+						
+					end
+				elseif (skill.stype == "Macro") then
+					local macro = {}
+					
+					for i=1,20 do
+						local mid = skill["m"..tostring(i).."actionid"]
+						if (tonumber(mid) and tonumber(mid) ~= 0) then
+							local mtargetid = 0
+							local mtargetfunc = skill["m"..tostring(i).."actiontarget"]
+							if (mtargetfunc == "Player") then
+								mtargetid = Player.id
+							else
+								if (Player:GetTarget()) then
+									mtargetid = Player:GetTarget().id
+								else
+									mtargetid = Player.id
+								end
+							end
+							
+							local instruction = { "Action", {mid, 1, mtargetid }}
+							local mwait = tonumber(skill["m"..tostring(i).."actionwait"]) or 100
+							local waitInstruction = { "Wait", { mwait }}
+							table.insert(macro,instruction)
+							table.insert(macro,waitInstruction)
 						else
-							d("An error occurred setting last cast.  Priority " .. prio .. " seems to be missing.")
+							break
 						end
 					end
+					--[[
+						
+						SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
+SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
+SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
+					
+						{"Action", {2263, 1, Player.id}},
+						{"Wait", { 100 }},
+						{"Action", {2261, 1, Player.id}},
+						{"Wait", { 100 }},
+						{"Action", {2259, 1, Player.id}},
+						{"Wait", { 100 }},
+						{"Action", {2260, 1, Player.id}},
+					--]]
+						
+					SkillMgr.ParseMacro(macro)
 				else
 					if (skill.trg == "Ground Target") then
 						local action = ActionList:Get(skill.id)
@@ -2213,9 +2531,6 @@ function SkillMgr.Craft()
 end
 
 function SkillMgr.Gather(item)
-	-- This is required to refresh the available action list abilities.
-	local al = ActionList("type=1")
-	
     local node = ml_global_information.Player_Target
     if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
         
@@ -2230,6 +2545,10 @@ function SkillMgr.Gather(item)
 						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then 
 							castable = false
 						end
+					end
+					
+					if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
+						castable = false
 					end
 					
 					if ((tonumber(skill.gpmin) > 0 and Player.gp.current > tonumber(skill.gpmin)) or
@@ -2460,7 +2779,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Party" ) then
 		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-			local newtarget = PartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
+			local newtarget = MPartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -2468,7 +2787,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff == "1") then
-			local newtarget = PartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -2478,9 +2797,9 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		else
 			local ally = nil
 			if ( skill.npc == "1" ) then
-				ally = GetBestPartyHealTarget( true, maxrange )
+				ally = MGetBestPartyHealTarget( true, maxrange )
 			else
-				ally = GetBestPartyHealTarget( false, maxrange )
+				ally = MGetBestPartyHealTarget( false, maxrange )
 			end
 			
 			if ( ally ) then
@@ -2492,7 +2811,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "PartyS" ) then
 		if (not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
-			local newtarget = PartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
+			local newtarget = MPartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -2500,7 +2819,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 				return nil
 			end
 		elseif (skill.ptkbuff == "1") then
-			local newtarget = PartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
 				TID = newtarget.id
@@ -2517,7 +2836,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			end
 		end
 	elseif ( skill.trg == "Tank" ) then
-		local ally = GetBestTankHealTarget( maxrange )
+		local ally = MGetBestTankHealTarget( maxrange )
 		if ( ally and ally.id ~= PID) then
 			target = ally
 			TID = ally.id
@@ -2527,9 +2846,9 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	elseif ( skill.trg == "Ally" ) then
 		local ally = nil
 		if ( skill.npc == "1" ) then
-			ally = GetBestHealTarget( true, maxrange )
+			ally = MGetBestHealTarget( true, maxrange )
 		else
-			ally = GetBestHealTarget( false, maxrange )
+			ally = MGetBestHealTarget( false, maxrange )
 		end
 		
 		if ( ally and ally.id ~= PID) then
@@ -2542,6 +2861,9 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			ally = GetBestRevive( true, skill.trgtype )
 		else
 			ally = GetBestRevive( false, skill.trgtype )
+			if (ally) then
+				d("Dead ally: ["..tostring(ally.name).."].")
+			end
 		end 
 		
 		if ( ally and ally.id ~= PID ) then
@@ -2608,13 +2930,263 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		
 		local healTargets = {}
 		healTargets["Self"] = Player
-		healTargets["Tank"] = GetBestTankHealTarget( maxrange )
+		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
 		if ( skill.npc == "1" ) then
-			healTargets["Party"] = GetBestPartyHealTarget( true, maxrange )
-			healTargets["Any"] = GetBestHealTarget( true, maxrange, requiredHP )
+			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
+			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
 		else
-			healTargets["Party"] = GetBestPartyHealTarget( false, maxrange )
-			healTargets["Any"] = GetBestHealTarget( false, maxrange, requiredHP ) 
+			healTargets["Party"] = MGetBestPartyHealTarget( false, maxrange )
+			healTargets["Any"] = MGetBestHealTarget( false, maxrange, requiredHP ) 
+		end
+		
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Tank] Contains : "..(healTargets["Tank"] and healTargets["Tank"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Party] Contains : "..(healTargets["Party"] and healTargets["Party"].name or "nil")..".")
+		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Any] Contains : "..(healTargets["Any"] and healTargets["Any"].name or "nil")..".")
+		
+		local ally = nil
+		for i,trgstring in ipairs(priorities) do
+			if (healTargets[trgstring]) then
+				local htarget = healTargets[trgstring]
+				if (tonumber(skill.hpriohp) > htarget.hp.percent) then
+					ally = htarget
+				end
+			end
+			if (ally) then
+				break
+			end
+		end
+		
+		if ( ally ) then
+			SkillMgr.DebugOutput( skill.prio, "Heal Priority: Target Selection : "..ally.name)
+			target = ally
+			TID = ally.id
+		else
+			SkillMgr.DebugOutput( skill.prio, "Heal Priority: Target Selection : nil")
+			return nil
+		end
+	end
+	
+	if (ValidTable(target) and TID ~= 0) then
+		targetTable.target = target
+		targetTable.TID = TID
+		return targetTable
+	end
+	
+	return nil
+end
+
+-- Need to return a table containing the target, the cast TID, and the buffs table for the target.
+function SkillMgr.GetMacroTarget(skill, entity, maxrange)
+	if (not skill or not entity) then
+		return nil
+	end
+	
+	local PID = Player.id
+	local pet = Player.pet
+	local target = entity
+	local TID = entity.id
+	local maxrange = tonumber(maxrange) or 0
+	
+	local targetTable = {}
+	
+	local skillid = tonumber(skill.id) or 0
+	if (skillid == 0) then
+		d("There is a problem with the skill ID for : "..tostring(skill.name))
+		return nil
+	end
+	
+	if (skill.trg == "Target") then
+		if (target.id == Player.id) then
+			return nil
+		end
+	elseif ( skill.trg == "Tankable Target") then
+		local newtarget = SkillMgr.GetTankableTarget(maxrange)
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Tanked Target") then
+		local newtarget = SkillMgr.GetTankedTarget(maxrange)
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Pet" ) then
+		if ( pet ) then
+			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
+				return nil 
+			else
+				target = pet
+				TID = pet.id
+			end
+		else
+			TID = PID
+		end
+	elseif ( skill.trg == "Party" ) then
+		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
+			local newtarget = MPartyMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
+			if (newtarget) then
+				target = newtarget
+				TID = newtarget.id
+			 else
+				return nil
+			end
+		elseif (skill.ptkbuff == "1") then
+			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			if (newtarget) then
+				target = newtarget
+				TID = newtarget.id
+			 else
+				return nil
+			end
+		else
+			local ally = nil
+			if ( skill.npc == "1" ) then
+				ally = MGetBestPartyHealTarget( true, maxrange )
+			else
+				ally = MGetBestPartyHealTarget( false, maxrange )
+			end
+			
+			if ( ally ) then
+				target = ally
+				TID = ally.id
+			else
+				return nil
+			end
+		end
+	elseif ( skill.trg == "PartyS" ) then
+		if (not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
+			local newtarget = MPartySMemberWithBuff(skill.ptbuff, skill.ptnbuff, maxrange)
+			if (newtarget) then
+				target = newtarget
+				TID = newtarget.id
+			else
+				return nil
+			end
+		elseif (skill.ptkbuff == "1") then
+			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
+			if (newtarget) then
+				target = newtarget
+				TID = newtarget.id
+			else
+				return nil
+			end
+		else
+			local ally = GetLowestHPParty( skill )
+			if ( ally ) then
+				target = ally
+				TID = ally.id
+			else
+				return nil
+			end
+		end
+	elseif ( skill.trg == "Tank" ) then
+		local ally = MGetBestTankHealTarget( maxrange )
+		if ( ally and ally.id ~= PID) then
+			target = ally
+			TID = ally.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Ally" ) then
+		local ally = nil
+		if ( skill.npc == "1" ) then
+			ally = MGetBestHealTarget( true, maxrange )
+		else
+			ally = MGetBestHealTarget( false, maxrange )
+		end
+		
+		if ( ally and ally.id ~= PID) then
+			target = ally
+			TID = ally.id
+		end	
+	elseif ( skill.trg == "Dead Party" or skill.trg == "Dead Ally") then
+		local ally = nil
+		if (skill.trg == "Dead Party") then
+			ally = GetBestRevive( true, skill.trgtype )
+		else
+			ally = GetBestRevive( false, skill.trgtype )
+			if (ally) then
+				d("Dead ally: ["..tostring(ally.name).."].")
+			end
+		end 
+		
+		if ( ally and ally.id ~= PID ) then
+			if SkillMgr.IsReviveSkill(skillid) then
+				target = ally
+				TID = ally.id
+			else
+				TID = PID
+			end
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Casting Target" ) then
+		local ci = entity.castinginfo
+		if ( ci ) then
+			target = EntityList:Get(ci.channeltargetid)
+			TID = ci.channeltargetid
+		else
+			return nil
+		end
+	elseif ( skill.trg == "SMN DoT" ) then
+		local newtarget = GetBestDoTTarget()
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "SMN Bane" ) then
+		local newtarget = GetBestBaneTarget()
+		if (newtarget) then
+			target = newtarget
+			TID = newtarget.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Player" ) then
+		TID = PID
+	elseif ( skill.trg == "Low TP" ) then
+		local ally = GetLowestTPParty( maxrange, skill.trgtype )
+		if ( ally ) then
+			target = ally
+			TID = ally.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Low MP" ) then
+		local ally = GetLowestMPParty( maxrange, skill.trgtype )
+		if ( ally ) then
+			target = ally
+			TID = ally.id
+		else
+			return nil
+		end
+	elseif ( skill.trg == "Heal Priority" and tonumber(skill.hpriohp) > 0 ) then
+		local priorities = {
+			[1] = skill.hprio1,
+			[2] = skill.hprio2,
+			[3] = skill.hprio3,
+			[4] = skill.hprio4,
+		}
+		
+		local requiredHP = tonumber(skill.hpriohp)
+		
+		local healTargets = {}
+		healTargets["Self"] = Player
+		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
+		if ( skill.npc == "1" ) then
+			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
+			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
+		else
+			healTargets["Party"] = MGetBestPartyHealTarget( false, maxrange )
+			healTargets["Any"] = MGetBestHealTarget( false, maxrange, requiredHP ) 
 		end
 		
 		SkillMgr.DebugOutput( skill.prio, "Heal Priority: [Self] Contains : "..(healTargets["Self"] and healTargets["Self"].name or "nil")..".")
@@ -2684,9 +3256,13 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
-		realskilldata = ActionList:Get(skillid,11) 
-	else 
-		realskilldata = ActionList:Get(skillid,1) 
+		--realskilldata = ActionList:Get(skillid,11) 
+		--realskilldata = MGetAction(skillid,11)
+		realskilldata = MGetActionFromList(skillid,11)
+	else
+		--realskilldata = ActionList:Get(skillid,1) 
+		--realskilldata = MGetAction(skillid,1)
+		realskilldata = MGetActionFromList(skillid,1)
 	end
 	if (not realskilldata) then
 		return 0
@@ -2745,9 +3321,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	--Secondary Get() with proper target ID.
 	if (skill.stype == "Pet") then 
-		realskilldata = ActionList:Get(skillid,11)
+		--realskilldata = ActionList:Get(skillid,11)
+		realskilldata = MGetAction(skillid,11)
 	else 
-		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
+		--realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
+		realskilldata = MGetAction(skillid,1,targetTable.TID)
 	end
 	
 	SkillMgr.CurrentSkill = skill
@@ -3005,6 +3583,8 @@ function SkillMgr.AddDefaultConditions()
 			return false
 		elseif (not realskilldata.isready and IsMudraSkill(skill.id) and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
 			return false
+		elseif (IsNinjutsuSkill(skill.id) and not realskilldata.isoncd and skill.stype == "Macro") then
+			return false
 		elseif ((skill.trg == "Ground Target" or skill.type == 11) and realskilldata.isready) then
 			return false
 		end
@@ -3021,7 +3601,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		local ppos = shallowcopy(Player.pos)
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
+		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
 		if (skill.trg == "Target") then
 			if ( not IsRanged(Player.job) and realskilldata.range >= 15 and realskilldata.recasttime == 2.5 and dist <= (target.hitradius + 4)) then
 				return true
@@ -3040,7 +3620,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		local ppos = ml_global_information.Player_Position
-		local dist = Distance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
+		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
 		local minRange = tonumber(skill.minRange)
 		local maxRange = tonumber(skill.maxRange)
 		if (minRange > 0 and dist < minRange) then 
@@ -3071,7 +3651,7 @@ function SkillMgr.AddDefaultConditions()
 				end	
 				local myPos = Player.pos
 				local tPos = target.pos
-				local dist = Distance3D(myPos.x,myPos.y,myPos.z,tPos.x,tPos.y,tPos.z)
+				local dist = PDistance3D(myPos.x,myPos.y,myPos.z,tPos.x,tPos.y,tPos.z)
 				if (not target.los or (dist - target.hitradius) > (realskilldata.range * .95)) then
 					return true
 				end
