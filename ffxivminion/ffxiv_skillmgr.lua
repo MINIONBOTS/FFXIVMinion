@@ -3405,12 +3405,12 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
 		--realskilldata = ActionList:Get(skillid,11) 
-		--realskilldata = MGetAction(skillid,11)
-		realskilldata = MGetActionFromList(skillid,11)
+		realskilldata = MGetAction(skillid,11)
+		--realskilldata = MGetActionFromList(skillid,11)
 	else
 		--realskilldata = ActionList:Get(skillid,1) 
-		--realskilldata = MGetAction(skillid,1)
-		realskilldata = MGetActionFromList(skillid,1)
+		realskilldata = MGetAction(skillid,1)
+		--realskilldata = MGetActionFromList(skillid,1)
 	end
 	if (not realskilldata) then
 		return 0
@@ -3470,11 +3470,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	--Secondary Get() with proper target ID.
 	if (skill.stype == "Pet") then 
-		--realskilldata = ActionList:Get(skillid,11)
-		realskilldata = MGetAction(skillid,11)
+		realskilldata = ActionList:Get(skillid,11)
+		--realskilldata = MGetAction(skillid,11)
 	else 
-		--realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
-		realskilldata = MGetAction(skillid,1,targetTable.TID)
+		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
+		--realskilldata = MGetAction(skillid,1,targetTable.TID)
 	end
 	
 	SkillMgr.CurrentSkill = skill
@@ -3725,6 +3725,8 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		
+		SkillMgr.DebugOutput(skill.prio, "isready2:"..tostring(realskilldata.isready2)..",isfacing:"..tostring(realskilldata.isfacing))
 		
 		if ((realskilldata.isready2) and (gAssistUseAutoFace == "1" or realskilldata.isfacing)) then
 			return false
