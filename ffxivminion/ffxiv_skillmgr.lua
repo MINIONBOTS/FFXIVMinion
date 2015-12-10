@@ -2693,8 +2693,10 @@ function SkillMgr.Gather(item)
 						end
 					end
 					
-					if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
-						castable = false
+					if (ValidTable(item)) then
+						if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
+							castable = false
+						end
 					end
 					
 					if ((tonumber(skill.gpmin) > 0 and Player.gp.current > tonumber(skill.gpmin)) or
