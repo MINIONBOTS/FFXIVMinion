@@ -252,7 +252,7 @@ function ffxiv_window:AddButton(display, strEvent, fnEvent, group)
 		self.elements[display] = true
 		
 		if (fnEvent and type(fnEvent) == "function") then
-			window:AddEvent(strEvent, fnEvent)
+			self:AddEvent(strEvent, fnEvent)
 		end
 		
 		self:UpdateWidth("button",string.len(display))
@@ -261,6 +261,8 @@ function ffxiv_window:AddButton(display, strEvent, fnEvent, group)
 			window:Hide()
 			window:SetSize(self.width,self.height)
 			window:Show()
+		else
+			window:SetSize(self.width,self.height)
 		end
 	end
 end
@@ -390,10 +392,13 @@ end
 function ffxiv_window_manager:Show(strName)
 	local windows = self.windows
 	if (windows) then
-		for name,window in pairs(windows) do
+		for name,managedwindow in pairs(windows) do
 			if (name == strName) then
-				window:SetSize(self.width,self.height)
-				window:Show()
+				local window = managedwindow.window
+				if (window) then
+					window:SetSize(self.width,self.height)
+					window:Show()
+				end
 			end
 		end
 	end

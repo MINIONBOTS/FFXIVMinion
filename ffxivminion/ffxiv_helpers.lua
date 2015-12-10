@@ -1933,7 +1933,7 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
-function PDistance3DT(pos1,pos2)
+function Distance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
 	
@@ -2343,7 +2343,7 @@ function GetPathDistance(pos1,pos2)
 	end	
 	
 	if (dist == nil) then
-		dist = PDistance3DT(pos1,pos2)
+		dist = Distance3DT(pos1,pos2)
 	end
 	
 	return dist
@@ -2499,10 +2499,10 @@ function PathDistanceTable(gotoPos)
 			if ( pdist ~= nil ) then
 				dist = pdist
 			else
-				dist = PDistance3DT(gotoPos,ppos)
+				dist = Distance3DT(gotoPos,ppos)
 			end
 		else
-			dist = PDistance3DT(gotoPos,ppos)
+			dist = Distance3DT(gotoPos,ppos)
 		end	
 		--]]
 	end
@@ -2605,17 +2605,17 @@ function InCombatRange(targetid)
 		return false
 	end
 	
-	local target = {}
+	local target;
 	--Quick change here to allow passing of a target or just the ID.
 	if (type(targetid) == "table") then
 		local id = targetid.id
-		target = EntityList:Get(id)
-		if (TableSize(target) == 0) then
+		target = MGetEntity(id)
+		if (not target or not ValidTable(target)) then
 			return false
 		end
 	else
-		target = EntityList:Get(targetid)
-		if (TableSize(target) == 0) then
+		target = MGetEntity(targetid)
+		if (not target or not ValidTable(target)) then
 			return false
 		end
 	end
@@ -2664,12 +2664,18 @@ function InCombatRange(targetid)
 	elseif (highestRange < 3) then
 		highestRange = 3
 	end
+	
+	local rootTaskName = ""
+	local rootTask = ml_task_hub:RootTask()
+	if (rootTask) then
+		rootTaskName = rootTask.name
+	end
 
 	--d("attackRange:"..tostring(ml_global_information.AttackRange))
 	if ( ml_global_information.AttackRange < 5 ) then
 		if (skillID ~= nil) then
 			if (highestRange > 5) then
-				if ((target.targetid == 0 or target.targetid == nil) and ml_task_hub:RootTask().name ~= "LT_PVP") then
+				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
 					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
 						if SkillMgr.Cast( target ) then
 							local pos = target.pos

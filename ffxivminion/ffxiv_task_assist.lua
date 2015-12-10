@@ -130,7 +130,7 @@ end
 function ffxiv_task_assist:Process()
 
 	if (Player.alive) then
-		local target = ml_global_information.Player_Target
+		local target = Player:GetTarget()
 		
 		if ( gAssistMode ~= GetString("none") ) then
 			local newTarget = nil
@@ -212,6 +212,8 @@ function ffxiv_task_assist:Process()
 				end
 				
 				if (SkillMgr.Cast( target )) then
+					casted = true
+				elseif (InCombatRange(target.id) and target.attackable and target.alive) then
 					casted = true
 				end
 			end

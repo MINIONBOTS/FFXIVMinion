@@ -235,7 +235,7 @@ function PDistance3D(x1,y1,z1,x2,y2,z2)
 	y2 = round(y2, 1)
 	z2 = round(z2, 1)
 	
-	local memString = "PDistance3D;" .. x1 ..";".. y1 ..";".. z1 ..";".. x2 ..";" .. y2 ..";".. z2
+	local memString = "PDistance3D;" .. x1 .. ";" .. y1 .. ";" .. z1 .. ";" .. x2 .. ";" .. y2 .. ";" .. z2
 	local memoized = GetPermaMemoized(memString)
 	if (memoized) then
 		return memoized

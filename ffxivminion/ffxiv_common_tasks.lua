@@ -665,7 +665,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 	else
 		local epos = self.pos
-		local dist = PDistance3DT(ppos,epos)
+		local dist = Distance3DT(ppos,epos)
 		if (dist <= 10) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
 			if (not ValidTable(interacts)) then
@@ -702,16 +702,16 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	else
 		return false
 	end
-	
-	if (IsFlying()) then
-		if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
-			local requiresDismount = false
-			if (interactable and interactable.distance < self.dismountDistance) then
-				Dismount()
-			end
-			self.lastDismountCheck = Now()
+
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
+		local requiresDismount = false
+		if (interactable and interactable.distance < self.dismountDistance) then
+			Dismount()
 		end
+		self.lastDismountCheck = Now()
+	end
 		
+	if (not IsFlying()) then
 		if (not myTarget) then
 			if (interactable and interactable.targetable and interactable.distance < 10) then
 				Player:SetTarget(interactable.id)
