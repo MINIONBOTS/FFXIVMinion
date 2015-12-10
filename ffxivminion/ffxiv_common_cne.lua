@@ -1403,9 +1403,9 @@ function e_mount:execute()
 		return
 	end
 	
-	if (IsMounting()) then
+	if (IsMounting() or UsingBattleItem()) then
 		--d("Adding a wait.")
-		ml_task_hub:CurrentTask():SetDelay(1500)
+		ml_task_hub:CurrentTask():SetDelay(2000)
 		return
 	end
 	
