@@ -401,11 +401,6 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gAssistPriority" or
 				k == "gStartCombat" or
 				k == "gConfirmDuty" or
-				k == "gAssistFilter1" or
-				k == "gAssistFilter2" or 
-				k == "gAssistFilter3" or
-				k == "gAssistFilter4" or 
-				k == "gAssistFilter5" or
 				k == "gAssistTrackTarget") 
 		then
 			SafeSetVar(tostring(k),v)

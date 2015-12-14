@@ -971,7 +971,12 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
         if (k == "gSMactive" or
 			k == "gSkillManagerQueueing" or 
 			k == "gSkillManagerDebug" or
-			k == "gSkillManagerDebugPriorities") 
+			k == "gSkillManagerDebugPriorities" or
+			k == "gAssistFilter1" or
+			k == "gAssistFilter2" or 
+			k == "gAssistFilter3" or
+			k == "gAssistFilter4" or 
+			k == "gAssistFilter5") 
 		then			
             SafeSetVar(tostring(k),v)	
 		elseif ( k == "gSMprofile" ) then
@@ -1632,6 +1637,7 @@ function SkillMgr.SaveProfile()
 		
 		SkillMgr.WriteToFile(filename)
     end
+	SkillMgr.RefreshFilterWindow()
 end
 
 function SkillMgr.SetDefaultProfile(strName)
@@ -2076,6 +2082,13 @@ function SkillMgr.RefreshFilterWindow()
 	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter3).."]","gAssistFilter3",group)
 	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter4).."]","gAssistFilter4",group)
 	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter5).."]","gAssistFilter5",group)
+	
+	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
+	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
+	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
+	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
+	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
+	
 	GUI_UnFoldGroup(SkillMgr.filterwindow.name,group)
 	
 	GUI_SizeWindow(SkillMgr.filterwindow.name, SkillMgr.filterwindow.w, SkillMgr.filterwindow.h)
