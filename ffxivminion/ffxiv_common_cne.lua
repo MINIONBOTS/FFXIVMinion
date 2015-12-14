@@ -2530,7 +2530,9 @@ c_inventoryfull = inheritsFrom( ml_cause )
 e_inventoryfull = inheritsFrom( ml_effect )
 function c_inventoryfull:evaluate()
 	if (IsInventoryFull()) then
-		return true
+		if (not IsFighter(Player.job)) then
+			return true
+		end
 	end
 	
     return false
