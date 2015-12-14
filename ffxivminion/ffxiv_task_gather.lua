@@ -2045,12 +2045,7 @@ function c_gathernexttask:evaluate()
 				end
 			end
 		end
-		
-		if (invalid) then	
-			ffxiv_task_gather.currentTask = {}
-			ffxiv_task_gather.currentTaskIndex = 0
-		end
-		
+
 		if (evaluate or invalid) then
 			local profileData = ffxiv_task_gather.profileData
 			if (ValidTable(profileData.tasks)) then
