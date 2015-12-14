@@ -51,10 +51,6 @@ end
 c_gotomaptest = inheritsFrom( ml_cause )
 e_gotomaptest = inheritsFrom( ml_effect )
 function c_gotomaptest:evaluate()
-	if (gTestUseFlight == "1") then
-		return false
-	end
-	
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid ~= mapID) then
 		if (CanAccessMap(mapID)) then
@@ -81,10 +77,6 @@ c_gotopostest = inheritsFrom( ml_cause )
 e_gotopostest = inheritsFrom( ml_effect )
 e_gotopostest.pos = nil
 function c_gotopostest:evaluate()
-	if (gTestUseFlight == "1") then
-		return false
-	end
-	
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID) then
 		local ppos = shallowcopy(Player.pos)
@@ -115,7 +107,7 @@ e_flighttest = inheritsFrom( ml_effect )
 e_flighttest.pos = nil
 e_flighttest.path = nil
 function c_flighttest:evaluate()
-	if (gTestUseFlight == "0") then
+	if (true) then
 		return false
 	end
 	
@@ -1099,12 +1091,27 @@ function ffxiv_task_test.GetPath()
 	pos.z = tonumber(gTestMapZ)
 	
 	local timeS = os.clock()
+	local points = {}
 	local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 	if (ValidTable(path)) then
 		d("Path contains ["..tostring(TableSize(path)).."] points.")
+		local highestKey = 0
+		for k,v in pairsByKeys(path) do
+			d("key:"..tostring(k))
+			d(v)
+			if (k > highestKey) then highestKey = k end
+			table.insert(points,v)
+		end
+		d("Highest key:"..tostring(highestKey))
 	else
 		d("No path returned.")
 	end
+	
+	ffxiv_task_test.RenderPoints(points,1)
+	
+	--local moveto = Player:MoveTo(pos.x,pos.y,pos.z)
+	--d("moveto returned:"..tostring(moveto))
+	
 	local timeF = os.clock()
 	d(timeS)
 	d(timeF)
@@ -1576,8 +1583,8 @@ function ffxiv_task_test.UIInit()
 	GUI_NewField(winName, "X:", "gTestMapX","NavTest")
 	GUI_NewField(winName, "Y:", "gTestMapY","NavTest")
 	GUI_NewField(winName, "Z:", "gTestMapZ","NavTest")
-	GUI_NewCheckbox(winName,"Use Flight","gTestUseFlight","NavTest")
 	GUI_NewButton(winName, "Get Current Position", "ffxiv_navtestGetPosition", "NavTest")
+	GUI_NewButton(winName, "Test Shop Vendor", "ffxiv_task_test.TestShopVendor", "NavTest")
 	GUI_NewButton(winName, "Press Mouse", "ffxiv_task_test.PressMouse", "NavTest")
 	GUI_NewButton(winName, "Face Position", "ffxiv_task_test.FacePosition", "NavTest")
 	GUI_NewButton(winName, "Draw Rectangle", "ffxiv_task_test.DrawRectangle", "NavTest")
@@ -1591,7 +1598,6 @@ function ffxiv_task_test.UIInit()
 	gTestMapX = Settings.FFXIVMINION.gTestMapX
 	gTestMapY = Settings.FFXIVMINION.gTestMapY
 	gTestMapZ = Settings.FFXIVMINION.gTestMapZ
-	gTestUseFlight = Settings.FFXIVMINION.gTestUseFlight
 	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,"FlightMesh")
@@ -1605,7 +1611,6 @@ function ffxiv_task_test.GUIVarUpdate(Event, NewVals, OldVals)
 		if (k == "gTestMapX" or
 			k == "gTestMapY" or
 			k == "gTestMapZ" or 
-			k == "gTestUseFlight" or
 			k == "gTestRecordTolerance" or
 			k == "gTestRecordPattern" or
 			k == "gTestRecordPadding" or
@@ -1795,6 +1800,32 @@ function ffxiv_task_test.GetCurrentPosition()
 	Settings.FFXIVMINION.gTestMapX = gTestMapX
 	Settings.FFXIVMINION.gTestMapY = gTestMapY
 	Settings.FFXIVMINION.gTestMapZ = gTestMapZ
+end
+
+function ffxiv_task_test.TestShopVendor()
+	local vendor = AceLib.API.Items.FindNearestPurchaseLocation(2586)
+	if (vendor) then
+		local mapid = vendor.mapid
+		local pos = vendor.pos
+		
+		gTestMapX = pos.x
+		gTestMapY = pos.y
+		gTestMapZ = pos.z
+		gTestMapID = mapid
+		
+		Settings.FFXIVMINION.gTestMapID = gTestMapID
+		Settings.FFXIVMINION.gTestMapX = gTestMapX
+		Settings.FFXIVMINION.gTestMapY = gTestMapY
+		Settings.FFXIVMINION.gTestMapZ = gTestMapZ
+		
+		local newTask = ffxiv_task_test.Create()
+		ml_task_hub:ClearQueues()
+		ml_task_hub.shouldRun = true
+		gBotRunning = "1"
+		ml_task_hub:Add(newTask, LONG_TERM_GOAL, TP_ASAP)
+	else
+		d("Did not find a vendor for the item.")
+	end
 end
 
 function ffxiv_task_test.FacePosition()

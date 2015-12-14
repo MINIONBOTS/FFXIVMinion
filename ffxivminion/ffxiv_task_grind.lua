@@ -448,6 +448,7 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
 	GUI_NewButton(winName, GetString("setEvacPoint"), "ml_mesh_mgr.SetEvacPoint", group)
+	GUI_NewButton(winName, "Show Filters", "SkillMgr.ShowFilterWindow",group)
 	
 	local group = GetString("settings")
 	GUI_NewCheckbox(winName, GetString("doHuntingLog"),"gGrindDoHuntLog",group)

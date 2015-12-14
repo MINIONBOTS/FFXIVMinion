@@ -1,5 +1,6 @@
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
+ffxiv_task_assist.autoRolled = {}
 
 function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
@@ -22,6 +23,7 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
+	d("Loading task assist Init()")
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	
@@ -48,12 +50,17 @@ function ffxiv_task_assist:Init()
 	
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
     self:add( ke_stance, self.process_elements)
+	
+	local ke_lootRoll = ml_element:create( "Roll", c_assistautoroll, e_assistautoroll, 16 )
+    self:add( ke_lootRoll, self.process_elements)
   
     self:AddTaskCheckCEs()
+	
 	self:InitAddon()
 end
 
 function ffxiv_task_assist:InitAddon()
+	d("Loading task assist init addon.")
 	--nothing
 end
 
@@ -255,21 +262,6 @@ function ffxiv_task_assist.UIInit()
 	if (Settings.FFXIVMINION.gQuestHelpers == nil) then
 		Settings.FFXIVMINION.gQuestHelpers = "0"
 	end
-	if (Settings.FFXIVMINION.gAssistFilter1 == nil) then
-        Settings.FFXIVMINION.gAssistFilter1 = "0"
-    end
-	if (Settings.FFXIVMINION.gAssistFilter2 == nil) then
-		Settings.FFXIVMINION.gAssistFilter2 = "0"
-	end
-	if (Settings.FFXIVMINION.gAssistFilter3 == nil) then
-        Settings.FFXIVMINION.gAssistFilter3 = "0"
-    end
-	if (Settings.FFXIVMINION.gAssistFilter4 == nil) then
-		Settings.FFXIVMINION.gAssistFilter4 = "0"
-	end
-	if (Settings.FFXIVMINION.gAssistFilter5 == nil) then
-        Settings.FFXIVMINION.gAssistFilter5 = "0"
-    end
 	if (Settings.FFXIVMINION.gAssistUseAutoFace == nil) then
         Settings.FFXIVMINION.gAssistUseAutoFace = "0"
     end
@@ -277,7 +269,6 @@ function ffxiv_task_assist.UIInit()
 	local winName = GetString("assistMode")
 	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
 	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, "Teleport Nearest Current (HACK)", "ffxiv_task_assist.TeleportAetherCurrent")
 	
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
@@ -286,15 +277,14 @@ function ffxiv_task_assist.UIInit()
 	GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewCheckbox(winName,"Follow Target","gAssistFollowTarget",group)
 	GUI_NewCheckbox(winName,"Track Target","gAssistTrackTarget",group)
+	GUI_NewButton(winName, "Show Filters", "SkillMgr.ShowFilterWindow",group)
 	
-	local group = "Filters"
-	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
-	GUI_NewCheckbox(winName,GetString("filter2"),"gAssistFilter2",group)
-	GUI_NewCheckbox(winName,GetString("filter3"),"gAssistFilter3",group)
-	GUI_NewCheckbox(winName,GetString("filter4"),"gAssistFilter4",group)
-	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)
+	--group = "AutoRoll"
+	--GUI_NewComboBox(winName,"i210","gAssistRoll210",group,"Need,Greed,Pass,Disabled")
+	--GUI_NewComboBox(winName,"i180","gAssistRoll180",group,"Need,Greed,Pass,Disabled")
+	--GUI_NewComboBox(winName,"i150","gAssistRoll150",group,"Need,Greed,Pass,Disabled")
     
-	local group = GetString("settings")
+	group = GetString("settings")
     GUI_NewComboBox(winName,GetString("assistMode"),"gAssistMode", group,GetStringList("none,lowestHealth,nearest,tankAssist",","))
     GUI_NewComboBox(winName,GetString("assistPriority"),"gAssistPriority",group,GetStringList("dps,healer",","))
 	GUI_NewCheckbox(winName,"Use Autoface","gAssistUseAutoFace",group)
@@ -311,31 +301,9 @@ function ffxiv_task_assist.UIInit()
 	gStartCombat = Settings.FFXIVMINION.gStartCombat
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
-	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
-	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
-	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
-	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
-	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
 	gAssistUseAutoFace = Settings.FFXIVMINION.gAssistUseAutoFace
 	
 	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
-end
-
-function ffxiv_task_assist.TeleportAetherCurrent()
-	local el = EntityList("type=7,targetable")
-	if (ValidTable(el)) then
-		for i,entity in pairs(el) do
-			if (entity.name == "Aether Current") then
-				local coord = entity.pos
-				GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
-				Player:SetFacingSynced(coord.x,coord.y,coord.z)
-				return true
-			end
-		end
-	end
-	
-	d("Found no nearby currents")
-	return false
 end
 
 c_assistyesno = inheritsFrom( ml_cause )
@@ -355,8 +323,77 @@ function e_assistyesno:execute()
 	PressYesNo(true)
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
-_G["c_questyesno"] = c_questyesno
-_G["e_questyesno"] = e_questyesno
+
+--[[
+c_assistautoroll = inheritsFrom( ml_cause )
+e_assistautoroll = inheritsFrom( ml_effect )
+c_assistautoroll.timer = 0
+function c_assistautoroll:evaluate()
+	if (not Inventory:HasLoot()) then
+		return false	
+	end
+	
+	if (Now() < c_assistautoroll.timer) then
+		return false
+	end
+	
+	local loot = Inventory:GetLootList()
+	if (ValidTable(loot)) then
+		for i,e in pairs(loot) do
+			local item
+		end
+		return true
+	end
+	
+    return false
+end
+function e_assistautoroll:execute()
+	local loot = Inventory:GetLootList()
+	if (loot) then
+		if (Inventory:OpenNeedGreed()) then
+			local rollList = ml_task_hub:CurrentTask().rolledItems
+			local startState = ml_task_hub:CurrentTask().startingState
+			
+			for i,e in pairs(loot) do
+				if (rollList[e.id] == nil) then
+					if (startState == "Need") then
+						rollList[e.id] = { ["need"] = 0, ["greed"] = 0, ["pass"] = 0, ["item"] = e }
+					elseif (startState == "Greed") then
+						rollList[e.id] = { ["need"] = 1, ["greed"] = 0, ["pass"] = 0, ["item"] = e  }
+					elseif (startState == "Pass") then
+						rollList[e.id] = { ["need"] = 1, ["greed"] = 1, ["pass"] = 0, ["item"] = e }
+					end
+				end
+			end
+			
+			for i,e in pairs(rollList) do
+				if (e.need == 0) then
+					d("Attempting to need on item ["..e.item.name.."].")
+					e.item:Need()
+					e.need = 1
+					ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+					return
+				elseif (e.greed == 0) then
+					d("Attempting to greed on item ["..e.item.name.."].")
+					e.item:Greed()
+					e.greed = 1
+					ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+					return
+				elseif (e.pass == 0) then
+					d("Attempting to pass on item ["..e.item.name.."].")
+					e.item:Pass()
+					e.pass = 1
+					ml_task_hub:CurrentTask().latencyTimer = Now() + (150 * ffxiv_task_duty.performanceLevels[gPerformanceLevel])
+					return
+				end					
+			end
+		else
+			ml_task_hub:CurrentTask().latencyTimer = Now() + math.random(1000,1500)
+			return			
+		end		
+	end
+end
+--]]
 
 function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do

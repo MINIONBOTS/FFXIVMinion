@@ -227,7 +227,8 @@ function TP.ModuleInit()
 	GUI_NewButton	(WinName,"Left",	"TPMoveL","Move")
 	GUI_NewButton	(WinName,"Down",	"TPMoveD","Move")
 	GUI_NewButton	(WinName,"Up",		"TPMoveU","Move")
-
+	
+	GUI_NewButton(WinName, "Teleport Nearest Current (HACK)", "TP.TeleportAetherCurrent")
 	GUI_NewButton(TP.WinName,"Refresh","TP.Refresh")
 	GUI_NewButton(TP.WinName,"Edit Waypoint", "TPToggleEdit")
 	GUI_NewButton(TP.WinName,"New Waypoint","TPToggleSave")
@@ -490,10 +491,11 @@ function TP.Port(key)
 	
 	if (ValidTable(coord)) then
 		if (gTeleporterNavType == "Teleport") then
-			d("teleporting in block 1.")
+			d("Using teleport transportation.. buckle up!")
 			GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
 			Player:SetFacingSynced(coord.h)
 		else
+			d("Using walk transportation.")
 			if (Player:IsMoving()) then
 				ml_global_information.Stop()
 				ml_task_hub.shouldRun = false
@@ -523,6 +525,24 @@ function TP.Port(key)
 	end
 end
 --**************************************************************************************************************************************
+
+function TP.TeleportAetherCurrent()
+	local el = EntityList("type=7,targetable")
+	if (ValidTable(el)) then
+		for i,entity in pairs(el) do
+			if (entity.name == "Aether Current") then
+				local coord = entity.pos
+				GameHacks:TeleportToXYZ(coord.x,coord.y,coord.z)
+				Player:SetFacingSynced(coord.x,coord.y,coord.z)
+				return true
+			end
+		end
+	end
+	
+	d("Found no nearby currents")
+	return false
+end
+
 function TP.LoadWaypoints()
 	local mapID = Player.localmapid
 	TP.MapID = mapID
@@ -750,9 +770,42 @@ function TP.HandleButtons( Event, Button )
 			local obj = TP.AutoList[tonumber(id)]
 			outputTable(obj)
 			if (obj and obj.POS) then
-				Player:Stop()
-				GameHacks:TeleportToXYZ(obj.POS.x,obj.POS.y,obj.POS.z)
-				Player:SetFacingSynced(obj.POS.x,obj.POS.y,obj.POS.z)
+				if (gTeleporterNavType == "Teleport") then
+					Player:Stop()
+					GameHacks:TeleportToXYZ(obj.POS.x,obj.POS.y,obj.POS.z)
+					Player:SetFacingSynced(obj.POS.x,obj.POS.y,obj.POS.z)
+				else
+					if (Player:IsMoving()) then
+						ml_global_information.Stop()
+						ml_task_hub.shouldRun = false
+						gBotRunning = "0"
+					else
+						ml_task_hub:ClearQueues()
+						
+						ml_task_hub.shouldRun = true
+						gBotRunning = "1"
+						
+						local newTask = ffxiv_task_movetopos.Create()
+						newTask.remainMounted = true
+						newTask.useTeleport = false
+						newTask.pos = obj.POS
+						local meshPos = NavigationManager:GetClosestPointOnMesh(obj.POS)
+						if (meshPos and dist ~= 0) then
+							newTask.pos = meshPos
+						end
+						
+						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)		
+
+						newTask.task_complete_execute = function ()
+							ml_task_hub.shouldRun = false
+							gBotRunning = "0"
+						end
+						newTask.task_fail_execute = function ()
+							ml_task_hub.shouldRun = false
+							gBotRunning = "0"
+						end
+					end
+				end
 			end
 		elseif (string.sub(Button,1,8) == "TPToggle") then
 			TP.WindowToggle(Button)

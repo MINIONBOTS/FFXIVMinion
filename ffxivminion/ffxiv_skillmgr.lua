@@ -15,6 +15,7 @@ SkillMgr.editwindow_macro = { name = "Skill Editor - Macro", x = 250, y = 50, w 
 SkillMgr.editwindow_crafting = { name = GetString("skillEditor_craft"), x = 250, y = 50, w = 250, h = 550}
 SkillMgr.editwindow_gathering = { name = GetString("skillEditor_gather"), x = 250, y = 50, w = 250, h = 550}
 SkillMgr.confirmwindow = { name = GetString("confirm"), x = 250, y = 50, w = 250, h = 120}
+SkillMgr.filterwindow = { name = "Filter Manager", x = 250, y = 50, w = 250, h = 160}
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.lastQueued = 0
@@ -169,6 +170,14 @@ SkillMgr.Variables = {
 	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting"   },
 	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
 	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting"   },
+	
+	SKM_PMPRGT = { default = 0, cast = "number", profile = "pmprgt", section = "fighting"   },
+	SKM_PMPRLT = { default = 0, cast = "number", profile = "pmprlt", section = "fighting"   },
+	SKM_PMPPRGT = { default = 0, cast = "number", profile = "pmpprgt", section = "fighting"   },
+	SKM_PMPPRLT = { default = 0, cast = "number", profile = "pmpprlt", section = "fighting"   },
+	SKM_PMPRSGT = { default = "", cast = "string", profile = "pmprsgt", section = "fighting"   },
+	SKM_PMPRSLT = { default = "", cast = "string", profile = "pmprslt", section = "fighting"   },
+	
 	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting"  },
 	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"  },
 	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"  },
@@ -254,101 +263,121 @@ SkillMgr.Variables = {
 	SKM_CHAINEND = { default = "0", cast = "string", profile = "chainend", section = "fighting" },
 	
 	-- Macro Vars.
+	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", section = "fighting" },
 	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
 	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
 	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
 	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
 	
+	SKM_M2ACTIONTYPE = { default = "Action", cast = "string", profile = "m2actiontype", section = "fighting" },
 	SKM_M2ACTIONID = { default = 0, cast = "number", profile = "m2actionid", section = "fighting" },
 	SKM_M2ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m2actiontarget", section = "fighting" },
 	SKM_M2ACTIONWAIT = { default = 100, cast = "number", profile = "m2actionwait", section = "fighting" },
 	SKM_M2ACTIONMSG = { default = "", cast = "string", profile = "m2actionmsg", section = "fighting" },
 	
+	SKM_M3ACTIONTYPE = { default = "Action", cast = "string", profile = "m3actiontype", section = "fighting" },
 	SKM_M3ACTIONID = { default = 0, cast = "number", profile = "m3actionid", section = "fighting" },
 	SKM_M3ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m3actiontarget", section = "fighting" },
 	SKM_M3ACTIONWAIT = { default = 100, cast = "number", profile = "m3actionwait", section = "fighting" },
 	SKM_M3ACTIONMSG = { default = "", cast = "string", profile = "m3actionmsg", section = "fighting" },
 	
+	SKM_M4ACTIONTYPE = { default = "Action", cast = "string", profile = "m4actiontype", section = "fighting" },
 	SKM_M4ACTIONID = { default = 0, cast = "number", profile = "m4actionid", section = "fighting" },
 	SKM_M4ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m4actiontarget", section = "fighting" },
 	SKM_M4ACTIONWAIT = { default = 100, cast = "number", profile = "m4actionwait", section = "fighting" },
 	SKM_M4ACTIONMSG = { default = "", cast = "string", profile = "m4actionmsg", section = "fighting" },
 	
+	SKM_M5ACTIONTYPE = { default = "Action", cast = "string", profile = "m5actiontype", section = "fighting" },
 	SKM_M5ACTIONID = { default = 0, cast = "number", profile = "m5actionid", section = "fighting" },
 	SKM_M5ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m5actiontarget", section = "fighting" },
 	SKM_M5ACTIONWAIT = { default = 100, cast = "number", profile = "m5actionwait", section = "fighting" },
 	SKM_M5ACTIONMSG = { default = "", cast = "string", profile = "m5actionmsg", section = "fighting" },
 	
+	SKM_M6ACTIONTYPE = { default = "Action", cast = "string", profile = "m6actiontype", section = "fighting" },
 	SKM_M6ACTIONID = { default = 0, cast = "number", profile = "m6actionid", section = "fighting" },
 	SKM_M6ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m6actiontarget", section = "fighting" },
 	SKM_M6ACTIONWAIT = { default = 100, cast = "number", profile = "m6actionwait", section = "fighting" },
 	SKM_M6ACTIONMSG = { default = "", cast = "string", profile = "m6actionmsg", section = "fighting" },
 	
+	SKM_M7ACTIONTYPE = { default = "Action", cast = "string", profile = "m7actiontype", section = "fighting" },
 	SKM_M7ACTIONID = { default = 0, cast = "number", profile = "m7actionid", section = "fighting" },
 	SKM_M7ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m7actiontarget", section = "fighting" },
 	SKM_M7ACTIONWAIT = { default = 100, cast = "number", profile = "m7actionwait", section = "fighting" },
 	SKM_M7ACTIONMSG = { default = "", cast = "string", profile = "m7actionmsg", section = "fighting" },
 	
+	SKM_M8ACTIONTYPE = { default = "Action", cast = "string", profile = "m8actiontype", section = "fighting" },
 	SKM_M8ACTIONID = { default = 0, cast = "number", profile = "m8actionid", section = "fighting" },
 	SKM_M8ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m8actiontarget", section = "fighting" },
 	SKM_M8ACTIONWAIT = { default = 100, cast = "number", profile = "m8actionwait", section = "fighting" },
 	SKM_M8ACTIONMSG = { default = "", cast = "string", profile = "m8actionmsg", section = "fighting" },
 	
+	SKM_M9ACTIONTYPE = { default = "Action", cast = "string", profile = "m9actiontype", section = "fighting" },
 	SKM_M9ACTIONID = { default = 0, cast = "number", profile = "m9actionid", section = "fighting" },
 	SKM_M9ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m9actiontarget", section = "fighting" },
 	SKM_M9ACTIONWAIT = { default = 100, cast = "number", profile = "m9actionwait", section = "fighting" },
 	SKM_M9ACTIONMSG = { default = "", cast = "string", profile = "m9actionmsg", section = "fighting" },
 	
+	SKM_M10ACTIONTYPE = { default = "Action", cast = "string", profile = "m10actiontype", section = "fighting" },
 	SKM_M10ACTIONID = { default = 0, cast = "number", profile = "m10actionid", section = "fighting" },
 	SKM_M10ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m10actiontarget", section = "fighting" },
 	SKM_M10ACTIONWAIT = { default = 100, cast = "number", profile = "m10actionwait", section = "fighting" },
 	SKM_M10ACTIONMSG = { default = "", cast = "string", profile = "m10actionmsg", section = "fighting" },
 	
+	SKM_M11ACTIONTYPE = { default = "Action", cast = "string", profile = "m11actiontype", section = "fighting" },
 	SKM_M11ACTIONID = { default = 0, cast = "number", profile = "m11actionid", section = "fighting" },
 	SKM_M11ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m11actiontarget", section = "fighting" },
 	SKM_M11ACTIONWAIT = { default = 100, cast = "number", profile = "m11actionwait", section = "fighting" },
 	SKM_M11ACTIONMSG = { default = "", cast = "string", profile = "m11actionmsg", section = "fighting" },
 	
+	SKM_M12ACTIONTYPE = { default = "Action", cast = "string", profile = "m12actiontype", section = "fighting" },
 	SKM_M12ACTIONID = { default = 0, cast = "number", profile = "m12actionid", section = "fighting" },
 	SKM_M12ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m12actiontarget", section = "fighting" },
 	SKM_M12ACTIONWAIT = { default = 100, cast = "number", profile = "m12actionwait", section = "fighting" },
 	SKM_M12ACTIONMSG = { default = "", cast = "string", profile = "m12actionmsg", section = "fighting" },
 	
+	SKM_M13ACTIONTYPE = { default = "Action", cast = "string", profile = "m13actiontype", section = "fighting" },
 	SKM_M13ACTIONID = { default = 0, cast = "number", profile = "m13actionid", section = "fighting" },
 	SKM_M13ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m13actiontarget", section = "fighting" },
 	SKM_M13ACTIONWAIT = { default = 100, cast = "number", profile = "m13actionwait", section = "fighting" },
 	SKM_M13ACTIONMSG = { default = "", cast = "string", profile = "m13actionmsg", section = "fighting" },
 	
+	SKM_M14ACTIONTYPE = { default = "Action", cast = "string", profile = "m14actiontype", section = "fighting" },
 	SKM_M14ACTIONID = { default = 0, cast = "number", profile = "m14actionid", section = "fighting" },
 	SKM_M14ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m14actiontarget", section = "fighting" },
 	SKM_M14ACTIONWAIT = { default = 100, cast = "number", profile = "m14actionwait", section = "fighting" },
 	SKM_M14ACTIONMSG = { default = "", cast = "string", profile = "m14actionmsg", section = "fighting" },
 	
+	SKM_M15ACTIONTYPE = { default = "Action", cast = "string", profile = "m15actiontype", section = "fighting" },
 	SKM_M15ACTIONID = { default = 0, cast = "number", profile = "m15actionid", section = "fighting" },
 	SKM_M15ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m15actiontarget", section = "fighting" },
 	SKM_M15ACTIONWAIT = { default = 100, cast = "number", profile = "m15actionwait", section = "fighting" },
 	SKM_M15ACTIONMSG = { default = "", cast = "string", profile = "m15actionmsg", section = "fighting" },
 	
+	SKM_M16ACTIONTYPE = { default = "Action", cast = "string", profile = "m16actiontype", section = "fighting" },
 	SKM_M16ACTIONID = { default = 0, cast = "number", profile = "m16actionid", section = "fighting" },
 	SKM_M16ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m16actiontarget", section = "fighting" },
 	SKM_M16ACTIONWAIT = { default = 100, cast = "number", profile = "m16actionwait", section = "fighting" },
 	SKM_M16ACTIONMSG = { default = "", cast = "string", profile = "m16actionmsg", section = "fighting" },
 	
+	SKM_M17ACTIONTYPE = { default = "Action", cast = "string", profile = "m17actiontype", section = "fighting" },
 	SKM_M17ACTIONID = { default = 0, cast = "number", profile = "m17actionid", section = "fighting" },
 	SKM_M17ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m17actiontarget", section = "fighting" },
 	SKM_M17ACTIONWAIT = { default = 100, cast = "number", profile = "m17actionwait", section = "fighting" },
 	SKM_M17ACTIONMSG = { default = "", cast = "string", profile = "m17actionmsg", section = "fighting" },
 	
+	SKM_M18ACTIONTYPE = { default = "Action", cast = "string", profile = "m18actiontype", section = "fighting" },
 	SKM_M18ACTIONID = { default = 0, cast = "number", profile = "m18actionid", section = "fighting" },
 	SKM_M18ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m18actiontarget", section = "fighting" },
 	SKM_M18ACTIONWAIT = { default = 100, cast = "number", profile = "m18actionwait", section = "fighting" },
 	SKM_M18ACTIONMSG = { default = "", cast = "string", profile = "m18actionmsg", section = "fighting" },
 	
+	SKM_M19ACTIONTYPE = { default = "Action", cast = "string", profile = "m19actiontype", section = "fighting" },
 	SKM_M19ACTIONID = { default = 0, cast = "number", profile = "m19actionid", section = "fighting" },
 	SKM_M19ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m19actiontarget", section = "fighting" },
 	SKM_M19ACTIONWAIT = { default = 100, cast = "number", profile = "m19actionwait", section = "fighting" },
 	SKM_M19ACTIONMSG = { default = "", cast = "string", profile = "m19actionmsg", section = "fighting" },
 	
+	SKM_M20ACTIONTYPE = { default = "Action", cast = "string", profile = "m20actiontype", section = "fighting" },
 	SKM_M20ACTIONID = { default = 0, cast = "number", profile = "m20actionid", section = "fighting" },
 	SKM_M20ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m20actiontarget", section = "fighting" },
 	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", section = "fighting" },
@@ -477,6 +506,24 @@ function SkillMgr.ModuleInit()
 		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
 	end
 		
+	-- Move the filter settings here, since we're going to break them out of the window.
+	
+	if (Settings.FFXIVMINION.gAssistFilter1 == nil) then
+        Settings.FFXIVMINION.gAssistFilter1 = "0"
+    end
+	if (Settings.FFXIVMINION.gAssistFilter2 == nil) then
+		Settings.FFXIVMINION.gAssistFilter2 = "0"
+	end
+	if (Settings.FFXIVMINION.gAssistFilter3 == nil) then
+        Settings.FFXIVMINION.gAssistFilter3 = "0"
+    end
+	if (Settings.FFXIVMINION.gAssistFilter4 == nil) then
+		Settings.FFXIVMINION.gAssistFilter4 = "0"
+	end
+	if (Settings.FFXIVMINION.gAssistFilter5 == nil) then
+        Settings.FFXIVMINION.gAssistFilter5 = "0"
+    end
+		
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
     GUI_NewButton(SkillMgr.skillbook.name,GetString("skillbookrefresh"),"SMRefreshSkillbookEvent")
@@ -495,11 +542,11 @@ function SkillMgr.ModuleInit()
 	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug","0")
 	gSkillManagerDebugPriorities = ffxivminion.GetSetting("gSkillManagerDebugPriorities","")
 	
-	GUI_NewField(SkillMgr.mainwindow.name,"Filter 1","gSkillManagerFilter1","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"Filter 2","gSkillManagerFilter2","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"Filter 3","gSkillManagerFilter3","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"Filter 4","gSkillManagerFilter4","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"Filter 5","gSkillManagerFilter5","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter1","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter2","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter3","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter4","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter5","Filters")
 	
 	gSkillManagerFilter1 = ""
 	gSkillManagerFilter2 = ""
@@ -524,6 +571,25 @@ function SkillMgr.ModuleInit()
 	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
 	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
 	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)	
+                        
+	ffxivminion.Windows.FilterManager = { id = "Filter Manager", Name = "Filter Manager", x=250, y=50, width=250, height=160 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.FilterManager)
+	local winName = "Filter Manager"
+	local group = "Filters"
+	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
+	GUI_NewCheckbox(winName,GetString("filter2"),"gAssistFilter2",group)
+	GUI_NewCheckbox(winName,GetString("filter3"),"gAssistFilter3",group)
+	GUI_NewCheckbox(winName,GetString("filter4"),"gAssistFilter4",group)
+	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)	
+	GUI_UnFoldGroup(winName,group)
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
+	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
+	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
+	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
+	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
                         
     gSMactive = "1"
     gSMnewname = ""
@@ -584,12 +650,16 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPB"),"SKM_PMPPB",GetString("playerHPMPTP"))
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP >=","SKM_PMPRGT",GetString("playerHPMPTP"))
+	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP <=","SKM_PMPRLT",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % >=","SKM_PMPPRGT",GetString("playerHPMPTP"))
+	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % <=","SKM_PMPPRLT",GetString("playerHPMPTP"))
+	GUI_NewField(SkillMgr.editwindow.name,"Result MP >= Cost of [ID]","SKM_PMPRSGT",GetString("playerHPMPTP"))
+	--GUI_NewField(SkillMgr.editwindow.name,"Result MP <= Cost of [ID]","SKM_PMPRSLT",GetString("playerHPMPTP"))
+	
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPL"),"SKM_PTPL",GetString("playerHPMPTP"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPB"),"SKM_PTPB",GetString("playerHPMPTP"))
-	--GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmMPLock"),"SKM_MPLock",GetString("playerHPMPTP"))
-	--GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmMPLocked"),"SKM_MPLocked",GetString("playerHPMPTP"))
-	--GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmMPLockPer"),"SKM_MPLockPer",GetString("playerHPMPTP"))
-	
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTCount"),"SKM_PTCount",GetString("party"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPL"),"SKM_PTHPL",GetString("party"))
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPB"),"SKM_PTHPB",GetString("party"))
@@ -685,103 +755,123 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 3","gSkillManagerFoldMacro3",GetString("generalSettings"))
 	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 4","gSkillManagerFoldMacro4",GetString("generalSettings"))
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Skill ID","SKM_M1ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Skill ID","SKM_M2ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Skill ID","SKM_M3ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Skill ID","SKM_M4ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Skill ID","SKM_M5ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Skill ID","SKM_M6ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Skill ID","SKM_M7ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Skill ID","SKM_M8ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Skill ID","SKM_M9ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Skill ID","SKM_M10ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Skill ID","SKM_M11ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Skill ID","SKM_M12ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Skill ID","SKM_M13ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Skill ID","SKM_M14ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Skill ID","SKM_M15ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Skill ID","SKM_M16ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Skill ID","SKM_M17ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Skill ID","SKM_M18ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Skill ID","SKM_M19ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
 	
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Skill ID","SKM_M20ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
 	
@@ -1222,6 +1312,8 @@ function SkillMgr.ReadFile(strFile)
 		gSkillManagerFilter5 = ""
 	end
 	
+	SkillMgr.RefreshFilterWindow()
+	
 	local isdefault = false
 	local startingProfiles = SkillMgr.StartingProfiles
 	for job,name in pairs(startingProfiles) do
@@ -1486,6 +1578,8 @@ function SkillMgr.ButtonHandler(event, Button)
 		if (string.find(Button,"SMToggleMacro") ~= nil) then	
 			SkillMgr.ToggleMacroMenu()		
 		end
+	elseif (string.find(Button,"SkillMgr%.")) then
+		ExecuteFunction(Button)
 	end
 end
 
@@ -1761,7 +1855,7 @@ function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-			local clientSkill = MGetAction(skill.id,skill.type)
+			local clientSkill = MGetActionFromList(skill.id,skill.type)
 			local skillFound = ValidTable(clientSkill)
 			local skillName = (clientSkill and clientSkill.name) or skill.name
 			local viewString = ""
@@ -1968,6 +2062,24 @@ function SkillMgr.ToggleMacroMenu()
 		GUI_WindowVisible(SkillMgr.editwindow_macro.name,true)		
         SkillMgr.editwindow_macro.visible = true
     end
+end
+
+function SkillMgr.ShowFilterWindow()
+	GUI_WindowVisible(SkillMgr.filterwindow.name,true)		
+end
+
+function SkillMgr.RefreshFilterWindow()
+	local group = "Filters"
+	GUI_DeleteGroup(SkillMgr.filterwindow.name,group)
+	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter1).."]","gAssistFilter1",group)
+	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter2).."]","gAssistFilter2",group)
+	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter3).."]","gAssistFilter3",group)
+	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter4).."]","gAssistFilter4",group)
+	GUI_NewCheckbox(SkillMgr.filterwindow.name,"["..tostring(gSkillManagerFilter5).."]","gAssistFilter5",group)
+	GUI_UnFoldGroup(SkillMgr.filterwindow.name,group)
+	
+	GUI_SizeWindow(SkillMgr.filterwindow.name, SkillMgr.filterwindow.w, SkillMgr.filterwindow.h)
+	GUI_RefreshWindow(SkillMgr.filterwindow.name)
 end
 
 function SkillMgr.IsPetSummonSkill(skillID)
@@ -2306,21 +2418,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							break
 						end
 					end
-					--[[
-						
-						SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
-SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
-SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
-					
-						{"Action", {2263, 1, Player.id}},
-						{"Wait", { 100 }},
-						{"Action", {2261, 1, Player.id}},
-						{"Wait", { 100 }},
-						{"Action", {2259, 1, Player.id}},
-						{"Wait", { 100 }},
-						{"Action", {2260, 1, Player.id}},
-					--]]
-						
 					SkillMgr.ParseMacro(macro)
 				else
 					if (skill.trg == "Ground Target") then
@@ -2445,17 +2542,7 @@ SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", s
 						end
 					end
 				end
-			else
-				if (IsCaster(Player.job)) then
-					local realskilldata = ActionList:Get(skill.id)
-					if ( realskilldata and not realskilldata.isready and skill.mplock == "1") then
-						if ( (realskilldata.cost > ml_global_information.Player_MP.current) or (tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > ml_global_information.Player_MP.current) ) then
-							SkillMgr.mplock = true
-							SkillMgr.mplockTimer = Now() + 10000
-							SkillMgr.mplockPercent = tonumber(skill.mplockper)
-						end
-					end
-				end
+				break
 			end
 		end
 	end
@@ -2791,8 +2878,10 @@ function SkillMgr.GCDTimeLT(mintime)
 	
 	if (actionID) then
 		local action = ActionList:Get(actionID)
+		if (action) then
 		if (action.cd - action.cdmax) < mintime then
 			return true
+		end
 		end
 	else
 		return false
@@ -2810,9 +2899,11 @@ function SkillMgr.IsGCDReady(maxtime)
 	
 	if (actionID) then
 		local action = ActionList:Get(actionID)
+		if (action) then
 		timediff = (action.cd - action.cdmax)
 		if (action.cd - action.cdmax) < maxtime then
 			castable = true
+		end
 		end
 	else
 		castable = true
@@ -3405,14 +3496,15 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
 		--realskilldata = ActionList:Get(skillid,11) 
-		realskilldata = MGetAction(skillid,11)
-		--realskilldata = MGetActionFromList(skillid,11)
+		--realskilldata = MGetAction(skillid,11,nil)
+		realskilldata = MGetActionFromList(skillid,11)
 	else
 		--realskilldata = ActionList:Get(skillid,1) 
-		realskilldata = MGetAction(skillid,1)
-		--realskilldata = MGetActionFromList(skillid,1)
+		--realskilldata = MGetAction(skillid,1,nil)
+		realskilldata = MGetActionFromList(skillid,1)
 	end
 	if (not realskilldata) then
+		SkillMgr.DebugOutput( prio, "Could not find skill, doesn't exist." )
 		return 0
 	end
 	
@@ -3437,7 +3529,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	--Check the latency timer to see if casting is currently allowed.
-	if (Now() < SkillMgr.latencyTimer or Player.ismounted) then
+	if (Now() < SkillMgr.latencyTimer) then
 		return 0
 	end
 	
@@ -3469,10 +3561,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	--Secondary Get() with proper target ID.
-	if (skill.stype == "Pet") then 
-		realskilldata = ActionList:Get(skillid,11)
-		--realskilldata = MGetAction(skillid,11)
-	else 
+	if (skill.stype ~= "Pet") then 
 		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
 		--realskilldata = MGetAction(skillid,1,targetTable.TID)
 	end
@@ -3519,7 +3608,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	if (castable) then
-		SkillMgr.DebugOutput(prio, "Skill was castable.")
+		SkillMgr.DebugOutput(prio, "Skill ["..tostring(prio).."] was castable.")
 		return targetTable.TID
 	end
 	
@@ -3726,7 +3815,7 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		SkillMgr.DebugOutput(skill.prio, "isready2:"..tostring(realskilldata.isready2)..",isfacing:"..tostring(realskilldata.isfacing))
+		--SkillMgr.DebugOutput(skill.prio, "isready2:"..tostring(realskilldata.isready2)..",isfacing:"..tostring(realskilldata.isfacing))
 		
 		if ((realskilldata.isready2) and (gAssistUseAutoFace == "1" or realskilldata.isfacing)) then
 			return false
@@ -4365,21 +4454,37 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ((tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > ml_global_information.Player_MP.current) or 
-			(tonumber(skill.pmppl) > 0 and tonumber(skill.pmppl) > ml_global_information.Player_MP.percent)) 
+		local pmp = Player.mp
+		local resultpercentage = math.floor(((pmp.current - realskilldata.cost) / pmp.max) * 100)
+		
+		if ((tonumber(skill.ppowl) > 0 and tonumber(skill.ppowl) > pmp.current) or 
+			(tonumber(skill.pmppl) > 0 and tonumber(skill.pmppl) > pmp.percent)) 
 		then 
-			--[[
-			if (skill.mplock == "1" ) then
-				SkillMgr.mplock = true
-				SkillMgr.mplockTimer = Now() + 10000
-				SkillMgr.mplockPercent = tonumber(skill.mplockper)
-			end
-			--]]
 			return true
-		elseif ((tonumber(skill.ppowb) > 0 and tonumber(skill.ppowb) < ml_global_information.Player_MP.current) or
-				(tonumber(skill.pmppb) > 0 and tonumber(skill.pmppb) < ml_global_information.Player_MP.percent)) 
+		elseif ((tonumber(skill.ppowb) > 0 and tonumber(skill.ppowb) < pmp.current) or
+				(tonumber(skill.pmppb) > 0 and tonumber(skill.pmppb) < pmp.percent)) 
 		then 
+			return true
+		elseif ((tonumber(skill.pmprgt) > 0 and (tonumber(skill.pmprgt) < (pmp.current - realskilldata.cost))) or
+				--(tonumber(skill.pmprlt) > 0 and (tonumber(skill.pmprlt) > (pmp.current - realskilldata.cost))) or
+				(tonumber(skill.pmpprgt) > 0 and (tonumber(skill.pmpprgt) < resultpercentage)))
+				--(tonumber(skill.pmpprlt) > 0 and (tonumber(skill.pmpprlt) > resultpercentage)))
+		then 
+			SkillMgr.DebugOutput(skill.prio, "[Resultant MP]:"..tostring((pmp.current - realskilldata.cost)).." is < "..tostring(skill.pmprgt))
+			return true
+		elseif (IsNull(tonumber(skill.pmprsgt),0) > 0) then -- or tonumber(skill.pmprslt) > 0) then
+			local otherskilldata = ActionList:Get(tonumber(skill.pmprsgt),1)
+			if (otherskilldata) then
+				local otherskillcost = otherskilldata.cost
+				if ((tonumber(skill.pmprsgt) > 0 and (pmp.current - realskilldata.cost) < otherskillcost)) then
+					--(tonumber(skill.pmprsgt) > 0 and (pmp.current - realskilldata.cost) > otherskillcost))
+				--then
+					SkillMgr.DebugOutput(skill.prio, "[Resultant MP]:"..tostring((pmp.current - realskilldata.cost)).." is < skill cost of ["..tostring(otherskillcost).."].")
 			return true 
+		end			
+			else
+				SkillMgr.DebugOutput(skill.prio, "[Resultant MP]: Could not find data for other skill.")
+			end
 		end			
 		return false
 	end

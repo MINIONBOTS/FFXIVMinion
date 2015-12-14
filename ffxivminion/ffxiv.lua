@@ -172,7 +172,7 @@ function ffxivminion.SetupOverrides()
 				end
 			end	
 			
-			if ( gMeshrec == "1" and gMeshChange == "0" and  MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2)) then
+			if ( gMeshrec == "1" and gMeshChange == "0" and  MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2) and not MeshManager:IsKeyPressed(1)) then
 				ml_mesh_mgr.CreateSingleCell()
 			end	
 			

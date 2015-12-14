@@ -915,6 +915,11 @@ function e_teleporttomap:execute()
 	
 	if (ActionIsReady(7,5)) then
 		if (Player:Teleport(e_teleporttomap.aeth.id)) then	
+			
+			if (ml_task_hub:CurrentTask().name ~= "MOVETOMAP") then
+				ml_task_hub:CurrentTask().completed = true
+			end
+		
 			local newTask = ffxiv_task_teleport.Create()
 			newTask.setHomepoint = ml_task_hub:ThisTask().setHomepoint
 			newTask.aetheryte = e_teleporttomap.aeth.id
@@ -1121,16 +1126,17 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
 		
-		if (IsFighter(Player.job)) then
-			if (ValidTable(c_walktopos.lastPos)) then
+		if (false) then
+			if (ValidTable(c_walktopos.lastPos) and IsFlying()) then
 				local lastPos = c_walktopos.lastPos
 				--d("Checking if last wanted position was the same position.")
 				local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 				if (dist < 1) then
-					if ((TimeSince(e_walktopos.lastPath) < 30000 and Player:IsMoving()) or
-						(TimeSince(e_walktopos.lastPath) < 10000) or
+					if ((TimeSince(e_walktopos.lastPath) < 10000 and Player:IsMoving()) or
+						(TimeSince(e_walktopos.lastPath) < 1000 and not Player:IsMoving()) or
 						(TimeSince(e_walktopos.lastFail) < 10000)) 
 					then
+						--d("Blocked execution since we should already be en route.")
 						return
 					end
 				else
@@ -1145,7 +1151,7 @@ function e_walktopos:execute()
 		if (dist > 2) then
 		
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
-			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),2,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
 			c_walktopos.lastPos = gotoPos
 			if (not tonumber(path)) then
@@ -1156,8 +1162,9 @@ function e_walktopos:execute()
 				Player:Stop()
 				e_walktopos.lastFail = Now()
 			elseif (path >= 0) then
-				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.")
+				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.", "gLogCNE", 2)
 				e_walktopos.lastPath = Now()
+				return
 			elseif (path <= -1) then
 				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].", "gLogCNE", 2)
 				Player:Stop()
@@ -1329,6 +1336,8 @@ end
 c_mount = inheritsFrom( ml_cause )
 e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
+e_mount.lastPathCheck = 0
+e_mount.lastPathPos = {}
 function c_mount:evaluate()
 	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
 		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
@@ -1355,12 +1364,43 @@ function c_mount:evaluate()
 	
 	e_mount.id = 0
 	
-    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 		local myPos = ml_global_information.Player_Position
 		local gotoPos = ml_task_hub:CurrentTask().pos
+		local lastPos = e_mount.lastPathPos
+		
+		-- If we change our gotoPos or have never measured it, reset the watch.
+		if (ValidTable(lastPos)) then
+			if (PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 1) then
+				e_mount.lastPathPos = gotoPos
+				e_mount.lastPathCheck = 0
+			end
+		end
+		
 		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-	
-		if (distance > tonumber(gMountDist)) then
+		
+		local forcemount = false
+		if (CanFlyInZone()) then
+			if (not Player:IsMoving() or TimeSince(e_mount.lastPathCheck) > 5000) then
+				local path = NavigationManager:GetPath(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+				local pathsize = TableSize(path)
+				if (pathsize > 0) then
+					if (ValidTable(path)) then
+						local lasthop = path[pathsize-1]
+						if (lasthop) then
+							local goaltohop = PDistance3D(lasthop.x, lasthop.y, lasthop.z, gotoPos.x, gotoPos.y, gotoPos.z)
+							if (goaltohop > 5) then
+								forcemount = true
+							end
+						end
+					end
+				end
+				
+				e_mount.lastPathCheck = Now()
+			end
+		end
+
+		if ((distance > tonumber(gMountDist)) or forcemount) then
 			--Added mount verifications here.
 			--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
 			local mountID
@@ -1410,6 +1450,94 @@ function e_mount:execute()
 	end
 	
     Mount(e_mount.id)
+	--d("Set a delay for 500")
+	ml_task_hub:CurrentTask():SetDelay(500)
+end
+
+c_battlemount = inheritsFrom( ml_cause )
+e_battlemount = inheritsFrom( ml_effect )
+e_battlemount.id = 0
+function c_battlemount:evaluate()
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
+	then
+		return false
+	end
+	
+	if (IsMounting()) then
+		return true
+	end
+	
+	noMountMaps = {
+		[130] = true,[131] = true,[132] = true,[133] = true,[128] = true,[129] = true,[144] = true,
+		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
+	}
+	
+    if (noMountMaps[ml_global_information.Player_Map]) then
+		return false
+	end
+	
+	if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
+		return false
+	end
+	
+	e_battlemount.id = 0
+	
+    if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0 and gUseMount == "1") then
+		local myPos = ml_global_information.Player_Position
+		local gotoPos = ml_task_hub:CurrentTask().pos
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+	
+		if (distance > tonumber(gMountDist)) then
+			--Added mount verifications here.
+			--Realistically, the GUIVarUpdates should handle this, but just in case, we backup check it here.
+			local mountID
+			local mountIndex
+			local mountlist = ActionList("type=13")
+			
+			if (ValidTable(mountlist)) then
+				--First pass, look for our named mount.
+				for k,v in pairsByKeys(mountlist) do
+					if (v.name == gMount) then
+						local acMount = ActionList:Get(v.id,13)
+						if (acMount and acMount.isready) then
+							e_battlemount.id = v.id
+							return true
+						end
+					end
+				end
+				
+				--Second pass, look for any mount as backup.
+				if (gMount == GetString("none")) then
+					for k,v in pairsByKeys(mountlist) do
+						local acMount = ActionList:Get(v.id,13)
+						if (acMount and acMount.isready) then
+							SetGUIVar("gMount", v.name)
+							e_battlemount.id = v.id
+							return true
+						end
+					end		
+				end
+			end
+		end
+    end
+    
+    return false
+end
+function e_battlemount:execute()
+	if (Player:IsMoving()) then
+		Player:Stop()
+		--d("Stopped.")
+		return
+	end
+	
+	if (IsMounting() or UsingBattleItem()) then
+		--d("Adding a wait.")
+		ml_task_hub:CurrentTask():SetDelay(2000)
+		return
+	end
+	
+    Mount(e_battlemount.id)
 	--d("Set a delay for 500")
 	ml_task_hub:CurrentTask():SetDelay(500)
 end
@@ -2323,7 +2451,6 @@ function c_autoequip:evaluate()
 		end
 	end
 	
-	c_autoequip.lastRun = Now()
 	return false
 end
 function e_autoequip:execute()
@@ -2333,7 +2460,7 @@ function e_autoequip:execute()
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 	end
 	if (ml_task_hub:CurrentTask()) then
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_task_hub:CurrentTask():SetDelay(200)
 	end
 	
 	--[[
@@ -2349,14 +2476,21 @@ end
 
 c_selectconvindex = inheritsFrom( ml_cause )
 e_selectconvindex = inheritsFrom( ml_effect )
+c_selectconvindex.unexpected = 0
 function c_selectconvindex:evaluate()	
-	--check for vendor window open
-	local index = ml_task_hub:CurrentTask().conversationIndex
-	return index and index ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
+	if (c_selectconvindex.unexpected > 5) then
+		c_selectconvindex.unexpected = 0
+	end
+	return (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
-function e_selectconvindex:execute()
-	SelectConversationIndex(tonumber(ml_task_hub:CurrentTask().conversationIndex))
-	ml_task_hub:CurrentTask():SetDelay(1000)
+function e_selectconvindex:execute()	
+	local index = ml_task_hub:CurrentTask().conversationIndex
+	if (not index) then
+		c_selectconvindex.unexpected = c_selectconvindex.unexpected + 1
+		index = c_selectconvindex.unexpected
+	end
+	SelectConversationIndex(tonumber(index))
+	ml_task_hub:ThisTask():SetDelay(1000)
 end
 
 c_returntomap = inheritsFrom( ml_cause )
@@ -2400,8 +2534,6 @@ function c_inventoryfull:evaluate()
 end
 function e_inventoryfull:execute()
 	if (gBotRunning == "1") then
-		
-		
 		GUI_ToggleConsole(true)
 		d("Inventory is full, bot will stop.")
 		ml_task_hub:ToggleRun()
@@ -2427,7 +2559,7 @@ end
 c_falling = inheritsFrom( ml_cause )
 e_falling = inheritsFrom( ml_effect )
 c_falling.jumpKillTimer = 0
-c_falling.lastY = 0
+c_falling.lastMeasure = 0
 function c_falling:evaluate()
 	local myPos = ml_global_information.Player_Position
 	if (Player:IsJumping()) then
@@ -2560,4 +2692,105 @@ function e_mapyesno:execute()
 		PressYesNo(true)
 	end
 	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
+c_reachedmap = inheritsFrom( ml_cause )
+e_reachedmap = inheritsFrom( ml_effect )
+function c_reachedmap:evaluate()
+	return (Player.localmapid == ml_task_hub:ThisTask().destMapID)
+end
+function e_reachedmap:execute()
+	ml_task_hub:ThisTask().completed = true
+end
+
+c_movetomap = inheritsFrom( ml_cause )
+e_movetomap = inheritsFrom( ml_effect )
+function c_movetomap:evaluate()
+	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
+		return false
+	end
+	
+	local mapID = ml_task_hub:CurrentTask().mapid
+	if (mapID and mapID > 0) then
+		if (Player.localmapid ~= mapID) then
+			if (CanAccessMap(mapID)) then
+				e_movetomap.mapID = mapID
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_movetomap:execute()
+	local task = ffxiv_task_movetomap.Create()
+	task.destMapID = e_movetomap.mapID
+	if (ValidTable(ml_task_hub:CurrentTask().pos)) then
+		task.pos = ml_task_hub:CurrentTask().pos
+	end
+	ml_task_hub:CurrentTask():AddSubTask(task)
+end
+
+c_buy = inheritsFrom( ml_cause )
+e_buy = inheritsFrom( ml_effect )
+function c_buy:evaluate()	
+	if (not IsShopWindowOpen()) then
+		return false
+	end
+	
+	local itemid;
+	local itemtable = ml_task_hub:CurrentTask().itemid
+	if (ValidTable(itemtable)) then
+		itemid = itemtable[Player.job] or itemtable[-1]
+	elseif (tonumber(itemtable)) then
+		itemid = tonumber(itemtable)
+	end
+	
+	if (itemid) then
+		e_buy.itemid = tonumber(itemid)
+		return true
+	end
+	
+	return false
+end
+function e_buy:execute()
+	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
+	Inventory:BuyShopItem(e_buy.itemid,buyamount)
+	ml_task_hub:CurrentTask():SetDelay(1000)
+end
+
+c_moveandinteract = inheritsFrom( ml_cause )
+e_moveandinteract = inheritsFrom( ml_effect )
+c_moveandinteract.entityid = 0
+function c_moveandinteract:evaluate()
+	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or 
+		ControlVisible("SelectString") or ControlVisible("SelectIconString")) 
+	then
+		return false
+	end
+	
+	local id = ml_task_hub:CurrentTask().id
+    if (id and id > 0) then
+		return true
+    end
+	
+	return false
+end
+function e_moveandinteract:execute()
+	local newTask = ffxiv_task_movetointeract.Create()
+	newTask.uniqueid = ml_task_hub:CurrentTask().id
+	newTask.pos = ml_task_hub:CurrentTask().pos
+	newTask.use3d = true
+	
+	--local range = params["range"]
+	--if (range and range < 1) then
+		--range = 1
+	--end
+	--newTask.interactRange = range
+	
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+	
+	ml_task_hub:ThisTask():AddSubTask(newTask)
 end

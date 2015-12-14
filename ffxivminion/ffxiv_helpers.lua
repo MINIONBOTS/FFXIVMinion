@@ -5083,11 +5083,13 @@ function Transport399(pos1,pos2)
 	local pos1 = pos1 or ml_global_information.Player_Position
 	local pos2 = pos2
 	
-	if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
-		return true, function()
-			local newTask = ffxiv_task_movetomap.Create()
-			newTask.destMapID = 478
-			ml_task_hub:CurrentTask():AddSubTask(newTask)
+	if (not CanFlyInZone()) then
+		if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
+			return true, function()
+				local newTask = ffxiv_task_movetomap.Create()
+				newTask.destMapID = 478
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
 		end
 	end
 

@@ -9,6 +9,8 @@ ffxiv_task_gather.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GatherP
 ffxiv_task_gather.profileData = {}
 ffxiv_task_gather.currentTask = {}
 ffxiv_task_gather.currentTaskIndex = 0
+ffxiv_task_gather.tempBlacklist = {}
+
 ffxiv_task_gather.collectors = {
 	[16] = 4074,
 	[17] = 4088,
@@ -2044,6 +2046,11 @@ function c_gathernexttask:evaluate()
 			end
 		end
 		
+		if (invalid) then	
+			ffxiv_task_gather.currentTask = {}
+			ffxiv_task_gather.currentTaskIndex = 0
+		end
+		
 		if (evaluate or invalid) then
 			local profileData = ffxiv_task_gather.profileData
 			if (ValidTable(profileData.tasks)) then
@@ -3024,6 +3031,19 @@ end
 
 function ffxiv_task_gather.ResetLastGather()
 	Settings.FFXIVMINION.gLastGather = {}
+end
+
+function ffxiv_task_gather.GetBlacklistedIDs()
+	local ids = ""
+	local blacklisted = ffxiv_task_gather.tempBlacklist
+	if (ValidTable(blacklisted)) then
+		for k,entry in pairs(blacklisted) do
+			if (Now() < entry.expiration) then
+				--d("nothing here yet.")
+			end
+		end
+	end	
+	return ids
 end
 
 function ffxiv_task_gather.HandleButtons( Event, Button )	

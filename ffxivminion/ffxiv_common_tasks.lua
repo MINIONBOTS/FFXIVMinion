@@ -142,6 +142,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.dismountDistance = 15
 	newinst.failTimer = 0
 	
+	newinst.startMap = Player.localmapid
+	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	newinst.lastDistance = 0
@@ -177,23 +179,20 @@ function ffxiv_task_movetopos:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 50 )
-    self:add( ke_flyToPos, self.process_elements)
-    
-    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 20 )
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
 	
-	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
     	
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 50 )
     self:add( ke_walkToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
+	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or self.startMap ~= Player.localmapid) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -607,9 +606,10 @@ function ffxiv_task_movetointeract.Create()
 	newinst.forceLOS = false
 	newinst.pathRange = nil
 	newinst.interactRange = nil
-	newinst.dismountDistance = 15
+	newinst.dismountDistance = 3
 	newinst.killParent = false
 	newinst.interactDelay = 500
+	newinst.startMap = Player.localmapid
 	
 	newinst.stealthFunction = nil
 	
@@ -623,7 +623,7 @@ function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
-	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
     self:add( ke_stealth, self.process_elements)
 
 	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
@@ -634,9 +634,6 @@ function ffxiv_task_movetointeract:Init()
 	
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
-	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
-    self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
@@ -651,7 +648,7 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
@@ -702,30 +699,34 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	else
 		return false
 	end
-
+	
 	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
 		local requiresDismount = false
 		if (interactable and interactable.distance < self.dismountDistance) then
-			Dismount()
+			local isflying = IsFlying()
+			if (not isflying or (isflying and not Player:IsMoving())) then
+				Dismount()
+			end
 		end
 		self.lastDismountCheck = Now()
 	end
 		
-	if (not IsFlying()) then
-		if (not myTarget) then
-			if (interactable and interactable.targetable and interactable.distance < 10) then
-				Player:SetTarget(interactable.id)
-				local ipos = interactable.pos
-				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-				if (p and dist ~= 0) then
-					if (not deepcompare(self.pos,p,true)) then
-						self.pos = p
-					end
+	if (not myTarget) then
+		if (interactable and interactable.targetable and interactable.distance < 10) then
+			Player:SetTarget(interactable.id)
+			local ipos = interactable.pos
+			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			if (p and dist ~= 0) then
+				if (not deepcompare(self.pos,p,true)) then
+					self.pos = p
 				end
 			end
 		end
-		
-		if (myTarget and TimeSince(self.lastInteract) > 500) then
+	end
+
+	if (not IsFlying()) then
+		--if (myTarget and TimeSince(self.lastInteract) > 500) then
+		if (myTarget) then
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
 					if (interactable.distance <= 7.5) then
@@ -812,8 +813,11 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
-	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 50 )
+	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 150 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
+	
+	local ke_reachedMap = ml_element:create( "ReachedMap", c_reachedmap, e_reachedmap, 100)
+    self:add( ke_reachedMap, self.overwatch_elements)
 	
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 60 )
     self:add( ke_teleportToMap, self.process_elements)
@@ -1278,7 +1282,7 @@ function ffxiv_task_avoid:task_complete_eval()
 		return true
 	end
 
-	MoveTo(self.pos.x,self.pos.y,self.pos.z,1,false,false,false)
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,1,false,false,false)
     return false
 end
 
@@ -1506,6 +1510,9 @@ function ffxiv_task_grindCombat:Init()
 	
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
     self:add( ke_mount, self.process_elements)
+	
+	--local ke_battleMount = ml_element:create( "BattleMount", c_battlemount, e_battlemount, 20 )
+    --self:add( ke_battleMount, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
@@ -2073,4 +2080,109 @@ end
 function ffxiv_nav_interact:task_fail_execute()
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
     self.valid = false
+end
+
+
+ffxiv_misc_shopping = inheritsFrom(ml_task)
+function ffxiv_misc_shopping.Create()
+    local newinst = inheritsFrom(ffxiv_misc_shopping)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MISC_SHOPPING"
+	
+	newinst.setup = false
+	newinst.startingCount = 0
+	newinst.itemid = 0
+	newinst.buyamount = 0
+	newinst.id = 0
+	newinst.mapid = 0
+	newinst.pos = {}
+	
+    return newinst
+end
+
+function ffxiv_misc_shopping:task_complete_eval()
+	local itemid;
+	local itemtable = self.itemid
+	if (ValidTable(itemtable)) then
+		itemid = itemtable[Player.job] or itemtable[-1]
+	elseif (tonumber(itemtable)) then
+		itemid = tonumber(itemtable)
+	end
+	
+	if (not self.setup) then
+		self.startingCount = ItemCount(itemid)
+		self.setup = true
+	end
+	
+	if (itemid) then
+		local amount = tonumber(self.buyamount) or 0
+
+		local itemcount = ItemCount(itemid)
+		if (itemcount > 0) then			
+			local buycomplete = false
+			if (amount > 0) then
+				if (itemcount >= (self.startingCount + amount)) then
+					d("[Shopping_TaskComplete]: We only needed "..tostring(self.startingCount + amount)..", so we can complete this.", 3)
+					buycomplete = true
+				end
+			else
+				if (itemcount > 0) then
+					d("[Shopping_TaskComplete]: We only need 1, so we can complete this.", 3)
+					buycomplete = true
+				end
+			end
+			
+			if (buycomplete) then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+function ffxiv_misc_shopping:task_complete_execute()
+	if (IsShopWindowOpen()) then
+		Inventory:CloseShopWindow()
+		ml_task_hub:CurrentTask():SetDelay(500)
+		return
+	end
+	
+	self.completed = true
+end
+
+function ffxiv_misc_shopping:Init()
+	local ke_moveToMap = ml_element:create( "MoveToMap", c_movetomap, e_movetomap, 150 )
+    self:add( ke_moveToMap, self.process_elements)
+	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 140 )
+    self:add( ke_rest, self.process_elements)
+	
+	--local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_questkillaggrotarget, e_questkillaggrotarget, 25 )
+    --self:add( ke_killAggroTarget, self.process_elements)
+	
+	local ke_buy = ml_element:create( "Buy", c_buy, e_buy, 100 )
+	self:add( ke_buy, self.process_elements)
+	
+	local ke_selectConvIndex = ml_element:create( "SelectConvIndex", c_selectconvindex, e_selectconvindex, 90 )
+    self:add( ke_selectConvIndex, self.process_elements)
+	
+	local ke_positionLocked = ml_element:create( "PositionLocked", c_positionlocked, e_positionlocked, 80 )
+    self:add( ke_positionLocked, self.process_elements)
+	
+	local ke_interact = ml_element:create( "Interact", c_moveandinteract, e_moveandinteract, 10 )
+    self:add( ke_interact, self.process_elements)
+	
+	--Overwatch
+	--local ke_flee = ml_element:create( "Flee", c_questflee, e_questflee, 25 )
+    --self:add( ke_flee, self.overwatch_elements)
+
+	self:AddTaskCheckCEs()
 end

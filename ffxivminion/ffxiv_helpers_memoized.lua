@@ -1,17 +1,16 @@
 function InitializeMemoize()
-	if (not memoize[Now()]) then
-		memoize[Now()] = {}
+	if (not memoize) then
+		memoize = {}
 	end
 	return true
 end
 
 function GetMemoized(key)
-	local currentMem = memoize[Now()]
-	if (currentMem) then
-		if (currentMem[key] == "nil") then
-			return nil
-		else
-			return currentMem[key]
+	if (memoize[key] == "nil") then
+		return nil
+	else
+		if (memoize[key]) then
+			return memoize[key]
 		end
 	end
 	return nil
@@ -19,8 +18,7 @@ end
 
 function SetMemoized(key,variant)
 	InitializeMemoize()
-	local currentMem = memoize[Now()]
-	currentMem[key] = variant
+	memoize[key] = variant
 end
 
 function MGetAction(actionid,actiontype,targetid)
@@ -31,9 +29,9 @@ function MGetAction(actionid,actiontype,targetid)
 	local memString = "MGetAction;"..tostring(actionid)..";"..tostring(actiontype)..";"..tostring(targetid)
 	local memoized = GetMemoized(memString)
 	if (memoized) then
-		--d("returning memoized action for ["..memString.."].")
 		return memoized
 	else
+		
 		local action = ActionList:Get(actionid,actiontype,targetid)
 		SetMemoized(memString,action)
 		return action

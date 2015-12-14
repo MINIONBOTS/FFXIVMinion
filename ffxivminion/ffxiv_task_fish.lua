@@ -290,6 +290,11 @@ function c_cast:evaluate()
 		return false
 	end
 	
+	local currentBait = IsNull(Player:GetBait(),0)
+	if (currentBait == 0) then
+		return false
+	end
+	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
@@ -771,33 +776,38 @@ function c_setbait:evaluate()
 		end
 		
 		fd("baitChoice ["..tostring(baitChoice).."].",3)
-		local currentbait = Player:GetBait()
-		if (not currentbait or currentbait == 0) then
+		local currentBait = IsNull(Player:GetBait(),0)
+		if (currentBait == 0) then
 			fd("No bait is equipped, need to try to find something.",2)
 			return true
 		else
-			fd("Current bait equipped is ["..tostring(currentbait).."].",3)
 			local baitFound = false
-			if (baitChoice ~= "") then
-				for bait in StringSplit(baitChoice,",") do
-					if (tonumber(bait) ~= nil) then
-						if (currentbait == tonumber(bait)) then
-							baitFound = true
-						end
-					else
-						fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
-						local thisID = AceLib.API.Items.GetIDByName(bait)
-						if (thisID) then
-							if (currentbait == thisID) then
-								fd("Found bait and it is the one we want, processing will cease.",3)
+			if (ItemCount(currentBait) > 0) then
+				fd("Current bait equipped is ["..tostring(currentBait).."].",3)
+				
+				if (baitChoice ~= "") then
+					for bait in StringSplit(baitChoice,",") do
+						if (tonumber(bait) ~= nil) then
+							if (currentBait == tonumber(bait)) then
 								baitFound = true
+							end
+						else
+							fd("Searching for bait ID for ["..IsNull(bait,"").."].",3)
+							local thisID = AceLib.API.Items.GetIDByName(bait)
+							if (thisID) then
+								if (currentBait == thisID) then
+									fd("Found the equipped bait, and it is the one we want, and we have at least 1, processing will cease.",3)
+									baitFound = true
+								end
 							end
 						end
 					end
+				else
+					fd("No bait choices selected, processing will cease.",3)
+					return false
 				end
 			else
-				fd("No bait choices selected, processing will cease.",3)
-				return false
+				fd("Current bait equipped is ["..tostring(currentBait).."], but we appear to have used it all, force a re-select.",3)
 			end
 			
 			if (not baitFound) then
@@ -811,34 +821,83 @@ function c_setbait:evaluate()
 end
 function e_setbait:execute()
 	local baitChoice = ""
+	local rebuy = {}
 	
 	local task = ffxiv_task_fish.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		baitChoice = IsNull(task.baitname,"")
+		rebuy = IsNull(task.rebuy,{})
 	elseif (ValidTable(marker)) then
 		baitChoice = marker:GetFieldValue(GetUSString("baitName")) or ""
 	end
 
+	local foundSuitable = false
+	local baitIDs = {}
 	if (baitChoice ~= "") then
 		for bait in StringSplit(baitChoice,",") do
 			if (tonumber(bait) ~= nil) then
+				baitIDs[#baitIDs+1] = tonumber(bait)
 				local item = Inventory:Get(tonumber(bait))
 				if (item) then
 					Player:SetBait(item.id)
-					return
+					foundSuitable = true
+					break
 				end
 			else
 				local thisID = AceLib.API.Items.GetIDByName(bait)
 				if (thisID) then
+					baitIDs[#baitIDs+1] = thisID
 					local item = Inventory:Get(thisID)
 					if (item) then
 						Player:SetBait(item.id)
+						foundSuitable = true
+						break
+					end
+				end
+			end
+		end
+	end
+	
+	if (not foundSuitable) then
+		fd("Could not find any suitable baits.",2)
+		--fd("TODO: Add the shit to buy more bait here...",2)
+		
+		if (ValidTable(rebuy)) then
+		
+			local rebuyids = {}
+			for k,v in pairs(rebuy) do
+				if (type(k) == "string") then
+					local thisID = AceLib.API.Items.GetIDByName(k)
+					if (thisID) then
+						rebuyids[thisID] = v
+					end
+				else
+					rebuyids[k] = v
+				end
+			end
+			
+			if (ValidTable(rebuyids)) then
+				for itemid,buyamount in pairsByKeys(rebuyids) do
+					local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
+					if (nearestPurchase) then
+						local newTask = ffxiv_misc_shopping.Create()
+						
+						newTask["itemid"] = itemid
+						newTask["pos"] = nearestPurchase.pos
+						newTask["mapid"] = nearestPurchase.mapid
+						newTask["id"] = nearestPurchase.id
+						newTask["conversationIndex"] = nearestPurchase.index
+						newTask["buyamount"] = buyamount
+						
+						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 						return
 					end
 				end
 			end
 		end
+		
+		ffxiv_task_fish.attemptedCasts = 3
 	end
 end
 
