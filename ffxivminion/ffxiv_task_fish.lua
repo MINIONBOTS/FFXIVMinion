@@ -688,41 +688,31 @@ function c_collectibleaddonfish:evaluate()
 				end
 			end
 			
-			--[[if (gFishCollectibleName1 and gFishCollectibleName1 ~= "" and tonumber(gFishCollectibleValue1) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gFishCollectibleName1,47)
+			local task = ffxiv_task_fish.currentTask
+			if (ValidTable(task)) then
+				local collectables = task.collectables
+				if (ValidTable(collectables)) then
+					for identifier,minvalue in pairs(collectables) do
+						local itemid;
+						if (type(identifier) == "string") then
+							itemid = AceLib.API.Items.GetIDByName(identifier)
+				else
+							itemid = identifier
+			end
+			
 				if (itemid) then
-					if (info.itemid == itemid) then
-						if (info.collectability >= tonumber(gFishCollectibleValue1)) then
+							if (string.find(tostring(info.itemid),tostring(itemid))) then
+								if (info.collectability >= tonumber(minvalue)) then
 							validCollectible = true
 						else
-							fd("Collectibility was too low ["..tostring(info.collectability).."].")
+									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
-					else
-						fd("Collectible was not the item we are looking for.")
-						fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
 					end	
-				else
-					fd("Could not find an item ID for:" .. gFishCollectibleName1)
+				end
+					end
 				end
 			end
 			
-			if (gFishCollectibleName2 and gFishCollectibleName2 ~= "" and tonumber(gFishCollectibleValue2) > 0) then
-				local itemid = AceLib.API.Items.GetIDByName(gFishCollectibleName2,47)
-				if (itemid) then
-					if (info.itemid == itemid) then
-						if (info.collectability >= tonumber(gFishCollectibleValue2)) then
-							validCollectible = true
-						else
-							fd("Collectibility was too low ["..tostring(info.collectability).."].")
-						end
-					else
-						fd("Collectible was not the item we are looking for.")
-						fd("Looking for ["..tostring(itemid).."], got ["..tostring(info.itemid).."]")
-					end	
-				else
-					fd("Could not find an item ID for:" .. gFishCollectibleName2)
-				end
-			end--]]
 			
 			if (not validCollectible) then
 				fd("Cannot collect item, collectibility rating not approved.",2)

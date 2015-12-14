@@ -1638,12 +1638,12 @@ function c_sprint:evaluate()
         return false
     end
 	
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted or gUseSprint == "0") then
+	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
 		return false
 	end
 
     if (not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving) then
-		if (IsCityMap(ml_global_information.Player_Map)) then
+		if (IsCityMap(ml_global_information.Player_Map) or gUseSprint == "1") then
 			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 				local myPos = ml_global_information.Player_Position
 				local gotoPos = ml_task_hub:CurrentTask().pos
@@ -1662,7 +1662,10 @@ function c_sprint:evaluate()
     return false
 end
 function e_sprint:execute()
-    ActionList:Get(3):Cast()
+    local sprint = ActionList:Get(3)
+	if (sprint and sprint.isready) then
+		sprint:Cast()
+	end
 end
 
 --minor abuse of the cne system here to update target pos

@@ -606,7 +606,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.forceLOS = false
 	newinst.pathRange = nil
 	newinst.interactRange = nil
-	newinst.dismountDistance = 3
+	newinst.dismountDistance = 5
 	newinst.killParent = false
 	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid

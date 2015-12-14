@@ -1816,7 +1816,6 @@ function e_collectiblegame:execute()
 	end
 end
 
-
 c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
@@ -1900,6 +1899,31 @@ function c_collectibleaddongather:evaluate()
 							gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
 						end
 					end	
+				end
+			end
+			
+			local task = ffxiv_task_gather.currentTask
+			if (ValidTable(task)) then
+				local collectables = task.collectables
+				if (ValidTable(collectables)) then
+					for identifier,minvalue in pairs(collectables) do
+						local itemid;
+						if (type(identifier) == "string") then
+							itemid = AceLib.API.Items.GetIDByName(identifier)
+						else
+							itemid = identifier
+						end
+						
+						if (itemid) then
+							if (string.find(tostring(info.itemid),tostring(itemid))) then
+								if (info.collectability >= tonumber(minvalue)) then
+									validCollectible = true
+								else
+									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+								end
+							end	
+						end
+					end
 				end
 			end
 			

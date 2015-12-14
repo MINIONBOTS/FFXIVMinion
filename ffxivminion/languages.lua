@@ -80,7 +80,7 @@ strings =
 		qualitymax						= "Quality >=",
 		condition						= "Condition =",
 		cpmin							= "CP <",
-		cpmax							= "CP >",
+		cpmax							= "CP >=",
         gpmin							= "GP <",
 		gpmax							= "GP >",
 		iqstack							= "InnerQuiet Stack >=",		
