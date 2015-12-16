@@ -4084,83 +4084,158 @@ function GetInventoryItemGains(itemid,hqonly)
 	return gained
 end
 
-function ItemCount(itemid,includehq)
-	includehq = IsNull(includehq,false)
+function ItemCount(itemid,includehq,requirehq)
+	includehq = IsNull(includehq,true)
+	requirehq = IsNull(requirehq,false)
 	local itemcount = 0
 	
 	--Look through regular bags first.
 	for x=0,3 do
 		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-				itemcount = itemcount + item.count
+		if (ValidTable(inv)) then
+			for i, item in pairs(inv) do
+				if (item.id == itemid) then
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
+					end
+				end
 			end
 		end
 	end
 
 	--Look through equipped items bag.
 	local inv = MInventory("type=1000")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = itemcount + 1
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						itemcount = itemcount + item.count
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						itemcount = itemcount + item.count
+					end
+				end
+			end
 		end
 	end
 	
 	--Look through currency bag.
 	local inv = MInventory("type=2000")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = item.count
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				itemcount = itemcount + item.count
+			end
 		end
 	end
 	
 	--Look through crystals bag.
 	local inv = MInventory("type=2001")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = item.count
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				itemcount = itemcount + item.count
+			end
 		end
 	end
 	
 	--Look through armory bags for off-hand through wrists
 	for x=3200,3209 do
 		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-				itemcount = itemcount + 1
+		if (ValidTable(inv)) then
+			for i,item in pairs(inv) do
+				if (item.id == itemid) then
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
+					end
+				end
 			end
 		end
 	end
 	
 	--Look through rings armory bag.
 	local inv = MInventory("type=3300")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = itemcount + 1
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						itemcount = itemcount + item.count
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						itemcount = itemcount + item.count
+					end
+				end
+			end
 		end
 	end
 	
 	--Look through soulstones armory bag.
 	local inv = MInventory("type=3400")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = itemcount + 1
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						itemcount = itemcount + item.count
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						itemcount = itemcount + item.count
+					end
+				end
+			end
 		end
 	end
 	
 	--Look through weapons armory bag.
 	local inv = MInventory("type=3500")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = itemcount + 1
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						itemcount = itemcount + item.count
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						itemcount = itemcount + item.count
+					end
+				end
+			end
 		end
 	end
 	
 	--Look through quest/key items bag.
 	local inv = MInventory("type=2004")
-	for i, item in pairs(inv) do
-		if (item.id == itemid or (includehq and (item.id == (itemid + 1000000)))) then
-			itemcount = itemcount + item.count
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.id == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						itemcount = itemcount + item.count
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						itemcount = itemcount + item.count
+					end
+				end
+			end
 		end
 	end
 	
@@ -4680,7 +4755,8 @@ end
 
 function IIF(test,truepart,falsepart)
 	if (ValidString(test)) then
-		local f = assert(loadstring("return (" .. test .. ")"))()
+		local f = loadcondition("return (" .. test ..")")()
+		--local f = assert(loadstring("return (" .. test .. ")"))()
 		if (f ~= nil) then
 			if (f == true) then
 				return truepart
@@ -5202,4 +5278,19 @@ end
 function UsingBattleItem()
 	local currentAction = Player.action
 	return (currentAction == 83 or currentAction == 84 or currentAction == 85 or currentAction == 89 or currentAction == 90 or currentAction == 91)
+end
+
+function toboolean(input)
+	if (input ~= nil) then
+		if (type(input) == "string") then
+			if (input == "1" or input == "true") then
+				return true
+			else
+				return false
+			end
+		elseif (type(input) == "number") then
+			return input == 1
+		end
+	end
+	return false
 end

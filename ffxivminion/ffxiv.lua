@@ -1598,6 +1598,7 @@ function ml_global_information.Stop()
     if (ml_global_information.Player_IsMoving) then
         Player:Stop()
     end
+	SkillMgr.receivedMacro = {}
 	GameHacks:SkipCutscene(gSkipCutscene == "1")
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 end
@@ -1731,7 +1732,7 @@ function ffxivminion.NodeNeighbors(self)
 					local add = true
 					local requirements = shallowcopy(entrydata.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
+						local f = assert(loadcondition("return " .. requirement))()
 						--d("Checking requirement ["..tostring(requirement).."] against value ["..tostring(value).."].")
 						if (f ~= nil) then
 							if (f ~= value) then
@@ -1771,7 +1772,7 @@ function ffxivminion.NodeClosestNeighbor(self, origin, id)
 				if (posTable.requires) then
 					local requirements = shallowcopy(posTable.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
+						local f = assert(loadcondition("return " .. requirement))()
 						if (f ~= nil) then
 							if (f ~= value) then
 								valid = false

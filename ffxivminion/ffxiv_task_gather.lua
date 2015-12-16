@@ -1587,6 +1587,7 @@ function e_collectiblegame:execute()
 	local info = Player:GetCollectableInfo()
 	if (ValidTable(info)) then
 		
+		
 		local valuepairs = {
 			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
 			[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
@@ -1598,62 +1599,92 @@ function e_collectiblegame:execute()
 
 		for k,v in pairs(valuepairs) do
 			if ((not k or k == "") or
-				(not v or tonumber(v) <= 0))
+				(not v or not tonumber(v) or tonumber(v) <= 0))
 			then
 				valuepairs[k] = nil
 			end
 		end
 		
-		for cname,cval in pairs(valuepairs) do
-			local itemid = AceLib.API.Items.GetIDByName(cname)
+		local idpairs = {}
+		for k,v in pairs(valuepairs) do
+			local itemid;
+			if (type(k) == "string") then
+				itemid = AceLib.API.Items.GetIDByName(k)
+			else
+				itemid = k
+			end
+			
 			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					gd("Item current rarity ["..tostring(info.rarity).."].",3)
-					gd("Item required rarity (GUI) ["..tostring(cval).."].",3)
-					gd("Item current wear ["..tostring(info.rarity).."].",3)
-					gd("Item max wear ["..tostring(info.wearmax).."].",3)
-				
-					if ((info.rarity >= tonumber(cval)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
+				idpairs[itemid] = v
+			end
+		end
+		
+		local task = ffxiv_task_gather.currentTask
+		if (ValidTable(task)) then
+			local collectables = task.collectables
+			if (ValidTable(collectables)) then
+				for identifier,minvalue in pairs(collectables) do
+					local itemid;
+					if (type(identifier) == "string") then
+						itemid = AceLib.API.Items.GetIDByName(identifier)
+					else
+						itemid = identifier
+					end
+			
+					if (itemid) then
+						idpairs[itemid] = minvalue
+					end
+				end
+			end
+		end
+		
+		for itemid,cval in pairs(idpairs) do
+			if (ffxiv_task_gather.lastItemAttempted == itemid) then
+				gd("Item current rarity ["..tostring(info.rarity).."].",3)
+				gd("Item required rarity (GUI) ["..tostring(cval).."].",3)
+				gd("Item current wear ["..tostring(info.rarity).."].",3)
+				gd("Item max wear ["..tostring(info.wearmax).."].",3)
+			
+				if ((info.rarity >= tonumber(cval)) or 
+					(info.rarity == info.raritymax) or
+					(info.wear == info.wearmax))
+				then
+					PressCollectReturn(true)
+					e_collectiblegame.timer = Now() + 500
+					return
+				else
+					if (SkillMgr.Gather()) then
+						e_collectiblegame.timer = Now() + 1500
 						return
 					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						else
-							local methodicals = {
-								[16] = 4075,
-								[17] = 4089,
-							}
-							local discernings = {
-								[16] = 4078,
-								[17] = 4092,
-							}
-							
-							local methodical = ActionList:Get(methodicals[Player.job])
-							local discerning = ActionList:Get(discernings[Player.job])
-							
-							if (discerning and discerning.isready and info.rarity <= 1) then
-								if (not HasBuffs(Player,"757")) then
-									discerning:Cast()
-									e_collectiblegame.timer = Now() + 1500
-									return
-								end
-							end
-							
-							if (methodical and methodical.isready) then
-								methodical:Cast()
+						local methodicals = {
+							[16] = 4075,
+							[17] = 4089,
+						}
+						local discernings = {
+							[16] = 4078,
+							[17] = 4092,
+						}
+						
+						local methodical = ActionList:Get(methodicals[Player.job])
+						local discerning = ActionList:Get(discernings[Player.job])
+						
+						if (discerning and discerning.isready and info.rarity <= 1) then
+							if (not HasBuffs(Player,"757")) then
+								discerning:Cast()
 								e_collectiblegame.timer = Now() + 1500
 								return
 							end
 						end
+						
+						if (methodical and methodical.isready) then
+							methodical:Cast()
+							e_collectiblegame.timer = Now() + 1500
+							return
+						end
 					end
-				end	
-			end
+				end
+			end	
 		end
 		
 		--[[
@@ -1824,7 +1855,9 @@ function c_collectibleaddongather:evaluate()
 		if (ValidTable(info)) then
 			local validCollectible = false
 			
-			if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
+			if (gMinerCollectibleName and gMinerCollectibleName ~= "" 
+				and tonumber(gMinerCollectibleValue) and tonumber(gMinerCollectibleValue) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -1837,7 +1870,9 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" and tonumber(gMinerCollectibleValue2) > 0) then
+			if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" 
+				and tonumber(gMinerCollectibleValue2) and tonumber(gMinerCollectibleValue2) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -1850,7 +1885,9 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" and tonumber(gMinerCollectibleValue3) > 0) then
+			if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" 
+				and tonumber(gMinerCollectibleValue3) and tonumber(gMinerCollectibleValue3) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -1863,7 +1900,9 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gBotanistCollectibleValue) > 0) then
+			if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" 
+				and tonumber(gBotanistCollectibleValue) and tonumber(gBotanistCollectibleValue) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -1876,7 +1915,9 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" and tonumber(gBotanistCollectibleValue2) > 0) then
+			if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" 
+				and tonumber(gBotanistCollectibleValue2) and tonumber(gBotanistCollectibleValue2) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -1889,7 +1930,9 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" and tonumber(gBotanistCollectibleValue3) > 0) then
+			if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" 
+				and tonumber(gBotanistCollectibleValue3) and tonumber(gBotanistCollectibleValue3) > 0) 
+			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 				if (itemid) then
 					if (string.find(tostring(info.itemid),tostring(itemid))) then
@@ -2056,7 +2099,8 @@ function c_gathernexttask:evaluate()
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
 				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
+					--local f = assert(loadstring("return " .. condition))()
+					local f = assert(loadcondition("return " .. condition))()
 					if (f ~= nil) then
 						if (f == value) then
 							invalid = true
@@ -2164,7 +2208,8 @@ function c_gathernexttask:evaluate()
 						if (data.condition) then
 							local conditions = shallowcopy(data.condition)
 							for condition,value in pairs(conditions) do
-								local f = assert(loadstring("return " .. condition))()
+								--local f = assert(loadstring("return " .. condition))()
+								local f = assert(loadcondition("return " .. condition))()
 								if (f ~= nil) then
 									if (f ~= value) then
 										valid = false

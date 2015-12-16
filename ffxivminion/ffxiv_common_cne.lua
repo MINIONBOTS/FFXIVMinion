@@ -466,27 +466,48 @@ end
 
 c_autopotion = inheritsFrom( ml_cause )
 e_autopotion = inheritsFrom( ml_effect )
-c_autopotion.potions = "4554;4553;4552;4551"
-c_autopotion.ethers = "4558;4557;4556;4555"
-c_autopotion.itemid = 0
+c_autopotion.potions = {
+	{ minlevel = 50, item = 13637 },
+	{ minlevel = 40, item = 4554 },
+	{ minlevel = 30, item = 4553 },
+	{ minlevel = 10, item = 4552 },
+	{ minlevel = 1, item = 4551 },
+}
+c_autopotion.ethers = {
+	{ minlevel = 50, item = 13638 },
+	{ minlevel = 40, item = 4558 },
+	{ minlevel = 30, item = 4557 },
+	{ minlevel = 10, item = 4556 },
+	{ minlevel = 1, item = 4555 },
+}
+c_autopotion.item = nil
 function c_autopotion:evaluate()
+	-- Reset tempvar.
+	c_autopotion.item = nil
+	
 	if (Player.alive) then
 		local potions = c_autopotion.potions
 		if (tonumber(gPotionHP) > 0 and ml_global_information.Player_HP.percent < tonumber(gPotionHP)) then
-			for itemid in StringSplit(potions,";") do
-				if (ItemIsReady(tonumber(itemid))) then
-					c_autopotion.itemid = tonumber(itemid)
-					return true
+			for k,itempair in pairsByKeys(potions) do
+				if (Player.level >= itempair.minlevel) then
+					local item = Inventory:Get(tonumber(itempair.item))
+					if (item and item.isready) then
+						c_autopotion.item = item
+						return true
+					end
 				end
 			end
 		end
 		
 		local ethers = c_autopotion.ethers
 		if (tonumber(gPotionMP) > 0 and ml_global_information.Player_MP.percent < tonumber(gPotionMP)) then
-			for itemid in StringSplit(ethers,";") do
-				if (ItemIsReady(tonumber(itemid))) then
-					c_autopotion.itemid = tonumber(itemid)
-					return true
+			for k,itempair in pairsByKeys(ethers) do
+				if (Player.level >= itempair.minlevel) then
+					local item = Inventory:Get(tonumber(itempair.item))
+					if (item and item.isready) then
+						c_autopotion.item = item
+						return true
+					end
 				end
 			end
 		end
@@ -495,9 +516,13 @@ function c_autopotion:evaluate()
 	return false
 end
 function e_autopotion:execute()
-	local newTask = ffxiv_task_useitem.Create()
-	newTask.itemid = c_autopotion.itemid
-	ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	local item = c_autopotion.item
+	if (item and item.isready) then
+		item:Use()
+	end
+	--local newTask = ffxiv_task_useitem.Create()
+	--newTask.itemid = c_autopotion.itemid
+	--ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1151,7 +1176,7 @@ function e_walktopos:execute()
 		if (dist > 2) then
 		
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
-			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),2,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
 			c_walktopos.lastPos = gotoPos
 			if (not tonumber(path)) then
@@ -2078,7 +2103,8 @@ function e_returntomarker:execute()
     newTask.range = math.random(3,5)
 	if (markerType == GetString("huntMarker") or
 		markerType == GetString("miningMarker") or
-		markerType == GetString("botanyMarker")) 
+		markerType == GetString("botanyMarker") or
+		markerType == GetString("grindMarker")) 
 	then
 		newTask.remainMounted = true
 	end

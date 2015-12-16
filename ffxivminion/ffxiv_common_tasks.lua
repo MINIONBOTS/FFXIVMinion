@@ -725,8 +725,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 
 	if (not IsFlying()) then
-		--if (myTarget and TimeSince(self.lastInteract) > 500) then
-		if (myTarget) then
+		if (myTarget and TimeSince(self.lastInteract) > 500) then
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
 					if (interactable.distance <= 7.5) then

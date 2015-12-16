@@ -60,25 +60,15 @@ function c_craftlimit:evaluate()
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
-			local itemcount = 0
-			if (requireHQ) then
-				if (itemid < 1000000) then
-					itemid = itemid + 1000000
-				end
-				itemcount = ItemCount(itemid,false)
-			else
-				itemcount = ItemCount(itemid,countHQ)
-			end
-			
+			local itemcount = ItemCount(itemid,countHQ,requireHQ)
 			local canCraft = AceLib.API.Items.CanCraft(recipe.id)			
 			if (not canCraft) then
 				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
 				return true
 			else
 				if (requiredItems > 0 and itemcount >= (requiredItems + startingCount))	then
-					return true
-				else
 					cd("[CraftLimit]: Current item count ["..tostring(itemcount).."] is more than ["..tostring(requiredItems + startingCount).."], no need to start more.",3)
+					return true
 				end
 			end
 		else
@@ -146,16 +136,7 @@ function c_startcraft:evaluate()
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 				
-				local itemcount = 0
-				if (requireHQ) then
-					if (itemid < 1000000) then
-						itemid = itemid + 1000000
-					end
-					itemcount = ItemCount(itemid,false)
-				else
-					itemcount = ItemCount(itemid,countHQ)
-				end
-				
+				local itemcount = ItemCount(itemid,countHQ,requireHQ)				
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
@@ -178,11 +159,12 @@ function c_startcraft:evaluate()
 	
     return false
 end
+
 function e_startcraft:execute()
 	if (ffxiv_task_craft.UsingProfile()) then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
-			cd("Recipe set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
+			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
@@ -193,14 +175,28 @@ function e_startcraft:execute()
 				end
 			end
 			
-			ml_task_hub:CurrentTask():SetDelay(1000)
+			ml_task_hub:CurrentTask():SetDelay(500)
+			return
+		elseif (not ml_task_hub:CurrentTask().recipeSelected2) then
+			cd("Recipe phase 2, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
+			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
+			ml_task_hub:CurrentTask().recipeSelected2 = true
+			
+			local skillProfile = ml_task_hub:CurrentTask().skillProfile
+			if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
+				if (SkillMgr.HasProfile(skillProfile)) then
+					SkillMgr.UseProfile(skillProfile)
+				end
+			end
+			
+			ml_task_hub:CurrentTask():SetDelay(500)
 			return
 		else
 			local usehq = ml_task_hub:CurrentTask().useHQ
 			Crafting:UseHQMats(usehq)
 			
-			--if (Crafting:CanCraftSelectedItem()) then
-			if (true) then
+			if (Crafting:CanCraftSelectedItem()) then
+			--if (true) then
 				ml_task_hub:CurrentTask().failedAttempts = 0
 				local usequick = ml_task_hub:CurrentTask().useQuick
 				if (usequick) then
@@ -353,6 +349,7 @@ function c_craft:evaluate()
 end
 function e_craft:execute()
 	ml_task_hub:CurrentTask().recipeSelected = false
+	ml_task_hub:CurrentTask().recipeSelected2 = false
 	if (ml_task_hub:ThisTask().attemptedStarts > 0) then
 		ml_task_hub:ThisTask().attemptedStarts = 0
 		ml_task_hub:ThisTask().synthStarted = true
@@ -482,16 +479,7 @@ function e_selectcraft:execute()
 				local canCraft = AceLib.API.Items.CanCraft(id)
 				if (canCraft) then
 					
-					local itemcount = 0
-					local itemid = order.item
-					if (order.requirehq) then
-						if (itemid < 1000000) then
-							itemid = itemid + 1000000
-						end
-						itemcount = ItemCount(itemid,false)
-					else
-						itemcount = ItemCount(itemid,order.counthq)
-					end
+					local itemcount = ItemCount(itemid,order.counthq,order.requirehq)
 					
 					newTask.startingCount = itemcount
 					newTask.requiredItems = order.amount
@@ -558,6 +546,7 @@ function ffxiv_task_craftitems.Create()
 	newinst.useHQ = (gUseHQMats == "1")
 	newinst.recipe = {}
 	newinst.recipeSelected = false
+	newinst.recipeSelected2 = false
 	newinst.skillProfile = ""
 	newinst.quickTimer = 0
 	

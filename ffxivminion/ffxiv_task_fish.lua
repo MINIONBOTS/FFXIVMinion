@@ -331,7 +331,7 @@ function GetSnapshot()
     if (ValidTable(inv)) then
         for k,item in pairs(inv) do
 			local itemid = item.id
-			if (itemid > 1000000) then itemid = itemid - 1000000 end
+			--if (itemid > 1000000) then itemid = itemid - 1000000 end
             if currentSnapshot[itemid] == nil then
                 -- New item
                 currentSnapshot[itemid] = {}
@@ -339,7 +339,7 @@ function GetSnapshot()
                 currentSnapshot[itemid].count = 0
             end
             -- Increment item counts
-            if (item.IsHQ == 1) then
+            if (toboolean(item.IsHQ)) then
                 -- HQ
                 currentSnapshot[itemid].HQcount = currentSnapshot[itemid].HQcount + item.count
             else
@@ -696,19 +696,19 @@ function c_collectibleaddonfish:evaluate()
 						local itemid;
 						if (type(identifier) == "string") then
 							itemid = AceLib.API.Items.GetIDByName(identifier)
-				else
+						else
 							itemid = identifier
-			end
-			
-				if (itemid) then
+						end
+						
+						if (itemid) then
 							if (string.find(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(minvalue)) then
-							validCollectible = true
-						else
+									validCollectible = true
+								else
 									gd("Collectibility was too low ["..tostring(info.collectability).."].",3)
+								end
+							end	
 						end
-					end	
-				end
 					end
 				end
 			end
@@ -1106,7 +1106,8 @@ function c_fishnexttask:evaluate()
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
 				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
+					--local f = assert(loadstring("return " .. condition))()
+					local f = assert(loadcondition("return " .. condition))()
 					if (f ~= nil) then
 						if (f == value) then
 							invalid = true
@@ -1228,7 +1229,8 @@ function c_fishnexttask:evaluate()
 						if (data.condition) then
 							local conditions = shallowcopy(data.condition)
 							for condition,value in pairs(conditions) do
-								local f = assert(loadstring("return " .. condition))()
+								--local f = assert(loadstring("return " .. condition))()
+								local f = assert(loadcondition("return " .. condition))()
 								if (f ~= nil) then
 									if (f ~= value) then
 										valid = false

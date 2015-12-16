@@ -244,3 +244,19 @@ function PDistance3D(x1,y1,z1,x2,y2,z2)
 	end
 end
 
+function loadcondition(strInput)
+	if (strInput ~= nil and type(strInput) == "string") then
+		
+		local memString = "loadcondition;"..strInput
+		local memoized = GetPermaMemoized(memString)
+		if (memoized) then
+			return memoized
+		else
+			local ret = loadstring(strInput)
+			SetPermaMemoized(memString,ret)
+			return ret
+		end		
+	end
+	
+	return nil
+end
