@@ -1454,7 +1454,7 @@ function e_fishnextprofilepos:execute()
     local newTask = ffxiv_task_movetopos.Create()
 	local task = ffxiv_task_fish.currentTask
     newTask.pos = task.pos
-	newTask.range = 0.5
+	newTask.range = 1
 	newTask.doFacing = true
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
