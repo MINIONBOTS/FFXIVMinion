@@ -246,7 +246,7 @@ SkillMgr.Variables = {
 	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", section = "fighting"   },
 	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting" },
 	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", section = "fighting" },
-	SKM_OffGCDTime = { default = .5, cast = "number", profile = "gcdtime", section = "fighting" },
+	SKM_OffGCDTime = { default = 1.5, cast = "number", profile = "gcdtime", section = "fighting" },
 	SKM_OffGCDTimeLT = { default = 2.5, cast = "number", profile = "gcdtimelt", section = "fighting" },
 	
 	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
@@ -542,11 +542,11 @@ function SkillMgr.ModuleInit()
 	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug","0")
 	gSkillManagerDebugPriorities = ffxivminion.GetSetting("gSkillManagerDebugPriorities","")
 	
-	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter1","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter2","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter3","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter4","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,"[]","gSkillManagerFilter5","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter1"),"gSkillManagerFilter1","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter2"),"gSkillManagerFilter2","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter3"),"gSkillManagerFilter3","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter4"),"gSkillManagerFilter4","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter5"),"gSkillManagerFilter5","Filters")
 	
 	gSkillManagerFilter1 = ""
 	gSkillManagerFilter2 = ""
@@ -3574,9 +3574,10 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	--Secondary Get() with proper target ID.
-	if (skill.stype ~= "Pet") then 
+	if (skill.stype == "Macro" or skill.stype == "Action") then 
 		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
-		--realskilldata = MGetAction(skillid,1,targetTable.TID)
+	elseif (skill.stype == "Pet") then
+		realskilldata = ActionList:Get(skillid,11) 
 	end
 	
 	SkillMgr.CurrentSkill = skill

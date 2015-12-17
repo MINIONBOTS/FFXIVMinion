@@ -202,8 +202,10 @@ function c_release:evaluate()
 					
 				local lastCatch,hq = GetNewInventory(ml_task_hub:CurrentTask().snapshot)
 				if (lastCatch) then
+					fd("[Release]: Last Catch :["..tostring(lastCatch).."], HQ: ["..tostring(hq).."].", 3)
 					if (hq) then
 						if (whitelistHQ and whitelistHQ ~= "") then
+							fd("[Release]: HQ Whitelist :["..tostring(whitelistHQ).."].",3)
 							local release = true
 							for mustkeep in StringSplit(whitelistHQ,",") do
 								local mustkeepid = 0
@@ -221,6 +223,7 @@ function c_release:evaluate()
 								return true
 							end
 						elseif (blacklistHQ and blacklistHQ ~= "") then
+							fd("[Release]: HQ Blacklist :["..tostring(blacklistHQ).."].",3)
 							for throwaway in StringSplit(blacklistHQ,",") do
 								local throwawayid = 0
 								if (tonumber(throwaway) ~= nil) then
@@ -236,6 +239,7 @@ function c_release:evaluate()
 						end
 					else
 						if (whitelist and whitelist ~= "") then
+							fd("[Release]: NQ Whitelist :["..tostring(whitelist).."].",3)
 							local release = true
 							for mustkeep in StringSplit(whitelist,",") do
 								local mustkeepid = 0
@@ -253,6 +257,7 @@ function c_release:evaluate()
 								return true
 							end
 						elseif (blacklist and blacklist ~= "") then
+							fd("[Release]: NQ Blacklist :["..tostring(blacklist).."].",3)
 							for throwaway in StringSplit(blacklist,",") do
 								local throwawayid = 0
 								if (tonumber(throwaway) ~= nil) then
@@ -331,10 +336,11 @@ function GetSnapshot()
     if (ValidTable(inv)) then
         for k,item in pairs(inv) do
 			local itemid = item.id
-			--if (itemid > 1000000) then itemid = itemid - 1000000 end
+			if (itemid > 1000000) then itemid = itemid - 1000000 end
             if currentSnapshot[itemid] == nil then
                 -- New item
                 currentSnapshot[itemid] = {}
+				currentSnapshot[itemid].name = item.name
                 currentSnapshot[itemid].HQcount = 0
                 currentSnapshot[itemid].count = 0
             end
@@ -359,19 +365,19 @@ function GetNewInventory(snapshot)
 		if (snapshot[itemid] == nil) then
 			-- Item is new in inventory
 			if item.HQcount > 0 then
-				--d(name.." (HQ) is NEW")
+				fd(item.name.." (HQ) is NEW",3)
 				return itemid, true
 			else
-				--d(name.." is NEW")
+				fd(item.name.." is NEW",3)
 				return itemid, false
 			end
 		else
 			-- Item already existed in inventory
 			if item.HQcount > snapshot[itemid].HQcount then
-				--d(name.." (HQ) has INCREMENTED")
+				fd(item.name.." (HQ) has INCREMENTED",3)
 				return itemid, true
 			elseif item.count > snapshot[itemid].count then
-				--d(name.." has INCREMENTED")
+				fd(item.name.." has INCREMENTED",3)
 				return itemid, false
 			end
 		end
@@ -871,6 +877,16 @@ function e_setbait:execute()
 				for itemid,buyamount in pairsByKeys(rebuyids) do
 					local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
 					if (nearestPurchase) then
+						local fs = tonumber(Player:GetFishingState())
+						if (fs ~= 0) then
+							local finishcast = ActionList:Get(299,1)
+							if (finishcast and finishcast.isready) then
+								finishcast:Cast()
+								ml_task_hub:CurrentTask():SetDelay(1500)
+							end
+							return
+						end 
+						
 						local newTask = ffxiv_misc_shopping.Create()
 						
 						newTask["itemid"] = itemid

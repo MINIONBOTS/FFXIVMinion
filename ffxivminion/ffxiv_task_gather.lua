@@ -348,7 +348,7 @@ function c_returntobase:evaluate()
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
-			if (distance >= 50) then
+			if (distance >= 30) then
 				e_returntobase.pos = basePos
 				return true
 			else
