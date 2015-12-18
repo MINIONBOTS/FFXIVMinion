@@ -532,7 +532,7 @@ function e_gather:execute()
 		end
 	end
 	
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		Player:Stop()
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return
@@ -1331,7 +1331,7 @@ e_nodeprebuff.activity = ""
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
-	if (ml_global_information.IsLoading or ml_global_information.Player_IsCasting or ml_global_information.IsLocked) then
+	if (ml_global_information.IsLoading or MIsCasting() or ml_global_information.IsLocked) then
 		return false
 	end
 	
@@ -1388,7 +1388,7 @@ function c_nodeprebuff:evaluate()
 		end
 	end
 	
-	if ( not ml_global_information.Player_IsMoving and 
+	if ( not Player:IsMoving() and 
 		ml_task_hub:ThisTask().gatherid ~= nil and 
 		ml_task_hub:ThisTask().gatherid ~= 0 ) 
 	then
@@ -1463,7 +1463,7 @@ function e_nodeprebuff:execute()
 	local requiresStop = e_nodeprebuff.requiresStop
 	local requiresDismount = e_nodeprebuff.requiresDismount
 	
-	if (requiresStop and ml_global_information.Player_IsMoving) then
+	if (requiresStop and Player:IsMoving()) then
 		Player:Stop()
 		return
 	end
@@ -1519,7 +1519,7 @@ function c_gatherflee:evaluate()
 		return false
 	end
 	
-	if (ml_global_information.Player_InCombat and not ml_global_information.Player_IsMoving and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
+	if (ml_global_information.Player_InCombat and not Player:IsMoving() and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
 		local ppos = ml_global_information.Player_Position
 		
 		if (ValidTable(ml_marker_mgr.markerList["evacPoint"])) then
@@ -1551,7 +1551,7 @@ function e_gatherflee:execute()
 			end
 		newTask.task_fail_eval = 
 			function ()
-				return not Player.alive or ((not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) and ml_global_information.Player_InCombat)
+				return not Player.alive or ((not c_walktopos:evaluate() and not Player:IsMoving()) and ml_global_information.Player_InCombat)
 			end
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	else
@@ -1580,14 +1580,12 @@ function c_collectiblegame:evaluate()
 	return false
 end
 function e_collectiblegame:execute()
-	if (Now() < e_collectiblegame.timer or ml_global_information.Player_IsCasting) then
+	if (Now() < e_collectiblegame.timer or MIsCasting()) then
 		return 
 	end
 	
 	local info = Player:GetCollectableInfo()
 	if (ValidTable(info)) then
-		
-		
 		local valuepairs = {
 			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,
 			[gMinerCollectibleName2 or ""] = gMinerCollectibleValue2 or 0,
@@ -1654,7 +1652,8 @@ function e_collectiblegame:execute()
 					return
 				else
 					if (SkillMgr.Gather()) then
-						e_collectiblegame.timer = Now() + 1500
+						gd("[CollectableGame]: Used skill from profile.",3)
+						e_collectiblegame.timer = Now() + 2500
 						return
 					else
 						local methodicals = {
@@ -1666,21 +1665,32 @@ function e_collectiblegame:execute()
 							[17] = 4092,
 						}
 						
+						for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
+							if (tonumber(skill.id) == discernings[Player.job]) then
+								gd("[CollectableGame]: Profile is set to handle collectables, do not use auto-skills.",3)
+								e_collectiblegame.timer = Now() + 500
+								return
+							end
+						end
+						
+						gd("[CollectableGame]: Attempting to use auto-skills.",3)
 						local methodical = ActionList:Get(methodicals[Player.job])
 						local discerning = ActionList:Get(discernings[Player.job])
 						
 						if (discerning and discerning.isready and info.rarity <= 1) then
 							if (not HasBuffs(Player,"757")) then
 								discerning:Cast()
-								e_collectiblegame.timer = Now() + 1500
+								e_collectiblegame.timer = Now() + 2500
 								return
 							end
 						end
 						
-						if (methodical and methodical.isready) then
-							methodical:Cast()
-							e_collectiblegame.timer = Now() + 1500
-							return
+						if (HasBuffs(Player,"757")) then
+							if (methodical and methodical.isready) then
+								methodical:Cast()
+								e_collectiblegame.timer = Now() + 2500
+								return
+							end
 						end
 					end
 				end
@@ -2099,8 +2109,7 @@ function c_gathernexttask:evaluate()
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
 				for condition,value in pairs(conditions) do
-					--local f = assert(loadstring("return " .. condition))()
-					local f = assert(loadcondition("return " .. condition))()
+					local f = assert(loadstring("return " .. condition))()
 					if (f ~= nil) then
 						if (f == value) then
 							invalid = true
@@ -2208,8 +2217,7 @@ function c_gathernexttask:evaluate()
 						if (data.condition) then
 							local conditions = shallowcopy(data.condition)
 							for condition,value in pairs(conditions) do
-								--local f = assert(loadstring("return " .. condition))()
-								local f = assert(loadcondition("return " .. condition))()
+								local f = assert(loadstring("return " .. condition))()
 								if (f ~= nil) then
 									if (f ~= value) then
 										valid = false
@@ -2362,7 +2370,7 @@ function e_gathernextprofilemap:execute()
 		if (mapID and taskPos) then
 			local aeth = GetAetheryteByMapID(mapID, taskPos)
 			if (aeth) then
-				if (ml_global_information.Player_IsMoving) then
+				if (Player:IsMoving()) then
 					Player:Stop()
 					return
 				end
@@ -2643,7 +2651,7 @@ end
 c_gatherisloading = inheritsFrom( ml_cause )
 e_gatherisloading = inheritsFrom( ml_effect )
 function c_gatherisloading:evaluate()
-	return ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting
+	return MIsLoading() or MIsCasting()
 end
 function e_gatherisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
@@ -2652,7 +2660,7 @@ end
 c_gatherislocked = inheritsFrom( ml_cause )
 e_gatherislocked = inheritsFrom( ml_effect )
 function c_gatherislocked:evaluate()
-	return ml_global_information.Player_IsLocked and not IsFlying()
+	return MIsLocked() and not IsFlying()
 end
 function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")

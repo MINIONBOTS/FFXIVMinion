@@ -539,7 +539,7 @@ c_pvpfollowleader.hasEntity = false
 e_pvpfollowleader.isFollowing = false
 e_pvpfollowleader.stopFollow = false
 function c_pvpfollowleader:evaluate()
-	if (gBotMode == strings[gCurrentLanguage].partyMode and IsLeader() or ActionList:IsCasting()) then
+	if (gBotMode == GetString("partyMode") and IsLeader() or IsPlayerCasting()) then
         return false
     end
 	
@@ -547,7 +547,7 @@ function c_pvpfollowleader:evaluate()
 	local leaderPos = GetPartyLeaderPos()
 	if (ValidTable(leaderPos) and ValidTable(leader)) then
 		local myPos = shallowcopy(Player.pos)	
-		local distance = Distance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
+		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
 		
 		if (((leader.incombat and distance > 5) or (distance > 10)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
 			c_pvpfollowleader.leaderpos = leaderPos
@@ -582,7 +582,7 @@ function e_pvpfollowleader:execute()
 		
 		if (gUseMount == "1" and gMount ~= "None" and c_pvpfollowleader.hasEntity) then
 			if (((leader.castinginfo.channelingid == 4 or leader.ismounted) or distance >= tonumber(gMountDist)) and not Player.ismounted) then
-				if (not ActionList:IsCasting()) then
+				if (not IsPlayerCasting()) then
 					Player:Stop()
 					Mount()
 				end
@@ -712,7 +712,7 @@ end
 
 -- custom process function for optimal performance
 function ffxiv_task_pvp:Process()
-	if (IsLoading() or ml_mesh_mgr.meshLoading) then
+	if (IsLoading() or ml_mesh_mgr.loadingMesh) then
 		return false
 	end
 	

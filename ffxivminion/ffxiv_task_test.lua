@@ -229,7 +229,7 @@ function c_flytopos:evaluate()
 	end
 	
 	if (ValidTable(ml_global_information.landing)) then
-		if (not ml_global_information.Player_IsLocked) then
+		if (not MIsLocked()) then
 			ml_global_information.landing = nil
 		else
 			if (Now() > ml_global_information.landing.expiration) then
@@ -357,7 +357,7 @@ function ffxiv_task_movetopos2:Init()
 end
 
 function ffxiv_task_movetopos2:task_complete_eval()
-	if (ml_global_information.Player_IsLoading) then
+	if (MIsLoading()) then
 		d("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -474,7 +474,7 @@ function ffxiv_task_movetopos2:task_complete_eval()
 			return true
 		else
 			-- For extremely small distances, allow to execute early if it's reasonably close.
-			if (not ml_global_information.Player_IsMoving and self.range < 1 and distance < 1) then
+			if (not Player:IsMoving() and self.range < 1 and distance < 1) then
 				d("[MOVETOPOS]: Completing due to range reached.")
 				return true
 			end
@@ -496,7 +496,7 @@ function ffxiv_task_movetopos2:task_complete_execute()
 end
 
 function ffxiv_task_movetopos2:task_fail_eval()
-	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -676,7 +676,7 @@ function ffxiv_task_movewithflight:task_complete_execute()
     self.completed = true
 end
 function ffxiv_task_movewithflight:task_fail_eval()
-	if (ml_global_information.Player_IsLoading) then
+	if (MIsLoading()) then
 		return true
 	end
 	

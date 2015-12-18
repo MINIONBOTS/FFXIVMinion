@@ -991,7 +991,7 @@ end
 c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 function c_fishnexttask:evaluate()
-	if (not Player.alive or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or not ValidTable(ffxiv_task_fish.profileData)) then
+	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_task_fish.profileData)) then
 		return false
 	end
 	
@@ -1122,8 +1122,7 @@ function c_fishnexttask:evaluate()
 			if (currentTask.complete) then
 				local conditions = shallowcopy(currentTask.complete)
 				for condition,value in pairs(conditions) do
-					--local f = assert(loadstring("return " .. condition))()
-					local f = assert(loadcondition("return " .. condition))()
+					local f = assert(loadstring("return " .. condition))()
 					if (f ~= nil) then
 						if (f == value) then
 							invalid = true
@@ -1245,8 +1244,7 @@ function c_fishnexttask:evaluate()
 						if (data.condition) then
 							local conditions = shallowcopy(data.condition)
 							for condition,value in pairs(conditions) do
-								--local f = assert(loadstring("return " .. condition))()
-								local f = assert(loadcondition("return " .. condition))()
+								local f = assert(loadstring("return " .. condition))()
 								if (f ~= nil) then
 									if (f ~= value) then
 										valid = false
@@ -1410,7 +1408,7 @@ function e_fishnextprofilemap:execute()
 		if (mapID and taskPos) then
 			local aeth = GetAetheryteByMapID(mapID, taskPos)
 			if (aeth) then
-				if (ml_global_information.Player_IsMoving) then
+				if (Player:IsMoving()) then
 					Player:Stop()
 					return
 				end

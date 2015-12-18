@@ -133,7 +133,6 @@ function ffxiv_task_assist:GetAttackTarget()
     return target
 end
 
-
 function ffxiv_task_assist:Process()
 
 	if (Player.alive) then
@@ -171,7 +170,7 @@ function ffxiv_task_assist:Process()
 					--local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 					
 					if (ml_global_information.AttackRange > 5) then
-						if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
+						if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not MIsCasting()) then
 							if (Now() > self.movementDelay) then
 								local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
 								self.movementDelay = Now() + 1000

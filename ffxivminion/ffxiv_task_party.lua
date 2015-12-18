@@ -100,8 +100,8 @@ end
 
 function ffxiv_task_party:Process()
 
-    local target = ml_global_information.Player_Target
-	if ( target == nil and not ActionList:IsCasting()) then
+    local target = MGetTarget()
+	if ( target == nil and not IsPlayerCasting()) then
 		SkillMgr.Cast( Player, true )
 	end
 
@@ -135,7 +135,7 @@ function ffxiv_task_party.ButtonHandler(arg)
 end
 
 function ffxiv_task_party.SetLeaderFromTarget()
-	local t = ml_global_information.Player_Target
+	local t = MGetTarget()
 	if (t~=nil) then
 		if (t.type == 1) then
 			gPartyLeaderName = t.name

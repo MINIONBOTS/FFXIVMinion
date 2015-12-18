@@ -59,14 +59,7 @@ ml_global_information.Player_HP = {}
 ml_global_information.Player_MP = {}
 ml_global_information.Player_TP = {}
 ml_global_information.Player_Buffs = {}
-ml_global_information.Player_Casting = {}
-ml_global_information.Player_Target = nil
 ml_global_information.Player_InCombat = false
-ml_global_information.Player_IsLocked = false
-ml_global_information.Player_IsLoading = false
-ml_global_information.Player_IsCasting = false
-ml_global_information.Player_IsMoving = false
-ml_global_information.Player_Flying = {}
 	
 ml_global_information.chocoStance = {
 	[GetString("stFollow")] = 3,
@@ -367,15 +360,17 @@ function ml_global_information.InOpening( event, tickcount )
 end
 
 function ml_global_information.InGameOnUpdate( event, tickcount )
+	memoize = {}
+	
+	if (not Player) then
+		return false
+	end
+	
 	if (not ml_global_information.mainLoaded) then
-		if (Player) then
-			ffxivminion.CreateMainWindow()
-			NavigationManager:SetAreaCost(3,5)
-			ffxivminion.UpdateFoodOptions()
-			ml_global_information.mainLoaded = true
-		else
-			return false
-		end
+		ffxivminion.CreateMainWindow()
+		NavigationManager:SetAreaCost(3,5)
+		ffxivminion.UpdateFoodOptions()
+		ml_global_information.mainLoaded = true
 	end
 	
 	if (ValidTable(ffxivminion.modesToLoad)) then
@@ -401,14 +396,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
-	if (ValidTable(memoize)) then
-		memoize = {}
-	end
-	
 	if (ml_mesh_mgr) then
-		if (not ml_global_information.Player_IsLoading) then
+		if (not MIsLoading()) then
 			if (ml_global_information.queueLoader == true) then
-				ffxiv_task_test.ReadFlightMesh()
+				--ffxiv_task_test.ReadFlightMesh()
 				ml_global_information.Player_Aetherytes = GetAetheryteList(true)
 				ml_global_information.queueLoader = false
 			end
@@ -561,7 +552,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
-				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not ml_global_information.Player_IsMoving) then
+				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					ml_global_information.foodCheckTimer = tickcount
 					
 					local list = Player:GetGatherableSlotList()
@@ -608,7 +599,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 end
 
 function ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
-	--d("In the character select screen.")
+	d("In the character select screen.")
 end
 
 function ml_global_information.InTitleScreenOnUpdate( event, tickcount )
@@ -1530,14 +1521,7 @@ function ffxivminion.UpdateGlobals()
 		ml_global_information.Player_MP = Player.mp
 		ml_global_information.Player_TP = Player.tp
 		ml_global_information.Player_Buffs = Player.buffs
-		ml_global_information.Player_Casting = Player.castinginfo
-		ml_global_information.Player_Target = Player:GetTarget()
 		ml_global_information.Player_InCombat = Player.incombat
-		ml_global_information.Player_IsLocked = IsPositionLocked()
-		ml_global_information.Player_IsLoading = IsLoading()
-		ml_global_information.Player_IsCasting = ActionList:IsCasting()
-		ml_global_information.Player_IsMoving = Player:IsMoving()
-		ml_global_information.Player_Flying = Player.flying
 	end
 end
 
@@ -1595,7 +1579,7 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-    if (ml_global_information.Player_IsMoving) then
+    if (Player:IsMoving()) then
         Player:Stop()
     end
 	SkillMgr.receivedMacro = {}
@@ -1732,8 +1716,7 @@ function ffxivminion.NodeNeighbors(self)
 					local add = true
 					local requirements = shallowcopy(entrydata.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadcondition("return " .. requirement))()
-						--d("Checking requirement ["..tostring(requirement).."] against value ["..tostring(value).."].")
+						local f = assert(loadstring("return " .. requirement))()
 						if (f ~= nil) then
 							if (f ~= value) then
 								add = false
@@ -1772,7 +1755,7 @@ function ffxivminion.NodeClosestNeighbor(self, origin, id)
 				if (posTable.requires) then
 					local requirements = shallowcopy(posTable.requires)
 					for requirement,value in pairs(requirements) do
-						local f = assert(loadcondition("return " .. requirement))()
+						local f = assert(loadstring("return " .. requirement))()
 						if (f ~= nil) then
 							if (f ~= value) then
 								valid = false

@@ -41,7 +41,7 @@ c_huntlogkillaggrotarget = inheritsFrom( ml_cause )
 e_huntlogkillaggrotarget = inheritsFrom( ml_effect )
 e_huntlogkillaggrotarget.targetid = 0
 function c_huntlogkillaggrotarget:evaluate()
-	if (ActionList:IsCasting()) then
+	if (IsPlayerCasting()) then
 		return false
 	end
 	
@@ -151,7 +151,7 @@ function e_huntlogkillaggrotarget:execute()
 	local c_killfail = inheritsFrom( ml_cause )
 	local e_killfail = inheritsFrom( ml_effect )
 	function c_killfail:evaluate()
-		return Player.hp.percent < tonumber(gFleeHP) or Player.mp.percent < tonumber(gFleeMP)
+		return ml_global_information.Player_HP.percent < tonumber(gFleeHP) or ml_global_information.Player_MP.percent < tonumber(gFleeMP)
 	end
 	function e_killfail:execute()
 		ml_task_hub:CurrentTask():Terminate()
@@ -169,7 +169,7 @@ function c_grind_addhuntlogtask:evaluate()
 		return false
 	end
 	
-	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting()) then
+	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked()) then
 		return false
 	end
 	
@@ -178,8 +178,12 @@ function c_grind_addhuntlogtask:evaluate()
 
 	local bestTarget = AceLib.API.Huntlog.GetBestTarget()
 	if (ValidTable(bestTarget)) then
-		c_grind_addhuntlogtask.target = bestTarget
-		return true
+		local mapid = bestTarget.mapid
+		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
+			d("Adding huntlog target: ID ["..tostring(bestTarget.id).."], @ MAPID ["..tostring(bestTarget.mapid).."].")
+			c_grind_addhuntlogtask.target = bestTarget
+			return true
+		end
 	end
 	
 	return false
@@ -195,7 +199,7 @@ c_quest_addhuntlogtask = inheritsFrom( ml_cause )
 e_quest_addhuntlogtask = inheritsFrom( ml_effect )
 c_quest_addhuntlogtask.target = nil
 function c_quest_addhuntlogtask:evaluate()
-	if (IsPositionLocked() or IsLoading() or ActionList:IsCasting() or not HuntingLogsUnlocked()) then
+	if (MIsLocked() or MIsLoading() or MIsCasting() or not HuntingLogsUnlocked()) then
 		return false
 	end
 	
@@ -204,8 +208,12 @@ function c_quest_addhuntlogtask:evaluate()
 	
 	local bestTarget = AceLib.API.Huntlog.GetBestTarget()
 	if (ValidTable(bestTarget)) then
-		c_quest_addhuntlogtask.target = bestTarget
-		return true
+		local mapid = bestTarget.mapid
+		if (CanAccessMap(mapid) or Player.localmapid == mapid) then
+			d("Adding huntlog target: ID ["..tostring(bestTarget.id).."], @ MAPID ["..tostring(bestTarget.mapid).."].")
+			c_quest_addhuntlogtask.target = bestTarget
+			return true
+		end
 	end
 	
 	return false
@@ -249,21 +257,19 @@ c_huntlogmovetomap = inheritsFrom( ml_cause )
 e_huntlogmovetomap = inheritsFrom( ml_effect )
 e_huntlogmovetomap.mapID = 0
 function c_huntlogmovetomap:evaluate()
-	if (not ml_task_hub:CurrentTask().huntParams) then
+	if (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
 		return false
 	end
 	
-	if (not IsPositionLocked()) then
-		local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
-		if (mapID and mapID > 0) then
-			if (Player.localmapid ~= mapID) then
-				local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-															Player.localmapid,
-															mapID	)
-				if (ValidTable(pos)) then
-					e_huntlogmovetomap.mapID = mapID
-					return true
-				end
+	e_huntlogmovetomap.mapID = 0
+	
+	local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
+	if (mapID and mapID > 0) then
+		if (ml_global_information.Player_Map ~= mapID) then
+			if (CanAccessMap(mapID)) then
+				d("[HuntlogMoveToMap]: Need to move to map ID ["..tostring(mapID).."].")
+				e_huntlogmovetomap.mapID = mapID
+				return true
 			end
 		end
 	end
@@ -277,6 +283,45 @@ function e_huntlogmovetomap:execute()
 		task.pos = ml_task_hub:CurrentTask().huntParams["pos"]
 	end
 	ml_task_hub:CurrentTask():AddSubTask(task)
+end
+
+c_huntlogmovetopos = inheritsFrom( ml_cause )
+e_huntlogmovetopos = inheritsFrom( ml_effect )
+function c_huntlogmovetopos:evaluate()
+	if (not ml_task_hub:CurrentTask().huntParams or MIsLocked() or MIsLoading()) then
+		return false
+	end
+	
+	local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
+	if (mapID and mapID > 0) then
+		if (ml_global_information.Player_Map == mapID) then
+			local ppos = ml_global_information.Player_Position
+			local pos = ml_task_hub:CurrentTask().huntParams["pos"]
+			if (Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) > 15) then
+				d("[HuntlogMoveToMap]: Need to move into position.")
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_huntlogmovetopos:execute()
+	local pos = ml_task_hub:CurrentTask().huntParams["pos"]
+	local newTask = ffxiv_task_movetopos.Create()
+	newTask.pos = pos
+	newTask.range = 5
+	if (gTeleport == "1") then
+		newTask.useTeleport = true
+	end
+	
+	local id = ml_task_hub:CurrentTask().huntParams["id"]
+	local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
+	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
+	newTask.customSearch = customSearch
+	newTask.customSearchCompletes = true
+	
+	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_huntlogkill = inheritsFrom( ml_cause )
@@ -373,42 +418,6 @@ function e_huntlogkill:execute()
 			ml_task_hub:CurrentTask():SetDelay(2000)
 		end
 	end
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
-end
-
-c_huntlogmovetopos = inheritsFrom( ml_cause )
-e_huntlogmovetopos = inheritsFrom( ml_effect )
-function c_huntlogmovetopos:evaluate()
-	if (not IsPositionLocked() and not IsLoading()) then
-		local mapID = ml_task_hub:CurrentTask().huntParams["mapid"]
-		if (mapID and mapID > 0) then
-			if (Player.localmapid == mapID) then
-				local ppos = ml_global_information.Player_Position
-				local pos = ml_task_hub:ThisTask().huntParams["pos"]
-				if (Distance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) > 15) then
-					return true
-				end
-			end
-		end
-	end
-	
-	return false
-end
-function e_huntlogmovetopos:execute()
-	local pos = ml_task_hub:CurrentTask().huntParams["pos"]
-	local newTask = ffxiv_task_movetopos.Create()
-	newTask.pos = pos
-	newTask.range = 5
-	if (gTeleport == "1") then
-		newTask.useTeleport = true
-	end
-	
-	local id = ml_task_hub:CurrentTask().huntParams["id"]
-	local maxlevel = AceLib.API.Huntlog.GetMaxMobLevel()
-	local customSearch = "shortestpath,onmesh,alive,attackable,targeting=0,contentid="..tostring(id)..",maxlevel="..tostring(maxlevel)..",maxdistance=50"
-	newTask.customSearch = customSearch
-	newTask.customSearchCompletes = true
-	
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 

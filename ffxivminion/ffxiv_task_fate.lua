@@ -43,7 +43,7 @@ end
 c_fatewait = inheritsFrom( ml_cause )
 e_fatewait = inheritsFrom( ml_effect )
 function c_fatewait:evaluate()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting) then
+	if (MIsLoading() or MIsCasting()) then
 		return false
 	end
 	
@@ -282,7 +282,7 @@ end
 c_movetofatemap = inheritsFrom( ml_cause )
 e_movetofatemap = inheritsFrom( ml_effect )
 function c_movetofatemap:evaluate()
-	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
+	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading()) then
 		return false
 	end
 	
@@ -470,7 +470,7 @@ function c_add_fatetarget:evaluate()
 			return false
 		end
 		
-		if (ml_global_information.Player_IsCasting or Now() < c_add_fatetarget.oocCastTimer) then
+		if (MIsCasting() or Now() < c_add_fatetarget.oocCastTimer) then
 			return false
 		end
 	end

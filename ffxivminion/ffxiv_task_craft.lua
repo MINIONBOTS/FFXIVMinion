@@ -98,7 +98,7 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency or ml_global_information.Player_IsCasting or not ml_task_hub:CurrentTask().allowWindowOpen ) then
+	if ( Now() < ml_task_hub:ThisTask().networkLatency or MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
 	
@@ -181,18 +181,11 @@ function e_startcraft:execute()
 			cd("Recipe phase 2, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
 			ml_task_hub:CurrentTask().recipeSelected2 = true
-			
-			local skillProfile = ml_task_hub:CurrentTask().skillProfile
-			if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
-				if (SkillMgr.HasProfile(skillProfile)) then
-					SkillMgr.UseProfile(skillProfile)
-				end
-			end
-			
 			ml_task_hub:CurrentTask():SetDelay(500)
 			return
 		else
 			local usehq = ml_task_hub:CurrentTask().useHQ
+			cd("[StartCraft]: Order HQ Status :"..tostring(usehq)..".",3)
 			Crafting:UseHQMats(usehq)
 			
 			if (Crafting:CanCraftSelectedItem()) then
@@ -487,7 +480,8 @@ function e_selectcraft:execute()
 					newTask.countHQ = order.counthq
 					newTask.itemid = order.item
 					newTask.useQuick = order.usequick
-					newTask.useHQ = order.useHQ
+					newTask.useHQ = order.usehq
+					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.profile
 					newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
 					

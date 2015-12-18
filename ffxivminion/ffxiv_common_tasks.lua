@@ -192,7 +192,7 @@ function ffxiv_task_movetopos:Init()
 end
 
 function ffxiv_task_movetopos:task_complete_eval()
-	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or self.startMap ~= Player.localmapid) then
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or self.startMap ~= Player.localmapid) then
 		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
 		return true
 	end
@@ -313,7 +313,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 			return true
 		else
 			-- For extremely small distances, allow to execute early if it's reasonably close.
-			if (not ml_global_information.Player_IsMoving and self.range < 1 and distance < 1) then
+			if (not Player:IsMoving() and self.range < 1 and distance < 1) then
 				d("[MOVETOPOS]: Completing due to range reached.")
 				return true
 			end
@@ -335,7 +335,7 @@ function ffxiv_task_movetopos:task_complete_execute()
 end
 
 function ffxiv_task_movetopos:task_fail_eval()
-	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -555,7 +555,7 @@ function ffxiv_task_movetofate:task_fail_eval()
 		return true
 	end
 	
-	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -648,11 +648,11 @@ function ffxiv_task_movetointeract:Init()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
-	if ((ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
-	local myTarget = ml_global_information.Player_Target
+	local myTarget = MGetTarget()
 	local ppos = ml_global_information.Player_Position
 	
 	if (self.interact ~= 0) then
@@ -770,7 +770,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 end
 
 function ffxiv_task_movetointeract:task_fail_eval()
-	if (not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) then
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -834,7 +834,7 @@ function ffxiv_task_movetomap:Init()
 end
 
 function ffxiv_task_movetomap:task_complete_eval()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
+	if (MIsLoading() or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
 		return true
 	end
 	
@@ -926,8 +926,8 @@ function c_sethomepoint:evaluate()
 	e_sethomepoint.aethpos = {}
 	
     local currentTask = ml_task_hub:CurrentTask()
-	if (not currentTask.setHomepoint or ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or 
-		ml_global_information.Player_IsLocked or ml_global_information.Player_Map ~= currentTask.mapID or 
+	if (not currentTask.setHomepoint or MIsLoading() or MIsCasting() or 
+		MIsLocked() or ml_global_information.Player_Map ~= currentTask.mapID or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map)) 
 	then
 		return false
@@ -977,8 +977,12 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_Map ~= self.mapID) then
+	if (MIsLoading() or MIsCasting() or MIsLocked()) then
 		return false
+	end
+	
+	if (Player.localmapid ~= self.mapID) then
+		return true
 	end
 	
 	if (self.setHomepoint and not IsCityMap(ml_global_information.Player_Map)) then
@@ -1011,7 +1015,7 @@ function ffxiv_task_teleport:task_fail_eval()
 		return true
 	end
 	
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked) then
+	if (MIsLoading() or MIsCasting() or MIsLocked()) then
 		self.lastActivity = Now()
 		return false
 	end
@@ -1083,7 +1087,7 @@ function ffxiv_task_stealth:task_complete_eval()
 		if (HasBuffs(Player,"47")) then
 			return true
 		end
-		if (action and action.isoncd and ml_global_information.Player_IsMoving) then
+		if (action and action.isoncd and Player:IsMoving()) then
 			Player:Stop()
 		end
 	end
@@ -1098,7 +1102,7 @@ function ffxiv_task_stealth:task_complete_eval()
 end
 function ffxiv_task_stealth:task_complete_execute()
 	-- Need this or the Player will continue moving at slow speeds.
-	if (self.droppingStealth and ml_global_information.Player_IsMoving) then
+	if (self.droppingStealth and Player:IsMoving()) then
 		Player:Stop()
 		Player:Move(FFXIV.MOVEMENT.FORWARD)
 	end
@@ -1179,13 +1183,13 @@ function ffxiv_task_useitem:task_complete_eval()
 		return false
 	end
 	
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		Player:Stop()
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return false
 	end
 	
-	if (ml_global_information.Player_IsCasting) then
+	if (MIsCasting()) then
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return false 
 	end
@@ -1223,7 +1227,7 @@ function ffxiv_task_useitem:task_fail_eval()
 		return true
 	end
 	
-    return (not Player.alive or ml_global_information.Player_IsLoading)
+    return (not Player.alive or MIsLoading())
 end
 function ffxiv_task_useitem:task_fail_execute()
     self.valid = false
@@ -1288,7 +1292,7 @@ end
 function ffxiv_task_avoid:task_complete_execute()
     Player:Stop()
     
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	if (target ~= nil) then
 		local pos = target.pos
 		Player:SetFacing(pos.x,pos.y,pos.z)
@@ -1412,11 +1416,11 @@ function ffxiv_task_flee:Init()
 end
 
 function ffxiv_task_flee:task_complete_eval()
-	if (ml_global_information.Player_IsLoading) then
+	if (MIsLoading()) then
 		return true
 	end
 	
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		local sprint = ActionList:Get(3)
 		if (sprint and sprint.isready) then
 			sprint:Cast()
@@ -1435,7 +1439,7 @@ function ffxiv_task_flee:task_complete_execute()
 end
 
 function ffxiv_task_flee:task_fail_eval()
-	if (((not c_walktopos:evaluate() and not ml_global_information.Player_IsMoving) and ml_global_information.Player_InCombat)) then
+	if (((not c_walktopos:evaluate() and not Player:IsMoving()) and ml_global_information.Player_InCombat)) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 5000
 		end
@@ -1540,7 +1544,7 @@ function ffxiv_task_grindCombat:Process()
 		--d("Target is valid, commence checks.")
 		
 		if (target.targetable) then
-			local currentTarget = ml_global_information.Player_Target
+			local currentTarget = MGetTarget()
 			if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
 				--d("Set the target.")
 				Player:SetTarget(target.id)
@@ -1601,7 +1605,7 @@ function ffxiv_task_grindCombat:Process()
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
 			--d("Ranged class, check if we're in combat range and such..")
-			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not ml_global_information.Player_IsCasting) then
+			if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1628,7 +1632,7 @@ function ffxiv_task_grindCombat:Process()
 					--d("Need to dismount if we are close.")
 					Dismount()
 				end
-				if (ml_global_information.Player_IsMoving and not IsFlying() and (target.los or CanAttack(target.id))) then
+				if (Player:IsMoving() and not IsFlying() and (target.los or CanAttack(target.id))) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
@@ -1663,7 +1667,7 @@ function ffxiv_task_grindCombat:Process()
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 						local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-						if (dist < 5) then
+						if (p and dist ~= 0) then
 							GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 							self.teleportThrottle = Now() + 1500
 						end
@@ -1834,7 +1838,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 	end
 	
 	if (self.interact ~= 0) then
-		local target = ml_global_information.Player_Target
+		local target = MGetTarget()
 		if (not target or (target and target.id ~= self.interact)) then
 			local interact = EntityList:Get(tonumber(self.interact))
 			if (interact and interact.targetable) then
@@ -1844,7 +1848,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 		end
 		
 		if (target and target.id == self.interact and Now() > self.interactLatency) then
-			if (not ml_global_information.Player_IsLoading and not ml_global_information.Player_IsLocked) then
+			if (not MIsLoading() and not MIsLocked()) then
 				local interact = EntityList:Get(tonumber(self.interact))
 				local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
 				if (interact and interact.distance < (radius * 4)) then
@@ -1858,7 +1862,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 	end
 	
 	local interact = EntityList:Get(tonumber(self.interact))
-	if (not interact or not interact.targetable or ml_global_information.Player_IsLoading or interact.distance > 6) then
+	if (not interact or not interact.targetable or MIsLoading() or interact.distance > 6) then
 		return true
 	end
 end
@@ -1970,20 +1974,20 @@ function ffxiv_nav_interact:Init()
 end
 
 function ffxiv_nav_interact:task_complete_eval()
-	local myTarget = ml_global_information.Player_Target
+	local myTarget = MGetTarget()
 	local ppos = ml_global_information.Player_Position
 	
-	if (ml_global_information.Player_IsLoading and not self.areaChanged) then
+	if (MIsLoading() and not self.areaChanged) then
 		self.areaChanged = true
 		return false
 	end
 	
-	if (not ml_global_information.Player_IsLoading and self.areaChanged) then
+	if (not MIsLoading() and self.areaChanged) then
 		return true
 	end
 	
-	if (ml_global_information.Player_IsLocked or ControlVisible("SelectYesno")) then
-		if (ml_global_information.Player_IsMoving) then
+	if (MIsLocked() or ControlVisible("SelectYesno")) then
+		if (Player:IsMoving()) then
 			Player:Stop()
 		end
 		return false

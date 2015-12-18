@@ -367,7 +367,7 @@ function c_gathersimple:evaluate()
 		
     local list = Player:GetGatherableSlotList()
 	if (list) then
-		if (ml_global_information.Player_IsMoving) then
+		if (Player:IsMoving()) then
 			Player:Stop()
 		end
 		return true
@@ -383,7 +383,7 @@ function e_gathersimple:execute()
 	
     local list = Player:GetGatherableSlotList()
     if (list ~= nil) then
-		local node = ml_global_information.Player_Target
+		local node = MGetTarget()
 		if (not ValidTable(node) or not node.cangather) then
 			return
 		end
@@ -394,7 +394,7 @@ function e_gathersimple:execute()
         end
 		
         if ( gSMactive == "1") then
-			if (ActionList:IsCasting()) then return end
+			if (IsPlayerCasting()) then return end
             if (SkillMgr.Gather()) then
 				ml_task_hub:CurrentTask().failedTimer = Now()
                 return

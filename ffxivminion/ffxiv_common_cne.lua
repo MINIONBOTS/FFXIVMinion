@@ -54,7 +54,7 @@ function c_add_killtarget:evaluate()
 		return false
 	end
 	
-	if (ml_global_information.Player_IsCasting or Now() < c_add_killtarget.oocCastTimer) then
+	if (MIsCasting() or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
 	
@@ -259,7 +259,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (gAtma == "0" or ml_global_information.Player_InCombat or ffxiv_task_grind.inFate or ml_global_information.Player_IsLoading) then
+	if (gAtma == "0" or ml_global_information.Player_InCombat or ffxiv_task_grind.inFate or MIsLoading()) then
 		return false
 	end
 	
@@ -616,7 +616,7 @@ e_interactgate.timer = 0
 e_interactgate.id = 0
 e_interactgate.selector = 0
 function c_interactgate:evaluate()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+	if (MIsLoading() or MIsLocked() or MIsCasting()) then
 		return false
 	end
 	
@@ -652,7 +652,7 @@ function e_interactgate:execute()
 		return false
 	end
 	
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		Player:Stop()
 	end
 	
@@ -674,7 +674,7 @@ c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+	if (MIsLoading() or MIsLocked() or MIsCasting()) then
 		return false
 	end
 	
@@ -725,9 +725,9 @@ c_movetogate = inheritsFrom( ml_cause )
 e_movetogate = inheritsFrom( ml_effect )
 e_movetogate.pos = {}
 function c_movetogate:evaluate()
-	if (ml_global_information.Player_IsLoading or 
-		(ml_global_information.Player_IsLocked and not IsFlying()) or 
-		ml_global_information.Player_IsCasting or
+	if (MIsLoading() or 
+		(MIsLocked() and not IsFlying()) or 
+		MIsCasting() or
 		ml_global_information.Player_Map == 0) 
 	then
 		return false
@@ -797,7 +797,7 @@ c_leavelockedarea = inheritsFrom( ml_cause )
 e_leavelockedarea = inheritsFrom( ml_effect )
 e_leavelockedarea.map = 0
 function c_leavelockedarea:evaluate()
-	if (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+	if (MIsLoading() or MIsLocked() or MIsCasting()) then
 		return false
 	end
 	
@@ -843,9 +843,9 @@ c_teleporttomap = inheritsFrom( ml_cause )
 e_teleporttomap = inheritsFrom( ml_effect )
 e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
-	if (ml_global_information.Player_IsLoading or 
-		(ml_global_information.Player_IsLocked and not IsFlying()) or 
-		ml_global_information.Player_IsCasting or GilCount() < 1500 or
+	if (MIsLoading() or 
+		(MIsLocked() and not IsFlying()) or 
+		MIsCasting() or GilCount() < 1500 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == ml_global_information.Player_Map) 
 	then
@@ -863,7 +863,7 @@ function c_teleporttomap:evaluate()
 	
 	--Only perform this check when dismounted.
 	local teleport = ActionList:Get(7,5)
-	if (not teleport or not teleport.isready or ml_global_information.Player_Casting.channelingid == 5) then
+	if (not teleport or not teleport.isready or Player.castinginfo.channelingid == 5) then
 		ml_debug("Cannot use teleport, the spell is not ready or we are already casting it.")
 		return false
 	end
@@ -933,7 +933,7 @@ function c_teleporttomap:evaluate()
     return false
 end
 function e_teleporttomap:execute()
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		Player:Stop()
 		return
 	end
@@ -964,7 +964,7 @@ c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == GetString("partyMode") and IsLeader() or ml_global_information.Player_IsCasting) then
+	if (gBotMode == GetString("partyMode") and IsLeader() or MIsCasting()) then
         return false
     end
 	
@@ -1008,7 +1008,7 @@ function e_followleader:execute()
 		
 		if (gUseMount == "1" and gMount ~= "None" and c_followleader.hasEntity) then
 			if (((leader.castinginfo.channelingid == 4 or leader.ismounted) or distance >= tonumber(gMountDist)) and not Player.ismounted) then
-				if (not ml_global_information.Player_IsCasting) then
+				if (not MIsCasting()) then
 					Player:Stop()
 					Mount()
 				end
@@ -1038,7 +1038,7 @@ function e_followleader:execute()
 		else
 			ml_debug( "Moving to Leader: "..tostring(Player:MoveTo(leaderPos.x, leaderPos.y, leaderPos.z, tonumber(c_followleader.range),false,false)))	
 		end
-		if ( not ml_global_information.Player_IsMoving) then
+		if ( not Player:IsMoving()) then
 			if ( ml_global_information.AttackRange < 5 ) then
 				c_followleader.range = math.random(4,6)
 			else
@@ -1047,7 +1047,7 @@ function e_followleader:execute()
 		end
 		e_followleader.isFollowing = true
 	else
-		if ( not ml_global_information.Player_IsMoving ) then
+		if ( not Player:IsMoving() ) then
 			FollowResult = Player:FollowTarget(leader.id)
 			ml_debug( "Following Leader: "..tostring(FollowResult))
 		end
@@ -1073,13 +1073,15 @@ e_walktopos.lastPath = 0
 e_walktopos.lastFail = 0
 e_walktopos.lastStealth = 0
 c_walktopos.lastPos = {}
+e_walktopos.movedNotMoving = 0
 function c_walktopos:evaluate()
-	if ((ml_global_information.Player_IsLocked and not IsFlying()) or 
-		ml_global_information.Player_IsLoading or
+	if ((MIsLocked() and not IsFlying()) or 
+		MIsLoading() or
+		Player:IsJumping() or 
 		IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
 		IsShopWindowOpen() or
-		(ml_global_information.Player_IsCasting and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
+		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
 		return false
 	end
@@ -1174,7 +1176,7 @@ function e_walktopos:execute()
 		
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist > 2) then
-		
+			
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
 			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
 			
@@ -1189,6 +1191,16 @@ function e_walktopos:execute()
 			elseif (path >= 0) then
 				ml_debug("[e_walktopos]: A path with ["..tostring(path).."] points was created.", "gLogCNE", 2)
 				e_walktopos.lastPath = Now()
+				
+				if (not Player:IsMoving()) then
+					if (e_walktopos.movedNotMoving > 2) then
+						Player:Stop()
+						e_walktopos.movedNotMoving = 0
+					else
+						e_walktopos.movedNotMoving = e_walktopos.movedNotMoving + 1
+					end						
+				end
+				
 				return
 			elseif (path <= -1) then
 				ml_debug("[e_walktopos]: A path could not be created towards the goal, error code ["..tostring(path).."].", "gLogCNE", 2)
@@ -1199,7 +1211,7 @@ function e_walktopos:execute()
 			--d("We are very close, make sure we aren't flying.")
 			if (not IsFlying()) then
 				Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
-				if (not ml_global_information.Player_IsMoving) then
+				if (not Player:IsMoving()) then
 					Player:Move(FFXIV.MOVEMENT.FORWARD)
 					e_walktopos.lastRun = Now()
 				end
@@ -1307,7 +1319,7 @@ function c_usenavinteraction:evaluate(pos)
 	return false
 end
 function e_usenavinteraction:execute()
-	if (ml_global_information.Player_IsCasting or Now() < e_usenavinteraction.timer or c_usenavinteraction.blockOnly) then
+	if (MIsCasting() or Now() < e_usenavinteraction.timer or c_usenavinteraction.blockOnly) then
 		return false
 	end
 	
@@ -1328,7 +1340,7 @@ function c_bettertargetsearch:evaluate()
 		return false
 	end
 	
-	if (ml_global_information.Player_IsCasting or Now() < c_add_killtarget.oocCastTimer) then
+	if (MIsCasting() or Now() < c_add_killtarget.oocCastTimer) then
 		return false
 	end
     
@@ -1364,7 +1376,7 @@ e_mount.id = 0
 e_mount.lastPathCheck = 0
 e_mount.lastPathPos = {}
 function c_mount:evaluate()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
 		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
 	then
 		return false
@@ -1483,7 +1495,7 @@ c_battlemount = inheritsFrom( ml_cause )
 e_battlemount = inheritsFrom( ml_effect )
 e_battlemount.id = 0
 function c_battlemount:evaluate()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
 		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
 	then
 		return false
@@ -1584,7 +1596,7 @@ function c_companion:evaluate()
 	--Reset tempvar.
 	e_companion.blockOnly = false
 	
-	if (ml_global_information.Player_Casting.channelingid == 4868) then
+	if (Player.castinginfo.channelingid == 4868) then
 		e_companion.blockOnly = true
 		return true
 	end
@@ -1663,11 +1675,11 @@ function c_sprint:evaluate()
         return false
     end
 	
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
+	if (MIsLocked() or MIsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
 		return false
 	end
 
-    if (not HasBuff(Player.id, 50) and ml_global_information.Player_IsMoving) then
+    if (not HasBuff(Player.id, 50) and Player:IsMoving()) then
 		if (IsCityMap(ml_global_information.Player_Map) or gUseSprint == "1") then
 			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 				local myPos = ml_global_information.Player_Position
@@ -1992,10 +2004,10 @@ c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == GetString("assistMode")) then
-		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not ml_global_information.Player_IsLoading)
+		return (gConfirmDuty == "1" and ControlVisible("ContentsFinderConfirm") and not MIsLoading())
 	end
 	
-    return (ControlVisible("ContentsFinderConfirm") and not ml_global_information.Player_IsLoading and Player.revivestate ~= 2 and Player.revivestate ~= 3)
+    return (ControlVisible("ContentsFinderConfirm") and not MIsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
 	PressDutyConfirm(true)
@@ -2283,7 +2295,7 @@ function c_teleporttopos:evaluate()
 	end
 	
 	local useTeleport = ml_task_hub:CurrentTask().useTeleport
-	if (ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or IsMounting() or 
+	if (MIsCasting() or MIsLocked() or MIsLoading() or IsMounting() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or
 		not ValidTable(ml_task_hub:CurrentTask().pos) or not useTeleport) 
 	then
@@ -2338,7 +2350,7 @@ e_autoequip.slot = nil
 --e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
-		IsShopWindowOpen() or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or 
+		IsShopWindowOpen() or MIsLocked() or MIsLoading() or 
 		not Player.alive or ml_global_information.Player_InCombat or
 		Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
 	then
@@ -2526,7 +2538,7 @@ c_returntomap = inheritsFrom( ml_cause )
 e_returntomap = inheritsFrom( ml_effect )
 e_returntomap.mapID = 0
 function c_returntomap:evaluate()
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or not Player.alive) then
+	if (MIsLocked() or MIsLoading() or not Player.alive) then
 		return false
 	end
 	
@@ -2621,7 +2633,7 @@ e_clearaggressive = inheritsFrom( ml_effect )
 c_clearaggressive.targetid = 0
 c_clearaggressive.timer = 0
 function c_clearaggressive:evaluate()
-	if (ml_global_information.Player_IsCasting or ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (MIsCasting() or MIsLocked() or MIsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		return false
 	end
 	
@@ -2705,7 +2717,7 @@ end
 c_isloading = inheritsFrom( ml_cause )
 e_isloading = inheritsFrom( ml_effect )
 function c_isloading:evaluate()
-	return ml_global_information.Player_IsLoading
+	return MIsLoading()
 end
 function e_isloading:execute()
 	d("Character is loading, prevent other actions and idle.")
@@ -2737,7 +2749,7 @@ end
 c_movetomap = inheritsFrom( ml_cause )
 e_movetomap = inheritsFrom( ml_effect )
 function c_movetomap:evaluate()
-	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading) then
+	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading()) then
 		return false
 	end
 	
@@ -2794,7 +2806,7 @@ c_moveandinteract = inheritsFrom( ml_cause )
 e_moveandinteract = inheritsFrom( ml_effect )
 c_moveandinteract.entityid = 0
 function c_moveandinteract:evaluate()
-	if (ml_global_information.Player_IsCasting or (ml_global_information.Player_IsLocked and not IsFlying()) or ml_global_information.Player_IsLoading or 
+	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString")) 
 	then
 		return false

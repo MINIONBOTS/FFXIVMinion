@@ -2318,7 +2318,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 				
 	--Check for current target cast preventions first.
 	local cp = Settings.FFXIVMINION.cpOptions
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	if (target) then
 		for k,v in pairs(cp) do
 			if ( v.castids and v.castids ~= "" ) then
@@ -2777,7 +2777,7 @@ function SkillMgr.Craft()
 end
 
 function SkillMgr.Gather(item)
-    local node = ml_global_information.Player_Target
+    local node = MGetTarget()
     if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
         
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
@@ -3718,7 +3718,7 @@ function ffxiv_task_skillmgrAttack:Process()
 end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
-    local target = ml_global_information.Player_Target
+    local target = MGetTarget()
     if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and ml_global_information.Player_Casting.channelingid == nil)) then
 		ml_task_hub:CurrentTask().suppressFollow = false
         return true

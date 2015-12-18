@@ -612,7 +612,7 @@ function GetBestTankHealTarget( range )
         end
     end
 	
-	local ptrg = ml_global_information.Player_Target
+	local ptrg = MGetTarget()
 	if (ptrg and Player.pet) then
 		if (lowest == nil and ptrg.targetid == Player.pet.id) then
 			lowest = Player.pet
@@ -1479,7 +1479,7 @@ function GetNearestUnspoiled(class)
     return nil
 end
 function GetMaxAttackRange()
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	
 	if (target and target.id ~= nil) then
 		local highestRange = 1
@@ -1646,8 +1646,8 @@ function HasInfiniteDuration(id)
 	
 	return infiniteDurationAbilities[id] or false
 end
-function ActionList:IsCasting()
-	return (Player.castinginfo.channelingid ~= 0)
+function IsPlayerCasting()
+	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
@@ -2311,7 +2311,7 @@ function ScanForObjects(ids,distance)
 	return false
 end
 function CanUseCannon()
-	if (ml_global_information.Player_IsLocked) then
+	if (MIsLocked()) then
 		local misc = ActionList("type=1,level=0")
 		if (ValidTable(misc)) then
 			for i,skill in pairsByKeys(misc) do
@@ -2770,10 +2770,14 @@ function IsDismounting()
 	return (Player.ismounted and (Player.action == 32))
 end
 function IsPositionLocked()
+	if (MIsLoading()) then
+		return true
+	end
+	
 	return not ActionIsReady(2,5)
 end
 function IsLoading()
-	return (Quest:IsLoading() or ml_global_information.Player_Map == 0 or ml_mesh_mgr.loadingMesh)
+	return (Quest:IsLoading() or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
 end
 function HasAction(id, category)
 	id = tonumber(id) or 0
@@ -2792,6 +2796,10 @@ function HasAction(id, category)
 	return false			
 end
 function ActionIsReady(id, category)
+	if (MIsLoading()) then
+		return false
+	end
+
 	id = tonumber(id) or 0
 	category = category or 1
 	
@@ -2929,7 +2937,7 @@ function NodeHasItem(searchItem)
     return false
 end
 function WhitelistTarget()
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	if (target) then
 		local key = GetUSString("contentIDEquals")
 		
@@ -2949,7 +2957,7 @@ function WhitelistTarget()
 	end
 end
 function BlacklistTarget()
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	if (target) then
 		local key = GetUSString("NOTcontentIDEquals")
 		
@@ -3302,7 +3310,7 @@ function GetAetheryteList(force)
 		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 		ml_global_information.lastAetheryteCache = Now()
 	else
-		if not (ml_global_information.Player_IsLoading or ml_global_information.Player_IsLocked or ml_global_information.Player_IsCasting) then
+		if not (MIsLoading() or MIsLocked() or MIsCasting()) then
 			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
 				ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 				ml_global_information.lastAetheryteCache = Now()
@@ -3646,7 +3654,7 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	return newMarkerPos
 end
 function ShouldTeleport(pos)
-	if (ml_global_information.Player_IsLocked or ml_global_information.Player_IsLoading or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
 	
@@ -4093,7 +4101,7 @@ function ItemCount(itemid,includehq,requirehq)
 	for x=0,3 do
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
-			for i, item in pairs(inv) do
+			for i, item in pairs(inv) do				
 				if (item.id == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
@@ -4755,8 +4763,7 @@ end
 
 function IIF(test,truepart,falsepart)
 	if (ValidString(test)) then
-		local f = loadcondition("return (" .. test ..")")()
-		--local f = assert(loadstring("return (" .. test .. ")"))()
+		local f = assert(loadstring("return (" .. test .. ")"))()
 		if (f ~= nil) then
 			if (f == true) then
 				return truepart
@@ -4953,7 +4960,7 @@ function Transport137(pos1,pos2)
 			--d("Need to move from Costa area to Wineport.")
 			return true, function()
 				if (CanUseAetheryte(12) and not ml_global_information.Player_InCombat) then
-					if (ml_global_information.Player_IsMoving) then
+					if (Player:IsMoving()) then
 						Player:Stop()
 						ml_task_hub:CurrentTask():SetDelay(500)
 						return
@@ -4963,7 +4970,7 @@ function Transport137(pos1,pos2)
 						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
-					if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
+					if (ActionIsReady(7,5) and not MIsCasting() and not MIsLocked()) then
 						if (Player:Teleport(12)) then	
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.aetheryte = 12
@@ -4982,7 +4989,7 @@ function Transport137(pos1,pos2)
 			--d("Need to move from Wineport to Costa area.")
 			return true, function()
 				if (CanUseAetheryte(11) and not ml_global_information.Player_InCombat) then
-					if (ml_global_information.Player_IsMoving) then
+					if (Player:IsMoving()) then
 						Player:Stop()
 						ml_task_hub:CurrentTask():SetDelay(500)
 						return
@@ -4992,7 +4999,7 @@ function Transport137(pos1,pos2)
 						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
-					if (ActionIsReady(7,5) and not ml_global_information.Player_IsCasting and not ml_global_information.Player_IsLocked) then
+					if (ActionIsReady(7,5) and not MIsCasting() and not MIsLocked()) then
 						if (Player:Teleport(11)) then
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.aetheryte = 11

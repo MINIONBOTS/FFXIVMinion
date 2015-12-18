@@ -313,6 +313,7 @@ function sck.OnUpdate( event, tickcount )
 		sck.onOffTimer = tickcount
 	end	
 	
+	--[[
 	CC = Settings.FFXIVMINION.ClickCombo["Speed Hack"]
 	local value1 = CC.value1
 	local value2 = CC.value2
@@ -338,6 +339,7 @@ function sck.OnUpdate( event, tickcount )
 			sck.currentSpeed = 6
 		end
 	end	
+	--]]
 	
 	CC = Settings.FFXIVMINION.ClickCombo["PermaSprint"]
 	local value1 = CC.value1

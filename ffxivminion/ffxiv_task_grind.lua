@@ -130,7 +130,7 @@ end
 c_grindisloading = inheritsFrom( ml_cause )
 e_grindisloading = inheritsFrom( ml_effect )
 function c_grindisloading:evaluate()
-	return ml_global_information.Player_IsLoading
+	return MIsLoading()
 end
 function e_grindisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
@@ -140,7 +140,7 @@ end
 c_grindislocked = inheritsFrom( ml_cause )
 e_grindislocked = inheritsFrom( ml_effect )
 function c_grindislocked:evaluate()
-	return ml_global_information.Player_IsLocked and not IsFlying()
+	return MIsLocked() and not IsFlying()
 end
 function e_grindislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
@@ -260,7 +260,7 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 function ffxiv_task_grind.BlacklistTarget()
-    local target = ml_global_information.Player_Target
+    local target = MGetTarget()
     if ValidTable(target) then
         ml_blacklist.AddBlacklistEntry(GetString("monsters"), target.contentid, target.name, true)
         ml_debug("Blacklisted "..target.name)
@@ -328,7 +328,7 @@ function ffxiv_task_grind.HuntingUI()
 end
 
 function ffxiv_task_grind.HuntTarget()
-	local target = ml_global_information.Player_Target
+	local target = MGetTarget()
 	if ValidTable(target) then
 		ml_blacklist.AddBlacklistEntry(GetString("huntMonsters"), target.contentid, target.name, true)
 	end
@@ -574,7 +574,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 			gFateMapID = 0
         end
         
-        local target = ml_global_information.Player_Target
+        local target = MGetTarget()
         if target and target.attackable then
             gTargetName = target.name
         else

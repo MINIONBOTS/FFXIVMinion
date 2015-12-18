@@ -244,7 +244,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						
 						-- If our target isn't 0 anymore, select it, and attempt to interact with it.
 						if (ml_mesh_mgr.OMCTarget ~= 0) then
-							local target = ml_global_information.Player_Target
+							local target = MGetTarget()
 							if (not target or (target and target.id ~= ml_mesh_mgr.OMCTarget)) then
 								local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
 								if (interact and interact.targetable) then
@@ -268,7 +268,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							ml_mesh_mgr.OMCStartingDistance = meshdist
 							ml_mesh_mgr.OMCStartPositionReached = true
 							
-							if ( not ml_global_information.Player_IsMoving ) then
+							if ( not Player:IsMoving() ) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
 							end
 							
@@ -288,14 +288,14 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					else
 						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
-						if ((ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
-							(not ml_global_information.Player_IsMoving and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
+						if ((Player:IsMoving() and ((not Player.ismounted and meshdist < 0.75) or (Player.ismounted and meshdist < 1))) or
+							(not Player:IsMoving() and ((not Player.ismounted and meshdist < 1.5) or (Player.ismounted and meshdist < 1.75))))
 						then
 							Player:SetFacing(sPos.h) -- Set heading
 							ml_mesh_mgr.OMCStartingDistance = meshdist
 							ml_mesh_mgr.OMCStartPositionReached = true
 							
-							if ( not ml_global_information.Player_IsMoving ) then
+							if ( not Player:IsMoving() ) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
 							end
 						
@@ -355,7 +355,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
 						Player:SetFacing(facingPos)
 					
-						if ( not ml_global_information.Player_IsMoving ) then 
+						if ( not Player:IsMoving() ) then 
 							Player:Move(FFXIV.MOVEMENT.FORWARD) 
 						end
 						
@@ -390,8 +390,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					end
 
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
-						if ( ml_global_information.Player_IsMoving ) then Player:Stop() end
+					if ( ValidTable(ml_mesh_mgr.OMCEndposition) and gTeleport == "1") then
+						if ( Player:IsMoving() ) then Player:Stop() end
 						-- Add playerdetection when distance to OMCEndposition is > xxx
 						local enddist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
 						if ( enddist > 2.20 ) then
@@ -408,6 +408,9 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						ml_mesh_mgr.ResetOMC()
 						Player:Stop()
 						ml_mesh_mgr.OMCThrottle = Now() + 2000
+					else
+						d("Denied a teleport OMC.")
+						ml_mesh_mgr.ResetOMC()
 					end
 				
 				elseif ( ml_mesh_mgr.OMCType == "OMC_INTERACT" ) then
@@ -423,7 +426,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						return
 					end
 					
-					if (ml_global_information.Player_IsLoading) then
+					if (MIsLoading()) then
 						ml_mesh_mgr.OMCThrottle = Now() + 1500
 						ml_mesh_mgr.ResetOMC()
 						return
@@ -448,7 +451,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						return
 					end
 					
-					local target = ml_global_information.Player_Target
+					local target = MGetTarget()
 					if (target and target.id == ml_mesh_mgr.OMCTarget) then						
 						local interact = EntityList:Get(tonumber(ml_mesh_mgr.OMCTarget))
 						local radius = (interact.hitradius >= 1 and interact.hitradius) or 1
@@ -488,7 +491,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 									if (not ml_global_information.Player_InCombat) then								
 										local mountID = GetMountID()
 										if (mountID ~= nil) then
-											if (ml_global_information.Player_IsMoving) then
+											if (Player:IsMoving()) then
 												d("Throwing Stop() in mount block.")
 												Player:Stop()
 												ml_mesh_mgr.OMCThrottle = Now() + 100

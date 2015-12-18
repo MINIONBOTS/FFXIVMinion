@@ -91,6 +91,54 @@ function MGetEntity(entityid)
 	end
 end
 
+function MIsLoading()
+	local memString = "MIsLoading"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local ret = IsLoading()
+		SetMemoized(memString,ret)
+		return ret
+	end
+end
+
+function MIsLocked()
+	local memString = "MIsLocked"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local ret = IsPositionLocked()
+		SetMemoized(memString,ret)
+		return ret
+	end
+end
+
+function MIsCasting()
+	local memString = "MIsCasting"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local ret = IsPlayerCasting()
+		SetMemoized(memString,ret)
+		return ret
+	end
+end
+
+function MGetTarget()
+	local memString = "MGetTarget"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local target = Player:GetTarget()
+		SetMemoized(memString,target)
+		return target
+	end
+end
+
 function MEntityList(elstring)
 	elstring = elstring or ""
 	

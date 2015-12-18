@@ -22,7 +22,7 @@ function c_stuck:evaluate()
 	ClearTable(c_stuck.state)
 	c_stuck.blockOnly = false
 	
-	if (gDoUnstuck == "0" or IsFlying()) then
+	if (gDoUnstuck == "0" or IsFlying() or MIsLoading()) then
 		return false
 	end
 	
@@ -103,14 +103,14 @@ function e_stuck:execute()
 		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
 	end
 	
-	if (ml_global_information.Player_IsMoving) then
+	if (Player:IsMoving()) then
 		Player:Stop()
 		return
 	end
 	
 	local teleported = false
 	local teleport = ActionList:Get(7,5)
-	if (teleport and teleport.isready and ml_global_information.Player_Casting.channelingid ~= 5) then
+	if (teleport and teleport.isready and Player.castinginfo.channelingid ~= 5) then
 		local aetheryte = GetAetheryteByMapID(ml_global_information.Player_Map, ml_global_information.Player_Position)
 		if (aetheryte) then
 			if (Player:Teleport(aetheryte.id)) then
@@ -141,16 +141,16 @@ function ffxiv_unstuck.IsStuck()
 	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
 			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
-			not ml_global_information.Player_IsCasting and
-			ml_global_information.Player_IsMoving and
-			not ml_global_information.Player_IsLocked and
+			not MIsCasting() and
+			Player:IsMoving() and
+			not MIsLocked() and
 			not ml_global_information.Player_InCombat and
-			not ml_global_information.Player_IsLoading
+			not MIsLoading()
 end
 
 function ffxiv_unstuck.IsOffMesh()
-	if (not gmeshname or gmeshname == "" or gmeshname == "none" or ml_global_information.Player_IsLoading) then
+	if (not gmeshname or gmeshname == "" or gmeshname == "none" or MIsLoading()) then
 		return false
 	end
-	return not Player.onmesh and not ml_global_information.Player_IsCasting
+	return not Player.onmesh and not MIsCasting()
 end
