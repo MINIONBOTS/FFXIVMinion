@@ -262,16 +262,22 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
-		local foodID = 0
 		if (gFoodHQ ~= "None") then
-			foodID = ffxivminion.foodsHQ[gFoodHQ]
+			local foodID = ffxivminion.foodsHQ[gFoodHQ]
+			
+			local food = MGetItem(foodID,true,true)
+			if (food and not HasBuffs(Player,"48")) then
+				cd("[PreCraftBuff]: Need to eat.",3)
+				e_precraftbuff.activity = "eat"
+				e_precraftbuff.id = foodID
+				e_precraftbuff.requiresLogClose = true
+				return true
+			end
 		elseif (gFood ~= "None") then
-			foodID = ffxivminion.foods[gFood]
-		end
-
-		if foodID ~= 0 then
-			local food = Inventory:Get(foodID)
-			if (ValidTable(food) and MissingBuffs(Player,"48")) then
+			local foodID = ffxivminion.foods[gFood]
+			
+			local food = MGetItem(foodID,false,false)
+			if (food and not HasBuffs(Player,"48")) then
 				cd("[PreCraftBuff]: Need to eat.",3)
 				e_precraftbuff.activity = "eat"
 				e_precraftbuff.id = foodID

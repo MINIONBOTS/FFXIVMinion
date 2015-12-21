@@ -510,6 +510,7 @@ function c_gather:evaluate()
 end
 function e_gather:execute()		
 	if (Now() < ffxiv_task_gather.timer) then
+		d("Cannot gather yet, timer still active for another ["..tostring((ffxiv_task_gather.timer - Now())/1000).."] seconds.")
 		return false
 	end
 	
@@ -532,23 +533,12 @@ function e_gather:execute()
 		end
 	end
 	
-	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_task_hub:CurrentTask():SetDelay(500)
-		return
-	end
-	
-	if (Player.ismounted) then
-		Dismount()
-		ml_task_hub:CurrentTask():SetDelay(1500)
-		return
-	end
-	
     local list = Player:GetGatherableSlotList()
     if (ValidTable(list)) then
 			
 		if (thisNode.contentid >= 5) then	
 			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 3000) then
+				d("Still under a delay due to this being an unspoiled node.")
 				return
 			end
 		end
@@ -586,7 +576,7 @@ function e_gather:execute()
 		end
 		
 		local itemsVisible = ml_task_hub:CurrentTask().itemsUncovered or not IsUnspoiled(thisNode.contentid)
-		if (itemsVisible and TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000) then
+		if (itemsVisible and (TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000 or ml_task_hub:CurrentTask().failedTimer == 0)) then
 			-- 1st pass, maps
 			if (not ml_task_hub:CurrentTask().gatheredMap) then
 				gd("[1] We haven't gathered a map, continue processing...",3)
@@ -642,6 +632,7 @@ function e_gather:execute()
 										if (SkillMgr.Gather(item)) then
 											ml_task_hub:CurrentTask().failedTimer = Now()
 											ffxiv_task_gather.timer = Now() + 2000
+											d("Setting a delay after attempting to use a skill in map section.")
 											return
 										end
 
@@ -649,6 +640,7 @@ function e_gather:execute()
 										if (result == 65536) then
 											ffxiv_task_gather.timer = Now() + 300
 											ffxiv_task_gather.awaitingSuccess = true
+											d("Setting a delay after attempting to gather in map section.")
 											return
 										elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
 											ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
@@ -669,6 +661,8 @@ function e_gather:execute()
 					end
 				end
 			end
+			
+			--d("Checking gardening section.")
 			
 			-- 2nd pass, gardening supplies
 			if (not ml_task_hub:CurrentTask().gatheredGardening) then
@@ -724,6 +718,8 @@ function e_gather:execute()
 				end
 			end
 			
+			--d("Checking special rare item section.")
+			
 			-- 3rd pass, try to get special rare items
 			if (not ml_task_hub:CurrentTask().gatheredSpecialRare) then
 				if (gatherSuperRares ~= "" and gatherSuperRares ~= false and gatherSuperRares ~= "0") then
@@ -778,6 +774,8 @@ function e_gather:execute()
 					end
 				end
 			end
+			
+			--d("Checking ixali rare item section.")
 							
 			-- 5th pass, ixali rare items
 			if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
@@ -810,6 +808,8 @@ function e_gather:execute()
 					end
 				end
 			end
+			
+			--d("Checking ixali semi-rare item section.")
 	
 			-- 6th pass, semi-rare ixali items
 			for i, item in pairs(list) do
@@ -831,6 +831,8 @@ function e_gather:execute()
 					end
 				end
 			end
+			
+			--d("Checking chocobo rare item section.")
 			
 			-- 7th pass to get chocobo rare items
 			if (not ml_task_hub:CurrentTask().gatheredChocoFood) then
@@ -888,6 +890,8 @@ function e_gather:execute()
 			end
 		end
 		
+		--d("Checking regular rare item section.")
+		
 		-- 4th pass, regular rare items
 		if (gatherRares ~= "" and gatherRares ~= false and gatherRares ~= "0") then
 			for i, item in pairs(list) do
@@ -928,6 +932,8 @@ function e_gather:execute()
 				end
 			end
 		end
+		
+		--d("Checking chocobo item section.")
 		
 		-- 7th pass to get chocobo items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
@@ -971,6 +977,8 @@ function e_gather:execute()
 				end
 			end
 		end
+		
+		--d("Checking unknown item section.")
 		
 			-- Gather unknown items to unlock them.
 		if (Player.level < 60) then
@@ -1023,6 +1031,8 @@ function e_gather:execute()
 				end
 			end
 		end
+		
+		--d("Checking regular item section.")
 		
 		local itemid1 = 0
 		local itemid2 = 0
@@ -1190,6 +1200,8 @@ function e_gather:execute()
 				end
 			end
 		end
+		
+		--d("Checking unknown items, couldn't find any regular items.")
 			
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
@@ -1205,73 +1217,43 @@ function e_gather:execute()
 						return
 					end
 					
-					ffxiv_task_gather.lastItemAttempted	= item.id
-					local result = Player:Gather(item.index)
-					if (result == 65536) then
-						ffxiv_task_gather.timer = Now() + 300
-						ffxiv_task_gather.awaitingSuccess = true
-					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-						if (IsChocoboFoodSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredChocoFood = true
-						elseif (IsGardening(item.id)) then
-							ml_task_hub:CurrentTask().gatheredGardening = true
-						elseif (IsMap(item.id)) then
-							ml_task_hub:CurrentTask().gatheredMap = true
-						elseif (IsRareItemSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredSpecialRare = true
+					if (not HasBuffs(Player,"805")) then
+						ffxiv_task_gather.lastItemAttempted	= item.id	
+						local result = Player:Gather(item.index)
+						if (result == 65536) then
+							ffxiv_task_gather.timer = Now() + 300
+							ffxiv_task_gather.awaitingSuccess = true
+						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+							if (IsChocoboFoodSpecial(item.id)) then
+								ml_task_hub:CurrentTask().gatheredChocoFood = true
+							elseif (IsGardening(item.id)) then
+								ml_task_hub:CurrentTask().gatheredGardening = true
+							elseif (IsMap(item.id)) then
+								ml_task_hub:CurrentTask().gatheredMap = true
+							elseif (IsRareItemSpecial(item.id)) then
+								ml_task_hub:CurrentTask().gatheredSpecialRare = true
+							end
+							
+							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+							ml_task_hub:CurrentTask().gatherTimer = Now()
+							ml_task_hub:CurrentTask().failedTimer = Now()
+							ffxiv_task_gather.timer = Now() + 750
+							ffxiv_task_gather.awaitingSuccess = false
 						end
-						
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 750
-						ffxiv_task_gather.awaitingSuccess = false
-					end
-					return
+						return
+					else
+						local collect = GetAction(ffxiv_task_gather.collectors[Player.job],1)
+						if (collect and collect.isready) then
+							collect:Cast()
+							ffxiv_task_gather.timer = Now() + 2000
+							return
+						end
+					end					
 				end
 			end
 		end
 		
-		-- Gather unknown items to unlock them.
-		for i,item in pairs(list) do
-			if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
-				if ((not IsChocoboFoodSpecial(item.id) or (IsChocoboFoodSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
-					(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
-					(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)) and 
-					(not IsRareItemSpecial(item.id) or (IsRareItemSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredSpecialRare)))
-				then
-					if (SkillMgr.Gather(item)) then
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2000
-						return
-					end
-					
-					ffxiv_task_gather.lastItemAttempted	= item.id
-					local result = Player:Gather(item.index)
-					if (result == 65536) then
-						ffxiv_task_gather.timer = Now() + 300
-						ffxiv_task_gather.awaitingSuccess = true
-					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-						if (IsChocoboFoodSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredChocoFood = true
-						elseif (IsGardening(item.id)) then
-							ml_task_hub:CurrentTask().gatheredGardening = true
-						elseif (IsMap(item.id)) then
-							ml_task_hub:CurrentTask().gatheredMap = true
-						elseif (IsRareItemSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredSpecialRare = true
-						end
-						
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 750
-						ffxiv_task_gather.awaitingSuccess = false
-					end
-					return
-				end
-			end
-		end
+		--d("Checking random items with good chance.")
 			
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
@@ -1297,6 +1279,8 @@ function e_gather:execute()
 				return
 			end
 		end
+		
+		--d("Checking random items.")
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
@@ -1331,7 +1315,7 @@ e_nodeprebuff.activity = ""
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
-	if (ml_global_information.IsLoading or MIsCasting() or ml_global_information.IsLocked) then
+	if (MIsLoading() or MIsCasting() or MIsLocked()) then
 		return false
 	end
 	

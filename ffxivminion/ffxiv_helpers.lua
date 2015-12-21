@@ -1506,24 +1506,13 @@ end
 function HasBuff(targetid, buffID)
 	local buffID = tonumber(buffID) or 0
 	
-	if (targetid == Player.id) then
-		local buffs = ml_global_information.Player_Buffs
+	local entity = EntityList:Get(targetid)
+	if (ValidTable(entity)) then
+		local buffs = entity.buffs
 		if (ValidTable(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
 					return true
-				end
-			end
-		end
-	else
-		local entity = EntityList:Get(targetid)
-		if (ValidTable(entity)) then
-			local buffs = entity.buffs
-			if (ValidTable(buffs)) then
-				for i, buff in pairs(buffs) do
-					if (buff.id == buffID) then
-						return true
-					end
 				end
 			end
 		end
@@ -1561,12 +1550,8 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	local owner = ownerid or 0
 	
 	if (ValidTable(entity)) then
-		local buffs;
-		if (entity.id == Player.id) then
-			buffs = ml_global_information.Player_Buffs
-		else
-			buffs = entity.buffs
-		end
+		local buffs = entity.buffs
+
 		if (ValidTable(buffs)) then
 			for _orids in StringSplit(buffIDs,",") do
 				local found = false
@@ -1598,12 +1583,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 	
 	if (ValidTable(entity)) then
 		--If we have no buffs, we are missing everything.
-		local buffs;
-		if (entity.id == Player.id) then
-			buffs = ml_global_information.Player_Buffs
-		else
-			buffs = entity.buffs
-		end
+		local buffs = entity.buffs
 		
 		if (ValidTable(buffs)) then
 			--Start by assuming we have no buffs, so they are missing.
@@ -2767,7 +2747,7 @@ function IsMounted()
 	return (Player.ismounted)
 end
 function IsDismounting()
-	return (Player.ismounted and (Player.action == 32))
+	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
 	if (MIsLoading()) then
@@ -2777,7 +2757,19 @@ function IsPositionLocked()
 	return not ActionIsReady(2,5)
 end
 function IsLoading()
-	return (Quest:IsLoading() or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
+	if (Quest:IsLoading()) then
+		--d("IsLoading [1]")
+		return true
+	elseif (Player.localmapid == 0) then
+		--d("IsLoading [2]")
+		return true
+	elseif (ml_mesh_mgr.loadingMesh) then
+		--d("IsLoading [3]")
+		return true
+	end
+	
+	return false
+	--return (Quest:IsLoading() or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
 end
 function HasAction(id, category)
 	id = tonumber(id) or 0
@@ -2833,7 +2825,7 @@ function Mount(id)
 		if (mountID ~= 0) then
 			for k,acmount in pairsByKeys(mounts) do
 				if (acmount.id == mountID and acmount.isready) then
-					d("Casted the mount.")
+					--d("Casted the mount.")
 					acmount:Cast()
 				end
 			end
@@ -2893,13 +2885,16 @@ function ShouldEat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
+		
+		local food = MGetItem(foodID,true,true)
+		if (food and not HasBuffs(Player,"48")) then
+			return true
+		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
-	end
-			
-	if (foodID) then
-		local food = Inventory:Get(foodID)
-		if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+		
+		local food = MGetItem(foodID,false,false)
+		if (food and not HasBuffs(Player,"48")) then
 			return true
 		end
 	end
@@ -2909,13 +2904,14 @@ function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
+		local food = MGetItem(foodID,true,true)
+		if (food and not HasBuffs(Player,"48")) then
+			food:Use()
+		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
-	end
-			
-	if (foodID) then
-		local food = Inventory:Get(foodID)
-		if (TableSize(food) > 0 and not HasBuffs(Player,"48")) then
+		local food = MGetItem(foodID,false,false)
+		if (food and not HasBuffs(Player,"48")) then
 			food:Use()
 		end
 	end
@@ -3843,26 +3839,9 @@ function EquipItem(itemid, itemslot)
 	local itemtype = tonumber(itemslot)
 	local itemid = tonumber(itemid)
 	
-	local item = Inventory:Get(itemid)
+	local item = MGetItem(itemid)
 	if (item and item.canequip) then
 		item:Move(1000,itemslot)
-	end
-end
-function UnequipItem(itemid)
-	local itemid = tonumber(itemid)
-	
-	local item = GetEquippedItem(itemid)
-	if (item) then
-		local itemData = GetItemData(item.id)
-		if (itemData) then
-			local armorySlot = GetArmorySlotForItem(itemData.slot)
-			if (armorySlot) then
-				local freeSlot = GetFirstFreeArmorySlot(armorySlot)
-				if (freeSlot) then
-					item:Move(armorySlot,freeSlot)
-				end
-			end
-		end
 	end
 end
 function IsEquipped(itemid)
@@ -3905,7 +3884,7 @@ function ItemIsReady(itemid)
 	for x=0,3 do
 		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
-			if (itemid == item.id) then
+			if (itemid == item.hqid) then
 				hasItem = true
 			end
 			if (hasItem) then
@@ -3915,7 +3894,7 @@ function ItemIsReady(itemid)
 	end
 
 	if (hasItem) then					
-		local item = Inventory:Get(itemid)
+		local item = MGetItem(itemid)
 		if (item and item.isready) then
 			return true
 		end
@@ -4052,9 +4031,10 @@ function GetInventorySnapshot()
 	
 	return currentSnapshot
 end
+
 function GetInventoryItemGains(itemid,hqonly)
-	local itemid = tonumber(itemid) or 0
 	hqonly = IsNull(hqonly,false)
+	itemid = tonumber(itemid) or 0
 	
 	local originalCount = 0
 	local newCount = 0
@@ -4087,13 +4067,171 @@ function GetInventoryItemGains(itemid,hqonly)
 		end
 	end
 	
-	local gained = newCount - originalCount
-		
+	local gained = newCount - originalCount	
 	return gained
 end
 
+function GetItem(itemid,includehq,requirehq)
+	itemid = tonumber(itemid) or 0
+	includehq = IsNull(includehq,false)
+	requirehq = IsNull(requirehq,false)
+	
+	--Look through regular bags first.
+	for x=0,3 do
+		local inv = MInventory("type="..tostring(x))
+		if (ValidTable(inv)) then
+			for i, item in pairs(inv) do				
+				if (item.hqid == itemid) then
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							return item
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							return item
+						end
+					end
+				end
+			end
+		end
+	end
+
+	--Look through equipped items bag.
+	local inv = MInventory("type=1000")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						return item
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						return item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through currency bag.
+	local inv = MInventory("type=2000")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through crystals bag.
+	local inv = MInventory("type=2001")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = MInventory("type="..tostring(x))
+		if (ValidTable(inv)) then
+			for i,item in pairs(inv) do
+				if (item.hqid == itemid) then
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							return item
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							return item
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = MInventory("type=3300")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						return item
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						return item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through soulstones armory bag.
+	local inv = MInventory("type=3400")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						return item
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						return item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = MInventory("type=3500")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						return item
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						return item
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through quest/key items bag.
+	local inv = MInventory("type=2004")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				if (requirehq) then
+					if (toboolean(item.IsHQ)) then
+						return item
+					end
+				else	
+					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+						return item
+					end
+				end
+			end
+		end
+	end
+	
+	return nil
+end
+
 function ItemCount(itemid,includehq,requirehq)
-	includehq = IsNull(includehq,true)
+	itemid = tonumber(itemid) or 0
+	includehq = IsNull(includehq,false)
 	requirehq = IsNull(requirehq,false)
 	local itemcount = 0
 	
@@ -4102,7 +4240,7 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i, item in pairs(inv) do				
-				if (item.id == itemid) then
+				if (item.hqid == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4121,7 +4259,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=1000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4139,7 +4277,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4149,7 +4287,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2001")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4160,7 +4298,7 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i,item in pairs(inv) do
-				if (item.id == itemid) then
+				if (item.hqid == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4179,7 +4317,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3300")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4197,7 +4335,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3400")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4215,7 +4353,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3500")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4233,7 +4371,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2004")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4329,7 +4467,7 @@ function IsArmoryFull(slot)
 		if (inv) then
 			local occupiedSlots = 0
 			for i, item in pairs(inv) do
-				if (item.id and item.id ~= 0) then
+				if (item.id ~= 0) then
 					occupiedSlots = occupiedSlots + 1
 				end
 			end
@@ -4362,7 +4500,7 @@ function ArmoryItemCount(slot)
 		if (inv) then
 			local occupiedSlots = 0
 			for i, item in pairs(inv) do
-				if (item.id and item.id ~= 0) then
+				if (item and item.id ~= 0) then
 					occupiedSlots = occupiedSlots + 1
 				end
 			end
@@ -4406,7 +4544,6 @@ function GetFirstFreeInventorySlot()
 					end
 				end
 				if (not found) then
-					d("bag = "..tostring(x)..", slot = "..tostring(i))
 					return x,i
 				end
 			end
@@ -4419,7 +4556,7 @@ function GetEquippedItem(itemid)
 	
 	local inv = MInventory("type=1000")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.hqid == itemid) then
 			return item
 		end
 	end
@@ -4433,7 +4570,7 @@ function GetUnequippedItem(itemid)
 	for x=0,3 do
 		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				return item
 			end
 		end
@@ -4443,7 +4580,7 @@ function GetUnequippedItem(itemid)
 	for x=3200,3209 do
 		local inv = MInventory("type="..tostring(x))
 		for i, item in pairs(inv) do
-			if (item.id == itemid) then
+			if (item.hqid == itemid) then
 				return item
 			end
 		end
@@ -4452,7 +4589,7 @@ function GetUnequippedItem(itemid)
 	--Look through rings armory bag.
 	local inv = MInventory("type=3300")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.hqid == itemid) then
 			return item
 		end
 	end
@@ -4460,7 +4597,7 @@ function GetUnequippedItem(itemid)
 	--Look through soulstones armory bag.
 	local inv = MInventory("type=3400")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.hqid == itemid) then
 			return item
 		end
 	end
@@ -4468,7 +4605,7 @@ function GetUnequippedItem(itemid)
 	--Look through weapons armory bag.
 	local inv = MInventory("type=3500")
 	for i, item in pairs(inv) do
-		if (item.id == itemid) then
+		if (item.hqid == itemid) then
 			return item
 		end
 	end

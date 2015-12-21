@@ -2323,7 +2323,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 		for k,v in pairs(cp) do
 			if ( v.castids and v.castids ~= "" ) then
 				if (isCasting(target, v.castids, nil, nil )) then
-					if (ml_global_information.Player_IsCasting) then
+					if (MIsCasting()) then
 						ActionList:Cast(2,Player.id,5)
 					end
 					return false
@@ -2601,7 +2601,7 @@ function SkillMgr.Craft()
 	local al = ActionList("type=8")
 	
     local synth = Crafting:SynthInfo()
-    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
+    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile) and not MIsCasting()) then
 		
 		if (SkillMgr.newCraft) then
 			SkillMgr.currentIQStack = 0 
@@ -2778,7 +2778,7 @@ end
 
 function SkillMgr.Gather(item)
     local node = MGetTarget()
-    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not ml_global_information.Player_IsCasting) then
+    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile) and not MIsCasting()) then
         
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
@@ -3719,7 +3719,7 @@ end
 
 function ffxiv_task_skillmgrAttack:task_complete_eval()
     local target = MGetTarget()
-    if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and ml_global_information.Player_Casting.channelingid == nil)) then
+    if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and Player.castinginfo.channelingid == 0)) then
 		ml_task_hub:CurrentTask().suppressFollow = false
         return true
     end
@@ -3740,7 +3740,7 @@ function c_triggersuppressions:evaluate()
 		return false
 	end
 	
-	if (not IsDutyLeader() and OnDutyMap() and not ml_global_information.Player_IsLoading and ml_global_information.Player_InCombat and not ml_task_hub:CurrentTask().suppressFollow) then
+	if (not IsDutyLeader() and OnDutyMap() and not MIsLoading() and ml_global_information.Player_InCombat and not ml_task_hub:CurrentTask().suppressFollow) then
 		local leader = GetDutyLeader()
 		if leader.dead then
 			return true

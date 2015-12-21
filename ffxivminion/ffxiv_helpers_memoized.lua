@@ -167,6 +167,22 @@ function MInventory(invstring)
 	end
 end
 
+function MGetItem(itemid,includehq,requirehq)
+	local memString = "MGetItem;"..tostring(itemid)..";"..tostring(includehq)..";"..tostring(requirehq)
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local item = GetItem(itemid,includehq,requirehq)
+		if (item) then
+			SetMemoized(memString,item)
+		else
+			SetMemoized(memString,"nil")
+		end	
+		return item
+	end
+end
+
 function MGatherableSlotList()
 	local memString = "MGatherableSlotList"
 	local memoized = GetMemoized(memString)
@@ -281,15 +297,7 @@ function PDistance3D(x1,y1,z1,x2,y2,z2)
 	y2 = round(y2, 1)
 	z2 = round(z2, 1)
 	
-	local memString = "PDistance3D;" .. x1 .. ";" .. y1 .. ";" .. z1 .. ";" .. x2 .. ";" .. y2 .. ";" .. z2
-	local memoized = GetPermaMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local ret = Distance3D(x1,y1,z1,x2,y2,z2)
-		SetPermaMemoized(memString,ret)
-		return ret
-	end
+	return Distance3D(x1,y1,z1,x2,y2,z2)
 end
 
 function loadcondition(strInput)

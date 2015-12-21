@@ -1078,7 +1078,7 @@ function c_walktopos:evaluate()
 	if ((MIsLocked() and not IsFlying()) or 
 		MIsLoading() or
 		Player:IsJumping() or 
-		IsMounting() or 
+		IsMounting() or
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
 		IsShopWindowOpen() or
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
@@ -1095,7 +1095,7 @@ function c_walktopos:evaluate()
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist > 2) then
+			if (p and dist ~= 0) then
 				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
 				gotoPos = p
 			end
@@ -1103,6 +1103,23 @@ function c_walktopos:evaluate()
 		end
 		
 		if (ValidTable(gotoPos)) then
+			
+			-- If we're very close to an interactable
+			local target = MGetTarget()
+			if (target) then
+				local tpos = target.pos
+				local distFromGoal = PDistance3D(tpos.x,tpos.y,tpos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+				if (distFromGoal <= 5) then
+					if (target.distance < 2.5 and target.los) then
+						if (Player:IsMoving()) then
+							--d("Stopped because we are very close to the target.")
+							Player:Stop()
+						end
+						return false
+					end
+				end
+			end
+			
 			local range = ml_task_hub:CurrentTask().range or 0
 			if (range > 0) then
 				local distance = 0.0
@@ -1223,10 +1240,23 @@ end
 
 c_avoidaggressives = inheritsFrom( ml_cause )
 e_avoidaggressives = inheritsFrom( ml_effect )
-e_avoidaggressives.timer = 0
+c_avoidaggressives.lastSet = {}
 function c_avoidaggressives:evaluate()
-	if (Now() < e_avoidaggressives.timer or IsFlying()) then
+	if (IsFlying() or MIsLocked()) then
 		return false
+	end
+	
+	local lastSet = c_avoidaggressives.lastSet
+	local ppos = Player.pos
+	if (ValidTable(lastSet)) then
+		if (Player.localmapid == lastSet.mapid) then
+			local dist = PDistance3D(lastSet.x,lastSet.y,lastSet.z,ppos.x,ppos.y,ppos.z)
+			if (dist <= 80 or Player:IsMoving()) then
+				return false
+			else
+				d("last distance was ["..tostring(dist).."].")
+			end
+		end
 	end
 	
 	local needsUpdate = false
@@ -1235,16 +1265,26 @@ function c_avoidaggressives:evaluate()
 	if (ValidTable(aggressives)) then
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		for i,entity in pairs(aggressives) do
+		
 			local hasEntry = false
 			for i,area in pairs(avoidanceAreas) do
-				if (area.id == entity.id and area.expiration > Now()) then
-					hasEntry = true
+				if (area.id == entity.id) then
+					local movedDist = PDistance3D(entity.pos.x,entity.pos.y,entity.pos.z,area.x,area.y,area.z)
+					if (area.expiration < Now()) then
+						d("Removed avoidance area for ["..tostring(entity.name).."] because it has expired.")
+						avoidanceAreas[i] = nil
+					elseif (movedDist > 4) then
+						d("Removed avoidance area for ["..tostring(entity.name).."] because it is no longer valid.")
+						avoidanceAreas[i] = nil
+					else
+						hasEntry = true
+					end
 				end
 			end
 			
 			if (not hasEntry) then
-				--d("Setting avoidance area for ["..tostring(entity.name).."].")
-				local newArea = { id = entity.id, x = entity.pos.x, y = entity.pos.y, z = entity.pos.z, level = entity.level, r = 10, expiration = Now() + 5000, source = "c_avoidaggressives" }
+				d("Setting avoidance area for ["..tostring(entity.name).."].")
+				local newArea = { id = entity.id, x = round(entity.pos.x,1), y = round(entity.pos.y,1), z = round(entity.pos.z,1), level = entity.level, r = 10, expiration = Now() + 15000, source = "c_avoidaggressives" }
 				table.insert(avoidanceAreas,newArea)
 				needsUpdate = true
 			end
@@ -1255,7 +1295,7 @@ function c_avoidaggressives:evaluate()
 			for i,area in pairs(avoidanceAreas) do
 				if (area.source == "c_avoidaggressives") then
 					if (TableSize(avoidanceAreas) > 1) then
-						table.remove(avoidanceAreas,i)
+						avoidanceAreas[i] = nil
 						needsUpdate = true
 					else
 						ml_global_information.avoidanceAreas = {}
@@ -1275,14 +1315,13 @@ function c_avoidaggressives:evaluate()
 		else
 			NavigationManager:ClearAvoidanceAreas()
 		end
-		return true
+		c_avoidaggressives.lastSet = { mapid = Player.localmapid, x = ppos.x, y = ppos.y, z = ppos.z }
 	end
 	
 	return false
 end
 function e_avoidaggressives:execute()
-	e_avoidaggressives.timer = Now() + 2000
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	--Do nothing, abusing the cne system a bit here.
 end
 
 
@@ -1783,34 +1822,6 @@ function e_notarget:execute()
     if (target ~= nil and target ~= 0) then
         Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
         ml_task_hub:CurrentTask().targetid = target.id
-    end
-end
-
----------------------------------------------------------------------------------------------
---MOBAGGRO: If (detect new aggro) Then (kill mob)
---
----------------------------------------------------------------------------------------------
-c_mobaggro = inheritsFrom( ml_cause )
-e_mobaggro = inheritsFrom( ml_effect )
-function c_mobaggro:evaluate()
-    if ( Player.hasaggro ) then
-        local target = GetNearestAggro()
-        if (target ~= nil and target ~= 0) then
-            e_mobaggro.targetid = target.id
-            return true
-        end
-    end
-    
-    return false
-end
-function e_mobaggro:execute()
-    ml_debug( "Getting new target" )
-    local target = GetNearestAggro()
-    if (target ~= nil) then
-        local newTask = ffxiv_task_killtarget.Create()
-        newTask.targetFunction = ml_task_hub:CurrentTask().targetFunction
-        newTask.targetid = e_mobaggro.targetid
-        ml_task_hub.Add(newTask, QUEUE_REACTIVE, TP_IMMEDIATE)
     end
 end
 
@@ -2317,7 +2328,7 @@ function c_teleporttopos:evaluate()
 		else
 			properPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(properPos)
-			if (p and dist > 10) then
+			if (p and dist ~= 0) then
 				properPos = p
 			end
 		end
@@ -2430,9 +2441,11 @@ function c_autoequip:evaluate()
 		end
 	end
 	
-	for slot,data in pairs(applicableSlots) do		
-		if (data.unequippedItem ~= 0 and data.unequippedValue > data.equippedValue) then
+	for slot,data in pairsByKeys(applicableSlots) do		
+		if (data.unequippedItem ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
 			if (ArmoryItemCount(slot) == 25) then
+				d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+				
 				local firstBag,firstSlot = GetFirstFreeInventorySlot()
 				if (firstBag ~= nil) then
 					if (slot == 0) then
@@ -2440,7 +2453,6 @@ function c_autoequip:evaluate()
 						if (ValidTable(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
-									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
 									d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 									
 									e_autoequip.item = item
@@ -2455,8 +2467,6 @@ function c_autoequip:evaluate()
 						if (ValidTable(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
-									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
-									
 									e_autoequip.item = item
 									e_autoequip.bag = firstBag
 									e_autoequip.slot = firstSlot
@@ -2469,8 +2479,6 @@ function c_autoequip:evaluate()
 						if (ValidTable(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
-									d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
-									
 									e_autoequip.item = item
 									e_autoequip.bag = firstBag
 									e_autoequip.slot = firstSlot
@@ -2481,7 +2489,7 @@ function c_autoequip:evaluate()
 					end
 				end
 				
-				d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
+				--d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
 				return false
 			end
 			
@@ -2489,6 +2497,8 @@ function c_autoequip:evaluate()
 			e_autoequip.bag = 1000
 			e_autoequip.slot = slot
 			return true
+		else
+			--d("Prevented equipping item into slot ["..tostring(slot).."].")
 		end
 	end
 	
@@ -2704,9 +2714,7 @@ function c_clearaggressive:evaluate()
     return false
 end
 function e_clearaggressive:execute()	
-	--just in case
 	Player:Stop()
-	Dismount()
 	
 	local newTask = ffxiv_task_grindCombat.Create()
     newTask.targetid = c_questclearaggressive.targetid

@@ -139,7 +139,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.customSearchCompletes = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.dismountTimer = 0
-	newinst.dismountDistance = 15
+	newinst.dismountDistance = 5
 	newinst.failTimer = 0
 	
 	newinst.startMap = Player.localmapid
@@ -277,7 +277,7 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
 
 		if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
-			SendTextCommand("/mount")
+			Dismount()
 			self.dismountTimer = Now() + 500
 		end
 		
@@ -710,6 +710,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		end
 		self.lastDismountCheck = Now()
 	end
+	
+	if (IsDismounting()) then
+		return false
+	end
 		
 	if (not myTarget) then
 		if (interactable and interactable.targetable and interactable.distance < 10) then
@@ -922,14 +926,17 @@ e_sethomepoint = inheritsFrom( ml_effect )
 e_sethomepoint.aethid = 0
 e_sethomepoint.aethpos = {}
 function c_sethomepoint:evaluate()    
+	if (MIsLoading() or MIsCasting() or MIsLocked() or 
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map))
+	then
+		return false
+	end
+	
 	e_sethomepoint.aethid = 0
 	e_sethomepoint.aethpos = {}
 	
     local currentTask = ml_task_hub:CurrentTask()
-	if (not currentTask.setHomepoint or MIsLoading() or MIsCasting() or 
-		MIsLocked() or ml_global_information.Player_Map ~= currentTask.mapID or 
-		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map)) 
-	then
+	if (not currentTask.setHomepoint or ml_global_information.Player_Map ~= currentTask.mapID) then
 		return false
 	end
 	
@@ -961,7 +968,7 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 1500) then
+	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting() or MIsLocked()) then
 		return false
 	end
 
@@ -975,10 +982,6 @@ function ffxiv_task_teleport:task_complete_eval()
 		else
 			PressYesNo(true)
 		end
-	end
-	
-	if (MIsLoading() or MIsCasting() or MIsLocked()) then
-		return false
 	end
 	
 	if (Player.localmapid ~= self.mapID) then
@@ -997,11 +1000,6 @@ function ffxiv_task_teleport:task_complete_eval()
 			ml_mesh_mgr.SetEvacPoint()
 		end
 		return true
-	else
-		if (self.mesh and NavigationManager:GetNavMeshName() ~= self.mesh) then
-			ml_mesh_mgr.LoadNavMesh(self.mesh)
-			return false
-		end
 	end
 	
     return false
@@ -1151,10 +1149,12 @@ function ffxiv_task_useitem.Create()
 	newinst.pos = {}
 	newinst.timer = 0
 	newinst.useTime = 0
-	newinst.startingCount = ItemCount(itemid)
+	newinst.startingCount = 0
 	newinst.dismountDelay = 0
 	newinst.maxTime = Now() + 12000
 	newinst.useAttempts = 0
+	
+	newinst.setup = false
     
     return newinst
 end
@@ -1165,8 +1165,9 @@ end
 
 function ffxiv_task_useitem:task_complete_eval()
 	local itemcount = ItemCount(self.itemid,true) or 0
-	if (self.startingCount == 0) then
+	if (not self.setup) then
 		self.startingCount = itemcount
+		self.setup = true
 	end
 	
 	if (itemcount < self.startingCount or itemcount == 0 or self.useAttempts > 3) then

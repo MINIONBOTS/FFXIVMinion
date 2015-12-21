@@ -77,21 +77,23 @@ e_precastbuff.id = 0
 function c_precastbuff:evaluate()
 	local fs = tonumber(Player:GetFishingState())
 	
-	if (fs == 0 or fs == 4) then	
-		local foodID = 0
+	if (fs == 0 or fs == 4) then
 		if (gFoodHQ ~= "None") then
-			foodID = ffxivminion.foodsHQ[gFoodHQ]
+			local foodID = ffxivminion.foodsHQ[gFoodHQ]
+			local food = MGetItem(foodID,true,true)
+			if (food and not HasBuffs(Player,"48")) then
+				e_precastbuff.id = foodID
+				return true
+			end
 		elseif (gFood ~= "None") then
-			foodID = ffxivminion.foods[gFood]
-		end
-
-		if foodID ~= 0 then
-			local food = Inventory:Get(foodID)
-			if (ValidTable(food) and MissingBuffs(Player,"48")) then
+			local foodID = ffxivminion.foods[gFood]
+			local food = MGetItem(foodID,false,false)
+			if (food and not HasBuffs(Player,"48")) then
 				e_precastbuff.id = foodID
 				return true
 			end
 		end
+		
 	end
 	
 	return false
@@ -335,22 +337,20 @@ function GetSnapshot()
 	local inv = MInventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
     if (ValidTable(inv)) then
         for k,item in pairs(inv) do
-			local itemid = item.id
-			if (itemid > 1000000) then itemid = itemid - 1000000 end
-            if currentSnapshot[itemid] == nil then
+            if currentSnapshot[item.id] == nil then
                 -- New item
-                currentSnapshot[itemid] = {}
-				currentSnapshot[itemid].name = item.name
-                currentSnapshot[itemid].HQcount = 0
-                currentSnapshot[itemid].count = 0
+                currentSnapshot[item.id] = {}
+				currentSnapshot[item.id].name = item.name
+                currentSnapshot[item.id].HQcount = 0
+                currentSnapshot[item.id].count = 0
             end
             -- Increment item counts
             if (toboolean(item.IsHQ)) then
                 -- HQ
-                currentSnapshot[itemid].HQcount = currentSnapshot[itemid].HQcount + item.count
+                currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
             else
                 -- NQ
-                currentSnapshot[itemid].count = currentSnapshot[itemid].count + item.count
+                currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
             end
         end
 	end

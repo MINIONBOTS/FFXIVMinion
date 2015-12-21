@@ -58,7 +58,6 @@ ml_global_information.Player_Map = 0
 ml_global_information.Player_HP = {}
 ml_global_information.Player_MP = {}
 ml_global_information.Player_TP = {}
-ml_global_information.Player_Buffs = {}
 ml_global_information.Player_InCombat = false
 	
 ml_global_information.chocoStance = {
@@ -1520,7 +1519,6 @@ function ffxivminion.UpdateGlobals()
 		ml_global_information.Player_HP = Player.hp
 		ml_global_information.Player_MP = Player.mp
 		ml_global_information.Player_TP = Player.tp
-		ml_global_information.Player_Buffs = Player.buffs
 		ml_global_information.Player_InCombat = Player.incombat
 	end
 end
@@ -1539,18 +1537,18 @@ function ffxivminion.UpdateFoodOptions()
     
 	local foodlistHQ = "None"
     local foodlist = "None"	
-	for x = 0, 3 do
+	for x = 0,3 do
 		local inv = Inventory("category=5,type="..tostring(x))
 		if ( inv ) then
-			for i, item in pairs(inv) do
-				if (item.id > 10000) then
-					if (ffxivminion.foodsHQ[item.name] ~= item.id) then
-						ffxivminion.foodsHQ[item.name] = item.id 
+			for i,item in pairs(inv) do
+				if (toboolean(item.IsHQ)) then
+					if (ffxivminion.foodsHQ[item.name] ~= item.hqid) then
+						ffxivminion.foodsHQ[item.name] = item.hqid 
 					end
 					foodlistHQ = foodlistHQ..","..item.name
 				else
-					if (ffxivminion.foods[item.name] ~= item.id) then
-						ffxivminion.foods[item.name] = item.id
+					if (ffxivminion.foods[item.name] ~= item.hqid) then
+						ffxivminion.foods[item.name] = item.hqid
 					end
 					foodlist = foodlist..","..item.name
 				end
