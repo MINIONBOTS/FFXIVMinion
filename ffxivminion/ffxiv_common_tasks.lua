@@ -936,19 +936,18 @@ function c_sethomepoint:evaluate()
 	e_sethomepoint.aethid = 0
 	e_sethomepoint.aethpos = {}
 	
-    local currentTask = ml_task_hub:CurrentTask()
-	if (not currentTask.setHomepoint or ml_global_information.Player_Map ~= currentTask.mapID) then
+	if (not ml_task_hub:CurrentTask().setHomepoint or ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().mapID) then
 		return false
 	end
 	
 	local homepoint = GetHomepoint()
 	if (homepoint ~= 0) then
-		if (homepoint ~= currentTask.mapID) then
-			local location = GetAetheryteLocation(currentTask.aetheryte)
+		if (homepoint ~= ml_task_hub:CurrentTask().mapID) then
+			local location = GetAetheryteLocation(ml_task_hub:CurrentTask().aetheryte)
 			if (ValidTable(location)) then
-				e_sethomepoint.aethid = currentTask.aetheryte
+				e_sethomepoint.aethid = ml_task_hub:CurrentTask().aetheryte
 				e_sethomepoint.aethpos = {x = location.x, y = location.y, z = location.z}
-				currentTask.conversationIndex = 1
+				ml_task_hub:CurrentTask().conversationIndex = 1
 				return true
 			end
 		end
@@ -969,10 +968,10 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting() or MIsLocked()) then
+	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting()) then
 		return false
 	end
-
+	
 	if (self.conversationIndex ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))) then
 		SelectConversationIndex(tonumber(self.conversationIndex))
 	end
@@ -984,6 +983,10 @@ function ffxiv_task_teleport:task_complete_eval()
 			PressYesNo(true)
 		end
 	end
+	
+	if (MIsLocked()) then
+		return false
+	end	
 	
 	if (Player.localmapid ~= self.mapID) then
 		return true
