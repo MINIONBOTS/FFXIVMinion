@@ -4071,10 +4071,10 @@ function GetInventoryItemGains(itemid,hqonly)
 	return gained
 end
 
-function GetItem(itemid,includehq,requirehq)
+function GetItem(itemid)
 	itemid = tonumber(itemid) or 0
-	includehq = IsNull(includehq,false)
-	requirehq = IsNull(requirehq,false)
+	--includehq = IsNull(includehq,true)
+	--requirehq = IsNull(requirehq,false)
 	
 	--Look through regular bags first.
 	for x=0,3 do
@@ -4082,15 +4082,7 @@ function GetItem(itemid,includehq,requirehq)
 		if (ValidTable(inv)) then
 			for i, item in pairs(inv) do				
 				if (item.hqid == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							return item
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							return item
-						end
-					end
+					return item
 				end
 			end
 		end
@@ -4101,15 +4093,7 @@ function GetItem(itemid,includehq,requirehq)
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						return item
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						return item
-					end
-				end
+				return item
 			end
 		end
 	end
@@ -4140,15 +4124,7 @@ function GetItem(itemid,includehq,requirehq)
 		if (ValidTable(inv)) then
 			for i,item in pairs(inv) do
 				if (item.hqid == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							return item
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							return item
-						end
-					end
+					return item
 				end
 			end
 		end
@@ -4159,15 +4135,7 @@ function GetItem(itemid,includehq,requirehq)
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						return item
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						return item
-					end
-				end
+				return item
 			end
 		end
 	end
@@ -4177,15 +4145,7 @@ function GetItem(itemid,includehq,requirehq)
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						return item
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						return item
-					end
-				end
+				return item
 			end
 		end
 	end
@@ -4195,15 +4155,7 @@ function GetItem(itemid,includehq,requirehq)
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						return item
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						return item
-					end
-				end
+				return item
 			end
 		end
 	end
@@ -4213,15 +4165,7 @@ function GetItem(itemid,includehq,requirehq)
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						return item
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						return item
-					end
-				end
+				return item
 			end
 		end
 	end
@@ -4231,7 +4175,7 @@ end
 
 function ItemCount(itemid,includehq,requirehq)
 	itemid = tonumber(itemid) or 0
-	includehq = IsNull(includehq,false)
+	includehq = IsNull(includehq,true)
 	requirehq = IsNull(requirehq,false)
 	local itemcount = 0
 	
@@ -4240,7 +4184,7 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i, item in pairs(inv) do				
-				if (item.hqid == itemid) then
+				if (item.id == itemid or item.hqid == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4259,7 +4203,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=1000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4277,7 +4221,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4287,7 +4231,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2001")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4298,7 +4242,7 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i,item in pairs(inv) do
-				if (item.hqid == itemid) then
+				if (item.id == itemid or item.hqid == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4317,7 +4261,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3300")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4335,7 +4279,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3400")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4353,7 +4297,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=3500")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4371,7 +4315,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2004")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			if (item.id == itemid or item.hqid == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count

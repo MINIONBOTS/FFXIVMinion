@@ -537,7 +537,7 @@ function e_gather:execute()
     if (ValidTable(list)) then
 			
 		if (thisNode.contentid >= 5) then	
-			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 3000) then
+			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 500) then
 				d("Still under a delay due to this being an unspoiled node.")
 				return
 			end
@@ -1020,7 +1020,7 @@ function e_gather:execute()
 							end
 							return
 						else
-							local collect = GetAction(ffxiv_task_gather.collectors[Player.job],1)
+							local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
 							if (collect and collect.isready) then
 								collect:Cast()
 								ffxiv_task_gather.timer = Now() + 2000
@@ -1079,19 +1079,54 @@ function e_gather:execute()
 							return
 						end
 						
-						ffxiv_task_gather.lastItemAttempted	= item.id	
-						local result = Player:Gather(item.index)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
+						if (item.isunknown) then
+							if (not HasBuffs(Player,"805")) then
+								ffxiv_task_gather.lastItemAttempted	= item.id	
+								local result = Player:Gather(item.index)
+								if (result == 65536) then
+									ffxiv_task_gather.timer = Now() + 300
+									ffxiv_task_gather.awaitingSuccess = true
+								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+									if (IsChocoboFoodSpecial(item.id)) then
+										ml_task_hub:CurrentTask().gatheredChocoFood = true
+									elseif (IsGardening(item.id)) then
+										ml_task_hub:CurrentTask().gatheredGardening = true
+									elseif (IsMap(item.id)) then
+										ml_task_hub:CurrentTask().gatheredMap = true
+									elseif (IsRareItemSpecial(item.id)) then
+										ml_task_hub:CurrentTask().gatheredSpecialRare = true
+									end
+									
+									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+									ml_task_hub:CurrentTask().gatherTimer = Now()
+									ml_task_hub:CurrentTask().failedTimer = Now()
+									ffxiv_task_gather.timer = Now() + 750
+									ffxiv_task_gather.awaitingSuccess = false
+								end
+								return
+							else
+								local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
+								if (collect and collect.isready) then
+									collect:Cast()
+									ffxiv_task_gather.timer = Now() + 2000
+									return
+								end
+							end
+						else
+							ffxiv_task_gather.lastItemAttempted	= item.id	
+							local result = Player:Gather(item.index)
+							if (result == 65536) then
+								ffxiv_task_gather.timer = Now() + 300
+								ffxiv_task_gather.awaitingSuccess = true
+							elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
+								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
+								ml_task_hub:CurrentTask().gatherTimer = Now()
+								ml_task_hub:CurrentTask().failedTimer = Now()
+								ffxiv_task_gather.timer = Now() + 750
+								ffxiv_task_gather.awaitingSuccess = false
+							end
+							return
 						end
-						return
 					end
 				end
 			end
@@ -1242,7 +1277,7 @@ function e_gather:execute()
 						end
 						return
 					else
-						local collect = GetAction(ffxiv_task_gather.collectors[Player.job],1)
+						local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
 						if (collect and collect.isready) then
 							collect:Cast()
 							ffxiv_task_gather.timer = Now() + 2000
@@ -2522,7 +2557,7 @@ function e_gatherstealth:execute()
 end
 
 function ffxiv_task_gather.NeedsStealth()
-	if (IsFlying()) then
+	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
 

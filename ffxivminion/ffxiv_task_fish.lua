@@ -1481,7 +1481,7 @@ function e_fishnextprofilepos:execute()
 end
 
 function ffxiv_task_fish.NeedsStealth()
-	if (IsFlying()) then
+	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
 

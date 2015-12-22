@@ -610,6 +610,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.killParent = false
 	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid
+	newinst.moveWait = Now() + 1000
 	
 	newinst.stealthFunction = nil
 	
@@ -1164,7 +1165,7 @@ function ffxiv_task_useitem:Init()
 end
 
 function ffxiv_task_useitem:task_complete_eval()
-	local itemcount = ItemCount(self.itemid,true) or 0
+	local itemcount = ItemCount(self.itemid) or 0
 	if (not self.setup) then
 		self.startingCount = itemcount
 		self.setup = true

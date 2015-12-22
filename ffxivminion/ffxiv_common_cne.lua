@@ -1081,6 +1081,7 @@ function c_walktopos:evaluate()
 		IsMounting() or
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
 		IsShopWindowOpen() or
+		(Now() < IsNull(ml_task_hub:CurrentTask().moveWait,0)) or 
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
 		return false
@@ -1521,7 +1522,9 @@ function e_mount:execute()
 	
 	if (IsMounting() or UsingBattleItem()) then
 		--d("Adding a wait.")
-		ml_task_hub:CurrentTask():SetDelay(2000)
+		if (CanFlyInZone()) then
+			ml_task_hub:CurrentTask():SetDelay(2000)
+		end
 		return
 	end
 	
@@ -2806,6 +2809,11 @@ function c_buy:evaluate()
 end
 function e_buy:execute()
 	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
+	if (buyamount > 99) then
+		buyamount = 99
+		ml_task_hub:CurrentTask().buyamount = ml_task_hub:CurrentTask().buyamount - 99
+	end
+	
 	Inventory:BuyShopItem(e_buy.itemid,buyamount)
 	ml_task_hub:CurrentTask():SetDelay(1000)
 end
