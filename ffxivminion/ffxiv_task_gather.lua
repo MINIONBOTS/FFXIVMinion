@@ -245,7 +245,7 @@ function c_movetonode:evaluate()
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					Player:Interact(gatherable.id)
-					ml_task_hub:CurrentTask():SetDelay(1000)
+					ml_task_hub:CurrentTask():SetDelay(500)
 					return true
 				end
 			end
@@ -296,6 +296,7 @@ function e_movetonode:execute()
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 					end
 				end
+				ml_debug("Starting alternate MOVETOPOS task to use a cordial.")
 				return
 			end
 			
@@ -316,6 +317,7 @@ function e_movetonode:execute()
 			newTask.pathRange = 5
 			newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
+			ml_debug("Starting MOVETOINTERACT task.")
 		end
 	end
 end
@@ -510,7 +512,7 @@ function c_gather:evaluate()
 end
 function e_gather:execute()		
 	if (Now() < ffxiv_task_gather.timer) then
-		d("Cannot gather yet, timer still active for another ["..tostring((ffxiv_task_gather.timer - Now())/1000).."] seconds.")
+		ml_debug("Cannot gather yet, timer still active for another ["..tostring((ffxiv_task_gather.timer - Now())/1000).."] seconds.")
 		return false
 	end
 	
@@ -538,7 +540,7 @@ function e_gather:execute()
 			
 		if (thisNode.contentid >= 5) then	
 			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 500) then
-				d("Still under a delay due to this being an unspoiled node.")
+				ml_debug("Still under a delay due to this being an unspoiled node.")
 				return
 			end
 		end
@@ -2670,7 +2672,7 @@ end
 c_gatherisloading = inheritsFrom( ml_cause )
 e_gatherisloading = inheritsFrom( ml_effect )
 function c_gatherisloading:evaluate()
-	return MIsLoading() or MIsCasting()
+	return MIsLoading()
 end
 function e_gatherisloading:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")

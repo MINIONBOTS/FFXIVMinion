@@ -610,7 +610,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.killParent = false
 	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid
-	newinst.moveWait = Now() + 1000
+	newinst.moveWait = 0
 	
 	newinst.stealthFunction = nil
 	

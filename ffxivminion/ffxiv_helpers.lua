@@ -1627,7 +1627,7 @@ function HasInfiniteDuration(id)
 	return infiniteDurationAbilities[id] or false
 end
 function IsPlayerCasting()
-	return (Player.castinginfo.channelingid ~= 0 or Player.castinginfo.castingid ~= 0)
+	return (Player.castinginfo.channelingid ~= 0)
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
