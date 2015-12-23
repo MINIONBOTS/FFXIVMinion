@@ -616,7 +616,7 @@ e_interactgate.timer = 0
 e_interactgate.id = 0
 e_interactgate.selector = 0
 function c_interactgate:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting()) then
+	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -674,7 +674,7 @@ c_transportgate = inheritsFrom( ml_cause )
 e_transportgate = inheritsFrom( ml_effect )
 e_transportgate.details = nil
 function c_transportgate:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting()) then
+	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -797,7 +797,7 @@ c_leavelockedarea = inheritsFrom( ml_cause )
 e_leavelockedarea = inheritsFrom( ml_effect )
 e_leavelockedarea.map = 0
 function c_leavelockedarea:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting()) then
+	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -845,7 +845,7 @@ e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if (MIsLoading() or 
 		(MIsLocked() and not IsFlying()) or 
-		MIsCasting() or GilCount() < 1500 or
+		MIsCasting(true) or GilCount() < 1500 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == ml_global_information.Player_Map) 
 	then
@@ -950,6 +950,7 @@ function e_teleporttomap:execute()
 			newTask.aetheryte = e_teleporttomap.aeth.id
 			newTask.mapID = e_teleporttomap.aeth.territory
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 	end
 end
