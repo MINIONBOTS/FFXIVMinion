@@ -282,7 +282,7 @@ end
 c_movetofatemap = inheritsFrom( ml_cause )
 e_movetofatemap = inheritsFrom( ml_effect )
 function c_movetofatemap:evaluate()
-	if (MIsCasting() or (MIsLocked() and not IsFlying()) or MIsLoading()) then
+	if (MIsCasting(true) or (MIsLocked() and not IsFlying()) or MIsLoading()) then
 		return false
 	end
 	

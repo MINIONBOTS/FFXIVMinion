@@ -927,7 +927,7 @@ e_sethomepoint = inheritsFrom( ml_effect )
 e_sethomepoint.aethid = 0
 e_sethomepoint.aethpos = {}
 function c_sethomepoint:evaluate()    
-	if (MIsLoading() or MIsCasting() or MIsLocked() or 
+	if (MIsLoading() or MIsCasting(true) or MIsLocked() or 
 		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map))
 	then
 		return false
@@ -968,7 +968,7 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting()) then
+	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -1112,7 +1112,7 @@ function ffxiv_task_stealth:task_complete_execute()
 end
 
 function ffxiv_task_stealth:task_fail_eval()
-	if (not Player.alive) then
+	if (not Player.alive or Player.incombat) then
 		return true
 	end
 	

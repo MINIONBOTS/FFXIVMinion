@@ -1626,8 +1626,9 @@ function HasInfiniteDuration(id)
 	
 	return infiniteDurationAbilities[id] or false
 end
-function IsPlayerCasting()
-	return (Player.castinginfo.channelingid ~= 0)
+function IsPlayerCasting(fullcheck)
+	fullcheck = IsNull(fullcheck,false)
+	return (Player.castinginfo.channelingid ~= 0 or (fullcheck and Player.castinginfo.castingid ~= 0))
 end
 function SetFacing( posX, posY, posZ)
 	posX = tonumber(posX) or 0
@@ -3306,7 +3307,7 @@ function GetAetheryteList(force)
 		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 		ml_global_information.lastAetheryteCache = Now()
 	else
-		if not (MIsLoading() or MIsLocked() or MIsCasting()) then
+		if not (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
 				ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
 				ml_global_information.lastAetheryteCache = Now()
@@ -4175,7 +4176,7 @@ end
 
 function ItemCount(itemid,includehq,requirehq)
 	itemid = tonumber(itemid) or 0
-	includehq = IsNull(includehq,true)
+	includehq = IsNull(includehq,false)
 	requirehq = IsNull(requirehq,false)
 	local itemcount = 0
 	
@@ -4184,7 +4185,12 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i, item in pairs(inv) do				
-				if (item.id == itemid or item.hqid == itemid) then
+				if (not includehq and not requirehq) then
+					if (item.hqid == itemid) then
+						itemcount = itemcount + item.count
+					end
+				else
+					if (item.id == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4198,12 +4204,18 @@ function ItemCount(itemid,includehq,requirehq)
 			end
 		end
 	end
+	end
 
 	--Look through equipped items bag.
 	local inv = MInventory("type=1000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4216,12 +4228,13 @@ function ItemCount(itemid,includehq,requirehq)
 			end
 		end
 	end
+	end
 	
 	--Look through currency bag.
 	local inv = MInventory("type=2000")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4231,7 +4244,7 @@ function ItemCount(itemid,includehq,requirehq)
 	local inv = MInventory("type=2001")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (item.hqid == itemid) then
 				itemcount = itemcount + item.count
 			end
 		end
@@ -4242,7 +4255,12 @@ function ItemCount(itemid,includehq,requirehq)
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
 			for i,item in pairs(inv) do
-				if (item.id == itemid or item.hqid == itemid) then
+				if (not includehq and not requirehq) then
+					if (item.hqid == itemid) then
+						itemcount = itemcount + item.count
+					end
+				else
+					if (item.id == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4256,12 +4274,18 @@ function ItemCount(itemid,includehq,requirehq)
 			end
 		end
 	end
+	end
 	
 	--Look through rings armory bag.
 	local inv = MInventory("type=3300")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4273,13 +4297,19 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			end
 		end
+	end
 	end
 	
 	--Look through soulstones armory bag.
 	local inv = MInventory("type=3400")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4291,13 +4321,19 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			end
 		end
+	end
 	end
 	
 	--Look through weapons armory bag.
 	local inv = MInventory("type=3500")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4310,12 +4346,18 @@ function ItemCount(itemid,includehq,requirehq)
 			end
 		end
 	end
+	end
 	
 	--Look through quest/key items bag.
 	local inv = MInventory("type=2004")
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
-			if (item.id == itemid or item.hqid == itemid) then
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 				if (requirehq) then
 					if (toboolean(item.IsHQ)) then
 						itemcount = itemcount + item.count
@@ -4327,6 +4369,7 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			end
 		end
+	end
 	end
 	
 	return itemcount
@@ -5051,7 +5094,7 @@ function Transport137(pos1,pos2)
 						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
-					if (ActionIsReady(7,5) and not MIsCasting() and not MIsLocked()) then
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
 						if (Player:Teleport(12)) then	
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.aetheryte = 12
@@ -5080,7 +5123,7 @@ function Transport137(pos1,pos2)
 						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
-					if (ActionIsReady(7,5) and not MIsCasting() and not MIsLocked()) then
+					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
 						if (Player:Teleport(11)) then
 							local newTask = ffxiv_task_teleport.Create()
 							newTask.aetheryte = 11

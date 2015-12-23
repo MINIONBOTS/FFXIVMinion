@@ -115,13 +115,15 @@ function MIsLocked()
 	end
 end
 
-function MIsCasting()
-	local memString = "MIsCasting"
+function MIsCasting(fullcheck)
+	fullcheck = IsNull(fullcheck,false)
+	
+	local memString = "MIsCasting;"..tostring(fullcheck)
 	local memoized = GetMemoized(memString)
 	if (memoized) then
 		return memoized
 	else
-		local ret = IsPlayerCasting()
+		local ret = IsPlayerCasting(fullcheck)
 		SetMemoized(memString,ret)
 		return ret
 	end

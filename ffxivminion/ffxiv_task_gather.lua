@@ -364,10 +364,16 @@ function c_returntobase:evaluate()
     return false
 end
 function e_returntobase:execute()
+	local range = 3
+	
+	local task = ffxiv_task_gather.currentTask
 	ml_task_hub:CurrentTask().failedSearches = 0
-	if (ValidTable(ffxiv_task_gather.currentTask)) then
-		if (ffxiv_task_gather.currentTask.taskFailed ~= 0) then
-			ffxiv_task_gather.currentTask.taskFailed = 0
+	if (ValidTable(task)) then
+		if (task.taskFailed ~= 0) then
+			task.taskFailed = 0
+		end
+		if (task.range and tonumber(task.range)) then
+			range = tonumber(task.range)
 		end
 	end
 	
@@ -375,7 +381,7 @@ function e_returntobase:execute()
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.useTeleport = (gTeleport == "1")
-	newTask.range = 3
+	newTask.range = range
 	newTask.remainMounted = true
 	newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -2438,7 +2444,7 @@ function c_gatherstealth:evaluate()
 	end
 	
 	if (useStealth) then
-		if (ml_global_information.Player_InCombat) then
+		if (Player.incombat) then
 			return false
 		end
 		

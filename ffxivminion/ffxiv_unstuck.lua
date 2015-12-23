@@ -141,7 +141,7 @@ function ffxiv_unstuck.IsStuck()
 	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
 			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
 			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
-			not MIsCasting() and
+			not MIsCasting(true) and
 			Player:IsMoving() and
 			not MIsLocked() and
 			not ml_global_information.Player_InCombat and

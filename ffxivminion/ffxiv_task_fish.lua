@@ -99,11 +99,8 @@ function c_precastbuff:evaluate()
 	return false
 end
 function e_precastbuff:execute()
-	local finishcast = ActionList:Get(299,1)
-    if (finishcast and finishcast.isready) then
-        finishcast:Cast()
-		ml_task_hub:CurrentTask().networkLatency = Now() + 1000
-    end
+	ffxiv_task_fish.StopFishing()
+	
 	if (Now() > ml_task_hub:CurrentTask().networkLatency) then
 		local food = Inventory:Get(e_precastbuff.id)
 		if (food) then
@@ -400,10 +397,7 @@ function c_finishcast:evaluate()
     return false
 end
 function e_finishcast:execute()
-    local finishcast = ActionList:Get(299,1)
-    if (finishcast and finishcast.isready) then
-        finishcast:Cast()
-    end
+    ffxiv_task_fish.StopFishing()
 end
 
 c_bite = inheritsFrom( ml_cause )
@@ -719,7 +713,6 @@ function c_collectibleaddonfish:evaluate()
 				end
 			end
 			
-			
 			if (not validCollectible) then
 				fd("Cannot collect item, collectibility rating not approved.",2)
 				PressYesNoItem(false) 
@@ -859,8 +852,12 @@ function e_setbait:execute()
 		fd("Could not find any suitable baits.",2)
 		--fd("TODO: Add the shit to buy more bait here...",2)
 		
-		if (ValidTable(rebuy)) then
+		if (ffxiv_task_fish.IsFishing()) then
+			ffxiv_task_fish.StopFishing()
+			return
+		end
 		
+		if (ValidTable(rebuy)) then
 			local rebuyids = {}
 			for k,v in pairs(rebuy) do
 				if (type(k) == "string") then
@@ -877,16 +874,6 @@ function e_setbait:execute()
 				for itemid,buyamount in pairsByKeys(rebuyids) do
 					local nearestPurchase = AceLib.API.Items.FindNearestPurchaseLocation(itemid)
 					if (nearestPurchase) then
-						local fs = tonumber(Player:GetFishingState())
-						if (fs ~= 0) then
-							local finishcast = ActionList:Get(299,1)
-							if (finishcast and finishcast.isready) then
-								finishcast:Cast()
-								ml_task_hub:CurrentTask():SetDelay(1500)
-							end
-							return
-						end 
-						
 						local newTask = ffxiv_misc_shopping.Create()
 						
 						newTask["itemid"] = itemid
@@ -896,13 +883,14 @@ function e_setbait:execute()
 						newTask["conversationIndex"] = nearestPurchase.index
 						newTask["buyamount"] = buyamount
 						
-						ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+						 ml_task_hub:CurrentTask():AddSubTask(newTask)
+						--ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 						return
 					end
 				end
 			end
 		end
-		
+
 		ffxiv_task_fish.attemptedCasts = 3
 	end
 end
@@ -1544,6 +1532,27 @@ function ffxiv_task_fish.NeedsStealth()
 	return false
 end
 
+function ffxiv_task_fish.IsFishing()
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		return true
+	end
+	return false
+end
+
+function ffxiv_task_fish.StopFishing()
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		local finishcast = ActionList:Get(299,1)
+		if (finishcast and finishcast.isready) then
+			finishcast:Cast()
+			if (ml_task_hub:CurrentTask()) then
+				ml_task_hub:CurrentTask():SetDelay(1500)
+			end
+		end
+	end
+end
+
 c_fishstealth = inheritsFrom( ml_cause )
 e_fishstealth = inheritsFrom( ml_effect )
 e_fishstealth.timer = 0
@@ -1649,7 +1658,20 @@ function c_syncadjust:evaluate()
     return false
 end
 function e_syncadjust:execute()
+	local heading;
+	local marker = ml_global_information.currentMarker
+	local task = ffxiv_task_fish.currentTask
+	if (ValidTable(task)) then
+		heading = task.pos.h
+	elseif (ValidTable(marker)) then
+		local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
+		if (pos) then
+			heading = pos.h
+		end
+	end
+	
     local newTask = ffxiv_task_syncadjust.Create()
+	newTask.heading = heading
     ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -1668,20 +1690,26 @@ function ffxiv_task_syncadjust.Create()
     --ffxiv_task_killtarget members
     newinst.name = "SYNC_ADJUSTMENT"
 	newinst.timer = 0
+	newinst.heading = 0
     
     return newinst
 end
-function ffxiv_task_syncadjust:Init()   
-	Player:Move(FFXIV.MOVEMENT.FORWARD)
-	self.timer = Now() + 200
-	
+function ffxiv_task_syncadjust:Init()	
     self:AddTaskCheckCEs()
 end
-function ffxiv_task_syncadjust:task_complete_eval()		
-	if ( Now() > self.timer) then
-		return true
+function ffxiv_task_syncadjust:task_complete_eval()
+	Player:SetFacing(self.heading)
+	
+	if (not Player:IsMoving()) then
+		Player:Move(FFXIV.MOVEMENT.FORWARD)
 	end
 	
+	if (self.timer == 0) then
+		self.timer = Now() + 300
+	elseif (Now() > self.timer) then
+		return true
+	end
+
 	return false
 end
 function ffxiv_task_syncadjust:task_complete_execute()
