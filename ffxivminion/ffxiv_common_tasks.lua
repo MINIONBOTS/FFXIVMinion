@@ -156,6 +156,7 @@ function ffxiv_task_movetopos.Create()
 	ml_global_information.monitorStuck = true
 	
 	newinst.destMapID = 0
+	newinst.alwaysMount = false
     
     return newinst
 end
@@ -387,6 +388,7 @@ function ffxiv_task_movetofate.Create()
 	newinst.lastDistance = 0
 	
 	ml_global_information.monitorStuck = true
+	newinst.alwaysMount = false
     
     return newinst
 end
@@ -616,6 +618,7 @@ function ffxiv_task_movetointeract.Create()
 	
 	GameHacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
+	newinst.alwaysMount = false
 	
     return newinst
 end
@@ -1403,6 +1406,8 @@ function ffxiv_task_flee.Create()
     newinst.range = 1.5
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.failTimer = 0
+	
+	newinst.alwaysMount = false
 
     return newinst
 end
@@ -1946,6 +1951,7 @@ function ffxiv_nav_interact.Create()
 	newinst.interactDelay = 500
 	
 	GameHacks:SkipDialogue(true)
+	newinst.alwaysMount = false
 	
     return newinst
 end

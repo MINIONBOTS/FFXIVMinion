@@ -75,21 +75,30 @@ c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
 e_precastbuff.id = 0
 function c_precastbuff:evaluate()
+	c_precastbuff.activity = ""
+		
 	local fs = tonumber(Player:GetFishingState())
-	
 	if (fs == 0 or fs == 4) then
-		if (gFoodHQ ~= "None") then
-			local foodID = ffxivminion.foodsHQ[gFoodHQ]
-			local food = MGetItem(foodID,true,true)
-			if (food and not HasBuffs(Player,"48")) then
-				e_precastbuff.id = foodID
-				return true
-			end
-		elseif (gFood ~= "None") then
-			local foodID = ffxivminion.foods[gFood]
-			local food = MGetItem(foodID,false,false)
-			if (food and not HasBuffs(Player,"48")) then
-				e_precastbuff.id = foodID
+
+		if (ShouldEat()) then
+			c_precastbuff.activity = "eat"
+			return true
+		end
+		
+		local needsStealth = false
+		local task = ffxiv_task_fish.currentTask
+		local marker = ml_global_information.currentMarker
+		if (ValidTable(task)) then
+			needsStealth = IsNull(task.usestealth,false)
+		elseif (ValidTable(marker)) then
+			needsStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+		end
+		
+		local hasStealth = HasBuff(Player.id,47)
+		if (not hasStealth and needsStealth) then
+			local stealth = ActionList:Get(298)
+			if (stealth and stealth.isready and Player.action ~= 367) then
+				c_precastbuff.activity = "stealth"
 				return true
 			end
 		end
@@ -101,13 +110,19 @@ end
 function e_precastbuff:execute()
 	ffxiv_task_fish.StopFishing()
 	
-	if (Now() > ml_task_hub:CurrentTask().networkLatency) then
-		local food = Inventory:Get(e_precastbuff.id)
-		if (food) then
-			food:Use()
-			ml_task_hub:CurrentTask().networkLatency = Now() + 1000
-		end
-	end	
+	local activity = c_precastbuff.activity
+	if (activity == "eat") then
+		Eat()
+		return
+	end
+	
+	if (activity == "stealth") then
+		local newTask = ffxiv_task_stealth.Create()
+		newTask.addingStealth = true
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+		ml_task_hub:CurrentTask():SetDelay(2000)
+		return
+	end
 end
 
 c_mooch = inheritsFrom( ml_cause )
@@ -1340,6 +1355,16 @@ function c_fishnexttask:evaluate()
 	return false
 end
 function e_fishnexttask:execute()
+	local taskName = ffxiv_task_fish.currentTask.name or ffxiv_task_fish.currentTaskIndex
+	gStatusTaskName = taskName
+	
+	if (gBotMode == GetString("questMode")) then
+		gQuestStepType = "fish - ["..tostring(taskName).."]"
+	end
+	
+	ml_global_information.currentMarker = false
+	gStatusMarkerName = ""
+	
 	ffxiv_task_fish.currentTask.taskStarted = 0
 	ffxiv_task_fish.attemptedCasts = 0
 	ml_task_hub:CurrentTask().requiresRelocate = true
@@ -1352,6 +1377,8 @@ function e_fishnexttask:execute()
 			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 	end
+	
+	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 
 c_fishnextprofilemap = inheritsFrom( ml_cause )
@@ -1720,17 +1747,17 @@ end
 
 function ffxiv_task_fish:Init()
     --init ProcessOverwatch() cnes
-	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 40 )
-    self:add( ke_inventoryFull, self.overwatch_elements)
+	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 150 )
+    self:add( ke_dead, self.overwatch_elements)
 	
-	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 30 )
+	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddonfish, e_collectibleaddonfish, 140 )
     self:add( ke_collectible, self.overwatch_elements)
 	
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 20 )
-    self:add( ke_dead, self.overwatch_elements)
-    
-    --local ke_stealth = ml_element:create( "Stealth", c_fishstealth, e_fishstealth, 15 )
-    --self:add( ke_stealth, self.overwatch_elements)
+	local ke_flee = ml_element:create( "Flee", c_gatherflee, e_gatherflee, 130 )
+    self:add( ke_flee, self.overwatch_elements)
+	
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 100 )
+    self:add( ke_inventoryFull, self.overwatch_elements)
   
     --init Process() cnes
 	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
@@ -1844,6 +1871,7 @@ function ffxiv_task_fish.UIInit()
     GUI_NewCheckbox(winName,GetString("botEnabled"),"gBotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
 	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
+	GUI_NewField(winName,"Current Task","gStatusTaskName",group )
 	GUI_NewCheckbox(winName,"Fish Debug","gFishDebug",group)
 	GUI_NewComboBox(winName,"Debug Level","gFishDebugLevel",group,"1,2,3")
 	

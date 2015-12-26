@@ -2616,20 +2616,33 @@ function InCombatRange(targetid)
 	end
 	
 	--If we're casting on the target, consider the player in-range, so that it doesn't attempt to move and interrupt the cast.
-	if ( Player.castinginfo.channelingid ~= nil and Player.castinginfo.channeltargetid == targetid) then
+	if ( Player.castinginfo.channelingid ~= 0 and Player.castinginfo.channeltargetid == targetid) then
+		return true
+	end
+	
+	local rootTaskName = ""
+	local rootTask = ml_task_hub:RootTask()
+	if (rootTask) then
+		rootTaskName = rootTask.name
+	end
+	
+	local attackRange = ml_global_information.AttackRange
+	if (attackRange < 5 and ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100)))) then
+		return true
+	elseif (attackRange > 5 and ((target.distance - target.hitradius) <= (24 * (tonumber(gCombatRangePercent) / 100)))) then
 		return true
 	end
 	
 	local highestRange = 0
 	local charge = false
 	local skillID = nil
-	
+
 	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 		for prio,skill in spairs(SkillMgr.SkillProfile) do
-			local skilldata = ActionList:Get(tonumber(skill.id))
+			local skilldata = MGetAction(tonumber(skill.id))
 			if (skilldata) then
 				if ( skilldata.range > 0 and skill.used == "1" and skilldata.range > highestRange and ActionList:CanCast(tonumber(skill.id),target.id)) then
-					if ((ml_global_information.AttackRange < 5 and skilldata.isready) or ml_global_information.AttackRange >= 5) then
+					if ((attackRange < 5 and skilldata.isready) or attackRange >= 5) then
 						skillID = tonumber(skill.id)
 						highestRange = tonumber(skilldata.range)
 						charge = (skill.charge == "1" and true) or false
@@ -2639,21 +2652,7 @@ function InCombatRange(targetid)
 		end
 	end
 	
-	--Throw in some sanity checks.
-	if (highestRange > 30) then
-		highestRange = 30
-	elseif (highestRange < 3) then
-		highestRange = 3
-	end
-	
-	local rootTaskName = ""
-	local rootTask = ml_task_hub:RootTask()
-	if (rootTask) then
-		rootTaskName = rootTask.name
-	end
-
-	--d("attackRange:"..tostring(ml_global_information.AttackRange))
-	if ( ml_global_information.AttackRange < 5 ) then
+	if ( attackRange < 5 ) then			
 		if (skillID ~= nil) then
 			if (highestRange > 5) then
 				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
@@ -2678,9 +2677,8 @@ function InCombatRange(targetid)
 	else
 		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))
 	end
-	
-	--d("InCombatRange based on range:"..tostring((target.distance2d - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) )))
-	return ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100) ))
+
+	return false
 end
 function CanAttack(targetid)
 	local target = {}
@@ -4184,26 +4182,26 @@ function ItemCount(itemid,includehq,requirehq)
 	for x=0,3 do
 		local inv = MInventory("type="..tostring(x))
 		if (ValidTable(inv)) then
-			for i, item in pairs(inv) do				
+			for i, item in pairs(inv) do	
 				if (not includehq and not requirehq) then
 					if (item.hqid == itemid) then
 						itemcount = itemcount + item.count
 					end
 				else
 					if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
+						if (requirehq) then
+							if (toboolean(item.IsHQ)) then
+								itemcount = itemcount + item.count
+							end
+						else	
+							if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+								itemcount = itemcount + item.count
+							end
 						end
 					end
 				end
 			end
 		end
-	end
 	end
 
 	--Look through equipped items bag.
@@ -4216,18 +4214,18 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			else
 				if (item.id == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						itemcount = itemcount + item.count
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						itemcount = itemcount + item.count
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
 					end
 				end
 			end
 		end
-	end
 	end
 	
 	--Look through currency bag.
@@ -4261,6 +4259,31 @@ function ItemCount(itemid,includehq,requirehq)
 					end
 				else
 					if (item.id == itemid) then
+						if (requirehq) then
+							if (toboolean(item.IsHQ)) then
+								itemcount = itemcount + item.count
+							end
+						else	
+							if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+								itemcount = itemcount + item.count
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = MInventory("type=3300")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (not includehq and not requirehq) then
+				if (item.hqid == itemid) then
+					itemcount = itemcount + item.count
+				end
+			else
+				if (item.id == itemid) then
 					if (requirehq) then
 						if (toboolean(item.IsHQ)) then
 							itemcount = itemcount + item.count
@@ -4274,31 +4297,6 @@ function ItemCount(itemid,includehq,requirehq)
 			end
 		end
 	end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						itemcount = itemcount + item.count
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						itemcount = itemcount + item.count
-					end
-				end
-			end
-		end
-	end
-	end
 	
 	--Look through soulstones armory bag.
 	local inv = MInventory("type=3400")
@@ -4310,18 +4308,18 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			else
 				if (item.id == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						itemcount = itemcount + item.count
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						itemcount = itemcount + item.count
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
 					end
 				end
 			end
 		end
-	end
 	end
 	
 	--Look through weapons armory bag.
@@ -4334,18 +4332,18 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			else
 				if (item.id == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						itemcount = itemcount + item.count
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						itemcount = itemcount + item.count
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
 					end
 				end
 			end
 		end
-	end
 	end
 	
 	--Look through quest/key items bag.
@@ -4358,18 +4356,18 @@ function ItemCount(itemid,includehq,requirehq)
 				end
 			else
 				if (item.id == itemid) then
-				if (requirehq) then
-					if (toboolean(item.IsHQ)) then
-						itemcount = itemcount + item.count
-					end
-				else	
-					if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-						itemcount = itemcount + item.count
+					if (requirehq) then
+						if (toboolean(item.IsHQ)) then
+							itemcount = itemcount + item.count
+						end
+					else	
+						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+							itemcount = itemcount + item.count
+						end
 					end
 				end
 			end
 		end
-	end
 	end
 	
 	return itemcount

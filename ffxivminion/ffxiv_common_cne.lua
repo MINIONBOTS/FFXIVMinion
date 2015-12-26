@@ -1144,8 +1144,9 @@ function c_walktopos:evaluate()
     return false
 end
 function e_walktopos:execute()
+
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		local needsStealth = ml_global_information.needsStealth
+		local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount
 		local hasStealth = HasBuff(Player.id,47)
 		if (not hasStealth and needsStealth) then
 			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then
@@ -1172,22 +1173,12 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
 		
-		if (false) then
-			if (ValidTable(c_walktopos.lastPos) and IsFlying()) then
-				local lastPos = c_walktopos.lastPos
-				--d("Checking if last wanted position was the same position.")
-				local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-				if (dist < 1) then
-					if ((TimeSince(e_walktopos.lastPath) < 10000 and Player:IsMoving()) or
-						(TimeSince(e_walktopos.lastPath) < 1000 and not Player:IsMoving()) or
-						(TimeSince(e_walktopos.lastFail) < 10000)) 
-					then
-						--d("Blocked execution since we should already be en route.")
-						return
-					end
-				else
-					--d("distance is greater than 1 ["..tostring(dist).."], allow it.")
-				end
+		if (ValidTable(c_walktopos.lastPos)) then
+			local lastPos = c_walktopos.lastPos
+			--d("Checking if last wanted position was the same position.")
+			local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+			if (dist < 1 and Player.GetNavStatus ~= nil and Player:GetNavStatus() == 1) then
+				return
 			end
 		end
 		
@@ -1436,7 +1427,7 @@ function c_mount:evaluate()
 		return false
 	end
 	
-	if (HasBuffs(Player,"47") and ml_global_information.needsStealth) then
+	if (HasBuffs(Player,"47") and ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount) then
 		return false
 	end
 	
@@ -1459,22 +1450,27 @@ function c_mount:evaluate()
 		
 		local forcemount = false
 		if (CanFlyInZone()) then
-			if (not Player:IsMoving() or TimeSince(e_mount.lastPathCheck) > 5000) then
-				local path = NavigationManager:GetPath(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-				local pathsize = TableSize(path)
-				if (pathsize > 0) then
-					if (ValidTable(path)) then
-						local lasthop = path[pathsize-1]
-						if (lasthop) then
-							local goaltohop = PDistance3D(lasthop.x, lasthop.y, lasthop.z, gotoPos.x, gotoPos.y, gotoPos.z)
-							if (goaltohop > 5) then
-								forcemount = true
+			
+			if (ml_task_hub:CurrentTask().alwaysMount) then
+				forcemount = true
+			else
+				if (not Player:IsMoving() or TimeSince(e_mount.lastPathCheck) > 5000) then
+					local path = NavigationManager:GetPath(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+					local pathsize = TableSize(path)
+					if (pathsize > 0) then
+						if (ValidTable(path)) then
+							local lasthop = path[pathsize-1]
+							if (lasthop) then
+								local goaltohop = PDistance3D(lasthop.x, lasthop.y, lasthop.z, gotoPos.x, gotoPos.y, gotoPos.z)
+								if (goaltohop > 5) then
+									forcemount = true
+								end
 							end
 						end
 					end
+					
+					e_mount.lastPathCheck = Now()
 				end
-				
-				e_mount.lastPathCheck = Now()
 			end
 		end
 
