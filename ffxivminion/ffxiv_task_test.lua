@@ -320,7 +320,6 @@ function ffxiv_task_movetopos2.Create()
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
-	newinst.lastDistance = 0
 	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true

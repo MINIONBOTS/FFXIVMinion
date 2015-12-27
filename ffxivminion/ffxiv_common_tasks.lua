@@ -146,7 +146,6 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
-	newinst.lastDistance = 0
 	
 	newinst.flightPath = nil
 	newinst.noFlight = false
@@ -385,7 +384,6 @@ function ffxiv_task_movetofate.Create()
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
-	newinst.lastDistance = 0
 	
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
@@ -601,7 +599,6 @@ function ffxiv_task_movetointeract.Create()
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
 	newinst.use3d = true
-	newinst.lastDistance = nil
 	newinst.useTeleport = true
 	newinst.dataUnpacked = false
 	newinst.failTimer = 0
@@ -661,7 +658,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
-		if (not interact or not interact.targetable or (self.lastDistance and interact.distance > (self.lastDistance * 1.5))) then
+		if (not interact or not interact.targetable) then
 			return true
 		end
 	else
@@ -739,7 +736,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					if (interactable.distance <= 7.5) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
-						self.lastDistance = interactable.pathdistance
 						self.lastInteract = Now()
 						return false
 					end
@@ -755,7 +751,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							Player:Interact(interactable.id)
-							self.lastDistance = interactable.pathdistance
 							self.lastInteract = Now()
 						end
 					end
@@ -1861,7 +1856,6 @@ function ffxiv_mesh_interact:task_complete_eval()
 				if (interact and interact.distance < (radius * 4)) then
 					Player:SetFacing(interact.pos.x,interact.pos.y,interact.pos.z)
 					Player:Interact(interact.id)
-					self.lastDistance = interact.distance
 					self.interactLatency = Now() + 1000
 				end
 			end
@@ -1937,7 +1931,6 @@ function ffxiv_nav_interact.Create()
 	newinst.addedMoveElement = false
 	newinst.removedMoveElement = false
 	newinst.use3d = true
-	newinst.lastDistance = nil
 	newinst.useTeleport = true
 	newinst.failTimer = 0
 	newinst.forceLOS = false
@@ -2011,14 +2004,6 @@ function ffxiv_nav_interact:task_complete_eval()
 					self.interact = interact.id
 				end
 			end
-			
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
-			if (ValidTable(interacts)) then
-				local i,interact = next(interacts)
-				if (i and interact) then
-					self.interact = interact.id
-				end
-			end
 			self.lastInteractableSearch = Now()
 		end
 	end
@@ -2063,7 +2048,6 @@ function ffxiv_nav_interact:task_complete_eval()
 					if (ydiff < 3.5 or interactable.los) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
-						self.lastDistance = interactable.pathdistance
 						self.lastInteract = Now()
 					end
 				end
