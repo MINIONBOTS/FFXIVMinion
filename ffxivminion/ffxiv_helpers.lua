@@ -30,9 +30,10 @@ function FilterByProximity(entities,center,radius,sortfield)
 		d("[FilterByProximity]: Entities list, center point, or radius was invalid.")
 	end
 end
+
 function GetNearestGrindAttackable()
 	local huntString = GetWhitelistIDString()
-	local excludeString = GetBlacklistIDString()
+	local excludeString = IsNull(GetBlacklistIDString(),"")
 	local block = 0
 	local el = nil
 	local nearestGrind = nil
@@ -43,6 +44,12 @@ function GetNearestGrindAttackable()
 	
 	if (ml_task_hub:CurrentTask().safeLevel) then
 		maxLevel = Player.level + 2
+	end
+	
+	if (excludeString == "") then
+		excludeString = "541"
+	else
+		excludeString = excludeString..";541"
 	end
 	
 	local radius = 0
@@ -59,46 +66,40 @@ function GetNearestGrindAttackable()
 		--d("Checking marker with radius section.")
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
-				el = MEntityList("contentid="..huntString..",notincombat,alive,attackable,onmesh")
+				el = MEntityList("shortestpath,contentid="..huntString..",notincombat,targeting=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				
 				if (ValidTable(el)) then
-					local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
-					if (ValidTable(filtered)) then
-						for i,e in pairs(filtered) do
-							if (ValidTable(e) and e.uniqueid ~= 541) then
-								if ((e.targetid == 0 or e.targetid == Player.id) and
-									e.pathdistance <= tonumber(gClaimRange)) then
-									return e
-								end
-							end
-						end
+					local i,e = next(el)
+					if (i and e and e.distance <= tonumber(gClaimRange)) then
+						return e
 					end
 				end
+				
+				el = MEntityList("shortestpath,contentid="..huntString..",notincombat,targeting="..tostring(Player.id)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
+				if (ValidTable(el)) then
+					local i,e = next(el)
+					if (i and e and e.distance <= tonumber(gClaimRange)) then
+						return e
+					end
+				end
+				
 			end
 		end	
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
-		if (not IsNullString(excludeString)) then
-			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		else
-			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
-		end
+		el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		
 		local party = EntityList.myparty
 		if ( party ) then
 			for i, member in pairs(party) do
 				if (member.id and member.id ~= 0 and member.mapid == Player.mapid) then
-					if (not IsNullString(excludeString)) then
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
-					else
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
-					end
+					el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					
 					if (ValidTable(el)) then
 						local filtered = FilterByProximity(el,markerPos,radius)
 						if (ValidTable(filtered)) then
 							for i,e in pairs(filtered) do
-								if (ValidTable(e) and e.uniqueid ~= 541) then
+								if (ValidTable(e)) then
 									return e
 								end
 							end
@@ -109,17 +110,13 @@ function GetNearestGrindAttackable()
 		end
 		
 		if (ValidTable(Player.pet)) then
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
-			else
-				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
-			end
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if (ValidTable(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius)
 				if (ValidTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (ValidTable(e)) then
 							return e
 						end
 					end
@@ -129,14 +126,10 @@ function GetNearestGrindAttackable()
 		
 		local companion = GetCompanionEntity()
 		if (companion) then
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30")
-			end
+			el = MEntityList("shortestpath,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
 			if (ValidTable(el)) then
-				local id, target = next(el)
-				if (ValidTable(target) and myTarget == 0) then
+				local i,e = next(el)
+				if (i and e) then
 					return target
 				end
 			end
@@ -144,13 +137,13 @@ function GetNearestGrindAttackable()
 		
 		--Nearest specified hunt, ignore levels here, assume players know what they wanted to kill.
 		if (not IsNullString(huntString)) then
-			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh")
+			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 			
 			if (ValidTable(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				local filtered = FilterByProximity(el,markerPos,radius)
 				if (ValidTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (ValidTable(e)) then
 							if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
 								return e
 							end
@@ -162,34 +155,26 @@ function GetNearestGrindAttackable()
 		
 		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
 		if (IsNullString(huntString)) then
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-			end
+			el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if (ValidTable(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				local filtered = FilterByProximity(el,markerPos,radius)
 				if (ValidTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (ValidTable(e)) then
 							return e
 						end
 					end
 				end
 			end
 		
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-			end
-			
+			el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+				
 			if (ValidTable(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"pathdistance")
+				local filtered = FilterByProximity(el,markerPos,radius)
 				if (ValidTable(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (ValidTable(e)) then
 							return e
 						end
 					end
@@ -201,12 +186,12 @@ function GetNearestGrindAttackable()
 		block = 1
 		if (gClaimFirst	== "1") then		
 			if (not IsNullString(huntString)) then
-				local el = MEntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh")
+				local el = MEntityList("shortestpath,contentid="..huntString..",notincombat,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				if ( el ) then
 					local i,e = next(el)
-					if (ValidTable(e) and e.uniqueid ~= 541) then
+					if (ValidTable(e)) then
 						if ((e.targetid == 0 or e.targetid == Player.id) and
-							e.pathdistance <= tonumber(gClaimRange)) then
+							e.distance <= tonumber(gClaimRange)) then
 							--d("Grind returned, using block:"..tostring(block))
 							return e
 						end
@@ -217,15 +202,11 @@ function GetNearestGrindAttackable()
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		block = 2
-		if (not IsNullString(excludeString)) then
-			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		else
-			el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,maxdistance=40") 
-		end
+		el = MEntityList("shortestpath,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (ValidTable(e)) then
 				--d("Grind returned, using block:"..tostring(block))
 				return e
 			end
@@ -240,15 +221,11 @@ function GetNearestGrindAttackable()
 		if ( party ) then
 			for i, member in pairs(party) do
 				if (member.id and member.id ~= 0) then
-					if (not IsNullString(excludeString)) then
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
-					else
-						el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,maxdistance=30")
-					end
+					el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					
 					if ( el ) then
 						local i,e = next(el)
-						if (ValidTable(e) and e.uniqueid ~= 541) then
+						if (ValidTable(e)) then
 							--d("Grind returned, using block:"..tostring(block))
 							return e
 						end
@@ -259,15 +236,11 @@ function GetNearestGrindAttackable()
 		
 		block = 4
 		if (ValidTable(Player.pet)) then
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
-			else
-				el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,maxdistance="..tostring(ml_global_information.AttackRange))
-			end
+			el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (ValidTable(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -278,11 +251,11 @@ function GetNearestGrindAttackable()
 		block = 5
 		if (not IsNullString(huntString)) then
 			--d("Checking whitelist section.")
-			el = MEntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh")
+			el = MEntityList("contentid="..huntString..",shortestpath,fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (ValidTable(e)) then
 					if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
 						--d("Grind returned, using block:"..tostring(block))
 						return e
@@ -294,31 +267,23 @@ function GetNearestGrindAttackable()
 		--Nearest in our attack range, not targeting anything, non-fate, use PathDistance.
 		if (IsNullString(huntString)) then
 			--d("Checking non-whitelist section.")
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-			end
+			el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			
 			block = 6
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (ValidTable(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
 			end
 		
-			if (not IsNullString(excludeString)) then
-				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			else
-				el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0")
-			end
+			el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			
 			block = 7
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e) and e.uniqueid ~= 541) then
+				if (ValidTable(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -340,7 +305,7 @@ function GetNearestGrindPriority()
 			if ( el ) then
 				local i,e = next(el)
 				if ( i~= nil and e~= nil and 
-					e.pathdistance <= tonumber(gClaimRange)) then
+					e.distance <= tonumber(gClaimRange)) then
 					return e
 				end
 			end

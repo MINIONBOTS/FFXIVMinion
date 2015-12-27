@@ -1524,9 +1524,6 @@ function ffxiv_task_grindCombat:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 20 )
     self:add( ke_mount, self.process_elements)
 	
-	--local ke_battleMount = ml_element:create( "BattleMount", c_battlemount, e_battlemount, 20 )
-    --self:add( ke_battleMount, self.process_elements)
-    
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
     self:add( ke_sprint, self.process_elements)
 	

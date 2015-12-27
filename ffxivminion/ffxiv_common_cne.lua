@@ -1793,39 +1793,6 @@ end
 ---------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------
---NOTARGET: If (no current target) Then (find the nearest fate mob)
---Gets a new target using the targeting function of the parent task
----------------------------------------------------------------------------------------------
-c_notarget = inheritsFrom( ml_cause )
-e_notarget = inheritsFrom( ml_effect )
-function c_notarget:evaluate()
-    
-    if ( ml_task_hub:CurrentTask().targetFunction() ~= nil ) then
-        if ( ml_task_hub:CurrentTask().targetid == nil or ml_task_hub:CurrentTask().targetid == 0 ) then
-            return true
-        end
-        
-        local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-        if (target ~= nil) then
-            if (not target.alive or not target.targetable) then
-                return true
-            end
-        elseif (target == nil) then
-            return true
-        end
-    end    
-    return false
-end
-function e_notarget:execute()
-    ml_debug( "Getting new target" )
-    local target = ml_task_hub:CurrentTask().targetFunction()
-    if (target ~= nil and target ~= 0) then
-        Player:SetFacing(target.pos.x, target.pos.y, target.pos.z)
-        ml_task_hub:CurrentTask().targetid = target.id
-    end
-end
-
----------------------------------------------------------------------------------------------
 --REST: If (not player.hasAggro and player.hp.percent < 50) Then (do nothing)
 --Blocks all subtask execution until player hp has increased
 ---------------------------------------------------------------------------------------------
@@ -2033,16 +2000,15 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
+	if (Player.incombat or MIsCasting() or MIsLoading() or (MIsLocked() and not IsFlying()) or Player:GetGatherableSlotList() ~= nil) then
+		return false
+	end
+	
     if (gBotMode == GetString("partyMode") and not IsLeader()) then
         return false
     end
 	
 	if (ValidTable(ffxiv_task_fish.currentTask)) then
-		return false
-	end
-	
-	local list = Player:GetGatherableSlotList()
-	if (list ~= nil) then
 		return false
 	end
     
