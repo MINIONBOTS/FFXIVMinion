@@ -1341,6 +1341,17 @@ function c_fishnexttask:evaluate()
 					
 					if (best) then
 						if (ffxiv_task_fish.currentTaskIndex ~= lowestIndex) then
+						
+							local fs = tonumber(Player:GetFishingState())
+							if (fs ~= 0) then
+								local finishcast = ActionList:Get(299,1)
+								if (finishcast and finishcast.isready) then
+									finishcast:Cast()
+									ml_task_hub:CurrentTask():SetDelay(1500)
+								end
+								return
+							end
+	
 							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
 							ffxiv_task_fish.currentTaskIndex = lowestIndex
 							ffxiv_task_fish.currentTask = best
@@ -1368,16 +1379,6 @@ function e_fishnexttask:execute()
 	ffxiv_task_fish.currentTask.taskStarted = 0
 	ffxiv_task_fish.attemptedCasts = 0
 	ml_task_hub:CurrentTask().requiresRelocate = true
-	
-	local fs = tonumber(Player:GetFishingState())
-	if (fs ~= 0) then
-		local finishcast = ActionList:Get(299,1)
-		if (finishcast and finishcast.isready) then
-			finishcast:Cast()
-			ml_task_hub:CurrentTask():SetDelay(1500)
-		end
-	end
-	
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 

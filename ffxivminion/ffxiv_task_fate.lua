@@ -32,7 +32,7 @@ function ffxiv_task_fate.Create()
     newinst.moving = false
     newinst.fatePos = {}
 	ffxiv_task_grind.inFate = false
-    
+	
     return newinst
 end
 
@@ -463,6 +463,7 @@ end
 c_add_fatetarget = inheritsFrom( ml_cause )
 e_add_fatetarget = inheritsFrom( ml_effect )
 c_add_fatetarget.oocCastTimer = 0
+c_add_fatetarget.throttle = 500
 function c_add_fatetarget:evaluate()
 	if (not ml_global_information.Player_InCombat) then
 		if (SkillMgr.Cast( Player, true)) then

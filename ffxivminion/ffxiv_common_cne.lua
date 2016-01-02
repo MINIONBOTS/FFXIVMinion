@@ -1246,8 +1246,6 @@ function c_avoidaggressives:evaluate()
 			local dist = PDistance3D(lastSet.x,lastSet.y,lastSet.z,ppos.x,ppos.y,ppos.z)
 			if (dist <= 80 or Player:IsMoving()) then
 				return false
-			else
-				d("last distance was ["..tostring(dist).."].")
 			end
 		end
 	end
@@ -1896,10 +1894,6 @@ c_dead.timer = 0
 e_dead.blockOnly = false
 function c_dead:evaluate()	
     if (not Player.alive) then
-		if (ml_task_hub:ThisTask().subtask ~= nil) then
-			ml_task_hub:ThisTask().subtask = nil
-		end
-		
 		if (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			if (c_dead.timer == 0) then
 				c_dead.timer = Now() + 30000

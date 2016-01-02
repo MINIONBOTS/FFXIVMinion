@@ -19,7 +19,7 @@ c_stuck.state = {}
 c_stuck.blockOnly = false
 function c_stuck:evaluate()
 
-	ClearTable(c_stuck.state)
+	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
 	if (gDoUnstuck == "0" or IsFlying() or MIsLoading()) then

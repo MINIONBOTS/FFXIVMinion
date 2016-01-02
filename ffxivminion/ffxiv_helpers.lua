@@ -369,7 +369,7 @@ function GetNearestFateAttackable()
 			end
 		end
 		
-		el = MEntityList("shortestpath,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+		el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -381,7 +381,7 @@ function GetNearestFateAttackable()
             end
         end	
     
-        el = MEntityList("shortestpath,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
+        el = MEntityList("nearest,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -413,7 +413,7 @@ function GetNearestFateAttackable()
 		end
 		
 		if (gFateKillAggro == "1") then
-			el = MEntityList("shortestpath,alive,attackable,aggro,fateid=0,onmesh")
+			el = MEntityList("nearest,alive,attackable,aggro,fateid=0,onmesh")
 			if (ValidTable(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
@@ -422,7 +422,7 @@ function GetNearestFateAttackable()
 			end	
 		end
 		
-        el = MEntityList("shortestpath,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
+        el = MEntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
         if (ValidTable(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
@@ -2850,15 +2850,15 @@ function ShouldEat()
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
 		
-		local food = MGetItem(foodID,true,true)
-		if (food and not HasBuffs(Player,"48")) then
+		local food = MGetItem(foodID)
+		if (food and food.isready and not HasBuffs(Player,"48")) then
 			return true
 		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
 		
-		local food = MGetItem(foodID,false,false)
-		if (food and not HasBuffs(Player,"48")) then
+		local food = MGetItem(foodID)
+		if (food and food.isready and not HasBuffs(Player,"48")) then
 			return true
 		end
 	end
@@ -2868,14 +2868,14 @@ function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
-		local food = MGetItem(foodID,true,true)
-		if (food and not HasBuffs(Player,"48")) then
+		local food = MGetItem(foodID)
+		if (food and food.isready and not HasBuffs(Player,"48")) then
 			food:Use()
 		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
-		local food = MGetItem(foodID,false,false)
-		if (food and not HasBuffs(Player,"48")) then
+		local food = MGetItem(foodID)
+		if (food and food.isready and not HasBuffs(Player,"48")) then
 			food:Use()
 		end
 	end
@@ -3031,6 +3031,7 @@ function IsRareItemSpecial(itemid)
 	return superRare[itemid]
 end
 function IsUnspoiled(contentid)
+	contentid = IsNull(contentid,0)
 	return (contentid >= 5 and contentid <= 8)
 end
 --===========================
@@ -3267,18 +3268,39 @@ function GetAetheryteList(force)
 	local force = IsNull(force,false)
 	
 	if (force == true or ml_global_information.Player_Aetherytes == nil) then
-		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+		ml_global_information.Player_Aetherytes = CopyAetheryteData()
 		ml_global_information.lastAetheryteCache = Now()
 	else
 		if not (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
-				ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+				ml_global_information.Player_Aetherytes = CopyAetheryteData()
 				ml_global_information.lastAetheryteCache = Now()
 			end
 		end
 	end
 	
 	return ml_global_information.Player_Aetherytes
+end
+function CopyAetheryteData()
+	local aethData = {}
+	local apiList = Player:GetAetheryteList()
+	if (ValidTable(apiList)) then
+		for i,aetheryte in pairsByKeys(apiList) do
+			aethData[i] = {
+				ptr = aetheryte.ptr,
+				id = aetheryte.id,
+				name = aetheryte.name,
+				ishomepoint = aetheryte.ishomepoint,
+				isfavpoint = aetheryte.isfavpoint,
+				territory = aetheryte.territory,
+				region = aetheryte.region,
+				islocalmap = aetheryte.islocalmap,
+				price = aetheryte.price,
+				isattuned = aetheryte.isattuned,
+			}
+		end
+	end
+	return aethData
 end
 function GetLocalAetheryte()
     local list = ml_global_information.Player_Aetherytes

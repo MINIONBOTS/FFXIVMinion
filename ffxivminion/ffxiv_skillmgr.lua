@@ -2782,18 +2782,20 @@ function SkillMgr.Gather(item)
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-                local realskilldata = ActionList:Get(skillid,1,Player.id)
+                local realskilldata = ActionList:Get(skillid,1)
                 if ( realskilldata and realskilldata.isready ) then 
 					local castable = true
 					
 					if ( tonumber(skill.gsecspassed) > 0 and skill.lastcast ) then
 						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then 
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the last cast check.")
 							castable = false
 						end
 					end
 					
 					if (ValidTable(item)) then
 						if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unknown status.")
 							castable = false
 						end
 					end
@@ -2804,12 +2806,15 @@ function SkillMgr.Gather(item)
 						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax)) or
 						(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)) or
 						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
-						then castable = false 
+					then 
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed one ore more conditional checks.")
+						castable = false 
 					end
 					
 					--Previous gathering skill check
 					if (not IsNullString(skill.pskillg)) then
 						if (tonumber(SkillMgr.prevGatherSkillID) ~= tonumber(skill.pskillg)) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed previous gathering skill check.")
 							castable = false
 						end
 					end
@@ -2848,17 +2853,22 @@ function SkillMgr.Gather(item)
 					
 					if ( skill.gpbuff and skill.gpbuff ~= "" ) then
 						local gbfound = HasBuffs(Player,skill.gpbuff)
-						if not gbfound then castable = false end
+						if not gbfound then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed HasBuff check.")
+							castable = false 
+						end
 					end
 
 					if (skill.gpnbuff ~= "" ) then
 						if not MissingBuffs(Player, skill.gpnbuff) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed MissingBuff check.")
 							castable = false 
 						end								
                     end	
 					
 					--Single use check
 					if (skill.singleuseonly == "1" and SkillMgr.prevSkillList[skillid]) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
 						castable = false
 					end
 					
@@ -2876,6 +2886,8 @@ function SkillMgr.Gather(item)
 							return true
 						end	
 					end					
+				else
+					SkillMgr.DebugOutput(prio,  "["..skill.name.."] is not ready or not found.")
                 end
             end
         end

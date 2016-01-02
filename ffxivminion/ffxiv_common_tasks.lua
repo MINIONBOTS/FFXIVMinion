@@ -156,7 +156,7 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
-    
+	
     return newinst
 end
 
@@ -715,7 +715,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (IsDismounting()) then
 		return false
 	end
-		
+	
 	if (not myTarget) then
 		if (interactable and interactable.targetable and interactable.distance < 10) then
 			Player:SetTarget(interactable.id)
@@ -730,7 +730,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 
 	if (not IsFlying()) then
-		if (myTarget and TimeSince(self.lastInteract) > 500) then
+		--if (myTarget and TimeSince(self.lastInteract) > 500) then
+		if (myTarget) then
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
 					if (interactable.distance <= 7.5) then
@@ -2036,7 +2037,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		end
 	end
 	
-	if (myTarget and TimeSince(self.lastInteract) > 750) then
+	if (myTarget) then
 		if (ValidTable(interactable)) then			
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 			local pathRange = self.pathRange or 10

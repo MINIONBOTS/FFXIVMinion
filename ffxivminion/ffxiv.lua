@@ -76,6 +76,8 @@ FFXIVMINION.SKILLS = {}
 
 memoize = {}
 pmemoize = {}
+tasktracking = {}
+setmetatable(tasktracking, { __mode = 'v' })
 
 ffxivminion = {}
 ffxivminion.foods = {}
@@ -382,6 +384,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_task_hub:ToggleRun()
 	end
 	
+	--collectgarbage()
+	gStatusActiveTaskCount = TableSize(tasktracking)
+	
 	if (ml_global_information.queueSync) then
 		local timer = ml_global_information.queueSync.timer
 		local pos = ml_global_information.queueSync.pos
@@ -396,11 +401,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	end
 	
 	if (ml_mesh_mgr) then
-		if (not MIsLoading()) then
-			if (ml_global_information.queueLoader == true) then
-				--ffxiv_task_test.ReadFlightMesh()
-				ml_global_information.Player_Aetherytes = GetAetheryteList(true)
-				ml_global_information.queueLoader = false
+		if (not Quest:IsLoading()) then
+			if (Player) then
+				if (ml_global_information.queueLoader == true) then
+					ml_global_information.Player_Aetherytes = GetAetheryteList(true)
+					ml_global_information.queueLoader = false
+				end
 			end
 			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 		else
@@ -628,6 +634,7 @@ function ffxivminion.CreateMainWindow()
 	
 	local group = GetString("botStatus")
 	GUI_NewField(winName,GetString("pulseTime"),"gFFXIVMINIONPulseTime",group )
+	GUI_NewField(winName,"# Active Tasks","gStatusActiveTaskCount",group )
     GUI_NewCheckbox(winName,GetString("enableLog"),"gEnableLog",group )
     GUI_NewCheckbox(winName,GetString("logCNE"),"gLogCNE",group )
 	GUI_NewComboBox(winName,"Log Level","gLogLevel",group,"1,2,3")
@@ -772,7 +779,7 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	
-	collectgarbage("collect")
+	collectgarbage()
 	ffxivminion.SetupOverrides()
 	
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
@@ -1513,7 +1520,8 @@ end
 
 function ffxivminion.UpdateGlobals()
 	if (Player) then
-		ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+		--ml_global_information.Player_Aetherytes = Player:GetAetheryteList()
+		ml_global_information.Player_Aetherytes = GetAetheryteList()
 		ml_global_information.Player_Position = Player.pos
 		ml_global_information.Player_Map = Player.localmapid
 		ml_global_information.Player_HP = Player.hp
