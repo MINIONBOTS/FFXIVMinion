@@ -757,121 +757,121 @@ function SkillMgr.ModuleInit()
 	
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,GroundTarget")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
 	
@@ -1008,7 +1008,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 end
 
 SkillMgr.receivedMacro = {}
-SkillMgr.macroCast = 0
+SkillMgr.macroCasted = false
 SkillMgr.macroAttempts = 0
 function SkillMgr.ParseMacro(data)
 	SkillMgr.receivedMacro = {}
@@ -1025,42 +1025,131 @@ function SkillMgr.ParseMacro(data)
 						return true						
 					end
 				)
+			elseif (itype == "Item") then
+				local itemid = IsNull(iparams[1],0)
+				table.insert(SkillMgr.receivedMacro, 
+					function ()
+						local item = MGetItem(itemid)
+						if (not item or (item and item.isoncd)) then	
+							return true			
+						elseif (item and item.isready) then
+							if (item:Use()) then
+								return true
+							end
+							return false
+						end
+					end
+				)
 			elseif (itype == "Action") then
-				local actionid = iparams[1] or 0
-				local actiontype = iparams[2] or 0 
-				local targetid = iparams[3] or 0
-				local msg = iparams[4] or ""
+				local actionid = IsNull(iparams[1],0)
+				local actiontype = IsNull(iparams[2],0)
+				local targetidentifier = IsNull(iparams[3],"Target")
+				local msg = IsNull(iparams[4],"")
+				local actionwait = IsNull(iparams[5],false)
+				
+				--d("Received Action Macro.")
+				--d("ActionID:"..tostring(actionid))
+				--d("ActionType:"..tostring(actiontype))
+				--d("TargetIdentifier:"..tostring(targetidentifier))
+				--d("Msg:"..tostring(msg))
+				--d("ActionWait:"..tostring(actionwait))
+				
+				local target;
+				local targetid;
+				if (targetidentifier == "Target" or targetidentifer == "Ground Target") then
+					local myTarget = Player:GetTarget()
+					if (myTarget) then
+						target = myTarget
+						targetid = myTarget.id
+					else
+						--d("Fail out of this action, no target.")
+						return true
+					end
+				elseif (targetidentifier == "Player" or targetidentifer == "Ground Player") then
+					target = Player
+					targetid = Player.id
+				end
 				
 				table.insert(SkillMgr.receivedMacro, 
 					function () 
-						local macroVars = SkillMgr.macroVars
-						local action = MGetAction(actionid,actiontype,targetid)
+						local action = ActionList:Get(actionid,actiontype,targetid)
 						if (action) then
-							if (Player.castinginfo.channelingind == action.id) then
-								return false
-							elseif (TimeSince(SkillMgr.macroCast) < 1000) then
-								if (action.isoncd or Player.castinginfo.castingid == action.id) then
+							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
+								local tpos = target.pos
+								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
+								
+								local randomFront = (math.random(1,5) / 100)
+								local randomRearFlank = (math.random(65,80) / 100)
+								local randomFrontFlank = (math.random(20,35) / 100)
+								local randomFlank = (math.random(40,60) / 100)
+								local randomRear = (math.random(90,100) / 100)
+								
+								local positions = {
+									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh) - (math.pi * randomFront))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRearFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRearFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRear)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRear)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFrontFlank)))%(2*math.pi),
+									AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFrontFlank)))%(2*math.pi),
+								}
+								
+								local draw = math.random(1,11)
+								local range = (math.random(30,110) / 100)
+								local newpos = AceLib.API.Math.GetPosFromDistanceHeading(tpos, range, positions[draw])
+								if (newpos) then
+									tpos = newpos
+								end
+							
+								if (action:Cast(tpos.x, tpos.y, tpos.z)) then
+									return true
+								elseif (action.recasttime ~= 2.5 and action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
 									if (msg ~= "") then
 										SendTextCommand(msg)
 									end
+									
 									return true
-								end
 								else
-								if (action:Cast(targetid)) then
-									SkillMgr.macroCast = Now()
+									if (Player.castinginfo.channelingid == 0) then
 										SkillMgr.macroAttempts = SkillMgr.macroAttempts + 1
 										
-									if (SkillMgr.macroAttempts >= 3) then
+										if (SkillMgr.macroAttempts > 4) then
 											return true
 										end
-								elseif (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+									end
+									SkillMgr.AddThrottleTime(100)
+								end
+							else
+								if (SkillMgr.macroCasted and (action.isoncd or Player.castinginfo.castingid == action.id)) then
 									if (msg ~= "") then
 										SendTextCommand(msg)
 									end
+									
+									--d("Action ["..tostring(action.name).."] is on cooldown and has been casted, kick it out.")
+									return true
+								else
+									if (Player.castinginfo.channelingid == 0) then
+										if (action:Cast(targetid)) then		
+											--d("Action ["..tostring(action.name).."] detected as casted.")
+											SkillMgr.macroCasted = true
+										end
+										
+										SkillMgr.macroAttempts = SkillMgr.macroAttempts + 1
+										if (SkillMgr.macroAttempts > 4) then
+											--d("Action ["..tostring(action.name).."] has been attempted 5 times or more, kick it out.")
 									return true
 								end
 										end
-										
+									SkillMgr.AddThrottleTime(100)
+								end
+							end
+						else
+							--d("Couldn't find action.")
+							return true
 						end
 						return false
 					end
@@ -1096,12 +1185,11 @@ function SkillMgr.OnUpdate()
 				local retval = newInstruction()
 				if (retval == true) then
 					table.remove(SkillMgr.receivedMacro,1)
-					SkillMgr.macroCast = 0
+					SkillMgr.macroCasted = false
 					SkillMgr.macroAttempts = 0
 				end
 			end			
 		end
-		return
 	end
 	
 	if (SkillMgr.doLoad == true) then
@@ -2355,6 +2443,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							local mid = skill["m"..tostring(i).."actionid"]
 							if (tonumber(mid) and tonumber(mid) ~= 0) then
 							
+								local mtargetfunc = skill["m"..tostring(i).."actiontarget"]
 								local mtargetmsg = skill["m"..tostring(i).."actionmsg"] or ""
 								
 								local instruction = { "Action", {mid, 1, mtargetfunc, mtargetmsg }}

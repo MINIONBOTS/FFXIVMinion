@@ -157,6 +157,8 @@ function ffxiv_task_movetopos.Create()
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
 	
+	table.insert(tasktracking, newinst)
+    
     return newinst
 end
 
@@ -617,6 +619,8 @@ function ffxiv_task_movetointeract.Create()
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
+	table.insert(tasktracking, newinst)
+	
     return newinst
 end
 
@@ -973,6 +977,8 @@ function ffxiv_task_teleport:task_complete_eval()
 	
 	if (self.conversationIndex ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))) then
 		SelectConversationIndex(tonumber(self.conversationIndex))
+		ml_task_hub:CurrentTask():SetDelay(500)
+		return
 	end
 	
 	if (ControlVisible("SelectYesno")) then
@@ -980,6 +986,8 @@ function ffxiv_task_teleport:task_complete_eval()
 			PressYesNo(false)
 		else
 			PressYesNo(true)
+			ml_task_hub:CurrentTask():SetDelay(500)
+			return
 		end
 	end
 	
@@ -1754,6 +1762,7 @@ function ffxiv_task_grindCombat:task_complete_execute()
 		end
 	end
     Player:Stop()
+	ActionList:StopCasting()
 	self.completed = true
 end
 
@@ -1787,6 +1796,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 	return false
 end
 function ffxiv_task_grindCombat:task_fail_execute()
+	ActionList:StopCasting()
 	Player:Stop()
 	self.valid = false
 end

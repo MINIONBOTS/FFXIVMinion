@@ -3364,7 +3364,7 @@ end
 function GetHomepoint()
 	local homepoint = 0
 	
-	local attuned = GetAttunedAetheryteList()
+	local attuned = GetAttunedAetheryteList(true)
 	if (ValidTable(attuned)) then
 		for id,aetheryte in pairsByKeys(attuned) do
 			if (aetheryte.ishomepoint) then
