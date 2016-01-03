@@ -163,9 +163,10 @@ end
 function e_startcraft:execute()
 	if (ffxiv_task_craft.UsingProfile()) then
 		local recipe = ml_task_hub:CurrentTask().recipe
+		local itemid = ml_task_hub:CurrentTask().itemid
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
 			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
-			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
+			Crafting:SetRecipe(recipe.class,recipe.page,itemid)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
 			local skillProfile = ml_task_hub:CurrentTask().skillProfile
@@ -175,12 +176,6 @@ function e_startcraft:execute()
 				end
 			end
 			
-			ml_task_hub:CurrentTask():SetDelay(500)
-			return
-		elseif (not ml_task_hub:CurrentTask().recipeSelected2) then
-			cd("Recipe phase 2, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
-			Crafting:SetRecipe(recipe.class,recipe.page,recipe.index)
-			ml_task_hub:CurrentTask().recipeSelected2 = true
 			ml_task_hub:CurrentTask():SetDelay(500)
 			return
 		else
@@ -546,7 +541,6 @@ function ffxiv_task_craftitems.Create()
 	newinst.useHQ = (gUseHQMats == "1")
 	newinst.recipe = {}
 	newinst.recipeSelected = false
-	newinst.recipeSelected2 = false
 	newinst.skillProfile = ""
 	newinst.quickTimer = 0
 	

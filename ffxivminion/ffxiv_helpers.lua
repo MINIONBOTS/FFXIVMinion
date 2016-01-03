@@ -2849,14 +2849,14 @@ function ShouldEat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
-		
+		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
 			return true
 		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
-		
+		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
 			return true
@@ -2868,12 +2868,14 @@ function Eat()
 	local foodID = nil
 	if (gFoodHQ ~= "None") then
 		foodID = ffxivminion.foodsHQ[gFoodHQ]
+		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
 			food:Use()
 		end
 	elseif (gFood ~= "None") then
 		foodID = ffxivminion.foods[gFood]
+		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
 			food:Use()
