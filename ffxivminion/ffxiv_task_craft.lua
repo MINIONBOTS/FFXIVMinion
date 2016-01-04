@@ -165,7 +165,7 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
-			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.index).."].",3)
+			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(itemid).."].",3)
 			Crafting:SetRecipe(recipe.class,recipe.page,itemid)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
@@ -176,7 +176,7 @@ function e_startcraft:execute()
 				end
 			end
 			
-			ml_task_hub:CurrentTask():SetDelay(500)
+			ml_task_hub:CurrentTask():SetDelay(1000)
 			return
 		else
 			local usehq = ml_task_hub:CurrentTask().useHQ
