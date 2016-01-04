@@ -1546,7 +1546,7 @@ local obj1 = {
 			["lastcastunique"] = {
 			};
 			["name"] = "Methodical Appraisal";
-			["prio"] = 21;
+			["prio"] = 20;
 			["pskillg"] = "";
 			["singleuseonly"] = "0";
 			["type"] = 1;

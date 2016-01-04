@@ -1267,7 +1267,7 @@ function e_gather:execute()
 						return
 					end
 					
-					local result = ffxiv_task_gather.Gather(item)
+					local result = Player:Gather(item.index)
 					if (result == 65536) then
 						ffxiv_task_gather.timer = Now() + 300
 						ffxiv_task_gather.awaitingSuccess = true
