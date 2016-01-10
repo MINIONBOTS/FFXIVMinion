@@ -260,8 +260,6 @@ function e_movetonode:execute()
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
 				if (dist3d > 8) then
-					local eh = ConvertHeading(gpos.h)
-					local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (p) then
@@ -274,13 +272,11 @@ function e_movetonode:execute()
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 					end
 				end
-				d("Starting alternate MOVETOPOS task to use a cordial.")
+				d("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.")
 				return
 			end
 			
 			if (gTeleport == "1" and dist3d > 8) then
-				local eh = ConvertHeading(pos.h)
-				local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 				local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 				if (p and dist ~= 0) then
