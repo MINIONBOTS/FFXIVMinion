@@ -230,15 +230,15 @@ function e_movetonode:execute()
 		local pos;
 		if (ValidTable(adjustedPos)) then
 			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos,false)
-			ffxiv_task_test.RenderPoint(pos,1)
+			--ffxiv_task_test.RenderPoint(pos,1)
 		end
 		
 		if (not ValidTable(pos)) then
 			pos = NavigationManager:GetClosestPointOnMesh(gpos,false)
-			ffxiv_task_test.RenderPoint(pos,4)
+			--ffxiv_task_test.RenderPoint(pos,4)
 		end
 		
-		ffxiv_task_test.RenderPoint(pos)
+		--ffxiv_task_test.RenderPoint(pos)
 
 		local ppos = ml_global_information.Player_Position
 		if (ValidTable(pos)) then
