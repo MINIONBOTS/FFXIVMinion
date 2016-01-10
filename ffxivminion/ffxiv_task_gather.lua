@@ -250,18 +250,15 @@ function e_movetonode:execute()
 			newTask.useTeleport = false
 			
 			local minimumGP = 0
-			local useCordials = (gGatherUseCordials == "1")
-			
 			local task = ffxiv_gather.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				minimumGP = IsNull(task.mingp,0)
-				useCordials = IsNull(task.usecordials,useCordials)
 			elseif (ValidTable(marker)) then
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
 			
-			if (CanUseCordial() or CanUseExpManual()) then
+			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
 				if (dist3d > 8) then
 					local eh = ConvertHeading(gpos.h)
 					local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
