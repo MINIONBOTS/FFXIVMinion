@@ -1162,6 +1162,7 @@ function c_fishnexttask:evaluate()
 			end
 		end
 		
+		--[[
 		if (invalid and ValidTable(ffxiv_task_fish.currentTask)) then	
 			--d("Need to erase the current task, and stop.")
 			
@@ -1199,6 +1200,7 @@ function c_fishnexttask:evaluate()
 			c_fishnexttask.blockOnly = true
 			return true
 		end
+		--]]
 		
 		if (evaluate or invalid) then
 			local profileData = ffxiv_task_fish.profileData

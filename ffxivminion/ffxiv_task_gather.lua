@@ -1741,6 +1741,7 @@ function c_gathernexttask:evaluate()
 			end
 		end
 		
+		--[[
 		if (invalid and ValidTable(ffxiv_gather.currentTask)) then
 			if (Player:IsMoving()) then
 				Player:Stop()
@@ -1768,6 +1769,7 @@ function c_gathernexttask:evaluate()
 			ml_task_hub:CurrentTask():SetDelay(1000)
 			return
 		end
+		--]]
 
 		if (evaluate or invalid) then
 			local profileData = ffxiv_gather.profileData
