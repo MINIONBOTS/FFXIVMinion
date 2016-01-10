@@ -21,6 +21,18 @@ function SetMemoized(key,variant)
 	memoize[key] = variant
 end
 
+function MLoadstring(strEval)
+	local memString = "MLoadstring;"..tostring(strEval)
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local f = assert(loadstring(strEval))()
+		SetMemoized(memString,f)
+		return f
+	end
+end
+
 function MGetAction(actionid,actiontype,targetid)
 	actionid = tonumber(actionid) or 0
 	actiontype = tonumber(actiontype) or 1

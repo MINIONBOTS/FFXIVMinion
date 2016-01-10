@@ -420,9 +420,9 @@ SkillMgr.Variables = {
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
 	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
 	SKM_CollRarityLT = { default = 0, cast = "number", profile = "collraritylt", section = "gathering"},
-	SKM_CollRarityLTPct = { default = 0, cast = "number", profile = "collrarityltpct", section = "gathering"},
 	SKM_CollWearLT = { default = 0, cast = "number", profile = "collwearlt", section = "gathering"},
-	SKM_CollWearLTPct = { default = 0, cast = "number", profile = "collwearltpct", section = "gathering"},
+	SKM_CollWearGT = { default = 0, cast = "number", profile = "collweargt", section = "gathering"},
+	SKM_CollWearEQ = { default = 0, cast = "number", profile = "collweareq", section = "gathering"},
 	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", section = "gathering"},
@@ -507,7 +507,6 @@ function SkillMgr.ModuleInit()
 	end
 	
 	-- Move the filter settings here, since we're going to break them out of the window.
-	
 	if (Settings.FFXIVMINION.gAssistFilter1 == nil) then
         Settings.FFXIVMINION.gAssistFilter1 = "0"
     end
@@ -527,6 +526,8 @@ function SkillMgr.ModuleInit()
     -- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
     GUI_NewButton(SkillMgr.skillbook.name,GetString("skillbookrefresh"),"SMRefreshSkillbookEvent")
+	GUI_NewButton(SkillMgr.skillbook.name,"New Text Command","SkillMgr.AddTextCommandToSkills")
+	GUI_NewButton(SkillMgr.skillbook.name,"New Item","SkillMgr.AddItemToSkills")
     GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
     GUI_SizeWindow(SkillMgr.skillbook.name,SkillMgr.skillbook.w,SkillMgr.skillbook.h)
     GUI_WindowVisible(SkillMgr.skillbook.name,false)	
@@ -599,7 +600,7 @@ function SkillMgr.ModuleInit()
     GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("alias"),"SKM_ALIAS",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet,Macro")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet,Macro,Item,Text Command")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
@@ -936,10 +937,10 @@ function SkillMgr.ModuleInit()
 	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("singleUse"),"SKM_SingleUse",GetString("skillDetails"))	
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmin"),"SKM_GPMIN",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity <=","SKM_CollRarityLT",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity % <=","SKM_CollRarityLTPct",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear <=","SKM_CollWearLT",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear % <=","SKM_CollWearLTPct",GetString("skillDetails"));	
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity < ","SKM_CollRarityLT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear >= ","SKM_CollWearGT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear <= ","SKM_CollWearLT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear =","SKM_CollWearEQ",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
@@ -1141,9 +1142,9 @@ function SkillMgr.ParseMacro(data)
 										SkillMgr.macroAttempts = SkillMgr.macroAttempts + 1
 										if (SkillMgr.macroAttempts > 4) then
 											--d("Action ["..tostring(action.name).."] has been attempted 5 times or more, kick it out.")
-									return true
-								end
+											return true
 										end
+									end
 									SkillMgr.AddThrottleTime(100)
 								end
 							end
@@ -2063,6 +2064,52 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	SkillMgr.RefreshSkillList()
 end	
 
+function SkillMgr.AddItemToSkills()
+	local job = Player.job
+	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
+
+	SkillMgr.SkillProfile[newskillprio] = {	["id"] = 0, ["prio"] = newskillprio, ["name"] = "", ["used"] = "1", ["alias"] = "", ["type"] = -1 }
+	if (job >= 8 and job <= 15) then
+		return
+	elseif (job >=16 and job <=17) then
+		return
+	else
+		for k,v in pairs(SkillMgr.Variables) do
+			if (v.section == "fighting") then
+				if (v.profile == "stype") then
+					SkillMgr.SkillProfile[newskillprio][v.profile] = "Item"
+				else
+					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				end
+			end
+		end
+	end	
+	SkillMgr.RefreshSkillList()
+end	
+
+function SkillMgr.AddTextCommandToSkills()
+	local job = Player.job
+	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
+
+	SkillMgr.SkillProfile[newskillprio] = {	["id"] = 0, ["prio"] = newskillprio, ["name"] = "", ["used"] = "1", ["alias"] = "", ["type"] = -2 }
+	if (job >= 8 and job <= 15) then
+		return
+	elseif (job >=16 and job <=17) then
+		return
+	else
+		for k,v in pairs(SkillMgr.Variables) do
+			if (v.section == "fighting") then
+				if (v.profile == "stype") then
+					SkillMgr.SkillProfile[newskillprio][v.profile] = "Text Command"
+				else
+					SkillMgr.SkillProfile[newskillprio][v.profile] = skill[v.profile] or v.default
+				end
+			end
+		end
+	end	
+	SkillMgr.RefreshSkillList()
+end	
+
 --+	Button Handler for ProfileList Skills
 function SkillMgr.EditSkill(event)
     local wnd = GUI_GetWindowInfo(SkillMgr.mainwindow.name)		
@@ -2866,17 +2913,28 @@ end
 
 function SkillMgr.Gather(item)
     local node = MGetTarget()
-    if ( ValidTable(node) and node.cangather and ValidTable(SkillMgr.SkillProfile)) then
+    if ( ValidTable(node) and ValidTable(SkillMgr.SkillProfile)) then
         
+		local doHalt = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
                 local realskilldata = ActionList:Get(skillid,1)
-                if ( realskilldata and realskilldata.isready ) then 
+               --if ( realskilldata and realskilldata.isready ) then 
+			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
+					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
+					
 					local castable = true
 					
+					if (Player.action == 264 or Player.action == 256) then
+						if (not realskilldata.isready) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the idling ready check.")
+							castable = false
+						end
+					end
+					
 					if ( tonumber(skill.gsecspassed) > 0 and skill.lastcast ) then
-						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then 
+						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the last cast check.")
 							castable = false
 						end
@@ -2911,20 +2969,16 @@ function SkillMgr.Gather(item)
 					if (ControlVisible("GatheringMasterpiece")) then
 						local info = Player:GetCollectableInfo()
 						if (ValidTable(info)) then
-							if (tonumber(skill.collraritylt) > 0 and info.rarity > tonumber(skill.collraritylt)) then
+							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
 								castable = false
 							end
 							if (tonumber(skill.collwearlt) > 0 and info.wear > tonumber(skill.collwearlt)) then
 								castable = false
 							end
-							
-							local rarityPct = ((info.rarity / info.raritymax) * 100)
-							local wearPct = ((info.wear / info.wearmax) * 100)
-							
-							if (tonumber(skill.collrarityltpct) > 0 and rarityPct > tonumber(skill.collrarityltpct)) then
+							if (tonumber(skill.collweargt) > 0 and info.wear < tonumber(skill.collweargt)) then
 								castable = false
 							end
-							if (tonumber(skill.collwearltpct) > 0 and wearPct > tonumber(skill.collwearltpct)) then
+							if (tonumber(skill.collweareq) > 0 and info.wear ~= tonumber(skill.collweareq)) then
 								castable = false
 							end
 						end
@@ -2962,24 +3016,28 @@ function SkillMgr.Gather(item)
 					end
 					
 					if ( castable ) then
-						if ( ActionList:Cast(skillid,Player.id)) then	
-							--d("CASTING (gathering) : "..tostring(skill.name))
-							SkillMgr.SkillProfile[prio].lastcast = Now()
-							SkillMgr.prevGatherSkillID = tostring(skillid)
-							--After a skill is used here, mark it unusable for the rest of the duration of the node.
-							SkillMgr.prevSkillList[skillid] = true
+						doHalt = true
+						if (realskilldata.isready) then
+							if ( ActionList:Cast(skillid,Player.id)) then	
+								--d("CASTING (gathering) : "..tostring(skill.name))
+								SkillMgr.SkillProfile[prio].lastcast = Now()
+								SkillMgr.prevGatherSkillID = tostring(skillid)
+								--After a skill is used here, mark it unusable for the rest of the duration of the node.
+								SkillMgr.prevSkillList[skillid] = true
 
-							if IsUncoverSkill(skillid) then
-								ml_task_hub:CurrentTask().itemsUncovered = true
-							end
-							return true
-						end	
-					end					
-				else
-					SkillMgr.DebugOutput(prio,  "["..skill.name.."] is not ready or not found.")
+								if IsUncoverSkill(skillid) then
+									ml_task_hub:CurrentTask().itemsUncovered = true
+								end
+								return true
+							end	
+						end
+					end	
                 end
             end
         end
+		if (doHalt) then
+			return true
+		end
     end
     return false
 end

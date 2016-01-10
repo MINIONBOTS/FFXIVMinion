@@ -1513,8 +1513,9 @@ end
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
+	local buffIDs = IsNull(tostring(buffIDs),"")
 	
-	if (ValidTable(entity)) then
+	if (ValidTable(entity) and buffIDs ~= "") then
 		local buffs = entity.buffs
 
 		if (ValidTable(buffs)) then
@@ -1545,8 +1546,9 @@ end
 function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
+	local buffIDs = IsNull(tostring(buffIDs),"")
 	
-	if (ValidTable(entity)) then
+	if (ValidTable(entity) and buffIDs ~= "") then
 		--If we have no buffs, we are missing everything.
 		local buffs = entity.buffs
 		
@@ -3264,19 +3266,24 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	return nil
 end
-
 ml_global_information.lastAetheryteCache = 0
 function GetAetheryteList(force)
 	local force = IsNull(force,false)
 	
 	if (force == true or ml_global_information.Player_Aetherytes == nil) then
-		ml_global_information.Player_Aetherytes = CopyAetheryteData()
-		ml_global_information.lastAetheryteCache = Now()
+		local newData = CopyAetheryteData()
+		if (newData) then
+			ml_global_information.Player_Aetherytes = newData
+			ml_global_information.lastAetheryteCache = Now()
+		end
 	else
-		if not (MIsLoading() or MIsLocked() or MIsCasting(true)) then
+		if not (MIsLoading()) then
 			if (TimeSince(ml_global_information.lastAetheryteCache) > 30000) then
-				ml_global_information.Player_Aetherytes = CopyAetheryteData()
-				ml_global_information.lastAetheryteCache = Now()
+				local newData = CopyAetheryteData()
+				if (newData) then
+					ml_global_information.Player_Aetherytes = newData
+					ml_global_information.lastAetheryteCache = Now()
+				end
 			end
 		end
 	end
@@ -3284,9 +3291,9 @@ function GetAetheryteList(force)
 	return ml_global_information.Player_Aetherytes
 end
 function CopyAetheryteData()
-	local aethData = {}
 	local apiList = Player:GetAetheryteList()
 	if (ValidTable(apiList)) then
+		local aethData = {}
 		for i,aetheryte in pairsByKeys(apiList) do
 			aethData[i] = {
 				ptr = aetheryte.ptr,
@@ -3301,8 +3308,9 @@ function CopyAetheryteData()
 				isattuned = aetheryte.isattuned,
 			}
 		end
+		return aethData
 	end
-	return aethData
+	return nil
 end
 function GetLocalAetheryte()
     local list = ml_global_information.Player_Aetherytes
@@ -4482,6 +4490,40 @@ function ArmoryItemCount(slot)
 		end
 	end
 	return 0
+end
+function LowestArmoryItem(slot)
+	local slot = tonumber(slot)
+	local xref = {
+		[0] = 3500, -- Weapon
+		[1] = 3200, -- OffHand
+		[2] = 3201, -- Head
+		[3] = 3202, -- Chest
+		[4] = 3203, -- Gloves
+		[5] = 3204, -- Belt
+		[6] = 3205, -- Pants
+		[7] = 3206, -- Feet
+		[8] = 3207, -- Earring
+		[9] = 3208, -- Necklace
+		[10] = 3209, -- Wrist
+		[11] = 3300, -- Rings
+		[12] = 3300, -- Rings		
+	}
+	
+	local lowest = nil
+	local lowesti = 999
+	
+	if (slot ~= 13) then
+		local inv = MInventory("type="..tostring(xref[slot]))
+		if (inv) then
+			for i, item in pairs(inv) do
+				if (not lowest or (lowest and item.level < lowesti)) then
+					lowest,lowesti = item, item.level
+					lowest.bag = xref[slot]
+				end
+			end
+		end
+	end
+	return lowest
 end
 function GetFirstFreeArmorySlot(armoryType)
 	local armoryType = tonumber(armoryType)

@@ -1,7 +1,8 @@
+ffxiv_assist = {}
+
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
 ffxiv_task_assist.autoRolled = {}
-
 function ffxiv_task_assist.Create()
     local newinst = inheritsFrom(ffxiv_task_assist)
     
@@ -55,82 +56,10 @@ function ffxiv_task_assist:Init()
     self:add( ke_lootRoll, self.process_elements)
   
     self:AddTaskCheckCEs()
-	
 	self:InitAddon()
 end
 
 function ffxiv_task_assist:InitAddon()
-	d("Loading task assist init addon.")
-	--nothing
-end
-
-function ffxiv_task_assist:GetHealingTarget()
-    local target = nil
-    if ( gAssistMode == GetString("lowestHealth")) then	
-        local target = GetBestHealTarget()		
-    elseif ( gAssistMode == GetString("nearest") ) then	
-        local target = GetClosestHealTarget()	
-    end
-    
-    if ( target and target.hp.percent < SkillMgr.GetHealSpellHPLimit() ) then
-        return target
-    end
-	
-    return nil
-end
-
-function ffxiv_task_assist:GetAttackTarget()
-	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or ml_global_information.AttackRange
-    local target = nil
-    if ( gAssistMode == GetString("lowestHealth")) then	
-        local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( ValidTable(el) ) then
-            local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                target = e
-            end
-        end
-    elseif ( gAssistMode == GetString("nearest") ) then	
-        local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( ValidTable(el) ) then
-            local i,e = next(el)
-            if (i~=nil and e~=nil) then
-                target = e
-            end
-        end	
-	 elseif ( gAssistMode == GetString("tankAssist") ) then
-		local party = EntityList("myparty")
-		if (ValidTable(party)) then
-			local tanks = {}
-			for i,member in pairs(party) do
-				if (IsTank(member.job) and member.id ~= Player.id) then
-					table.insert(tanks,member)
-				end
-			end
-			
-			if (ValidTable(tanks)) then
-				local closest = nil
-				local closestDistance = 999
-				for i,tank in pairs(tanks) do
-					if (not closest or (closest and tank.distance < closestDistance)) then
-						closest = tank
-						closestDistance = tank.distance
-					end
-				end
-				
-				if (closest) then
-					if (closest.targetid ~= 0) then
-						local targeted = EntityList:Get(closest.targetid)
-						if (targeted and targeted.attackable and targeted.alive) then
-							target = targeted
-						end
-					end
-				end
-			end
-		end
-    end
-    
-    return target
 end
 
 function ffxiv_task_assist:Process()
@@ -142,15 +71,15 @@ function ffxiv_task_assist:Process()
 			local newTarget = nil
 			
 			if ( gAssistPriority == GetString("healer") ) then
-				newTarget = ffxiv_task_assist:GetHealingTarget()
+				newTarget = ffxiv_assist.GetHealingTarget()
 				if ( newTarget == nil ) then
-					newTarget = ffxiv_task_assist:GetAttackTarget()				
+					newTarget = ffxiv_assist.GetAttackTarget()				
 				end		
 
 			elseif ( gAssistPriority == GetString("dps") ) then
-				newTarget = ffxiv_task_assist:GetAttackTarget()
+				newTarget = ffxiv_assist.GetAttackTarget()
 				if ( newTarget == nil ) then
-					newTarget = ffxiv_task_assist:GetHealingTarget()				
+					newTarget = ffxiv_assist.GetHealingTarget()				
 				end			
 			end
 			
@@ -301,8 +230,6 @@ function ffxiv_task_assist.UIInit()
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
 	gAssistUseAutoFace = Settings.FFXIVMINION.gAssistUseAutoFace
-	
-	RegisterEventHandler("GUI.Update",ffxiv_task_assist.GUIVarUpdate)
 end
 
 c_assistyesno = inheritsFrom( ml_cause )
@@ -394,7 +321,7 @@ function e_assistautoroll:execute()
 end
 --]]
 
-function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
+function ffxiv_assist.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if 	( 	k == "gAssistMode" or
 				k == "gAssistPriority" or
@@ -410,18 +337,20 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
 			end
 		elseif (k == "gQuestHelpers") then
 			if (v == "1") then
-				local message = {}
-				message[1] = "Quest helpers are beta functionality, and should be used with caution."
-				message[2] = "It is not advisable to use this feature on a main account at this time."
+				local message = {
+					[1] = "Quest helpers are beta functionality, and should be used with caution.",
+					[2] = "It is not advisable to use this feature on a main account at this time.",
+				}
 				ffxiv_dialog_manager.IssueNotice("FFXIV_Assist_QuestHelpersNotify", message)
 			end
 			SafeSetVar(tostring(k),v)
 		elseif (k == "gAssistUseAutoFace") then
 			if (v == "1") then
-				local message = {}
-				message[1] = "You must have the in-game option for automatic face target."
-				message[2] = "Failure to do so could result in strange combat behavior and/or error messages."
-				message[3] = "This feature is considered beta functionality as this time, please report issues."
+				local message = {
+					[1] = "You must have the in-game option for automatic face target.",
+					[2] = "Failure to do so could result in strange combat behavior and/or error messages.",
+					[3] = "This feature is considered beta functionality as this time, please report issues.",
+				}
 				ffxiv_dialog_manager.IssueNotice("FFXIV_Assist_AutoFaceNotify", message)
 			end
 			SafeSetVar(tostring(k),v)
@@ -430,12 +359,82 @@ function ffxiv_task_assist.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(GetString("assistMode"))
 end
 
-function ffxiv_task_assist.HandleButtons( Event, Button )	
+function ffxiv_assist.GetHealingTarget()
+    local target = nil
+    if ( gAssistMode == GetString("lowestHealth")) then	
+        local target = GetBestHealTarget()		
+    elseif ( gAssistMode == GetString("nearest") ) then	
+        local target = GetClosestHealTarget()	
+    end
+    
+    if ( target and target.hp.percent < SkillMgr.GetHealSpellHPLimit() ) then
+        return target
+    end
+	
+    return nil
+end
+
+function ffxiv_assist.GetAttackTarget()
+	local maxDistance = (ml_global_information.AttackRange < 5 ) and 8 or ml_global_information.AttackRange
+    local target = nil
+    if ( gAssistMode == GetString("lowestHealth")) then	
+        local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
+        if ( ValidTable(el) ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                target = e
+            end
+        end
+    elseif ( gAssistMode == GetString("nearest") ) then	
+        local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
+        if ( ValidTable(el) ) then
+            local i,e = next(el)
+            if (i~=nil and e~=nil) then
+                target = e
+            end
+        end	
+	 elseif ( gAssistMode == GetString("tankAssist") ) then
+		local party = EntityList("myparty")
+		if (ValidTable(party)) then
+			local tanks = {}
+			for i,member in pairs(party) do
+				if (IsTank(member.job) and member.id ~= Player.id) then
+					table.insert(tanks,member)
+				end
+			end
+			
+			if (ValidTable(tanks)) then
+				local closest = nil
+				local closestDistance = 999
+				for i,tank in pairs(tanks) do
+					if (not closest or (closest and tank.distance < closestDistance)) then
+						closest = tank
+						closestDistance = tank.distance
+					end
+				end
+				
+				if (closest) then
+					if (closest.targetid ~= 0) then
+						local targeted = EntityList:Get(closest.targetid)
+						if (targeted and targeted.attackable and targeted.alive) then
+							target = targeted
+						end
+					end
+				end
+			end
+		end
+    end
+    
+    return target
+end
+
+function ffxiv_assist.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" ) then
-		if (string.find(Button,"ffxiv_task_assist%.")) then
+		if (string.find(Button,"ffxiv_assist%.")) then
 			ExecuteFunction(Button)
 		end
 	end
 end
 
-RegisterEventHandler("GUI.Item", ffxiv_task_assist.HandleButtons)
+RegisterEventHandler("GUI.Update",ffxiv_assist.GUIVarUpdate)
+RegisterEventHandler("GUI.Item", ffxiv_assist.HandleButtons)

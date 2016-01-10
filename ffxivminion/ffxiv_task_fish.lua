@@ -402,6 +402,14 @@ end
 c_finishcast = inheritsFrom( ml_cause )
 e_finishcast = inheritsFrom( ml_effect )
 function c_finishcast:evaluate()
+	local needsStop = false
+	
+	local marker = ml_global_information.currentMarker
+	local task = ffxiv_task_fish.currentTask
+	if (not ValidTable(task) or not ValidTable(marker)) then
+		needsStop = true
+	end
+	
     local castTimer = ml_task_hub:CurrentTask().castTimer
     if (ml_global_information.Now > castTimer) then
         local fs = tonumber(Player:GetFishingState())
@@ -993,10 +1001,13 @@ end
 
 c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
+c_fishnexttask.blockOnly = false
 function c_fishnexttask:evaluate()
 	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_task_fish.profileData)) then
 		return false
 	end
+	
+	c_fishnexttask.blockOnly = false
 	
 	local fs = tonumber(Player:GetFishingState())
 	if (fs == 0 or fs == 4) then
@@ -1105,10 +1116,21 @@ function c_fishnexttask:evaluate()
 					local eTime = EorzeaTime()
 					local eHour = eTime.hour
 					
+					--d("Need to figure out if we're between the valid hours.")
+					--d("MinHour ["..tostring(currentTask.eorzeaminhour).."]")
+					--d("MaxHour ["..tostring(currentTask.eorzeamaxhour).."]")
+					
 					local validHour = false
 					local i = currentTask.eorzeaminhour
 					while (i ~= currentTask.eorzeamaxhour) do
-						if (i == eHour) then
+					
+						--d("i = ["..tostring(i).."]")
+						--d("ehour = ["..tostring(eHour).."]")
+						
+						if (i == eHour) then	
+						
+							--d("we found a match in our range, allow the task to continue.")
+							
 							validHour = true
 							i = currentTask.eorzeamaxhour
 						else
@@ -1117,6 +1139,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (not validHour) then
+						--d("time range is no longer valid, need to break out of this task.")
 						invalid = true
 					end
 				end
@@ -1137,6 +1160,44 @@ function c_fishnexttask:evaluate()
 					end
 				end
 			end
+		end
+		
+		if (invalid and ValidTable(ffxiv_task_fish.currentTask)) then	
+			--d("Need to erase the current task, and stop.")
+			
+			local fs = tonumber(Player:GetFishingState())
+			if (fs ~= 0) then
+				local finishcast = ActionList:Get(299,1)
+				if (finishcast and finishcast.isready) then
+					finishcast:Cast()
+				end
+				
+				c_fishnexttask.blockOnly = true
+				return true
+			end		
+			
+			ffxiv_task_fish.currentTask.taskStarted = 0
+			ffxiv_task_fish.currentTask.taskFailed = 0
+			ffxiv_task_fish.currentTask = {}
+			ffxiv_task_fish.currentTaskIndex = 0
+			
+			local taskName = ffxiv_task_fish.currentTask.name or ffxiv_task_fish.currentTaskIndex
+			gStatusTaskName = taskName
+			
+			if (gBotMode == GetString("questMode")) then
+				gQuestStepType = "fish - [evaluating]"
+			end
+			
+			ml_global_information.currentMarker = false
+			gStatusMarkerName = ""
+			
+			ffxiv_task_fish.currentTask.taskStarted = 0
+			ffxiv_task_fish.attemptedCasts = 0
+			ml_task_hub:CurrentTask().requiresRelocate = true
+			ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
+			
+			c_fishnexttask.blockOnly = true
+			return true
 		end
 		
 		if (evaluate or invalid) then
@@ -1301,6 +1362,9 @@ function c_fishnexttask:evaluate()
 					local best = nil
 					for i,data in pairsByKeys(highPriority) do
 						if (not best or (best and i < lowestIndex)) then
+						
+							fd("[High] Setting best task to ["..tostring(i).."]")
+							
 							best = data
 							lowestIndex = i
 						end
@@ -1311,6 +1375,9 @@ function c_fishnexttask:evaluate()
 						best = nil
 						for i,data in pairsByKeys(normalPriority) do
 							if (not best or (best and i < lowestIndex)) then
+							
+								fd("[Normal] Setting best task to ["..tostring(i).."]")
+								
 								best = data
 								lowestIndex = i
 							end
@@ -1323,6 +1390,9 @@ function c_fishnexttask:evaluate()
 						for i,data in pairsByKeys(lowPriority) do
 							if (i > currentIndex) then
 								if (not best or (best and i < lowestIndex)) then
+									
+									fd("[Low] Setting best task to ["..tostring(i).."]")
+									
 									best = data
 									lowestIndex = i
 								end
@@ -1332,6 +1402,9 @@ function c_fishnexttask:evaluate()
 						if (not best) then
 							for i,data in pairsByKeys(lowPriority) do
 								if (not best or (best and i < lowestIndex)) then
+									
+									fd("[Low] Setting best task to ["..tostring(i).."]")
+									
 									best = data
 									lowestIndex = i
 								end
@@ -1341,22 +1414,26 @@ function c_fishnexttask:evaluate()
 					
 					if (best) then
 						if (ffxiv_task_fish.currentTaskIndex ~= lowestIndex) then
-						
+							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
+							
 							local fs = tonumber(Player:GetFishingState())
 							if (fs ~= 0) then
 								local finishcast = ActionList:Get(299,1)
 								if (finishcast and finishcast.isready) then
 									finishcast:Cast()
-									ml_task_hub:CurrentTask():SetDelay(1500)
 								end
 								return
 							end
 	
-							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
+							
 							ffxiv_task_fish.currentTaskIndex = lowestIndex
 							ffxiv_task_fish.currentTask = best
 							return true
+						else
+							fd("[FishNextTask] Current index is already set to the lowest index.")
 						end
+					else
+						fd("[FishNextTask] Had no better tasks.")
 					end
 				end
 			end
@@ -1366,6 +1443,10 @@ function c_fishnexttask:evaluate()
 	return false
 end
 function e_fishnexttask:execute()
+	if (c_fishnexttask.blockOnly) then
+		return
+	end
+	
 	local taskName = ffxiv_task_fish.currentTask.name or ffxiv_task_fish.currentTaskIndex
 	gStatusTaskName = taskName
 	
@@ -1407,7 +1488,6 @@ function e_fishnextprofilemap:execute()
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
 			finishcast:Cast()
-			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 		return
 	end
@@ -1476,7 +1556,6 @@ function e_fishnextprofilepos:execute()
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
 			finishcast:Cast()
-			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 		return
 	end
@@ -1494,6 +1573,21 @@ function e_fishnextprofilepos:execute()
 	ml_task_hub:CurrentTask().requiresRelocate = false
 	ml_task_hub:CurrentTask().requiresAdjustment = true
     ml_task_hub:CurrentTask():AddSubTask(newTask)
+end
+
+c_fishnoactivity = inheritsFrom( ml_cause )
+e_fishnoactivity = inheritsFrom( ml_effect )
+function c_fishnoactivity:evaluate()
+	local marker = ml_global_information.currentMarker
+	local task = ffxiv_task_fish.currentTask
+	if (not ValidTable(task) and not ValidTable(marker)) then
+		ml_task_hub:CurrentTask():SetDelay(1000)
+		return true
+	end
+	return false
+end
+function e_fishnoactivity:execute()
+	-- Do nothing here, but there's no point in continuing to process and eat CPU.
 end
 
 function ffxiv_task_fish.NeedsStealth()
@@ -1573,9 +1667,10 @@ function ffxiv_task_fish.StopFishing()
 	if (fs ~= 0) then
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
-			finishcast:Cast()
-			if (ml_task_hub:CurrentTask()) then
-				ml_task_hub:CurrentTask():SetDelay(1500)
+			if (finishcast:Cast()) then
+				if (ml_task_hub:CurrentTask()) then
+					ml_task_hub:CurrentTask():SetDelay(1500)
+				end
 			end
 		end
 	end
@@ -1770,11 +1865,14 @@ function ffxiv_task_fish:Init()
 	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
     self:add( ke_nextTask, self.process_elements)
 	
-	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_fishnextprofilemap, e_fishnextprofilemap, 160 )
-    self:add( ke_nextProfileMap, self.process_elements)
-	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 150 )
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextfishingmarker, e_nextfishingmarker, 175 )
     self:add( ke_nextMarker, self.process_elements)
+	
+	local ke_noActivity = ml_element:create( "NoActivity", c_fishnoactivity, e_fishnoactivity, 150 )
+    self:add( ke_noActivity, self.process_elements)
+	
+	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_fishnextprofilemap, e_fishnextprofilemap, 110 )
+    self:add( ke_nextProfileMap, self.process_elements)
 	
 	local ke_nextProfilePos = ml_element:create( "NextProfilePos", c_fishnextprofilepos, e_fishnextprofilepos, 100 )
     self:add( ke_nextProfilePos, self.process_elements)

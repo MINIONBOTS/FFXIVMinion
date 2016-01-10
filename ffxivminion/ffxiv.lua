@@ -1132,7 +1132,7 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			ffxiv_task_gather.UpdateProfiles()
+			ffxiv_gather.UpdateProfiles()
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("craftMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
@@ -1144,7 +1144,7 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			ffxiv_task_craft.UpdateProfiles()
+			ffxiv_craft.UpdateProfiles()
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport

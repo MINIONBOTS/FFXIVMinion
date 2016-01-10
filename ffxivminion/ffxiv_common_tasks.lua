@@ -1275,20 +1275,21 @@ function ffxiv_task_avoid:Init()
 end
 
 function ffxiv_task_avoid:task_complete_eval()
+	local ppos = Player.pos
+	local topos = self.pos
+	local dist = PDistance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
+	
 	if (self.maxTime > 0) then
 		if TimeSince(self.started) > (self.maxTime * 1000) then
 			return true
 		end
 	else
-		local ppos = ml_global_information.Player_Position
-		local topos = self.pos
-		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,topos.x,topos.y,topos.z)
-		if (dist < 1) then
+		if (dist < 0.5 or (dist < 2 and not Player:IsMoving())) then
 			return true
 		end
 	end
 	
-	local target = EntityList:Get(self.targetid)
+	local target = MGetEntity(self.targetid)
 	if (not target or not target.alive or target.castinginfo.channelingid == 0) then
 		return true
 	end
@@ -1297,7 +1298,15 @@ function ffxiv_task_avoid:task_complete_eval()
 		return true
 	end
 
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,1,false,false,false)
+	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
+	
+	if (dist < 1 and not Player:IsMoving()) then
+		local target = MGetTarget()
+		if (target ~= nil) then
+			local pos = target.pos
+			Player:SetFacing(pos.x,pos.y,pos.z)
+		end
+	end
     return false
 end
 
@@ -2191,4 +2200,51 @@ function ffxiv_misc_shopping:Init()
     --self:add( ke_flee, self.overwatch_elements)
 
 	self:AddTaskCheckCEs()
+end
+
+ffxiv_misc_switchclass = inheritsFrom(ml_task)
+function ffxiv_misc_switchclass.Create()
+    local newinst = inheritsFrom(ffxiv_misc_switchclass)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "QUEST_MISC_SWITCHCLASS"
+    
+    newinst.params = {}
+	newinst.stepCompleted = false
+	
+	newinst.class = 0
+    
+    return newinst
+end
+function ffxiv_misc_switchclass:Init()	
+	self:AddTaskCheckCEs()
+end
+function ffxiv_misc_switchclass:task_complete_eval()
+	local class = self.class
+	
+	if (Player.job ~= class) then
+		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+			not Player.alive or ml_global_information.Player_InCombat or
+			Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
+		then
+			return false
+		end
+			
+		local canSwitch,bestWeapon = CanSwitchToClass(class)
+		if (canSwitch) then
+			if (bestWeapon) then
+				bestWeapon:Move(1000,0)
+			end
+			ml_task_hub:CurrentTask():SetDelay(1000)
+			return false
+		end	
+	end
+	
+	return true
 end

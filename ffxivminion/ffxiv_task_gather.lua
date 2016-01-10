@@ -1,26 +1,19 @@
-ffxiv_task_gather = inheritsFrom(ml_task)
-ffxiv_task_gather.lastTick = 0
-ffxiv_task_gather.name = "LT_GATHER"
-ffxiv_task_gather.timer = 0
-ffxiv_task_gather.awaitingSuccess = false
-ffxiv_task_gather.lastItemAttempted = 0
-ffxiv_task_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
-ffxiv_task_gather.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GatherProfiles\]]
-ffxiv_task_gather.profileData = {}
-ffxiv_task_gather.currentTask = {}
-ffxiv_task_gather.currentTaskIndex = 0
-ffxiv_task_gather.tempBlacklist = {}
-
-ffxiv_task_gather.collectors = {
+ffxiv_gather = {}
+ffxiv_gather.lastTick = 0
+ffxiv_gather.timer = 0
+ffxiv_gather.lastItemAttempted = 0
+ffxiv_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
+ffxiv_gather.editwindow = GetStartupPath()..[[\LuaMods\ffxivminion\GatherProfiles\]]
+ffxiv_gather.profileData = {}
+ffxiv_gather.currentTask = {}
+ffxiv_gather.currentTaskIndex = 0
+ffxiv_gather.collectors = {
 	[16] = 4074,
 	[17] = 4088,
 }
 
---unspoiled mining = content id 5
---unspoiled botany = content id 6
---truth of the forests = buff id 221, skill id 221
---truth of the mountains = buff id 222, skill id 238
-
+ffxiv_task_gather = inheritsFrom(ml_task)
+ffxiv_task_gather.name = "LT_GATHER"
 function ffxiv_task_gather.Create()
     local newinst = inheritsFrom(ffxiv_task_gather)
     --ml_task members
@@ -38,31 +31,17 @@ function ffxiv_task_gather.Create()
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
 	
-	ffxiv_task_gather.currentTask = {}
-	ffxiv_task_gather.currentTaskIndex = 0
+	ffxiv_gather.currentTask = {}
+	ffxiv_gather.currentTaskIndex = 0
 	
 	newinst.pos = 0
     newinst.gatherTimer = 0
 	newinst.gatherDistance = 1.5
-	newinst.gatheredMap = false
-	newinst.gatheredGardening = false
-	newinst.gatheredChocoFood = false
-	newinst.gatheredIxaliRare = false
-	newinst.gatheredSpecialRare = false
     newinst.idleTimer = 0
 	newinst.filterLevel = true
-	newinst.swingCount = 0
-	newinst.itemsUncovered = false
-	newinst.slotsTried = {}
-	newinst.rareCount = -1
-	newinst.rareCount2 = -1
-	newinst.rareCount3 = -1
-	newinst.rareCount4 = -1
-	newinst.mapCount = -1
 	newinst.failedSearches = 0 
-    
-    -- for blacklisting nodes
-    newinst.failedTimer = 0
+	
+	table.insert(tasktracking, newinst)
     
     return newinst
 end
@@ -115,7 +94,7 @@ function c_findnode:evaluate()
 		local basePos = {}
 		local blacklist = ""
 	
-		local task = ffxiv_task_gather.currentTask
+		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			whitelist = IsNull(task.whitelist,"")
@@ -129,7 +108,7 @@ function c_findnode:evaluate()
 			elseif (task.unspoiled and task.unspoiled == true) then
 				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
 			end
-		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
+		elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"1;2;3;4")
 			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
 			if (radius == 0) then radius = 150 end
@@ -147,9 +126,9 @@ function c_findnode:evaluate()
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
 			if (distance <= radius) then
 			
-				if (ValidTable(ffxiv_task_gather.currentTask)) then
-					if (ffxiv_task_gather.currentTask.taskStarted == 0) then
-						ffxiv_task_gather.currentTask.taskStarted = Now()
+				if (ValidTable(ffxiv_gather.currentTask)) then
+					if (ffxiv_gather.currentTask.taskStarted == 0) then
+						ffxiv_gather.currentTask.taskStarted = Now()
 					end
 				end
 			
@@ -167,32 +146,16 @@ function c_findnode:evaluate()
 			
 				local gatherable = GetNearestFromList(filter,basePos,radius)
 				if (ValidTable(gatherable)) then
-					if (ValidTable(ffxiv_task_gather.currentTask)) then
-						if (ffxiv_task_gather.currentTask.taskFailed ~= 0) then
-							ffxiv_task_gather.currentTask.taskFailed = 0
+					if (ValidTable(ffxiv_gather.currentTask)) then
+						if (ffxiv_gather.currentTask.taskFailed ~= 0) then
+							ffxiv_gather.currentTask.taskFailed = 0
 						end
 					end
 				
 					gd("Found a gatherable with ID: "..tostring(gatherable.id).." at a distance of ["..tostring(gatherable.distance).."].",3)
-					-- reset blacklist vars for a new node
-					ml_task_hub:CurrentTask().failedTimer = 0		
+					-- reset blacklist vars for a new node	
 					ml_task_hub:CurrentTask().gatherid = gatherable.id	
 					ml_global_information.gatherid = gatherable.id
-					
-					ml_task_hub:CurrentTask().gatheredMap = false
-					ml_task_hub:CurrentTask().gatheredMap = false
-					ml_task_hub:CurrentTask().gatheredGardening = false
-					ml_task_hub:CurrentTask().gatheredChocoFood = false
-					ml_task_hub:CurrentTask().gatheredIxaliRare = false
-					ml_task_hub:CurrentTask().gatheredSpecialRare = false
-					
-					ml_task_hub:CurrentTask().rareCount = -1
-					ml_task_hub:CurrentTask().rareCount2 = -1
-					ml_task_hub:CurrentTask().rareCount3 = -1
-					ml_task_hub:CurrentTask().rareCount4 = -1
-					ml_task_hub:CurrentTask().mapCount = -1
-					ml_task_hub:CurrentTask().swingCount = 0
-					ml_task_hub:CurrentTask().itemsUncovered = false
 					SkillMgr.prevSkillList = {}
 					return true
 				end
@@ -205,9 +168,9 @@ function c_findnode:evaluate()
 	ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
 	
 	if (ml_task_hub:CurrentTask().failedSearches > 1) then
-		if (ValidTable(ffxiv_task_gather.currentTask)) then
-			if (ffxiv_task_gather.currentTask.taskFailed == 0) then
-				ffxiv_task_gather.currentTask.taskFailed = Now()
+		if (ValidTable(ffxiv_gather.currentTask)) then
+			if (ffxiv_gather.currentTask.taskFailed == 0) then
+				ffxiv_gather.currentTask.taskFailed = Now()
 			end
 		end
 	end
@@ -233,7 +196,7 @@ function c_movetonode:evaluate()
 				return true
 			else
 				local minimumGP = 0				
-				local task = ffxiv_task_gather.currentTask
+				local task = ffxiv_gather.currentTask
 				local marker = ml_global_information.currentMarker
 				if (ValidTable(task)) then
 					minimumGP = IsNull(task.mingp,0)
@@ -259,19 +222,37 @@ function e_movetonode:execute()
     ml_task_hub:CurrentTask().idleTimer = 0
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
 	if (ValidTable(gatherable)) then
-		local pos = gatherable.pos
+		local gpos = gatherable.pos
+		local eh = ConvertHeading(gpos.h)
+		local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
+		local adjustedPos = GetPosFromDistanceHeading(gpos, 1.5, nodeFront)
+		
+		local pos;
+		if (ValidTable(adjustedPos)) then
+			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos,false)
+			ffxiv_task_test.RenderPoint(pos,1)
+		end
+		
+		if (not ValidTable(pos)) then
+			pos = NavigationManager:GetClosestPointOnMesh(gpos,false)
+			ffxiv_task_test.RenderPoint(pos,4)
+		end
+		
+		ffxiv_task_test.RenderPoint(pos)
+
 		local ppos = ml_global_information.Player_Position
 		if (ValidTable(pos)) then
 			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			local newTask = ffxiv_task_movetointeract.Create()
 			newTask.pos = pos
+			
 			newTask.useTeleport = false
 			
 			local minimumGP = 0
 			local useCordials = (gGatherUseCordials == "1")
 			
-			local task = ffxiv_task_gather.currentTask
+			local task = ffxiv_gather.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				minimumGP = IsNull(task.mingp,0)
@@ -280,9 +261,9 @@ function e_movetonode:execute()
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
 			
-			if (Player.gp.current < minimumGP or (useCordials and ItemIsReady(6141) and Player.gp.percent <= 30)) then
+			if (CanUseCordial() or CanUseExpManual()) then
 				if (dist3d > 8) then
-					local eh = ConvertHeading(pos.h)
+					local eh = ConvertHeading(gpos.h)
 					local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -292,11 +273,11 @@ function e_movetonode:execute()
 						alternateTask.useTeleport = (gTeleport == "1")
 						alternateTask.range = 3
 						alternateTask.remainMounted = true
-						alternateTask.stealthFunction = ffxiv_task_gather.NeedsStealth
+						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
 					end
 				end
-				ml_debug("Starting alternate MOVETOPOS task to use a cordial.")
+				d("Starting alternate MOVETOPOS task to use a cordial.")
 				return
 			end
 			
@@ -305,7 +286,7 @@ function e_movetonode:execute()
 				local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 				local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-				if (p and dist < 10) then
+				if (p and dist ~= 0) then
 					newTask.pos = p
 					newTask.useTeleport = true
 				end
@@ -315,9 +296,9 @@ function e_movetonode:execute()
 			newTask.use3d = true
 			newTask.interactRange = 3.3
 			newTask.pathRange = 5
-			newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
+			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
-			ml_debug("Starting MOVETOINTERACT task.")
+			d("Starting MOVETOINTERACT task.")
 		end
 	end
 end
@@ -335,7 +316,7 @@ function c_returntobase:evaluate()
     if ( ml_task_hub:CurrentTask().gatherid ~= nil or ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local basePos = {}
 	
-		local task = ffxiv_task_gather.currentTask
+		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			basePos = task.pos
@@ -343,7 +324,7 @@ function c_returntobase:evaluate()
 				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
 			end
-		elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
+		elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 			basePos = marker:GetPosition()
 		end
 
@@ -356,8 +337,6 @@ function c_returntobase:evaluate()
 			else
 				gd("[ReturnToBase]: Close to base position already.",3)
 			end
-		else
-			gd("[ReturnToBase]: Base position was not found.",3)
 		end
     end
     
@@ -366,7 +345,7 @@ end
 function e_returntobase:execute()
 	local range = 10
 	
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	ml_task_hub:CurrentTask().failedSearches = 0
 	if (ValidTable(task)) then
 		if (task.taskFailed ~= 0) then
@@ -378,24 +357,27 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
+	
+	--ffxiv_task_test.RenderPoint(pos,1,5,5)
+	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
 	newTask.useTeleport = (gTeleport == "1")
 	newTask.range = range
 	newTask.alwaysMount = true
 	newTask.remainMounted = true
-	newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
+	newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
 c_nextgathermarker = inheritsFrom( ml_cause )
 e_nextgathermarker = inheritsFrom( ml_effect )
 function c_nextgathermarker:evaluate()
-	if (ValidTable(ffxiv_task_gather.profileData)) then
+	if (ValidTable(ffxiv_gather.profileData)) then
 		return false
 	end
 	
-	if (Now() < ffxiv_task_gather.timer or ValidTable(Player:GetGatherableSlotList())) then
+	if (Now() < ffxiv_gather.timer or ValidTable(Player:GetGatherableSlotList())) then
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
@@ -507,6 +489,22 @@ function e_nextgathermarker:execute()
 	ml_task_hub:CurrentTask().failedSearches = 0
 end
 
+function DoGathering(item)
+	if (SkillMgr.Gather(item)) then
+		ml_task_hub:CurrentTask():SetDelay(500)
+		return 1
+	end
+
+	if (ffxiv_gather.CheckBuffs(item)) then
+		ml_task_hub:CurrentTask():SetDelay(1500)
+		return 2
+	end
+
+	Player:Gather(item.index)
+	--ml_task_hub:CurrentTask():SetDelay(500)
+	return 3
+end
+
 c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
@@ -517,34 +515,31 @@ function c_gather:evaluate()
 	
     return false
 end
-function e_gather:execute()		
-	if (Now() < ffxiv_task_gather.timer) then
-		ml_debug("Cannot gather yet, timer still active for another ["..tostring((ffxiv_task_gather.timer - Now())/1000).."] seconds.")
+function e_gather:execute()	
+	if (Player.action ~= 264 and Player.action ~= 256) then
+		ml_task_hub:CurrentTask().idleTimer = Now()
+		ml_debug("Gathering ability is not ready yet.")
 		return false
 	end
 	
-	local thisNode = nil
-	local closestNodes = EntityList("nearest,gatherable,maxdistance=5")
-	if (ValidTable(closestNodes)) then
-		local i, node = next(closestNodes)
-		if (i and node) then
-			thisNode = node
-		end
+	if (Now() < ffxiv_gather.timer) then
+		ml_debug("Cannot gather yet, timer still active for another ["..tostring((ffxiv_gather.timer - Now())/1000).."] seconds.")
+		return false
 	end
 	
-	if (not ValidTable(thisNode)) then
+	local thisNode = MGetTarget()
+	if (not ValidTable(thisNode) or not thisNode.cangather) then
 		return
 	else
-		if (ValidTable(ffxiv_task_gather.currentTask)) then
-			if (IsUnspoiled(thisNode.contentid) or IsNull(ffxiv_task_gather.currentTask.resetdaily,false)) then
-				ffxiv_task_gather.SetLastGather(gProfile,ffxiv_task_gather.currentTaskIndex)
+		if (ValidTable(ffxiv_gather.currentTask)) then
+			if (IsUnspoiled(thisNode.contentid) or IsNull(ffxiv_gather.currentTask.resetdaily,false)) then
+				ffxiv_gather.SetLastGather(gProfile,ffxiv_gather.currentTaskIndex)
 			end
 		end
 	end
 	
     local list = Player:GetGatherableSlotList()
     if (ValidTable(list)) then
-			
 		if (thisNode.contentid >= 5) then	
 			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 500) then
 				ml_debug("Still under a delay due to this being an unspoiled node.")
@@ -560,7 +555,7 @@ function e_gather:execute()
 		local item1 = ""
 		local item2 = ""
 		
-		local task = ffxiv_task_gather.currentTask
+		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			gatherMaps = IsNull(task.gathermaps,"")
@@ -584,331 +579,150 @@ function e_gather:execute()
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
 		
-		local itemsVisible = ml_task_hub:CurrentTask().itemsUncovered or not IsUnspoiled(thisNode.contentid)
-		if (itemsVisible and (TimeSince(ml_task_hub:CurrentTask().failedTimer) < 5000 or ml_task_hub:CurrentTask().failedTimer == 0)) then
-			-- 1st pass, maps
-			if (not ml_task_hub:CurrentTask().gatheredMap) then
-				if (gatherMaps ~= "" and gatherMaps ~= false and gatherMaps ~= "None") then
-					local hasMap = false
-					for x=0,3 do
-						local inv = Inventory("type="..tostring(x))
-						for i,item in pairs(inv) do
-							if (IsMap(item.id)) then
-								hasMap = true
-								break
-							end
-						end
-						if (hasMap) then
-							break
-						end
-					end
-					
-					if not hasMap then
-						for i, item in pairs(list) do
-							if (IsMap(item.id)) then
-								local attemptGather = false
-								if (gatherMaps == "Any" or gatherMaps == true) then
-									attemptGather = true
-								elseif (type(gatherMaps) == "string" and string.find(gatherMaps,",")) then
-									for map in StringSplit(gatherMaps,",") do
-										if (tonumber(map) ~= nil and tonumber(map) == item.id) then
-											attemptGather = true
-										end
-										if attemptGather then break end
-									end
-								elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
-									attemptGather = true
-								elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
-									attemptGather = true
-								end
-							
-								if (attemptGather) then
-									local itemCount = ItemCount(item.id,true)
-									if (ml_task_hub:CurrentTask().mapCount == -1) then
-										ml_task_hub:CurrentTask().mapCount = itemCount
-									end
-									if (itemCount == ml_task_hub:CurrentTask().mapCount) then
-										if (SkillMgr.Gather(item)) then
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 2000
-											return
-										end
-										
-										if (ffxiv_task_gather.CheckBuffs(item)) then
-											return
-										end
-
-										local result = Player:Gather(item.index)
-										if (result == 65536) then
-											ffxiv_task_gather.timer = Now() + 300
-											ffxiv_task_gather.awaitingSuccess = true
-											d("Setting a delay after attempting to gather in map section.")
-											return
-										elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-											ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-											ml_task_hub:CurrentTask().gatherTimer = Now()
-											ml_task_hub:CurrentTask().failedTimer = Now()
-											ffxiv_task_gather.timer = Now() + 750
-											ffxiv_task_gather.awaitingSuccess = false
-											return
-										end
-									elseif (itemCount > ml_task_hub:CurrentTask().mapCount) then
-										ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-										ml_task_hub:CurrentTask().gatheredMap = true
-										ml_task_hub:CurrentTask().gatherTimer = Now()
-									end
-								end
-							end
-						end
+		-- 1st pass, maps
+		if (gatherMaps ~= "" and gatherMaps ~= false and gatherMaps ~= "None") then
+			local hasMap = false
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x))
+				for i,item in pairs(inv) do
+					if (IsMap(item.id)) then
+						hasMap = true
+						break
 					end
 				end
-			end
-			
-			--d("Checking gardening section.")
-			
-			-- 2nd pass, gardening supplies
-			if (not ml_task_hub:CurrentTask().gatheredGardening) then
-				if (gatherGardening ~= "" and gatherGardening ~= false and gatherGardening ~= "0") then
-					for i, item in pairs(list) do
-						local attemptGather = false
-						if (gatherGardening ~= "") then
-							if ((gatherGardening == "1" or gatherGardening == true) and IsGardening(item.id)) then
-								attemptGather = true
-							elseif (tonumber(gatherGardening) ~= nil and tonumber(gatherGardening) == item.id) then
-								attemptGather = true
-							elseif (type(gatherGardening) == "string" and string.find(gatherGardening,",")) then
-								for gardenitem in StringSplit(gatherGardening,",") do
-									if (tonumber(gardenitem) ~= nil and tonumber(gardenitem) == item.id) then
-										attemptGather = true
-									end
-									if attemptGather then break end
-								end
-							end
-						end
-						
-						if (attemptGather) then
-							local itemCount = ItemCount(item.id,true)
-							if (ml_task_hub:CurrentTask().rareCount == -1) then
-								ml_task_hub:CurrentTask().rareCount = itemCount
-							end
-							if (itemCount == ml_task_hub:CurrentTask().rareCount) then
-								if (SkillMgr.Gather(item)) then
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2000
-									return
-								end
-								
-								if (ffxiv_task_gather.CheckBuffs(item)) then
-									return
-								end
-								
-								local result = Player:Gather(item.index)
-								if (result == 65536) then
-									ffxiv_task_gather.timer = Now() + 300
-									ffxiv_task_gather.awaitingSuccess = true
-								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatherTimer = Now()
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 750
-									ffxiv_task_gather.awaitingSuccess = false
-								end
-								return
-							elseif (itemCount > ml_task_hub:CurrentTask().rareCount) then
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatheredGardening = true
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							end
-						end
-					end
+				if (hasMap) then
+					break
 				end
 			end
-			
-			--d("Checking special rare item section.")
-			
-			-- 3rd pass, try to get special rare items
-			if (not ml_task_hub:CurrentTask().gatheredSpecialRare) then
-				if (gatherSuperRares ~= "" and gatherSuperRares ~= false and gatherSuperRares ~= "0") then
-					for i, item in pairs(list) do
-						local attemptGather = false
-						if (gatherSuperRares ~= "") then
-							if ((gatherSuperRares == "1" or gatherSuperRares == true) and IsRareItemSpecial(item.id)) then
-								attemptGather = true
-							elseif (tonumber(gatherSuperRares) ~= nil and tonumber(gatherSuperRares) == item.id) then
-								attemptGather = true
-							elseif (type(gatherSuperRares) == "string" and string.find(gatherSuperRares,",")) then
-								for srareitem in StringSplit(gatherSuperRares,",") do
-									if (tonumber(srareitem) ~= nil and tonumber(srareitem) == item.id) then
-										attemptGather = true
-									end
-									if attemptGather then break end
-								end
-							end
-						end
-						
-						if (attemptGather) then
-							local itemCount = ItemCount(item.id,true)
-							if (ml_task_hub:CurrentTask().rareCount4 == -1) then
-								ml_task_hub:CurrentTask().rareCount4 = itemCount
-							end
-							if (itemCount == ml_task_hub:CurrentTask().rareCount4) then
-								if (SkillMgr.Gather(item)) then
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2000
-									return
-								end
-								
-								if (ffxiv_task_gather.CheckBuffs(item)) then
-									return
-								end
-								
-								ffxiv_task_gather.lastItemAttempted	= item.id
-								local result = Player:Gather(item.index)
-								if (result == 65536) then
-									ffxiv_task_gather.timer = Now() + 300
-									ffxiv_task_gather.awaitingSuccess = true
-								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatherTimer = Now()
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 750
-									ffxiv_task_gather.awaitingSuccess = false
-								end
-								return
-							elseif (itemCount > ml_task_hub:CurrentTask().rareCount4) then
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatheredSpecialRare = true
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							end
-						end
-					end
-				end
-			end
-			
-			--d("Checking ixali rare item section.")
-							
-			-- 5th pass, ixali rare items
-			if (not ml_task_hub:CurrentTask().gatheredIxaliRare) then
+				
+			if not hasMap then
 				for i, item in pairs(list) do
-					if (IsIxaliRare(item.id)) then
-						local itemCount = ItemCount(item.id,true)
-						if (itemCount < 5) then
-							if (ml_task_hub:CurrentTask().rareCount3 == -1) then
-								ml_task_hub:CurrentTask().rareCount3 = itemCount
-							end
-							if (itemCount == ml_task_hub:CurrentTask().rareCount3) then
-								if (SkillMgr.Gather(item)) then
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2000
-									return
-								end
-								
-								if (ffxiv_task_gather.CheckBuffs(item)) then
-									return
-								end
-								
-								ffxiv_task_gather.lastItemAttempted	= item.id
-								local result = Player:Gather(item.index)
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = Now()
-								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 3500
-								return
-							elseif (itemCount > ml_task_hub:CurrentTask().rareCount3) then
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatheredIxaliRare = true
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							end
-						end
-					end
-				end
-			end
-			
-			--d("Checking ixali semi-rare item section.")
-	
-			-- 6th pass, semi-rare ixali items
-			for i, item in pairs(list) do
-				if (IsIxaliSemiRare(item.id)) then
-					local itemCount = ItemCount(item.id,true)
-					if (itemCount < 15) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						local result = Player:Gather(item.index)
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 3500
-						return
-					end
-				end
-			end
-			
-			--d("Checking chocobo rare item section.")
-			
-			-- 7th pass to get chocobo rare items
-			if (not ml_task_hub:CurrentTask().gatheredChocoFood) then
-				if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
-					for i, item in pairs(list) do
+					if (IsMap(item.id)) then
 						local attemptGather = false
-						if (IsChocoboFoodSpecial(item.id)) then
-							if (gatherChocoFood == "1" or gatherChocoFood == true) then
-								attemptGather = true
-							elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
-								attemptGather = true
-							elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
-								for chocoitem in StringSplit(gatherChocoFood,",") do
-									if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
-										attemptGather = true
-									end
-									if attemptGather then break end
+						if (gatherMaps == "Any" or gatherMaps == true) then
+							attemptGather = true
+						elseif (type(gatherMaps) == "string" and string.find(gatherMaps,",")) then
+							for map in StringSplit(gatherMaps,",") do
+								if (tonumber(map) ~= nil and tonumber(map) == item.id) then
+									attemptGather = true
 								end
+								if attemptGather then break end
 							end
+						elseif (tonumber(gatherMaps) ~= nil and tonumber(gatherMaps) == item.id) then
+							attemptGather = true
+						elseif (gatherMaps == "Peisteskin Only" and item.id == 6692) then
+							attemptGather = true
 						end
-						
+					
 						if (attemptGather) then
-							local itemCount = ItemCount(item.id,true)
-							if (ml_task_hub:CurrentTask().rareCount2 == -1) then
-								ml_task_hub:CurrentTask().rareCount2 = itemCount
-							end
-							if (itemCount == ml_task_hub:CurrentTask().rareCount2) then
-								if (SkillMgr.Gather(item)) then
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 2000
-									return
-								end
-								
-								if (ffxiv_task_gather.CheckBuffs(item)) then
-									return
-								end
-								
-								ffxiv_task_gather.lastItemAttempted	= item.id	
-								local result = Player:Gather(item.index)
-								if (result == 65536) then
-									ffxiv_task_gather.timer = Now() + 300
-									ffxiv_task_gather.awaitingSuccess = true
-								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatherTimer = Now()
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 750
-									ffxiv_task_gather.awaitingSuccess = false
-								end
-								return
-							elseif (itemCount > ml_task_hub:CurrentTask().rareCount2) then
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatheredChocoFood = true
-								ml_task_hub:CurrentTask().gatherTimer = ml_global_information.Now
-							end
+							return DoGathering(item)
 						end
 					end
+				end
+			end
+		end
+			
+		--d("Checking gardening section.")
+			
+		-- 2nd pass, gardening supplies
+		if (gatherGardening ~= "" and gatherGardening ~= false and gatherGardening ~= "0") then
+			for i, item in pairs(list) do
+				local attemptGather = false
+				if (gatherGardening ~= "") then
+					if ((gatherGardening == "1" or gatherGardening == true) and IsGardening(item.id)) then
+						attemptGather = true
+					elseif (tonumber(gatherGardening) ~= nil and tonumber(gatherGardening) == item.id) then
+						attemptGather = true
+					elseif (type(gatherGardening) == "string" and string.find(gatherGardening,",")) then
+						for gardenitem in StringSplit(gatherGardening,",") do
+							if (tonumber(gardenitem) ~= nil and tonumber(gardenitem) == item.id) then
+								attemptGather = true
+							end
+							if attemptGather then break end
+						end
+					end
+				end
+				
+				if (attemptGather) then
+					return DoGathering(item)
+				end
+			end
+		end
+			
+		--d("Checking special rare item section.")
+			
+		-- 3rd pass, try to get special rare items
+		if (gatherSuperRares ~= "" and gatherSuperRares ~= false and gatherSuperRares ~= "0") then
+			for i, item in pairs(list) do
+				local attemptGather = false
+				if (gatherSuperRares ~= "") then
+					if ((gatherSuperRares == "1" or gatherSuperRares == true) and IsRareItemSpecial(item.id)) then
+						attemptGather = true
+					elseif (tonumber(gatherSuperRares) ~= nil and tonumber(gatherSuperRares) == item.id) then
+						attemptGather = true
+					elseif (type(gatherSuperRares) == "string" and string.find(gatherSuperRares,",")) then
+						for srareitem in StringSplit(gatherSuperRares,",") do
+							if (tonumber(srareitem) ~= nil and tonumber(srareitem) == item.id) then
+								attemptGather = true
+							end
+							if attemptGather then break end
+						end
+					end
+				end
+				
+				if (attemptGather) then
+					return DoGathering(item)
+				end
+			end
+		end
+			
+		--d("Checking ixali rare item section.")
+						
+		-- 5th pass, ixali rare items
+		for i, item in pairs(list) do
+			if (IsIxaliRare(item.id)) then
+				local itemCount = ItemCount(item.id,true)
+				if (itemCount < 5) then
+					return DoGathering(item)
+				end
+			end
+		end
+		
+		--d("Checking ixali semi-rare item section.")
+
+		-- 6th pass, semi-rare ixali items
+		for i, item in pairs(list) do
+			if (IsIxaliSemiRare(item.id)) then
+				local itemCount = ItemCount(item.id,true)
+				if (itemCount < 15) then
+					return DoGathering(item)
+				end
+			end
+		end
+		
+		--d("Checking chocobo rare item section.")
+		
+		-- 7th pass to get chocobo rare items
+		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
+			for i, item in pairs(list) do
+				local attemptGather = false
+				if (IsChocoboFoodSpecial(item.id)) then
+					if (gatherChocoFood == "1" or gatherChocoFood == true) then
+						attemptGather = true
+					elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
+						attemptGather = true
+					elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
+						for chocoitem in StringSplit(gatherChocoFood,",") do
+							if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
+								attemptGather = true
+							end
+							if attemptGather then break end
+						end
+					end
+				end
+				
+				if (attemptGather) then
+					return DoGathering(item)
 				end
 			end
 		end
@@ -933,29 +747,7 @@ function e_gather:execute()
 				end
 				
 				if (attemptGather) then
-					if (SkillMgr.Gather(item)) then
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2000
-						return
-					end
-					
-					if (ffxiv_task_gather.CheckBuffs(item)) then
-						return
-					end
-					
-					ffxiv_task_gather.lastItemAttempted	= item.id	
-					local result = Player:Gather(item.index)
-					if (result == 65536) then
-						ffxiv_task_gather.timer = Now() + 300
-						ffxiv_task_gather.awaitingSuccess = true
-					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 750
-						ffxiv_task_gather.awaitingSuccess = false
-					end
-					return
+					return DoGathering(item)
 				end
 			end
 		end
@@ -982,29 +774,7 @@ function e_gather:execute()
 				end
 					
 				if (attemptGather) then
-					if (SkillMgr.Gather(item)) then
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2000
-						return
-					end
-					
-					if (ffxiv_task_gather.CheckBuffs(item)) then
-						return
-					end
-					
-					ffxiv_task_gather.lastItemAttempted	= item.id
-					local result = Player:Gather(item.index)
-					if (result == 65536) then
-						ffxiv_task_gather.timer = Now() + 300
-						ffxiv_task_gather.awaitingSuccess = true
-					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 750
-						ffxiv_task_gather.awaitingSuccess = false
-					end
-					return
+					return DoGathering(item)
 				end
 			end
 		end
@@ -1015,50 +785,7 @@ function e_gather:execute()
 		if (Player.level < 60) then
 			for i,item in pairs(list) do
 				if (item.isunknown) then
-					if (ffxiv_task_gather.IsRepeatableItem(item)) then					
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						if (not HasBuffs(Player,"805")) then
-							ffxiv_task_gather.lastItemAttempted	= item.id	
-							local result = Player:Gather(item.index)
-							if (result == 65536) then
-								ffxiv_task_gather.timer = Now() + 300
-								ffxiv_task_gather.awaitingSuccess = true
-							elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-								if (IsChocoboFoodSpecial(item.id)) then
-									ml_task_hub:CurrentTask().gatheredChocoFood = true
-								elseif (IsGardening(item.id)) then
-									ml_task_hub:CurrentTask().gatheredGardening = true
-								elseif (IsMap(item.id)) then
-									ml_task_hub:CurrentTask().gatheredMap = true
-								elseif (IsRareItemSpecial(item.id)) then
-									ml_task_hub:CurrentTask().gatheredSpecialRare = true
-								end
-								
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = Now()
-								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 750
-								ffxiv_task_gather.awaitingSuccess = false
-							end
-							return
-						else
-							local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
-							if (collect and collect.isready) then
-								collect:Cast()
-								ffxiv_task_gather.timer = Now() + 2000
-								return
-							end
-						end
-					end
+					return DoGathering(item)
 				end
 			end
 		end
@@ -1095,96 +822,13 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid1 ~= 0) then
 				if (item.id == itemid1) then
-					if (ffxiv_task_gather.IsRepeatableItem(item)) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						if (item.isunknown) then
-							if (not HasBuffs(Player,"805")) then
-								ffxiv_task_gather.lastItemAttempted	= item.id	
-								local result = Player:Gather(item.index)
-								if (result == 65536) then
-									ffxiv_task_gather.timer = Now() + 300
-									ffxiv_task_gather.awaitingSuccess = true
-								elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-									if (IsChocoboFoodSpecial(item.id)) then
-										ml_task_hub:CurrentTask().gatheredChocoFood = true
-									elseif (IsGardening(item.id)) then
-										ml_task_hub:CurrentTask().gatheredGardening = true
-									elseif (IsMap(item.id)) then
-										ml_task_hub:CurrentTask().gatheredMap = true
-									elseif (IsRareItemSpecial(item.id)) then
-										ml_task_hub:CurrentTask().gatheredSpecialRare = true
-									end
-									
-									ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-									ml_task_hub:CurrentTask().gatherTimer = Now()
-									ml_task_hub:CurrentTask().failedTimer = Now()
-									ffxiv_task_gather.timer = Now() + 750
-									ffxiv_task_gather.awaitingSuccess = false
-								end
-								return
-							else
-								local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
-								if (collect and collect.isready) then
-									collect:Cast()
-									ffxiv_task_gather.timer = Now() + 2000
-									return
-								end
-							end
-						else
-							ffxiv_task_gather.lastItemAttempted	= item.id	
-							local result = Player:Gather(item.index)
-							if (result == 65536) then
-								ffxiv_task_gather.timer = Now() + 300
-								ffxiv_task_gather.awaitingSuccess = true
-							elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-								ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-								ml_task_hub:CurrentTask().gatherTimer = Now()
-								ml_task_hub:CurrentTask().failedTimer = Now()
-								ffxiv_task_gather.timer = Now() + 750
-								ffxiv_task_gather.awaitingSuccess = false
-							end
-							return
-						end
-					end
+					return DoGathering(item)
 				end
 			end
 					
 			if (itemslot1 ~= 0) then
 				if (item.index == (itemslot1-1) and item.id ~= nil) then
-					if (ffxiv_task_gather.IsRepeatableItem(item)) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						ffxiv_task_gather.lastItemAttempted	= item.id
-						local result = Player:Gather(itemslot1-1)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
-						end
-						return
-					end
+					return DoGathering(item)
 				end
 			end
 		end
@@ -1192,61 +836,13 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid2 ~= 0) then
 				if (item.id == itemid2) then
-					if (ffxiv_task_gather.IsRepeatableItem(item)) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						ffxiv_task_gather.lastItemAttempted	= item.id	
-						local result = Player:Gather(item.index)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
-						end
-						return
-					end
+					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == (itemslot2-1) and item.id ~= nil) then
-					if (ffxiv_task_gather.IsRepeatableItem(item)) then
-						if (SkillMgr.Gather(item)) then
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 2000
-							return
-						end
-						
-						if (ffxiv_task_gather.CheckBuffs(item)) then
-							return
-						end
-						
-						ffxiv_task_gather.lastItemAttempted	= item.id
-						local result = Player:Gather(itemslot2-1)
-						if (result == 65536) then
-							ffxiv_task_gather.timer = Now() + 300
-							ffxiv_task_gather.awaitingSuccess = true
-						elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-							ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-							ml_task_hub:CurrentTask().gatherTimer = Now()
-							ml_task_hub:CurrentTask().failedTimer = Now()
-							ffxiv_task_gather.timer = Now() + 750
-							ffxiv_task_gather.awaitingSuccess = false
-						end
-						return
-					end
+					return DoGathering(item)
 				end
 			end
 		end
@@ -1256,40 +852,7 @@ function e_gather:execute()
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
 			if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
-				if ffxiv_task_gather.IsSpecialGatherable(item) then
-					if (SkillMgr.Gather(item)) then
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 2000
-						return
-					end
-					
-					if (ffxiv_task_gather.CheckBuffs(item)) then
-						return
-					end
-					
-					local result = Player:Gather(item.index)
-					if (result == 65536) then
-						ffxiv_task_gather.timer = Now() + 300
-						ffxiv_task_gather.awaitingSuccess = true
-					elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-						if (IsChocoboFoodSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredChocoFood = true
-						elseif (IsGardening(item.id)) then
-							ml_task_hub:CurrentTask().gatheredGardening = true
-						elseif (IsMap(item.id)) then
-							ml_task_hub:CurrentTask().gatheredMap = true
-						elseif (IsRareItemSpecial(item.id)) then
-							ml_task_hub:CurrentTask().gatheredSpecialRare = true
-						end
-						
-						ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-						ml_task_hub:CurrentTask().gatherTimer = Now()
-						ml_task_hub:CurrentTask().failedTimer = Now()
-						ffxiv_task_gather.timer = Now() + 750
-						ffxiv_task_gather.awaitingSuccess = false
-					end
-					return			
-				end
+				return DoGathering(item)
 			end
 		end
 		
@@ -1297,30 +860,8 @@ function e_gather:execute()
 			
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
-			if (item.chance > 50 and ffxiv_task_gather.IsRepeatableItem(item)) then
-				if (SkillMgr.Gather(item)) then
-					ml_task_hub:CurrentTask().failedTimer = Now()
-					ffxiv_task_gather.timer = Now() + 2000
-					return
-				end
-				
-				if (ffxiv_task_gather.CheckBuffs(item)) then
-					return
-				end
-				
-				ffxiv_task_gather.lastItemAttempted	= item.id
-				local result = Player:Gather(item.index)
-				if (result == 65536) then
-					ffxiv_task_gather.timer = Now() + 300
-					ffxiv_task_gather.awaitingSuccess = true
-				elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-					ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-					ml_task_hub:CurrentTask().gatherTimer = Now()
-					ml_task_hub:CurrentTask().failedTimer = Now()
-					ffxiv_task_gather.timer = Now() + 750
-					ffxiv_task_gather.awaitingSuccess = false
-				end
-				return
+			if (item.chance > 50) then
+				return DoGathering(item)
 			end
 		end
 		
@@ -1328,50 +869,12 @@ function e_gather:execute()
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
-			if (ffxiv_task_gather.IsRepeatableItem(item)) then
-				if (SkillMgr.Gather(item)) then
-					ml_task_hub:CurrentTask().failedTimer = Now()
-					ffxiv_task_gather.timer = Now() + 2000
-					return
-				end
-				
-				if (ffxiv_task_gather.CheckBuffs(item)) then
-					return
-				end
-				
-				ffxiv_task_gather.lastItemAttempted	= item.id
-				local result = Player:Gather(item.index)
-				if (result == 65536) then
-					ffxiv_task_gather.timer = Now() + 300
-					ffxiv_task_gather.awaitingSuccess = true
-				elseif (result == 0 and ffxiv_task_gather.awaitingSuccess) then
-					ml_task_hub:CurrentTask().swingCount = ml_task_hub:CurrentTask().swingCount + 1
-					ml_task_hub:CurrentTask().gatherTimer = Now()
-					ml_task_hub:CurrentTask().failedTimer = Now()
-					ffxiv_task_gather.timer = Now() + 750
-					ffxiv_task_gather.awaitingSuccess = false
-				end
-				return
-			end
+			return DoGathering(item)
 		end
     end
 end
 
-function ffxiv_task_gather.IsRepeatableItem(item)
-	return (not IsGardening(item.id) and not IsMap(item.id) and 
-			not IsChocoboFoodSpecial(item.id) and not IsRareItemSpecial(item.id) and
-			(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15)))
-end
-
-function ffxiv_task_gather.IsSpecialGatherable(item)
-	return ((not IsChocoboFoodSpecial(item.id) or (IsChocoboFoodSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredChocoFood)) and
-		(not IsMap(item.id) or (IsMap(item.id) and not ml_task_hub:CurrentTask().gatheredMap)) and
-		(not IsGardening(item.id) or (IsGardening(item.id) and not ml_task_hub:CurrentTask().gatheredGardening)) and 
-		(not IsRareItemSpecial(item.id) or (IsRareItemSpecial(item.id) and not ml_task_hub:CurrentTask().gatheredSpecialRare)) and
-		(not IsIxaliSemiRare(item.id) or (IsIxaliSemiRare(item.id) and ItemCount(item.id,true) < 15)))
-end
-
-function ffxiv_task_gather.CheckBuffs(item)
+function ffxiv_gather.CheckBuffs(item)
 	local canCollect = false
 
 	local valuepairs = {
@@ -1405,7 +908,7 @@ function ffxiv_task_gather.CheckBuffs(item)
 		end
 	end
 		
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	if (ValidTable(task)) then
 		local collectables = task.collectables
 		if (ValidTable(collectables)) then
@@ -1427,11 +930,10 @@ function ffxiv_task_gather.CheckBuffs(item)
 	local hasCollect = HasBuffs(Player,"805")
 	local isCollectable = (idpairs[item.id] ~= nil) and not item.isunknown
 	
-	if (hasCollect and not isCollectable) then
-		local collect = MGetAction(ffxiv_task_gather.collectors[Player.job],1)
+	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
+		local collect = MGetAction(ffxiv_gather.collectors[Player.job],1)
 		if (collect and collect.isready) then
 			collect:Cast()
-			ffxiv_task_gather.timer = Now() + 2000
 		end
 		return true
 	end
@@ -1439,9 +941,95 @@ function ffxiv_task_gather.CheckBuffs(item)
 	return false
 end
 
+function CanUseCordial()
+	local minimumGP = 0
+	local useCordials = (gGatherUseCordials == "1")
+	
+	local profile = ffxiv_gather.profileData
+	local task = ffxiv_gather.currentTask
+	local marker = ml_global_information.currentMarker
+	if (ValidTable(task)) then
+		minimumGP = IsNull(task.mingp,0)
+		useCordials = IsNull(task.usecordials,useCordials)
+	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
+		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
+		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+	end
+	
+	if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
+		if (useCordials) then
+			local cordial = MGetItem(6141)
+			if (cordial and cordial.isready) then
+				return true, cordial
+			end
+			
+			if (Player.gp.max >= 550 and Player.gp.percent <= 50) then
+				local hiCordial = MGetItem(12669)
+				if (hiCordial and hiCordial.isready) then
+					return true, hiCordial
+				end
+			end						
+		end
+	end
+	
+	return false, nil
+end
+
+function CanUseExpManual()
+	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,46)) then
+			if (Player.level >= 15 and Player.level < 35) then
+				local manual1 = MGetItem(4633)
+				if (manual1 and manual1.isready) then
+					return true, manual1
+				end
+			end
+			
+			if (Player.level >= 35 and Player.level < 50) then
+				local manual2 = MGetItem(4635)
+				if (manual2 and manual2.isready) then
+					return true, manual2
+				end
+			end
+
+			if (Player.level >= 50 and CanAccessMap(397)) then
+				local commercial = MGetItem(12668)
+				if (commercial and commercial.isready) then
+					return true, commercial
+				end
+			end
+		end
+	elseif (IsCrafter(Player.job)) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,45)) then
+			if (Player.level >= 15 and Player.level < 35) then
+				local manual1 = MGetItem(4632)
+				if (manual1 and manual1.isready) then
+					return true, manual
+				end
+			end
+			
+			if (Player.level >= 35 and Player.level < 50) then
+				local manual2 = MGetItem(4634)
+				if (manual2 and manual2.isready) then
+					return true, manual2
+				end
+			end
+
+			if (Player.level >= 50 and CanAccessMap(397)) then
+				local commercial = MGetItem(12667)
+				if (commercial and commercial.isready) then
+					return true, commercial
+				end
+			end
+		end
+	end
+	return false, nil
+end
+
 c_nodeprebuff = inheritsFrom( ml_cause )
 e_nodeprebuff = inheritsFrom( ml_effect )
 e_nodeprebuff.activity = ""
+e_nodeprebuff.item = nil
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
@@ -1455,10 +1043,12 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	e_nodeprebuff.activity = ""
+	e_nodeprebuff.item = nil
 	e_nodeprebuff.requiresStop = false
 	e_nodeprebuff.requiresDismount = false
 	
 	if (ShouldEat()) then
+		d("[NodePreBuff]: Need to eat.")
 		e_nodeprebuff.activity = "eat"
 		e_nodeprebuff.requiresStop = true
 		e_nodeprebuff.requiresDismount = true
@@ -1470,21 +1060,22 @@ function c_nodeprebuff:evaluate()
 	local useCordials = (gGatherUseCordials == "1")
 	local taskType = ""
 	
-	local profile = ffxiv_task_gather.profileData
-	local task = ffxiv_task_gather.currentTask
+	local profile = ffxiv_gather.profileData
+	local task = ffxiv_gather.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		skillProfile = IsNull(task.skillprofile,"")
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
-	elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
+	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	end
 	
 	if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
 		if (SkillMgr.HasProfile(skillProfile)) then
+			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 			SkillMgr.UseProfile(skillProfile)
 			e_nodeprebuff.activity = "switchprofile"
 			e_nodeprebuff.requiresStop = false
@@ -1492,6 +1083,7 @@ function c_nodeprebuff:evaluate()
 			return true
 		else
 			if (skillProfile == GetString("none")) then
+				d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 				SkillMgr.UseProfile(skillProfile)
 				e_nodeprebuff.activity = "switchprofile"
 				e_nodeprebuff.requiresStop = false
@@ -1508,10 +1100,25 @@ function c_nodeprebuff:evaluate()
 	then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
         if (gatherable and gatherable.cangather) then
-			if (gatherable.distance <= 10) then
+			if (gatherable.distance <= 15) then
 				if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
-					if (useCordials and ItemIsReady(6141)) then
-						e_nodeprebuff.activity = "usecordial"
+					if (useCordials) then
+						local canUse,cordialItem = CanUseCordial()
+						if (canUse and ValidTable(cordialItem)) then
+							d("[NodePreBuff]: Need to use a cordial.")
+							e_nodeprebuff.activity = "usecordial"
+							e_nodeprebuff.item = cordialItem
+							e_nodeprebuff.requiresStop = true
+							e_nodeprebuff.requiresDismount = true
+							return true
+						end					
+					end
+					
+					local canUse,manualItem = CanUseExpManual()
+					if (canUse and ValidTable(manualItem)) then
+						d("[NodePreBuff]: Need to use a cordial.")
+						e_nodeprebuff.activity = "usemanual"
+						e_nodeprebuff.item = manualItem
 						e_nodeprebuff.requiresStop = true
 						e_nodeprebuff.requiresDismount = true
 						return true
@@ -1523,10 +1130,19 @@ function c_nodeprebuff:evaluate()
 	
 	if (taskType ~= "") then
 		if (taskType == "botany") then
-			if (Player.job ~= FFXIV.JOBS.BOTANIST) then
+			if (Player.job ~= FFXIV.JOBS.BOTANIST and CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
+				
+				--[[
+				e_nodeprebuff.activity = "switchclass"
+				e_nodeprebuff.requiresStop = true
+				e_nodeprebuff.requiresDismount = false
+				return true
+				--]]
+				
 				if (ValidTable(profile) and ValidTable(profile.setup)) then
 					local setup = profile.setup
 					if (IsNull(setup.gearsetbotany,0) ~= 0) then
+						d("[NodePreBuff]: Need to switch gearsets, will attempt to use set ["..tostring(setup.gearsetbotany).."].")
 						local commandString = "/gearset change "..tostring(setup.gearsetbotany)
 						SendTextCommand(commandString)
 						e_nodeprebuff.activity = "switchclass"
@@ -1537,10 +1153,18 @@ function c_nodeprebuff:evaluate()
 				end
 			end
 		elseif (taskType == "mining") then
-			if (Player.job ~= FFXIV.JOBS.MINER) then
+			if (Player.job ~= FFXIV.JOBS.MINER and CanSwitchToClass(FFXIV.JOBS.MINER)) then
+				--[[
+				e_nodeprebuff.activity = "switchclass"
+				e_nodeprebuff.requiresStop = true
+				e_nodeprebuff.requiresDismount = false
+				return true
+				--]]
+				
 				if (ValidTable(profile) and ValidTable(profile.setup)) then
 					local setup = profile.setup
 					if (IsNull(setup.gearsetmining,0) ~= 0) then
+						d("[NodePreBuff]: Need to switch gearsets, will attempt to use set ["..tostring(setup.gearsetmining).."].")
 						local commandString = "/gearset change "..tostring(setup.gearsetmining)
 						SendTextCommand(commandString)
 						e_nodeprebuff.activity = "switchclass"
@@ -1554,6 +1178,7 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	if (MissingBuffs(Player,"217+225")) then
+		d("[NodePreBuff]: Need to use our locator buff.")
 		e_nodeprebuff.activity = "uselocator"
 		e_nodeprebuff.requiresStop = false
 		e_nodeprebuff.requiresDismount = false
@@ -1564,6 +1189,7 @@ function c_nodeprebuff:evaluate()
 		Player.level >= 46 and 
 		MissingBuffs(Player,"221+222"))
 	then
+		d("[NodePreBuff]: Need to use our unspoiled finder.")
 		e_nodeprebuff.activity = "useunspoiledfinder"
 		e_nodeprebuff.requiresStop = false
 		e_nodeprebuff.requiresDismount = false
@@ -1574,6 +1200,7 @@ function c_nodeprebuff:evaluate()
 end
 function e_nodeprebuff:execute()
 	local activity = e_nodeprebuff.activity
+	local activityItem = e_nodeprebuff.item
 	local requiresStop = e_nodeprebuff.requiresStop
 	local requiresDismount = e_nodeprebuff.requiresDismount
 	
@@ -1584,11 +1211,13 @@ function e_nodeprebuff:execute()
 	
 	if (requiresDismount and Player.ismounted) then
 		Dismount()
+		ml_task_hub:CurrentTask():SetDelay(500)
 		return
 	end
 	
 	if (activity == "eat") then
 		Eat()
+		ml_task_hub:CurrentTask():SetDelay(1500)
 		return
 	end
 	
@@ -1598,11 +1227,22 @@ function e_nodeprebuff:execute()
 		return
 	end
 	
+	if (activity == "usemanual") then
+		local manual = activityItem
+		if (manual and manual.isready) then
+			manual:Use()
+			ml_task_hub:CurrentTask():SetDelay(1500)
+			return
+		end
+	end
+	
 	if (activity == "usecordial") then
-		local newTask = ffxiv_task_useitem.Create()
-		newTask.itemid = 6141
-		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-		return
+		local cordial = activityItem
+		if (cordial and cordial.isready) then
+			cordial:Use()
+			ml_task_hub:CurrentTask():SetDelay(1500)
+			return
+		end
 	end
 	
 	if (activity == "switchclass") then
@@ -1612,13 +1252,13 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "uselocator") then
-		ffxiv_task_gather.VisibilityBuff(Player.job)
+		ffxiv_gather.VisibilityBuff(Player.job)
 		ml_task_hub:ThisTask():SetDelay(2000)
 		return
 	end
 	
 	if (activity == "useunspoiledfinder") then
-		ffxiv_task_gather.LocatorBuff(Player.job)
+		ffxiv_gather.LocatorBuff(Player.job)
 		ml_task_hub:ThisTask():SetDelay(2000)
 		return
 	end
@@ -1684,12 +1324,23 @@ Player:GetCollectableInfo()
 .chancehq
 --]]
 
+function SetMasterpieceLocation()
+
+end
+
+function GetMasterpieceLocation()
+
+end
+
 c_collectiblegame = inheritsFrom( ml_cause )
 e_collectiblegame = inheritsFrom( ml_effect )
 e_collectiblegame.timer = 0
 function c_collectiblegame:evaluate()
 	if (ControlVisible("GatheringMasterpiece")) then
-		return true
+		if (MIsLocked() and not IsFlying()) then
+		--d("[CollectableGame]: Found the gathering masterpiece addon.")
+			return true
+		end
 	end
 	return false
 end
@@ -1698,6 +1349,7 @@ function e_collectiblegame:execute()
 		return 
 	end
 	
+	d("[CollectableGame]: Checking collectable info.")
 	local info = Player:GetCollectableInfo()
 	if (ValidTable(info)) then
 		local valuepairs = {
@@ -1731,7 +1383,7 @@ function e_collectiblegame:execute()
 			end
 		end
 		
-		local task = ffxiv_task_gather.currentTask
+		local task = ffxiv_gather.currentTask
 		if (ValidTable(task)) then
 			local collectables = task.collectables
 			if (ValidTable(collectables)) then
@@ -1750,224 +1402,76 @@ function e_collectiblegame:execute()
 			end
 		end
 		
-		for itemid,cval in pairs(idpairs) do
-			if (ffxiv_task_gather.lastItemAttempted == itemid) then
-				gd("Item current rarity ["..tostring(info.rarity).."].",3)
-				gd("Item required rarity (GUI) ["..tostring(cval).."].",3)
-				gd("Item current wear ["..tostring(info.rarity).."].",3)
-				gd("Item max wear ["..tostring(info.wearmax).."].",3)
-			
-				if ((info.rarity >= tonumber(cval)) or 
-					(info.rarity == info.raritymax) or
-					(info.wear == info.wearmax))
-				then
-					PressCollectReturn(true)
-					e_collectiblegame.timer = Now() + 500
-					return
-				else
-					if (SkillMgr.Gather()) then
-						gd("[CollectableGame]: Used skill from profile.",3)
-						e_collectiblegame.timer = Now() + 2500
+		local requiredRarity = 0
+		if (ValidTable(idpairs)) then
+			for itemid,cval in pairs(idpairs) do
+				if (ffxiv_gather.lastItemAttempted == itemid) then
+					d("[CollectableGame]: Setting required rarity to ["..tostring(cval).."].")
+					requiredRarity = cval
+				end
+				if (requiredRarity ~= 0) then
+					break
+				end
+			end
+		end
+					
+		d("Item current rarity ["..tostring(info.rarity).."].",3)
+		d("Item required rarity ["..tostring(requiredRarity).."].",3)
+		d("Item current wear ["..tostring(info.rarity).."].",3)
+		d("Item max wear ["..tostring(info.wearmax).."].",3)
+				
+		if (info.rarity > 0 and
+			(((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or 
+			(info.rarity == info.raritymax) or
+			(info.wear == 30)))
+		then
+			PressCollectReturn(true)
+			e_collectiblegame.timer = Now() + 500
+			return
+		else
+			if (SkillMgr.Gather()) then
+				gd("[CollectableGame]: Used skill from profile.",3)
+				e_collectiblegame.timer = Now() + 2500
+				return
+			else
+				local methodicals = {
+					[16] = 4075,
+					[17] = 4089,
+				}
+				local discernings = {
+					[16] = 4078,
+					[17] = 4092,
+				}
+							
+				for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
+					if (tonumber(skill.id) == discernings[Player.job]) then
+						gd("[CollectableGame]: Profile is set to handle collectables, do not use auto-skills.",3)
+						e_collectiblegame.timer = Now() + 500
 						return
-					else
-						local methodicals = {
-							[16] = 4075,
-							[17] = 4089,
-						}
-						local discernings = {
-							[16] = 4078,
-							[17] = 4092,
-						}
-						
-						for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-							if (tonumber(skill.id) == discernings[Player.job]) then
-								gd("[CollectableGame]: Profile is set to handle collectables, do not use auto-skills.",3)
-								e_collectiblegame.timer = Now() + 500
-								return
-							end
-						end
-						
-						gd("[CollectableGame]: Attempting to use auto-skills.",3)
-						local methodical = ActionList:Get(methodicals[Player.job])
-						local discerning = ActionList:Get(discernings[Player.job])
-						
-						if (discerning and discerning.isready and info.rarity <= 1) then
-							if (not HasBuffs(Player,"757")) then
-								discerning:Cast()
-								e_collectiblegame.timer = Now() + 2500
-								return
-							end
-						end
-						
-						if (HasBuffs(Player,"757")) then
-							if (methodical and methodical.isready) then
-								methodical:Cast()
-								e_collectiblegame.timer = Now() + 2500
-								return
-							end
-						end
 					end
 				end
-			end	
-		end
-		
-		--[[
-		if (gMinerCollectibleName and gMinerCollectibleName ~= "" and tonumber(gMinerCollectibleValue) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
+							
+				gd("[CollectableGame]: Attempting to use auto-skills.",3)
+				local methodical = ActionList:Get(methodicals[Player.job])
+				local discerning = ActionList:Get(discernings[Player.job])
 				
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))) 
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
+				if (discerning and discerning.isready and info.rarity <= 1) then
+					if (not HasBuffs(Player,"757")) then
+						discerning:Cast()
+						e_collectiblegame.timer = Now() + 2500
 						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
 					end
-				end	
+				end
+							
+				if (HasBuffs(Player,"757")) then
+					if (methodical and methodical.isready) then
+						methodical:Cast()
+						e_collectiblegame.timer = Now() + 2500
+						return
+					end
+				end
 			end
 		end
-		
-		if (gMinerCollectibleName2 and gMinerCollectibleName2 ~= "" and tonumber(gMinerCollectibleValue2) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue2).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
-				
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue2)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))) 
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
-						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
-					end
-				end	
-			end
-		end
-		
-		if (gMinerCollectibleName3 and gMinerCollectibleName3 ~= "" and tonumber(gMinerCollectibleValue3) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gMinerCollectibleValue3).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
-				
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gMinerCollectibleValue3)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax)))  
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
-						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
-					end
-				end	
-			end
-		end
-		
-		if (gBotanistCollectibleName and gBotanistCollectibleName ~= "" and tonumber(gBotanistCollectibleValue) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
-					
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))) 
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
-						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
-					end
-				end	
-			end
-		end
-		
-		if (gBotanistCollectibleName2 and gBotanistCollectibleName2 ~= "" and tonumber(gBotanistCollectibleValue2) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue2).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
-				
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue2)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))) 
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
-						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
-					end
-				end	
-			end
-		end
-		
-		if (gBotanistCollectibleName3 and gBotanistCollectibleName3 ~= "" and tonumber(gBotanistCollectibleValue3) > 0) then
-			local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
-			if (itemid) then
-				if (ffxiv_task_gather.lastItemAttempted == itemid) then
-					d("Item current rarity ["..tostring(info.rarity).."].")
-					d("Item required rarity (GUI) ["..tostring(gBotanistCollectibleValue3).."].")
-					d("Item current wear ["..tostring(info.rarity).."].")
-					d("Item max wear ["..tostring(info.wearmax).."].")
-				
-					if (info.rarity > 1 and ((info.rarity >= tonumber(gBotanistCollectibleValue3)) or 
-						(info.rarity == info.raritymax) or
-						(info.wear == info.wearmax))) 
-					then
-						PressCollectReturn(true)
-						e_collectiblegame.timer = Now() + 500
-						return
-					else
-						if (SkillMgr.Gather()) then
-							e_collectiblegame.timer = Now() + 1500
-							return
-						end
-					end
-				end	
-			end
-		end
-		--]]
 	end
 end
 
@@ -2069,7 +1573,7 @@ function c_collectibleaddongather:evaluate()
 				end
 			end
 			
-			local task = ffxiv_task_gather.currentTask
+			local task = ffxiv_gather.currentTask
 			if (ValidTable(task)) then
 				local collectables = task.collectables
 				if (ValidTable(collectables)) then
@@ -2112,7 +1616,7 @@ end
 c_gathernexttask = inheritsFrom( ml_cause )
 e_gathernexttask = inheritsFrom( ml_effect )
 function c_gathernexttask:evaluate()
-	if (not Player.alive or not ValidTable(ffxiv_task_gather.profileData)) then
+	if (not Player.alive or not ValidTable(ffxiv_gather.profileData)) then
 		return false
 	end
 	
@@ -2120,8 +1624,8 @@ function c_gathernexttask:evaluate()
 	if (not ValidTable(list)) then	
 		local evaluate = false
 		local invalid = false
-		local currentTask = ffxiv_task_gather.currentTask
-		local currentTaskIndex = ffxiv_task_gather.currentTaskIndex
+		local currentTask = ffxiv_gather.currentTask
+		local currentTaskIndex = ffxiv_gather.currentTaskIndex
 		
 		if (not ValidTable(currentTask)) then
 			invalid = true
@@ -2143,7 +1647,7 @@ function c_gathernexttask:evaluate()
 			end
 			
 			if (not invalid) then
-				local lastGather = ffxiv_task_gather.GetLastGather(gProfile,currentTaskIndex)
+				local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
 				if (lastGather ~= 0) then
 					if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 						invalid = true
@@ -2236,9 +1740,37 @@ function c_gathernexttask:evaluate()
 				end
 			end
 		end
+		
+		if (invalid and ValidTable(ffxiv_gather.currentTask)) then
+			if (Player:IsMoving()) then
+				Player:Stop()
+				return
+			end
+			
+			ffxiv_gather.currentTask.taskStarted = 0
+			ffxiv_gather.currentTask.taskFailed = 0
+			ffxiv_gather.currentTask = {}
+			ffxiv_gather.currentTaskIndex = 0
+		
+			local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
+			gStatusTaskName = taskName
+			
+			if (gBotMode == GetString("questMode")) then
+				gQuestStepType = "gather - [evaluating]"
+			end
+			
+			ml_global_information.currentMarker = false
+			gStatusMarkerName = ""
+			ml_task_hub:CurrentTask().gatherid = 0
+			ml_global_information.gatherid = 0
+			ml_task_hub:CurrentTask().failedSearches = 0
+			ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
+			ml_task_hub:CurrentTask():SetDelay(1000)
+			return
+		end
 
 		if (evaluate or invalid) then
-			local profileData = ffxiv_task_gather.profileData
+			local profileData = ffxiv_gather.profileData
 			if (ValidTable(profileData.tasks)) then
 				local highPriority = {}
 				local validTasks = deepcopy(profileData.tasks,true)
@@ -2258,11 +1790,48 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (valid) then
-						local lastGather = ffxiv_task_gather.GetLastGather(gProfile,i)
+						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
 						if (lastGather ~= 0) then
 							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 								valid = false
 								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
+							end
+						end
+					end
+					--[[
+					if (valid) then
+						if (data.condition) then
+							local conditions = shallowcopy(data.condition)
+							for condition,value in pairs(conditions) do
+								local f = assert(loadstring("return " .. condition))()
+								if (f ~= nil) then
+									if (f ~= value) then
+										valid = false
+									end
+									conditions[condition] = nil
+								end
+								if (not valid) then
+									break
+								end
+							end
+						end
+					end
+					--]]
+					
+					if (valid) then
+						if (data.condition) then
+							local conditions = shallowcopy(data.condition)
+							for condition,value in pairs(conditions) do
+								local f = MLoadstring("return " .. condition)
+								if (f ~= nil) then
+									if (f ~= value) then
+										valid = false
+									end
+									conditions[condition] = nil
+								end
+								if (not valid) then
+									break
+								end
 							end
 						end
 					end
@@ -2327,24 +1896,6 @@ function c_gathernexttask:evaluate()
 						end
 					end
 					
-					if (valid) then
-						if (data.condition) then
-							local conditions = shallowcopy(data.condition)
-							for condition,value in pairs(conditions) do
-								local f = assert(loadstring("return " .. condition))()
-								if (f ~= nil) then
-									if (f ~= value) then
-										valid = false
-									end
-									conditions[condition] = nil
-								end
-								if (not valid) then
-									break
-								end
-							end
-						end
-					end
-					
 					if (not valid) then
 						gd("Removing task ["..tostring(i).."] from valid tasks.",3)
 						validTasks[i] = nil
@@ -2379,8 +1930,8 @@ function c_gathernexttask:evaluate()
 						end
 					end
 					
-					local currentTask = ffxiv_task_gather.currentTask
-					local currentIndex = ffxiv_task_gather.currentTaskIndex
+					local currentTask = ffxiv_gather.currentTask
+					local currentIndex = ffxiv_gather.currentTaskIndex
 					
 					local lowestIndex = 9999
 					local best = nil
@@ -2488,9 +2039,9 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (best) then
-						if (ffxiv_task_gather.currentTaskIndex ~= lowestIndex) then
-							ffxiv_task_gather.currentTaskIndex = lowestIndex
-							ffxiv_task_gather.currentTask = best
+						if (ffxiv_gather.currentTaskIndex ~= lowestIndex) then
+							ffxiv_gather.currentTaskIndex = lowestIndex
+							ffxiv_gather.currentTask = best
 							return true
 						end
 					end
@@ -2506,7 +2057,7 @@ function e_gathernexttask:execute()
 		Player:Stop()
 	end
 	
-	local taskName = ffxiv_task_gather.currentTask.name or ffxiv_task_gather.currentTaskIndex
+	local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
 	gStatusTaskName = taskName
 	
 	if (gBotMode == GetString("questMode")) then
@@ -2518,19 +2069,19 @@ function e_gathernexttask:execute()
 	ml_task_hub:CurrentTask().gatherid = 0
 	ml_global_information.gatherid = 0
 	ml_task_hub:CurrentTask().failedSearches = 0
-	ffxiv_task_gather.currentTask.taskStarted = 0
-	ffxiv_task_gather.currentTask.taskFailed = 0
+	ffxiv_gather.currentTask.taskStarted = 0
+	ffxiv_gather.currentTask.taskFailed = 0
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 
 c_gathernextprofilemap = inheritsFrom( ml_cause )
 e_gathernextprofilemap = inheritsFrom( ml_effect )
 function c_gathernextprofilemap:evaluate()
-    if (not ValidTable(ffxiv_task_gather.currentTask)) then
+    if (not ValidTable(ffxiv_gather.profileData)) then
 		return false
 	end
     
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	if (ValidTable(task)) then
 		if (ml_global_information.Player_Map ~= task.mapid) then
 			return true
@@ -2540,8 +2091,8 @@ function c_gathernextprofilemap:evaluate()
     return false
 end
 function e_gathernextprofilemap:execute()
-	local index = ffxiv_task_gather.currentTaskIndex
-	local task = ffxiv_task_gather.currentTask
+	local index = ffxiv_gather.currentTaskIndex
+	local task = ffxiv_gather.currentTask
 
 	local mapID = task.mapid
 	local taskPos = task.pos
@@ -2591,11 +2142,11 @@ function c_gatherstealth:evaluate()
 	end
 	
 	local useStealth = false
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		useStealth = IsNull(task.usestealth,false)
-	elseif (ValidTable(marker) and not ValidTable(ffxiv_task_gather.profileData)) then
+	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
 	else
 		return false
@@ -2622,7 +2173,7 @@ function c_gatherstealth:evaluate()
 			local dangerousArea = false
 			local destPos = {}
 			local myPos = ml_global_information.Player_Position
-			local task = ffxiv_task_gather.currentTask
+			local task = ffxiv_gather.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
@@ -2722,13 +2273,13 @@ function e_gatherstealth:execute()
 	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
-function ffxiv_task_gather.NeedsStealth()
+function ffxiv_gather.NeedsStealth()
 	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
 
 	local useStealth = false
-	local task = ffxiv_task_gather.currentTask
+	local task = ffxiv_gather.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		useStealth = IsNull(task.usestealth,false)
@@ -2748,7 +2299,7 @@ function ffxiv_task_gather.NeedsStealth()
 			local dangerousArea = false
 			local destPos = ml_task_hub:CurrentTask().pos
 			local myPos = ml_global_information.Player_Position
-			local task = ffxiv_task_gather.currentTask
+			local task = ffxiv_gather.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
@@ -2851,6 +2402,21 @@ function e_gatherislocked:execute()
 	ml_debug("Character is loading, prevent other actions and idle.")
 end
 
+c_gathernoactivity = inheritsFrom( ml_cause )
+e_gathernoactivity = inheritsFrom( ml_effect )
+function c_gathernoactivity:evaluate()	
+	local marker = ml_global_information.currentMarker
+	local task = ffxiv_gather.currentTask
+	if (not ValidTable(task) and not ValidTable(marker)) then
+		ml_task_hub:CurrentTask():SetDelay(1000)
+		return true
+	end
+	return false
+end
+function e_gathernoactivity:execute()
+	-- Do nothing here, but there's no point in continuing to process and eat CPU.
+end
+
 function ffxiv_task_gather:Init()
 	--[[ Overwatch Elements ]]
 	
@@ -2889,17 +2455,21 @@ function ffxiv_task_gather:Init()
 	local ke_isLocked = ml_element:create( "IsLocked", c_gatherislocked, e_gatherislocked, 180 )
     self:add( ke_isLocked, self.process_elements)
 	
-	local ke_moveToNode = ml_element:create( "MoveToNode", c_movetonode, e_movetonode, 170 )
-    self:add(ke_moveToNode, self.process_elements)
-	
 	local ke_nextTask = ml_element:create( "NextTask", c_gathernexttask, e_gathernexttask, 160 )
     self:add( ke_nextTask, self.process_elements)
 	
-	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_gathernextprofilemap, e_gathernextprofilemap, 150 )
-    self:add( ke_nextProfileMap, self.process_elements)
-	
-	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 100 )
+	local ke_nextMarker = ml_element:create( "NextMarker", c_nextgathermarker, e_nextgathermarker, 150 )
     self:add( ke_nextMarker, self.process_elements)
+	
+	
+	local ke_noActivity = ml_element:create( "NoActivity", c_gathernoactivity, e_gathernoactivity, 145 )
+    self:add( ke_noActivity, self.process_elements)
+	
+	local ke_moveToNode = ml_element:create( "MoveToNode", c_movetonode, e_movetonode, 140 )
+    self:add(ke_moveToNode, self.process_elements)
+	
+	local ke_nextProfileMap = ml_element:create( "NextProfileMap", c_gathernextprofilemap, e_gathernextprofilemap, 130 )
+    self:add( ke_nextProfileMap, self.process_elements)
 	
 	local ke_findNode = ml_element:create( "FindNode", c_findnode, e_findnode, 50 )
     self:add(ke_findNode, self.process_elements)
@@ -2910,13 +2480,7 @@ function ffxiv_task_gather:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_gather.OnUpdate(event, ticks)
-	if (TimeSince(ffxiv_task_gather.lastTick) > 5000) then
-		ffxiv_task_gather.lastTick = ticks
-    end  
-end
-
-function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
+function ffxiv_gather.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
         if ( 	k == "gGatherUseCordials" or
 				k == "gMinerCollectibleName" or
@@ -2938,7 +2502,7 @@ function ffxiv_task_gather.GUIVarUpdate(Event, NewVals, OldVals)
 			--Capture the marker name changes, incase it affects our marker lists.
 			ffxiv_task_gather.RefreshMarkerList(ml_global_information.Player_Map)
 		elseif ( k == "gProfile" and gBotMode == GetString("gatherMode")) then
-			ffxiv_task_gather.LoadProfile(v)
+			ffxiv_gather.LoadProfile(v)
 			Settings.FFXIVMINION["gLastGatherProfile"] = v
         end
     end
@@ -3065,13 +2629,12 @@ function ffxiv_task_gather.UIInit()
 	gGatherDebug = Settings.FFXIVMINION.gGatherDebug
 	gGatherDebugLevel = Settings.FFXIVMINION.gGatherDebugLevel
 	
-    ffxiv_task_gather.SetupMarkers()
-    RegisterEventHandler("GUI.Update",ffxiv_task_gather.GUIVarUpdate)
+    ffxiv_gather.SetupMarkers()
 end
-function ffxiv_task_gather.UpdateProfiles()
+function ffxiv_gather.UpdateProfiles()
     local profiles = GetString("none")
     local found = GetString("none")	
-    local profilelist = dirlist(ffxiv_task_gather.profilePath,".*lua")
+    local profilelist = dirlist(ffxiv_gather.editwindow,".*lua")
     if ( TableSize(profilelist) > 0) then
 		for i,profile in pairs(profilelist) do			
             profile = string.gsub(profile, ".lua", "")
@@ -3084,13 +2647,13 @@ function ffxiv_task_gather.UpdateProfiles()
 	
     gProfile_listitems = profiles
     gProfile = found
-	ffxiv_task_gather.LoadProfile(gProfile)
+	ffxiv_gather.LoadProfile(gProfile)
 end
-function ffxiv_task_gather.LoadProfile(strName)
+function ffxiv_gather.LoadProfile(strName)
 	if (strName ~= GetString("none")) then
-		if (FileExists(ffxiv_task_gather.profilePath..strName..".lua")) then
-			ffxiv_task_gather.profileData,e = persistence.load(ffxiv_task_gather.profilePath..strName..".lua")
-			if (ValidTable(ffxiv_task_gather.profileData)) then
+		if (FileExists(ffxiv_gather.editwindow..strName..".lua")) then
+			ffxiv_gather.profileData,e = persistence.load(ffxiv_gather.editwindow..strName..".lua")
+			if (ValidTable(ffxiv_gather.profileData)) then
 				gd("Gathering profile ["..strName.."] loaded successfully.")
 			else
 				if (e) then
@@ -3099,15 +2662,11 @@ function ffxiv_task_gather.LoadProfile(strName)
 			end
 		end
 	else
-		ffxiv_task_gather.profileData = {}
+		ffxiv_gather.profileData = {}
 	end
 end
 
-function ffxiv_task_gather.SwitchClass(class)
-	--if (Now() < ffxiv_task_gather.timer) then
-		--return
-	--end
-	
+function ffxiv_gather.SwitchClass(class)
 	class = tonumber(class) or 0
 	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
@@ -3121,10 +2680,9 @@ function ffxiv_task_gather.SwitchClass(class)
 	end
 	
 	SendTextCommand(commandString)
-	--ffxiv_task_gather.timer = Now() + 2000
 end
 
-function ffxiv_task_gather.LocatorBuff(class)
+function ffxiv_gather.LocatorBuff(class)
 	class = tonumber(class) or 0
 	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
@@ -3142,7 +2700,7 @@ function ffxiv_task_gather.LocatorBuff(class)
 	end
 end
 
-function ffxiv_task_gather.VisibilityBuff(class)
+function ffxiv_gather.VisibilityBuff(class)
 	class = tonumber(class) or 0
 	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
@@ -3160,7 +2718,7 @@ function ffxiv_task_gather.VisibilityBuff(class)
 	end
 end
 
-function ffxiv_task_gather.SetupMarkers()
+function ffxiv_gather.SetupMarkers()
     -- add marker templates for gathering
     local botanyMarker = ml_marker:Create("botanyTemplate")
 	botanyMarker:SetType(GetString("botanyMarker"))
@@ -3237,7 +2795,7 @@ function ffxiv_task_gather.SetupMarkers()
 	ml_marker_mgr.RefreshMarkerNames()
 end
 
-function ffxiv_task_gather.GetUnspoiledMarkers(mapid)
+function ffxiv_gather.GetUnspoiledMarkers(mapid)
 	local mapid = tonumber(mapid) or 0
 	local meshName = Settings.minionlib.DefaultMaps[mapid]
 	if (meshName) then
@@ -3254,11 +2812,11 @@ function ffxiv_task_gather.GetUnspoiledMarkers(mapid)
 	return nil
 end
 
---d(ffxiv_task_gather.GetLastGather("Example",1))
---d(ffxiv_task_gather.SetLastGather("Example",1))
+--d(ffxiv_gather.GetLastGather("Example",1))
+--d(ffxiv_gather.SetLastGather("Example",1))
 --d(TimePassed(GetCurrentTime(),1400000))
 
-function ffxiv_task_gather.GetLastGather(profile,task)
+function ffxiv_gather.GetLastGather(profile,task)
 	if (Settings.FFXIVMINION.gLastGather ~= nil) then
 		lastGather = Settings.FFXIVMINION.gLastGather
 		if (ValidTable(lastGather[profile])) then
@@ -3269,7 +2827,7 @@ function ffxiv_task_gather.GetLastGather(profile,task)
 	return 0
 end
 
-function ffxiv_task_gather.SetLastGather(profile,task)
+function ffxiv_gather.SetLastGather(profile,task)
 	if (Settings.FFXIVMINION.gLastGather == nil or type(Settings.FFXIVMINION.gLastGather) ~= "table") then
 		Settings.FFXIVMINION.gLastGather = {}
 	end
@@ -3283,30 +2841,8 @@ function ffxiv_task_gather.SetLastGather(profile,task)
 	Settings.FFXIVMINION.gLastGather = lastGather
 end
 
-function ffxiv_task_gather.ResetLastGather()
+function ffxiv_gather.ResetLastGather()
 	Settings.FFXIVMINION.gLastGather = {}
 end
 
-function ffxiv_task_gather.GetBlacklistedIDs()
-	local ids = ""
-	local blacklisted = ffxiv_task_gather.tempBlacklist
-	if (ValidTable(blacklisted)) then
-		for k,entry in pairs(blacklisted) do
-			if (Now() < entry.expiration) then
-				--d("nothing here yet.")
-			end
-		end
-	end	
-	return ids
-end
-
-function ffxiv_task_gather.HandleButtons( Event, Button )	
-	if ( Event == "GUI.Item" and string.find(Button,"ffxiv_gather") ~= nil ) then
-		if (Button == "ffxiv_task_gather%.") then
-			
-		end
-	end
-end
-
---RegisterEventHandler("Gameloop.Update",ffxiv_task_gather.OnUpdate)
-RegisterEventHandler("GUI.Item",ffxiv_task_gather.HandleButtons)
+RegisterEventHandler("GUI.Update",ffxiv_gather.GUIVarUpdate)

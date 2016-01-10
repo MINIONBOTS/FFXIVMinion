@@ -845,7 +845,7 @@ e_teleporttomap.aeth = nil
 function c_teleporttomap:evaluate()
 	if (MIsLoading() or 
 		(MIsLocked() and not IsFlying()) or 
-		MIsCasting(true) or GilCount() < 1500 or
+		MIsCasting() or GilCount() < 1500 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == ml_global_information.Player_Map) 
 	then
@@ -1154,6 +1154,7 @@ function e_walktopos:execute()
 				newTask.addingStealth = true
 				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 				e_walktopos.lastStealth = Now()
+				c_walktopos.lastPos = nil
 				--d("adding stealth.")
 				return
 			end
@@ -1164,6 +1165,7 @@ function e_walktopos:execute()
 				ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 				e_walktopos.lastStealth = Now()
 				--d("dropping stealth.")
+				c_walktopos.lastPos = nil
 				return
 			end
 		end
@@ -1405,6 +1407,8 @@ e_mount = inheritsFrom( ml_effect )
 e_mount.id = 0
 e_mount.lastPathCheck = 0
 e_mount.lastPathPos = {}
+c_mount.reattempt = 0
+c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
 		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
@@ -1436,6 +1440,13 @@ function c_mount:evaluate()
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local lastPos = e_mount.lastPathPos
 		
+		if (ValidTable(c_mount.attemptPos)) then
+			local lastDist = Distance3D(myPos.x, myPos.y, myPos.z, c_mount.attemptPos.x, c_mount.attemptPos.y, c_mount.attemptPos.z)
+			if (Now() < c_mount.reattempt and lastDist < 15) then
+				return false
+			end
+		end
+
 		-- If we change our gotoPos or have never measured it, reset the watch.
 		if (ValidTable(lastPos)) then
 			if (PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z) > 1) then
@@ -1524,8 +1535,10 @@ function e_mount:execute()
 	end
 	
     Mount(e_mount.id)
-	--d("Set a delay for 500")
 	ml_task_hub:CurrentTask():SetDelay(500)
+	c_mount.reattempt = Now() + 10000
+	local ppos = Player.pos
+	c_mount.attemptPos = { x = round(ppos.x,1), y = round(ppos.y,1), z = round(ppos.z,1) }
 end
 
 c_battlemount = inheritsFrom( ml_cause )
@@ -1924,20 +1937,6 @@ function e_dead:execute()
 		ml_task_hub:ThisTask().markerTime = 0
 		ml_task_hub:ThisTask().currentMarker = false
 		ml_global_information.currentMarker = false
-		ml_task_hub:ThisTask().gatheredMap = false
-		ml_task_hub:ThisTask().gatheredGardening = false
-		ml_task_hub:ThisTask().gatheredChocoFood = false
-		ml_task_hub:ThisTask().gatheredIxaliRare = false
-		ml_task_hub:ThisTask().gatheredSpecialRare = false
-		ml_task_hub:ThisTask().idleTimer = 0
-		ml_task_hub:ThisTask().swingCount = 0
-		ml_task_hub:ThisTask().itemsUncovered = false
-		ml_task_hub:ThisTask().slotsTried = {}
-		ml_task_hub:ThisTask().rareCount = -1
-		ml_task_hub:ThisTask().rareCount2 = -1
-		ml_task_hub:ThisTask().rareCount3 = -1
-		ml_task_hub:ThisTask().rareCount4 = -1
-		ml_task_hub:ThisTask().mapCount = -1
 		ml_task_hub:ThisTask().failedSearches = 0 
 	elseif (ml_task_hub:ThisTask().name == "LT_FISH") then
 		ml_task_hub:ThisTask().castTimer = 0
@@ -2103,7 +2102,7 @@ function e_returntomarker:execute()
 	if (markerType == GetString("miningMarker") or
 		markerType == GetString("botanyMarker"))
 	then
-		newTask.stealthFunction = ffxiv_task_gather.NeedsStealth
+		newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	elseif (markerType == GetString("fishingMarker")) then
 		newTask.stealthFunction = ffxiv_task_fish.NeedsStealth
 	end
@@ -2321,7 +2320,7 @@ e_autoequip.slot = nil
 --e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if (gQuestAutoEquip == "0" or 
-		IsShopWindowOpen() or MIsLocked() or MIsLoading() or 
+		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 		not Player.alive or ml_global_information.Player_InCombat or
 		Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
 	then
@@ -2402,8 +2401,8 @@ function c_autoequip:evaluate()
 	end
 	
 	for slot,data in pairsByKeys(applicableSlots) do		
-		if (data.unequippedItem ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
-			if (ArmoryItemCount(slot) == 25) then
+		if (IsNull(data.unequippedItem,0) ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
+			if (ArmoryItemCount(slot) == 25 and (data.unequippedItem.bag >= 0 and data.unequippedItem.bag <= 3)) then
 				d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
 				
 				local firstBag,firstSlot = GetFirstFreeInventorySlot()
@@ -2421,6 +2420,16 @@ function c_autoequip:evaluate()
 									return true
 								end
 							end
+						else
+							lowestItem = LowestArmoryItem(slot)
+							if (lowestItem) then
+								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								
+								e_autoequip.item = lowestItem
+								e_autoequip.bag = firstBag
+								e_autoequip.slot = firstSlot
+								return true
+							end
 						end
 					elseif (slot == 1) then
 						local downgrades = AceLib.API.Items.FindShieldDowngrades()
@@ -2433,6 +2442,16 @@ function c_autoequip:evaluate()
 									return true
 								end
 							end
+						else
+							lowestItem = LowestArmoryItem(slot)
+							if (lowestItem) then
+								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								
+								e_autoequip.item = lowestItem
+								e_autoequip.bag = firstBag
+								e_autoequip.slot = firstSlot
+								return true
+							end
 						end
 					else
 						local downgrades = AceLib.API.Items.FindArmorDowngrades(slot)
@@ -2444,6 +2463,16 @@ function c_autoequip:evaluate()
 									e_autoequip.slot = firstSlot
 									return true
 								end
+							end
+						else
+							lowestItem = LowestArmoryItem(slot)
+							if (lowestItem) then
+								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								
+								e_autoequip.item = lowestItem
+								e_autoequip.bag = firstBag
+								e_autoequip.slot = firstSlot
+								return true
 							end
 						end
 					end
