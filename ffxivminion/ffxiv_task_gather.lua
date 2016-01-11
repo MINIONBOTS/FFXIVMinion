@@ -970,7 +970,7 @@ end
 
 function CanUseExpManual()
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,46)) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"46")) then
 			if (Player.level >= 15 and Player.level < 35) then
 				local manual1 = MGetItem(4633)
 				if (manual1 and manual1.isready) then
@@ -983,21 +983,39 @@ function CanUseExpManual()
 				if (manual2 and manual2.isready) then
 					return true, manual2
 				end
+				
+				local manual1 = MGetItem(4633)
+				if (manual1 and manual1.isready) then
+					return true, manual1
+				end
 			end
 
 			if (Player.level >= 50 and CanAccessMap(397)) then
 				local commercial = MGetItem(12668)
 				if (commercial and commercial.isready) then
+					--d("Can use commercial manual.")
 					return true, commercial
+				end
+				
+				local manual2 = MGetItem(4635)
+				if (manual2 and manual2.isready) then
+					--d("Can use level 2 manual.")
+					return true, manual2
+				end
+				
+				local manual1 = MGetItem(4633)
+				if (manual1 and manual1.isready) then
+					--d("Can use level 1 manual.")
+					return true, manual1
 				end
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,45)) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"45")) then
 			if (Player.level >= 15 and Player.level < 35) then
 				local manual1 = MGetItem(4632)
 				if (manual1 and manual1.isready) then
-					return true, manual
+					return true, manual1
 				end
 			end
 			
@@ -1006,12 +1024,27 @@ function CanUseExpManual()
 				if (manual2 and manual2.isready) then
 					return true, manual2
 				end
+				
+				local manual1 = MGetItem(4632)
+				if (manual1 and manual1.isready) then
+					return true, manual1
+				end
 			end
 
 			if (Player.level >= 50 and CanAccessMap(397)) then
 				local commercial = MGetItem(12667)
 				if (commercial and commercial.isready) then
 					return true, commercial
+				end
+				
+				local manual2 = MGetItem(4634)
+				if (manual2 and manual2.isready) then
+					return true, manual2
+				end
+				
+				local manual1 = MGetItem(4632)
+				if (manual1 and manual1.isready) then
+					return true, manual1
 				end
 			end
 		end
@@ -1106,16 +1139,16 @@ function c_nodeprebuff:evaluate()
 							return true
 						end					
 					end
-					
-					local canUse,manualItem = CanUseExpManual()
-					if (canUse and ValidTable(manualItem)) then
-						d("[NodePreBuff]: Need to use a cordial.")
-						e_nodeprebuff.activity = "usemanual"
-						e_nodeprebuff.item = manualItem
-						e_nodeprebuff.requiresStop = true
-						e_nodeprebuff.requiresDismount = true
-						return true
-					end
+				end
+				
+				local canUse,manualItem = CanUseExpManual()
+				if (canUse and ValidTable(manualItem)) then
+					d("[NodePreBuff]: Need to use a manual.")
+					e_nodeprebuff.activity = "usemanual"
+					e_nodeprebuff.item = manualItem
+					e_nodeprebuff.requiresStop = true
+					e_nodeprebuff.requiresDismount = true
+					return true
 				end
 			end
         end
