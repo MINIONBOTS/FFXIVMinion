@@ -1044,6 +1044,7 @@ c_nodeprebuff = inheritsFrom( ml_cause )
 e_nodeprebuff = inheritsFrom( ml_effect )
 e_nodeprebuff.activity = ""
 e_nodeprebuff.item = nil
+e_nodeprebuff.class = nil
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
@@ -1057,6 +1058,7 @@ function c_nodeprebuff:evaluate()
 	
 	e_nodeprebuff.activity = ""
 	e_nodeprebuff.item = nil
+	e_nodeprebuff.class = nil
 	e_nodeprebuff.requiresStop = false
 	e_nodeprebuff.requiresDismount = false
 	
@@ -1144,48 +1146,19 @@ function c_nodeprebuff:evaluate()
 	if (taskType ~= "") then
 		if (taskType == "botany") then
 			if (Player.job ~= FFXIV.JOBS.BOTANIST and CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
-				
-				--[[
 				e_nodeprebuff.activity = "switchclass"
+				e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
 				e_nodeprebuff.requiresStop = true
 				e_nodeprebuff.requiresDismount = false
 				return true
-				--]]
-				
-				if (ValidTable(profile) and ValidTable(profile.setup)) then
-					local setup = profile.setup
-					if (IsNull(setup.gearsetbotany,0) ~= 0) then
-						d("[NodePreBuff]: Need to switch gearsets, will attempt to use set ["..tostring(setup.gearsetbotany).."].")
-						local commandString = "/gearset change "..tostring(setup.gearsetbotany)
-						SendTextCommand(commandString)
-						e_nodeprebuff.activity = "switchclass"
-						e_nodeprebuff.requiresStop = false
-						e_nodeprebuff.requiresDismount = false
-						return true
-					end
-				end
 			end
 		elseif (taskType == "mining") then
 			if (Player.job ~= FFXIV.JOBS.MINER and CanSwitchToClass(FFXIV.JOBS.MINER)) then
-				--[[
 				e_nodeprebuff.activity = "switchclass"
+				e_nodeprebuff.class = FFXIV.JOBS.MINER
 				e_nodeprebuff.requiresStop = true
 				e_nodeprebuff.requiresDismount = false
 				return true
-				--]]
-				
-				if (ValidTable(profile) and ValidTable(profile.setup)) then
-					local setup = profile.setup
-					if (IsNull(setup.gearsetmining,0) ~= 0) then
-						d("[NodePreBuff]: Need to switch gearsets, will attempt to use set ["..tostring(setup.gearsetmining).."].")
-						local commandString = "/gearset change "..tostring(setup.gearsetmining)
-						SendTextCommand(commandString)
-						e_nodeprebuff.activity = "switchclass"
-						e_nodeprebuff.requiresStop = false
-						e_nodeprebuff.requiresDismount = false
-						return true
-					end
-				end
 			end
 		end
 	end
@@ -1213,6 +1186,7 @@ function c_nodeprebuff:evaluate()
 end
 function e_nodeprebuff:execute()
 	local activity = e_nodeprebuff.activity
+	local activityClass = e_nodeprebuff.class
 	local activityItem = e_nodeprebuff.item
 	local requiresStop = e_nodeprebuff.requiresStop
 	local requiresDismount = e_nodeprebuff.requiresDismount
@@ -1259,8 +1233,10 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "switchclass") then
+		local newTask = ffxiv_misc_switchclass.Create()
+		newTask.class = activityClass
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 		ml_task_hub:ThisTask().preserveSubtasks = true
-		ml_task_hub:CurrentTask():SetDelay(2000)
 		return
 	end
 	
@@ -1749,207 +1725,217 @@ function c_gathernexttask:evaluate()
 				end
 			end
 		end
-		
-		--[[
-		if (invalid and ValidTable(ffxiv_gather.currentTask)) then
-			if (Player:IsMoving()) then
-				Player:Stop()
-				return
-			end
-			
-			ffxiv_gather.currentTask.taskStarted = 0
-			ffxiv_gather.currentTask.taskFailed = 0
-			ffxiv_gather.currentTask = {}
-			ffxiv_gather.currentTaskIndex = 0
-		
-			local taskName = ffxiv_gather.currentTask.name or ffxiv_gather.currentTaskIndex
-			gStatusTaskName = taskName
-			
-			if (gBotMode == GetString("questMode")) then
-				gQuestStepType = "gather - [evaluating]"
-			end
-			
-			ml_global_information.currentMarker = false
-			gStatusMarkerName = ""
-			ml_task_hub:CurrentTask().gatherid = 0
-			ml_global_information.gatherid = 0
-			ml_task_hub:CurrentTask().failedSearches = 0
-			ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
-			ml_task_hub:CurrentTask():SetDelay(1000)
-			return
-		end
-		--]]
+	end
 
-		if (evaluate or invalid) then
-			local profileData = ffxiv_gather.profileData
-			if (ValidTable(profileData.tasks)) then
-				local highPriority = {}
-				local validTasks = deepcopy(profileData.tasks,true)
-				for i,data in pairs(validTasks) do
+	if (evaluate or invalid) then
+		local profileData = ffxiv_gather.profileData
+		if (ValidTable(profileData.tasks)) then
+			local highPriority = {}
+			local validTasks = deepcopy(profileData.tasks,true)
+			for i,data in pairs(validTasks) do
+			
+				local valid = true
+
+				if (data.enabled and data.enabled ~="1") then
+					valid = false
+					gd("Task ["..tostring(i).."] not enabled.",3)
+				end
+
+				if (data.minlevel and Player.level < data.minlevel) then
+					valid = false
+				elseif (data.maxlevel and Player.level > data.maxlevel) then
+					valid = false
+				end
 				
-					local valid = true
-
-					if (data.enabled and data.enabled ~="1") then
-						valid = false
-						gd("Task ["..tostring(i).."] not enabled.",3)
+				if (valid) then
+					local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
+					if (lastGather ~= 0) then
+						if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
+							valid = false
+							gd("Task ["..tostring(i).."] not valid due to last gather.",3)
+						end
 					end
-
-					if (data.minlevel and Player.level < data.minlevel) then
-						valid = false
-					elseif (data.maxlevel and Player.level > data.maxlevel) then
-						valid = false
-					end
-					
-					if (valid) then
-						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
-						if (lastGather ~= 0) then
-							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
-								valid = false
-								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
+				end
+				--[[
+				if (valid) then
+					if (data.condition) then
+						local conditions = shallowcopy(data.condition)
+						for condition,value in pairs(conditions) do
+							local f = assert(loadstring("return " .. condition))()
+							if (f ~= nil) then
+								if (f ~= value) then
+									valid = false
+								end
+								conditions[condition] = nil
+							end
+							if (not valid) then
+								break
 							end
 						end
 					end
-					--[[
-					if (valid) then
-						if (data.condition) then
-							local conditions = shallowcopy(data.condition)
-							for condition,value in pairs(conditions) do
-								local f = assert(loadstring("return " .. condition))()
-								if (f ~= nil) then
-									if (f ~= value) then
-										valid = false
-									end
-									conditions[condition] = nil
+				end
+				--]]
+				
+				if (valid) then
+					if (data.condition) then
+						local conditions = shallowcopy(data.condition)
+						for condition,value in pairs(conditions) do
+							local f = MLoadstring("return " .. condition)
+							if (f ~= nil) then
+								if (f ~= value) then
+									valid = false
 								end
-								if (not valid) then
-									break
-								end
+								conditions[condition] = nil
+							end
+							if (not valid) then
+								break
 							end
 						end
-					end
-					--]]
-					
-					if (valid) then
-						if (data.condition) then
-							local conditions = shallowcopy(data.condition)
-							for condition,value in pairs(conditions) do
-								local f = MLoadstring("return " .. condition)
-								if (f ~= nil) then
-									if (f ~= value) then
-										valid = false
-									end
-									conditions[condition] = nil
-								end
-								if (not valid) then
-									break
-								end
-							end
-						end
-					end
-					
-					if (valid) then
-						local weather = AceLib.API.Weather.Get(data.mapid)
-						local weatherLast = weather.last or ""
-						local weatherNow = weather.now or ""
-						local weatherNext = weather.next or ""
-						if (data.weatherlast and data.weatherlast ~= weatherLast) then
-							valid = false
-						elseif (data.weathernow and data.weathernow ~= weatherNow) then
-							valid = false
-						elseif (data.weathernext and data.weathernext ~= weatherNext) then
-							valid = false
-						end
-						if (not valid) then
-							gd("Task ["..tostring(i).."] not valid due to weather.",3)
-						end
-					end
-					
-					if (valid) then
-						local shifts = AceLib.API.Weather.GetShifts()
-						local lastShift = shifts.lastShift
-						local nextShift = shifts.nextShift
-						if (data.lastshiftmin and data.lastshiftmin < lastShift) then
-							valid = false
-						elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
-							valid = false
-						elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
-							valid = false
-						elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
-							valid = false
-						end
-						if (not valid) then
-							gd("Task ["..tostring(i).."] not valid due to shift.",3)
-						end
-					end
-					
-					if (valid) then
-						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-							local eTime = EorzeaTime()
-							local eHour = eTime.hour
-							
-							local validHour = false
-							local i = data.eorzeaminhour
-							while (i ~= data.eorzeamaxhour) do
-								if (i == eHour) then
-									validHour = true
-									i = data.eorzeamaxhour
-								else
-									i = AddHours(i,1)
-								end
-							end
-							
-							if (not validHour) then
-								valid = false
-							end
-						end
-						if (not valid) then
-							gd("Task ["..tostring(i).."] not valid due to eorzea time.",3)
-						end
-					end
-					
-					if (not valid) then
-						gd("Removing task ["..tostring(i).."] from valid tasks.",3)
-						validTasks[i] = nil
 					end
 				end
 				
-				if (ValidTable(validTasks)) then
-					local highPriority = {}
-					local normalPriority = {}
-					local lowPriority = {}
-					
-					for i,data in pairsByKeys(validTasks) do
-						-- Items with weather requirements go into high priority
-						if (data.highpriority) then
-							gd("Added task at ["..tostring(i).."] to the high priority queue.")
-							highPriority[i] = data
-						elseif (data.normalpriority) then
-							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
-							normalPriority[i] = data
-						elseif (data.lowpriority) then
-							gd("Added task at ["..tostring(i).."] to the low priority queue.")
-							lowPriority[i] = data
-						elseif (data.weatherlast or data.weathernow or data.weathernext) then
-							gd("Added task at ["..tostring(i).."] to the high priority queue.")
-							highPriority[i] = data
-						elseif (data.eorzeaminhour or data.eorzeamaxhour) then
-							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
-							normalPriority[i] = data
-						else
-							gd("Added task at ["..tostring(i).."] to the low priority queue.")
-							lowPriority[i] = data
+				if (valid) then
+					local weather = AceLib.API.Weather.Get(data.mapid)
+					local weatherLast = weather.last or ""
+					local weatherNow = weather.now or ""
+					local weatherNext = weather.next or ""
+					if (data.weatherlast and data.weatherlast ~= weatherLast) then
+						valid = false
+					elseif (data.weathernow and data.weathernow ~= weatherNow) then
+						valid = false
+					elseif (data.weathernext and data.weathernext ~= weatherNext) then
+						valid = false
+					end
+					if (not valid) then
+						gd("Task ["..tostring(i).."] not valid due to weather.",3)
+					end
+				end
+				
+				if (valid) then
+					local shifts = AceLib.API.Weather.GetShifts()
+					local lastShift = shifts.lastShift
+					local nextShift = shifts.nextShift
+					if (data.lastshiftmin and data.lastshiftmin < lastShift) then
+						valid = false
+					elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
+						valid = false
+					elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
+						valid = false
+					elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
+						valid = false
+					end
+					if (not valid) then
+						gd("Task ["..tostring(i).."] not valid due to shift.",3)
+					end
+				end
+				
+				if (valid) then
+					if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
+						local eTime = EorzeaTime()
+						local eHour = eTime.hour
+						
+						local validHour = false
+						local i = data.eorzeaminhour
+						while (i ~= data.eorzeamaxhour) do
+							if (i == eHour) then
+								validHour = true
+								i = data.eorzeamaxhour
+							else
+								i = AddHours(i,1)
+							end
+						end
+						
+						if (not validHour) then
+							valid = false
 						end
 					end
-					
-					local currentTask = ffxiv_gather.currentTask
-					local currentIndex = ffxiv_gather.currentTaskIndex
-					
-					local lowestIndex = 9999
-					local best = nil
-					
-					-- High priority section.
-					
-					for i,data in pairsByKeys(highPriority) do
+					if (not valid) then
+						gd("Task ["..tostring(i).."] not valid due to eorzea time.",3)
+					end
+				end
+				
+				if (not valid) then
+					gd("Removing task ["..tostring(i).."] from valid tasks.",3)
+					validTasks[i] = nil
+				end
+			end
+			
+			if (ValidTable(validTasks)) then
+				local highPriority = {}
+				local normalPriority = {}
+				local lowPriority = {}
+				
+				for i,data in pairsByKeys(validTasks) do
+					-- Items with weather requirements go into high priority
+					if (data.highpriority) then
+						gd("Added task at ["..tostring(i).."] to the high priority queue.")
+						highPriority[i] = data
+					elseif (data.normalpriority) then
+						gd("Added task at ["..tostring(i).."] to the normal priority queue.")
+						normalPriority[i] = data
+					elseif (data.lowpriority) then
+						gd("Added task at ["..tostring(i).."] to the low priority queue.")
+						lowPriority[i] = data
+					elseif (data.weatherlast or data.weathernow or data.weathernext) then
+						gd("Added task at ["..tostring(i).."] to the high priority queue.")
+						highPriority[i] = data
+					elseif (data.eorzeaminhour or data.eorzeamaxhour) then
+						gd("Added task at ["..tostring(i).."] to the normal priority queue.")
+						normalPriority[i] = data
+					else
+						gd("Added task at ["..tostring(i).."] to the low priority queue.")
+						lowPriority[i] = data
+					end
+				end
+				
+				local currentTask = ffxiv_gather.currentTask
+				local currentIndex = ffxiv_gather.currentTaskIndex
+				
+				local lowestIndex = 9999
+				local best = nil
+				
+				-- High priority section.
+				
+				for i,data in pairsByKeys(highPriority) do
+					if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+						if (not best or (best and i < lowestIndex)) then
+							best = data
+							lowestIndex = i
+						end
+					end
+				end
+				
+				if (not best) then
+					if (invalid and currentTask.group) then
+						lowestIndex = 9999
+						for i,data in pairsByKeys(highPriority) do
+							if (i > currentIndex and IsNull(data.group,"") == currentTask.group) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+						
+						if (not best) then
+							lowestIndex = 9999
+							for i,data in pairsByKeys(highPriority) do
+								if (IsNull(data.group,"") == currentTask.group) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+						end
+					end
+				end
+				
+				-- Normal priority section.
+				
+				if (not best and not currentTask.highpriority) then
+					lowestIndex = 9999
+					for i,data in pairsByKeys(normalPriority) do
 						if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
 							if (not best or (best and i < lowestIndex)) then
 								best = data
@@ -1961,7 +1947,7 @@ function c_gathernexttask:evaluate()
 					if (not best) then
 						if (invalid and currentTask.group) then
 							lowestIndex = 9999
-							for i,data in pairsByKeys(highPriority) do
+							for i,data in pairsByKeys(normalPriority) do
 								if (i > currentIndex and IsNull(data.group,"") == currentTask.group) then
 									if (not best or (best and i < lowestIndex)) then
 										best = data
@@ -1971,90 +1957,50 @@ function c_gathernexttask:evaluate()
 							end
 							
 							if (not best) then
-								lowestIndex = 9999
-								for i,data in pairsByKeys(highPriority) do
-									if (IsNull(data.group,"") == currentTask.group) then
-										if (not best or (best and i < lowestIndex)) then
-											best = data
-											lowestIndex = i
-										end
-									end
-								end
-							end
-						end
-					end
-					
-					-- Normal priority section.
-					
-					if (not best and not currentTask.highpriority) then
-						lowestIndex = 9999
-						for i,data in pairsByKeys(normalPriority) do
-							if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
-								end
-							end
-						end
-						
-						if (not best) then
-							if (invalid and currentTask.group) then
-								lowestIndex = 9999
+								lowestIndex = 9999	
 								for i,data in pairsByKeys(normalPriority) do
-									if (i > currentIndex and IsNull(data.group,"") == currentTask.group) then
+									if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
 										if (not best or (best and i < lowestIndex)) then
 											best = data
 											lowestIndex = i
 										end
 									end
 								end
-								
-								if (not best) then
-									lowestIndex = 9999	
-									for i,data in pairsByKeys(normalPriority) do
-										if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-											if (not best or (best and i < lowestIndex)) then
-												best = data
-												lowestIndex = i
-											end
-										end
-									end
-								end
+							end
+						end
+					end
+				end
+				
+				
+				-- Low priority section.
+				
+				if (invalid and not best) then
+					lowestIndex = 9999
+					for i,data in pairsByKeys(lowPriority) do
+						if (i > currentIndex) then
+							if (not best or (best and i < lowestIndex)) then
+								best = data
+								lowestIndex = i
 							end
 						end
 					end
 					
-					
-					-- Low priority section.
-					
-					if (invalid and not best) then
+					if (not best) then
 						lowestIndex = 9999
 						for i,data in pairsByKeys(lowPriority) do
-							if (i > currentIndex) then
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
-								end
-							end
-						end
-						
-						if (not best) then
-							lowestIndex = 9999
-							for i,data in pairsByKeys(lowPriority) do
-								if (not best or (best and i < lowestIndex)) then
-									best = data
-									lowestIndex = i
-								end
+							if (not best or (best and i < lowestIndex)) then
+								best = data
+								lowestIndex = i
 							end
 						end
 					end
-					
-					if (best) then
-						if (ffxiv_gather.currentTaskIndex ~= lowestIndex) then
-							ffxiv_gather.currentTaskIndex = lowestIndex
-							ffxiv_gather.currentTask = best
-							return true
-						end
+				end
+				
+				if (best) then
+					if (ffxiv_gather.currentTaskIndex ~= lowestIndex) then
+						ffxiv_gather.currentTaskIndex = lowestIndex
+						ffxiv_gather.currentTask = best
+						return true
 					end
 				end
 			end
