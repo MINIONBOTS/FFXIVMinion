@@ -1,11 +1,11 @@
-ffxiv_task_fish = inheritsFrom(ml_task)
-ffxiv_task_fish.attemptedCasts = 0
-ffxiv_task_fish.biteDetected = 0
-ffxiv_task_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfiles\]]
-ffxiv_task_fish.profileData = {}
-ffxiv_task_fish.currentTask = {}
-ffxiv_task_fish.currentTaskIndex = 0
-ffxiv_task_fish.collectibles = {
+ffxiv_fish = {}
+ffxiv_fish.attemptedCasts = 0
+ffxiv_fish.biteDetected = 0
+ffxiv_fish.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\FishProfiles\]]
+ffxiv_fish.profileData = {}
+ffxiv_fish.currentTask = {}
+ffxiv_fish.currentTaskIndex = 0
+ffxiv_fish.collectibles = {
 	{ name = AceLib.API.Items.GetNameByID(12713,47), id = "Icepick", minimum = 106 },
 	{ name = AceLib.API.Items.GetNameByID(12724,47), id = "Glacier Core", minimum = 310 },
 	{ name = AceLib.API.Items.GetNameByID(12721,47), id = "Whilom Catfish", minimum = 459 },
@@ -23,6 +23,7 @@ ffxiv_task_fish.collectibles = {
 	{ name = AceLib.API.Items.GetNameByID(12825,47), id = "Stupendemys", minimum = 1526 },
 }
 
+ffxiv_task_fish = inheritsFrom(ml_task)
 function ffxiv_task_fish.Create()
     local newinst = inheritsFrom(ffxiv_task_fish)
     
@@ -47,10 +48,10 @@ function ffxiv_task_fish.Create()
 	newinst.requiresRelocate = false
 	
 	newinst.snapshot = GetSnapshot()
-	ffxiv_task_fish.currentTask = {}
-	ffxiv_task_fish.currentTaskIndex = 0
-	ffxiv_task_fish.attemptedCasts = 0
-	ffxiv_task_fish.biteDetected = 0
+	ffxiv_fish.currentTask = {}
+	ffxiv_fish.currentTaskIndex = 0
+	ffxiv_fish.attemptedCasts = 0
+	ffxiv_fish.biteDetected = 0
     
     return newinst
 end
@@ -86,7 +87,7 @@ function c_precastbuff:evaluate()
 		end
 		
 		local needsStealth = false
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			needsStealth = IsNull(task.usestealth,false)
@@ -108,7 +109,7 @@ function c_precastbuff:evaluate()
 	return false
 end
 function e_precastbuff:execute()
-	ffxiv_task_fish.StopFishing()
+	ffxiv_fish.StopFishing()
 	
 	local activity = c_precastbuff.activity
 	if (activity == "eat") then
@@ -134,7 +135,7 @@ function c_mooch:evaluate()
 	
 	local useMooch = false
 	local marker = ml_global_information.currentMarker
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (ValidTable(task)) then
 		useMooch = (task.usemooch == true) or false
 	elseif (ValidTable(marker)) then
@@ -200,7 +201,7 @@ function c_release:evaluate()
 				local blacklist = ""
 				local blacklistHQ = ""
 				
-				local task = ffxiv_task_fish.currentTask
+				local task = ffxiv_fish.currentTask
 				local marker = ml_global_information.currentMarker
 				if (ValidTable(task)) then
 					whitelist = IsNull(task.whitelist,"")
@@ -226,7 +227,7 @@ function c_release:evaluate()
 								if (tonumber(mustkeep) ~= nil) then
 									mustkeepid = tonumber(mustkeep)
 								else
-									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep,47)
+									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
 								end
 								
 								if (mustkeepid == lastCatch) then
@@ -243,7 +244,7 @@ function c_release:evaluate()
 								if (tonumber(throwaway) ~= nil) then
 									throwawayid = tonumber(throwaway)
 								else
-									throwawayid = AceLib.API.Items.GetIDByName(throwaway,47)
+									throwawayid = AceLib.API.Items.GetIDByName(throwaway)
 								end
 								
 								if (throwawayid == lastCatch) then
@@ -260,7 +261,7 @@ function c_release:evaluate()
 								if (tonumber(mustkeep) ~= nil) then
 									mustkeepid = tonumber(mustkeep)
 								else
-									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep,47)
+									mustkeepid = AceLib.API.Items.GetIDByName(mustkeep)
 								end
 								
 								if (mustkeepid == lastCatch) then
@@ -277,7 +278,7 @@ function c_release:evaluate()
 								if (tonumber(throwaway) ~= nil) then
 									throwawayid = tonumber(throwaway)
 								else
-									throwawayid = AceLib.API.Items.GetIDByName(throwaway,47)
+									throwawayid = AceLib.API.Items.GetIDByName(throwaway)
 								end
 								
 								if (throwawayid == lastCatch) then
@@ -332,13 +333,13 @@ function e_cast:execute()
 		if (cast:Cast()) then
 			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
 		end
-		if (ValidTable(ffxiv_task_fish.currentTask)) then
-			if (ffxiv_task_fish.currentTask.taskStarted == 0) then
-				ffxiv_task_fish.currentTask.taskStarted = Now()
+		if (ValidTable(ffxiv_fish.currentTask)) then
+			if (ffxiv_fish.currentTask.taskStarted == 0) then
+				ffxiv_fish.currentTask.taskStarted = Now()
 			end
 		end
-		ffxiv_task_fish.attemptedCasts = ffxiv_task_fish.attemptedCasts + 1
-		fd("[Cast]: Attempt #"..tostring(ffxiv_task_fish.attemptedCasts))
+		ffxiv_fish.attemptedCasts = ffxiv_fish.attemptedCasts + 1
+		fd("[Cast]: Attempt #"..tostring(ffxiv_fish.attemptedCasts))
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
@@ -346,25 +347,27 @@ end
 function GetSnapshot()
 	local currentSnapshot = {}
 	
-	local inv = MInventory("") -- no filter includes bags and equipped only, not key items, crystals, currency, etc...
-    if (ValidTable(inv)) then
-        for k,item in pairs(inv) do
-            if currentSnapshot[item.id] == nil then
-                -- New item
-                currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].name = item.name
-                currentSnapshot[item.id].HQcount = 0
-                currentSnapshot[item.id].count = 0
-            end
-            -- Increment item counts
-            if (toboolean(item.IsHQ)) then
-                -- HQ
-                currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-            else
-                -- NQ
-                currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-            end
-        end
+	for x=0,3 do
+		local inv = Inventory("type="..tostring(x))
+		if (ValidTable(inv)) then
+			for k,item in pairs(inv) do
+				if currentSnapshot[item.id] == nil then
+					-- New item
+					currentSnapshot[item.id] = {}
+					currentSnapshot[item.id].name = item.name
+					currentSnapshot[item.id].HQcount = 0
+					currentSnapshot[item.id].count = 0
+				end
+				-- Increment item counts
+				if (toboolean(item.IsHQ)) then
+					-- HQ
+					currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+				else
+					-- NQ
+					currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+				end
+			end
+		end
 	end
 	
 	return currentSnapshot
@@ -405,7 +408,7 @@ function c_finishcast:evaluate()
 	local needsStop = false
 	
 	local marker = ml_global_information.currentMarker
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (not ValidTable(task) or not ValidTable(marker)) then
 		needsStop = true
 	end
@@ -420,7 +423,7 @@ function c_finishcast:evaluate()
     return false
 end
 function e_finishcast:execute()
-    ffxiv_task_fish.StopFishing()
+    ffxiv_fish.StopFishing()
 end
 
 c_bite = inheritsFrom( ml_cause )
@@ -433,10 +436,10 @@ function c_bite:evaluate()
     return false
 end
 function e_bite:execute()
-	if (ffxiv_task_fish.biteDetected == 0) then
-		ffxiv_task_fish.biteDetected = Now() + math.random(250,1000)
+	if (ffxiv_fish.biteDetected == 0) then
+		ffxiv_fish.biteDetected = Now() + math.random(250,1000)
 		return
-	elseif (Now() > ffxiv_task_fish.biteDetected) then
+	elseif (Now() > ffxiv_fish.biteDetected) then
 		if (HasBuffs(Player,"764")) then
 			local precisionHook = ActionList:Get(4179,1)
 			local powerfulHook = ActionList:Get(4103,1)
@@ -465,7 +468,7 @@ function c_chum:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usechum,false)
@@ -509,7 +512,7 @@ function c_fisheyes:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usefisheyes,false)
 			
@@ -550,7 +553,7 @@ function c_snagging:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usesnagging,false)
@@ -592,7 +595,7 @@ function c_usecollect:evaluate()
     if (Now() > castTimer) then
 		
 		local useBuff = false
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			useBuff = IsNull(task.usecollect,false)
@@ -644,7 +647,7 @@ function c_patience:evaluate()
 		local usePatience = false
 		local usePatience2 = false
 		
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			usePatience = IsNull(task.usepatience,false)
@@ -711,7 +714,7 @@ function c_collectibleaddonfish:evaluate()
 				end
 			end
 			
-			local task = ffxiv_task_fish.currentTask
+			local task = ffxiv_fish.currentTask
 			if (ValidTable(task)) then
 				local collectables = task.collectables
 				if (ValidTable(collectables)) then
@@ -756,7 +759,7 @@ end
 c_resetidle = inheritsFrom( ml_cause )
 e_resetidle = inheritsFrom( ml_effect )
 function c_resetidle:evaluate()
-	if (ffxiv_task_fish.attemptedCasts > 0 or ffxiv_task_fish.biteDetected > 0) then
+	if (ffxiv_fish.attemptedCasts > 0 or ffxiv_fish.biteDetected > 0) then
 		local fs = tonumber(Player:GetFishingState())
 		if ( fs == 9 ) then
 			return true
@@ -766,8 +769,8 @@ function c_resetidle:evaluate()
 end
 function e_resetidle:execute()
 	ml_debug("Resetting idle status, waiting detected.")
-	ffxiv_task_fish.attemptedCasts = 0
-	ffxiv_task_fish.biteDetected = 0
+	ffxiv_fish.attemptedCasts = 0
+	ffxiv_fish.biteDetected = 0
 end
 
 c_setbait = inheritsFrom( ml_cause )
@@ -779,7 +782,7 @@ function c_setbait:evaluate()
     if (fs == 0 or fs == 4) then
 		local baitChoice = ""
 		
-		local task = ffxiv_task_fish.currentTask
+		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			baitChoice = IsNull(task.baitname,"")
@@ -835,7 +838,7 @@ function e_setbait:execute()
 	local baitChoice = ""
 	local rebuy = {}
 	
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		baitChoice = IsNull(task.baitname,"")
@@ -875,8 +878,8 @@ function e_setbait:execute()
 		fd("Could not find any suitable baits.",2)
 		--fd("TODO: Add the shit to buy more bait here...",2)
 		
-		if (ffxiv_task_fish.IsFishing()) then
-			ffxiv_task_fish.StopFishing()
+		if (ffxiv_fish.IsFishing()) then
+			ffxiv_fish.StopFishing()
 			return
 		end
 		
@@ -914,7 +917,7 @@ function e_setbait:execute()
 			end
 		end
 
-		ffxiv_task_fish.attemptedCasts = 3
+		ffxiv_fish.attemptedCasts = 3
 	end
 end
 
@@ -945,7 +948,7 @@ function c_nextfishingmarker:evaluate()
 		
 		-- check if we've attempted a lot of casts with no bites
 		if (marker == nil) then
-            if (ffxiv_task_fish.attemptedCasts > 2) then
+            if (ffxiv_fish.attemptedCasts > 2) then
 				marker = ml_marker_mgr.GetNextMarker(GetString("fishingMarker"), ml_task_hub:ThisTask().filterLevel)
 				
 				if (marker == nil) then
@@ -996,14 +999,14 @@ function e_nextfishingmarker:execute()
     ml_global_information.MarkerMaxLevel = ml_task_hub:ThisTask().currentMarker:GetMaxLevel()
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
 	ml_task_hub:CurrentTask().requiresAdjustment = true
-	ffxiv_task_fish.attemptedCasts = 0
+	ffxiv_fish.attemptedCasts = 0
 end
 
 c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 c_fishnexttask.blockOnly = false
 function c_fishnexttask:evaluate()
-	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_task_fish.profileData)) then
+	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData)) then
 		return false
 	end
 	
@@ -1016,7 +1019,7 @@ function c_fishnexttask:evaluate()
 		
 		local evaluate = false
 		local invalid = false
-		local currentTask = ffxiv_task_fish.currentTask
+		local currentTask = ffxiv_fish.currentTask
 		if (not ValidTable(currentTask)) then
 			fd("No current task, set invalid flag.")
 			invalid = true
@@ -1033,9 +1036,9 @@ function c_fishnexttask:evaluate()
 				fd("Task didn't fall into an always evaluate.")
 			end
 			
-			if (ffxiv_task_fish.attemptedCasts > 2) then
+			if (ffxiv_fish.attemptedCasts > 2) then
 				fd("Attempted casts reached 3, check for a new location.")
-				ffxiv_task_fish.SetLockout(gProfile,ffxiv_task_fish.currentTaskIndex)
+				ffxiv_fish.SetLockout(gProfile,ffxiv_fish.currentTaskIndex)
 				invalid = true
 			end
 			
@@ -1163,7 +1166,7 @@ function c_fishnexttask:evaluate()
 		end
 		
 		--[[
-		if (invalid and ValidTable(ffxiv_task_fish.currentTask)) then	
+		if (invalid and ValidTable(ffxiv_fish.currentTask)) then	
 			--d("Need to erase the current task, and stop.")
 			
 			local fs = tonumber(Player:GetFishingState())
@@ -1177,12 +1180,12 @@ function c_fishnexttask:evaluate()
 				return true
 			end		
 			
-			ffxiv_task_fish.currentTask.taskStarted = 0
-			ffxiv_task_fish.currentTask.taskFailed = 0
-			ffxiv_task_fish.currentTask = {}
-			ffxiv_task_fish.currentTaskIndex = 0
+			ffxiv_fish.currentTask.taskStarted = 0
+			ffxiv_fish.currentTask.taskFailed = 0
+			ffxiv_fish.currentTask = {}
+			ffxiv_fish.currentTaskIndex = 0
 			
-			local taskName = ffxiv_task_fish.currentTask.name or ffxiv_task_fish.currentTaskIndex
+			local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
 			gStatusTaskName = taskName
 			
 			if (gBotMode == GetString("questMode")) then
@@ -1192,8 +1195,8 @@ function c_fishnexttask:evaluate()
 			ml_global_information.currentMarker = false
 			gStatusMarkerName = ""
 			
-			ffxiv_task_fish.currentTask.taskStarted = 0
-			ffxiv_task_fish.attemptedCasts = 0
+			ffxiv_fish.currentTask.taskStarted = 0
+			ffxiv_fish.attemptedCasts = 0
 			ml_task_hub:CurrentTask().requiresRelocate = true
 			ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 			
@@ -1203,7 +1206,7 @@ function c_fishnexttask:evaluate()
 		--]]
 		
 		if (evaluate or invalid) then
-			local profileData = ffxiv_task_fish.profileData
+			local profileData = ffxiv_fish.profileData
 			if (ValidTable(profileData.tasks)) then
 				local highPriority = {}
 				local validTasks = deepcopy(profileData.tasks,true)
@@ -1216,7 +1219,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (valid) then
-						local lockout = ffxiv_task_fish.GetLockout(gProfile,i)
+						local lockout = ffxiv_fish.GetLockout(gProfile,i)
 						if (lockout ~= 0) then
 							local lockoutTime = data.lockout or 300
 							
@@ -1357,8 +1360,8 @@ function c_fishnexttask:evaluate()
 						end
 					end
 					
-					local currentTask = ffxiv_task_fish.currentTask
-					local currentIndex = ffxiv_task_fish.currentTaskIndex
+					local currentTask = ffxiv_fish.currentTask
+					local currentIndex = ffxiv_fish.currentTaskIndex
 					
 					local lowestIndex = 9999
 					local best = nil
@@ -1415,7 +1418,7 @@ function c_fishnexttask:evaluate()
 					end
 					
 					if (best) then
-						if (ffxiv_task_fish.currentTaskIndex ~= lowestIndex) then
+						if (ffxiv_fish.currentTaskIndex ~= lowestIndex) then
 							fd("Chose task index ["..tostring(lowestIndex).."] as the next index.",2)
 							
 							local fs = tonumber(Player:GetFishingState())
@@ -1428,8 +1431,8 @@ function c_fishnexttask:evaluate()
 							end
 	
 							
-							ffxiv_task_fish.currentTaskIndex = lowestIndex
-							ffxiv_task_fish.currentTask = best
+							ffxiv_fish.currentTaskIndex = lowestIndex
+							ffxiv_fish.currentTask = best
 							return true
 						else
 							fd("[FishNextTask] Current index is already set to the lowest index.")
@@ -1449,7 +1452,7 @@ function e_fishnexttask:execute()
 		return
 	end
 	
-	local taskName = ffxiv_task_fish.currentTask.name or ffxiv_task_fish.currentTaskIndex
+	local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
 	gStatusTaskName = taskName
 	
 	if (gBotMode == GetString("questMode")) then
@@ -1459,8 +1462,8 @@ function e_fishnexttask:execute()
 	ml_global_information.currentMarker = false
 	gStatusMarkerName = ""
 	
-	ffxiv_task_fish.currentTask.taskStarted = 0
-	ffxiv_task_fish.attemptedCasts = 0
+	ffxiv_fish.currentTask.taskStarted = 0
+	ffxiv_fish.attemptedCasts = 0
 	ml_task_hub:CurrentTask().requiresRelocate = true
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
@@ -1468,11 +1471,11 @@ end
 c_fishnextprofilemap = inheritsFrom( ml_cause )
 e_fishnextprofilemap = inheritsFrom( ml_effect )
 function c_fishnextprofilemap:evaluate()
-    if (not ValidTable(ffxiv_task_fish.currentTask)) then
+    if (not ValidTable(ffxiv_fish.currentTask)) then
 		return false
 	end
     
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (ValidTable(task)) then
 		if (ml_global_information.Player_Map ~= task.mapid) then
 			return true
@@ -1482,8 +1485,8 @@ function c_fishnextprofilemap:evaluate()
     return false
 end
 function e_fishnextprofilemap:execute()
-	local index = ffxiv_task_fish.currentTaskIndex
-	local task = ffxiv_task_fish.currentTask
+	local index = ffxiv_fish.currentTaskIndex
+	local task = ffxiv_fish.currentTask
 	
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
@@ -1536,11 +1539,11 @@ end
 c_fishnextprofilepos = inheritsFrom( ml_cause )
 e_fishnextprofilepos = inheritsFrom( ml_effect )
 function c_fishnextprofilepos:evaluate()
-    if (not ValidTable(ffxiv_task_fish.currentTask)) then
+    if (not ValidTable(ffxiv_fish.currentTask)) then
 		return false
 	end
     
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (task.mapid == ml_global_information.Player_Map) then
 		local pos = task.pos
 		local myPos = ml_global_information.Player_Position
@@ -1563,14 +1566,14 @@ function e_fishnextprofilepos:execute()
 	end
 	
     local newTask = ffxiv_task_movetopos.Create()
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
     newTask.pos = task.pos
 	newTask.range = 1
 	newTask.doFacing = true
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
-	newTask.stealthFunction = ffxiv_task_fish.NeedsStealth
+	newTask.stealthFunction = ffxiv_fish.NeedsStealth
 	
 	ml_task_hub:CurrentTask().requiresRelocate = false
 	ml_task_hub:CurrentTask().requiresAdjustment = true
@@ -1581,7 +1584,7 @@ c_fishnoactivity = inheritsFrom( ml_cause )
 e_fishnoactivity = inheritsFrom( ml_effect )
 function c_fishnoactivity:evaluate()
 	local marker = ml_global_information.currentMarker
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (not ValidTable(task) and not ValidTable(marker)) then
 		ml_task_hub:CurrentTask():SetDelay(1000)
 		return true
@@ -1592,13 +1595,13 @@ function e_fishnoactivity:execute()
 	-- Do nothing here, but there's no point in continuing to process and eat CPU.
 end
 
-function ffxiv_task_fish.NeedsStealth()
+function ffxiv_fish.NeedsStealth()
 	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
 	end
 
 	local useStealth = false
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		useStealth = IsNull(task.usestealth,false)
@@ -1612,7 +1615,7 @@ function ffxiv_task_fish.NeedsStealth()
 			local dangerousArea = false
 			local myPos = ml_global_information.Player_Position
 			local destPos = ml_task_hub:CurrentTask().pos
-			local task = ffxiv_task_fish.currentTask
+			local task = ffxiv_fish.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
@@ -1656,7 +1659,7 @@ function ffxiv_task_fish.NeedsStealth()
 	return false
 end
 
-function ffxiv_task_fish.IsFishing()
+function ffxiv_fish.IsFishing()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
 		return true
@@ -1664,7 +1667,7 @@ function ffxiv_task_fish.IsFishing()
 	return false
 end
 
-function ffxiv_task_fish.StopFishing()
+function ffxiv_fish.StopFishing()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
 		local finishcast = ActionList:Get(299,1)
@@ -1687,7 +1690,7 @@ function c_fishstealth:evaluate()
 	end
 
 	local useStealth = false
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		useStealth = IsNull(task.usestealth,false)
@@ -1710,7 +1713,7 @@ function c_fishstealth:evaluate()
 			local dangerousArea = false
 			local destPos = {}
 			local myPos = ml_global_information.Player_Position
-			local task = ffxiv_task_fish.currentTask
+			local task = ffxiv_fish.currentTask
 			local marker = ml_global_information.currentMarker
 			if (ValidTable(task)) then
 				dangerousArea = IsNull(task.dangerousarea,false)
@@ -1785,7 +1788,7 @@ end
 function e_syncadjust:execute()
 	local heading;
 	local marker = ml_global_information.currentMarker
-	local task = ffxiv_task_fish.currentTask
+	local task = ffxiv_fish.currentTask
 	if (ValidTable(task)) then
 		heading = task.pos.h
 	elseif (ValidTable(marker)) then
@@ -1937,22 +1940,10 @@ function ffxiv_task_fish.UIInit()
     end
 	
 	for i = 1,15 do
-		Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)],ffxiv_task_fish.collectibles[i].name)
-		Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)],ffxiv_task_fish.collectibles[i].minimum)
+		Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleName"..tostring(i)],ffxiv_fish.collectibles[i].name)
+		Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)] = IsNull(Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)],ffxiv_fish.collectibles[i].minimum)
 	end
 	
-	--[[if (Settings.FFXIVMINION.gFishCollectibleName1 == nil) then
-		Settings.FFXIVMINION.gFishCollectibleName1 = ""
-	end
-	if (Settings.FFXIVMINION.gFishCollectibleName2 == nil) then
-		Settings.FFXIVMINION.gFishCollectibleName2 = ""
-	end
-	if (Settings.FFXIVMINION.gFishCollectibleValue1 == nil) then
-		Settings.FFXIVMINION.gFishCollectibleValue1 = 0
-	end
-	if (Settings.FFXIVMINION.gFishCollectibleValue2 == nil) then
-		Settings.FFXIVMINION.gFishCollectibleValue2 = 0
-	end--]]
 	if (Settings.FFXIVMINION.gFishDebug == nil) then
 		Settings.FFXIVMINION.gFishDebug = "0"
 	end
@@ -1983,11 +1974,6 @@ function ffxiv_task_fish.UIInit()
 		GUI_NewField(winName,"Min Value","gFishCollectibleValue"..tostring(i),group)
 	end
 	
-	--[[GUI_NewComboBox(winName,"Collectible","gFishCollectibleName1",group,AceLib.API.Items.BuildUIString(47,120))
-	GUI_NewField(winName,"Min Value","gFishCollectibleValue1",group)
-	GUI_NewComboBox(winName,"Collectible","gFishCollectibleName2",group,AceLib.API.Items.BuildUIString(47,120))
-	GUI_NewField(winName,"Min Value","gFishCollectibleValue2",group)--]]
-	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	GUI_UnFoldGroup(winName,"Collectible")
 	ffxivminion.SizeWindow(winName)
@@ -1998,22 +1984,14 @@ function ffxiv_task_fish.UIInit()
 		_G["gFishCollectibleValue"..tostring(i)] = Settings.FFXIVMINION["gFishCollectibleValue"..tostring(i)]
 	end
 	
-	--[[gFishCollectibleName1 = Settings.FFXIVMINION.gFishCollectibleName1
-    gFishCollectibleValue1 = Settings.FFXIVMINION.gFishCollectibleValue1
-	gFishCollectibleName2 = Settings.FFXIVMINION.gFishCollectibleName2
-    gFishCollectibleValue2 = Settings.FFXIVMINION.gFishCollectibleValue2--]]
-	
 	gFishDebug = Settings.FFXIVMINION.gFishDebug
 	gFishDebugLevel = Settings.FFXIVMINION.gFishDebugLevel
-	
-    RegisterEventHandler("GUI.Update",ffxiv_task_fish.GUIVarUpdate)
-	
-	ffxiv_task_fish.SetupMarkers()
 end
-function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
+
+function ffxiv_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gProfile" and gBotMode == GetString("fishMode")) then
-			ffxiv_task_fish.LoadProfile(v)
+			ffxiv_fish.LoadProfile(v)
 			Settings.FFXIVMINION["gLastFishProfile"] = v
         elseif (string.find(k,"gFishCollectibleValue") or
 				string.find(k,"gFishCollectibleName") or
@@ -2025,10 +2003,10 @@ function ffxiv_task_fish.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("fishMode"))
 end
-function ffxiv_task_fish.UpdateProfiles()
+function ffxiv_fish.UpdateProfiles()
     local profiles = GetString("none")
     local found = GetString("none")	
-    local profilelist = dirlist(ffxiv_task_fish.profilePath,".*lua")
+    local profilelist = dirlist(ffxiv_fish.profilePath,".*lua")
     if ( TableSize(profilelist) > 0) then
 		for i,profile in pairs(profilelist) do			
             profile = string.gsub(profile, ".lua", "")
@@ -2041,13 +2019,13 @@ function ffxiv_task_fish.UpdateProfiles()
 	
     gProfile_listitems = profiles
     gProfile = found
-	ffxiv_task_fish.LoadProfile(gProfile)
+	ffxiv_fish.LoadProfile(gProfile)
 end
-function ffxiv_task_fish.LoadProfile(strName)
+function ffxiv_fish.LoadProfile(strName)
 	if (strName ~= GetString("none")) then
-		if (FileExists(ffxiv_task_fish.profilePath..strName..".lua")) then
-			ffxiv_task_fish.profileData,e = persistence.load(ffxiv_task_fish.profilePath..strName..".lua")
-			if (ValidTable(ffxiv_task_fish.profileData)) then
+		if (FileExists(ffxiv_fish.profilePath..strName..".lua")) then
+			ffxiv_fish.profileData,e = persistence.load(ffxiv_fish.profilePath..strName..".lua")
+			if (ValidTable(ffxiv_fish.profileData)) then
 				fd("Fishing profile ["..strName.."] loaded successfully.")
 			else
 				if (e) then
@@ -2056,10 +2034,10 @@ function ffxiv_task_fish.LoadProfile(strName)
 			end
 		end
 	else
-		ffxiv_task_fish.profileData = {}
+		ffxiv_fish.profileData = {}
 	end
 end
-function ffxiv_task_fish.GetLockout(profile,task)
+function ffxiv_fish.GetLockout(profile,task)
 	if (Settings.FFXIVMINION.gFishLockout ~= nil) then
 		lockout = Settings.FFXIVMINION.gFishLockout
 		if (ValidTable(lockout[profile])) then
@@ -2069,7 +2047,7 @@ function ffxiv_task_fish.GetLockout(profile,task)
 	
 	return 0
 end
-function ffxiv_task_fish.SetLockout(profile,task)
+function ffxiv_fish.SetLockout(profile,task)
 	if (Settings.FFXIVMINION.gFishLockout == nil or type(Settings.FFXIVMINION.gFishLockout) ~= "table") then
 		Settings.FFXIVMINION.gFishLockout = {}
 	end
@@ -2082,10 +2060,10 @@ function ffxiv_task_fish.SetLockout(profile,task)
 	lockout[profile][task] = GetCurrentTime()
 	Settings.FFXIVMINION.gFishLockout = lockout
 end
-function ffxiv_task_fish.ResetLastGather()
+function ffxiv_fish.ResetLastGather()
 	Settings.FFXIVMINION.gFishLockout = {}
 end
-function ffxiv_task_fish.SetupMarkers()
+function ffxiv_fish.SetupMarkers()
     -- add marker templates for fishing
     local fishingMarker = ml_marker:Create("fishingTemplate")
 	fishingMarker:SetType(GetString("fishingMarker"))
@@ -2111,3 +2089,6 @@ function ffxiv_task_fish.SetupMarkers()
     ml_marker_mgr.RefreshMarkerTypes()
 	ml_marker_mgr.RefreshMarkerNames()
 end
+
+ffxiv_fish.SetupMarkers()
+RegisterEventHandler("GUI.Update",ffxiv_fish.GUIVarUpdate)

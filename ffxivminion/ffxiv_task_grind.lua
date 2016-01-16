@@ -149,7 +149,7 @@ end
 
 function ffxiv_task_grind:Init()
     --init ProcessOverWatch() elements
-	local ke_isLoading = ml_element:create( "IsLoading", c_grindisloading, e_grindisloading, 250 )
+	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
     self:add( ke_isLoading, self.overwatch_elements)
 	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 45 )

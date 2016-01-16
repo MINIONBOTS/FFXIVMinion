@@ -71,6 +71,7 @@ function c_add_killtarget:evaluate()
 end
 function e_add_killtarget:execute()
 	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.betterTargetFunction = ml_task_hub:CurrentTask().targetFunction
 	newTask.targetid = c_add_killtarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
@@ -457,6 +458,8 @@ function e_avoid:execute()
 			newTask.maxTime = seconds
 			ml_task_hub:ThisTask().preserveSubtasks = true
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			
+			c_bettertargetsearch.postpone = Now() + 5000
 		end
 	else
 		d("Can't dodge, didn't find a valid position.")
@@ -1363,32 +1366,21 @@ end
 c_bettertargetsearch = inheritsFrom( ml_cause )
 e_bettertargetsearch = inheritsFrom( ml_effect )
 c_bettertargetsearch.targetid = 0
+c_bettertargetsearch.throttle = 1000
+c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
-    if (gBotMode == GetString("partyMode") and not IsLeader()) then
+    if (MIsLoading() or MIsLocked() or MIsCasting() or
+		(gBotMode == GetString("partyMode") and not IsLeader()) or
+		Now() < c_bettertargetsearch.postpone) 
+	then
         return false
     end
 	
-	if (gBotMode == GetString("huntMode") or gBotMode == GetString("questMode")) then
-		return false
-	end
-	
-	if (MIsCasting() or Now() < c_add_killtarget.oocCastTimer) then
-		return false
-	end
-    
-	if (ml_task_hub:CurrentTask().name == "LT_KILLTARGET" and ml_task_hub:RootTask().name == "LT_GRIND") then
-		if (not ml_global_information.Player_InCombat) then
-			local bettertarget = GetNearestGrindAttackable()
-			if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
-				c_bettertargetsearch.targetid = bettertarget.id
-				return true                        
-			end
-		end
-	elseif (ml_task_hub:CurrentTask().name == "LT_SM_KILLTARGET" and gClaimFirst == "1") then
-		local bettertarget = GetNearestGrindPriority()
-		if ( bettertarget ~= nil and bettertarget.id ~= ml_task_hub:CurrentTask().targetid ) then
-			c_bettertargetsearch.targetid = bettertarget.id
-			return true                      
+	if (ml_task_hub:CurrentTask().betterTargetFunction and type(ml_task_hub:CurrentTask().betterTargetFunction)) then
+		local newTarget = ml_task_hub:CurrentTask().betterTargetFunction()
+		if (newTarget and newTarget.id ~= ml_task_hub:CurrentTask().targetid) then
+			c_bettertargetsearch.targetid = newTarget.id
+			return true
 		end
 	end
      
@@ -1993,7 +1985,7 @@ end
 c_returntomarker = inheritsFrom( ml_cause )
 e_returntomarker = inheritsFrom( ml_effect )
 function c_returntomarker:evaluate()
-	if (Player.incombat or MIsCasting() or MIsLoading() or (MIsLocked() and not IsFlying()) or Player:GetGatherableSlotList() ~= nil) then
+	if (Player.incombat or MIsCasting() or MIsLoading() or (MIsLocked() and not IsFlying()) or ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -2001,7 +1993,7 @@ function c_returntomarker:evaluate()
         return false
     end
 	
-	if (ValidTable(ffxiv_task_fish.currentTask)) then
+	if (ValidTable(ffxiv_fish.currentTask)) then
 		return false
 	end
     
@@ -2104,7 +2096,7 @@ function e_returntomarker:execute()
 	then
 		newTask.stealthFunction = ffxiv_gather.NeedsStealth
 	elseif (markerType == GetString("fishingMarker")) then
-		newTask.stealthFunction = ffxiv_task_fish.NeedsStealth
+		newTask.stealthFunction = ffxiv_fish.NeedsStealth
 	end
 	
 	--[[

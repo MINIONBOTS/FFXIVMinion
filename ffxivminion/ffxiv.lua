@@ -547,11 +547,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		if (gBotRunning == "1") then
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
 				ml_global_information.repairTimer = tickcount
-				
-				local list = Player:GetGatherableSlotList()
+
 				local synth = Crafting:SynthInfo()	
 		
-				if (not ValidTable(list) and not ValidTable(synth) and not ml_global_information.Player_InCombat and NeedsRepair()) then
+				if (not ControlVisible("Gathering") and not ValidTable(synth) and not ml_global_information.Player_InCombat and NeedsRepair()) then
 					Repair()
 				end
 			end
@@ -560,10 +559,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					ml_global_information.foodCheckTimer = tickcount
 					
-					local list = Player:GetGatherableSlotList()
 					local synth = Crafting:SynthInfo()	
-			
-					if (not ValidTable(list) and not ValidTable(synth)) then
+					if (not ControlVisible("Gathering") and not ValidTable(synth)) then
 						Eat()
 					end
 				end
@@ -1120,7 +1117,7 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-			ffxiv_task_fish.UpdateProfiles()
+			ffxiv_fish.UpdateProfiles()
 			gQuestAutoEquip = Settings.FFXIVMINION.gQuestAutoEquip
 		elseif (gBotMode == GetString("gatherMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport

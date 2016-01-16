@@ -65,7 +65,7 @@ end
 c_findnode = inheritsFrom( ml_cause )
 e_findnode = inheritsFrom( ml_effect )
 function c_findnode:evaluate()
-	if (ValidTable(Player:GetGatherableSlotList())) then
+	if (ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -184,7 +184,7 @@ end
 c_movetonode = inheritsFrom( ml_cause )
 e_movetonode = inheritsFrom( ml_effect )
 function c_movetonode:evaluate()
-	if (ValidTable(Player:GetGatherableSlotList())) then
+	if (ControlVisible("Gathering")) then
 		return false
 	end
     
@@ -300,7 +300,7 @@ c_returntobase = inheritsFrom( ml_cause )
 e_returntobase = inheritsFrom( ml_effect )
 e_returntobase.pos = {}
 function c_returntobase:evaluate()
-	if (ValidTable(Player:GetGatherableSlotList())) then
+	if (ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -370,7 +370,7 @@ function c_nextgathermarker:evaluate()
 		return false
 	end
 	
-	if (Now() < ffxiv_gather.timer or ValidTable(Player:GetGatherableSlotList())) then
+	if (Now() < ffxiv_gather.timer or ControlVisible("Gathering")) then
 		--d("Next gather marker, returning false in block1.")
 		return false
 	end
@@ -501,8 +501,7 @@ end
 c_gather = inheritsFrom( ml_cause )
 e_gather = inheritsFrom( ml_effect )
 function c_gather:evaluate()
-    local list = Player:GetGatherableSlotList()
-	if (ValidTable(list)) then
+	if (ControlVisible("Gathering")) then
 		return true
 	end
 	
@@ -1002,12 +1001,6 @@ function CanUseExpManual()
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
-				
-				local manual1 = MGetItem(4633)
-				if (manual1 and manual1.isready) then
-					--d("Can use level 1 manual.")
-					return true, manual1
-				end
 			end
 		end
 	elseif (IsCrafter(Player.job)) then
@@ -1041,11 +1034,6 @@ function CanUseExpManual()
 				if (manual2 and manual2.isready) then
 					return true, manual2
 				end
-				
-				local manual1 = MGetItem(4632)
-				if (manual1 and manual1.isready) then
-					return true, manual1
-				end
 			end
 		end
 	end
@@ -1063,8 +1051,7 @@ function c_nodeprebuff:evaluate()
 		return false
 	end
 	
-	local list = Player:GetGatherableSlotList()
-	if (list) then
+	if (ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -1294,8 +1281,7 @@ c_gatherflee = inheritsFrom( ml_cause )
 e_gatherflee = inheritsFrom( ml_effect )
 e_gatherflee.fleePos = {}
 function c_gatherflee:evaluate()
-	local list = Player:GetGatherableSlotList()
-	if (ValidTable(list)) then
+	if (ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -1443,7 +1429,7 @@ function e_collectiblegame:execute()
 					
 		d("Item current rarity ["..tostring(info.rarity).."].",3)
 		d("Item required rarity ["..tostring(requiredRarity).."].",3)
-		d("Item current wear ["..tostring(info.rarity).."].",3)
+		d("Item current wear ["..tostring(info.wear).."].",3)
 		d("Item max wear ["..tostring(info.wearmax).."].",3)
 				
 		if (info.rarity > 0 and
@@ -1642,127 +1628,124 @@ end
 c_gathernexttask = inheritsFrom( ml_cause )
 e_gathernexttask = inheritsFrom( ml_effect )
 function c_gathernexttask:evaluate()
-	if (not Player.alive or not ValidTable(ffxiv_gather.profileData)) then
+	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering")) then
 		return false
 	end
 	
-	local list = Player:GetGatherableSlotList()
-	if (not ValidTable(list)) then	
-		local evaluate = false
-		local invalid = false
-		local currentTask = ffxiv_gather.currentTask
-		local currentTaskIndex = ffxiv_gather.currentTaskIndex
+	local evaluate = false
+	local invalid = false
+	local currentTask = ffxiv_gather.currentTask
+	local currentTaskIndex = ffxiv_gather.currentTaskIndex
+	
+	if (not ValidTable(currentTask)) then
+		invalid = true
+	else
+		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
+			evaluate = true
+		elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
+				 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
+		then
+			evaluate = true
+		end
 		
-		if (not ValidTable(currentTask)) then
-			invalid = true
-		else
-			if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
-				evaluate = true
-			elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
-					 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
-			then
-				evaluate = true
+		if (not invalid) then
+			if (currentTask.minlevel and Player.level < currentTask.minlevel) then
+				invalid = true
+			elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
+				invalid = true
 			end
-			
-			if (not invalid) then
-				if (currentTask.minlevel and Player.level < currentTask.minlevel) then
-					invalid = true
-				elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
+		end
+		
+		if (not invalid) then
+			local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
+			if (lastGather ~= 0) then
+				if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 					invalid = true
 				end
 			end
+		end
 			
-			if (not invalid) then
-				local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
-				if (lastGather ~= 0) then
-					if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
-						invalid = true
+		if (not invalid) then
+			local weather = AceLib.API.Weather.Get(currentTask.mapid)
+			local weatherLast = weather.last or ""
+			local weatherNow = weather.now or ""
+			local weatherNext = weather.next or ""
+			if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
+				invalid = true
+			elseif (currentTask.weathernow and currentTask.weathernow ~= weatherNow) then
+				invalid = true
+			elseif (currentTask.weathernext and currentTask.weathernext ~= weatherNext) then
+				invalid = true
+			end
+		end
+			
+		if (not invalid) then
+			local shifts = AceLib.API.Weather.GetShifts()
+			local lastShift = shifts.lastShift
+			local nextShift = shifts.nextShift
+			if (currentTask.lastshiftmin and currentTask.lastshiftmin < lastShift) then
+				invalid = true
+			elseif (currentTask.lastshiftmax and currentTask.lastshiftmin > lastShift) then
+				invalid = true
+			elseif (currentTask.nextshiftmin and currentTask.nextshiftmin < nextShift) then
+				invalid = true
+			elseif (currentTask.nextshiftmax and currentTask.nextshiftmax > nextShift) then
+				invalid = true
+			end
+		end
+			
+		if (not invalid) then
+			if (IsNull(currentTask.maxtime,0) > 0) then
+				if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
+					invalid = true
+				else
+					if (currentTask.taskStarted ~= 0) then
+						gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].",3)
 					end
 				end
 			end
-			
-			if (not invalid) then
-				local weather = AceLib.API.Weather.Get(currentTask.mapid)
-				local weatherLast = weather.last or ""
-				local weatherNow = weather.now or ""
-				local weatherNext = weather.next or ""
-				if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
+			if (IsNull(currentTask.timeout,0) > 0) then
+				if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
 					invalid = true
-				elseif (currentTask.weathernow and currentTask.weathernow ~= weatherNow) then
-					invalid = true
-				elseif (currentTask.weathernext and currentTask.weathernext ~= weatherNext) then
-					invalid = true
+				else
+					if (currentTask.taskFailed ~= 0) then
+						gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(currentTask.taskFailed)).."].",3)
+					end
 				end
 			end
-			
-			if (not invalid) then
-				local shifts = AceLib.API.Weather.GetShifts()
-				local lastShift = shifts.lastShift
-				local nextShift = shifts.nextShift
-				if (currentTask.lastshiftmin and currentTask.lastshiftmin < lastShift) then
-					invalid = true
-				elseif (currentTask.lastshiftmax and currentTask.lastshiftmin > lastShift) then
-					invalid = true
-				elseif (currentTask.nextshiftmin and currentTask.nextshiftmin < nextShift) then
-					invalid = true
-				elseif (currentTask.nextshiftmax and currentTask.nextshiftmax > nextShift) then
-					invalid = true
-				end
-			end
-			
-			if (not invalid) then
-				if (IsNull(currentTask.maxtime,0) > 0) then
-					if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
-						invalid = true
+			if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
+				local eTime = EorzeaTime()
+				local eHour = eTime.hour
+				
+				local validHour = false
+				local i = currentTask.eorzeaminhour
+				while (i ~= currentTask.eorzeamaxhour) do
+					if (i == eHour) then
+						validHour = true
+						i = currentTask.eorzeamaxhour
 					else
-						if (currentTask.taskStarted ~= 0) then
-							gd("Max time allowed ["..tostring(currentTask.maxtime).."], time passed ["..tostring(TimeSince(currentTask.taskStarted)).."].",3)
-						end
+						i = AddHours(i,1)
 					end
 				end
-				if (IsNull(currentTask.timeout,0) > 0) then
-					if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
-						invalid = true
-					else
-						if (currentTask.taskFailed ~= 0) then
-							gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(currentTask.taskFailed)).."].",3)
-						end
-					end
-				end
-				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-					local eTime = EorzeaTime()
-					local eHour = eTime.hour
-					
-					local validHour = false
-					local i = currentTask.eorzeaminhour
-					while (i ~= currentTask.eorzeamaxhour) do
-						if (i == eHour) then
-							validHour = true
-							i = currentTask.eorzeamaxhour
-						else
-							i = AddHours(i,1)
-						end
-					end
-					
-					if (not validHour) then
-						invalid = true
-					end
+				
+				if (not validHour) then
+					invalid = true
 				end
 			end
+		end
 			
-			if (currentTask.complete) then
-				local conditions = shallowcopy(currentTask.complete)
-				for condition,value in pairs(conditions) do
-					local f = assert(loadstring("return " .. condition))()
-					if (f ~= nil) then
-						if (f == value) then
-							invalid = true
-						end
-						conditions[condition] = nil
+		if (currentTask.complete) then
+			local conditions = shallowcopy(currentTask.complete)
+			for condition,value in pairs(conditions) do
+				local f = assert(loadstring("return " .. condition))()
+				if (f ~= nil) then
+					if (f == value) then
+						invalid = true
 					end
-					if (invalid) then
-						break
-					end
+					conditions[condition] = nil
+				end
+				if (invalid) then
+					break
 				end
 			end
 		end
@@ -2185,8 +2168,7 @@ function c_gatherstealth:evaluate()
 			return false
 		end
 		
-		local list = Player:GetGatherableSlotList()
-		if (ValidTable(list)) then
+		if (ControlVisible("Gathering")) then
 			return false
 		end
 		

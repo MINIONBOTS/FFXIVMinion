@@ -113,6 +113,14 @@ SkillMgr.ExtraProfiles = {
 	"Monk_50",
 	"Craft_Artisan_2Star_Token",
 	"Craft_Supra_3Star_Token",
+	
+	"Aetherial Gathering",
+	"Gathering Scripts",
+	"Gathering 530",
+	"Gathering Collectables",
+	"Gathering Crystals",
+	"Gathering HQ",
+	"Gathering Leveling",
 }
 
 SkillMgr.ActionTypes = {
@@ -1416,6 +1424,15 @@ function SkillMgr.ReadFile(strFile)
 			break
 		end		
 	end
+	
+	local extraProfiles = SkillMgr.ExtraProfiles
+	for i,name in pairs(extraProfiles) do
+		if (strFile == name) then
+			isdefault = true
+			break
+		end		
+	end
+
 	if (not isdefault) then
 		SkillMgr.CheckProfileValidity()
 	end
@@ -3112,7 +3129,7 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 	local tid = targetid or Player.id
 	
 	local action = ActionList:Get(actionid,actiontype,tid)
-	if (action and action.isready2 and (gAssistAutoFace == "1" or action.notfacing)) then
+	if (action and action.isready2 and (gAssistAutoFace == "1" or action.isfacing)) then
 		action:Cast(tid)
 	end
 end
