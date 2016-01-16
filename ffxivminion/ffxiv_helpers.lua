@@ -3861,7 +3861,6 @@ function GetBestGrindMap()
 	end
 end
 function EquipItem(itemid, itemslot)
-	local itemtype = tonumber(itemslot)
 	local itemid = tonumber(itemid)
 	
 	local item = MGetItem(itemid)
@@ -3873,7 +3872,7 @@ function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
 	local currEquippedItems = MInventory("type=1000")
 	for id,item in pairs(currEquippedItems) do
-		if (item.id == itemid) then
+		if (item.hqid == itemid) then
 			return true
 		end
 	end
@@ -5482,4 +5481,34 @@ function toboolean(input)
 		end
 	end
 	return false
+end
+
+function TestConditions(conditions)
+	local canInsert = true				
+	local testKey,testVal = next(conditions)
+	if (tonumber(testKey) ~= nil) then
+		for i,conditionset in pairsByKeys(conditions) do
+			for condition,value in pairs(conditionset) do
+				local f = assert(loadstring("return " .. condition))()
+				if (f ~= nil) then
+					if (f ~= value) then
+						return false
+					end
+					conditions[condition] = nil
+				end
+			end
+		end
+	else
+		for condition,value in pairs(conditions) do
+			local f = assert(loadstring("return " .. condition))()
+			if (f ~= nil) then
+				if (f ~= value) then
+					return false
+				end
+				conditions[condition] = nil
+			end
+		end
+	end
+	
+	return true
 end

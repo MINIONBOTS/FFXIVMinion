@@ -454,6 +454,7 @@ function e_avoid:execute()
 			local newTask = ffxiv_task_avoid.Create()
 			newTask.pos = newPos
 			newTask.targetid = c_avoid.newAvoid.attacker.id
+			newTask.attackTarget = IsNull(ml_task_hub:ThisTask().targetid,0)
 			newTask.interruptCasting = true
 			newTask.maxTime = seconds
 			ml_task_hub:ThisTask().preserveSubtasks = true

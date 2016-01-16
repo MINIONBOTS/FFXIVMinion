@@ -1265,6 +1265,7 @@ function ffxiv_task_avoid.Create()
     newinst.pos = 0
 	newinst.maxTime = 0
     newinst.started = Now()
+	newinst.attackTarget = 0
     
     return newinst
 end
@@ -1300,13 +1301,21 @@ function ffxiv_task_avoid:task_complete_eval()
 
 	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
 	
-	if (dist < 1 and not Player:IsMoving()) then
-		local target = MGetTarget()
+	--if (dist < 1 and not Player:IsMoving()) then
+		local target;
+		if (self.attackTarget ~= 0) then
+			target = MGetEntity(self.attackTarget)
+		else 
+			target = MGetTarget()
+		end
 		if (target ~= nil) then
 			local pos = target.pos
 			Player:SetFacing(pos.x,pos.y,pos.z)
+			if (InCombatRange(target.id) and target.attackable and target.alive) then
+				SkillMgr.Cast( target )
+			end
 		end
-	end
+	--end
     return false
 end
 

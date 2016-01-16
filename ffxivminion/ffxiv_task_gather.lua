@@ -968,6 +968,10 @@ function CanUseCordial()
 end
 
 function CanUseExpManual()
+	if (gUseEXPManuals == "0") then
+		return false
+	end
+	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"46")) then
 			if (Player.level >= 15 and Player.level < 35) then
