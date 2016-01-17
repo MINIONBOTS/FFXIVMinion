@@ -3195,14 +3195,16 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Pet" ) then
 		if ( pet ) then
-			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
-				return nil 
-			else
+			if (not SkillMgr.IsPetSummonSkill(skillid)) then
 				target = pet
 				TID = pet.id
 			end
 		else
-			TID = PID
+			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
+				return nil
+			else
+				TID = PID
+			end
 		end
 	elseif ( skill.trg == "Party" ) then
 		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then
