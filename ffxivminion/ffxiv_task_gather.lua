@@ -948,7 +948,7 @@ function CanUseCordial()
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	end
 	
-	if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
+	if ((Player.gp.current < minimumGP and (minimumGP - Player.gp.current) >= 100) or Player.gp.percent <= 30) then
 		if (useCordials) then
 			local cordial = MGetItem(6141)
 			if (cordial and cordial.isready) then
@@ -1150,19 +1150,37 @@ function c_nodeprebuff:evaluate()
 	if (taskType ~= "") then
 		if (taskType == "botany") then
 			if (Player.job ~= FFXIV.JOBS.BOTANIST and CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
-				e_nodeprebuff.activity = "switchclass"
-				e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
-				e_nodeprebuff.requiresStop = true
-				e_nodeprebuff.requiresDismount = false
-				return true
+				if (ValidTable(profile) and ValidTable(profile.setup) and IsNull(profile.setup.gearsetbotany,0) ~= 0) then
+					local commandString = "/gs change "..tostring(profile.setup.gearsetbotany)
+					SendTextCommand(commandString)
+					e_nodeprebuff.activity = "switchclasslegacy"
+					e_nodeprebuff.requiresStop = true
+					e_nodeprebuff.requiresDismount = false
+					return true
+				else
+					e_nodeprebuff.activity = "switchclass"
+					e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
+					e_nodeprebuff.requiresStop = true
+					e_nodeprebuff.requiresDismount = false
+					return true
+				end
 			end
 		elseif (taskType == "mining") then
 			if (Player.job ~= FFXIV.JOBS.MINER and CanSwitchToClass(FFXIV.JOBS.MINER)) then
-				e_nodeprebuff.activity = "switchclass"
-				e_nodeprebuff.class = FFXIV.JOBS.MINER
-				e_nodeprebuff.requiresStop = true
-				e_nodeprebuff.requiresDismount = false
-				return true
+				if (ValidTable(profile) and ValidTable(profile.setup) and IsNull(profile.setup.gearsetmining,0) ~= 0) then
+					local commandString = "/gs change "..tostring(profile.setup.gearsetmining)
+					SendTextCommand(commandString)
+					e_nodeprebuff.activity = "switchclasslegacy"
+					e_nodeprebuff.requiresStop = true
+					e_nodeprebuff.requiresDismount = false
+					return true
+				else
+					e_nodeprebuff.activity = "switchclass"
+					e_nodeprebuff.class = FFXIV.JOBS.MINER
+					e_nodeprebuff.requiresStop = true
+					e_nodeprebuff.requiresDismount = false
+					return true
+				end
 			end
 		end
 	end
@@ -1234,6 +1252,11 @@ function e_nodeprebuff:execute()
 			ml_task_hub:CurrentTask():SetDelay(1500)
 			return
 		end
+	end
+	
+	if (activity == "switchclasslegacy") then
+		ml_task_hub:ThisTask():SetDelay(2000)
+		return
 	end
 	
 	if (activity == "switchclass") then
@@ -1607,10 +1630,14 @@ end
 
 c_gathernexttask = inheritsFrom( ml_cause )
 e_gathernexttask = inheritsFrom( ml_effect )
+c_gathernexttask.postpone = 0
+c_gathernexttask.blockOnly = false
 function c_gathernexttask:evaluate()
-	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering")) then
+	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering") or Now() < c_gathernexttask.postpone) then
 		return false
 	end
+	
+	c_gathernexttask.blockOnly = false
 	
 	local evaluate = false
 	local invalid = false
@@ -1760,41 +1787,11 @@ function c_gathernexttask:evaluate()
 						end
 					end
 				end
-				--[[
-				if (valid) then
-					if (data.condition) then
-						local conditions = shallowcopy(data.condition)
-						for condition,value in pairs(conditions) do
-							local f = assert(loadstring("return " .. condition))()
-							if (f ~= nil) then
-								if (f ~= value) then
-									valid = false
-								end
-								conditions[condition] = nil
-							end
-							if (not valid) then
-								break
-							end
-						end
-					end
-				end
-				--]]
 				
 				if (valid) then
 					if (data.condition) then
-						local conditions = shallowcopy(data.condition)
-						for condition,value in pairs(conditions) do
-							local f = MLoadstring("return " .. condition)
-							if (f ~= nil) then
-								if (f ~= value) then
-									valid = false
-								end
-								conditions[condition] = nil
-							end
-							if (not valid) then
-								break
-							end
-						end
+						local conditions = deepcopy(data.condition,true)
+						valid = TestConditions(conditions)
 					end
 				end
 				
@@ -2010,10 +2007,18 @@ function c_gathernexttask:evaluate()
 			end
 		end
 	end
+	
+	if (not ValidTable(ffxiv_gather.currentTask)) then
+		c_gathernexttask.postpone = Now() + 15000
+	end
 					
 	return false
 end
 function e_gathernexttask:execute()
+	if (c_gathernexttask.blockOnly) then
+		return
+	end
+	
 	if (Player:IsMoving()) then
 		Player:Stop()
 	end

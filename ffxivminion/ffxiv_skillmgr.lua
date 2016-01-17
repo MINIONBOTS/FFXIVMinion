@@ -2269,6 +2269,10 @@ function SkillMgr.IsPetSummonActive(skillID)
 		[180] = "1402",
 	}
 	
+	if (ValidTable(Player.pet)) then
+		return true
+	end
+	
 	local petstring = contentids[skillID]
 	if (petstring) then
 		local el = EntityList("ownerid="..tostring(Player.id)..",contentid="..petstring)
@@ -2279,8 +2283,15 @@ function SkillMgr.IsPetSummonActive(skillID)
 			end
 		end
 	end
-		
+
     return false
+end
+
+function SkillMgr.IsSummoningPet()
+	if (Player.action == 188 or Player.action == 189) then
+		return true
+	end
+	return false
 end
 
 function SkillMgr.IsReviveSkill(skillID)
@@ -3194,17 +3205,25 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			return nil
 		end
 	elseif ( skill.trg == "Pet" ) then
-		if ( pet ) then
-			if (not SkillMgr.IsPetSummonSkill(skillid)) then
-				target = pet
-				TID = pet.id
+		local valid = false
+		if (SkillMgr.IsPetSummonActive(skillid)) then
+			if (ValidTable(pet)) then
+				if (not SkillMgr.IsPetSummonSkill(skillid)) then
+					valid = true
+					target = pet
+					TID = pet.id
+				end
 			end
 		else
-			if ( SkillMgr.IsPetSummonSkill(skillid) and SkillMgr.IsPetSummonActive(skillid) ) then 
+			if ( SkillMgr.IsPetSummonSkill(skillid) and (SkillMgr.IsPetSummonActive(skillid) or SkillMgr.IsSummoningPet())) then 
 				return nil
 			else
+				valid = true
 				TID = PID
 			end
+		end
+		if (not valid) then
+			return nil
 		end
 	elseif ( skill.trg == "Party" ) then
 		if ( not IsNullString(skill.ptbuff) or not IsNullString(skill.ptnbuff)) then

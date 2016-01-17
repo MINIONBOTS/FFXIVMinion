@@ -2306,16 +2306,16 @@ end
 
 c_autoequip = inheritsFrom( ml_cause )
 e_autoequip = inheritsFrom( ml_effect )
+c_autoequip.postpone = 0
 e_autoequip.item = nil
 e_autoequip.bag = nil
 e_autoequip.slot = nil
---e_autoequip.id = nil
---e_autoequip.slot = nil
 function c_autoequip:evaluate()	
-	if (gQuestAutoEquip == "0" or 
+	if ((gQuestAutoEquip == "0" and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
-		not Player.alive or ml_global_information.Player_InCombat or
-		Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
+		not Player.alive or ml_global_information.Player_InCombat or Player:GetNavStatus() == 1 or
+		ControlVisible("Gathering") or Player:GetFishingState() ~= 0 or
+		Now() < c_autoequip.postpone) 
 	then
 		return false
 	end
@@ -2323,6 +2323,8 @@ function c_autoequip:evaluate()
 	e_autoequip.item = nil
 	e_autoequip.bag = nil
 	e_autoequip.slot = nil
+	
+	local doPostpone = true
 	
 	if (ValidTable(ffxiv_task_quest.lockedSlots)) then
 		for slot,questid in pairs(ffxiv_task_quest.lockedSlots) do
@@ -2482,6 +2484,10 @@ function c_autoequip:evaluate()
 		else
 			--d("Prevented equipping item into slot ["..tostring(slot).."].")
 		end
+	end
+	
+	if (doPostpone) then
+		c_autoequip.postpone = Now() + 5000
 	end
 	
 	return false
@@ -2820,15 +2826,42 @@ function e_moveandinteract:execute()
 	newTask.pos = ml_task_hub:CurrentTask().pos
 	newTask.use3d = true
 	
-	--local range = params["range"]
-	--if (range and range < 1) then
-		--range = 1
-	--end
-	--newTask.interactRange = range
-	
 	if (gTeleport == "1") then
 		newTask.useTeleport = true
 	end
 	
 	ml_task_hub:ThisTask():AddSubTask(newTask)
+end
+
+c_switchclass = inheritsFrom( ml_cause )
+e_switchclass = inheritsFrom( ml_effect )
+e_switchclass.weapon = nil
+function c_switchclass:evaluate()	
+	e_switchclass.weapon = nil
+	
+	local class = ml_task_hub:CurrentTask().class
+	if (Player.job ~= class) then
+		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
+			not Player.alive or ml_global_information.Player_InCombat or
+			Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
+		then
+			return false
+		end
+			
+		local canSwitch,bestWeapon = CanSwitchToClass(class)
+		if (canSwitch) then
+			if (bestWeapon) then
+				e_switchclass.weapon = bestWeapon
+				return true
+			end
+		end	
+	end
+	return false
+end
+function e_switchclass:execute()	
+	local weapon = e_switchclass.weapon
+	if (weapon) then
+		weapon:Move(1000,0)
+		ml_task_hub:CurrentTask():SetDelay(1000)
+	end
 end

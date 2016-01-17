@@ -1005,8 +1005,9 @@ end
 c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 c_fishnexttask.blockOnly = false
+c_fishnexttask.postpone = 0
 function c_fishnexttask:evaluate()
-	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData)) then
+	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData) or Now() < c_fishnexttask.postpone) then
 		return false
 	end
 	
@@ -1443,6 +1444,10 @@ function c_fishnexttask:evaluate()
 				end
 			end
 		end
+	end
+	
+	if (not ValidTable(ffxiv_fish.currentTask)) then
+		c_fishnexttask.postpone = Now() + 15000
 	end
 					
 	return false

@@ -2228,13 +2228,27 @@ function ffxiv_misc_switchclass.Create()
     
     newinst.params = {}
 	newinst.stepCompleted = false
+	gForceAutoEquip = true
 	
 	newinst.class = 0
     
     return newinst
 end
 function ffxiv_misc_switchclass:Init()	
-	self:AddTaskCheckCEs()
+	local ke_switchClass = ml_element:create( "SwitchClass", c_switchclass, e_switchclass, 100 )
+    self:add( ke_switchClass, self.process_elements)
+	
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
+    self:add( ke_autoEquip, self.process_elements)
+	
+	local c_complete = inheritsFrom(ml_cause)
+    function c_complete:evaluate() return ml_task_hub:CurrentTask():task_complete_eval() end
+    
+    local e_complete = inheritsFrom(ml_effect)
+    function e_complete:execute() ml_task_hub:CurrentTask():task_complete_execute() end
+
+    local ke_complete = ml_element:create( "TaskComplete", c_complete, e_complete, 1 )
+	self:add( ke_complete, self.process_elements)
 end
 function ffxiv_misc_switchclass:task_complete_eval()
 	local class = self.class
@@ -2249,13 +2263,13 @@ function ffxiv_misc_switchclass:task_complete_eval()
 			
 		local canSwitch,bestWeapon = CanSwitchToClass(class)
 		if (canSwitch) then
-			if (bestWeapon) then
-				bestWeapon:Move(1000,0)
-			end
-			ml_task_hub:CurrentTask():SetDelay(1000)
 			return false
 		end	
 	end
 	
 	return true
+end
+function ffxiv_misc_switchclass:task_complete_execute()
+	gForceAutoEquip = false
+	self.completed = true
 end

@@ -828,6 +828,8 @@ function ffxivminion.HandleInit()
 	if not ml_blacklist.BlacklistExists(GetString("aoe")) then
 		ml_blacklist.CreateBlacklist(GetString("aoe"))
 	end
+	
+	gForceAutoEquip = false
 end
 
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
