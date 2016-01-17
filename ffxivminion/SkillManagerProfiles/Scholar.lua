@@ -1927,7 +1927,7 @@ local obj1 = {
 			["trgtype"] = "Any";
 			["ttpl"] = 0;
 			["type"] = 1;
-			["used"] = "0";
+			["used"] = "1";
 		};
 		[8] = {
 			["alias"] = "";
