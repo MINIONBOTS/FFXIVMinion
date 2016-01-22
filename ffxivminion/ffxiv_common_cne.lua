@@ -2138,9 +2138,8 @@ function c_stealthupdate:evaluate()
 	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
 	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
 		
-		local list = Player:GetGatherableSlotList()
 		local fs = tonumber(Player:GetFishingState())
-		if (ValidTable(list) or fs ~= 0) then
+		if (ControlVisible("Gathering") or fs ~= 0) then
 			return false
 		end
 		
@@ -2159,49 +2158,6 @@ end
 function e_stealthupdate:execute()
 	--Nothing here, just update the variable.
 end
-
---[[
-c_stealthmove = inheritsFrom( ml_cause )
-e_stealthmove = inheritsFrom( ml_effect )
-e_stealthmove.addDrop = ""
-function c_stealthmove:evaluate()
-	--Tempvar reset.
-	e_stealthmove.addDrop = ""
-	
-	local stealthFunction = ml_task_hub:CurrentTask().stealthFunction
-	if (stealthFunction ~= nil and type(stealthFunction) == "function") then
-		
-		local list = Player:GetGatherableSlotList()
-		local fs = tonumber(Player:GetFishingState())
-		if (ValidTable(list) or fs ~= 0) then
-			return false
-		end
-		
-		local needsStealth = stealthFunction()
-		local hasStealth = HasBuff(Player.id,47)
-		if (not hasStealth and needsStealth) then
-			e_stealthmove.addDrop = "add"
-			return true
-		elseif (hasStealth and not needsStealth) then
-			e_stealthmove.addDrop = "drop"
-			return true
-		end
-	end
- 
-    return false
-end
-function e_stealthmove:execute()
-	local newTask = ffxiv_task_stealth.Create()
-	if (e_stealthmove.addDrop == "drop") then
-		newTask.droppingStealth = true
-		ml_global_information.needsStealth = false
-	else
-		newTask.addingStealth = true
-		ml_global_information.needsStealth = true
-	end
-	ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-end
---]]
 
 c_acceptquest = inheritsFrom( ml_cause )
 e_acceptquest = inheritsFrom( ml_effect )
@@ -2313,10 +2269,11 @@ e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if ((gQuestAutoEquip == "0" and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
-		not Player.alive or ml_global_information.Player_InCombat or Player:GetNavStatus() == 1 or
+		not Player.alive or ml_global_information.Player_InCombat or
 		ControlVisible("Gathering") or Player:GetFishingState() ~= 0 or
 		Now() < c_autoequip.postpone) 
 	then
+		d("[AutoEquip]: Prevented in block 1.")
 		return false
 	end
 	
@@ -2383,15 +2340,15 @@ function c_autoequip:evaluate()
 		
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
-			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
-				--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+				d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
-			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 		end
 	end
 	
@@ -2473,7 +2430,7 @@ function c_autoequip:evaluate()
 					end
 				end
 				
-				--d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
+				d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
 				return false
 			end
 			
@@ -2482,7 +2439,7 @@ function c_autoequip:evaluate()
 			e_autoequip.slot = slot
 			return true
 		else
-			--d("Prevented equipping item into slot ["..tostring(slot).."].")
+			d("Prevented equipping item into slot ["..tostring(slot).."].")
 		end
 	end
 	
@@ -2501,16 +2458,6 @@ function e_autoequip:execute()
 	if (ml_task_hub:CurrentTask()) then
 		ml_task_hub:CurrentTask():SetDelay(200)
 	end
-	
-	--[[
-	local item = GetUnequippedItem(e_autoequip.id)
-	if(ValidTable(item) and item.type ~= FFXIV.INVENTORYTYPE.INV_EQUIPPED) then
-		item:Move(1000,e_autoequip.slot)
-		if (ml_task_hub:CurrentTask()) then
-			ml_task_hub:CurrentTask():SetDelay(500)
-		end
-	end
-	--]]
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )
@@ -2843,7 +2790,7 @@ function c_switchclass:evaluate()
 	if (Player.job ~= class) then
 		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 			not Player.alive or ml_global_information.Player_InCombat or
-			Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
+			ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
 		then
 			return false
 		end
@@ -2862,6 +2809,6 @@ function e_switchclass:execute()
 	local weapon = e_switchclass.weapon
 	if (weapon) then
 		weapon:Move(1000,0)
-		ml_task_hub:CurrentTask():SetDelay(1000)
+		ml_task_hub:CurrentTask():SetDelay(2500)
 	end
 end

@@ -22,7 +22,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (gDoUnstuck == "0" or IsFlying() or MIsLoading()) then
+	if (MIsLocked() or MIsLoading() or Player:GetNavStatus() ~= 1) then
 		return false
 	end
 	

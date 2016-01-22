@@ -1123,9 +1123,8 @@ function ffxiv_task_stealth:task_fail_eval()
 		return true
 	end
 	
-	local list = Player:GetGatherableSlotList()
 	local fs = tonumber(Player:GetFishingState())
-	if (ValidTable(list) or fs ~= 0) then
+	if (ControlVisible("Gathering") or fs ~= 0) then
 		return true
 	end
 	
@@ -2227,9 +2226,7 @@ function ffxiv_misc_switchclass.Create()
     newinst.name = "QUEST_MISC_SWITCHCLASS"
     
     newinst.params = {}
-	newinst.stepCompleted = false
-	gForceAutoEquip = true
-	
+	newinst.stepCompleted = false	
 	newinst.class = 0
     
     return newinst
@@ -2249,6 +2246,9 @@ function ffxiv_misc_switchclass:Init()
 
     local ke_complete = ml_element:create( "TaskComplete", c_complete, e_complete, 1 )
 	self:add( ke_complete, self.process_elements)
+	
+	gForceAutoEquip = true
+	c_autoequip.postpone = 0
 end
 function ffxiv_misc_switchclass:task_complete_eval()
 	local class = self.class
@@ -2256,7 +2256,7 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	if (Player.job ~= class) then
 		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 			not Player.alive or ml_global_information.Player_InCombat or
-			Player:GetGatherableSlotList() or Player:GetFishingState() ~= 0) 
+			ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
 		then
 			return false
 		end
@@ -2265,6 +2265,10 @@ function ffxiv_misc_switchclass:task_complete_eval()
 		if (canSwitch) then
 			return false
 		end	
+	end
+	
+	if (c_autoequip:evaluate()) then
+		return false
 	end
 	
 	return true

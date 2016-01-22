@@ -657,7 +657,7 @@ function ffxivminion.CreateMainWindow()
 	GUI_NewCheckbox(winName,GetString("avoidAOE"), "gAvoidAOE",group )
 	GUI_NewCheckbox(winName,GetString("randomPaths"),"gRandomPaths",group )
 	GUI_NewCheckbox(winName,GetString("randomMovement"),"gRandomMovement",group )
-	GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
+	--GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	GUI_NewCheckbox(winName,"Use EXP Manuals","gUseEXPManuals",group )
 	
@@ -717,7 +717,7 @@ function ffxivminion.CreateMainWindow()
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene","0")
 	gSkipDialogue = ffxivminion.GetSetting("gSkipDialogue","0")
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing","0")
-	gDoUnstuck = ffxivminion.GetSetting("gDoUnstuck","0")
+	--gDoUnstuck = ffxivminion.GetSetting("gDoUnstuck","0")
 	gUseHQMats = ffxivminion.GetSetting("gUseHQMats","0")
 	gUseEXPManuals = ffxivminion.GetSetting("gUseEXPManuals","1")
 	gClickToTeleport = ffxivminion.GetSetting("gClickToTeleport","0")
@@ -875,7 +875,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAutoStart" or
 			k == "gStartCombat" or
 			k == "gConfirmDuty" or
-            k == "gDoUnstuck" or
+            --k == "gDoUnstuck" or
             k == "gRandomPaths" or
 			k == "gChocoAssist" or
 			k == "gChocoGrind" or
@@ -1058,11 +1058,11 @@ function ffxivminion.SwitchMode(mode)
 		GUI_WindowVisible(mode, true)
 		ml_global_information.lastMode = mode
 		
-		if (gBotMode == GetString("pvpMode")) then
-            Player:EnableUnstuckJump(false)
-        else
-            Player:EnableUnstuckJump(true)
-        end
+		--if (gBotMode == GetString("pvpMode")) then
+            --Player:EnableUnstuckJump(false)
+        --else
+            --Player:EnableUnstuckJump(true)
+        --end
 		
 		--Set marker type to the appropriate type.
 		if (gBotMode == GetString("gatherMode")) then
