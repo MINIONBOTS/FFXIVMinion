@@ -75,30 +75,38 @@ end
 
 c_gotopostest = inheritsFrom( ml_cause )
 e_gotopostest = inheritsFrom( ml_effect )
-e_gotopostest.pos = nil
+c_gotopostest.pos = {}
+c_gotopostest.path = {}
 function c_gotopostest:evaluate()
+	c_gotopostest.pos = {}
+	c_gotopostest.path = {}
+
 	local mapID = tonumber(gTestMapID)
 	if (Player.localmapid == mapID) then
-		local ppos = shallowcopy(Player.pos)
+		local ppos = Player.pos
 		local pos = {}
 		pos.x = tonumber(gTestMapX)
 		pos.y = tonumber(gTestMapY)
 		pos.z = tonumber(gTestMapZ)
-		if (Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z) > 10) then
-			e_gotopostest.pos = pos
-			return true
+		
+		local dist = PDistance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z)
+		if (dist > 3) then
+			--local path = ffxiv_task_test.GetPath(ppos,pos)
+			--if (ValidTable(path)) then
+				c_gotopostest.pos = pos
+				--c_gotopostest.path = path
+				return true
+			--end
 		end
 	end
 	return false
 end
 function e_gotopostest:execute()
 	local newTask = ffxiv_task_movetopos.Create()
-	if (gTeleport == "1") then
-		newTask.useTeleport = true
-	end
+	newTask.pos = c_gotopostest.pos 
+	--newTask.path = c_gotopostest.path
+	newTask.range = 3
 	newTask.remainMounted = true
-	newTask.clearAggressive = true
-	newTask.pos = e_gotopostest.pos
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -145,147 +153,200 @@ function e_flighttest:execute()
 	--]]
 end
 
-c_flighttakeoff = inheritsFrom( ml_cause )
-e_flighttakeoff = inheritsFrom( ml_effect )
-function c_flighttakeoff:evaluate()
-	if (not IsFlying() and CanFlyInZone() and (Player.ismounted or IsMounting() or not Player.incombat)) then
-		local ppos = ml_global_information.Player_Position
-		local nearestJunction = ffxiv_task_test.HasJunction(ppos)
-		if (nearestJunction) then
-			return true
-		end	
-	end
-	return false
-end
-function e_flighttakeoff:execute()
-	if (Player:IsMoving()) then
-		Player:Stop()
-		ml_task_hub:CurrentTask():SetDelay(250)
-		return
-	end
-		
-	if (Player.ismounted) then
-		--Player:Jump()
-		--Player:Jump()
-		
-		local instructions = {
-			{"Ascend", {}},
-			{"Wait", { 500 }},
-			{"Stop", {}},
-		}
-		ml_mesh_mgr.ParseInstructions(instructions)
-	else
-		if (not IsMounting()) then
-			local mountID = nil
-			local mountlist = ActionList("type=13")
-			
-			if (ValidTable(mountlist)) then
-				--First pass, look for our named mount.
-				local mountValid = false
-				for k,v in pairsByKeys(mountlist) do
-					if (v.name == gMount and v.canfly) then
-						mountValid = true
-						local acMount = ActionList:Get(v.id,13)
-						if (acMount and acMount.isready) then
-							mountID = v.id
-						end
-					end
-				end
-				
-				if (not mountValid and not mountID) then
-					local acMount = ActionList:Get(45,13)
-					if (acMount and acMount.isready) then
-						mountID = 45
-					end
-				end
-				
-				if (mountID) then
-					local acMount = ActionList:Get(mountID,13)
-					if (acMount and acMount.isready) then
-						acMount:Cast()
-						ml_task_hub:CurrentTask():SetDelay(1500)
-					end
-				end
-			end
-		end
-	end
-end
-
-c_flytopos = inheritsFrom( ml_cause )
-e_flytopos = inheritsFrom( ml_effect )
-c_flytopos.pos = nil
-c_flytopos.path = nil
-function c_flytopos:evaluate()
-	if (true) then
+c_movetopos = inheritsFrom( ml_cause )
+e_movetopos = inheritsFrom( ml_effect )
+function c_movetopos:evaluate()
+	if ((MIsLocked() and not IsFlying()) or 
+		MIsLoading() or
+		IsMounting() or
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or 
+		IsShopWindowOpen() or
+		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
+	then
 		return false
 	end
 	
-	if (not CanFlyInZone() or not ValidTable(ffxiv_task_test.flightMesh) or ml_task_hub:CurrentTask().noFlight) then
-		--if (IsFlying()) then
-			--Dismount()
-			--ml_task_hub:CurrentTask():SetDelay(2000)
-		--end
-		return false
-	end
-	
-	if (ValidTable(ml_global_information.landing)) then
-		if (not MIsLocked()) then
-			ml_global_information.landing = nil
-		else
-			if (Now() > ml_global_information.landing.expiration) then
-				ml_global_information.landing = nil
-			else
-				d("Landing, don't attempt to fly.")
-				return false
-			end
-		end
-	end
-	
-	c_flytopos.pos = nil
-	c_flytopos.path = nil
-	
-    if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then
+    if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then		
 		local myPos = ml_global_information.Player_Position
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
+			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
+			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
-		local dist = PDistance3D(myPos.x,myPos.y,myPos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-		if (dist >= 20) then
-			if (ffxiv_task_test.HasJunction(myPos)) then
-				if (ffxiv_task_test.HasJunction(gotoPos)) then
-					local path = ffxiv_task_test.GetPath(myPos,gotoPos)
-					if (ValidTable(path)) then
-						c_flytopos.pos = gotoPos
-						c_flytopos.path = path
-						return true
+		if (ValidTable(gotoPos)) then
+			
+			-- If we're very close to an interactable
+			local target = MGetTarget()
+			if (target) then
+				local tpos = target.pos
+				local distFromGoal = PDistance3D(tpos.x,tpos.y,tpos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+				if (distFromGoal <= 5) then
+					if (target.distance < 2.5 and target.los) then
+						if (Player:IsMoving()) then
+							--d("Stopped because we are very close to the target.")
+							Player:Stop()
+						end
+						return false
 					end
+				end
+			end
+			
+			local range = ml_task_hub:CurrentTask().range or 0
+			if (range > 0) then
+				local distance = 0.0
+				if (ml_task_hub:CurrentTask().use3d) then
+					distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 				else
-					--d("Destination has no junction areas.")
+					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+				end
+			
+				if (distance > ml_task_hub:CurrentTask().range) then
+					e_movetopos.pos = gotoPos
+					return true
 				end
 			else
-				--d("Our position has no junction areas.")
+				e_movetopos.pos = gotoPos
+				return true
 			end
 		end
-	else
-		--d("No position passed.")
     end
 	
     return false
 end
-function e_flytopos:execute()
-	local newTask = ffxiv_task_movewithflight.Create()
-	newTask.path = c_flytopos.path
-	if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-		newTask.remainMounted = true
-	else
-		newTask.remainMounted = false
+function e_movetopos:execute()	
+	local self = ml_task_hub:ThisTask()
+	local myPos = Player.pos
+	local gotoPos = self.pos
+	
+	local path = self.path
+	if (ValidTable(path)) then		
+		local currentPoint = nil
+		if (self.pathIndex == 0) then
+			currentPoint = Player.pos
+		else
+			currentPoint = path[self.pathIndex]
+		end
+		
+		if (currentPoint) then
+			local travelPoint = nil
+			if ((self.pathIndex+1) > TableSize(self.path)) then
+				travelPoint = gotoPos
+				--local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
+				--if (p and dist ~= 0) then
+					--travelPoint = p
+				--end
+			else
+				--d("Setting to next path index ["..tostring(self.pathIndex).."].")
+				travelPoint = path[self.pathIndex+1]
+			end
+			
+			if (travelPoint) then
+				local distNext = PDistance3D(myPos.x, myPos.y, myPos.z, travelPoint.x, travelPoint.y, travelPoint.z)
+				--SmartTurn(travelPoint)
+				Player:SetFacing(travelPoint.x,travelPoint.y,travelPoint.z)
+				if (IsFlying()) then
+					local pitch = math.atan2((myPos.y - travelPoint.y), distNext)
+					if (GetPitch() ~= pitch) then
+						Player:SetPitch(pitch)
+					end
+				end
+				
+				if (travelPoint.type == "CUBE" and not IsFlying()) then
+					
+					local ydist = math.abs(travelPoint.y - Player.pos.y)
+					d("ydist:"..tostring(ydist))
+					
+					if (ydist > 10) then
+						local instructions = {
+							{"Stop", {}},
+							{"Ascend", {}},
+							{"Wait", { 500 }},
+							{"Stop", {}},
+						}
+						ml_mesh_mgr.ParseInstructions(instructions)
+					else
+						local instructions = {
+							{"Stop", {}},
+							{"QuickAscend", {}},
+							{"Wait", { 500 }},
+							{"Stop", {}},
+						}
+						ml_mesh_mgr.ParseInstructions(instructions)
+
+					end	
+					return
+				end
+				
+				if (travelPoint.type == nil and currentPoint.type == nil and IsFlying()) then
+					local instructions = {
+						{"Stop", {}},
+						{"Descend", {}},
+						{"Wait", { 1000 }},
+						{"Stop", {}},
+					}
+					ml_mesh_mgr.ParseInstructions(instructions)
+					return
+				end
+				
+				if (not Player:IsMoving()) then
+					Player:Move(FFXIV.MOVEMENT.FORWARD)
+					return
+				end
+				
+				local distFactor;
+				if (Player:IsMoving()) then
+					distFactor = 5
+				else
+					distFactor = 3
+				end
+				
+				if (distNext <= distFactor) then
+					d("distNext:"..tostring(distNext))
+					self.pathIndex = self.pathIndex+1
+					return false
+				end
+			else
+				local distFactor;
+				if (Player:IsMoving()) then
+					distFactor = 5
+				else
+					distFactor = 3
+				end
+				
+				local distCurrent = PDistance3D(myPos.x,myPos.y,myPos.z,currentPoint.x,currentPoint.y,currentPoint.z)
+				if (distCurrent <= distFactor) then
+					--d("No travel point and we are close to the current point.")
+					return true
+				end
+			end
+		end
+	end  
+end
+
+c_refreshpath = inheritsFrom( ml_cause )
+e_refreshpath = inheritsFrom( ml_effect )
+c_refreshpath.path = nil
+function c_refreshpath:evaluate()
+	local ppos = Player.pos
+	local pos = ml_task_hub:CurrentTask().pos
+	
+	if (ml_task_hub:CurrentTask().path == nil) then
+		local path = ffxiv_task_test.GetPath(ppos,pos)
+		if (ValidTable(path)) then
+			ml_task_hub:CurrentTask().path = path
+			ml_task_hub:CurrentTask().pathIndex = 0
+			return true
+		end
 	end
-	newTask.pos = c_flytopos.pos
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
+	
+    return false
+end
+function e_refreshpath:execute()
+	d("Path was refreshed, new path has ["..tostring(TableSize(ml_task_hub:CurrentTask().path)).."] points.")
 end
 
 ffxiv_task_movetopos2 = inheritsFrom(ml_task)
@@ -300,8 +361,8 @@ function ffxiv_task_movetopos2.Create()
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
     
-    --ffxiv_task_movetopos2 members
-    newinst.name = "MOVETOPOS2"
+    --ffxiv_task_movetopos members
+    newinst.name = "MOVETOPOS"
     newinst.pos = 0
     newinst.range = 1.5
     newinst.doFacing = false
@@ -315,49 +376,74 @@ function ffxiv_task_movetopos2.Create()
 	newinst.customSearchCompletes = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.dismountTimer = 0
-	newinst.dismountDistance = 15
+	newinst.dismountDistance = 5
 	newinst.failTimer = 0
+	
+	newinst.startMap = Player.localmapid
 	
 	newinst.distanceCheckTimer = 0
 	newinst.lastPosition = nil
 	
+	newinst.flightPath = nil
+	newinst.noFlight = false
+	newinst.stealthFunction = nil
+	
 	newinst.abortFunction = nil
 	ml_global_information.monitorStuck = true
+	
+	newinst.destMapID = 0
+	newinst.alwaysMount = false
+	newinst.pathIndex = 0
+	
+	table.insert(tasktracking, newinst)
     
     return newinst
 end
 
 function ffxiv_task_movetopos2:Init()
-	--local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 50 )
-    --self:add( ke_stuck, self.overwatch_elements)
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
+    self:add( ke_stuck, self.overwatch_elements)
+	
+	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
+    self:add( ke_teleportToMap, self.process_elements)
 			
-	--local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 25 )
-    --self:add( ke_teleportToPos, self.process_elements)
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 130 )
+    self:add( ke_teleportToPos, self.process_elements)
 	
-	--local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 22 )
-    --self:add( ke_useNavInteraction, self.process_elements)
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 100 )
+    self:add( ke_stealth, self.process_elements)
 	
-	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 100 )
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 90 )
+    self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 80 )
     self:add( ke_mount, self.process_elements)
 	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
-    self:add( ke_flyToPos, self.process_elements)
-    
-    --local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 15 )
-    --self:add( ke_sprint, self.process_elements)
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
+    self:add( ke_sprint, self.process_elements)
 	
-	--local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 10 )
-    --self:add( ke_falling, self.process_elements)
-    	
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
-    self:add( ke_walkToPos, self.process_elements)
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
+    self:add( ke_falling, self.process_elements)
+    
+	local ke_refreshPath = ml_element:create( "RefreshPath", c_refreshpath, e_refreshpath, 50 )
+    self:add( ke_refreshPath, self.process_elements)	
+		
+	local ke_moveToPos = ml_element:create( "MoveToPos", c_movetopos, e_movetopos, 40 )
+    self:add( ke_moveToPos, self.process_elements)
+	
+    --local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 50 )
+    --self:add( ke_walkToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_movetopos2:task_complete_eval()
-	if (MIsLoading()) then
-		d("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or self.startMap ~= Player.localmapid) then
+		ml_debug("[MOVETOPOS]: Completing due to locked, loading, mesh loading.")
+		return true
+	end
+	
+	if (self.destMapID and ml_global_information.Player_Map == self.destMapID) then
 		return true
 	end
 	
@@ -393,51 +479,15 @@ function ffxiv_task_movetopos2:task_complete_eval()
 			distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 			distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 		end 
-		local pathdistance = GetPathDistance(myPos,gotoPos)
-		
-		if (distance < 40 and self.customSearch ~= "") then
-			local el = EntityList(self.customSearch)
-			if (ValidTable(el)) then
-				local id,entity = next(el)
-				if (ValidTable(entity)) then
-					if (entity.alive) then
-						if (self.customSearchCompletes) then
-							if (InCombatRange(entity.id)) then
-								ml_debug("[MOVETOPOS]: Ending movetopos, found the target.")
-								return true
-							end
-						end
-						local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos)
-						if (p) then
-							if (not deepcompare(self.pos,p,true)) then
-								self.pos = p
-								gotoPos = self.pos
-								ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
-								
-								if (self.use3d) then
-									distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-								else
-									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-								end 
-								pathdistance = GetPathDistance(myPos,gotoPos)
-							end
-						end
-					end
-				end
-			end
-		end
 		
         ml_debug("Bot Position: ("..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z)..")")
         ml_debug("MoveTo Position: ("..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z)..")")
         ml_debug("Task Range: "..tostring(self.range))
         ml_debug("Current Distance: "..tostring(distance))
-		ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
 
 		if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
-			SendTextCommand("/mount")
+			Dismount()
 			self.dismountTimer = Now() + 500
 		end
 		
@@ -491,11 +541,11 @@ function ffxiv_task_movetopos2:task_complete_execute()
 		Dismount()
 	end
     self.completed = true
-	d("[MOVETOPOS]: Task completing.")
+	ml_debug("[MOVETOPOS]: Task completing.")
 end
 
 function ffxiv_task_movetopos2:task_fail_eval()
-	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+	if (not c_movetopos:evaluate() and not Player:IsMoving()) then
 		if (self.failTimer == 0) then
 			self.failTimer = Now() + 3000
 		end
@@ -510,7 +560,233 @@ end
 function ffxiv_task_movetopos2:task_fail_execute()
 	Player:Stop()
     self.valid = false
-	d("[MOVETOPOS]: Failing.")
+	ml_debug("[MOVETOPOS]: Failing.")
+end
+
+ffxiv_task_movetointeract2 = inheritsFrom(ml_task)
+function ffxiv_task_movetointeract2.Create()
+    local newinst = inheritsFrom(ffxiv_task_movetointeract2)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MOVETOINTERACT"
+	
+	newinst.started = Now()
+	newinst.uniqueid = 0
+	newinst.interact = 0
+    newinst.lastInteract = 0
+	newinst.lastDismountCheck = 0
+	newinst.lastInteractableSearch = 0
+	newinst.pos = false
+	newinst.adjustedPos = false
+	newinst.range = nil
+	newinst.areaChanged = false
+	newinst.addedMoveElement = false
+	newinst.use3d = true
+	newinst.useTeleport = true
+	newinst.dataUnpacked = false
+	newinst.failTimer = 0
+	newinst.forceLOS = false
+	newinst.pathRange = nil
+	newinst.interactRange = nil
+	newinst.dismountDistance = 5
+	newinst.killParent = false
+	newinst.interactDelay = 500
+	newinst.startMap = Player.localmapid
+	newinst.moveWait = 0
+	
+	newinst.stealthFunction = nil
+	
+	GameHacks:SkipDialogue(true)
+	ml_global_information.monitorStuck = true
+	newinst.alwaysMount = false
+	newinst.pathIndex = 0
+	
+	table.insert(tasktracking, newinst)
+	
+    return newinst
+end
+
+function ffxiv_task_movetointeract2:Init()
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
+    self:add( ke_stuck, self.overwatch_elements)
+	
+	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
+    self:add( ke_stealth, self.process_elements)
+
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
+    self:add( ke_teleportToPos, self.process_elements)
+	
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
+    self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
+    self:add( ke_mount, self.process_elements)
+    
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
+    self:add( ke_sprint, self.process_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
+    self:add( ke_falling, self.process_elements)
+	
+	local ke_refreshPath = ml_element:create( "RefreshPath", c_refreshpath, e_refreshpath, 50 )
+    self:add( ke_refreshPath, self.process_elements)	
+		
+	local ke_moveToPos = ml_element:create( "MoveToPos", c_movetopos, e_movetopos, 40 )
+    self:add( ke_moveToPos, self.process_elements)
+	
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_movetointeract2:task_complete_eval()
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+		return true
+	end
+	
+	local myTarget = MGetTarget()
+	local ppos = ml_global_information.Player_Position
+	
+	if (self.interact ~= 0) then
+		local interact = EntityList:Get(tonumber(self.interact))
+		if (not interact or not interact.targetable) then
+			return true
+		end
+	else
+		local epos = self.pos
+		local dist = Distance3DT(ppos,epos)
+		if (dist <= 10) then
+			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+			if (not ValidTable(interacts)) then
+				return true
+			end
+		end			
+	end
+	
+	local interactable = nil
+	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
+		if (self.uniqueid ~= 0) then
+			local interacts = nil
+			interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
+				end
+			end
+			
+			interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
+				end
+			end
+			self.lastInteractableSearch = Now()
+		end
+	end
+	
+	if (self.interact ~= 0) then
+		interactable = EntityList:Get(self.interact)
+	else
+		return false
+	end
+	
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
+		local requiresDismount = false
+		if (interactable and interactable.distance < self.dismountDistance) then
+			local isflying = IsFlying()
+			if (not isflying or (isflying and not Player:IsMoving())) then
+				Dismount()
+			end
+		end
+		self.lastDismountCheck = Now()
+	end
+	
+	if (IsDismounting()) then
+		return false
+	end
+	
+	if (not myTarget) then
+		if (interactable and interactable.targetable and interactable.distance < 10) then
+			Player:SetTarget(interactable.id)
+			--[[
+			local ipos = interactable.pos
+			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			if (p and dist ~= 0) then
+				if (not deepcompare(self.pos,p,true)) then
+					self.pos = p
+				end
+			end
+			--]]
+		end
+	end
+
+	if (not IsFlying()) then
+		--if (myTarget and TimeSince(self.lastInteract) > 500) then
+		if (myTarget) then
+			if (ValidTable(interactable)) then			
+				if (interactable.type == 5) then
+					if (interactable.distance <= 7.5) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Interact(interactable.id)
+						self.lastInteract = Now()
+						return false
+					end
+				end
+				
+				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+				local pathRange = self.pathRange or 10
+				local forceLOS = self.forceLOS
+				local range = self.interactRange or (radius * 3.5)
+				if (not forceLOS or (forceLOS and interactable.los)) then
+					if (interactable and interactable.distance <= range) then
+						local ydiff = math.abs(ppos.y - interactable.pos.y)
+						if (ydiff < 3.5 or interactable.los) then
+							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							Player:Interact(interactable.id)
+							self.lastInteract = Now()
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function ffxiv_task_movetointeract2:task_complete_execute()
+    Player:Stop()
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
+	if (self.killParent) then
+		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
+		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
+	end
+	self.completed = true
+end
+
+function ffxiv_task_movetointeract2:task_fail_eval()
+	if (not c_movetopos:evaluate() and not Player:IsMoving()) then
+		if (self.failTimer == 0) then
+			self.failTimer = Now() + 3000
+		end
+	else
+		if (self.failTimer ~= 0) then
+			self.failTimer = 0
+		end
+	end
+	
+	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
+end
+
+function ffxiv_task_movetointeract2:task_fail_execute()
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
+    self.valid = false
 end
 
 ffxiv_task_movewithflight = inheritsFrom(ml_task)
@@ -869,6 +1145,34 @@ function ffxiv_task_test.RenderPoints(points,altcolor,altsize,altheight)
 	end
 end
 
+function ffxiv_task_test.RenderPoint(pos,altcolor,altsize,altheight)
+	RenderManager:RemoveAllObjects()
+	
+	local color = altcolor or 0
+	local s = altsize or .2 -- size
+	local h = altheight or .2 -- height
+	
+	local t = { 
+		[1] = { pos.x-s, pos.y+s+h, pos.z-s, color },
+		[2] = { pos.x+s, pos.y+s+h, pos.z-s, color },	
+		[3] = { pos.x,   pos.y-s+h,   pos.z, color },
+		
+		[4] = { pos.x+s, pos.y+s+h, pos.z-s, color },
+		[5] = { pos.x+s, pos.y+s+h, pos.z+s, color },	
+		[6] = { pos.x,   pos.y-s+h,   pos.z, color },
+		
+		[7] = { pos.x+s, pos.y+s+h, pos.z+s, color },
+		[8] = { pos.x-s, pos.y+s+h, pos.z+s, color },	
+		[9] = { pos.x,   pos.y-s+h,   pos.z, color },
+		
+		[10] = { pos.x-s, pos.y+s+h, pos.z+s, color },
+		[11] = { pos.x-s, pos.y+s+h, pos.z-s, color },	
+		[12] = { pos.x,   pos.y-s+h,   pos.z, color },
+	}
+	
+	RenderManager:AddObject(t)	
+end
+
 function ffxiv_task_test.CreateStorage()
 	ffxiv_task_test.storageCube = {	size = 2000, x = 0, y = 0, z = 0, children = {} }
 	quadrasectCube(ffxiv_task_test.storageCube,1,5,0)
@@ -1025,143 +1329,45 @@ function ffxiv_task_test.SaveFlightMesh()
 	persistence.store(fullPath,info)
 end
 
---[[
-function ffxiv_task_test.GetPath(from,to)
-	if (Now() < ffxiv_task_test.lastPathCheck) then
-		return false
-	end
-	
-	if (ValidTable(ffxiv_task_test.flightMesh)) then
-		if (ValidTable(from) and ValidTable(to)) then	
-			local allowed = false
-			local point1 = from
-			local farJunction = ffxiv_task_test.GetNearestFlightJunction(to)
-			local point2 = farJunction
-			
-			if (farJunction) then
-				if (IsFlying()) then
-					allowed = true
-				else
-					local nearestJunction = ffxiv_task_test.GetNearestFlightJunction(from)
-					if (nearestJunction) then
-						local myPos = ml_global_information.Player_Position
-						
-						local myDist = PDistance3D(myPos.x,myPos.y,myPos.z,to.x,to.y,to.z)
-						local nearDist = PDistance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,to.x,to.y,to.z)
-						local spanDist = PDistance3D(nearestJunction.x,nearestJunction.y,nearestJunction.z,farJunction.x,farJunction.y,farJunction.z)
-						
-						if (myDist > 30 and spanDist > 20) then
-							point1 = nearestJunction
-							allowed = true
-						else
-							d("Distance verifications not met.")
-						end
-					end
-				end
-			else
-				d("Could not find goal point.")
-			end
-			
-			if (allowed) then
-				local path = path( point1, point2, ffxiv_task_test.flightMesh, true)
-				if (path ~= nil and type(path) == "table") then
-					--d("Returning path.")
-					ffxiv_task_test.lastPathCheck = Now() + 5000
-					return path,nearestJunction,farJunction
-				else
-					--d("Attempted to find a flight path but could not.")
-				end
-			end
-		end
-	end
-	
-	--d("No path.")
-	ffxiv_task_test.lastPathCheck = Now() + 5000
-	return nil,nil,nil
-end
---]]
-
 function ffxiv_task_test.GetPath()
+	RenderManager:RemoveAllObjects()
 	local ppos = Player.pos
 	
-	local pos = {}
-	pos.x = tonumber(gTestMapX)
-	pos.y = tonumber(gTestMapY)
-	pos.z = tonumber(gTestMapZ)
+	--local ppos = { x = 135.76, y = 68.85, z = 63.45 }
+	
+	--local pos = {}
+	--pos.x = tonumber(gTestMapX)
+	--pos.y = tonumber(gTestMapY)
+	--pos.z = tonumber(gTestMapZ)
+	
+	--local pos = { x = 247.84, y = 77.166, z = 120.45 }
+	local pos = ml_task_hub:CurrentTask().pos
 	
 	local timeS = os.clock()
-	local points = {}
+	local recastPoints = {}
+	local cubePoints = {}
+	
 	local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 	if (ValidTable(path)) then
 		d("Path contains ["..tostring(TableSize(path)).."] points.")
-		local highestKey = 0
-		for k,v in pairsByKeys(path) do
-			d("key:"..tostring(k))
-			d(v)
-			if (k > highestKey) then highestKey = k end
-			table.insert(points,v)
+		for k,v in pairs(path) do
+			if (v.type and v.type == "CUBE") then
+				table.insert(cubePoints,v)
+			else
+				table.insert(recastPoints,v)
+			end
+			--d("k = ["..tostring(k).."], v.x = ["..tostring(v.x).."], v.y = ["..tostring(v.y).."], v.z = ["..tostring(v.z).."], v.type = ["..tostring(v.type).."].")
 		end
-		d("Highest key:"..tostring(highestKey))
-	else
-		d("No path returned.")
 	end
 	
-	ffxiv_task_test.RenderPoints(points,1)
-	
-	--local moveto = Player:MoveTo(pos.x,pos.y,pos.z)
-	--d("moveto returned:"..tostring(moveto))
+	ffxiv_task_test.RenderPoints(recastPoints,1)
+	ffxiv_task_test.RenderPoints(cubePoints,4)
 	
 	local timeF = os.clock()
-	d(timeS)
-	d(timeF)
-end
-
---[[
-function ffxiv_task_test.GetPath(dest)
-	local ppos = Player.pos
-	local pos = {}
-	pos.x = tonumber(gTestMapX)
-	pos.y = tonumber(gTestMapY)
-	pos.z = tonumber(gTestMapZ)
+	d(timeF - timeS)
 	
-	--local pos1 = ffxiv_task_test.GetNearestFlightPoint(ppos)
-	--local pos2 = ffxiv_task_test.GetNearestFlightPoint(pos)
-	local points = {}
-	
-	local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-	if (ValidTable(path)) then
-		for k,v in pairs(path) do
-			table.insert(points,v)
-		end
-	else
-		d("No path returned.")
-	end
-	
-	ffxiv_task_test.RenderPoints(points,1)
-		
-	local path = path( pos1, pos2, ffxiv_task_test.flightMesh, true, is_valid_node )
-	if not path then
-		--d( "No valid path found" )
-		return nil
-	else
-		for i, node in ipairs ( path ) do
-			--d( "Step " .. i .. " >> " .. node.id )
-		end
-		return path
-	end
+	return path
 end
---]]
-
---[[
-function ffxiv_task_test.NearestMeshPoint()
-	local myPos = Player.pos
-	local p,dist = NavigationManager:GetClosestPointOnMesh({x = myPos.x, y = myPos.y, z = myPos.z})
-	if (p) then
-		d(p)
-		d("Closest mesh point distance ["..tostring(dist).."].")
-	end
-end
---]]
 
 function ffxiv_task_test.InsertIntoTree()
 	local mesh = ffxiv_task_test.flightMesh

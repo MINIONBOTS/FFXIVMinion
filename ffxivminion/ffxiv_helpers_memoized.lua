@@ -135,7 +135,20 @@ function MIsCasting(fullcheck)
 	if (memoized) then
 		return memoized
 	else
-		local ret = IsPlayerCasting(fullcheck)
+		--local ret = IsPlayerCasting(fullcheck)
+		local ret = ActionList:IsCasting()
+		SetMemoized(memString,ret)
+		return ret
+	end
+end
+
+function MIsGCDLocked()	
+	local memString = "MIsGCDLocked"
+	local memoized = GetMemoized(memString)
+	if (memoized) then
+		return memoized
+	else
+		local ret = ActionList:IsOnGlobalCooldown()
 		SetMemoized(memString,ret)
 		return ret
 	end

@@ -67,6 +67,18 @@ function ml_mesh_mgr.ParseInstructions(data)
 						end
 					end
 				)
+			elseif (itype == "QuickAscend") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function ()
+						if (IsFlying()) then
+							return true
+						else
+							Player:Jump()
+							Player:Jump()
+							return false
+						end
+					end
+				)
 			elseif (itype == "Stop") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
@@ -112,9 +124,11 @@ function ml_mesh_mgr.ParseInstructions(data)
 			elseif (itype == "Descend") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
-						--Player:SetPitch(1.377) 
-						if (Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
-							SendTextCommand("/mount")
+						if (IsFlying()) then
+							Player:SetPitch(1.377) 
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
 							ml_mesh_mgr.AddThrottleTime(300)
 							return false
 						else
@@ -154,7 +168,47 @@ function ml_mesh_mgr.ParseInstructions(data)
 						end
 						return false
 					end
-				)				
+				)
+			elseif (itype == "Teleport") then
+				local aetheryteid = iparams[1] or 0
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 	
+						if (not Player:IsMoving()) then
+							local casting = Player.castinginfo.channelingid
+							if (casting ~= 5) then
+								Player:Teleport(aetheryteid)
+								ml_mesh_mgr.AddThrottleTime(500)
+							else							
+								return true
+							end
+						else
+							Player:Stop()
+							ml_mesh_mgr.AddThrottleTime(500)
+						end
+						return false
+					end
+				)
+			elseif (itype == "Return") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 	
+						if (not Player:IsMoving()) then
+							local casting = Player.castinginfo.channelingid
+							if (casting ~= 6) then
+								local returnHome = ActionList:Get(6,5)
+								if (returnHome and returnHome.isready) then
+									returnHome:Cast()
+								end
+								ml_mesh_mgr.AddThrottleTime(500)
+							else							
+								return true
+							end
+						else
+							Player:Stop()
+							ml_mesh_mgr.AddThrottleTime(500)
+						end
+						return false
+					end
+				)
 			end
 		end
 	end

@@ -1354,7 +1354,7 @@ function GetNearestFromList(strList,pos,radius)
 		end
 		
 		if (ValidTable(filteredList)) then
-			table.sort(filteredList,function(a,b) return a.pathdistance < b.pathdistance end)
+			table.sort(filteredList,function(a,b) return a.distance < b.distance end)
 			
 			local i,e = next(filteredList)
 			if (i and e) then
@@ -2916,7 +2916,7 @@ end
 function NodeHasItem(searchItem)
 	if (searchItem and type(searchItem) == "string" and searchItem ~= "") then
 		for itemName in StringSplit(searchItem,",") do
-			local list = Player:GetGatherableSlotList()
+			local list = MGatherableSlotList()
 			if (ValidTable(list)) then
 				for i,item in pairs(list) do
 					if (item.name == itemName) then
@@ -5483,8 +5483,7 @@ function toboolean(input)
 	return false
 end
 
-function TestConditions(conditions)
-	local canInsert = true				
+function TestConditions(conditions)			
 	local testKey,testVal = next(conditions)
 	if (tonumber(testKey) ~= nil) then
 		for i,conditionset in pairsByKeys(conditions) do
@@ -5494,9 +5493,10 @@ function TestConditions(conditions)
 					if (f ~= value) then
 						return false
 					end
-					conditions[condition] = nil
+					conditions[i][condition] = nil
 				end
 			end
+			conditions[i] = nil
 		end
 	else
 		for condition,value in pairs(conditions) do
@@ -5510,6 +5510,6 @@ function TestConditions(conditions)
 		end
 	end
 	
-	return true
+	return true, conditions
 end
 

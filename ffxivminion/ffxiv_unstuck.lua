@@ -1,16 +1,13 @@
 ffxiv_unstuck = {}
 ffxiv_unstuck.lastpos = nil
-ffxiv_unstuck.diffX = 0
-ffxiv_unstuck.diffY = 0
-ffxiv_unstuck.diffZ = 0
+ffxiv_unstuck.diffTotal = 0
 ffxiv_unstuck.evaltime = 0
 ffxiv_unstuck.count = 0
 ffxiv_unstuck.lastCorrection = 0
 
-
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, minticks = 25, maxticks = 50 },
-	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, minticks = 30, maxticks = 30 },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, minticks = 2, maxticks = 10 },
+	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, minticks = 2, maxticks = 10 },
 }
 
 c_stuck = inheritsFrom( ml_cause )
@@ -23,29 +20,33 @@ function c_stuck:evaluate()
 	c_stuck.blockOnly = false
 	
 	if (MIsLocked() or MIsLoading() or Player:GetNavStatus() ~= 1) then
+		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
 	
-	if 	(ffxiv_unstuck.lastpos == nil) or
-		(ffxiv_unstuck.lastpos and type(ffxiv_unstuck.lastpos) ~= "table")
-	then
-		ffxiv_unstuck.lastpos = ml_global_information.Player_Position
+	local currentPos = Player.pos
+	local lastPos = ffxiv_unstuck.lastpos
+	if  (not ValidTable(lastPos)) then
+		--d("[Unstuck]: Need to set up the original last pos.")
+		ffxiv_unstuck.lastpos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
+		return false
 	end
 	
-	local currentPos = ml_global_information.Player_Position
-	ffxiv_unstuck.diffX = math.abs(IsNull(currentPos.x,0) - IsNull(ffxiv_unstuck.lastpos.x,0))
+	ffxiv_unstuck.diffTotal = PDistance3D(currentPos.x,currentPos.y,currentPos.z,lastPos.x,lastPos.y,lastPos.z)
+	--d("[Unstuck]: Current movement distance:"..tostring(ffxiv_unstuck.diffTotal))
+	--ffxiv_unstuck.diffX = math.abs(IsNull(currentPos.x,0) - IsNull(ffxiv_unstuck.lastpos.x,0))
 	--ml_debug("Current diffX:"..tostring(ffxiv_unstuck.diffX))
-	ffxiv_unstuck.diffY = math.abs(IsNull(currentPos.y,0) - IsNull(ffxiv_unstuck.lastpos.y,0))
+	--ffxiv_unstuck.diffY = math.abs(IsNull(currentPos.y,0) - IsNull(ffxiv_unstuck.lastpos.y,0))
 	--ml_debug("Current diffY:"..tostring(ffxiv_unstuck.diffY))
-	ffxiv_unstuck.diffZ = math.abs(IsNull(currentPos.z,0) - IsNull(ffxiv_unstuck.lastpos.z,0))
+	--ffxiv_unstuck.diffZ = math.abs(IsNull(currentPos.z,0) - IsNull(ffxiv_unstuck.lastpos.z,0))
 	--ml_debug("Current diffZ:"..tostring(ffxiv_unstuck.diffZ))
 	
 	if ffxiv_unstuck.IsStuck() then
-		ml_debug("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
+		d("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
 		ffxiv_unstuck.State.STUCK.ticks = ffxiv_unstuck.State.STUCK.ticks + 1
 	else
 		if (ffxiv_unstuck.State.STUCK.ticks ~= 0) then
-			ml_debug("Removing stuck ticks.")
+			d("Removing stuck ticks.")
 			ffxiv_unstuck.State.STUCK.ticks = 0
 		end
 	end
@@ -65,6 +66,7 @@ function c_stuck:evaluate()
 				return true
 			elseif state.ticks >= state.minticks then
 				if (TimeSince(ffxiv_unstuck.lastCorrection) >= 1000) then
+					d("[Unstuck]: Performing corrective jump.")
 					Player:Jump()
 					ffxiv_unstuck.lastCorrection = Now()
 				end
@@ -74,7 +76,9 @@ function c_stuck:evaluate()
 		end
 	end
 	
-	ffxiv_unstuck.lastpos = ml_global_information.Player_Position
+	if (not Player:IsJumping()) then
+		ffxiv_unstuck.lastpos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
+	end
 end
 function e_stuck:execute()
 	if (c_stuck.blockOnly) then
@@ -84,68 +88,33 @@ function e_stuck:execute()
 	local state = e_stuck.state
 	ffxiv_unstuck.State[state.name].stats = ffxiv_unstuck.State[state.name].stats + 1
 	
-	local message = {}
-	local requireStop = false
-	if (ffxiv_unstuck.State[state.name].stats >= 3) then
-		message[1] = state.name..": "..tostring(state.maxticks).." ticks reached."
-		message[2] = "Assuming player is stuck."
-		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
-		message[4] = "Bot will be stopped, please report mesh stuck issues with the following details:"
-		message[5] = "MapID :"..tostring(ml_global_information.Player_Map)
-		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
-		requireStop = true
-	else
-		message[1] = state.name..tostring(state.maxticks).." ticks reached."
-		message[2] = "Assuming player is stuck."
-		message[3] = "Player has been stuck "..tostring(ffxiv_unstuck.State[state.name].stats).." this session."
-		message[4] = "Please report mesh stuck issues with the following details:"
-		message[5] = "MapID :"..tostring(ml_global_information.Player_Map)
-		message[6] = "X = "..tostring(ml_global_information.Player_Position.x)..",Y = "..tostring(ml_global_information.Player_Position.y)..",Z = "..tostring(ml_global_information.Player_Position.z)
-	end
-	
-	if (Player:IsMoving()) then
-		Player:Stop()
-		return
-	end
-	
-	local teleported = false
-	local teleport = ActionList:Get(7,5)
-	if (teleport and teleport.isready and Player.castinginfo.channelingid ~= 5) then
-		local aetheryte = GetAetheryteByMapID(ml_global_information.Player_Map, ml_global_information.Player_Position)
-		if (aetheryte) then
-			if (Player:Teleport(aetheryte.id)) then
-				teleported = true
-			end
-		end
-	end	
-	
-	if (teleported) then
-		ffxiv_dialog_manager.IssueNotice("Player_Stuck", message)
-		ffxiv_unstuck.State.STUCK.ticks = 0
-		ffxiv_unstuck.State.OFFMESH.ticks = 0
-	end
-	
-	if (not teleported or requireStop) then
-		ffxiv_dialog_manager.IssueStopNotice("Player_Stuck", message)
-	end
+	ffxiv_unstuck.State.STUCK.ticks = 0
+	ffxiv_unstuck.State.OFFMESH.ticks = 0
+		
+	local instructions = {
+		{"Return", {}},
+	}
+	ml_mesh_mgr.ParseInstructions(instructions)
 end
 
 function ffxiv_unstuck.IsStuck()
-	local requiredDist = .6
+	local requiredDist = .7
 	local hasStealth = HasBuff(Player.id, 47)
 	local isMounted = Player.ismounted
 	
 	if (hasStealth) then requiredDist = (requiredDist * .5) end
-	if (isMounted) then requiredDist = (requiredDist * 1.25) end
+	if (isMounted) then requiredDist = (requiredDist * 1.5) end
 	
-	return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
-			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= .6) and 
-			(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist) and
-			not MIsCasting(true) and
-			Player:IsMoving() and
-			not MIsLocked() and
-			not ml_global_information.Player_InCombat and
-			not MIsLoading()
+	if (ffxiv_unstuck.diffTotal <= requiredDist) then
+		--d("[Unstuck]: Did not cover the minimum distance necessary.")
+		return true
+	else
+		--d("[Unstuck]: Covered the minimum distance necessary.")
+		return false
+	end
+	--return 	(ffxiv_unstuck.diffX >= 0 and ffxiv_unstuck.diffX <= requiredDist) and
+			--(ffxiv_unstuck.diffY >= 0 and ffxiv_unstuck.diffY <= requiredDist) and 
+			--(ffxiv_unstuck.diffZ >= 0 and ffxiv_unstuck.diffZ <= requiredDist)
 end
 
 function ffxiv_unstuck.IsOffMesh()

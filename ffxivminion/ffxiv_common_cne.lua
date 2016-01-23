@@ -2267,13 +2267,11 @@ e_autoequip.item = nil
 e_autoequip.bag = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()	
-	if ((gQuestAutoEquip == "0" and gForceAutoEquip == false) or 
+	if (((gQuestAutoEquip == "0" or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 		not Player.alive or ml_global_information.Player_InCombat or
-		ControlVisible("Gathering") or Player:GetFishingState() ~= 0 or
-		Now() < c_autoequip.postpone) 
+		ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
 	then
-		d("[AutoEquip]: Prevented in block 1.")
 		return false
 	end
 	
@@ -2340,15 +2338,15 @@ function c_autoequip:evaluate()
 		
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
-			d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
-				d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+				--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
-			d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
 		end
 	end
 	
@@ -2439,7 +2437,7 @@ function c_autoequip:evaluate()
 			e_autoequip.slot = slot
 			return true
 		else
-			d("Prevented equipping item into slot ["..tostring(slot).."].")
+			--d("Prevented equipping item into slot ["..tostring(slot).."].")
 		end
 	end
 	

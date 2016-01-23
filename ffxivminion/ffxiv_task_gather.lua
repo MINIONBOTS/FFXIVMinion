@@ -259,7 +259,7 @@ function e_movetonode:execute()
 			end
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
-				if (dist3d > 8) then
+				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (p) then
@@ -494,7 +494,6 @@ function DoGathering(item)
 	end
 
 	Player:Gather(item.index)
-	--ml_task_hub:CurrentTask():SetDelay(500)
 	return 3
 end
 
@@ -508,7 +507,7 @@ function c_gather:evaluate()
     return false
 end
 function e_gather:execute()	
-	if (Player.action ~= 264 and Player.action ~= 256) then
+	if (Player.action ~= 264 and Player.action ~= 256 and not MIsGCDLocked()) then
 		ml_task_hub:CurrentTask().idleTimer = Now()
 		ml_debug("Gathering ability is not ready yet.")
 		return false
@@ -530,7 +529,7 @@ function e_gather:execute()
 		end
 	end
 	
-    local list = Player:GetGatherableSlotList()
+    local list = MGatherableSlotList()
     if (ValidTable(list)) then
 		if (thisNode.contentid >= 5) then	
 			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 500) then
@@ -1052,11 +1051,7 @@ e_nodeprebuff.class = nil
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
-	if (MIsLoading() or MIsCasting() or MIsLocked()) then
-		return false
-	end
-	
-	if (ControlVisible("Gathering")) then
+	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying()) or ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -1066,7 +1061,7 @@ function c_nodeprebuff:evaluate()
 	e_nodeprebuff.requiresStop = false
 	e_nodeprebuff.requiresDismount = false
 	
-	if (ShouldEat()) then
+	if (ShouldEat() and not MIsLocked()) then
 		d("[NodePreBuff]: Need to eat.")
 		e_nodeprebuff.activity = "eat"
 		e_nodeprebuff.requiresStop = true
@@ -1114,8 +1109,8 @@ function c_nodeprebuff:evaluate()
 	end
 	
 	if ( not Player:IsMoving() and 
-		ml_task_hub:ThisTask().gatherid ~= nil and 
-		ml_task_hub:ThisTask().gatherid ~= 0 ) 
+		IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and 
+		not MIsLocked()) 
 	then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
         if (gatherable and gatherable.cangather) then

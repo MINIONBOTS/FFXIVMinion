@@ -2228,6 +2228,7 @@ function ffxiv_misc_switchclass.Create()
     newinst.params = {}
 	newinst.stepCompleted = false	
 	newinst.class = 0
+	newinst.autoequipCheck = 0
     
     return newinst
 end
@@ -2267,10 +2268,19 @@ function ffxiv_misc_switchclass:task_complete_eval()
 		end	
 	end
 	
+	d("[SwitchClass]: Checking autoequip.")
 	if (c_autoequip:evaluate()) then
+		d("[SwitchClass]: Autoequip had work to do, so don't complete yet.")
 		return false
+	else
+		if (self.autoequipCheck < 3) then
+			d("[SwitchClass]: Autoequip had no work to do, increment the counter.")
+			self.autoequipCheck = self.autoequipCheck + 1
+			return false
+		end
 	end
 	
+	d("[SwitchClass]: Completing task.")
 	return true
 end
 function ffxiv_misc_switchclass:task_complete_execute()
