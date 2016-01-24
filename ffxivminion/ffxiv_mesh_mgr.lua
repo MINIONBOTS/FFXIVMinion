@@ -194,7 +194,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 						if (not Player:IsMoving()) then
 							local casting = Player.castinginfo.channelingid
 							if (casting ~= 6) then
-								local returnHome = ActionList:Get(6,5)
+								local returnHome = ActionList:Get(6)
 								if (returnHome and returnHome.isready) then
 									returnHome:Cast()
 								end
