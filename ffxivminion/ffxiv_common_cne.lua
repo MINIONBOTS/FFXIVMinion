@@ -1079,6 +1079,7 @@ e_walktopos.lastFail = 0
 e_walktopos.lastStealth = 0
 c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
+c_walktopos.throttle = 500
 function c_walktopos:evaluate()
 	if ((MIsLocked() and not IsFlying()) or 
 		MIsLoading() or
