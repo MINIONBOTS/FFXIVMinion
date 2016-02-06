@@ -139,7 +139,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.customSearchCompletes = false
 	newinst.useTeleport = false	-- this is for hack teleport, not in-game teleport spell
 	newinst.dismountTimer = 0
-	newinst.dismountDistance = 5
+	newinst.dismountDistance = 15
 	newinst.failTimer = 0
 	
 	newinst.startMap = Player.localmapid
@@ -277,10 +277,12 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Current Distance: "..tostring(distance))
 		--ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
-
-		if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
-			Dismount()
-			self.dismountTimer = Now() + 500
+		
+		if (not IsFlying()) then
+			if (not self.remainMounted and self.dismountDistance > 0 and distance <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
+				Dismount()
+				self.dismountTimer = Now() + 500
+			end
 		end
 		
 		if (ValidTable(self.params)) then
@@ -613,6 +615,8 @@ function ffxiv_task_movetointeract.Create()
 	newinst.startMap = Player.localmapid
 	newinst.moveWait = 0
 	
+	newinst.detectedMovement = false
+	
 	newinst.stealthFunction = nil
 	
 	GameHacks:SkipDialogue(true)
@@ -679,16 +683,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.uniqueid ~= 0) then
-			local interacts = nil
-			interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
-			if (ValidTable(interacts)) then
-				local i,interact = next(interacts)
-				if (i and interact) then
-					self.interact = interact.id
-				end
-			end
-			
-			interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -971,14 +966,14 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 1500 or MIsLoading() or MIsCasting(true)) then
+	if (TimeSince(self.started) < 5000 or MIsLoading() or MIsCasting(true)) then
 		return false
 	end
 	
 	if (self.conversationIndex ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))) then
 		SelectConversationIndex(tonumber(self.conversationIndex))
 		ml_task_hub:CurrentTask():SetDelay(500)
-		return
+		return false
 	end
 	
 	if (ControlVisible("SelectYesno")) then
@@ -991,9 +986,9 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (MIsLocked()) then
+	if (MIsGCDLocked()) then
 		return false
-	end	
+	end
 	
 	if (Player.localmapid ~= self.mapID) then
 		return true
@@ -1119,7 +1114,7 @@ function ffxiv_task_stealth:task_complete_execute()
 end
 
 function ffxiv_task_stealth:task_fail_eval()
-	if (not Player.alive or Player.incombat) then
+	if (not Player.alive or Player.incombat or MIsLocked() or ControlVisible("GatheringMasterpiece")) then
 		return true
 	end
 	
@@ -1297,8 +1292,10 @@ function ffxiv_task_avoid:task_complete_eval()
 	if TimeSince(ml_task_hub:ThisTask().started) > 5000 then
 		return true
 	end
-
-	Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
+	
+	if (dist > 1) then
+		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
+	end
 	
 	--if (dist < 1 and not Player:IsMoving()) then
 		local target;
@@ -1536,6 +1533,9 @@ function ffxiv_task_grindCombat:Init()
 		
 	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
 	self:add( ke_bettertargetsearch, self.process_elements)
+	
+	local ke_stuck = ml_element:create( "BattleStuck", c_stuck, e_stuck, 150 )
+    self:add( ke_stuck, self.process_elements)
 	
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 40 )
 	self:add( ke_rest, self.process_elements)

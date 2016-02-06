@@ -1081,7 +1081,7 @@ c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
 c_walktopos.throttle = 500
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or 
+	if ((MIsLocked() and not IsFlying()) or MIsGCDLocked() or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -1371,7 +1371,7 @@ c_bettertargetsearch.targetid = 0
 c_bettertargetsearch.throttle = 1000
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
-    if (MIsLoading() or MIsLocked() or MIsCasting() or
+    if (MIsLoading() or MIsLocked() or MIsCasting() or MIsGCDLocked() or
 		(gBotMode == GetString("partyMode") and not IsLeader()) or
 		Now() < c_bettertargetsearch.postpone) 
 	then
@@ -2482,22 +2482,17 @@ c_returntomap = inheritsFrom( ml_cause )
 e_returntomap = inheritsFrom( ml_effect )
 e_returntomap.mapID = 0
 function c_returntomap:evaluate()
-	if (MIsLocked() or MIsLoading() or not Player.alive) then
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or not Player.alive) then
 		return false
 	end
 	
 	if (ml_task_hub:ThisTask().correctMap and (ml_task_hub:ThisTask().correctMap ~= ml_global_information.Player_Map)) then
 		local mapID = ml_task_hub:ThisTask().correctMap
-		if (mapID and mapID > 0) then
-			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-														ml_global_information.Player_Map,
-														mapID	)
-			if(ValidTable(pos)) then
+		if (CanAccessMap(mapID)) then
 				e_returntomap.mapID = mapID
 				return true
 			end
 		end
-	end
 	
 	return false
 end
@@ -2577,7 +2572,7 @@ e_clearaggressive = inheritsFrom( ml_effect )
 c_clearaggressive.targetid = 0
 c_clearaggressive.timer = 0
 function c_clearaggressive:evaluate()
-	if (MIsCasting() or MIsLocked() or MIsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (MIsCasting() or MIsGCDLocked() or MIsLocked() or MIsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		return false
 	end
 	

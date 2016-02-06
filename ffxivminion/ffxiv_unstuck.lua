@@ -6,8 +6,8 @@ ffxiv_unstuck.count = 0
 ffxiv_unstuck.lastCorrection = 0
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, minticks = 2, maxticks = 10 },
-	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, minticks = 2, maxticks = 10 },
+	STUCK 	= { id = 0, name = "STUCK" 		, stats = 0, ticks = 0, minticks = 3, maxticks = 10 },
+	OFFMESH = { id = 1, name = "OFFMESH" 	, stats = 0, ticks = 0, minticks = 3, maxticks = 10 },
 }
 
 c_stuck = inheritsFrom( ml_cause )
@@ -19,7 +19,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (MIsLocked() or MIsGCDLocked() or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
+	if (MIsLocked() or IsFlying() or MIsGCDLocked() or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
@@ -53,7 +53,7 @@ function c_stuck:evaluate()
 	
 	for name,state in pairs(ffxiv_unstuck.State) do
 		if state.ticks ~= 0 then
-			if state.ticks >= state.maxticks then
+			if (state.ticks >= state.maxticks) then
 				e_stuck.state = state
 				return true
 			elseif state.ticks >= state.minticks then

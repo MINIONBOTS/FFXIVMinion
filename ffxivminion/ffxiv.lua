@@ -243,10 +243,13 @@ function ffxivminion.SetupOverrides()
 		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock")
 		
 		ml_mesh_mgr.SetDefaultMesh(130, "Ul dah - Steps of Nald")
+		ml_mesh_mgr.SetDefaultMesh(182, "Ul dah - Steps of Nald")
 		ml_mesh_mgr.SetDefaultMesh(131, "Ul dah - Steps of Thal")
 		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
+		ml_mesh_mgr.SetDefaultMesh(181, "Limsa (Upper)")
 		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Lower)")
 		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
+		ml_mesh_mgr.SetDefaultMesh(183, "New Gridania")
 		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
 		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
 		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter")
@@ -601,11 +604,26 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 end
 
 function ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
-	d("In the character select screen.")
+	--d("In the character select screen.")
 end
 
 function ml_global_information.InTitleScreenOnUpdate( event, tickcount )
 	--d("In the title screen.")
+end
+
+function ml_global_information.BuildMenu()
+	ml_global_information.menu = {}
+	ml_global_information.menu.windows = {}
+	ml_global_information.menu.vars = {}
+	
+	local width,height = GUI:GetScreenSize()
+	if (Settings.FFXIVMINION.menuX == nil) then
+		Settings.FFXIVMINION.menuX = (width/3)
+	end
+	ml_global_information.menu.vars.menuX = Settings.FFXIVMINION.menuX
+	
+	local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoMove + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+	ml_global_information.menu.flags = flags
 end
 
 function ffxivminion.GetSetting(strSetting,default)
@@ -778,6 +796,7 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	
+	ml_global_information.BuildMenu()
 	collectgarbage()
 	ffxivminion.SetupOverrides()
 	
@@ -1882,9 +1901,80 @@ function SafeSetVar(name, value)
 	end
 end
 
+function ml_global_information.Draw( event, ticks ) 
+	local menu = ml_global_information.menu
+	local windows = menu.windows
+	local vars = menu.vars
+	local flags = menu.flags
+	
+	if (ValidTable(windows)) then
+		
+		local width,height = GUI:GetScreenSize()
+		local currentX = vars.menuX
+		local buttonsNeeded = {}
+		for i,window in pairsByKeys(windows) do
+			if (ValidTable(window)) then
+				if (not window.isOpen()) then
+					table.insert(buttonsNeeded,window)
+				end
+			end
+		end
+		
+		if (ValidTable(buttonsNeeded)) then
+			GUI:SetNextWindowPos(currentX,(height-65))
+			local totalSize = 30
+			for i,window in pairs(buttonsNeeded) do
+				totalSize = totalSize + (string.len(window.name) * 7.15) + 5
+			end
+			GUI:SetNextWindowSize(totalSize,100,GUI.SetCond_Always)
+			
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			local buttonBG = ml_gui.style.current.colors[GUI.Col_Button]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
+			GUI:Begin("#MenuBar",true,flags)
+			GUI:BeginChild("##ButtonRegion")
+			for i,window in pairsByKeys(buttonsNeeded) do
+				GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
+				GUI:PushStyleVar(GUI.StyleVar_FrameRounding,4)
+				if (GUI:Button(window.name,string.len(window.name) * 7.15,20)) then
+					if (not GUI:IsMouseDown(0) and not menu.vars.dragging) then
+						window.openWindow()
+					end
+				end
+				if (i < TableSize(buttonsNeeded)) then
+					GUI:SameLine(0,5);
+				end
+				GUI:PopStyleVar();
+				GUI:PopStyleColor();
+			end
+			GUI:EndChild();
+			if (GUI:IsItemHoveredRect(0)) then
+				if (GUI:IsMouseDragging(0)) then
+					menu.vars.dragging = true
+				end
+			end
+			GUI:End()
+			GUI:PopStyleColor();
+		end	
+
+		if (menu.vars.dragging) then
+			if (GUI:IsMouseDown(0)) then
+				menu.vars.dragging = true
+			else
+				menu.vars.dragging = false
+			end
+			
+			local x,y = GUI:GetMousePos()
+			vars.menuX = (x-20)
+			Settings.FFXIVMINION.menuX = vars.menuX
+		end		
+	end
+end
+
 -- Register Event Handlers
 RegisterEventHandler("Module.Initalize",ffxivminion.HandleInit)
 RegisterEventHandler("Gameloop.Update",ml_global_information.OnUpdate)
 RegisterEventHandler("GUI.Update",ffxivminion.GUIVarUpdate)
 RegisterEventHandler("ffxivminion.OpenSettings", ffxivminion.OpenSettings)
 RegisterEventHandler("GUI.Item",		ffxivminion.HandleButtons)
+RegisterEventHandler("Gameloop.Draw", ml_global_information.Draw)

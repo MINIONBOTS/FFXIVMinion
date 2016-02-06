@@ -494,6 +494,9 @@ function DoGathering(item)
 	end
 
 	Player:Gather(item.index)
+	if (HasBuffs(Player,"805")) then
+		ml_task_hub:CurrentTask():SetDelay(3000)
+	end
 	return 3
 end
 
@@ -1051,7 +1054,8 @@ e_nodeprebuff.class = nil
 e_nodeprebuff.requiresStop = false
 e_nodeprebuff.requiresDismount = false
 function c_nodeprebuff:evaluate()
-	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying()) or ControlVisible("Gathering")) then
+	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying()) or 
+		ControlVisible("Gathering") or ControlVisible("GatheringMasterpiece")) then
 		return false
 	end
 	
@@ -1347,10 +1351,8 @@ e_collectiblegame = inheritsFrom( ml_effect )
 e_collectiblegame.timer = 0
 function c_collectiblegame:evaluate()
 	if (ControlVisible("GatheringMasterpiece")) then
-		if (MIsLocked() and not IsFlying()) then
-		--d("[CollectableGame]: Found the gathering masterpiece addon.")
-			return true
-		end
+	--d("[CollectableGame]: Found the gathering masterpiece addon.")
+		return true
 	end
 	return false
 end

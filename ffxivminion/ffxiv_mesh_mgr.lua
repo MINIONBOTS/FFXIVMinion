@@ -157,11 +157,9 @@ function ml_mesh_mgr.ParseInstructions(data)
 					function () 						
 						if (action) then
 							if (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
-								d("Action on cooldown for an extended period, skip it.")
 								return true
 							else
 								if (action:Cast(targetid)) then
-									d("Action casted successfully.")
 									return true
 								end
 							end
@@ -411,6 +409,11 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					
 						if ( not Player:IsMoving() ) then 
 							Player:Move(FFXIV.MOVEMENT.FORWARD) 
+						end
+						
+						if (c_stuck:evaluate()) then
+							e_stuck:execute()
+							return
 						end
 						
 						if (Player:IsJumping() and (pPos.y < (ePos.y - 3))) then

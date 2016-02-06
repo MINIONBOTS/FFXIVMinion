@@ -298,7 +298,7 @@ function GetNearestGrindAttackable()
 				end
 			end
 		
-			el = MEntityList("shortestpath,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
+			el = MEntityList("nearest,alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			
 			block = 7
 			if ( el ) then
@@ -2745,11 +2745,8 @@ function IsDismounting()
 	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
-	if (MIsLoading()) then
-		return true
-	end
-	
-	return not ActionIsReady(2,5)
+	local jump = ActionList:Get(2,5)
+	return (jump and not jump.isready)
 end
 function IsLoading()
 	if (Quest:IsLoading()) then
