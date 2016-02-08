@@ -1643,7 +1643,7 @@ function c_gathernexttask:evaluate()
 	
 	if (not ValidTable(currentTask)) then
 		invalid = true
-	else
+	else		
 		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
 			evaluate = true
 		elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
@@ -2789,7 +2789,7 @@ function ffxiv_gather.GetLastGather(profile,task)
 	return 0
 end
 
-function ffxiv_gather.SetLastGather(profile,task)
+function ffxiv_gather.SetLastGather(profile,taskid)
 	if (Settings.FFXIVMINION.gLastGather == nil or type(Settings.FFXIVMINION.gLastGather) ~= "table") then
 		Settings.FFXIVMINION.gLastGather = {}
 	end
@@ -2799,7 +2799,20 @@ function ffxiv_gather.SetLastGather(profile,task)
 		lastGather[profile] = {}
 	end
 	
-	lastGather[profile][task] = GetCurrentTime()
+	lastGather[profile][taskid] = GetCurrentTime()
+	
+	local tasks  = ffxiv_gather.profileData.tasks
+	if (ValidTable(tasks)) then
+		local thisTask = tasks[taskid]
+		if (IsNull(thisTask.group,"") ~= "") then
+			for i,task in pairs(tasks) do
+				if (IsNull(task.group,"") == thisTask.group and i ~= taskid) then
+					lastGather[profile][i] = GetCurrentTime()
+				end
+			end
+		end
+	end
+	
 	Settings.FFXIVMINION.gLastGather = lastGather
 end
 
