@@ -1026,8 +1026,10 @@ end
 
 function ffxiv_craft.ResetOrders()
 	local orders = ffxiv_craft.orders
-	for id,order in pairs(orders) do
-		orders[id].completed = false
+	if (ValidTable(orders)) then
+		for id,order in pairs(orders) do
+			orders[id].completed = false
+		end
 	end
 end
 
