@@ -715,7 +715,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
-	if (not myTarget) then
+	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and interactable.distance < 10) then
 			Player:SetTarget(interactable.id)
 			local ipos = interactable.pos
@@ -730,7 +730,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 
 	if (not IsFlying()) then
 		--if (myTarget and TimeSince(self.lastInteract) > 500) then
-		if (myTarget) then
+		if (myTarget and myTarget.id == interactable.id) then
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
 					if (interactable.distance <= 7.5) then

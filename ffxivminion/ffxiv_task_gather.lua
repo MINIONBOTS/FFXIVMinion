@@ -183,6 +183,7 @@ end
 
 c_movetonode = inheritsFrom( ml_cause )
 e_movetonode = inheritsFrom( ml_effect )
+e_movetonode.blockOnly = false
 function c_movetonode:evaluate()
 	if (ControlVisible("Gathering")) then
 		return false
@@ -207,8 +208,14 @@ function c_movetonode:evaluate()
 				if (Player.gp.current >= minimumGP) then
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
-					Player:Interact(gatherable.id)
+					
+					local myTarget = MGetTarget()
+					if (myTarget and myTarget.id == gatherable.id) then
+						Player:Interact(gatherable.id)
+					end
+					
 					ml_task_hub:CurrentTask():SetDelay(500)
+					e_movetonode.blockOnly = true
 					return true
 				end
 			end
@@ -218,6 +225,10 @@ function c_movetonode:evaluate()
     return false
 end
 function e_movetonode:execute()
+	if (e_movetonode.blockOnly) then
+		return
+	end
+
     -- reset idle timer
     ml_task_hub:CurrentTask().idleTimer = 0
 	local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
@@ -521,7 +532,7 @@ function e_gather:execute()
 		return false
 	end
 	
-	local thisNode = MGetTarget()
+	local thisNode = MGetEntity(ml_global_information.gatherid)
 	if (not ValidTable(thisNode) or not thisNode.cangather) then
 		return
 	else

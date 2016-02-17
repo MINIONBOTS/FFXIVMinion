@@ -991,6 +991,15 @@ function c_nextfishingmarker:evaluate()
     return false
 end
 function e_nextfishingmarker:execute()
+	local fs = tonumber(Player:GetFishingState())
+	if (fs ~= 0) then
+		local finishcast = ActionList:Get(299,1)
+		if (finishcast and finishcast.isready) then
+			finishcast:Cast()
+		end
+		return
+	end
+							
 	ml_global_information.currentMarker = e_nextfishingmarker.marker
     ml_task_hub:ThisTask().currentMarker = e_nextfishingmarker.marker
     ml_task_hub:ThisTask().markerTime = Now() + (ml_task_hub:ThisTask().currentMarker:GetTime() * 1000)
