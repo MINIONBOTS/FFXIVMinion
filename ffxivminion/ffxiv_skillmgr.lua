@@ -3701,31 +3701,23 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	local skillid = tonumber(skill.id)
-
+	
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
-		--realskilldata = ActionList:Get(skillid,11) 
+		realskilldata = ActionList:Get(skillid,11) 
 		--realskilldata = MGetAction(skillid,11,nil)
-		realskilldata = MGetActionFromList(skillid,11)
+		--realskilldata = MGetActionFromList(skillid,11)
 	else
-		--realskilldata = ActionList:Get(skillid,1) 
+		realskilldata = ActionList:Get(skillid,1) 
 		--realskilldata = MGetAction(skillid,1,nil)
-		realskilldata = MGetActionFromList(skillid,1)
+		--realskilldata = MGetActionFromList(skillid,1)
 	end
+	
 	if (not realskilldata) then
 		SkillMgr.DebugOutput( prio, "Could not find skill, doesn't exist." )
 		return 0
 	end
-	
-	--Some special processing for mudras.
-	--if (IsMudraSkill(skillid)) then
-		--dependentskill = ActionList:Get(2260)
-		--if (not dependentskill or (dependentskill and dependentskill.isoncd)) then
-			--SkillMgr.DebugOutput( prio, "Mudra failed dependent skill check." )
-			--return 0
-		--end
-	--end
 	
 	if (Player.ismounted) then
 		return 0
@@ -3768,7 +3760,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	elseif (targetTable.TID == 0) then
 		SkillMgr.DebugOutput( prio, "Target function returned 0, should never happen.")
 		return 0
-	end
+	end	
 	
 	--Secondary Get() with proper target ID.
 	if (skill.stype == "Macro" or skill.stype == "Action") then 
@@ -3968,24 +3960,7 @@ function SkillMgr.AddConditional(conditional)
 end
 
 function SkillMgr.AddDefaultConditions()	
-	--[[
-	conditional = { name = "Other Queued Skill Check"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		
-		if (ValidTable(SkillMgr.otherQueue)) then
-			local queued = SkillMgr.otherQueue
-			if (not IsNullString(queued.nskill) or not IsNullString(queued.nskillprio)) then
-				return true
-			end
-		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	--]]
-	
+
 	conditional = { name = "Chain Check"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -4046,26 +4021,6 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	--[[
-	conditional = { name = "Min Range (System Defined)"
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
-		
-		local ppos = shallowcopy(Player.pos)
-		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
-		if (skill.trg == "Target") then
-			if ( not IsRanged(Player.job) and realskilldata.range >= 15 and realskilldata.recasttime == 2.5 and dist <= (target.hitradius + 4)) then
-				return true
-			end
-		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	--]]
-	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -4085,37 +4040,6 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-
-	--[[
-	conditional = { name = "Target Range/LOS/Facing Check"
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
-		
-		if (skill.trg == "Target") then
-			if (gAssistUseAutoFace == "0") then
-				if (not ActionList:CanCast(skill.id,target.id)) then
-					return true
-				end	
-			else
-				if (ActionList:CanCast(skill.id,target.id)) then
-					return false
-				end	
-				local myPos = Player.pos
-				local tPos = target.pos
-				local dist = PDistance3D(myPos.x,myPos.y,myPos.z,tPos.x,tPos.y,tPos.z)
-				if (not target.los or (dist - target.hitradius) > (realskilldata.range * .95)) then
-					return true
-				end
-			end	
-		end
-		
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	--]]
 	
 	conditional = { name = "Debuff/Buff Latency Check"
 	, eval = function()	
@@ -4185,15 +4109,7 @@ function SkillMgr.AddDefaultConditions()
 				end
 			end
 			
-			-- If we get here, none of the checks was ready, so it fails castable.
 			return true
-	
-			--for skillid in StringSplit(skill.skready,",") do
-				--local actiontype = (skill.sktype == "Action") and 1 or 11
-				--if ( not SkillMgr.IsReady( tonumber(skillid), actiontype)) then
-					--return true
-				--end
-			--end
 		end
 		
 		return false
@@ -4272,37 +4188,6 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-	
-	--[[
-	conditional = { name = "Next Skill Priority Check"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		if ( not IsNullString(SkillMgr.nextSkillPrio)) then
-			if ( tonumber(SkillMgr.nextSkillPrio) ~= tonumber(skill.prio) ) then
-				return true
-			end
-		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	
-	
-	conditional = { name = "Next Skill ID Check"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		if ( not IsNullString(SkillMgr.nextSkillID)) then
-			if ( tonumber(SkillMgr.nextSkillID) ~= tonumber(skill.id) ) then
-				return true
-			end
-		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)	
-	--]]
 
 	conditional = { name = "Previous Combo Skill ID Check"	
 	, eval = function()	
@@ -4310,13 +4195,11 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		if ( not IsNullString(skill.pcskill)) then
-			--if (not IsNullString(SkillMgr.prevComboSkillID)) then
 			for skillid in StringSplit(skill.pcskill,",") do
 				if (Player.lastcomboid == tonumber(skillid) and Player.combotimeremain > .5) then
 					return false
 				end
 			end
-			--end
 			return true
 		end
 	end
@@ -4328,13 +4211,11 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		if (not IsNullString(skill.npcskill)) then
-			--if (not IsNullString(SkillMgr.prevComboSkillID)) then
 			for skillid in StringSplit(skill.npcskill,",") do
 				if (Player.lastcomboid == tonumber(skillid) and Player.combotimeremain > .5) then
 					return true
 				end
 			end
-			--end
 		end
 		return false
 	end
@@ -4596,30 +4477,6 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
-	--[[
-	conditional = { name = "MP Lock Check"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
-		
-		if ( SkillMgr.mplock ) then
-			if ( (ml_global_information.Player_MP.percent >= tonumber(SkillMgr.mplockPercent)) or Now() > SkillMgr.mplockTimer ) then
-				SkillMgr.mplock = false
-				SkillMgr.mplockPercent = 0
-			else
-				if ( skill.mplocked == "1" ) then
-					return true
-				end
-			end
-		end
-		
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	--]]
-	
 	conditional = { name = "Player level checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -4846,6 +4703,8 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
+	
 
 	--======================================================================
 	
@@ -4914,6 +4773,8 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
+	
 	
 	conditional = { name = "Positional Checks"	
 	, eval = function()	
@@ -4989,6 +4850,8 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	
+	
 	conditional = { name = "Target Casting Checks"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -5037,6 +4900,8 @@ function SkillMgr.AddDefaultConditions()
 	end
 	}
 	SkillMgr.AddConditional(conditional)
+	
+	
 	
 	conditional = { name = "Target AOE Checks"	
 	, eval = function()	
