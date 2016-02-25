@@ -176,6 +176,8 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
 	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
 	GUI_NewField("Dev","IsReady","sbready","ActionListInfo")
+	GUI_NewField("Dev","IsReady2","sbready2","ActionListInfo")
+	GUI_NewField("Dev","IsInFront","sbinfront","ActionListInfo")
 	GUI_NewField("Dev","Type","sbtype","ActionListInfo")
 	GUI_NewField("Dev","JobType","sbjobtype","ActionListInfo")
 	GUI_NewField("Dev","Level","sblevel","ActionListInfo")
@@ -1184,6 +1186,8 @@ function Dev.UpdateWindow()
 		sbdesc = spell.description
 		sbid = spell.id
 		sbready = tostring(spell.isready)
+		sbready2 = tostring(spell.isready2)
+		sbinfront = tostring(spell.isfacing)
 		sbtype = spell.type
 		sbjobtype = tostring(spell.job)
 		sblevel = spell.level
