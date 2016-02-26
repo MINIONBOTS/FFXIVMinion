@@ -188,14 +188,18 @@ function c_movetonode:evaluate()
 	if (ControlVisible("Gathering")) then
 		return false
 	end
+	
+	e_movetonode.blockOnly = false
     
     if ( ml_task_hub:CurrentTask().gatherid ~= nil and ml_task_hub:CurrentTask().gatherid ~= 0 ) then
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
 			local gpos = gatherable.pos
 			if (gatherable.distance > 3.3) then
+				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
+				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local task = ffxiv_gather.currentTask
 				local marker = ml_global_information.currentMarker
@@ -206,6 +210,7 @@ function c_movetonode:evaluate()
 				end
 				
 				if (Player.gp.current >= minimumGP) then
+					gd("[MoveToNode]: We have enough GP, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					
@@ -226,6 +231,7 @@ function c_movetonode:evaluate()
 end
 function e_movetonode:execute()
 	if (e_movetonode.blockOnly) then
+		gd("[MoveToNode]: Blocking execution to interact.",2)
 		return
 	end
 
@@ -238,21 +244,22 @@ function e_movetonode:execute()
 		local nodeFront = ConvertHeading((eh + (math.pi)))%(2*math.pi)
 		local adjustedPos = GetPosFromDistanceHeading(gpos, 1.5, nodeFront)
 		
+		gd("[MoveToNode]: Original position x = "..tostring(gpos.x)..",y = "..tostring(gpos.y)..",z ="..tostring(gpos.z),2)
+		gd("[MoveToNode]: Adjusted position x = "..tostring(adjustedPos.x)..",y = "..tostring(adjustedPos.y)..",z ="..tostring(adjustedPos.z),2)
+		
 		local pos;
 		if (ValidTable(adjustedPos)) then
 			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos,false)
-			--ffxiv_task_test.RenderPoint(pos,1)
 		end
 		
 		if (not ValidTable(pos)) then
 			pos = NavigationManager:GetClosestPointOnMesh(gpos,false)
-			--ffxiv_task_test.RenderPoint(pos,4)
 		end
-		
-		--ffxiv_task_test.RenderPoint(pos)
 
 		local ppos = ml_global_information.Player_Position
 		if (ValidTable(pos)) then
+			gd("[MoveToNode]: Final position x = "..tostring(pos.x)..",y = "..tostring(pos.y)..",z ="..tostring(pos.z),2)
+			
 			local dist3d = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			local newTask = ffxiv_task_movetointeract.Create()
@@ -281,9 +288,10 @@ function e_movetonode:execute()
 						alternateTask.remainMounted = true
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
 						ml_task_hub:CurrentTask():AddSubTask(alternateTask)
+						gd("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.",2)
 					end
 				end
-				d("Starting alternate MOVETOPOS task to use a cordial, manual, or wait for GP.")
+				gd("Need to use cordial, manual, or wait for GP. ",2)
 				return
 			end
 			
@@ -302,7 +310,7 @@ function e_movetonode:execute()
 			newTask.pathRange = 5
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
-			d("Starting MOVETOINTERACT task.")
+			gd("Starting alternate MOVETOINTERACT task.",2)
 		end
 	end
 end

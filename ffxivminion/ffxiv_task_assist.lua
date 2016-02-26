@@ -24,7 +24,6 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
-	d("Loading task assist Init()")
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	
@@ -52,8 +51,8 @@ function ffxiv_task_assist:Init()
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
     self:add( ke_stance, self.process_elements)
 	
-	local ke_lootRoll = ml_element:create( "Roll", c_assistautoroll, e_assistautoroll, 16 )
-    self:add( ke_lootRoll, self.process_elements)
+	--local ke_lootRoll = ml_element:create( "Roll", c_assistautoroll, e_assistautoroll, 16 )
+    --self:add( ke_lootRoll, self.process_elements)
   
     self:AddTaskCheckCEs()
 	self:InitAddon()

@@ -160,6 +160,7 @@ SkillMgr.Variables = {
 	--SKM_MPLockPer = { default = 0, cast = "number", profile = "mplockper", section = "fighting" },
 	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting"  },
 	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
+	SKM_TRGSELF = { default = "0", cast = "string", profile = "trgself", section = "fighting" },
 	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
 	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
 	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", section = "fighting"  },
@@ -682,6 +683,7 @@ function SkillMgr.ModuleInit()
 	
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
@@ -2615,6 +2617,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						else
 							local action = ActionList:Get(skill.id,1,TID)
 							if (ValidTable(action)) then
+								--d("Attempting to cast skill:"..tostring(action.name))
 								if (gSkillManagerQueueing == "1") then
 									SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
 								end
@@ -3140,9 +3143,14 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 	actiontype = actiontype or 1
 	local tid = targetid or Player.id
 	
-	local action = ActionList:Get(actionid,actiontype,tid)
-	if (action and action.isready2 and (gAssistAutoFace == "1" or action.isfacing)) then
-		action:Cast(tid)
+	local target = MGetEntity(targetid)
+	if (target and target.los) then
+		local action = ActionList:Get(actionid,actiontype,tid)
+		if (action and action.isready and (gAssistAutoFace == "1" or action.isfacing)) then
+			if (action.range == 0 or (action.range >= (target.distance - target.hitradius))) then
+				action:Cast(tid)
+			end
+		end
 	end
 end
 
@@ -3352,7 +3360,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	elseif ( skill.trg == "Player" ) then
 		TID = PID
 	elseif ( skill.trg == "Low TP" ) then
-		local ally = GetLowestTPParty( maxrange, skill.trgtype )
+		local ally = GetLowestTPParty( maxrange, skill.trgtype, skill.trgself )
 		if ( ally ) then
 			target = ally
 			TID = ally.id
@@ -3360,7 +3368,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			return nil
 		end
 	elseif ( skill.trg == "Low MP" ) then
-		local ally = GetLowestMPParty( maxrange, skill.trgtype )
+		local ally = GetLowestMPParty( maxrange, skill.trgtype, skill.trgself )
 		if ( ally ) then
 			target = ally
 			TID = ally.id
@@ -3706,12 +3714,8 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
 		realskilldata = ActionList:Get(skillid,11) 
-		--realskilldata = MGetAction(skillid,11,nil)
-		--realskilldata = MGetActionFromList(skillid,11)
 	else
 		realskilldata = ActionList:Get(skillid,1) 
-		--realskilldata = MGetAction(skillid,1,nil)
-		--realskilldata = MGetActionFromList(skillid,1)
 	end
 	
 	if (not realskilldata) then
@@ -3959,6 +3963,27 @@ function SkillMgr.AddConditional(conditional)
 	table.insert(SkillMgr.ConditionList,conditional)
 end
 
+function SkillMgr.IsFacing(isfacing,autoface,target)
+	return (isfacing == true or autoface == "1" or target == "Ground Target" or target == "Player")
+end
+
+function SkillMgr.ReadyToCast(skilldata,queueing,gcdcheck)
+	return (skilldata.isready or (not skilldata.isready and queueing == "1" and gcdcheck == true and SkillMgr.CanBeQueued(skilldata)))
+end
+
+function SkillMgr.LOS(target)
+	if (target.id == Player.id) then
+		return true
+	else
+		return target.los
+	end
+end	
+
+function SkillMgr.CanBeQueued(skilldata)
+	return (skilldata.recasttime >= 2.5 or IsMudraSkill(skilldata.id))
+end
+
+
 function SkillMgr.AddDefaultConditions()	
 
 	conditional = { name = "Chain Check"
@@ -4000,14 +4025,17 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
 		
-		--SkillMgr.DebugOutput(skill.prio, "isready2:"..tostring(realskilldata.isready2)..",isfacing:"..tostring(realskilldata.isfacing))
+		--SkillMgr.IsFacing(isfacing,autoface,target)
+		--SkillMgr.ReadyToCast(isready,queueing,gcdcheck)
+		--SkillMgr.LOS(target)
 		
-		if ((realskilldata.isready2) and (gAssistUseAutoFace == "1" or realskilldata.isfacing)) then
-			return false
-		elseif (not realskilldata.isready and realskilldata.recasttime == 2.5 and (gAssistUseAutoFace == "1" or realskilldata.isfacing or skill.trg == "Ground Target") and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
-			return false
-		elseif (not realskilldata.isready and IsMudraSkill(realskilldata.id) and gSkillManagerQueueing == "1" and SkillMgr.IsGCDReady(.400)) then
+		if (not SkillMgr.LOS(target)) then
+			return true
+		end
+		
+		if (SkillMgr.ReadyToCast(realskilldata,gSkillManagerQueueing,SkillMgr.IsGCDReady(.400)) and SkillMgr.IsFacing(realskilldata.isfacing,gAssistUseAutoFace,target)) then
 			return false
 		elseif (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
 			if (not realskilldata.isoncd) then
@@ -4034,6 +4062,8 @@ function SkillMgr.AddDefaultConditions()
 		if (minRange > 0 and dist < minRange) then 
 			return true
 		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - target.hitradius) > maxRange) then
+			return true
+		elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - target.hitradius) > realskilldata.range)) then
 			return true
 		end
 		return false

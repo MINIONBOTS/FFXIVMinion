@@ -765,10 +765,11 @@ function GetLowestHPParty( skill )
 		return lowest
 	end
 end
-function GetLowestMPParty( range, role )
+function GetLowestMPParty( range, role, includeself )
     local pID = Player.id
 	local lowest = nil
 	local lowestMP = 101
+	local includeself = IsNull(includeself,"0") == "1"
 	local range = tonumber(range) or 35 
 	local role = tostring(role) or ""
 	
@@ -803,16 +804,19 @@ function GetLowestMPParty( range, role )
         end
     end
 	
-	if (Player.alive and mpUsers[Player.job] and ml_global_information.Player_MP.percent < lowestMP) then
-		lowest = Player
-		lowestMP = ml_global_information.Player_MP.percent
+	if (includeself) then
+		if (Player.alive and mpUsers[Player.job] and ml_global_information.Player_MP.percent < lowestMP) then
+			lowest = Player
+			lowestMP = ml_global_information.Player_MP.percent
+		end
 	end
 	
 	return lowest
 end
-function GetLowestTPParty( range, role )
+function GetLowestTPParty( range, role, includeself )
 	local lowest = nil
 	local lowestTP = 1001
+	local includeself = IsNull(includeself,"0") == "1"
 	local range = tonumber(range) or 35
 	local role = tostring(role) or ""
 	
@@ -854,9 +858,11 @@ function GetLowestTPParty( range, role )
         end
     end
 	
-	if (Player.alive and tpUsers[Player.job] and ml_global_information.Player_TP < lowestTP) then
-		lowest = Player
-		lowestTP = ml_global_information.Player_TP
+	if (includeself) then
+		if (Player.alive and tpUsers[Player.job] and ml_global_information.Player_TP < lowestTP) then
+			lowest = Player
+			lowestTP = ml_global_information.Player_TP
+		end
 	end
 	
     return lowest
@@ -1462,31 +1468,6 @@ function GetNearestUnspoiled(class)
     end
 	
     return nil
-end
-function GetMaxAttackRange()
-	local target = MGetTarget()
-	
-	if (target and target.id ~= nil) then
-		local highestRange = 1
-		
-		if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
-			for prio,skill in pairs(SkillMgr.SkillProfile) do
-				if ( skill.maxRange > 0 and skill.used == "1" and skill.maxRange > highestRange ) then
-					local s = ActionList:Get(skill.id)
-					if (s) then
-						if (ActionList:CanCast(skill.id,target.id) and 
-							((ml_global_information.AttackRange < 5 and s.isready) or
-							ml_global_information.AttackRange >= 5)) then
-							highestRange = tonumber(skill.maxRange) * (tonumber(gCombatRangePercent) / 100)
-						end
-					end
-				end
-			end
-		end
-		return highestRange
-	end
-	
-	return 1
 end
 function HasBuff(targetid, buffID)
 	local buffID = tonumber(buffID) or 0
@@ -2667,29 +2648,38 @@ function InCombatRange(targetid)
 
 	return false
 end
-function CanAttack(targetid)
+function CanAttack(targetid,skillid,skilltype)
 	local target = {}
 	--Quick change here to allow passing of a target or just the ID.
 	if (type(targetid) == "table") then
 		local id = targetid.id
-		target = EntityList:Get(id)
+		target = MGetEntity(id)
 		if (TableSize(target) == 0) then
 			return false
 		end
 	else
-		target = EntityList:Get(targetid)
+		target = MGetEntity(targetid)
 		if (TableSize(target) == 0) then
 			return false
 		end
 	end
 	
 	local canCast = false
-	local testSkill = SkillMgr.GCDSkills[Player.job]
+	local action;
+	if (skillid ~= nil and tonumber(skillid) ~= nil) then
+		local stype = 1
+		if (skilltype ~= nil and tonumber(skilltype) ~= nil) then
+			stype = skilltype
+		end
+		action = ActionList:Get(skillid,stype,target.id)
+	else
+		testSkill = SkillMgr.GCDSkills[Player.job]
+		action = ActionList:Get(testSkill,1,target.id)
+	end
 	
-	local action = ActionList:Get(testSkill,1,target.id)
 	if (action) then
 		if (action.isready) then
-			return action.isready2 and (gAssistAutoFace == "1" or action.isfacing)
+			return (gAssistAutoFace == "1" or action.isfacing)
 		else
 			return target.los
 		end
