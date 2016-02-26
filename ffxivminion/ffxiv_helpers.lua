@@ -2740,13 +2740,13 @@ function IsPositionLocked()
 end
 function IsLoading()
 	if (Quest:IsLoading()) then
-		--d("IsLoading [1]")
+		d("IsLoading [1]")
 		return true
 	elseif (Player.localmapid == 0) then
-		--d("IsLoading [2]")
+		d("IsLoading [2]")
 		return true
 	elseif (ml_mesh_mgr.loadingMesh) then
-		--d("IsLoading [3]")
+		d("IsLoading [3]")
 		return true
 	end
 	
@@ -5500,3 +5500,7 @@ function TestConditions(conditions)
 	return true, conditions
 end
 
+function string.pad(str, padding, padchar)
+    if padchar == nil then padchar = ' ' end
+    return str .. string.rep(padchar, padding - string.len(str))
+end
