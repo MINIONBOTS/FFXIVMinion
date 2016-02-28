@@ -239,6 +239,7 @@ function ffxivminion.SetupOverrides()
 		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(186, "Wolves Den")
 		
 		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock")
 		
@@ -265,6 +266,7 @@ function ffxivminion.SetupOverrides()
 		ml_mesh_mgr.SetDefaultMesh(286, "ImOnABoat")
 		
 		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
+		ml_mesh_mgr.SetDefaultMesh(388, "Gold Saucer - Chocobo Square")
 		
 		ml_mesh_mgr.SetDefaultMesh(331, "Garuda_Entrance")
 		ml_mesh_mgr.SetDefaultMesh(351, "Rising Stones")
@@ -519,6 +521,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 		
 		local et = EorzeaTime() 
+		--local et = AceLib.API.Weather.GetDateTime() 
 		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		-- Mesher.lua

@@ -348,7 +348,7 @@ function ffxiv_task_movetopos:task_fail_eval()
 			self.failTimer = 0
 		end
 	end
-	
+
 	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
 end
 function ffxiv_task_movetopos:task_fail_execute()
@@ -745,7 +745,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local pathRange = self.pathRange or 10
 				local forceLOS = self.forceLOS
 				local range = self.interactRange or (radius * 3.5)
-				if (not forceLOS or (forceLOS and interactable.los)) then
+				if (interactable.los) then
+				--if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and interactable.distance <= range) then
 						local ydiff = math.abs(ppos.y - interactable.pos.y)
 						if (ydiff < 3.5 or interactable.los) then
@@ -966,7 +967,7 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 5000 or MIsLoading() or MIsCasting(true)) then
+	if (TimeSince(self.started) < 8000 or MIsLoading() or MIsCasting(true)) then
 		return false
 	end
 	
@@ -1637,7 +1638,7 @@ function ffxiv_task_grindCombat:Process()
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		if (ml_global_information.AttackRange > 5) then
 			--d("Ranged class, check if we're in combat range and such..")
-			if ((not InCombatRange(target.id) or not CanAttack(target.id)) and not MIsCasting()) then
+			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -1664,7 +1665,7 @@ function ffxiv_task_grindCombat:Process()
 					--d("Need to dismount if we are close.")
 					Dismount()
 				end
-				if (Player:IsMoving() and not IsFlying() and CanAttack(target.id)) then
+				if (Player:IsMoving() and not IsFlying() and target.los) then
 					Player:Stop()
 					--d("Need to stop so we can cast.")
 					if (IsCaster(Player.job)) then
@@ -1677,7 +1678,7 @@ function ffxiv_task_grindCombat:Process()
 				end
 			end
 			--d("Checking if we are in combat range and the target was attackable.")
-			if (InCombatRange(target.id) and target.attackable and target.alive and CanAttack(target.id)) then
+			if (InCombatRange(target.id) and target.attackable and target.alive and target.los) then
 				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
 					--d("FIRE AWAY")
 					SkillMgr.Cast( target )
@@ -1692,7 +1693,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 		else
 			--d("Melee class, check if we're in combat range and such..")
-			if (not InCombatRange(target.id) or not CanAttack(target.id)) then
+			if (not InCombatRange(target.id) or not target.los) then
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
@@ -1722,7 +1723,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (InCombatRange(target.id) and not IsFlying()) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (target.los or CanAttack(target.id)) then
+				if (target.los) then
 					Player:Stop()
 				end
 			end
