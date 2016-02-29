@@ -745,8 +745,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local pathRange = self.pathRange or 10
 				local forceLOS = self.forceLOS
 				local range = self.interactRange or (radius * 3.5)
-				if (interactable.los) then
-				--if (not forceLOS or (forceLOS and interactable.los)) then
+				--if (interactable.los) then
+				if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and interactable.distance <= range) then
 						local ydiff = math.abs(ppos.y - interactable.pos.y)
 						if (ydiff < 3.5 or interactable.los) then
