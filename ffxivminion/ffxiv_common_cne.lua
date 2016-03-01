@@ -1081,7 +1081,7 @@ c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
 c_walktopos.throttle = 500
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or MIsGCDLocked() or
+	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not IsMounted()) or  -- I added the not IsMounted since it was not moving at all when being mounted and GCD is returning true, but I am not sure what I may break... ,fx
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
