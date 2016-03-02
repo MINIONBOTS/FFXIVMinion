@@ -4075,19 +4075,19 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-			if (IsValidHealTarget(target)) then
+			if (not IsValidHealTarget(target)) then
 				return true
 			end
 		end
 		if not (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-			if (not IsValidHealTarget(target)) then
+			if (IsValidHealTarget(target)) then
 				return true
 			end
 		end
 		return false
 	end
 	}
-	--SkillMgr.AddConditional(conditional)
+	SkillMgr.AddConditional(conditional)
 	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
