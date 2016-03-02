@@ -1924,12 +1924,17 @@ function ml_global_information.Draw( event, ticks )
 		end
 		
 		if (ValidTable(buttonsNeeded)) then
-			GUI:SetNextWindowPos(currentX,(height-65))
+			local fontSize = GUI:GetWindowFontSize()
+			local windowPaddingY = ml_gui.style.current.windowpadding.y
+			local framePaddingY = ml_gui.style.current.framepadding.y
+			local itemSpacingY = ml_gui.style.current.itemspacing.y
+
+			GUI:SetNextWindowPos(currentX,height - ((fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2)) * 2) + windowPaddingY)
 			local totalSize = 30
 			for i,window in pairs(buttonsNeeded) do
 				totalSize = totalSize + (string.len(window.name) * 7.15) + 5
 			end
-			GUI:SetNextWindowSize(totalSize,100,GUI.SetCond_Always)
+			GUI:SetNextWindowSize(totalSize,fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2),GUI.SetCond_Always)
 			
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 			local buttonBG = ml_gui.style.current.colors[GUI.Col_Button]
@@ -1939,7 +1944,7 @@ function ml_global_information.Draw( event, ticks )
 			for i,window in pairsByKeys(buttonsNeeded) do
 				GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 				GUI:PushStyleVar(GUI.StyleVar_FrameRounding,4)
-				if (GUI:Button(window.name,string.len(window.name) * 7.15,20)) then
+				if (GUI:Button(window.name,string.len(window.name) * 7.15,fontSize + (framePaddingY * 2) + (itemSpacingY))) then
 					if (not GUI:IsMouseDown(0) and not menu.vars.dragging) then
 						window.openWindow()
 					end

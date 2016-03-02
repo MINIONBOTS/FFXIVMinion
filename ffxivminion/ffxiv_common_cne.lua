@@ -1081,7 +1081,7 @@ c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
 c_walktopos.throttle = 500
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not IsMounted()) or  -- I added the not IsMounted since it was not moving at all when being mounted and GCD is returning true, but I am not sure what I may break... ,fx
+	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not Player.ismounted) or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -1146,6 +1146,7 @@ function c_walktopos:evaluate()
 			end
 		end
     end
+	
     return false
 end
 function e_walktopos:execute()
@@ -1374,7 +1375,7 @@ c_bettertargetsearch.targetid = 0
 c_bettertargetsearch.throttle = 1000
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
-    if (MIsLoading() or MIsLocked() or MIsCasting() or MIsGCDLocked() or
+    if (MIsLoading() or MIsLocked() or MIsCasting() or 
 		(gBotMode == GetString("partyMode") and not IsLeader()) or
 		Now() < c_bettertargetsearch.postpone) 
 	then
@@ -2575,7 +2576,7 @@ e_clearaggressive = inheritsFrom( ml_effect )
 c_clearaggressive.targetid = 0
 c_clearaggressive.timer = 0
 function c_clearaggressive:evaluate()
-	if (MIsCasting() or MIsGCDLocked() or MIsLocked() or MIsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (MIsCasting() or MIsLocked() or MIsLoading() or ControlVisible("SelectYesno") or ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		return false
 	end
 	

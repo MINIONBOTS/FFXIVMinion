@@ -34,6 +34,7 @@ SkillMgr.teleBack = {}
 SkillMgr.copiedSkill = {}
 SkillMgr.bestAOE = 0
 SkillMgr.MacroThrottle = 0
+SkillMgr.recoverTarget = {}
 
 SkillMgr.highestRange = 0
 SkillMgr.highestRangeSkills = {}
@@ -114,13 +115,16 @@ SkillMgr.ExtraProfiles = {
 	"Craft_Artisan_2Star_Token",
 	"Craft_Supra_3Star_Token",
 	
-	"Aetherial Gathering",
-	"Gathering Scripts",
-	"Gathering 530",
-	"Gathering Collectables",
-	"Gathering Crystals",
-	"Gathering HQ",
-	"Gathering Leveling",
+	"Aetherial_Gathering",
+	"Aetherial_Multi",
+	"Gathering_530",
+	"Gathering_Clusters",
+	"Gathering_Collectables",
+	"Gathering_Crystals",
+	"Gathering_HQ",
+	"Gathering_Leveling",
+	"Gathering_Scrips",	
+	"Gathering_Shards",	
 }
 
 SkillMgr.ActionTypes = {
@@ -1200,6 +1204,23 @@ function SkillMgr.OnUpdate()
 					SkillMgr.macroAttempts = 0
 				end
 			end			
+		end
+	end
+	
+	if (ValidTable(SkillMgr.recoverTarget)) then
+		local recovery = SkillMgr.recoverTarget
+		if (Now() > recover.failure) then
+			SkillMgr.recoverTarget = {}
+		elseif (Now() > recovery.timer) then
+			local myTarget = Player:GetTarget()
+			local target = MGetEntity(recovery.id)
+			if (target) then
+				if (not myTarget or (myTarget and myTarget.id ~= target.id)) then
+					Player:SetTarget(target.id)
+				end
+			else
+				SkillMgr.recoverTarget = {}
+			end
 		end
 	end
 	
@@ -2616,12 +2637,14 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						else
 							local action = ActionList:Get(skill.id,1,TID)
+							local entity = MGetEntity(TID)
 							if (ValidTable(action)) then
-								--d("Attempting to cast skill:"..tostring(action.name))
+								d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
 								if (gSkillManagerQueueing == "1") then
 									SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
 								end
-								if (action:Cast(TID)) then
+								if (ActionList:Cast(skill.id,TID,1)) then
+								--if (action:Cast(TID)) then
 									SkillMgr.latencyTimer = Now()
 									
 									-- If we want to try the unique last cast, throw it to the stack.
@@ -4027,10 +4050,6 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		--SkillMgr.IsFacing(isfacing,autoface,target)
-		--SkillMgr.ReadyToCast(isready,queueing,gcdcheck)
-		--SkillMgr.LOS(target)
-		
 		if (not SkillMgr.LOS(target)) then
 			return true
 		end
@@ -4049,21 +4068,49 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	conditional = { name = "Valid Target Check"
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
+		if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
+			if (not IsValidHealTarget(target)) then
+				return true
+			end
+		end
+		if not (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
+			if (IsValidHealTarget(target)) then
+				return true
+			end
+		end
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		local ppos = ml_global_information.Player_Position
-		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,target.pos.x,target.pos.y,target.pos.z)
 		local minRange = tonumber(skill.minRange)
 		local maxRange = tonumber(skill.maxRange)
+		
+		local dist;
+		if (target.distance < 30 and (target.distance - target.distance2d) < 5) then
+			dist = target.distance2d
+		else
+			dist = target.distance
+		end
+		
+		local hitradius = (target.hitradius < 1 and 1) or target.hitradius		
 		if (minRange > 0 and dist < minRange) then 
 			return true
-		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - target.hitradius) > maxRange) then
+		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - hitradius) > maxRange) then
 			return true
-		elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - target.hitradius) > realskilldata.range)) then
+		elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - hitradius) > realskilldata.range)) then
 			return true
 		end
 		return false

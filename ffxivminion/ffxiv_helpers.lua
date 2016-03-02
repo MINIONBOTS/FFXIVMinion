@@ -573,10 +573,10 @@ function GetHuntTarget()
 end
 function IsValidHealTarget(e)
 	if (ValidTable(e) and e.alive and e.targetable and not e.aggro) then
-		return (e.chartype == 4) or
+		return (e.chartype == 4) or (e.id == Player.id) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
 			(e.chartype == 3 and e.type == 2) or
-			(e.chartype == 5 and e.type == 2)
+			((e.chartype == 5 and e.type == 2) and (e.friendly or not e.attackable))
 	end
 	
 	return false
@@ -1649,14 +1649,47 @@ function IsHealingSkill(skillID)
 	
 	local cures = {
 		[120] = true,
-		[135] = true,
+		[124] = true,
+		[126] = true,
 		[131] = true,
-		[190] = true,
+		[133] = true,
+		[135] = true,
+		[140] = true,
 		[185] = true,
 		[186] = true,
+		[187] = true,
 		[189] = true,
+		[190] = true,
+		[3541] = true,
+		[3570] = true,
+		[3583] = true,
+		[3594] = true,
+		[3595] = true,
+		[3600] = true,
+		[3601] = true,
+		[3602] = true,
+		[3610] = true,
+		[3614] = true,
 	}
     if (cures[id]) then
+        return true
+    end
+    return false
+end
+function IsFriendlyBuff(skillID)
+	local id = tonumber(skillID)
+	
+	local buffs = {
+		[27] = true,
+		[123] = true,
+		[129] = true,
+		[137] = true,
+		[2249] = true,
+		[3564] = true,
+		[3565] = true,
+		[3612] = true,
+	}
+    if (buffs[id]) then
         return true
     end
     return false
@@ -2664,28 +2697,28 @@ function CanAttack(targetid,skillid,skilltype)
 		end
 	end
 	
-	local canCast = false
-	local action;
-	if (skillid ~= nil and tonumber(skillid) ~= nil) then
-		local stype = 1
-		if (skilltype ~= nil and tonumber(skilltype) ~= nil) then
-			stype = skilltype
-		end
-		action = ActionList:Get(skillid,stype,target.id)
-	else
-		testSkill = SkillMgr.GCDSkills[Player.job]
-		action = ActionList:Get(testSkill,1,target.id)
-	end
-	
-	if (action) then
-		if (action.isready) then
-			return (gAssistAutoFace == "1" or action.isfacing)
+	if (target.los) then
+		local canCast = false
+		local action;
+		if (skillid ~= nil and tonumber(skillid) ~= nil) then
+			local stype = 1
+			if (skilltype ~= nil and tonumber(skilltype) ~= nil) then
+				stype = skilltype
+			end
+			action = ActionList:Get(skillid,stype,target.id)
 		else
-			return target.los
+			testSkill = SkillMgr.GCDSkills[Player.job]
+			action = ActionList:Get(testSkill,1,target.id)
+		end
+		
+		if (action) then
+			if (action.range >= ((target.distance - target.hitradius) * .98)) then
+				return true
+			end
 		end
 	end
-	
-	return target.los
+		
+	return false
 end
 function GetMounts()
 	local mounts = "None"
