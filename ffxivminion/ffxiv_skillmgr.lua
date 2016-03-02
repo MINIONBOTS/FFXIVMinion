@@ -1207,6 +1207,7 @@ function SkillMgr.OnUpdate()
 		end
 	end
 	
+	--[[
 	if (ValidTable(SkillMgr.recoverTarget)) then
 		local recovery = SkillMgr.recoverTarget
 		if (Now() > recover.failure) then
@@ -1223,6 +1224,7 @@ function SkillMgr.OnUpdate()
 			end
 		end
 	end
+	--]]
 	
 	if (SkillMgr.doLoad == true) then
 		SkillMgr.SkillBook = {}
@@ -4003,7 +4005,7 @@ function SkillMgr.LOS(target)
 end	
 
 function SkillMgr.CanBeQueued(skilldata)
-	return (skilldata.recasttime >= 2.5 or IsMudraSkill(skilldata.id))
+	return ((skilldata.recasttime == 2.5 or IsMudraSkill(skilldata.id)) and not skilldata.isoncd)
 end
 
 
@@ -4085,6 +4087,12 @@ function SkillMgr.AddDefaultConditions()
 					return true
 				end
 			end
+			
+			--d("skill:"..tostring(skill.name))
+			--local validtarget, inrangeforspell, inlos = ActionList:CanCast(skill.id,target.id,target.type)
+			--d("validtarget = "..tostring(validtarget))
+			--d("inrangeforspell = "..tostring(inrangeforspell))
+			--d("inlos = "..tostring(inlos))			
 		end
 		return false
 	end
@@ -4154,7 +4162,7 @@ function SkillMgr.AddDefaultConditions()
 				end
 			end
 		elseif (skill.gcd == "True") then
-			if ((SkillMgr.IsGCDReady(skill.offgcdtime) and not IsCaster(Player.job))) then
+			if ((SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job))) then
 				return true
 			end
 		end
