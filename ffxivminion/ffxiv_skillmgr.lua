@@ -4087,7 +4087,7 @@ function SkillMgr.AddDefaultConditions()
 		return false
 	end
 	}
-	SkillMgr.AddConditional(conditional)
+	--SkillMgr.AddConditional(conditional)
 	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
