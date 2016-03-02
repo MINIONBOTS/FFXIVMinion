@@ -176,7 +176,6 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Description","sbdesc","ActionListInfo")
 	GUI_NewField("Dev","SkillID","sbid","ActionListInfo")
 	GUI_NewField("Dev","IsReady","sbready","ActionListInfo")
-	GUI_NewField("Dev","IsReady2","sbready2","ActionListInfo")
 	GUI_NewField("Dev","IsInFront","sbinfront","ActionListInfo")
 	GUI_NewField("Dev","Type","sbtype","ActionListInfo")
 	GUI_NewField("Dev","JobType","sbjobtype","ActionListInfo")
@@ -191,7 +190,9 @@ function Dev.ModuleInit()
 	GUI_NewField("Dev","Recasttime","sbrct","ActionListInfo")
 	GUI_NewField("Dev","CanCast","sbcanc","ActionListInfo")
 	GUI_NewField("Dev","CanCastSelf","sbcancs","ActionListInfo")
-	GUI_NewField("Dev","CanCastOnTarget","sbcancast","ActionListInfo")
+	GUI_NewField("Dev","CanCastOnTarget(Valid)","sbcancast","ActionListInfo")
+	GUI_NewField("Dev","CanCastOnTarget(InRange)","sbcancast2","ActionListInfo")
+	GUI_NewField("Dev","CanCastOnTarget(InLoS)","sbcancast3","ActionListInfo")
 	GUI_NewButton("Dev","Cast","Dev.Cast","ActionListInfo")
 	sbSelSlot = 1		
 	sbSelHotbar = "Actions"
@@ -1165,7 +1166,13 @@ function Dev.UpdateWindow()
 			end
 		end
 		local condensedSpell = condensedList[tonumber(sbSelSlot)]
-		spell = ActionList:Get(condensedSpell.id,spellTypes[sbSelHotbar])
+		mytarget = Player:GetTarget() 
+		if (mytarget ~= nil) then
+			spell = ActionList:Get(condensedSpell.id,spellTypes[sbSelHotbar],mytarget.id)
+		else
+			spell = ActionList:Get(condensedSpell.id,spellTypes[sbSelHotbar])
+		end
+		
 		--[[
 		local ispell,espell = next ( spelllist )
 		while ( ispell~=nil and espell~=nil ) do
@@ -1186,8 +1193,6 @@ function Dev.UpdateWindow()
 		sbdesc = spell.description
 		sbid = spell.id
 		sbready = tostring(spell.isready)
-		sbready2 = tostring(spell.isready2)
-		sbinfront = tostring(spell.isfacing)
 		sbtype = spell.type
 		sbjobtype = tostring(spell.job)
 		sblevel = spell.level
@@ -1203,12 +1208,18 @@ function Dev.UpdateWindow()
 		sbt2 = spell.t2		
 		sbt4 = spell.t4
 		sbt5 = spell.t5	
-		mytarget = Player:GetTarget() 
 		
+		mytarget = Player:GetTarget() 
 		if (mytarget ~= nil) then
-			sbcancast = tostring(ActionList:CanCast(spell.id,mytarget.id,spellTypes[sbSelHotbar]))
+		local a,b,c 
+			a,b,c = ActionList:CanCast(spell.id,mytarget.id,spellTypes[sbSelHotbar])
+			sbcancast = tostring(a)
+			sbcancast2 = tostring(b)
+			sbcancast3 = tostring(c)
 		else
 			sbcancast = "No Target"
+			sbcancast2 = ""
+			sbcancast3 = ""
 		end
 		sbcanc = tostring(ActionList:CanCast(spell.id,0,spellTypes[sbSelHotbar]))
 		sbcancs = tostring(ActionList:CanCast(spell.id,Player.id,spellTypes[sbSelHotbar]))
@@ -1243,6 +1254,8 @@ function Dev.UpdateWindow()
 		sbt4 = 0
 		sbt5 = 0
 		sbcancast = "No skill"
+		sbcancast2 = "No skill"
+		sbcancast3 = "No skill"
 		sbcanc = "false"
 	end
 	
