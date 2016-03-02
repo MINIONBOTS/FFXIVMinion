@@ -4074,20 +4074,22 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-			if (IsValidHealTarget(target)) then
-				return true
+		if (skill.trg == "Target") then
+			if (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
+				if (not IsValidHealTarget(target)) then
+					return true
+				end
 			end
-		end
-		if not (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
-			if (not IsValidHealTarget(target)) then
-				return true
+			if not (IsHealingSkill(skill.id) or IsFriendlyBuff(skill.id)) then
+				if (not target.attackable) then
+					return true
+				end
 			end
 		end
 		return false
 	end
 	}
-	--SkillMgr.AddConditional(conditional)
+	SkillMgr.AddConditional(conditional)
 	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
@@ -4099,13 +4101,14 @@ function SkillMgr.AddDefaultConditions()
 		local maxRange = tonumber(skill.maxRange)
 		
 		local dist;
-		if (target.distance < 30 and (target.distance - target.distance2d) < 5) then
+		if (target.distance < 30 and math.abs(target.distance - target.distance2d) < 5) then
 			dist = target.distance2d
 		else
 			dist = target.distance
 		end
 		
-		local hitradius = (target.hitradius < 1 and 1) or target.hitradius		
+		local hitradius = (target.hitradius < 1 and 1) or target.hitradius	
+		
 		if (minRange > 0 and dist < minRange) then 
 			return true
 		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - hitradius) > maxRange) then
