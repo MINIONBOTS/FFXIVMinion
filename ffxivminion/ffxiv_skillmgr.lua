@@ -3126,7 +3126,7 @@ function SkillMgr.IsGCDReady(maxtime)
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	
 	if (actionID) then
-		local action = ActionList:Get(actionID)
+		local action = MGetAction(actionID)
 		if (action) then
 			timediff = (action.cd - action.cdmax)
 			if (action.cd - action.cdmax) < maxtime then
@@ -3738,9 +3738,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
-		realskilldata = ActionList:Get(skillid,11) 
+		--realskilldata = ActionList:Get(skillid,11) 
+		realskilldata = MGetAction(skillid,11) 
 	else
-		realskilldata = ActionList:Get(skillid,1) 
+		--realskilldata = ActionList:Get(skillid,1)
+		realskilldata = MGetAction(skillid,1) 		
 	end
 	
 	if (not realskilldata) then
@@ -3806,7 +3808,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	-- Verify that condition list is valid, and that castable hasn't already been flagged false, just to save processing time.
 	if (SkillMgr.ConditionList) then
-		for i,condition in spairs(SkillMgr.ConditionList) do
+		for i,condition in pairsByKeys(SkillMgr.ConditionList) do
 			if (type(condition.eval) == "function") then
 				if (condition.eval()) then
 					castable = false		
@@ -3993,15 +3995,19 @@ function SkillMgr.IsFacing(isfacing,autoface,target)
 end
 
 function SkillMgr.ReadyToCast(skilldata,queueing,gcdcheck)
-	return (skilldata.isready or (not skilldata.isready and queueing == "1" and gcdcheck == true and SkillMgr.CanBeQueued(skilldata)))
+	--return (skilldata.isready or (not skilldata.isready and queueing == "1" and gcdcheck == true and SkillMgr.CanBeQueued(skilldata)))
+	return skilldata.isready
 end
 
 function SkillMgr.LOS(target)
+	return true
+	--[[
 	if (target.id == Player.id) then
 		return true
 	else
 		return target.los
 	end
+	--]]
 end	
 
 function SkillMgr.CanBeQueued(skilldata)
@@ -4070,6 +4076,34 @@ function SkillMgr.AddDefaultConditions()
 	}
 	SkillMgr.AddConditional(conditional)
 	
+	conditional = { name = "OffGCD Check"	
+	, eval = function()	
+		local skill = SkillMgr.CurrentSkill
+		local realskilldata = SkillMgr.CurrentSkillData
+		
+		if (skill.gcd == "Auto") then
+			if (realskilldata.recasttime ~= 2.5) then
+				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtime = "..tostring(skill.gcdtime)..", IsGCDReady: "..tostring(SkillMgr.IsGCDReady(skill.gcdtime)))
+				if (SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job)) then
+					return true
+				end
+				local gcdtimelt = tonumber(skill.gcdtimelt)
+				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtimelt = "..tostring(skill.gcdtimelt)..", GCDTimeLT: "..tostring(SkillMgr.GCDTimeLT(skill.gcdtimelt)))
+				if (not SkillMgr.GCDTimeLT(gcdtimelt)) then
+					return true
+				end
+			end
+		elseif (skill.gcd == "True") then
+			if ((SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job))) then
+				return true
+			end
+		end
+		
+		return false
+	end
+	}
+	SkillMgr.AddConditional(conditional)
+	
 	conditional = { name = "Valid Target Check"
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -4097,7 +4131,7 @@ function SkillMgr.AddDefaultConditions()
 		return false
 	end
 	}
-	SkillMgr.AddConditional(conditional)
+	--SkillMgr.AddConditional(conditional)
 	
 	conditional = { name = "Min/Max Range Check (User Defined)"
 	, eval = function()	
@@ -4116,13 +4150,12 @@ function SkillMgr.AddDefaultConditions()
 		end
 		
 		local hitradius = (target.hitradius < 1 and 1) or target.hitradius	
-		
-		if (minRange > 0 and dist < minRange) then 
+		if (minRange > 0 and (dist - hitradius) < minRange) then 
 			return true
 		elseif (maxRange > 0 and maxRange ~= realskilldata.range and (dist - hitradius) > maxRange) then
 			return true
-		elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - hitradius) > realskilldata.range)) then
-			return true
+		--elseif (realskilldata.range > 0 and target.id ~= Player.id and ((dist - hitradius) > realskilldata.range)) then
+			--return true
 		end
 		return false
 	end
@@ -4139,34 +4172,6 @@ function SkillMgr.AddDefaultConditions()
 				return true
 			end
 		end
-		return false
-	end
-	}
-	SkillMgr.AddConditional(conditional)
-	
-	conditional = { name = "OffGCD Check"	
-	, eval = function()	
-		local skill = SkillMgr.CurrentSkill
-		local realskilldata = SkillMgr.CurrentSkillData
-		
-		if (skill.gcd == "Auto") then
-			if (realskilldata.recasttime ~= 2.5) then
-				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtime = "..tostring(skill.gcdtime)..", IsGCDReady: "..tostring(SkillMgr.IsGCDReady(skill.gcdtime)))
-				if (SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job)) then
-					return true
-				end
-				local gcdtimelt = tonumber(skill.gcdtimelt)
-				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtimelt = "..tostring(skill.gcdtimelt)..", GCDTimeLT: "..tostring(SkillMgr.GCDTimeLT(skill.gcdtimelt)))
-				if (not SkillMgr.GCDTimeLT(gcdtimelt)) then
-					return true
-				end
-			end
-		elseif (skill.gcd == "True") then
-			if ((SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job))) then
-				return true
-			end
-		end
-		
 		return false
 	end
 	}

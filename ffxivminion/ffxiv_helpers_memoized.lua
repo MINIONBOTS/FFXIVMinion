@@ -43,9 +43,33 @@ function MGetAction(actionid,actiontype,targetid)
 	if (memoized) then
 		return memoized
 	else
-		
+		local savedAction = nil
 		local action = ActionList:Get(actionid,actiontype,targetid)
-		SetMemoized(memString,action)
+		
+		if (action) then
+			savedAction = {}
+			savedAction.name = action.name
+			savedAction.id = action.id
+			savedAction.isready = action.isready
+			savedAction.isfacing = action.isfacing
+			savedAction.combospellid = action.combospellid
+			savedAction.type = action.type
+			savedAction.job = action.job
+			savedAction.level = action.level
+			savedAction.cost = action.cost
+			savedAction.cd = action.cd
+			savedAction.cdmax = action.cdmax
+			savedAction.isoncd = action.isoncd
+			savedAction.range = action.range
+			savedAction.radius = action.radius
+			savedAction.casttime = action.casttime
+			savedAction.recasttime = action.recasttime
+			savedAction.Cast = action.Cast
+		else
+			d("Action ["..tostring(actionid).."] - ["..tostring(actiontype).."] - ["..tostring(targetid).."] was not found.")
+		end
+		
+		SetMemoized(memString,savedAction)
 		return action
 	end
 end
