@@ -579,6 +579,10 @@ function ffxiv_task_pvp:Process()
 								ml_task_hub:ThisTask().targetid = newTarget.id
 								target = EntityList:Get(ml_task_hub:ThisTask().targetid)
 							end
+						else
+							if (not ValidTable(newTarget)) then
+								--d("did not find a new target.")
+							end
 						end
 						ml_task_hub:ThisTask().targetTimer = Now()		
 						
@@ -643,6 +647,13 @@ function ffxiv_task_pvp:Process()
 							ml_task_hub:ThisTask().targetid = 0
 							if Player.role == 4 then
 								SkillMgr.Cast( Player, true )
+							end
+							
+							if (Player.localmapid == 186) then
+								local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
+								if (ValidTable(p)) then
+									Player:MoveTo(p.x,p.y,p.z)
+								end
 							end
 						end
 					end
