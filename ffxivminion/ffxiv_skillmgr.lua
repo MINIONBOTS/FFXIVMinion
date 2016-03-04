@@ -3105,7 +3105,7 @@ function SkillMgr.GCDTimeLT(mintime)
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	
 	if (actionID) then
-		local action = ActionList:Get(actionID)
+		local action = MGetAction(actionID)
 		if (action) then
 			if (action.cd - action.cdmax) < mintime then
 				return true
@@ -3144,7 +3144,7 @@ function SkillMgr.IsReady( actionid, actiontype )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	
-	local action = ActionList:Get(actionid, actiontype)
+	local action = MGetAction(actionid, actiontype)
 	if (action) then
 		return action.isready
 	end
@@ -3156,7 +3156,7 @@ function SkillMgr.GetCDTime( actionid, actiontype )
 	local actionid = tonumber(actionid)
 	local actiontype = actiontype or 1
 	
-	local action = ActionList:Get(actionid, actiontype)
+	local action = MGetAction(actionid, actiontype)
 	if (action) then
 		return (action.cd - action.cdmax)
 	end
@@ -3733,7 +3733,10 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		return 0
 	end
 	
-	local skillid = tonumber(skill.id)
+	local skillid = tonumber(skill.id) or -1
+	if (skillid == -1) then
+		return 0
+	end
 	
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	

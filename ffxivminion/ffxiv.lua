@@ -1,7 +1,8 @@
 ml_global_information = {}
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
-ml_global_information.lastrun = 0
+--ml_global_information.lastrun = 0
+ml_global_information.nextRun = 0
 ml_global_information.lastrun2 = 0
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
@@ -461,15 +462,35 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		SkillMgr.OnUpdate()
 	end
 	
-    if (TimeSince(ml_global_information.lastrun) > pulseTime) then
-        ml_global_information.lastrun = tickcount
+	--if (TimeSince(ml_global_information.lastrun) > pulseTime) then
+	if (Now() >= ml_global_information.nextRun) then
+		
+		ml_global_information.nextRun = Now() + pulseTime
+		
+		if (IsFighter(Player.job)) then
+			local actionID = SkillMgr.GCDSkills[Player.job]
+			if (actionID) then
+				local action = MGetAction(actionID)
+				if (action) then
+					if (action.isoncd) then
+						local timediff = math.ceil((action.cd - action.cdmax) * 1000)
+						if (timediff < pulseTime) then
+							d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
+							ml_global_information.nextRun = Now() + timediff
+						end
+					end
+				end
+			end
+		end
+		
+        --ml_global_information.lastrun = tickcount
 		
 		ffxivminion.UpdateGlobals()
 
-		local thisMeasure = collectgarbage("count")/1024
-		gMemoryUsage = tostring(thisMeasure)
-		gMemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
-		ml_global_information.lastMeasure = thisMeasure
+		--local thisMeasure = collectgarbage("count")/1024
+		--gMemoryUsage = tostring(thisMeasure)
+		--gMemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
+		--ml_global_information.lastMeasure = thisMeasure
 		
 		-- close any social addons that might screw up behavior first
 		if(	gBotRunning == "1" and 

@@ -219,7 +219,8 @@ end
 function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	if (ValidTable(ml_mesh_mgr.receivedInstructions)) then
 		--d("Running instruction set.")
-		ml_global_information.lastrun = Now()
+		--ml_global_information.lastrun = Now()
+		ml_global_information.nextRun = Now() + 1
 		
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
 			ffxivminion.UpdateGlobals()
@@ -236,7 +237,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	end
  
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
-		ml_global_information.lastrun = Now()
+		--ml_global_information.lastrun = Now()
+		ml_global_information.nextRun = Now() + 1
 		
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
 			ffxivminion.UpdateGlobals()

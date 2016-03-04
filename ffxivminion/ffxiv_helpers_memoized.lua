@@ -65,8 +65,8 @@ function MGetAction(actionid,actiontype,targetid)
 			savedAction.casttime = action.casttime
 			savedAction.recasttime = action.recasttime
 			savedAction.Cast = action.Cast
-		else
-			d("Action ["..tostring(actionid).."] - ["..tostring(actiontype).."] - ["..tostring(targetid).."] was not found.")
+		--else
+			--d("Action ["..tostring(actionid).."] - ["..tostring(actiontype).."] - ["..tostring(targetid).."] was not found.")
 		end
 		
 		SetMemoized(memString,savedAction)

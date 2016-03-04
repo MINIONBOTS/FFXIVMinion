@@ -2637,12 +2637,14 @@ function InCombatRange(targetid)
 	local highestRange = 0
 	local charge = false
 	local skillID = nil
+	
+	--and ActionList:CanCast(tonumber(skill.id),target.id)
 
 	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 		for prio,skill in spairs(SkillMgr.SkillProfile) do
 			local skilldata = MGetAction(tonumber(skill.id))
 			if (skilldata) then
-				if ( skilldata.range > 0 and skill.used == "1" and skilldata.range > highestRange and ActionList:CanCast(tonumber(skill.id),target.id)) then
+				if ( skilldata.range > 0 and skill.used == "1" and skilldata.range > highestRange) then
 					if ((attackRange < 5 and skilldata.isready) or attackRange >= 5) then
 						skillID = tonumber(skill.id)
 						highestRange = tonumber(skilldata.range)

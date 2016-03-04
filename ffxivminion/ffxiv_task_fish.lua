@@ -339,7 +339,7 @@ function e_cast:execute()
 			end
 		end
 		ffxiv_fish.attemptedCasts = ffxiv_fish.attemptedCasts + 1
-		fd("[Cast]: Attempt #"..tostring(ffxiv_fish.attemptedCasts))
+		d("[Cast]: Attempt #"..tostring(ffxiv_fish.attemptedCasts))
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
 	end
 end
@@ -761,7 +761,7 @@ e_resetidle = inheritsFrom( ml_effect )
 function c_resetidle:evaluate()
 	if (ffxiv_fish.attemptedCasts > 0 or ffxiv_fish.biteDetected > 0) then
 		local fs = tonumber(Player:GetFishingState())
-		if ( fs == 9 ) then
+		if ( fs == 8 or fs == 9 ) then
 			return true
 		end
 	end
