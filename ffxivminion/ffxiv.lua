@@ -475,7 +475,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					if (action.isoncd) then
 						local timediff = math.ceil((action.cd - action.cdmax) * 1000)
 						if (timediff < pulseTime) then
-							d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
+							--d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
 							ml_global_information.nextRun = Now() + timediff
 						end
 					end

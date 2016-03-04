@@ -445,7 +445,7 @@ function SkillMgr.ModuleInit()
     Settings.FFXIVMINION.gSMactive = Settings.FFXIVMINION.gSMactive or "1"
     Settings.FFXIVMINION.gSMlastprofile = Settings.FFXIVMINION.gSMlastprofile or "None"
 	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles or {}	
-	Settings.FFXIVMINION.gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing or "0"
+	--Settings.FFXIVMINION.gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing or "0"
 	Settings.FFXIVMINION.gSkillManagerDebug = Settings.FFXIVMINION.gSkillManagerDebug or "0"
 	Settings.FFXIVMINION.gSkillManagerDebugPriorities = Settings.FFXIVMINION.gSkillManagerDebugPriorities or ""
 	
@@ -549,7 +549,7 @@ function SkillMgr.ModuleInit()
     GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
     GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("activated"),"gSMactive",GetString("generalSettings"))
     GUI_NewComboBox(SkillMgr.mainwindow.name,GetString("profile"),"gSMprofile",GetString("generalSettings"),"")
-	GUI_NewCheckbox(SkillMgr.mainwindow.name,"Queueing Allowed","gSkillManagerQueueing",GetString("generalSettings"))
+	--GUI_NewCheckbox(SkillMgr.mainwindow.name,"Queueing Allowed","gSkillManagerQueueing",GetString("generalSettings"))
 	GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("debugging"),"gSkillManagerDebug",GetString("generalSettings"))
 	GUI_NewField(SkillMgr.mainwindow.name,GetString("debugItems"),"gSkillManagerDebugPriorities",GetString("generalSettings"))
 	
@@ -977,14 +977,14 @@ function SkillMgr.ModuleInit()
 	
 	SkillMgr.AddDefaultConditions()
 	
-	gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing
+	--gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing
 end
 
 function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		
         if (k == "gSMactive" or
-			k == "gSkillManagerQueueing" or 
+			--k == "gSkillManagerQueueing" or 
 			k == "gSkillManagerDebug" or
 			k == "gSkillManagerDebugPriorities" or
 			k == "gAssistFilter1" or
@@ -1431,7 +1431,6 @@ function SkillMgr.ReadFile(strFile)
 		gSkillManagerFilter4 = filters[4] or ""
 		gSkillManagerFilter5 = filters[5] or ""
 	else
-		d("did not find any filters.")
 		gSkillManagerFilter1 = ""
 		gSkillManagerFilter2 = ""
 		gSkillManagerFilter3 = ""
@@ -2642,9 +2641,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							local entity = MGetEntity(TID)
 							if (ValidTable(action)) then
 								d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
-								if (gSkillManagerQueueing == "1") then
-									SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
-								end
+								--if (gSkillManagerQueueing == "1") then
+									--SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
+								--end
 								if (ActionList:Cast(skill.id,TID,1)) then
 								--if (action:Cast(TID)) then
 									SkillMgr.latencyTimer = Now()
@@ -2680,10 +2679,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									
 									casted = true
 									break
-								else
-									if (gSkillManagerQueueing == "1") then
-										SkillMgr.DebugOutput(prio, "Skill failed to cast.")
-									end
+								--else
+									--if (gSkillManagerQueueing == "1") then
+										--SkillMgr.DebugOutput(prio, "Skill failed to cast.")
+									--end
 								end
 							end
 						end
@@ -3140,13 +3139,16 @@ function SkillMgr.IsGCDReady(maxtime)
 	return castable, timediff
 end
 
-function SkillMgr.IsReady( actionid, actiontype )
+function SkillMgr.IsReady( actionid, actiontype, targetid )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	
-	local action = MGetAction(actionid, actiontype)
-	if (action) then
-		return action.isready
+	local actionself = MGetAction(actionid, actiontype)
+	local actiontarget = MGetAction(actionid, actiontype, targetid)
+	if (actionself and actionself.isready) then
+		return true
+	elseif (actiontarget and actiontarget.isready) then
+		return true
 	end
 	
 	return false
@@ -3997,26 +3999,9 @@ function SkillMgr.IsFacing(isfacing,autoface,target)
 	return (isfacing == true or autoface == "1" or target == "Ground Target" or target == "Player")
 end
 
-function SkillMgr.ReadyToCast(skilldata,queueing,gcdcheck)
-	--return (skilldata.isready or (not skilldata.isready and queueing == "1" and gcdcheck == true and SkillMgr.CanBeQueued(skilldata)))
-	return skilldata.isready
-end
-
-function SkillMgr.LOS(target)
-	return true
-	--[[
-	if (target.id == Player.id) then
-		return true
-	else
-		return target.los
-	end
-	--]]
-end	
-
 function SkillMgr.CanBeQueued(skilldata)
 	return ((skilldata.recasttime == 2.5 or IsMudraSkill(skilldata.id)) and not skilldata.isoncd)
 end
-
 
 function SkillMgr.AddDefaultConditions()	
 
@@ -4061,11 +4046,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (not SkillMgr.LOS(target)) then
-			return true
-		end
-		
-		if (SkillMgr.ReadyToCast(realskilldata,gSkillManagerQueueing,SkillMgr.IsGCDReady(.400)) and SkillMgr.IsFacing(realskilldata.isfacing,gAssistUseAutoFace,target)) then
+		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata.isfacing,gAssistUseAutoFace,target)) then
 			return false
 		elseif (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
 			if (not realskilldata.isoncd) then
@@ -4184,6 +4165,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
 		
 		if ( not IsNullString(skill.skready) ) then
 
@@ -4193,7 +4175,7 @@ function SkillMgr.AddDefaultConditions()
 				for _andid in StringSplit(_orids,"+") do
 					ready = false
 					local actiontype = (skill.sktype == "Action") and 1 or 11
-					if ( SkillMgr.IsReady( tonumber(_andid), actiontype)) then
+					if ( SkillMgr.IsReady( tonumber(_andid), actiontype, target.id)) then
 						ready = true
 					end
 					if (not ready) then 
@@ -4274,9 +4256,11 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
+		local target = SkillMgr.CurrentTarget
+		
 		if ( not IsNullString(skill.sknready)) then
 			local actiontype = (skill.sktype == "Action") and 1 or 11
-			if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype)) then
+			if ( SkillMgr.IsReady( tonumber(skill.sknready), actiontype, target.id)) then
 				return true
 			end
 		end		
