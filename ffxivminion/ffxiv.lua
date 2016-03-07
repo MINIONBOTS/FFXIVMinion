@@ -3,6 +3,7 @@ ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 --ml_global_information.lastrun = 0
 ml_global_information.nextRun = 0
+ml_global_information.lastPulseShortened = false
 ml_global_information.lastrun2 = 0
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
@@ -465,23 +466,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	--if (TimeSince(ml_global_information.lastrun) > pulseTime) then
 	if (Now() >= ml_global_information.nextRun) then
 		
-		ml_global_information.nextRun = Now() + pulseTime
-		
-		if (IsFighter(Player.job)) then
-			local actionID = SkillMgr.GCDSkills[Player.job]
-			if (actionID) then
-				local action = MGetAction(actionID)
-				if (action) then
-					if (action.isoncd) then
-						local timediff = math.ceil((action.cd - action.cdmax) * 1000)
-						if (timediff < pulseTime) then
-							--d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
-							ml_global_information.nextRun = Now() + timediff
-						end
-					end
-				end
-			end
-		end
+		ml_global_information.nextRun = tickcount + pulseTime
+		ml_global_information.lastPulseShortened = false
 		
         --ml_global_information.lastrun = tickcount
 		
@@ -620,10 +606,30 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 		end
-        
-        if (not ml_task_hub:Update() and ml_task_hub.shouldRun) then
-            ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
-        end
+		
+		if (ml_task_hub.shouldRun) then
+
+			if (IsFighter(Player.job) and not ml_global_information.lastPulseShortened) then
+				local actionID = SkillMgr.GCDSkills[Player.job]
+				if (actionID) then
+					local action = MGetAction(actionID)
+					if (action) then
+						if (action.isoncd) then
+							local timediff = math.ceil((action.cd - action.cdmax) * 1000)
+							if (timediff < pulseTime) then
+								--d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
+								ml_global_information.nextRun = Now() + timediff
+								ml_global_information.lastPulseShortened = true
+							end
+						end
+					end
+				end
+			end
+			
+			if (not ml_task_hub:Update()) then
+				ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
+			end
+		end
     end
 end
 

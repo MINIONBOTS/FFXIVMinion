@@ -281,120 +281,140 @@ SkillMgr.Variables = {
 	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
 	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
 	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
+	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", section = "fighting" },
 
 	SKM_M2ACTIONTYPE = { default = "Action", cast = "string", profile = "m2actiontype", section = "fighting" },
 	SKM_M2ACTIONID = { default = 0, cast = "number", profile = "m2actionid", section = "fighting" },
 	SKM_M2ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m2actiontarget", section = "fighting" },
 	SKM_M2ACTIONWAIT = { default = 100, cast = "number", profile = "m2actionwait", section = "fighting" },
 	SKM_M2ACTIONMSG = { default = "", cast = "string", profile = "m2actionmsg", section = "fighting" },
+	SKM_M2ACTIONCOMPLETE = { default = "", cast = "string", profile = "m2actioncomplete", section = "fighting" },
 
 	SKM_M3ACTIONTYPE = { default = "Action", cast = "string", profile = "m3actiontype", section = "fighting" },
 	SKM_M3ACTIONID = { default = 0, cast = "number", profile = "m3actionid", section = "fighting" },
 	SKM_M3ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m3actiontarget", section = "fighting" },
 	SKM_M3ACTIONWAIT = { default = 100, cast = "number", profile = "m3actionwait", section = "fighting" },
 	SKM_M3ACTIONMSG = { default = "", cast = "string", profile = "m3actionmsg", section = "fighting" },
+	SKM_M3ACTIONCOMPLETE = { default = "", cast = "string", profile = "m3actioncomplete", section = "fighting" },
 
 	SKM_M4ACTIONTYPE = { default = "Action", cast = "string", profile = "m4actiontype", section = "fighting" },
 	SKM_M4ACTIONID = { default = 0, cast = "number", profile = "m4actionid", section = "fighting" },
 	SKM_M4ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m4actiontarget", section = "fighting" },
 	SKM_M4ACTIONWAIT = { default = 100, cast = "number", profile = "m4actionwait", section = "fighting" },
 	SKM_M4ACTIONMSG = { default = "", cast = "string", profile = "m4actionmsg", section = "fighting" },
+	SKM_M4ACTIONCOMPLETE = { default = "", cast = "string", profile = "m4actioncomplete", section = "fighting" },
 
 	SKM_M5ACTIONTYPE = { default = "Action", cast = "string", profile = "m5actiontype", section = "fighting" },
 	SKM_M5ACTIONID = { default = 0, cast = "number", profile = "m5actionid", section = "fighting" },
 	SKM_M5ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m5actiontarget", section = "fighting" },
 	SKM_M5ACTIONWAIT = { default = 100, cast = "number", profile = "m5actionwait", section = "fighting" },
 	SKM_M5ACTIONMSG = { default = "", cast = "string", profile = "m5actionmsg", section = "fighting" },
+	SKM_M5ACTIONCOMPLETE = { default = "", cast = "string", profile = "m5actioncomplete", section = "fighting" },
 
 	SKM_M6ACTIONTYPE = { default = "Action", cast = "string", profile = "m6actiontype", section = "fighting" },
 	SKM_M6ACTIONID = { default = 0, cast = "number", profile = "m6actionid", section = "fighting" },
 	SKM_M6ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m6actiontarget", section = "fighting" },
 	SKM_M6ACTIONWAIT = { default = 100, cast = "number", profile = "m6actionwait", section = "fighting" },
 	SKM_M6ACTIONMSG = { default = "", cast = "string", profile = "m6actionmsg", section = "fighting" },
+	SKM_M6ACTIONCOMPLETE = { default = "", cast = "string", profile = "m6actioncomplete", section = "fighting" },
 
 	SKM_M7ACTIONTYPE = { default = "Action", cast = "string", profile = "m7actiontype", section = "fighting" },
 	SKM_M7ACTIONID = { default = 0, cast = "number", profile = "m7actionid", section = "fighting" },
 	SKM_M7ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m7actiontarget", section = "fighting" },
 	SKM_M7ACTIONWAIT = { default = 100, cast = "number", profile = "m7actionwait", section = "fighting" },
 	SKM_M7ACTIONMSG = { default = "", cast = "string", profile = "m7actionmsg", section = "fighting" },
+	SKM_M7ACTIONCOMPLETE = { default = "", cast = "string", profile = "m7actioncomplete", section = "fighting" },
 
 	SKM_M8ACTIONTYPE = { default = "Action", cast = "string", profile = "m8actiontype", section = "fighting" },
 	SKM_M8ACTIONID = { default = 0, cast = "number", profile = "m8actionid", section = "fighting" },
 	SKM_M8ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m8actiontarget", section = "fighting" },
 	SKM_M8ACTIONWAIT = { default = 100, cast = "number", profile = "m8actionwait", section = "fighting" },
 	SKM_M8ACTIONMSG = { default = "", cast = "string", profile = "m8actionmsg", section = "fighting" },
+	SKM_M8ACTIONCOMPLETE = { default = "", cast = "string", profile = "m8actioncomplete", section = "fighting" },
 
 	SKM_M9ACTIONTYPE = { default = "Action", cast = "string", profile = "m9actiontype", section = "fighting" },
 	SKM_M9ACTIONID = { default = 0, cast = "number", profile = "m9actionid", section = "fighting" },
 	SKM_M9ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m9actiontarget", section = "fighting" },
 	SKM_M9ACTIONWAIT = { default = 100, cast = "number", profile = "m9actionwait", section = "fighting" },
 	SKM_M9ACTIONMSG = { default = "", cast = "string", profile = "m9actionmsg", section = "fighting" },
+	SKM_M9ACTIONCOMPLETE = { default = "", cast = "string", profile = "m9actioncomplete", section = "fighting" },
 
 	SKM_M10ACTIONTYPE = { default = "Action", cast = "string", profile = "m10actiontype", section = "fighting" },
 	SKM_M10ACTIONID = { default = 0, cast = "number", profile = "m10actionid", section = "fighting" },
 	SKM_M10ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m10actiontarget", section = "fighting" },
 	SKM_M10ACTIONWAIT = { default = 100, cast = "number", profile = "m10actionwait", section = "fighting" },
 	SKM_M10ACTIONMSG = { default = "", cast = "string", profile = "m10actionmsg", section = "fighting" },
+	SKM_M10ACTIONCOMPLETE = { default = "", cast = "string", profile = "m10actioncomplete", section = "fighting" },
 
 	SKM_M11ACTIONTYPE = { default = "Action", cast = "string", profile = "m11actiontype", section = "fighting" },
 	SKM_M11ACTIONID = { default = 0, cast = "number", profile = "m11actionid", section = "fighting" },
 	SKM_M11ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m11actiontarget", section = "fighting" },
 	SKM_M11ACTIONWAIT = { default = 100, cast = "number", profile = "m11actionwait", section = "fighting" },
 	SKM_M11ACTIONMSG = { default = "", cast = "string", profile = "m11actionmsg", section = "fighting" },
+	SKM_M11ACTIONCOMPLETE = { default = "", cast = "string", profile = "m11actioncomplete", section = "fighting" },
 
 	SKM_M12ACTIONTYPE = { default = "Action", cast = "string", profile = "m12actiontype", section = "fighting" },
 	SKM_M12ACTIONID = { default = 0, cast = "number", profile = "m12actionid", section = "fighting" },
 	SKM_M12ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m12actiontarget", section = "fighting" },
 	SKM_M12ACTIONWAIT = { default = 100, cast = "number", profile = "m12actionwait", section = "fighting" },
 	SKM_M12ACTIONMSG = { default = "", cast = "string", profile = "m12actionmsg", section = "fighting" },
+	SKM_M12ACTIONCOMPLETE = { default = "", cast = "string", profile = "m12actioncomplete", section = "fighting" },
 
 	SKM_M13ACTIONTYPE = { default = "Action", cast = "string", profile = "m13actiontype", section = "fighting" },
 	SKM_M13ACTIONID = { default = 0, cast = "number", profile = "m13actionid", section = "fighting" },
 	SKM_M13ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m13actiontarget", section = "fighting" },
 	SKM_M13ACTIONWAIT = { default = 100, cast = "number", profile = "m13actionwait", section = "fighting" },
 	SKM_M13ACTIONMSG = { default = "", cast = "string", profile = "m13actionmsg", section = "fighting" },
+	SKM_M13ACTIONCOMPLETE = { default = "", cast = "string", profile = "m13actioncomplete", section = "fighting" },
 
 	SKM_M14ACTIONTYPE = { default = "Action", cast = "string", profile = "m14actiontype", section = "fighting" },
 	SKM_M14ACTIONID = { default = 0, cast = "number", profile = "m14actionid", section = "fighting" },
 	SKM_M14ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m14actiontarget", section = "fighting" },
 	SKM_M14ACTIONWAIT = { default = 100, cast = "number", profile = "m14actionwait", section = "fighting" },
 	SKM_M14ACTIONMSG = { default = "", cast = "string", profile = "m14actionmsg", section = "fighting" },
+	SKM_M14ACTIONCOMPLETE = { default = "", cast = "string", profile = "m14actioncomplete", section = "fighting" },
 
 	SKM_M15ACTIONTYPE = { default = "Action", cast = "string", profile = "m15actiontype", section = "fighting" },
 	SKM_M15ACTIONID = { default = 0, cast = "number", profile = "m15actionid", section = "fighting" },
 	SKM_M15ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m15actiontarget", section = "fighting" },
 	SKM_M15ACTIONWAIT = { default = 100, cast = "number", profile = "m15actionwait", section = "fighting" },
 	SKM_M15ACTIONMSG = { default = "", cast = "string", profile = "m15actionmsg", section = "fighting" },
+	SKM_M15ACTIONCOMPLETE = { default = "", cast = "string", profile = "m15actioncomplete", section = "fighting" },
 
 	SKM_M16ACTIONTYPE = { default = "Action", cast = "string", profile = "m16actiontype", section = "fighting" },
 	SKM_M16ACTIONID = { default = 0, cast = "number", profile = "m16actionid", section = "fighting" },
 	SKM_M16ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m16actiontarget", section = "fighting" },
 	SKM_M16ACTIONWAIT = { default = 100, cast = "number", profile = "m16actionwait", section = "fighting" },
 	SKM_M16ACTIONMSG = { default = "", cast = "string", profile = "m16actionmsg", section = "fighting" },
+	SKM_M16ACTIONCOMPLETE = { default = "", cast = "string", profile = "m16actioncomplete", section = "fighting" },
 
 	SKM_M17ACTIONTYPE = { default = "Action", cast = "string", profile = "m17actiontype", section = "fighting" },
 	SKM_M17ACTIONID = { default = 0, cast = "number", profile = "m17actionid", section = "fighting" },
 	SKM_M17ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m17actiontarget", section = "fighting" },
 	SKM_M17ACTIONWAIT = { default = 100, cast = "number", profile = "m17actionwait", section = "fighting" },
 	SKM_M17ACTIONMSG = { default = "", cast = "string", profile = "m17actionmsg", section = "fighting" },
+	SKM_M17ACTIONCOMPLETE = { default = "", cast = "string", profile = "m17actioncomplete", section = "fighting" },
 
 	SKM_M18ACTIONTYPE = { default = "Action", cast = "string", profile = "m18actiontype", section = "fighting" },
 	SKM_M18ACTIONID = { default = 0, cast = "number", profile = "m18actionid", section = "fighting" },
 	SKM_M18ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m18actiontarget", section = "fighting" },
 	SKM_M18ACTIONWAIT = { default = 100, cast = "number", profile = "m18actionwait", section = "fighting" },
 	SKM_M18ACTIONMSG = { default = "", cast = "string", profile = "m18actionmsg", section = "fighting" },
+	SKM_M18ACTIONCOMPLETE = { default = "", cast = "string", profile = "m18actioncomplete", section = "fighting" },
 
 	SKM_M19ACTIONTYPE = { default = "Action", cast = "string", profile = "m19actiontype", section = "fighting" },
 	SKM_M19ACTIONID = { default = 0, cast = "number", profile = "m19actionid", section = "fighting" },
 	SKM_M19ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m19actiontarget", section = "fighting" },
 	SKM_M19ACTIONWAIT = { default = 100, cast = "number", profile = "m19actionwait", section = "fighting" },
 	SKM_M19ACTIONMSG = { default = "", cast = "string", profile = "m19actionmsg", section = "fighting" },
+	SKM_M19ACTIONCOMPLETE = { default = "", cast = "string", profile = "m19actioncomplete", section = "fighting" },
 
 	SKM_M20ACTIONTYPE = { default = "Action", cast = "string", profile = "m20actiontype", section = "fighting" },
 	SKM_M20ACTIONID = { default = 0, cast = "number", profile = "m20actionid", section = "fighting" },
 	SKM_M20ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m20actiontarget", section = "fighting" },
 	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", section = "fighting" },
 	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", section = "fighting" },
+	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", section = "fighting" },
 		
 	SKM_IgnoreMoving = { default = "0", cast = "string", profile = "ignoremoving", section = "fighting" },
 	
@@ -775,120 +795,140 @@ function SkillMgr.ModuleInit()
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Completion","SKM_M1ACTIONCOMPLETE","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Completion","SKM_M2ACTIONCOMPLETE","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Completion","SKM_M3ACTIONCOMPLETE","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Completion","SKM_M4ACTIONCOMPLETE","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Completion","SKM_M5ACTIONCOMPLETE","Macro Group 1")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Completion","SKM_M6ACTIONCOMPLETE","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Completion","SKM_M7ACTIONCOMPLETE","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Completion","SKM_M8ACTIONCOMPLETE","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Completion","SKM_M9ACTIONCOMPLETE","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Completion","SKM_M10ACTIONCOMPLETE","Macro Group 2")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Completion","SKM_M11ACTIONCOMPLETE","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Completion","SKM_M12ACTIONCOMPLETE","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Completion","SKM_M13ACTIONCOMPLETE","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Completion","SKM_M14ACTIONCOMPLETE","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Completion","SKM_M15ACTIONCOMPLETE","Macro Group 3")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Completion","SKM_M16ACTIONCOMPLETE","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Completion","SKM_M17ACTIONCOMPLETE","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Completion","SKM_M18ACTIONCOMPLETE","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Completion","SKM_M19ACTIONCOMPLETE","Macro Group 4")
 
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
 	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
 	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Completion","SKM_M20ACTIONCOMPLETE","Macro Group 4")
 	
 	gSkillManagerFoldMacro1 = ffxivminion.GetSetting("gSkillManagerFoldMacro1","1")
 	gSkillManagerFoldMacro2 = ffxivminion.GetSetting("gSkillManagerFoldMacro2","0")
@@ -1025,6 +1065,7 @@ end
 SkillMgr.receivedMacro = {}
 SkillMgr.macroCasted = false
 SkillMgr.macroAttempts = 0
+SkillMgr.macroTimer = 0
 function SkillMgr.ParseMacro(data)
 	SkillMgr.receivedMacro = {}
 	
@@ -1060,7 +1101,8 @@ function SkillMgr.ParseMacro(data)
 				local actiontype = IsNull(iparams[2],0)
 				local targetidentifier = IsNull(iparams[3],"Target")
 				local msg = IsNull(iparams[4],"")
-				local actionwait = IsNull(iparams[5],false)
+				local completion = IsNull(iparams[5],"")
+				local actionwait = IsNull(iparams[6],false)
 				
 				--d("Received Action Macro.")
 				--d("ActionID:"..tostring(actionid))
@@ -1087,6 +1129,9 @@ function SkillMgr.ParseMacro(data)
 				
 				table.insert(SkillMgr.receivedMacro, 
 					function () 
+						if (SkillMgr.macroTimer == 0) then
+							SkillMgr.macroTimer = Now() + 1000
+						end
 						local action = ActionList:Get(actionid,actiontype,targetid)
 						if (action) then
 							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
@@ -1139,17 +1184,32 @@ function SkillMgr.ParseMacro(data)
 									SkillMgr.AddThrottleTime(100)
 								end
 							else
-								if (SkillMgr.macroCasted and (action.isoncd or Player.castinginfo.castingid == action.id)) then
-									if (msg ~= "") then
-										SendTextCommand(msg)
-									end
+								if (SkillMgr.macroCasted) then									
+									local canComplete = false
+									if (completion ~= "") then
+										local f = assert(loadstring("return " .. completion))()
+										if (f ~= nil and f == true) then
+											canComplete = true
+										end
+									else
+										canComplete = (action.isoncd or Player.castinginfo.castingid == action.id)
+									end		
 									
-									--d("Action ["..tostring(action.name).."] is on cooldown and has been casted, kick it out.")
-									return true
+									if (Now() > SkillMgr.macroTimer) then
+										canComplete = true
+									end
+								
+									if (canComplete) then
+										if (msg ~= "") then
+											SendTextCommand(msg)
+										end
+										
+										--d("Action ["..tostring(action.name).."] is on cooldown and has been casted, kick it out.")
+										return true
+									end
 								else
-									if (Player.castinginfo.channelingid == 0) then
+									if (Player.castinginfo.channelingid == 0 and action.isready) then
 										if (action:Cast(targetid)) then		
-											--d("Action ["..tostring(action.name).."] detected as casted.")
 											SkillMgr.macroCasted = true
 										end
 										
@@ -1159,6 +1219,7 @@ function SkillMgr.ParseMacro(data)
 											return true
 										end
 									end
+									
 									SkillMgr.AddThrottleTime(100)
 								end
 							end
@@ -1202,6 +1263,7 @@ function SkillMgr.OnUpdate()
 					table.remove(SkillMgr.receivedMacro,1)
 					SkillMgr.macroCasted = false
 					SkillMgr.macroAttempts = 0
+					SkillMgr.macroTimer = 0
 				end
 			end			
 		end
@@ -2544,8 +2606,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							
 								local mtargetfunc = skill["m"..tostring(i).."actiontarget"]
 								local mtargetmsg = skill["m"..tostring(i).."actionmsg"] or ""
+								local mtargetcomplete = skill["m"..tostring(i).."actioncomplete"] or ""
 								
-								local instruction = { "Action", {mid, 1, mtargetfunc, mtargetmsg }}
+								local instruction = { "Action", {mid, 1, mtargetfunc, mtargetmsg, mtargetcomplete }}
 								local mwait = tonumber(skill["m"..tostring(i).."actionwait"]) or 100
 								local waitInstruction = { "Wait", { mwait }}
 								table.insert(macro,instruction)
@@ -2562,9 +2625,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 						
 					elseif (skill.stype == "Action") then
 						if (skill.trg == "Ground Target") then
-							local action = ActionList:Get(skill.id)
+						
+							local action = MGetAction(skill.id)
+							local entity = MGetEntity(TID)
 							
-							local entity = EntityList:Get(TID)
 							if (entity) then
 								local tpos = entity.pos
 								if (skill.pgtrg == "Behind") then
@@ -2637,8 +2701,9 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						else
-							local action = ActionList:Get(skill.id,1,TID)
+							local action = MGetAction(skill.id,1,TID)
 							local entity = MGetEntity(TID)
+							
 							if (ValidTable(action)) then
 								d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
 								--if (gSkillManagerQueueing == "1") then
@@ -2703,9 +2768,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					local TID = result
 					
 					if (skill.trg == "Ground Target") then
-						local s = ActionList:Get(skill.id,11)
+					
+						local s = MGetAction(skill.id,11)
+						local entity = MGetEntity(TID)
 						
-						local entity = EntityList:Get(TID)
 						if (entity) then
 							local tpos = entity.pos
 							if (skill.pgtrg == "Behind") then
@@ -2732,7 +2798,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 					else
-						local s = ActionList:Get(skill.id,11)
+						local s = ActionList:Get(skill.id,11,TID)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						if (s:Cast(TID)) then
 							if (SkillMgr.SkillProfile[prio]) then
@@ -3802,7 +3868,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (skill.stype == "Macro" or skill.stype == "Action") then 
 		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
 	elseif (skill.stype == "Pet") then
-		realskilldata = ActionList:Get(skillid,11) 
+		realskilldata = ActionList:Get(skillid,11,targetTable.TID) 
 	end
 	
 	SkillMgr.CurrentSkill = skill
@@ -3995,8 +4061,8 @@ function SkillMgr.AddConditional(conditional)
 	table.insert(SkillMgr.ConditionList,conditional)
 end
 
-function SkillMgr.IsFacing(isfacing,autoface,target)
-	return (isfacing == true or autoface == "1" or target == "Ground Target" or target == "Player")
+function SkillMgr.IsFacing(skilldata,autoface,target)
+	return (skilldata.isfacing == true or autoface == "1" or target == "Ground Target" or target == "Player" or IsHealingSkill(skilldata.id) or IsFriendlyBuff(skilldata.id))
 end
 
 function SkillMgr.CanBeQueued(skilldata)
@@ -4046,13 +4112,15 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata.isfacing,gAssistUseAutoFace,target)) then
+		if (realskilldata.isready and SkillMgr.IsFacing(realskilldata,gAssistUseAutoFace,target)) then
 			return false
 		elseif (IsNinjutsuSkill(realskilldata.id) and skill.stype == "Macro") then
 			if (not realskilldata.isoncd) then
 				return false
 			end
-		elseif ((skill.trg == "Ground Target" or skill.type == 11) and realskilldata.isready) then
+		elseif (skill.trg == "Ground Target" and realskilldata.isready) then
+			return false
+		elseif (skill.type == 11 and (realskilldata.isready or not realskilldata.isoncd)) then
 			return false
 		end
 		return true

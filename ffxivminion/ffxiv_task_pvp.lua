@@ -3,6 +3,8 @@ ffxiv_task_pvp.name = "LT_PVP"
 ffxiv_task_pvp.lastTick = 0
 ffxiv_task_pvp.multibotJoin = false
 ffxiv_task_pvp.wonLastMatch = false
+ffxiv_task_pvp.filterSet = false
+ffxiv_task_pvp.dutySet = false
 
 function ffxiv_task_pvp.Create()
     local newinst = inheritsFrom(ffxiv_task_pvp)
@@ -47,6 +49,9 @@ function ffxiv_task_pvp.Create()
 	newinst.currentLeader = ""
     
     newinst.targetFunction = GetPVPTarget
+	
+	ffxiv_task_pvp.filterSet = false
+	ffxiv_task_pvp.dutySet = false
     
     return newinst
 end
@@ -56,19 +61,49 @@ e_joinqueuepvp = inheritsFrom( ml_effect )
 function c_joinqueuepvp:evaluate() 
     return ((   not MultiComp(Player.localmapid, "337,175,336,186,376,422")) and 
 				(IsLeader() or TableSize(EntityList.myparty) == 0) and
-				not IsLoading() and Player.alive and
-                (ml_task_hub:ThisTask().state == "COMBAT_ENDED" or
-				ml_task_hub:ThisTask().state == ""))
+				not IsLoading() and Player.alive and NotQueued() and 
+				Now() >= ml_task_hub:ThisTask().windowTimer)
 end
 function e_joinqueuepvp:execute()
+	local winTrade = (gPVPWinTrade == "1")
     if not ControlVisible("ContentsFinder") then
 		SendTextCommand("/dutyfinder")
         ml_task_hub:ThisTask().windowTimer = Now() + 1500
-    elseif ( ControlVisible("ContentsFinder") and (Now() > ml_task_hub:ThisTask().windowTimer)) then
-        PressDutyJoin()
-        ml_task_hub:ThisTask().state = "WAITING_FOR_DUTY"
-		ffxiv_task_pvp.multibotJoin = false
-    end
+	else
+		if (winTrade) then
+			if (Duty:SelectFilter(8)) then
+				if (not ffxiv_task_pvp.filterSet) then
+					d("Fell into filter set.")
+					ffxiv_task_pvp.filterSet = true
+					ml_task_hub:ThisTask().windowTimer = Now() + 1000
+				elseif (not ffxiv_task_pvp.dutySet) then
+					d("Fell into duty selection.")
+					local duty = GetDutyFromID(186)
+					if (duty) then
+						d("selecting a duty with listindex ["..tostring(duty.DutyListIndex).."]")
+						Duty:SelectDuty(duty.DutyListIndex)
+						ffxiv_task_pvp.dutySet = true
+						ml_task_hub:ThisTask().windowTimer = Now() + 2000
+					end
+				elseif (ffxiv_task_pvp.dutySet) then
+					d("PressDutyJoin()")
+					PressDutyJoin()
+					ml_task_hub:ThisTask().windowTimer = Now() + 30000
+					ml_task_hub:ThisTask().state = "WAITING_FOR_DUTY"
+					
+					local gameRegion = GetGameRegion()
+					if (gameRegion ~= 1) then
+						ffxiv_task_pvp.filterSet = false
+						ffxiv_task_pvp.dutyCleared = false
+						ffxiv_task_pvp.dutySet = false
+					end
+				end
+			end
+		else 
+			PressDutyJoin()
+			ml_task_hub:ThisTask().state = "WAITING_FOR_DUTY"
+		end
+	end
 end
 
 c_detectenter = inheritsFrom( ml_cause )
@@ -81,6 +116,7 @@ end
 function e_detectenter:execute()
     ml_task_hub:ThisTask().state = "WAITING_FOR_COMBAT"
 	ml_task_hub:ThisTask().enterTimer = Now()
+	ml_task_hub:ThisTask().leaveTimer = 0
 	ml_task_hub:ThisTask().deadTimes = 0
 end
 
@@ -94,14 +130,13 @@ function e_pressleave:execute()
 	ml_task_hub:ThisTask().state = "COMBAT_ENDED"
 	ml_task_hub:ThisTask().targetid = 0
 	ml_task_hub:ThisTask().startTimer = 0
-	ml_task_hub:ThisTask().leaveTimer = 0
 	ml_task_hub:ThisTask().enterTimer = 0
 	ml_task_hub:ThisTask().afkTimer = 0
 	Player:Stop()
 	ffxiv_task_pvp.wonLastMatch = Player.alive
 		
     if (gPVPDelayLeave == "1" and ml_task_hub:ThisTask().leaveTimer == 0) then
-        ml_task_hub:ThisTask().leaveTimer = Now() + math.random(12000,18000)
+        ml_task_hub:ThisTask().leaveTimer = Now() + math.random(1000,3000)
     elseif (gPVPDelayLeave == "0" or Now() > ml_task_hub:ThisTask().leaveTimer) then
         PressLeaveColosseum()
     end
@@ -585,76 +620,77 @@ function ffxiv_task_pvp:Process()
 							end
 						end
 						ml_task_hub:ThisTask().targetTimer = Now()		
+					end
+				end
 						
-						if ValidTable(target) then
-							local pos = target.pos
-							if (gPVPWinTrade == "1" and ffxiv_task_pvp.wonLastMatch) then
-								Player:SetTarget(target.id)
-								Player:SetFacing(pos.x,pos.y,pos.z)
-							else
+				if ValidTable(target) then
+					local pos = target.pos
+					if (gPVPWinTrade == "1" and ffxiv_task_pvp.wonLastMatch) then
+						Player:SetTarget(target.id)
+						Player:SetFacing(pos.x,pos.y,pos.z)
+					else
+						if (Player.ismounted) then
+							Dismount()
+							return
+						end
+						
+						Player:SetTarget(target.id)
+						local dist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z)
+						
+						if (ml_global_information.AttackRange > 5) then
+							if ((not InCombatRange(target.id) or not target.los) and not IsPlayerCasting()) then
+								if (Now() > self.movementDelay) then
+									local path = Player:MoveTo(pos.x,pos.y,pos.z, 15, false, false)
+									self.movementDelay = Now() + 1000
+								end
+							end
+							if (InCombatRange(target.id)) then
 								if (Player.ismounted) then
 									Dismount()
-									return
 								end
-								
-								Player:SetTarget(target.id)
-								local dist = PDistance3D(Player.pos.x,Player.pos.y,Player.pos.z,pos.x,pos.y,pos.z)
-								
-								if (ml_global_information.AttackRange > 5) then
-									if ((not InCombatRange(target.id) or not target.los) and not IsPlayerCasting()) then
-										if (Now() > self.movementDelay) then
-											local path = Player:MoveTo(pos.x,pos.y,pos.z, 15, false, false)
-											self.movementDelay = Now() + 1000
-										end
-									end
-									if (InCombatRange(target.id)) then
-										if (Player.ismounted) then
-											Dismount()
-										end
-										if ((IsCaster(Player.job) and Player:IsMoving()) or target.los) then
-											Player:Stop()
-										end
-									end
-									
-									if (InCombatRange(target.id) and target.attackable and target.alive) then
-										Player:SetFacing(pos.x,pos.y,pos.z) 
-										SkillMgr.Cast( target )
-									end
-								else
-									if (not InCombatRange(target.id) or not target.los) then
-										if (target.los and dist <= 6) then
-											Player:MoveTo(pos.x,pos.y,pos.z, 0.5, true, false)
-										else
-											Player:MoveTo(pos.x,pos.y,pos.z, 0.5, true, false)
-										end
-									end
-									if (InCombatRange(target.id)) then
-										if (Player.ismounted) then
-											Dismount()
-										end
-										if (Player:IsMoving()) then
-											Player:Stop()
-										end
-									end
-									
-									if (InCombatRange(target.id) and target.attackable and target.alive) then
-										Player:SetFacing(pos.x,pos.y,pos.z)
-										SkillMgr.Cast( target )
-									end
+								if ((IsCaster(Player.job) and Player:IsMoving()) or target.los) then
+									Player:Stop()
 								end
-							end
-						else
-							ml_task_hub:ThisTask().targetid = 0
-							if Player.role == 4 then
-								SkillMgr.Cast( Player, true )
 							end
 							
-							if (Player.localmapid == 186) then
-								local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
-								if (ValidTable(p)) then
-									Player:MoveTo(p.x,p.y,p.z)
+							if (InCombatRange(target.id) and target.attackable and target.alive) then
+								Player:SetFacing(pos.x,pos.y,pos.z) 
+								SkillMgr.Cast( target )
+							end
+						else
+							d("["..tostring(Now()).."]: checking combat loop")
+							if (not InCombatRange(target.id) or not target.los) then
+								if (target.los and dist <= 6) then
+									Player:MoveTo(pos.x,pos.y,pos.z, 0.5, true, false)
+								else
+									Player:MoveTo(pos.x,pos.y,pos.z, 0.5, false, false)
 								end
 							end
+							if (InCombatRange(target.id)) then
+								if (Player.ismounted) then
+									Dismount()
+								end
+								if (Player:IsMoving()) then
+									Player:Stop()
+								end
+							end
+							
+							if (InCombatRange(target.id) and target.attackable and target.alive) then
+								Player:SetFacing(pos.x,pos.y,pos.z)
+								SkillMgr.Cast( target )
+							end
+						end
+					end
+				else
+					ml_task_hub:ThisTask().targetid = 0
+					if Player.role == 4 then
+						SkillMgr.Cast( Player, true )
+					end
+					
+					if (Player.localmapid == 186) then
+						local p,dist = NavigationManager:GetClosestPointOnMesh({0,.1349,0},false)
+						if (ValidTable(p)) then
+							Player:MoveTo(p.x,p.y,p.z)
 						end
 					end
 				end

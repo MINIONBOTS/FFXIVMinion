@@ -662,7 +662,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	local myTarget = MGetTarget()
-	local ppos = ml_global_information.Player_Position
+	local ppos = Player.pos
 	
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
@@ -715,10 +715,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		return false
 	end
 	
+	local ipos = interactable.pos
+	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
+	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-		if (interactable and interactable.targetable and interactable.distance < 10) then
+		if (interactable and interactable.targetable and dist3d < 10) then
 			Player:SetTarget(interactable.id)
-			local ipos = interactable.pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
 			if (p and dist ~= 0) then
 				if (not deepcompare(self.pos,p,true)) then
@@ -731,9 +734,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (not IsFlying()) then
 		--if (myTarget and TimeSince(self.lastInteract) > 500) then
 		if (myTarget and myTarget.id == interactable.id) then
+
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
-					if (interactable.distance <= 7.5) then
+					if (dist3d <= 7.5) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Interact(interactable.id)
 						self.lastInteract = Now()
@@ -747,7 +751,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local range = self.interactRange or (radius * 3.5)
 				--if (interactable.gatherable or interactable.los) then
 				if (not forceLOS or (forceLOS and interactable.los)) then
-					if (interactable and interactable.distance <= range) then
+					if (interactable and dist3d <= range) then
 						local ydiff = math.abs(ppos.y - interactable.pos.y)
 						if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)

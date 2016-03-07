@@ -1469,8 +1469,10 @@ function GetNearestUnspoiled(class)
 	
     return nil
 end
-function HasBuff(targetid, buffID)
+function HasBuff(targetid, buffID, stacks)
+	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
+	local stacks = tonumber(stacks) or 0
 	
 	local entity = EntityList:Get(targetid)
 	if (ValidTable(entity)) then
@@ -1478,7 +1480,9 @@ function HasBuff(targetid, buffID)
 		if (ValidTable(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					return true
+					if (stacks == 0 or stacks == buff.stacks) then
+						return true
+					end
 				end
 			end
 		end
@@ -2775,13 +2779,13 @@ function IsPositionLocked()
 end
 function IsLoading()
 	if (Quest:IsLoading()) then
-		d("IsLoading [1]")
+		--d("IsLoading [1]")
 		return true
 	elseif (Player.localmapid == 0) then
-		d("IsLoading [2]")
+		--d("IsLoading [2]")
 		return true
 	elseif (ml_mesh_mgr.loadingMesh) then
-		d("IsLoading [3]")
+		--d("IsLoading [3]")
 		return true
 	end
 	
