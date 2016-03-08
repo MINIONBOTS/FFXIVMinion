@@ -1132,8 +1132,10 @@ function SkillMgr.ParseMacro(data)
 						if (SkillMgr.macroTimer == 0) then
 							SkillMgr.macroTimer = Now() + 1000
 						end
+
 						local action = ActionList:Get(actionid,actiontype,targetid)
 						if (action) then
+
 							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
 								local tpos = target.pos
 								local eh = AceLib.API.Math.ConvertHeading(tpos.h)
@@ -1208,9 +1210,11 @@ function SkillMgr.ParseMacro(data)
 										return true
 									end
 								else
-									if (Player.castinginfo.channelingid == 0 and action.isready) then
-										if (action:Cast(targetid)) then		
-											SkillMgr.macroCasted = true
+									if (Player.castinginfo.channelingid == 0) then
+										if (action.isready or action.id == 2260) then
+											if (action:Cast(targetid)) then		
+												SkillMgr.macroCasted = true
+											end
 										end
 										
 										SkillMgr.macroAttempts = SkillMgr.macroAttempts + 1
@@ -2626,11 +2630,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					elseif (skill.stype == "Action") then
 						if (skill.trg == "Ground Target") then
 						
-							local action = MGetAction(skill.id)
+							local action = ActionList:Get(skill.id)
 							local entity = MGetEntity(TID)
-							
+							local tpos = entity.pos
 							if (entity) then
-								local tpos = entity.pos
 								if (skill.pgtrg == "Behind") then
 									local eh = AceLib.API.Math.ConvertHeading(tpos.h)
 									local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
@@ -2701,16 +2704,16 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						else
-							local action = MGetAction(skill.id,1,TID)
+							local action = ActionList:Get(skill.id,1,TID)
 							local entity = MGetEntity(TID)
 							
 							if (ValidTable(action)) then
-								d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
+								--d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
 								--if (gSkillManagerQueueing == "1") then
 									--SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
 								--end
-								if (ActionList:Cast(skill.id,TID,1)) then
-								--if (action:Cast(TID)) then
+								--if (ActionList:Cast(skill.id,TID,1)) then
+								if (action:Cast(TID)) then
 									SkillMgr.latencyTimer = Now()
 									
 									-- If we want to try the unique last cast, throw it to the stack.
@@ -2769,7 +2772,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					
 					if (skill.trg == "Ground Target") then
 					
-						local s = MGetAction(skill.id,11)
+						local s = ActionList:Get(skill.id,11)
 						local entity = MGetEntity(TID)
 						
 						if (entity) then
@@ -4120,7 +4123,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		elseif (skill.trg == "Ground Target" and realskilldata.isready) then
 			return false
-		elseif (skill.type == 11 and (realskilldata.isready or not realskilldata.isoncd)) then
+		elseif (skill.type == 11 and (realskilldata.isready)) then
 			return false
 		end
 		return true
