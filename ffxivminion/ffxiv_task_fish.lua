@@ -1126,7 +1126,8 @@ function c_fishnexttask:evaluate()
 					end
 				end
 				if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-					local eTime = AceLib.API.Weather.GetDateTime() 
+					--local eTime = AceLib.API.Weather.GetDateTime()  does not work				
+					local eTime = EorzeaTime() 
 					local eHour = eTime.hour
 					
 					--d("Need to figure out if we're between the valid hours.")
@@ -1299,7 +1300,8 @@ function c_fishnexttask:evaluate()
 					
 					if (valid) then
 						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-							local eTime = AceLib.API.Weather.GetDateTime() 
+							--local eTime = AceLib.API.Weather.GetDateTime()  does not work				
+							local eTime = EorzeaTime() 
 							local eHour = eTime.hour
 							
 							local validHour = false
