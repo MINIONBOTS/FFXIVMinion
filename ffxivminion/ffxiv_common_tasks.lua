@@ -991,7 +991,7 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (MIsGCDLocked() and not Player.ismounted) then
+	if (MIsGCDLocked() and not Player.ismounted and not IsTransporting()) then
 		return false
 	end
 	
@@ -1302,7 +1302,7 @@ function ffxiv_task_avoid:task_complete_eval()
 		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
 	end
 	
-	--if (dist < 1 and not Player:IsMoving()) then
+	if (dist < 1.5 and not Player:IsMoving()) then
 		local target;
 		if (self.attackTarget ~= 0) then
 			target = MGetEntity(self.attackTarget)
@@ -1316,7 +1316,7 @@ function ffxiv_task_avoid:task_complete_eval()
 				SkillMgr.Cast( target )
 			end
 		end
-	--end
+	end
     return false
 end
 

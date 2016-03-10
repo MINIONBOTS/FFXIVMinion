@@ -173,10 +173,6 @@ function MIsGCDLocked()
 		return memoized
 	else
 		local ret = ActionList:IsOnGlobalCooldown()
-		--d("ActionList:IsOnGlobalCooldown():"..tostring(ret))
-		if (GameRegion() == 3) then
-			ret = false
-		end
 		SetMemoized(memString,ret)
 		return ret
 	end

@@ -628,6 +628,10 @@ function ffxiv_task_pvp:Process()
 					if (gPVPWinTrade == "1" and ffxiv_task_pvp.wonLastMatch) then
 						Player:SetTarget(target.id)
 						Player:SetFacing(pos.x,pos.y,pos.z)
+						
+						if (TimeSince(ml_task_hub:ThisTask().enterTimer) > 250000) then
+							ffxiv_task_pvp.wonLastMatch = false
+						end
 					else
 						if (Player.ismounted) then
 							Dismount()
@@ -658,7 +662,7 @@ function ffxiv_task_pvp:Process()
 								SkillMgr.Cast( target )
 							end
 						else
-							d("["..tostring(Now()).."]: checking combat loop")
+							--d("["..tostring(Now()).."]: checking combat loop")
 							if (not InCombatRange(target.id) or not target.los) then
 								if (target.los and dist <= 6) then
 									Player:MoveTo(pos.x,pos.y,pos.z, 0.5, true, false)
@@ -669,9 +673,6 @@ function ffxiv_task_pvp:Process()
 							if (InCombatRange(target.id)) then
 								if (Player.ismounted) then
 									Dismount()
-								end
-								if (Player:IsMoving()) then
-									Player:Stop()
 								end
 							end
 							

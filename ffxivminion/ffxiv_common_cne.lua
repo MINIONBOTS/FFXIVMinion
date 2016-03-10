@@ -1081,7 +1081,7 @@ c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
 c_walktopos.throttle = 500
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not Player.ismounted) or
+	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not Player.ismounted and not IsTransporting()) or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -1409,7 +1409,7 @@ c_mount.reattempt = 0
 c_mount.attemptPos = nil
 function c_mount:evaluate()
 	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
+		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying() or IsTransporting()) 
 	then
 		return false
 	end
@@ -1544,7 +1544,7 @@ e_battlemount = inheritsFrom( ml_effect )
 e_battlemount.id = 0
 function c_battlemount:evaluate()
 	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying()) 
+		or IsShopWindowOpen() or Player.ismounted or ml_global_information.Player_InCombat or IsFlying() or IsTransporting()) 
 	then
 		return false
 	end
@@ -1723,7 +1723,7 @@ function c_sprint:evaluate()
         return false
     end
 	
-	if (MIsLocked() or MIsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted) then
+	if (MIsLocked() or MIsLoading() or IsMounting() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or Player.ismounted or IsTransporting()) then
 		return false
 	end
 

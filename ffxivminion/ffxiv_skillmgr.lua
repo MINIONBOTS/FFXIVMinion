@@ -1,6 +1,7 @@
 ﻿-- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.version = "v2.0";
+SkillMgr.lastTick = 0
 SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
 SkillMgr.CurrentSkillData = {}
@@ -1065,7 +1066,8 @@ end
 SkillMgr.receivedMacro = {}
 SkillMgr.macroCasted = false
 SkillMgr.macroAttempts = 0
-SkillMgr.macroTimer = 0
+SkillMgr.failTimer = 0
+SkillMgr.recastTimer = 0
 function SkillMgr.ParseMacro(data)
 	SkillMgr.receivedMacro = {}
 	
@@ -1111,26 +1113,40 @@ function SkillMgr.ParseMacro(data)
 				--d("Msg:"..tostring(msg))
 				--d("ActionWait:"..tostring(actionwait))
 				
-				local target;
-				local targetid;
-				if (targetidentifier == "Target" or targetidentifer == "Ground Target") then
-					local myTarget = Player:GetTarget()
-					if (myTarget) then
-						target = myTarget
-						targetid = myTarget.id
-					else
-						--d("Fail out of this action, no target.")
-						return true
-					end
-				elseif (targetidentifier == "Player" or targetidentifer == "Ground Player") then
-					target = Player
-					targetid = Player.id
-				end
-				
 				table.insert(SkillMgr.receivedMacro, 
-					function () 
-						if (SkillMgr.macroTimer == 0) then
-							SkillMgr.macroTimer = Now() + 1000
+					function () 										
+						local actionid = actionid
+						local actiontype = actiontype
+						local targetidentifier = targetidentifier
+						local msg = msg
+						local completion = completion
+						local actionwait = actionwait
+						
+						if (SkillMgr.failTimer == 0) then
+							SkillMgr.failTimer = SkillMgr.lastTick + 3000
+						end
+						if (SkillMgr.recastTimer == 0) then
+							SkillMgr.recastTimer = SkillMgr.lastTick + 750
+						end
+						
+						if (SkillMgr.lastTick > SkillMgr.failTimer) then
+							return true
+						end
+						
+						local target;
+						local targetid;
+						if (targetidentifier == "Target" or targetidentifer == "Ground Target") then
+							local myTarget = Player:GetTarget()
+							if (myTarget) then
+								target = myTarget
+								targetid = myTarget.id
+							else
+								--d("Fail out of this action, no target.")
+								return false
+							end
+						elseif (targetidentifier == "Player" or targetidentifer == "Ground Player") then
+							target = Player
+							targetid = Player.id
 						end
 
 						local action = ActionList:Get(actionid,actiontype,targetid)
@@ -1197,17 +1213,22 @@ function SkillMgr.ParseMacro(data)
 										canComplete = (action.isoncd or Player.castinginfo.castingid == action.id)
 									end		
 									
-									if (Now() > SkillMgr.macroTimer) then
-										canComplete = true
-									end
-								
 									if (canComplete) then
 										if (msg ~= "") then
 											SendTextCommand(msg)
 										end
 										
-										--d("Action ["..tostring(action.name).."] is on cooldown and has been casted, kick it out.")
+										d("Action ["..tostring(action.name).."] is on cooldown and has been casted, kick it out.")
 										return true
+									end
+									
+									if (SkillMgr.lastTick > SkillMgr.recastTimer) then
+										if (Player.castinginfo.channelingid == 0) then
+											if (action.isready or action.id == 2260) then
+												d("Action ["..tostring(action.name).."] is being reattempted.")
+												action:Cast(targetid)	
+											end
+										end
 									end
 								else
 									if (Player.castinginfo.channelingid == 0) then
@@ -1219,7 +1240,7 @@ function SkillMgr.ParseMacro(data)
 										
 										SkillMgr.macroAttempts = SkillMgr.macroAttempts + 1
 										if (SkillMgr.macroAttempts > 4) then
-											--d("Action ["..tostring(action.name).."] has been attempted 5 times or more, kick it out.")
+											d("Action ["..tostring(action.name).."] has been attempted 5 times or more, kick it out.")
 											return true
 										end
 									end
@@ -1240,7 +1261,7 @@ function SkillMgr.ParseMacro(data)
 end
 
 function SkillMgr.AddThrottleTime(t)
-	SkillMgr.MacroThrottle = Now() + t
+	SkillMgr.MacroThrottle = SkillMgr.lastTick + t
 end
 
 function SkillMgr.FoldMacroGroups()
@@ -1254,12 +1275,13 @@ function SkillMgr.FoldMacroGroups()
 	end
 end
 
-function SkillMgr.OnUpdate()
+function SkillMgr.OnGameUpdate(event, tickcount)
+	SkillMgr.lastTick = tickcount
+	
 	if (ValidTable(SkillMgr.receivedMacro)) then
 		--d("Macro table size:"..tostring(TableSize(SkillMgr.receivedMacro)))
-		if (Now() > SkillMgr.MacroThrottle) then
-			ffxivminion.UpdateGlobals()
-			
+		if (SkillMgr.lastTick > SkillMgr.MacroThrottle) then
+		
 			local newInstruction = SkillMgr.receivedMacro[1]
 			if (newInstruction and type(newInstruction) == "function") then
 				local retval = newInstruction()
@@ -1267,12 +1289,17 @@ function SkillMgr.OnUpdate()
 					table.remove(SkillMgr.receivedMacro,1)
 					SkillMgr.macroCasted = false
 					SkillMgr.macroAttempts = 0
-					SkillMgr.macroTimer = 0
+					SkillMgr.failTimer = 0
+					SkillMgr.recastTimer = 0
 				end
 			end			
 		end
+		--d("Recieved a macro, exit out early.")
+		return
 	end
-	
+end
+
+function SkillMgr.OnUpdate()
 	--[[
 	if (ValidTable(SkillMgr.recoverTarget)) then
 		local recovery = SkillMgr.recoverTarget
@@ -3045,7 +3072,6 @@ function SkillMgr.Gather(item)
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
                 local realskilldata = ActionList:Get(skillid,1)
-               --if ( realskilldata and realskilldata.isready ) then 
 			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
@@ -3095,25 +3121,31 @@ function SkillMgr.Gather(item)
 						local info = Player:GetCollectableInfo()
 						if (ValidTable(info)) then
 							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
 								castable = false
 							end
 							if (tonumber(skill.collwearlt) > 0 and info.wear > tonumber(skill.collwearlt)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear max check.")
 								castable = false
 							end
 							if (tonumber(skill.collweargt) > 0 and info.wear < tonumber(skill.collweargt)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear min check.")
 								castable = false
 							end
 							if (tonumber(skill.collweareq) > 0 and info.wear ~= tonumber(skill.collweareq)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible wear equality check.")
 								castable = false
 							end
 						end
 					else
 						if (ValidTable(item)) then
 							if (tonumber(skill.itemchancemax) > 0 and item and item.chance > tonumber(skill.itemchancemax)) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the item chance max check.")
 								castable = false
 							end
 							
 							if (tonumber(skill.itemhqchancemin) > 0 and item and (item.hqchance == 255 or item.hqchance < tonumber(skill.itemhqchancemin))) then
+								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the hq chance max check.")
 								castable = false
 							end
 						end
@@ -3155,6 +3187,8 @@ function SkillMgr.Gather(item)
 								end
 								return true
 							end	
+						else
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use because it is not ready.")
 						end
 					end	
                 end
@@ -4065,7 +4099,8 @@ function SkillMgr.AddConditional(conditional)
 end
 
 function SkillMgr.IsFacing(skilldata,autoface,target)
-	return (skilldata.isfacing == true or autoface == "1" or target == "Ground Target" or target == "Player" or IsHealingSkill(skilldata.id) or IsFriendlyBuff(skilldata.id))
+	local hasPet = ValidTable(Player.pet)
+	return (skilldata.isfacing == true or autoface == "1" or target.id == Player.id or (hasPet and target.id == Player.pet.id) or IsHealingSkill(skilldata.id) or IsFriendlyBuff(skilldata.id))
 end
 
 function SkillMgr.CanBeQueued(skilldata)
@@ -5214,6 +5249,7 @@ function SkillMgr.AddDefaultConditions()
 	SkillMgr.AddConditional(conditional)
 end
 
+RegisterEventHandler("Gameloop.Update",SkillMgr.OnGameUpdate)
 RegisterEventHandler("GUI.Item",SkillMgr.ButtonHandler)
 RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
 RegisterEventHandler("GUI.Update",SkillMgr.GUIVarUpdate)

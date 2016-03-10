@@ -19,7 +19,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (MIsLocked() or IsFlying() or (MIsGCDLocked() and not Player.ismounted) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
+	if (MIsLocked() or IsFlying() or (MIsGCDLocked() and not Player.ismounted and not IsTransporting()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end

@@ -5494,6 +5494,10 @@ function UsingBattleItem()
 	return (currentAction == 83 or currentAction == 84 or currentAction == 85 or currentAction == 89 or currentAction == 90 or currentAction == 91)
 end
 
+function IsTransporting()
+	return HasBuff(Player.id,404)
+end
+
 function toboolean(input)
 	if (input ~= nil) then
 		if (type(input) == "string") then
