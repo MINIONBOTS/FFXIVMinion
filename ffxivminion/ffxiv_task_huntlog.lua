@@ -244,13 +244,14 @@ function c_evaluatebesttarget:evaluate()
 	end
 	
 	if (not deepcompare(ml_task_hub:CurrentTask().huntParams,c_evaluatebesttarget.targetinfo,true)) then
+		d("[EvaluateBestTarget]: Updating target info.")
 		return true
 	end
 	
 	return false
 end
 function e_evaluatebesttarget:execute()
-	ml_task_hub:CurrentTask().huntParams = shallowcopy(c_evaluatebesttarget.targetinfo)
+	ml_task_hub:CurrentTask().huntParams = deepcopy(c_evaluatebesttarget.targetinfo,true)
 end
 
 c_huntlogmovetomap = inheritsFrom( ml_cause )

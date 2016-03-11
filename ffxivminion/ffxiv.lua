@@ -527,8 +527,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			gStatusMarkerTime = ""
 		end
 		
-		--local et = AceLib.API.Weather.GetDateTime()   y u no test!?
-		local et = EorzeaTime() 
+		local et = AceLib.API.Weather.GetDateTime() 
 		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		-- Mesher.lua

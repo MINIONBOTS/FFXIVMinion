@@ -1081,7 +1081,7 @@ c_walktopos.lastPos = {}
 e_walktopos.movedNotMoving = 0
 c_walktopos.throttle = 500
 function c_walktopos:evaluate()
-	if ((MIsLocked() and not IsFlying()) or (MIsGCDLocked() and not Player.ismounted and not IsTransporting()) or
+	if ((MIsLocked() and not IsFlying()) or
 		MIsLoading() or
 		Player:IsJumping() or 
 		IsMounting() or
@@ -1090,6 +1090,7 @@ function c_walktopos:evaluate()
 		(Now() < IsNull(ml_task_hub:CurrentTask().moveWait,0)) or 
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
+		
 		return false
 	end
 	

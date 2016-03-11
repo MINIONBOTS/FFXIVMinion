@@ -1737,8 +1737,7 @@ function c_gathernexttask:evaluate()
 				end
 			end
 			if (IsNull(currentTask.eorzeaminhour,-1) ~= -1 and IsNull(currentTask.eorzeamaxhour,-1) ~= -1) then
-				--local eTime = AceLib.API.Weather.GetDateTime()  does not work				
-				local eTime = EorzeaTime() 
+				local eTime = AceLib.API.Weather.GetDateTime() 
 				local eHour = eTime.hour
 				
 				local validHour = false
@@ -1849,8 +1848,7 @@ function c_gathernexttask:evaluate()
 				
 				if (valid) then
 					if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-						--local eTime = AceLib.API.Weather.GetDateTime()  does not work				
-						local eTime = EorzeaTime() 
+						local eTime = AceLib.API.Weather.GetDateTime() 
 						local eHour = eTime.hour
 						
 						local validHour = false
