@@ -1042,7 +1042,7 @@ function c_followleader:evaluate()
 		local isDPS = GetRoleString(Player.job) == "dps"
 		local isTank = GetRoleString(Player.job) == "tank"
 		
-		if (((leader.incombat and ((isHealer and distance > 15) or (isDPS and distance > 10)) or (distance > 20)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
+		if ((leader.incombat and ((isHealer and distance > 15) or (isDPS and distance > 10)) or (distance > 20)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
 			c_followleader.leaderpos = leaderPos
 			c_followleader.leader = leader
 			c_followleader.distance = distance
