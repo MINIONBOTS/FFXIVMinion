@@ -485,7 +485,7 @@ function e_selectcraft:execute()
 		local orders = ffxiv_craft.orders
 		
 		local sortfunc = function(orders,a,b) 
-			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].index < orders[b].index) 
+			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
 		end
 		
 		local foundSelection = false
@@ -497,7 +497,9 @@ function e_selectcraft:execute()
 					local itemcount = ItemCount(itemid,order.counthq,order.requirehq)
 					
 					newTask.startingCount = itemcount
+					cd("[SelectCraft]: Starting Amount :"..tostring(itemcount)..".",3)
 					newTask.requiredItems = order.amount
+					cd("[SelectCraft]: Required Amount :"..tostring(order.amount)..".",3)
 					newTask.requireHQ = order.requirehq
 					newTask.countHQ = order.counthq
 					newTask.itemid = order.item
@@ -505,10 +507,10 @@ function e_selectcraft:execute()
 					newTask.useHQ = order.usehq
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.profile
-					newTask.recipe = { id = order.id, class = order.class, page = order.page, index = order.index }
+					newTask.recipe = { id = order.id, class = order.class, page = order.page }
 					
 					cd("[SelectCraft]: Can craft id ["..tostring(id).."], recipe details [ id = "..tostring(order.id).."].",2)
-					cd("[SelectCraft]: RecipeDetails ["..tostring(order.class)..","..tostring(order.page)..","..tostring(order.index).."].",2)
+					cd("[SelectCraft]: RecipeDetails ["..tostring(order.class)..","..tostring(order.page).."].",2)
 					
 					foundSelection = true
 				else
@@ -1133,7 +1135,7 @@ function ffxiv_craft.AddToOrders()
 			local neworder = { 	id = recipeid, item = recipeDetails.id, amount = 0, usequick = false, usehq = false, profile = "",
 								requirehq = false, counthq = false,
 								name = recipeDetails.name, level = recipeDetails.attemptlevel,
-								class = recipeDetails.class, page = recipeDetails.page, index = recipeDetails.index  }
+								class = recipeDetails.class, page = recipeDetails.page}
 			orders[recipeid] = neworder
 			
 			ffxiv_craft.RefreshOrders()
@@ -1155,7 +1157,7 @@ function ffxiv_craft.RefreshOrders(doshow)
 	local orders = ffxiv_craft.orders
 	if (ValidTable(orders)) then
 		local sortfunc = function(orders,a,b) 
-			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].index < orders[b].index) 
+			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
 		end
 		for id,order in spairs(orders, sortfunc) do
 			GUI_NewButton(winName,order.name.."["..tostring(id).."]","ffxiv_craft_EditOrder"..tostring(id),group)
