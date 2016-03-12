@@ -1015,6 +1015,8 @@ c_fishnexttask = inheritsFrom( ml_cause )
 e_fishnexttask = inheritsFrom( ml_effect )
 c_fishnexttask.blockOnly = false
 c_fishnexttask.postpone = 0
+c_fishnexttask.subset = {}
+c_fishnexttask.subsetExpiration = 0
 function c_fishnexttask:evaluate()
 	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData) or Now() < c_fishnexttask.postpone) then
 		return false
@@ -1029,7 +1031,10 @@ function c_fishnexttask:evaluate()
 		
 		local evaluate = false
 		local invalid = false
+		local tempinvalid = false
 		local currentTask = ffxiv_fish.currentTask
+		local currentTaskIndex = ffxiv_fish.currentTaskIndex
+		
 		if (not ValidTable(currentTask)) then
 			fd("No current task, set invalid flag.")
 			invalid = true
@@ -1175,173 +1180,158 @@ function c_fishnexttask:evaluate()
 			end
 		end
 		
-		--[[
-		if (invalid and ValidTable(ffxiv_fish.currentTask)) then	
-			--d("Need to erase the current task, and stop.")
-			
-			local fs = tonumber(Player:GetFishingState())
-			if (fs ~= 0) then
-				local finishcast = ActionList:Get(299,1)
-				if (finishcast and finishcast.isready) then
-					finishcast:Cast()
-				end
-				
-				c_fishnexttask.blockOnly = true
-				return true
-			end		
-			
-			ffxiv_fish.currentTask.taskStarted = 0
-			ffxiv_fish.currentTask.taskFailed = 0
-			ffxiv_fish.currentTask = {}
-			ffxiv_fish.currentTaskIndex = 0
-			
-			local taskName = ffxiv_fish.currentTask.name or ffxiv_fish.currentTaskIndex
-			gStatusTaskName = taskName
-			
-			if (gBotMode == GetString("questMode")) then
-				gQuestStepType = "fish - [evaluating]"
-			end
-			
-			ml_global_information.currentMarker = false
-			gStatusMarkerName = ""
-			
-			ffxiv_fish.currentTask.taskStarted = 0
-			ffxiv_fish.attemptedCasts = 0
-			ml_task_hub:CurrentTask().requiresRelocate = true
-			ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
-			
-			c_fishnexttask.blockOnly = true
-			return true
+		if (invalid and not tempinvalid) then
+			c_fishnexttask.subset[currentTaskIndex] = nil
 		end
-		--]]
 		
 		if (evaluate or invalid) then
 			local profileData = ffxiv_fish.profileData
 			if (ValidTable(profileData.tasks)) then
-				local highPriority = {}
-				local validTasks = deepcopy(profileData.tasks,true)
-				for i,data in pairs(validTasks) do
-					local valid = true
-					if (data.minlevel and Player.level < data.minlevel) then
-						valid = false
-					elseif (data.maxlevel and Player.level > data.maxlevel) then
-						valid = false
-					end
-					
-					if (valid) then
-						local lockout = ffxiv_fish.GetLockout(gProfile,i)
-						if (lockout ~= 0) then
-							local lockoutTime = data.lockout or 300
-							
-							if (TimePassed(GetCurrentTime(), lockout) < lockoutTime) then
-								valid = false
-								fd("Task ["..tostring(i).."] not valid due to lockout.",3)
-							end
-						end
-					end
-					
-					if (valid) then
-						local weather = AceLib.API.Weather.Get(data.mapid)
-						local weatherLast = weather.last or ""
-						local weatherNow = weather.now or ""
-						local weatherNext = weather.next or ""
-						if (data.weatherlast) then
-							local found = false
-							for strWeather in StringSplit(data.weatherlast,",") do
-								if (strWeather == weatherLast) then
-									found = true
-								end
-							end
-							if (not found) then
-								valid = false
-							end
-						end	
-						
-						if (data.weathernow) then
-							local found = false
-							for strWeather in StringSplit(data.weathernow,",") do
-								if (strWeather == weatherNow) then
-									found = true
-								end
-							end
-							if (not found) then
-								valid = false
-							end
-						end	
-						
-						if (data.weathernext) then
-							local found = false
-							for strWeather in StringSplit(data.weathernext,",") do
-								if (strWeather == weatherNext) then
-									found = true
-								end
-							end
-							if (not found) then
-								valid = false
-							end
-						end
-					end
-					
-					if (valid) then
-						local shifts = AceLib.API.Weather.GetShifts()
-						local lastShift = shifts.lastShift
-						local nextShift = shifts.nextShift
-						if (data.lastshiftmin and data.lastshiftmin < lastShift) then
-							valid = false
-						elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
-							valid = false
-						elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
-							valid = false
-						elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
-							valid = false
-						end
-					end
-					
-					if (valid) then
-						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-							local eTime = AceLib.API.Weather.GetDateTime() 
-							local eHour = eTime.hour
-							
-							local validHour = false
-							local i = data.eorzeaminhour
-							while (i ~= data.eorzeamaxhour) do
-								if (i == eHour) then
-									validHour = true
-									i = data.eorzeamaxhour
-								else
-									i = AddHours(i,1)
-								end
-							end
-							
-							if (not validHour) then
-								valid = false
-							end
-						end
-					end
-					
-					if (valid) then
-						if (data.condition) then
-							local conditions = shallowcopy(data.condition)
-							for condition,value in pairs(conditions) do
-								local f = assert(loadstring("return " .. condition))()
-								if (f ~= nil) then
-									if (f ~= value) then
-										valid = false
-									end
-									conditions[condition] = nil
-								end
-								if (not valid) then
-									break
-								end
-							end
-						end
-					end
-					
-					if (not valid) then
-						validTasks[i] = nil
-					end
-				end
 				
+				local validTasks = {}
+				if (Now() < c_fishnexttask.subsetExpiration) then
+					validTasks = c_fishnexttask.subset
+				else
+					validTasks = deepcopy(profileData.tasks,true)
+				
+					for i,data in pairs(validTasks) do
+						local valid = true
+						if (data.minlevel and Player.level < data.minlevel) then
+							valid = false
+						elseif (data.maxlevel and Player.level > data.maxlevel) then
+							valid = false
+						end
+						
+						if (valid) then
+							local lockout = ffxiv_fish.GetLockout(gProfile,i)
+							if (lockout ~= 0) then
+								local lockoutTime = data.lockout or 300
+								
+								if (TimePassed(GetCurrentTime(), lockout) < lockoutTime) then
+									valid = false
+									fd("Task ["..tostring(i).."] not valid due to lockout.",3)
+								end
+							end
+						end
+						
+						if (valid) then
+							local weather = AceLib.API.Weather.Get(data.mapid)
+							local weatherLast = weather.last or ""
+							local weatherNow = weather.now or ""
+							local weatherNext = weather.next or ""
+							if (data.weatherlast) then
+								local found = false
+								for strWeather in StringSplit(data.weatherlast,",") do
+									if (strWeather == weatherLast) then
+										found = true
+									end
+								end
+								if (not found) then
+									valid = false
+								end
+							end	
+							
+							if (data.weathernow) then
+								local found = false
+								for strWeather in StringSplit(data.weathernow,",") do
+									if (strWeather == weatherNow) then
+										found = true
+									end
+								end
+								if (not found) then
+									valid = false
+								end
+							end	
+							
+							if (data.weathernext) then
+								local found = false
+								for strWeather in StringSplit(data.weathernext,",") do
+									if (strWeather == weatherNext) then
+										found = true
+									end
+								end
+								if (not found) then
+									valid = false
+								end
+							end
+						end
+						
+						if (valid) then
+							local shifts = AceLib.API.Weather.GetShifts()
+							local lastShift = shifts.lastShift
+							local nextShift = shifts.nextShift
+							if (data.lastshiftmin and data.lastshiftmin < lastShift) then
+								valid = false
+							elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
+								valid = false
+							elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
+								valid = false
+							elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
+								valid = false
+							end
+						end
+						
+						if (valid) then
+							if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
+								local eTime = AceLib.API.Weather.GetDateTime() 
+								local eHour = eTime.hour
+								
+								local validHour = false
+								local i = data.eorzeaminhour
+								while (i ~= data.eorzeamaxhour) do
+									if (i == eHour) then
+										validHour = true
+										i = data.eorzeamaxhour
+									else
+										i = AddHours(i,1)
+									end
+								end
+								
+								if (not validHour) then
+									valid = false
+								end
+							end
+						end
+						
+						if (valid) then
+							if (data.condition) then
+								local conditions = shallowcopy(data.condition)
+								for condition,value in pairs(conditions) do
+									local f = assert(loadstring("return " .. condition))()
+									if (f ~= nil) then
+										if (f ~= value) then
+											valid = false
+										end
+										conditions[condition] = nil
+									end
+									if (not valid) then
+										break
+									end
+								end
+							end
+						end
+						
+						if (not valid) then
+							validTasks[i] = nil
+						end
+					end
+				
+					c_fishnexttask.subset = validTasks
+					local eTime = AceLib.API.Weather.GetDateTime() 
+					local eMinute = eTime.minute
+					local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
+					local expirationDelay = 0
+					for quarter,_ in pairs(quarters) do
+						local diff = (quarter - eMinute)
+						if (diff <= 15 and diff > 0) then
+							expirationDelay = (diff * 2.92) * 1000
+							break
+						end	
+					end
+					d("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
+					c_fishnexttask.subsetExpiration = Now() + expirationDelay
+				end
+					
 				if (ValidTable(validTasks)) then
 					local highPriority = {}
 					local normalPriority = {}
@@ -1369,9 +1359,6 @@ function c_fishnexttask:evaluate()
 							lowPriority[i] = data
 						end
 					end
-					
-					local currentTask = ffxiv_fish.currentTask
-					local currentIndex = ffxiv_fish.currentTaskIndex
 					
 					local lowestIndex = 9999
 					local best = nil
@@ -1403,7 +1390,7 @@ function c_fishnexttask:evaluate()
 						lowestIndex = 9999
 						best = nil
 						for i,data in pairsByKeys(lowPriority) do
-							if (i > currentIndex) then
+							if (i > currentTaskIndex) then
 								if (not best or (best and i < lowestIndex)) then
 									
 									fd("[Low] Setting best task to ["..tostring(i).."]")

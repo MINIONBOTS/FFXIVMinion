@@ -1469,18 +1469,23 @@ function GetNearestUnspoiled(class)
 	
     return nil
 end
-function HasBuff(targetid, buffID, stacks)
+function HasBuff(targetid, buffID, stacks, duration, ownerid)
 	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
 	local stacks = tonumber(stacks) or 0
+	local duration = tonumber(duration) or 0
+	local ownerid = tonumber(ownerid) or 0
 	
-	local entity = EntityList:Get(targetid)
+	local entity = MGetEntity(targetid)
 	if (ValidTable(entity)) then
 		local buffs = entity.buffs
 		if (ValidTable(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					if (stacks == 0 or stacks == buff.stacks) then
+					if (stacks == 0 or stacks >= buff.stacks
+						and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
+						and (ownerid == 0 or buff.ownerid == ownerid)) 
+					then
 						return true
 					end
 				end
@@ -1489,6 +1494,38 @@ function HasBuff(targetid, buffID, stacks)
 	end
     
     return false
+end
+function MissingBuff(targetid, buffID, stacks, duration, ownerid)
+	local targetid = tonumber(targetid) or 0
+	local buffID = tonumber(buffID) or 0
+	local stacks = tonumber(stacks) or 0
+	local duration = tonumber(duration) or 0
+	local ownerid = tonumber(ownerid) or 0
+	
+	local entity = MGetEntity(targetid)
+	if (ValidTable(entity)) then
+		local buffs = entity.buffs
+		if (ValidTable(buffs)) then
+			local missing = true
+			for i, buff in pairs(buffs) do
+				if (buff.id == buffID) then
+					if (stacks == 0 or stacks >= buff.stacks
+						and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
+						and (ownerid == 0 or buff.ownerid == ownerid)) 
+					then
+						missing = false
+					end
+				end
+				if (not missing) then
+					return false
+				end
+			end
+		end
+		
+		return true
+	end
+	
+	return false
 end
 function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
@@ -1559,9 +1596,8 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 		
 		if (ValidTable(buffs)) then
 			--Start by assuming we have no buffs, so they are missing.
-			local missing = true
 			for _orids in StringSplit(buffIDs,",") do
-				missing = true
+				local missing = true
 				for _andid in StringSplit(_orids,"+") do
 					for i, buff in pairs(buffs) do
 						if (buff.id == tonumber(_andid) 
@@ -1582,9 +1618,11 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 			
 			return false
 		end
+		
+		return true
 	end
     
-    return true
+    return false
 end
 function GetFleeHP()
 	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))

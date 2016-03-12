@@ -119,6 +119,7 @@ end
 c_assistleader = inheritsFrom( ml_cause )
 e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
+c_assistleader.movementDelay = 0
 function c_assistleader:evaluate()
     if (gBotMode == GetString("partyMode") and IsLeader()) then
         return false
@@ -130,7 +131,7 @@ function c_assistleader:evaluate()
 		if (leader.ismounted or not leader.incombat or not leadtarget or leadtarget == 0) then
 			return false			
 		end
-
+		
 		if (ml_task_hub:ThisTask().subtask) then
 			local task = ml_task_hub:ThisTask().subtask
 			if (task.name == "GRIND_COMBAT" and task.targetid == leadtarget) then
@@ -138,10 +139,18 @@ function c_assistleader:evaluate()
 			end
 		end
 		
-		local target = EntityList:Get(leadtarget)				
-		if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
-			c_assistleader.targetid = target.id
-			return true
+		if (NotQueued()) then
+			local target = EntityList:Get(leadtarget)				
+			if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
+				c_assistleader.targetid = target.id
+				return true
+			end
+		else
+			local target = EntityList:Get(leadtarget)				
+			if ( ValidTable(target) and target.alive and target.targetid == leader.id and (target.onmesh or InCombatRange(target.id))) then
+				c_assistleader.targetid = target.id
+				return true
+			end
 		end
     end
     
@@ -154,13 +163,63 @@ function e_assistleader:execute()
 		return
 	end
 	
-	if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
-		ml_task_hub:CurrentTask().targetid = id
+	if (NotQueued()) then
+		if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
+			ml_task_hub:CurrentTask().targetid = id
+		else
+			local newTask = ffxiv_task_grindCombat.Create()
+			newTask.targetid = id 
+			newTask.noFateSync = true
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
 	else
-		local newTask = ffxiv_task_grindCombat.Create()
-		newTask.targetid = id 
-		newTask.noFateSync = true
-		ml_task_hub:CurrentTask():AddSubTask(newTask)
+		local target = MGetEntity(c_assistleader.targetid)
+		local pos = target.pos
+		local ppos = Player.pos
+		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		
+		if (ml_global_information.AttackRange > 5) then
+			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
+				if (Now() > c_assistleader.movementDelay) then
+					if (target.distance <= (target.hitradius + 1)) then
+						Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+					else
+						Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
+					end
+					c_assistleader.movementDelay = Now() + 1000
+				end
+			end
+			if (InCombatRange(target.id)) then
+				if (Player.ismounted) then
+					Dismount()
+				end
+				if (Player:IsMoving() and target.los) then
+					Player:Stop()
+					if (IsCaster(Player.job)) then
+						return
+					end
+				end
+				if (not EntityIsFrontTight(target)) then
+					Player:SetFacing(pos.x,pos.y,pos.z) 
+				end
+			end
+			if (InCombatRange(target.id) and target.attackable and target.alive and target.los) then
+				SkillMgr.Cast( target )
+			end
+		else
+			--d("Melee class, check if we're in combat range and such..")
+			if (not InCombatRange(target.id) or not target.los) then
+				Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+			end
+			if (InCombatRange(target.id)) then
+				Player:SetFacing(pos.x,pos.y,pos.z) 
+				if (target.los) then
+					Player:Stop()
+				end
+			end
+				
+			SkillMgr.Cast( target )
+		end
 	end
 end
 
@@ -969,7 +1028,7 @@ c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == GetString("partyMode") and IsLeader() or MIsCasting()) then
+	if (gBotMode == GetString("partyMode") and IsLeader() or MIsCasting(true)) then
         return false
     end
 	
@@ -979,7 +1038,11 @@ function c_followleader:evaluate()
 		local myPos = ml_global_information.Player_Position	
 		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, leaderPos.x, leaderPos.y, leaderPos.z)
 		
-		if (((leader.incombat and distance > 5) or (distance > 10)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
+		local isHealer = GetRoleString(Player.job) == "healer"
+		local isDPS = GetRoleString(Player.job) == "dps"
+		local isTank = GetRoleString(Player.job) == "tank"
+		
+		if (((leader.incombat and ((isHealer and distance > 15) or (isDPS and distance > 10)) or (distance > 20)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
 			c_followleader.leaderpos = leaderPos
 			c_followleader.leader = leader
 			c_followleader.distance = distance
@@ -1047,7 +1110,7 @@ function e_followleader:execute()
 			if ( ml_global_information.AttackRange < 5 ) then
 				c_followleader.range = math.random(4,6)
 			else
-				c_followleader.range = math.random(6,10)
+				c_followleader.range = math.random(10,12)
 			end
 		end
 		e_followleader.isFollowing = true
@@ -2275,7 +2338,7 @@ e_autoequip.slot = nil
 function c_autoequip:evaluate()	
 	if (((gQuestAutoEquip == "0" or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
-		not Player.alive or ml_global_information.Player_InCombat or
+		not Player.alive or Player.incombat or
 		ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
 	then
 		return false

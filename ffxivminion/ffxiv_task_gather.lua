@@ -502,15 +502,15 @@ function e_nextgathermarker:execute()
 end
 
 function DoGathering(item)
-	if (SkillMgr.Gather(item)) then
-		ml_task_hub:CurrentTask():SetDelay(500)
-		return 1
-	end
-
 	if (ffxiv_gather.CheckBuffs(item)) then
 		ml_task_hub:CurrentTask():SetDelay(1500)
-		return 2
+		return 1
 	end
+	
+	if (SkillMgr.Gather(item)) then
+		ml_task_hub:CurrentTask():SetDelay(500)
+		return 2
+	end	
 
 	Player:Gather(item.index)
 	if (HasBuffs(Player,"805")) then
@@ -1648,6 +1648,8 @@ c_gathernexttask = inheritsFrom( ml_cause )
 e_gathernexttask = inheritsFrom( ml_effect )
 c_gathernexttask.postpone = 0
 c_gathernexttask.blockOnly = false
+c_gathernexttask.subset = {}
+c_gathernexttask.subsetExpiration = 0
 function c_gathernexttask:evaluate()
 	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering") or Now() < c_gathernexttask.postpone) then
 		return false
@@ -1657,6 +1659,8 @@ function c_gathernexttask:evaluate()
 	
 	local evaluate = false
 	local invalid = false
+	local tempinvalid = false
+	
 	local currentTask = ffxiv_gather.currentTask
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
@@ -1729,6 +1733,7 @@ function c_gathernexttask:evaluate()
 			end
 			if (IsNull(currentTask.timeout,0) > 0) then
 				if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
+					tempinvalid = true
 					invalid = true
 				else
 					if (currentTask.taskFailed ~= 0) then
@@ -1773,108 +1778,132 @@ function c_gathernexttask:evaluate()
 			end
 		end
 	end
+	
+	if (invalid and not tempinvalid) then
+		c_gathernexttask.subset[currentTaskIndex] = nil
+	end
 
 	if (evaluate or invalid) then
 		local profileData = ffxiv_gather.profileData
 		if (ValidTable(profileData.tasks)) then
-			local highPriority = {}
-			local validTasks = deepcopy(profileData.tasks,true)
-			for i,data in pairs(validTasks) do
 			
-				local valid = true
+			local validTasks = {}
+			if (Now() < c_gathernexttask.subsetExpiration) then
+				validTasks = c_gathernexttask.subset
+			else
+				validTasks = deepcopy(profileData.tasks,true)
+				for i,data in pairs(validTasks) do
+				
+					local valid = true
 
-				if (data.enabled and data.enabled ~="1") then
-					valid = false
-					gd("Task ["..tostring(i).."] not enabled.",3)
-				end
+					if (data.enabled and data.enabled ~="1") then
+						valid = false
+						gd("Task ["..tostring(i).."] not enabled.",3)
+					end
 
-				if (data.minlevel and Player.level < data.minlevel) then
-					valid = false
-				elseif (data.maxlevel and Player.level > data.maxlevel) then
-					valid = false
-				end
-				
-				if (valid) then
-					local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
-					if (lastGather ~= 0) then
-						if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
-							valid = false
-							gd("Task ["..tostring(i).."] not valid due to last gather.",3)
-						end
-					end
-				end
-				
-				if (valid) then
-					if (data.condition) then
-						local conditions = deepcopy(data.condition,true)
-						valid = TestConditions(conditions)
-					end
-				end
-				
-				if (valid) then
-					local weather = AceLib.API.Weather.Get(data.mapid)
-					local weatherLast = weather.last or ""
-					local weatherNow = weather.now or ""
-					local weatherNext = weather.next or ""
-					if (data.weatherlast and data.weatherlast ~= weatherLast) then
+					if (data.minlevel and Player.level < data.minlevel) then
 						valid = false
-					elseif (data.weathernow and data.weathernow ~= weatherNow) then
-						valid = false
-					elseif (data.weathernext and data.weathernext ~= weatherNext) then
+					elseif (data.maxlevel and Player.level > data.maxlevel) then
 						valid = false
 					end
-					if (not valid) then
-						gd("Task ["..tostring(i).."] not valid due to weather.",3)
-					end
-				end
-				
-				if (valid) then
-					local shifts = AceLib.API.Weather.GetShifts()
-					local lastShift = shifts.lastShift
-					local nextShift = shifts.nextShift
-					if (data.lastshiftmin and data.lastshiftmin < lastShift) then
-						valid = false
-					elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
-						valid = false
-					elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
-						valid = false
-					elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
-						valid = false
-					end
-					if (not valid) then
-						gd("Task ["..tostring(i).."] not valid due to shift.",3)
-					end
-				end
-				
-				if (valid) then
-					if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
-						local eTime = AceLib.API.Weather.GetDateTime() 
-						local eHour = eTime.hour
-						
-						local validHour = false
-						local i = data.eorzeaminhour
-						while (i ~= data.eorzeamaxhour) do
-							if (i == eHour) then
-								validHour = true
-								i = data.eorzeamaxhour
-							else
-								i = AddHours(i,1)
+					
+					if (valid) then
+						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
+						if (lastGather ~= 0) then
+							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
+								valid = false
+								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
 							end
 						end
-						
-						if (not validHour) then
-							valid = false
+					end
+					
+					if (valid) then
+						if (data.condition) then
+							local conditions = deepcopy(data.condition,true)
+							valid = TestConditions(conditions)
 						end
 					end
+					
+					if (valid) then
+						local weather = AceLib.API.Weather.Get(data.mapid)
+						local weatherLast = weather.last or ""
+						local weatherNow = weather.now or ""
+						local weatherNext = weather.next or ""
+						if (data.weatherlast and data.weatherlast ~= weatherLast) then
+							valid = false
+						elseif (data.weathernow and data.weathernow ~= weatherNow) then
+							valid = false
+						elseif (data.weathernext and data.weathernext ~= weatherNext) then
+							valid = false
+						end
+						if (not valid) then
+							gd("Task ["..tostring(i).."] not valid due to weather.",3)
+						end
+					end
+					
+					if (valid) then
+						local shifts = AceLib.API.Weather.GetShifts()
+						local lastShift = shifts.lastShift
+						local nextShift = shifts.nextShift
+						if (data.lastshiftmin and data.lastshiftmin < lastShift) then
+							valid = false
+						elseif (data.lastshiftmax and data.lastshiftmin > lastShift) then
+							valid = false
+						elseif (data.nextshiftmin and data.nextshiftmin < nextShift) then
+							valid = false
+						elseif (data.nextshiftmax and data.nextshiftmax > nextShift) then
+							valid = false
+						end
+						if (not valid) then
+							gd("Task ["..tostring(i).."] not valid due to shift.",3)
+						end
+					end
+					
+					if (valid) then
+						if (IsNull(data.eorzeaminhour,-1) ~= -1 and IsNull(data.eorzeamaxhour,-1) ~= -1) then
+							local eTime = AceLib.API.Weather.GetDateTime() 
+							local eHour = eTime.hour
+							
+							local validHour = false
+							local i = data.eorzeaminhour
+							while (i ~= data.eorzeamaxhour) do
+								if (i == eHour) then
+									validHour = true
+									i = data.eorzeamaxhour
+								else
+									i = AddHours(i,1)
+								end
+							end
+							
+							if (not validHour) then
+								valid = false
+							end
+						end
+						if (not valid) then
+							gd("Task ["..tostring(i).."] not valid due to eorzea time.",3)
+						end
+					end
+					
 					if (not valid) then
-						gd("Task ["..tostring(i).."] not valid due to eorzea time.",3)
+						gd("Removing task ["..tostring(i).."] from valid tasks.",3)
+						validTasks[i] = nil
 					end
 				end
 				
-				if (not valid) then
-					gd("Removing task ["..tostring(i).."] from valid tasks.",3)
-					validTasks[i] = nil
+				c_gathernexttask.subset = validTasks
+				local eTime = AceLib.API.Weather.GetDateTime() 
+				local eMinute = eTime.minute
+				local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
+				local expirationDelay = 0
+				for quarter,_ in pairs(quarters) do
+					local diff = (quarter - eMinute)
+					if (diff <= 15 and diff > 0) then
+						expirationDelay = (diff * 2.92) * 1000
+						break
+					end	
 				end
+				d("Buffering task evaluation by ["..tostring(expirationDelay / 1000).."] seconds.")
+				c_gathernexttask.subsetExpiration = Now() + expirationDelay
 			end
 			
 			if (ValidTable(validTasks)) then
@@ -1905,9 +1934,6 @@ function c_gathernexttask:evaluate()
 					end
 				end
 				
-				local currentTask = ffxiv_gather.currentTask
-				local currentIndex = ffxiv_gather.currentTaskIndex
-				
 				local lowestIndex = 9999
 				local best = nil
 				
@@ -1926,7 +1952,7 @@ function c_gathernexttask:evaluate()
 					if (invalid and currentTask.group) then
 						lowestIndex = 9999
 						for i,data in pairsByKeys(highPriority) do
-							if (i > currentIndex and IsNull(data.group,"") == currentTask.group) then
+							if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
 								if (not best or (best and i < lowestIndex)) then
 									best = data
 									lowestIndex = i
@@ -1965,7 +1991,7 @@ function c_gathernexttask:evaluate()
 						if (invalid and currentTask.group) then
 							lowestIndex = 9999
 							for i,data in pairsByKeys(normalPriority) do
-								if (i > currentIndex and IsNull(data.group,"") == currentTask.group) then
+								if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
 									if (not best or (best and i < lowestIndex)) then
 										best = data
 										lowestIndex = i
@@ -1994,7 +2020,7 @@ function c_gathernexttask:evaluate()
 				if (invalid and not best) then
 					lowestIndex = 9999
 					for i,data in pairsByKeys(lowPriority) do
-						if (i > currentIndex) then
+						if (i > currentTaskIndex) then
 							if (not best or (best and i < lowestIndex)) then
 								best = data
 								lowestIndex = i
