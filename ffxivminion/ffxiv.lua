@@ -473,10 +473,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		ffxivminion.UpdateGlobals()
 
-		--local thisMeasure = collectgarbage("count")/1024
-		--gMemoryUsage = tostring(thisMeasure)
-		--gMemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
-		--ml_global_information.lastMeasure = thisMeasure
+		local thisMeasure = collectgarbage("count")/1024
+		gMemoryUsage = tostring(thisMeasure)
+		gMemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
+		ml_global_information.lastMeasure = thisMeasure
 		
 		-- close any social addons that might screw up behavior first
 		if(	gBotRunning == "1" and 

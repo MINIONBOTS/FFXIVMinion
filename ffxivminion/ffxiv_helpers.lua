@@ -1482,9 +1482,9 @@ function HasBuff(targetid, buffID, stacks, duration, ownerid)
 		if (ValidTable(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					if (stacks == 0 or stacks >= buff.stacks
-						and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
-						and (ownerid == 0 or buff.ownerid == ownerid)) 
+					if ((stacks == 0 or stacks >= buff.stacks) and
+						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
+						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
 						return true
 					end
@@ -1509,9 +1509,9 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 			local missing = true
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
-					if (stacks == 0 or stacks >= buff.stacks
-						and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
-						and (ownerid == 0 or buff.ownerid == ownerid)) 
+					if ((stacks == 0 or stacks >= buff.stacks) and
+						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
+						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
 						missing = false
 					end

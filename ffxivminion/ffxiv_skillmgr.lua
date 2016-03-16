@@ -416,7 +416,7 @@ SkillMgr.Variables = {
 	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", section = "fighting" },
 	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", section = "fighting" },
 	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", section = "fighting" },
-		
+	
 	SKM_IgnoreMoving = { default = "0", cast = "string", profile = "ignoremoving", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
@@ -940,7 +940,7 @@ function SkillMgr.ModuleInit()
 	SkillMgr.FoldMacroGroups()
 	
 	GUI_WindowVisible(SkillMgr.editwindow_macro.name,false)
-    
+	
     -- ========= Crafting Editor Window =============
 	
     GUI_NewWindow(SkillMgr.editwindow_crafting.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_crafting.w, SkillMgr.editwindow_crafting.h,"",true)		
@@ -2036,33 +2036,28 @@ end
 
 function SkillMgr.CreateNewSkillBookEntry(id, actiontype, group)
 	actiontype = actiontype or 1
-	local action = ActionList:Get(id,actiontype)
-	if (ValidTable(action)) then
-		local skName = action.name
-		local skID = tostring(action.id)
+	local skName = TranslateAction(id,actiontype)
+	local skID = tostring(id)
 			
-		local handlers = {
-			[1] = "SKMAddSkill",
-			[9] = "SKMAddCraftSkill",
-			[11] = "SKMAddPetSkill",
-		}
-		
-		if (group) then
-			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, group)
-		else
-			GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, "AvailableSkills")
-		end
-		
-		if (not ValidTable(SkillMgr.SkillBook[actiontype])) then
-			SkillMgr.SkillBook[actiontype] = {}
-		end
-		
-		local bookSection = SkillMgr.SkillBook[actiontype]
-		bookSection[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}
-		--SkillMgr.SkillBook[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}	
+	local handlers = {
+		[1] = "SKMAddSkill",
+		[9] = "SKMAddCraftSkill",
+		[11] = "SKMAddPetSkill",
+	}
+	
+	if (group) then
+		GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, group)
 	else
-		ml_error("Action ID:"..tostring(id)..", Type:"..tostring(actiontype).." is not valid and could not be retrieved.")
+		GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, "AvailableSkills")
 	end
+	
+	if (not ValidTable(SkillMgr.SkillBook[actiontype])) then
+		SkillMgr.SkillBook[actiontype] = {}
+	end
+	
+	local bookSection = SkillMgr.SkillBook[actiontype]
+	bookSection[id] = {["id"] = id, ["name"] = skName, ["type"] = actiontype}
+	--SkillMgr.SkillBook[action.id] = {["id"] = action.id, ["name"] = action.name, ["type"] = actiontype}	
 end
 
 -- Button Handler for Skillbook-skill-buttons
@@ -2084,17 +2079,25 @@ function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
-			local clientSkill = MGetActionFromList(skill.id,skill.type)
-			local skillFound = ValidTable(clientSkill)
-			local skillName = (clientSkill and clientSkill.name) or skill.name
 			local viewString = ""
-			if (not IsNullString(skill.alias)) then
-				viewString = tostring(prio)..": "..skill.alias.."["..tostring(skill.id).."]"
+			if (skill.id ~= nil and tonumber(skill.id) ~= nil and skill.type ~= nil and tonumber(skill.type) ~= nil) then
+				local clientSkill = MGetAction(skill.id,skill.type)
+				local skillFound = ValidTable(clientSkill)
+				
+				if (not IsNullString(skill.alias)) then
+					viewString = tostring(prio)..": "..skill.alias.." ["..tostring(TranslateAction(skill.id,skill.type)).."]["..tostring(skill.id).."]"
+				else
+					viewString = tostring(prio)..": "..tostring(TranslateAction(skill.id,skill.type)).." ["..tostring(skill.id).."]"
+				end
+				if (not skillFound) then
+					viewString = "***"..viewString.."***"
+				end
 			else
-				viewString = tostring(prio)..": "..skillName.."["..tostring(skill.id).."]"
-			end
-			if (not skillFound) then
-				viewString = "***"..viewString.."***"
+				if (not IsNullString(skill.alias)) then
+					viewString = tostring(prio)..": "..skill.alias.." ["..tostring(skill.id).."]"
+				else
+					viewString = "#ERROR#"
+				end
 			end
 			GUI_NewButton(SkillMgr.mainwindow.name, viewString, "SKMEditSkill"..tostring(prio),"ProfileSkills")
 		end
@@ -2319,6 +2322,8 @@ function SkillMgr.ToggleMenu()
 		GUI_WindowVisible(SkillMgr.confirmwindow.name,false)
         SkillMgr.visible = false
     else
+		SkillMgr.RefreshSkillBook()
+		GUI_SizeWindow(SkillMgr.skillbook.name,SkillMgr.skillbook.w,SkillMgr.skillbook.h)
 		SkillMgr.RefreshSkillList()
 		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
         GUI_WindowVisible(SkillMgr.skillbook.name,true)
@@ -3246,10 +3251,12 @@ function SkillMgr.IsReady( actionid, actiontype, targetid )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	
-	local actionself = MGetAction(actionid, actiontype)
-	local actiontarget = MGetAction(actionid, actiontype, targetid)
+	local actionself = ActionList:Get(actionid, actiontype)
 	if (actionself and actionself.isready) then
 		return true
+	end
+	
+	local actiontarget =  ActionList:Get(actionid, actiontype, targetid)
 	elseif (actiontarget and actiontarget.isready) then
 		return true
 	end
@@ -3823,7 +3830,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		return 0
 	end
 	
-	outofcombat = outofcombat or false	
+	local outofcombat = IsNull(outofcombat,false)
 	SkillMgr.preCombat = outofcombat
 	
 	local prio = tonumber(prio) or 0
@@ -3888,7 +3895,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	SkillMgr.DebugOutput( prio, "Current target entity : "..tostring(entity.name))
 	local targetTable = SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	if (not targetTable) then
-		SkillMgr.DebugOutput( prio, "Target function returned no valid target. : "..tostring(prio))
+		SkillMgr.DebugOutput( prio, "Target function returned no valid target for "..tostring(realskilldata.name).." ["..tostring(prio).."]")
 		return 0
 	end
 	
@@ -4161,11 +4168,13 @@ function SkillMgr.AddDefaultConditions()
 		elseif (skill.type == 11 and (realskilldata.isready)) then
 			return false
 		end
+		
+		SkillMgr.DebugOutput( skill.prio, "[ReadyCheck]: Target: ["..tostring(target.name).."], realskilldata.isready: ["..tostring(realskilldata.isready).."], IsFacing: ["..tostring(SkillMgr.IsFacing(realskilldata,gAssistUseAutoFace,target)).."]")
 		return true
 	end
 	}
 	SkillMgr.AddConditional(conditional)
-	
+
 	conditional = { name = "OffGCD Check"	
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
@@ -4525,21 +4534,27 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		local plist = EntityList("myparty")
-		if ( skill.onlysolo == "1" and TableSize(plist) > 0 ) then
-			return true
+		local partySize = TableSize(plist)
+		
+		if ( skill.onlysolo == "1" and partySize > 0) then
+			if (IsCompanionSummoned()) then
+				return (partySize - 1) > 0
+			else
+				return true
+			end
 		elseif ( skill.onlyparty == "1" ) then
 			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():ParentTask()) then
 				if (ml_task_hub:CurrentTask():ParentTask().name == "QUEST_DUTYKILL") then
 					return false
 				end				
 			end
-			if (TableSize(plist) == 0) then
+			if (partySize == 0) then
 				return true
 			end
 		end
 		
 		if ( tonumber(skill.partysizelt) > 0 ) then
-			if ((TableSize(plist) + 1) > tonumber(skill.partysizelt)) then
+			if ((partySize + 1) > tonumber(skill.partysizelt)) then
 				return true
 			end
 		end
