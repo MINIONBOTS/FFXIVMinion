@@ -3257,7 +3257,7 @@ function SkillMgr.IsReady( actionid, actiontype, targetid )
 	end
 	
 	local actiontarget =  ActionList:Get(actionid, actiontype, targetid)
-	elseif (actiontarget and actiontarget.isready) then
+	if (actiontarget and actiontarget.isready) then
 		return true
 	end
 	
