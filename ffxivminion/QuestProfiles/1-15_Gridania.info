@@ -5458,6 +5458,99 @@ local obj1 = {
 				};
 			};
 		};
+		[245] = {
+			["level"] = 15;
+			["name"] = "It's Probably Pirates";
+			["prereq"] = {
+				["HasQuest(675) or QuestCompleted(675)"] = false;
+				["QuestCompleted(673) or QuestCompleted(674)"] = true;
+				["GameRegion() == 1"] = true;
+			};
+			["steps"] = {
+				[1] = {
+					["id"] = 1000972;
+					["itemreward"] = false;
+					["mapid"] = 128;
+					["meshname"] = "Limsa (Upper)";
+					["pos"] = {
+						["x"] = 17.660003662109;
+						["y"] = 40.216011047363;
+						["z"] = -5.2463302612305;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["complete"] = {
+						["step"] = 2;
+					};
+					["id"] = 1003621;
+					["index"] = 1;
+					["itemreward"] = false;
+					["mapid"] = 129;
+					["meshname"] = "Limsa (Lower)";
+					["pos"] = {
+						["x"] = -191.29635620117;
+						["y"] = 0.99999070167542;
+						["z"] = 208.64395141602;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["step"] = 3;
+					};
+					["id"] = 1017075;
+					["index"] = 2;
+					["itemreward"] = false;
+					["mapid"] = 138;
+					["meshname"] = "Western La Noscea";
+					["pos"] = {
+						["x"] = 356.07431030273;
+						["y"] = -15.983119010925;
+						["z"] = 138.40542602539;
+					};
+					["type"] = "interact";
+				};
+				[4] = {
+					["complete"] = {
+						["step"] = 4;
+					};
+					["id"] = 1004472;
+					["index"] = 3;
+					["itemreward"] = false;
+					["mapid"] = 138;
+					["meshname"] = "Western La Noscea";
+					["pos"] = {
+						["x"] = 335.97448730469;
+						["y"] = 9.5480728149414;
+						["z"] = 17.700172424316;
+					};
+					["type"] = "interact";
+				};
+				[5] = {
+					["condition"] = {
+						["step"] = 4;
+					};
+					["index"] = 4;
+					["mapid"] = 177;
+					["meshname"] = "Limsa Lominsa - Inn";
+					["notes"] = {
+						[1] = " -=-=-=-= CONGRATULATIONS =-=-=-=-";
+						[2] = "                                  ";
+						[3] = "Gridania 1-15 profile now complete";
+						[4] = "                                  ";
+						[5] = "           Next Steps:            ";
+						[6] = "  Must complete Sastasha dungeon  ";
+					};
+					["pos"] = {
+						["x"] = -0.15;
+						["y"] = 0;
+						["z"] = 3.661;
+					};
+					["type"] = "endprofile";
+				};
+			};
+		};
 		[374] = {
 			["level"] = 10;
 			["name"] = "Feeding Time";
@@ -7412,9 +7505,9 @@ local obj1 = {
 			["level"] = 15;
 			["name"] = "It's Probably Pirates";
 			["prereq"] = {
-				[-1] = {
-					[1] = 674;
-				};
+				["HasQuest(245) or QuestCompleted(245)"] = false;
+				["QuestCompleted(673) or QuestCompleted(674)"] = true;
+				["GameRegion() ~= 1"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7462,7 +7555,6 @@ local obj1 = {
 				};
 				[4] = {
 					["condition"] = {
-						["GameRegion() == 1 or GameRegion() == 2"] = true;
 						["step"] = 3;
 					};
 					["index"] = 3;
@@ -7475,29 +7567,6 @@ local obj1 = {
 						[4] = "                                  ";
 						[5] = "           Next Steps:            ";
 						[6] = "  Must complete Sastasha dungeon  ";
-					};
-					["pos"] = {
-						["x"] = -0.15;
-						["y"] = 0;
-						["z"] = 3.661;
-					};
-					["type"] = "endprofile";
-				};
-				[5] = {
-					["condition"] = {
-						["GameRegion() == 3"] = true;
-						["step"] = 3;
-					};
-					["index"] = 3;
-					["mapid"] = 177;
-					["meshname"] = "Limsa Lominsa - Inn";
-					["notes"] = {
-						[1] = "-=-=-=-=-=-=-= 축하 =-=-=-=-=-=-=-";
-						[2] = "                                 ";
-						[3] = "   완전한 지금 Gridania 1-15 단면도 ";
-						[4] = "									";
-						[5] = "		       다음 단계:            ";
-						[6] = "  Sastasha 지하 감옥을 완료해야 한다 ";
 					};
 					["pos"] = {
 						["x"] = -0.15;

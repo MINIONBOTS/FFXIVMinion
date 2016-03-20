@@ -672,8 +672,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	else
 		local epos = self.pos
 		local dist = Distance3DT(ppos,epos)
-		if (dist <= 10) then
-			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=20")
+		if (dist <= 2) then
+			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
 			if (not ValidTable(interacts)) then
 				return true
 			end
