@@ -2080,8 +2080,11 @@ function SkillMgr.RefreshSkillList()
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local viewString = ""
-			if (skill.id ~= nil and tonumber(skill.id) ~= nil and skill.type ~= nil and tonumber(skill.type) ~= nil) then
-				local clientSkill = MGetAction(skill.id,skill.type)
+			if (skill.id ~= nil and tonumber(skill.id) ~= nil) then
+				local clientSkill = nil;
+				if (skill.type ~= nil) then
+					clientSkill = ActionList:Get(skill.id,skill.type)
+				end
 				local skillFound = ValidTable(clientSkill)
 				
 				if (not IsNullString(skill.alias)) then
@@ -2096,7 +2099,11 @@ function SkillMgr.RefreshSkillList()
 				if (not IsNullString(skill.alias)) then
 					viewString = tostring(prio)..": "..skill.alias.." ["..tostring(skill.id).."]"
 				else
-					viewString = "#ERROR#"
+					if (skill.name ~= nil) then
+						viewString = tostring(prio)..": "..skill.name.." ["..tostring(skill.id).."]"
+					else
+						viewString = "#ERROR#"
+					end
 				end
 			end
 			GUI_NewButton(SkillMgr.mainwindow.name, viewString, "SKMEditSkill"..tostring(prio),"ProfileSkills")
@@ -4514,7 +4521,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
-		local target = SkillMgr.CurrentTarget
+		local target = MGetTarget()
 		
 		if ( skill.ptrg ~= "Any" ) then
 			if (( skill.ptrg == "Enemy" and (not target or not target.attackable)) or 

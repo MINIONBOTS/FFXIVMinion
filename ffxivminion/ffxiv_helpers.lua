@@ -928,7 +928,7 @@ function GetBestBaneTarget()
 	--Check the original diseased target, make sure it has all the required buffs, and that they're all 3 or more, blow it up, reset the best dot target.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player)) then
+		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player.id)) then
 			SkillMgr.bestAOE = 0
 			return e
 		end
@@ -940,7 +940,7 @@ function GetBestBaneTarget()
 			local el = MEntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
 			if ( el ) then
 				for k,e in pairs(el) do
-					if HasBuffs(e, "179+180+189", 3, Player) then
+					if HasBuffs(e, "179+180+189", 3, Player.id) then
 						SkillMgr.bestAOE = 0
 						return e
 					end
@@ -959,7 +959,7 @@ function GetBestDoTTarget()
 	--Check for the original DoT target, if it exists, and is still missing debuffs, keep using it.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player)) then
+		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player.id)) then
 			return e
 		end
 	end
@@ -970,7 +970,7 @@ function GetBestDoTTarget()
 			local el = MEntityList("alive,attackable,los,clustered=8,targeting="..tostring(member.id)..",maxdistance=25")
 			if ( el ) then
 				for k,e in pairs(el) do
-					if MissingBuffs(e, "179+180+189", 3, Player) then
+					if MissingBuffs(e, "179+180+189", 3, Player.id) then
 						SkillMgr.bestAOE = e.id
 						return e
 					end
@@ -1774,6 +1774,10 @@ end
 function IsFlanking(entity)
 	if not entity or entity.id == Player.id then return false end
 	
+	if (entity.pos.h == 0) then
+		return true
+	end
+	
     if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
         local entityHeading = nil
         
@@ -1800,6 +1804,10 @@ function IsFlanking(entity)
 end
 function IsBehind(entity)
 	if not entity or entity.id == Player.id then return false end
+	
+	if (entity.pos.h == 0) then
+		return true
+	end
 	
     if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
         local entityHeading = nil
@@ -5033,6 +5041,48 @@ function IsTable(t)
 		return true
 	end
 	return false
+end
+
+function IsPVPMap(mapid)
+	local mapid = tonumber(mapid) or 0
+	local pvpMaps = {
+		[149] = true,
+		[175] = true,
+		[184] = true,
+		[186] = true,
+		[250] = true,
+		[336] = true,
+		[337] = true,
+		[352] = true,
+		[376] = true,
+		[422] = true,
+		[431] = true,
+		[502] = true,
+		[506] = true,
+		[518] = true,
+		[525] = true,
+		[526] = true,
+		[527] = true,
+		[528] = true,
+		[537] = true,
+		[538] = true,
+		[539] = true,
+		[540] = true,
+		[541] = true,
+		[542] = true,
+		[543] = true,
+		[544] = true,
+		[545] = true,
+		[546] = true,
+		[547] = true,
+		[548] = true,
+		[549] = true,
+		[550] = true,
+		[551] = true,
+		[552] = true,
+		[554] = true,
+	}
+	return (pvpMaps[mapid] ~= nil)
 end
 
 function CanUseAirship()

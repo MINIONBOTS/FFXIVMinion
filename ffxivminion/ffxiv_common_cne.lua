@@ -2387,7 +2387,7 @@ function c_autoequip:evaluate()
 	end
 	
 	-- Fill with comparison data.
-	for slot,data in pairs(applicableSlots) do
+	for slot,data in pairsByKeys(applicableSlots) do
 		local equipped = Inventory("type=1000")
 		if (ValidTable(equipped)) then
 			for _,item in pairs(equipped) do
@@ -2397,7 +2397,9 @@ function c_autoequip:evaluate()
 					data.equippedValue = AceLib.API.Items.GetItemStatWeight(item,slot)
 					data.equippedItem = item
 					
-					--d("Slot ["..tostring(slot).."] Equipped item has a value of :"..tostring(data.equippedValue))
+					if (ValidTable(item)) then
+						d("Slot ["..tostring(slot).."] Equipped item ["..tostring(item.name).." ] has a value of :"..tostring(data.equippedValue))
+					end
 				end
 				if (found) then
 					break
@@ -2407,15 +2409,21 @@ function c_autoequip:evaluate()
 		
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
-			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			if (IsNull(data.unequippedItem,0) ~= 0) then
+				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+			end
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
-				--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+				if (IsNull(data.unequippedItem,0) ~= 0) then
+					d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				end
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
-			--d("Slot ["..tostring(slot).."] Best upgrade item has a value of :"..tostring(data.unequippedValue))
+			if (IsNull(data.unequippedItem,0) ~= 0) then
+				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+			end
 		end
 	end
 	
@@ -2519,7 +2527,7 @@ end
 function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (ValidTable(item)) then
-		--d("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		d("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 	end
 	if (ml_task_hub:CurrentTask()) then
