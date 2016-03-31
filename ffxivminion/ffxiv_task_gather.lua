@@ -117,8 +117,6 @@ function c_findnode:evaluate()
 			nodemaxlevel = IsNull(marker:GetFieldValue(GetUSString("maxContentLevel")),60)
 			if (nodemaxlevel == 0) then nodemaxlevel = 60 end
 			basePos = marker:GetPosition()
-		else
-			return false
 		end
 		
 		if (ValidTable(basePos)) then
@@ -967,6 +965,8 @@ function CanUseCordial()
 	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+	else
+		return false
 	end
 	
 	if ((Player.gp.current < minimumGP and (minimumGP - Player.gp.current) >= 100) or Player.gp.percent <= 30) then
@@ -1108,6 +1108,8 @@ function c_nodeprebuff:evaluate()
 	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+	else
+		return false
 	end
 	
 	if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
@@ -1665,20 +1667,26 @@ function c_gathernexttask:evaluate()
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
 	if (not ValidTable(currentTask)) then
+		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
 		invalid = true
-	else		
+	else
+		gd("[GatherNextTask]: We have a current task, check if it should be completed.",3)
 		if (IsNull(currentTask.interruptable,false) or IsNull(currentTask.lowpriority,false)) then
+			gd("[GatherNextTask]: Task is interruptable, set the flag.",3)
 			evaluate = true
 		elseif not (currentTask.weatherlast or currentTask.weathernow or currentTask.weathernext or currentTask.highpriority or
 				 currentTask.eorzeaminhour or currentTask.eorzeamaxhour or currentTask.normalpriority)
 		then
+			gd("[GatherNextTask]: Task is interruptable, set the flag.",3)
 			evaluate = true
 		end
 		
 		if (not invalid) then
 			if (currentTask.minlevel and Player.level < currentTask.minlevel) then
+				gd("[GatherNextTask]: Level is too low for the task, invalidate.",3)
 				invalid = true
 			elseif (currentTask.maxlevel and Player.level > currentTask.maxlevel) then
+				gd("[GatherNextTask]: Level is too high for the task, invalidate.",3)
 				invalid = true
 			end
 		end
@@ -1686,7 +1694,8 @@ function c_gathernexttask:evaluate()
 		if (not invalid) then
 			local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
 			if (lastGather ~= 0) then
-				if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
+				if (TimePassed(GetCurrentTime(), lastGather) < 4200) then
+					gd("[GatherNextTask]: Our last gather was only ["..tostring(TimePassed(GetCurrentTime(), lastGather)).."] seconds ago, invalidate.",3)
 					invalid = true
 				end
 			end
@@ -1698,10 +1707,13 @@ function c_gathernexttask:evaluate()
 			local weatherNow = weather.now or ""
 			local weatherNext = weather.next or ""
 			if (currentTask.weatherlast and currentTask.weatherlast ~= weatherLast) then
+				gd("[GatherNextTask]: Last weather needed doesn't match up, invalidate.",3)
 				invalid = true
 			elseif (currentTask.weathernow and currentTask.weathernow ~= weatherNow) then
+				gd("[GatherNextTask]: Current weather needed doesn't match up, invalidate.",3)
 				invalid = true
 			elseif (currentTask.weathernext and currentTask.weathernext ~= weatherNext) then
+				gd("[GatherNextTask]: Next weather needed doesn't match up, invalidate.",3)
 				invalid = true
 			end
 		end
@@ -1724,6 +1736,7 @@ function c_gathernexttask:evaluate()
 		if (not invalid) then
 			if (IsNull(currentTask.maxtime,0) > 0) then
 				if (currentTask.taskStarted > 0 and TimeSince(currentTask.taskStarted) > currentTask.maxtime) then
+					gd("[GatherNextTask]: Task has been ongoing for too long, invalidate.",3)
 					invalid = true
 				else
 					if (currentTask.taskStarted ~= 0) then
@@ -1735,6 +1748,7 @@ function c_gathernexttask:evaluate()
 				if (currentTask.taskFailed > 0 and TimeSince(currentTask.taskFailed) > currentTask.timeout) then
 					tempinvalid = true
 					invalid = true
+					gd("[GatherNextTask]: Task has been idle too long, invalidate.",3)
 				else
 					if (currentTask.taskFailed ~= 0) then
 						gd("Max time allowed ["..tostring(currentTask.timeout).."], time passed ["..tostring(TimeSince(currentTask.taskFailed)).."].",3)
@@ -1757,6 +1771,7 @@ function c_gathernexttask:evaluate()
 				end
 				
 				if (not validHour) then
+					gd("[GatherNextTask]: We are not in a valid time window for this task, invalidate.",3)
 					invalid = true
 				end
 			end
@@ -1773,6 +1788,7 @@ function c_gathernexttask:evaluate()
 					conditions[condition] = nil
 				end
 				if (invalid) then
+					gd("[GatherNextTask]: Complete condition has been satisfied, invalidate.",3)
 					break
 				end
 			end
@@ -1780,6 +1796,7 @@ function c_gathernexttask:evaluate()
 	end
 	
 	if (invalid and not tempinvalid) then
+		gd("[GatherNextTask]: Remove this index from the cached subset.",3)
 		c_gathernexttask.subset[currentTaskIndex] = nil
 	end
 
@@ -1789,6 +1806,7 @@ function c_gathernexttask:evaluate()
 			
 			local validTasks = {}
 			if (Now() < c_gathernexttask.subsetExpiration) then
+				gd("[GatherNextTask]: Check the cached subset of tasks.",3)
 				validTasks = c_gathernexttask.subset
 			else
 				validTasks = deepcopy(profileData.tasks,true)
@@ -1810,7 +1828,7 @@ function c_gathernexttask:evaluate()
 					if (valid) then
 						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
 						if (lastGather ~= 0) then
-							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
+							if (TimePassed(GetCurrentTime(), lastGather) < 4200) then
 								valid = false
 								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
 							end
@@ -1939,6 +1957,7 @@ function c_gathernexttask:evaluate()
 				
 				-- High priority section.
 				
+				gd("[GatherNextTask]: Check the high priority tasks for differently grouped tasks.",3)
 				for i,data in pairsByKeys(highPriority) do
 					if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
 						if (not best or (best and i < lowestIndex)) then
@@ -1950,6 +1969,7 @@ function c_gathernexttask:evaluate()
 				
 				if (not best) then
 					if (invalid and currentTask.group) then
+						gd("[GatherNextTask]: Check the high priority tasks for grouped tasks.",3)
 						lowestIndex = 9999
 						for i,data in pairsByKeys(highPriority) do
 							if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
@@ -1976,36 +1996,41 @@ function c_gathernexttask:evaluate()
 				
 				-- Normal priority section.
 				
-				if (not best and not currentTask.highpriority) then
-					lowestIndex = 9999
-					for i,data in pairsByKeys(normalPriority) do
-						if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
-							if (not best or (best and i < lowestIndex)) then
-								best = data
-								lowestIndex = i
-							end
-						end
-					end
-					
-					if (not best) then
-						if (invalid and currentTask.group) then
-							lowestIndex = 9999
-							for i,data in pairsByKeys(normalPriority) do
-								if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
-									if (not best or (best and i < lowestIndex)) then
-										best = data
-										lowestIndex = i
-									end
+				if (not best) then
+					if (invalid or evaluate) then
+						gd("[GatherNextTask]: Check the normal priority tasks for higher ranked, differently grouped tasks.",3)
+						lowestIndex = 9999
+						for i,data in pairsByKeys(normalPriority) do
+							if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
 								end
 							end
-							
-							if (not best) then
-								lowestIndex = 9999	
+						end
+					
+						if (not best) then
+							gd("[GatherNextTask]: Check the normal priority tasks for matching grouped tasks.",3)
+							if (invalid and currentTask.group) then
+								lowestIndex = 9999
 								for i,data in pairsByKeys(normalPriority) do
-									if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+									if (i > currentTaskIndex and IsNull(data.group,"") == currentTask.group) then
 										if (not best or (best and i < lowestIndex)) then
 											best = data
 											lowestIndex = i
+										end
+									end
+								end
+								
+								if (not best) then
+									gd("[GatherNextTask]: Check the normal priority tasks for differently grouped tasks.",3)
+									lowestIndex = 9999	
+									for i,data in pairsByKeys(normalPriority) do
+										if (not currentTask.group or IsNull(data.group,"") ~= currentTask.group) then
+											if (not best or (best and i < lowestIndex)) then
+												best = data
+												lowestIndex = i
+											end
 										end
 									end
 								end
@@ -2014,29 +2039,60 @@ function c_gathernexttask:evaluate()
 					end
 				end
 				
-				
 				-- Low priority section.
-				
 				if (invalid and not best) then
-					lowestIndex = 9999
-					for i,data in pairsByKeys(lowPriority) do
-						if (i > currentTaskIndex) then
-							if (not best or (best and i < lowestIndex)) then
-								best = data
-								lowestIndex = i
+					gd("[GatherNextTask]: Check the low priority section since haven't found anything yet.",3)
+					if (IsNull(currentTask.set,"") ~= "") then
+						gd("[GatherNextTask]: Check for the next task in this set.",3)
+						lowestIndex = 9999
+						for i,data in pairsByKeys(lowPriority) do
+							if (IsNull(data.set,"") == currentTask.set) then
+								
+								if (i > currentTaskIndex) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+						end
+						
+						if (not best) then
+							gd("[GatherNextTask]: Loop back around to check previous tasks in this set.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(lowPriority) do
+								if (IsNull(data.set,"") == currentTask.set) then
+									if (not best or (best and i < lowestIndex)) then
+										best = data
+										lowestIndex = i
+									end
+								end
+							end
+						end
+					else
+						gd("[GatherNextTask]: Check for the next task available for low priority.",3)
+						lowestIndex = 9999
+						for i,data in pairsByKeys(lowPriority) do
+							if (i > currentTaskIndex) then
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
+							end
+						end
+						
+						if (not best) then
+							gd("[GatherNextTask]: Still don't have anything, check previous low priority section tasks.",3)
+							lowestIndex = 9999
+							for i,data in pairsByKeys(lowPriority) do
+								if (not best or (best and i < lowestIndex)) then
+									best = data
+									lowestIndex = i
+								end
 							end
 						end
 					end
 					
-					if (not best) then
-						lowestIndex = 9999
-						for i,data in pairsByKeys(lowPriority) do
-							if (not best or (best and i < lowestIndex)) then
-								best = data
-								lowestIndex = i
-							end
-						end
-					end
 				end
 				
 				if (best) then
@@ -2044,13 +2100,18 @@ function c_gathernexttask:evaluate()
 						ffxiv_gather.currentTaskIndex = lowestIndex
 						ffxiv_gather.currentTask = best
 						return true
+					else
+						gd("[GatherNextTask]: Found a task, but it is the current task, so do nothing.",3)
 					end
 				end
+			else
+				gd("[GatherNextTask]: No valid tasks were found.",3)
 			end
 		end
 	end
 	
 	if (not ValidTable(ffxiv_gather.currentTask)) then
+		gd("[GatherNextTask]: We defaulted out, postpone the next check by 15 seconds.",3)
 		c_gathernexttask.postpone = Now() + 15000
 	end
 					

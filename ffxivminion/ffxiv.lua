@@ -915,7 +915,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
             k == "gLogCNE" or
 			k == "gLogLevel" or
             k == "gFFXIVMINIONPulseTime" or
-            k == "gBotMode" or 
             k == "gMountDist" or
             k == "gAssistMode" or
             k == "gAssistPriority" or
@@ -923,7 +922,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAutoStart" or
 			k == "gStartCombat" or
 			k == "gConfirmDuty" or
-            --k == "gDoUnstuck" or
             k == "gRandomPaths" or
 			k == "gChocoAssist" or
 			k == "gChocoGrind" or
