@@ -434,6 +434,129 @@ function e_nextatma:execute()
 	end
 end
 
+c_nextluminous = inheritsFrom( ml_cause )
+e_nextluminous = inheritsFrom( ml_effect )
+e_nextluminous.luminous = nil
+function c_nextluminous:evaluate()	
+	if (gAtma == "0" or ml_global_information.Player_InCombat or ffxiv_task_grind.inFate or MIsLoading()) then
+		return false
+	end
+	
+	e_nextluminous.luminous = nil
+	
+	local map = ml_global_information.Player_Map
+	local mapFound = false
+	local mapItem = nil
+	local itemFound = false
+	local getNext = false
+	local jpTime = GetJPTime()
+	
+	--First loop, check for best atma based on JP time theory.
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		if ((tonumber(atma.hour) == jpTime.hour and jpTime.min <= 55) or
+			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.min > 55)) then
+			local haveBest = false
+			--local bestAtma = a
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x))
+				for i, item in pairs(inv) do
+					if (item.id == atma.item) then
+						haveBest = true
+					end
+					if (haveBest) then	
+						break
+					end
+				end
+				if (haveBest) then
+					break
+				end
+			end
+		
+			if (not haveBest) then
+				if (atma.map ~= map) then
+					e_nextatma.atma = atma
+					return true
+				end
+			end
+		end
+	end
+	
+	--Second loop, check to see if we have this map's atma, and return false if we still don't have it yet.
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		if (atma.map == map) then
+			local haveClosest = false
+			
+			for x=0,3 do
+				local inv = Inventory("type="..tostring(x))
+				for i, item in pairs(inv) do
+					if (item.id == atma.item) then
+						haveClosest = true
+					end
+					if (haveClosest) then	
+						break
+					end
+				end
+				if (haveClosest) then
+					break
+				end
+			end
+			
+			if (not haveClosest) then
+				--We're already on the map with the most appropriate atma and we don't have it
+				return false
+			end
+		end
+	end
+	
+	--Third loop, figure out which ones we do have, then go anywhere else.
+	for a, atma in pairs(ffxiv_task_grind.atmas) do
+		local found = false
+		for x=0,3 do
+			local inv = Inventory("type="..tostring(x))
+			for i, item in pairs(inv) do
+				if (item.id == atma.item) then
+					found = true
+				end
+				if (found) then	
+					break
+				end
+			end
+			if (found) then
+				break
+			end
+		end
+		
+		if (not found) then
+			e_nextluminous.atma = atma
+			return true
+		end
+	end
+	
+	return false
+end
+function e_nextluminous:execute()
+	local luminous = e_nextluminous.luminous
+	Player:Stop()
+	Dismount()
+	
+	if (Player.ismounted) then
+		return
+	end
+	
+	if (ActionIsReady(7,5)) then
+		Player:Teleport(atma.tele)
+		ml_task_hub:ThisTask().correctMap = atma.map
+		
+		local newTask = ffxiv_task_teleport.Create()
+		--d("Changing to new location for "..tostring(atma.name).." atma.")
+		newTask.aetheryte = atma.tele
+		newTask.mapID = atma.map
+		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+	end
+	
+	ml_task_hub:ThisTask().correctMap = atma.map
+end
+
 --=======Avoidance============
 
 c_avoid = inheritsFrom( ml_cause )
@@ -2450,7 +2573,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
@@ -2472,7 +2595,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
@@ -2494,7 +2617,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
