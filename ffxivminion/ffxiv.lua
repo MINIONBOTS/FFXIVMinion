@@ -104,7 +104,7 @@ function ffxivminion.SetupOverrides()
 	if ( ml_mesh_mgr ) then
 		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
 		ml_mesh_mgr.GetMapID = function () return ml_global_information.Player_Map end
-		ml_mesh_mgr.GetMapName = function () return "" end  -- didnt we have a mapname somewhere?
+		ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
 		ml_mesh_mgr.GetPlayerPos = function () return ml_global_information.Player_Position end
 		ml_mesh_mgr.SetEvacPoint = function ()
 			if (gmeshname ~= "" and Player.onmesh) then
@@ -748,7 +748,13 @@ function ffxivminion.CreateMainWindow()
 	
 	Settings.FFXIVMINION.version = 1.0
 	gFFXIVMINIONPulseTime = ffxivminion.GetSetting("gFFXIVMINIONPulseTime",150)
-	gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
+	
+	--due to shared settings profile, we'll look for a character specific "last mode" first	
+	if ( Settings.FFXIVMINION.gBotModes and string.valid(GetUUID()) and Settings.FFXIVMINION.gBotModes[GetUUID()] ) then
+		gBotMode = Settings.FFXIVMINION.gBotModes[GetUUID()]
+	else
+		gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
+	end
 	gEnableLog = ffxivminion.GetSetting("gEnableLog","0")
 	gLogCNE = ffxivminion.GetSetting("gLogCNE","0")
 	gLogLevel = ffxivminion.GetSetting("gLogLevel","1")
@@ -848,8 +854,12 @@ function ffxivminion.HandleInit()
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
-	ml_global_information.lastMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
-    
+	local uuid = GetUUID()
+	if ( string.valid(uuid) and Settings.FFXIVMINION.gBotModes and Settings.FFXIVMINION.gBotModes[uuid] ) then
+		ml_global_information.lastMode = Settings.FFXIVMINION.gBotModes[uuid]
+	else
+		ml_global_information.lastMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
+    end
     -- setup parent window for minionlib modules
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
     ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
@@ -892,6 +902,12 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
         if ( k == "gBotMode" ) then
             ffxivminion.SwitchMode(v)
 			SafeSetVar(tostring(k),v)
+			-- save the last botMode in a new table, since the setting file can be used by multiple accounts now
+			local uuid = GetUUID()
+			if ( string.valid(uuid) ) then
+				if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
+				Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
+			end
         end
         if (k == "gEnableLog") then
             if ( v == "1" ) then
@@ -1740,7 +1756,13 @@ function ffxivminion.LoadModes()
 	
 	local botModes = ffxivminion.Strings.BotModes()
 	gBotMode_listitems = botModes
-	gBotMode = Retranslate(Settings.FFXIVMINION.gBotMode)
+	local uuid = GetUUID()
+	if ( string.valid(uuid) and Settings.FFXIVMINION.gBotModes and Settings.FFXIVMINION.gBotModes[uuid] ) then
+		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
+	else
+		gBotMode = Retranslate(Settings.FFXIVMINION.gBotMode)
+    end
+	
 	local modeFound = false
 	for i, entry in pairs(ffxivminion.modes) do
 		if (i == gBotMode) then
