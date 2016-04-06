@@ -93,6 +93,8 @@ function c_precastbuff:evaluate()
 			needsStealth = IsNull(task.usestealth,false)
 		elseif (ValidTable(marker)) then
 			needsStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
+		else
+			return false
 		end
 		
 		local hasStealth = HasBuff(Player.id,47)
@@ -140,6 +142,8 @@ function c_mooch:evaluate()
 		useMooch = (task.usemooch == true) or false
 	elseif (ValidTable(marker)) then
 		useMooch = (marker:GetFieldValue(GetUSString("useMooch")) == "1")
+	else
+		return false
 	end
 	
     local castTimer = ml_task_hub:CurrentTask().castTimer
@@ -1018,7 +1022,7 @@ c_fishnexttask.postpone = 0
 c_fishnexttask.subset = {}
 c_fishnexttask.subsetExpiration = 0
 function c_fishnexttask:evaluate()
-	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData) or Now() < c_fishnexttask.postpone) then
+	if (not Player.alive or MIsLoading() or MIsCasting() or not ValidTable(ffxiv_fish.profileData)) then
 		return false
 	end
 	
@@ -1442,10 +1446,6 @@ function c_fishnexttask:evaluate()
 		end
 	end
 	
-	if (not ValidTable(ffxiv_fish.currentTask)) then
-		c_fishnexttask.postpone = Now() + 15000
-	end
-					
 	return false
 end
 function e_fishnexttask:execute()

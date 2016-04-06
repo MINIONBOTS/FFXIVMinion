@@ -1653,7 +1653,7 @@ c_gathernexttask.blockOnly = false
 c_gathernexttask.subset = {}
 c_gathernexttask.subsetExpiration = 0
 function c_gathernexttask:evaluate()
-	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering") or Now() < c_gathernexttask.postpone) then
+	if (not Player.alive or not ValidTable(ffxiv_gather.profileData) or ControlVisible("Gathering")) then
 		return false
 	end
 	
@@ -1694,7 +1694,7 @@ function c_gathernexttask:evaluate()
 		if (not invalid) then
 			local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
 			if (lastGather ~= 0) then
-				if (TimePassed(GetCurrentTime(), lastGather) < 4200) then
+				if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 					gd("[GatherNextTask]: Our last gather was only ["..tostring(TimePassed(GetCurrentTime(), lastGather)).."] seconds ago, invalidate.",3)
 					invalid = true
 				end
@@ -1828,7 +1828,7 @@ function c_gathernexttask:evaluate()
 					if (valid) then
 						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
 						if (lastGather ~= 0) then
-							if (TimePassed(GetCurrentTime(), lastGather) < 4200) then
+							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 								valid = false
 								gd("Task ["..tostring(i).."] not valid due to last gather.",3)
 							end
@@ -2108,11 +2108,6 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: No valid tasks were found.",3)
 			end
 		end
-	end
-	
-	if (not ValidTable(ffxiv_gather.currentTask)) then
-		gd("[GatherNextTask]: We defaulted out, postpone the next check by 15 seconds.",3)
-		c_gathernexttask.postpone = Now() + 15000
 	end
 					
 	return false
@@ -2570,6 +2565,7 @@ function ffxiv_gather.GUIVarUpdate(Event, NewVals, OldVals)
 			--Capture the marker name changes, incase it affects our marker lists.
 			ffxiv_task_gather.RefreshMarkerList(ml_global_information.Player_Map)
 		elseif ( k == "gProfile" and gBotMode == GetString("gatherMode")) then
+			d("attempt to load profile.")
 			ffxiv_gather.LoadProfile(v)
 			Settings.FFXIVMINION["gLastGatherProfile"] = v
         end
