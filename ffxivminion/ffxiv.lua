@@ -1472,7 +1472,7 @@ function ffxivminion.CreateWindows()
 			Settings.FFXIVMINION[winTable] = {}
 		end
 		
-		settings = {}			
+		local settings = {}			
 		settings.width = Settings.FFXIVMINION[winTable].width or window.width
 		settings.height = Settings.FFXIVMINION[winTable].height or window.height
 		settings.y = Settings.FFXIVMINION[winTable].y or window.y
@@ -1494,7 +1494,7 @@ function ffxivminion.CreateWindow(window)
 		Settings.FFXIVMINION[winTable] = {}
 	end
 
-	settings = {}
+	local settings = {}
 	settings.width = Settings.FFXIVMINION[winTable].width or window.width
 	settings.height = Settings.FFXIVMINION[winTable].height or window.height
 	settings.y = Settings.FFXIVMINION[winTable].y or window.y
@@ -1529,7 +1529,9 @@ function ffxivminion.SizeWindow(strName)
 	if (window) then
 		local winTableName = "AutoWindow"..window.id
 		local winTable = Settings.FFXIVMINION[winTableName]
-		GUI_SizeWindow(strName,winTable.width,winTable.height)
+		if ( table.valid(winTable) and winTable.width and winTable.width > 0 and winTable.height and winTable.height > 0) then
+			GUI_SizeWindow(strName,winTable.width,winTable.height)
+		end
 	end
 end
 
@@ -1578,7 +1580,9 @@ function ffxivminion.OpenSettings()
 	
 	GUI_MoveWindow(winName,wnd.x+wnd.width,wnd.y)
 	local winTable = ffxivminion.GetWindowSize(winName)
-	GUI_SizeWindow(winName,wnd.width,winTable.height)
+	if ( table.valid(winTable) and winTable.width and winTable.width > 0 and winTable.height and winTable.width > 0) then
+		GUI_SizeWindow(winName,wnd.width,winTable.height)
+	end
 	GUI_WindowVisible(winName,true)
 end
 
