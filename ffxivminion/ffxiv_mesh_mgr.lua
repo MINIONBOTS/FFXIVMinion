@@ -237,8 +237,15 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 	end
  
 	if ( ml_mesh_mgr.OMCIsHandled ) then	
+		
 		--ml_global_information.lastrun = Now()
 		ml_global_information.nextRun = Now() + 1
+		
+		if (not Player.alive) then
+			Player:Stop()
+			ml_mesh_mgr.ResetOMC()
+			return
+		end
 		
 		if (Now() > ml_mesh_mgr.OMCThrottle) then
 			ffxivminion.UpdateGlobals()
