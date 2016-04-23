@@ -9,11 +9,19 @@ function ml_mesh_mgr.HandleOMC( ... )
 		d("OMC REACHED : "..tostring(OMCType))
 		
 		if ( ValidTable(OMCStartPosition) and ValidTable(OMCEndposition) and ValidTable(OMCFacingDirection) ) then
-			ml_mesh_mgr.OMCStartPosition = OMCStartPosition
-			ml_mesh_mgr.OMCEndposition = OMCEndposition
-			ml_mesh_mgr.OMCFacingDirection = OMCFacingDirection
-			ml_mesh_mgr.OMCType = OMCType
-			ml_mesh_mgr.OMCIsHandled = true -- Turn on omc handler
+			if (not IsFlying()) then
+				ml_mesh_mgr.OMCStartPosition = OMCStartPosition
+				ml_mesh_mgr.OMCEndposition = OMCEndposition
+				ml_mesh_mgr.OMCFacingDirection = OMCFacingDirection
+				ml_mesh_mgr.OMCType = OMCType
+				ml_mesh_mgr.OMCIsHandled = true
+				d("OMC ["..tostring(OMCType).."] accepted and handler initiated.")
+			else
+				d("OMC ["..tostring(OMCType).."] rejected due to flight.")
+				ml_mesh_mgr.OMCIsHandled = false
+			end
+		else
+			d("OMC ["..tostring(OMCType).."] rejected due to invalid setup.")
 		end
 	end
 end
@@ -263,6 +271,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			
 			if ( ml_mesh_mgr.OMCStartPositionReached == false ) then
 				if ( ValidTable(sPos) ) then
+					-- obk: START-INTERACT
 					if (ml_mesh_mgr.OMCType == "OMC_INTERACT") then						
 						Player:Stop()
 						-- Check for inanimate objects, use those as first guess.
@@ -321,6 +330,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							d("Starting state reached for INTERACT OMC.")
 							ml_mesh_mgr.OMCThrottle = Now() + 100
 						end
+					
+					-- obk: START-LIFT
 					elseif (ml_mesh_mgr.OMCType == "OMC_LIFT") then
 						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
@@ -336,6 +347,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
 							return
 						end
+					
+					-- obk: START-PORTAL
 					elseif (ml_mesh_mgr.OMCType == "OMC_PORTAL") then
 						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
@@ -346,6 +359,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							d("Starting state reached for : " .. ml_mesh_mgr.OMCType)
 							return
 						end
+					
+					-- obk: START-OTHERS
 					else
 						local meshdist = PDistance3D(sPos.x,sPos.y,sPos.z,mPos.x,mPos.y,mPos.z)
 						ml_mesh_mgr.OMCMeshDistance = meshdist
@@ -368,6 +383,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				end
 			else
 				local meshdist = ml_mesh_mgr.OMCMeshDistance
+				
+				-- obk: PROCESS-JUMP
 				if ( ml_mesh_mgr.OMCType == "OMC_JUMP" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
@@ -409,6 +426,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						end
 					end
 				
+				-- obk: PROCESS-WALK
 				elseif ( ml_mesh_mgr.OMCType == "OMC_WALK" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 150
 					
@@ -439,6 +457,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						end
 					end
 				
+				-- obk: PROCESS-LIFT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_LIFT" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
@@ -454,7 +473,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					if (not Player:IsJumping() and ml_mesh_mgr.OMCJumpStartedTimer ~= 0) then
 						ml_mesh_mgr.ResetOMC()
 					end
-
+				
+				-- obk: PROCESS-TELEPORT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
 					if ( ValidTable(ml_mesh_mgr.OMCEndposition) and gTeleport == "1") then
 						if ( Player:IsMoving() ) then Player:Stop() end
@@ -479,6 +499,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						ml_mesh_mgr.ResetOMC()
 					end
 				
+				-- obk: PROCESS-INTERACT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_INTERACT" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
@@ -533,7 +554,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						ml_mesh_mgr.ResetOMC()
 						return
 					end
-
+				
+				-- obk: PROCESS-PORTAL
 				elseif ( ml_mesh_mgr.OMCType == "OMC_PORTAL" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
