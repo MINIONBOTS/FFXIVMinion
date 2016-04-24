@@ -13,9 +13,9 @@ ffxiv_unstuck.coarse = {
 }
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 	, stats = 0, ticks = 0, minticks = 3, maxticks = 10 },
-	OFFMESH = { id = 1, name = "OFFMESH" , stats = 0, ticks = 0, minticks = 3, maxticks = 10 },
-	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, minticks = 30, maxticks = 40 },
+	STUCK 	= { id = 0, name = "STUCK" 	, stats = 0, ticks = 0, minticks = 5, maxticks = 10 },
+	OFFMESH = { id = 1, name = "OFFMESH" , stats = 0, ticks = 0, minticks = 5, maxticks = 10 },
+	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, minticks = 50, maxticks = 50 },
 }
 
 c_stuck = inheritsFrom( ml_cause )
@@ -26,7 +26,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
+	if (not Player.alive or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
@@ -133,11 +133,12 @@ function e_stuck:execute()
 end
 
 function ffxiv_unstuck.IsStalled()
-	local requiredDist = 15
+	local requiredDist = 10
 	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967")
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
+	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.coarse.lastDist <= requiredDist) then
+	if (ffxiv_unstuck.coarse.lastDist <= requiredDist and Player:IsMoving()) then
 		--d("[Unstuck_Stalled]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.coarse.lastDist).."].")
 		return true
 	else
@@ -151,8 +152,9 @@ function ffxiv_unstuck.IsStuck()
 	local hasSlow = HasBuffs(Player, "14,47,67,181,240,436,484,502,567,614,615,623,674,709,967")
 	
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
+	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.diffTotal <= requiredDist) then
+	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving()) then
 		--d("[Unstuck_Stuck]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.diffTotal).."].")
 		return true
 	else
