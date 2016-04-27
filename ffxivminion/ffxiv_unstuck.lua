@@ -26,7 +26,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (not Player.alive or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
+	if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13")) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
@@ -41,11 +41,11 @@ function c_stuck:evaluate()
 	
 	ffxiv_unstuck.diffTotal = PDistance3D(currentPos.x,currentPos.y,currentPos.z,lastPos.x,lastPos.y,lastPos.z)	
 	if ffxiv_unstuck.IsStuck() then
-		--d("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
+		d("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
 		ffxiv_unstuck.State.STUCK.ticks = ffxiv_unstuck.State.STUCK.ticks + 1
 	else
 		if (ffxiv_unstuck.State.STUCK.ticks ~= 0) then
-			--d("Removing stuck ticks.")
+			d("Removing stuck ticks.")
 			ffxiv_unstuck.State.STUCK.ticks = 0
 		end
 	end
@@ -58,11 +58,11 @@ function c_stuck:evaluate()
 	
 	coarse.lastDist = PDistance3D(currentPos.x,currentPos.y,currentPos.z,coarse.lastPos.x,coarse.lastPos.y,coarse.lastPos.z)	
 	if ffxiv_unstuck.IsStalled() then
-		--d("Adding stalled tick:"..tostring(ffxiv_unstuck.State.STALLED.ticks + 1).." total.")
+		d("Adding stalled tick:"..tostring(ffxiv_unstuck.State.STALLED.ticks + 1).." total.")
 		ffxiv_unstuck.State.STALLED.ticks = ffxiv_unstuck.State.STALLED.ticks + 1
 	else
 		if (ffxiv_unstuck.State.STALLED.ticks ~= 0) then
-			--d("Removing stalled ticks.")
+			d("Removing stalled ticks.")
 			ffxiv_unstuck.State.STALLED.ticks = 0
 		end
 	end
@@ -154,7 +154,7 @@ function ffxiv_unstuck.IsStuck()
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving()) then
+	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving() and not MIsLocked() not IsFlying()) then
 		--d("[Unstuck_Stuck]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.diffTotal).."].")
 		return true
 	else
