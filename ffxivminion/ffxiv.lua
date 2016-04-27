@@ -101,8 +101,7 @@ function ffxivminion.SetupOverrides()
 	ml_node.GetClosestNeighborPos = ffxivminion.NodeClosestNeighbor
 	
 	-- setup meshmanager
-	if ( ml_mesh_mgr ) then
-		ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
+	if ( ml_mesh_mgr ) then		
 		ml_mesh_mgr.GetMapID = function () return ml_global_information.Player_Map end
 		ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
 		ml_mesh_mgr.GetPlayerPos = function () return ml_global_information.Player_Position end
@@ -114,7 +113,7 @@ function ffxivminion.SetupOverrides()
 		end
 		
 		ml_mesh_mgr.GetString = function (inputString)
-			if (ValidString(inputString)) then
+			--[[if (ValidString(inputString)) then
 				if (not string.find(inputString,'%s%-%s%[.+%]')) then
 					local allowedMaps = ml_mesh_mgr.GetAllowedMaps(inputString)
 					if (ValidTable(allowedMaps)) then
@@ -125,7 +124,7 @@ function ffxivminion.SetupOverrides()
 						end
 					end
 				end
-			end
+			end]]
 			return inputString
 		end
 			
@@ -292,7 +291,6 @@ function ffxivminion.SetupOverrides()
 		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
 		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
 				
-		ml_mesh_mgr.InitMarkers()
 	end
 end
 
@@ -529,12 +527,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		local et = AceLib.API.Weather.GetDateTime() 
 		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
-		
-		-- Mesher.lua
-		if (ml_mesh_mgr) then
-			ml_mesh_mgr.OnUpdate( tickcount )
-		end
-		
+				
 		-- ffxiv_task_fate.lua
 		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 		
