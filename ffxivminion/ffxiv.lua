@@ -87,10 +87,30 @@ ffxivminion.foodsHQ = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
 
+--[[
+function ml_global_information.ToggleRun()	
+	if ( ml_task_hub.shouldRun ) then
+		ml_task_hub.shouldRun = false
+		FFXIV_Common_BotRunning = false
+	else
+		ml_task_hub.shouldRun = true
+		FFXIV_Common_BotRunning = true
+	end	
+
+	if (ml_task_hub.shouldRun and ml_global_information.UnstuckTimer == 0) then
+		ml_global_information.Reset()
+	else
+		ml_global_information.Stop()
+	end
+end
+--]]
+
+
+
 function ffxivminion.SetupOverrides()
 	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-	ml_global_information.BtnStart = { Name=GetString("startStop"),Event = "GUI_REQUEST_RUN_TOGGLE" }
-	ml_global_information.BtnPulse = { Name=GetString("doPulse"),Event = "Debug.Pulse" }
+	ml_global_information.BtnStart = { Name=GetString("startStop"), Event = "GUI_REQUEST_RUN_TOGGLE" }
+	ml_global_information.BtnPulse = { Name=GetString("doPulse"), Event = "Debug.Pulse" }
 
 	-- setup marker manager callbacks and vars
 	ml_marker_mgr.GetPosition = 	function () return ml_global_information.Player_Position end
@@ -101,10 +121,11 @@ function ffxivminion.SetupOverrides()
 	ml_node.GetClosestNeighborPos = ffxivminion.NodeClosestNeighbor
 	
 	-- setup meshmanager
-	if ( ml_mesh_mgr ) then		
-		ml_mesh_mgr.GetMapID = function () return ml_global_information.Player_Map end
+	if ( ml_mesh_mgr ) then
+		--ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
+		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
 		ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
-		ml_mesh_mgr.GetPlayerPos = function () return ml_global_information.Player_Position end
+		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
 		ml_mesh_mgr.SetEvacPoint = function ()
 			if (gmeshname ~= "" and Player.onmesh) then
 				ml_marker_mgr.markerList["evacPoint"] = ml_global_information.Player_Position
@@ -112,8 +133,29 @@ function ffxivminion.SetupOverrides()
 			end
 		end
 		
+		ml_mesh_mgr.GetAllowedMaps = function (mapname)
+			local allowedMaps = {}
+			if (FileExists(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")) then					
+				local mapdata,e = persistence.load(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")
+				if (ValidTable(mapdata)) then
+					local maps = mapdata.AllowedMapIDs
+					if (ValidTable(maps)) then
+						for mapid,duplicate in pairsByKeys(maps) do
+							allowedMaps[mapid] = duplicate
+						end
+					end
+				else
+					if (e) then
+						d("[GetAllowedMaps]: "..e)
+					end
+				end
+			end
+			
+			return allowedMaps
+		end
+		
 		ml_mesh_mgr.GetString = function (inputString)
-			--[[if (ValidString(inputString)) then
+			if (ValidString(inputString)) then
 				if (not string.find(inputString,'%s%-%s%[.+%]')) then
 					local allowedMaps = ml_mesh_mgr.GetAllowedMaps(inputString)
 					if (ValidTable(allowedMaps)) then
@@ -124,7 +166,7 @@ function ffxivminion.SetupOverrides()
 						end
 					end
 				end
-			end]]
+			end
 			return inputString
 		end
 			
@@ -291,6 +333,7 @@ function ffxivminion.SetupOverrides()
 		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
 		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
 				
+		--ml_mesh_mgr.InitMarkers()
 	end
 end
 
@@ -323,13 +366,19 @@ ffxivminion.Strings = {
 		end,
 	Meshes = 
 		function ()
-			local count = 0
-			local meshlist = "none"
-			local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
+			local meshlist = GetString("none")
+			local meshfilelist = {}
+			local tmp = FolderList(ml_mesh_mgr.defaultpath)	
+			for i,file in pairs (tmp) do
+				if ( string.ends(file,".obj") ) then
+					local filename = string.trim(file,4)
+					table.insert(meshfilelist, ml_mesh_mgr.GetString(filename))
+				end
+			end			
+			
 			if ( ValidTable(meshfilelist)) then
-				for i, meshname in pairs(meshfilelist) do
-					meshname = string.gsub(meshname, ".obj", "")
-					meshlist = meshlist..","..ml_mesh_mgr.GetString(meshname)
+				for i,meshname in pairsByKeys(meshfilelist) do
+					meshlist = meshlist..","..meshname
 				end
 			end
 			
@@ -382,11 +431,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		gBotRunning = "0"		
+		--FFXIV_Common_BotRunning = false
 	end
 	
 	if (ml_global_information.autoStartQueued) then
 		ml_global_information.autoStartQueued = false
-		ml_task_hub:ToggleRun()
+		ml_task_hub:ToggleRun() -- convert
 	end
 	
 	--collectgarbage()
@@ -413,7 +463,14 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					ml_global_information.queueLoader = false
 				end
 			end
+			
 			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+			
+			local currentFile = NavigationManager.CurrentFile
+			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
+			if (currentFile ~= gmeshname) then
+				gmeshname = ml_mesh_mgr.GetString(currentFile)
+			end
 		else
 			if (ml_global_information.queueLoader == false) then
 				ml_global_information.queueLoader = true
@@ -527,7 +584,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		local et = AceLib.API.Weather.GetDateTime() 
 		gEorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
-				
+		
 		-- ffxiv_task_fate.lua
 		ffxiv_task_grind.UpdateBlacklistUI(tickcount)
 		
@@ -584,7 +641,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 							if (ValidTable(el)) then
 								local i, choco = next(el)
 								if (i and choco) then
-									if MissingBuffs(choco,"536") then
+									if MissingBuffs(choco,"536+537") then
 										Player:Stop()
 										local newTask = ffxiv_task_useitem.Create()
 										newTask.itemid = 7894
@@ -648,11 +705,28 @@ function ml_global_information.BuildMenu()
 	ml_global_information.menu.flags = flags
 end
 
+function ffxivminion.GUIVarCapture(newVal,varName,doSave)
+	local doSave = IsNull(doSave,true)
+	local needsSave = false
+	
+	local currentVal = _G[varName]
+	if (currentVal ~= newVal or type(newVal) == "table") then
+		_G[varName] = newVal
+		needsSave = true
+	end
+		
+	if (doSave and needsSave) then
+		Settings.FFXIVMINION[varName] = newVal
+	end
+
+	return newVal
+end
+
 function ffxivminion.GetSetting(strSetting,default)
 	if (Settings.FFXIVMINION[strSetting] == nil) then
 		Settings.FFXIVMINION[strSetting] = default
 	end
-	return Settings.FFXIVMINION[strSetting]
+	return Settings.FFXIVMINION[strSetting]	
 end
 
 function ffxivminion.CreateMainWindow()
@@ -828,6 +902,8 @@ function ffxivminion.HandleInit()
 	collectgarbage()
 	ffxivminion.SetupOverrides()
 	
+	gmeshname = GetString("none")
+	
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
 	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
 	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
@@ -842,11 +918,34 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	
 	if ( not ffxivminion.Windows ) then
-		ffxivminion.Windows = {}
+		ffxivminion.Windows = {GetString("none")}
 	end
+	
+	--[[
+	FFXIV_Common_MeshList = {}
+	local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
+	if ( ValidTable(meshfilelist)) then
+		for i, meshname in pairs(meshfilelist) do
+			meshname = string.gsub(meshname, ".obj", "")
+			table.insert(FFXIV_Common_MeshList,ml_mesh_mgr.GetString(meshname))
+		end
+	end
+	
+	FFXIV_Common_SkillProfileList = {GetString("none")}
+    local profilelist = dirlist(SkillMgr.profilepath,".*lua")
+    if (ValidTable(profilelist)) then
+		for i,profile in pairs(profilelist) do		
+            profile = string.gsub(profile, ".lua", "")
+			table.insert(FFXIV_Common_SkillProfileList,profile)
+        end		
+    end
+	
+	FFXIV_Common_ProfileList = {}
+	--]]
 	
 	gFFXIVMINIONTask = ""
     gBotRunning = "0"
+	--FFXIV_Common_BotRunning
 	local uuid = GetUUID()
 	if ( string.valid(uuid) and Settings.FFXIVMINION.gBotModes and Settings.FFXIVMINION.gBotModes[uuid] ) then
 		ml_global_information.lastMode = Settings.FFXIVMINION.gBotModes[uuid]
@@ -902,6 +1001,17 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 				Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
 			end
         end
+		if ( k == "gmeshname" and v ~= "") then
+			if ( v ~= GetString("none")) then
+				local filename = ml_mesh_mgr.GetFileName(v)
+				d("Attempting to set new mesh ["..tostring(filename).."]")
+				ml_mesh_mgr.SetDefaultMesh(Player.localmapid, filename)
+				ml_mesh_mgr.LoadNavMesh( filename )
+			else
+				--ml_mesh_mgr.ClearNavMesh()
+				NavigationManager:ClearNavMesh() 
+			end
+		end
         if (k == "gEnableLog") then
             if ( v == "1" ) then
                 gFFXIVMINIONPulseTime = 1000
@@ -1465,7 +1575,7 @@ function ffxivminion.CreateWindows()
 			Settings.FFXIVMINION[winTable] = {}
 		end
 		
-		local settings = {}			
+		settings = {}			
 		settings.width = Settings.FFXIVMINION[winTable].width or window.width
 		settings.height = Settings.FFXIVMINION[winTable].height or window.height
 		settings.y = Settings.FFXIVMINION[winTable].y or window.y
@@ -1487,7 +1597,7 @@ function ffxivminion.CreateWindow(window)
 		Settings.FFXIVMINION[winTable] = {}
 	end
 
-	local settings = {}
+	settings = {}
 	settings.width = Settings.FFXIVMINION[winTable].width or window.width
 	settings.height = Settings.FFXIVMINION[winTable].height or window.height
 	settings.y = Settings.FFXIVMINION[winTable].y or window.y
@@ -1522,9 +1632,7 @@ function ffxivminion.SizeWindow(strName)
 	if (window) then
 		local winTableName = "AutoWindow"..window.id
 		local winTable = Settings.FFXIVMINION[winTableName]
-		if ( table.valid(winTable) and winTable.width and winTable.width > 0 and winTable.height and winTable.height > 0) then
-			GUI_SizeWindow(strName,winTable.width,winTable.height)
-		end
+		GUI_SizeWindow(strName,winTable.width,winTable.height)
 	end
 end
 
@@ -1561,8 +1669,6 @@ function ffxivminion.SaveWindows()
 					SafeSetVar(tableName,WindowInfo)
 				end
 			end
-		else
-			d(tostring(window.id or "unknown").." was invalid.")
 		end
 	end
 end
@@ -1573,9 +1679,7 @@ function ffxivminion.OpenSettings()
 	
 	GUI_MoveWindow(winName,wnd.x+wnd.width,wnd.y)
 	local winTable = ffxivminion.GetWindowSize(winName)
-	if ( table.valid(winTable) and winTable.width and winTable.width > 0 and winTable.height and winTable.width > 0) then
-		GUI_SizeWindow(winName,wnd.width,winTable.height)
-	end
+	GUI_SizeWindow(winName,wnd.width,winTable.height)
 	GUI_WindowVisible(winName,true)
 end
 
@@ -1945,6 +2049,15 @@ function SafeSetVar(name, value)
 		end
 	end
 end
+
+function GetKeyByValue(value,t)
+	for k,v in pairsByKeys(t) do
+		if (v == value) then
+			return k
+		end
+	end
+	return nil
+end	
 
 function ml_global_information.Draw( event, ticks ) 
 	local menu = ml_global_information.menu

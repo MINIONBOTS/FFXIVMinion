@@ -41,11 +41,11 @@ function c_stuck:evaluate()
 	
 	ffxiv_unstuck.diffTotal = PDistance3D(currentPos.x,currentPos.y,currentPos.z,lastPos.x,lastPos.y,lastPos.z)	
 	if ffxiv_unstuck.IsStuck() then
-		d("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.")
+		ml_debug("Adding stuck tick:"..tostring(ffxiv_unstuck.State.STUCK.ticks + 1).." total.",nil,3)
 		ffxiv_unstuck.State.STUCK.ticks = ffxiv_unstuck.State.STUCK.ticks + 1
 	else
 		if (ffxiv_unstuck.State.STUCK.ticks ~= 0) then
-			d("Removing stuck ticks.")
+			ml_debug("Removing stuck ticks.",nil,3)
 			ffxiv_unstuck.State.STUCK.ticks = 0
 		end
 	end
@@ -58,11 +58,11 @@ function c_stuck:evaluate()
 	
 	coarse.lastDist = PDistance3D(currentPos.x,currentPos.y,currentPos.z,coarse.lastPos.x,coarse.lastPos.y,coarse.lastPos.z)	
 	if ffxiv_unstuck.IsStalled() then
-		d("Adding stalled tick:"..tostring(ffxiv_unstuck.State.STALLED.ticks + 1).." total.")
+		ml_debug("Adding stalled tick:"..tostring(ffxiv_unstuck.State.STALLED.ticks + 1).." total.",nil,3)
 		ffxiv_unstuck.State.STALLED.ticks = ffxiv_unstuck.State.STALLED.ticks + 1
 	else
 		if (ffxiv_unstuck.State.STALLED.ticks ~= 0) then
-			d("Removing stalled ticks.")
+			ml_debug("Removing stalled ticks.",nil,3)
 			ffxiv_unstuck.State.STALLED.ticks = 0
 		end
 	end
@@ -168,7 +168,7 @@ function ffxiv_unstuck.IsOffMesh()
 		return false
 	end
 	
-	if (not gmeshname or gmeshname == "" or gmeshname == "none" or MIsLoading()) then
+	if (not gmeshname or gmeshname == "" or gmeshname == GetString("none") or MIsLoading()) then
 		return false
 	end
 	return not Player.onmesh and not MIsCasting()

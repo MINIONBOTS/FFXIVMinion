@@ -1276,7 +1276,6 @@ function c_walktopos:evaluate()
 		(Now() < IsNull(ml_task_hub:CurrentTask().moveWait,0)) or 
 		(MIsCasting() and not IsNull(ml_task_hub:CurrentTask().interruptCasting,false))) 
 	then
-		
 		return false
 	end
 	
@@ -2521,7 +2520,7 @@ function c_autoequip:evaluate()
 					data.equippedItem = item
 					
 					if (ValidTable(item)) then
-						d("Slot ["..tostring(slot).."] Equipped item ["..tostring(item.name).." ] has a value of :"..tostring(data.equippedValue))
+						ml_debug("Slot ["..tostring(slot).."] Equipped item ["..tostring(item.name).." ]["..tostring(item.hqid).."] has a value of :"..tostring(data.equippedValue))
 					end
 				end
 				if (found) then
@@ -2533,19 +2532,19 @@ function c_autoequip:evaluate()
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
 				if (IsNull(data.unequippedItem,0) ~= 0) then
-					d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+					ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 				end
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		end
 	end
@@ -2553,7 +2552,7 @@ function c_autoequip:evaluate()
 	for slot,data in pairsByKeys(applicableSlots) do		
 		if (IsNull(data.unequippedItem,0) ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
 			if (ArmoryItemCount(slot) == 25 and (data.unequippedItem.bag >= 0 and data.unequippedItem.bag <= 3)) then
-				d("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
+				ml_debug("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
 				
 				local firstBag,firstSlot = GetFirstFreeInventorySlot()
 				if (firstBag ~= nil) then
@@ -2562,7 +2561,7 @@ function c_autoequip:evaluate()
 						if (ValidTable(downgrades)) then
 							for i,item in pairs(downgrades) do
 								if (item.bag > 3) then
-									d("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+									ml_debug("Will attempt to place item ["..tostring(item.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 									
 									e_autoequip.item = item
 									e_autoequip.bag = firstBag
@@ -2573,7 +2572,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
@@ -2595,7 +2594,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
@@ -2617,7 +2616,7 @@ function c_autoequip:evaluate()
 						else
 							lowestItem = LowestArmoryItem(slot)
 							if (lowestItem) then
-								d("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
+								ml_debug("Will attempt to place item ["..tostring(lowestItem.id).."] into bag ["..tostring(firstBag).."], slot ["..tostring(firstSlot).."].")
 								
 								e_autoequip.item = lowestItem
 								e_autoequip.bag = firstBag
@@ -2628,7 +2627,7 @@ function c_autoequip:evaluate()
 					end
 				end
 				
-				d("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
+				ml_debug("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
 				return false
 			end
 			
@@ -2650,7 +2649,7 @@ end
 function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (ValidTable(item)) then
-		d("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		ml_debug("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 	end
 	if (ml_task_hub:CurrentTask()) then
