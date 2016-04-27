@@ -154,7 +154,7 @@ function ffxiv_unstuck.IsStuck()
 	if (hasSlow) then requiredDist = (requiredDist * .5) end
 	--if (Player.ismounted) then requiredDist = (requiredDist * 1.2) end
 	
-	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving() and not MIsLocked() not IsFlying()) then
+	if (ffxiv_unstuck.diffTotal <= requiredDist and Player:IsMoving() and not MIsLocked() and not IsFlying()) then
 		--d("[Unstuck_Stuck]: Did not cover the minimum distance necessary, only covered ["..tostring(ffxiv_unstuck.diffTotal).."].")
 		return true
 	else
