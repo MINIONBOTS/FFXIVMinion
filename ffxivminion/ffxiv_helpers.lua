@@ -4169,14 +4169,13 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local gained = newCount - originalCount	
 	return gained
-
 end
 
 function GetItem(hqid)
 	local itemid = tonumber(hqid)
 	local hqid = tonumber(hqid)
 	
-	if (itemid > 1000000) then
+	if (itemid >= 1000000 and itemid < 2000000) then
 		itemid = itemid - 1000000
 	end
 	
@@ -4184,6 +4183,15 @@ function GetItem(hqid)
 	if (ValidTable(items)) then
 		for _,item in pairs(items) do
 			if (item.hqid == hqid) then
+				return item
+			end
+		end
+	end
+	
+	local inv = Inventory("type=2004")
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
 				return item
 			end
 		end
