@@ -510,7 +510,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						local selection = options[math.random(1,TableSize(options))]
 						if (ValidTable(selection)) then
 							local p,dist = NavigationManager:GetClosestPointOnMesh(selection)
-							if (p) then
+							if (p and dist ~= 0 and dist < 5) then
 								newPos = p
 							end
 						end
@@ -524,13 +524,17 @@ function ffxiv_task_movetofate:task_complete_eval()
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
 				if (ValidTable(randomPoint)) then
 					local p,dist = NavigationManager:GetClosestPointOnMesh(randomPoint)
-					if (p) then
+					if (p and dist ~= 0 and dist < 5) then
 						newPos = p
 					end
 				end
 			end
+			
 			if (not ValidTable(newPos)) then
-				newPos = NavigationManager:GetClosestPointOnMesh(self.pos.x,self.pos.y,self.pos.z,false)
+				local p,dist = NavigationManager:GetClosestPointOnMesh(self.pos)
+				if (p and dist ~= 0 and dist < 5) then
+					newPos = p
+				end
 			end
 			
 			if (self.requiresPosRandomize) then
@@ -747,7 +751,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (interactable and interactable.targetable and dist3d < 10) then
 			Player:SetTarget(interactable.id)
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0 and dist <= range) then
+			if (p and dist ~= 0 and dist < 5) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
@@ -1671,7 +1675,7 @@ function ffxiv_task_grindCombat:Process()
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-					if (p and dist ~= 0) then
+					if (p and dist ~= 0 and dist < 5) then
 						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
 					end
@@ -1727,7 +1731,7 @@ function ffxiv_task_grindCombat:Process()
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 						local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-						if (p and dist ~= 0) then
+						if (p and dist ~= 0 and dist < 5) then
 							GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 							self.teleportThrottle = Now() + 1500
 						end
@@ -2088,7 +2092,7 @@ function ffxiv_nav_interact:task_complete_eval()
 			Player:SetTarget(interactable.id)
 			local ipos = shallowcopy(interactable.pos)
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (ValidTable(p)) then
+			if (p and dist ~= 0 and dist < 5) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
@@ -2253,7 +2257,7 @@ function ffxiv_misc_switchclass.Create()
     newinst.auxiliary = false
     newinst.process_elements = {}
     newinst.overwatch_elements = {}
-    newinst.name = "QUEST_MISC_SWITCHCLASS"
+    newinst.name = "MISC_SWITCHCLASS"
     
     newinst.params = {}
 	newinst.stepCompleted = false	
@@ -2285,16 +2289,20 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	local class = self.class
 	
 	if (Player.job ~= class) then
+		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
 		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 			not Player.alive or ml_global_information.Player_InCombat or
 			ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
 		then
+			d("[SwitchClass]: Cannot swap right now, invalid state.")
 			return false
 		end
 			
 		local canSwitch,bestWeapon = CanSwitchToClass(class)
 		if (canSwitch) then
 			return false
+		else
+			d("Not allowed to switch, no proper weapon found.")
 		end	
 	end
 	

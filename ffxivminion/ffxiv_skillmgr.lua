@@ -448,7 +448,8 @@ SkillMgr.Variables = {
 	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
 	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
 	SKM_GAttemptsMax = { default = 0, cast = "number", profile = "gatherattemptsmax", section = "gathering"},
-	SKM_ITEM = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
+	SKM_HasItem = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
+	SKM_IsItem = { default = "", cast = "string", profile = "isitem", section = "gathering"},
 	SKM_UNSP = { default = "0", cast = "string", profile = "isunspoiled", section = "gathering"},
 	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
 	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
@@ -1000,7 +1001,8 @@ function SkillMgr.ModuleInit()
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMax"),"SKM_GAttemptsMax",GetString("skillDetails"));
-    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_ITEM",GetString("skillDetails"));
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_HasItem",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,"Is Item","SKM_IsItem",GetString("skillDetails"));
 	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("skmUnspoiled"),"SKM_UNSP",GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
 	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",GetString("skillDetails"));
@@ -3108,13 +3110,18 @@ function SkillMgr.Gather(item)
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unknown status.")
 							castable = false
 						end
+						if (IsNull(skill.isitem,"") ~= "") then
+							if (not MultiComp(item.name,skill.isitem)) then
+								castable = false
+							end
+						end
 					end
 					
 					if ((tonumber(skill.gpmin) > 0 and Player.gp.current > tonumber(skill.gpmin)) or
 						(tonumber(skill.gpmax) > 0 and Player.gp.current < tonumber(skill.gpmax)) or
 						(tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) or
 						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax)) or
-						(skill.hasitem ~="" and not NodeHasItem(skill.hasitem)) or
+						(skill.hasitem ~= "" and not NodeHasItem(skill.hasitem)) or
 						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
 					then 
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed one ore more conditional checks.")

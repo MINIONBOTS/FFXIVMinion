@@ -93,6 +93,7 @@ function c_findnode:evaluate()
 		local nodemaxlevel = 60
 		local basePos = {}
 		local blacklist = ""
+		local includesHighPrio = true;
 	
 		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
@@ -105,11 +106,12 @@ function c_findnode:evaluate()
 			
 			if (task.unspoiled and task.unspoiled == false) then
 				blacklist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
+				includesHighPrio = false
 			elseif (task.unspoiled and task.unspoiled == true) then
 				whitelist = "5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20"
 			end
 		elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
-			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"1;2;3;4")
+			whitelist = IsNull(marker:GetFieldValue(GetUSString("contentIDEquals")),"1;2;3;4;9;10;11;12;13;14;15;16;17;18;19;20;21")
 			radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
 			if (radius == 0) then radius = 150 end
 			nodeminlevel = IsNull(marker:GetFieldValue(GetUSString("minContentLevel")),1)
@@ -141,8 +143,21 @@ function c_findnode:evaluate()
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
 					gd("Using filter ["..filter.."].",3)
 				end
-			
-				local gatherable = GetNearestFromList(filter,basePos,radius)
+				
+				local gatherable = nil
+				local gatherables = MEntityList(filter)
+				if (ValidTable(gatherables)) then
+					for i,potential in pairs(gatherables) do
+						if (MultiComp(potential.contentid,"9,10,11,12,17,18,19,20")) then
+							gatherable = potential
+						end
+					end
+				end	
+				
+				if (gatherable == nil) then
+					gatherable = GetNearestFromList(filter,basePos,radius)
+				end
+				
 				if (ValidTable(gatherable)) then
 					if (ValidTable(ffxiv_gather.currentTask)) then
 						if (ffxiv_gather.currentTask.taskFailed ~= 0) then
@@ -512,7 +527,7 @@ function DoGathering(item)
 
 	Player:Gather(item.index)
 	if (HasBuffs(Player,"805")) then
-		ml_task_hub:CurrentTask():SetDelay(3000)
+		ml_global_information.Await(10000, function () return ControlVisible("GatheringMasterpiece") end)
 	end
 	return 3
 end
@@ -972,7 +987,13 @@ function ffxiv_gather.CheckBuffs(item)
 	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 		local collect = MGetAction(ffxiv_gather.collectors[Player.job],1)
 		if (collect and collect.isready) then
-			collect:Cast()
+			if (collect:Cast()) then
+				if (not hasCollect) then
+					ml_global_information.Await(2500, function () return HasBuff(Player.id,805) end)
+				else
+					ml_global_information.Await(2500, function () return MissingBuff(Player.id,805) end)
+				end
+			end
 		end
 		return true
 	end
@@ -997,19 +1018,21 @@ function CanUseCordial()
 		return false
 	end
 	
-	if ((Player.gp.current < minimumGP and (minimumGP - Player.gp.current) >= 100) or Player.gp.percent <= 30) then
+	if (Player.gp.current < minimumGP) then
 		if (useCordials) then
-			local cordial = MGetItem(6141)
-			if (cordial and cordial.isready) then
-				return true, cordial
-			end
-			
-			if (Player.gp.max >= 550 and Player.gp.percent <= 50) then
+			if (Player.gp.max >= 550 and (minimumGP - Player.gp.current) >= 400 or Player.gp.percent <= 30) then
 				local hiCordial = MGetItem(12669)
 				if (hiCordial and hiCordial.isready) then
 					return true, hiCordial
 				end
-			end						
+			end	
+			
+			if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then
+				local cordial = MGetItem(6141)
+				if (cordial and cordial.isready) then
+					return true, cordial
+				end
+			end
 		end
 	end
 	
@@ -1097,9 +1120,10 @@ c_nodeprebuff = inheritsFrom( ml_cause )
 e_nodeprebuff = inheritsFrom( ml_effect )
 e_nodeprebuff.activity = ""
 e_nodeprebuff.item = nil
+e_nodeprebuff.itemid = 0
 e_nodeprebuff.class = nil
-e_nodeprebuff.requiresStop = false
-e_nodeprebuff.requiresDismount = false
+e_nodeprebuff.requirestop = false
+e_nodeprebuff.requiredismount = false
 function c_nodeprebuff:evaluate()
 	if (MIsLoading() or MIsCasting() or (MIsLocked() and not IsFlying()) or 
 		ControlVisible("Gathering") or ControlVisible("GatheringMasterpiece")) then
@@ -1108,22 +1132,36 @@ function c_nodeprebuff:evaluate()
 	
 	e_nodeprebuff.activity = ""
 	e_nodeprebuff.item = nil
+	e_nodeprebuff.itemid = 0
 	e_nodeprebuff.class = nil
-	e_nodeprebuff.requiresStop = false
-	e_nodeprebuff.requiresDismount = false
+	e_nodeprebuff.requirestop = false
+	e_nodeprebuff.requiredismount = false
 	
-	if (ShouldEat() and not MIsLocked()) then
-		d("[NodePreBuff]: Need to eat.")
-		e_nodeprebuff.activity = "eat"
-		e_nodeprebuff.requiresStop = true
-		e_nodeprebuff.requiresDismount = true
-		return true
+	if (not MIsLocked()) then
+		if (ShouldEat()) then
+			d("[NodePreBuff]: Need to eat.")
+			e_nodeprebuff.activity = "eat"
+			e_nodeprebuff.requirestop = true
+			e_nodeprebuff.requiredismount = true
+			return true
+		end
+		
+		local canUse,manualItem = CanUseExpManual()
+		if (canUse and ValidTable(manualItem)) then
+			d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
+			e_nodeprebuff.activity = "usemanual"
+			e_nodeprebuff.itemid = manualItem.hqid
+			e_nodeprebuff.requirestop = true
+			e_nodeprebuff.requiredismount = true
+			return true
+		end
 	end
 	
 	local skillProfile = ""
 	local minimumGP = 0
 	local useCordials = (gGatherUseCordials == "1")
 	local taskType = ""
+	local useFavor = 0
 	
 	local profile = ffxiv_gather.profileData
 	local task = ffxiv_gather.currentTask
@@ -1133,9 +1171,11 @@ function c_nodeprebuff:evaluate()
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
+		useFavor = IsNull(task.favor,0)
 	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+		useFavor = IsNull(marker:GetFieldValue(GetUSString("favor")),0)
 	else
 		return false
 	end
@@ -1145,16 +1185,16 @@ function c_nodeprebuff:evaluate()
 			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 			SkillMgr.UseProfile(skillProfile)
 			e_nodeprebuff.activity = "switchprofile"
-			e_nodeprebuff.requiresStop = false
-			e_nodeprebuff.requiresDismount = false
+			e_nodeprebuff.requirestop = false
+			e_nodeprebuff.requiredismount = false
 			return true
 		else
 			if (skillProfile == GetString("none")) then
 				d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 				SkillMgr.UseProfile(skillProfile)
 				e_nodeprebuff.activity = "switchprofile"
-				e_nodeprebuff.requiresStop = false
-				e_nodeprebuff.requiresDismount = false
+				e_nodeprebuff.requirestop = false
+				e_nodeprebuff.requiredismount = false
 				return true
 			end
 			gd("Profile ["..skillProfile.."] was not found.",3)
@@ -1174,22 +1214,12 @@ function c_nodeprebuff:evaluate()
 						if (canUse and ValidTable(cordialItem)) then
 							d("[NodePreBuff]: Need to use a cordial.")
 							e_nodeprebuff.activity = "usecordial"
-							e_nodeprebuff.item = cordialItem
-							e_nodeprebuff.requiresStop = true
-							e_nodeprebuff.requiresDismount = true
+							e_nodeprebuff.itemid = cordialItem.hqid
+							e_nodeprebuff.requirestop = true
+							e_nodeprebuff.requiredismount = true
 							return true
 						end					
 					end
-				end
-				
-				local canUse,manualItem = CanUseExpManual()
-				if (canUse and ValidTable(manualItem)) then
-					d("[NodePreBuff]: Need to use a manual.")
-					e_nodeprebuff.activity = "usemanual"
-					e_nodeprebuff.item = manualItem
-					e_nodeprebuff.requiresStop = true
-					e_nodeprebuff.requiresDismount = true
-					return true
 				end
 			end
         end
@@ -1202,14 +1232,14 @@ function c_nodeprebuff:evaluate()
 					local commandString = "/gs change "..tostring(profile.setup.gearsetbotany)
 					SendTextCommand(commandString)
 					e_nodeprebuff.activity = "switchclasslegacy"
-					e_nodeprebuff.requiresStop = true
-					e_nodeprebuff.requiresDismount = false
+					e_nodeprebuff.requirestop = true
+					e_nodeprebuff.requiredismount = false
 					return true
 				else
 					e_nodeprebuff.activity = "switchclass"
 					e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
-					e_nodeprebuff.requiresStop = true
-					e_nodeprebuff.requiresDismount = false
+					e_nodeprebuff.requirestop = true
+					e_nodeprebuff.requiredismount = false
 					return true
 				end
 			end
@@ -1219,15 +1249,48 @@ function c_nodeprebuff:evaluate()
 					local commandString = "/gs change "..tostring(profile.setup.gearsetmining)
 					SendTextCommand(commandString)
 					e_nodeprebuff.activity = "switchclasslegacy"
-					e_nodeprebuff.requiresStop = true
-					e_nodeprebuff.requiresDismount = false
+					e_nodeprebuff.requirestop = true
+					e_nodeprebuff.requiredismount = false
 					return true
 				else
 					e_nodeprebuff.activity = "switchclass"
 					e_nodeprebuff.class = FFXIV.JOBS.MINER
-					e_nodeprebuff.requiresStop = true
-					e_nodeprebuff.requiresDismount = false
+					e_nodeprebuff.requirestop = true
+					e_nodeprebuff.requiredismount = false
 					return true
+				end
+			end
+		end
+	end
+	
+	if (useFavor ~= 0) then
+		local favors = {
+			[10374] = 881,
+			[10375] = 883,
+			[10376] = 882,
+			[10377] = 884,
+			[10378] = 885,
+			[10379] = 886,
+			[10380] = 887,
+			[10381] = 889,
+			[10382] = 888,
+			[10383] = 890,
+			[10384] = 891,
+			[10385] = 892,
+		}
+		
+		local favorBuff = favors[useFavor]
+		if (favorBuff) then
+			if (MissingBuff(Player.id, favorBuff)) then
+				if (ItemCount(useFavor) > 0) then
+					local favor = Inventory:Get(useFavor)
+					if (favor and favor.isready) then
+						e_nodeprebuff.activity = "usefavor"
+						e_nodeprebuff.itemid = favor.hqid
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = true
+						return true
+					end
 				end
 			end
 		end
@@ -1236,8 +1299,8 @@ function c_nodeprebuff:evaluate()
 	if (MissingBuffs(Player,"217+225")) then
 		d("[NodePreBuff]: Need to use our locator buff.")
 		e_nodeprebuff.activity = "uselocator"
-		e_nodeprebuff.requiresStop = false
-		e_nodeprebuff.requiresDismount = false
+		e_nodeprebuff.requirestop = false
+		e_nodeprebuff.requiredismount = false
 		return true
 	end
 	
@@ -1247,8 +1310,8 @@ function c_nodeprebuff:evaluate()
 	then
 		d("[NodePreBuff]: Need to use our unspoiled finder.")
 		e_nodeprebuff.activity = "useunspoiledfinder"
-		e_nodeprebuff.requiresStop = false
-		e_nodeprebuff.requiresDismount = false
+		e_nodeprebuff.requirestop = false
+		e_nodeprebuff.requiredismount = false
 		return true
 	end		
 	
@@ -1256,25 +1319,27 @@ function c_nodeprebuff:evaluate()
 end
 function e_nodeprebuff:execute()
 	local activity = e_nodeprebuff.activity
-	local activityClass = e_nodeprebuff.class
-	local activityItem = e_nodeprebuff.item
-	local requiresStop = e_nodeprebuff.requiresStop
-	local requiresDismount = e_nodeprebuff.requiresDismount
+	local activityclass = e_nodeprebuff.class
+	local activityitem = e_nodeprebuff.item
+	local activityitemid = e_nodeprebuff.itemid
+	local requirestop = e_nodeprebuff.requirestop
+	local requiredismount = e_nodeprebuff.requiredismount
 	
-	if (requiresStop and Player:IsMoving()) then
+	if (requirestop and Player:IsMoving()) then
 		Player:Stop()
+		ml_global_information.Await(1500, function () return (not Player:IsMoving()) end)
 		return
 	end
 	
-	if (requiresDismount and Player.ismounted) then
+	if (requiredismount and Player.ismounted) then
 		Dismount()
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(2500, function () return (not Player.ismounted) end)
 		return
 	end
 	
 	if (activity == "eat") then
 		Eat()
-		ml_task_hub:CurrentTask():SetDelay(1500)
+		ml_global_information.Await(2500, function () return HasBuff(Player.id, 48) end)
 		return
 	end
 	
@@ -1285,20 +1350,48 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usemanual") then
-		local manual = activityItem
+		local manual = MGetItem(activityitemid)
 		if (manual and manual.isready) then
-			manual:Use()
-			ml_task_hub:CurrentTask():SetDelay(1500)
-			return
+			if (manual:Use()) then
+				ml_global_information.Await(2500, function () return HasBuff(Player.id, 46) end)
+				return
+			end
+		end
+	end
+	
+	if (activity == "usefavor") then
+		local favors = {
+			[10374] = 881,
+			[10375] = 883,
+			[10376] = 882,
+			[10377] = 884,
+			[10378] = 885,
+			[10379] = 886,
+			[10380] = 887,
+			[10381] = 889,
+			[10382] = 888,
+			[10383] = 890,
+			[10384] = 891,
+			[10385] = 892,
+		}
+		
+		local favorBuff = favors[activityitemid]
+		local favor = Inventory:Get(activityitemid)
+		if (favor and favor.isready) then
+			if (favor:Use()) then
+				ml_global_information.Await(2500, function () return HasBuff(Player.id, favorBuff) end)
+				return
+			end
 		end
 	end
 	
 	if (activity == "usecordial") then
-		local cordial = activityItem
+		local cordial = MGetItem(activityitemid)
 		if (cordial and cordial.isready) then
-			cordial:Use()
-			ml_task_hub:CurrentTask():SetDelay(1500)
-			return
+			if (cordial:Use()) then
+				ml_global_information.Await(2500, function () return (not ItemReady(activityitemid)) end)
+				return
+			end
 		end
 	end
 	
@@ -2820,6 +2913,7 @@ function ffxiv_gather.SetupMarkers()
 	botanyMarker:AddField("int", GetUSString("maxRadius"), GetString("maxRadius"), 0)
 	botanyMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
 	botanyMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	botanyMarker:AddField("string", GetUSString("selectItem3"), GetString("selectItem3"), "")
 	botanyMarker:AddField("string", GetUSString("contentIDEquals"), GetString("contentIDEquals"), "")
 	botanyMarker:AddField("button", GetUSString("whitelistTarget"), GetString("whitelistTarget"), "")
 	botanyMarker:AddField("string", GetUSString("NOTcontentIDEquals"), GetString("NOTcontentIDEquals"), "")
@@ -2828,6 +2922,7 @@ function ffxiv_gather.SetupMarkers()
 	botanyMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
 	botanyMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
 	botanyMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	botanyMarker:AddField("int", GetUSString("favor"), GetString("favor"), 0)
 	botanyMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
 	botanyMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
 	botanyMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
@@ -2844,6 +2939,7 @@ function ffxiv_gather.SetupMarkers()
 	miningMarker:AddField("int", GetUSString("maxRadius"), GetString("maxRadius"), 0)
 	miningMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
 	miningMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	miningMarker:AddField("string", GetUSString("selectItem3"), GetString("selectItem3"), "")
 	miningMarker:AddField("string", GetUSString("contentIDEquals"), GetString("contentIDEquals"), "")
 	miningMarker:AddField("button", GetUSString("whitelistTarget"), GetString("whitelistTarget"), "")
 	miningMarker:AddField("string", GetUSString("NOTcontentIDEquals"), GetString("NOTcontentIDEquals"), "")
@@ -2852,6 +2948,7 @@ function ffxiv_gather.SetupMarkers()
 	miningMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
 	miningMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
 	miningMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	miningMarker:AddField("int", GetUSString("favor"), GetString("favor"), 0)
 	miningMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
 	miningMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
 	miningMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())
@@ -2869,11 +2966,13 @@ function ffxiv_gather.SetupMarkers()
 	unspoiledMarker:AddField("string", GetUSString("minimumGP"), GetString("minimumGP"), "0")
 	unspoiledMarker:AddField("string", GetUSString("selectItem1"), GetString("selectItem1"), "")
 	unspoiledMarker:AddField("string", GetUSString("selectItem2"), GetString("selectItem2"), "")
+	unspoiledMarker:AddField("string", GetUSString("selectItem3"), GetString("selectItem3"), "")
 	unspoiledMarker:AddField("combobox", GetUSString("gatherMaps"), GetString("gatherMaps"), "Any", "Any,Peisteskin Only,None")
 	unspoiledMarker:AddField("checkbox", GetUSString("gatherGardening"), GetString("gatherGardening"), "1")
 	unspoiledMarker:AddField("checkbox", GetUSString("gatherChocoFood"), GetString("gatherChocoFood"), "1")
 	unspoiledMarker:AddField("checkbox", "Rare Items", "Rare Items", "1")
 	unspoiledMarker:AddField("checkbox", "Special Rare Items", "Special Rare Items", "1")
+	unspoiledMarker:AddField("int", GetUSString("favor"), GetString("favor"), 0)
 	unspoiledMarker:AddField("checkbox", GetUSString("useStealth"), GetString("useStealth"), "1")
 	unspoiledMarker:AddField("checkbox", GetUSString("dangerousArea"), GetString("dangerousArea"), "0")
 	unspoiledMarker:AddField("combobox", GetUSString("skillProfile"), GetString("skillProfile"), "None", ffxivminion.Strings.SKMProfiles())

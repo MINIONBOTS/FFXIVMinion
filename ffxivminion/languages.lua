@@ -255,6 +255,7 @@ strings =
 		showPath						= "Show Path",
         selectItem1                     = "Item Priority 1",
         selectItem2                     = "Item Priority 2",
+		selectItem3                     = "Item Priority 3",
         selectBait                      = "Select Bait",
         baitName                        = "Bait Name",
         markerName                      = "Marker Name",
@@ -957,6 +958,7 @@ strings =
 		showPath						= "显示路径",
         selectItem1                     = "物品优先级 1",
         selectItem2                     = "物品优先级 2",
+		selectItem3                     = "物品优先级 3",
         selectBait                      = "选择 饵",
         baitName                        = "饵名",
         markerName                      = "标识名字",
@@ -1648,6 +1650,7 @@ strings =
         showPath                        = "道路標示",
         selectItem1                     = "アイテム優先度 1",
         selectItem2                     = "アイテム優先度 2",
+		selectItem3                     = "アイテム優先度 3",
         selectBait                      = "エサ選択",
         baitName                        = "エサ名",
         markerName                      = "マーカー名",
@@ -2304,6 +2307,7 @@ strings =
 		showPath						= "Show Path",
         selectItem1                     = "Item Priority 1",
         selectItem2                     = "Item Priority 2",
+		selectItem3                     = "Item Priority 3",
         selectBait                      = "Select Bait",
         baitName                        = "Bait Name",
         markerName                      = "Marker Name",
@@ -2962,6 +2966,7 @@ strings =
 		showPath						= "Show Path",
         selectItem1                     = "Item Priority 1",
         selectItem2                     = "Item Priority 2",
+		selectItem3                     = "Item Priority 3",
         selectBait                      = "Select Bait",
         baitName                        = "Bait Name",
         markerName                      = "Marker Name",
@@ -3619,6 +3624,7 @@ strings =
 		showPath						= "Show Path",
         selectItem1                     = "Item Priority 1",
         selectItem2                     = "Item Priority 2",
+		selectItem3                     = "Item Priority 3",
         selectBait                      = "Select Bait",
         baitName                        = "Bait Name",
         markerName                      = "Marker Name",
@@ -4277,6 +4283,7 @@ strings =
 		showPath						= "경로 보기",
         selectItem1                     = "아이템 우선순위 1",
         selectItem2                     = "아이템 우선순위 2",
+		selectItem3                     = "아이템 우선순위 3",
         selectBait                      = "미끼 선택",
         baitName                        = "미끼 이름",
         markerName                      = "마커 이름",
@@ -4721,23 +4728,35 @@ strings =
 function SetLanguage(event, arg)
 	d("Switching language "..tostring(arg))	
 	if ( tonumber(arg) ~= nil ) then
-		if ( arg == "0" ) then gCurrentLanguage = "us"
-		elseif ( arg == "1" ) then gCurrentLanguage = "cn" 
-		elseif ( arg == "2" ) then gCurrentLanguage = "jp" 
-		elseif ( arg == "3" ) then gCurrentLanguage = "de" 
-		elseif ( arg == "4" ) then gCurrentLanguage = "fr"
-        elseif ( arg == "5" ) then gCurrentLanguage = "ru"
-		elseif ( arg == "6" ) then gCurrentLanguage = "kr"
-		else 
+		if ( arg == "0" ) then 
 			gCurrentLanguage = "us"
+			GUI:SetLanguage(0)
+		elseif ( arg == "1" ) then 
+			gCurrentLanguage = "cn" 
+			GUI:SetLanguage(1)
+		elseif ( arg == "2" ) then 
+			gCurrentLanguage = "jp" 
+			GUI:SetLanguage(2)
+		elseif ( arg == "3" ) then 
+			gCurrentLanguage = "de" 
+			GUI:SetLanguage(0)
+		elseif ( arg == "4" ) then 
+			gCurrentLanguage = "fr"
+			GUI:SetLanguage(0)
+        elseif ( arg == "5" ) then 
+			gCurrentLanguage = "ru"
+			GUI:SetLanguage(0)
+		elseif ( arg == "6" ) then 
+			gCurrentLanguage = "kr"
+			GUI:SetLanguage(6)
 		end
 	end	
 end
 
 -- returns a string in the current language or an indicator that the string does not exist in the language file
 function GetString(stringName)
-	if strings[gCurrentLanguage][stringName] == nil then
-		return "%" .. tostring(stringName) .. "%"
+	if (not strings or strings[gCurrentLanguage] == nil or strings[gCurrentLanguage][stringName] == nil) then
+		return stringName
 	else
 		return strings[gCurrentLanguage][stringName]
 	end
@@ -4745,7 +4764,7 @@ end
 
 function GetUSString(stringName)
 	if strings["us"][stringName] == nil then
-		return "%" .. tostring(stringName) .. "%"
+		return stringName
 	else
 		return strings["us"][stringName]
 	end
@@ -4756,7 +4775,7 @@ function GetStringKey(translatedString)
 	for language,data in pairs(strings) do
 		for skey,s in pairs(data) do
 			if (s == translatedString) then
-				return tostring(skey)
+				return skey
 			end
 		end
 	end

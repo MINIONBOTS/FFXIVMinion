@@ -474,7 +474,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			local currentFile = NavigationManager.CurrentFile
 			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
 			if (currentFile ~= gmeshname) then
-				gmeshname = ml_mesh_mgr.GetString(currentFile)
+				gmeshname = currentFile
 			end
 		else
 			if (ml_global_information.queueLoader == false) then
