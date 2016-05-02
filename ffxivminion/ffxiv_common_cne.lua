@@ -444,15 +444,23 @@ function c_nextluminous:evaluate()
 	
 	e_nextluminous.luminous = nil
 	
-	local map = ml_global_information.Player_Map
+	local map = Player.localmapid
+	local crystals = ffxiv_task_grind.luminous
+	
 	local mapFound = false
 	local mapItem = nil
 	local itemFound = false
 	local getNext = false
 	local jpTime = GetJPTime()
 	
-	--First loop, check for best atma based on JP time theory.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
+	--First loop, check if we can do the one on our current map.
+	for i, crystal in pairsByKeys(crystals) do
+		--["Ice"] = 		{ name = "Ice", 		map = 397, item = 13569 },
+		if (crystal.map == map and ItemCount(crystal.item) < 3) then
+			itemFound = true
+			
+		end
+			
 		if ((tonumber(atma.hour) == jpTime.hour and jpTime.min <= 55) or
 			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.min > 55)) then
 			local haveBest = false
@@ -1126,6 +1134,8 @@ function e_teleporttomap:execute()
 	
 	if (ActionIsReady(7,5)) then
 		if (Player:Teleport(e_teleporttomap.aeth.id)) then	
+		
+			ml_global_information.Await(10000, function () return Quest:IsLoading() end)
 			
 			if (ml_task_hub:CurrentTask().name ~= "MOVETOMAP") then
 				ml_task_hub:CurrentTask().completed = true
@@ -1288,7 +1298,7 @@ function c_walktopos:evaluate()
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist ~= 0) then
+			if (p and dist ~= 0 and dist < 6) then
 				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
 				gotoPos = p
 			end
@@ -1624,12 +1634,12 @@ function c_mount:evaluate()
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local lastPos = e_mount.lastPathPos
 		
-		if (ValidTable(c_mount.attemptPos)) then
-			local lastDist = Distance3D(myPos.x, myPos.y, myPos.z, c_mount.attemptPos.x, c_mount.attemptPos.y, c_mount.attemptPos.z)
-			if (Now() < c_mount.reattempt and lastDist < 15) then
-				return false
-			end
-		end
+		--if (ValidTable(c_mount.attemptPos)) then
+			--local lastDist = Distance3D(myPos.x, myPos.y, myPos.z, c_mount.attemptPos.x, c_mount.attemptPos.y, c_mount.attemptPos.z)
+			--if (Now() < c_mount.reattempt and lastDist < 15) then
+				--return false
+			--end
+		--end
 
 		-- If we change our gotoPos or have never measured it, reset the watch.
 		if (ValidTable(lastPos)) then
@@ -1706,7 +1716,7 @@ end
 function e_mount:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
-		--d("Stopped.")
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 		return
 	end
 	
@@ -1718,11 +1728,14 @@ function e_mount:execute()
 		return
 	end
 	
-    Mount(e_mount.id)
-	ml_task_hub:CurrentTask():SetDelay(500)
-	c_mount.reattempt = Now() + 10000
-	local ppos = Player.pos
-	c_mount.attemptPos = { x = round(ppos.x,1), y = round(ppos.y,1), z = round(ppos.z,1) }
+    if (Mount(e_mount.id)) then
+		ml_global_information.Await(5000, function () return Player.ismounted end)
+	end
+	
+	--ml_task_hub:CurrentTask():SetDelay(500)
+	--c_mount.reattempt = Now() + 10000
+	--local ppos = Player.pos
+	--c_mount.attemptPos = { x = round(ppos.x,1), y = round(ppos.y,1), z = round(ppos.z,1) }
 end
 
 c_battlemount = inheritsFrom( ml_cause )
@@ -2145,11 +2158,13 @@ function e_dead:execute()
 		-- try raise first
 		if (PressYesNo(true)) then
 			c_dead.timer = 0
+			ml_global_information.Await(20000, function () return Player.alive end)
 			return
 		end
 		-- press ok
 		if (PressOK()) then
 			c_dead.timer = 0
+			ml_global_information.Await(20000, function () return Player.alive end)
 			return
 		end
 	end

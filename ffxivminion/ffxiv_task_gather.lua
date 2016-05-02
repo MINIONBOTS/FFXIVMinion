@@ -565,6 +565,7 @@ function e_gather:execute()
 
 		local item1 = ""
 		local item2 = ""
+		local item3 = ""
 		
 		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
@@ -576,6 +577,7 @@ function e_gather:execute()
 			gatherChocoFood = IsNull(task.gatherchocofood,false)
 			item1 = IsNull(task.item1,"")
 			item2 = IsNull(task.item2,"")
+			item3 = IsNull(task.item3,"")
 		elseif (ValidTable(marker)) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
 			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
@@ -805,8 +807,10 @@ function e_gather:execute()
 		
 		local itemid1 = 0
 		local itemid2 = 0
+		local itemid3 = 0
 		local itemslot1 = 0
 		local itemslot2 = 0
+		local itemslot3 = 0
 		
 		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
 		
@@ -828,6 +832,16 @@ function e_gather:execute()
 		end
 		if (tonumber(item2) ~= nil) then
 			itemslot2 = tonumber(item2)
+		end
+		
+		if (item3 and item2 ~= "" and item3 ~= GetString("none")) then
+			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
+			if (itemid3 == 0) then
+				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item3).."].",3)
+			end
+		end
+		if (tonumber(item3) ~= nil) then
+			itemslot3 = tonumber(item3)
 		end
 		
 		for i, item in pairs(list) do
@@ -853,6 +867,20 @@ function e_gather:execute()
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == (itemslot2-1) and item.id ~= nil) then
+					return DoGathering(item)
+				end
+			end
+		end
+		
+		for i, item in pairs(list) do
+			if (itemid3 ~= 0) then
+				if (item.id == itemid3) then
+					return DoGathering(item)
+				end
+			end
+				
+			if (itemslot3 ~= 0) then
+				if (item.index == (itemslot3-1) and item.id ~= nil) then
 					return DoGathering(item)
 				end
 			end
@@ -1281,7 +1309,7 @@ function e_nodeprebuff:execute()
 	
 	if (activity == "switchclass") then
 		local newTask = ffxiv_misc_switchclass.Create()
-		newTask.class = activityClass
+		newTask.class = activityclass
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 		ml_task_hub:ThisTask().preserveSubtasks = true
 		return
@@ -1289,13 +1317,13 @@ function e_nodeprebuff:execute()
 	
 	if (activity == "uselocator") then
 		ffxiv_gather.VisibilityBuff(Player.job)
-		ml_task_hub:ThisTask():SetDelay(2000)
+		ml_global_information.Await(2500, function () return HasBuffs(Player,"217,225") end)
 		return
 	end
 	
 	if (activity == "useunspoiledfinder") then
 		ffxiv_gather.LocatorBuff(Player.job)
-		ml_task_hub:ThisTask():SetDelay(2000)
+		ml_global_information.Await(2500, function () return HasBuffs(Player,"221,222") end)
 		return
 	end
 end

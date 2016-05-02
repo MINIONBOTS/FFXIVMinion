@@ -158,6 +158,7 @@ function ffxiv_task_movetopos.Create()
 	newinst.alwaysMount = false
 	
 	table.insert(tasktracking, newinst)
+	ffxiv_unstuck.Reset()
     
     return newinst
 end
@@ -249,8 +250,26 @@ function ffxiv_task_movetopos:task_complete_eval()
 								return true
 							end
 						end
+						
+						local epos = entity.pos						
+						if (not deepcompare(self.pos,epos,true)) then
+							self.pos = { x = epos.x, y = epos.y, z = epos.z }
+							gotoPos = self.pos
+							
+							ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
+								
+							if (self.use3d) then
+								distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
+								distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+							else
+								distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+								distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
+							end 
+						end
+						
+						--[[
 						local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos)
-						if (p and dist ~= 0) then
+						if (p and dist ~= 0 and dist < entity.hitradius) then
 							if (not deepcompare(self.pos,p,true)) then
 								self.pos = p
 								gotoPos = self.pos
@@ -266,6 +285,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 								--pathdistance = GetPathDistance(myPos,gotoPos)
 							end
 						end
+						--]]
 					end
 				end
 			end
@@ -391,6 +411,7 @@ function ffxiv_task_movetofate.Create()
 	
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
+	ffxiv_unstuck.Reset()
     
     return newinst
 end
@@ -405,8 +426,8 @@ function ffxiv_task_movetofate:Init()
 	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
     self:add( ke_mount, self.process_elements)
 	
-	local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
-    self:add( ke_flyToPos, self.process_elements)
+	--local ke_flyToPos = ml_element:create( "FlyToPos", c_flytopos, e_flytopos, 80 )
+    --self:add( ke_flyToPos, self.process_elements)
     
     local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
     self:add( ke_sprint, self.process_elements)
@@ -624,6 +645,7 @@ function ffxiv_task_movetointeract.Create()
 	newinst.alwaysMount = false
 	
 	table.insert(tasktracking, newinst)
+	ffxiv_unstuck.Reset()
 	
     return newinst
 end
@@ -718,12 +740,14 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local ipos = interactable.pos
 	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
 	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+	local range = self.interactRange or (radius * 3.5)
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and dist3d < 10) then
 			Player:SetTarget(interactable.id)
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0) then
+			if (p and dist ~= 0 and dist <= range) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
@@ -1520,6 +1544,7 @@ function ffxiv_task_grindCombat.Create()
 	newinst.pullPos1 = Player.pos
 	newinst.pullPos2 = Player.pos
 	newinst.betterTargetFunction = nil
+	ffxiv_unstuck.Reset()
 	
 	d("[GrindCombat]: Beginning new task.")
 	

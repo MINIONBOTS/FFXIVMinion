@@ -126,6 +126,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
 						Player:Move(FFXIV.MOVEMENT.FORWARD) 
+						ml_global_information.Await(3000, function () return Player:IsMoving() end)
 						return true
 					end
 				)
@@ -136,6 +137,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 							Player:SetPitch(1.377) 
 							if (not Player:IsMoving()) then
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
+								ml_global_information.Await(3000, function () return Player:IsMoving() end)
 							end
 							ml_mesh_mgr.AddThrottleTime(300)
 							return false
@@ -180,16 +182,13 @@ function ml_mesh_mgr.ParseInstructions(data)
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 	
 						if (not Player:IsMoving()) then
-							local casting = Player.castinginfo.channelingid
-							if (casting ~= 5) then
-								Player:Teleport(aetheryteid)
-								ml_mesh_mgr.AddThrottleTime(500)
-							else							
+							if (Player:Teleport(aetheryteid)) then
+								ml_global_information.Await(10000, function () return Quest:IsLoading() end)
 								return true
 							end
 						else
 							Player:Stop()
-							ml_mesh_mgr.AddThrottleTime(500)
+							ml_global_information.Await(3000, function () return (not Player:IsMoving()) end)
 						end
 						return false
 					end
@@ -199,18 +198,17 @@ function ml_mesh_mgr.ParseInstructions(data)
 					function () 	
 						if (not Player:IsMoving()) then
 							local casting = Player.castinginfo.channelingid
-							if (casting ~= 6) then
-								local returnHome = ActionList:Get(6)
-								if (returnHome and returnHome.isready) then
-									returnHome:Cast()
-								end
-								ml_mesh_mgr.AddThrottleTime(500)
-							else							
-								return true
+							local returnHome = ActionList:Get(6)
+							
+							if (returnHome and returnHome.isready) then
+								if (returnHome:Cast()) then
+									ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+									return true
+								end								
 							end
 						else
 							Player:Stop()
-							ml_mesh_mgr.AddThrottleTime(500)
+							ml_global_information.Await(3000, function () return (not Player:IsMoving()) end)
 						end
 						return false
 					end

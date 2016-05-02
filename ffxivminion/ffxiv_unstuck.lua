@@ -18,6 +18,12 @@ ffxiv_unstuck.State = {
 	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, minticks = 50, maxticks = 50 },
 }
 
+function ffxiv_unstuck.Reset()
+	for name,state in pairs(ffxiv_unstuck.State) do
+		state.ticks = 0
+	end
+end
+
 c_stuck = inheritsFrom( ml_cause )
 e_stuck = inheritsFrom( ml_effect )
 c_stuck.state = {}
@@ -119,15 +125,14 @@ function e_stuck:execute()
 	
 	if (not Player.incombat and not MIsCasting() and not ffxiv_unstuck.firstAttempt) then
 		local instructions = {
+			{"Stop", {}},
 			{"Return", {}},
 		}
 		ml_mesh_mgr.ParseInstructions(instructions)
 		ffxiv_unstuck.firstAttempt = true
 	else
-		local instructions = {
-			{"Stop", {}},
-		}
-		ml_mesh_mgr.ParseInstructions(instructions)
+		Player:Stop()
+		ml_global_information.Await(5000, function () return not Player:IsMoving() end)
 		ffxiv_unstuck.firstAttempt = false
 	end
 end

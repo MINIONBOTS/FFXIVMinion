@@ -765,6 +765,7 @@ function GetLowestHPParty( skill )
 		return lowest
 	end
 end
+
 function GetLowestMPParty( range, role, includeself )
     local pID = Player.id
 	local lowest = nil
@@ -774,15 +775,19 @@ function GetLowestMPParty( range, role, includeself )
 	local role = tostring(role) or ""
 	
 	local mpUsers = {
-		[1] = true,
-		[6] = true,
-		[19] = true,
-		[24] = true,
-		[26] = true,
-		[27] = true,
-		[28] = true,
+		[FFXIV.JOBS.GLADIATOR] = true,
+		[FFXIV.JOBS.CONJURER] = true,
+		[FFXIV.JOBS.PALADIN] = true,
+		[FFXIV.JOBS.WHITEMAGE] = true,
+		[FFXIV.JOBS.ARCANIST] = true,
+		[FFXIV.JOBS.SUMMONER] = true,
+		[FFXIV.JOBS.SCHOLAR] = true,
+		[FFXIV.JOBS.DARKKNIGHT] = true,
+		[FFXIV.JOBS.ASTROLOGIAN] = true,
 	}
 	
+	-- DPS, Healer, Tank, Caster
+
 	-- If the role is to be filtered, remove the non-applicable jobs here.
 	local roleTable = GetRoleTable(role)
 	if (roleTable) then
@@ -794,7 +799,6 @@ function GetLowestMPParty( range, role, includeself )
 	end
 	
     local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-	--local el = MEntityList("myparty,alive,type=1,maxdistance="..tostring(range))
     if ( ValidTable(el) ) then
 		for i,e in pairs(el) do
 			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
@@ -805,14 +809,15 @@ function GetLowestMPParty( range, role, includeself )
     end
 	
 	if (includeself) then
-		if (Player.alive and mpUsers[Player.job] and ml_global_information.Player_MP.percent < lowestMP) then
+		if (Player.alive and mpUsers[Player.job] and Player.mp.percent < lowestMP) then
 			lowest = Player
-			lowestMP = ml_global_information.Player_MP.percent
+			lowestMP = Player.mp.percent
 		end
 	end
 	
 	return lowest
 end
+
 function GetLowestTPParty( range, role, includeself )
 	local lowest = nil
 	local lowestTP = 1001
@@ -2893,11 +2898,15 @@ function Mount(id)
 			for k,acmount in pairsByKeys(mounts) do
 				if (acmount.id == mountID and acmount.isready) then
 					--d("Casted the mount.")
-					acmount:Cast()
+					if (acmount:Cast()) then
+						return true
+					end
 				end
 			end
 		end	
 	end
+	
+	return false
 end
 function Dismount()
 	local isflying = IsFlying()
@@ -3658,7 +3667,7 @@ function CanUseAetheryte(aethid)
 	return false
 end
 function GetOffMapMarkerList(strMeshName, strMarkerType)
-	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
+	local markerPath = ml_mesh_mgr.defaultpath.."\\"..strMeshName..".info"
 	if (FileExists(markerPath)) then
 		local markerList, e = persistence.load(markerPath)
 		if (markerList) then
@@ -3703,13 +3712,14 @@ function IsCityMap(mapid)
 		[130] = true,
 		[418] = true,
 		[419] = true,
+		[478] = true,
 	}
 	return cityMaps[mapid]
 end
 function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	local newMarkerPos = nil
 	
-	local markerPath = ml_mesh_mgr.navmeshfilepath..strMeshName..".info"
+	local markerPath = ml_mesh_mgr.defaultpath.."\\"..strMeshName..".info"
 	if (FileExists(markerPath)) then
 		local markerList, e = persistence.load(markerPath)
 		local markerName = strMarkerName
@@ -3973,31 +3983,25 @@ function GetItemInSlot(equipSlot)
 	end
 	return nil
 end
-function ItemIsReady(itemid)
-	itemid = tonumber(itemid)
+function ItemReady(hqid)
+	local itemid = tonumber(hqid)
+	local hqid = tonumber(hqid)
 	
-	local hasItem = false
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (itemid == item.hqid) then
-				hasItem = true
-			end
-			if (hasItem) then
-				break
-			end
-		end
+	if (itemid > 1000000) then
+		itemid = itemid - 1000000
 	end
-
-	if (hasItem) then					
-		local item = MGetItem(itemid)
-		if (item and item.isready) then
-			return true
+	
+	local items = Inventory("itemid="..tostring(itemid))
+	if (ValidTable(items)) then
+		for _,item in pairs(items) do
+			if (item.hqid == hqid) then
+				return item.isready
+			end
 		end
 	end
 	
 	return false
-end
+end	
 function IsInventoryFull()
 	local itemcount = 0
 	
@@ -4165,8 +4169,30 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local gained = newCount - originalCount	
 	return gained
+
 end
 
+function GetItem(hqid)
+	local itemid = tonumber(hqid)
+	local hqid = tonumber(hqid)
+	
+	if (itemid > 1000000) then
+		itemid = itemid - 1000000
+	end
+	
+	local items = Inventory("itemid="..tostring(itemid))
+	if (ValidTable(items)) then
+		for _,item in pairs(items) do
+			if (item.hqid == hqid) then
+				return item
+			end
+		end
+	end
+	
+	return nil
+end	
+
+--[[
 function GetItem(itemid)
 	itemid = tonumber(itemid) or 0
 	--includehq = IsNull(includehq,true)
@@ -4268,6 +4294,7 @@ function GetItem(itemid)
 	
 	return nil
 end
+--]]
 
 function ItemCount(itemid,includehq,requirehq)
 	itemid = tonumber(itemid) or 0

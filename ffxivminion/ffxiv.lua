@@ -51,6 +51,7 @@ ml_global_information.needsStealth = false
 
 ml_global_information.gatherid = 0
 ml_global_information.targetid = 0
+ml_global_information.yield = {}
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -391,23 +392,23 @@ ffxivminion.settingsVisible = false
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
-	local gamestate;
-	if (GetGameState and GetGameState()) then
-		gamestate = GetGameState()
-	else
-		gamestate = 1
-	end
+	--local gamestate;
+	--if (GetGameState and GetGameState()) then
+		--gamestate = GetGameState()
+	--else
+		--gamestate = 1
+	--end
 	
 	-- Switch according to the gamestate
-	if ( gamestate == 1 ) then
-		ml_global_information.InGameOnUpdate( event, tickcount )
-	elseif (gamestate == 2 ) then
-		ml_global_information.InTitleScreenOnUpdate( event, tickcount )
-	elseif (gamestate == 3 ) then
-		ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
-	elseif (gamestate == 0 ) then
-		ml_global_information.InOpening( event, tickcount )
-	end
+	--if ( gamestate == 1 ) then
+		ml_global_information.InGameOnUpdate( event, tickcount );
+	--elseif (gamestate == 2 ) then
+		--ml_global_information.InTitleScreenOnUpdate( event, tickcount )
+	--elseif (gamestate == 3 ) then
+		--ml_global_information.InCharacterSelectScreenOnUpdate( event, tickcount )
+	--elseif (gamestate == 0 ) then
+		--ml_global_information.InOpening( event, tickcount )
+	--end
 end
 
 function ml_global_information.InOpening( event, tickcount )
@@ -453,6 +454,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			Player:SetFacingSynced(h)
 			ml_global_information.queueSync = nil
 		end
+	end
+	
+	if (ml_global_information.IsYielding()) then
+		return false
 	end
 	
 	if (ml_mesh_mgr) then
@@ -534,7 +539,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		ml_global_information.lastMeasure = thisMeasure
 		
 		-- close any social addons that might screw up behavior first
-		if(	gBotRunning == "1" and 
+		if (gBotRunning == "1" and 
 			gBotMode ~= GetString("assistMode") and
 			gBotMode ~= GetString("dutyMode")) 
 		then
@@ -610,10 +615,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
 				ml_global_information.repairTimer = tickcount
 
-				local synth = Crafting:SynthInfo()	
-		
-				if (not ControlVisible("Gathering") and not ValidTable(synth) and not ml_global_information.Player_InCombat and NeedsRepair()) then
-					Repair()
+				if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple") and not Player.incombat) then
+					if (NeedsRepair()) then
+						Repair()
+					end
 				end
 			end
 	
@@ -621,8 +626,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					ml_global_information.foodCheckTimer = tickcount
 					
-					local synth = Crafting:SynthInfo()	
-					if (not ControlVisible("Gathering") and not ValidTable(synth)) then
+					if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple")) then
 						Eat()
 					end
 				end
@@ -703,6 +707,62 @@ function ml_global_information.BuildMenu()
 	
 	local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoMove + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
 	ml_global_information.menu.flags = flags
+end
+
+function ml_global_information.IsYielding()
+	if (ValidTable(ml_global_information.yield)) then
+		local yield = ml_global_information.yield
+		
+		local checkBoth = IsNull(yield.both,false)
+		local successTimer = false
+		local successEval = false
+		if (yield.mintimer ~= 0) then
+			if (Now() < yield.mintimer) then
+				return true
+			end
+		end
+		if (yield.maxtimer ~= 0 and Now() >= yield.maxtimer) then
+			successTimer = true
+		elseif (yield.evaluator ~= nil and type(yield.evaluator) == "function") then
+			local ret = yield.evaluator()
+			if (ret == true) then
+				successEval = true
+			end
+		end
+		
+		if ((not checkBoth and (successTimer or successEval)) or
+			(checkBoth and successTimer and successEval)) 
+		then		
+			ml_global_information.yield = {}
+			return false
+		end
+		
+		if (yield.followup ~= nil and type(yield.followup) == "function") then
+			yield.followup()
+		end
+		return true
+	end
+	return false
+end
+
+function ml_global_information.Await(ms, eval, followup, both)
+	ml_global_information.yield = {
+		mintimer = 0,
+		maxtimer = Now() + ms,
+		evaluator = eval,
+		followup = followup,
+		both = IsNull(both,false),
+	}
+end
+
+function ml_global_information.Await2(minms, maxms, eval, followup)
+	ml_global_information.yield = {
+		mintimer = IIF(minms ~= 0,Now() + minms,0),
+		maxtimer = IIF(maxms ~= 0,Now() + maxms,0),
+		evaluator = eval,
+		followup = followup,
+		both = false,
+	}
 end
 
 function ffxivminion.GUIVarCapture(newVal,varName,doSave)
