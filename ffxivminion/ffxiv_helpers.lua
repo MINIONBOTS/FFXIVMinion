@@ -4188,7 +4188,79 @@ function GetItem(hqid)
 		end
 	end
 	
-	local inv = Inventory("type=2004")
+	local inv = Inventory("type=2004,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through equipped items bag.
+	local inv = MInventory("type=1000,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through currency bag.
+	local inv = MInventory("type=2000,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through crystals bag.
+	local inv = MInventory("type=2001,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through armory bags for off-hand through wrists
+	for x=3200,3209 do
+		local inv = MInventory("type="..tostring(x)..",itemid="..tostring(itemid))
+		if (ValidTable(inv)) then
+			for i,item in pairs(inv) do
+				if (item.hqid == itemid) then
+					return item
+				end
+			end
+		end
+	end
+	
+	--Look through rings armory bag.
+	local inv = MInventory("type=3300,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through soulstones armory bag.
+	local inv = MInventory("type=3400,itemid="..tostring(itemid))
+	if (ValidTable(inv)) then
+		for i, item in pairs(inv) do
+			if (item.hqid == itemid) then
+				return item
+			end
+		end
+	end
+	
+	--Look through weapons armory bag.
+	local inv = MInventory("type=3500,itemid="..tostring(itemid))
 	if (ValidTable(inv)) then
 		for i, item in pairs(inv) do
 			if (item.hqid == itemid) then
