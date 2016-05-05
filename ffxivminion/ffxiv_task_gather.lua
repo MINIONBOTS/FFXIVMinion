@@ -1018,20 +1018,20 @@ function CanUseCordial()
 		return false
 	end
 	
-	if (Player.gp.current < minimumGP) then
-		if (useCordials) then
-			if (Player.gp.max >= 550 and (minimumGP - Player.gp.current) >= 400 or Player.gp.percent <= 30) then
-				local hiCordial = MGetItem(12669)
-				if (hiCordial and hiCordial.isready) then
-					return true, hiCordial
-				end
-			end	
-			
-			if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then
-				local cordial = MGetItem(6141)
-				if (cordial and cordial.isready) then
-					return true, cordial
-				end
+	if (useCordials) then
+		if (Player.gp.max >= 550 and ((minimumGP - Player.gp.current) >= 400 or Player.gp.percent <= 30)) then
+			local hiCordial = MGetItem(12669)
+			if (hiCordial and hiCordial.isready) then
+				--d("[CanUseCordial]: Returning hi-cordial.")
+				return true, hiCordial
+			end
+		end	
+		
+		if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then
+			local cordial = MGetItem(6141)
+			if (cordial and cordial.isready) then
+				--d("[CanUseCordial]: Returning cordial.")
+				return true, cordial
 			end
 		end
 	end
@@ -1208,18 +1208,16 @@ function c_nodeprebuff:evaluate()
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
         if (gatherable and gatherable.cangather) then
 			if (gatherable.distance <= 15) then
-				if (Player.gp.current < minimumGP or Player.gp.percent <= 30) then
-					if (useCordials) then
-						local canUse,cordialItem = CanUseCordial()
-						if (canUse and ValidTable(cordialItem)) then
-							d("[NodePreBuff]: Need to use a cordial.")
-							e_nodeprebuff.activity = "usecordial"
-							e_nodeprebuff.itemid = cordialItem.hqid
-							e_nodeprebuff.requirestop = true
-							e_nodeprebuff.requiredismount = true
-							return true
-						end					
-					end
+				if (useCordials) then
+					local canUse,cordialItem = CanUseCordial()
+					if (canUse and ValidTable(cordialItem)) then
+						d("[NodePreBuff]: Need to use a cordial.")
+						e_nodeprebuff.activity = "usecordial"
+						e_nodeprebuff.itemid = cordialItem.hqid
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = true
+						return true
+					end					
 				end
 			end
         end
@@ -1283,7 +1281,7 @@ function c_nodeprebuff:evaluate()
 		if (favorBuff) then
 			if (MissingBuff(Player.id, favorBuff)) then
 				if (ItemCount(useFavor) > 0) then
-					local favor = Inventory:Get(useFavor)
+					local favor = MGetItem(useFavor)
 					if (favor and favor.isready) then
 						e_nodeprebuff.activity = "usefavor"
 						e_nodeprebuff.itemid = favor.hqid
@@ -1376,7 +1374,7 @@ function e_nodeprebuff:execute()
 		}
 		
 		local favorBuff = favors[activityitemid]
-		local favor = Inventory:Get(activityitemid)
+		local favor = MGetItem(activityitemid)
 		if (favor and favor.isready) then
 			if (favor:Use()) then
 				ml_global_information.Await(2500, function () return HasBuff(Player.id, favorBuff) end)

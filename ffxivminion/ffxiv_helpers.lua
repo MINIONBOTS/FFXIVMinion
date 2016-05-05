@@ -4177,6 +4177,8 @@ function GetItem(hqid)
 	
 	if (itemid >= 1000000 and itemid < 2000000) then
 		itemid = itemid - 1000000
+	elseif (itemid >= 500000 and itemid < 600000) then
+		itemid = itemid - 500000
 	end
 	
 	local items = Inventory("itemid="..tostring(itemid))
