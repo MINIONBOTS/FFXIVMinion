@@ -219,7 +219,7 @@ function MInventory(invstring)
 end
 
 function MGetItem(hqid,includehq,requirehq)
-	local memString = "MGetItem;"..tostring(itemid)..";"..tostring(includehq)..";"..tostring(requirehq)
+	local memString = "MGetItem;"..tostring(hqid)..";"..tostring(includehq)..";"..tostring(requirehq)
 	local memoized = GetMemoized(memString)
 	if (memoized) then
 		return memoized
