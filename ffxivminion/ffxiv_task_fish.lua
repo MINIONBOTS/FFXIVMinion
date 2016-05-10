@@ -74,8 +74,11 @@ end
 
 c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
-e_precastbuff.id = 0
 function c_precastbuff:evaluate()
+	if (Player.ismounted) then
+		return false
+	end
+	
 	c_precastbuff.activity = ""
 		
 	local fs = tonumber(Player:GetFishingState())
@@ -480,21 +483,20 @@ function c_chum:evaluate()
 			useBuff = (marker:GetFieldValue(GetUSString("useChum")) == "1")
 		end
 		
-		local requiresCast = false
-		if (useBuff) then
-			if (MissingBuffs(Player,"763")) then
-				requiresCast = true
-			end
-		else
-			if (HasBuffs(Player,"763")) then
-				requiresCast = true
-			end
-		end
-		
-		if (requiresCast) then
-			local chum = ActionList:Get(4104,1)
-			if (chum and chum.isready) then	
-				return true
+		local chum = ActionList:Get(4104,1)
+		if (chum and chum.isready) then	
+			if (useBuff) then
+				if (MissingBuffs(Player,"763")) then
+					if (chum:Cast()) then
+						ml_global_information.Await(3000, function () return (HasBuffs(Player,"763")) end)
+					end
+				end
+			else
+				if (HasBuffs(Player,"763")) then
+					if (chum:Cast()) then
+						ml_global_information.Await(3000, function () return (MissingBuffs(Player,"763")) end)
+					end
+				end
 			end
 		end
 	end
@@ -502,11 +504,6 @@ function c_chum:evaluate()
     return false
 end
 function e_chum:execute()
-	local chum = ActionList:Get(4104,1)
-	if (chum and chum.isready) then	
-		chum:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
-	end
 end
 
 c_fisheyes = inheritsFrom( ml_cause )
@@ -518,23 +515,23 @@ function c_fisheyes:evaluate()
 		local useBuff = false
 		local task = ffxiv_fish.currentTask
 		if (ValidTable(task)) then
-			useBuff = IsNull(task.usefisheyes,false)
-			
-			local requiresCast = false
-			if (useBuff) then
-				if (MissingBuffs(Player,"762")) then
-					requiresCast = true
-				end
-			else
-				if (HasBuffs(Player,"762")) then
-					requiresCast = true
-				end
-			end
-			
-			if (requiresCast) then
-				local fisheyes = ActionList:Get(4105,1)
-				if (fisheyes and fisheyes.isready) then	
-					return true
+			local fisheyes = ActionList:Get(4105,1)
+			if (fisheyes and fisheyes.isready) then
+				useBuff = IsNull(task.usefisheyes,false)
+				if (useBuff) then
+					if (MissingBuffs(Player,"762")) then
+						if (fisheyes:Cast()) then
+							ml_global_information.Await(3000, function () return (HasBuffs(Player,"762")) end)
+						end
+						return true
+					end
+				else
+					if (HasBuffs(Player,"762")) then
+						if (fisheyes:Cast()) then
+							ml_global_information.Await(3000, function () return (MissingBuffs(Player,"762")) end)
+						end
+						return true
+					end
 				end
 			end
 		end
@@ -543,11 +540,6 @@ function c_fisheyes:evaluate()
     return false
 end
 function e_fisheyes:execute()
-	local fisheyes = ActionList:Get(4105,1)
-	if (fisheyes and fisheyes.isready) then	
-		fisheyes:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
-	end
 end
 
 c_snagging = inheritsFrom( ml_cause )
@@ -560,23 +552,25 @@ function c_snagging:evaluate()
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
-			useBuff = IsNull(task.usesnagging,false)
-		
-			local requiresCast = false
-			if (useBuff) then
-				if (MissingBuffs(Player,"761")) then
-					requiresCast = true
-				end
-			else
-				if (HasBuffs(Player,"761")) then
-					requiresCast = true
-				end
-			end
+			local snagging = ActionList:Get(4100,1)
+			if (snagging and snagging.isready) then
+				useBuff = IsNull(task.usesnagging,false)
 			
-			if (requiresCast) then
-				local snagging = ActionList:Get(4100,1)
-				if (snagging and snagging.isready) then	
-					return true
+				local requiresCast = false
+				if (useBuff) then
+					if (MissingBuffs(Player,"761")) then
+						if (snagging:Cast()) then
+							ml_global_information.Await(3000, function () return (HasBuffs(Player,"761")) end)
+						end
+						return true
+					end
+				else
+					if (HasBuffs(Player,"761")) then
+						if (snagging:Cast()) then
+							ml_global_information.Await(3000, function () return (MissingBuffs(Player,"761")) end)
+						end
+						return true
+					end
 				end
 			end
 		end
@@ -585,11 +579,6 @@ function c_snagging:evaluate()
     return false
 end
 function e_snagging:execute()
-	local snagging = ActionList:Get(4100,1)
-	if (snagging and snagging.isready) then	
-		snagging:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
-	end
 end
 
 c_usecollect = inheritsFrom( ml_cause )
@@ -602,23 +591,25 @@ function c_usecollect:evaluate()
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
-			useBuff = IsNull(task.usecollect,false)
-				
-			local requiresCast = false
-			if (useBuff) then
-				if (MissingBuffs(Player,"805")) then
-					requiresCast = true
-				end
-			else
-				if (HasBuffs(Player,"805")) then
-					requiresCast = true
-				end
-			end
 			
-			if (requiresCast) then
-				local collect = ActionList:Get(4101,1)
-				if (collect and collect.isready) then	
-					return true
+			local collect = ActionList:Get(4101,1)
+			if (collect and collect.isready) then
+				useBuff = IsNull(task.usecollect,false)
+				
+				if (useBuff) then
+					if (MissingBuffs(Player,"805")) then
+						if (collect:Cast(Player.id)) then
+							ml_global_information.Await(3000, function () return (HasBuffs(Player,"805")) end)
+						end						
+						return true
+					end
+				else
+					if (HasBuffs(Player,"805")) then
+						if (collect:Cast(Player.id)) then
+							ml_global_information.Await(3000, function () return (MissingBuffs(Player,"805")) end)
+						end						
+						return true
+					end
 				end
 			end
 		end
@@ -627,11 +618,6 @@ function c_usecollect:evaluate()
     return false
 end
 function e_usecollect:execute()
-	local collect = ActionList:Get(4101,1)
-	if (collect and collect.isready) then	
-		collect:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1500
-	end
 end
 
 c_patience = inheritsFrom( ml_cause )
@@ -664,13 +650,17 @@ function c_patience:evaluate()
 		if (usePatience) then
 			local patience = ActionList:Get(4102,1)
 			if (patience and patience.isready) then	
-				c_patience.action = 4102
+				if (patience:Cast()) then
+					ml_global_information.Await(3000, function () return (ActionList:Get(4102,1).isoncd) end)
+				end
 				return true
 			end
 		elseif (usePatience2) then
 			local patience2 = ActionList:Get(4106,1)
 			if (patience2 and patience2.isready) then	
-				c_patience.action = 4106
+				if (patience:Cast()) then
+					ml_global_information.Await(3000, function () return (ActionList:Get(4106,1).isoncd) end)
+				end
 				return true
 			end
 		end
@@ -679,11 +669,6 @@ function c_patience:evaluate()
     return false
 end
 function e_patience:execute()
-    local patience = ActionList:Get(c_patience.action,1)
-    if (patience and patience.isready) then
-        patience:Cast()
-		ml_task_hub:CurrentTask().castTimer = Now() + 1000
-    end
 end
 
 c_collectibleaddonfish = inheritsFrom( ml_cause )
@@ -746,12 +731,12 @@ function c_collectibleaddonfish:evaluate()
 			if (not validCollectible) then
 				fd("Cannot collect item, collectibility rating not approved.",2)
 				PressYesNoItem(false) 
-				return true
 			else
 				fd("Attempting to collect item, collectibility rating approved.",2)
-				PressYesNoItem(true) 
-				return true
+				PressYesNoItem(true)
 			end
+			ml_global_information.Await(3000, function () return (not ControlVisible("SelectYesNoItem")) end)				
+			return true
 		end
 	end
 	return false
@@ -782,6 +767,10 @@ e_setbait = inheritsFrom( ml_effect )
 e_setbait.baitid = 0
 e_setbait.baitname = ""
 function c_setbait:evaluate()
+	if (Player.ismounted) then
+		return false
+	end
+	
 	local fs = tonumber(Player:GetFishingState())
     if (fs == 0 or fs == 4) then
 		local baitChoice = ""
@@ -1561,7 +1550,9 @@ function e_fishnextprofilepos:execute()
 	if (fs ~= 0) then
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
-			finishcast:Cast()
+			if (finishcast:Cast()) then
+				ml_global_information.Await(3000, function () return (Player:GetFishingState() == 0) end)
+			end				
 		end
 		return
 	end
@@ -1674,9 +1665,7 @@ function ffxiv_fish.StopFishing()
 		local finishcast = ActionList:Get(299,1)
 		if (finishcast and finishcast.isready) then
 			if (finishcast:Cast()) then
-				if (ml_task_hub:CurrentTask()) then
-					ml_task_hub:CurrentTask():SetDelay(1500)
-				end
+				ml_global_information.Await(3000, function () return (Player:GetFishingState() == 0) end)
 			end
 		end
 	end
@@ -1780,6 +1769,10 @@ end
 c_syncadjust = inheritsFrom( ml_cause )
 e_syncadjust = inheritsFrom( ml_effect )
 function c_syncadjust:evaluate()
+	if (Player.ismounted) then
+		return false
+	end
+	
 	local fs = tonumber(Player:GetFishingState())
 	if( fs == 0 and ml_task_hub:CurrentTask().requiresAdjustment ) then -- FISHSTATE_BITE
 		return true
@@ -1924,6 +1917,7 @@ function ffxiv_task_fish:Init()
    
     self:AddTaskCheckCEs()
 end
+
 function ffxiv_task_fish.UIInit()
 	ffxivminion.Windows.Fish = { id = strings["us"].fishMode, Name = GetString("fishMode"), x=50, y=50, width=210, height=300 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Fish)
@@ -1989,6 +1983,82 @@ function ffxiv_task_fish.UIInit()
 	gFishDebugLevel = Settings.FFXIVMINION.gFishDebugLevel
 end
 
+--[[
+function ffxiv_task_fish.NewInit()
+	FFXIV_Fish_LastSelectedProfile = ffxivminion.GetSetting("FFXIV_Fish_LastSelectedProfile",GetString("none"))
+	FFXIV_Fish_Debug = ffxivminion.GetSetting("FFXIV_Fish_Debug",false)
+	FFXIV_Fish_DebugLevel = ffxivminion.GetSetting("FFXIV_Fish_DebugLevel",1)
+	
+	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
+	FFXIV_Fish_CollectablesList = { GetString("none") }
+	if (ValidString(uistring)) then
+		for collectable in StringSplit(uistring,",") do
+			table.insert(FFXIV_Fish_CollectablesList,collectable)
+		end
+	end
+	
+	FFXIV_Fish_Collect = ffxivminion.GetSetting("FFXIV_Fish_Collect",{})
+end
+
+function ffxiv_task_fish.Draw()
+	if (GUI:CollapsingHeader(GetString("status"),"header-status",true,true)) then
+		GUI:BeginChild("##header-status",0,60,true)
+		GUI:PushItemWidth(120)					
+		
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("botMode"), FFXIV_Common_BotMode, FFXIV_Common_BotModeList ),"FFXIV_Common_BotMode")
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("profile"), FFXIV_Common_Profile, FFXIV_Common_ProfileList ),"FFXIV_Common_Profile")
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("navmesh"), FFXIV_Common_NavMesh, FFXIV_Common_MeshList ),"FFXIV_Common_NavMesh")
+		ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Text(gStatusMarkerName)
+		GUI:Text(gStatusMarkerTime)
+		GUI:Text(gStatusTaskName)
+		ffxivminion.GUIVarCapture(GUI:Checkbox("Debug",FFXIV_Fish_Debug),"FFXIV_Fish_Debug")
+		ffxivminion.GUIVarCapture(GUI:Combo("Debug Level", FFXIV_Fish_DebugLevel, { 1, 2, 3} ),"FFXIV_Fish_DebugLevel")
+	
+		GUI:PopItemWidth()
+		GUI:EndChild()
+	end
+	
+	if (GUI:CollapsingHeader( "Collectable","header-collectable",true,true)) then
+		GUI:BeginChild("##header-settings",0,60,true)
+		GUI:PushItemWidth(120)				
+		
+		if (GUI:Button("Add Collectable",20,100)) then
+			local newCollectable = GetString("none")
+			table.insert(FFXIV_Fish_Collect,newCollectable)
+		end
+		
+		if (ValidTable(FFXIV_Fish_Collect)) then
+			for i,collectable in pairsByKeys(FFXIV_Fish_Collect) do
+				local currentIndex = GetKeyByValue(collectable,FFXIV_Fish_CollectablesList)
+				local selectedIndex = GUI:Combo("Collectable##"..tostring(i), currentIndex, FFXIV_Fish_CollectablesList )
+				if (selectedIndex ~= currentIndex) then
+					FFXIV_Fish_Collect[i] = FFXIV_Fish_CollectablesList[selectedIndex]
+					Settings.FFXIVMINION.FFXIV_Fish_Collect = FFXIV_Fish_Collect
+				end
+				GUI:SameLine()
+				if (GUI:SmallButton(" - ##"..tostring(i))) then
+					FFXIV_Fish_Collect[i] = nil
+				end
+			end
+		end
+		
+		GUI:PopItemWidth()
+		GUI:EndChild()
+	end
+	
+	if (GUI:Button(GetString("markerManager"),20,100)) then
+		ml_marker_mgr.ToggleMenu()
+	end
+	if (GUI:Button(GetString("advancedSettings"),20,100)) then
+		ffxivminion.OpenSettings()
+	end
+	if (GUI:Button(ml_global_information.BtnStart.Name,20,100)) then
+		ml_global_information.ToggleRun()	
+	end
+end
+--]]
+
 function ffxiv_fish.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		if (	k == "gProfile" and gBotMode == GetString("fishMode")) then
@@ -2005,16 +2075,18 @@ function ffxiv_fish.GUIVarUpdate(Event, NewVals, OldVals)
     GUI_RefreshWindow(GetString("fishMode"))
 end
 function ffxiv_fish.UpdateProfiles()
+	--FFXIV_Common_ProfileList = { GetString("none") }
     local profiles = GetString("none")
     local found = GetString("none")	
     local profilelist = dirlist(ffxiv_fish.profilePath,".*lua")
-    if ( TableSize(profilelist) > 0) then
+    if (ValidTable(profilelist)) then
 		for i,profile in pairs(profilelist) do			
             profile = string.gsub(profile, ".lua", "")
             profiles = profiles..","..profile
             if ( Settings.FFXIVMINION.gLastFishProfile ~= nil and Settings.FFXIVMINION.gLastFishProfile == profile ) then
                 found = profile
             end
+			--table.insert(FFXIV_Common_ProfileList,profile)
         end		
     end
 	

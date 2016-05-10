@@ -33,6 +33,8 @@ function ffxiv_task_fate.Create()
     newinst.fatePos = {}
 	ffxiv_task_grind.inFate = false
 	
+	table.insert(tasktracking, newinst)
+    
     return newinst
 end
 
@@ -504,6 +506,7 @@ end
 function e_add_fatetarget:execute()
 	d("Adding a new fate target.")
 	local newTask = ffxiv_task_grindCombat.Create()
+	newTask.betterTargetFunction = GetNearestFateAttackable
 	newTask.targetid = c_add_fatetarget.targetid
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
