@@ -1776,10 +1776,11 @@ end
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
-function IsFlanking(entity)
+function IsFlanking(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
+	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h == 0) then
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
 		return true
 	end
 	
@@ -1807,10 +1808,11 @@ function IsFlanking(entity)
 	
     return false
 end
-function IsBehind(entity)
+function IsBehind(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
+	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h == 0) then
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
 		return true
 	end
 	
