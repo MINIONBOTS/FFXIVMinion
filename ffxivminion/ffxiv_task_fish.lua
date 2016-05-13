@@ -658,7 +658,7 @@ function c_patience:evaluate()
 		elseif (usePatience2) then
 			local patience2 = ActionList:Get(4106,1)
 			if (patience2 and patience2.isready) then	
-				if (patience:Cast()) then
+				if (patience2:Cast()) then
 					ml_global_information.Await(3000, function () return (ActionList:Get(4106,1).isoncd) end)
 				end
 				return true
