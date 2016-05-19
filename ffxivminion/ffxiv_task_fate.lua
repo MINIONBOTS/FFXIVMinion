@@ -666,6 +666,12 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 				{ id = 870, x = -214.5, y = 138.5, z = -644.5 },
 			},
 		},
+		[397] = {
+			[1] = {
+				{ id = 791, x = 391.9, y = 162.4, z = -163.65 },
+				{ id = 792, x = 412.26, y = 159.88, z = -94.812 },
+			},
+		},
 	}
 	
 	local mapChains = chains[mapid]

@@ -1837,23 +1837,12 @@ end
 
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
-e_companion.lastSummon = 0
-e_companion.blockOnly = false
 function c_companion:evaluate()
-	--Reset tempvar.
-	e_companion.blockOnly = false
-	
-	if (Player.castinginfo.channelingid == 4868) then
-		e_companion.blockOnly = true
-		return true
-	end
-	
 	if (ffxiv_task_quest.noCompanion == true) then
 		return false
 	end
 	
     if (gBotMode == GetString("pvpMode") or 
-		TimeSince(e_companion.lastSummon) < 4000 or
 		Player.ismounted or IsMounting() or IsDismounting() or
 		IsCompanionSummoned()) 
 	then
@@ -1864,8 +1853,8 @@ function c_companion:evaluate()
 		(gChocoAssist == "1" and gBotMode == GetString("assistMode")) or
 		(gChocoQuest == "1" and gBotMode == GetString("questMode"))) 
 	then	
-		local item = Inventory:Get(4868)
-		if (ValidTable(item) and item.isready) then
+		local green = MGetItem(4868)
+		if (green and green.isready) then
 			return true
 		end
     end
@@ -1874,17 +1863,17 @@ function c_companion:evaluate()
 end
 
 function e_companion:execute()
-	if (e_companion.blockOnly) then
+	if (Player:IsMoving()) then
+		Player:Stop()
+		ml_global_information.Await(2000, function () return not Player:IsMoving() end)
 		return
 	end
 	
-	Player:Stop()
-	e_companion.lastSummon = Now()
-	local item = Inventory:Get(4868)
-	item:Use()
-	
-	ml_task_hub:CurrentTask():SetDelay(2000)
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	local green = MGetItem(4868)
+	if (green and green.isready) then
+		green:Use()
+		ml_global_information.Await(10000, function () return IsCompanionSummoned() end)
+	end
 end
 
 c_stance = inheritsFrom( ml_cause )
@@ -2186,6 +2175,7 @@ function e_pressconfirm:execute()
 	elseif (gBotMode == GetString("dutyMode") and IsDutyLeader()) then
 		ffxiv_task_duty.state = "DUTY_ENTER"
 	end
+	ml_global_information.Await(5000, function () return not ControlVisible("ContentsFinderConfirm")  end)
 end
 
 -- more to refactor here later most likely
@@ -2375,6 +2365,7 @@ function c_acceptquest:evaluate()
 end
 function e_acceptquest:execute()
 	Quest:AcceptQuest()
+	ml_global_information.Await(3000, function () return not Quest:IsQuestAcceptDialogOpen() end)
 end
 
 c_handoverquest = inheritsFrom( ml_cause )
@@ -2666,10 +2657,11 @@ function e_autoequip:execute()
 	if (ValidTable(item)) then
 		ml_debug("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
+		ml_global_information.Await(1500, function () return (IsEquipped(item.hqid)) end)
 	end
-	if (ml_task_hub:CurrentTask()) then
-		ml_task_hub:CurrentTask():SetDelay(200)
-	end
+	--if (ml_task_hub:CurrentTask()) then
+		--ml_task_hub:CurrentTask():SetDelay(200)
+	--end
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )

@@ -1162,6 +1162,7 @@ function c_nodeprebuff:evaluate()
 	local useCordials = (gGatherUseCordials == "1")
 	local taskType = ""
 	local useFavor = 0
+	local useFood = 0
 	
 	local profile = ffxiv_gather.profileData
 	local task = ffxiv_gather.currentTask
@@ -1172,6 +1173,7 @@ function c_nodeprebuff:evaluate()
 		useCordials = IsNull(task.usecordials,useCordials)
 		taskType = IsNull(task.type,"")
 		useFavor = IsNull(task.favor,0)
+		useFood = IsNull(task.food,0)
 	elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
@@ -1201,8 +1203,7 @@ function c_nodeprebuff:evaluate()
 		end
 	end
 	
-	if ( not Player:IsMoving() and 
-		IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and 
+	if (IsNull(ml_task_hub:ThisTask().gatherid,0) ~= 0 and 
 		not MIsLocked()) 
 	then
         local gatherable = EntityList:Get(ml_task_hub:ThisTask().gatherid)
@@ -1218,6 +1219,50 @@ function c_nodeprebuff:evaluate()
 						e_nodeprebuff.requiredismount = true
 						return true
 					end					
+				end
+				
+				if (useFavor ~= 0) then
+					local favors = {
+						[10374] = 881,
+						[10375] = 883,
+						[10376] = 882,
+						[10377] = 884,
+						[10378] = 885,
+						[10379] = 886,
+						[10380] = 887,
+						[10381] = 889,
+						[10382] = 888,
+						[10383] = 890,
+						[10384] = 891,
+						[10385] = 892,
+					}
+					
+					local favorBuff = favors[useFavor]
+					if (favorBuff) then
+						if (MissingBuff(Player.id, favorBuff)) then
+							if (ItemCount(useFavor) > 0) then
+								local favor = MGetItem(useFavor)
+								if (favor and favor.isready) then
+									e_nodeprebuff.activity = "usefavor"
+									e_nodeprebuff.itemid = favor.hqid
+									e_nodeprebuff.requirestop = true
+									e_nodeprebuff.requiredismount = true
+									return true
+								end
+							end
+						end
+					end
+				end
+				
+				if (useFood ~= 0) then
+					local food = MGetItem(useFood)
+					if (food and food.isready and not HasBuffs(Player,"48")) then
+						e_nodeprebuff.activity = "usefood"
+						e_nodeprebuff.itemid = food.hqid
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = true
+						return true
+					end
 				end
 			end
         end
@@ -1261,38 +1306,7 @@ function c_nodeprebuff:evaluate()
 		end
 	end
 	
-	if (useFavor ~= 0) then
-		local favors = {
-			[10374] = 881,
-			[10375] = 883,
-			[10376] = 882,
-			[10377] = 884,
-			[10378] = 885,
-			[10379] = 886,
-			[10380] = 887,
-			[10381] = 889,
-			[10382] = 888,
-			[10383] = 890,
-			[10384] = 891,
-			[10385] = 892,
-		}
-		
-		local favorBuff = favors[useFavor]
-		if (favorBuff) then
-			if (MissingBuff(Player.id, favorBuff)) then
-				if (ItemCount(useFavor) > 0) then
-					local favor = MGetItem(useFavor)
-					if (favor and favor.isready) then
-						e_nodeprebuff.activity = "usefavor"
-						e_nodeprebuff.itemid = favor.hqid
-						e_nodeprebuff.requirestop = true
-						e_nodeprebuff.requiredismount = true
-						return true
-					end
-				end
-			end
-		end
-	end
+	
 	
 	if (MissingBuffs(Player,"217+225")) then
 		d("[NodePreBuff]: Need to use our locator buff.")
@@ -1337,7 +1351,7 @@ function e_nodeprebuff:execute()
 	
 	if (activity == "eat") then
 		Eat()
-		ml_global_information.Await(2500, function () return HasBuff(Player.id, 48) end)
+		ml_global_information.Await(4000, function () return HasBuff(Player.id, 48) end)
 		return
 	end
 	
@@ -1350,10 +1364,18 @@ function e_nodeprebuff:execute()
 	if (activity == "usemanual") then
 		local manual = MGetItem(activityitemid)
 		if (manual and manual.isready) then
-			if (manual:Use()) then
-				ml_global_information.Await(2500, function () return HasBuff(Player.id, 46) end)
-				return
-			end
+			manual:Use()
+			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
+			return
+		end
+	end
+	
+	if (activity == "usefood") then
+		local food = MGetItem(activityitemid)
+		if (food and food.isready) then
+			food:Use()
+			ml_global_information.Await(4000, function () return HasBuff(Player.id, 48) end)
+			return
 		end
 	end
 	
@@ -1376,20 +1398,18 @@ function e_nodeprebuff:execute()
 		local favorBuff = favors[activityitemid]
 		local favor = MGetItem(activityitemid)
 		if (favor and favor.isready) then
-			if (favor:Use()) then
-				ml_global_information.Await(2500, function () return HasBuff(Player.id, favorBuff) end)
-				return
-			end
+			favor:Use()
+			ml_global_information.Await(4000, function () return (HasBuff(Player.id, favorBuff)) end)
+			return
 		end
 	end
 	
 	if (activity == "usecordial") then
 		local cordial = MGetItem(activityitemid)
 		if (cordial and cordial.isready) then
-			if (cordial:Use()) then
-				ml_global_information.Await(2500, function () return (not ItemReady(activityitemid)) end)
-				return
-			end
+			cordial:Use()
+			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
+			return
 		end
 	end
 	

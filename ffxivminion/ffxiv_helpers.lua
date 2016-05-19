@@ -1784,7 +1784,7 @@ function IsFlanking(entity,dorangecheck)
 		return true
 	end
 	
-    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
+    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -1793,7 +1793,7 @@ function IsFlanking(entity,dorangecheck)
             entityHeading = entity.pos.h
         end
 		
-		local myPos = ml_global_information.Player_Position
+		local myPos = Player.pos
         local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
@@ -1816,7 +1816,7 @@ function IsBehind(entity,dorangecheck)
 		return true
 	end
 	
-    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange) then
+    if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
         local entityHeading = nil
         
         if (entity.pos.h < 0) then
@@ -1825,7 +1825,7 @@ function IsBehind(entity,dorangecheck)
             entityHeading = entity.pos.h
         end
         
-		local myPos = ml_global_information.Player_Position
+		local myPos = Player.pos
         local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
         local deviation = entityAngle - entityHeading
         local absDeviation = math.abs(deviation)
@@ -1839,6 +1839,10 @@ function IsBehind(entity,dorangecheck)
 end
 function IsBehindSafe(entity)
 	if not entity or entity.id == Player.id then return false end
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+		return true
+	end
+	
 	local entityHeading = nil
 	
 	if (entity.pos.h < 0) then
@@ -1847,7 +1851,7 @@ function IsBehindSafe(entity)
 		entityHeading = entity.pos.h
 	end
 	
-	local myPos = ml_global_information.Player_Position
+	local myPos = Player.pos
 	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z)        
 	local deviation = entityAngle - entityHeading
 	local absDeviation = math.abs(deviation)
@@ -1858,29 +1862,41 @@ function IsBehindSafe(entity)
 	end
     return false
 end
-function IsFront(entity)
+function IsFront(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
-	local entityHeading = nil
+	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h < 0) then
-		entityHeading = entity.pos.h + 2 * math.pi
-	else
-		entityHeading = entity.pos.h
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+		return true
 	end
 	
-	local myPos = ml_global_information.Player_Position
-	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z) 
-	local deviation = entityAngle - entityHeading
-	local absDeviation = math.abs(deviation)
-	local leftover = math.abs(absDeviation - math.pi)
-	
-	if (leftover > (math.pi * .75) and leftover < (math.pi * 1.25)) then
-		return true
+	if ((entity.distance2d - (entity.hitradius + 1)) <= ml_global_information.AttackRange or not dorangecheck) then
+		local entityHeading = nil
+		
+		if (entity.pos.h < 0) then
+			entityHeading = entity.pos.h + 2 * math.pi
+		else
+			entityHeading = entity.pos.h
+		end
+		
+		local myPos = Player.pos
+		local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z) 
+		local deviation = entityAngle - entityHeading
+		local absDeviation = math.abs(deviation)
+		local leftover = math.abs(absDeviation - math.pi)
+		
+		if (leftover > (math.pi * .75) and leftover < (math.pi * 1.25)) then
+			return true
+		end
 	end
     return false
 end
 function IsFrontSafe(entity)
 	if not entity or entity.id == Player.id then return false end
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+		return true
+	end
+	
 	local entityHeading = nil
 	
 	if (entity.pos.h < 0) then
@@ -1889,7 +1905,7 @@ function IsFrontSafe(entity)
 		entityHeading = entity.pos.h
 	end
 	
-	local myPos = ml_global_information.Player_Position
+	local myPos = Player.pos
 	local entityAngle = math.atan2(myPos.x - entity.pos.x, myPos.z - entity.pos.z) 
 	local deviation = entityAngle - entityHeading
 	local absDeviation = math.abs(deviation)
@@ -1901,8 +1917,12 @@ function IsFrontSafe(entity)
     return false
 end
 function IsFrontSafer(entity,pos)
-	pos = pos or ml_global_information.Player_Position
+	pos = pos or Player.pos
 	if not entity or entity.id == Player.id then return false end
+	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+		return true
+	end
+	
 	local entityHeading = nil
 	
 	if (entity.pos.h < 0) then
@@ -1924,7 +1944,7 @@ end
 function EntityIsFrontWide(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = ml_global_information.Player_Position
+	local ppos = Player.pos
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -1941,7 +1961,7 @@ end
 function EntityIsFront(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = ml_global_information.Player_Position
+	local ppos = Player.pos
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -1958,7 +1978,7 @@ end
 function EntityIsFrontTight(entity)
 	if not entity or entity.id == Player.id then return false end
 	
-	local ppos = ml_global_information.Player_Position
+	local ppos = Player.pos
 	local epos = entity.pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
@@ -5307,23 +5327,28 @@ function Transport139(pos1,pos2)
 	local pos1 = pos1 or ml_global_information.Player_Position
 	local pos2 = pos2
 	
-	if (GilCount() > 100) then
-		if (pos1.x < 0 and pos2.x > 0) then
-			--d("Need  to move from west to east.")
+	local gilCount = GilCount()
+	if (pos1.x < 0 and pos2.x > 0) then
+		if (gilCount > 100) then
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -341.24, y = -1, z = 112.098}
 				newTask.uniqueid = 1003586
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
-		elseif (pos1.x > 0 and pos2.x < 0) then
-			--d("Need  to move from west to east.")
+		else
+			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
+		end
+	elseif (pos1.x > 0 and pos2.x < 0) then
+		if (gilCount > 100) then
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
 				newTask.uniqueid = 1003587
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
+		else
+			d("[Transport139]: Need need to cross the water, but we lack the gil, might cause a stuck.")
 		end
 	end
 	
