@@ -2655,9 +2655,10 @@ end
 function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (ValidTable(item)) then
-		ml_debug("Moving item ["..tostring(item.id).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		local itemid = item.hqid
+		d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
-		ml_global_information.Await(1500, function () return (IsEquipped(item.hqid)) end)
+		ml_global_information.Await(1500, function () return (IsEquipped(itemid)) end)
 	end
 	--if (ml_task_hub:CurrentTask()) then
 		--ml_task_hub:CurrentTask():SetDelay(200)
