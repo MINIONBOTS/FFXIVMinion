@@ -1040,7 +1040,7 @@ function CanUseCordial()
 			end
 		end	
 		
-		if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then.
+		if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then
 			local cordialHQ = MGetItem(1006141)
 			if (cordialHQ and cordialHQ.isready) then
 				--d("[CanUseCordial]: Returning cordial.")
