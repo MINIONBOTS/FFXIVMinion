@@ -1005,8 +1005,15 @@ function CanUseCordial()
 	local minimumGP = 0
 	local useCordials = (gGatherUseCordials == "1")
 	
-	local profile = ffxiv_gather.profileData
-	local task = ffxiv_gather.currentTask
+	local profile, task;
+	if (IsFisher(Player.job)) then
+		profile = ffxiv_fish.profileData
+		task = ffxiv_fish.currentTask
+	elseif (IsGatherer(Player.job)) then
+		profile = ffxiv_gather.profileData
+		task = ffxiv_gather.currentTask
+	end
+	
 	local marker = ml_global_information.currentMarker
 	if (ValidTable(task)) then
 		minimumGP = IsNull(task.mingp,0)
@@ -1020,6 +1027,12 @@ function CanUseCordial()
 	
 	if (useCordials) then
 		if (Player.gp.max >= 550 and ((minimumGP - Player.gp.current) >= 400 or Player.gp.percent <= 30)) then
+			local hiCordialHQ = MGetItem(1012669)
+			if (hiCordialHQ and hiCordial.isready) then
+				--d("[CanUseCordial]: Returning hi-cordial.")
+				return true, hiCordialHQ
+			end
+			
 			local hiCordial = MGetItem(12669)
 			if (hiCordial and hiCordial.isready) then
 				--d("[CanUseCordial]: Returning hi-cordial.")
@@ -1027,7 +1040,13 @@ function CanUseCordial()
 			end
 		end	
 		
-		if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then
+		if ((minimumGP - Player.gp.current) >= 100 or Player.gp.percent <= 50) then.
+			local cordialHQ = MGetItem(1006141)
+			if (cordialHQ and cordialHQ.isready) then
+				--d("[CanUseCordial]: Returning cordial.")
+				return true, cordialHQ
+			end
+			
 			local cordial = MGetItem(6141)
 			if (cordial and cordial.isready) then
 				--d("[CanUseCordial]: Returning cordial.")
@@ -1253,16 +1272,16 @@ function c_nodeprebuff:evaluate()
 						end
 					end
 				end
-				
-				if (useFood ~= 0) then
-					local food = MGetItem(useFood)
-					if (food and food.isready and not HasBuffs(Player,"48")) then
-						e_nodeprebuff.activity = "usefood"
-						e_nodeprebuff.itemid = food.hqid
-						e_nodeprebuff.requirestop = true
-						e_nodeprebuff.requiredismount = true
-						return true
-					end
+			end
+			
+			if (useFood ~= 0) then
+				local food = MGetItem(useFood)
+				if (food and food.isready and MissingBuffs(Player,"48")) then
+					e_nodeprebuff.activity = "usefood"
+					e_nodeprebuff.itemid = food.hqid
+					e_nodeprebuff.requirestop = true
+					e_nodeprebuff.requiredismount = true
+					return true
 				end
 			end
         end
@@ -1305,8 +1324,6 @@ function c_nodeprebuff:evaluate()
 			end
 		end
 	end
-	
-	
 	
 	if (MissingBuffs(Player,"217+225")) then
 		d("[NodePreBuff]: Need to use our locator buff.")

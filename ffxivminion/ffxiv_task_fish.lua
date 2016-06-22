@@ -25,8 +25,10 @@ ffxiv_fish.collectibles = {
 
 ffxiv_task_fish = inheritsFrom(ml_task)
 function ffxiv_task_fish.Create()
-    local newinst = inheritsFrom(ffxiv_task_fish)
+    --local newinst = inheritsFrom(ffxiv_task_fish)
     
+	local newinst = {}
+	
     --ml_task members
     newinst.valid = true
     newinst.completed = false
@@ -52,7 +54,8 @@ function ffxiv_task_fish.Create()
 	ffxiv_fish.currentTaskIndex = 0
 	ffxiv_fish.attemptedCasts = 0
 	ffxiv_fish.biteDetected = 0
-    
+	
+	setmetatable(newinst, { __index = ffxiv_task_fish })
     return newinst
 end
 
@@ -74,12 +77,23 @@ end
 
 c_precastbuff = inheritsFrom( ml_cause )
 e_precastbuff = inheritsFrom( ml_effect )
+c_precastbuff.activity = ""
+c_precastbuff.item = nil
+c_precastbuff.itemid = 0
+c_precastbuff.class = nil
+c_precastbuff.requirestop = false
+c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
 	if (Player.ismounted) then
 		return false
 	end
 	
 	c_precastbuff.activity = ""
+	c_precastbuff.item = nil
+	c_precastbuff.itemid = 0
+	c_precastbuff.class = nil
+	c_precastbuff.requirestop = false
+	c_precastbuff.requiredismount = false
 		
 	local fs = tonumber(Player:GetFishingState())
 	if (fs == 0 or fs == 4) then
@@ -89,11 +103,17 @@ function c_precastbuff:evaluate()
 			return true
 		end
 		
+		local useCordials = (gGatherUseCordials == "1")
+		local useFood = 0
 		local needsStealth = false
+		
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			needsStealth = IsNull(task.usestealth,false)
+			minimumGP = IsNull(task.mingp,0)
+			useCordials = IsNull(task.usecordials,useCordials)
+			useFood = IsNull(task.food,0)
 		elseif (ValidTable(marker)) then
 			needsStealth = (marker:GetFieldValue(GetUSString("useStealth")) == "1")
 		else
@@ -107,6 +127,18 @@ function c_precastbuff:evaluate()
 				c_precastbuff.activity = "stealth"
 				return true
 			end
+		end
+		
+		if (useCordials) then
+			local canUse,cordialItem = CanUseCordial()
+			if (canUse and ValidTable(cordialItem)) then
+				d("[NodePreBuff]: Need to use a cordial.")
+				e_nodeprebuff.activity = "usecordial"
+				e_nodeprebuff.itemid = cordialItem.hqid
+				e_nodeprebuff.requirestop = true
+				e_nodeprebuff.requiredismount = true
+				return true
+			end					
 		end
 		
 	end

@@ -3528,12 +3528,10 @@ local obj1 = {
 			};
 		};
 		[128] = {
-			["level"] = 6;
+			["level"] = 7;
 			["name"] = "Eggs over Queasy";
 			["prereq"] = {
-				[-1] = {
-					[1] = 445;
-				};
+				["(QuestCompleted(196) and GameRegion() == 1) or (QuestCompleted(445) and GameRegion() ~= 1)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4705,9 +4703,7 @@ local obj1 = {
 			["level"] = 8;
 			["name"] = "Surveying the Damage";
 			["prereq"] = {
-				[-1] = {
-					[1] = 128;
-				};
+				["(QuestCompleted(128) and QuestCompleted(196) and GameRegion() == 1) or (QuestCompleted(196) and GameRegion() ~= 1)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4934,9 +4930,7 @@ local obj1 = {
 			["level"] = 7;
 			["name"] = "An Eft for Effort";
 			["prereq"] = {
-				[-1] = {
-					[1] = 128;
-				};
+				["(QuestCompleted(445) and GameRegion() == 1) or (QuestCompleted(128) and GameRegion() ~= 1)"] = true;
 			};
 			["steps"] = {
 				[1] = {
