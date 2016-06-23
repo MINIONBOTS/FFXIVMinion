@@ -80,18 +80,16 @@ e_precastbuff = inheritsFrom( ml_effect )
 c_precastbuff.activity = ""
 c_precastbuff.item = nil
 c_precastbuff.itemid = 0
-c_precastbuff.class = nil
 c_precastbuff.requirestop = false
 c_precastbuff.requiredismount = false
 function c_precastbuff:evaluate()
-	if (Player.ismounted) then
+	
+	if (MIsLoading() or MIsCasting() or IsFlying()) then
 		return false
 	end
 	
 	c_precastbuff.activity = ""
-	c_precastbuff.item = nil
 	c_precastbuff.itemid = 0
-	c_precastbuff.class = nil
 	c_precastbuff.requirestop = false
 	c_precastbuff.requiredismount = false
 		
@@ -100,6 +98,8 @@ function c_precastbuff:evaluate()
 
 		if (ShouldEat()) then
 			c_precastbuff.activity = "eat"
+			c_precastbuff.requirestop = true
+			c_precastbuff.requiredismount = true
 			return true
 		end
 		
@@ -125,6 +125,7 @@ function c_precastbuff:evaluate()
 			local stealth = ActionList:Get(298)
 			if (stealth and stealth.isready and Player.action ~= 367) then
 				c_precastbuff.activity = "stealth"
+				c_precastbuff.requiredismount = true
 				return true
 			end
 		end
@@ -133,10 +134,10 @@ function c_precastbuff:evaluate()
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and ValidTable(cordialItem)) then
 				d("[NodePreBuff]: Need to use a cordial.")
-				e_nodeprebuff.activity = "usecordial"
-				e_nodeprebuff.itemid = cordialItem.hqid
-				e_nodeprebuff.requirestop = true
-				e_nodeprebuff.requiredismount = true
+				c_precastbuff.activity = "usecordial"
+				c_precastbuff.itemid = cordialItem.hqid
+				c_precastbuff.requirestop = true
+				c_precastbuff.requiredismount = true
 				return true
 			end					
 		end
@@ -148,7 +149,23 @@ end
 function e_precastbuff:execute()
 	ffxiv_fish.StopFishing()
 	
+	local activityitemid = c_precastbuff.itemid
+	local requirestop = c_precastbuff.requirestop
+	local requiredismount = c_precastbuff.requiredismount
 	local activity = c_precastbuff.activity
+	
+	if (requirestop and Player:IsMoving()) then
+		Player:Stop()
+		ml_global_information.Await(1500, function () return (not Player:IsMoving()) end)
+		return
+	end
+	
+	if (requiredismount and Player.ismounted) then
+		Dismount()
+		ml_global_information.Await(2500, function () return (not Player.ismounted) end)
+		return
+	end
+	
 	if (activity == "eat") then
 		Eat()
 		return
@@ -160,6 +177,15 @@ function e_precastbuff:execute()
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
 		ml_task_hub:CurrentTask():SetDelay(2000)
 		return
+	end
+	
+	if (activity == "usecordial") then
+		local cordial = MGetItem(activityitemid)
+		if (cordial and cordial.isready) then
+			cordial:Use()
+			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
+			return
+		end
 	end
 end
 
