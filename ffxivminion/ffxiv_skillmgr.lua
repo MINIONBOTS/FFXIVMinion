@@ -13,6 +13,7 @@ SkillMgr.skillbook = { name = GetString("skillbook"), x = 250, y = 50, w = 250, 
 SkillMgr.mainwindow = { name = GetString("skillManager"), x = 350, y = 50, w = 250, h = 350}
 SkillMgr.editwindow = { name = GetString("skillEditor"), x = 250, y = 50, w = 250, h = 550}
 SkillMgr.editwindow_macro = { name = "Skill Editor - Macro", x = 250, y = 50, w = 250, h = 550, visible = false}
+--SkillMgr.editwindow_buff = { name = "Skill Editor - Buff", x = 250, y = 50, w = 250, h = 550, visible = false}
 SkillMgr.editwindow_crafting = { name = GetString("skillEditor_craft"), x = 250, y = 50, w = 250, h = 550}
 SkillMgr.editwindow_gathering = { name = GetString("skillEditor_gather"), x = 250, y = 50, w = 250, h = 550}
 SkillMgr.confirmwindow = { name = GetString("confirm"), x = 250, y = 50, w = 250, h = 120}
@@ -417,6 +418,24 @@ SkillMgr.Variables = {
 	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", section = "fighting" },
 	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", section = "fighting" },
 	
+	-- Buff Vars.
+	--SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", section = "fighting" },
+	--SKM_B1QUALIFIER = { default = "HasBuff", cast = "string", profile = "b1qualifier", section = "fighting" },
+	
+	--[[
+	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting"  },
+	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
+	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting"  },
+	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
+	
+	SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", section = "fighting" },
+	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
+	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
+	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
+	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
+	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", section = "fighting" },
+	--]]
+	
 	SKM_IgnoreMoving = { default = "0", cast = "string", profile = "ignoremoving", section = "fighting" },
 	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
@@ -427,6 +446,10 @@ SkillMgr.Variables = {
 	SKM_DURMAX = { default = 0, cast = "number", profile = "durabmax", section = "crafting"},
 	SKM_PROGMIN = { default = 0, cast = "number", profile = "progrmin", section = "crafting"},
 	SKM_PROGMAX = { default = 0, cast = "number", profile = "progrmax", section = "crafting"},
+	SKM_CRAFTMIN = { default = 0, cast = "number", profile = "craftmin", section = "crafting"},
+	SKM_CRAFTMAX = { default = 0, cast = "number", profile = "craftmax", section = "crafting"},
+	SKM_CONTROLMIN = { default = 0, cast = "number", profile = "controlmin", section = "crafting"},
+	SKM_CONTROLMAX = { default = 0, cast = "number", profile = "controlmax", section = "crafting"},
 	SKM_QUALMIN = { default = 0, cast = "number", profile = "qualitymin", section = "crafting"},
 	SKM_QUALMAX = { default = 0, cast = "number", profile = "qualitymax", section = "crafting"},
 	SKM_QUALMINPer = { default = 0, cast = "number", profile = "qualityminper", section = "crafting"},
@@ -435,13 +458,24 @@ SkillMgr.Variables = {
 	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", section = "crafting"},
 	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", section = "crafting"},
 	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", section = "crafting"},
+	SKM_GSSTACKMIN = { default = 0, cast = "number", profile = "gsstackmin", section = "crafting"},
+	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
+	SKM_SH2STACKMIN = { default = 0, cast = "number", profile = "sh2stackmin", section = "crafting"},
+	SKM_INGENSTACKMIN = { default = 0, cast = "number", profile = "ingenstackmin", section = "crafting"},
+	SKM_INGEN2STACKMIN = { default = 0, cast = "number", profile = "ingen2stackmin", section = "crafting"},
+	SKM_WNSTACKMIN = { default = 0, cast = "number", profile = "wnstackmin", section = "crafting"},
+	SKM_WN2STACKMIN = { default = 0, cast = "number", profile = "wn2stackmin", section = "crafting"},
+	SKM_MANIPSTACKMIN = { default = 0, cast = "number", profile = "manipstackmin", section = "crafting"},
+	SKM_INNOSTACKMIN = { default = 0, cast = "number", profile = "innostackmin", section = "crafting"},
+	SKM_CZONESTACKMIN = { default = 0, cast = "number", profile = "czonestackmin", section = "crafting"},
+	SKM_MAKERSSTACKMIN = { default = 0, cast = "number", profile = "makersstackmin", section = "crafting"},
+	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
+	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
 	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
 	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
-	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
-	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
 	
 	SKM_SingleUse = { default = "1", cast = "string", profile = "singleuseonly", section = "gathering"},
 	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
@@ -764,6 +798,7 @@ function SkillMgr.ModuleInit()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
 	
+	--GUI_NewButton(SkillMgr.editwindow.name,"Build Buffs","SMToggleBuffs","Buffs")
 	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
 	
 	--GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
@@ -942,6 +977,170 @@ function SkillMgr.ModuleInit()
 	
 	GUI_WindowVisible(SkillMgr.editwindow_macro.name,false)
 	
+	-- ========= Buff Window =============
+	
+	--[[
+	GUI_NewWindow(SkillMgr.editwindow_buff.name, SkillMgr.editwindow_buff.x, SkillMgr.editwindow_buff.y, SkillMgr.editwindow_buff.w, SkillMgr.editwindow_buff.h,"",true)
+	
+	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 1","gSkillManagerFoldBuff1",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 2","gSkillManagerFoldBuff2",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 3","gSkillManagerFoldBuff3",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 4","gSkillManagerFoldBuff4",GetString("generalSettings"))
+	
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Completion","SKM_M1ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Completion","SKM_M2ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Completion","SKM_M3ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Completion","SKM_M4ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Completion","SKM_M5ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Completion","SKM_M6ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Completion","SKM_M7ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Completion","SKM_M8ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Completion","SKM_M9ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Completion","SKM_M10ACTIONCOMPLETE","Macro Group 2")
+	--]]
+	
+	--[[
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Completion","SKM_M11ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Completion","SKM_M12ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Completion","SKM_M13ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Completion","SKM_M14ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Completion","SKM_M15ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Completion","SKM_M16ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Completion","SKM_M17ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Completion","SKM_M18ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Completion","SKM_M19ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Completion","SKM_M20ACTIONCOMPLETE","Macro Group 4")
+	
+	gSkillManagerFoldBuff1 = ffxivminion.GetSetting("gSkillManagerFoldBuff1","1")
+	gSkillManagerFoldBuff2 = ffxivminion.GetSetting("gSkillManagerFoldBuff2","0")
+	
+	--gSkillManagerFoldBuff3 = ffxivminion.GetSetting("gSkillManagerFoldBuff3","0")
+	--gSkillManagerFoldBuff4 = ffxivminion.GetSetting("gSkillManagerFoldBuff4","0")
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow_buff.name,GetString("generalSettings"))
+	SkillMgr.FoldBuffGroups()
+	
+	GUI_WindowVisible(SkillMgr.editwindow_buff.name,false)
+	--]]
+    
     -- ========= Crafting Editor Window =============
 	
     GUI_NewWindow(SkillMgr.editwindow_crafting.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_crafting.w, SkillMgr.editwindow_crafting.h,"",true)		
@@ -957,17 +1156,35 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmax"),"SKM_DURMAX",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmin"),"SKM_PROGMIN",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmax"),"SKM_PROGMAX",GetString("skillDetails"));
+	
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymin"),"SKM_QUALMIN",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymax"),"SKM_QUALMAX",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualityminper"),"SKM_QUALMINPer",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymaxper"),"SKM_QUALMAXPer",GetString("skillDetails"))   
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymaxper"),"SKM_QUALMAXPer",GetString("skillDetails")) 
+
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship >=","SKM_CRAFTMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship <","SKM_CRAFTMAX",GetString("skillDetails")) 
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control >=","SKM_CONTROLMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control <","SKM_CONTROLMAX",GetString("skillDetails")) 
+	
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Whistle Stack >","SKM_WHSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Great Strides Stack >=","SKM_GSSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand Stack >=","SKM_SHSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 2 Stack >=","SKM_SH2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity Stack >=","SKM_INGENSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity 2 Stack >=","SKM_INGEN2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not Stack >=","SKM_WNSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not 2 Stack >=","SKM_WN2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Manipulation Stack >=","SKM_MANIPSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Innovation Stack >=","SKM_INNOSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Comfort Zone Stack >=","SKM_CZONESTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Maker's Mark Stack >=","SKM_MAKERSSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Whistle Stack >=","SKM_WHSTACKMIN",GetString("skillDetails"));
 	GUI_NewField(SkillMgr.editwindow_crafting.name,"Whistle Stack =","SKM_WHSTACK",GetString("skillDetails"))
 	
     GUI_NewComboBox(SkillMgr.editwindow_crafting.name,GetString("condition"),"SKM_CONDITION",GetString("skillDetails"),GetString("notused")..","..GetString("excellent")..","..GetString("good")..","..GetString("normal")..","..GetString("poor"))
@@ -1047,6 +1264,9 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 			SkillMgr.SetDefaultProfile()
 		elseif (string.find(k,"gSkillManagerFoldMacro")) then
 			SkillMgr.FoldMacroGroups()
+			SafeSetVar(tostring(k),v)
+		elseif (string.find(k,"gSkillManagerFoldBuff")) then
+			SkillMgr.FoldBuffGroups()
 			SafeSetVar(tostring(k),v)
 		end
 		
@@ -1276,6 +1496,20 @@ function SkillMgr.FoldMacroGroups()
 		end
 	end
 end
+
+--[[
+function SkillMgr.FoldBuffGroups()
+	for i = 1,2 do
+		local unfoldvar = _G["gSkillManagerFoldBuff"..tostring(i)]
+		if (unfoldvar == "1") then
+			GUI_UnFoldGroup(SkillMgr.editwindow_macro.name,"Buff Group "..tostring(i))
+		else
+			GUI_FoldGroup(SkillMgr.editwindow_macro.name,"Buff Group "..tostring(i))
+		end
+	end
+end
+--]]
+
 
 function SkillMgr.OnGameUpdate(event, tickcount)
 	SkillMgr.lastTick = tickcount
@@ -1805,6 +2039,9 @@ function SkillMgr.ButtonHandler(event, Button)
 			SkillMgr.PasteSkill()
 		end
 		
+		if (string.find(Button,"SMToggleBuffs") ~= nil) then	
+			SkillMgr.ToggleBuffMenu()		
+		end
 		if (string.find(Button,"SMToggleMacro") ~= nil) then	
 			SkillMgr.ToggleMacroMenu()		
 		end
@@ -2353,6 +2590,18 @@ function SkillMgr.ToggleMacroMenu()
     end
 end
 
+function SkillMgr.ToggleBuffMenu()
+    if (SkillMgr.editwindow_buff.visible) then
+		local wnd = GUI_GetWindowInfo(SkillMgr.editwindow.name)	
+		GUI_MoveWindow(SkillMgr.editwindow_buff.name, wnd.x+wnd.width,wnd.y) 
+        GUI_WindowVisible(SkillMgr.editwindow_buff.name,false)	
+        SkillMgr.editwindow_buff.visible = false
+    else
+		GUI_WindowVisible(SkillMgr.editwindow_buff.name,true)		
+        SkillMgr.editwindow_buff.visible = true
+    end
+end
+
 function SkillMgr.ShowFilterWindow()
 	GUI_WindowVisible(SkillMgr.filterwindow.name,true)		
 end
@@ -2890,13 +3139,25 @@ SkillMgr.MatchingCraftSkills = {
 
 SkillMgr.lastquality = 0
 SkillMgr.currentSHStack = 0
+SkillMgr.currentSH2Stack = 0
 SkillMgr.currentIQStack = 0
-SkillMgr.currentToTUses = 0
+SkillMgr.currentWasteNotStack = 0
+SkillMgr.currentWasteNot2Stack = 0
+SkillMgr.currentIngenStack = 0
+SkillMgr.currentIngen2Stack = 0
+SkillMgr.currentGSStack = 0
+SkillMgr.currentManipStack = 0
+SkillMgr.currentInnoStack = 0
+SkillMgr.currentCZoneStack = 0
+SkillMgr.currentMakersStack = 0
 SkillMgr.currentWhistleStack = 0
+
+SkillMgr.currentToTUses = 0
 SkillMgr.currentHTSuccesses = 0
 SkillMgr.manipulationUses = 0
 SkillMgr.checkHT = false
 SkillMgr.newCraft = true
+
 function SkillMgr.Craft()
 	-- This is required to refresh the available action list abilities.
 	local al = ActionList("type=8")
@@ -2905,8 +3166,19 @@ function SkillMgr.Craft()
     if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile)) then
 		
 		if (SkillMgr.newCraft) then
-			SkillMgr.currentIQStack = 0 
 			SkillMgr.currentSHStack = 0
+			SkillMgr.currentSH2Stack = 0
+			SkillMgr.currentIQStack = 0
+			SkillMgr.currentWasteNotStack = 0
+			SkillMgr.currentWasteNot2Stack = 0
+			SkillMgr.currentIngenStack = 0
+			SkillMgr.currentIngen2Stack = 0
+			SkillMgr.currentGSStack = 0
+			SkillMgr.currentManipStack = 0
+			SkillMgr.currentInnoStack = 0
+			SkillMgr.currentCZoneStack = 0
+			SkillMgr.currentMakersStack = 0
+			SkillMgr.currentWhistleStack = 0
 			SkillMgr.currentHTSuccesses = 0
 			SkillMgr.currentToTUses = 0
 			SkillMgr.manipulationUses = 0
@@ -2922,26 +3194,24 @@ function SkillMgr.Craft()
 			SkillMgr.checkHT = false
 		end
 		
-		-- Update IQ Stacks
-		if (HasBuffs(Player,"251")) then
-			if (SkillMgr.currentIQStack == 0) then
-				SkillMgr.currentIQStack = 1
-			elseif ( synth.quality > SkillMgr.lastquality) then
-				SkillMgr.currentIQStack = SkillMgr.currentIQStack + 1
-			end
-		else
-			SkillMgr.currentIQStack = 0 
-		end
+		local pbuffs = Player.buffs
 		
-		-- Update Whistle Stacks
-		if (HasBuffs(Player,"880")) then
-			if (SkillMgr.currentWhistleStack == 0) then
-				SkillMgr.currentWhistleStack = 11
-			end
-		else
-			SkillMgr.currentWhistleStack = 0 
-		end
+		-- Update Stacks
 		
+		SkillMgr.currentIQStack = SkillMgr.GetBuffStacks(pbuffs,251)
+		SkillMgr.currentWasteNotStack = SkillMgr.GetBuffStacks(pbuffs,252)
+		SkillMgr.currentSHStack = SkillMgr.GetBuffStacks(pbuffs,253)
+		SkillMgr.currentGSStack = SkillMgr.GetBuffStacks(pbuffs,254)
+		SkillMgr.currentIngenStack = SkillMgr.GetBuffStacks(pbuffs,255)
+		SkillMgr.currentIngen2Stack = SkillMgr.GetBuffStacks(pbuffs,256)
+		SkillMgr.currentWasteNot2Stack = SkillMgr.GetBuffStacks(pbuffs,257)
+		SkillMgr.currentManipStack = SkillMgr.GetBuffStacks(pbuffs,258)
+		SkillMgr.currentInnoStack = SkillMgr.GetBuffStacks(pbuffs,259)
+		SkillMgr.currentCZoneStack = SkillMgr.GetBuffStacks(pbuffs,261)
+		SkillMgr.currentSH2Stack = SkillMgr.GetBuffStacks(pbuffs,262)
+		SkillMgr.currentMakersStack = SkillMgr.GetBuffStacks(pbuffs,878)
+		SkillMgr.currentWhistleStack = SkillMgr.GetBuffStacks(pbuffs,880)
+
         for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
 			
@@ -2976,11 +3246,14 @@ function SkillMgr.Craft()
                         (tonumber(skill.durabmax) > 0 and synth.durability < tonumber(skill.durabmax)) or
                         (tonumber(skill.progrmin) > 0 and synth.progress >= tonumber(skill.progrmin)) or
                         (tonumber(skill.progrmax) > 0 and synth.progress < tonumber(skill.progrmax)) or
+						(tonumber(skill.craftmin) > 0 and Player.stats.craftmanship < tonumber(skill.craftmin)) or
+                        (tonumber(skill.craftmax) > 0 and Player.stats.craftmanship >= tonumber(skill.craftmax)) or
+                        (tonumber(skill.controlmin) > 0 and Player.stats.control < tonumber(skill.controlmin)) or
+                        (tonumber(skill.controlmax) > 0 and Player.stats.control >= tonumber(skill.controlmax)) or
                         (tonumber(skill.qualitymin) > 0 and synth.quality >= tonumber(skill.qualitymin)) or
                         (tonumber(skill.qualitymax) > 0 and synth.quality < tonumber(skill.qualitymax)) or
                         (tonumber(skill.qualityminper) > 0 and synth.qualitypercent >= tonumber(skill.qualityminper)) or
                         (tonumber(skill.qualitymaxper) > 0 and synth.qualitypercent < tonumber(skill.qualitymaxper)) or
-                        (tonumber(skill.iqstack) > 0 and SkillMgr.currentIQStack < tonumber(skill.iqstack)) or
                         (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
                     then 
 						castable = false 
@@ -2996,10 +3269,45 @@ function SkillMgr.Craft()
 						castable = false
 					end
 					
+					if (tonumber(skill.iqstack) > 0 and SkillMgr.currentIQStack < tonumber(skill.iqstack)) then
+						castable = false
+					end
+					if (tonumber(skill.gsstackmin) > 0 and SkillMgr.currentGSStack < tonumber(skill.gsstackmin)) then
+						castable = false
+					end
 					if (tonumber(skill.shstackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.shstackmin)) then
 						castable = false
 					end
-					
+					if (tonumber(skill.sh2stackmin) > 0 and SkillMgr.currentSH2Stack < tonumber(skill.sh2stackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.sh12stackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.sh12stackmin) and SkillMgr.currentSH2Stack < tonumber(skill.sh12stackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.ingenstackmin) > 0 and SkillMgr.currentIngenStack < tonumber(skill.ingenstackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.ingen2stackmin) > 0 and SkillMgr.currentIngen2Stack < tonumber(skill.ingen2stackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.wnstackmin) > 0 and SkillMgr.currentWasteNotStack < tonumber(skill.wnstackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.wn2stackmin) > 0 and SkillMgr.currentWasteNot2Stack < tonumber(skill.wn2stackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.manipstackmin) > 0 and SkillMgr.currentManipStack < tonumber(skill.manipstackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.innostackmin) > 0 and SkillMgr.currentInnoStack < tonumber(skill.innostackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.czonestackmin) > 0 and SkillMgr.currentCZoneStack < tonumber(skill.czonestackmin)) then
+						castable = false
+					end
+					if (tonumber(skill.makersstackmin) > 0 and SkillMgr.currentMakersStack < tonumber(skill.makersstackmin)) then
+						castable = false
+					end
 					if (tonumber(skill.whstackmin) > 0 and SkillMgr.currentWhistleStack < tonumber(skill.whstackmin)) then
 						castable = false
 					end
@@ -3047,21 +3355,6 @@ function SkillMgr.Craft()
 								SkillMgr.checkHT = true
 							elseif (skid == 278) then
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
-							end
-							
-							if (SkillMgr.currentWhistleStack > 0) then
-								local retranslation = Retranslate(synth.description)
-								if (retranslation == GetString("good") or retranslation == GetString("excellent")) then
-									SkillMgr.currentWhistleStack = SkillMgr.currentWhistleStack - 1
-								end
-							end
-							
-							if (MultiComp(skid,"281,244,245,246,247,249,248,250,251")) then
-								SkillMgr.currentSHStack = 5
-							else
-								if (SkillMgr.currentSHStack > 0) then
-									SkillMgr.currentSHStack = SkillMgr.currentSHStack - 1
-								end
 							end
 							
 							SkillMgr.SkillProfile[prio].lastcast = Now()
@@ -3218,6 +3511,23 @@ function SkillMgr.Gather(item)
 		end
     end
     return false
+end
+
+function SkillMgr.GetBuffStacks(buffs,buffID,ownerid)
+	local buffID = tonumber(buffID) or 0
+	local ownerid = tonumber(ownerid) or 0
+	
+	if (ValidTable(buffs)) then
+		for i, buff in pairs(buffs) do
+			if (buff.id == buffID) then
+				if (ownerid == 0 or buff.ownerid == ownerid) then
+					return buff.stacks
+				end
+			end
+		end
+	end
+    
+    return 0
 end
 
 function SkillMgr.GCDTimeLT(mintime)
