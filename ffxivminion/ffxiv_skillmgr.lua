@@ -461,6 +461,7 @@ SkillMgr.Variables = {
 	SKM_GSSTACKMIN = { default = 0, cast = "number", profile = "gsstackmin", section = "crafting"},
 	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
 	SKM_SH2STACKMIN = { default = 0, cast = "number", profile = "sh2stackmin", section = "crafting"},
+	SKM_SH12STACKMIN = { default = 0, cast = "number", profile = "sh12stackmin", section = "crafting"},
 	SKM_INGENSTACKMIN = { default = 0, cast = "number", profile = "ingenstackmin", section = "crafting"},
 	SKM_INGEN2STACKMIN = { default = 0, cast = "number", profile = "ingen2stackmin", section = "crafting"},
 	SKM_WNSTACKMIN = { default = 0, cast = "number", profile = "wnstackmin", section = "crafting"},
@@ -474,7 +475,6 @@ SkillMgr.Variables = {
 	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
-	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
 	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
 	
 	SKM_SingleUse = { default = "1", cast = "string", profile = "singleuseonly", section = "gathering"},
@@ -1170,12 +1170,12 @@ function SkillMgr.ModuleInit()
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",GetString("skillDetails"));
     GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("shStackMin"),"SKM_SHSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Great Strides Stack >=","SKM_GSSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand Stack >=","SKM_SHSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 2 Stack >=","SKM_SH2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 1/2 Stack >=","SKM_SH12STACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity Stack >=","SKM_INGENSTACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity 2 Stack >=","SKM_INGEN2STACKMIN",GetString("skillDetails"));
 	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not Stack >=","SKM_WNSTACKMIN",GetString("skillDetails"));
