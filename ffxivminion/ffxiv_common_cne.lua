@@ -689,6 +689,12 @@ function c_autopotion:evaluate()
 						c_autopotion.item = item
 						return true
 					end
+					
+					local hqitem = Inventory:Get(tonumber(itempair.item) + 1000000)
+					if (hqitem and hqitem.isready) then
+						c_autopotion.item = hqitem
+						return true
+					end
 				end
 			end
 		end
@@ -700,6 +706,12 @@ function c_autopotion:evaluate()
 					local item = Inventory:Get(tonumber(itempair.item))
 					if (item and item.isready) then
 						c_autopotion.item = item
+						return true
+					end
+					
+					local hqitem = Inventory:Get(tonumber(itempair.item) + 1000000)
+					if (hqitem and hqitem.isready) then
+						c_autopotion.item = hqitem
 						return true
 					end
 				end
@@ -2656,7 +2668,7 @@ function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (ValidTable(item)) then
 		local itemid = item.hqid
-		d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		ml_debug("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 		ml_global_information.Await(1500, function () return (IsEquipped(itemid)) end)
 	end
