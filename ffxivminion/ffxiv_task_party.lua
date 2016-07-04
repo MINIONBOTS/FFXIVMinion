@@ -69,19 +69,20 @@ function ffxiv_task_party:Init()
 	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
     self:add( ke_rest, self.overwatch_elements)
 	
+	local ke_dutyConfirm = ml_element:create( "PressConfirm", c_dutyconfirm, e_dutyconfirm, 85 )
+    self:add(ke_dutyConfirm, self.overwatch_elements)
 	
-	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 85 ) --minion only
+	local ke_psyncFate = ml_element:create( "PSyncFateLevel", c_partysyncfatelevel, e_partysyncfatelevel, 80 ) --minion only
     self:add( ke_psyncFate, self.overwatch_elements)
 	
-	local ke_followleader = ml_element:create( "FollowLeader", c_followleader, e_followleader, 80 ) --minion only
+	local ke_followleader = ml_element:create( "FollowLeader", c_followleader, e_followleader, 75 ) --minion only
     self:add( ke_followleader, self.overwatch_elements )
 	
-	local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 60 )--minion only
+	local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 70 )--minion only
     self:add( ke_assistleader, self.overwatch_elements )
 	
 	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 20 ) --minion only
     self:add(ke_killAggroTarget, self.process_elements)
-	
     
     local ke_addFate = ml_element:create( "AddFate", c_add_fate, e_add_fate, 70 ) --leader only
     self:add(ke_addFate, self.process_elements)

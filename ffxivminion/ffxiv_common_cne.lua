@@ -34,7 +34,7 @@ function c_add_killtarget:evaluate()
         return false
     end
 	
-	if (gBotMode == GetString("partyMode") and not IsLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
         return false
     end
 	
@@ -80,7 +80,7 @@ c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
-	if (gBotMode == GetString("partyMode") and IsLeader() ) then
+	if (gBotMode == GetString("partyMode") and IsPartyLeader() ) then
         return false
     end
 	
@@ -121,7 +121,7 @@ e_assistleader = inheritsFrom( ml_effect )
 c_assistleader.targetid = nil
 c_assistleader.movementDelay = 0
 function c_assistleader:evaluate()
-    if (gBotMode == GetString("partyMode") and IsLeader()) then
+    if (gBotMode == GetString("partyMode") and IsPartyLeader()) then
         return false
     end
 	
@@ -140,12 +140,14 @@ function c_assistleader:evaluate()
 		end
 		
 		if (NotQueued()) then
+			--d("executing not queued version>")
 			local target = EntityList:Get(leadtarget)				
 			if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
 				c_assistleader.targetid = target.id
 				return true
 			end
-		else
+		else	
+			--d("executing queued version>")
 			local target = EntityList:Get(leadtarget)				
 			if ( ValidTable(target) and target.alive and target.targetid == leader.id and (target.onmesh or InCombatRange(target.id))) then
 				c_assistleader.targetid = target.id
@@ -164,21 +166,36 @@ function e_assistleader:execute()
 	end
 	
 	if (NotQueued()) then
+		--d("executing nonqueued")
 		if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
+			--d("setting new id to "..tostring(id))
 			ml_task_hub:CurrentTask().targetid = id
 		else
+			--d("starting new grind combat for id "..tostring(id))
 			local newTask = ffxiv_task_grindCombat.Create()
 			newTask.targetid = id 
 			newTask.noFateSync = true
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	else
+		if (c_avoid:evaluate()) then
+			e_avoid:execute()
+			return
+		end
+		
+		if (c_autopotion:evaluate()) then
+			e_autopotion:execute()
+			return
+		end
+
+		--d("executing queued")
 		local target = MGetEntity(c_assistleader.targetid)
 		local pos = target.pos
 		local ppos = Player.pos
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		
 		if (ml_global_information.AttackRange > 5) then
+			--d("executing caster version")
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (Now() > c_assistleader.movementDelay) then
 					if (target.distance <= (target.hitradius + 1)) then
@@ -190,6 +207,7 @@ function e_assistleader:execute()
 				end
 			end
 			if (InCombatRange(target.id)) then
+				Player:SetTarget(target.id)
 				if (Player.ismounted) then
 					Dismount()
 				end
@@ -208,10 +226,12 @@ function e_assistleader:execute()
 			end
 		else
 			--d("Melee class, check if we're in combat range and such..")
+			Player:SetTarget(target.id)
 			if (not InCombatRange(target.id) or not target.los) then
 				Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
 			end
 			if (InCombatRange(target.id)) then
+				Player:SetTarget(target.id)
 				Player:SetFacing(pos.x,pos.y,pos.z) 
 				if (target.los) then
 					Player:Stop()
@@ -292,7 +312,7 @@ c_add_fate = inheritsFrom( ml_cause )
 e_add_fate = inheritsFrom( ml_effect )
 c_add_fate.fate = {}
 function c_add_fate:evaluate()
-    if (gBotMode == GetString("partyMode") and not IsLeader()) then
+    if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
 		return false
     end
 	
@@ -1173,7 +1193,7 @@ c_followleader.hasEntity = false
 e_followleader.isFollowing = false
 e_followleader.stopFollow = false
 function c_followleader:evaluate()
-	if (gBotMode == GetString("partyMode") and IsLeader() or MIsCasting(true)) then
+	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or MIsCasting(true)) then
         return false
     end
 	
@@ -1187,7 +1207,12 @@ function c_followleader:evaluate()
 		local isDPS = GetRoleString(Player.job) == "dps"
 		local isTank = GetRoleString(Player.job) == "tank"
 		
-		if ((leader.incombat and ((isHealer and distance > 15) or (isDPS and distance > 10)) or (distance > 20)) or (isEntity and (leader.ismounted and not Player.ismounted))) then				
+		local rangeClose,rangeFar = 10,20
+		if (InInstance() or leader.incombat) then
+			rangeClose,rangeFar = 5,8
+		end
+		
+		if ((isHealer and distance > rangeFar) or (isDPS and distance > rangeClose) or (distance > rangeFar)) or (isEntity and (leader.ismounted and not Player.ismounted)) then				
 			c_followleader.leaderpos = leaderPos
 			c_followleader.leader = leader
 			c_followleader.distance = distance
@@ -1521,9 +1546,9 @@ function c_avoidaggressives:evaluate()
 		local avoidanceAreas = ml_global_information.avoidanceAreas
 		if (ValidTable(avoidanceAreas)) then
 			--d("Setting avoidance areas.")
-			NavigationManager:SetAvoidanceAreas(avoidanceAreas)
+			--NavigationManager:SetAvoidanceAreas(avoidanceAreas)
 		else
-			NavigationManager:ClearAvoidanceAreas()
+			--NavigationManager:ClearAvoidanceAreas()
 		end
 		c_avoidaggressives.lastSet = { mapid = Player.localmapid, x = ppos.x, y = ppos.y, z = ppos.z }
 	end
@@ -1584,7 +1609,7 @@ c_bettertargetsearch.throttle = 1000
 c_bettertargetsearch.postpone = 0
 function c_bettertargetsearch:evaluate()        
     if (MIsLoading() or MIsLocked() or MIsCasting() or 
-		(gBotMode == GetString("partyMode") and not IsLeader()) or
+		(gBotMode == GetString("partyMode") and not IsPartyLeader()) or
 		Now() < c_bettertargetsearch.postpone) 
 	then
         return false
@@ -1856,7 +1881,7 @@ function c_companion:evaluate()
 	
     if (gBotMode == GetString("pvpMode") or 
 		Player.ismounted or IsMounting() or IsDismounting() or
-		IsCompanionSummoned()) 
+		IsCompanionSummoned() or InInstance()) 
 	then
         return false
     end
@@ -2012,6 +2037,10 @@ function c_rest:evaluate()
 		return false
 	end
 	
+	if (InInstance()) then
+		return false
+	end
+	
 	local isDOL = (Player.job >= 16 and Player.job <= 18)
 	local isDOH = (Player.job >= 8 and Player.job <= 15)
 	
@@ -2057,6 +2086,10 @@ e_flee.fleePos = {}
 function c_flee:evaluate()
 	local params = ml_task_hub:ThisTask().params
 	if (params and params.noflee and params.noflee == true) then
+		return false
+	end
+	
+	if (InInstance()) then
 		return false
 	end
 	
@@ -2198,7 +2231,7 @@ function c_returntomarker:evaluate()
 		return false
 	end
 	
-    if (gBotMode == GetString("partyMode") and not IsLeader()) then
+    if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
         return false
     end
 	

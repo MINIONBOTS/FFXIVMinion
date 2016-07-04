@@ -650,7 +650,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -1054,7 +1054,7 @@ function GetBestRevive( party, role)
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -2006,6 +2006,13 @@ function ConvertHeading(heading)
 		return heading
 	end
 end
+function RevertHeading(heading)
+	if (heading > math.pi) then
+		return heading - (2 * math.pi)
+	else
+		return heading
+	end
+end
 function HeadingToRadians(heading)
 	return heading + math.pi
 end
@@ -2360,6 +2367,19 @@ function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
 	local maxdistance = tonumber(distance) or 30
 	local el = MEntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	if (ValidTable(el)) then
+		local i,e = next(el)
+		if (i and e) then
+			return true
+		end
+	end
+	
+	return false
+end
+function ScanForEntity(ids,distance)
+	local ids = (type(ids) == "string" and ids) or tostring(ids)
+	local maxdistance = tonumber(distance) or 30
+	local el = MEntityList("nearest,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	if (ValidTable(el)) then
 		local i,e = next(el)
 		if (i and e) then
