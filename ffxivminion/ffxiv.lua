@@ -758,14 +758,21 @@ function ml_global_information.IsYielding()
 		local checkBoth = IsNull(yield.both,false)
 		local successTimer = false
 		local successEval = false
+		
+		if (yield.dowhile ~= nil and type(yield.dowhile) == "function") then
+			yield.dowhile()
+		end
+		
 		if (yield.mintimer ~= 0) then
 			if (Now() < yield.mintimer) then
 				return true
 			end
 		end
+		
 		if (yield.maxtimer ~= 0 and Now() >= yield.maxtimer) then
 			successTimer = true
-		elseif (yield.evaluator ~= nil and type(yield.evaluator) == "function") then
+		end
+		if (yield.evaluator ~= nil and type(yield.evaluator) == "function") then
 			local ret = yield.evaluator()
 			if (ret == true) then
 				successEval = true
@@ -776,35 +783,108 @@ function ml_global_information.IsYielding()
 			(checkBoth and successTimer and successEval)) 
 		then		
 			ml_global_information.yield = {}
+			
+			if (successEval and yield.followsuccess ~= nil and type(yield.followsuccess) == "function") then
+				yield.followsuccess()
+				return true
+			end
+			
+			if (successTimer and yield.followfail ~= nil and type(yield.followfail) == "function") then
+				yield.followfail()
+				return true
+			end
+			
+			if (yield.followall ~= nil and type(yield.followall) == "function") then
+				yield.followall()
+				return true
+			end
+			
 			return false
 		end
 		
-		if (yield.followup ~= nil and type(yield.followup) == "function") then
-			yield.followup()
-		end
 		return true
 	end
 	return false
 end
 
-function ml_global_information.Await(ms, eval, followup, both)
-	ml_global_information.yield = {
-		mintimer = 0,
-		maxtimer = Now() + ms,
-		evaluator = eval,
-		followup = followup,
-		both = IsNull(both,false),
-	}
+function ml_global_information.Await(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ml_global_information.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followall = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		ml_global_information.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followall = param3,
+			both = IsNull(param4,false),
+		}
+	end
 end
 
-function ml_global_information.Await2(minms, maxms, eval, followup)
-	ml_global_information.yield = {
-		mintimer = IIF(minms ~= 0,Now() + minms,0),
-		maxtimer = IIF(maxms ~= 0,Now() + maxms,0),
-		evaluator = eval,
-		followup = followup,
-		both = false,
-	}
+function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ml_global_information.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followall = param4,
+			dowhile = param5,
+		}
+	else
+		ml_global_information.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followall = param3,
+			dowhile = param4,
+		}
+	end
+end
+
+function ml_global_information.AwaitFail(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ml_global_information.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followfail = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		ml_global_information.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followfail = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function ml_global_information.AwaitSuccess(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ml_global_information.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followsuccess = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		ml_global_information.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followsuccess = param3,
+			both = IsNull(param4,false),
+		}
+	end
 end
 
 function ffxivminion.GUIVarCapture(newVal,varName,doSave)
