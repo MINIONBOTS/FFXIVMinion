@@ -205,12 +205,18 @@ QM.Variables = {
 QM.Strings = {
 	Meshes = 
 		function ()
-			local count = 0
-			local meshlist = "none"
-			local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
+			local meshlist = GetString("none")
+			local meshfilelist = {}
+			local tmp = FolderList(ml_mesh_mgr.defaultpath)	
+			for i,file in pairs (tmp) do
+				if ( string.ends(file,".obj") ) then
+					local filename = string.trim(file,4)
+					table.insert(meshfilelist, ml_mesh_mgr.GetString(filename))
+				end
+			end			
+			
 			if ( ValidTable(meshfilelist)) then
-				for i, meshname in pairs(meshfilelist) do
-					meshname = string.gsub(meshname, ".obj", "")
+				for i,meshname in pairsByKeys(meshfilelist) do
 					meshlist = meshlist..","..meshname
 				end
 			end
@@ -453,7 +459,7 @@ QM.Builds = {
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepMap"),"qTaskMap",GetString("newQuestStep")},
 			{5, "GUI_NewComboBox",QM.Windows.StepManager.name,GetString("stepMesh"),"qTaskMesh",GetString("newQuestStep"), QM.Strings.Meshes },
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepTarget"),"qTaskNPC",GetString("newQuestStep")},
-			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,GetString("stepReward"),"qTaskRewardSlot",GetString("newQuestStep")},
+			--{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,GetString("stepReward"),"qTaskRewardSlot",GetString("newQuestStep")},
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepDelay"),"qTaskDelay",GetString("newQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepManager.name,GetString("questPullValues"), "QM.LoadAddCurrentValues",GetString("newQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepManager.name,GetString("questAddStep"), "QM.AddStep",GetString("newQuestStep")},
@@ -465,12 +471,13 @@ QM.Builds = {
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepMap"),"qTaskMap",GetString("newQuestStep")},
 			{5, "GUI_NewComboBox",QM.Windows.StepManager.name,GetString("stepMesh"),"qTaskMesh",GetString("newQuestStep"), QM.Strings.Meshes },
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepTarget"),"qTaskNPC",GetString("newQuestStep")},
-			{4, "GUI_NewCheckbox",QM.Windows.StepManager.name,"Reward Table","qTaskUseRewardTable",GetString("newQuestStep")},
-			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,GetString("stepReward"),"qTaskRewardSlot",GetString("newQuestStep")},
+			--{4, "GUI_NewCheckbox",QM.Windows.StepManager.name,"Reward Table","qTaskUseRewardTable",GetString("newQuestStep")},
+			--{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,GetString("stepReward"),"qTaskRewardSlot",GetString("newQuestStep")},
 			{4, "GUI_NewField",	QM.Windows.StepManager.name,GetString("stepDelay"),"qTaskDelay",GetString("newQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepManager.name,GetString("questPullValues"), "QM.LoadAddCurrentValues",GetString("newQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepManager.name,GetString("questAddStep"), "QM.AddStep",GetString("newQuestStep")},
 			
+			--[[
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"Default","qTaskRewardSlotDefault","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"ARCANIST","qTaskRewardSlotACN","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"SUMMONER","qTaskRewardSlotSMN","Reward Table"},
@@ -494,6 +501,7 @@ QM.Builds = {
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"MACHINIST","qTaskRewardSlotMCH","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"DARKKNIGHT","qTaskRewardSlotDRK","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepManager.name,"ASTROLOGIAN","qTaskRewardSlotAST","Reward Table"},
+			--]]
 		},	
 	},
 	QuestTasksEdit = {
@@ -600,11 +608,12 @@ QM.Builds = {
 			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepMap"),"eTaskMap",GetString("editQuestStep")},
 			{5, "GUI_NewComboBox",QM.Windows.StepEditor.name,GetString("stepMesh"),"eTaskMesh",GetString("editQuestStep"), QM.Strings.Meshes },
 			{4, "GUI_NewField",	QM.Windows.StepEditor.name,GetString("stepTarget"),"eTaskNPC",GetString("editQuestStep")},
-			{4, "GUI_NewCheckbox",QM.Windows.StepEditor.name,"Reward Table","eTaskUseRewardTable",GetString("editQuestStep")},
-			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,GetString("stepReward"),"eTaskRewardSlot",GetString("editQuestStep")},
+			--{4, "GUI_NewCheckbox",QM.Windows.StepEditor.name,"Reward Table","eTaskUseRewardTable",GetString("editQuestStep")},
+			--{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,GetString("stepReward"),"eTaskRewardSlot",GetString("editQuestStep")},
 			{4, "GUI_NewButton",	QM.Windows.StepEditor.name,GetString("questPullValues"), "QM.LoadEditCurrentValues",GetString("editQuestStep")},
 			
 			--All,ARCANIST,ARCHER,BARD,BLACKMAGE,CONJURER,DRAGOON,GLADIATOR,LANCER,MARAUDER,MONK,PALADIN,PUGILIST,SCHOLAR,SUMMONER,THAUMATURGE,WARRIOR,WHITEMAGE
+			--[[
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"Default","eTaskRewardSlotDefault","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"ARCANIST","eTaskRewardSlotACN","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"SUMMONER","eTaskRewardSlotSMN","Reward Table"},
@@ -628,6 +637,7 @@ QM.Builds = {
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"MACHINIST","eTaskRewardSlotMCH","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"DARKKNIGHT","eTaskRewardSlotDRK","Reward Table"},
 			{4, "GUI_NewNumeric",	QM.Windows.StepEditor.name,"ASTROLOGIAN","eTaskRewardSlotAST","Reward Table"},
+			--]]
 		},	
 	},
 	DutyTasksEdit = {
@@ -1582,6 +1592,7 @@ function QM.EditStep(id)
 	for task,fields in ipairs (QM.Builds.QuestTasksEdit[step.type]) do
 		if (fields[2] ~= "GUI_NewButton") then
 			local varName = fields[5]
+			d("pulling var setup for ["..tostring(fields[5]).."]")
 			local varSetup = QM.Variables[varName]
 			local profileString = varSetup.profile
 			if (not varSetup.subtable) then

@@ -3623,7 +3623,7 @@ function GetAetheryteByMapID(mapid, p)
 			--d("This is not a shared map or we were not given a position.")
 			for index,aetheryte in pairsByKeys(list) do
 				if (aetheryte.territory == mapid) then
-					if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
+					if (GilCount() >= aetheryte.price and aetheryte.price > 0 and aetheryte.isattuned) then
 						return aetheryte
 					end
 				end
@@ -3698,7 +3698,7 @@ function CanUseAetheryte(aethid)
 		if (ValidTable(list)) then
 			for k,aetheryte in pairs(list) do
 				if (aetheryte.id == aethid) then
-					if (GilCount() >= aetheryte.price) then
+					if (GilCount() >= aetheryte.price and aetheryte.price > 0) then
 						return true
 					end
 				end

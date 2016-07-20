@@ -221,7 +221,7 @@ function e_assistleader:execute()
 					Player:SetFacing(pos.x,pos.y,pos.z) 
 				end
 			end
-			if (InCombatRange(target.id) and target.attackable and target.alive and target.los) then
+			if (InCombatRange(target.id) and target.attackable and target.alive) then
 				SkillMgr.Cast( target )
 			end
 		else
