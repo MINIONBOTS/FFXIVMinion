@@ -1,78 +1,41 @@
-ml_global_information = {}
-ml_global_information.path = GetStartupPath()
-ml_global_information.Now = 0
---ml_global_information.lastrun = 0
-ml_global_information.nextRun = 0
-ml_global_information.lastPulseShortened = false
-ml_global_information.lastrun2 = 0
-ml_global_information.CurrentClass = nil
-ml_global_information.CurrentClassID = 0
-ml_global_information.AttackRange = 2
-ml_global_information.TaskUIInit = false
-ml_global_information.MarkerMinLevel = 1
-ml_global_information.MarkerMaxLevel = 50
-ml_global_information.BlacklistContentID = ""
-ml_global_information.WhitelistContentID = ""
-ml_global_information.currentMarker = false
-ml_global_information.MarkerTime = 0
-ml_global_information.afkTimer = 0
-ml_global_information.syncTimer = 0
-ml_global_information.IsWaiting = false
-ml_global_information.UnstuckTimer = 0
-ml_global_information.stanceTimer = 0
-ml_global_information.summonTimer = 0
-ml_global_information.repairTimer = 0
-ml_global_information.windowTimer = 0
-ml_global_information.disableFlee = false
-ml_global_information.updateFoodTimer = 0
-ml_global_information.foodCheckTimer = 0
-ml_global_information.rootCheckTimer = 0
-ml_global_information.lastMode = ""
-ml_global_information.itemIDsToEquip = {}
-ml_global_information.idlePulseCount = 0
-ml_global_information.autoStartQueued = false
-ml_global_information.loadCompleted = false
-ml_global_information.blacklistedAetherytes = {}
-ml_global_information.navObstacles = {}
-ml_global_information.navObstaclesTimer = 0
-ml_global_information.suppressRestTimer = 0
-ml_global_information.queueSync = nil
-ml_global_information.queueSyncForce = false
-ml_global_information.queueSyncForced = false
-ml_global_information.lastInventorySnapshot = {}
-ml_global_information.repairBlacklist = {}
-ml_global_information.avoidanceAreas = {}
-ml_global_information.lastMeasure = 0
-ml_global_information.requiresTransport = {}
-ml_global_information.landing = nil
-ml_global_information.queueLoader = false
-ml_global_information.mainLoaded = false
-ml_global_information.needsStealth = false
+ffxivminion = {}
+ffxivminion.foods = {}
+ffxivminion.foodsHQ = {}
+ffxivminion.modes = {}
+ffxivminion.modesToLoad = {}
 
-ml_global_information.gatherid = 0
-ml_global_information.targetid = 0
-ml_global_information.yield = {}
-
---Setup Globals
-ml_global_information.lastUpdate = 0
-ml_global_information.Player_Aetherytes = {}
-ml_global_information.Player_Position = {}
-ml_global_information.Player_Map = 0
-ml_global_information.Player_HP = {}
-ml_global_information.Player_MP = {}
-ml_global_information.Player_TP = {}
-ml_global_information.Player_InCombat = false
-	
-ml_global_information.chocoStance = {
-	[GetString("stFollow")] = 3,
-	[GetString("stFree")] = 4,
-	[GetString("stDefender")] = 5,
-	[GetString("stAttacker")] = 6,
-	[GetString("stHealer")] = 7,
+-- Create the main GUI container.
+ffxivminion.GUI = {
+	main = {
+		name = "FFXIVMinion",
+		open = true,
+		visible = true,
+		x = 0, y = 0, width = 0, height = 0,
+	},
+	main_task = {
+		name = "FFXIVMINION_TASK_SECTION",
+		open = true,
+		visible = true,
+		x = 0, y = 0, width = 0, height = 0,
+	},
+	main_bottom = {
+		name = "FFXIVMINION_BOTTOM_BUTTONS",
+		open = true,
+		visible = true,
+	},
+	small = {
+		name = "FFXIVMINION_MAIN_WINDOW_MINIMIZED",
+		open = false,
+		visible = true,
+	},
+	settings = {
+		name = "Advanced Settings",
+		open = false,
+		visible = true,
+	},
+	current_tab = 1,
+	draw_mode = 1,
 }
-
-ml_global_information.classes = {}
-ml_global_information.blacklistedAetherytes = {}
 
 FFXIVMINION = {}
 FFXIVMINION.SKILLS = {}
@@ -81,304 +44,6 @@ memoize = {}
 pmemoize = {}
 tasktracking = {}
 setmetatable(tasktracking, { __mode = 'v' })
-
-ffxivminion = {}
-ffxivminion.foods = {}
-ffxivminion.foodsHQ = {}
-ffxivminion.modes = {}
-ffxivminion.modesToLoad = {}
-
---[[
-function ml_global_information.ToggleRun()	
-	if ( ml_task_hub.shouldRun ) then
-		ml_task_hub.shouldRun = false
-		FFXIV_Common_BotRunning = false
-	else
-		ml_task_hub.shouldRun = true
-		FFXIV_Common_BotRunning = true
-	end	
-
-	if (ml_task_hub.shouldRun and ml_global_information.UnstuckTimer == 0) then
-		ml_global_information.Reset()
-	else
-		ml_global_information.Stop()
-	end
-end
---]]
-
-
-
-function ffxivminion.SetupOverrides()
-	ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-	ml_global_information.BtnStart = { Name=GetString("startStop"), Event = "GUI_REQUEST_RUN_TOGGLE" }
-	ml_global_information.BtnPulse = { Name=GetString("doPulse"), Event = "Debug.Pulse" }
-
-	-- setup marker manager callbacks and vars
-	ml_marker_mgr.GetPosition = 	function () return ml_global_information.Player_Position end
-	ml_marker_mgr.GetLevel = 		function () return Player.level end
-	ml_marker_mgr.DrawMarker =		ffxivminion.DrawMarker
-	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
-	ml_node.ValidNeighbors = 		ffxivminion.NodeNeighbors
-	ml_node.GetClosestNeighborPos = ffxivminion.NodeClosestNeighbor
-	
-	-- setup meshmanager
-	if ( ml_mesh_mgr ) then
-		--ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
-		ml_mesh_mgr.GetMapID = function () return Player.localmapid end
-		ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
-		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
-		ml_mesh_mgr.SetEvacPoint = function ()
-			if (gmeshname ~= "" and Player.onmesh) then
-				ml_marker_mgr.markerList["evacPoint"] = ml_global_information.Player_Position
-				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
-			end
-		end
-		
-		ml_mesh_mgr.GetAllowedMaps = function (mapname)
-			local allowedMaps = {}
-			if (FileExists(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")) then					
-				local mapdata,e = persistence.load(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")
-				if (ValidTable(mapdata)) then
-					local maps = mapdata.AllowedMapIDs
-					if (ValidTable(maps)) then
-						for mapid,duplicate in pairsByKeys(maps) do
-							allowedMaps[mapid] = duplicate
-						end
-					end
-				else
-					if (e) then
-						d("[GetAllowedMaps]: "..e)
-					end
-				end
-			end
-			
-			return allowedMaps
-		end
-		
-		ml_mesh_mgr.GetString = function (inputString)
-			if (ValidString(inputString)) then
-				if (not string.find(inputString,'%s%-%s%[.+%]')) then
-					local allowedMaps = ml_mesh_mgr.GetAllowedMaps(inputString)
-					if (ValidTable(allowedMaps)) then
-						local mapid,dup = next(allowedMaps)
-						local mapname = AceLib.API.Map.GetMapName(mapid)
-						if (mapname and mapname ~= "") then
-							return inputString.." - ["..mapname.."]"
-						end
-					end
-				end
-			end
-			return inputString
-		end
-			
-		ml_mesh_mgr.GetFileName = function (inputString) 
-			if (ValidString(inputString)) then
-				if (string.find(inputString,'%s%-%s%[.+%]')) then
-					inputString = string.gsub(inputString,'%s%-%s%[.+%]',"")
-				end
-			end
-			return inputString 
-		end
-		
-		ml_mesh_mgr.AllowedMapsLookup = function (mapid) 
-			local placeid = AceLib.API.Map.GetPlaceID(mapid) or 0
-			if (placeid ~= 0) then
-				local allowedMaps = AceLib.API.Map.GetValidMaps(placeid)
-				if (ValidTable(allowedMaps)) then
-					return allowedMaps
-				end
-			end
-			return { [mapid] = mapid }
-		end
-		
-		ml_mesh_mgr.IsValidLuaState = function ()
-			if (ValidTable(ffxivminion.modesToLoad)) then
-				d("Prevented loading during an invalid state.")
-				return false
-			end
-			return true
-		end
-		
-		ml_mesh_mgr.ProcessShortcuts = function ()
-			--Left Alt + Right Mouse
-			if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
-				local mousepos = MeshManager:GetMousePos()
-				if (ValidTable(mousepos)) then	
-					if (MeshManager:DeleteRasterTriangle(mousepos)) then
-						d("Deletion was successful.")
-					end
-				end
-			end	
-			
-			if ( gMeshrec == "1" and gMeshChange == "0" and  MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(2) and not MeshManager:IsKeyPressed(1)) then
-				ml_mesh_mgr.CreateSingleCell()
-			end	
-			
-			-- Record Mesh & Gamedata
-			if ( gMeshrec == "1" or gMeshChange == "1") then
-				-- Key-Input-Handler
-				-- 162 = Left CTRL + Left Mouse
-				if ( MeshManager:IsKeyPressed(162) and MeshManager:IsKeyPressed(1)) then --162 is the integervalue of the virtualkeycode (hex)
-
-					MeshManager:RecForce(true)
-				else
-					MeshManager:RecForce(false)
-				end			
-				
-				-- 162 = Left CTRL 
-				if ( MeshManager:IsKeyPressed(162) ) then --162 is the integervalue of the virtualkeycode (hex)
-					-- show the mesh if it issnt shown
-					if ( gShowMesh == "0" ) then
-						MeshManager:ShowTriMesh(true)
-					end
-					MeshManager:RecSteeper(true)
-				else
-					if ( gShowMesh == "0" ) then
-						MeshManager:ShowTriMesh(false)
-					end
-					MeshManager:RecSteeper(false)
-				end
-				
-				-- 160 = Left Shift
-				if ( MeshManager:IsKeyPressed(160) ) then
-					MeshManager:RecSize(2*tonumber(gRecAreaSize))
-				else
-					MeshManager:RecSize(tonumber(gRecAreaSize))
-				end		 
-			end
-			
-			--Left Alt + Right Mouse
-			if ( MeshManager:IsKeyPressed(164) and MeshManager:IsKeyPressed(2)) then
-				local mousepos = MeshManager:GetMousePos()
-				if ( TableSize(mousepos) > 0 ) then	
-					if (MeshManager:DeleteRasterTriangle(mousepos)) then
-						d("Deletion was successful.")
-					end
-				end
-			end	
-		end
-
-		ml_mesh_mgr.averagegameunitsize = 1
-		ml_mesh_mgr.useQuaternion = false
-		
-		-- Set default meshes SetDefaultMesh(mapid, filename)
-		ml_mesh_mgr.SetDefaultMesh(134, "Middle La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(135, "Lower La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(137, "Eastern La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(138, "Western La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(139, "Upper La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(140, "Western Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(141, "Central Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(145, "Eastern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(146, "Southern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(147, "Northern Thanalan")
-		ml_mesh_mgr.SetDefaultMesh(148, "Central Shroud")
-		ml_mesh_mgr.SetDefaultMesh(152, "East Shroud")
-		ml_mesh_mgr.SetDefaultMesh(153, "South Shroud")
-		ml_mesh_mgr.SetDefaultMesh(154, "North Shroud")
-		ml_mesh_mgr.SetDefaultMesh(155, "Coerthas")
-		ml_mesh_mgr.SetDefaultMesh(156, "Mor Dhona")
-		ml_mesh_mgr.SetDefaultMesh(180, "Outer La Noscea")
-		ml_mesh_mgr.SetDefaultMesh(337, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(336, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
-		ml_mesh_mgr.SetDefaultMesh(186, "Wolves Den")
-		
-		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock")
-		
-		ml_mesh_mgr.SetDefaultMesh(130, "Ul dah - Steps of Nald")
-		ml_mesh_mgr.SetDefaultMesh(182, "Ul dah - Steps of Nald")
-		ml_mesh_mgr.SetDefaultMesh(131, "Ul dah - Steps of Thal")
-		ml_mesh_mgr.SetDefaultMesh(128, "Limsa (Upper)")
-		ml_mesh_mgr.SetDefaultMesh(181, "Limsa (Upper)")
-		ml_mesh_mgr.SetDefaultMesh(129, "Limsa (Lower)")
-		ml_mesh_mgr.SetDefaultMesh(132, "New Gridania")
-		ml_mesh_mgr.SetDefaultMesh(183, "New Gridania")
-		ml_mesh_mgr.SetDefaultMesh(133, "Old Gridania")
-		ml_mesh_mgr.SetDefaultMesh(376, "Frontlines")
-		ml_mesh_mgr.SetDefaultMesh(422, "Frontlines - Slaughter")
-		ml_mesh_mgr.SetDefaultMesh(212, "Waking Sands")
-		ml_mesh_mgr.SetDefaultMesh(179, "Gridania - Inn")
-		ml_mesh_mgr.SetDefaultMesh(178, "Ul dah - Inn")
-		ml_mesh_mgr.SetDefaultMesh(177, "Limsa Lominsa - Inn")
-		
-		ml_mesh_mgr.SetDefaultMesh(210, "Ul dah - Heart of the Sworn")
-		ml_mesh_mgr.SetDefaultMesh(205, "Lotus Stand")
-		ml_mesh_mgr.SetDefaultMesh(198, "Limsa Lominsa - Command")
-		ml_mesh_mgr.SetDefaultMesh(204, "Gridania - First Bow")
-		ml_mesh_mgr.SetDefaultMesh(286, "ImOnABoat")
-		
-		ml_mesh_mgr.SetDefaultMesh(144, "Gold Saucer")
-		ml_mesh_mgr.SetDefaultMesh(388, "Gold Saucer - Chocobo Square")
-		
-		ml_mesh_mgr.SetDefaultMesh(331, "Garuda_Entrance")
-		ml_mesh_mgr.SetDefaultMesh(351, "Rising Stones")
-		ml_mesh_mgr.SetDefaultMesh(395, "Intercessory")
-		ml_mesh_mgr.SetDefaultMesh(397, "Coerthas Western Highlands")
-		ml_mesh_mgr.SetDefaultMesh(398, "The Dravanian Forelands")
-		ml_mesh_mgr.SetDefaultMesh(399, "The Dravanian Hinterlands")
-		ml_mesh_mgr.SetDefaultMesh(400, "The Churning Mists")
-		ml_mesh_mgr.SetDefaultMesh(401, "Sea of Clouds")
-		ml_mesh_mgr.SetDefaultMesh(402, "Azys Lla")
-		ml_mesh_mgr.SetDefaultMesh(418, "Ishgard - Foundation")
-		ml_mesh_mgr.SetDefaultMesh(419, "Ishgard - The Pillars")
-		ml_mesh_mgr.SetDefaultMesh(427, "Ishgard - Scholasticate")
-		ml_mesh_mgr.SetDefaultMesh(439, "Ishgard - Chocobo Proving Grounds")
-		ml_mesh_mgr.SetDefaultMesh(433, "Ishgard - Fortempts Manor")
-		ml_mesh_mgr.SetDefaultMesh(456, "Ishgard - Ruling Chamber")
-		ml_mesh_mgr.SetDefaultMesh(463, "Matoyas Cave")
-		ml_mesh_mgr.SetDefaultMesh(478, "Idyllshire") 
-		
-		-- Dungeons
-		ml_mesh_mgr.SetDefaultMesh(435, "[Dungeon]Aery")
-		ml_mesh_mgr.SetDefaultMesh(167, "[Dungeon]AmdaporKeep")
-		ml_mesh_mgr.SetDefaultMesh(172, "[Dungeon]AurumVale")
-		ml_mesh_mgr.SetDefaultMesh(158, "[Dungeon]Brayflox")
-		ml_mesh_mgr.SetDefaultMesh(362, "[Dungeon]BrayfloxHM")
-		ml_mesh_mgr.SetDefaultMesh(161, "[Dungeon]Copperbell")
-		ml_mesh_mgr.SetDefaultMesh(349, "[Dungeon]CopperbellHM")
-		ml_mesh_mgr.SetDefaultMesh(170, "[Dungeon]CuttersCry")
-		ml_mesh_mgr.SetDefaultMesh(434, "[Dungeon]DuskVigil")
-		ml_mesh_mgr.SetDefaultMesh(171, "[Dungeon]DzemaelDarkhold")
-		ml_mesh_mgr.SetDefaultMesh(162, "[Dungeon]Halatali")
-		ml_mesh_mgr.SetDefaultMesh(360, "[Dungeon]HalataliHM")
-		ml_mesh_mgr.SetDefaultMesh(166, "[Dungeon]Haukke")
-		ml_mesh_mgr.SetDefaultMesh(350, "[Dungeon]HaukkeHM")
-		ml_mesh_mgr.SetDefaultMesh(361, "[Dungeon]HullbreakerIsle")
-		ml_mesh_mgr.SetDefaultMesh(150, "[Dungeon]KeepersOfTheLake")
-		ml_mesh_mgr.SetDefaultMesh(363, "[Dungeon]LostCity")
-		ml_mesh_mgr.SetDefaultMesh(160, "[Dungeon]PharosSirius")
-		ml_mesh_mgr.SetDefaultMesh(157, "[Dungeon]Sastasha")
-		ml_mesh_mgr.SetDefaultMesh(387, "[Dungeon]SastashaHM")
-		ml_mesh_mgr.SetDefaultMesh(371, "[Dungeon]Snowcloak")
-		ml_mesh_mgr.SetDefaultMesh(441, "[Dungeon]SohmAl")
-		ml_mesh_mgr.SetDefaultMesh(168, "[Dungeon]StoneVigil")
-		ml_mesh_mgr.SetDefaultMesh(365, "[Dungeon]StoneVigilHM")
-		ml_mesh_mgr.SetDefaultMesh(163, "[Dungeon]SunkenTemple")
-		ml_mesh_mgr.SetDefaultMesh(367, "[Dungeon]SunkenTempleHM")
-		ml_mesh_mgr.SetDefaultMesh(164, "[Dungeon]TamTara")
-		ml_mesh_mgr.SetDefaultMesh(373, "[Dungeon]TamTaraHM")
-		ml_mesh_mgr.SetDefaultMesh(169, "[Dungeon]TotoRak")
-		ml_mesh_mgr.SetDefaultMesh(421, "[Dungeon]Vault")
-		ml_mesh_mgr.SetDefaultMesh(159, "[Dungeon]WanderersPalace")
-		ml_mesh_mgr.SetDefaultMesh(332, "[Trial]CapeWestwind")
-		ml_mesh_mgr.SetDefaultMesh(426, "[Trial]Chrysalis")
-		ml_mesh_mgr.SetDefaultMesh(208, "[Trial]Garuda")
-		ml_mesh_mgr.SetDefaultMesh(202, "[Trial]Ifrit")
-		ml_mesh_mgr.SetDefaultMesh(281, "[Trial]Leviathan")
-		ml_mesh_mgr.SetDefaultMesh(207, "[Trial]MoogleMog")
-		ml_mesh_mgr.SetDefaultMesh(374, "[Trial]Ramuh")
-		ml_mesh_mgr.SetDefaultMesh(377, "[Trial]Shiva")
-		ml_mesh_mgr.SetDefaultMesh(206, "[Trial]Titan")		
-
-		--ml_mesh_mgr.SetDefaultMesh(339, "Mist")
-		--ml_mesh_mgr.SetDefaultMesh(340, "Lavender Beds")
-		--ml_mesh_mgr.SetDefaultMesh(341, "The Goblet")
-				
-		--ml_mesh_mgr.InitMarkers()
-	end
-end
 
 ffxivminion.Strings = {
 	BotModes = 
@@ -474,7 +139,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	if (ValidTable(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		gBotRunning = "0"		
-		--FFXIV_Common_BotRunning = false
+		FFXIV_Common_BotRunning = false
 	end
 	
 	if (ml_global_information.autoStartQueued) then
@@ -485,20 +150,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	--collectgarbage()
 	gStatusActiveTaskCount = TableSize(tasktracking)
 	
-	if (ml_global_information.queueSync) then
-		local timer = ml_global_information.queueSync.timer
-		local pos = ml_global_information.queueSync.pos
-		local h = pos.h or 1
-		if (timer and Now() > timer) then
-			d("Attempting to resync.")
-			Player:Stop()
-			Player:SetFacing(pos.x,pos.y,pos.z)
-			Player:SetFacingSynced(h)
-			ml_global_information.queueSync = nil
-		end
-	end
-	
 	if (ml_global_information.IsYielding()) then
+		--d("currently yielding, do not run")
 		return false
 	end
 	
@@ -525,6 +178,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 	
+	--[[
 	if (ValidTable(ml_global_information.navObstacles) and Now() > ml_global_information.navObstaclesTimer) then
 		ml_global_information.navObstaclesTimer = Now() + 1000
 		
@@ -556,6 +210,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			NavigationManager:AddNavObstacles(obstacles)
 		end
 	end
+	--]]
 	
 	local pulseTime = tonumber(gFFXIVMINIONPulseTime) or 150
 	local skillPulse = (pulseTime/2)
@@ -674,6 +329,34 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
+			if (gUseCompanionItem ~= GetString("none")) then
+				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
+					ml_global_information.rootCheckTimer = tickcount
+					
+					if (not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
+						
+						local acDismiss = ActionList:Get(2,6)
+						local item = Inventory:Get(7894)
+
+						if ( acDismiss and acDismiss.isready and item and item.isready) then
+							local el = EntityList("nearest,myparty,type=2,chartype=3")
+							if (ValidTable(el)) then
+								local i, choco = next(el)
+								if (i and choco) then
+									if MissingBuffs(choco,"536+537") then
+										Player:Stop()
+										local newTask = ffxiv_task_useitem.Create()
+										newTask.itemid = 7894
+										newTask.useTime = 3000
+										ml_task_hub:CurrentTask():AddSubTask(newTask)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			
 			if (gUseCurielRoot == "1") then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
 					ml_global_information.rootCheckTimer = tickcount
@@ -751,142 +434,6 @@ function ml_global_information.BuildMenu()
 	ml_global_information.menu.flags = flags
 end
 
-function ml_global_information.IsYielding()
-	if (ValidTable(ml_global_information.yield)) then
-		local yield = ml_global_information.yield
-		
-		local checkBoth = IsNull(yield.both,false)
-		local successTimer = false
-		local successEval = false
-		
-		if (yield.dowhile ~= nil and type(yield.dowhile) == "function") then
-			yield.dowhile()
-		end
-		
-		if (yield.mintimer ~= 0) then
-			if (Now() < yield.mintimer) then
-				return true
-			end
-		end
-		
-		if (yield.maxtimer ~= 0 and Now() >= yield.maxtimer) then
-			successTimer = true
-		end
-		if (yield.evaluator ~= nil and type(yield.evaluator) == "function") then
-			local ret = yield.evaluator()
-			if (ret == true) then
-				successEval = true
-			end
-		end
-		
-		if ((not checkBoth and (successTimer or successEval)) or
-			(checkBoth and successTimer and successEval)) 
-		then		
-			ml_global_information.yield = {}
-			
-			if (successEval and yield.followsuccess ~= nil and type(yield.followsuccess) == "function") then
-				yield.followsuccess()
-				return true
-			end
-			
-			if (successTimer and yield.followfail ~= nil and type(yield.followfail) == "function") then
-				yield.followfail()
-				return true
-			end
-			
-			if (yield.followall ~= nil and type(yield.followall) == "function") then
-				yield.followall()
-				return true
-			end
-			
-			return false
-		end
-		
-		return true
-	end
-	return false
-end
-
-function ml_global_information.Await(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
-		ml_global_information.yield = {
-			mintimer = IIF(param1 ~= 0,Now() + param1,0),
-			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
-			evaluator = param3,
-			followall = param4,
-			both = IsNull(param5,false),
-		}
-	else
-		ml_global_information.yield = {
-			mintimer = 0,
-			maxtimer = Now() + param1,
-			evaluator = param2,
-			followall = param3,
-			both = IsNull(param4,false),
-		}
-	end
-end
-
-function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
-		ml_global_information.yield = {
-			mintimer = IIF(param1 ~= 0,Now() + param1,0),
-			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
-			evaluator = param3,
-			followall = param4,
-			dowhile = param5,
-		}
-	else
-		ml_global_information.yield = {
-			mintimer = 0,
-			maxtimer = Now() + param1,
-			evaluator = param2,
-			followall = param3,
-			dowhile = param4,
-		}
-	end
-end
-
-function ml_global_information.AwaitFail(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
-		ml_global_information.yield = {
-			mintimer = IIF(param1 ~= 0,Now() + param1,0),
-			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
-			evaluator = param3,
-			followfail = param4,
-			both = IsNull(param5,false),
-		}
-	else
-		ml_global_information.yield = {
-			mintimer = 0,
-			maxtimer = Now() + param1,
-			evaluator = param2,
-			followfail = param3,
-			both = IsNull(param4,false),
-		}
-	end
-end
-
-function ml_global_information.AwaitSuccess(param1, param2, param3, param4, param5)
-	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
-		ml_global_information.yield = {
-			mintimer = IIF(param1 ~= 0,Now() + param1,0),
-			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
-			evaluator = param3,
-			followsuccess = param4,
-			both = IsNull(param5,false),
-		}
-	else
-		ml_global_information.yield = {
-			mintimer = 0,
-			maxtimer = Now() + param1,
-			evaluator = param2,
-			followsuccess = param3,
-			both = IsNull(param4,false),
-		}
-	end
-end
-
 function ffxivminion.GUIVarCapture(newVal,varName,doSave)
 	local doSave = IsNull(doSave,true)
 	local needsSave = false
@@ -911,7 +458,103 @@ function ffxivminion.GetSetting(strSetting,default)
 	return Settings.FFXIVMINION[strSetting]	
 end
 
+function ffxivminion.SetMainVars()
+	FFXIV_Common_Profile = 1
+	FFXIV_Common_ProfileList = {GetString("none")}
+	FFXIV_Common_NavMesh = 1
+	FFXIV_Common_MeshList = {GetString("none")}
+	FFXIV_Common_BotMode = 1
+	FFXIV_Common_ModeList = {GetString("none")}
+	FFXIV_Common_SkillProfile = 1
+	FFXIV_Common_SkillProfileList = {GetString("none")}
+	FFXIV_Common_BotRunning = false
+	
+	--[[
+	local uuid = GetUUID()
+	if ( Settings.FFXIVMINION.gBotModes and string.valid(uuid) and Settings.FFXIVMINION.gBotModes[uuid] ) then
+		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
+		--FFXIV_Common_BotMode = GetKeyByValue(gBotMode,FFXIV_Common_ModeList)
+	else
+		gBotMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
+		--FFXIV_Common_BotMode = GetKeyByValue(gBotMode,FFXIV_Common_ModeList)
+	end
+	--]]
+	
+	FFXIV_Core_Version = 2
+	FFXIV_Core_PulseTime = ffxivminion.GetSetting("FFXIV_Core_PulseTime",150)
+	FFXIV_Core_ActiveTaskCount = 0
+	FFXIV_Core_ActiveTaskName = ""
+	FFXIV_Core_ActiveTaskDelay = 0
+	FFXIV_Core_IdlePulseCount = 0
+	FFXIV_Core_MemoryUsage = 0
+	
+	FFXIV_Common_EorzeaTime = ""
+	FFXIV_Common_EnableLog = ffxivminion.GetSetting("FFXIV_Common_EnableLog",false)
+	FFXIV_Common_LogCNE = ffxivminion.GetSetting("FFXIV_Common_LogCNE",false)
+	FFXIV_Common_LogLevel = ffxivminion.GetSetting("FFXIV_Common_LogLevel",1)
+	FFXIV_Common_LogLevels = {"1", "2", "3"}
+	FFXIV_Common_MountString = ""
+	FFXIV_Common_Mount = ffxivminion.GetSetting("FFXIV_Common_Mount",1)
+	FFXIV_Common_Mounts = {GetString("none")}
+	ffxivminion.FillMountOptions()
+	FFXIV_Common_UseMount = ffxivminion.GetSetting("FFXIV_Common_UseMount",true)
+	FFXIV_Common_MountDist = ffxivminion.GetSetting("FFXIV_Common_MountDist",75)
+	FFXIV_Common_UseSprint = ffxivminion.GetSetting("FFXIV_Common_UseSprint",false)
+	FFXIV_Common_SprintDist = ffxivminion.GetSetting("FFXIV_Common_SprintDist",50)
+	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
+	FFXIV_Common_FoodString = ""
+	FFXIV_Common_Food = ffxivminion.GetSetting("FFXIV_Common_Food",1)
+	FFXIV_Common_Foods = {GetString("none")}
+	ffxivminion.FillFoodOptions()
+	FFXIV_Common_AutoStart = ffxivminion.GetSetting("FFXIV_Common_AutoStart",false)
+	FFXIV_Common_Teleport = ffxivminion.GetSetting("FFXIV_Common_Teleport",false)
+	FFXIV_Common_Paranoid = ffxivminion.GetSetting("FFXIV_Common_Paranoid",false)
+	FFXIV_Common_SkipCutscene = ffxivminion.GetSetting("FFXIV_Common_SkipCutscene",false)
+	FFXIV_Common_SkipDialogue = ffxivminion.GetSetting("FFXIV_Common_SkipDialogue",false)
+	FFXIV_Common_ClickTeleport = ffxivminion.GetSetting("FFXIV_Common_ClickTeleport",false)
+	FFXIV_Common_ClickTravel = ffxivminion.GetSetting("FFXIV_Common_ClickTravel",false)
+	FFXIV_Common_DisableDrawing = ffxivminion.GetSetting("FFXIV_Common_DisableDrawing",false)
+	FFXIV_Common_Repair = ffxivminion.GetSetting("FFXIV_Common_Repair",false)
+	FFXIV_Common_PermaSprint = ffxivminion.GetSetting("FFXIV_Common_PermaSprint",false)
+	FFXIV_Common_PermaSwift = ffxivminion.GetSetting("FFXIV_Common_PermaSwift",false)
+	FFXIV_Common_ChocoAssist = ffxivminion.GetSetting("FFXIV_Common_ChocoAssist",false)
+	FFXIV_Common_ChocoGrind = ffxivminion.GetSetting("FFXIV_Common_ChocoGrind",true)
+	FFXIV_Common_ChocoQuest = ffxivminion.GetSetting("FFXIV_Common_ChocoQuest",true)
+	FFXIV_Common_ChocoStanceString = ""
+	FFXIV_Common_ChocoStance = ffxivminion.GetSetting("FFXIV_Common_ChocoStance",1)
+	FFXIV_Common_ChocoStances = {GetString("stFree"), GetString("stDefender"), GetString("stAttacker"), GetString("stHealer"), GetString("stFollow")}
+	
+	FFXIV_Common_ChocoItemString = ""
+	FFXIV_Common_ChocoItem = ffxivminion.GetSetting("FFXIV_Common_ChocoItem",1)
+	FFXIV_Common_ChocoItems = {"Curiel Root (EXP)", "Sylkis Bud (ATK)", "Mimmet Gourd (Heal)", "Tantalplant (HP)", "Pahsana Fruit (ENM)"}
+	
+	FFXIV_Common_AvoidAOE = ffxivminion.GetSetting("FFXIV_Common_AvoidAOE",false)
+	FFXIV_Common_AvoidHP = ffxivminion.GetSetting("FFXIV_Common_AvoidHP",100)
+	FFXIV_Common_RestHP = ffxivminion.GetSetting("FFXIV_Common_RestHP",70)
+	FFXIV_Common_RestMP = ffxivminion.GetSetting("FFXIV_Common_RestMP",0)
+	FFXIV_Common_PotionHP = ffxivminion.GetSetting("FFXIV_Common_PotionHP",50)
+	FFXIV_Common_PotionMP = ffxivminion.GetSetting("FFXIV_Common_PotionMP",0)
+	FFXIV_Common_FleeHP = ffxivminion.GetSetting("FFXIV_Common_FleeHP",25)
+	FFXIV_Common_FleeMP = ffxivminion.GetSetting("FFXIV_Common_FleeMP",0)
+	FFXIV_Common_AutoEquip = ffxivminion.GetSetting("FFXIV_Common_AutoEquip",true)
+	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
+	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
+	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
+	
+	ml_global_information.autoStartQueued = FFXIV_Common_AutoStart		
+	GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
+	GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
+	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	GameHacks:SetClickToTeleport(FFXIV_Common_ClickTeleport)
+	GameHacks:SetClickToTravel(FFXIV_Common_ClickTravel)
+	GameHacks:SetPermaSprint(FFXIV_Common_PermaSprint)
+	GameHacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
+end
+
 function ffxivminion.CreateMainWindow()
+
+	-- ALL THIS SHIT GOES AWAY, TO BE REMOVED.
+	
 	ffxivminion.Windows.Main = { id = strings["us"].settings, Name = GetString("settings"), x=50, y=50, width=210, height=350 }
 	ffxivminion.CreateWindow(ffxivminion.Windows.Main)
 	
@@ -953,7 +596,6 @@ function ffxivminion.CreateMainWindow()
 	GUI_NewCheckbox(winName,GetString("avoidAOE"), "gAvoidAOE",group )
 	GUI_NewCheckbox(winName,GetString("randomPaths"),"gRandomPaths",group )
 	GUI_NewCheckbox(winName,GetString("randomMovement"),"gRandomMovement",group )
-	--GUI_NewCheckbox(winName,GetString("doUnstuck"),"gDoUnstuck",group )
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	GUI_NewCheckbox(winName,"Use EXP Manuals","gUseEXPManuals",group )
 	
@@ -1080,12 +722,14 @@ end
 -- Module Event Handler
 function ffxivminion.HandleInit()
 	
+	-- Build bottom menu for new GUI addons.
 	ml_global_information.BuildMenu()
-	collectgarbage()
-	ffxivminion.SetupOverrides()
+	ffxivminion.SetMainVars()
+	--ffxivminion.SetupOverrides()
 	
 	gmeshname = GetString("none")
 	
+	-- Add "known" modes, safe.
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
 	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
 	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
@@ -1099,18 +743,21 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
 	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	
+	-- To be removed.
 	if ( not ffxivminion.Windows ) then
 		ffxivminion.Windows = {GetString("none")}
 	end
 	
-	--[[
+	-- New GUI code, need new strings and handlers for combo boxes.
 	FFXIV_Common_MeshList = {}
-	local meshfilelist = dirlist(ml_mesh_mgr.navmeshfilepath,".*obj")
-	if ( ValidTable(meshfilelist)) then
-		for i, meshname in pairs(meshfilelist) do
-			meshname = string.gsub(meshname, ".obj", "")
-			table.insert(FFXIV_Common_MeshList,ml_mesh_mgr.GetString(meshname))
-		end
+	local meshfilelist = FolderList(ml_mesh_mgr.defaultpath)
+	if (meshfilelist) then
+		for i,file in spairs(meshfilelist, function( file,a,b ) return file[a] < file[b] end) do
+			if ( string.ends(file,".obj") ) then
+				local filename = string.trim(file,4)
+				table.insert(FFXIV_Common_MeshList, ml_mesh_mgr.GetString(filename))
+			end
+		end		
 	end
 	
 	FFXIV_Common_SkillProfileList = {GetString("none")}
@@ -1121,24 +768,26 @@ function ffxivminion.HandleInit()
 			table.insert(FFXIV_Common_SkillProfileList,profile)
         end		
     end
-	
-	FFXIV_Common_ProfileList = {}
-	--]]
-	
+
 	gFFXIVMINIONTask = ""
-    gBotRunning = "0"
-	--FFXIV_Common_BotRunning
+    gBotRunning = "0" -- To be removed.
+	FFXIV_Common_BotRunning = false
+	
+	-- Get last mode and set it to be used to start this session.
 	local uuid = GetUUID()
 	if ( string.valid(uuid) and Settings.FFXIVMINION.gBotModes and Settings.FFXIVMINION.gBotModes[uuid] ) then
 		ml_global_information.lastMode = Settings.FFXIVMINION.gBotModes[uuid]
 	else
 		ml_global_information.lastMode = ffxivminion.GetSetting("gBotMode",GetString("grindMode"))
     end
-    -- setup parent window for minionlib modules
+	
+    -- setup parent window for minionlib modules, so we know where to place them when opening.
+	-- To be removed.
     ml_marker_mgr.parentWindow = ml_global_information.MainWindow
     ml_blacklist_mgr.parentWindow = ml_global_information.MainWindow
     
     -- setup/load blacklist tables
+	-- Redo all this, blacklist shit sucks.
     ml_blacklist_mgr.path = GetStartupPath() .. [[\LuaMods\ffxivminion\blacklist.info]]
     ml_blacklist_mgr.ReadBlacklistFile(ml_blacklist_mgr.path)
     
@@ -1162,8 +811,15 @@ function ffxivminion.HandleInit()
 	end
 	
 	gForceAutoEquip = false
+	
+	--local menuTab = { name = "Main", openWindow = function () ffxivminion.GUI.main.open = true end, isOpen = function() return ffxivminion.GUI.main.open end }	
+	--table.insert(ml_global_information.menu.windows,menuTab)
+	--local settingsTab = { name = "Settings", openWindow = function () ffxivminion.GUI.settings.open = true end, isOpen = function() return ffxivminion.GUI.settings.open end }	
+	--table.insert(ml_global_information.menu.windows,settingsTab)
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SETTINGS", name = "Settings", onClick = function() ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open end, tooltip = "Open the FFXIVMinion settings."},"FFXIVMINION##MENU_HEADER")
 end
 
+-- To be removed, this is not necessary with the new GUI, and most of it will be invalid.
 function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 	local backupVals = {}
 	for k,v in pairs(OldVals) do
@@ -1382,6 +1038,7 @@ end
 function ffxivminion.SwitchMode(mode)	
 	local task = ffxivminion.modes[mode]
     if (task ~= nil) then
+		ml_global_information.mainTask = task
 		if (gBotMode ~= mode) then
 			gBotMode = mode
 			Settings.FFXIVMINION.gBotMode = gBotMode
@@ -1863,13 +1520,15 @@ function ffxivminion.OpenSettings()
 	local winTable = ffxivminion.GetWindowSize(winName)
 	GUI_SizeWindow(winName,wnd.width,winTable.height)
 	GUI_WindowVisible(winName,true)
+	
+	ffxivminion.GUI.settings.open = true
 end
 
 function ffxivminion.UpdateGlobals()
 	if (Player) then
 		ml_global_information.Player_Aetherytes = GetAetheryteList()
 		ml_global_information.Player_Position = Player.pos
-		ml_global_information.Player_Map = Player.localmapid
+		Player.localmapid = Player.localmapid
 		ml_global_information.Player_HP = Player.hp
 		ml_global_information.Player_MP = Player.mp
 		ml_global_information.Player_TP = Player.tp
@@ -1887,8 +1546,9 @@ function ffxivminion.UpdateFood(var)
 	end		
 end
 
+-- This section to be removed, old GUI method.
 function ffxivminion.UpdateFoodOptions()
-    
+	
 	local foodlistHQ = "None"
     local foodlist = "None"	
 	for x = 0,3 do
@@ -1975,52 +1635,59 @@ function ffxivminion.HandleButtons( Event, Button )
 	end
 end
 
--- Dont know where else to put this
-function ffxivminion.DrawMarker(marker)
-
-	local markertype = marker:GetType()
-	local pos = marker:GetPosition()
-	
-    local color = 0
-    local s = 1 -- size
-    local h = 5 -- height
-	
-    if ( markertype == GetString("grindMarker") ) then
-        color = 1 -- red
-    elseif ( markertype == GetString("fishingMarker") ) then
-        color = 4 --blue
-    elseif ( markertype == GetString("miningMarker") ) then
-        color = 7 -- yellow	
-    elseif ( markertype == GetString("botanyMarker") ) then
-        color = 8 -- orange
-	elseif ( markertype == GetString("huntMarker") ) then
-		color = 2
-    end
-    --Building the vertices for the object
-    local t = { 
-        [1] = { pos.x-s, pos.y+s+h, pos.z-s, color },
-        [2] = { pos.x+s, pos.y+s+h, pos.z-s, color  },	
-        [3] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [4] = { pos.x+s, pos.y+s+h, pos.z-s, color },
-        [5] = { pos.x+s, pos.y+s+h, pos.z+s, color  },	
-        [6] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [7] = { pos.x+s, pos.y+s+h, pos.z+s, color },
-        [8] = { pos.x-s, pos.y+s+h, pos.z+s, color  },	
-        [9] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [10] = { pos.x-s, pos.y+s+h, pos.z+s, color },
-        [11] = { pos.x-s, pos.y+s+h, pos.z-s, color  },	
-        [12] = { pos.x,   pos.y-s+h,   pos.z, color  },
-    }
-    
-    local id = RenderManager:AddObject(t)	
-    return id
-end
-
 function ffxivminion.AddMode(name, task)
 	ffxivminion.modesToLoad[name] = task
+end
+
+-- New GUI methods.
+function ffxivminion.FillFoodOptions()
+	ml_global_information.foods = {}
+	
+	local inv = Inventory("category=5")
+	if ( inv ) then
+		for i,item in pairs(inv) do
+			if (item.class ~= 0) then
+				local itemName = item.name
+				if (toboolean(item.IsHQ)) then
+					itemName = itemName.." (HQ)"
+				end
+				ml_global_information.foods[item.hqid] = {
+					name = itemName,
+					max = item.max,
+					slot = item.slot,
+					category = item.category,
+				}
+			end
+		end
+	end
+	
+	FFXIV_Common_Foods = {GetString("none")}
+	local foods = ml_global_information.foods
+	if (ValidTable(foods)) then
+		for id,item in spairs(foods, function( item,a,b ) return item[a].name < item[b].name end) do
+			table.insert(FFXIV_Common_Foods,item.name)
+		end
+	end
+end
+
+function ffxivminion.FillModeOptions()
+	FFXIV_Common_ModeList = {}
+	if (ValidTable(ffxivminion.modes)) then
+		local modes = ffxivminion.modes
+		for i,entry in spairs(modes, function(modes,a,b) return a < b end) do
+			table.insert(FFXIV_Common_ModeList,i)
+		end				
+	end
+end
+
+function ffxivminion.FillMountOptions()
+	FFXIV_Common_Mounts = { GetString("none") }
+	local mounts = ActionList("type=13")
+	if (mounts) then
+		for k,v in pairs(mounts) do
+			table.insert(FFXIV_Common_Mounts,v.name)
+		end
+	end
 end
 
 function ffxivminion.LoadModes()
@@ -2029,7 +1696,11 @@ function ffxivminion.LoadModes()
 		for modeName,task in pairs(ffxivminion.modesToLoad) do
 			--d("Loading mode ["..tostring(modeName).."].")
 			ffxivminion.modes[modeName] = task
-			task:UIInit()
+			task:UIInit() -- to be removed
+			--task:NewInit() -- new method
+			if (task.NewInit) then
+				task.NewInit()
+			end
 		end
 		
 		-- Empty out the table to prevent reloading.
@@ -2037,13 +1708,18 @@ function ffxivminion.LoadModes()
 	end
 	gmeshname = _gmeshname
 	
-	local botModes = ffxivminion.Strings.BotModes()
-	gBotMode_listitems = botModes
+	local botModes = ffxivminion.Strings.BotModes() -- to be removed
+	gBotMode_listitems = botModes -- to be removed
+	
+	ffxivminion.FillModeOptions() -- new gui method
+	
 	local uuid = GetUUID()
 	if ( string.valid(uuid) and Settings.FFXIVMINION.gBotModes and Settings.FFXIVMINION.gBotModes[uuid] ) then
 		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
+		FFXIV_Common_BotMode = GetKeyByValue(gBotMode,FFXIV_Common_ModeList)
 	else
 		gBotMode = Retranslate(Settings.FFXIVMINION.gBotMode)
+		FFXIV_Common_BotMode = GetKeyByValue(gBotMode,FFXIV_Common_ModeList)
     end
 	
 	local modeFound = false
@@ -2062,90 +1738,6 @@ function ffxivminion.LoadModes()
 		gBotMode = GetString("grindMode")
 		ffxivminion.SwitchMode(gBotMode)
 	end
-end
-
-function ffxivminion.NodeNeighbors(self)
-	if (ValidTable(self.neighbors)) then
-		local validNeighbors = deepcopy(self.neighbors)
-		
-		for id,entries in pairs(validNeighbors) do
-			for i,entrydata in pairs(entries) do
-				if (entrydata.requires) then
-					local add = true
-					local requirements = shallowcopy(entrydata.requires)
-					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
-						if (f ~= nil) then
-							if (f ~= value) then
-								add = false
-							end
-						end
-						if (not add) then
-							break
-						end
-					end
-					if (not add) then
-						if (TableSize(validNeighbors[id]) > 1) then
-							--d("Requirement not met, removing neighbor ["..tostring(id).."], entry # ["..tostring(i).."].")
-							validNeighbors[id][i] = nil
-						elseif (TableSize(validNeighbors[id]) == 1) then	
-							--d("Requirement not met, removing neighbor ["..tostring(id).."] entirely.")
-							validNeighbors[id] = nil
-						end
-					end
-				end
-			end			
-		end
-		
-		return validNeighbors
-	end
-    return nil
-end
-
-function ffxivminion.NodeClosestNeighbor(self, origin, id)
-	local neighbor = self:GetNeighbor(id)
-	if (ValidTable(neighbor)) then
-		if (TableSize(neighbor) > 1) then
-			local bestPos = nil
-			local bestDist = math.huge
-			for id, posTable in pairs(neighbor) do
-				local valid = true
-				if (posTable.requires) then
-					local requirements = shallowcopy(posTable.requires)
-					for requirement,value in pairs(requirements) do
-						local f = assert(loadstring("return " .. requirement))()
-						if (f ~= nil) then
-							if (f ~= value) then
-								valid = false
-							end
-						end
-						if (not valid) then
-							break
-						end
-					end
-				end
-				
-				if (valid) then
-					local dist = PDistance3D(origin.x, origin.y, origin.z, posTable.x, posTable.y, posTable.z)
-					if (dist < bestDist) then
-						bestPos = posTable
-						bestDist = dist
-					end
-				end
-			end
-			
-			if (ValidTable(bestPos)) then
-				return bestPos
-			end
-		elseif (TableSize(neighbor == 1)) then
-			local i,best = next(neighbor)
-			if (i and best) then
-				return best
-			end
-		end
-    end
-    
-    return nil
 end
 
 -- clear any addons displayed by social actions like trade/party invites
@@ -2232,16 +1824,288 @@ function SafeSetVar(name, value)
 	end
 end
 
-function GetKeyByValue(value,t)
-	for k,v in pairsByKeys(t) do
-		if (v == value) then
-			return k
+function ml_global_information.GetFrameHeight(rows)
+	local fontSize = GUI:GetWindowFontSize()
+	local windowPaddingY = ml_gui.style.current.windowpadding.y
+	local framePaddingY = ml_gui.style.current.framepadding.y
+	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	
+	return ((fontSize * rows) + (itemSpacingY * (rows - 1)) + (framePaddingY * 2 * rows) + (windowPaddingY * 2))
+end
+
+function ml_global_information.DrawIntMinMax(label,varname,step,stepfast,minval,maxval)
+	local var = _G[varname]
+	local returned = ffxivminion.GUIVarCapture(GUI:InputInt(label,var,step,stepfast),varname)
+	if (minval ~= nil and returned < minval) then ml_global_information.SetGUIVar(varname,minval) elseif (maxval ~= nil and returned > maxval) then ml_global_information.SetGUIVar(varname,minval) end
+end
+
+function ml_global_information.DrawFloatMinMax(label,varname,step,stepfast,precision,minval,maxval)
+	local var = _G[varname]
+	local precision = IsNull(precision,2)
+	local returned = ffxivminion.GUIVarCapture(GUI:InputFloat(label,var,step,stepfast,precision),varname)
+	if (minval ~= nil and returned < minval) then ml_global_information.SetGUIVar(varname,minval) elseif (maxval ~= nil and returned > maxval) then ml_global_information.SetGUIVar(varname,minval) end
+end
+
+function ml_global_information.SetGUIVar(varName,newVal)
+	_G[varName] = newVal
+	Settings.FFXIVMINION[varName] = newVal
+end
+
+function ml_global_information.DrawMainFull()
+	if (ffxivminion.GUI.main.open) then
+		if (ffxivminion.GUI.draw_mode == 1) then
+			GUI:SetNextWindowSize(300,300,GUI.SetCond_Once) --set the next window size, only on first ever	
+			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
+			
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+			
+			ffxivminion.GUI.main.visible, ffxivminion.GUI.main.open = GUI:Begin(ffxivminion.GUI.main.name, ffxivminion.GUI.main.open)
+			if ( ffxivminion.GUI.main.visible ) then 
+			
+			--GUI:Begin("FFXIVMinion##Main_Window", true)
+			
+				local x, y = GUI:GetWindowPos()
+				local width, height = GUI:GetWindowSize()
+				
+				ffxivminion.GUI.x = x; ffxivminion.GUI.y = y; ffxivminion.GUI.width = width; ffxivminion.GUI.height = height;
+				
+				GUI:Image(ml_global_information.GetMainIcon(),14,14)
+				if (GUI:IsItemHoveredRect()) then
+					if (GUI:IsMouseClicked(0)) then
+						if (ffxivminion.GUI.draw_mode == 1) then
+							ffxivminion.GUI.draw_mode = 0
+						else
+							ffxivminion.GUI.draw_mode = 1
+						end
+					end
+				end
+				GUI:SameLine(0,10)
+				
+				GUI:PushItemWidth(120)
+				local newMode = GUI:Combo(GetString("botMode"), FFXIV_Common_BotMode, FFXIV_Common_ModeList )
+				if (newMode ~= FFXIV_Common_BotMode) then
+					FFXIV_Common_BotMode = newMode
+					Settings.FFXIVMINION[FFXIV_Common_BotMode] = FFXIV_Common_BotMode
+					gBotMode = FFXIV_Common_ModeList[FFXIV_Common_BotMode]
+					Settings.FFXIVMINION[gBotMode] = gBotMode
+					ffxivminion.SwitchMode(gBotMode)
+				end
+				GUI:PopItemWidth()
+
+				GUI:BeginChild("##main-task-section",0,-50,false)
+				local mainTask = ml_global_information.mainTask
+				if (mainTask.Draw) then
+					mainTask:Draw()
+				end
+				GUI:EndChild()
+				
+				local width = GUI:GetContentRegionAvailWidth()
+				if (GUI:Button(GetString("advancedSettings"),width,20)) then
+					ffxivminion.OpenSettings()
+				end
+				if (GUI:Button(ml_global_information.BtnStart.Name,width,20)) then
+					ml_global_information.ToggleRun()	
+				end
+			else
+				ml_global_information.DrawSmall()
+			end
+			GUI:End()
+			GUI:PopStyleColor()
 		end
 	end
-	return nil
-end	
+end
+
+function ml_global_information.DrawSmall()
+	if (ffxivminion.GUI.main.open) then		
+		--if (ffxivminion.GUI.draw_mode ~= 1) then
+			GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .10)
+			
+			local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
+			GUI:Begin("FFXIVMINION_MAIN_WINDOW_MINIMIZED", true, flags)
+				
+			GUI:Image(ml_global_information.GetMainIcon(),14,14)
+			if (GUI:IsItemHoveredRect()) then
+				if (GUI:IsMouseClicked(0)) then
+					if (ffxivminion.GUI.draw_mode == 1) then
+						ffxivminion.GUI.draw_mode = 0
+					else
+						ffxivminion.GUI.draw_mode = 1
+					end
+				end
+			end
+			GUI:SameLine(0,10)
+			
+			local child_color = (FFXIV_Common_BotRunning == true and { r = 0, g = .10, b = 0, a = .75 }) or { r = .10, g = 0, b = 0, a = .75 }
+			GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,10)
+			GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
+
+			GUI:BeginChild("##label-"..gBotMode,120,35,true)
+			GUI:AlignFirstTextHeightToWidgets()
+			GUI:Text(gBotMode)
+			GUI:EndChild()
+			GUI:PopStyleColor()
+			GUI:PopStyleVar()
+			if (GUI:IsItemHovered()) then
+				if (GUI:IsMouseClicked(0)) then
+					ml_global_information.ToggleRun()
+				end
+			end
+			
+			GUI:End()
+			GUI:PopStyleColor()
+		--end
+	end
+end
+
+function ml_global_information.DrawSettings()
+	if (ffxivminion.GUI.settings.open) then
+		GUI:SetNextWindowSize(300,300,GUI.SetCond_Once) --set the next window size, only on first ever	
+		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
+		
+		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+		
+		ffxivminion.GUI.settings.visible, ffxivminion.GUI.settings.open = GUI:Begin(ffxivminion.GUI.settings.name, ffxivminion.GUI.settings.open)
+		if ( ffxivminion.GUI.settings.visible ) then 
+			
+			if (GUI:CollapsingHeader(GetString("botStatus"),"main-header-botstatus",true,true)) then
+				GUI:BeginChild("##main-header-botstatus",0,ml_global_information.GetFrameHeight(10),true)
+				GUI:PushItemWidth(100)
+				ml_global_information.DrawIntMinMax(GetString("pulseTime"),"FFXIV_Core_PulseTime",5,10,30,2000)
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(60)
+				GUI:LabelText("# Active Task Count",FFXIV_Core_ActiveTaskCount)
+				GUI:LabelText("# Active Task Name",FFXIV_Core_ActiveTaskName)
+				GUI:LabelText("# Active Task Delay",FFXIV_Core_ActiveTaskDelay)
+				GUI:LabelText("Idle Pulse Count",FFXIV_Core_IdlePulseCount)
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(100)
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("enableLog"),FFXIV_Common_EnableLog),"FFXIV_Common_EnableLog");
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("logCNE"),FFXIV_Common_LogCNE),"FFXIV_Common_LogCNE");
+				ffxivminion.GUIVarCapture(GUI:Combo("Log Level", FFXIV_Common_LogLevel, FFXIV_Common_LogLevels ),"FFXIV_Common_LogLevel")
+				GUI:LabelText("Eorzea Time",FFXIV_Common_EorzeaTime)
+				GUI:LabelText("Memory Usage",FFXIV_Core_MemoryUsage)
+				GUI:PopItemWidth()
+				GUI:EndChild()
+			end
+			
+			if (GUI:CollapsingHeader(GetString("generalSettings"),"main-header-generalsettings",true,true)) then
+				GUI:BeginChild("##main-header-generalsettings",0,ml_global_information.GetFrameHeight(10),true)
+				GUI:PushItemWidth(100)
+				
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("autoStartBot"),FFXIV_Common_AutoStart),"FFXIV_Common_AutoStart");
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("autoEquip"),FFXIV_Common_AutoEquip),"FFXIV_Common_AutoEquip");
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("useMount"),FFXIV_Common_UseMount),"FFXIV_Common_UseMount");
+				ml_global_information.DrawIntMinMax(GetString("mountDist"),"FFXIV_Common_MountDist",5,10,0,200)
+				local newMode = GUI:Combo(GetString("mount"), FFXIV_Common_Mount, FFXIV_Common_Mounts)
+				if (newMode ~= FFXIV_Common_Mount) then
+					FFXIV_Common_Mount = newMode
+					Settings.FFXIVMINION[FFXIV_Common_Mount] = FFXIV_Common_Mount
+					FFXIV_Common_MountString = FFXIV_Common_Mounts[FFXIV_Common_Mount]
+				end
+				GUI:SameLine(0,5)
+				if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
+					ffxivminion.FillMountOptions()
+				end
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("useSprint"),FFXIV_Common_UseSprint),"FFXIV_Common_UseSprint");
+				ml_global_information.DrawIntMinMax(GetString("sprintDist"),"FFXIV_Common_SprintDist",5,10,0,200)
+				local newMode = GUI:Combo(GetString("food"), FFXIV_Common_Food, FFXIV_Common_Foods)
+				if (newMode ~= FFXIV_Common_Food) then
+					FFXIV_Common_Food = newMode
+					Settings.FFXIVMINION[FFXIV_Common_Food] = FFXIV_Common_Food
+					FFXIV_Common_FoodString = FFXIV_Common_Foods[FFXIV_Common_Food]
+				end
+				GUI:SameLine(0,5)
+				if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
+					ffxivminion.FillFoodOptions()
+				end
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("avoidAOE"),FFXIV_Common_AvoidAOE),"FFXIV_Common_AvoidAOE");
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("randomPaths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
+
+				GUI:PopItemWidth()
+				GUI:EndChild()
+			end	
+			
+			if (GUI:CollapsingHeader(GetString("companion"),"main-header-companion",true,true)) then
+				GUI:BeginChild("##main-header-companion",0,ml_global_information.GetFrameHeight(3),true)
+				
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("assistMode"),FFXIV_Common_ChocoAssist),"FFXIV_Common_ChocoAssist"); GUI:SameLine()
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("grindMode"),FFXIV_Common_ChocoGrind),"FFXIV_Common_ChocoGrind"); GUI:SameLine()
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("questMode"),FFXIV_Common_ChocoQuest),"FFXIV_Common_ChocoQuest");
+				
+				GUI:PushItemWidth(160)
+				local newMode = GUI:Combo(GetString("stance"), FFXIV_Common_ChocoStance, FFXIV_Common_ChocoStances)
+				if (newMode ~= FFXIV_Common_ChocoStance) then
+					FFXIV_Common_ChocoStance = newMode
+					Settings.FFXIVMINION[FFXIV_Common_ChocoStance] = FFXIV_Common_ChocoStance
+					FFXIV_Common_ChocoStanceString = FFXIV_Common_ChocoStances[FFXIV_Common_ChocoStance]
+				end
+				local newMode = GUI:Combo("Feed", FFXIV_Common_ChocoItem, FFXIV_Common_ChocoItems)
+				if (newMode ~= FFXIV_Common_ChocoItem) then
+					FFXIV_Common_ChocoItem = newMode
+					Settings.FFXIVMINION[FFXIV_Common_ChocoItem] = FFXIV_Common_ChocoItem
+					FFXIV_Common_ChocoItemString = FFXIV_Common_ChocoItems[FFXIV_Common_ChocoItem]
+				end
+				GUI:PopItemWidth()
+				GUI:EndChild()
+			end
+			
+			if (GUI:CollapsingHeader(GetString("playerHPMPTP"),"main-header-playerhpmptp",true,true)) then
+				GUI:BeginChild("##main-header-playerhpmptp",0,ml_global_information.GetFrameHeight(7),true)
+				GUI:PushItemWidth(120)
+				ml_global_information.DrawIntMinMax(GetString("avoidHP"),"FFXIV_Common_AvoidHP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("restHP"),"FFXIV_Common_RestHP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("restMP"),"FFXIV_Common_RestMP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("potionHP"),"FFXIV_Common_PotionHP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("potionMP"),"FFXIV_Common_PotionMP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("fleeHP"),"FFXIV_Common_FleeHP",1,10,0,100)
+				ml_global_information.DrawIntMinMax(GetString("fleeMP"),"FFXIV_Common_FleeMP",1,10,0,100)
+				GUI:PopItemWidth()
+				GUI:EndChild()
+			end
+			
+			if (GUI:CollapsingHeader(GetString("hacks"),"main-header-hacks",true,true)) then
+				GUI:BeginChild("##main-header-hacks",0,ml_global_information.GetFrameHeight(10),true)
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("repair"),FFXIV_Common_Repair),"FFXIV_Common_Repair")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("disabledrawing"),FFXIV_Common_DisableDrawing),"FFXIV_Common_DisableDrawing")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("teleport"),FFXIV_Common_Teleport),"FFXIV_Common_Teleport")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("paranoid"),FFXIV_Common_Paranoid),"FFXIV_Common_Paranoid")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("permaSprint"),FFXIV_Common_PermaSprint),"FFXIV_Common_PermaSprint")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("permaSwiftcast"),FFXIV_Common_PermaSwift),"FFXIV_Common_PermaSwift")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("skipCutscene"),FFXIV_Common_SkipCutscene),"FFXIV_Common_SkipCutscene")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("skipDialogue"),FFXIV_Common_SkipDialogue),"FFXIV_Common_SkipDialogue")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("clickToTeleport"),FFXIV_Common_ClickTeleport),"FFXIV_Common_ClickTeleport")
+				ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("clickToTravel"),FFXIV_Common_ClickTravel),"FFXIV_Common_ClickTravel")
+				GUI:EndChild()
+			end
+			
+			if (GUI:CollapsingHeader(GetString("advancedSettings"),"main-header-advancedsettings",true,true)) then
+				GUI:BeginChild("##main-header-advancedsettings",0,ml_global_information.GetFrameHeight(3),true)
+				ml_global_information.DrawIntMinMax("Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)
+				ml_global_information.DrawIntMinMax("Stealth - Remove Range","FFXIV_Common_StealthRemove",1,10,0,100)
+				ffxivminion.GUIVarCapture(GUI:Checkbox("Smart Stealth",FFXIV_Common_StealthSmart),"FFXIV_Common_StealthSmart")
+				GUI:EndChild()
+			end
+			
+		end
+
+		GUI:End()
+		GUI:PopStyleColor()
+	end
+end
 
 function ml_global_information.Draw( event, ticks ) 
+	
+	-- Main "mode" window.
+	-- DrawMode 1 is fully drawn, 2 is minimized, mode visible only.
+	
+	ml_global_information.DrawMainFull()
+	--ml_global_information.DrawSmall()
+	ml_global_information.DrawSettings()
+	
 	local menu = ml_global_information.menu
 	local windows = menu.windows
 	local vars = menu.vars

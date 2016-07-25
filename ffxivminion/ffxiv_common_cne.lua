@@ -343,7 +343,7 @@ function c_nextatma:evaluate()
 		return false
 	end
 	
-	local map = ml_global_information.Player_Map
+	local map = Player.localmapid
 	local mapFound = false
 	local mapItem = nil
 	local itemFound = false
@@ -850,9 +850,9 @@ function c_interactgate:evaluate()
 	e_interactgate.selector = 0
 	
     if (ml_task_hub:CurrentTask().destMapID) then
-		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID) then
 			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position, 
-														ml_global_information.Player_Map,	
+														Player.localmapid,	
 														ml_task_hub:CurrentTask().destMapID	)
 
 			if (ValidTable(pos) and pos.g) then				
@@ -905,9 +905,9 @@ function c_transportgate:evaluate()
 	end
 	
 	if (ml_task_hub:ThisTask().destMapID) then
-		if (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID) then
+		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID) then
 			local pos = ml_nav_manager.GetNextPathPos( 	ml_global_information.Player_Position,	
-														ml_global_information.Player_Map,	
+														Player.localmapid,	
 														ml_task_hub:CurrentTask().destMapID	)
 			
 			if (ValidTable(pos)) then
@@ -954,23 +954,23 @@ function c_movetogate:evaluate()
 	if (MIsLoading() or 
 		(MIsLocked() and not IsFlying()) or 
 		MIsCasting() or
-		ml_global_information.Player_Map == 0) 
+		Player.localmapid == 0) 
 	then
 		return false
 	end
 	
 	e_movetogate.pos = {}
 	
-    if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
+    if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-													ml_global_information.Player_Map,
+													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (ValidTable(pos)) then
 			e_movetogate.pos = pos
 			return true
 		else
 			local backupPos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-																ml_global_information.Player_Map,
+																Player.localmapid,
 																155	)
 			if (ValidTable(backupPos)) then
 				ml_task_hub:CurrentTask().destMapID = 155
@@ -986,7 +986,7 @@ function e_movetogate:execute()
 	local pos = e_movetogate.pos
 	
 	local mapid = ml_task_hub:CurrentTask().destMapID
-	if (mapid == 399 and ml_global_information.Player_Map == 478) then
+	if (mapid == 399 and Player.localmapid == 478) then
 		local destPos = ml_task_hub:CurrentTask().pos
 		if (ValidTable(destPos)) then
 			if (GetHinterlandsSection(destPos) == 1) then
@@ -1029,13 +1029,13 @@ function c_leavelockedarea:evaluate()
 	
 	e_leavelockedarea.map = 0
 	
-    if (ml_task_hub:CurrentTask().destMapID and (ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().destMapID)) then
+    if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-													ml_global_information.Player_Map,
+													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (not ValidTable(pos)) then
 			-- No valid path forward, set a new destination for the nearest map.
-			local currNode = ml_nav_manager.GetNode(ml_global_information.Player_Map)
+			local currNode = ml_nav_manager.GetNode(Player.localmapid)
 			if (ValidTable(currNode)) then
 				local neighbors = currNode:ValidNeighbors()
 				if (ValidTable(neighbors)) then
@@ -1073,7 +1073,7 @@ function c_teleporttomap:evaluate()
 		(MIsLocked() and not IsFlying()) or 
 		MIsCasting() or GilCount() < 1500 or
 		IsNull(ml_task_hub:ThisTask().destMapID,0) == 0 or
-		IsNull(ml_task_hub:ThisTask().destMapID,0) == ml_global_information.Player_Map) 
+		IsNull(ml_task_hub:ThisTask().destMapID,0) == Player.localmapid) 
 	then
 		ml_debug("Cannot use teleport, position is locked, or we are casting, or our gil count is less than 1500.")
 		return false
@@ -1095,14 +1095,15 @@ function c_teleporttomap:evaluate()
 	end
 	
 	local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-	if (noTeleportMaps[ml_global_information.Player_Map]) then
+	if (noTeleportMaps[Player.localmapid]) then
+		d("Cannot teleport to that map.")
 		return false
 	end
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID) then
         local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-                                                    ml_global_information.Player_Map,
+                                                    Player.localmapid,
                                                     destMapID	)
 		if (ValidTable(pos)) then
 			local ppos = ml_global_information.Player_Position
@@ -1118,7 +1119,7 @@ function c_teleporttomap:evaluate()
 				
 				local lastAeth = nil
 				for _, node in pairsByKeys(ml_nav_manager.currPath) do
-					if (node.id ~= ml_global_information.Player_Map) then
+					if (node.id ~= Player.localmapid) then
 						local aeth = GetAetheryteByMapID(node.id)
 						if (aeth) then
 							lastAeth = aeth
@@ -1234,14 +1235,15 @@ function e_followleader:execute()
 	local leaderPos = c_followleader.leaderpos
 	local distance = c_followleader.distance
 	
-	if (e_followleader.isFollowing and e_followleader.stopFollow) then
+	if (Player.onmesh and e_followleader.isFollowing and e_followleader.stopFollow) then
 		Player:Stop()
 		e_followleader.isFollowing = false
 		e_followleader.stopFollow = false
 		return
 	end
 	
-	if (Player.onmesh) then		
+	if (Player.onmesh) then	
+		d("Trying to follow target, on mesh.")
 		-- mount
 		
 		if (gUseMount == "1" and gMount ~= "None" and c_followleader.hasEntity) then
@@ -1286,8 +1288,9 @@ function e_followleader:execute()
 		e_followleader.isFollowing = true
 	else
 		if ( not Player:IsMoving() ) then
-			FollowResult = Player:FollowTarget(leader.id)
-			ml_debug( "Following Leader: "..tostring(FollowResult))
+			d("Trying to follow target, off mesh.")
+			Player:FollowTarget(leader.id)
+			ml_global_information.Await(1000, function () Player:IsMoving() end)
 		end
 	end
 end
@@ -1559,6 +1562,100 @@ function e_avoidaggressives:execute()
 	--Do nothing, abusing the cne system a bit here.
 end
 
+c_useaethernet = inheritsFrom( ml_cause )
+e_useaethernet = inheritsFrom( ml_effect )
+e_useaethernet.nearest = nil
+e_useaethernet.destination = nil
+function c_useaethernet:evaluate(mapid, pos)
+	local gotoPos = pos or ml_task_hub:CurrentTask().pos
+	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+	if (destMapID == 0) then
+		destMapID = Player.localmapid
+	end
+
+	e_useaethernet.nearest = nil
+	e_useaethernet.destination = nil
+	
+	if (not table.valid(gotoPos)) then
+		return false
+	elseif (table.valid(gotoPos) and Distance3DT(gotoPos,Player.pos) < 30) then
+		return false
+	end	
+	
+	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	
+	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
+	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
+	
+	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist)) then
+		if (IsNull(ml_task_hub:CurrentTask().uniqueid,0) ~= nearestAethernet.id) then 
+			--d("current id:"..tostring(ml_task_hub:CurrentTask().uniqueid)..", new id:"..tostring(nearestAethernet.id))
+			e_useaethernet.nearest = nearestAethernet
+			e_useaethernet.destination = bestAethernet
+			return true
+		end
+	end
+	
+	return false
+end
+function e_useaethernet:execute()
+	if (table.valid(e_useaethernet.nearest)) then
+		if (table.valid(e_useaethernet.destination)) then
+			--d("Use aethernet task to go from ["..tostring(e_useaethernet.nearest.id).."] to ["..tostring(e_useaethernet.destination.id).."]")
+			local newTask = ffxiv_task_moveaethernet.Create()
+			newTask.uniqueid = e_useaethernet.nearest.id
+			newTask.pos = e_useaethernet.nearest.pos
+			newTask.conversationstrings = e_useaethernet.destination.conversationstrings
+			newTask.useAethernet = true
+			
+			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+		end
+	end
+end
+
+c_unlockaethernet = inheritsFrom( ml_cause )
+e_unlockaethernet = inheritsFrom( ml_effect )
+e_unlockaethernet.nearest = nil
+e_unlockaethernet.destination = nil
+function c_unlockaethernet:evaluate(mapid, pos)
+	local gotoPos = pos or ml_task_hub:CurrentTask().pos
+	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
+	if (destMapID == 0) then
+		destMapID = Player.localmapid
+	end
+	
+	e_unlockaethernet.nearest = nil
+	
+	if (not table.valid(gotoPos)) then
+		return false
+	end	
+	
+	local gotoDist = Distance3DT(gotoPos,Player.pos)
+	
+	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
+	if (nearestAethernet) then
+		if (IsNull(ml_task_hub:CurrentTask().uniqueid,0) ~= nearestAethernet.id) then 
+			--d("current id:"..tostring(ml_task_hub:CurrentTask().uniqueid)..", new id:"..tostring(nearestAethernet.id))
+			if (nearestDistance < 15 or nearestDistance < Distance3DT(Player.pos,gotoPos)) then
+				e_unlockaethernet.nearest = nearestAethernet
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+function e_unlockaethernet:execute()
+	if (table.valid(e_unlockaethernet.nearest)) then
+		--d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
+		local newTask = ffxiv_task_moveaethernet.Create()
+		newTask.uniqueid = e_unlockaethernet.nearest.id
+		newTask.pos = e_unlockaethernet.nearest.pos
+		newTask.unlockAethernet = true
+		
+		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+	end
+end
 
 c_usenavinteraction = inheritsFrom( ml_cause )
 e_usenavinteraction = inheritsFrom( ml_effect )
@@ -1575,7 +1672,7 @@ function c_usenavinteraction:evaluate(pos)
 		return false
 	end
 	
-	local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
+	local transportFunction = _G["Transport"..tostring(Player.localmapid)]
 	if (transportFunction ~= nil and type(transportFunction) == "function") then
 		local retval,task = transportFunction(ml_global_information.Player_Position,gotoPos)
 		if (retval == true) then
@@ -1585,9 +1682,9 @@ function c_usenavinteraction:evaluate(pos)
 	end
 	
 	--[[local requiresTransport = ml_global_information.requiresTransport
-	if (requiresTransport[ml_global_information.Player_Map]) then
-		e_usenavinteraction.task = requiresTransport[ml_global_information.Player_Map].reaction
-		return requiresTransport[ml_global_information.Player_Map].test()
+	if (requiresTransport[Player.localmapid]) then
+		e_usenavinteraction.task = requiresTransport[Player.localmapid].reaction
+		return requiresTransport[Player.localmapid].test()
 	end--]]
 	
 	return false
@@ -1656,7 +1753,7 @@ function c_mount:evaluate()
 		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
 	}
 	
-    if (noMountMaps[ml_global_information.Player_Map]) then
+    if (noMountMaps[Player.localmapid]) then
 		return false
 	end
 	
@@ -1794,7 +1891,7 @@ function c_battlemount:evaluate()
 		[337] = true,[336] = true,[175] = true,[352] = true,[418] = true,[419] = true,
 	}
 	
-    if (noMountMaps[ml_global_information.Player_Map]) then
+    if (noMountMaps[Player.localmapid]) then
 		return false
 	end
 	
@@ -1953,7 +2050,7 @@ function c_sprint:evaluate()
 	end
 
     if (not HasBuff(Player.id, 50) and Player:IsMoving()) then
-		if (IsCityMap(ml_global_information.Player_Map) or gUseSprint == "1") then
+		if (IsCityMap(Player.localmapid) or gUseSprint == "1") then
 			if ( ml_task_hub:CurrentTask().pos ~= nil and ml_task_hub:CurrentTask().pos ~= 0) then
 				local myPos = ml_global_information.Player_Position
 				local gotoPos = ml_task_hub:CurrentTask().pos
@@ -2260,7 +2357,7 @@ function c_returntomarker:evaluate()
 		end
 		
 		if (gBotMode == GetString("pvpMode")) then
-			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (ml_global_information.Player_Map ~= 376 and ml_global_information.Player_Map ~= 422)) then
+			if (ml_task_hub:CurrentTask().state ~= "COMBAT_STARTED" or (Player.localmapid ~= 376 and Player.localmapid ~= 422)) then
 				if (distance > 25) then
 					return true
 				end
@@ -2737,7 +2834,7 @@ function c_returntomap:evaluate()
 		return false
 	end
 	
-	if (ml_task_hub:ThisTask().correctMap and (ml_task_hub:ThisTask().correctMap ~= ml_global_information.Player_Map)) then
+	if (ml_task_hub:ThisTask().correctMap and (ml_task_hub:ThisTask().correctMap ~= Player.localmapid)) then
 		local mapID = ml_task_hub:ThisTask().correctMap
 		if (CanAccessMap(mapID)) then
 			e_returntomap.mapID = mapID

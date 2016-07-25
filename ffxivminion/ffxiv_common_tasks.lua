@@ -164,8 +164,14 @@ function ffxiv_task_movetopos.Create()
 end
 
 function ffxiv_task_movetopos:Init()
-	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 160 )
     self:add( ke_stuck, self.overwatch_elements)
+	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 150 )
+    self:add( ke_useAethernet, self.process_elements)
+	
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 145 )
+    self:add( ke_unlockAethernet, self.process_elements)
 	
 	local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 140 )
     self:add( ke_teleportToMap, self.process_elements)
@@ -200,7 +206,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		return true
 	end
 	
-	if (self.destMapID and ml_global_information.Player_Map == self.destMapID) then
+	if (self.destMapID and Player.localmapid == self.destMapID) then
 		return true
 	end
 	
@@ -321,7 +327,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 						if (ValidTable(entity)) then
 							local epos = entity.pos
 							local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
-							if (usedist > (self.range + entity.hitradius)) then
+							local radius = (entity.hitradius >= 1 and entity.hitradius) or 1.25
+							local range = IIF((self.range + radius > 3.7),(self.range + radius),3.7)
+							if (usedist <= range) then
+								return true
+							else
 								return false
 							end
 						end
@@ -639,6 +649,10 @@ function ffxiv_task_movetointeract.Create()
 	newinst.interactDelay = 500
 	newinst.startMap = Player.localmapid
 	newinst.moveWait = 0
+	newinst.conversationstring = ""
+	newinst.conversationstrings = ""
+	newinst.conversationindex = -1
+	newinst.blockExecution = false
 	
 	newinst.detectedMovement = false
 	
@@ -658,6 +672,12 @@ function ffxiv_task_movetointeract:Init()
 	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
     self:add( ke_stuck, self.overwatch_elements)
 	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 140 )
+    self:add( ke_useAethernet, self.process_elements)
+	
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 135 )
+    self:add( ke_unlockAethernet, self.process_elements)
+	
 	local ke_stealth = ml_element:create( "Stealth", c_stealthupdate, e_stealthupdate, 110 )
     self:add( ke_stealth, self.process_elements)
 
@@ -676,13 +696,48 @@ function ffxiv_task_movetointeract:Init()
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
 	
-	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 10 )
     self:add( ke_walkToPos, self.process_elements)
 	
 	self:AddTaskCheckCEs()
 end
 
 function ffxiv_task_movetointeract:task_complete_eval()
+	self.blockExecution = false
+	
+	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+		local convoList = GetConversationList()
+		if (table.valid(convoList)) then
+			if (string.valid(self.conversationstring)) then
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					local cleanedv = string.gsub(self.conversationstring,"[()]","")
+					if (string.find(cleanedline,cleanedv) ~= nil) then
+						SelectConversationIndex(convoindex)
+						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						return false
+					end
+				end
+			elseif (table.valid(self.conversationstrings)) then
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					for k,v in pairs(self.conversationstrings) do
+						local cleanedv = string.gsub(v,"[()]","")
+						if (string.find(cleanedline,cleanedv) ~= nil) then
+							SelectConversationIndex(convoindex)
+							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							return false
+						end
+					end
+				end
+			elseif (self.conversationindex > 0) then
+				SelectConversationIndex(self.conversationindex)
+				ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+				return false
+			end
+		end
+	end
+	
 	if ((MIsLocked() and not IsFlying()) or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
 		return true
 	end
@@ -767,9 +822,29 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				if (interactable.type == 5) then
 					if (dist3d <= 7.5) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Stop()
 						Player:Interact(interactable.id)
+							
+						local currentDist = Distance3DT(ppos,ipos)
+						ml_global_information.AwaitSuccessFail(3000, 
+							function () 
+								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+							end, 
+							function ()
+								if (Player.castinginfo.channelingid ~= 0) then
+									d("[MoveToInteract]: Initiating await until interaction is complete.")
+									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.uniqueid)) end)
+								end
+							end,
+							function ()
+								d("[MoveToInteract]: Interact failed, attempting to move closer.")
+								Player:MoveTo(ipos.x,ipos.y,ipos.z)
+								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+							end
+						)
+						self.blockExecution = true
 						self.lastInteract = Now()
-						return false
+						return true
 					end
 				end
 				
@@ -783,8 +858,29 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						local ydiff = math.abs(ppos.y - interactable.pos.y)
 						if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+							Player:Stop()
 							Player:Interact(interactable.id)
+							
+							local currentDist = Distance3DT(ppos,ipos)
+							ml_global_information.AwaitSuccessFail(3000,  
+								function () 
+									return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+								end, 
+								function ()
+									if (Player.castinginfo.channelingid ~= 0) then
+										d("[MoveToInteract]: Initiating await until interaction is complete.")
+										ml_global_information.Await(5000, function () return (Player.castinginfo.channelingid == 0) end)
+									end
+								end,
+								function ()
+									d("[MoveToInteract]: Interact failed, attempting to move closer.")
+									Player:MoveTo(ipos.x,ipos.y,ipos.z)
+									ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+								end
+							)
+							self.blockExecution = true
 							self.lastInteract = Now()
+							return true
 						end
 					end
 				end
@@ -796,6 +892,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 end
 
 function ffxiv_task_movetointeract:task_complete_execute()
+	if (self.blockExecution) then
+		return false
+	end
+	
     Player:Stop()
 	GameHacks:SkipDialogue(gSkipDialogue == "1")
 	if (self.killParent) then
@@ -854,6 +954,12 @@ function ffxiv_task_movetomap:Init()
 	local ke_reachedMap = ml_element:create( "ReachedMap", c_reachedmap, e_reachedmap, 100)
     self:add( ke_reachedMap, self.overwatch_elements)
 	
+	local ke_useAethernet = ml_element:create( "UseAethernet", c_useaethernet, e_useaethernet, 70 )
+    self:add( ke_useAethernet, self.process_elements)
+	
+	local ke_unlockAethernet = ml_element:create( "UnlockAethernet", c_unlockaethernet, e_unlockaethernet, 65 )
+    self:add( ke_unlockAethernet, self.process_elements)
+	
     local ke_teleportToMap = ml_element:create( "TeleportToMap", c_teleporttomap, e_teleporttomap, 60 )
     self:add( ke_teleportToMap, self.process_elements)
 	
@@ -870,7 +976,7 @@ function ffxiv_task_movetomap:Init()
 end
 
 function ffxiv_task_movetomap:task_complete_eval()
-	if (MIsLoading() or ml_global_information.Player_Map == ml_task_hub:ThisTask().destMapID) then
+	if (MIsLoading() or Player.localmapid == ml_task_hub:ThisTask().destMapID) then
 		return true
 	end
 	
@@ -959,7 +1065,7 @@ e_sethomepoint.aethid = 0
 e_sethomepoint.aethpos = {}
 function c_sethomepoint:evaluate()    
 	if (MIsLoading() or MIsCasting(true) or MIsLocked() or 
-		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(ml_global_information.Player_Map))
+		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(Player.localmapid))
 	then
 		return false
 	end
@@ -967,7 +1073,7 @@ function c_sethomepoint:evaluate()
 	e_sethomepoint.aethid = 0
 	e_sethomepoint.aethpos = {}
 	
-	if (not ml_task_hub:CurrentTask().setHomepoint or ml_global_information.Player_Map ~= ml_task_hub:CurrentTask().mapID) then
+	if (not ml_task_hub:CurrentTask().setHomepoint or Player.localmapid ~= ml_task_hub:CurrentTask().mapID) then
 		return false
 	end
 	
@@ -1019,15 +1125,11 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (MIsGCDLocked() and not Player.ismounted and not IsTransporting()) then
-		return false
-	end
-	
 	if (Player.localmapid ~= self.mapID) then
 		return true
 	end
 	
-	if (self.setHomepoint and not IsCityMap(ml_global_information.Player_Map)) then
+	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
 		local homepoint = GetHomepoint()
 		if (homepoint ~= self.mapID) then
 			return false
@@ -2324,4 +2426,304 @@ end
 function ffxiv_misc_switchclass:task_complete_execute()
 	gForceAutoEquip = false
 	self.completed = true
+end
+
+-- Use Aethernet
+ffxiv_task_moveaethernet = inheritsFrom(ml_task)
+function ffxiv_task_moveaethernet.Create()
+    local newinst = inheritsFrom(ffxiv_task_moveaethernet)
+    
+    --ml_task members
+    newinst.valid = true
+    newinst.completed = false
+    newinst.subtask = nil
+    newinst.auxiliary = false
+    newinst.process_elements = {}
+    newinst.overwatch_elements = {}
+    newinst.name = "MOVEAETHERNET"
+	
+	newinst.started = Now()
+	newinst.uniqueid = 0
+	newinst.interact = 0
+    newinst.lastInteract = 0
+	newinst.lastDismountCheck = 0
+	newinst.lastInteractableSearch = 0
+	newinst.pos = false
+	newinst.adjustedPos = false
+	newinst.range = nil
+	newinst.areaChanged = false
+	newinst.addedMoveElement = false
+	newinst.use3d = true
+	newinst.useTeleport = true
+	newinst.dataUnpacked = false
+	newinst.failTimer = 0
+	newinst.forceLOS = false
+	newinst.pathRange = nil
+	newinst.interactRange = nil
+	newinst.dismountDistance = 5
+	newinst.killParent = false
+	newinst.interactDelay = 500
+	newinst.startMap = Player.localmapid
+	newinst.moveWait = 0
+	newinst.conversationstring = ""
+	newinst.conversationstrings = ""
+	newinst.conversationindex = -1
+	newinst.useAethernet = false
+	newinst.unlockAethernet = false
+	newinst.blockExecution = false
+	
+	newinst.detectedMovement = false
+	
+	newinst.stealthFunction = nil
+	
+	GameHacks:SkipDialogue(true)
+	ml_global_information.monitorStuck = true
+	newinst.alwaysMount = false
+	
+	table.insert(tasktracking, newinst)
+	ffxiv_unstuck.Reset()
+	
+    return newinst
+end
+
+function ffxiv_task_moveaethernet:Init()
+	local ke_stuck = ml_element:create( "Stuck", c_stuck, e_stuck, 150 )
+    self:add( ke_stuck, self.overwatch_elements)
+
+	local ke_teleportToPos = ml_element:create( "TeleportToPos", c_teleporttopos, e_teleporttopos, 100 )
+    self:add( ke_teleportToPos, self.process_elements)
+	
+	local ke_useNavInteraction = ml_element:create( "UseNavInteraction", c_usenavinteraction, e_usenavinteraction, 95 )
+    self:add( ke_useNavInteraction, self.process_elements)
+	
+	local ke_mount = ml_element:create( "Mount", c_mount, e_mount, 90 )
+    self:add( ke_mount, self.process_elements)
+    
+    local ke_sprint = ml_element:create( "Sprint", c_sprint, e_sprint, 70 )
+    self:add( ke_sprint, self.process_elements)
+	
+	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
+    self:add( ke_falling, self.process_elements)
+	
+	local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 5 )
+    self:add( ke_walkToPos, self.process_elements)
+	
+	self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_moveaethernet:task_complete_eval()
+	self.blockExecution = false
+	
+	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+		local convoList = GetConversationList()
+		if (table.valid(convoList)) then
+			if (self.useAethernet) then
+				local aethernet = {
+					us = "Aethernet",
+					de = "Ätheryten-Netz",
+					fr = "Réseau de transport urbain éthéré",
+					jp = "都市転送網",
+					cn = "都市传送网",
+					kr = "도시 내 이동",
+				}
+				
+				local residential = {
+					us = "Residential District Aethernet",
+					de = "Wohnviertel",
+					fr = "Quartier résidentiel",
+					jp = "冒険者居住区転送",
+					cn = "冒险者住宅区传送",
+					kr = "모험가 거주구로 이동",
+				}
+				
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					for language,astring in pairs(aethernet) do
+						local cleanedastring = string.gsub(astring,"[()]","")
+						if (string.find(cleanedline,cleanedastring) ~= nil and string.find(convo.line,residential[language]) == nil) then
+							d("Open Aethernet menu on index ["..tostring(convoindex).."]")
+							SelectConversationIndex(convoindex)
+							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						end
+					end
+				end
+				d("Checked if we need to open aetheryte menu.")
+			end
+			
+			if (string.valid(self.conversationstring)) then
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					local cleanedv = string.gsub(self.conversationstring,"[()]","")
+					if (string.find(cleanedline,cleanedv) ~= nil) then
+						SelectConversationIndex(convoindex)
+						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						return false
+					end
+				end
+			elseif (table.valid(self.conversationstrings)) then
+				d("looking through conversation strings for ["..string.gsub(self.conversationstrings["E"],"[()]","").."]")
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					for k,v in pairs(self.conversationstrings) do
+						local cleanedv = string.gsub(v,"[()]","")
+						if (string.find(cleanedline,cleanedv) ~= nil) then
+							SelectConversationIndex(convoindex)
+							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							return false
+						end
+					end
+				end
+			elseif (self.conversationindex > 0) then
+				SelectConversationIndex(self.conversationindex)
+				ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+				return false
+			end
+		end
+	end
+	
+	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
+		return true
+	elseif (self.unlockAethernet and AceLib.API.Map.HasAttunements(self.uniqueid)) then
+		return true
+	end
+	
+	local myTarget = MGetTarget()
+	local ppos = Player.pos
+	
+	if (self.interact ~= 0) then
+		local interact = EntityList:Get(tonumber(self.interact))
+		if (not interact or not interact.targetable) then
+			return true
+		end
+	else
+		local epos = self.pos
+		local dist = Distance3DT(ppos,epos)
+		if (dist <= 2) then
+			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			if (not ValidTable(interacts)) then
+				return true
+			end
+		end			
+	end
+	
+	local interactable = nil
+	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
+		if (self.uniqueid ~= 0) then
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+			if (ValidTable(interacts)) then
+				local i,interact = next(interacts)
+				if (i and interact) then
+					self.interact = interact.id
+				end
+			end
+			self.lastInteractableSearch = Now()
+		end
+	end
+	
+	if (self.interact ~= 0) then
+		interactable = EntityList:Get(self.interact)
+	else
+		return false
+	end
+	
+	if (Player.ismounted and TimeSince(self.lastDismountCheck) > 500) then
+		local requiresDismount = false
+		if (interactable and interactable.distance < self.dismountDistance) then
+			local isflying = IsFlying()
+			if (not isflying or (isflying and not Player:IsMoving())) then
+				Dismount()
+			end
+		end
+		self.lastDismountCheck = Now()
+	end
+	
+	if (IsDismounting()) then
+		return false
+	end
+	
+	local ipos = interactable.pos
+	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
+	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
+	local range = self.interactRange or (radius * 3.5)
+	
+	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
+		if (interactable and interactable.targetable and dist3d < 10) then
+			Player:SetTarget(interactable.id)
+			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			if (p and dist ~= 0 and dist < 5) then
+				if (not deepcompare(self.pos,p,true)) then
+					self.pos = p
+				end
+			end
+		end
+	end
+
+	if (not IsFlying()) then
+		--if (myTarget and TimeSince(self.lastInteract) > 500) then
+		if (myTarget and myTarget.id == interactable.id) then
+
+			if (ValidTable(interactable)) then			
+				if (interactable.type == 5) then
+					if (dist3d <= 7.5) then
+						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+						Player:Stop()
+						Player:Interact(interactable.id)
+						
+						local currentDist = Distance3DT(ppos,ipos)
+						ml_global_information.AwaitSuccessFail(3000, 
+							function () 
+								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+							end, 
+							function ()
+								if (Player.castinginfo.channelingid ~= 0) then
+									d("[MoveToAethernet]: Initiating await until interaction is complete.")
+									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.uniqueid)) end)
+								end
+							end,
+							function ()
+								d("[MoveToAethernet]: Interact failed, attempting to move closer.")
+								Player:MoveTo(ipos.x,ipos.y,ipos.z)
+								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+							end
+						)
+						self.lastInteract = Now()
+						self.blockExecution = true
+						return true
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+function ffxiv_task_moveaethernet:task_complete_execute()
+	if (self.blockExecution) then
+		return false
+	end
+	
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
+    Player:Stop()
+	self.completed = true
+end
+
+function ffxiv_task_moveaethernet:task_fail_eval()
+	if (not c_walktopos:evaluate() and not Player:IsMoving()) then
+		if (self.failTimer == 0) then
+			self.failTimer = Now() + 10000
+		end
+	else
+		if (self.failTimer ~= 0) then
+			self.failTimer = 0
+		end
+	end
+	
+	return (not Player.alive or (self.failTimer ~= 0 and Now() > self.failTimer))
+end
+
+function ffxiv_task_moveaethernet:task_fail_execute()
+	GameHacks:SkipDialogue(gSkipDialogue == "1")
+    self.valid = false
 end

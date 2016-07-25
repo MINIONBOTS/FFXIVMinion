@@ -1073,7 +1073,7 @@ function GetPVPTarget()
 	local lowestHealth = nil
     
 	local enemyParty = nil
-	if (ml_global_information.Player_Map == 376 or ml_global_information.Player_Map == 422) then
+	if (Player.localmapid == 376 or Player.localmapid == 422) then
 		enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
 		if(not ValidTable(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
@@ -1776,6 +1776,14 @@ end
 function IsUncoverSkill(skillID)
 	return (skillID == 214 or skillID == 231)
 end
+function IsOmni(entity)
+	if not entity or entity.id == Player.id then return false end
+	local omnis = {
+		[4954] = true,
+		[4776] = true,
+	}
+	return omnis[entity.contentid]
+end
 function IsFlanking(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
@@ -2148,8 +2156,8 @@ function GetApprovedFates()
 			local maxFateLevel = tonumber(gMaxFateLevel) or 0
 			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
-			local isChain,firstChain = ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fate.id)
-			local isPrio = ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fate.id)
+			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
+			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
 			
 			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
 				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
@@ -2190,7 +2198,7 @@ function IsFateApproved(fateid)
 		end
 	end
 	
-	if (ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fateid) or ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fateid)) then
+	if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fateid) or ffxiv_task_fate.IsChain(Player.localmapid, fateid)) then
 		return true
 	end
 	
@@ -2239,7 +2247,7 @@ function GetClosestFate(pos,pathcheck)
 				if (delimiter ~= nil and delimiter ~= 0) then
 					local mapid = entry:sub(0,delimiter-1)
 					local fateid = entry:sub(delimiter+1)
-					if (tonumber(mapid) == ml_global_information.Player_Map) then
+					if (tonumber(mapid) == Player.localmapid) then
 						whitelistTable[fateid] = true
 					end
 				end
@@ -2268,7 +2276,7 @@ function GetClosestFate(pos,pathcheck)
 			for k, fate in pairs(fateList) do
 				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 					if (fate.status == 2) then	
-						if (ffxiv_task_fate.IsHighPriority(ml_global_information.Player_Map, fate.id) or ffxiv_task_fate.IsChain(ml_global_information.Player_Map, fate.id)) then
+						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
 							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 							if (p and dist <= 20) then
 								table.insert(validFates,fate)
@@ -2318,7 +2326,7 @@ function GetClosestFate(pos,pathcheck)
 end
 function IsOnMap(mapid)
 	local mapid = tonumber(mapid)
-	if (ml_global_information.Player_Map == mapid) then
+	if (Player.localmapid == mapid) then
 		return true
 	end
 	
@@ -2444,7 +2452,7 @@ function HasNavPath(pos1,pos2,previousDistance)
 		
 		-- See if there is a transport function required to reach this area first.
 		--[[
-		local transportFunction = _G["Transport"..tostring(ml_global_information.Player_Map)]
+		local transportFunction = _G["Transport"..tostring(Player.localmapid)]
 		if (transportFunction ~= nil and type(transportFunction) == "function") then
 			local retval = transportFunction(pos1,pos2)
 			if (retval == true) then
@@ -2957,6 +2965,7 @@ function Dismount()
 		SendTextCommand("/mount")
 	end
 end
+
 function Repair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
@@ -3560,7 +3569,7 @@ end
 function GetAetheryteByMapID(mapid, p)
 	local pos = p
 	
-	local myMap = ml_global_information.Player_Map
+	local myMap = Player.localmapid
 	if (mapid == 133 and myMap ~= 132) then
 		mapid = 132
 	elseif (mapid == 128 and myMap ~= 129) then
@@ -3915,7 +3924,7 @@ function HuntingLogsUnlocked()
 	return false
 end
 function GetBestGrindMap()
-	local mapid = ml_global_information.Player_Map
+	local mapid = Player.localmapid
 	local level = Player.level
 	
 	local inthanalan = 	mapid == 140 or
@@ -5254,9 +5263,9 @@ function CanAccessMap(mapid)
 	local mapid = tonumber(mapid) or 0
 	
 	if (mapid ~= 0) then
-		if (ml_global_information.Player_Map ~= mapid) then
+		if (Player.localmapid ~= mapid) then
 			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
-														ml_global_information.Player_Map,
+														Player.localmapid,
 														mapid	)
 			if (ValidTable(pos)) then
 				--d("Found a nav path for mapid ["..tostring(mapid).."].")
