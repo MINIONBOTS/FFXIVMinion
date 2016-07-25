@@ -2102,9 +2102,9 @@ function ml_global_information.Draw( event, ticks )
 	-- Main "mode" window.
 	-- DrawMode 1 is fully drawn, 2 is minimized, mode visible only.
 	
-	ml_global_information.DrawMainFull()
+	--ml_global_information.DrawMainFull()
 	--ml_global_information.DrawSmall()
-	ml_global_information.DrawSettings()
+	--ml_global_information.DrawSettings()
 	
 	local menu = ml_global_information.menu
 	local windows = menu.windows
