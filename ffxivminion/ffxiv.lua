@@ -310,21 +310,19 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		if (gBotRunning == "1") then
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
-				ml_global_information.repairTimer = tickcount
-
 				if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple") and not Player.incombat) then
 					if (NeedsRepair()) then
 						Repair()
 					end
+					ml_global_information.repairTimer = tickcount
 				end
 			end
 	
 			if ( gFood ~= "None" or gFoodHQ ~= "None" ) then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
-					ml_global_information.foodCheckTimer = tickcount
-					
 					if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple")) then
 						Eat()
+						ml_global_information.foodCheckTimer = tickcount
 					end
 				end
 			end
@@ -358,25 +356,22 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 			
 			if (gUseCurielRoot == "1") then
-				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
+				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted and not IsMounting()) then
 					ml_global_information.rootCheckTimer = tickcount
-					
-					if (not Player.ismounted and not IsMounting()) then
-						local acDismiss = ActionList:Get(2,6)
-						local item = Inventory:Get(7894)
+					local acDismiss = ActionList:Get(2,6)
+					local item = Inventory:Get(7894)
 
-						if ( acDismiss and acDismiss.isready and item and item.isready) then
-							local el = EntityList("nearest,myparty,type=2,chartype=3")
-							if (ValidTable(el)) then
-								local i, choco = next(el)
-								if (i and choco) then
-									if MissingBuffs(choco,"536+537") then
-										Player:Stop()
-										local newTask = ffxiv_task_useitem.Create()
-										newTask.itemid = 7894
-										newTask.useTime = 3000
-										ml_task_hub:CurrentTask():AddSubTask(newTask)
-									end
+					if ( acDismiss and acDismiss.isready and item and item.isready) then
+						local el = EntityList("nearest,myparty,type=2,chartype=3")
+						if (ValidTable(el)) then
+							local i, choco = next(el)
+							if (i and choco) then
+								if MissingBuffs(choco,"536+537") then
+									Player:Stop()
+									local newTask = ffxiv_task_useitem.Create()
+									newTask.itemid = 7894
+									newTask.useTime = 3000
+									ml_task_hub:CurrentTask():AddSubTask(newTask)
 								end
 							end
 						end

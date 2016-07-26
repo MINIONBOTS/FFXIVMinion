@@ -376,7 +376,6 @@ do
 	ml_marker_mgr.GetPosition = 	function () return Player.pos end
 	ml_marker_mgr.GetLevel = 		function () return Player.level end
 	ml_marker_mgr.DrawMarker =		ml_global_information.DrawMarker
-	ml_marker_mgr.markerPath = 		ml_global_information.path.. [[\Navigation\]]
 	ml_node.ValidNeighbors = 		ml_global_information.NodeNeighbors
 	ml_node.GetClosestNeighborPos = ml_global_information.NodeClosestNeighbor
 	
@@ -388,7 +387,7 @@ do
 		ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
 		ml_mesh_mgr.SetEvacPoint = function ()
 			if (gmeshname ~= "" and Player.onmesh) then
-				ml_marker_mgr.markerList["evacPoint"] = ml_global_information.Player_Position
+				ml_marker_mgr.markerList["evacPoint"] = Player.pos
 				ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 			end
 		end
