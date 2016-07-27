@@ -1523,7 +1523,7 @@ function ffxivminion.UpdateGlobals()
 	if (Player) then
 		ml_global_information.Player_Aetherytes = GetAetheryteList()
 		ml_global_information.Player_Position = Player.pos
-		Player.localmapid = Player.localmapid
+		ml_global_information.Player_Map = Player.localmapid
 		ml_global_information.Player_HP = Player.hp
 		ml_global_information.Player_MP = Player.mp
 		ml_global_information.Player_TP = Player.tp
