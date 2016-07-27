@@ -7860,7 +7860,7 @@ local obj1 = {
 			["prereq"] = {
 				["HasQuest(245) or QuestCompleted(245)"] = false;
 				["QuestCompleted(673) or QuestCompleted(674)"] = true;
-				["GameRegion() ~= 1"] = true;
+				["GameRegion() ~= 1 and GameRegion() ~= 2"] = true;
 			};
 			["steps"] = {
 				[1] = {

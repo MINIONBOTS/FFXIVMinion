@@ -3531,7 +3531,7 @@ local obj1 = {
 			["level"] = 7;
 			["name"] = "Eggs over Queasy";
 			["prereq"] = {
-				["(QuestCompleted(196) and GameRegion() == 1) or (QuestCompleted(445) and GameRegion() ~= 1)"] = true;
+				["(QuestCompleted(196) and (GameRegion() == 1 or GameRegion() == 2)) or (QuestCompleted(445) and GameRegion() ~= 1 and GameRegion() ~= 2)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4703,7 +4703,7 @@ local obj1 = {
 			["level"] = 8;
 			["name"] = "Surveying the Damage";
 			["prereq"] = {
-				["(QuestCompleted(128) and QuestCompleted(196) and GameRegion() == 1) or (QuestCompleted(196) and GameRegion() ~= 1)"] = true;
+				["(QuestCompleted(128) and QuestCompleted(196) and (GameRegion() == 1 or GameRegion() == 2)) or (QuestCompleted(196) and GameRegion() ~= 1 and GameRegion() ~= 2)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -4930,7 +4930,7 @@ local obj1 = {
 			["level"] = 7;
 			["name"] = "An Eft for Effort";
 			["prereq"] = {
-				["(QuestCompleted(445) and GameRegion() == 1) or (QuestCompleted(128) and GameRegion() ~= 1)"] = true;
+				["(QuestCompleted(445) and (GameRegion() == 1 or GameRegion() == 2)) or (QuestCompleted(128) and GameRegion() ~= 1 and GameRegion() ~= 2)"] = true;
 			};
 			["steps"] = {
 				[1] = {
@@ -7501,7 +7501,7 @@ local obj1 = {
 			["prereq"] = {
 				["HasQuest(245) or QuestCompleted(245)"] = false;
 				["QuestCompleted(673) or QuestCompleted(674)"] = true;
-				["GameRegion() ~= 1"] = true;
+				["GameRegion() ~= 1 and GameRegion() ~= 2"] = true;
 			};
 			["steps"] = {
 				[1] = {
