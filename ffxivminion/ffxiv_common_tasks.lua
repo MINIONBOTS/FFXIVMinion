@@ -1590,7 +1590,10 @@ function ffxiv_task_flee:task_complete_eval()
 		end
     end
 	
-	return not ml_global_information.Player_InCombat or (ml_global_information.Player_HP.percent > tonumber(gRestHP) and ml_global_information.Player_MP.percent > tonumber(gRestMP))
+	return (not Player.incombat or 
+		(tonumber(gRestHP) > tonumber(gFleeHP) and Player.hp.percent > tonumber(gRestHP) and tonumber(gRestMP) > tonumber(gFleeMP) and Player.mp.percent > tonumber(gRestMP)) or
+		(tonumber(gFleeHP) > 0 and Player.hp.percent > tonumber(gPotionHP)) or
+		(tonumber(gFleeHP) > 0 and Player.hp.percent > 75))
 end
 
 function ffxiv_task_flee:task_complete_execute()

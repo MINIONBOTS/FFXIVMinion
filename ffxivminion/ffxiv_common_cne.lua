@@ -657,7 +657,7 @@ function e_avoid:execute()
 		local moveDist = PDistance3D(ppos.x,ppos.y,ppos.z,newPos.x,newPos.y,newPos.z)
 		if (moveDist > 1.5) then
 			if (ValidTable(obstacle)) then
-				table.insert(ml_global_information.navObstacles,obstacle)
+				--table.insert(ml_global_information.navObstacles,obstacle)
 				d("Adding nav obstacle.")
 			end
 			c_avoid.lastAvoid = c_avoid.newAvoid
@@ -669,6 +669,7 @@ function e_avoid:execute()
 			newTask.maxTime = seconds
 			ml_task_hub:ThisTask().preserveSubtasks = true
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+			d("Adding avoidance task.")
 			
 			c_bettertargetsearch.postpone = Now() + 5000
 		end
@@ -676,7 +677,6 @@ function e_avoid:execute()
 		d("Can't dodge, didn't find a valid position.")
 	end
 end
-
 
 c_autopotion = inheritsFrom( ml_cause )
 e_autopotion = inheritsFrom( ml_effect )
@@ -696,6 +696,12 @@ c_autopotion.ethers = {
 }
 c_autopotion.item = nil
 function c_autopotion:evaluate()
+	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
+		or IsShopWindowOpen() or Player.ismounted or Player.incombat or IsFlying() or IsTransporting()) 
+	then
+		return false
+	end
+	
 	-- Reset tempvar.
 	c_autopotion.item = nil
 	
@@ -1995,7 +2001,6 @@ function c_companion:evaluate()
 	
     return false
 end
-
 function e_companion:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
@@ -2006,7 +2011,18 @@ function e_companion:execute()
 	local green = MGetItem(4868)
 	if (green and green.isready) then
 		green:Use()
-		ml_global_information.Await(10000, function () return IsCompanionSummoned() end)
+		profile.AwaitDo(250,5000, 
+			function () 
+				return (IsCompanionSummoned() or Player.castinginfo.castingid == 851) 
+			end,
+			function () 
+				--local bestPotion = Inventory:Get(itemID)
+				local green = MGetItem(4868)
+				if (green and green.isready) then
+					green:Use()
+				end
+			end
+		)
 	end
 end
 
@@ -2138,6 +2154,22 @@ function c_rest:evaluate()
 		return false
 	end
 	
+	if (ml_task_hub:ThisTask().name == "LT_GRIND") then
+		if (gDoFates == "1" and gFatesOnly == "1") then
+			return false
+		end
+	elseif (ml_task_hub:ThisTask().name == "LT_FATE") then
+		local fate = MGetFateByID(ml_task_hub:ThisTask().fateid)
+		if (ValidTable(fate)) then
+			local fatePos = {x = fate.x,y = fate.y,z = fate.z}
+			local myPos = Player.pos
+			local dist2d = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
+			if (dist2d > fate.radius) then
+				return false
+			end
+		end
+	end
+	
 	local isDOL = (Player.job >= 16 and Player.job <= 18)
 	local isDOH = (Player.job >= 8 and Player.job <= 15)
 	
@@ -2203,12 +2235,14 @@ function c_flee:evaluate()
 			end
 		end
 		
-		local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
-		if (ValidTable(newPos)) then
-			local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
-			if (p) then
-				e_flee.fleePos = p
-				return true
+		for i = 1,10 do
+			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
+			if (ValidTable(newPos)) then
+				local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+				if (p) then
+					e_flee.fleePos = p
+					return true
+				end
 			end
 		end
 	end

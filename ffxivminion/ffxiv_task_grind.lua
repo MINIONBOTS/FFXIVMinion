@@ -1,4 +1,6 @@
 ffxiv_task_grind = inheritsFrom(ml_task)
+ffxiv_task_grind.addon_process_elements = {}
+ffxiv_task_grind.addon_overwatch_elements = {}
 ffxiv_task_grind.name = "LT_GRIND"
 ffxiv_task_grind.inFate = false
 ffxiv_task_grind.ticks = 0
@@ -20,6 +22,15 @@ ffxiv_task_grind.atmas = {
 	["Crab"] = { name = "Crab", 				hour = 12, 	tele = 14, 	map = 138, item = 7862, mesh = "Western La Noscea"},
 }
 
+ffxiv_task_grind.luminous = {
+	["Ice"] = 		{ name = "Ice", 		map = 397, item = 13569 },
+	["Earth"] = 	{ name = "Earth", 		map = 398, item = 13572 },
+	["Water"] = 	{ name = "Water", 		map = 399, item = 13574 },
+	["Lightning"] = { name = "Lightning", 	map = 400, item = 13573 },
+	["Fire"] = 		{ name = "Fire",		map = 402, item = 13571 },
+	["Wind"] = 		{ name = "Wind", 		map = 401, item = 13570 },
+}
+
 function ffxiv_task_grind.Create()
     local newinst = inheritsFrom(ffxiv_task_grind)
     
@@ -37,7 +48,7 @@ function ffxiv_task_grind.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	newinst.filterLevel = true
-	newinst.correctMap = ml_global_information.Player_Map
+	newinst.correctMap = Player.localmapid
 	newinst.suppressRestTimer = 0
 	newinst.safeLevel = false
 	ffxiv_task_grind.inFate = false
@@ -152,21 +163,21 @@ function ffxiv_task_grind:Init()
 	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
     self:add( ke_isLoading, self.overwatch_elements)
 	
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 45 )
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 200 )
     self:add(ke_dead, self.overwatch_elements)
 	
-	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 40 )
+	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 150 )
     self:add(ke_flee, self.overwatch_elements)
+	
+	--local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 40 )
+    --self:add(ke_luminous, self.overwatch_elements)
 	
 	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 30 )
     self:add(ke_atma, self.overwatch_elements)
 	
 	local ke_isLocked = ml_element:create( "IsLocked", c_grindislocked, e_grindislocked, 180 )
     self:add( ke_isLocked, self.process_elements)
-	
-	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 90 )
-    self:add(ke_rest, self.process_elements)
-	
+
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.process_elements)
     
@@ -188,13 +199,38 @@ function ffxiv_task_grind:Init()
     local ke_nextMarker = ml_element:create( "NextMarker", c_nextgrindmarker, e_nextgrindmarker, 20 )
     self:add(ke_nextMarker, self.process_elements)
 	
+	local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 18 )
+    self:add(ke_rest, self.process_elements)
+	
     local ke_addKillTarget = ml_element:create( "AddKillTarget", c_add_killtarget, e_add_killtarget, 15 )
     self:add(ke_addKillTarget, self.process_elements)
 	
     local ke_fateWait = ml_element:create( "FateWait", c_fatewait, e_fatewait, 10 )
     self:add(ke_fateWait, self.process_elements)
-  
+	
+	self:InitAddon()
+	self:InitExtras()
     self:AddTaskCheckCEs()
+end
+
+function ffxiv_task_grind:InitAddon()
+	--Nothing here, just for extras.
+end
+
+function ffxiv_task_grind:InitExtras()
+	local overwatch_elements = self.addon_overwatch_elements
+	if (ValidTable(overwatch_elements)) then
+		for i,element in pairs(overwatch_elements) do
+			self:add(element, self.overwatch_elements)
+		end
+	end
+	
+	local process_elements = self.addon_process_elements
+	if (ValidTable(process_elements)) then
+		for i,element in pairs(process_elements) do
+			self:add(element, self.process_elements)
+		end
+	end
 end
 
 function ffxiv_task_grind:Process()
@@ -565,7 +601,7 @@ function ffxiv_task_grind.UpdateBlacklistUI(tickcount)
                 fafound = true
                 gFateName = string.gsub(f.name,",","")
                 gFateID = f.id
-				gFateMapID = ml_global_information.Player_Map
+				gFateMapID = Player.localmapid
             end
         end
         if (not fafound) then
