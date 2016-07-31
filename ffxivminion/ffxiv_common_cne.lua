@@ -2011,7 +2011,7 @@ function e_companion:execute()
 	local green = MGetItem(4868)
 	if (green and green.isready) then
 		green:Use()
-		profile.AwaitDo(250,5000, 
+		ml_global_information.AwaitDo(250, 5000, 
 			function () 
 				return (IsCompanionSummoned() or Player.castinginfo.castingid == 851) 
 			end,

@@ -1525,7 +1525,7 @@ function c_fishnextprofilemap:evaluate()
     
 	local task = ffxiv_fish.currentTask
 	if (ValidTable(task)) then
-		if (ml_global_information.Player_Map ~= task.mapid) then
+		if (Player.localmapid ~= task.mapid) then
 			return true
 		end
 	end
@@ -1547,7 +1547,7 @@ function e_fishnextprofilemap:execute()
 
 	local mapID = task.mapid
 	local taskPos = task.pos
-	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,ml_global_information.Player_Map,mapID)
+	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,Player.localmapid,mapID)
 	if(ValidTable(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
@@ -1563,7 +1563,7 @@ function e_fishnextprofilemap:execute()
 				end
 				
 				local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-				if (noTeleportMaps[ml_global_information.Player_Map]) then
+				if (noTeleportMaps[Player.localmapid]) then
 					return
 				end
 				
@@ -1580,7 +1580,7 @@ function e_fishnextprofilemap:execute()
 			end
 		end
 		
-		--ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
+		--ffxiv_dialog_manager.IssueStopNotice("Fish_NextTask", "No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
 	end
 end
 
@@ -1592,7 +1592,7 @@ function c_fishnextprofilepos:evaluate()
 	end
     
 	local task = ffxiv_fish.currentTask
-	if (task.mapid == ml_global_information.Player_Map) then
+	if (task.mapid == Player.localmapid) then
 		local pos = task.pos
 		local myPos = ml_global_information.Player_Position
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, pos.x, pos.y, pos.z)

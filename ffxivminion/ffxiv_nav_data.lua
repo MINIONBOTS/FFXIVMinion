@@ -1,5 +1,4 @@
-ffxiv_nav_data = 
-{
+ffxiv_nav_data = {
 	[130] = 
 	{	
 		[128] = {

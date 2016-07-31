@@ -1910,7 +1910,7 @@ function QM.LoadCurrentValues(strWindow)
 		qTaskUsePosY = 	pos.y
 		qTaskUsePosZ = 	pos.z
 		qTaskMesh = ml_mesh_mgr.GetFileName(gmeshname)
-		qTaskMap = ml_global_information.Player_Map
+		qTaskMap = Player.localmapid
 	elseif (strWindow == "edit") then
 		local target = Player:GetTarget()
 		if (target ~= nil) then
@@ -1923,7 +1923,7 @@ function QM.LoadCurrentValues(strWindow)
 		eTaskUsePosY = 	pos.y
 		eTaskUsePosZ = 	pos.z
 		eTaskMesh = ml_mesh_mgr.GetFileName(gmeshname)
-		eTaskMap = ml_global_information.Player_Map
+		eTaskMap = Player.localmapid
 	end
 		
 	QM.PushVariables()

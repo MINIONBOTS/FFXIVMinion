@@ -345,7 +345,7 @@ function c_returntobase:evaluate()
 		local marker = ml_global_information.currentMarker
 		if (ValidTable(task)) then
 			basePos = task.pos
-			if (task.mapid ~= ml_global_information.Player_Map) then
+			if (task.mapid ~= Player.localmapid) then
 				gd("[ReturnToBase]: Not on correct map yet.",3)
 				return false
 			end
@@ -1330,6 +1330,9 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.activity = "uselocator"
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
+		if (GetGameRegion() ~= 1) then
+			e_nodeprebuff.requiredismount = true
+		end
 		return true
 	end
 	
@@ -1341,6 +1344,9 @@ function c_nodeprebuff:evaluate()
 		e_nodeprebuff.activity = "useunspoiledfinder"
 		e_nodeprebuff.requirestop = false
 		e_nodeprebuff.requiredismount = false
+		if (GetGameRegion() ~= 1) then
+			e_nodeprebuff.requiredismount = true
+		end
 		return true
 	end		
 	
@@ -2303,7 +2309,7 @@ function c_gathernextprofilemap:evaluate()
     
 	local task = ffxiv_gather.currentTask
 	if (ValidTable(task)) then
-		if (ml_global_information.Player_Map ~= task.mapid) then
+		if (Player.localmapid ~= task.mapid) then
 			return true
 		end
 	end
@@ -2316,7 +2322,7 @@ function e_gathernextprofilemap:execute()
 
 	local mapID = task.mapid
 	local taskPos = task.pos
-	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,ml_global_information.Player_Map,mapID)
+	local pos = ml_nav_manager.GetNextPathPos(ml_global_information.Player_Position,Player.localmapid,mapID)
 	if (ValidTable(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
@@ -2332,7 +2338,7 @@ function e_gathernextprofilemap:execute()
 				end
 				
 				local noTeleportMaps = { [177] = true, [178] = true, [179] = true }
-				if (noTeleportMaps[ml_global_information.Player_Map]) then
+				if (noTeleportMaps[Player.localmapid]) then
 					return
 				end
 				
@@ -2349,7 +2355,7 @@ function e_gathernextprofilemap:execute()
 			end
 		end
 		
-		--ffxiv_dialog_manager.IssueStopNotice("Gather_NextTask", "No path found from map "..tostring(ml_global_information.Player_Map).." to map "..tostring(mapID))
+		--ffxiv_dialog_manager.IssueStopNotice("Gather_NextTask", "No path found from map "..tostring(Player.localmapid).." to map "..tostring(mapID))
 	end
 end
 
@@ -2719,7 +2725,7 @@ function ffxiv_gather.GUIVarUpdate(Event, NewVals, OldVals)
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "Field_Name") then
 			--Capture the marker name changes, incase it affects our marker lists.
-			ffxiv_task_gather.RefreshMarkerList(ml_global_information.Player_Map)
+			ffxiv_task_gather.RefreshMarkerList(Player.localmapid)
 		elseif ( k == "gProfile" and gBotMode == GetString("gatherMode")) then
 			d("attempt to load profile.")
 			ffxiv_gather.LoadProfile(v)

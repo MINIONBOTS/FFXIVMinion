@@ -204,7 +204,9 @@ function ml_mesh_mgr.ParseInstructions(data)
 								if (returnHome:Cast()) then
 									ml_global_information.Await(10000, function () return Quest:IsLoading() end)
 									return true
-								end								
+								end		
+							elseif (not returnHome) then
+								return true
 							end
 						else
 							Player:Stop()
@@ -626,7 +628,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 									[397] = 200,
 								}
 							
-								local minaltitude = minaltitudes[ml_global_information.Player_Map] or minaltitudes[-1]
+								local minaltitude = minaltitudes[Player.localmapid] or minaltitudes[-1]
 								if (pPos.y > minaltitude) then
 									ml_mesh_mgr.OMCMinAltitude = pPos.y + 20
 									d("Setting min altitude to "..tostring(pPos.y + 20))

@@ -595,8 +595,8 @@ function c_endfate:evaluate()
 		local minFateLevel = tonumber(gMinFateLevel) or 0
 		local maxFateLevel = tonumber(gMaxFateLevel) or 0
 		
-		if ((minFateLevel ~= 0 and (fate.level < Player.level - minFateLevel)) or 
-			(maxFateLevel ~= 0 and (fate.level > Player.level + maxFateLevel)))
+		if ((minFateLevel ~= 0 and (fate.level < (Player.level - minFateLevel))) or 
+			(maxFateLevel ~= 0 and (fate.level > (Player.level + maxFateLevel))))
 		then
 			return true
 		end
@@ -657,7 +657,9 @@ function ffxiv_task_fate.IsChain(mapid, fateid)
 		[155] = {
 			[1] = {
 				{ id = 501, x = 278.2, y = 338.7, z = -505.9 },
-				{ id = 502, x = 266.5, y = 360.7, z = -624.6, specialDelay = 10000 },
+				{ id = 502, x = 266.5, y = 360.7, z = -624.6 },
+				--{ id = 504, x = 260.5, y = 360.3, z = -624.3 },
+				--{ id = 503, x = 225.5, y = 356.1, z = -656.7 },
 			},
 		},
 		[147] = {

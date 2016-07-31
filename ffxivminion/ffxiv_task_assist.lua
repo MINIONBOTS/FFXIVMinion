@@ -1,4 +1,5 @@
 ffxiv_assist = {}
+ffxiv_assist.strings = {}
 
 ffxiv_task_assist = inheritsFrom(ml_task)
 ffxiv_task_assist.name = "LT_ASSIST"
@@ -98,7 +99,7 @@ function ffxiv_task_assist:Process()
 					--local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 					
 					if (ml_global_information.AttackRange > 5) then
-						if ((not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) and not MIsCasting()) then
+						if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 							if (Now() > self.movementDelay) then
 								local path = Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false)
 								self.movementDelay = Now() + 1000
@@ -122,7 +123,7 @@ function ffxiv_task_assist:Process()
 							SkillMgr.Cast( target )
 						end
 					else
-						if (not InCombatRange(target.id) or (not target.los and not CanAttack(target.id))) then
+						if (not InCombatRange(target.id) or not target.los) then
 							Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false)
 						end
 						if (target.distance <= 15) then
@@ -229,6 +230,69 @@ function ffxiv_task_assist.UIInit()
 	gConfirmDuty = Settings.FFXIVMINION.gConfirmDuty
 	gQuestHelpers = Settings.FFXIVMINION.gQuestHelpers
 	gAssistUseAutoFace = Settings.FFXIVMINION.gAssistUseAutoFace
+end
+
+-- New GUI.
+function ffxiv_task_assist.NewInit()
+	FFXIV_Assist_StartCombat = ffxivminion.GetSetting("FFXIV_Assist_StartCombat",true)
+	FFXIV_Assist_ConfirmDuty = ffxivminion.GetSetting("FFXIV_Assist_ConfirmDuty",false)
+	FFXIV_Assist_QuestHelpers = ffxivminion.GetSetting("FFXIV_Assist_QuestHelpers",false)
+	FFXIV_Assist_AutoFace = ffxivminion.GetSetting("FFXIV_Assist_AutoFace",false)
+	FFXIV_Assist_FollowTarget = ffxivminion.GetSetting("FFXIV_Assist_FollowTarget",false)
+	FFXIV_Assist_TrackTarget = ffxivminion.GetSetting("FFXIV_Assist_TrackTarget",false)
+	
+	FFXIV_Assist_Mode = 1
+	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("nearest"), GetString("tankAssist") }
+	FFXIV_Assist_Priority = 1
+	FFXIV_Assist_Priorities = { GetString("dps"), GetString("healer") }
+end
+
+ffxiv_task_assist.GUI = {
+	x = 0,
+	y = 0, 
+	height = 0,
+	width = 0,
+}
+
+function ffxiv_task_assist.Draw()
+	local fontSize = GUI:GetWindowFontSize()
+	local windowPaddingY = ml_gui.style.current.windowpadding.y
+	local framePaddingY = ml_gui.style.current.framepadding.y
+	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	
+	if (GUI:CollapsingHeader(GetString("status"),"header-status",true,true)) then
+		GUI:BeginChild("##header-status",0,((fontSize * 6) + (itemSpacingY * 5) + (framePaddingY * 2 * 6) + (windowPaddingY * 2)),true)
+		GUI:PushItemWidth(120)					
+		
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("navmesh"), FFXIV_Common_NavMesh, FFXIV_Common_MeshList ),"FFXIV_Common_NavMesh")
+		ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		ffxivminion.GUIVarCapture(GUI:Checkbox("Follow Target",FFXIV_Assist_FollowTarget),"FFXIV_Assist_FollowTarget");
+		ffxivminion.GUIVarCapture(GUI:Checkbox("Face Target",FFXIV_Assist_TrackTarget),"FFXIV_Assist_TrackTarget");
+		
+		if (GUI:Button("Show Filters",0,20)) then
+			SkillMgr.ShowFilterWindow()
+		end
+		
+		GUI:PopItemWidth()
+		GUI:EndChild()
+	end
+	
+	if (GUI:CollapsingHeader(GetString("settings"),"header-settings",true,true)) then
+		GUI:BeginChild("##header-settings",0,((fontSize * 6) + (itemSpacingY * 5) + (framePaddingY * 2 * 6) + (windowPaddingY * 2)),true)
+		GUI:PushItemWidth(120)					
+		
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("assistMode"), FFXIV_Assist_Mode, FFXIV_Assist_Modes ),"FFXIV_Assist_Mode")
+		ffxivminion.GUIVarCapture(GUI:Combo(GetString("assistPriority"), FFXIV_Assist_Priority, FFXIV_Assist_Priorities ),"FFXIV_Assist_Priority")
+		
+		ffxivminion.GUIVarCapture(GUI:Checkbox("Use Autoface",FFXIV_Assist_AutoFace),"FFXIV_Assist_AutoFace");
+		ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("startCombat"),FFXIV_Assist_StartCombat),"FFXIV_Assist_StartCombat");
+		ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("confirmDuty"),FFXIV_Assist_ConfirmDuty),"FFXIV_Assist_ConfirmDuty");
+		ffxivminion.GUIVarCapture(GUI:Checkbox(GetString("questHelpers"),FFXIV_Assist_QuestHelpers),"FFXIV_Assist_QuestHelpers");
+		
+		GUI:PopItemWidth()
+		GUI:EndChild()
+	end
 end
 
 c_assistyesno = inheritsFrom( ml_cause )

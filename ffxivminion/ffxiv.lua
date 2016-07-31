@@ -327,6 +327,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
+			--[[
 			if (gUseCompanionItem ~= GetString("none")) then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
 					ml_global_information.rootCheckTimer = tickcount
@@ -354,6 +355,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					end
 				end
 			end
+			--]]
 			
 			if (gUseCurielRoot == "1") then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted and not IsMounting()) then
