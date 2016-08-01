@@ -1584,7 +1584,7 @@ function c_useaethernet:evaluate(mapid, pos)
 	
 	if (not table.valid(gotoPos)) then
 		return false
-	elseif (table.valid(gotoPos) and Distance3DT(gotoPos,Player.pos) < 30) then
+	elseif (table.valid(gotoPos) and Distance3DT(gotoPos,Player.pos) < 30 and destMapID == Player.localmapid) then
 		return false
 	end	
 	
@@ -1592,8 +1592,7 @@ function c_useaethernet:evaluate(mapid, pos)
 	
 	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
-	
-	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist)) then
+	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
 		if (IsNull(ml_task_hub:CurrentTask().uniqueid,0) ~= nearestAethernet.id) then 
 			--d("current id:"..tostring(ml_task_hub:CurrentTask().uniqueid)..", new id:"..tostring(nearestAethernet.id))
 			e_useaethernet.nearest = nearestAethernet
