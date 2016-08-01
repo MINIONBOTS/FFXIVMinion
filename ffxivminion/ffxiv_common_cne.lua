@@ -697,7 +697,7 @@ c_autopotion.ethers = {
 c_autopotion.item = nil
 function c_autopotion:evaluate()
 	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or Player.incombat or IsFlying() or IsTransporting()) 
+		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting()) 
 	then
 		return false
 	end
