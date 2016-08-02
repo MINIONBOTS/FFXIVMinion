@@ -1418,7 +1418,7 @@ function e_walktopos:execute()
 			end
 		end
 	end
-	
+
 	if (ValidTable(c_walktopos.pos)) then
 		local gotoPos = c_walktopos.pos
 		local myPos = ml_global_information.Player_Position
@@ -1573,6 +1573,10 @@ e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
 function c_useaethernet:evaluate(mapid, pos)
+	if (true) then
+		return false
+	end
+	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
 	if (destMapID == 0) then
