@@ -2000,6 +2000,18 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
+function Distance3D(x1,y1,z1,x2,y2,z2)
+	local dx = (x1 - x2)
+	local dy = math.abs(y1 - y2)
+	local dz = (z1 - z2)
+	local dist2d = math.sqrt((dx * dx) + (dz * dz))
+	
+	if (dy <= 3) then
+		return dist2d
+	else
+		return dist2d + dy
+	end
+end
 function Distance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
@@ -5799,4 +5811,16 @@ end
 function string.pad(str, padding, padchar)
     if padchar == nil then padchar = ' ' end
     return str .. string.rep(padchar, padding - string.len(str))
+end
+
+function IsPOTD(mapid)
+	local potd = {
+		[561] = true,
+		[562] = true,
+		[563] = true,
+		[564] = true,
+		[565] = true,
+	}
+	
+	return potd[mapid]
 end

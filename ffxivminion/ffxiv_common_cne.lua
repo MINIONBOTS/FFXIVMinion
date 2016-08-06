@@ -697,7 +697,7 @@ c_autopotion.ethers = {
 c_autopotion.item = nil
 function c_autopotion:evaluate()
 	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") 
-		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting()) 
+		or IsShopWindowOpen() or Player.ismounted or IsFlying() or IsTransporting() or not Player.incombat) 
 	then
 		return false
 	end
@@ -1214,12 +1214,23 @@ function c_followleader:evaluate()
 		local isDPS = GetRoleString(Player.job) == "dps"
 		local isTank = GetRoleString(Player.job) == "tank"
 		
-		local rangeClose,rangeFar = 10,20
+		local rangeClose,rangeFar = 8,12
 		if (InInstance() or leader.incombat) then
 			rangeClose,rangeFar = 5,8
 		end
 		
-		if ((isHealer and distance > rangeFar) or (isDPS and distance > rangeClose) or (distance > rangeFar)) or (isEntity and (leader.ismounted and not Player.ismounted)) then				
+		local passages = EntityList("contentid=2007188")
+		if (table.valid(passages)) then
+			local i, passage = next(passages)
+			if (passage) then
+				local passagePos = passage.pos
+				if (Distance3DT(passagePos,leaderPos) < 5) then
+					rangeClose,rangeFar = 3,3
+				end
+			end
+		end
+		
+		if ((isHealer and distance > rangeFar) or (isDPS and distance > rangeClose) or (distance > rangeFar)) or (isEntity and (leader.ismounted and not Player.ismounted)) then	
 			c_followleader.leaderpos = leaderPos
 			c_followleader.leader = leader
 			c_followleader.distance = distance
@@ -1248,8 +1259,7 @@ function e_followleader:execute()
 		return
 	end
 	
-	if (Player.onmesh) then	
-		d("Trying to follow target, on mesh.")
+	if (Player.onmesh and not IsPOTD(Player.localmapid)) then	
 		-- mount
 		
 		if (gUseMount == "1" and gMount ~= "None" and c_followleader.hasEntity) then
@@ -1293,10 +1303,42 @@ function e_followleader:execute()
 		end
 		e_followleader.isFollowing = true
 	else
-		if ( not Player:IsMoving() ) then
-			d("Trying to follow target, off mesh.")
-			Player:FollowTarget(leader.id)
-			ml_global_information.Await(1000, function () Player:IsMoving() end)
+		if (not Player:IsMoving()) then
+			local myPos = Player.pos
+			local leaderid = leader.id
+			Player:SetFacing(leaderPos.x,leaderPos.y,leaderPos.z)
+			Player:Move(FFXIV.MOVEMENT.FORWARD)
+			ml_global_information.AwaitDo(1500, 30000, 
+				function ()
+					if (not Player:IsMoving()) then
+						return true
+					end
+					local leader = EntityList:Get(leaderid)
+					if (not leader) then
+						return true
+					else
+						local leaderPos = leader.pos
+						local myPos = Player.pos
+						return (Distance3DT(leaderPos,myPos) < 4)
+					end
+					return false
+				end,
+				function ()
+					local leader = EntityList:Get(leaderid)
+					if (leader) then
+						local leaderPos = leader.pos
+						Player:SetFacing(leaderPos.x,leaderPos.y,leaderPos.z)
+					end
+				end,
+				function ()
+					if (Player:IsMoving()) then
+						Player:Stop()
+					end
+				end
+			)
+			--d("Trying to follow target, off mesh.")
+			--Player:FollowTarget(leader.id)
+			--ml_global_information.Await(1000, function () Player:IsMoving() end)
 		end
 	end
 end

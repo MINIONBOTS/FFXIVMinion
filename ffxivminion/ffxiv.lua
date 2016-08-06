@@ -3,6 +3,7 @@ ffxivminion.foods = {}
 ffxivminion.foodsHQ = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
+ffxivminion.busyTimer = 0
 
 -- Create the main GUI container.
 ffxivminion.GUI = {
@@ -242,7 +243,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		then
 			ffxivminion.ClearAddons()
 		end
-		
+
         if (ml_task_hub:CurrentTask() ~= nil) then
             gFFXIVMINIONTask = ml_task_hub:CurrentTask().name
         end
@@ -1739,19 +1740,42 @@ end
 
 -- clear any addons displayed by social actions like trade/party invites
 function ffxivminion.ClearAddons()
+	if (ffxivminion.busyTimer ~= 0 and Now() > ffxivminion.busyTimer) then
+		SendTextCommand("/busy off")
+		ffxivminion.busyTimer = 0
+	end
+	
 	--trade window
-	Player:CheckTradeWindow()
+	if (ControlVisible("Trade")) then
+		--local traders = EntityList("nearest,maxdistance=5,chartype=4")
+		Player:Stop()
+		ml_global_information.Await(2000, 
+			function () 
+				return not Player:IsMoving() 
+			end,
+			function ()
+				SendTextCommand("/busy on")
+				Player:CheckTradeWindow()
+				ffxivminion.busyTimer = Now() + 60000
+			end
+		)
+		return true
+	end
 	
 	--party invite
-	if (ControlVisible("_NotificationParty") and ControlVisible("SelectYesno")) then
-		if(not ffxivminion.declineTimer) then
-			ffxivminion.declineTimer = Now() + math.random(3000,5000)
-		elseif(Now() > ffxivminion.declineTimer) then
-			if(not ffxivminion.inviteDeclined) then
-				PressYesNo(false)
-				ffxivminion.inviteDeclined = true
-				ffxivminion.declineTimer = Now() + math.random(1000,3000)
+	if (ControlVisible("_NotificationParty")) then
+		if (ControlVisible("SelectYesno")) then
+			if(not ffxivminion.declineTimer) then
+				ffxivminion.declineTimer = Now() + math.random(3000,5000)
+			elseif(Now() > ffxivminion.declineTimer) then
+				if(not ffxivminion.inviteDeclined) then
+					PressYesNo(false)
+					ffxivminion.inviteDeclined = true
+					ffxivminion.declineTimer = Now() + math.random(1000,3000)
+				end
 			end
+		else
+			SendTextCommand("/decline")
 		end
 	end
 end
