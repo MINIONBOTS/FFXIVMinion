@@ -253,6 +253,26 @@ function ml_global_information.CheckboxConvert(newval)
 	
 end
 
+function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ml_global_information.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			dowhile = param4,
+			followall = param5,
+		}
+	else
+		ml_global_information.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			dowhile = param3,
+			followall = param4,
+		}
+	end
+end
+
 function ml_global_information.Init()
 	-- Update default meshes.
 	do

@@ -5431,15 +5431,14 @@ function Transport137(pos1,pos2)
 		if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
 			--d("Need to move from Costa area to Wineport.")
 			return true, function()
-				if (CanUseAetheryte(12) and not ml_global_information.Player_InCombat) then
+				if (CanUseAetheryte(12) and not Player.incombat) then
 					if (Player:IsMoving()) then
 						Player:Stop()
-						ml_task_hub:CurrentTask():SetDelay(500)
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 						return
 					end
 					if (Player.ismounted) then
 						Dismount()
-						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
 					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
@@ -5451,24 +5450,25 @@ function Transport137(pos1,pos2)
 						end
 					end
 				else
+					d("Aetheryte 12 check?:"..tostring(CanUseAetheryte(12)))
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
 					newTask.uniqueid = 1003588
+					newTask.abort = function () return (CanUseAetheryte(12) and not Player.incombat) end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end
 		elseif (not (pos1.x > 218 and pos1.z > 51) and (pos2.x > 218 and pos2.z > 51)) then
 			--d("Need to move from Wineport to Costa area.")
 			return true, function()
-				if (CanUseAetheryte(11) and not ml_global_information.Player_InCombat) then
+				if (CanUseAetheryte(11) and not Player.incombat) then
 					if (Player:IsMoving()) then
 						Player:Stop()
-						ml_task_hub:CurrentTask():SetDelay(500)
+						ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 						return
 					end
 					if (Player.ismounted) then
 						Dismount()
-						ml_task_hub:CurrentTask():SetDelay(1000)
 						return
 					end
 					if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
@@ -5480,9 +5480,11 @@ function Transport137(pos1,pos2)
 						end
 					end
 				else
+					d("Aetheryte 11 check?:"..tostring(CanUseAetheryte(11)))
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
 					newTask.uniqueid = 1003589
+					newTask.abort = function () return (CanUseAetheryte(11) and not Player.incombat) end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
 			end

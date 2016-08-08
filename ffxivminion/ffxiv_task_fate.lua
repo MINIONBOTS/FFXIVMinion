@@ -354,7 +354,8 @@ function c_syncfatelevel:evaluate()
 	local fateID = ml_task_hub:ThisTask().fateid
 	local fate = MGetFateByID(fateID)
 	if ( ValidTable(fate)) then
-		if (AceLib.API.Fate.RequiresSync(fate.id)) then
+		if (fate.maxlevel < Player.level) then
+		--if (AceLib.API.Fate.RequiresSync(fate.id)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)
 			if (distance <= fate.radius) then				
 				return true

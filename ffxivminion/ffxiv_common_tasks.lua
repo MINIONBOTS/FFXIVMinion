@@ -2108,6 +2108,7 @@ function ffxiv_nav_interact.Create()
 	newinst.dismountDistance = 15
 	newinst.killParent = false
 	newinst.interactDelay = 500
+	newinst.abort = nil
 	
 	GameHacks:SkipDialogue(true)
 	newinst.alwaysMount = false
@@ -2146,6 +2147,12 @@ end
 function ffxiv_nav_interact:task_complete_eval()
 	local myTarget = MGetTarget()
 	local ppos = ml_global_information.Player_Position
+	
+	if (self.abort and type(self.abort) == "function") then
+		if (self.abort() == true) then
+			return true
+		end
+	end
 	
 	if (MIsLoading() and not self.areaChanged) then
 		self.areaChanged = true
