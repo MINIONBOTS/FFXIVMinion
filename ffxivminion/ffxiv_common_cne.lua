@@ -142,14 +142,14 @@ function c_assistleader:evaluate()
 		if (NotQueued()) then
 			--d("executing not queued version>")
 			local target = EntityList:Get(leadtarget)				
-			if ( ValidTable(target) and target.alive and (target.onmesh or InCombatRange(target.id))) then
+			if ( ValidTable(target) and target.alive) then
 				c_assistleader.targetid = target.id
 				return true
 			end
 		else	
 			--d("executing queued version>")
 			local target = EntityList:Get(leadtarget)				
-			if ( ValidTable(target) and target.alive and target.targetid == leader.id and (target.onmesh or InCombatRange(target.id))) then
+			if ( ValidTable(target) and target.alive and target.targetid == leader.id) then
 				c_assistleader.targetid = target.id
 				return true
 			end
@@ -166,7 +166,6 @@ function e_assistleader:execute()
 	end
 	
 	if (NotQueued()) then
-		--d("executing nonqueued")
 		if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
 			--d("setting new id to "..tostring(id))
 			ml_task_hub:CurrentTask().targetid = id
@@ -188,8 +187,8 @@ function e_assistleader:execute()
 			return
 		end
 
-		--d("executing queued")
 		local target = MGetEntity(c_assistleader.targetid)
+		local targetid = target.id
 		local pos = target.pos
 		local ppos = Player.pos
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
@@ -226,9 +225,40 @@ function e_assistleader:execute()
 			end
 		else
 			--d("Melee class, check if we're in combat range and such..")
-			Player:SetTarget(target.id)
-			if (not InCombatRange(target.id) or not target.los) then
-				Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+			Player:SetTarget(targetid)
+			if (not InCombatRange(targetid) or not target.los) then
+				--Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
+				
+				Player:Move(FFXIV.MOVEMENT.FORWARD)
+				ml_global_information.AwaitDo(1500, 30000, 
+					function ()
+						if (not Player:IsMoving()) then
+							return true
+						end
+						local target = EntityList:Get(targetid)
+						if (not target) then
+							return true
+						else
+							local targetPos = target.pos
+							local myPos = Player.pos
+							--return (Distance3DT(targetPos,myPos) < 4)
+							return (InCombatRange(target.id) and target.los)
+						end
+						return false
+					end,
+					function ()
+						local target = EntityList:Get(targetid)
+						if (target) then
+							local targetPos = target.pos
+							Player:SetFacing(targetPos.x,targetPos.y,targetPos.z)
+						end
+					end,
+					function ()
+						if (Player:IsMoving()) then
+							Player:Stop()
+						end
+					end
+				)
 			end
 			if (InCombatRange(target.id)) then
 				Player:SetTarget(target.id)
@@ -847,6 +877,7 @@ e_interactgate = inheritsFrom( ml_effect )
 e_interactgate.timer = 0
 e_interactgate.id = 0
 e_interactgate.selector = 0
+e_interactgate.conversationstrings = ""
 function c_interactgate:evaluate()
 	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
 		return false
@@ -854,6 +885,7 @@ function c_interactgate:evaluate()
 	
 	e_interactgate.id = 0
 	e_interactgate.selector = 0
+	e_interactgate.conversationstrings = ""
 	
     if (ml_task_hub:CurrentTask().destMapID) then
 		if (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID) then
@@ -869,6 +901,9 @@ function c_interactgate:evaluate()
 						e_interactgate.id = interactable.id
 						if (pos.i) then
 							e_interactgate.selector = pos.i
+						end
+						if (pos.conversationstrings) then
+							e_interactgate.conversationstrings = pos.conversationstrings
 						end
 						return true
 					end
@@ -889,10 +924,30 @@ function e_interactgate:execute()
 	end
 	
 	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
-		local selector = e_interactgate.selector
-		SelectConversationIndex(selector)
-		e_interactgate.timer = Now() + 1500
-		return
+		if (e_interactgate.conversationstrings ~= "") then
+			local conversationstrings = e_interactgate.conversationstrings
+			local convoList = GetConversationList()
+			if (table.valid(convoList)) then
+				if (table.valid(conversationstrings)) then
+					for convoindex,convo in pairs(convoList) do
+						local cleanedline = string.gsub(convo.line,"[()]","")
+						for k,v in pairs(conversationstrings) do
+							local cleanedv = string.gsub(v,"[()]","")
+							if (string.find(cleanedline,cleanedv) ~= nil) then
+								SelectConversationIndex(convoindex)
+								ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+								return false
+							end
+						end
+					end
+				end
+			end
+		else
+			local selector = e_interactgate.selector
+			SelectConversationIndex(selector)
+			e_interactgate.timer = Now() + 1500
+			return
+		end
 	end
 	
 	local gate = EntityList:Get(e_interactgate.id)
@@ -923,6 +978,7 @@ function c_transportgate:evaluate()
 						details.uniqueid = pos.b
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
+						details.conversationstrings = pos.conversationstrings or ""
 						e_transportgate.details = details
 						return true
 					elseif (ValidTable(pos) and pos.a) then
@@ -930,6 +986,7 @@ function c_transportgate:evaluate()
 						details.uniqueid = pos.a
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
+						details.conversationstrings = pos.conversationstrings or ""
 						e_transportgate.details = details
 						return true
 					end
@@ -950,6 +1007,7 @@ function e_transportgate:execute()
 	newTask.pos = gateDetails.pos
 	newTask.uniqueid = gateDetails.uniqueid
 	newTask.conversationIndex = gateDetails.conversationIndex
+	newTask.conversationstrings = gateDetails.conversationstrings
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
@@ -1385,11 +1443,13 @@ function c_walktopos:evaluate()
 			--ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
+			--[[
 			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
 			if (p and dist ~= 0 and dist < 6) then
 				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
 				gotoPos = p
 			end
+			--]]
 			--ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
@@ -2896,13 +2956,33 @@ function c_selectconvindex:evaluate()
 	return (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
 function e_selectconvindex:execute()	
-	local index = ml_task_hub:CurrentTask().conversationIndex
-	if (not index) then
-		c_selectconvindex.unexpected = c_selectconvindex.unexpected + 1
-		index = c_selectconvindex.unexpected
-	end
-	SelectConversationIndex(tonumber(index))
-	ml_task_hub:ThisTask():SetDelay(1000)
+	local conversationstrings = IsNull(ml_task_hub:CurrentTask().conversationstrings,"")
+	if (conversationstrings ~= "") then
+		local convoList = GetConversationList()
+		if (table.valid(convoList)) then
+			if (table.valid(conversationstrings)) then
+				for convoindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo.line,"[()]","")
+					for k,v in pairs(conversationstrings) do
+						local cleanedv = string.gsub(v,"[()]","")
+						if (string.find(cleanedline,cleanedv) ~= nil) then
+							SelectConversationIndex(convoindex)
+							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							return false
+						end
+					end
+				end
+			end
+		end
+	else
+		local index = ml_task_hub:CurrentTask().conversationIndex
+		if (not index) then
+			c_selectconvindex.unexpected = c_selectconvindex.unexpected + 1
+			index = c_selectconvindex.unexpected
+		end
+		SelectConversationIndex(tonumber(index))
+		ml_task_hub:ThisTask():SetDelay(1000)
+	end	
 end
 
 c_returntomap = inheritsFrom( ml_cause )

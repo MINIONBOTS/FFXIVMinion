@@ -803,14 +803,16 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local range = self.interactRange or (radius * 3.5)
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-		if (interactable and interactable.targetable and dist3d < 10) then
+		if (interactable and interactable.targetable and dist3d < 15) then
 			Player:SetTarget(interactable.id)
+			--[[
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
 			if (p and dist ~= 0 and dist < 5) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
 			end
+			--]]
 		end
 	end
 
@@ -820,7 +822,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
-					if (dist3d <= 7.5) then
+					
+					local minDist = 10
+					if (not IsAetheryte(interactable.contentid)) then
+						minDist = 7.5
+					end
+					
+					if (dist2d <= minDist) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
@@ -1109,20 +1117,38 @@ function ffxiv_task_teleport:task_complete_eval()
 		return false
 	end
 	
-	if (self.conversationIndex ~= 0 and (ControlVisible("SelectIconString") or ControlVisible("SelectString"))) then
-		SelectConversationIndex(tonumber(self.conversationIndex))
-		ml_task_hub:CurrentTask():SetDelay(500)
-		return false
+	if (ControlVisible("SelectIconString") or ControlVisible("SelectString")) then
+		local convoList = GetConversationList()
+		if (table.valid(convoList)) then
+			local conversationstrings = {
+				["E"] = "Set Home Point";
+				["J"] = "ホームポイント登録";
+				["G"] = "Als Heimatpunkt speichern";
+				["F"] = "Enregistrer comme point de retour";
+				["CN"] = "设置返回点";
+				["KR"] = "귀환 지점 설정";
+			}
+
+			for convoindex,convo in pairs(convoList) do
+				local cleanedline = string.gsub(convo.line,"[()]","")
+				for k,v in pairs(conversationstrings) do
+					local cleanedv = string.gsub(v,"[()]","")
+					if (string.find(cleanedline,cleanedv) ~= nil) then
+						SelectConversationIndex(convoindex)
+						ml_global_information.Await(2000, function () return ControlVisible("SelectYesno") end)
+						return false
+					end
+				end
+			end
+		else
+			return false
+		end
 	end
 	
 	if (ControlVisible("SelectYesno")) then
-		if (ControlVisible("_NotificationParty")) then
-			PressYesNo(false)
-		else
-			PressYesNo(true)
-			ml_task_hub:CurrentTask():SetDelay(500)
-			return
-		end
+		PressYesNo(true)
+		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
+		return
 	end
 	
 	if (Player.localmapid ~= self.mapID) then
