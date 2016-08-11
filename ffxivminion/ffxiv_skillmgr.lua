@@ -3253,11 +3253,18 @@ function SkillMgr.Craft()
                         (tonumber(skill.qualitymin) > 0 and synth.quality >= tonumber(skill.qualitymin)) or
                         (tonumber(skill.qualitymax) > 0 and synth.quality < tonumber(skill.qualitymax)) or
                         (tonumber(skill.qualityminper) > 0 and synth.qualitypercent >= tonumber(skill.qualityminper)) or
-                        (tonumber(skill.qualitymaxper) > 0 and synth.qualitypercent < tonumber(skill.qualitymaxper)) or
-                        (skill.condition ~= "NotUsed" and synth.description ~= skill.condition))							 
+                        (tonumber(skill.qualitymaxper) > 0 and synth.qualitypercent < tonumber(skill.qualitymaxper)))							 
                     then 
 						castable = false 
                     end
+					
+					local translatedCondition = GetStringKey(synth.description)
+					local translatedRequirement = GetStringKey(skill.condition)
+					if (translatedCondition ~= "") then
+						if (translatedCondition ~= translatedRequirement) then
+							castable = false
+						end
+					end
 					
 					if ((tonumber(skill.totmin) > 0 and SkillMgr.currentToTUses < tonumber(skill.totmin)) or
 						(tonumber(skill.totmax) > 0 and SkillMgr.currentToTUses >= tonumber(skill.totmax)))

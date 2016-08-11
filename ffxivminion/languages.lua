@@ -1,7 +1,8 @@
 ﻿gCurrentLanguage = "us"
 
 strings =
-{
+{	
+	-- bk: US
     ["us"] =
     {
         startStop                       = "StartStop",
@@ -695,7 +696,9 @@ strings =
 		singleUse						= "Single Use",
 		--us end
     },                                  
-    ["cn"] =                            
+    
+	-- bk: CN
+	["cn"] =                            
     {                               
         -- gw2.lua
         startStop                       = "开始/停止",
@@ -1399,7 +1402,9 @@ strings =
 		singleUse						= "Single Use",
 		--cn end
 	},
-    ["jp"] =
+	
+	-- bk: JP
+	["jp"] =
     {
         startStop                       = "スタート/ストップ",
         doPulse                         = "パルス(デバッグ)",
@@ -2056,7 +2061,9 @@ strings =
 		singleUse						= "Single Use",
 		--jp end
 	},   
-    ["de"] =
+    
+	-- bk: DE
+	["de"] =
     {
         startStop                       = "StartStop",
         doPulse                         = "Pulse(Debug)",
@@ -2715,7 +2722,9 @@ strings =
 		singleUse						= "Single Use",
 		--de end
 	},     
-    ["fr"] =
+    
+	-- bk: FR
+	["fr"] =
     {
         startStop                       = "DémarrerArrêter",
         doPulse                         = "Pulse(Debug)",
@@ -3373,7 +3382,9 @@ strings =
 		singleUse						= "Single Use",
 		--us end
 	},       
-    ["ru"] =
+    
+	-- bk: RU
+	["ru"] =
     {
         startStop                       = "StartStop",
         doPulse                         = "Pulse(Debug)",
@@ -4030,6 +4041,8 @@ strings =
 		singleUse						= "Single Use",
 		--ru end
 	},    	
+	
+	-- bk: KR
 	["kr"] = 
 	{
         startStop                       = "시작중지",
@@ -4113,10 +4126,10 @@ strings =
 		gpmax							= "GP >",
 		iqstack							= "내부 스택 >=",		
 		notused							= "사용안함",
-		excellent						= "우수",
-		good							= "좋은",
+		excellent						= "최고품질",
+		good							= "고품질",
 		normal							= "보통",
-		poor							= "불쌍",
+		poor							= "저품질",
         nodeHas						    = "가진 아이템: ",
 		gatherAttemptsMin				= "남은 시도 >",
 		gatherAttemptsMax				= "남은 시도 <=",

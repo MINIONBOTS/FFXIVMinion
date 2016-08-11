@@ -1,11 +1,67 @@
 ffxiv_nav_data = {
+	[144] = 
+	{
+		[130] = {
+			{id = 130, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 1 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                   ["E"] = "Seek passage to Ul'dah",
+                   ["J"] = "「ウルダハ」へ行く",
+                   ["G"] = "Nach Ul'dah.",
+                   ["F"] = "Aller à Ul'dah",
+                   ["CN"] = "前往乌尔达哈",
+                   ["KR"] = "'울다하'로 이동",
+                },
+			},
+		},
+		[132] = {
+			{id = 132, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 2 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Gridania",
+                    ["J"] = "「グリダニア」へ行く",
+                    ["G"] = "Nach Gridania.",
+                    ["F"] = "Aller à Gridania",
+                    ["CN"] = "前往格里达尼亚",
+                    ["KR"] = "'그리다니아'로 이동",
+                },
+			},
+		},
+		[128] = {
+			{id = 128, cost = 3, x = -38.920, y = 0.025, z = 98.243, h = 1, a = 1011022, i = 3 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa.",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
+			},
+		},
+	},
 	[130] = 
 	{	
 		[128] = {
 			{id = 128, cost = 3, x = -22.364, y = 83.199, z = -4.82, h = 1, a = 1004433, i = 2 
 				, requires =  {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa.",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
 			},
 		},
 		[131] = {
@@ -19,7 +75,15 @@ ffxiv_nav_data = {
 			{id = 132, cost = 3, x = -22.364, y = 83.199, z = -4.82, h = 1, a = 1004433, i = 1 
 				, requires =  {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Gridania",
+                    ["J"] = "「グリダニア」へ行く",
+                    ["G"] = "Nach Gridania.",
+                    ["F"] = "Aller à Gridania",
+                    ["CN"] = "前往格里达尼亚",
+                    ["KR"] = "'그리다니아'로 이동",
+                },
 			},
 		},
 		[140] = {
@@ -27,6 +91,21 @@ ffxiv_nav_data = {
 		},
 		[141] = {
 			{id = 141, cost = 3, x = 43.772938,		z = -163.789337,	y = 3.999976,	h = 2.879770},
+		},
+		[144] = {
+			{id = 144, cost = 3, x = -22.364, y = 83.199, z = -4.82, h = 1, a = 1004433, i = 3 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["J"] = "「ゴールドソーサー」へ行く",
+                    ["G"] = "Zum Gold Saucer.",
+                    ["F"] = "Aller au Gold Saucer",
+                    ["CN"] = "前往金碟游乐场",
+                    ["KR"] = "'골드 소서'로 이동",
+                },
+			},
 		},
 		[178] = {
 			{id = 178, cost = 1, x = 29.635, y = 7.000, z = -80.346, h = -0.131, b = 1001976, i = 1 },
@@ -162,14 +241,45 @@ ffxiv_nav_data = {
 			{id = 130, cost = 3, x = 29.1025, y = -19.000, z = 102.408, h = 1, a = 1000106, i = 1
 				, requires =  {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Ul'dah",
+                    ["J"] = "「ウルダハ」へ行く",
+                    ["G"] = "Nach Ul'dah.",
+                    ["F"] = "Aller à Ul'dah",
+                    ["CN"] = "前往乌尔达哈",
+                    ["KR"] = "'울다하'로 이동",
+                },
 			},
 		},
 		[128] = {
 			{id = 128, cost = 3, x = 29.1025, y = -19.000, z = 102.408, h = 1, a = 1000106, i = 2 
 				, requires =  {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa.",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
+			},
+		},
+		[144] = {
+			{id = 144, cost = 3, x = 29.1025, y = -19.000, z = 102.408, h = 1, a = 1000106, i = 3 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["J"] = "「ゴールドソーサー」へ行く",
+                    ["G"] = "Zum Gold Saucer.",
+                    ["F"] = "Aller au Gold Saucer",
+                    ["CN"] = "前往金碟游乐场",
+                    ["KR"] = "'골드 소서'로 이동",
+                },
 			},
 		},
 		[179] = {
@@ -208,7 +318,15 @@ ffxiv_nav_data = {
 			{id = 152, cost = 3, x = 179.866, y = -2.239, z = -241.585, h = 1, b = 1001263, i = 1
 				, requires =  {
 					["Player.level >= 10"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Sweetbloom Pier",
+                    ["J"] = "「花蜜桟橋」へ行く",
+                    ["G"] = "Zum Honigblumen-Steg.",
+                    ["F"] = "Aller à la jetée du Bouquet",
+                    ["CN"] = "前往花蜜栈桥",
+                    ["KR"] = "'꽃꿀 나루'로 이동",
+                },
 			},
 		},
 		[154] = {
@@ -318,14 +436,45 @@ ffxiv_nav_data = {
 			{id = 130, cost = 3, x = -23.511, y = 91.99, z = -3.719, h = 1, a = 1002695, i = 1 
 				, requires = {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Ul'dah",
+                    ["J"] = "「ウルダハ」へ行く",
+                    ["G"] = "Nach Ul'dah.",
+                    ["F"] = "Aller à Ul'dah",
+                    ["CN"] = "前往乌尔达哈",
+                    ["KR"] = "'울다하'로 이동",
+                },
 			},
 		},
 		[132] = {
 			{id = 132, cost = 3, x = -23.511, y = 91.99, z = -3.719, h = 1, a = 1002695, i = 2 
 				, requires = {
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Gridania",
+                    ["J"] = "「グリダニア」へ行く",
+                    ["G"] = "Nach Gridania.",
+                    ["F"] = "Aller à Gridania",
+                    ["CN"] = "前往格里达尼亚",
+                    ["KR"] = "'그리다니아'로 이동",
+                },
+			},
+		},
+		[144] = {
+			{id = 144, cost = 3, x = -23.511, y = 91.99, z = -3.719, h = 1, a = 1002695, i = 3 
+				, requires =  {
+					["QuestCompleted(435)"] = true,
+				}
+				, conversationstrings = {
+                    ["E"] = "Seek passage to the Gold Saucer",
+                    ["J"] = "「ゴールドソーサー」へ行く",
+                    ["G"] = "Zum Gold Saucer.",
+                    ["F"] = "Aller au Gold Saucer",
+                    ["CN"] = "前往金碟游乐场",
+                    ["KR"] = "'골드 소서'로 이동",
+                },
 			},
 		},
 		[177] = {
@@ -361,7 +510,15 @@ ffxiv_nav_data = {
 				, requires = {
 					["Player.level >= 15"] = true,
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Aleport",
+                    ["J"] = "「エールポート」へ行く",
+                    ["G"] = "Zum Bierhafen.",
+                    ["F"] = "Aller à Port-aux-Ales",
+                    ["CN"] = "前往小麦酒港",
+                    ["KR"] = "'맥주 항구'로 이동",
+                },
 			},
 		},
 		[137] = {
@@ -369,7 +526,15 @@ ffxiv_nav_data = {
 				, requires = {
 					["Player.level >= 30"] = true,
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Costa del Sol",
+                    ["J"] = "「コスタ・デル・ソル」へ行く",
+                    ["G"] = "Zur Sonnenküste.",
+                    ["F"] = "Aller à Costa del Sol",
+                    ["CN"] = "前往太阳海岸",
+                    ["KR"] = "'코스타 델 솔'로 이동",
+                },
 			},
 		},
 	},
@@ -411,7 +576,15 @@ ffxiv_nav_data = {
 				, requires = {
 					["Player.level >= 30"] = true,
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa.",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
 			},
 		},
 		[134] = {
@@ -432,8 +605,15 @@ ffxiv_nav_data = {
 				, requires = {
 					["Player.level >= 15"] = true,
 					["CanUseAirship()"] = true,
-					
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Limsa Lominsa",
+                    ["J"] = "「リムサ・ロミンサ」へ行く",
+                    ["G"] = "Nach Limsa Lominsa.",
+                    ["F"] = "Aller à Limsa Lominsa",
+                    ["CN"] = "前往利姆萨·罗敏萨",
+                    ["KR"] = "'림사 로민사'로 이동",
+                },
 			},
 		},
 		[135] = {
@@ -441,7 +621,15 @@ ffxiv_nav_data = {
 				, requires = {
 					["Player.level >= 15"] = true,
 					["CanUseAirship()"] = true,
-				},
+				}
+				, conversationstrings = {
+                    ["E"] = "Purchase passage to Candlekeep Quay",
+                    ["J"] = "「キャンドルキープ埠頭」へ行く",
+                    ["G"] = "Zum Kerzenwacht-Kai.",
+                    ["F"] = "Aller au quai de la Torche",
+                    ["CN"] = "前往守炬埠头",
+                    ["KR"] = "'촛불지기 부두'로 이동",
+                },
 			},
 		},
 		[134] = {
