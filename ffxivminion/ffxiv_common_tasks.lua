@@ -805,14 +805,18 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and dist3d < 15) then
 			Player:SetTarget(interactable.id)
-			--[[
-			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0 and dist < 5) then
-				if (not deepcompare(self.pos,p,true)) then
-					self.pos = p
+			if (interactable.onmesh) then
+				if (not deepcompare(self.pos,ipos,true)) then
+					self.pos = shallowcopy(ipos)
+				end
+			else
+				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				if (p and dist ~= 0 and dist < 5) then
+					if (not deepcompare(self.pos,p,true)) then
+						self.pos = shallowcopy(p)
+					end
 				end
 			end
-			--]]
 		end
 	end
 
@@ -863,14 +867,14 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				--if (interactable.gatherable or interactable.los) then
 				if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and dist3d <= range) then
-						local ydiff = math.abs(ppos.y - interactable.pos.y)
-						if (ydiff < 3.5 or interactable.los) then
+						--local ydiff = math.abs(ppos.y - interactable.pos.y)
+						--if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 							Player:Stop()
 							Player:Interact(interactable.id)
 							
 							local currentDist = Distance3DT(ppos,ipos)
-							ml_global_information.AwaitSuccessFail(3000,  
+							ml_global_information.AwaitSuccessFail(500, 3000,  
 								function () 
 									return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 								end, 
@@ -889,7 +893,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							self.blockExecution = true
 							self.lastInteract = Now()
 							return true
-						end
+						--end
 					end
 				end
 			end
