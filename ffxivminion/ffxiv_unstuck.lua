@@ -33,7 +33,7 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or gFFXIVMINIONPulseTime < 150) then
+	if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gFFXIVMINIONPulseTime) < 150) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
