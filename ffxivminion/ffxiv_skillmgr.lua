@@ -3260,7 +3260,7 @@ function SkillMgr.Craft()
 					
 					local translatedCondition = GetStringKey(synth.description)
 					local translatedRequirement = GetStringKey(skill.condition)
-					if (translatedCondition ~= "") then
+					if (translatedRequirement ~= "" and translatedRequirement ~= "notused") then
 						if (translatedCondition ~= translatedRequirement) then
 							castable = false
 						end
