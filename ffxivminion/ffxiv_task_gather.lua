@@ -352,6 +352,11 @@ function c_returntobase:evaluate()
 		elseif (ValidTable(marker) and not ValidTable(ffxiv_gather.profileData)) then
 			basePos = marker:GetPosition()
 		end
+		
+		local p,dist = NavigationManager:GetClosestPointOnMesh(basePos)
+		if (p) then
+			basePos = p
+		end
 
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
@@ -382,6 +387,11 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
+	local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
+	if (p) then
+		pos = p
+	end
+	
 	
 	--ffxiv_task_test.RenderPoint(pos,1,5,5)
 	
