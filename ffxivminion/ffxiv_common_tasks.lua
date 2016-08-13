@@ -805,7 +805,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and dist3d < 15) then
 			Player:SetTarget(interactable.id)
-			if (interactable.onmesh) then
+			if (interactable.onmesh or interactable.gatherable) then
 				if (not deepcompare(self.pos,ipos,true)) then
 					self.pos = shallowcopy(ipos)
 				end
