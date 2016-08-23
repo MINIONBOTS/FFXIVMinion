@@ -55,6 +55,7 @@ function c_stuck:evaluate()
 			ml_debug("Removing stuck ticks.",nil,3)
 			ffxiv_unstuck.State.STUCK.ticks = 0
 		end
+		ffxiv_unstuck.firstAttempt = true
 	end
 	
 	local coarse = ffxiv_unstuck.coarse
@@ -72,6 +73,7 @@ function c_stuck:evaluate()
 			ml_debug("Removing stalled ticks.",nil,3)
 			ffxiv_unstuck.State.STALLED.ticks = 0
 		end
+		ffxiv_unstuck.firstAttempt = true
 	end
 	
 	if ffxiv_unstuck.IsOffMesh() then
@@ -80,6 +82,7 @@ function c_stuck:evaluate()
 		if (ffxiv_unstuck.State.OFFMESH.ticks ~= 0) then
 			ffxiv_unstuck.State.OFFMESH.ticks = 0
 		end
+		ffxiv_unstuck.firstAttempt = true
 	end
 	
 	for name,state in pairs(ffxiv_unstuck.State) do
@@ -125,11 +128,20 @@ function e_stuck:execute()
 	ffxiv_unstuck.State.STALLED.ticks = 0
 	
 	if (not Player.incombat and not MIsCasting() and not ffxiv_unstuck.firstAttempt) then
-		local instructions = {
-			{"Stop", {}},
-			{"Return", {}},
-		}
-		ml_mesh_mgr.ParseInstructions(instructions)
+		Player:Stop()
+		
+		ml_global_information.Await(5000, 
+			function () return (not Player:IsMoving()) end, 
+			function ()
+				local returnHome = ActionList:Get(6)
+				if (returnHome and returnHome.isready) then
+					if (returnHome:Cast(Player.id)) then
+						ml_global_information.Await(10000, function () return (Quest:IsLoading() and not IsPositionLocked()) end)
+						return true
+					end	
+				end
+			end
+		)
 		ffxiv_unstuck.firstAttempt = true
 	else
 		Player:Stop()
