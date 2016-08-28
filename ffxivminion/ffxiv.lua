@@ -327,53 +327,20 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					end
 				end
 			end
-			
-			--[[
-			if (gUseCompanionItem ~= GetString("none")) then
-				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted) then
-					ml_global_information.rootCheckTimer = tickcount
-					
-					if (not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
-						
-						local acDismiss = ActionList:Get(2,6)
-						local item = Inventory:Get(7894)
 
-						if ( acDismiss and acDismiss.isready and item and item.isready) then
-							local el = EntityList("nearest,myparty,type=2,chartype=3")
-							if (ValidTable(el)) then
-								local i, choco = next(el)
-								if (i and choco) then
-									if MissingBuffs(choco,"536+537") then
-										Player:Stop()
-										local newTask = ffxiv_task_useitem.Create()
-										newTask.itemid = 7894
-										newTask.useTime = 3000
-										ml_task_hub:CurrentTask():AddSubTask(newTask)
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-			--]]
-			
-			if (gUseCurielRoot == "1") then
-				if ( TimeSince(ml_global_information.rootCheckTimer) > 30000 and not Player.ismounted and not IsMounting()) then
+			if (gUseChocoboFood ~= "None") then
+				if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 					ml_global_information.rootCheckTimer = tickcount
-					local acDismiss = ActionList:Get(2,6)
-					local item = Inventory:Get(7894)
-
-					if ( acDismiss and acDismiss.isready and item and item.isready) then
-						local el = EntityList("nearest,myparty,type=2,chartype=3")
-						if (ValidTable(el)) then
-							local i, choco = next(el)
-							if (i and choco) then
-								if MissingBuffs(choco,"536+537") then
+					for itemid,itemdetails in pairs(ml_global_information.chocoItemBuffs) do
+						if (gUseChocoboFood == itemdetails.name) then
+							local item = Inventory:Get(itemid)
+							local companion = GetCompanionEntity()
+							if (item and item.isready and companion and companion.alive) then
+								local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
+								if (MissingBuffs(companion, buffString)) then
 									Player:Stop()
 									local newTask = ffxiv_task_useitem.Create()
-									newTask.itemid = 7894
-									newTask.useTime = 3000
+									newTask.itemid = itemid
 									ml_task_hub:CurrentTask():AddSubTask(newTask)
 								end
 							end
@@ -382,7 +349,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 		end
-		
+			
 		if (ml_task_hub.shouldRun) then
 
 			if (IsFighter(Player.job) and not ml_global_information.lastPulseShortened) then
@@ -601,7 +568,7 @@ function ffxivminion.CreateMainWindow()
 	GUI_NewCheckbox(winName,GetString("assistMode"),"gChocoAssist",group )
 	GUI_NewCheckbox(winName,GetString("grindMode"),"gChocoGrind",group )
 	GUI_NewCheckbox(winName,GetString("questMode"),"gChocoQuest",group )
-	GUI_NewCheckbox(winName,GetString("curielRoot"),"gUseCurielRoot",group )
+	GUI_NewComboBox(winName,GetString("Chocobo Food"),"gUseChocoboFood",group,"None,Curiel Root (EXP),Sylkis Bud (ATK),Mimmet Gourd (Heal),Tantalplant (HP),Pahsana Fruit (ENM)")
 	GUI_NewComboBox(winName,GetString("stance"),"gChocoStance",group,"")
 	gChocoStance_listitems = GetString("stFree")..","..GetString("stDefender")..","..GetString("stAttacker")..","..GetString("stHealer")..","..GetString("stFollow")
 	
@@ -681,7 +648,7 @@ function ffxivminion.CreateMainWindow()
 	gFleeMP = ffxivminion.GetSetting("gFleeMP","0")
 	gPotionHP = ffxivminion.GetSetting("gPotionHP","50")
 	gPotionMP = ffxivminion.GetSetting("gPotionMP","0")
-	gUseCurielRoot = ffxivminion.GetSetting("gUseCurielRoot","0")
+	gUseChocoboFood = ffxivminion.GetSetting("gUseChocoboFood","None")
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip","1")
 	gAdvStealthDetect = ffxivminion.GetSetting("gAdvStealthDetect","25")
 	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
@@ -892,7 +859,7 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gFoodHQ" or 
 			k == "gAvoidAOE" or
 			k == "gDevDebug" or
-			k == "gUseCurielRoot" or
+			k == "gUseChocoboFood" or
 			k == "gAvoidHP" or
 			k == "gAdvStealthDetect" or
 			k == "gAdvStealthRemove" or
