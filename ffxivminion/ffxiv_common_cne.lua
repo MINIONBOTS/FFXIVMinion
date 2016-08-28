@@ -80,7 +80,7 @@ c_killaggrotarget = inheritsFrom( ml_cause )
 e_killaggrotarget = inheritsFrom( ml_effect )
 c_killaggrotarget.targetid = 0
 function c_killaggrotarget:evaluate()
-	if (gBotMode == GetString("partyMode") and IsPartyLeader() ) then
+	if ((gBotMode == GetString("partyMode") and IsPartyLeader()) or IsPOTD(Player.localmapid)) then
         return false
     end
 	
@@ -142,14 +142,14 @@ function c_assistleader:evaluate()
 		if (NotQueued()) then
 			--d("executing not queued version>")
 			local target = EntityList:Get(leadtarget)				
-			if ( ValidTable(target) and target.alive) then
+			if (ValidTable(target) and target.alive) then
 				c_assistleader.targetid = target.id
 				return true
 			end
 		else	
 			--d("executing queued version>")
 			local target = EntityList:Get(leadtarget)				
-			if ( ValidTable(target) and target.alive and target.targetid == leader.id) then
+			if (ValidTable(target) and target.alive) then
 				c_assistleader.targetid = target.id
 				return true
 			end
@@ -165,7 +165,7 @@ function e_assistleader:execute()
 		return
 	end
 	
-	if (NotQueued()) then
+	if (NotQueued() and not IsPOTD(Player.localmapid)) then
 		if (ml_task_hub:CurrentTask().name == "GRIND_COMBAT") then
 			--d("setting new id to "..tostring(id))
 			ml_task_hub:CurrentTask().targetid = id
@@ -191,7 +191,7 @@ function e_assistleader:execute()
 		local targetid = target.id
 		local pos = target.pos
 		local ppos = Player.pos
-		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
+		local dist = Distance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 		
 		if (ml_global_information.AttackRange > 5) then
 			--d("executing caster version")
@@ -226,11 +226,11 @@ function e_assistleader:execute()
 		else
 			--d("Melee class, check if we're in combat range and such..")
 			Player:SetTarget(targetid)
-			if (not InCombatRange(targetid) or not target.los) then
+			if ((not InCombatRange(targetid) or not target.los) and dist > 3) then
 				--Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
 				
 				Player:Move(FFXIV.MOVEMENT.FORWARD)
-				ml_global_information.AwaitDo(1500, 30000, 
+				ml_global_information.AwaitDo(250, 30000, 
 					function ()
 						if (not Player:IsMoving()) then
 							return true
@@ -241,8 +241,8 @@ function e_assistleader:execute()
 						else
 							local targetPos = target.pos
 							local myPos = Player.pos
-							--return (Distance3DT(targetPos,myPos) < 4)
-							return (InCombatRange(target.id) and target.los)
+							local dist3d = Distance3DT(targetPos,myPos)
+							return ((InCombatRange(target.id) and target.los) or dist3d < target.hitradius or dist3d < 3)
 						end
 						return false
 					end,
@@ -260,10 +260,10 @@ function e_assistleader:execute()
 					end
 				)
 			end
-			if (InCombatRange(target.id)) then
+			if (InCombatRange(target.id) or dist <= 5) then
 				Player:SetTarget(target.id)
 				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (target.los) then
+				if (Player:IsMoving()) then
 					Player:Stop()
 				end
 			end
@@ -930,9 +930,9 @@ function e_interactgate:execute()
 			if (table.valid(convoList)) then
 				if (table.valid(conversationstrings)) then
 					for convoindex,convo in pairs(convoList) do
-						local cleanedline = string.gsub(convo.line,"[()]","")
+						local cleanedline = string.gsub(convo.line,"[()-]","")
 						for k,v in pairs(conversationstrings) do
-							local cleanedv = string.gsub(v,"[()]","")
+							local cleanedv = string.gsub(v,"[()-]","")
 							if (string.find(cleanedline,cleanedv) ~= nil) then
 								SelectConversationIndex(convoindex)
 								ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
@@ -1366,7 +1366,7 @@ function e_followleader:execute()
 			local leaderid = leader.id
 			Player:SetFacing(leaderPos.x,leaderPos.y,leaderPos.z)
 			Player:Move(FFXIV.MOVEMENT.FORWARD)
-			ml_global_information.AwaitDo(1500, 30000, 
+			ml_global_information.AwaitDo(500, 30000, 
 				function ()
 					if (not Player:IsMoving()) then
 						return true
@@ -1377,7 +1377,7 @@ function e_followleader:execute()
 					else
 						local leaderPos = leader.pos
 						local myPos = Player.pos
-						return (Distance3DT(leaderPos,myPos) < 4)
+						return (Distance3DT(leaderPos,myPos) < 5)
 					end
 					return false
 				end,
@@ -1539,8 +1539,11 @@ function e_walktopos:execute()
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist > 2) then
 			
+			local useFollow = ml_task_hub:CurrentTask().useFollowMovement and dist < 6
+			local useRandom = (gRandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
+			
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
-			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),1,ml_task_hub:CurrentTask().useFollowMovement or false,gRandomPaths=="1",ml_task_hub:CurrentTask().useSmoothTurns or false)
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
 			
 			c_walktopos.lastPos = gotoPos
 			if (not tonumber(path)) then
@@ -2956,20 +2959,18 @@ function c_selectconvindex:evaluate()
 	return (ControlVisible("SelectIconString") or ControlVisible("SelectString"))
 end
 function e_selectconvindex:execute()	
-	local conversationstrings = IsNull(ml_task_hub:CurrentTask().conversationstrings,"")
-	if (conversationstrings ~= "") then
+	local conversationstrings = IsNull(ml_task_hub:CurrentTask().conversationstrings,{})
+	if (table.valid(conversationstrings)) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
-			if (table.valid(conversationstrings)) then
-				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
-					for k,v in pairs(conversationstrings) do
-						local cleanedv = string.gsub(v,"[()]","")
-						if (string.find(cleanedline,cleanedv) ~= nil) then
-							SelectConversationIndex(convoindex)
-							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
-							return false
-						end
+			for convoindex,convo in pairs(convoList) do
+				local cleanedline = string.gsub(convo.line,"[()-]","")
+				for k,v in pairs(conversationstrings) do
+					local cleanedv = string.gsub(v,"[()-]","")
+					if (string.find(cleanedline,cleanedv) ~= nil) then
+						SelectConversationIndex(convoindex)
+						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						return false
 					end
 				end
 			end

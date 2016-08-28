@@ -14,9 +14,9 @@ ffxiv_unstuck.coarse = {
 }
 
 ffxiv_unstuck.State = {
-	STUCK 	= { id = 0, name = "STUCK" 	, stats = 0, ticks = 0, minticks = 5, maxticks = 10 },
-	OFFMESH = { id = 1, name = "OFFMESH" , stats = 0, ticks = 0, minticks = 5, maxticks = 10 },
-	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, minticks = 50, maxticks = 50 },
+	STUCK 	= { id = 0, name = "STUCK" 	 , stats = 0, ticks = 0, safeticks = 0, minsafeticks = 5, minticks = 5, maxticks = 10 },
+	OFFMESH = { id = 1, name = "OFFMESH" , stats = 0, ticks = 0, safeticks = 0, minsafeticks = 5, minticks = 5, maxticks = 10 },
+	STALLED = { id = 2, name = "STALLED" , stats = 0, ticks = 0, safeticks = 0, minsafeticks = 10, minticks = 50, maxticks = 50 },
 }
 
 function ffxiv_unstuck.Reset()
@@ -55,7 +55,14 @@ function c_stuck:evaluate()
 			ml_debug("Removing stuck ticks.",nil,3)
 			ffxiv_unstuck.State.STUCK.ticks = 0
 		end
-		ffxiv_unstuck.firstAttempt = true
+		if (not ffxiv_unstuck.firstAttempt) then
+			if (ffxiv_unstuck.State.STUCK.safeticks >= ffxiv_unstuck.State.STUCK.minsafeticks) then
+				ffxiv_unstuck.firstAttempt = true
+				ffxiv_unstuck.State.STUCK.safeticks = 0
+			else
+				ffxiv_unstuck.State.STUCK.safeticks = ffxiv_unstuck.State.STUCK.safeticks + 1
+			end
+		end
 	end
 	
 	local coarse = ffxiv_unstuck.coarse
@@ -73,7 +80,14 @@ function c_stuck:evaluate()
 			ml_debug("Removing stalled ticks.",nil,3)
 			ffxiv_unstuck.State.STALLED.ticks = 0
 		end
-		ffxiv_unstuck.firstAttempt = true
+		if (not ffxiv_unstuck.firstAttempt) then
+			if (ffxiv_unstuck.State.STALLED.safeticks >= ffxiv_unstuck.State.STALLED.minsafeticks) then
+				ffxiv_unstuck.firstAttempt = true
+				ffxiv_unstuck.State.STALLED.safeticks = 0
+			else
+				ffxiv_unstuck.State.STALLED.safeticks = ffxiv_unstuck.State.STALLED.safeticks + 1
+			end
+		end
 	end
 	
 	if ffxiv_unstuck.IsOffMesh() then
@@ -82,7 +96,14 @@ function c_stuck:evaluate()
 		if (ffxiv_unstuck.State.OFFMESH.ticks ~= 0) then
 			ffxiv_unstuck.State.OFFMESH.ticks = 0
 		end
-		ffxiv_unstuck.firstAttempt = true
+		if (not ffxiv_unstuck.firstAttempt) then
+			if (ffxiv_unstuck.State.OFFMESH.safeticks >= ffxiv_unstuck.State.OFFMESH.minsafeticks) then
+				ffxiv_unstuck.firstAttempt = true
+				ffxiv_unstuck.State.OFFMESH.safeticks = 0
+			else
+				ffxiv_unstuck.State.OFFMESH.safeticks = ffxiv_unstuck.State.OFFMESH.safeticks + 1
+			end
+		end
 	end
 	
 	for name,state in pairs(ffxiv_unstuck.State) do
@@ -127,7 +148,7 @@ function e_stuck:execute()
 	ffxiv_unstuck.State.OFFMESH.ticks = 0
 	ffxiv_unstuck.State.STALLED.ticks = 0
 	
-	if (not Player.incombat and not MIsCasting() and not ffxiv_unstuck.firstAttempt) then
+	if (not Player.incombat and not MIsCasting() and not ffxiv_unstuck.firstAttempt and not InInstance()) then
 		Player:Stop()
 		
 		ml_global_information.Await(5000, 

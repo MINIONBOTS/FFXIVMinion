@@ -1350,18 +1350,17 @@ function ffxiv_task_useitem:task_complete_eval()
 	
 	if (Player.ismounted) then
 		Dismount()
-		ml_task_hub:CurrentTask():SetDelay(500)
 		return false
 	end
 	
 	if (Player:IsMoving()) then
 		Player:Stop()
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
 		return false
 	end
 	
 	if (MIsCasting()) then
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(10000, function () return Player.castinginfo.castingid == 0 end)
 		return false 
 	end
 	
@@ -2124,6 +2123,7 @@ function ffxiv_nav_interact.Create()
 	newinst.lastDismountCheck = 0
 	newinst.delayTimer = 0
 	newinst.conversationIndex = 0
+	newinst.conversationstrings = ""
 	newinst.pos = false
 	newinst.range = 1.5
 	newinst.areaChanged = false
@@ -2601,7 +2601,6 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
-				d("looking through conversation strings for ["..string.gsub(self.conversationstrings["E"],"[()]","").."]")
 				for convoindex,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()]","")
 					for k,v in pairs(self.conversationstrings) do
@@ -2688,12 +2687,18 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	local range = self.interactRange or (radius * 3.5)
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
-		if (interactable and interactable.targetable and dist3d < 10) then
+		if (interactable and interactable.targetable and dist3d < 15) then
 			Player:SetTarget(interactable.id)
+			if (interactable.onmesh or interactable.gatherable) then
+				if (not deepcompare(self.pos,ipos,true)) then
+					self.pos = shallowcopy(ipos)
+				end
+			else
 			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
 			if (p and dist ~= 0 and dist < 5) then
 				if (not deepcompare(self.pos,p,true)) then
-					self.pos = p
+						self.pos = shallowcopy(p)
+					end
 				end
 			end
 		end
@@ -2705,7 +2710,13 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 
 			if (ValidTable(interactable)) then			
 				if (interactable.type == 5) then
-					if (dist3d <= 7.5) then
+					
+					local minDist = 10
+					if (not IsAetheryte(interactable.contentid)) then
+						minDist = 7.5
+					end
+					
+					if (dist2d <= minDist) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
@@ -2717,18 +2728,18 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
-									d("[MoveToAethernet]: Initiating await until interaction is complete.")
+									d("[MoveToInteract]: Initiating await until interaction is complete.")
 									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.uniqueid)) end)
 								end
 							end,
 							function ()
-								d("[MoveToAethernet]: Interact failed, attempting to move closer.")
+								d("[MoveToInteract]: Interact failed, attempting to move closer.")
 								Player:MoveTo(ipos.x,ipos.y,ipos.z)
 								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
 							end
 						)
-						self.lastInteract = Now()
 						self.blockExecution = true
+						self.lastInteract = Now()
 						return true
 					end
 				end

@@ -1352,7 +1352,7 @@ function GetNearestFromList(strList,pos,radius)
 	if (ValidTable(el)) then
 		local filteredList = {}
 		for i,e in pairs(el) do
-			if (not radius or (radius > 200)) then
+			if (not radius or (radius >= 100)) then
 				table.insert(filteredList,e)
 			else
 				local epos = e.pos
@@ -2013,6 +2013,7 @@ function Distance3D(x1,y1,z1,x2,y2,z2,truedist)
 	elseif (dy <= 3) then
 		return dist2d
 	else
+		--d("dist2d:"..tostring(dist2d)..", dy:"..tostring(dy))
 		return dist2d + dy
 	end
 end
@@ -4264,8 +4265,8 @@ function GetInventoryItemGains(itemid,hqonly)
 end
 
 function GetItem(hqid)
-	local itemid = tonumber(hqid)
-	local hqid = tonumber(hqid)
+	local itemid = tonumber(hqid) or 0
+	local hqid = tonumber(hqid) or 0
 	
 	if (itemid >= 1000000 and itemid < 2000000) then
 		itemid = itemid - 1000000
@@ -5453,8 +5454,36 @@ function Transport156(pos1,pos2)
 end
 
 function Transport137(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
+	
+	if (Distance3DT(pos2,{x = 877, y = 20, z = 145}) < 100 and Distance3DT(pos1,{x = 877, y = 20, z = 145}) > 100) then
+		-- Need to go from Costa to the boat, talk to the Ferry Skipper.
+		return true, function ()
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 607.8, y = 11.6, z = 391.8}
+			newTask.uniqueid = 1003585
+			newTask.conversationstrings = {
+				["us"] = "Board the Rhotano privateer",
+				de = "Zum Großen Schoner",
+				fr = "Aller à bord du navire au large",
+				jp = "「洋上の大型船」へ行く",
+				cn = "前往海上的大型船",
+				kr = "'대형 원양어선'으로 이동",
+			}
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	elseif (Distance3DT(pos1,{x = 877, y = 20, z = 145}) < 100  and Distance3DT(pos2,{x = 877, y = 20, z = 145}) > 100) then
+		-- Need to leave the boat, talk to the captain.
+		return true, function ()
+			-- Need to leave the boat, talk to the captain.
+			local newTask = ffxiv_nav_interact.Create()
+			newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
+			newTask.uniqueid = 1005414
+			ml_task_hub:CurrentTask():AddSubTask(newTask)
+		end
+	end
+	
 	
 	if (GilCount() > 100) then
 		if ((pos1.x > 218 and pos1.z > 51) and not (pos2.x > 218 and pos2.z > 51)) then
@@ -5854,4 +5883,17 @@ function IsPOTD(mapid)
 	}
 	
 	return potd[mapid]
+end
+
+function IsHW(mapid)
+	local hw = {
+		[397] = true,
+		[398] = true,
+		[399] = true,
+		[400] = true,
+		[401] = true,
+		[402] = true,
+	}
+	
+	return hw[mapid]
 end
