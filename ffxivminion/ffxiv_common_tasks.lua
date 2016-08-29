@@ -800,7 +800,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
 	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-	local range = self.interactRange or (radius * 3.5)
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and dist3d < 15) then
@@ -863,7 +862,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 				local pathRange = self.pathRange or 10
 				local forceLOS = self.forceLOS
-				local range = self.interactRange or (radius * 3.5)
+				local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 				--if (interactable.gatherable or interactable.los) then
 				if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and dist3d <= range) then
@@ -2247,7 +2246,7 @@ function ffxiv_nav_interact:task_complete_eval()
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 			local pathRange = self.pathRange or 10
 			local forceLOS = self.forceLOS
-			local range = self.interactRange or (radius * 4)
+			local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 4)
 			if (not forceLOS or (forceLOS and interactable.los)) then
 				if (interactable and interactable.distance <= range) then
 					local ydiff = math.abs(ppos.y - interactable.pos.y)
@@ -2684,7 +2683,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
 	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-	local range = self.interactRange or (radius * 3.5)
+	local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
 		if (interactable and interactable.targetable and dist3d < 15) then

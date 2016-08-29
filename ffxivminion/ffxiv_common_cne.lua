@@ -1537,7 +1537,7 @@ function e_walktopos:execute()
 		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
 		
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (dist > 2) then
+		if (dist > 3) then
 			
 			local useFollow = ml_task_hub:CurrentTask().useFollowMovement and dist < 6
 			local useRandom = (gRandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
@@ -1578,11 +1578,35 @@ function e_walktopos:execute()
 		else
 			--d("We are very close, make sure we aren't flying.")
 			if (not IsFlying()) then
+				local range = ml_task_hub:CurrentTask().range or 0
+				local dist3d = 3
+				local dist2d = (range >= 0.5 and range) or 0.5
+				
+				local myPos = Player.pos
 				Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
 				if (not Player:IsMoving()) then
 					Player:Move(FFXIV.MOVEMENT.FORWARD)
-					e_walktopos.lastRun = Now()
 				end
+				ml_global_information.AwaitDo(100, 120000, 
+					function ()
+						if (not Player:IsMoving()) then
+							return true
+						end
+						local myPos = Player.pos
+						return (Distance3DT(gotoPos,myPos) <= dist3d and Distance2DT(gotoPos,myPos) <= dist2d)
+					end,
+					function ()
+						Player:SetFacing(gotoPos.x,gotoPos.y,gotoPos.z)
+					end,
+					function ()
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+						end
+					end
+				)
+				return true
+				
 			end
 		end
 	end

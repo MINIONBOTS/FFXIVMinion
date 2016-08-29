@@ -92,7 +92,19 @@ function ml_mesh_mgr.ParseInstructions(data)
 					function () 
 						if (Player:IsMoving()) then
 							Player:Stop()
-							ml_mesh_mgr.AddThrottleTime(150)
+							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Dismount") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						if (Player.ismounted) then
+							Dismount()
+							ml_global_information.Await(1000, function () return not Player.ismounted end)
 							return false
 						else
 							return true
@@ -111,17 +123,32 @@ function ml_mesh_mgr.ParseInstructions(data)
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
 						Player:Jump()
+						ml_global_information.Await(2000, function () return Player:IsJumping() end)
 						return true						
 					end
 				)
 			elseif (itype == "FacePosition") then
-				local pos = { x = iparams[1] or 0, y = iparams[2] or 0, z = iparams[3] or 0}
-				table.insert(ml_mesh_mgr.receivedInstructions, 
-					function () 
-						Player:SetFacing(pos.x,pos.y,pos.z) 
-						return true
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil}
+				if (pos.x ~= nil) then
+					if (pos.y ~= nil and pos.z ~= nil) then
+						d("using multiple version, y = "..tostring(pos.y)..", z = "..tostring(pos.z))
+						table.insert(ml_mesh_mgr.receivedInstructions, 
+							function () 
+								Player:SetFacing(pos.x,pos.y,pos.z) 
+								return true
+							end
+						)
+					else
+						d("using singular version.")
+						table.insert(ml_mesh_mgr.receivedInstructions, 
+							function () 
+								Player:SetFacing(pos.x) 
+								ml_global_information.Await(1000, function () return Player.pos.h == pos.x end)
+								return true
+							end
+						)
 					end
-				)
+				end
 			elseif (itype == "MoveForward") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
@@ -215,6 +242,124 @@ function ml_mesh_mgr.ParseInstructions(data)
 						return false
 					end
 				)
+			elseif (itype == "CheckIfNear") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_mesh_mgr.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							--d("running check if near")
+							--d("distance2d:"..tostring(Distance2DT(pos,myPos)))
+							--d("distance3d:"..tostring(Distance3DT(pos,myPos)))
+							return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+						end
+					)
+				end	
+			elseif (itype == "MoveStraightTo") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				local jumps = {}
+				if (TableSize(iparams) > 5) then
+					for i = 6,TableSize(iparams) do
+						if (table.valid(iparams[i])) then
+							table.insert(jumps,iparams[i])
+						end
+					end
+				end
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_mesh_mgr.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (not Player:IsMoving()) then
+										return true
+									end
+									local myPos = Player.pos
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not Player:IsJumping()) then
+										if (table.valid(jumps)) then
+											for i,jump in pairs(jumps) do
+												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+													Player:Jump()
+												end
+											end
+										end
+									end
+								end,
+								function ()
+									d("ending movestraight to")
+									if (Player:IsMoving()) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			elseif (itype == "MoveStraightToContinue") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				local jumps = {}
+				if (TableSize(iparams) > 5) then
+					for i = 6,TableSize(iparams) do
+						if (table.valid(iparams[i])) then
+							table.insert(jumps,iparams[i])
+						end
+					end
+				end
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_mesh_mgr.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (not Player:IsMoving()) then
+										return true
+									end
+									local myPos = Player.pos
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not Player:IsJumping()) then
+										if (table.valid(jumps)) then
+											for i,jump in pairs(jumps) do
+												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+													Player:Jump()
+												end
+											end
+										end
+									end
+								end, 
+								function ()
+									d("ending movestraight to continue")
+								end
+							)
+							return true
+						end
+					)
+				end				
 			end
 		end
 	end

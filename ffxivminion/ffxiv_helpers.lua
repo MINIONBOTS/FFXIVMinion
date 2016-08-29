@@ -2024,7 +2024,7 @@ function Distance3DT(pos1,pos2,truedist)
 	local truedist = IsNull(false)
 	
 	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z,truedist)
-	return distance
+	return round(distance,2)
 end
 function Distance2DT(pos1,pos2,truedist)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
@@ -2033,7 +2033,7 @@ function Distance2DT(pos1,pos2,truedist)
 	local truedist = IsNull(false)
 	
 	local distance = Distance2D(pos1.x,pos1.z,pos2.x,pos2.z)
-	return distance
+	return round(distance,2)
 end
 function ConvertHeading(heading)
 	if (heading < 0) then
