@@ -710,8 +710,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
 				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
-					local cleanedv = string.gsub(self.conversationstring,"[()]","")
+					local cleanedline = string.gsub(convo.line,"[()-/]","")
+					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
 						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
@@ -720,9 +720,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				end
 			elseif (table.valid(self.conversationstrings)) then
 				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
+					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
-						local cleanedv = string.gsub(v,"[()]","")
+						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							SelectConversationIndex(convoindex)
 							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
@@ -2576,9 +2576,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				}
 				
 				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
+					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for language,astring in pairs(aethernet) do
-						local cleanedastring = string.gsub(astring,"[()]","")
+						local cleanedastring = string.gsub(astring,"[()-/]","")
 						if (string.find(cleanedline,cleanedastring) ~= nil and string.find(convo.line,residential[language]) == nil) then
 							d("Open Aethernet menu on index ["..tostring(convoindex).."]")
 							SelectConversationIndex(convoindex)
@@ -2591,8 +2591,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			
 			if (string.valid(self.conversationstring)) then
 				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
-					local cleanedv = string.gsub(self.conversationstring,"[()]","")
+					local cleanedline = string.gsub(convo.line,"[()-/]","")
+					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
 						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
@@ -2601,9 +2601,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 				end
 			elseif (table.valid(self.conversationstrings)) then
 				for convoindex,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()]","")
+					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
-						local cleanedv = string.gsub(v,"[()]","")
+						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							SelectConversationIndex(convoindex)
 							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
