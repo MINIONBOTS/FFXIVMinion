@@ -1126,7 +1126,7 @@ function ffxiv_task_teleport:task_complete_eval()
 			local conversationstrings = {
 				["E"] = "Set Home Point";
 				["J"] = "ホームポイント登録";
-				["G"] = "Als Heimatpunkt speichern";
+				["G"] = "Als Heimatpunkt registrieren";
 				["F"] = "Enregistrer comme point de retour";
 				["CN"] = "设置返回点";
 				["KR"] = "귀환 지점 설정";
