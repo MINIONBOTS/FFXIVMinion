@@ -2000,37 +2000,16 @@ function EntityIsFrontTight(entity)
 	end
     return false
 end
-function Distance3D(x1,y1,z1,x2,y2,z2,truedist)
-	local truedist = IsNull(false)
-	local dx = (x1 - x2)
-	local dy = math.abs(y1 - y2)
-	local dz = (z1 - z2)
-	local dist2d = math.sqrt((dx * dx) + (dz * dz))
-	local dist3d = math.sqrt((dx * dx) + (dy * dy) + (dz * dz))
-	
-	if (truedist) then
-		return dist3d
-	elseif (dy <= 3) then
-		return dist2d
-	else
-		--d("dist2d:"..tostring(dist2d)..", dy:"..tostring(dy))
-		return dist2d + dy
-	end
-end
-function Distance3DT(pos1,pos2,truedist)
+function Distance3DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
 	
-	local truedist = IsNull(false)
-	
-	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z,truedist)
+	local distance = Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 	return round(distance,2)
 end
-function Distance2DT(pos1,pos2,truedist)
+function Distance2DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
-	
-	local truedist = IsNull(false)
 	
 	local distance = Distance2D(pos1.x,pos1.z,pos2.x,pos2.z)
 	return round(distance,2)

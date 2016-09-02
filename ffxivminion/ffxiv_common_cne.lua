@@ -1702,9 +1702,9 @@ e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
 function c_useaethernet:evaluate(mapid, pos)
-	if (true) then
-		return false
-	end
+	--if (true) then
+		--return false
+	--end
 	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
@@ -3269,7 +3269,6 @@ function e_buy:execute()
 	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
 	if (buyamount > 99) then
 		buyamount = 99
-		ml_task_hub:CurrentTask().buyamount = ml_task_hub:CurrentTask().buyamount - 99
 	end
 	
 	Inventory:BuyShopItem(e_buy.itemid,buyamount)

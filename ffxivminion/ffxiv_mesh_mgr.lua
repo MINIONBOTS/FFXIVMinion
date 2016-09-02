@@ -64,13 +64,12 @@ function ml_mesh_mgr.ParseInstructions(data)
 								return true
 							else
 								Player:Move(128) 
-								ml_mesh_mgr.AddThrottleTime(300)
+								ml_global_information.Await(math.random(300,500))
 								return false
 							end
 						else
 							Player:Jump()
-							Player:Jump()
-							ml_mesh_mgr.AddThrottleTime(500)
+							ml_global_information.Await(math.random(50,150))
 							return false
 						end
 					end
@@ -82,8 +81,24 @@ function ml_mesh_mgr.ParseInstructions(data)
 							return true
 						else
 							Player:Jump()
-							Player:Jump()
+							ml_global_information.Await(math.random(50,150))
 							return false
+						end
+					end
+				)
+			elseif (itype == "Descend") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						if (IsFlying()) then
+							Player:SetPitch(1.377) 
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+								ml_global_information.Await(3000, function () return Player:IsMoving() end)
+							end
+							ml_mesh_mgr.AddThrottleTime(300)
+							return false
+						else
+							return true
 						end
 					end
 				)
@@ -93,6 +108,39 @@ function ml_mesh_mgr.ParseInstructions(data)
 						if (Player:IsMoving()) then
 							Player:Stop()
 							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Mount") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						if (not Player.ismounted) then
+						
+							local mountlist = ActionList("type=13")
+							if (ValidTable(mountlist)) then
+								--First pass, look for our named mount.
+								for k,v in pairsByKeys(mountlist) do
+									if (v.name == gMount) then
+										local acMount = ActionList:Get(v.id,13)
+										if (acMount and acMount.isready) then
+											acMount:Cast()
+											ml_global_information.Await(5000, function () return Player.ismounted end)
+											return false
+										end
+									end
+								end
+								
+								local acChocobo = ActionList:Get(1,13)
+								if (acChocobo and acChocobo.isready) then
+									acChocobo:Cast()
+									ml_global_information.Await(5000, function () return Player.ismounted end)
+									return false
+								end
+							end
+							
 							return false
 						else
 							return true
@@ -131,7 +179,6 @@ function ml_mesh_mgr.ParseInstructions(data)
 				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil}
 				if (pos.x ~= nil) then
 					if (pos.y ~= nil and pos.z ~= nil) then
-						d("using multiple version, y = "..tostring(pos.y)..", z = "..tostring(pos.z))
 						table.insert(ml_mesh_mgr.receivedInstructions, 
 							function () 
 								Player:SetFacing(pos.x,pos.y,pos.z) 
@@ -139,7 +186,6 @@ function ml_mesh_mgr.ParseInstructions(data)
 							end
 						)
 					else
-						d("using singular version.")
 						table.insert(ml_mesh_mgr.receivedInstructions, 
 							function () 
 								Player:SetFacing(pos.x) 
@@ -155,22 +201,6 @@ function ml_mesh_mgr.ParseInstructions(data)
 						Player:Move(FFXIV.MOVEMENT.FORWARD) 
 						ml_global_information.Await(3000, function () return Player:IsMoving() end)
 						return true
-					end
-				)
-			elseif (itype == "Descend") then
-				table.insert(ml_mesh_mgr.receivedInstructions, 
-					function () 
-						if (IsFlying()) then
-							Player:SetPitch(1.377) 
-							if (not Player:IsMoving()) then
-								Player:Move(FFXIV.MOVEMENT.FORWARD)
-								ml_global_information.Await(3000, function () return Player:IsMoving() end)
-							end
-							ml_mesh_mgr.AddThrottleTime(300)
-							return false
-						else
-							return true
-						end
 					end
 				)
 			elseif (itype == "CheckIfLocked") then
@@ -251,9 +281,6 @@ function ml_mesh_mgr.ParseInstructions(data)
 					table.insert(ml_mesh_mgr.receivedInstructions, 
 						function ()
 							local myPos = Player.pos
-							--d("running check if near")
-							--d("distance2d:"..tostring(Distance2DT(pos,myPos)))
-							--d("distance3d:"..tostring(Distance3DT(pos,myPos)))
 							return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
 						end
 					)
@@ -299,7 +326,6 @@ function ml_mesh_mgr.ParseInstructions(data)
 									end
 								end,
 								function ()
-									d("ending movestraight to")
 									if (Player:IsMoving()) then
 										Player:Stop()
 										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
@@ -351,15 +377,87 @@ function ml_mesh_mgr.ParseInstructions(data)
 											end
 										end
 									end
-								end, 
-								function ()
-									d("ending movestraight to continue")
 								end
 							)
 							return true
 						end
 					)
-				end				
+				end	
+			elseif (itype == "FlyStraightTo") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 5
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.75
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_mesh_mgr.receivedInstructions, 
+						function ()
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+										return true
+									end
+									local myPos = Player.pos
+									d("3D:"..tostring(ml_mesh_mgr.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (ml_mesh_mgr.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									local myPos = Player.pos
+									SmartTurn(pos)
+									--local distNext = ml_mesh_mgr.Distance2DT(myPos,pos)
+									local distNext = Distance2DT(myPos,pos)
+									local pitch = math.atan2((myPos.y - pos.y), distNext)
+									
+									if (GetPitch() ~= pitch) then
+										Player:SetPitch(pitch)
+									end
+								end,
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			elseif (itype == "FlyStraightToContinue") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 5
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.75
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_mesh_mgr.receivedInstructions, 
+						function ()
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+										return true
+									end
+									local myPos = Player.pos
+									d("3D:"..tostring(ml_mesh_mgr.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (ml_mesh_mgr.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									local myPos = Player.pos
+									SmartTurn(pos)
+									--local distNext = ml_mesh_mgr.Distance3DT(myPos,pos)
+									local distNext = Distance2DT(myPos,pos)
+									local pitch = math.atan2((myPos.y - pos.y), distNext)
+									if (GetPitch() ~= pitch) then
+										Player:SetPitch(pitch)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
 			end
 		end
 	end
@@ -899,6 +997,19 @@ function ml_mesh_mgr.ResetOMC()
 	ml_mesh_mgr.OMCLastDistance = 0
 	ml_mesh_mgr.OMCStartingDistance = 0
 	ml_mesh_mgr.OMCTarget = 0
+end
+
+function ml_mesh_mgr.Distance3D(x1,y1,z1,x2,y2,z2)
+	local dx = (x1 - x2)
+	local dy = (y1 - y2)
+	local dz = (z1 - z2)
+	local dist3d = math.sqrt((dx * dx) + (dy * dy) + (dz * dz))
+	
+	return dist3d
+end
+function ml_mesh_mgr.Distance3DT(pos1,pos2)
+	local distance = ml_mesh_mgr.Distance3D(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+	return round(distance,2)
 end
 
 function ml_mesh_mgr.IsFacing(pos)

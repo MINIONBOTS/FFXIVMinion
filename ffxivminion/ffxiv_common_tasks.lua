@@ -1133,9 +1133,9 @@ function ffxiv_task_teleport:task_complete_eval()
 			}
 
 			for convoindex,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo.line,"[()]","")
+				local cleanedline = string.gsub(convo.line,"[()-]","")
 				for k,v in pairs(conversationstrings) do
-					local cleanedv = string.gsub(v,"[()]","")
+					local cleanedv = string.gsub(v,"[()-]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
 						ml_global_information.Await(2000, function () return ControlVisible("SelectYesno") end)
@@ -2693,9 +2693,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					self.pos = shallowcopy(ipos)
 				end
 			else
-			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0 and dist < 5) then
-				if (not deepcompare(self.pos,p,true)) then
+				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				if (p and dist ~= 0 and dist < 5) then
+					if (not deepcompare(self.pos,p,true)) then
 						self.pos = shallowcopy(p)
 					end
 				end
@@ -2719,7 +2719,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
-						
+							
 						local currentDist = Distance3DT(ppos,ipos)
 						ml_global_information.AwaitSuccessFail(3000, 
 							function () 
