@@ -835,10 +835,12 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
-							
+
+						d("[MoveToInteract]: Interacting with target.")
+						
 						local currentDist = Distance3DT(ppos,ipos)
-						ml_global_information.AwaitSuccessFail(3000, 
-							function () 
+						ml_global_information.AwaitSuccessFail(500, 3000, 
+							function ()
 								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 
 							function ()
@@ -849,7 +851,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							end,
 							function ()
 								d("[MoveToInteract]: Interact failed, attempting to move closer.")
-								Player:MoveTo(ipos.x,ipos.y,ipos.z)
+								Player:SetFacing(ipos.x,ipos.y,ipos.z)
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
 								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
 							end
 						)
@@ -1064,8 +1067,8 @@ function ffxiv_task_teleport.Create()
 end
 
 function ffxiv_task_teleport:Init() 
-	local ke_setHomepoint = ml_element:create( "SetHomepoint", c_sethomepoint, e_sethomepoint, 50 )
-	self:add( ke_setHomepoint, self.process_elements)
+	--local ke_setHomepoint = ml_element:create( "SetHomepoint", c_sethomepoint, e_sethomepoint, 50 )
+	--self:add( ke_setHomepoint, self.process_elements)
 	
     self:AddTaskCheckCEs()
 end
@@ -1090,12 +1093,13 @@ function c_sethomepoint:evaluate()
 	
 	local homepoint = GetHomepoint()
 	if (homepoint ~= 0) then
+		d("homepoint is ["..tostring(homepoint).."] and current mapid is ["..tostring(ml_task_hub:CurrentTask().mapID).."]")
 		if (homepoint ~= ml_task_hub:CurrentTask().mapID) then
 			local location = GetAetheryteLocation(ml_task_hub:CurrentTask().aetheryte)
 			if (ValidTable(location)) then
+				d("need to set homepoint")
 				e_sethomepoint.aethid = ml_task_hub:CurrentTask().aetheryte
 				e_sethomepoint.aethpos = {x = location.x, y = location.y, z = location.z}
-				ml_task_hub:CurrentTask().conversationIndex = 1
 				return true
 			end
 		end
@@ -1116,7 +1120,8 @@ function e_sethomepoint:execute()
 end
 
 function ffxiv_task_teleport:task_complete_eval()
-	if (TimeSince(self.started) < 8000 or MIsLoading() or MIsCasting(true)) then
+	if (MIsLoading() or MIsCasting(true)) then
+		--d("isloading or iscasting")
 		return false
 	end
 	
@@ -1149,37 +1154,40 @@ function ffxiv_task_teleport:task_complete_eval()
 	end
 	
 	if (ControlVisible("SelectYesno")) then
+		--d("select yesno, pressyesno")
 		PressYesNo(true)
 		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
 		return
 	end
 	
 	if (Player.localmapid ~= self.mapID) then
-		return true
+		--d("map doesn't match needed map, can't complete")
+		return false
 	end
 	
+	--[[
 	if (self.setHomepoint and not IsCityMap(Player.localmapid)) then
 		local homepoint = GetHomepoint()
 		if (homepoint ~= self.mapID) then
+			--d("homepoint doesn't match the mapid")
 			return false
 		end
 	end
+	--]]
 	
-	if (Player.onmesh) then
-		if (self.setEvac) then
-			ml_mesh_mgr.SetEvacPoint()
-		end
-		return true
+	if (self.setEvac) then
+		ml_mesh_mgr.SetEvacPoint()
 	end
 	
-    return false
+	--d("complete teleport")
+	return true
 end
 function ffxiv_task_teleport:task_complete_execute()  
 	self.completed = true
 end
 
 function ffxiv_task_teleport:task_fail_eval()
-	if (ml_global_information.Player_InCombat or not Player.alive) then
+	if (Player.incombat or not Player.alive) then
 		return true
 	end
 	
@@ -1188,7 +1196,7 @@ function ffxiv_task_teleport:task_fail_eval()
 		return false
 	end
 	
-	if (TimeSince(self.started) > 15000) then
+	if (TimeSince(self.started) > 25000) then
 		return true
 	elseif (TimeSince(self.lastActivity) > 5000) then
 		return true
@@ -2721,7 +2729,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						Player:Interact(interactable.id)
 							
 						local currentDist = Distance3DT(ppos,ipos)
-						ml_global_information.AwaitSuccessFail(3000, 
+						ml_global_information.AwaitSuccessFail(500, 3000, 
 							function () 
 								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 
