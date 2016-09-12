@@ -124,7 +124,7 @@ function c_findnode:evaluate()
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
-			if (distance <= radius) then
+			if (distance <= radius or radius >= 100) then
 			
 				if (ValidTable(ffxiv_gather.currentTask)) then
 					if (ffxiv_gather.currentTask.taskStarted == 0) then
@@ -208,7 +208,7 @@ function c_movetonode:evaluate()
         local gatherable = EntityList:Get(ml_task_hub:CurrentTask().gatherid)
         if (gatherable and gatherable.cangather) then
 			local gpos = gatherable.pos
-			if (gatherable.distance > 3.3) then
+			if (gatherable.distance > 3.3 or IsFlying()) then
 				gd("[MoveToNode]: > 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				return true
 			else
@@ -924,8 +924,10 @@ function e_gather:execute()
 			
 		-- just grab a random item with good chance
 		for i, item in pairs(list) do
-			if (item.chance > 50) then
-				return DoGathering(item)
+			if (not IsMap(item.id)) then
+				if (item.chance > 50) then
+					return DoGathering(item)
+				end
 			end
 		end
 		
@@ -933,7 +935,9 @@ function e_gather:execute()
 		
 		-- just grab a random item - last resort
 		for i, item in pairs(list) do
-			return DoGathering(item)
+			if (not IsMap(item.id)) then
+				return DoGathering(item)
+			end
 		end
     end
 end

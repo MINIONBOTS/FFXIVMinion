@@ -169,8 +169,8 @@ function ffxiv_task_grind:Init()
 	local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 150 )
     self:add(ke_flee, self.overwatch_elements)
 	
-	--local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 40 )
-    --self:add(ke_luminous, self.overwatch_elements)
+	local ke_luminous = ml_element:create( "NextLuminous", c_nextluminous, e_nextluminous, 40 )
+    self:add(ke_luminous, self.overwatch_elements)
 	
 	local ke_atma = ml_element:create( "NextAtma", c_nextatma, e_nextatma, 30 )
     self:add(ke_atma, self.overwatch_elements)
@@ -284,8 +284,16 @@ function ffxiv_task_grind.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gFateRandomDelayMax")
 		then
 			SafeSetVar(tostring(k),tonumber(v))
-		elseif ( k == "gAtma") then
+		elseif ( k == "gAtma" ) then
 			if (v == "1") then
+				SetGUIVar("gLuminous","0")
+				SetGUIVar("gDoFates","1")
+				SetGUIVar("gFatesOnly","1")
+			end	
+			SafeSetVar(tostring(k),v)
+		elseif ( k == "gLuminous") then
+			if (v == "1") then
+				SetGUIVar("gAtma","0")
 				SetGUIVar("gDoFates","1")
 				SetGUIVar("gFatesOnly","1")
 			end	
@@ -392,6 +400,9 @@ function ffxiv_task_grind.UIInit()
 	if (Settings.FFXIVMINION.gAtma == nil) then
         Settings.FFXIVMINION.gAtma = "0"
     end
+	if (Settings.FFXIVMINION.gLuminous == nil) then
+        Settings.FFXIVMINION.gLuminous = "0"
+    end
 	if (Settings.FFXIVMINION.gClaimFirst == nil) then
         Settings.FFXIVMINION.gClaimFirst = "0"
     end
@@ -489,6 +500,7 @@ function ffxiv_task_grind.UIInit()
 	local group = GetString("settings")
 	GUI_NewCheckbox(winName, GetString("doHuntingLog"),"gGrindDoHuntLog",group)
 	GUI_NewCheckbox(winName, GetString("doAtma"), "gAtma",group)
+	GUI_NewCheckbox(winName, "Do Luminous", "gLuminous",group)	
     GUI_NewCheckbox(winName, GetString("doFates"), "gDoFates",group)
     GUI_NewCheckbox(winName, GetString("fatesOnly"), "gFatesOnly",group)
 	GUI_NewCheckbox(winName, GetString("prioritizeClaims"),"gClaimFirst",group)
@@ -520,13 +532,14 @@ function ffxiv_task_grind.UIInit()
 	GUI_NewCheckbox(winName,"Escort Fates", "gDoEscortFates",group)
 	GUI_NewNumeric(winName,"Escort Fate Wait %", "gFateEscortWaitPercent", group, "0", "99")
 	
-	
 	GUI_UnFoldGroup(winName,GetString("status"))
 	ffxivminion.SizeWindow(winName)
 	GUI_WindowVisible(winName, false)
 	
 	gAlwaysKillAggro = Settings.FFXIVMINION.gAlwaysKillAggro
 	gAtma = Settings.FFXIVMINION.gAtma
+	gLuminous = Settings.FFXIVMINION.gLuminous
+	
 	gClaimFirst = Settings.FFXIVMINION.gClaimFirst
 	gClaimRange = Settings.FFXIVMINION.gClaimRange
 	gClaimed = Settings.FFXIVMINION.gClaimed

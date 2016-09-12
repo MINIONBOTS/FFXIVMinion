@@ -486,106 +486,30 @@ end
 
 c_nextluminous = inheritsFrom( ml_cause )
 e_nextluminous = inheritsFrom( ml_effect )
-e_nextluminous.luminous = nil
+e_nextluminous.crystal = nil
 function c_nextluminous:evaluate()	
-	if (gAtma == "0" or ml_global_information.Player_InCombat or ffxiv_task_grind.inFate or MIsLoading()) then
+	if (gLuminous == "0" or Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
 		return false
 	end
 	
-	e_nextluminous.luminous = nil
+	e_nextluminous.crystal = nil
 	
-	local map = Player.localmapid
 	local crystals = ffxiv_task_grind.luminous
 	
-	local mapFound = false
-	local mapItem = nil
-	local itemFound = false
-	local getNext = false
-	local jpTime = GetJPTime()
-	
-	--First loop, check if we can do the one on our current map.
-	for i, crystal in pairsByKeys(crystals) do
-		--["Ice"] = 		{ name = "Ice", 		map = 397, item = 13569 },
-		if (crystal.map == map and ItemCount(crystal.item) < 3) then
-			itemFound = true
-			
-		end
-			
-		if ((tonumber(atma.hour) == jpTime.hour and jpTime.min <= 55) or
-			(tonumber(atma.hour) == AddHours12(jpTime.hour,1) and jpTime.min > 55)) then
-			local haveBest = false
-			--local bestAtma = a
-			for x=0,3 do
-				local inv = Inventory("type="..tostring(x))
-				for i, item in pairs(inv) do
-					if (item.id == atma.item) then
-						haveBest = true
-					end
-					if (haveBest) then	
-						break
-					end
-				end
-				if (haveBest) then
-					break
-				end
-			end
-		
-			if (not haveBest) then
-				if (atma.map ~= map) then
-					e_nextatma.atma = atma
-					return true
-				end
-			end
-		end
-	end
-	
 	--Second loop, check to see if we have this map's atma, and return false if we still don't have it yet.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		if (atma.map == map) then
-			local haveClosest = false
-			
-			for x=0,3 do
-				local inv = Inventory("type="..tostring(x))
-				for i, item in pairs(inv) do
-					if (item.id == atma.item) then
-						haveClosest = true
-					end
-					if (haveClosest) then	
-						break
-					end
-				end
-				if (haveClosest) then
-					break
-				end
-			end
-			
-			if (not haveClosest) then
-				--We're already on the map with the most appropriate atma and we don't have it
+	for i, crystal in pairs(crystals) do
+		if (crystal.map == Player.localmapid) then
+			local count = ItemCount(crystal.item)
+			if (count < 3) then
 				return false
 			end
 		end
 	end
 	
-	--Third loop, figure out which ones we do have, then go anywhere else.
-	for a, atma in pairs(ffxiv_task_grind.atmas) do
-		local found = false
-		for x=0,3 do
-			local inv = Inventory("type="..tostring(x))
-			for i, item in pairs(inv) do
-				if (item.id == atma.item) then
-					found = true
-				end
-				if (found) then	
-					break
-				end
-			end
-			if (found) then
-				break
-			end
-		end
-		
-		if (not found) then
-			e_nextluminous.atma = atma
+	for i, crystal in pairs(crystals) do
+		local count = ItemCount(crystal.item)
+		if (count < 3) then
+			e_nextluminous.crystal = crystal
 			return true
 		end
 	end
@@ -593,26 +517,32 @@ function c_nextluminous:evaluate()
 	return false
 end
 function e_nextluminous:execute()
-	local luminous = e_nextluminous.luminous
-	Player:Stop()
-	Dismount()
+	local crystal = e_nextluminous.crystal
 	
-	if (Player.ismounted) then
+	if (Player:IsMoving()) then
+		Player:Stop()
+		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+	end
+	
+	if (Player.ismounted and GetGameRegion() ~= 1) then
+		Dismount()
 		return
 	end
 	
 	if (ActionIsReady(7,5)) then
-		Player:Teleport(atma.tele)
-		ml_task_hub:ThisTask().correctMap = atma.map
-		
-		local newTask = ffxiv_task_teleport.Create()
-		--d("Changing to new location for "..tostring(atma.name).." atma.")
-		newTask.aetheryte = atma.tele
-		newTask.mapID = atma.map
-		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		local aetheryte = GetAetheryteByMapID(crystal.map)
+		if (aetheryte) then
+			Player:Teleport(aetheryte.id)
+			
+			local newTask = ffxiv_task_teleport.Create()
+			d("[Grind]: Changing to new location for "..tostring(crystal.name).." luminous crystal.")
+			newTask.aetheryte = aetheryte.id
+			newTask.mapID = crystal.map
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+		end
 	end
 	
-	ml_task_hub:ThisTask().correctMap = atma.map
+	ml_task_hub:ThisTask().correctMap = crystal.map
 end
 
 --=======Avoidance============

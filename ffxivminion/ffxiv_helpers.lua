@@ -337,12 +337,13 @@ end
 
 function GetNearestFateAttackable()
 	local el = nil
-    local myPos = ml_global_information.Player_Position
+    local myPos = Player.pos
     local fate = MGetFateByID(ml_task_hub:CurrentTask().fateid)
 	
     if (fate and fate.status == 2 and fate.completion < 100) then
 		if (fate.type == 1) then
-				
+			d("fate type is 1")
+			
 			el = MEntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
 			if (ValidTable(el)) then
 				local bestTarget = nil
@@ -358,18 +359,19 @@ function GetNearestFateAttackable()
 				if (bestTarget) then
 					if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
 						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
-						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,fateid=0,maxdistance=25")
+						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
 						if (ValidTable(el)) then
+							d("searching targets that are targeting me")
 							local nearestQuick = nil
 							local nearestQuickDistance = 500
 							
 							for i,e in pairs(el) do
 								local epos = e.pos
 								local ehp = e.hp
-								local mhp = ml_global_information.Player_HP
+								local mhp = Player.hp
 								local dist = Distance2D(epos.x,epos.z,fate.x,fate.z)
 								if (dist <= fate.radius and 
-									(ehp.max <= (mhp.max * 1.1) or (ehp.current < (mhp.max * 1.1)))) 
+									(ehp.max <= (mhp.max * 2) or (ehp.current < (mhp.max * 2)))) 
 								then
 									if (not nearestQuick or (nearestQuick and dist < nearestQuickDistance)) then
 										nearestQuick,nearestQuickDistance = e,dist
@@ -483,7 +485,7 @@ function GetHuntTarget()
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
-				local myPos = ml_global_information.Player_Position
+				local myPos = Player.pos
 				local tpos = e.pos
 				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
@@ -506,7 +508,7 @@ function GetHuntTarget()
 		end
 		if (ValidTable(el)) then
 			for i,e in pairs(el) do
-				local myPos = ml_global_information.Player_Position
+				local myPos = Player.pos
 				local tpos = e.pos
 				local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 				if (distance < nearestDistance) then
@@ -530,7 +532,7 @@ function GetHuntTarget()
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
-					local myPos = ml_global_information.Player_Position
+					local myPos = Player.pos
 					local tpos = e.pos
 					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
@@ -553,7 +555,7 @@ function GetHuntTarget()
 			end
 			if (ValidTable(el)) then
 				for i,e in pairs(el) do
-					local myPos = ml_global_information.Player_Position
+					local myPos = Player.pos
 					local tpos = e.pos
 					local distance = PDistance3D(myPos.x, myPos.y, myPos.z, tpos.x, tpos.y, tpos.z)
 					if (distance < nearestDistance) then
@@ -2010,7 +2012,7 @@ end
 function Distance2DT(pos1,pos2)
 	assert(type(pos1) == "table","Distance3DT - expected type table for first argument")
 	assert(type(pos2) == "table","Distance3DT - expected type table for second argument")
-	
+
 	local distance = Distance2D(pos1.x,pos1.z,pos2.x,pos2.z)
 	return round(distance,2)
 end
@@ -2042,7 +2044,7 @@ function HeadingToDegrees(heading)
 end
 function TurnAround(sync)	
 	local sync = sync or false
-	local newHeading = HeadingToDegrees(ml_global_information.Player_Position.h)
+	local newHeading = HeadingToDegrees(Player.pos.h)
 	newHeading = newHeading + 180
 	if (newHeading > 360) then
 		newHeading = newHeading - 360
@@ -2204,18 +2206,14 @@ function IsFateApproved(fateid)
 			end
 		end
 	end
-	
-	if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fateid) or ffxiv_task_fate.IsChain(Player.localmapid, fateid)) then
-		return true
-	end
-	
+
 	return false
 end
 function IsInsideFate()
 	local closestFate = GetClosestFate()
 	if (ValidTable(closestFate)) then
 		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
-		local myPos = ml_global_information.Player_Position
+		local myPos = Player.pos
 		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
 		if (dist < closestFate.radius) then
 			return true
@@ -2244,7 +2242,7 @@ function GetClosestFate(pos,pathcheck)
         local nearestFate = nil
         local nearestDistance = 9999
         local level = Player.level
-		local myPos = ml_global_information.Player_Position
+		local myPos = Player.pos
 		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
 		local whitelistTable = {}
 		
@@ -2573,7 +2571,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 end
 function PathDistanceTable(gotoPos)
 	if (ValidTable(gotoPos)) then
-		local ppos = ml_global_information.Player_Position
+		local ppos = Player.pos
 		local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z)
 		
 		local prevPos = nil
@@ -3612,14 +3610,30 @@ function GetAetheryteByMapID(mapid, p)
 		return nil
 	end
 	
+	local ppos = Player.pos
+	
 	sharedMaps = {
 		[153] = { name = "South Shroud",
 			[1] = { name = "Quarrymill", aethid = 5, x = 181, z = -66},
 			[2] = { name = "Camp Tranquil", aethid = 6, x = -226, z = 355},
 		},
 		[137] = {name = "Eastern La Noscea",
-			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0},
-			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0},
+			[1] = { name = "Costa Del Sol", aethid = 11, x = 0, z = 0,
+				best = function ()  
+					if (not (ppos.x > 218 and ppos.z > 51) and (pos.x > 218 and pos.z > 51)) then
+						return true
+					end
+					return false
+				end	
+			},
+			[2] = { name = "Wineport", aethid = 12, x = 0, z = 0, 
+				best = function ()  
+					if ((ppos.x > 218 and ppos.z > 51) and not (pos.x > 218 and pos.z > 51)) then
+						return true
+					end
+					return false
+				end	
+			},
 		},
 		[138] = {name = "Western La Noscea",
 			[1] = { name = "Swiftperch", aethid = 13, x = 652, z = 509 },
@@ -3634,8 +3648,22 @@ function GetAetheryteByMapID(mapid, p)
 			[2] = { name = "Ceruleum", aethid = 22, x = -24, z = -27 },
 		},
 		[401] = {name = "Sea of Clouds",
-			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545 },
-			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419 },
+			[1] = { name = "Cloudtop", aethid = 72, x = -611, z = 545, 
+				best = function ()  
+					if (GetSeaOfCloudsSection(Player.pos) == 1 and GetSeaOfCloudsSection(pos) == 2) then
+						return true
+					end
+					return false
+				end				
+			},
+			[2] = { name = "OkZundu", aethid = 73, x = -606, z = -419,
+				best = function ()  
+					if (GetSeaOfCloudsSection(Player.pos) == 2 and GetSeaOfCloudsSection(pos) == 1) then
+						return true
+					end
+					return false
+				end				
+			},
 		},
 		[398] = {name = "Dravanian Forelands",
 			[1] = { name = "Tailfeather", aethid = 76, x = 533, z = 35 },
@@ -3668,7 +3696,6 @@ function GetAetheryteByMapID(mapid, p)
 				for index,aetheryte in pairsByKeys(list) do
 					if (aetheryte.id == sharedData.aethid) then
 						if (GilCount() >= aetheryte.price and aetheryte.isattuned) then
-							
 							choices[#choices+1] = sharedData
 						end
 					end
@@ -3678,9 +3705,21 @@ function GetAetheryteByMapID(mapid, p)
 			local size = TableSize(choices)
 			if (size > 1) then
 			
-				if (mapid == 137) then
-					bestID = ((pos.x > 218 and pos.z > 51) and 11) or 12
-				else 
+				if (choices[1].best and type(choices[1].best) == "function") then
+					if (choices[1].best() == true) then
+						bestID = choices[1].aethid
+					end
+				end
+				
+				if (bestID == nil) then
+					if (choices[2].best and type(choices[2].best) == "function") then
+						if (choices[2].best() == true) then
+							bestID = choices[2].aethid
+						end
+					end
+				end
+				
+				if (bestID == nil) then
 					local distance1 = Distance2D(pos.x, pos.z, choices[1].x, choices[1].z)
 					local distance2 = Distance2D(pos.x, pos.z, choices[2].x, choices[2].z)
 					bestID = ((distance1 < distance2) and choices[1].aethid) or choices[2].aethid
@@ -5285,7 +5324,7 @@ function CanAccessMap(mapid)
 	
 	if (mapid ~= 0) then
 		if (Player.localmapid ~= mapid) then
-			local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
 														mapid	)
 			if (ValidTable(pos)) then
@@ -5373,8 +5412,61 @@ function GetHinterlandsSection(pos)
 	return sec
 end
 
+function GetSeaOfCloudsSection(pos)
+    local sections = {
+        [1] = {
+            a = {x = -935, z = -935},
+            b = {x = -935, z = 117},
+            c = {x = 505, z = 117},
+            d = {x = 505, z = -935},
+            x = {x = -215, z = -409},
+        },
+        [2] = {
+            a = {x = 505, z = -935},
+            b = {x = 505, z = -280},
+            c = {x = 911, z = -280},
+            d = {x = 911, z = -935},
+            x = {x = 708, z = -607.5},
+        },
+        [3] = {
+            a = {x = -935, z = 117},
+            b = {x = -935, z = 219},
+            c = {x = -517, z = 219},
+            d = {x = -517, z = 117},
+            x = {x = -726, z = 168},
+        },
+        [4] = {
+            a = {x = -280, z = 117},
+            b = {x = -280, z = 230},
+            c = {x = 426, z = 230},
+            d = {x = 426, z = 117},
+            x = {x = 73, z = 173.5},
+        },
+        [5] = {
+            a = {x = 300, z = 230},
+            b = {x = 300, z = 300},
+            c = {x = 430, z = 300},
+            d = {x = 430, z = 230},
+            x = {x = 365, z = 265},
+        },
+    }
+
+    local sec = 2
+    if (ValidTable(pos)) then
+        for i,section in pairs(sections) do
+            local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
+            if (isInsideRect) then
+                sec = 1
+                break
+            end
+        end
+    end
+
+    return sec
+end
+
 function Transport139(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	local gilCount = GilCount()
@@ -5406,7 +5498,7 @@ function Transport139(pos1,pos2)
 end
 
 function Transport156(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if ((pos1.y < -150 and pos1.x < 12 and pos1.x > -10 and pos1.z < 16.5 and pos1.z > -14.1) and 
@@ -5532,7 +5624,7 @@ function Transport137(pos1,pos2)
 end
 
 function Transport138(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if (GilCount() > 100) then
@@ -5558,7 +5650,7 @@ function Transport138(pos1,pos2)
 end
 
 function Transport130(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if (pos1.y < 40 and pos2.y > 50) then
@@ -5583,7 +5675,7 @@ function Transport130(pos1,pos2)
 end
 
 function Transport128(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if (pos1.y < 60 and pos2.y > 70) then
@@ -5608,7 +5700,7 @@ function Transport128(pos1,pos2)
 end
 
 function Transport212(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if ((pos1.x < 23.85 and pos1.x > -15.46) and not (pos2.x < 23.85 and pos2.x > -15.46)) then
@@ -5631,7 +5723,7 @@ function Transport212(pos1,pos2)
 end
 
 function Transport351(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if ((pos1.z < 27.394 and pos1.z > -27.20) and not (pos2.z < 27.39 and pos2.z > -27.20)) then
@@ -5654,14 +5746,14 @@ function Transport351(pos1,pos2)
 end
 
 function Transport146(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	local distance = PDistance3D(pos1.x,pos1.y,pos1.z,-60.55,-25.107,-556.96)
 	if (pos1.y < -15 and distance < 40) then
 		if (Quest:IsQuestCompleted(343) or (Quest:HasQuest(343) and Quest:GetQuestCurrentStep(343) > 3)) then
 			return true, function()
-				local myPos = ml_global_information.Player_Position
+				local myPos = Player.pos
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
 				newTask.uniqueid = 1004609
@@ -5674,7 +5766,7 @@ function Transport146(pos1,pos2)
 end
 
 function Transport399(pos1,pos2)
-	local pos1 = pos1 or ml_global_information.Player_Position
+	local pos1 = pos1 or Player.pos
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
@@ -5684,6 +5776,73 @@ function Transport399(pos1,pos2)
 				newTask.destMapID = 478
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
+		end
+	end
+
+	return false			
+end
+
+function Transport401(pos1,pos2)
+	local pos1 = pos1 or Player.pos
+	local pos2 = pos2
+	
+	if (not CanFlyInZone()) then
+		if (GetSeaOfCloudsSection(pos1) ~= GetSeaOfCloudsSection(pos2)) then
+			if (GilCount() > 100) then
+				if (GetSeaOfCloudsSection(Player.pos) == 1) then
+					if (CanUseAetheryte(72) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(72)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 72
+									newTask.mapID = 401
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				else
+					if (CanUseAetheryte(73) and not Player.incombat) then
+						return true, function () 
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1500, function () return not Player:IsMoving() end)
+								return
+							end
+							if (Player.ismounted and GetGameRegion() ~= 1) then
+								Dismount()
+								return
+							end
+							if (ActionIsReady(7,5) and not MIsCasting(true) and not MIsLocked()) then
+								if (Player:Teleport(73)) then	
+									local newTask = ffxiv_task_teleport.Create()
+									newTask.aetheryte = 73
+									newTask.mapID = 401
+									ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
+								end
+							end
+						end
+					end
+				end
+			end
+			
+			--[[
+			return true, function()
+				local newTask = ffxiv_task_movetomap.Create()
+				newTask.destMapID = 478
+				ml_task_hub:CurrentTask():AddSubTask(newTask)
+			end
+			--]]
 		end
 	end
 
