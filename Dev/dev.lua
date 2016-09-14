@@ -62,12 +62,7 @@ function dev.DrawCall(event, ticks )
 										dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
 										GUI:TreePop()
 									end
-								end
-								
-								
-								
-								
-								
+								end								
 								GUI:TreePop()
 							end					
 							GUI:PopItemWidth()
@@ -90,6 +85,8 @@ function dev.DrawCall(event, ticks )
 				end				
 				GUI:TreePop()
 			end
+--End Active Controls
+
 			
 			if ( GUI:TreeNode("Player") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -110,6 +107,98 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
+
+			if ( GUI:TreeNode("Fates")) then
+				GUI:PushItemWidth(200)
+				local flist = GetFateList()
+				if (table.valid(flist)) then
+					for id, e in pairs(flist) do
+						if ( GUI:TreeNode(tostring(e.id).." - "..e.name)) then
+							GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devufa1",tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devufa2",tostring(e.id))
+							GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devufa3",tostring(e.type))
+							GUI:BulletText("Status") GUI:SameLine(200) GUI:InputText("##devufa4",tostring(e.status))
+							GUI:BulletText("Duration") GUI:SameLine(200) GUI:InputText("##devufa7",tostring(e.duration))
+							GUI:BulletText("Completion") GUI:SameLine(200) GUI:InputText("##devufa8",tostring(e.completion))
+							GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devufa5",tostring(e.level))
+							GUI:BulletText("MaxLevel") GUI:SameLine(200) GUI:InputText("##devufa6",tostring(e.maxlevel))	
+							GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devufa9",tostring(e.radius))							
+							GUI:BulletText("Position") GUI:SameLine(200)  GUI:InputFloat3( "##devufa10", e.x, e.y, e.z, 2, GUI.InputTextFlags_ReadOnly)							
+							GUI:TreePop()
+						end
+					end
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+--End Fates
+
+
+			if ( GUI:TreeNode("Inventory")) then
+				GUI:PushItemWidth(200)
+				-- ALTERNATIVE:  Inventory:GetList() , to get a table with ALL bags inside.
+				local inv = Inventory:GetTypes()
+				if (table.valid(inv)) then
+					for id, e in pairs(inv) do
+						if ( GUI:TreeNode(tostring(e))) then
+								local bag = Inventory:Get(e)
+								if (table.valid(bag)) then
+									GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devbag1"..tostring(id),tostring(string.format( "%X",bag.ptr)))
+									GUI:BulletText("Slots/Free/Used") GUI:SameLine(200) GUI:InputInt3("##devbag2"..tostring(id),tostring(bag.size),tostring(bag.free),tostring(bag.used))
+									
+									-- ALTERNATIVE: bag:GetItem(itemID) , bag:Get(slot)
+									local ilist = bag:GetList()
+									if (table.valid(ilist)) then
+										for slot, item in pairs(ilist) do
+											if ( GUI:TreeNode(tostring(slot).." - "..item.name)) then
+												GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devbag3"..tostring(slot),tostring(string.format( "%X",item.ptr)))
+												GUI:BulletText("Ptr2") GUI:SameLine(200) GUI:InputText("##devbag4"..tostring(slot),tostring(string.format( "%X",item.ptr2)))
+												GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devbag5"..tostring(slot),tostring(item.id))
+												GUI:BulletText("Is HQ") GUI:SameLine(200) GUI:InputText("##devbag19"..tostring(slot),tostring(item.ishq))
+												GUI:BulletText("HQID") GUI:SameLine(200) GUI:InputText("##devbag6"..tostring(slot),tostring(item.hqid))
+												GUI:BulletText("Slot") GUI:SameLine(200) GUI:InputText("##devbag7"..tostring(slot),tostring(item.slot))
+												GUI:BulletText("Parent BagID") GUI:SameLine(200) GUI:InputText("##devbag8"..tostring(slot),tostring(item.type))
+												GUI:BulletText("Stack Size") GUI:SameLine(200) GUI:InputText("##devbag9"..tostring(slot),tostring(item.count))
+												GUI:BulletText("Max Stack") GUI:SameLine(200) GUI:InputText("##devbag10"..tostring(slot),tostring(item.max))
+												GUI:BulletText("Condition") GUI:SameLine(200) GUI:InputText("##devbag11"..tostring(slot),tostring(item.condition))
+												GUI:BulletText("Spiritbond") GUI:SameLine(200) GUI:InputText("##devbag18"..tostring(slot),tostring(item.spiritbond))	
+												GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devbag13"..tostring(slot),tostring(item.level))
+												GUI:BulletText("Required Level") GUI:SameLine(200) GUI:InputText("##devbag14"..tostring(slot),tostring(item.level))
+												GUI:BulletText("Can Equip") GUI:SameLine(200) GUI:InputText("##devbag15"..tostring(slot),tostring(item.requiredlevel))												
+												GUI:BulletText("class") GUI:SameLine(200) GUI:InputText("##devbag17"..tostring(slot),tostring(item.class))																							
+												GUI:BulletText("Category") GUI:SameLine(200) GUI:InputText("##devbag20"..tostring(slot),tostring(item.category))
+												GUI:BulletText("UICategory") GUI:SameLine(200) GUI:InputText("##devbag21"..tostring(slot),tostring(item.uicategory))
+												GUI:BulletText("SearchCategory") GUI:SameLine(200) GUI:InputText("##devbag22"..tostring(slot),tostring(item.searchcategory))
+												GUI:BulletText("CanEquip") GUI:SameLine(200) GUI:InputText("##devbag16"..tostring(slot),tostring(item.canequip))
+												GUI:BulletText("Is Ready") GUI:SameLine(200) GUI:InputText("##devbag12"..tostring(slot),tostring(item.isready))
+												if (GUI:Button("Use()##"..tostring(slot),100,15) ) then d("Use Result: "..tostring(item:Use())) end 
+												GUI:SameLine(200)
+												if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
+												
+												if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
+												GUI:SameLine(200)
+												if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
+												
+												if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then d("Convert Result: "..tostring(item:Convert())) end
+												GUI:SameLine(200)
+												if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
+											
+												if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
+												
+												
+												
+												GUI:TreePop()
+											end
+										end
+									end
+								end
+							GUI:TreePop()
+						end
+					end
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
 			
 			if ( GUI:TreeNode("ServerList")) then
 				GUI:PushItemWidth(200)
@@ -119,6 +208,8 @@ function dev.DrawCall(event, ticks )
 						GUI:Text(tostring(id).." - "..e.name) GUI:SameLine()
 						if (GUI:Button("Select##"..tostring(id),50,15) ) then SelectServer(id) end
 					end
+				else
+					GUI:Text("Not in Character Select screen...")
 				end				
 				GUI:PopItemWidth()
 				GUI:TreePop()
@@ -132,7 +223,9 @@ function dev.DrawCall(event, ticks )
 				
 				local p = Player
 				if ( p ) then 
-					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(c.mapid))
+					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
+					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+					
 				end
 				
 				GUI:PopItemWidth()
@@ -211,6 +304,26 @@ function dev.DrawGameObjectDetails(c)
 	if ( GUI:TreeNode("Cast & Spell Data") ) then
 		GUI:BulletText("Current Action") GUI:SameLine(200) GUI:InputText("##dev36", tostring(c.action))
 		GUI:BulletText("Last Action") GUI:SameLine(200) GUI:InputText("##dev37", tostring(c.lastaction))
+		local cinfo = c.castinginfo
+		if ( table.size(cinfo) > 0) then
+			GUI:BulletText("Casting ID") GUI:SameLine(200) GUI:InputText("##dev38", tostring(cinfo.castingid))
+			GUI:BulletText("Casting Time") GUI:SameLine(200) GUI:InputText("##dev39", tostring(cinfo.casttime))
+			GUI:BulletText("Casting TargetCount") GUI:SameLine(200) GUI:InputText("##dev40", tostring(cinfo.castingtargetcount))
+			if ( GUI:TreeNode("Casting Targets") ) then
+				local ct = cinfo.castingtargets			
+				if ( table.size(ct) > 0) then
+					for tid, target in pairs(ct) do
+						GUI:BulletText("Target "..tostring(tid)) GUI:SameLine(200) GUI:InputText("##dev45"..tostring(tid), tostring(target))
+					end
+				end
+				GUI:TreePop()
+			end	
+			GUI:BulletText("Last Cast ID") GUI:SameLine(200) GUI:InputText("##dev41", tostring(cinfo.lastcastid))
+			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
+			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
+			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))
+			
+		end
 		GUI:TreePop()
 	end
 	
