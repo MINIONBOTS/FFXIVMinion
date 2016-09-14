@@ -77,22 +77,15 @@ ml_global_information.chocoStance = {
 	[GetString("stHealer")] = 7,
 }
 
-ml_global_information.chocoItems = {
-	
-}
-
 ml_global_information.classes = {}
 ml_global_information.blacklistedAetherytes = {}
 
-
 ml_global_information.chocoItemBuffs = {
-	--[[
-	exp up - 536,537 - 7894
-	attack up - 538,539 = 7895
-	healing up - 540,541 - 7897
-	hp up - 542,543 - 7898
-	enmity up - 544,545 - 7900
-	--]]
+	[7894] = { name = "Curiel Root (EXP)", item = 7894, buff1 = 536, buff2 = 537 },
+	[7895] = { name = "Sylkis Bud (ATK)", item = 7895, buff1 = 538, buff2 = 539 },
+	[7897] = { name = "Mimmet Gourd (Heal)", item = 7897, buff1 = 540, buff2 = 541 },
+	[7898] = { name = "Tantalplant (HP)", item = 7898, buff1 = 542, buff2 = 543 },
+	[7900] = { name = "Pahsana Fruit (ENM)", item = 7900, buff1 = 544, buff2 = 545 },
 }
 
 function ml_global_information.ToggleRun()	

@@ -4,6 +4,7 @@ ffxivminion.foodsHQ = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
 ffxivminion.busyTimer = 0
+ffxivminion.declineTimer = 0
 
 -- Create the main GUI container.
 ffxivminion.GUI = {
@@ -327,21 +328,26 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 					end
 				end
 			end
-
+			
 			if (gUseChocoboFood ~= "None") then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 					ml_global_information.rootCheckTimer = tickcount
-					for itemid,itemdetails in pairs(ml_global_information.chocoItemBuffs) do
-						if (gUseChocoboFood == itemdetails.name) then
-							local item = Inventory:Get(itemid)
-							local companion = GetCompanionEntity()
-							if (item and item.isready and companion and companion.alive) then
-								local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
-								if (MissingBuffs(companion, buffString)) then
-									Player:Stop()
-									local newTask = ffxiv_task_useitem.Create()
-									newTask.itemid = itemid
-									ml_task_hub:CurrentTask():AddSubTask(newTask)
+					
+					local itemBuffs = ml_global_information.chocoItemBuffs
+					if (table.valid(itemBuffs)) then
+						for itemid,itemdetails in pairs(itemBuffs) do
+							if (gUseChocoboFood == itemdetails.name) then
+								local item = Inventory:Get(itemid)
+								local companion = GetCompanionEntity()
+								if (item and item.isready and companion and companion.alive) then
+									local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
+									if (MissingBuffs(companion, buffString)) then
+										Player:Stop()
+										local newTask = ffxiv_task_useitem.Create()
+										newTask.itemid = itemid
+										--newTask.targetid = companion.id
+										ml_task_hub:CurrentTask():AddSubTask(newTask)
+									end
 								end
 							end
 						end
@@ -563,6 +569,7 @@ function ffxivminion.CreateMainWindow()
 	GUI_NewCheckbox(winName,GetString("randomMovement"),"gRandomMovement",group )
 	GUI_NewCheckbox(winName,GetString("useHQMats"),"gUseHQMats",group )
 	GUI_NewCheckbox(winName,"Use EXP Manuals","gUseEXPManuals",group )
+	GUI_NewCheckbox(winName,"Decline Parties","gDeclinePartyInvites",group )
 	
 	local group = GetString("companion")
 	GUI_NewCheckbox(winName,GetString("assistMode"),"gChocoAssist",group )
@@ -622,6 +629,7 @@ function ffxivminion.CreateMainWindow()
 	gRandomPaths = ffxivminion.GetSetting("gRandomPaths","0")
 	gAutoStart = ffxivminion.GetSetting("gAutoStart","0")
 	gTeleport = ffxivminion.GetSetting("gTeleport","0")
+	gTeleportDefaultDuties = ffxivminion.GetSetting("gTeleportDefaultDuties",gTeleport)
 	gParanoid = ffxivminion.GetSetting("gParanoid","1")
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene","0")
 	gSkipDialogue = ffxivminion.GetSetting("gSkipDialogue","0")
@@ -629,6 +637,7 @@ function ffxivminion.CreateMainWindow()
 	--gDoUnstuck = ffxivminion.GetSetting("gDoUnstuck","0")
 	gUseHQMats = ffxivminion.GetSetting("gUseHQMats","0")
 	gUseEXPManuals = ffxivminion.GetSetting("gUseEXPManuals","1")
+	gDeclinePartyInvites = ffxivminion.GetSetting("gDeclinePartyInvites","1")
 	gClickToTeleport = ffxivminion.GetSetting("gClickToTeleport","0")
 	gClickToTravel = ffxivminion.GetSetting("gClickToTravel","0")
 	gChocoAssist = ffxivminion.GetSetting("gChocoAssist","0")
@@ -650,36 +659,37 @@ function ffxivminion.CreateMainWindow()
 	gPotionMP = ffxivminion.GetSetting("gPotionMP","0")
 	gUseChocoboFood = ffxivminion.GetSetting("gUseChocoboFood","None")
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip","1")
+	gAutoEquipDefaultQuesting = ffxivminion.GetSetting("gAutoEquipDefaultQuesting",gQuestAutoEquip)
 	gAdvStealthDetect = ffxivminion.GetSetting("gAdvStealthDetect","25")
 	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
 	gAdvStealthRisky = ffxivminion.GetSetting("gAdvStealthRisky","0")
 	
 	-- gAutoStart
-	if ( gAutoStart == "1" ) then
+	if (toboolean(gAutoStart)) then
 		ml_global_information.autoStartQueued = true		
 	end
-	if (gDisableDrawing == "1" ) then
+	if (toboolean(gDisableDrawing)) then
 		GameHacks:Disable3DRendering(true)
 	end
-    if (gSkipCutscene == "1" ) then
+    if (toboolean(gSkipCutscene)) then
         GameHacks:SkipCutscene(true)
     end
-    if (gSkipDialogue == "1" ) then
+    if (toboolean(gSkipDialogue)) then
         GameHacks:SkipDialogue(true)
     end
-	if (gUseHQMats == "1") then
+	if (toboolean(gUseHQMats)) then
 		Crafting:UseHQMats(true)
 	end
-	if (gClickToTeleport == "1") then
+	if (toboolean(gClickToTeleport)) then
 		GameHacks:SetClickToTeleport(true)
 	end
-	if (gClickToTravel == "1") then
+	if (toboolean(gClickToTravel)) then
 		GameHacks:SetClickToTravel(true)
 	end
-	if (gGatherPS == "1") then
+	if (toboolean(gGatherPS)) then
         GameHacks:SetPermaSprint(true)
     end
-	if (gPermaSwiftCast == "1") then
+	if (toboolean(gPermaSwiftCast)) then
         GameHacks:SetPermaSwiftCast(true)
     end	
 end
@@ -850,7 +860,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gChocoQuest" or
 			k == "gChocoStance" or
 			k == "gMount" or
-			k == "gTeleport" or
 			k == "gParanoid" or
 			k == "gQuestHelpers" or
 			k == "gRepair" or 
@@ -867,6 +876,16 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gQuestAutoEquip" or
 			k == "gUseEXPManuals")				
         then
+			SafeSetVar(tostring(k),v)
+		elseif (k == "gQuestAutoEquip") then
+			if (gBotMode == GetString("questMode")) then
+				SafeSetVar("gAutoEquipDefaultQuesting",v)
+			end
+			SafeSetVar(tostring(k),v)
+		elseif (k == "gTeleport") then
+			if (gBotMode == GetString("questMode")) then
+				SafeSetVar("gTeleportDefaultDuties",v)
+			end
 			SafeSetVar(tostring(k),v)
 		elseif ( k == "gMount" ) then
 			if ( v == GetString("none") and Player.ismounted and gBotRunning == "1" ) then
@@ -926,74 +945,42 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		end
 		
 		if ( k == "gDisableDrawing" ) then
-			if ( v == "1" ) then
-				GameHacks:Disable3DRendering(true)
-			else
-				GameHacks:Disable3DRendering(false)
-			end
+			GameHacks:Disable3DRendering(toboolean(v))
 			SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gSkipCutscene" ) then
-			if ( v == "1" ) then
-				GameHacks:SkipCutscene(true)
-			else
-				GameHacks:SkipCutscene(false)
-			end
+			GameHacks:SkipCutscene(toboolean(v))
             SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gSkipDialogue" ) then
-			if ( v == "1" ) then
-				GameHacks:SkipDialogue(true)
-			else
-				GameHacks:SkipDialogue(false)
-			end
+			GameHacks:SkipDialogue(toboolean(v))
             SafeSetVar(tostring(k),v)
 		end
 		
         if ( k == "gClickToTeleport" ) then
-			if ( v == "1" ) then
-				GameHacks:SetClickToTeleport(true)
-			else
-				GameHacks:SetClickToTeleport(false)
-			end
+			GameHacks:SetClickToTeleport(toboolean(v))
             SafeSetVar(tostring(k),v)
 		end
 		
         if ( k == "gClickToTravel" ) then
-			if ( v == "1" ) then
-				GameHacks:SetClickToTravel(true)
-			else
-				GameHacks:SetClickToTravel(false)
-			end
+			GameHacks:SetClickToTravel(toboolean(v))
             SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gUseHQMats" ) then
-			if ( v == "1" ) then
-				Crafting:UseHQMats(true)
-			else
-				Crafting:UseHQMats(false)
-			end
+			Crafting:UseHQMats(toboolean(v))
             SafeSetVar(tostring(k),v)
 		end
 		
 		if ( k == "gGatherPS" ) then
-            if ( v == "1") then
-                GameHacks:SetPermaSprint(true)
-            else
-                GameHacks:SetPermaSprint(false)
-            end
+			GameHacks:SetPermaSprint(toboolean(v))
 			SafeSetVar(tostring(k),v)
         end
 		
-		if ( k == "gPermaSwiftCast" ) then
-            if ( v == "1") then
-                GameHacks:SetPermaSwiftCast(true)
-            else
-                GameHacks:SetPermaSwiftCast(false)
-            end
+		if ( k == "gPermaSwiftCast" ) then	
+			GameHacks:SetPermaSwiftCast(toboolean(v))
 			SafeSetVar(tostring(k),v)
         end
     end
@@ -1057,7 +1044,7 @@ function ffxivminion.SwitchMode(mode)
 			if (Duties) then
 				Duties.UpdateProfiles()
 			end
-			gTeleport = "1"
+			gTeleport = gTeleportDefaultDuties
 			gParanoid = "0"
 			gSkipCutscene = "1"
 			gSkipDialogue = "1"
@@ -1080,7 +1067,7 @@ function ffxivminion.SwitchMode(mode)
 			GameHacks:SkipDialogue(gSkipDialogue == "1")
 			GameHacks:Disable3DRendering(gDisableDrawing == "1")
 			gAvoidAOE = "1"
-			gQuestAutoEquip = "1"
+			gQuestAutoEquip = gAutoEquipDefaultQuesting
 		elseif (gBotMode == GetString("fishMode")) then
 			gTeleport = Settings.FFXIVMINION.gTeleport
 			gParanoid = Settings.FFXIVMINION.gParanoid
@@ -1730,15 +1717,15 @@ function ffxivminion.ClearAddons()
 	end
 	
 	--party invite
-	if (ControlVisible("_NotificationParty")) then
+	if (ControlVisible("_NotificationParty") and toboolean(gDeclinePartyInvites)) then
 		if (ControlVisible("SelectYesno")) then
-			if(not ffxivminion.declineTimer) then
+			if(ffxivminion.declineTimer == 0) then
 				ffxivminion.declineTimer = Now() + math.random(3000,5000)
 			elseif(Now() > ffxivminion.declineTimer) then
 				if(not ffxivminion.inviteDeclined) then
 					PressYesNo(false)
 					ffxivminion.inviteDeclined = true
-					ffxivminion.declineTimer = Now() + math.random(1000,3000)
+					ffxivminion.declineTimer = 0
 				end
 			end
 		else
