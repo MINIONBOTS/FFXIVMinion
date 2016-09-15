@@ -167,6 +167,43 @@ function ml_mesh_mgr.ParseInstructions(data)
 						return true						
 					end
 				)
+			elseif (itype == "Interact") then
+				local interactid = tonumber(iparams[1]) or 0
+				local complete = tonumber(iparams[2]) or ""
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function ()
+						if (interactid ~= 0) then
+							local interacts = EntityList("targetable,contentid="..tostring(interactid)..",maxdistance=15")
+							if (table.valid(interacts)) then
+								local i,interactable = next(interacts)
+								if (table.valid(interactable) and interactable.targetable) then
+									Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+									
+									local currentTarget = Player:GetTarget()
+									if (not currentTarget or currentTarget.id ~= interactable.id) then
+										Player:SetTarget(interactable.id)
+										return false
+									end
+									
+									if (Player:IsMoving()) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+										return false
+									end
+									
+									Player:Interact(interactable.id)
+									if (string.valid(complete)) then
+										local f = assert(loadstring("return " .. complete))()
+										if (f ~= nil) then
+											return f
+										end
+									end
+								end		
+							end
+						end
+						return true				
+					end
+				)
 			elseif (itype == "Jump") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
