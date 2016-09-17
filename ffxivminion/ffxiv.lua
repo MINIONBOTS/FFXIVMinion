@@ -873,7 +873,6 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAdvStealthDetect" or
 			k == "gAdvStealthRemove" or
 			k == "gAdvStealthRisky" or
-			k == "gQuestAutoEquip" or
 			k == "gUseEXPManuals")				
         then
 			SafeSetVar(tostring(k),v)
