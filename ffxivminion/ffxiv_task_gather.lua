@@ -124,7 +124,7 @@ function c_findnode:evaluate()
 		if (ValidTable(basePos)) then
 			local myPos = ml_global_information.Player_Position
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
-			if (distance <= radius or radius >= 100) then
+			if (distance <= radius) then
 			
 				if (ValidTable(ffxiv_gather.currentTask)) then
 					if (ffxiv_gather.currentTask.taskStarted == 0) then
