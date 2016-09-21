@@ -339,6 +339,30 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 			
+			if ( GUI:TreeNode("Duty List")) then
+				GUI:PushItemWidth(300)
+				local dList = Duty:GetDutyList()
+				if (table.valid(dList)) then
+					for id, e in pairs(dList) do
+						if ( GUI:TreeNode(e.name) ) then
+							GUI:PushItemWidth(50)
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1",tostring(e.id))
+							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2",tostring(e.mapid))
+							GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3",tostring(e.selectindex))
+							GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4",tostring(e.requiredlevel))
+							GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5",tostring(e.synclevel))
+							GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6",tostring(e.partysize))
+							GUI:PopItemWidth()
+							GUI:TreePop()
+						end
+					end
+				else
+					GUI:Text("Duty Finder Not Open...")
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+			
 			GUI:PopStyleVar(2)
 		end
 		GUI:End()
