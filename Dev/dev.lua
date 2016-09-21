@@ -173,8 +173,41 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("UICategory") GUI:SameLine(200) GUI:InputText("##devbag21"..tostring(slot),tostring(item.uicategory))
 													GUI:BulletText("SearchCategory") GUI:SameLine(200) GUI:InputText("##devbag22"..tostring(slot),tostring(item.searchcategory))
 													GUI:BulletText("CanEquip") GUI:SameLine(200) GUI:InputText("##devbag16"..tostring(slot),tostring(item.canequip))
-													GUI:BulletText("Is Ready") GUI:SameLine(200) GUI:InputText("##devbag12"..tostring(slot),tostring(item.isready))
-													if (GUI:Button("Use()##"..tostring(slot),100,15) ) then d("Use Result: "..tostring(item:Use())) end 
+																										
+													local action = item:GetAction()
+													if (table.valid(action)) then
+														if ( GUI:TreeNode("Action: "..tostring(action.id).." - "..action.name)) then --rather slow making 6000+ names :D
+														--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+															GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
+															GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
+															GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
+															GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
+															GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
+															GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
+															GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
+															GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
+															GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
+															GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
+
+															GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+															GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+															local tar = Player:GetTarget()
+															if ( tar ) then
+																GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
+																GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+															end
+															if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
+															if ( tar ) then
+																GUI:SameLine(200)
+																if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+															end
+															GUI:TreePop()
+														end
+													else
+														GUI:BulletText("No Action Available")
+													end
+																										
+													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
 													GUI:SameLine(200)
 													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
 													
@@ -186,9 +219,7 @@ function dev.DrawCall(event, ticks )
 													GUI:SameLine(200)
 													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
 												
-													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
-																									
-													
+													GUI:Separator()
 													GUI:TreePop()
 												end
 											end
@@ -246,15 +277,19 @@ function dev.DrawCall(event, ticks )
 											GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
 											GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
 											GUI:BulletText("IsGroundTargeted") GUI:SameLine(200) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
+											
+											GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+											GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
 											local tar = Player:GetTarget()
 											if ( tar ) then
 												GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
 												GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
 											end
-											GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-											GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
-											
-											
+											if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
+											if ( tar ) then
+												GUI:SameLine(200)
+												if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+											end
 											GUI:TreePop()
 										end									
 									end
