@@ -46,7 +46,10 @@ function dev.DrawCall(event, ticks )
 										GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Always)
 										if ( GUI:TreeNode("Control Actions##"..tostring(id)) ) then
 											for aid, action in pairs(ac) do
-												if (GUI:Button(action,150,15) ) then d("Action Result :" ..tostring(e:Action(action))) end
+												if (GUI:Button(action,150,15) ) then d("Action Result with arg "..tostring(dev.addoncontrolarg).." :" ..tostring(e:Action(action,dev.addoncontrolarg))) end
+												GUI:SameLine()
+												if (not dev.addoncontrolarg) then dev.addoncontrolarg = 0 end
+												dev.addoncontrolarg = GUI:InputInt("Arg 1##"..tostring(aid)..tostring(id), dev.addoncontrolarg)
 											end
 											GUI:TreePop()
 										end
@@ -107,6 +110,93 @@ function dev.DrawCall(event, ticks )
 				end
 				GUI:TreePop()
 			end
+			
+if ( GUI:TreeNode("ActionList")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(100)	
+					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
+					if (GUI:Button("StopCasting",100,15) ) then d("StopCasting Result: "..tostring(ActionList:StopCasting())) end
+					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady())) 
+					GUI:PopItemWidth()
+					GUI:PushItemWidth(200)
+					local actiontypes = ActionList:GetTypes()
+					if (table.valid(actiontypes)) then
+						for actiontype, e in pairs(actiontypes) do
+							if ( GUI:TreeNode(tostring(actiontype).." - "..e)) then
+								local actionlist = ActionList:Get(actiontype) 	-- ALTERNATIVE:  ActionList:Get(actiontype, skillID) , to get the single action back
+								if (table.valid(actionlist)) then
+									for actionid, action in pairs(actionlist) do
+										if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
+										--if ( GUI:TreeNode(tostring(actionid).." - ")) then
+											GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
+											GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
+											GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
+											GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
+											GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
+											GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
+											GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
+											GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
+											GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
+											GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
+											GUI:BulletText("Range") GUI:SameLine(200) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
+											GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
+											GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
+											GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
+											GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
+											GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
+											GUI:BulletText("IsGroundTargeted") GUI:SameLine(200) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
+											
+											GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
+											GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+											local tar = Player:GetTarget()
+											if ( tar ) then
+												GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
+												GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
+											end
+											if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
+											if ( tar ) then
+												GUI:SameLine(200)
+												if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+											end
+											GUI:TreePop()
+										end									
+									end
+								end
+								GUI:TreePop()
+							end
+						end
+					end
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+-- END ACTIONLIST
+
+			
+			if ( GUI:TreeNode("Duty List")) then
+				GUI:PushItemWidth(200)
+				local dList = Duty:GetDutyList()
+				if (table.valid(dList)) then
+					for id, e in pairs(dList) do
+						if ( GUI:TreeNode(e.name) ) then
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
+							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
+							GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
+							GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4"..tostring(id),tostring(e.requiredlevel))
+							GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5"..tostring(id),tostring(e.synclevel))
+							GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6"..tostring(id),tostring(e.partysize))
+							GUI:TreePop()
+						end
+					end
+				else
+					GUI:Text("Duty Finder Not Open...")
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+-- END DUTY LIST
 
 			if ( GUI:TreeNode("Fates")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -236,75 +326,71 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END INVENTORY
+			
 
-			if ( GUI:TreeNode("UI Permissions")) then
-				for i=0,165 do
-					GUI:Text("UI Element "..i.." = "..tostring(GetUIPermission(i)))
-				end
-			end
-
-			if ( GUI:TreeNode("ActionList")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
-					GUI:PushItemWidth(100)	
-					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
-					if (GUI:Button("StopCasting",100,15) ) then d("StopCasting Result: "..tostring(ActionList:StopCasting())) end
-					GUI:BulletText("Is Hotbar Ready") GUI:SameLine(200) GUI:InputText("##devac23",tostring(ActionList:IsReady())) 
-					GUI:PopItemWidth()
-					GUI:PushItemWidth(200)
-					local actiontypes = ActionList:GetTypes()
-					if (table.valid(actiontypes)) then
-						for actiontype, e in pairs(actiontypes) do
-							if ( GUI:TreeNode(tostring(actiontype).." - "..e)) then
-								local actionlist = ActionList:Get(actiontype) 	-- ALTERNATIVE:  ActionList:Get(actiontype, skillID) , to get the single action back
-								if (table.valid(actionlist)) then
-									for actionid, action in pairs(actionlist) do
-										if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
-										--if ( GUI:TreeNode(tostring(actionid).." - ")) then
-											GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devac1"..tostring(actionid),tostring(string.format( "%X",action.ptr)))
-											GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devac2"..tostring(actionid),tostring(action.id))
-											GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devac3"..tostring(actionid),tostring(action.type))
-											GUI:BulletText("SkillType") GUI:SameLine(200) GUI:InputText("##devac4"..tostring(actionid),tostring(action.skilltype))
-											GUI:BulletText("Cost") GUI:SameLine(200) GUI:InputText("##devac5"..tostring(actionid),tostring(action.cost))
-											GUI:BulletText("CastTime") GUI:SameLine(200) GUI:InputText("##devac6"..tostring(actionid),tostring(action.casttime))
-											GUI:BulletText("RecastTime") GUI:SameLine(200) GUI:InputText("##devac7"..tostring(actionid),tostring(action.recasttime))
-											GUI:BulletText("IsOnCooldown") GUI:SameLine(200) GUI:InputText("##devac8"..tostring(actionid),tostring(action.isoncd))
-											GUI:BulletText("Cooldown") GUI:SameLine(200) GUI:InputText("##devac9"..tostring(actionid),tostring(action.cd))
-											GUI:BulletText("CooldownMax") GUI:SameLine(200) GUI:InputText("##devac10"..tostring(actionid),tostring(action.cdmax))
-											GUI:BulletText("Range") GUI:SameLine(200) GUI:InputText("##devac11"..tostring(actionid),tostring(action.range))
-											GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devac12"..tostring(actionid),tostring(action.radius))
-											GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devac13"..tostring(actionid),tostring(action.level))
-											GUI:BulletText("Job") GUI:SameLine(200) GUI:InputText("##devac14"..tostring(actionid),tostring(action.job))
-											GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
-											GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
-											GUI:BulletText("IsGroundTargeted") GUI:SameLine(200) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
-											
-											GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
-											GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
-											local tar = Player:GetTarget()
-											if ( tar ) then
-												GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
-												GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
-											end
-											if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
-											if ( tar ) then
-												GUI:SameLine(200)
-												if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
-											end
-											GUI:TreePop()
-										end									
-									end
-								end
+			if ( GUI:TreeNode("Loot List")) then
+				GUI:PushItemWidth(200)
+				local list = Inventory:GetLootList()
+				if (table.valid(list)) then
+					for id, e in pairs(list) do
+						if ( GUI:TreeNode(tostring(id)) ) then
+							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devLoot1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devLoot2"..tostring(id),tostring(e.id))
+							GUI:BulletText(".StateA") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.StateA))
+							GUI:BulletText(".StateB") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.StateB))
+							GUI:BulletText(".StateC") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.StateC))
+							GUI:BulletText(".StateD") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.StateD))
+							GUI:TreePop()
+						end
+					end
+					-- FOR TESTING , THERE IS A TOGGLE BOOL AND IDK WHAT IT IS YET:
+					GUI:Separator()
+					list = Inventory:GetLootList(1)
+					if (table.valid(list)) then
+						for id, e in pairs(list) do
+							if ( GUI:TreeNode(tostring(id)) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devLoot1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devLoot2"..tostring(id),tostring(e.id))
+								GUI:BulletText(".StateA") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.StateA))
+								GUI:BulletText(".StateB") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.StateB))
+								GUI:BulletText(".StateC") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.StateC))
+								GUI:BulletText(".StateD") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.StateD))
 								GUI:TreePop()
 							end
 						end
 					end
-					GUI:PopItemWidth()
 				else
-					GUI:Text("Not Ingame...")
-				end
+					GUI:Text("No Loot Available...")
+				end				
+				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
--- END ACTIONLIST
+--  END LOOTLIST
+			
+			
+			if ( GUI:TreeNode("Shop List")) then
+				GUI:PushItemWidth(200)
+				local slist = Inventory:GetShopList()
+				if (table.valid(slist)) then
+					for id, e in pairs(slist) do
+						if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devShop1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devShop2"..tostring(id),tostring(e.slot))
+							GUI:BulletText(".shopid") GUI:SameLine(200) GUI:InputText("##devShop3"..tostring(id),tostring(e.shopid))
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devShop3"..tostring(id),tostring(e.id))							
+							GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devShop4"..tostring(id),tostring(e.price))
+							GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devShop5"..tostring(id),tostring(e.count))
+							GUI:TreePop()
+						end
+					end					
+				else
+					GUI:Text("No NPC Shop List Available...")
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+--  END SHOPLIST
+
 
 
 			if ( GUI:TreeNode("ServerList")) then
@@ -321,10 +407,19 @@ function dev.DrawCall(event, ticks )
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
-			
+-- END SERVERLIST 
+
+
+			if ( GUI:TreeNode("UI Permissions")) then
+				for i=0,165 do
+					GUI:Text("UI Element "..i.." = "..tostring(GetUIPermission(i)))
+				end
+			end
+-- END UI PERMISSIONS
+
 
 			if ( GUI:TreeNode("Utility Functions & Info")) then
-				GUI:PushItemWidth(300)
+				GUI:PushItemWidth(200)
 				if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 				dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
 				
@@ -338,30 +433,8 @@ function dev.DrawCall(event, ticks )
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
-			
-			if ( GUI:TreeNode("Duty List")) then
-				GUI:PushItemWidth(300)
-				local dList = Duty:GetDutyList()
-				if (table.valid(dList)) then
-					for id, e in pairs(dList) do
-						if ( GUI:TreeNode(e.name) ) then
-							GUI:PushItemWidth(50)
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1",tostring(e.id))
-							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2",tostring(e.mapid))
-							GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3",tostring(e.selectindex))
-							GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4",tostring(e.requiredlevel))
-							GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5",tostring(e.synclevel))
-							GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6",tostring(e.partysize))
-							GUI:PopItemWidth()
-							GUI:TreePop()
-						end
-					end
-				else
-					GUI:Text("Duty Finder Not Open...")
-				end				
-				GUI:PopItemWidth()
-				GUI:TreePop()
-			end
+-- END UTILITY FUNCTIONS & INFO		
+
 			
 			GUI:PopStyleVar(2)
 		end
