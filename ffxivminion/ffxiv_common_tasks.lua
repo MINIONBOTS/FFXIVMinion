@@ -340,6 +340,11 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 		end
 		
+		--d("[MOVETOPOS]: Checking range ["..tostring(self.range).."]")
+		--d("[MOVETOPOS]: Checking @ 3D range ["..tostring(distance).."].")
+		--d("[MOVETOPOS]: Checking @ 2D range ["..tostring(distance2d).."].")
+		--d("[MOVETOPOS]: Checking due to range ["..tostring(self.range + self.gatherRange).."] reached.")
+		
 		if (distance < (self.range + self.gatherRange)) then
 			d("[MOVETOPOS]: Completing @ 3D range ["..tostring(distance).."].")
 			d("[MOVETOPOS]: Completing @ 2D range ["..tostring(distance2d).."].")
@@ -799,6 +804,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	local ipos = interactable.pos
 	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
 	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local ydiff = math.abs(ipos.y - ppos.y)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 	
 	if (not myTarget or (myTarget and myTarget.id ~= interactable.id)) then
@@ -831,17 +837,22 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						minDist = 7.5
 					end
 					
-					if (dist2d <= minDist) then
+					if (dist2d <= minDist and ydiff <= 4.95) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-						Player:Stop()
+						
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+						end
+						
 						Player:Interact(interactable.id)
 
 						d("[MoveToInteract]: Interacting with target.")
 						
 						local currentDist = Distance3DT(ppos,ipos)
-						ml_global_information.AwaitSuccessFail(500, 3000, 
+						ml_global_information.AwaitSuccessFail(250, 1500,
 							function ()
-								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+								return (MIsLocked() or IsShopWindowOpen() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
@@ -853,7 +864,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								d("[MoveToInteract]: Interact failed, attempting to move closer.")
 								Player:SetFacing(ipos.x,ipos.y,ipos.z)
 								Player:Move(FFXIV.MOVEMENT.FORWARD)
-								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+								ml_global_information.Await(250, 1500, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
 							end
 						)
 						self.blockExecution = true
@@ -868,17 +879,22 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 				--if (interactable.gatherable or interactable.los) then
 				if (not forceLOS or (forceLOS and interactable.los)) then
-					if (interactable and dist3d <= range) then
+					if (interactable and dist3d <= range and ydiff <= 4.95) then
 						--local ydiff = math.abs(ppos.y - interactable.pos.y)
 						--if (ydiff < 3.5 or interactable.los) then
 							Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
-							Player:Stop()
+							
+							if (Player:IsMoving()) then
+								Player:Stop()
+								ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+							end
+						
 							Player:Interact(interactable.id)
 							
 							local currentDist = Distance3DT(ppos,ipos)
-							ml_global_information.AwaitSuccessFail(500, 3000,  
+							ml_global_information.AwaitSuccessFail(250, 1500,  
 								function () 
-									return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+									return (MIsLocked() or IsShopWindowOpen() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 								end, 
 								function ()
 									if (Player.castinginfo.channelingid ~= 0) then
@@ -889,7 +905,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								function ()
 									d("[MoveToInteract]: Interact failed, attempting to move closer.")
 									Player:MoveTo(ipos.x,ipos.y,ipos.z)
-									ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+									ml_global_information.Await(250, 1500, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
 								end
 							)
 							self.blockExecution = true
@@ -2690,6 +2706,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	local ipos = interactable.pos
 	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
 	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local ydiff = math.abs(ipos.y - ppos.y)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 	local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 	
@@ -2723,13 +2740,13 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						minDist = 7.5
 					end
 					
-					if (dist2d <= minDist) then
+					if (dist2d <= minDist and ydiff <= 4.95) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
 							
 						local currentDist = Distance3DT(ppos,ipos)
-						ml_global_information.AwaitSuccessFail(500, 3000, 
+						ml_global_information.AwaitSuccessFail(250, 1500,
 							function () 
 								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 

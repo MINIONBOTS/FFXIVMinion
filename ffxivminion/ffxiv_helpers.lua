@@ -2363,7 +2363,12 @@ function ScanForCaster(ids,distance,spells)
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
 	
 	local maxdistance = tonumber(distance) or 30
-	local el = MEntityList("alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el;
+	if (string.valid(ids)) then
+		el = MEntityList("alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	else
+		el = MEntityList("alive,maxdistance="..tostring(maxdistance))
+	end
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
