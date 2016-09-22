@@ -879,13 +879,15 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 		elseif (k == "gQuestAutoEquip") then
 			if (gBotMode == GetString("questMode")) then
 				SafeSetVar("gAutoEquipDefaultQuesting",v)
-			end
+			else
 			SafeSetVar(tostring(k),v)
+			end
 		elseif (k == "gTeleport") then
 			if (gBotMode == GetString("questMode")) then
 				SafeSetVar("gTeleportDefaultDuties",v)
-			end
+			else
 			SafeSetVar(tostring(k),v)
+			end
 		elseif ( k == "gMount" ) then
 			if ( v == GetString("none") and Player.ismounted and gBotRunning == "1" ) then
 				ml_error("Cannot change mounts while mounted.")
