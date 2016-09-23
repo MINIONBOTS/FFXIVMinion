@@ -374,12 +374,12 @@ if ( GUI:TreeNode("ActionList")) then
 				if (table.valid(slist)) then
 					for id, e in pairs(slist) do
 						if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
-							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devShop1"..tostring(id),tostring(string.format( "%X",e.ptr)))
-							GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devShop2"..tostring(id),tostring(e.slot))
-							GUI:BulletText(".shopid") GUI:SameLine(200) GUI:InputText("##devShop3"..tostring(id),tostring(e.shopid))
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devShop3"..tostring(id),tostring(e.id))							
-							GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devShop4"..tostring(id),tostring(e.price))
-							GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devShop5"..tostring(id),tostring(e.count))
+							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devSEhop1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devSEhop2"..tostring(id),tostring(e.slot))
+							GUI:BulletText(".shopid") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.shopid))
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.id))							
+							GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devSEhop4"..tostring(id),tostring(e.price))
+							GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devSEhop5"..tostring(id),tostring(e.count))
 							GUI:TreePop()
 						end
 					end					
