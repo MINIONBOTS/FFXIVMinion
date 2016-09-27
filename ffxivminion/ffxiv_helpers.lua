@@ -2772,6 +2772,7 @@ function InCombatRange(targetid)
 	
 	if ( attackRange < 5 ) then			
 		if (skillID ~= nil) then
+			--[[
 			if (highestRange > 5) then
 				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
 					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
@@ -2791,6 +2792,7 @@ function InCombatRange(targetid)
 					end
 				end
 			end
+			--]]
 		end
 	else
 		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))

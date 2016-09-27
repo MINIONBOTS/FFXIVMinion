@@ -102,6 +102,20 @@ function ml_mesh_mgr.ParseInstructions(data)
 						end
 					end
 				)
+			elseif (itype == "StraightDescend") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						if (IsFlying()) then
+							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
+								Dismount()
+							end
+							ml_global_information.Await(1000, function () return not IsFlying() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
 			elseif (itype == "Stop") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 

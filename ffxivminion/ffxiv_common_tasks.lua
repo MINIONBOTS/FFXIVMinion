@@ -1916,25 +1916,27 @@ function ffxiv_task_grindCombat:Process()
 				if (target.los) then
 					Player:Stop()
 				end
-			end
-			if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
-				if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
-					Player:Stop()
-					local pullPos = nil
-					local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
-					if (dist1 > 6) then
-						--d("using pullpos 1")
-						pullPos = self.pullPos1
-					else
-						--d("using pullpos 2")
-						pullPos = self.pullPos2
+				
+				-- Check for combat range before executing.
+				if (not self.attackThrottle or Now() > self.attackThrottleTimer) then
+					if (SkillMgr.Cast( target ) and self.attemptPull and self.pullTimer == 0 and nearbyMobCount > 0) then
+						--Player:Stop()
+						local pullPos = nil
+						local dist1 = PDistance3D(ppos.x,ppos.y,ppos.z,self.pullPos1.x,self.pullPos1.y,self.pullPos1.z)
+						if (dist1 > 6) then
+							--d("using pullpos 1")
+							pullPos = self.pullPos1
+						else
+							--d("using pullpos 2")
+							pullPos = self.pullPos2
+						end
+						Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
+						self.pullTimer = Now() + 5000
 					end
-					Player:MoveTo(pullPos.x,pullPos.y,pullPos.z, 1, false, false, false)
-					self.pullTimer = Now() + 5000
-				end
-				if (self.attackThrottle) then
-					if (Player.level > target.level) then
-						self.attackThrottleTimer = Now() + 2900
+					if (self.attackThrottle) then
+						if (Player.level > target.level) then
+							self.attackThrottleTimer = Now() + 2900
+						end
 					end
 				end
 			end
