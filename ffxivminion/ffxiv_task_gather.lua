@@ -1040,31 +1040,20 @@ function CanUseCordial()
 	end
 	
 	if (useCordials) then
-		if ((minimumGP - Player.gp.current) >= 50 and (Player.gp.max - Player.gp.current) < 350) then
-			local cordialHQ = MGetItem(1006141)
-			if (cordialHQ and cordialHQ.isready) then
-				--d("[CanUseCordial]: Returning cordial.")
-				return true, cordialHQ
-			end
+		local cordialNormal = MGetItem(1006141) or MGetItem(6141)
+		local cordialHigh = MGetItem(1012669) or MGetItem(12669)
 			
-			local cordial = MGetItem(6141)
-			if (cordial and cordial.isready) then
+		if ((minimumGP - Player.gp.current) >= 50 and ((Player.gp.max - Player.gp.current) < 350 or cordialHigh == nil)) then
+			if (cordialNormal and cordialNormal.isready) then
 				--d("[CanUseCordial]: Returning cordial.")
-				return true, cordial
+				return true, cordialNormal
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (Player.gp.max - Player.gp.current) >= 350) then
-			local hiCordialHQ = MGetItem(1012669)
-			if (hiCordialHQ and hiCordial.isready) then
+			if (cordialHigh and cordialHigh.isready) then
 				--d("[CanUseCordial]: Returning hi-cordial.")
-				return true, hiCordialHQ
-			end
-			
-			local hiCordial = MGetItem(12669)
-			if (hiCordial and hiCordial.isready) then
-				--d("[CanUseCordial]: Returning hi-cordial.")
-				return true, hiCordial
+				return true, cordialHigh
 			end
 		end	
 	end
