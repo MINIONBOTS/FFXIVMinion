@@ -3201,6 +3201,8 @@ function e_buy:execute()
 		buyamount = 99
 	end
 	
+	d("Buying item ID ["..tostring(e_buy.itemid).."].")
+	
 	Inventory:BuyShopItem(e_buy.itemid,buyamount)
 	ml_task_hub:CurrentTask():SetDelay(1000)
 end
