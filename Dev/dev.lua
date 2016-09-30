@@ -28,7 +28,7 @@ function dev.DrawCall(event, ticks )
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
 							GUI:PushItemWidth(150)
-							if ( GUI:TreeNode(tostring(id).." - "..e.name.." "..tostring(table.size(e:GetActions())).."") ) then
+							if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
 								GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
 								local isopen = e:IsOpen()
 								GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
@@ -54,6 +54,14 @@ function dev.DrawCall(event, ticks )
 											GUI:TreePop()
 										end
 									end
+									
+									local ad = e:GetData()
+									if (table.valid(ad)) then
+										for key, value in pairs(ad) do
+											GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))											
+										end										
+									end
+									
 									
 									if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
 										if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
@@ -94,7 +102,7 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("Player") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player
-					if ( c ) then dev.DrawGameObjectDetails(c) else	GUI:Text("No Player Found") end
+					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player Found") end
 				else
 					GUI:Text("Not Ingame...")
 				end
@@ -111,7 +119,7 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 			
-if ( GUI:TreeNode("ActionList")) then
+		if ( GUI:TreeNode("ActionList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(100)	
 					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
@@ -175,28 +183,102 @@ if ( GUI:TreeNode("ActionList")) then
 -- END ACTIONLIST
 
 			
-			if ( GUI:TreeNode("Duty List")) then
-				GUI:PushItemWidth(200)
-				local dList = Duty:GetDutyList()
-				if (table.valid(dList)) then
-					for id, e in pairs(dList) do
-						if ( GUI:TreeNode(e.name) ) then
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
-							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
-							GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
-							GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4"..tostring(id),tostring(e.requiredlevel))
-							GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5"..tostring(id),tostring(e.synclevel))
-							GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6"..tostring(id),tostring(e.partysize))
-							GUI:TreePop()
+			if ( GUI:TreeNode("Aetheryte List")) then				
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local aelist = Player:GetAetheryteList()
+					if (table.valid(aelist)) then
+						for id, e in pairs(aelist) do
+							if ( GUI:TreeNode(tostring(e.id).." - "..e.name)) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devae0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".ptr2") GUI:SameLine(200) GUI:InputText("##devae1"..tostring(id),tostring(string.format( "%X",e.ptr2)))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devae2"..tostring(id),tostring(e.id))
+								GUI:BulletText(".ishomepoint") GUI:SameLine(200) GUI:InputText("##devae3"..tostring(id),tostring(e.ishomepoint))
+								GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devae4"..tostring(id),tostring(e.region))
+								GUI:BulletText(".islocalmap") GUI:SameLine(200) GUI:InputText("##devae5"..tostring(id),tostring(e.islocalmap))
+								GUI:BulletText(".isattuned") GUI:SameLine(200) GUI:InputText("##devae6"..tostring(id),tostring(e.isattuned))
+								GUI:BulletText(".isfavpoint") GUI:SameLine(200) GUI:InputText("##devae7"..tostring(id),tostring(e.isfavpoint))
+								GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devae8"..tostring(id),tostring(e.price))
+								if (GUI:Button("Teleport##"..tostring(id),50,15) ) then d("Teleport Result: "..tostring(Player:Teleport(e.id))) end
+								GUI:TreePop()
+							end
 						end
 					end
+					GUI:PopItemWidth()
 				else
-					GUI:Text("Duty Finder Not Open...")
+					GUI:Text("Not Ingame...")
 				end				
+				GUI:TreePop()
+			end
+-- END Aetheryte LIST
+	
+
+			if ( GUI:TreeNode("Crafting")) then
+				GUI:PushItemWidth(200)
+				if ( GUI:TreeNode("Desynth Skill Level")) then
+					local lev = Player.desynthskill
+					if (table.valid(lev)) then
+						for key, value in pairs(lev) do
+							GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+						end
+					end
+					GUI:TreePop()
+				end	
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
+--  END CRAFTING	
+
+	
+			if ( GUI:TreeNode("Duty List")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local dList = Duty:GetDutyList()
+					if (table.valid(dList)) then
+						for id, e in pairs(dList) do
+							if ( GUI:TreeNode(e.name) ) then
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devDL1"..tostring(id),tostring(e.id))
+								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devDL2"..tostring(id),tostring(e.mapid))
+								GUI:BulletText(".selectindex") GUI:SameLine(200) GUI:InputText("##devDL3"..tostring(id),tostring(e.selectindex))
+								GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devDL4"..tostring(id),tostring(e.requiredlevel))
+								GUI:BulletText(".synchlevel") GUI:SameLine(200) GUI:InputText("##devDL5"..tostring(id),tostring(e.synclevel))
+								GUI:BulletText(".partysize") GUI:SameLine(200) GUI:InputText("##devDL6"..tostring(id),tostring(e.partysize))
+								GUI:TreePop()
+							end
+						end
+					else
+						GUI:Text("Duty Finder Not Open...")
+					end	
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end				
+				GUI:TreePop()
+			end
 -- END DUTY LIST
+
+
+			if ( GUI:TreeNode("EnmityList")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(200)
+					local enist = Player:EnmityList()
+					if (table.valid(enist)) then
+						for id, e in pairs(enist) do
+							if ( GUI:TreeNode(tostring(e.id))) then
+								GUI:BulletText(".enmity") GUI:SameLine(200) GUI:InputText("##deven1",tostring(e.enmity))
+								GUI:BulletText(".targetid") GUI:SameLine(200) GUI:InputText("##deven2",tostring(e.targetid))								
+								GUI:TreePop()
+							end
+						end
+					end				
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+--End ENMITYLIST
+
 
 			if ( GUI:TreeNode("Fates")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -205,16 +287,22 @@ if ( GUI:TreeNode("ActionList")) then
 					if (table.valid(flist)) then
 						for id, e in pairs(flist) do
 							if ( GUI:TreeNode(tostring(e.id).." - "..e.name)) then
-								GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devufa1",tostring(string.format( "%X",e.ptr)))
-								GUI:BulletText("ID") GUI:SameLine(200) GUI:InputText("##devufa2",tostring(e.id))
-								GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##devufa3",tostring(e.type))
-								GUI:BulletText("Status") GUI:SameLine(200) GUI:InputText("##devufa4",tostring(e.status))
-								GUI:BulletText("Duration") GUI:SameLine(200) GUI:InputText("##devufa7",tostring(e.duration))
-								GUI:BulletText("Completion") GUI:SameLine(200) GUI:InputText("##devufa8",tostring(e.completion))
-								GUI:BulletText("Level") GUI:SameLine(200) GUI:InputText("##devufa5",tostring(e.level))
-								GUI:BulletText("MaxLevel") GUI:SameLine(200) GUI:InputText("##devufa6",tostring(e.maxlevel))	
-								GUI:BulletText("Radius") GUI:SameLine(200) GUI:InputText("##devufa9",tostring(e.radius))							
-								GUI:BulletText("Position") GUI:SameLine(200)  GUI:InputFloat3( "##devufa10", e.x, e.y, e.z, 2, GUI.InputTextFlags_ReadOnly)							
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devufa1",tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devufa2",tostring(e.id))
+								GUI:BulletText(".type") GUI:SameLine(200) GUI:InputText("##devufa3",tostring(e.type))
+								GUI:BulletText(".status") GUI:SameLine(200) GUI:InputText("##devufa4",tostring(e.status))
+								GUI:BulletText(".duration") GUI:SameLine(200) GUI:InputText("##devufa7",tostring(e.duration))
+								GUI:BulletText(".completion") GUI:SameLine(200) GUI:InputText("##devufa8",tostring(e.completion))
+								GUI:BulletText(".level") GUI:SameLine(200) GUI:InputText("##devufa5",tostring(e.level))
+								GUI:BulletText(".maxlevel") GUI:SameLine(200) GUI:InputText("##devufa6",tostring(e.maxlevel))									
+								GUI:BulletText(".radius") GUI:SameLine(200) GUI:InputText("##devufa9",tostring(e.radius))							
+								GUI:BulletText("Position") GUI:SameLine(200)  GUI:InputFloat3( "##devufa10", e.x, e.y, e.z, 2, GUI.InputTextFlags_ReadOnly)
+								
+								GUI:PushItemWidth(150)
+								GUI:BulletText("SyncLevel") GUI:SameLine(200) GUI:InputText("##devufa11",tostring(Player:GetSyncLevel()))
+								GUI:SameLine()
+								if (GUI:Button("Sync##"..tostring(id),100,15) ) then Player:SyncLevel() end
+								GUI:PopItemWidth()
 								GUI:TreePop()
 							end
 						end
@@ -226,6 +314,79 @@ if ( GUI:TreeNode("ActionList")) then
 				GUI:TreePop()
 			end
 --End Fates
+
+			if ( GUI:TreeNode("Fishing")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(150)
+					GUI:BulletText("FishingState") GUI:SameLine(200) GUI:InputText("##devfi0",tostring(Player:FishingState()))
+					GUI:BulletText("GetBait") GUI:SameLine(200) GUI:InputText("##devfi1",tostring(Player:GetBait()))
+					if (not dev.fishbait) then dev.fishbait = 0 end
+					GUI:BulletText("Bait itemID") GUI:SameLine(200) dev.fishbait = GUI:InputText("##devfi2",dev.fishbait) 
+					GUI:SameLine()
+					if (GUI:Button("Set Bait##"..tostring(id),50,15) ) then Player:SetBait(dev.fishbait) end
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+-- END FISHING 
+
+
+			if ( GUI:TreeNode("Gathering")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(200)
+					local glist = Player:GetGatherableSlotList()
+					if (table.valid(glist)) then
+						for id, e in pairs(glist) do
+							if ( GUI:TreeNode(tostring(e.index).." - "..e.name)) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devga0",tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".index") GUI:SameLine(200) GUI:InputText("##devga1",tostring(e.index))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devga2",tostring(e.id))
+								GUI:BulletText(".chance") GUI:SameLine(200) GUI:InputText("##devga3",tostring(e.chance))
+								GUI:BulletText(".hqchance") GUI:SameLine(200) GUI:InputText("##devga4",tostring(e.hqchance))
+								GUI:BulletText(".level") GUI:SameLine(200) GUI:InputText("##devga5",tostring(e.level))
+								GUI:BulletText(".requiredlevel") GUI:SameLine(200) GUI:InputText("##devga6",tostring(e.requiredlevel))
+								GUI:BulletText(".minperception") GUI:SameLine(200) GUI:InputText("##devga7",tostring(e.minperception))
+								GUI:BulletText(".isunknown") GUI:SameLine(200) GUI:InputText("##devga8",tostring(e.isunknown))
+								GUI:BulletText(".UNKNOWN") GUI:SameLine(200) GUI:InputText("##devga9",tostring(e.UNKNOWN))
+								GUI:BulletText(".UNKNOWN2") GUI:SameLine(200) GUI:InputText("##devga10",tostring(e.UNKNOWN2))
+								GUI:BulletText(".UNKNOWN3") GUI:SameLine(200) GUI:InputText("##devga11",tostring(e.UNKNOWN3))
+								GUI:BulletText(".UNKNOWN4") GUI:SameLine(200) GUI:InputText("##devga12",tostring(e.UNKNOWN4))
+								GUI:BulletText(".UNKNOWN5") GUI:SameLine(200) GUI:InputText("##devga13",tostring(e.UNKNOWN5))
+								GUI:TreePop()
+							end
+						end
+					end				
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+--End GATHERING
+
+
+			if ( GUI:TreeNode("Gathering - Collectable")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+					GUI:PushItemWidth(200)
+					local e = Player:GatherCollectableInfo()
+					if (table.valid(e)) then
+						GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devgac0",tostring(string.format( "%X",e.ptr)))
+						GUI:BulletText(".rarity") GUI:SameLine(200) GUI:InputText("##devga1",tostring(e.rarity))
+						GUI:BulletText(".raritymax") GUI:SameLine(200) GUI:InputText("##devga2",tostring(e.raritymax))
+						GUI:BulletText(".wear") GUI:SameLine(200) GUI:InputText("##devga3",tostring(e.wear))
+						GUI:BulletText(".wearmax") GUI:SameLine(200) GUI:InputText("##devga4",tostring(e.wearmax))
+						GUI:BulletText(".chance") GUI:SameLine(200) GUI:InputText("##devga5",tostring(e.chance))
+						GUI:BulletText(".chancehq") GUI:SameLine(200) GUI:InputText("##devga6",tostring(e.chancehq))
+					end				
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+--End GATHERING COLLECTABLE
 
 
 			if ( GUI:TreeNode("Inventory")) then
@@ -367,6 +528,56 @@ if ( GUI:TreeNode("ActionList")) then
 			end
 --  END LOOTLIST
 			
+			if ( GUI:TreeNode("Movement")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(150)
+					GUI:BulletText("GetSpeed") GUI:SameLine(200) GUI:InputText("##devmov9",tostring(Player:GetSpeed()))
+					GUI:BulletText("IsMoving") GUI:SameLine(200) GUI:InputText("##devmov1",tostring(Player:IsMoving()))					
+					GUI:SameLine()
+					if (GUI:Button("Stop##"..tostring(id),50,15) ) then Player:Stop() end 					
+					GUI:BulletText("IsMoving Forward") GUI:SameLine(200) GUI:InputText("##devmov2",tostring(Player:IsMoving(FFXIV.MOVEMENT.FORWARD)))
+					GUI:BulletText("IsMoving Back") GUI:SameLine(200) GUI:InputText("##devmov3",tostring(Player:IsMoving(FFXIV.MOVEMENT.BACKWARD)))
+					GUI:BulletText("IsMoving Left") GUI:SameLine(200) GUI:InputText("##devmov4",tostring(Player:IsMoving(FFXIV.MOVEMENT.LEFT)))
+					GUI:BulletText("IsMoving Right") GUI:SameLine(200) GUI:InputText("##devmov5",tostring(Player:IsMoving(FFXIV.MOVEMENT.RIGHT)))
+					GUI:BulletText("IsMoving Up") GUI:SameLine(200) GUI:InputText("##devmov6",tostring(Player:IsMoving(FFXIV.MOVEMENT.UP)))
+					GUI:BulletText("IsMoving Down") GUI:SameLine(200) GUI:InputText("##devmov7",tostring(Player:IsMoving(FFXIV.MOVEMENT.DOWN)))
+					GUI:BulletText("IsJumping") GUI:SameLine(200) GUI:InputText("##devmov8",tostring(Player:IsJumping()))
+					GUI:SameLine()
+					if (GUI:Button("Jump##"..tostring(id),50,15) ) then Player:Jump() end				
+					if (not dev.pitch) then dev.pitch = 0 end
+					GUI:BulletText("IsJumping") GUI:SameLine(200) dev.pitch = GUI:InputText("##devmov10",dev.pitch) 
+					GUI:SameLine()
+					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.isflying))
+					GUI:BulletText("CanFlyInZone") GUI:SameLine(200) GUI:InputText("##devmov12",tostring(Player.canflyinzone))
+					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
+					
+				
+				
+				
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end
+				GUI:TreePop()
+			end
+-- END MOVEMENT
+
+
+			if ( GUI:TreeNode("Party")) then
+				GUI:PushItemWidth(200)
+				local slist = 0
+				if (table.valid(slist)) then
+					-- add Player.role
+					
+				else
+					GUI:Text("No NPC Shop List Available...")
+				end				
+				GUI:PopItemWidth()
+				GUI:TreePop()
+			end
+--  END PARTY			
+			
+			
 			
 			if ( GUI:TreeNode("Shop List")) then
 				GUI:PushItemWidth(200)
@@ -380,6 +591,8 @@ if ( GUI:TreeNode("ActionList")) then
 							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.id))							
 							GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devSEhop4"..tostring(id),tostring(e.price))
 							GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devSEhop5"..tostring(id),tostring(e.count))
+							if (GUI:Button("BuyShopItem##"..tostring(id),150,15) ) then Inventory:BuyShopItem(e.id) end
+							
 							GUI:TreePop()
 						end
 					end					
@@ -390,7 +603,6 @@ if ( GUI:TreeNode("ActionList")) then
 				GUI:TreePop()
 			end
 --  END SHOPLIST
-
 
 
 			if ( GUI:TreeNode("ServerList")) then
@@ -418,7 +630,7 @@ if ( GUI:TreeNode("ActionList")) then
 -- END UI PERMISSIONS
 
 
-			if ( GUI:TreeNode("Utility Functions & Info")) then
+			if ( GUI:TreeNode("Utility Functions & Player specific Info")) then
 				GUI:PushItemWidth(200)
 				if (dev.sendcmd == nil ) then dev.sendcmd = "" end
 				dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
@@ -426,10 +638,43 @@ if ( GUI:TreeNode("ActionList")) then
 				local p = Player
 				if ( p ) then 
 					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
 					
+					if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
+					
+					if ( GUI:TreeNode("Job Levels")) then
+						local lev = Player.levels
+						if (table.valid(lev)) then
+							for key, value in pairs(lev) do
+								GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+							end
+						end
+						GUI:TreePop()
+					end
+					
+					if ( GUI:TreeNode("Stats")) then
+						local stat = Player.stats
+						if (table.valid(stat)) then
+							for key, value in pairs(stat) do
+								GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
+							end
+						end
+						GUI:TreePop()
+					end
 				end
 				
+				local t = Player:GetTarget()
+				if ( t ) then
+					if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.h))) end					
+					GUI:SameLine()
+					if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
+					if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
+					
+					
+					
+				else
+					GUI:Text("Select a Target...")
+				end
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
@@ -444,7 +689,7 @@ end
 RegisterEventHandler("Gameloop.Draw", dev.DrawCall)
 
 
-function dev.DrawGameObjectDetails(c) 
+function dev.DrawGameObjectDetails(c,isplayer) 
 	GUI:PushItemWidth(200)
 	if ( GUI:TreeNode("Core Data") ) then
 		GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##dev0",tostring(string.format( "%X",c.ptr)))
@@ -491,6 +736,10 @@ function dev.DrawGameObjectDetails(c)
 		GUI:BulletText("GrandCompanyRank") GUI:SameLine(200) GUI:InputText("##dev42",tostring(c.grandcompanyrank))
 		GUI:BulletText("Aggro") GUI:SameLine(200) GUI:InputText("##dev24",tostring(c.aggro))
 		GUI:BulletText("AggroPercentage") GUI:SameLine(200) GUI:InputText("##dev25",tostring(c.aggropercentage))	
+		if(isplayer)then
+			GUI:BulletText("Has Aggro") GUI:SameLine(200) GUI:InputText("##devp45", tostring(cinfo.hasaggro))
+			GUI:BulletText("ReviveState") GUI:SameLine(200) GUI:InputText("##devp46", tostring(cinfo.revivestate))			
+		end
 		GUI:BulletText("Attackable") GUI:SameLine(200) GUI:InputText("##dev26", tostring(c.attackable))
 		GUI:BulletText("Aggressive") GUI:SameLine(200) GUI:InputText("##dev27", tostring(c.aggressive))
 		GUI:BulletText("Friendly") GUI:SameLine(200) GUI:InputText("##dev28", tostring(c.friendly))
@@ -526,7 +775,11 @@ function dev.DrawGameObjectDetails(c)
 			GUI:BulletText("Channeling ID") GUI:SameLine(200) GUI:InputText("##dev42", tostring(cinfo.channelingid))
 			GUI:BulletText("Channeling Target ID") GUI:SameLine(200) GUI:InputText("##dev43", tostring(cinfo.channeltargetid))
 			GUI:BulletText("Channeling Time") GUI:SameLine(200) GUI:InputText("##dev44", tostring(cinfo.channeltime))
+			if(isplayer)then
+				GUI:BulletText("ComboTime Remain") GUI:SameLine(200) GUI:InputText("##devp45", tostring(c.combotimeremain))
+				GUI:BulletText("Last Combo ID") GUI:SameLine(200) GUI:InputText("##devp46", tostring(c.lastcomboid))
 			
+			end
 		end
 		GUI:TreePop()
 	end
