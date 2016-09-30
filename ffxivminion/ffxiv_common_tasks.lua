@@ -193,8 +193,11 @@ function ffxiv_task_movetopos:Init()
 	
 	local ke_falling = ml_element:create( "Falling", c_falling, e_falling, 60 )
     self:add( ke_falling, self.process_elements)
+	
+	local ke_updatePos = ml_element:create( "UpdatePos", c_updatewalkpos, e_updatewalkpos, 50 )
+    self:add( ke_updatePos, self.process_elements)
     	
-    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 50 )
+    local ke_walkToPos = ml_element:create( "WalkToPos", c_walktopos, e_walktopos, 40 )
     self:add( ke_walkToPos, self.process_elements)
     
     self:AddTaskCheckCEs()
