@@ -488,23 +488,9 @@ function dev.DrawCall(event, ticks )
 			
 
 			if ( GUI:TreeNode("Loot List")) then
-				GUI:PushItemWidth(200)
-				local list = Inventory:GetLootList()
-				if (table.valid(list)) then
-					for id, e in pairs(list) do
-						if ( GUI:TreeNode(tostring(id)) ) then
-							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devLoot1"..tostring(id),tostring(string.format( "%X",e.ptr)))
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devLoot2"..tostring(id),tostring(e.id))
-							GUI:BulletText(".StateA") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.StateA))
-							GUI:BulletText(".StateB") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.StateB))
-							GUI:BulletText(".StateC") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.StateC))
-							GUI:BulletText(".StateD") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.StateD))
-							GUI:TreePop()
-						end
-					end
-					-- FOR TESTING , THERE IS A TOGGLE BOOL AND IDK WHAT IT IS YET:
-					GUI:Separator()
-					list = Inventory:GetLootList(1)
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)				
+					local list = Inventory:GetLootList()
 					if (table.valid(list)) then
 						for id, e in pairs(list) do
 							if ( GUI:TreeNode(tostring(id)) ) then
@@ -517,11 +503,27 @@ function dev.DrawCall(event, ticks )
 								GUI:TreePop()
 							end
 						end
-					end
-				else
-					GUI:Text("No Loot Available...")
-				end				
-				GUI:PopItemWidth()
+						-- FOR TESTING , THERE IS A TOGGLE BOOL AND IDK WHAT IT IS YET:
+						GUI:Separator()
+						list = Inventory:GetLootList(1)
+						if (table.valid(list)) then
+							for id, e in pairs(list) do
+								if ( GUI:TreeNode(tostring(id)) ) then
+									GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devLoot1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+									GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devLoot2"..tostring(id),tostring(e.id))
+									GUI:BulletText(".StateA") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.StateA))
+									GUI:BulletText(".StateB") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.StateB))
+									GUI:BulletText(".StateC") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.StateC))
+									GUI:BulletText(".StateD") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.StateD))
+									GUI:TreePop()
+								end
+							end
+						end
+					else
+						GUI:Text("No Loot Available...")
+					end				
+					GUI:PopItemWidth()
+				end
 				GUI:TreePop()
 			end
 --  END LOOTLIST
@@ -562,26 +564,28 @@ function dev.DrawCall(event, ticks )
 
 
 			if ( GUI:TreeNode("PartyMembers")) then
-				GUI:PushItemWidth(200)
-				local plist = EntityList.myparty
-				if (table.valid(plist)) then
-					for id, e in pairs(plist) do
-						if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
-							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",e.ptr)))
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(e.id))
-							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(e.mapid))
-							GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))
-							GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(e.region))
-							GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(e.onmesh))
-							local p = e.pos
-							GUI:BulletText(".pos") GUI:SameLine(200)  GUI:InputFloat3( "##devpa6", p.x, p.y, p.z, 2, GUI.InputTextFlags_ReadOnly)
-							GUI:TreePop()
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local plist = EntityList.myparty
+					if (table.valid(plist)) then
+						for id, e in pairs(plist) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(e.id))
+								GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(e.mapid))
+								GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))
+								GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(e.region))
+								GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(e.onmesh))
+								local p = e.pos
+								GUI:BulletText(".pos") GUI:SameLine(200)  GUI:InputFloat3( "##devpa6", p.x, p.y, p.z, 2, GUI.InputTextFlags_ReadOnly)
+								GUI:TreePop()
+							end
 						end
-					end
-				else
-					GUI:Text("No PartyMembers Available...")
-				end				
-				GUI:PopItemWidth()
+					else
+						GUI:Text("No PartyMembers Available...")
+					end				
+					GUI:PopItemWidth()
+				end
 				GUI:TreePop()
 			end
 --  END PARTY			
@@ -620,26 +624,28 @@ function dev.DrawCall(event, ticks )
 			
 			
 			if ( GUI:TreeNode("Shop List")) then
-				GUI:PushItemWidth(200)
-				local slist = Inventory:GetShopList()
-				if (table.valid(slist)) then
-					for id, e in pairs(slist) do
-						if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
-							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devSEhop1"..tostring(id),tostring(string.format( "%X",e.ptr)))
-							GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devSEhop2"..tostring(id),tostring(e.slot))
-							GUI:BulletText(".shopid") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.shopid))
-							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.id))							
-							GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devSEhop4"..tostring(id),tostring(e.price))
-							GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devSEhop5"..tostring(id),tostring(e.count))
-							if (GUI:Button("BuyShopItem##"..tostring(id),150,15) ) then Inventory:BuyShopItem(e.id) end
-							
-							GUI:TreePop()
-						end
-					end					
-				else
-					GUI:Text("No NPC Shop List Available...")
-				end				
-				GUI:PopItemWidth()
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local slist = Inventory:GetShopList()
+					if (table.valid(slist)) then
+						for id, e in pairs(slist) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devSEhop1"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".slot") GUI:SameLine(200) GUI:InputText("##devSEhop2"..tostring(id),tostring(e.slot))
+								GUI:BulletText(".shopid") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.shopid))
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devSEhop3"..tostring(id),tostring(e.id))							
+								GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devSEhop4"..tostring(id),tostring(e.price))
+								GUI:BulletText(".count") GUI:SameLine(200) GUI:InputText("##devSEhop5"..tostring(id),tostring(e.count))
+								if (GUI:Button("BuyShopItem##"..tostring(id),150,15) ) then Inventory:BuyShopItem(e.id) end
+								
+								GUI:TreePop()
+							end
+						end					
+					else
+						GUI:Text("No NPC Shop List Available...")
+					end				
+					GUI:PopItemWidth()
+				end
 				GUI:TreePop()
 			end
 --  END SHOPLIST
@@ -671,51 +677,53 @@ function dev.DrawCall(event, ticks )
 
 
 			if ( GUI:TreeNode("Utility Functions & Player specific Info")) then
-				GUI:PushItemWidth(200)
-				if (dev.sendcmd == nil ) then dev.sendcmd = "" end
-				dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
-				
-				local p = Player
-				if ( p ) then 
-					GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-					GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					if (dev.sendcmd == nil ) then dev.sendcmd = "" end
+					dev.sendcmd = GUI:InputText("##devuf1", dev.sendcmd) GUI:SameLine()	if (GUI:Button("SendCommand",100,15) ) then SendTextCommand(dev.sendcmd) end
 					
-					if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
-					
-					if ( GUI:TreeNode("Job Levels")) then
-						local lev = Player.levels
-						if (table.valid(lev)) then
-							for key, value in pairs(lev) do
-								GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+					local p = Player
+					if ( p ) then 
+						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
+						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
+						
+						if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
+						
+						if ( GUI:TreeNode("Job Levels")) then
+							local lev = Player.levels
+							if (table.valid(lev)) then
+								for key, value in pairs(lev) do
+									GUI:BulletText("Job: "..tostring(key).." - Level: "..tostring(value))							
+								end
 							end
+							GUI:TreePop()
 						end
-						GUI:TreePop()
+						
+						if ( GUI:TreeNode("Stats")) then
+							local stat = Player.stats
+							if (table.valid(stat)) then
+								for key, value in pairs(stat) do
+									GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
+								end
+							end
+							GUI:TreePop()
+						end
 					end
 					
-					if ( GUI:TreeNode("Stats")) then
-						local stat = Player.stats
-						if (table.valid(stat)) then
-							for key, value in pairs(stat) do
-								GUI:BulletText(tostring(key).." - Value: "..tostring(value))							
-							end
-						end
-						GUI:TreePop()
+					local t = Player:GetTarget()
+					if ( t ) then
+						if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.h))) end					
+						GUI:SameLine()
+						if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
+						if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
+						
+						
+						
+					else
+						GUI:Text("Select a Target...")
 					end
+					GUI:PopItemWidth()
 				end
-				
-				local t = Player:GetTarget()
-				if ( t ) then
-					if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.h))) end					
-					GUI:SameLine()
-					if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
-					if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
-					
-					
-					
-				else
-					GUI:Text("Select a Target...")
-				end
-				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
 -- END UTILITY FUNCTIONS & INFO		
