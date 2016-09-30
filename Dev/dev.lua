@@ -261,15 +261,13 @@ function dev.DrawCall(event, ticks )
 			if ( GUI:TreeNode("EnmityList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(200)
-					local enist = Player:EnmityList()
+					local enist = Player:GetEnmityList()
 					if (table.valid(enist)) then
 						for id, e in pairs(enist) do
-							if ( GUI:TreeNode(tostring(e.id))) then
-								GUI:BulletText(".enmity") GUI:SameLine(200) GUI:InputText("##deven1",tostring(e.enmity))
-								GUI:BulletText(".targetid") GUI:SameLine(200) GUI:InputText("##deven2",tostring(e.targetid))								
-								GUI:TreePop()
-							end
+							GUI:BulletText("TargetID: "..tostring(e.targetid).." Enmity: "..tostring(e.enmity))
 						end
+					else
+						GUI:Text("No Enmity Available...")
 					end				
 					GUI:PopItemWidth()
 				else
@@ -563,20 +561,62 @@ function dev.DrawCall(event, ticks )
 -- END MOVEMENT
 
 
-			if ( GUI:TreeNode("Party")) then
+			if ( GUI:TreeNode("PartyMembers")) then
 				GUI:PushItemWidth(200)
-				local slist = 0
-				if (table.valid(slist)) then
-					-- add Player.role
-					
+				local plist = EntityList.myparty
+				if (table.valid(plist)) then
+					for id, e in pairs(plist) do
+						if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then
+							GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devpa0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+							GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devpa1"..tostring(id),tostring(e.id))
+							GUI:BulletText(".mapid") GUI:SameLine(200) GUI:InputText("##devpa2"..tostring(id),tostring(e.mapid))
+							GUI:BulletText(".isleader") GUI:SameLine(200) GUI:InputText("##devpa3"..tostring(id),tostring(e.isleader))
+							GUI:BulletText(".region") GUI:SameLine(200) GUI:InputText("##devpa4"..tostring(id),tostring(e.region))
+							GUI:BulletText(".onmesh") GUI:SameLine(200) GUI:InputText("##devpa5"..tostring(id),tostring(e.onmesh))
+							local p = e.pos
+							GUI:BulletText(".pos") GUI:SameLine(200)  GUI:InputFloat3( "##devpa6", p.x, p.y, p.z, 2, GUI.InputTextFlags_ReadOnly)
+							GUI:TreePop()
+						end
+					end
 				else
-					GUI:Text("No NPC Shop List Available...")
+					GUI:Text("No PartyMembers Available...")
 				end				
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
 --  END PARTY			
 			
+			
+			if ( GUI:TreeNode("Quest List")) then
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(200)
+					local qList = Quest:GetQuestList()
+					if (table.valid(qList)) then
+						for id, e in pairs(qList) do
+							if ( GUI:TreeNode(tostring(id).." - "..e.name) ) then							
+								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devql0"..tostring(id),tostring(e.id))
+								GUI:BulletText(".step") GUI:SameLine(200) GUI:InputText("##devql1"..tostring(id),tostring(e.step))
+								GUI:BulletText(".completed") GUI:SameLine(200) GUI:InputText("##devql2"..tostring(id),tostring(e.completed))
+								GUI:TreePop()
+							end
+						end
+						GUI:Separator()
+						if (dev.questid == nil) then dev.questid = 122 end
+						GUI:BulletText("Enter Quest ID") GUI:SameLine(200) dev.questid = GUI:InputText("##devql3",dev.questid)
+						GUI:BulletText("HasQuest") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:HasQuest(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("GetQuestCurrentStep") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:GetQuestCurrentStep(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
+						GUI:BulletText("IsQuestCompleted") GUI:SameLine(200) GUI:InputText("##devql4"..tostring(id),tostring(Quest:IsQuestCompleted(tonumber(dev.questid))),GUI.InputTextFlags_CharsDecimal)
+						
+					else
+						GUI:Text("Duty Finder Not Open...")
+					end	
+					GUI:PopItemWidth()
+				else
+					GUI:Text("Not Ingame...")
+				end				
+				GUI:TreePop()
+			end
+-- END QUEST LIST
 			
 			
 			if ( GUI:TreeNode("Shop List")) then
@@ -737,8 +777,9 @@ function dev.DrawGameObjectDetails(c,isplayer)
 		GUI:BulletText("Aggro") GUI:SameLine(200) GUI:InputText("##dev24",tostring(c.aggro))
 		GUI:BulletText("AggroPercentage") GUI:SameLine(200) GUI:InputText("##dev25",tostring(c.aggropercentage))	
 		if(isplayer)then
-			GUI:BulletText("Has Aggro") GUI:SameLine(200) GUI:InputText("##devp45", tostring(cinfo.hasaggro))
-			GUI:BulletText("ReviveState") GUI:SameLine(200) GUI:InputText("##devp46", tostring(cinfo.revivestate))			
+			GUI:BulletText("Has Aggro") GUI:SameLine(200) GUI:InputText("##devp45", tostring(c.hasaggro))
+			GUI:BulletText("ReviveState") GUI:SameLine(200) GUI:InputText("##devp46", tostring(c.revivestate))
+			GUI:BulletText("Party Role") GUI:SameLine(200) GUI:InputText("##devp46", tostring(c.role))
 		end
 		GUI:BulletText("Attackable") GUI:SameLine(200) GUI:InputText("##dev26", tostring(c.attackable))
 		GUI:BulletText("Aggressive") GUI:SameLine(200) GUI:InputText("##dev27", tostring(c.aggressive))
