@@ -376,7 +376,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 			
 			if (not ml_task_hub:Update()) then
-				ml_error("No task queued, please select a valid bot mode in the Settings drop-down menu")
+				d("No task queued, please select a valid bot mode in the Settings drop-down menu")
+			else
+				--d("running cne")
 			end
 		end
     end
@@ -405,17 +407,17 @@ function ml_global_information.BuildMenu()
 	ml_global_information.menu.flags = flags
 end
 
-function ffxivminion.GUIVarCapture(newVal,varName,doSave)
-	local doSave = IsNull(doSave,true)
+function ffxivminion.GUIVarCapture(newVal,varName,forceSave)
+	local forceSave = IsNull(forceSave,true)
 	local needsSave = false
 	
 	local currentVal = _G[varName]
-	if (currentVal ~= newVal or type(newVal) == "table") then
+	if (forceSave or currentVal ~= newVal or (type(newVal) == "table" and not deepcompare(currentVal,newVal))) then
 		_G[varName] = newVal
 		needsSave = true
 	end
 		
-	if (doSave and needsSave) then
+	if (needsSave) then
 		Settings.FFXIVMINION[varName] = newVal
 	end
 
@@ -880,13 +882,13 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			if (gBotMode == GetString("questMode")) then
 				SafeSetVar("gAutoEquipDefaultQuesting",v)
 			else
-			SafeSetVar(tostring(k),v)
+				SafeSetVar(tostring(k),v)
 			end
 		elseif (k == "gTeleport") then
 			if (gBotMode == GetString("questMode")) then
 				SafeSetVar("gTeleportDefaultDuties",v)
 			else
-			SafeSetVar(tostring(k),v)
+				SafeSetVar(tostring(k),v)
 			end
 		elseif ( k == "gMount" ) then
 			if ( v == GetString("none") and Player.ismounted and gBotRunning == "1" ) then
@@ -1780,7 +1782,11 @@ function SafeSetVar(name, value)
 	local valName = name	
 	local currentVal = Settings.FFXIVMINION[valName]
 	if (type(value) == "table") then
-		if not deepcompare(currentVal,value,true) then
+		--d("checking ["..tostring(name).."]")
+		--d("comparing ["..tostring(type(currentVal)).."] with ["..tostring(type(value)).."]")
+		--d("size ["..tostring(table.size(currentVal)).."] vs ["..tostring(table.size(value)).."]")
+		--d("deepcompare ["..tostring(deepcompare(currentVal,value,true)).."]")
+		if (not currentVal or not value or not deepcompare(currentVal,value,true) or (table.size(currentVal) ~= table.size(value))) then
 			--d("writing table settings " .. valName)
 			if (valName ~= nil and value ~= nil) then
 				Settings.FFXIVMINION[valName] = value
