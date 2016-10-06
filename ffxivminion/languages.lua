@@ -4738,43 +4738,6 @@ strings =
     },                               
 }
 
-function SetLanguage(event, arg)
-	d("Switching language "..tostring(arg))	
-	if ( tonumber(arg) ~= nil ) then
-		if ( arg == "0" ) then 
-			gCurrentLanguage = "us"
-			GUI:SetLanguage(0)
-		elseif ( arg == "1" ) then 
-			gCurrentLanguage = "cn" 
-			GUI:SetLanguage(1)
-		elseif ( arg == "2" ) then 
-			gCurrentLanguage = "jp" 
-			GUI:SetLanguage(2)
-		elseif ( arg == "3" ) then 
-			gCurrentLanguage = "de" 
-			GUI:SetLanguage(0)
-		elseif ( arg == "4" ) then 
-			gCurrentLanguage = "fr"
-			GUI:SetLanguage(0)
-        elseif ( arg == "5" ) then 
-			gCurrentLanguage = "ru"
-			GUI:SetLanguage(0)
-		elseif ( arg == "6" ) then 
-			gCurrentLanguage = "kr"
-			GUI:SetLanguage(6)
-		end
-	end	
-end
-
--- returns a string in the current language or an indicator that the string does not exist in the language file
-function GetString(stringName)
-	if (not strings or strings[gCurrentLanguage] == nil or strings[gCurrentLanguage][stringName] == nil) then
-		return stringName
-	else
-		return strings[gCurrentLanguage][stringName]
-	end
-end
-
 function GetUSString(stringName)
 	if strings["us"][stringName] == nil then
 		return stringName
@@ -4782,34 +4745,6 @@ function GetUSString(stringName)
 		return strings["us"][stringName]
 	end
 end
-
-function GetStringKey(translatedString)
-	local strings = strings
-	for language,data in pairs(strings) do
-		for skey,s in pairs(data) do
-			if (s == translatedString) then
-				return skey
-			end
-		end
-	end
-	
-	return ""
-end
-
-function Retranslate(translatedString)
-	local stringTable = strings
-	for language,data in pairs(stringTable) do
-		for skey,s in pairs(data) do
-			if (s == translatedString) then
-				return GetString(skey)
-			end
-		end
-	end
-	
-	d("Could not find a translation for ["..translatedString.."].")
-	return translatedString
-end
-
 function GetStringList(stringList,delimiter)
 	local outputString = ""
 	for k in StringSplit(stringList,delimiter) do
@@ -4824,4 +4759,15 @@ function GetStringList(stringList,delimiter)
 	return outputString
 end
 
-RegisterEventHandler("MINION.setlanguage", SetLanguage)
+-- merge the minionlib strings with our ffxiv specific ones
+for language,data in pairs(strings) do
+	if ( ml_strings[language] ) then
+		for skey,str in pairs(data) do
+			if ( ml_strings[language][skey] == nil ) then
+				ml_strings[language][skey] = str
+			else
+				--d("Not adding dupliocate string :"..skey)
+			end
+		end
+	end
+end
