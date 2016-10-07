@@ -3411,7 +3411,16 @@ function SkillMgr.Gather(item)
 							castable = false
 						end
 						if (IsNull(skill.isitem,"") ~= "") then
-							if (not MultiComp(item.name,skill.isitem)) then
+							local searchid = AceLib.API.Items.GetIDByName(item.name) or 0
+							local found = false
+							for itemName in StringSplit(skill.isitem,",") do
+								local translatedid = AceLib.API.Items.GetIDByName(itemName)
+								if (translatedid == searchid) then
+									found = true
+									break
+								end
+							end
+							if (not found) then
 								castable = false
 							end
 						end
