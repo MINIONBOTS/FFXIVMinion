@@ -1,19 +1,126 @@
--- Add things to ml_global_information, we no longer create it.
-ml_global_information.MainWindow = { Name = GetString("settings"), x=50, y=50 , width=250, height=450 }
-ml_global_information.BtnStart = { Name=GetString("startStop"), Event = "GUI_REQUEST_RUN_TOGGLE" }
-ml_global_information.BtnPulse = { Name=GetString("doPulse"), Event = "Debug.Pulse" }
-	
+FF = {}
+
+FF.JOBS = {
+	ADVENTURER = 0,
+	GLADIATOR = 1,
+	PUGILIST = 2,
+	MARAUDER = 3,
+	LANCER = 4,
+	ARCHER = 5,
+	CONJURER = 6,
+	THAUMAGURGE = 7,
+	CARPENTER = 8,
+	BLACKSMITH = 9,
+	ARMORER = 10,
+	GOLDSMITH = 11,
+	LEATHERWORKER = 12,
+	WEAVER = 13,
+	ALCHEMIST = 14,
+	CULINARIAN = 15,
+	MINER = 16,
+	BOTANIST = 17,
+	FISHER = 18,
+	PALADIN = 19,
+	MONK = 20,
+	WARRIOR = 21,
+	DRAGOON = 22,
+	BARD = 23,
+	WHITEMAGE = 24,
+	BLACKMAGE = 25,
+	ARCANIST = 26,
+	SUMMONER = 27,
+	SCHOLER= 28,
+	ROGUE = 29,
+	NINJA = 30,
+	MACHINIST = 31,
+	DARKKNIGHT = 32,
+	ASTROLOGIAN = 33,
+}
+
+FF.FATESTATUS = {
+	ACTIVE = 2,
+	NOTACTIVE = 4,
+	PREPARING = 7,
+	COMPLETED = 8,
+}
+
+FF.CHARTYPE = {
+	NONE = 0,
+	PET = 2,
+	COMPANION = 3,
+	PLAYER = 4,
+	ENEMY = 5,
+}
+
+FF.ENTITYTYPE = {
+	PC = 1,
+	BATTLENPC = 2,
+	EVENTNPC = 3,
+	AETHERYTE = 5,
+	RESOURCENODE = 6,
+	EVENTOBJECT = 7,
+	MOUNT = 8,
+	MINIPET = 9,
+	RETAINER = 10,
+	HOUSINGOBJECT = 12
+}
+
+FF.REVIVESTATE = {
+	NONE = 0,
+	DIE = 1,
+	DEAD = 2,
+	REVIVING = 3,
+}
+
+FF.ROLE = {
+	NONE = 0,
+	TANK = 1,
+	MELEE = 2,
+	RANGED = 3,
+	HEALER = 4,
+}
+
+FF.ITEMCATEGORY = {
+	WEAPON = 1,
+	ARCANA = 2,
+	SHIELD = 3,
+	ARMOR = 4,
+	FOOD = 5,
+	ENHANCEMENT = 6,
+	ENFEEBLEMENT = 7,
+	ETHER = 8,
+	POTION = 9,
+	ELIXER = 10,
+	CRYSTAL = 11,
+	MATERIAL = 12,
+	MATERIA = 13,
+	FURNISHING = 14,
+	DYE = 15,
+	MISC = 16,
+	BAIT = 17,
+}
+
+FF.FISHINGSTATE = {
+	NONE = 0,
+	POLEOUT = 1,
+	PULLPOLEIN = 2,
+	QUIT = 3,
+	POLEREADY = 4,
+	BITE = 5,
+	REELIN = 6,
+	WAITIN = 8,
+}
+
+-- Add things to ml_global_information, we no longer create it.	
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.yield = {}
-ml_global_information.path = GetStartupPath()
 ml_global_information.nextRun = 0
 ml_global_information.lastPulseShortened = false
 ml_global_information.lastrun2 = 0
 ml_global_information.CurrentClass = nil
 ml_global_information.CurrentClassID = 0
 ml_global_information.AttackRange = 2
-ml_global_information.TaskUIInit = false
 ml_global_information.MarkerMinLevel = 1
 ml_global_information.MarkerMaxLevel = 50
 ml_global_information.BlacklistContentID = ""
@@ -22,7 +129,6 @@ ml_global_information.currentMarker = false
 ml_global_information.MarkerTime = 0
 ml_global_information.afkTimer = 0
 ml_global_information.syncTimer = 0
-ml_global_information.IsWaiting = false
 ml_global_information.UnstuckTimer = 0
 ml_global_information.stanceTimer = 0
 ml_global_information.summonTimer = 0
@@ -41,9 +147,6 @@ ml_global_information.blacklistedAetherytes = {}
 ml_global_information.navObstacles = {}
 --ml_global_information.navObstaclesTimer = 0
 ml_global_information.suppressRestTimer = 0
-ml_global_information.queueSync = nil
-ml_global_information.queueSyncForce = false
-ml_global_information.queueSyncForced = false
 ml_global_information.lastInventorySnapshot = {}
 ml_global_information.repairBlacklist = {}
 ml_global_information.avoidanceAreas = {}
@@ -51,7 +154,6 @@ ml_global_information.lastMeasure = 0
 ml_global_information.requiresTransport = {}
 ml_global_information.landing = nil
 ml_global_information.queueLoader = false
-ml_global_information.mainLoaded = false
 ml_global_information.needsStealth = false
 ml_global_information.gatherid = 0
 ml_global_information.targetid = 0
@@ -62,12 +164,10 @@ ml_global_information.drawMode = 1
 --Setup Globals
 ml_global_information.lastUpdate = 0
 ml_global_information.Player_Aetherytes = {}
-ml_global_information.Player_Position = {}
 ml_global_information.Player_Map = 0
 ml_global_information.Player_HP = {}
 ml_global_information.Player_MP = {}
 ml_global_information.Player_TP = {}
-ml_global_information.Player_InCombat = false
 
 ml_global_information.chocoStance = {
 	[GetString("stFollow")] = 3,
@@ -91,15 +191,13 @@ ml_global_information.chocoItemBuffs = {
 function ml_global_information.ToggleRun()	
 	if ( ml_task_hub.shouldRun ) then
 		ml_task_hub.shouldRun = false
-		gBotRunning = "0"
 		FFXIV_Common_BotRunning = false
 	else
 		ml_task_hub.shouldRun = true
-		gBotRunning = "1"
 		FFXIV_Common_BotRunning = true
 	end	
 
-	if (ml_task_hub.shouldRun and ml_global_information.UnstuckTimer == 0) then
+	if (ml_task_hub.shouldRun) then
 		ml_global_information.Reset()
 	else
 		ml_global_information.Stop()
@@ -113,49 +211,6 @@ function ml_global_information.GetMainIcon()
 	else
 		return iconPath.."expand.png"
 	end
-end
-
-function ml_global_information.DrawMarker(marker)
-
-	local markertype = marker:GetType()
-	local pos = marker:GetPosition()
-	
-    local color = 0
-    local s = 1 -- size
-    local h = 5 -- height
-	
-    if ( markertype == GetString("grindMarker") ) then
-        color = 1 -- red
-    elseif ( markertype == GetString("fishingMarker") ) then
-        color = 4 --blue
-    elseif ( markertype == GetString("miningMarker") ) then
-        color = 7 -- yellow	
-    elseif ( markertype == GetString("botanyMarker") ) then
-        color = 8 -- orange
-	elseif ( markertype == GetString("huntMarker") ) then
-		color = 2
-    end
-    --Building the vertices for the object
-    local t = { 
-        [1] = { pos.x-s, pos.y+s+h, pos.z-s, color },
-        [2] = { pos.x+s, pos.y+s+h, pos.z-s, color  },	
-        [3] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [4] = { pos.x+s, pos.y+s+h, pos.z-s, color },
-        [5] = { pos.x+s, pos.y+s+h, pos.z+s, color  },	
-        [6] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [7] = { pos.x+s, pos.y+s+h, pos.z+s, color },
-        [8] = { pos.x-s, pos.y+s+h, pos.z+s, color  },	
-        [9] = { pos.x,   pos.y-s+h,   pos.z, color  },
-        
-        [10] = { pos.x-s, pos.y+s+h, pos.z+s, color },
-        [11] = { pos.x-s, pos.y+s+h, pos.z-s, color  },	
-        [12] = { pos.x,   pos.y-s+h,   pos.z, color  },
-    }
-    
-    local id = RenderManager:AddObject(t)	
-    return id
 end
 
 function ml_global_information.NodeNeighbors(self)
@@ -242,10 +297,6 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
     return nil
 end
 
-function ml_global_information.CheckboxConvert(newval)
-	
-end
-
 function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
 	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
 		ml_global_information.yield = {
@@ -263,6 +314,15 @@ function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
 			dowhile = param3,
 			followall = param4,
 		}
+	end
+end
+
+function ml_global_information.GetMainIcon()
+	local iconPath = ml_global_information.path.."\\GUI\\UI_Textures\\"
+	if (ml_global_information.drawMode == 1) then
+		return iconPath.."collapse.png"
+	else
+		return iconPath.."expand.png"
 	end
 end
 
@@ -401,7 +461,7 @@ function ml_global_information.Init()
 			ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
 			ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
 			ml_mesh_mgr.SetEvacPoint = function ()
-				if (gmeshname ~= "" and Player.onmesh) then
+				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
 					ml_marker_mgr.markerList["evacPoint"] = Player.pos
 					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				end
@@ -466,7 +526,6 @@ function ml_global_information.Init()
 		end
 	end
 
-
 	local ffxiv_mainmenu = {
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	
@@ -477,16 +536,49 @@ function ml_global_information.Init()
 	ml_gui.ui_mgr:AddComponent(ffxiv_mainmenu)
 end
 
---[[
-ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_DEV1", name = "Dev1", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER")
-ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_DEV2", name = "Dev2", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER")
-ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_DEV3", name = "Dev3", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER")
-ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_DEV4", name = "Dev4", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER")
-ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_DEV5", name = "Dev5", onClick = function() Dev.GUI.open = not Dev.GUI.open end, sort = true},"FFXIVMINION##MENU_HEADER")
-ml_gui.ui_mgr:AddSubMember({ id = "FFXIVMINION##DEV_1", name = "DevA", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER","FFXIVMINION##MENU_DEV5")
-ml_gui.ui_mgr:AddSubMember({ id = "FFXIVMINION##DEV_2", name = "DevE", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER","FFXIVMINION##MENU_DEV5")
-ml_gui.ui_mgr:AddSubMember({ id = "FFXIVMINION##DEV_3", name = "DevM", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER","FFXIVMINION##MENU_DEV5")
-ml_gui.ui_mgr:AddSubMember({ id = "FFXIVMINION##DEV_4", name = "DevC", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Dev monitor."},"FFXIVMINION##MENU_HEADER","FFXIVMINION##MENU_DEV5")
---]]
+function IsControlOpen(strControl)
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,e in pairs(controls) do
+			if (e.name == strControl) then
+				return e:IsOpen()
+			end
+		end
+	end
+	return false
+end
+
+function UseControlAction(strControl,strAction,actionArg)
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,control in pairs(controls) do
+			if (control.name == strControl) then
+				local actions = control:GetActions()
+				if (table.valid(actions)) then
+					for aid, action in pairs(actions) do
+						if (action == strAction) then
+							if (control:Action(action,actionArg)) then
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+function GetControl(strControl) 
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,e in pairs(controls) do
+			if (e.name == strControl) then
+				return e
+			end
+		end
+	end
+	return nil
+end
 
 RegisterEventHandler("Module.Initalize",ml_global_information.Init)

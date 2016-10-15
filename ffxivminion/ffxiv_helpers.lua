@@ -64,7 +64,7 @@ function GetNearestGrindAttackable()
 	
 	if (radius > 0 and ValidTable(markerPos)) then
 		--d("Checking marker with radius section.")
-		if (gClaimFirst	== "1") then		
+		if (gClaimFirst	) then		
 			if (not IsNullString(huntString)) then
 				el = MEntityList("nearest,contentid="..huntString..",notincombat,targeting=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				
@@ -158,7 +158,7 @@ function GetNearestGrindAttackable()
 				if (ValidTable(filtered)) then
 					for i,e in pairs(filtered) do
 						if (ValidTable(e)) then
-							if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+							if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
 								return e
 							end
 						end
@@ -197,7 +197,7 @@ function GetNearestGrindAttackable()
 	else
 		--d("Checking marker without radius section.")
 		block = 1
-		if (gClaimFirst	== "1") then		
+		if (gClaimFirst	) then		
 			if (not IsNullString(huntString)) then
 				local el = MEntityList("nearest,contentid="..huntString..",notincombat,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				if ( el ) then
@@ -276,7 +276,7 @@ function GetNearestGrindAttackable()
 			if ( el ) then
 				local i,e = next(el)
 				if (ValidTable(e)) then
-					if (e.targetid == 0 or e.targetid == Player.id or gClaimed == "1") then
+					if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
 						--d("Grind returned, using block:"..tostring(block))
 						return e
 					end
@@ -319,7 +319,7 @@ function GetNearestGrindPriority()
 	local excludeString = GetBlacklistIDString
 	local el = nil
 	
-	if (gClaimFirst	== "1") then
+	if (gClaimFirst	) then
 		if (not IsNullString(huntString)) then
 			local el = MEntityList("shortestpath,contentid="..tostring(huntString)..",targeting=0,notincombat,alive,attackable,onmesh")
 			if ( el ) then
@@ -434,7 +434,7 @@ function GetNearestFateAttackable()
 			end
 		end
 		
-		if (gFateKillAggro == "1") then
+		if (gFateKillAggro ) then
 			el = MEntityList("nearest,alive,attackable,aggro,fateid=0,onmesh")
 			if (ValidTable(el)) then
 				local i,e = next(el)
@@ -477,7 +477,7 @@ function GetHuntTarget()
 	local excludeString = GetBlacklistIDString()
 	local el = nil
 	
-	if (gHuntSRankHunt == "1") then
+	if (gHuntSRankHunt ) then
 		if (excludeString) then
 			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 		else
@@ -500,7 +500,7 @@ function GetHuntTarget()
 		end
 	end
 	
-	if (gHuntARankHunt == "1") then
+	if (gHuntARankHunt ) then
 		if (excludeString) then
 			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 		else
@@ -523,7 +523,7 @@ function GetHuntTarget()
 		end
 	end
 	
-	if (gHuntBRankHunt == "1") then
+	if (gHuntBRankHunt ) then
 		if (gHuntBRankHuntID ~= "") then
 			if (excludeString) then
 				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
@@ -547,7 +547,7 @@ function GetHuntTarget()
 			end
 		end
 		
-		if (gHuntBRankHuntAny == "1") then
+		if (gHuntBRankHuntAny ) then
 			if (excludeString) then
 				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh,exclude_contentid="..excludeString)
 			else
@@ -652,7 +652,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (FFXIV_Common_BotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -718,7 +718,7 @@ function GetPetSkillRangeRadius(id)
 	return nil
 end
 function GetLowestHPParty( skill )
-    npc = (skill.npc == "1")
+    npc = (skill.npc )
 	range = skill.range or ml_global_information.AttackRange
 	count = skill.ptcount or 0
 	minHP = skill.pthpb or 0
@@ -772,20 +772,20 @@ function GetLowestMPParty( range, role, includeself )
     local pID = Player.id
 	local lowest = nil
 	local lowestMP = 101
-	local includeself = IsNull(includeself,"0") == "1"
+	local includeself = IsNull(includeself,"0") 
 	local range = tonumber(range) or 35 
 	local role = tostring(role) or ""
 	
 	local mpUsers = {
-		[FFXIV.JOBS.GLADIATOR] = true,
-		[FFXIV.JOBS.CONJURER] = true,
-		[FFXIV.JOBS.PALADIN] = true,
-		[FFXIV.JOBS.WHITEMAGE] = true,
-		[FFXIV.JOBS.ARCANIST] = true,
-		[FFXIV.JOBS.SUMMONER] = true,
-		[FFXIV.JOBS.SCHOLAR] = true,
-		[FFXIV.JOBS.DARKKNIGHT] = true,
-		[FFXIV.JOBS.ASTROLOGIAN] = true,
+		[FF.JOBS.GLADIATOR] = true,
+		[FF.JOBS.CONJURER] = true,
+		[FF.JOBS.PALADIN] = true,
+		[FF.JOBS.WHITEMAGE] = true,
+		[FF.JOBS.ARCANIST] = true,
+		[FF.JOBS.SUMMONER] = true,
+		[FF.JOBS.SCHOLAR] = true,
+		[FF.JOBS.DARKKNIGHT] = true,
+		[FF.JOBS.ASTROLOGIAN] = true,
 	}
 	
 	-- DPS, Healer, Tank, Caster
@@ -823,7 +823,7 @@ end
 function GetLowestTPParty( range, role, includeself )
 	local lowest = nil
 	local lowestTP = 1001
-	local includeself = IsNull(includeself,"0") == "1"
+	local includeself = IsNull(includeself,"0") 
 	local range = tonumber(range) or 35
 	local role = tostring(role) or ""
 	
@@ -1056,7 +1056,7 @@ function GetBestRevive( party, role)
 		end
 	end
 	
-	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (FFXIV_Common_BotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -1126,8 +1126,8 @@ function GetPVPTarget()
                 elseif role == GetString("dps") then
                     if (targets[GetString("dps")] ~= nil) then
 						-- keep blackmage as highest prioritized ranged target
-						if (gPrioritizeRanged == "1" and IsRangedDPS(entity.job)) then
-							if (targets[GetString("dps")].job ~= FFXIV.JOBS.BLACKMAGE) then
+						if (gPrioritizeRanged  and IsRangedDPS(entity.job)) then
+							if (targets[GetString("dps")].job ~= FF.JOBS.BLACKMAGE) then
 								targets[GetString("dps")] = entity
 							end
                         end
@@ -1162,7 +1162,7 @@ function GetPVPTarget()
 				
 				if IsCasterDPS(entity.job) then
 					if (targets[GetString("caster")] ~= nil) then
-						if (targets[GetString("caster")].job ~= FFXIV.JOBS.BLACKMAGE) then
+						if (targets[GetString("caster")].job ~= FF.JOBS.BLACKMAGE) then
 							targets[GetString("caster")] = entity
 						end
 					else
@@ -1172,7 +1172,7 @@ function GetPVPTarget()
 				
 				if IsRangedDPS(entity.job) then
 					if (targets[GetString("ranged")] ~= nil) then
-						if (targets[GetString("ranged")].job ~= FFXIV.JOBS.BLACKMAGE) then
+						if (targets[GetString("ranged")].job ~= FF.JOBS.BLACKMAGE) then
 							targets[GetString("ranged")] = entity
 						end
 					else
@@ -1180,9 +1180,9 @@ function GetPVPTarget()
 					end
 				end
 				
-				if (entity.job == FFXIV.JOBS.BLACKMAGE or entity.job == FFXIV.JOBS.WHITEMAGE) then
+				if (entity.job == FF.JOBS.BLACKMAGE or entity.job == FF.JOBS.WHITEMAGE) then
 					if (targets[GetString("sleeper")] ~= nil) then
-						if (targets[GetString("sleeper")].job ~= FFXIV.JOBS.BLACKMAGE) then
+						if (targets[GetString("sleeper")].job ~= FF.JOBS.BLACKMAGE) then
 							targets[GetString("sleeper")] = entity
 						end
 					else
@@ -1464,7 +1464,7 @@ function GetNearestUnspoiled(class)
 	--Mining Node = 5
 	--Mature Tree = 7
 	--Vegetation = 8
-	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
+	local contentID = (class == FF.JOBS.MINER) and "5;6" or "7;8"
     local el = MEntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
     
     if ( el ) then
@@ -1545,7 +1545,7 @@ function HasSkill( skillids )
 		for _andid in StringSplit(_orids,"+") do
 			found = false
 			for i, skill in pairs(skills) do
-				if (tonumber(skill.id) == tonumber(_andid) and (skill.used == "1")) then 
+				if (tonumber(skill.id) == tonumber(_andid) and (skill.used )) then 
 					found = true 
 				end
 			end
@@ -1633,7 +1633,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 end
 function GetFleeHP()
 	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
-	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
+	local fleeHP = tonumber(FFXIV_Common_FleeHP) + (3 * attackingMobs)
 	return fleeHP
 end
 function HasInfiniteDuration(id)
@@ -2161,8 +2161,8 @@ function GetApprovedFates()
 	local fatelist = MFateList()
 	if (ValidTable(fatelist)) then
 		for _,fate in pairs(fatelist) do
-			local minFateLevel = tonumber(gMinFateLevel) or 0
-			local maxFateLevel = tonumber(gMaxFateLevel) or 0
+			local minFateLevel = tonumber(FFXIV_Grind_FatesMinLevel) or 0
+			local maxFateLevel = tonumber(FFXIV_Grind_FatesMaxLevel) or 0
 			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
@@ -2171,17 +2171,17 @@ function GetApprovedFates()
 			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
 				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
 			then
-				if (not (isChain or isPrio) and (fate.type == 0 and gDoBattleFates == "1" and fate.completion >= tonumber(gFateBattleWaitPercent))) then
+				if (not (isChain or isPrio) and (fate.type == 0 and FFXIV_Grind_DoBattleFates  and fate.completion >= tonumber(FFXIV_Grind_FateBattleWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 1 and gDoBossFates == "1" and fate.completion >= tonumber(gFateBossWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 1 and FFXIV_Grind_DoBossFates  and fate.completion >= tonumber(FFXIV_Grind_FateBossWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 2 and gDoGatherFates == "1" and fate.completion >= tonumber(gFateGatherWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 2 and FFXIV_Grind_DoGatherFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 3 and gDoDefenseFates == "1" and fate.completion >= tonumber(gFateDefenseWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 3 and FFXIV_Grind_DoDefenseFates  and fate.completion >= tonumber(FFXIV_Grind_FateDefenseWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 4 and gDoEscortFates == "1" and fate.completion >= tonumber(gFateEscortWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 4 and FFXIV_Grind_DoEscortFates  and fate.completion >= tonumber(gFateEscortWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif ((isChain or isPrio) and gDoChainFates == "1") then
+				elseif ((isChain or isPrio) and gDoChainFates ) then
 					if (fate.completion >= tonumber(gFateChainWaitPercent) or not firstChain) then
 						table.insert(approvedFates,fate)
 					end
@@ -2227,7 +2227,7 @@ function GetClosestFate(pos,pathcheck)
 	
 	local fateList = GetApprovedFates()
 	if (ValidTable(fateList)) then		
-		if (pathcheck and gTeleport == "0") then
+		if (pathcheck and not FFXIV_Common_Teleport) then
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
@@ -2358,23 +2358,77 @@ function ScanForMobs(ids,distance)
 
 	return false
 end
-function ScanForCaster(ids,distance,spells)
-	local ids = (type(ids) == "string" and ids) or tostring(ids)
+function ScanForCaster(ids,distance,spells,includeself)
+	local includeself = IsNull(includeself,false)
+	local ids = (type(ids) == "string" and ids) or tostring(ids) or ""
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
 	
 	local maxdistance = tonumber(distance) or 30
-	local el = MEntityList("alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	local el;
+	if (string.valid(ids)) then
+		el = MEntityList("alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
+	else
+		el = MEntityList("alive,maxdistance="..tostring(maxdistance))
+	end
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
-				if (MultiComp(e.castinginfo.channelingid,spells) or MultiComp(e.castinginfo.castingid,spells)) then
-					return true
+				if (MultiComp(e.castinginfo.channelingid,spells)) then
+					local hits = {}
+					local hit = EntityList:Get(e.castinginfo.channeltargetid)
+					if (table.valid(hit)) then
+						hits[hit.id] = hit
+					end
+					return true, e, hits
+				elseif (MultiComp(e.castinginfo.castingid,spells)) then
+					local hits = {}
+					local targets = e.castinginfo.castingtargets
+					if (table.valid(targets)) then
+						for i,target in pairs(targets) do
+							local entity = EntityList:Get(target)
+							if (table.valid(entity)) then
+								hits[entity.id] = entity
+							end							
+						end
+					else
+						local hit = EntityList:Get(e.castinginfo.channeltargetid)
+						if (table.valid(hit)) then
+							hits[hit.id] = hit
+						end
+					end
+					return true, e, hits
 				end
 			end
 		end
 	end
 	
-	return false
+	if (MultiComp(Player.castinginfo.channelingid,spells)) then
+		local hits = {}
+		local hit = EntityList:Get(Player.castinginfo.channeltargetid)
+		if (table.valid(hit)) then
+			hits[hit.id] = hit
+		end
+		return true, Player, hits
+	elseif (MultiComp(Player.castinginfo.castingid,spells)) then
+		local hits = {}
+		local targets = Player.castinginfo.castingtargets
+		if (table.valid(targets)) then
+			for i,target in pairs(targets) do
+				local entity = EntityList:Get(target)
+				if (table.valid(entity)) then
+					hits[entity.id] = entity
+				end							
+			end
+		else
+			local hit = EntityList:Get(Player.castinginfo.channeltargetid)
+			if (table.valid(hit)) then
+				hits[hit.id] = hit
+			end
+		end
+		return true, Player, hits
+	end
+	
+	return false, nil, nil
 end
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
@@ -2617,7 +2671,7 @@ function IsLeader()
     return false
 end
 function GetPartyLeader()
-	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
+	if (FFXIV_Common_BotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 			local el = MEntityList("type=1,name="..gPartyLeaderName)
 			if (ValidTable(el)) then
@@ -2693,7 +2747,7 @@ function IsInParty(id)
 	return false
 end
 function InCombatRange(targetid)
-	if (gBotRunning == "0" or IsFlying()) then
+	if (not FFXIV_Common_BotRunning or IsFlying()) then
 		return false
 	end
 	
@@ -2714,11 +2768,11 @@ function InCombatRange(targetid)
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
 	--d(ml_task_queue.rootTask)
-	if (gBotMode == GetString("dutyMode")) then
+	if (FFXIV_Common_BotMode == GetString("dutyMode")) then
 		return true
 	end
 	
-	if (gBotMode == GetString("gatherMode")) then
+	if (FFXIV_Common_BotMode == GetString("gatherMode")) then
 		local node = EntityList:Get(targetid)
 		if (node and node.distance2d < 4) then
 			return true
@@ -2754,11 +2808,11 @@ function InCombatRange(targetid)
 		for prio,skill in spairs(SkillMgr.SkillProfile) do
 			local skilldata = MGetAction(tonumber(skill.id))
 			if (skilldata) then
-				if ( skilldata.range > 0 and skill.used == "1" and skilldata.range > highestRange) then
+				if ( skilldata.range > 0 and skill.used  and skilldata.range > highestRange) then
 					if ((attackRange < 5 and skilldata.isready) or attackRange >= 5) then
 						skillID = tonumber(skill.id)
 						highestRange = tonumber(skilldata.range)
-						charge = (skill.charge == "1" and true) or false
+						charge = (skill.charge  and true) or false
 					end
 				end
 			end
@@ -2767,6 +2821,7 @@ function InCombatRange(targetid)
 	
 	if ( attackRange < 5 ) then			
 		if (skillID ~= nil) then
+			--[[
 			if (highestRange > 5) then
 				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
 					if ((target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))) then
@@ -2786,6 +2841,7 @@ function InCombatRange(targetid)
 					end
 				end
 			end
+			--]]
 		end
 	else
 		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))
@@ -2849,7 +2905,7 @@ function GetMountID()
 	if (ValidTable(mountlist)) then
 		--First pass, look for our named mount.
 		for k,v in pairsByKeys(mountlist) do
-			if (v.name == gMount) then
+			if (v.name == FFXIV_Common_MountIndex) then
 				local acMount = ActionList:Get(v.id,13)
 				if (acMount and acMount.isready) then
 					return v.id
@@ -2858,7 +2914,7 @@ function GetMountID()
 		end
 		
 		--Second pass, look for any mount as backup.
-		if (gMount == GetString("none")) then
+		if (FFXIV_Common_MountIndex == GetString("none")) then
 			for k,v in pairsByKeys(mountlist) do
 				local acMount = ActionList:Get(v.id,13)
 				if (acMount and acMount.isready) then
@@ -2884,7 +2940,7 @@ function IsPositionLocked()
 	return (jump and not jump.isready)
 end
 function IsLoading()
-	if (Quest:IsLoading()) then
+	if (IsControlOpen("NowLoading")) then
 		--d("IsLoading [1]")
 		return true
 	elseif (Player.localmapid == 0) then
@@ -2896,7 +2952,7 @@ function IsLoading()
 	end
 	
 	return false
-	--return (Quest:IsLoading() or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
+	--return (IsControlOpen("NowLoading") or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
 end
 function HasAction(id, category)
 	id = tonumber(id) or 0
@@ -2943,7 +2999,7 @@ function Mount(id)
 		--If we weren't passed an id (party-grind), look it up.
 		if (mountID == 0) then
 			for k,v in pairsByKeys(mounts) do
-				if (v.name == gMount) then
+				if (v.name == FFXIV_Common_MountIndex) then
 					mountID = v.id
 				end
 			end
@@ -2972,7 +3028,7 @@ function Dismount()
 end
 
 function Repair()
-	if (gRepair == "1") then
+	if (FFXIV_Common_Repair ) then
 		local blacklist = ml_global_information.repairBlacklist
 		local eq = MInventory("type=1000")
 		for i,e in pairs(eq) do
@@ -2993,7 +3049,7 @@ function Repair()
 	end
 end
 function NeedsRepair()
-	if (gRepair == "1") then
+	if (FFXIV_Common_Repair ) then
 		local blacklist = ml_global_information.repairBlacklist
 		local eq = MInventory("type=1000")
 		for i,e in pairs(eq) do
@@ -3015,15 +3071,8 @@ function NeedsRepair()
 end
 function ShouldEat()
 	local foodID = nil
-	if (gFoodHQ ~= "None") then
-		foodID = ffxivminion.foodsHQ[gFoodHQ]
-		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
-		local food = MGetItem(foodID)
-		if (food and food.isready and not HasBuffs(Player,"48")) then
-			return true
-		end
-	elseif (gFood ~= "None") then
-		foodID = ffxivminion.foods[gFood]
+	if (FFXIV_Common_Food ~= "None") then
+		foodID = ffxivminion.foods[FFXIV_Common_Food]
 		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
@@ -3034,15 +3083,8 @@ function ShouldEat()
 end
 function Eat()
 	local foodID = nil
-	if (gFoodHQ ~= "None") then
-		foodID = ffxivminion.foodsHQ[gFoodHQ]
-		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
-		local food = MGetItem(foodID)
-		if (food and food.isready and not HasBuffs(Player,"48")) then
-			food:Use()
-		end
-	elseif (gFood ~= "None") then
-		foodID = ffxivminion.foods[gFood]
+	if (FFXIV_Common_Food ~= "None") then
+		foodID = ffxivminion.foods[FFXIV_Common_Food]
 		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
@@ -3209,34 +3251,34 @@ end
 --===========================
 function GetRoleString(jobID)
     if 
-        jobID == FFXIV.JOBS.ARCANIST or
-        jobID == FFXIV.JOBS.ARCHER or
-        jobID == FFXIV.JOBS.BARD or
-        jobID == FFXIV.JOBS.BLACKMAGE or
-        jobID == FFXIV.JOBS.DRAGOON or
-        jobID == FFXIV.JOBS.LANCER or
-        jobID == FFXIV.JOBS.MONK or
-        jobID == FFXIV.JOBS.PUGILIST or
-        jobID == FFXIV.JOBS.SUMMONER or
-        jobID == FFXIV.JOBS.THAUMATURGE or
-		jobID == FFXIV.JOBS.ROGUE or
-		jobID == FFXIV.JOBS.NINJA or
-		jobID == FFXIV.JOBS.MACHINIST
+        jobID == FF.JOBS.ARCANIST or
+        jobID == FF.JOBS.ARCHER or
+        jobID == FF.JOBS.BARD or
+        jobID == FF.JOBS.BLACKMAGE or
+        jobID == FF.JOBS.DRAGOON or
+        jobID == FF.JOBS.LANCER or
+        jobID == FF.JOBS.MONK or
+        jobID == FF.JOBS.PUGILIST or
+        jobID == FF.JOBS.SUMMONER or
+        jobID == FF.JOBS.THAUMATURGE or
+		jobID == FF.JOBS.ROGUE or
+		jobID == FF.JOBS.NINJA or
+		jobID == FF.JOBS.MACHINIST
     then
         return GetString("dps")
     elseif
-        jobID == FFXIV.JOBS.CONJURER or
-        jobID == FFXIV.JOBS.SCHOLAR or
-        jobID == FFXIV.JOBS.WHITEMAGE or
-		jobID == FFXIV.JOBS.ASTROLOGIAN
+        jobID == FF.JOBS.CONJURER or
+        jobID == FF.JOBS.SCHOLAR or
+        jobID == FF.JOBS.WHITEMAGE or
+		jobID == FF.JOBS.ASTROLOGIAN
     then
         return GetString("healer")
     elseif 
-        jobID == FFXIV.JOBS.GLADIATOR or
-        jobID == FFXIV.JOBS.MARAUDER or
-        jobID == FFXIV.JOBS.PALADIN or
-        jobID == FFXIV.JOBS.WARRIOR or 
-		jobID == FFXIV.JOBS.DARKKNIGHT
+        jobID == FF.JOBS.GLADIATOR or
+        jobID == FF.JOBS.MARAUDER or
+        jobID == FF.JOBS.PALADIN or
+        jobID == FF.JOBS.WARRIOR or 
+		jobID == FF.JOBS.DARKKNIGHT
     then
         return GetString("tank")
     end
@@ -3244,124 +3286,124 @@ end
 function GetRoleTable(rolestring)
 	if (rolestring == "DPS") then
 		return {
-			[FFXIV.JOBS.ARCHER] = true,
-			[FFXIV.JOBS.BARD] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.DRAGOON] = true,
-			[FFXIV.JOBS.LANCER] = true,
-			[FFXIV.JOBS.MONK] = true,
-			[FFXIV.JOBS.PUGILIST] = true,
-			[FFXIV.JOBS.ROGUE] = true,
-			[FFXIV.JOBS.NINJA] = true,
-			[FFXIV.JOBS.MACHINIST] = true,
+			[FF.JOBS.ARCHER] = true,
+			[FF.JOBS.BARD] = true,
+			[FF.JOBS.BLACKMAGE] = true,
+			[FF.JOBS.DRAGOON] = true,
+			[FF.JOBS.LANCER] = true,
+			[FF.JOBS.MONK] = true,
+			[FF.JOBS.PUGILIST] = true,
+			[FF.JOBS.ROGUE] = true,
+			[FF.JOBS.NINJA] = true,
+			[FF.JOBS.MACHINIST] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
+			[FF.JOBS.CONJURER] = true,
+			[FF.JOBS.SCHOLAR] = true,
+			[FF.JOBS.WHITEMAGE] = true,
+			[FF.JOBS.ASTROLOGIAN] = true,
 		}
 	elseif (rolestring == "Tank") then
 		return {
-			[FFXIV.JOBS.GLADIATOR] = true,
-			[FFXIV.JOBS.MARAUDER] = true,
-			[FFXIV.JOBS.PALADIN] = true,
-			[FFXIV.JOBS.WARRIOR] = true,
-			[FFXIV.JOBS.DARKKNIGHT] = true,
+			[FF.JOBS.GLADIATOR] = true,
+			[FF.JOBS.MARAUDER] = true,
+			[FF.JOBS.PALADIN] = true,
+			[FF.JOBS.WARRIOR] = true,
+			[FF.JOBS.DARKKNIGHT] = true,
 		}
 	elseif (rolestring == "Caster") then
 		return {
-			[FFXIV.JOBS.ARCANIST] = true,
-			[FFXIV.JOBS.BLACKMAGE] = true,
-			[FFXIV.JOBS.SUMMONER] = true,
-			[FFXIV.JOBS.THAUMATURGE] = true,
-			[FFXIV.JOBS.WHITEMAGE] = true,
-			[FFXIV.JOBS.CONJURER] = true,
-			[FFXIV.JOBS.SCHOLAR] = true,
-			[FFXIV.JOBS.ASTROLOGIAN] = true,
+			[FF.JOBS.ARCANIST] = true,
+			[FF.JOBS.BLACKMAGE] = true,
+			[FF.JOBS.SUMMONER] = true,
+			[FF.JOBS.THAUMATURGE] = true,
+			[FF.JOBS.WHITEMAGE] = true,
+			[FF.JOBS.CONJURER] = true,
+			[FF.JOBS.SCHOLAR] = true,
+			[FF.JOBS.ASTROLOGIAN] = true,
 		}
 	end
 	return nil
 end
 function IsMeleeDPS(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.MONK or
-			jobID == FFXIV.JOBS.PUGILIST or
-			jobID == FFXIV.JOBS.DRAGOON or
-			jobID == FFXIV.JOBS.LANCER or
-			jobID == FFXIV.JOBS.ROGUE or
-			jobID == FFXIV.JOBS.NINJA
+	return 	jobID == FF.JOBS.MONK or
+			jobID == FF.JOBS.PUGILIST or
+			jobID == FF.JOBS.DRAGOON or
+			jobID == FF.JOBS.LANCER or
+			jobID == FF.JOBS.ROGUE or
+			jobID == FF.JOBS.NINJA
 end
 function IsRangedDPS(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.ARCHER or
-			jobID == FFXIV.JOBS.BARD or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE or
-			jobID == FFXIV.JOBS.MACHINIST
+	return 	jobID == FF.JOBS.ARCANIST or
+			jobID == FF.JOBS.ARCHER or
+			jobID == FF.JOBS.BARD or
+			jobID == FF.JOBS.BLACKMAGE or
+			jobID == FF.JOBS.SUMMONER or
+			jobID == FF.JOBS.THAUMATURGE or
+			jobID == FF.JOBS.MACHINIST
 end
 function IsRanged(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.ARCHER or
-			jobID == FFXIV.JOBS.BARD or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE or
-			jobID == FFXIV.JOBS.CONJURER or
-			jobID == FFXIV.JOBS.SCHOLAR or
-			jobID == FFXIV.JOBS.WHITEMAGE or
-			jobID == FFXIV.JOBS.ASTROLOGIAN or
-			jobID == FFXIV.JOBS.MACHINIST
+	return 	jobID == FF.JOBS.ARCANIST or
+			jobID == FF.JOBS.ARCHER or
+			jobID == FF.JOBS.BARD or
+			jobID == FF.JOBS.BLACKMAGE or
+			jobID == FF.JOBS.SUMMONER or
+			jobID == FF.JOBS.THAUMATURGE or
+			jobID == FF.JOBS.CONJURER or
+			jobID == FF.JOBS.SCHOLAR or
+			jobID == FF.JOBS.WHITEMAGE or
+			jobID == FF.JOBS.ASTROLOGIAN or
+			jobID == FF.JOBS.MACHINIST
 end
 function IsPhysicalDPS(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.MONK or
-			jobID == FFXIV.JOBS.PUGILIST or
-			jobID == FFXIV.JOBS.DRAGOON or
-			jobID == FFXIV.JOBS.LANCER or
-			jobID == FFXIV.JOBS.ROGUE or
-			jobID == FFXIV.JOBS.NINJA or 
-			jobID == FFXIV.JOBS.ARCHER or
-			jobID == FFXIV.JOBS.BARD or
-			jobID == FFXIV.JOBS.MACHINIST
+	return 	jobID == FF.JOBS.MONK or
+			jobID == FF.JOBS.PUGILIST or
+			jobID == FF.JOBS.DRAGOON or
+			jobID == FF.JOBS.LANCER or
+			jobID == FF.JOBS.ROGUE or
+			jobID == FF.JOBS.NINJA or 
+			jobID == FF.JOBS.ARCHER or
+			jobID == FF.JOBS.BARD or
+			jobID == FF.JOBS.MACHINIST
 end
 function IsCasterDPS(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE
+	return 	jobID == FF.JOBS.ARCANIST or
+			jobID == FF.JOBS.BLACKMAGE or
+			jobID == FF.JOBS.SUMMONER or
+			jobID == FF.JOBS.THAUMATURGE
 end
 function IsCaster(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.ARCANIST or
-			jobID == FFXIV.JOBS.BLACKMAGE or
-			jobID == FFXIV.JOBS.SUMMONER or
-			jobID == FFXIV.JOBS.THAUMATURGE or
-			jobID == FFXIV.JOBS.WHITEMAGE or
-			jobID == FFXIV.JOBS.CONJURER or
-			jobID == FFXIV.JOBS.SCHOLAR or 
-			jobID == FFXIV.JOBS.ASTROLOGIAN
+	return 	jobID == FF.JOBS.ARCANIST or
+			jobID == FF.JOBS.BLACKMAGE or
+			jobID == FF.JOBS.SUMMONER or
+			jobID == FF.JOBS.THAUMATURGE or
+			jobID == FF.JOBS.WHITEMAGE or
+			jobID == FF.JOBS.CONJURER or
+			jobID == FF.JOBS.SCHOLAR or 
+			jobID == FF.JOBS.ASTROLOGIAN
 end
 function IsHealer(jobID)
 	local jobID = tonumber(jobID)
-	return 	jobID == FFXIV.JOBS.WHITEMAGE or
-			jobID == FFXIV.JOBS.CONJURER or
-			jobID == FFXIV.JOBS.SCHOLAR or 
-			jobID == FFXIV.JOBS.ASTROLOGIAN
+	return 	jobID == FF.JOBS.WHITEMAGE or
+			jobID == FF.JOBS.CONJURER or
+			jobID == FF.JOBS.SCHOLAR or 
+			jobID == FF.JOBS.ASTROLOGIAN
 end
 function IsTank(jobID)
 	local jobID = tonumber(jobID)
 	local tanks = {
-		[FFXIV.JOBS.GLADIATOR] = true,
-		[FFXIV.JOBS.MARAUDER] = true,
-		[FFXIV.JOBS.PALADIN] = true,
-		[FFXIV.JOBS.WARRIOR] = true,
-		[FFXIV.JOBS.DARKKNIGHT] = true,
+		[FF.JOBS.GLADIATOR] = true,
+		[FF.JOBS.MARAUDER] = true,
+		[FF.JOBS.PALADIN] = true,
+		[FF.JOBS.WARRIOR] = true,
+		[FF.JOBS.DARKKNIGHT] = true,
 	}
 	
 	return tanks[jobID]
@@ -3876,10 +3918,10 @@ function ShouldTeleport(pos)
 		return false
 	end
 	
-	if (gTeleport == "0") then
+	if (not FFXIV_Common_Teleport) then
 		return false
 	else
-		if (gParanoid == "0") then
+		if (FFXIV_Common_Paranoid == "0") then
 			return true
 		else
 			local scanDistance = 50
@@ -4037,20 +4079,27 @@ function GetBestGrindMap()
 		return 152 --east shroud
 	elseif (level >= 22 and level < 30) then
 		return 153 --south shroud
-	elseif (level >= 30 and level < 35) then
+	elseif (level >= 30 and level < 44) then
 		return 137 --eastern la noscea
-	elseif (level >= 35 and level < 45) then
-		return 155 --coerthas
-	elseif (level < 49) then
-		return 156
-	elseif (level <= 49 or (level > 49 and not QuestCompleted(1583))) then
-		return 147 --north than
-	elseif (level <= 53 and QuestCompleted(1583) and CanAccessMap(397)) then
+	--elseif (level >= 40 and level < 44) then
+		--return 155 --coerthas
+	elseif (level >= 44 and level < 50) then
+		return 138
+	--
+	--elseif (level < 49) then
+		--return 156
+	--elseif (level <= 49 or (level > 49 and not QuestCompleted(1583))) then
+		--return 147 --north than
+	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
 		return 397
-	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
-		return 397
-	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
-		return 398
+	--elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
+		--return 398
+	--elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
+		--return 397
+	--elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
+		--return 398
+	else
+		return 138
 	end
 end
 function EquipItem(itemid, itemslot)
@@ -5360,6 +5409,18 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+			
+			-- Fall back check to see if we can get to Idyllshire, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
+					if (ValidTable(backupPos)) then
+						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						return true
+					end
+				end
+			end
 		else
 			return true
 		end
@@ -5396,7 +5457,7 @@ function GetHinterlandsSection(pos)
 	local sec = 2
 	if (ValidTable(pos)) then
 		local ent1Dist = PDistance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
-		if (ent1Dist <= 200) then
+		if (ent1Dist <= 250) then
 			sec = 1
 		else
 			for i,section in pairs(sections) do
@@ -5770,6 +5831,8 @@ function Transport399(pos1,pos2)
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
+		d("pos1:"..tostring(pos1))
+		d("pos2:"..tostring(pos2))
 		if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
 			return true, function()
 				local newTask = ffxiv_task_movetomap.Create()
@@ -5935,18 +5998,18 @@ function MoveTo(x,y,z,range,useFollowMovement,useRandomPath,useSmoothTurns)
 	ff.lastPos = gotoPos
 	
 	if (not tonumber(path)) then
-		ml_debug("[MoveTo]: An error occurred in creating the path.", "gLogCNE", 2)
+		ml_debug("[MoveTo]: An error occurred in creating the path.", "FFXIV_Common_LogCNE", 2)
 		if (path ~= nil) then
 			ml_debug(path)
 		end
 		Stop()
 		ff.lastFail = Now()
 	elseif (path >= 0) then
-		ml_debug("[MoveTo]: A path with ["..tostring(path).."] points was created.", "gLogCNE", 2)
+		ml_debug("[MoveTo]: A path with ["..tostring(path).."] points was created.", "FFXIV_Common_LogCNE", 2)
 		ff.lastPos = gotoPos
 		ff.lastPath = Now()
 	elseif (path <= -1) then
-		ml_debug("[MoveTo]: A path could not be created towards the goal, error code ["..tostring(path).."].", "gLogCNE", 2)
+		ml_debug("[MoveTo]: A path could not be created towards the goal, error code ["..tostring(path).."].", "FFXIV_Common_LogCNE", 2)
 		Stop()
 		ff.lastFail = Now()
 	end
@@ -5964,7 +6027,7 @@ end
 function toboolean(input)
 	if (input ~= nil) then
 		if (type(input) == "string") then
-			if (input == "1" or input == "true") then
+			if (input  or input == "true") then
 				return true
 			else
 				return false
@@ -6034,4 +6097,153 @@ function IsHW(mapid)
 	}
 	
 	return hw[mapid]
+end
+
+function ParseString(varString)
+	if (string.valid(varString)) then
+		local target = Player:GetTarget()
+		local myparty = EntityList("myparty,maxdistance=40")
+		
+		if (string.find(varString,"{targetid}")) then
+			target = Player:GetTarget()
+			if (target) then
+				varString = string.gsub(varString, "{targetid}", tostring(target.id))
+			else
+				varString = string.gsub(varString, "{targetid}", tostring(0))
+			end
+		end
+		
+		if (string.find(varString,"{nearest_tank}")) then
+			local foundTank = false
+			if (table.valid(myparty)) then
+				local nearest,nearestDistance = nil,100
+				for i,member in pairs(myparty) do
+					if (IsTank(member.job)) then
+						if (not nearest or member.distance < nearestDistance) then
+							nearest, nearestDistance = member, member.distance
+						end
+					end
+				end
+				
+				if (nearest) then
+					foundTank = true
+					varString = string.gsub(varString, "{nearest_tank}", tostring(nearest.id))
+				end
+			end
+			
+			if (not foundTank) then
+				varString = string.gsub(varString, "{nearest_tank}", tostring(0))
+			end
+		end
+		
+		if (string.find(varString,"{nearest_healer}")) then
+			local foundHealer = false
+			if (table.valid(myparty)) then
+				local nearest,nearestDistance = nil,100
+				for i,member in pairs(myparty) do
+					if (IsHealer(member.job)) then
+						if (not nearest or member.distance < nearestDistance) then
+							nearest, nearestDistance = member, member.distance
+						end
+					end
+				end
+				
+				if (nearest) then
+					foundHealer = true
+					varString = string.gsub(varString, "{nearest_healer}", tostring(nearest.id))
+				end
+			end
+			
+			if (not foundHealer) then
+				varString = string.gsub(varString, "{nearest_healer}", tostring(0))
+			end
+		end
+		
+		if (string.find(varString,"{boss}")) then
+			local foundBoss = false
+			local enemies = EntityList("alive,attackable,maxdistance=50")
+			if (table.valid(enemies)) then
+				for i,enemy in pairs(enemies) do
+					if ((enemy.hp.max / Player.hp.max) >= 11) then
+						foundBoss = true
+						varString = string.gsub(varString, "{boss}", tostring(enemy.id))
+						break
+					end
+				end
+			end
+			
+			if (not foundBoss) then
+				varString = string.gsub(varString, "{boss}", tostring(0))
+			end
+		end
+	end
+	return varString
+end
+
+function QueueAction( actionid, targetid, actiontype )
+	local actionid = actionid or 0
+	local actiontype = actiontype or 1
+	local tid = targetid or Player.id
+	
+	local target = MGetEntity(tid)
+	if (table.valid(target)) then
+		local action = ActionList:Get(actionid,actiontype,tid)
+		if (action and action.isready) then
+			local tpos = target.pos
+			if (tid ~= Player.id) then
+				Player:SetFacing(tpos.x,tpos.y,tpos.z)
+			end
+				
+			if (action:Cast(tid)) then
+				local castid = action.id
+				ml_global_information.AwaitDo(100, 1000, 
+					function ()
+						return (Player.castinginfo.lastcastid == castid)
+					end,
+					function ()
+						Player:SetFacing(tpos.x,tpos.y,tpos.z)
+						local action = ActionList:Get(actionid,actiontype,tid)
+						if (action and action.isready) then
+							action:Cast(tid)
+						end
+					end
+				)
+				return true
+			end
+		end
+	end
+end
+
+function QueueActionXYZ( actionid, targetid, actiontype )
+	local actionid = actionid or 0
+	local actiontype = actiontype or 1
+	local tid = targetid or Player.id
+	
+	local target = MGetEntity(tid)
+	if (table.valid(target)) then
+		local action = ActionList:Get(actionid,actiontype,tid)
+		if (action and action.isready) then
+			local tpos = target.pos
+			if (tid ~= Player.id) then
+				Player:SetFacing(tpos.x,tpos.y,tpos.z)
+			end
+				
+			if (action:Cast(tid)) then
+				local castid = action.id
+				ml_global_information.AwaitDo(100, 1000, 
+					function ()
+						return (Player.castinginfo.lastcastid == castid)
+					end,
+					function ()
+						Player:SetFacing(tpos.x,tpos.y,tpos.z)
+						local action = ActionList:Get(actionid,actiontype,tid)
+						if (action and action.isready) then
+							action:Cast(tid)
+						end
+					end
+				)
+				return true
+			end
+		end
+	end
 end

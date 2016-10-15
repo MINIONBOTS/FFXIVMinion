@@ -102,6 +102,20 @@ function ml_mesh_mgr.ParseInstructions(data)
 						end
 					end
 				)
+			elseif (itype == "StraightDescend") then
+				table.insert(ml_mesh_mgr.receivedInstructions, 
+					function () 
+						if (IsFlying()) then
+							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
+								Dismount()
+							end
+							ml_global_information.Await(1000, function () return not IsFlying() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
 			elseif (itype == "Stop") then
 				table.insert(ml_mesh_mgr.receivedInstructions, 
 					function () 
@@ -123,7 +137,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 							if (ValidTable(mountlist)) then
 								--First pass, look for our named mount.
 								for k,v in pairsByKeys(mountlist) do
-									if (v.name == gMount) then
+									if (v.name == FFXIV_Common_Mount) then
 										local acMount = ActionList:Get(v.id,13)
 										if (acMount and acMount.isready) then
 											acMount:Cast()
@@ -277,7 +291,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 					function () 	
 						if (not Player:IsMoving()) then
 							if (Player:Teleport(aetheryteid)) then
-								ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+								ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
 								return true
 							end
 						else
@@ -296,7 +310,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 							
 							if (returnHome and returnHome.isready) then
 								if (returnHome:Cast()) then
-									ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+									ml_global_information.Await(10000, function () return IsControlOpen("NowLoading") end)
 									return true
 								end		
 							elseif (not returnHome) then
@@ -539,7 +553,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			ffxivminion.UpdateGlobals()
 			
 			-- Set all position data, pPos = Player pos, sPos = start omc pos and heading, ePos = end omc pos
-			local pPos = ml_global_information.Player_Position
+			local pPos = Player.pos
 			local mPos,mDist = NavigationManager:GetClosestPointOnMesh(pPos)
 			local sPos = {
 							x = tonumber(ml_mesh_mgr.OMCStartPosition[1]), y = tonumber(ml_mesh_mgr.OMCStartPosition[2]), z = tonumber(ml_mesh_mgr.OMCStartPosition[3]),
@@ -756,7 +770,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				
 				-- obk: PROCESS-TELEPORT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) and gTeleport == "1") then
+					if ( ValidTable(ml_mesh_mgr.OMCEndposition) and FFXIV_Common_Teleport) then
 						if ( Player:IsMoving() ) then Player:Stop() end
 						-- Add playerdetection when distance to OMCEndposition is > xxx
 						local enddist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
@@ -856,7 +870,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								return
 							else
 								if (not IsMounting()) then
-									if (not ml_global_information.Player_InCombat) then								
+									if (not Player.incombat) then								
 										local mountID = GetMountID()
 										if (mountID ~= nil) then
 											if (Player:IsMoving()) then
@@ -1050,7 +1064,7 @@ function ml_mesh_mgr.Distance3DT(pos1,pos2)
 end
 
 function ml_mesh_mgr.IsFacing(pos)
-	local ppos = ml_global_information.Player_Position
+	local ppos = Player.pos
 	local epos = pos
 	local playerHeading = ConvertHeading(ppos.h)
 	
