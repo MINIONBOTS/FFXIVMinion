@@ -1,5 +1,5 @@
 [Module]
 Name=Dev
 Version=1
-Files=devmonitor.lua,Teleporter.lua,Teleporter_GRP.lua
+Files=dev.lua
 Enabled=1
