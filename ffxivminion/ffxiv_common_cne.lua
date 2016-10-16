@@ -905,7 +905,7 @@ function c_transportgate:evaluate()
 				if (not c_usenavinteraction:evaluate(pos)) then
 					if (ValidTable(pos) and pos.b) then
 						local details = {}
-						details.uniqueid = pos.b
+						details.contentid = pos.b
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
@@ -913,7 +913,7 @@ function c_transportgate:evaluate()
 						return true
 					elseif (ValidTable(pos) and pos.a) then
 						local details = {}
-						details.uniqueid = pos.a
+						details.contentid = pos.a
 						details.pos = { x = pos.x, y = pos.y, z = pos.z }
 						details.conversationIndex = pos.i or 0
 						details.conversationstrings = pos.conversationstrings or ""
@@ -935,7 +935,7 @@ function e_transportgate:execute()
 	end
 	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
 	newTask.pos = gateDetails.pos
-	newTask.uniqueid = gateDetails.uniqueid
+	newTask.contentid = gateDetails.contentid
 	newTask.conversationIndex = gateDetails.conversationIndex
 	newTask.conversationstrings = gateDetails.conversationstrings
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -1706,8 +1706,8 @@ function c_useaethernet:evaluate(mapid, pos)
 	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,1)	
 	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
-		if (IsNull(ml_task_hub:CurrentTask().uniqueid,0) ~= nearestAethernet.id) then 
-			--d("current id:"..tostring(ml_task_hub:CurrentTask().uniqueid)..", new id:"..tostring(nearestAethernet.id))
+		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
+			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 			e_useaethernet.nearest = nearestAethernet
 			e_useaethernet.destination = bestAethernet
 			return true
@@ -1721,7 +1721,7 @@ function e_useaethernet:execute()
 		if (table.valid(e_useaethernet.destination)) then
 			--d("Use aethernet task to go from ["..tostring(e_useaethernet.nearest.id).."] to ["..tostring(e_useaethernet.destination.id).."]")
 			local newTask = ffxiv_task_moveaethernet.Create()
-			newTask.uniqueid = e_useaethernet.nearest.id
+			newTask.contentid = e_useaethernet.nearest.id
 			newTask.pos = e_useaethernet.nearest.pos
 			newTask.conversationstrings = e_useaethernet.destination.conversationstrings
 			newTask.useAethernet = true
@@ -1752,8 +1752,8 @@ function c_unlockaethernet:evaluate(mapid, pos)
 	
 	local nearestAethernet,nearestDistance = AceLib.API.Map.GetNearestAethernet(Player.localmapid,Player.pos,2)	
 	if (nearestAethernet) then
-		if (IsNull(ml_task_hub:CurrentTask().uniqueid,0) ~= nearestAethernet.id) then 
-			--d("current id:"..tostring(ml_task_hub:CurrentTask().uniqueid)..", new id:"..tostring(nearestAethernet.id))
+		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
+			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 			if (nearestDistance < 15 or nearestDistance < Distance3DT(Player.pos,gotoPos)) then
 				e_unlockaethernet.nearest = nearestAethernet
 				return true
@@ -1767,7 +1767,7 @@ function e_unlockaethernet:execute()
 	if (table.valid(e_unlockaethernet.nearest)) then
 		--d("Use interact task to unlock ["..tostring(e_unlockaethernet.nearest.id).."]")
 		local newTask = ffxiv_task_moveaethernet.Create()
-		newTask.uniqueid = e_unlockaethernet.nearest.id
+		newTask.contentid = e_unlockaethernet.nearest.id
 		newTask.pos = e_unlockaethernet.nearest.pos
 		newTask.unlockAethernet = true
 		
@@ -3277,7 +3277,7 @@ function c_moveandinteract:evaluate()
 end
 function e_moveandinteract:execute()
 	local newTask = ffxiv_task_movetointeract.Create()
-	newTask.uniqueid = ml_task_hub:CurrentTask().id
+	newTask.contentid = ml_task_hub:CurrentTask().id
 	newTask.pos = ml_task_hub:CurrentTask().pos
 	newTask.use3d = true
 	

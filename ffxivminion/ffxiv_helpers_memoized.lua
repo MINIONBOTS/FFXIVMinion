@@ -21,98 +21,6 @@ function SetMemoized(key,variant)
 	memoize[key] = variant
 end
 
-function MLoadstring(strEval)
-	local memString = "MLoadstring;"..tostring(strEval)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local f = assert(loadstring(strEval))()
-		SetMemoized(memString,f)
-		return f
-	end
-end
-
-function MGetAction(actionid,actiontype,targetid)
-	actionid = tonumber(actionid) or 0
-	actiontype = tonumber(actiontype) or 1
-	targetid = tonumber(targetid) or Player.id
-	
-	local memString = "MGetAction;"..tostring(actionid)..";"..tostring(actiontype)..";"..tostring(targetid)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local savedAction = nil
-		local action = ActionList:Get(actionid,actiontype,targetid)
-		
-		if (action) then
-			savedAction = {}
-			savedAction.name = action.name
-			savedAction.id = action.id
-			savedAction.isready = action.isready
-			savedAction.isfacing = action.isfacing
-			savedAction.combospellid = action.combospellid
-			savedAction.type = action.type
-			savedAction.job = action.job
-			savedAction.level = action.level
-			savedAction.cost = action.cost
-			savedAction.cd = action.cd
-			savedAction.cdmax = action.cdmax
-			savedAction.isoncd = action.isoncd
-			savedAction.range = action.range
-			savedAction.radius = action.radius
-			savedAction.casttime = action.casttime
-			savedAction.recasttime = action.recasttime
-			savedAction.Cast = action.Cast
-		--else
-			--d("Action ["..tostring(actionid).."] - ["..tostring(actiontype).."] - ["..tostring(targetid).."] was not found.")
-		end
-		
-		SetMemoized(memString,savedAction)
-		return action
-	end
-end
-
-function MActionList(typestring)
-	typestring = typestring or ""
-	
-	local memString = "MActionList;"..tostring(typestring)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local al = ActionList(typestring)
-		SetMemoized(memString,al)
-		return al
-	end
-end
-
-function MGetActionFromList(actionid,actiontype)
-	actionid = tonumber(actionid) or 0
-	actiontype = tonumber(actiontype) or 1
-	
-	local memString = "MGetActionFromList;"..tostring(actionid)..";"..tostring(actiontype)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		--d("returning memoized action for ["..memString.."].")
-		return memoized
-	else
-		local al = MActionList("type="..tostring(actiontype))
-		if (ValidTable(al)) then
-			for id,action in pairs(al) do
-				if (action.id == actionid) then
-					SetMemoized(memString,action)
-					return action
-				end
-			end
-		end
-	end
-	
-	SetMemoized(memString,"nil")
-	return nil
-end
-
 function MGetEntity(entityid)
 	entityid = tonumber(entityid) or 0
 	
@@ -161,18 +69,6 @@ function MIsCasting(fullcheck)
 	else
 		--local ret = IsPlayerCasting(fullcheck)
 		local ret = ActionList:IsCasting()
-		SetMemoized(memString,ret)
-		return ret
-	end
-end
-
-function MIsGCDLocked()	
-	local memString = "MIsGCDLocked"
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local ret = ActionList:IsOnGlobalCooldown()
 		SetMemoized(memString,ret)
 		return ret
 	end
@@ -350,21 +246,4 @@ function PDistance3D(x1,y1,z1,x2,y2,z2)
 	z2 = round(z2, 1)
 	
 	return Distance3D(x1,y1,z1,x2,y2,z2)
-end
-
-function loadcondition(strInput)
-	if (strInput ~= nil and type(strInput) == "string") then
-		
-		local memString = "loadcondition;"..strInput
-		local memoized = GetPermaMemoized(memString)
-		if (memoized) then
-			return memoized
-		else
-			local ret = loadstring(strInput)
-			SetPermaMemoized(memString,ret)
-			return ret
-		end		
-	end
-	
-	return nil
 end

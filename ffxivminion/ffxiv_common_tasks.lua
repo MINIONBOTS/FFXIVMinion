@@ -635,7 +635,7 @@ function ffxiv_task_movetointeract.Create()
     newinst.name = "MOVETOINTERACT"
 	
 	newinst.started = Now()
-	newinst.uniqueid = 0
+	newinst.contentid = 0
 	newinst.interact = 0
     newinst.lastInteract = 0
 	newinst.lastDismountCheck = 0
@@ -762,7 +762,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local epos = self.pos
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
-			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 			if (not ValidTable(interacts)) then
 				return true
 			end
@@ -771,8 +771,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+		if (self.contentid ~= 0) then
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -860,7 +860,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
 									d("[MoveToInteract]: Initiating await until interaction is complete.")
-									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.uniqueid)) end)
+									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) end)
 								end
 							end,
 							function ()
@@ -1128,7 +1128,7 @@ function c_sethomepoint:evaluate()
 end
 function e_sethomepoint:execute()
     local newTask = ffxiv_task_movetointeract.Create()
-	newTask.uniqueid = e_sethomepoint.aethid
+	newTask.contentid = e_sethomepoint.aethid
 	newTask.pos = e_sethomepoint.aethpos
 	newTask.use3d = true
 	
@@ -2144,7 +2144,7 @@ function ffxiv_nav_interact.Create()
     newinst.overwatch_elements = {}
     newinst.name = "NAV_INTERACT"
 	
-	newinst.uniqueid = 0
+	newinst.contentid = 0
 	newinst.interact = 0
     newinst.lastInteract = 0
 	newinst.lastInteractableSearch = 0
@@ -2230,8 +2230,8 @@ function ffxiv_nav_interact:task_complete_eval()
 	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+		if (self.contentid ~= 0) then
+			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -2511,7 +2511,7 @@ function ffxiv_task_moveaethernet.Create()
     newinst.name = "MOVEAETHERNET"
 	
 	newinst.started = Now()
-	newinst.uniqueid = 0
+	newinst.contentid = 0
 	newinst.interact = 0
     newinst.lastInteract = 0
 	newinst.lastDismountCheck = 0
@@ -2650,7 +2650,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	
 	if (self.useAethernet and (MIsLoading() or self.startMap ~= Player.localmapid)) then
 		return true
-	elseif (self.unlockAethernet and AceLib.API.Map.HasAttunements(self.uniqueid)) then
+	elseif (self.unlockAethernet and AceLib.API.Map.HasAttunements(self.contentid)) then
 		return true
 	end
 	
@@ -2666,7 +2666,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		local epos = self.pos
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
-			local interacts = EntityList("targetable,contentid="..tostring(self.uniqueid)..",maxdistance=10")
+			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
 			if (not ValidTable(interacts)) then
 				return true
 			end
@@ -2675,8 +2675,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
-		if (self.uniqueid ~= 0) then
-			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
+		if (self.contentid ~= 0) then
+			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
@@ -2758,7 +2758,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
 									d("[MoveToInteract]: Initiating await until interaction is complete.")
-									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.uniqueid)) end)
+									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) end)
 								end
 							end,
 							function ()

@@ -1,116 +1,3 @@
-FF = {}
-
-FF.JOBS = {
-	ADVENTURER = 0,
-	GLADIATOR = 1,
-	PUGILIST = 2,
-	MARAUDER = 3,
-	LANCER = 4,
-	ARCHER = 5,
-	CONJURER = 6,
-	THAUMAGURGE = 7,
-	CARPENTER = 8,
-	BLACKSMITH = 9,
-	ARMORER = 10,
-	GOLDSMITH = 11,
-	LEATHERWORKER = 12,
-	WEAVER = 13,
-	ALCHEMIST = 14,
-	CULINARIAN = 15,
-	MINER = 16,
-	BOTANIST = 17,
-	FISHER = 18,
-	PALADIN = 19,
-	MONK = 20,
-	WARRIOR = 21,
-	DRAGOON = 22,
-	BARD = 23,
-	WHITEMAGE = 24,
-	BLACKMAGE = 25,
-	ARCANIST = 26,
-	SUMMONER = 27,
-	SCHOLER= 28,
-	ROGUE = 29,
-	NINJA = 30,
-	MACHINIST = 31,
-	DARKKNIGHT = 32,
-	ASTROLOGIAN = 33,
-}
-
-FF.FATESTATUS = {
-	ACTIVE = 2,
-	NOTACTIVE = 4,
-	PREPARING = 7,
-	COMPLETED = 8,
-}
-
-FF.CHARTYPE = {
-	NONE = 0,
-	PET = 2,
-	COMPANION = 3,
-	PLAYER = 4,
-	ENEMY = 5,
-}
-
-FF.ENTITYTYPE = {
-	PC = 1,
-	BATTLENPC = 2,
-	EVENTNPC = 3,
-	AETHERYTE = 5,
-	RESOURCENODE = 6,
-	EVENTOBJECT = 7,
-	MOUNT = 8,
-	MINIPET = 9,
-	RETAINER = 10,
-	HOUSINGOBJECT = 12
-}
-
-FF.REVIVESTATE = {
-	NONE = 0,
-	DIE = 1,
-	DEAD = 2,
-	REVIVING = 3,
-}
-
-FF.ROLE = {
-	NONE = 0,
-	TANK = 1,
-	MELEE = 2,
-	RANGED = 3,
-	HEALER = 4,
-}
-
-FF.ITEMCATEGORY = {
-	WEAPON = 1,
-	ARCANA = 2,
-	SHIELD = 3,
-	ARMOR = 4,
-	FOOD = 5,
-	ENHANCEMENT = 6,
-	ENFEEBLEMENT = 7,
-	ETHER = 8,
-	POTION = 9,
-	ELIXER = 10,
-	CRYSTAL = 11,
-	MATERIAL = 12,
-	MATERIA = 13,
-	FURNISHING = 14,
-	DYE = 15,
-	MISC = 16,
-	BAIT = 17,
-}
-
-FF.FISHINGSTATE = {
-	NONE = 0,
-	POLEOUT = 1,
-	PULLPOLEIN = 2,
-	QUIT = 3,
-	POLEREADY = 4,
-	BITE = 5,
-	REELIN = 6,
-	WAITIN = 8,
-}
-
 -- Add things to ml_global_information, we no longer create it.	
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
@@ -443,7 +330,6 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(377, "[Trial]Shiva")
 		ml_mesh_mgr.SetDefaultMesh(206, "[Trial]Titan")		
 	end
-		
 	
 	-- General overrides.
 	do
@@ -458,8 +344,21 @@ function ml_global_information.Init()
 		if ( ml_mesh_mgr ) then
 			--ml_mesh_mgr.parentWindow.Name = ml_global_information.MainWindow.Name
 			ml_mesh_mgr.GetMapID = function () return Player.localmapid end
-			ml_mesh_mgr.GetMapName = function () return AceLib.API.Map.GetMapName(ml_mesh_mgr.GetMapID()) end  -- didnt we have a mapname somewhere?
+			ml_mesh_mgr.GetMapName = function (mapid)
+				local mapid = IsNull(mapid,Player.localmapid)
+				return GetMapName(mapid) 
+			end
 			ml_mesh_mgr.GetPlayerPos = function () return Player.pos end
+			
+			
+			ml_global_information.meshTranslations = {}
+			local defaultMaps = Settings.minionlib.DefaultMaps
+			if (table.valid(defaultMaps)) then
+				for mapid,meshname in pairs(defaultMaps) do
+					ml_global_information.meshTranslations[meshname] = GetMapName(mapid)
+				end
+			end
+			
 			ml_mesh_mgr.SetEvacPoint = function ()
 				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
 					ml_marker_mgr.markerList["evacPoint"] = Player.pos
@@ -467,41 +366,12 @@ function ml_global_information.Init()
 				end
 			end
 			
-			ml_mesh_mgr.GetAllowedMaps = function (mapname)
-				local allowedMaps = {}
-				if (FileExists(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")) then					
-					local mapdata,e = persistence.load(ml_mesh_mgr.defaultpath.."\\"..mapname..".data")
-					if (ValidTable(mapdata)) then
-						local maps = mapdata.AllowedMapIDs
-						if (ValidTable(maps)) then
-							for mapid,duplicate in pairsByKeys(maps) do
-								allowedMaps[mapid] = duplicate
-							end
-						end
-					else
-						if (e) then
-							d("[GetAllowedMaps]: "..e)
-						end
-					end
+			ml_mesh_mgr.GetString = function (meshname)
+				local returnstring = meshname
+				if (ml_global_information.meshTranslations[meshname]) then
+					returnstring = returnstring.." - ["..ml_global_information.meshTranslations[meshname].."]"
 				end
-				
-				return allowedMaps
-			end
-			
-			ml_mesh_mgr.GetString = function (inputString)
-				if (ValidString(inputString)) then
-					if (not string.find(inputString,'%s%-%s%[.+%]')) then
-						local allowedMaps = ml_mesh_mgr.GetAllowedMaps(inputString)
-						if (ValidTable(allowedMaps)) then
-							local mapid,dup = next(allowedMaps)
-							local mapname = AceLib.API.Map.GetMapName(mapid)
-							if (mapname and mapname ~= "") then
-								return inputString.." - ["..mapname.."]"
-							end
-						end
-					end
-				end
-				return inputString
+				return returnstring
 			end
 				
 			ml_mesh_mgr.GetFileName = function (inputString) 

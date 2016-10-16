@@ -25,6 +25,7 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
+	--[[
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	
@@ -51,6 +52,7 @@ function ffxiv_task_assist:Init()
 	
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
     self:add( ke_stance, self.process_elements)
+	--]]
 	
     self:AddTaskCheckCEs()
 	self:InitAddon()
@@ -145,8 +147,8 @@ function ffxiv_task_assist:Process()
 				
 				if (SkillMgr.Cast( target )) then
 					casted = true
-				elseif (InCombatRange(target.id) and target.attackable and target.alive) then
-					casted = true
+				--elseif (InCombatRange(target.id) and target.attackable and target.alive) then
+					--casted = true
 				end
 			end
 		end
@@ -207,26 +209,13 @@ function ffxiv_task_assist:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(5),true)
 		GUI:PushItemWidth(120)					
 		
-		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")
-		GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList, 
-			function ()
-				if ( FFXIV_Common_NavMesh ~= GetString("none")) then
-					local filename = ml_mesh_mgr.GetFileName(FFXIV_Common_NavMesh)
-					d("Attempting to set new mesh ["..tostring(filename).."]")
-					ml_mesh_mgr.SetDefaultMesh(Player.localmapid, filename)
-					ml_mesh_mgr.LoadNavMesh( filename )
-				else
-					NavigationManager:ClearNavMesh() 
-				end
-			end
-		)
-		
+		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
 		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
 		GUI_Capture(GUI:Checkbox("Follow Target",FFXIV_Assist_FollowTarget),"FFXIV_Assist_FollowTarget");
 		GUI_Capture(GUI:Checkbox("Face Target",FFXIV_Assist_TrackTarget),"FFXIV_Assist_TrackTarget");
 		
 		if (GUI:Button("Show Filters",0,20)) then
-			SkillMgr.ShowFilterWindow()
+			--SkillMgr.ShowFilterWindow()
 		end
 		
 		GUI:PopItemWidth()
@@ -261,14 +250,14 @@ c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )
 function c_assistyesno:evaluate()
 	if ((FFXIV_Common_BotMode == GetString("assistMode") and not FFXIV_Assist_QuestHelpers) or
-		ControlVisible("_NotificationParty") or
-		ControlVisible("_NotificationTelepo") or
-		ControlVisible("_NotificationFcJoin") or
+		IsControlOpen("_NotificationParty") or
+		IsControlOpen("_NotificationTelepo") or
+		IsControlOpen("_NotificationFcJoin") or
 		not Player.alive)
 	then
 		return false
 	end
-	return ControlVisible("SelectYesno")
+	return IsControlOpen("SelectYesno")
 end
 function e_assistyesno:execute()
 	PressYesNo(true)

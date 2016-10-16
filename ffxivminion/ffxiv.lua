@@ -191,6 +191,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
 			if (currentFile ~= FFXIV_Common_NavMesh) then
 				FFXIV_Common_NavMesh = currentFile
+				FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
+				
 			end
 		else
 			if (ml_global_information.queueLoader == false) then
@@ -216,13 +218,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
         --ml_global_information.lastrun = tickcount
 		
 		--ffxivminion.UpdateGlobals()
-		
-		--[[
-		local thisMeasure = collectgarbage("count")/1024
-		FFXIV_Core_MemoryUsage = tostring(thisMeasure)
-		FFXIV_Core_MemoryGain = tostring(thisMeasure - ml_global_information.lastMeasure)
-		ml_global_information.lastMeasure = thisMeasure
-		--]]
 		
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and 
@@ -280,7 +275,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		if (FFXIV_Common_BotRunning) then
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
-				if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple") and not Player.incombat) then
+				if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple") and not Player.incombat) then
 					if (NeedsRepair()) then
 						Repair()
 					end
@@ -290,7 +285,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	
 			if ( FFXIV_Common_Food ~= "None") then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
-					if (not ControlVisible("Gathering") and not ControlVisible("Synthesis") and not ControlVisible("SynthesisSimple")) then
+					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
 						Eat()
 						ml_global_information.foodCheckTimer = tickcount
 					end
@@ -341,7 +336,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if (IsFighter(Player.job) and not ml_global_information.lastPulseShortened) then
 				local actionID = SkillMgr.GCDSkills[Player.job]
 				if (actionID) then
-					local action = MGetAction(actionID)
+					local action = ActionList:Get(1,actionID)
 					if (action) then
 						if (action.isoncd) then
 							local timediff = math.ceil((action.cd - action.cdmax) * 1000)
@@ -552,7 +547,7 @@ function ffxivminion.HandleInit()
 	--ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	
 	-- New GUI code, need new strings and handlers for combo boxes.
-	FFXIV_Common_MeshList = {}
+	FFXIV_Common_MeshList = {""}
 	local meshfilelist = FolderList(ml_mesh_mgr.defaultpath)
 	if (meshfilelist) then
 		for i,file in spairs(meshfilelist, function( file,a,b ) return file[a] < file[b] end) do
@@ -969,8 +964,9 @@ function ffxivminion.LoadModes()
 	FFXIV_Common_ModeList = {}
 	if (ValidTable(ffxivminion.modes)) then
 		local modes = ffxivminion.modes
-		for modeName,task in spairs(modes, function(modes,a,b) return a.friendly < b.friendly end) do
-			table.insert(FFXIV_Common_ModeList,i)
+		for modeName,task in spairs(modes, function(modes,a,b) return modes[a].friendly < modes[b].friendly end) do
+			table.insert(FFXIV_Common_ModeList,modeName)
+			d("checking if ["..tostring(modeName).."] is ["..tostring(FFXIV_Common_BotMode).."]")
 			if (modeName == FFXIV_Common_BotMode) then
 				FFXIV_Common_BotModeIndex = table.size(FFXIV_Common_ModeList)
 			end
@@ -978,14 +974,6 @@ function ffxivminion.LoadModes()
 	end
 	
 	d("load modes: mode list has ["..tostring(table.size(FFXIV_Common_ModeList)).."]")
-	
-	local uuid = GetUUID()
-	if ( Settings.FFXIVMINION.gBotModes and string.valid(uuid) and Settings.FFXIVMINION.gBotModes[uuid] ) then
-		FFXIV_Common_BotMode = Settings.FFXIVMINION.gBotModes[uuid]
-	else
-		FFXIV_Common_BotMode = ffxivminion.GetSetting(FFXIV_Common_BotMode,GetString("grindMode"))
-	end
-	
 	d("last bot mode setting:"..tostring(FFXIV_Common_BotMode))
 	
 	local modeIndex = GetKeyByValue(Retranslate(FFXIV_Common_BotMode),FFXIV_Common_ModeList)
@@ -1049,7 +1037,7 @@ function ml_global_information.DrawMainFull()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then
 			--if (ffxivminion.GUI.draw_mode == 1) then
-				GUI:SetNextWindowSize(300,300,GUI.SetCond_Once) --set the next window size, only on first ever	
+				GUI:SetNextWindowSize(350,300,GUI.SetCond_Once) --set the next window size, only on first ever	
 				GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 				
 				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
@@ -1077,7 +1065,7 @@ function ml_global_information.DrawMainFull()
 					GUI:SameLine(0,10)
 					--]]
 					
-					GUI:PushItemWidth(120)
+					GUI:PushItemWidth(150)
 					local modeChanged = GUI_Combo(GetString("botMode"), "FFXIV_Common_BotModeIndex", "FFXIV_Common_BotMode", FFXIV_Common_ModeList)
 					if (modeChanged) then
 						ffxivminion.SwitchMode(FFXIV_Common_BotMode)
@@ -1087,6 +1075,21 @@ function ml_global_information.DrawMainFull()
 							Settings.FFXIVMINION.gBotModes[uuid] = FFXIV_Common_BotMode
 						end
 					end
+					GUI:PopItemWidth()
+					
+					GUI:PushItemWidth(width-80)
+					GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList, 
+						function ()
+							if ( FFXIV_Common_NavMesh ~= GetString("none")) then
+								local filename = ml_mesh_mgr.GetFileName(FFXIV_Common_NavMesh)
+								d("Attempting to set new mesh ["..tostring(filename).."]")
+								ml_mesh_mgr.SetDefaultMesh(Player.localmapid, filename)
+								ml_mesh_mgr.LoadNavMesh( filename )
+							else
+								NavigationManager:ClearNavMesh() 
+							end
+						end
+					)
 					GUI:PopItemWidth()
 
 					GUI:BeginChild("##main-task-section",0,-50,false)
