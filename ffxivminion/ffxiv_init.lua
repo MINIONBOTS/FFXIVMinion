@@ -334,9 +334,9 @@ function ml_global_information.Init()
 	-- General overrides.
 	do
 		-- setup marker manager callbacks and vars
-		ml_marker_mgr.GetPosition = 	function () return Player.pos end
-		ml_marker_mgr.GetLevel = 		function () return Player.level end
-		ml_marker_mgr.DrawMarker =		ml_global_information.DrawMarker
+		--ml_marker_mgr.GetPosition = 	function () return Player.pos end
+		--ml_marker_mgr.GetLevel = 		function () return Player.level end
+		--ml_marker_mgr.DrawMarker =		ml_global_information.DrawMarker
 		ml_node.ValidNeighbors = 		ml_global_information.NodeNeighbors
 		ml_node.GetClosestNeighborPos = ml_global_information.NodeClosestNeighbor
 		
@@ -361,8 +361,8 @@ function ml_global_information.Init()
 			
 			ml_mesh_mgr.SetEvacPoint = function ()
 				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
-					ml_marker_mgr.markerList["evacPoint"] = Player.pos
-					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+					--ml_marker_mgr.markerList["evacPoint"] = Player.pos
+					--ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				end
 			end
 			
@@ -400,7 +400,7 @@ function ml_global_information.Init()
 		header = { id = "FFXIVMINION##MENU_HEADER", expanded = false, name = "FFXIVMinion", texture = GetStartupPath().."\\GUI\\UI_Textures\\ffxiv_shiny.png"},
 		members = {	
 			{ id = "FFXIVMINION##MENU_WINDOWS", name = "Windows", sort = true },
-			{ id = "FFXIVMINION##MENU_DEV", name = "Dev Tools", onClick = function() Dev.GUI.open = not Dev.GUI.open end, tooltip = "Open the Developer tools." },
+			{ id = "FFXIVMINION##MENU_DEV", name = "Dev Tools", onClick = function() dev.GUI.open = not dev.GUI.open end, tooltip = "Open the Developer tools." },
 		}
 	}
 	ml_gui.ui_mgr:AddComponent(ffxiv_mainmenu)
