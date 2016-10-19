@@ -2897,9 +2897,12 @@ function IsLoading()
 	elseif (Player.localmapid == 0) then
 		--d("IsLoading [2]")
 		return true
-	elseif (ml_mesh_mgr.loadingMesh) then
+	else
+		local meshState = NavigationManager:GetNavMeshState()
+		if (meshState == GLOBAL.MESHSTATE.MESHREADY or meshState == GLOBAL.MESHSTATE.MESHEMPTY) then
 		--d("IsLoading [3]")
 		return true
+	end
 	end
 	
 	return false
@@ -4299,202 +4302,21 @@ function GetItem(hqid)
 		itemid = itemid - 500000
 	end
 	
-	local items = Inventory("itemid="..tostring(itemid))
-	if (ValidTable(items)) then
-		for _,item in pairs(items) do
-			if (item.hqid == hqid) then
-				return item
-			end
-		end
-	end
+	local inventories = { 0,1,2,3,1000,2000,2001,2004,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500 }
 	
-	local inv = Inventory("type=2004,itemid="..tostring(itemid))
+	for _,invid in pairsByKeys(inventories) do
+		local inv = Inventory("type="..tostring(invid))
 	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
+			for _,item in pairs(inv) do
+				if (item.hqid == hqid) then
 				return item
 			end
 		end
 	end
-	
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x)..",itemid="..tostring(itemid))
-		if (ValidTable(inv)) then
-			for i,item in pairs(inv) do
-				if (item.hqid == itemid) then
-					return item
-				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	return nil
-end	
-
---[[
-function GetItem(itemid)
-	itemid = tonumber(itemid) or 0
-	--includehq = IsNull(includehq,true)
-	--requirehq = IsNull(requirehq,false)
-	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i, item in pairs(inv) do				
-				if (item.hqid == itemid) then
-					return item
-				end
-			end
-		end
-	end
-
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i,item in pairs(inv) do
-				if (item.hqid == itemid) then
-					return item
-				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through quest/key items bag.
-	local inv = MInventory("type=2004")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
 	end
 	
 	return nil
 end
---]]
 
 function ItemCount(itemid,includehq,requirehq)
 	itemid = tonumber(itemid) or 0

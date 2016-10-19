@@ -1040,22 +1040,35 @@ function CanUseCordial()
 	end
 	
 	if (useCordials) then
+		local cordialQuick = MGetItem(1016911) or MGetItem(16911)
 		local cordialNormal = MGetItem(1006141) or MGetItem(6141)
 		local cordialHigh = MGetItem(1012669) or MGetItem(12669)
 			
-		if ((minimumGP - Player.gp.current) >= 50 and ((Player.gp.max - Player.gp.current) < 350 or cordialHigh == nil)) then
+		local gpDeficit = (Player.gp.max - Player.gp.current)
+		
+		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
+			if (cordialQuick and cordialQuick.isready) then
+				--d("[CanUseCordial]: Returning cordial.")
+				return true, cordialQuick
+			end
+		end
+		
+		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
 			if (cordialNormal and cordialNormal.isready) then
 				--d("[CanUseCordial]: Returning cordial.")
 				return true, cordialNormal
 			end
 		end
 		
-		if ((minimumGP - Player.gp.current) >= 50 and (Player.gp.max - Player.gp.current) >= 350) then
-			if (cordialHigh and cordialHigh.isready) then
-				--d("[CanUseCordial]: Returning hi-cordial.")
+		if (gpDeficit >= 400 and cordialHigh and cordialHigh.isready) then
 				return true, cordialHigh
+		elseif (gpDeficit >= 300 and cordialNormal and cordialNormal.isready) then
+			return true, cordialNormal
+		elseif (gpDeficit >= 150 and cordialQuick and cordialQuick.isready) then
+			return true, cordialQuick
 			end
-		end	
+	else
+		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
 	end
 	
 	return false, nil
