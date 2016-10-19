@@ -2899,7 +2899,7 @@ function IsLoading()
 		return true
 	else
 		local meshState = NavigationManager:GetNavMeshState()
-		if (meshState == GLOBAL.MESHSTATE.MESHREADY or meshState == GLOBAL.MESHSTATE.MESHEMPTY) then
+		if (meshState ~= GLOBAL.MESHSTATE.MESHREADY and meshState ~= GLOBAL.MESHSTATE.MESHEMPTY) then
 		--d("IsLoading [3]")
 		return true
 	end
