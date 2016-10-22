@@ -16,6 +16,8 @@ dev.job_class = {
 	[30] = 29,
 }
 
+dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
+
 function dev.Init()
 	gDevFilterActions = false	
 end
@@ -637,6 +639,86 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END QUEST LIST
+			
+
+			if ( GUI:TreeNode("Renderobject List")) then
+			
+				-- RenderManager:AddObject( tablewith vertices here ) , returns the renderobject which is a lua metatable. it has a .id which should be used everytime afterwards if the object is being accessed:
+				-- RenderManager:GetObject(id)  - use this always before you actually access a renderobject of yours, because the object could have been deleted at any time in c++ due to other code erasing it
+				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
+					GUI:PushItemWidth(100)
+					if ( not dev.renderobjname ) then dev.renderobjname = "Test" end
+					
+					if (GUI:Button("Add New Object##newobject"..tostring(id),150,15) ) then
+						local ppos = Player.pos
+						RenderManager:AddObject({ [1] = { name=dev.renderobjname, x=ppos.x, y=ppos.y, z=ppos.z, r =0.5,g =0.5,b =0.5,a =0.8, }} ) --creating a new object with just 1 vertex, lazy utilizing that one table we already have
+					end
+					 GUI:SameLine()
+					dev.renderobjname = GUI:InputText("Object Name##robja1",dev.renderobjname)	
+					
+					if (GUI:Button("Delete All Objects##robject"..tostring(id),150,15) ) then RenderManager:RemoveAllObjects() end
+					
+					
+					local rlist = RenderManager:GetObjectList()
+					if (table.valid(rlist)) then
+						for id, e in pairs(rlist) do
+							local changed = false
+							local needupdate = false
+							if ( GUI:TreeNode("ID: "..tostring(e.id).." - "..e.name) ) then
+								e.enabled, changed = GUI:Checkbox("Enabled##robj2"..tostring(id),e.enabled)
+								if ( changed ) then if(e.enabled) then e:Enable() else e:Disable() end end
+								GUI:SameLine()
+								e.drawmode, changed = GUI:Combo("DrawMode", e.drawmode, dev.renderobjdrawmode)								
+								if ( changed ) then e:SetDrawMode(e.drawmode) end
+								GUI:SameLine()
+								if (GUI:Button("Delete Object##object"..tostring(id),150,15) ) then RenderManager:RemoveObject(e.id) end
+								
+								local vertices = e:GetVertices()								
+								local removeid
+								if ( GUI:TreeNode("Vertices".."##vtxlist") ) then
+									if (table.valid(vertices)) then
+										GUI:PushItemWidth(200)
+										for vi, vertex in pairs(vertices) do
+											if ( GUI:TreeNode(tostring(vi).."##vtx") ) then
+												GUI:BulletText("Position") GUI:SameLine(200)  vertex.x, vertex.y, vertex.z, changed = GUI:InputFloat3( "##robj4"..tostring(vi), vertex.x, vertex.y, vertex.z, 2, GUI.InputTextFlags_CharsDecimal)
+												if ( changed ) then needupdate = true end
+												GUI:BulletText("Color") GUI:SameLine(200)  vertex.r, vertex.g, vertex.b, vertex.a, changed = GUI:InputFloat4( "##robj5"..tostring(vi), vertex.r, vertex.g, vertex.b, vertex.a, 2, GUI.InputTextFlags_CharsDecimal)											
+												if ( changed ) then needupdate = true end
+												if (GUI:Button("Delete Vertex##object"..tostring(id),150,15) ) then removeid = vi end
+												GUI:TreePop()
+											end
+										end										
+										GUI:PopItemWidth()
+										
+										-- Add a new vertext to our current object
+										if (GUI:Button("Add New Vertex##vertex"..tostring(id),150,15) ) then
+											local ppos = Player.pos
+											table.insert(vertices,{ x=ppos.x, y=ppos.y, z=ppos.z, r =0.5,g =0.5,b =0.5,a =0.8, })
+											needupdate = true
+										end										
+									else
+										GUI:Text("This Object has no Vertices.")
+									end
+									GUI:TreePop()
+								end
+								-- Remove vertex
+								if (removeid ~= nil ) then table.remove(vertices,removeid) needupdate = true end
+								if (needupdate) then
+									e:SetVertices(vertices)
+								end								
+								
+								GUI:Separator()
+								GUI:TreePop()
+							end
+						end					
+					else
+						GUI:Text("No RenderObjects Available...")
+					end				
+					GUI:PopItemWidth()
+				end
+				GUI:TreePop()
+			end
+-- END RENDEROBJECTS			
 			
 			
 			if ( GUI:TreeNode("Shop List")) then
