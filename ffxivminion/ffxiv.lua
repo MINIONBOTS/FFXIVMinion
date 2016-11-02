@@ -631,7 +631,7 @@ function ffxivminion.CreateMainWindow()
 	gRandomPaths = ffxivminion.GetSetting("gRandomPaths","0")
 	gAutoStart = ffxivminion.GetSetting("gAutoStart","0")
 	gTeleport = ffxivminion.GetSetting("gTeleport","0")
-	gTeleportDefaultDuties = ffxivminion.GetSetting("gTeleportDefaultDuties",gTeleport)
+	gTeleportDefaultDuties = ffxivminion.GetSetting("gTeleportDefaultDuties","1")
 	gParanoid = ffxivminion.GetSetting("gParanoid","1")
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene","0")
 	gSkipDialogue = ffxivminion.GetSetting("gSkipDialogue","0")
@@ -661,7 +661,7 @@ function ffxivminion.CreateMainWindow()
 	gPotionMP = ffxivminion.GetSetting("gPotionMP","0")
 	gUseChocoboFood = ffxivminion.GetSetting("gUseChocoboFood","None")
 	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip","1")
-	gAutoEquipDefaultQuesting = ffxivminion.GetSetting("gAutoEquipDefaultQuesting",gQuestAutoEquip)
+	gAutoEquipDefaultQuesting = ffxivminion.GetSetting("gAutoEquipDefaultQuesting","1")
 	gAdvStealthDetect = ffxivminion.GetSetting("gAdvStealthDetect","25")
 	gAdvStealthRemove = ffxivminion.GetSetting("gAdvStealthRemove","30")
 	gAdvStealthRisky = ffxivminion.GetSetting("gAdvStealthRisky","0")
@@ -880,12 +880,14 @@ function ffxivminion.GUIVarUpdate(Event, NewVals, OldVals)
 			SafeSetVar(tostring(k),v)
 		elseif (k == "gQuestAutoEquip") then
 			if (gBotMode == GetString("questMode")) then
+				gAutoEquipDefaultQuesting = v
 				SafeSetVar("gAutoEquipDefaultQuesting",v)
 			else
 				SafeSetVar(tostring(k),v)
 			end
 		elseif (k == "gTeleport") then
-			if (gBotMode == GetString("questMode")) then
+			if (gBotMode == GetString("dutyMode")) then
+				gTeleportDefaultDuties = v
 				SafeSetVar("gTeleportDefaultDuties",v)
 			else
 				SafeSetVar(tostring(k),v)
