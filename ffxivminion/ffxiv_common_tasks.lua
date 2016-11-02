@@ -770,7 +770,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	local interactable = nil
-	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
+	if (TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.uniqueid ~= 0) then
 			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.uniqueid)..",maxdistance=30")
 			if (ValidTable(interacts)) then
