@@ -4105,20 +4105,11 @@ function GetItemInSlot(equipSlot)
 	return nil
 end
 function ItemReady(hqid)
-	local itemid = tonumber(hqid)
 	local hqid = tonumber(hqid)
 	
-	if (itemid > 1000000) then
-		itemid = itemid - 1000000
-	end
-	
-	local items = Inventory("itemid="..tostring(itemid))
-	if (ValidTable(items)) then
-		for _,item in pairs(items) do
-			if (item.hqid == hqid) then
-				return item.isready
-			end
-		end
+	local item = Inventory:Get(hqid)
+	if (table.valid(item)) then
+		return item.isready
 	end
 	
 	return false

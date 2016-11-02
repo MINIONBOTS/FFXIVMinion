@@ -530,10 +530,14 @@ function DoGathering(item)
 		return 1
 	end
 	
+	if (Player.action ~= 264 and Player.action ~= 256) then
+		return 2
+	end
+
 	if (SkillMgr.Gather(item)) then
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return 2
-	end	
+	end
 
 	Player:Gather(item.index)
 	if (HasBuffs(Player,"805")) then
@@ -1048,25 +1052,28 @@ function CanUseCordial()
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuick.isready) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordial]: Returning cordial quick.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
 			if (cordialNormal and cordialNormal.isready) then
-				--d("[CanUseCordial]: Returning cordial.")
+				d("[CanUseCordial]: Returning cordial normal.")
 				return true, cordialNormal
 			end
 		end
 		
 		if (gpDeficit >= 400 and cordialHigh and cordialHigh.isready) then
-				return true, cordialHigh
+			d("[CanUseCordial]: Returning cordial high.")
+			return true, cordialHigh
 		elseif (gpDeficit >= 300 and cordialNormal and cordialNormal.isready) then
+			d("[CanUseCordial]: Returning cordial normal.")
 			return true, cordialNormal
 		elseif (gpDeficit >= 150 and cordialQuick and cordialQuick.isready) then
+			d("[CanUseCordial]: Returning cordial quick.")
 			return true, cordialQuick
-			end
+		end
 	else
 		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
 	end
@@ -1369,6 +1376,7 @@ function c_nodeprebuff:evaluate()
 	return false
 end
 function e_nodeprebuff:execute()
+	
 	local activity = e_nodeprebuff.activity
 	local activityclass = e_nodeprebuff.class
 	local activityitem = e_nodeprebuff.item
@@ -1447,7 +1455,7 @@ function e_nodeprebuff:execute()
 		local cordial = MGetItem(activityitemid)
 		if (cordial and cordial.isready) then
 			cordial:Use()
-			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
+			ml_global_information.Await(1000, 5000, function () return (not ItemReady(activityitemid)) end)
 			return
 		end
 	end

@@ -1,4 +1,4 @@
-﻿-- Skillmanager for adv. skill customization
+-- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.version = "v2.0";
 SkillMgr.lastTick = 0
@@ -3385,18 +3385,11 @@ function SkillMgr.Gather(item)
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-                local realskilldata = ActionList:Get(skillid,1)
-			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
+               local realskilldata = ActionList:Get(skillid,1)
+			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
 					local castable = true
-					
-					if (Player.action == 264 or Player.action == 256) then
-						if (not realskilldata.isready) then
-							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the idling ready check.")
-							castable = false
-						end
-					end
 					
 					if ( tonumber(skill.gsecspassed) > 0 and skill.lastcast ) then
 						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then
