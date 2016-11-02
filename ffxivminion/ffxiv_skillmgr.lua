@@ -3380,8 +3380,6 @@ end
 function SkillMgr.Gather(item)
     local node = MGetTarget()
     if ( ValidTable(node) and ValidTable(SkillMgr.SkillProfile)) then
-        
-		local doHalt = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
@@ -3494,7 +3492,6 @@ function SkillMgr.Gather(item)
 					end
 					
 					if ( castable ) then
-						doHalt = true
 						if (realskilldata.isready) then
 							if ( ActionList:Cast(skillid,Player.id)) then	
 								--d("CASTING (gathering) : "..tostring(skill.name))
@@ -3506,8 +3503,8 @@ function SkillMgr.Gather(item)
 								if IsUncoverSkill(skillid) then
 									ml_task_hub:CurrentTask().itemsUncovered = true
 								end
-								return true
 							end	
+							return true
 						else
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use because it is not ready.")
 						end
@@ -3515,9 +3512,6 @@ function SkillMgr.Gather(item)
                 end
             end
         end
-		if (doHalt) then
-			return true
-		end
     end
     return false
 end
