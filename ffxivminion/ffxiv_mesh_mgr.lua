@@ -8,7 +8,7 @@ function ml_mesh_mgr.HandleOMC( ... )
 		local OMCStartPosition,OMCEndposition,OMCFacingDirection = ml_mesh_mgr.UnpackArgsForOMC( args )
 		d("OMC REACHED : "..tostring(OMCType))
 		
-		if ( ValidTable(OMCStartPosition) and ValidTable(OMCEndposition) and ValidTable(OMCFacingDirection) ) then
+		if ( table.valid(OMCStartPosition) and table.valid(OMCEndposition) and table.valid(OMCFacingDirection) ) then
 			if (not IsFlying()) then
 				ml_mesh_mgr.OMCStartPosition = OMCStartPosition
 				ml_mesh_mgr.OMCEndposition = OMCEndposition
@@ -52,7 +52,7 @@ function ml_mesh_mgr.ParseInstructions(data)
 	d("Received instruction set.")
 	ml_mesh_mgr.receivedInstructions = {}
 	
-	if (ValidTable(data)) then
+	if (table.valid(data)) then
 		local itype,iparams = nil,nil
 		for i,instruction in pairsByKeys(data) do
 			itype,iparams = instruction[1],instruction[2]
@@ -134,10 +134,10 @@ function ml_mesh_mgr.ParseInstructions(data)
 						if (not Player.ismounted) then
 						
 							local mountlist = ActionList("type=13")
-							if (ValidTable(mountlist)) then
+							if (table.valid(mountlist)) then
 								--First pass, look for our named mount.
 								for k,v in pairsByKeys(mountlist) do
-									if (v.name == FFXIV_Common_Mount) then
+									if (v.name == gMountName) then
 										local acMount = ActionList:Get(v.id,13)
 										if (acMount and acMount.isready) then
 											acMount:Cast()
@@ -519,7 +519,7 @@ function ml_mesh_mgr.AddThrottleTime(t)
 end
 
 function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
-	if (ValidTable(ml_mesh_mgr.receivedInstructions)) then
+	if (table.valid(ml_mesh_mgr.receivedInstructions)) then
 		--d("Running instruction set.")
 		--ml_global_information.lastrun = Now()
 		ml_global_information.nextRun = Now() + 1
@@ -564,7 +564,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						}
 			
 			if ( ml_mesh_mgr.OMCStartPositionReached == false ) then
-				if ( ValidTable(sPos) ) then
+				if ( table.valid(sPos) ) then
 					-- obk: START-INTERACT
 					if (ml_mesh_mgr.OMCType == "OMC_INTERACT") then						
 						Player:Stop()
@@ -682,7 +682,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				if ( ml_mesh_mgr.OMCType == "OMC_JUMP" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then
+					if ( table.valid(ml_mesh_mgr.OMCEndposition) ) then
 						-- We are at our start OMC point and are facing the correct direction, now start moving forward and jump
 						local h = (math.floor(sPos.h * 100) / 100)
 						local ph = (math.floor(pPos.h * 100) / 100)
@@ -724,7 +724,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_WALK" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 150
 					
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then								
+					if ( table.valid(ml_mesh_mgr.OMCEndposition) ) then								
 						local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
 						Player:SetFacing(facingPos)
 					
@@ -770,7 +770,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				
 				-- obk: PROCESS-TELEPORT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) and FFXIV_Common_Teleport) then
+					if ( table.valid(ml_mesh_mgr.OMCEndposition) and FFXIV_Common_Teleport) then
 						if ( Player:IsMoving() ) then Player:Stop() end
 						-- Add playerdetection when distance to OMCEndposition is > xxx
 						local enddist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)
@@ -783,7 +783,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 								--return
 							--end
 						end
-						GameHacks:TeleportToXYZ(ePos.x, ePos.y, ePos.z)
+						Hacks:TeleportToXYZ(ePos.x, ePos.y, ePos.z)
 						d("OMC Endposition reached..")
 						ml_mesh_mgr.ResetOMC()
 						Player:Stop()
@@ -797,8 +797,8 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_INTERACT" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
-					if (ControlVisible("SelectYesno")) then
-						if (ControlVisible("_NotificationParty")) then
+					if (IsControlOpen("SelectYesno")) then
+						if (IsControlOpen("_NotificationParty")) then
 							PressYesNo(false)
 						else
 							PressYesNo(true)
@@ -813,7 +813,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 						return
 					end
 					
-					if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+					if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 						SelectConversationIndex(1)
 						ml_mesh_mgr.OMCThrottle = Now() + 1000
 						return
@@ -853,7 +853,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				elseif ( ml_mesh_mgr.OMCType == "OMC_PORTAL" ) then
 					ml_mesh_mgr.OMCThrottle = Now() + 100
 					
-					if ( ValidTable(ml_mesh_mgr.OMCEndposition) ) then						
+					if ( table.valid(ml_mesh_mgr.OMCEndposition) ) then						
 						if (ml_mesh_mgr.OMCMounted == 0) then
 							if (Player.ismounted) then
 								local facingPos = {x = ePos.x,y = ePos.y,z = ePos.z}
@@ -871,18 +871,15 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 							else
 								if (not IsMounting()) then
 									if (not Player.incombat) then								
-										local mountID = GetMountID()
-										if (mountID ~= nil) then
-											if (Player:IsMoving()) then
-												d("Throwing Stop() in mount block.")
-												Player:Stop()
-												ml_mesh_mgr.OMCThrottle = Now() + 100
-												return
-											else
-												Mount(mountID)
-												ml_mesh_mgr.OMCThrottle = Now() + 1000
-												return
-											end
+										if (Player:IsMoving()) then
+											d("Throwing Stop() in mount block.")
+											Player:Stop()
+											ml_mesh_mgr.OMCThrottle = Now() + 100
+											return
+										else
+											Mount()
+											ml_mesh_mgr.OMCThrottle = Now() + 1000
+											return
 										end
 									else
 										d("Throwing Stop() in combat detection, mount block.")
@@ -972,7 +969,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 									Player:MoveToStraight(ePos.x,ePos.y,ePos.z)
 									ml_mesh_mgr.OMCFlightForward = {x = pPos.x, z = pPos.z}
 								else
-									if (ValidTable(ml_mesh_mgr.OMCFlightForward)) then
+									if (table.valid(ml_mesh_mgr.OMCFlightForward)) then
 										local diststart = Distance2D(pPos.x,pPos.z,ml_mesh_mgr.OMCFlightForward.x,ml_mesh_mgr.OMCFlightForward.z)
 										if (diststart < 1) then
 											Player:MoveToStraight(ePos.x,ePos.y,ePos.z)

@@ -249,7 +249,7 @@ end
 c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )
 function c_assistyesno:evaluate()
-	if ((FFXIV_Common_BotMode == GetString("assistMode") and not FFXIV_Assist_QuestHelpers) or
+	if ((gBotMode == GetString("assistMode") and not FFXIV_Assist_QuestHelpers) or
 		IsControlOpen("_NotificationParty") or
 		IsControlOpen("_NotificationTelepo") or
 		IsControlOpen("_NotificationFcJoin") or
@@ -284,7 +284,7 @@ function ffxiv_assist.GetAttackTarget()
     local target = nil
     if ( FFXIV_Assist_Mode == GetString("lowestHealth")) then	
         local el = EntityList("lowesthealth,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( ValidTable(el) ) then
+        if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
@@ -292,7 +292,7 @@ function ffxiv_assist.GetAttackTarget()
         end
     elseif ( FFXIV_Assist_Mode == GetString("nearest") ) then	
         local el = EntityList("nearest,alive,attackable,maxdistance="..tostring(maxDistance))
-        if ( ValidTable(el) ) then
+        if ( table.valid(el) ) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 target = e
@@ -300,7 +300,7 @@ function ffxiv_assist.GetAttackTarget()
         end	
 	 elseif ( FFXIV_Assist_Mode == GetString("tankAssist") ) then
 		local party = EntityList("myparty")
-		if (ValidTable(party)) then
+		if (table.valid(party)) then
 			local tanks = {}
 			for i,member in pairs(party) do
 				if (IsTank(member.job) and member.id ~= Player.id) then
@@ -308,7 +308,7 @@ function ffxiv_assist.GetAttackTarget()
 				end
 			end
 			
-			if (ValidTable(tanks)) then
+			if (table.valid(tanks)) then
 				local closest = nil
 				local closestDistance = 999
 				for i,tank in pairs(tanks) do

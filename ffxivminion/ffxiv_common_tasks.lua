@@ -90,7 +90,7 @@ end
 
 function ffxiv_task_killtarget:task_fail_eval()
 	local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
-	return not ValidTable(target)
+	return not table.valid(target)
 end
 
 function ffxiv_task_killtarget:task_fail_execute()
@@ -232,7 +232,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		end
 	end
 
-    if (ValidTable(self.pos)) then
+    if (table.valid(self.pos)) then
         local myPos = Player.pos
 		local gotoPos = self.gatePos or self.pos
 		
@@ -249,9 +249,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 		
 		if (distance < 40 and self.customSearch ~= "") then
 			local el = EntityList(self.customSearch)
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local id,entity = next(el)
-				if (ValidTable(entity)) then
+				if (table.valid(entity)) then
 					if (entity.alive) then
 						if (self.customSearchCompletes) then
 							if (InCombatRange(entity.id)) then
@@ -314,10 +314,10 @@ function ffxiv_task_movetopos:task_complete_eval()
 			end
 		end
 		
-		if (ValidTable(self.params)) then
+		if (table.valid(self.params)) then
 			local params = self.params
 			if (params.type == "useitem") then
-				if (ValidTable(params.usepos)) then
+				if (table.valid(params.usepos)) then
 					local usepos = params.usepos
 					local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,usepos.x,usepos.y,usepos.z)
 					if (usedist > self.range) then
@@ -325,9 +325,9 @@ function ffxiv_task_movetopos:task_complete_eval()
 					end
 				elseif (params.id) then
 					local el = EntityList("nearest,targetable,contentid="..tostring(params.id))
-					if (ValidTable(el)) then
+					if (table.valid(el)) then
 						local i,entity = next(el)
-						if (ValidTable(entity)) then
+						if (table.valid(entity)) then
 							local epos = entity.pos
 							local usedist = PDistance3D(myPos.x,myPos.y,myPos.z,epos.x,epos.y,epos.z)
 							local radius = (entity.hitradius >= 1 and entity.hitradius) or 1.25
@@ -462,14 +462,14 @@ end
 
 function ffxiv_task_movetofate:task_complete_eval()	
 	local fate = MGetFateByID(self.fateid)
-	if (ValidTable(fate)) then
+	if (table.valid(fate)) then
 		local myPos = Player.pos
 		local fatedist = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z)
 		
 		if (not AceLib.API.Fate.RequiresSync(fate.id) or fatedist < fate.radius) then
 			local maxdistance = (ml_global_information.AttackRange > 5 and ml_global_information.AttackRange) or 10
 			local el = EntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(maxdistance)..",fateid="..tostring(fate.id))
-			if ( ValidTable(el) ) then
+			if ( table.valid(el) ) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
 					return true
@@ -495,7 +495,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			
 			if (dist < (fate.radius * .95)) then
 				local npcs = EntityList("type=2,chartype=5,alive,onmesh,fateid="..tostring(self.fateid))
-				if (ValidTable(npcs)) then
+				if (table.valid(npcs)) then
 					local heading = nil
 					for i,npc in pairs(npcs) do
 						local npos = npc.pos
@@ -526,7 +526,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 						}
 						
 						local selection = options[math.random(1,TableSize(options))]
-						if (ValidTable(selection)) then
+						if (table.valid(selection)) then
 							local p,dist = NavigationManager:GetClosestPointOnMesh(selection)
 							if (p and dist ~= 0 and dist < 5) then
 								newPos = p
@@ -538,9 +538,9 @@ function ffxiv_task_movetofate:task_complete_eval()
 				newPos = self.actualPos
 			end
 			
-			if (not ValidTable(newPos)) then
+			if (not table.valid(newPos)) then
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
-				if (ValidTable(randomPoint)) then
+				if (table.valid(randomPoint)) then
 					local p,dist = NavigationManager:GetClosestPointOnMesh(randomPoint)
 					if (p and dist ~= 0 and dist < 5) then
 						newPos = p
@@ -548,7 +548,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 				end
 			end
 			
-			if (not ValidTable(newPos)) then
+			if (not table.valid(newPos)) then
 				local p,dist = NavigationManager:GetClosestPointOnMesh(self.pos)
 				if (p and dist ~= 0 and dist < 5) then
 					newPos = p
@@ -556,7 +556,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 			end
 			
 			if (self.requiresPosRandomize) then
-				if (ValidTable(newPos)) then
+				if (table.valid(newPos)) then
 					self.pos = newPos
 				end
 				self.requiresPosRandomize = false
@@ -570,7 +570,7 @@ function ffxiv_task_movetofate:task_complete_eval()
 		
 		--While the FATE is moving, follow it closely.
 		if (TimeSince(self.lastMove) > 3000) then
-			if (ValidTable(self.pos)) then
+			if (table.valid(self.pos)) then
 				local myPos = Player.pos
 				local gotoPos = self.pos
 				
@@ -598,7 +598,7 @@ end
 
 function ffxiv_task_movetofate:task_fail_eval()
 	local fate = MGetFateByID(self.fateid)
-	if (not ValidTable(fate)) then
+	if (not table.valid(fate)) then
 		return true
 	end
 	
@@ -666,7 +666,7 @@ function ffxiv_task_movetointeract.Create()
 	
 	newinst.stealthFunction = nil
 	
-	GameHacks:SkipDialogue(true)
+	Hacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
@@ -713,7 +713,7 @@ end
 function ffxiv_task_movetointeract:task_complete_eval()
 	self.blockExecution = false
 	
-	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
@@ -722,7 +722,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
-						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
@@ -733,20 +733,20 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							SelectConversationIndex(convoindex)
-							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
 				end
 			elseif (self.conversationindex > 0) then
 				SelectConversationIndex(self.conversationindex)
-				ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 				return false
 			end
 		end
 	end
 	
-	if ((MIsLocked() and not IsFlying()) or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+	if ((MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
 		return true
 	end
 	
@@ -763,7 +763,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-			if (not ValidTable(interacts)) then
+			if (not table.valid(interacts)) then
 				return true
 			end
 		end			
@@ -773,7 +773,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.contentid ~= 0) then
 			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
-			if (ValidTable(interacts)) then
+			if (table.valid(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
 					self.interact = interact.id
@@ -832,7 +832,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		--if (myTarget and TimeSince(self.lastInteract) > 500) then
 		if (myTarget and myTarget.id == interactable.id) then
 
-			if (ValidTable(interactable)) then			
+			if (table.valid(interactable)) then			
 				if (interactable.type == 5) then
 					
 					local minDist = 10
@@ -855,7 +855,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						local currentDist = Distance3DT(ppos,ipos)
 						ml_global_information.AwaitSuccessFail(250, 1500,
 							function ()
-								return (MIsLocked() or IsShopWindowOpen() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+								return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
@@ -897,7 +897,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							local currentDist = Distance3DT(ppos,ipos)
 							ml_global_information.AwaitSuccessFail(250, 1500,  
 								function () 
-									return (MIsLocked() or IsShopWindowOpen() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+									return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 								end, 
 								function ()
 									if (Player.castinginfo.channelingid ~= 0) then
@@ -930,7 +930,7 @@ function ffxiv_task_movetointeract:task_complete_execute()
 	end
 	
     Player:Stop()
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
 	if (self.killParent) then
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
@@ -953,7 +953,7 @@ function ffxiv_task_movetointeract:task_fail_eval()
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
     self.valid = false
 end
 
@@ -1098,7 +1098,7 @@ e_sethomepoint.aethid = 0
 e_sethomepoint.aethpos = {}
 function c_sethomepoint:evaluate()    
 	if (MIsLoading() or MIsCasting(true) or MIsLocked() or 
-		ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsCityMap(Player.localmapid))
+		IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsCityMap(Player.localmapid))
 	then
 		return false
 	end
@@ -1115,7 +1115,7 @@ function c_sethomepoint:evaluate()
 		d("homepoint is ["..tostring(homepoint).."] and current mapid is ["..tostring(ml_task_hub:CurrentTask().mapID).."]")
 		if (homepoint ~= ml_task_hub:CurrentTask().mapID) then
 			local location = GetAetheryteLocation(ml_task_hub:CurrentTask().aetheryte)
-			if (ValidTable(location)) then
+			if (table.valid(location)) then
 				d("need to set homepoint")
 				e_sethomepoint.aethid = ml_task_hub:CurrentTask().aetheryte
 				e_sethomepoint.aethpos = {x = location.x, y = location.y, z = location.z}
@@ -1144,7 +1144,7 @@ function ffxiv_task_teleport:task_complete_eval()
 		return false
 	end
 	
-	if (ControlVisible("SelectIconString") or ControlVisible("SelectString")) then
+	if (IsControlOpen("SelectIconString") or IsControlOpen("SelectString")) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			local conversationstrings = {
@@ -1162,7 +1162,7 @@ function ffxiv_task_teleport:task_complete_eval()
 					local cleanedv = string.gsub(v,"[()-]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
-						ml_global_information.Await(2000, function () return ControlVisible("SelectYesno") end)
+						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
 						return false
 					end
 				end
@@ -1172,7 +1172,7 @@ function ffxiv_task_teleport:task_complete_eval()
 		end
 	end
 	
-	if (ControlVisible("SelectYesno")) then
+	if (IsControlOpen("SelectYesno")) then
 		--d("select yesno, pressyesno")
 		PressYesNo(true)
 		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
@@ -1305,12 +1305,12 @@ function ffxiv_task_stealth:task_complete_execute()
 end
 
 function ffxiv_task_stealth:task_fail_eval()
-	if (not Player.alive or Player.incombat or MIsLocked() or ControlVisible("GatheringMasterpiece")) then
+	if (not Player.alive or Player.incombat or MIsLocked() or IsControlOpen("GatheringMasterpiece")) then
 		return true
 	end
 	
 	local fs = tonumber(Player:GetFishingState())
-	if (ControlVisible("Gathering") or fs ~= 0) then
+	if (IsControlOpen("Gathering") or fs ~= 0) then
 		return true
 	end
 	
@@ -1402,7 +1402,7 @@ function ffxiv_task_useitem:task_complete_eval()
 			self.useAttempts = self.useAttempts + 1
 			ml_task_hub:CurrentTask():SetDelay(1000)
 			return false
-		elseif (ValidTable(self.pos)) then
+		elseif (table.valid(self.pos)) then
 			item:Use(self.pos.x, self.pos.y, self.pos.z)
 			self.useAttempts = self.useAttempts + 1
 			ml_task_hub:CurrentTask():SetDelay(1000)
@@ -1419,7 +1419,7 @@ end
 
 function ffxiv_task_useitem:task_fail_eval()
 	local fs = Player:GetFishingState()
-	if ((fs ~= 0 and fs ~= 4) or ControlVisible("Gathering")) then	
+	if ((fs ~= 0 and fs ~= 4) or IsControlOpen("Gathering")) then	
 		return true
 	end
 	
@@ -1557,11 +1557,11 @@ function ffxiv_task_rest:task_complete_eval()
 		return false
 	end
 	
-    if ((ml_global_information.Player_HP.percent > math.random(90,95) or tonumber(FFXIV_Common_RestHP) == 0) and (ml_global_information.Player_MP.percent > math.random(90,95) or tonumber(FFXIV_Common_RestMP) == 0)) then
+    if ((Player.hp.percent > math.random(90,95) or tonumber(FFXIV_Common_RestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(FFXIV_Common_RestMP) == 0)) then
 		return true
 	end
 	
-	if (ml_global_information.Player_HP.percent > math.random(90,95) and TimeSince(self.timer) > 120000) then
+	if (Player.hp.percent > math.random(90,95) and TimeSince(self.timer) > 120000) then
 		return true
 	end
 	
@@ -1579,7 +1579,7 @@ function ffxiv_task_rest:task_fail_eval()
 	
 	if (Player.incombat) then
 		local el = EntityList("alive,attackable,targetingme,maxdistance=25")
-		if(ValidTable(el)) then
+		if(table.valid(el)) then
 			return true
 		end
 	end
@@ -1765,7 +1765,7 @@ function ffxiv_task_grindCombat:Process()
 	end
 		
 	local target = EntityList:Get(self.targetid)
-	if (ValidTable(target)) then
+	if (table.valid(target)) then
 		
 		--d("Target is valid, commence checks.")
 		
@@ -1819,7 +1819,7 @@ function ffxiv_task_grindCombat:Process()
 		local nearbyMobCount = 0
 		local nearbyMobs = EntityList("alive,aggressive,attackable,distanceto="..tostring(target.id)..",maxdistance=8")
 		
-		if (ValidTable(nearbyMobs)) then
+		if (table.valid(nearbyMobs)) then
 			nearbyMobCount = TableSize(nearbyMobs)
 			for i,mob in pairs(nearbyMobs) do
 				if (mob.id == target.id or mob.id == Player.id or mob.targetid == Player.id) then
@@ -1836,7 +1836,7 @@ function ffxiv_task_grindCombat:Process()
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (p and dist ~= 0 and dist < 5) then
-						GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
 					end
 				else
@@ -1892,7 +1892,7 @@ function ffxiv_task_grindCombat:Process()
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
 						local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 						if (p and dist ~= 0 and dist < 5) then
-							GameHacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
+							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 							self.teleportThrottle = Now() + 1500
 						end
 					else
@@ -2003,7 +2003,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (not self.noFlee and (ml_global_information.Player_HP.percent < GetFleeHP() or ml_global_information.Player_MP.percent < tonumber(FFXIV_Common_FleeMP))) then
+	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(FFXIV_Common_FleeMP))) then
 		ml_debug("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
@@ -2032,7 +2032,7 @@ function ffxiv_mesh_interact.Create()
 	newinst.interact = 0
     newinst.interactLatency = 0
 	
-	GameHacks:SkipDialogue(true)
+	Hacks:SkipDialogue(true)
 	
 	d("Mesh interact task created.")
 	
@@ -2049,7 +2049,7 @@ end
 function ffxiv_mesh_interact:task_complete_eval()		
 	if (self.interact == 0) then
 		local interacts = EntityList("nearest,targetable,type=7,chartype=0,maxdistance=6")
-		if (ValidTable(interacts)) then
+		if (table.valid(interacts)) then
 			local i, interact = next(interacts)
 			if (interact and interact.id and interact.id ~= 0) then
 				self.interact = interact.id
@@ -2057,7 +2057,7 @@ function ffxiv_mesh_interact:task_complete_eval()
 		end
 		
 		local interacts = EntityList("nearest,targetable,type=3,chartype=0,maxdistance=6")
-		if (ValidTable(interacts)) then
+		if (table.valid(interacts)) then
 			local i, interact = next(interacts)
 			if (interact and interact.id and interact.id ~= 0) then
 				self.interact = interact.id
@@ -2096,7 +2096,7 @@ end
 
 function ffxiv_mesh_interact:task_complete_execute()
 	d("Mesh interact task completed normally.")
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
 	ml_mesh_mgr.ResetOMC()
 	self.completed = true
 end
@@ -2111,7 +2111,7 @@ end
 
 function ffxiv_mesh_interact:task_fail_execute()
 	d("Mesh interact task failed.")
-    GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+    Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
 	ml_mesh_mgr.ResetOMC()
     self.valid = false
 end
@@ -2121,10 +2121,10 @@ end
 c_detectyesno = inheritsFrom( ml_cause )
 e_detectyesno = inheritsFrom( ml_effect )
 function c_detectyesno:evaluate()
-	if (ControlVisible("_NotificationParty")) then
+	if (IsControlOpen("_NotificationParty")) then
 		return false
 	end
-	return ControlVisible("SelectYesno")
+	return IsControlOpen("SelectYesno")
 end
 function e_detectyesno:execute()
 	PressYesNo(true)
@@ -2168,7 +2168,7 @@ function ffxiv_nav_interact.Create()
 	newinst.interactDelay = 500
 	newinst.abort = nil
 	
-	GameHacks:SkipDialogue(true)
+	Hacks:SkipDialogue(true)
 	newinst.alwaysMount = false
 	
     return newinst
@@ -2221,7 +2221,7 @@ function ffxiv_nav_interact:task_complete_eval()
 		return true
 	end
 	
-	if (MIsLocked() or ControlVisible("SelectYesno")) then
+	if (MIsLocked() or IsControlOpen("SelectYesno")) then
 		if (Player:IsMoving()) then
 			Player:Stop()
 		end
@@ -2232,7 +2232,7 @@ function ffxiv_nav_interact:task_complete_eval()
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 750) then
 		if (self.contentid ~= 0) then
 			local interacts = EntityList("shortestpath,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
-			if (ValidTable(interacts)) then
+			if (table.valid(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
 					self.interact = interact.id
@@ -2271,7 +2271,7 @@ function ffxiv_nav_interact:task_complete_eval()
 	end
 	
 	if (myTarget) then
-		if (ValidTable(interactable)) then			
+		if (table.valid(interactable)) then			
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 			local pathRange = self.pathRange or 10
 			local forceLOS = self.forceLOS
@@ -2294,7 +2294,7 @@ end
 
 function ffxiv_nav_interact:task_complete_execute()
     Player:Stop()
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
 	self.completed = true
 end
 
@@ -2307,7 +2307,7 @@ function ffxiv_nav_interact:task_fail_eval()
 end
 
 function ffxiv_nav_interact:task_fail_execute()
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
     self.valid = false
 end
 
@@ -2339,7 +2339,7 @@ end
 function ffxiv_misc_shopping:task_complete_eval()
 	local itemid;
 	local itemtable = self.itemid
-	if (ValidTable(itemtable)) then
+	if (table.valid(itemtable)) then
 		itemid = itemtable[Player.job] or itemtable[-1]
 	elseif (tonumber(itemtable)) then
 		itemid = tonumber(itemtable)
@@ -2462,7 +2462,7 @@ function ffxiv_misc_switchclass:task_complete_eval()
 		d("[SwitchClass]: Need to change class to ["..tostring(class).."]")
 		if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 			not Player.alive or Player.incombat or
-			ControlVisible("Gathering") or Player:GetFishingState() ~= 0) 
+			IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
 		then
 			d("[SwitchClass]: Cannot swap right now, invalid state.")
 			return false
@@ -2544,7 +2544,7 @@ function ffxiv_task_moveaethernet.Create()
 	
 	newinst.stealthFunction = nil
 	
-	GameHacks:SkipDialogue(true)
+	Hacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
@@ -2582,7 +2582,7 @@ end
 function ffxiv_task_moveaethernet:task_complete_eval()
 	self.blockExecution = false
 	
-	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
+	if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			if (self.useAethernet) then
@@ -2611,7 +2611,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						if (string.find(cleanedline,cleanedastring) ~= nil and string.find(convo.line,residential[language]) == nil) then
 							d("Open Aethernet menu on index ["..tostring(convoindex).."]")
 							SelectConversationIndex(convoindex)
-							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						end
 					end
 				end
@@ -2624,7 +2624,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
-						ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
@@ -2635,14 +2635,14 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							SelectConversationIndex(convoindex)
-							ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
 					end
 				end
 			elseif (self.conversationindex > 0) then
 				SelectConversationIndex(self.conversationindex)
-				ml_global_information.Await(500,2000, function () return not (ControlVisible("SelectString") and ControlVisible("SelectIconString")) end)
+				ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 				return false
 			end
 		end
@@ -2667,7 +2667,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-			if (not ValidTable(interacts)) then
+			if (not table.valid(interacts)) then
 				return true
 			end
 		end			
@@ -2677,7 +2677,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.contentid ~= 0) then
 			local interacts = EntityList("nearest,targetable,contentid="..tostring(self.contentid)..",maxdistance=30")
-			if (ValidTable(interacts)) then
+			if (table.valid(interacts)) then
 				local i,interact = next(interacts)
 				if (i and interact) then
 					self.interact = interact.id
@@ -2737,7 +2737,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		--if (myTarget and TimeSince(self.lastInteract) > 500) then
 		if (myTarget and myTarget.id == interactable.id) then
 
-			if (ValidTable(interactable)) then			
+			if (table.valid(interactable)) then			
 				if (interactable.type == 5) then
 					
 					local minDist = 10
@@ -2753,7 +2753,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local currentDist = Distance3DT(ppos,ipos)
 						ml_global_information.AwaitSuccessFail(250, 1500,
 							function () 
-								return (MIsLocked() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+								return (MIsLocked() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
@@ -2784,7 +2784,7 @@ function ffxiv_task_moveaethernet:task_complete_execute()
 		return false
 	end
 	
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
     Player:Stop()
 	self.completed = true
 end
@@ -2804,6 +2804,6 @@ function ffxiv_task_moveaethernet:task_fail_eval()
 end
 
 function ffxiv_task_moveaethernet:task_fail_execute()
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
     self.valid = false
 end

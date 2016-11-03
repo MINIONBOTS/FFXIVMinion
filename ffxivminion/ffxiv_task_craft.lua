@@ -274,7 +274,7 @@ function c_precraftbuff:evaluate()
 		end
 		
 		local canUse,manualItem = CanUseExpManual()
-		if (canUse and ValidTable(manualItem)) then
+		if (canUse and table.valid(manualItem)) then
 			d("[NodePreBuff]: Need to use an exp manual.")
 			e_precraftbuff.activity = "usemanual"
 			e_precraftbuff.item = manualItem
@@ -346,7 +346,7 @@ function c_craft:evaluate()
 	end
 
     local synth = Crafting:SynthInfo()
-	if ( synth or ControlVisible("Synthesis")) then		
+	if ( synth or IsControlOpen("Synthesis")) then		
 		return true	
 	end
     return false
@@ -366,9 +366,9 @@ end
 c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
-	if (ControlVisible("SelectYesNoItem")) then
+	if (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) then
 		local info = Player:GetYesNoItemInfo()
-		if (ValidTable(info)) then
+		if (table.valid(info)) then
 			local validCollectible = false
 			
 			local variables = {}
@@ -390,7 +390,7 @@ function c_collectibleaddoncraft:evaluate()
 				end
 			end
 			
-			if (ValidTable(variables)) then
+			if (table.valid(variables)) then
 				for job,collectible in pairs(variables) do
 					--d("Checking variable ["..tostring(job).."]")
 					--d("id ["..tostring(collectible.id).."], value ["..tostring(collectible.value).."]")
@@ -426,7 +426,7 @@ end
 c_quicksynth = inheritsFrom( ml_cause )
 e_quicksynth = inheritsFrom( ml_effect )
 function c_quicksynth:evaluate()
-	return ControlVisible("SynthesisSimple")
+	return IsControlOpen("SynthesisSimple")
 end
 function e_quicksynth:execute()
 	if (ml_task_hub:CurrentTask().quickTimer > 0 and TimeSince(ml_task_hub:CurrentTask().quickTimer) > 7000) then
@@ -623,9 +623,9 @@ function ffxiv_task_craft.SetModeOptions()
 	FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
 	FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
 	FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-	GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
+	Hacks:SkipCutscene(FFXIV_Common_SkipCutscene)
+	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	Hacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
 	FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
 	ffxiv_craft.UpdateProfiles()
 	FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
@@ -1016,7 +1016,7 @@ function ffxiv_craft.LoadProfile(strName)
 	if (strName ~= GetString("none")) then
 		if (FileExists(ffxiv_craft.profilePath..strName..".lua")) then
 			local info,e = persistence.load(ffxiv_craft.profilePath..strName..".lua")
-			if (ValidTable(info)) then
+			if (table.valid(info)) then
 				ffxiv_craft.orders = info.orders
 				ffxiv_craft.ResetOrders()
 			else
@@ -1034,7 +1034,7 @@ end
 
 function ffxiv_craft.ResetOrders()
 	local orders = ffxiv_craft.orders
-	if (ValidTable(orders)) then
+	if (table.valid(orders)) then
 		for id,order in pairs(orders) do
 			orders[id].completed = false
 		end
@@ -1045,7 +1045,7 @@ function ffxiv_craft.SaveProfile(strName)
 	strName = IsNull(strName,"")
 	
 	local info = {}
-	if (ValidTable(ffxiv_craft.orders)) then
+	if (table.valid(ffxiv_craft.orders)) then
 		info.orders = ffxiv_craft.orders
 	else
 		info.orders = {}
@@ -1150,7 +1150,7 @@ function ffxiv_craft.AddToOrders()
 end
 
 function ffxiv_craft.UsingProfile()
-	return ValidTable(ffxiv_craft.orders)
+	return table.valid(ffxiv_craft.orders)
 end
 
 function ffxiv_craft.RefreshOrders(doshow)
@@ -1161,7 +1161,7 @@ function ffxiv_craft.RefreshOrders(doshow)
 	GUI_DeleteGroup(winName,group)
 		
 	local orders = ffxiv_craft.orders
-	if (ValidTable(orders)) then
+	if (table.valid(orders)) then
 		local sortfunc = function(orders,a,b) 
 			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
 		end
@@ -1185,7 +1185,7 @@ function ffxiv_craft.EditOrder(key)
 	local key = tonumber(key) or 0
 	
 	local orders = ffxiv_craft.orders
-	if (ValidTable(orders)) then
+	if (table.valid(orders)) then
 		local thisOrder = orders[key]
 		if (thisOrder) then
 			local winName = ffxivminion.Windows.CraftOrderEdit.Name
@@ -1224,7 +1224,7 @@ function ffxiv_craft.EditOrderElement(elem,newval)
 	local key = tonumber(gCraftOrderEditID) or 0
 	
 	local orders = ffxiv_craft.orders
-	if (ValidTable(orders)) then
+	if (table.valid(orders)) then
 		local thisOrder = orders[key]
 		if (thisOrder) then
 			if (elem == "gCraftOrderEditAmount") then

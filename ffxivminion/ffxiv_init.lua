@@ -52,9 +52,7 @@ ml_global_information.drawMode = 1
 ml_global_information.lastUpdate = 0
 ml_global_information.Player_Aetherytes = {}
 ml_global_information.Player_Map = 0
-ml_global_information.Player_HP = {}
-ml_global_information.Player_MP = {}
-ml_global_information.Player_TP = {}
+ml_global_information.MeshReady = false
 
 ml_global_information.chocoStance = {
 	[GetString("stFollow")] = 3,
@@ -101,7 +99,7 @@ function ml_global_information.GetMainIcon()
 end
 
 function ml_global_information.NodeNeighbors(self)
-	if (ValidTable(self.neighbors)) then
+	if (table.valid(self.neighbors)) then
 		local validNeighbors = deepcopy(self.neighbors)
 		
 		for id,entries in pairs(validNeighbors) do
@@ -140,7 +138,7 @@ end
 
 function ml_global_information.NodeClosestNeighbor(self, origin, id)
 	local neighbor = self:GetNeighbor(id)
-	if (ValidTable(neighbor)) then
+	if (table.valid(neighbor)) then
 		if (TableSize(neighbor) > 1) then
 			local bestPos = nil
 			local bestDist = math.huge
@@ -170,7 +168,7 @@ function ml_global_information.NodeClosestNeighbor(self, origin, id)
 				end
 			end
 			
-			if (ValidTable(bestPos)) then
+			if (table.valid(bestPos)) then
 				return bestPos
 			end
 		elseif (TableSize(neighbor == 1)) then
@@ -334,9 +332,9 @@ function ml_global_information.Init()
 	-- General overrides.
 	do
 		-- setup marker manager callbacks and vars
-		--ml_marker_mgr.GetPosition = 	function () return Player.pos end
-		--ml_marker_mgr.GetLevel = 		function () return Player.level end
-		--ml_marker_mgr.DrawMarker =		ml_global_information.DrawMarker
+		ml_marker_mgr.GetPosition = 	function () return Player.pos end
+		ml_marker_mgr.GetLevel = 		function () return Player.level end
+		ml_marker_mgr.DrawMarker =		ml_global_information.DrawMarker
 		ml_node.ValidNeighbors = 		ml_global_information.NodeNeighbors
 		ml_node.GetClosestNeighborPos = ml_global_information.NodeClosestNeighbor
 		
@@ -361,8 +359,8 @@ function ml_global_information.Init()
 			
 			ml_mesh_mgr.SetEvacPoint = function ()
 				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
-					--ml_marker_mgr.markerList["evacPoint"] = Player.pos
-					--ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
+					ml_marker_mgr.markerList["evacPoint"] = Player.pos
+					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				end
 			end
 			
@@ -387,7 +385,7 @@ function ml_global_information.Init()
 				local placeid = AceLib.API.Map.GetPlaceID(mapid) or 0
 				if (placeid ~= 0) then
 					local allowedMaps = AceLib.API.Map.GetValidMaps(placeid)
-					if (ValidTable(allowedMaps)) then
+					if (table.valid(allowedMaps)) then
 						return allowedMaps
 					end
 				end
@@ -449,6 +447,38 @@ function GetControl(strControl)
 		end
 	end
 	return nil
+end
+
+function GetPublicProfiles(path,ext)
+	local profiles, profilesDisplay = { [GetString("None")] = {} }, { GetString("None") }
+	
+	local profileList = FolderList(path,ext)
+	if (table.valid(profileList)) then
+		for i,profile in pairs(profileList) do	
+			local profileData, e = persistence.load(path..profile)
+			if (table.valid(profileData)) then
+				local profileName = string.gsub(profile,"%..+$","")
+				if (profileName ~= "") then
+					if (table.valid(profileData.names) and profileData.names[gCurrentLanguage]) then
+						local translatedName = profileData.names[gCurrentLanguage]
+						if (profiles[translatedName] == nil) then
+							profiles[translatedName] = profileData
+							table.insert(profilesDisplay,translatedName)
+						end
+					else
+						if (profiles[entryName] == nil) then
+							profiles[entryName] = profileData
+							table.insert(profilesDisplay,entryName)
+						end
+					end
+				end
+			elseif (e) then
+				d(e)
+			end
+		end		
+	end
+	
+	return profiles,profilesDisplay
 end
 
 RegisterEventHandler("Module.Initalize",ml_global_information.Init)

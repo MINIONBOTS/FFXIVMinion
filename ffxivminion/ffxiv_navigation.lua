@@ -147,7 +147,7 @@ function ml_navigation.Navigate(event, ticks )
 										
 						elseif ( omc.type == 3 ) then
 						-- OMC Teleport
-							HackManager:Teleport(nextnode.x,nextnode.y,nextnode.z)
+							Hacks:Teleport(nextnode.x,nextnode.y,nextnode.z)
 							ml_navigation.pathindex = ml_navigation.pathindex + 1
 							
 						elseif ( omc.type == 4 ) then
@@ -316,7 +316,7 @@ function ml_navigation:EnsurePosition()
 		local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,ml_navigation.ensureposition)
 						
 		if ( dist > 5 and ml_navigation.omcteleportallowed ) then
-			HackManager:Teleport(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z)
+			Hacks:Teleport(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z)
 		end
 		
 		if ( math.angle({x = math.sin(ppos.h), y = 0,  z =math.cos(ppos.h)}, {x = ml_navigation.ensureheading.x-ppos.x, y = 0, z = ml_navigation.ensureheading.z-ppos.z}) > 5 ) then 
@@ -343,11 +343,11 @@ function ml_navigation:ResetOMCHandler()
 	self.omc_startheight = nil	
 end
 	
-	
 -- for replacing the original c++ navi with our lua version
-function NavigationManager:MoveTo(x, y, z, crap, navigationmode, randomnodes, smoothturns)
+function Player:MoveTo(x, y, z, crap, navigationmode, randomnodes, smoothturns)
 	return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns)
 end
+
 function Player:Stop()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()

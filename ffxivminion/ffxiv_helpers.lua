@@ -5,7 +5,7 @@ ff.lastPath = 0
 ff.lastFail = 0
 
 function FilterByProximity(entities,center,radius,sortfield)
-	if (ValidTable(entities) and ValidTable(center) and tonumber(radius) > 0) then
+	if (table.valid(entities) and table.valid(center) and tonumber(radius) > 0) then
 		local validEntities = {}
 		for i,e in pairs(entities) do
 			local epos = e.pos
@@ -16,7 +16,7 @@ function FilterByProximity(entities,center,radius,sortfield)
 			end
 		end
 		
-		if (ValidTable(validEntities)) then
+		if (table.valid(validEntities)) then
 			if (sortfield and type(sortfield) == "string" and sortfield ~= "") then
 				table.sort(validEntities,function(a,b) return a[sortfield] < b[sortfield] end)
 				return validEntities
@@ -54,7 +54,7 @@ function GetNearestGrindAttackable()
 	
 	local radius = 0
 	local markerPos;
-	if (ValidTable(marker)) then
+	if (table.valid(marker)) then
 		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
 		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 			radius = tonumber(maxradius)
@@ -62,13 +62,13 @@ function GetNearestGrindAttackable()
 		markerPos = marker:GetPosition()
 	end
 	
-	if (radius > 0 and ValidTable(markerPos)) then
+	if (radius > 0 and table.valid(markerPos)) then
 		--d("Checking marker with radius section.")
 		if (gClaimFirst	) then		
 			if (not IsNullString(huntString)) then
 				el = MEntityList("nearest,contentid="..huntString..",notincombat,targeting=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				
-				if (ValidTable(el)) then
+				if (table.valid(el)) then
 					local i,e = next(el)
 					if (i and e and e.distance <= tonumber(gClaimRange)) then
 						return e
@@ -76,7 +76,7 @@ function GetNearestGrindAttackable()
 				end
 				
 				el = MEntityList("nearest,contentid="..huntString..",notincombat,targeting="..tostring(Player.id)..",alive,attackable,onmesh,exclude_contentid="..excludeString)
-				if (ValidTable(el)) then
+				if (table.valid(el)) then
 					local i,e = next(el)
 					if (i and e and e.distance <= tonumber(gClaimRange)) then
 						return e
@@ -87,18 +87,18 @@ function GetNearestGrindAttackable()
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		el = MEntityList("nearest,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40")
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			local i,e = next(el)
-			if (ValidTable(e)) then
+			if (table.valid(e)) then
 				return e
 			end
 		end
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		el = MEntityList("nearest,alive,attackable,onmesh,claimedbyid="..tostring(Player.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			local i,e = next(el)
-			if (ValidTable(e)) then
+			if (table.valid(e)) then
 				return e
 			end
 		end
@@ -109,11 +109,11 @@ function GetNearestGrindAttackable()
 				if (member.id and member.id ~= 0 and member.mapid == Player.mapid) then
 					el = MEntityList("alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					
-					if (ValidTable(el)) then
+					if (table.valid(el)) then
 						local filtered = FilterByProximity(el,markerPos,radius,"distance")
-						if (ValidTable(filtered)) then
+						if (table.valid(filtered)) then
 							for i,e in pairs(filtered) do
-								if (ValidTable(e)) then
+								if (table.valid(e)) then
 									return e
 								end
 							end
@@ -123,14 +123,14 @@ function GetNearestGrindAttackable()
 			end
 		end	
 		
-		if (ValidTable(Player.pet)) then
+		if (table.valid(Player.pet)) then
 			el = MEntityList("alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"distance")
-				if (ValidTable(filtered)) then
+				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e)) then
+						if (table.valid(e)) then
 							return e
 						end
 					end
@@ -141,7 +141,7 @@ function GetNearestGrindAttackable()
 		local companion = GetCompanionEntity()
 		if (companion) then
 			el = MEntityList("nearest,alive,attackable,onmesh,targeting="..tostring(companion.id)..",maxdistance=30,exclude_contentid="..excludeString)
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local i,e = next(el)
 				if (i and e) then
 					return target
@@ -153,11 +153,11 @@ function GetNearestGrindAttackable()
 		if (not IsNullString(huntString)) then
 			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 			
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"distance")
-				if (ValidTable(filtered)) then
+				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e)) then
+						if (table.valid(e)) then
 							if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
 								return e
 							end
@@ -171,11 +171,11 @@ function GetNearestGrindAttackable()
 		if (IsNullString(huntString)) then
 			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"distance")
-				if (ValidTable(filtered)) then
+				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e)) then
+						if (table.valid(e)) then
 							return e
 						end
 					end
@@ -183,11 +183,11 @@ function GetNearestGrindAttackable()
 			end
 		
 			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local filtered = FilterByProximity(el,markerPos,radius,"distance")
-				if (ValidTable(filtered)) then
+				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
-						if (ValidTable(e)) then
+						if (table.valid(e)) then
 							return e
 						end
 					end
@@ -202,7 +202,7 @@ function GetNearestGrindAttackable()
 				local el = MEntityList("nearest,contentid="..huntString..",notincombat,alive,attackable,onmesh,exclude_contentid="..excludeString)
 				if ( el ) then
 					local i,e = next(el)
-					if (ValidTable(e)) then
+					if (table.valid(e)) then
 						if ((e.targetid == 0 or e.targetid == Player.id) and
 							e.distance <= tonumber(gClaimRange)) then
 							--d("Grind returned, using block:"..tostring(block))
@@ -216,18 +216,18 @@ function GetNearestGrindAttackable()
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		block = 2		
 		el = MEntityList("nearest,alive,attackable,onmesh,targetingme,fateid=0,exclude_contentid="..excludeString..",maxdistance=40")
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			local i,e = next(el)
-			if (ValidTable(e)) then
+			if (table.valid(e)) then
 				return e
 			end
 		end
 		
 		--Prioritize the lowest health with aggro on player, non-fate mobs.
 		el = MEntityList("nearest,alive,attackable,onmesh,claimedbyid="..tostring(Player.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=40") 
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			local i,e = next(el)
-			if (ValidTable(e)) then
+			if (table.valid(e)) then
 				return e
 			end
 		end
@@ -245,7 +245,7 @@ function GetNearestGrindAttackable()
 					
 					if ( el ) then
 						local i,e = next(el)
-						if (ValidTable(e)) then
+						if (table.valid(e)) then
 							--d("Grind returned, using block:"..tostring(block))
 							return e
 						end
@@ -255,12 +255,12 @@ function GetNearestGrindAttackable()
 		end
 		
 		block = 4
-		if (ValidTable(Player.pet)) then
+		if (table.valid(Player.pet)) then
 			el = MEntityList("lowesthealth,alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e)) then
+				if (table.valid(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -275,7 +275,7 @@ function GetNearestGrindAttackable()
 			
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e)) then
+				if (table.valid(e)) then
 					if (e.targetid == 0 or e.targetid == Player.id or gClaimed ) then
 						--d("Grind returned, using block:"..tostring(block))
 						return e
@@ -292,7 +292,7 @@ function GetNearestGrindAttackable()
 			block = 6
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e)) then
+				if (table.valid(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -303,7 +303,7 @@ function GetNearestGrindAttackable()
 			block = 7
 			if ( el ) then
 				local i,e = next(el)
-				if (ValidTable(e)) then
+				if (table.valid(e)) then
 					--d("Grind returned, using block:"..tostring(block))
 					return e
 				end
@@ -345,7 +345,7 @@ function GetNearestFateAttackable()
 			d("fate type is 1")
 			
 			el = MEntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local bestTarget = nil
 				local highestHP = 0
 				
@@ -360,7 +360,7 @@ function GetNearestFateAttackable()
 					if (bestTarget.targetid ~= Player.id and bestTarget.aggropercentage ~= 100) then
 						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
 						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
-						if (ValidTable(el)) then
+						if (table.valid(el)) then
 							d("searching targets that are targeting me")
 							local nearestQuick = nil
 							local nearestQuickDistance = 500
@@ -392,7 +392,7 @@ function GetNearestFateAttackable()
 		end
 		
 		el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if (ValidTable(el)) then
+        if (table.valid(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				local epos = e.pos
@@ -404,7 +404,7 @@ function GetNearestFateAttackable()
         end	
     
         el = MEntityList("nearest,alive,attackable,targetingme,onmesh,fateid="..tostring(fate.id))            
-        if (ValidTable(el)) then
+        if (table.valid(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 local epos = e.pos
@@ -418,17 +418,17 @@ function GetNearestFateAttackable()
 		local companion = GetCompanionEntity()
 		if (companion) then
 			el = MEntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id)..",targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local id, target = next(el)
-				if (ValidTable(target) and myTarget == 0) then
+				if (table.valid(target) and myTarget == 0) then
 					return target
 				end
 			end
 			
 			el = MEntityList("nearest,alive,attackable,onmesh,fateid=0,targeting="..tostring(companion.id)..",maxlevel="..tostring(Player.level+3)..",maxdistance=30")
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local id, target = next(el)
-				if (ValidTable(target) and myTarget == 0) then
+				if (table.valid(target) and myTarget == 0) then
 					return target
 				end
 			end
@@ -436,7 +436,7 @@ function GetNearestFateAttackable()
 		
 		if (gFateKillAggro ) then
 			el = MEntityList("nearest,alive,attackable,aggro,fateid=0,onmesh")
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local i,e = next(el)
 				if (i~=nil and e~=nil) then
 					return e
@@ -445,7 +445,7 @@ function GetNearestFateAttackable()
 		end
 		
         el = MEntityList("nearest,alive,attackable,onmesh,maxdistance="..tostring(ml_global_information.AttackRange)..",fateid="..tostring(fate.id))
-        if (ValidTable(el)) then
+        if (table.valid(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
 				local epos = e.pos
@@ -457,7 +457,7 @@ function GetNearestFateAttackable()
         end	
     
         el = MEntityList("nearest,alive,attackable,onmesh,fateid="..tostring(fate.id))            
-        if (ValidTable(el)) then
+        if (table.valid(el)) then
             local i,e = next(el)
             if (i~=nil and e~=nil) then
                 local epos = e.pos
@@ -483,7 +483,7 @@ function GetHuntTarget()
 		else
 			el = MEntityList("contentid="..ffxiv_task_hunt.rankS..",alive,attackable,onmesh")
 		end
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			for i,e in pairs(el) do
 				local myPos = Player.pos
 				local tpos = e.pos
@@ -494,7 +494,7 @@ function GetHuntTarget()
 				end
 			end
 			
-			if (ValidTable(nearest)) then
+			if (table.valid(nearest)) then
 				return "S", nearest
 			end
 		end
@@ -506,7 +506,7 @@ function GetHuntTarget()
 		else
 			el = MEntityList("contentid="..ffxiv_task_hunt.rankA..",alive,attackable,onmesh")
 		end
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			for i,e in pairs(el) do
 				local myPos = Player.pos
 				local tpos = e.pos
@@ -517,7 +517,7 @@ function GetHuntTarget()
 				end
 			end
 			
-			if (ValidTable(nearest)) then
+			if (table.valid(nearest)) then
 				return "A", nearest
 			end
 		end
@@ -530,7 +530,7 @@ function GetHuntTarget()
 			else
 				el = MEntityList("contentid="..tostring(gHuntBRankHuntID)..",alive,attackable,onmesh")
 			end
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					local myPos = Player.pos
 					local tpos = e.pos
@@ -541,7 +541,7 @@ function GetHuntTarget()
 					end
 				end
 				
-				if (ValidTable(nearest)) then
+				if (table.valid(nearest)) then
 					return "B", nearest
 				end
 			end
@@ -553,7 +553,7 @@ function GetHuntTarget()
 			else
 				el = MEntityList("contentid="..ffxiv_task_hunt.rankB..",alive,attackable,onmesh")
 			end
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				for i,e in pairs(el) do
 					local myPos = Player.pos
 					local tpos = e.pos
@@ -564,7 +564,7 @@ function GetHuntTarget()
 					end
 				end
 				
-				if (ValidTable(nearest)) then
+				if (table.valid(nearest)) then
 					return "B", nearest
 				end
 			end
@@ -574,7 +574,7 @@ function GetHuntTarget()
 	return nil
 end
 function IsValidHealTarget(e)
-	if (ValidTable(e) and e.alive and e.targetable and not e.aggro) then
+	if (table.valid(e) and e.alive and e.targetable and not e.aggro) then
 		return (e.chartype == 4) or (e.id == Player.id) or
 			(e.chartype == 0 and (e.type == 2 or e.type == 3 or e.type == 5)) or
 			(e.chartype == 3 and e.type == 2) or
@@ -590,7 +590,7 @@ function GetBestTankHealTarget( range )
 
     local el = MEntityList("friendly,alive,chartype=4,myparty,targetable,maxdistance="..tostring(range))
 	--local el = MEntityList("friendly,alive,chartype=4,myparty,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( table.valid(el) ) then
 		for i,e in pairs(el) do
 			if (IsTank(e.job) and e.hp.percent < lowestHP ) then
 				lowest = e
@@ -617,7 +617,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	local healables = {}
 	
 	local el = MEntityList("alive,friendly,chartype=4,myparty,targetable,maxdistance="..tostring(range))
-	if ( ValidTable(el) ) then
+	if ( table.valid(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= hp) then
 				healables[i] = e
@@ -627,7 +627,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 	
 	if (npc) then
 		el = MEntityList("alive,friendly,myparty,targetable,maxdistance="..tostring(range))
-		if ( ValidTable(el) ) then
+		if ( table.valid(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= hp) then
 					healables[i] = e
@@ -636,7 +636,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 		end
 	end
 	
-	if (ValidTable(healables)) then
+	if (table.valid(healables)) then
 		local lowest = nil
 		local lowesthp = 100
 		
@@ -652,7 +652,7 @@ function GetBestPartyHealTarget( npc, range, hp )
 		end
 	end
 	
-	if (FFXIV_Common_BotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -748,7 +748,7 @@ function GetLowestHPParty( skill )
 			--el = MEntityList("myparty,alive,maxdistance="..tostring(range))
 		end
 		
-		if ( ValidTable(el) ) then
+		if ( table.valid(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e)) then
 					if (not lowest or e.hp.percent < lowestHP) then
@@ -759,9 +759,9 @@ function GetLowestHPParty( skill )
 			end
 		end
 		
-		if (Player.alive and ml_global_information.Player_HP.percent < lowestHP) then
+		if (Player.alive and Player.hp.percent < lowestHP) then
 			lowest = Player
-			lowestHP = ml_global_information.Player_HP.percent
+			lowestHP = Player.hp.percent
 		end
 		
 		return lowest
@@ -801,7 +801,7 @@ function GetLowestMPParty( range, role, includeself )
 	end
 	
     local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( table.valid(el) ) then
 		for i,e in pairs(el) do
 			if (mpUsers[e.job] and e.mp.percent < lowestMP) then
 				lowest = e
@@ -854,7 +854,7 @@ function GetLowestTPParty( range, role, includeself )
 	
     local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
 	--local el = MEntityList("myparty,alive,type=1,targetable,maxdistance="..tostring(range))
-    if ( ValidTable(el) ) then
+    if ( table.valid(el) ) then
         for i,e in pairs(el) do
 			if (e.job and tpUsers[e.job]) then
 				if (e.tp < lowestTP) then
@@ -866,9 +866,9 @@ function GetLowestTPParty( range, role, includeself )
     end
 	
 	if (includeself) then
-		if (Player.alive and tpUsers[Player.job] and ml_global_information.Player_TP < lowestTP) then
+		if (Player.alive and tpUsers[Player.job] and Player.tp < lowestTP) then
 			lowest = Player
-			lowestTP = ml_global_information.Player_TP
+			lowestTP = Player.tp
 		end
 	end
 	
@@ -885,7 +885,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	local healables = {}
 	
 	local el = MEntityList("alive,friendly,chartype=4,targetable,maxdistance="..tostring(range))
-	if ( ValidTable(el) ) then
+	if ( table.valid(el) ) then
 		for i,e in pairs(el) do
 			if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
 				--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
@@ -897,7 +897,7 @@ function GetBestHealTarget( npc, range, reqhp )
 	if (npc) then
 		--d("[GetBestHealTarget]: Checking non-players section.")
 		local el = MEntityList("alive,targetable,maxdistance="..tostring(range))
-		if ( ValidTable(el) ) then
+		if ( table.valid(el) ) then
 			for i,e in pairs(el) do
 				if (IsValidHealTarget(e) and e.hp.percent <= reqhp) then
 					--d("[GetBestHealTarget]: "..tostring(e.name).." is a valid target with ["..tostring(e.hp.percent).."] HP %.")
@@ -907,7 +907,7 @@ function GetBestHealTarget( npc, range, reqhp )
 		end
 	end
 	
-	if (ValidTable(healables)) then
+	if (table.valid(healables)) then
 		local lowest = nil
 		local lowesthp = 100
 		
@@ -935,7 +935,7 @@ function GetBestBaneTarget()
 	--Check the original diseased target, make sure it has all the required buffs, and that they're all 3 or more, blow it up, reset the best dot target.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player.id)) then
+		if (table.valid(e) and e.alive and e.attackable and e.los and e.distance <= 25 and HasBuffs(e, "179+180+189", 3, Player.id)) then
 			SkillMgr.bestAOE = 0
 			return e
 		end
@@ -966,7 +966,7 @@ function GetBestDoTTarget()
 	--Check for the original DoT target, if it exists, and is still missing debuffs, keep using it.
 	if (SkillMgr.bestAOE ~= 0) then
 		local e = EntityList:Get(SkillMgr.bestAOE)
-		if (ValidTable(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player.id)) then
+		if (table.valid(e) and e.alive and e.attackable and e.los and e.distance <= 25 and MissingBuffs(e, "179,180,189", 3, Player.id)) then
 			return e
 		end
 	end
@@ -992,7 +992,7 @@ function GetClosestHealTarget()
     local pID = Player.id
     local el = MEntityList("nearest,friendly,chartype=4,myparty,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	--local el = MEntityList("nearest,friendly,chartype=4,myparty,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( ValidTable(el) ) then
+    if ( table.valid(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
@@ -1001,7 +1001,7 @@ function GetClosestHealTarget()
     
     local el = MEntityList("nearest,friendly,chartype=4,targetable,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
 	--local el = MEntityList("nearest,friendly,chartype=4,exclude="..tostring(pID)..",maxdistance="..tostring(ml_global_information.AttackRange))
-    if ( ValidTable(el) ) then
+    if ( table.valid(el) ) then
         local i,e = next(el)
         if (i~=nil and e~=nil) then
             return e
@@ -1024,7 +1024,7 @@ function GetBestRevive( party, role)
 	
 	-- Filter out the inappropriate roles.
 	local targets = {}
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local roleTable = GetRoleTable(role)
 		if (roleTable) then
 			for id,entity in pairs(el) do
@@ -1056,7 +1056,7 @@ function GetBestRevive( party, role)
 		end
 	end
 	
-	if (FFXIV_Common_BotMode == GetString("partyMode") and not IsPartyLeader()) then
+	if (gBotMode == GetString("partyMode") and not IsPartyLeader()) then
 		local leader, isEntity = GetPartyLeader()
 		if (leader and leader.id ~= 0) then
 			local leaderentity = EntityList:Get(leader.id)
@@ -1077,31 +1077,31 @@ function GetPVPTarget()
 	local enemyParty = nil
 	if (Player.localmapid == 376 or Player.localmapid == 422) then
 		enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=15")
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,targetingme,alive,chartype=4,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=15")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,chartype=4,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,maxdistance=15")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("lowesthealth,onmesh,attackable,alive,maxdistance=25")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("shortestpath,onmesh,attackable,alive,chartype=4,maxdistance=45")
 		end
-		if(not ValidTable(enemyParty)) then
+		if(not table.valid(enemyParty)) then
 			enemyParty = MEntityList("shortestpath,onmesh,attackable,alive,maxdistance=45")
 		end
 	else
 		enemyParty = MEntityList("onmesh,attackable,alive,chartype=4")
 	end
-    if (ValidTable(enemyParty)) then
+    if (table.valid(enemyParty)) then
         local id, entity = next(enemyParty)
         while (id ~= nil and entity ~= nil) do	
 			local beingSlept = false
@@ -1351,7 +1351,7 @@ function RoundUp(number, multiple)
 end
 function GetNearestFromList(strList,pos,radius)
 	local el = MEntityList(strList)
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local filteredList = {}
 		for i,e in pairs(el) do
 			if (not radius or (radius >= 100)) then
@@ -1366,7 +1366,7 @@ function GetNearestFromList(strList,pos,radius)
 			end
 		end
 		
-		if (ValidTable(filteredList)) then
+		if (table.valid(filteredList)) then
 			table.sort(filteredList,function(a,b) return a.distance < b.distance end)
 			
 			local i,e = next(filteredList)
@@ -1387,7 +1387,7 @@ function GetNearestGatherable(marker)
 	local radius = 0
 	local markerPos = nil
 	
-	if (ValidTable(marker)) then
+	if (table.valid(marker)) then
 		if (gMarkerMgrMode ~= GetString("singleMarker")) then	
 			local mincontentlevel = marker:GetFieldValue(GetUSString("minContentLevel"))
 			if (tonumber(mincontentlevel) and tonumber(mincontentlevel) > 0) then
@@ -1410,7 +1410,7 @@ function GetNearestGatherable(marker)
 		blacklist = tostring(marker:GetFieldValue(GetUSString("NOTcontentIDEquals")))
 	end
     
-	if (radius == 0 or radius > 200 or not ValidTable(markerPos)) then
+	if (radius == 0 or radius > 200 or not table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
 			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
@@ -1419,13 +1419,13 @@ function GetNearestGatherable(marker)
 			el = MEntityList("shortestpath,onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel))
 		end
 		
-		if ( ValidTable(el) ) then
+		if ( table.valid(el) ) then
 			local i,e = next(el)
 			if (i~=nil and e~=nil) then
 				return e
 			end
 		end
-	elseif (ValidTable(markerPos)) then
+	elseif (table.valid(markerPos)) then
 		if (whitelist and whitelist ~= "") then
 			el = MEntityList("onmesh,gatherable,minlevel="..tostring(minlevel)..",maxlevel="..tostring(maxlevel)..",contentid="..whitelist)
 		elseif (blacklist and blacklist ~= "") then
@@ -1435,7 +1435,7 @@ function GetNearestGatherable(marker)
 		end
 		
 		local gatherables = {}
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			for i,g in pairs(el) do
 				local gpos = g.pos
 				local dist = PDistance3D(markerPos.x,markerPos.y,markerPos.z,gpos.x,gpos.y,gpos.z)
@@ -1446,7 +1446,7 @@ function GetNearestGatherable(marker)
 			end
 		end
 		
-		if (ValidTable(gatherables)) then
+		if (table.valid(gatherables)) then
 			table.sort(gatherables,	function(a,b) return a.pathdistance < b.pathdistance end)
 			
 			local i,g = next(gatherables)
@@ -1465,7 +1465,7 @@ function GetNearestUnspoiled(class)
 	--Mature Tree = 7
 	--Vegetation = 8
 	local contentID = (class == FF.JOBS.MINER) and "5;6" or "7;8"
-    local el = MEntityList("shortestpath,onmesh,gatherable,contentid="..tostring(contentID))
+    local el = MEntityList("nearest,onmesh,gatherable,contentid="..tostring(contentID))
     
     if ( el ) then
         local i,e = next(el)
@@ -1484,9 +1484,9 @@ function HasBuff(targetid, buffID, stacks, duration, ownerid)
 	local ownerid = tonumber(ownerid) or 0
 	
 	local entity = MGetEntity(targetid)
-	if (ValidTable(entity)) then
+	if (table.valid(entity)) then
 		local buffs = entity.buffs
-		if (ValidTable(buffs)) then
+		if (table.valid(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
 					if ((stacks == 0 or stacks >= buff.stacks) and
@@ -1510,9 +1510,9 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 	local ownerid = tonumber(ownerid) or 0
 	
 	local entity = MGetEntity(targetid)
-	if (ValidTable(entity)) then
+	if (table.valid(entity)) then
 		local buffs = entity.buffs
-		if (ValidTable(buffs)) then
+		if (table.valid(buffs)) then
 			local missing = true
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
@@ -1538,7 +1538,7 @@ function HasSkill( skillids )
 	local skills = SkillMgr.SkillProfile
 	--for prio,skill in spairs(SkillMgr.SkillProfile)
 	
-	if (not ValidTable(skills)) then return false end
+	if (not table.valid(skills)) then return false end
 	
 	for _orids in StringSplit(skillids,",") do
 		local found = false
@@ -1564,10 +1564,10 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	local owner = ownerid or 0
 	local buffIDs = IsNull(tostring(buffIDs),"")
 	
-	if (ValidTable(entity) and buffIDs ~= "") then
+	if (table.valid(entity) and buffIDs ~= "") then
 		local buffs = entity.buffs
 
-		if (ValidTable(buffs)) then
+		if (table.valid(buffs)) then
 			for _orids in StringSplit(buffIDs,",") do
 				local found = false
 				for _andid in StringSplit(_orids,"+") do
@@ -1597,11 +1597,11 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 	local owner = ownerid or 0
 	local buffIDs = IsNull(tostring(buffIDs),"")
 	
-	if (ValidTable(entity) and buffIDs ~= "") then
+	if (table.valid(entity) and buffIDs ~= "") then
 		--If we have no buffs, we are missing everything.
 		local buffs = entity.buffs
 		
-		if (ValidTable(buffs)) then
+		if (table.valid(buffs)) then
 			--Start by assuming we have no buffs, so they are missing.
 			for _orids in StringSplit(buffIDs,",") do
 				local missing = true
@@ -1640,7 +1640,6 @@ function HasInfiniteDuration(id)
 	infiniteDurationAbilities = {
 		[614] = true,
 	}
-	
 	return infiniteDurationAbilities[id] or false
 end
 function IsPlayerCasting(fullcheck)
@@ -1657,31 +1656,6 @@ function SetFacing( posX, posY, posZ)
 	end
 	
 	Player:SetFacing(posX, posY, posZ)
-end
-function isCasting(entity, actionIDs , minCasttime , targetid) 
-	local ci = entity.castinginfo 
-	minCasttime = minCasttime or 0
-	
-	if ( ci == nil or ci.channelingid == 0 ) then return false end
-	
-	if ( minCasttime > 0 ) then
-		if (ci.channeltime < minCasttime ) then 
-			return false 
-		elseif (ci.channeltime >= minCasttime and actionIDs == "") then
-			return true
-		end
-	end
-	if ( targetid ~= nil and ci.channeltargetid ~= targetid ) then return false end
-	
-	if (actionIDs ~= "") then
-		for _orids in StringSplit(actionIDs,",") do
-			if (tonumber(_orids) == ci.channelingid) then
-				return true
-			end
-		end
-	end
-
-	return false
 end
 function HasContentID(entity, contentIDs) 	
 	local cID = entity.contentid
@@ -2144,7 +2118,7 @@ function GetPosFromDistanceHeading(startPos, distance, heading)
 end
 function GetFateByID(fateID)
     local fateList = MFateList()
-	if (ValidTable(fateList)) then
+	if (table.valid(fateList)) then
 		for _,fate in pairs(fateList) do
 			 if (fate.id == fateID) then
                 return fate
@@ -2159,7 +2133,7 @@ function GetApprovedFates()
 	
 	local level = Player.level
 	local fatelist = MFateList()
-	if (ValidTable(fatelist)) then
+	if (table.valid(fatelist)) then
 		for _,fate in pairs(fatelist) do
 			local minFateLevel = tonumber(FFXIV_Grind_FatesMinLevel) or 0
 			local maxFateLevel = tonumber(FFXIV_Grind_FatesMaxLevel) or 0
@@ -2211,7 +2185,7 @@ function IsFateApproved(fateid)
 end
 function IsInsideFate()
 	local closestFate = GetClosestFate()
-	if (ValidTable(closestFate)) then
+	if (table.valid(closestFate)) then
 		local fatePos = {x = closestFate.x, y = closestFate.y, z = closestFate.z}
 		local myPos = Player.pos
 		local dist = Distance2D(myPos.x,myPos.z,fatePos.x,fatePos.z)
@@ -2226,7 +2200,7 @@ function GetClosestFate(pos,pathcheck)
 	if (pathcheck == nil) then pathcheck = false end
 	
 	local fateList = GetApprovedFates()
-	if (ValidTable(fateList)) then		
+	if (table.valid(fateList)) then		
 		if (pathcheck and not FFXIV_Common_Teleport) then
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
@@ -2259,7 +2233,7 @@ function GetClosestFate(pos,pathcheck)
 			end
 		end
 		
-		if (ValidTable(whitelistTable)) then
+		if (table.valid(whitelistTable)) then
 			for k, fate in pairs(fateList) do
 				if (whitelistTable[fate.id] and	fate.status == 2) then	
 					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
@@ -2292,7 +2266,7 @@ function GetClosestFate(pos,pathcheck)
 				end
 			end
 			
-			if (not ValidTable(validFates)) then
+			if (not table.valid(validFates)) then
 				for k, fate in pairs(fateList) do
 					if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 						if (fate.status == 2) then	
@@ -2306,7 +2280,7 @@ function GetClosestFate(pos,pathcheck)
 				end
 			end
 			
-			if (ValidTable(validFates)) then
+			if (table.valid(validFates)) then
 				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
 					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
@@ -2339,17 +2313,9 @@ function IsOnMap(mapid)
 end
 function ScanForMobs(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
-	local maxdistance = tonumber(distance) or 30
+	local maxdistance = tonumber(distance) or 150
 	local el = MEntityList("nearest,targetable,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
-		local i,e = next(el)
-		if (i and e) then
-			return true
-		end
-	end
-	
-	local el = MEntityList("nearest,aggro,alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2363,14 +2329,14 @@ function ScanForCaster(ids,distance,spells,includeself)
 	local ids = (type(ids) == "string" and ids) or tostring(ids) or ""
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
 	
-	local maxdistance = tonumber(distance) or 30
+	local maxdistance = tonumber(distance) or 150
 	local el;
 	if (string.valid(ids)) then
 		el = MEntityList("alive,contentid="..ids..",maxdistance="..tostring(maxdistance))
 	else
 		el = MEntityList("alive,maxdistance="..tostring(maxdistance))
 	end
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
 				if (MultiComp(e.castinginfo.channelingid,spells)) then
@@ -2432,9 +2398,9 @@ function ScanForCaster(ids,distance,spells,includeself)
 end
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
-	local maxdistance = tonumber(distance) or 30
+	local maxdistance = tonumber(distance) or 150
 	local el = MEntityList("nearest,targetable,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2445,9 +2411,9 @@ function ScanForObjects(ids,distance)
 end
 function ScanForEntity(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
-	local maxdistance = tonumber(distance) or 30
+	local maxdistance = tonumber(distance) or 150
 	local el = MEntityList("nearest,contentid="..ids..",maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local i,e = next(el)
 		if (i and e) then
 			return true
@@ -2458,13 +2424,12 @@ function ScanForEntity(ids,distance)
 end
 function CanUseCannon()
 	if (MIsLocked()) then
-		local misc = ActionList("type=1,level=0")
-		if (ValidTable(misc)) then
-			for i,skill in pairsByKeys(misc) do
-				if (skill.id == 1134 or skill.id == 1437 or skill.id == 2630 or skill.id == 1128 or skill.id == 2434) then
-					if (skill.isready) then
-						return true
-					end
+		local misc = ActionList(1)
+		if (table.valid(misc)) then
+			local cannons = { 1134, 1437, 2630, 1128, 2434 }
+			for _,cannonid in pairs(cannons) do
+				if (misc[cannonid] ~= nil and misc[cannonid]:IsReady(Player.id)) then
+					return true
 				end
 			end
 		end
@@ -2481,9 +2446,9 @@ function GetPathDistance(pos1,pos2)
 	local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
 	
 	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-	if (ValidTable(path)) then
+	if (table.valid(path)) then
 		local pathdist = PathDistance(path)
-		if (ValidTable(pathdist)) then
+		if (table.valid(pathdist)) then
 			dist = pathdist
 		end
 	end	
@@ -2503,7 +2468,7 @@ function HasNavPath(pos1,pos2,previousDistance)
 	local previousDistance = IsNull(previousDistance,0)
 	
 	if (pos1 and pos2) then
-		if (CanFlyInZone() and ValidTable(ffxiv_task_test.flightMesh)) then
+		if (CanFlyInZone() and table.valid(ffxiv_task_test.flightMesh)) then
 			if (ffxiv_task_test.GetPath(pos1,pos2)) then
 				return true
 			end
@@ -2526,7 +2491,7 @@ function HasNavPath(pos1,pos2,previousDistance)
 			if (TimeSince(ml_global_information.lastPathGet) > 2000 or ml_global_information.lastPathGet == Now()) then
 				ml_global_information.lastPathGet = Now()
 				local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-				if (ValidTable(path)) then
+				if (table.valid(path)) then
 					local lastPos = path[TableSize(path)-1]
 					local finalDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
 					if (finalDist <= 2) then	
@@ -2555,7 +2520,7 @@ function GetNavPath(pos1,pos2)
 	
 	if (p1 and p2) then		
 		local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
-		if (ValidTable(path)) then
+		if (table.valid(path)) then
 			local lastPos = path[TableSize(path)-1]
 			
 			local finalDist = PDistance3D(lastPos.x,lastPos.y,lastPos.z,p2.x,p2.y,p2.z)
@@ -2594,8 +2559,8 @@ function GetLinePoints(pos1,pos2,length)
 	return points
 end
 function GetAggroDetectionPoints(pos1,pos2)
-	assert(ValidTable(pos1),"First argument is not a valid position.")
-	assert(ValidTable(pos2),"Second argument is not a valid position.")
+	assert(table.valid(pos1),"First argument is not a valid position.")
+	assert(table.valid(pos2),"Second argument is not a valid position.")
 	
 	local points = {}
 	local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
@@ -2611,7 +2576,7 @@ function GetAggroDetectionPoints(pos1,pos2)
 			local dist = PDistance3D(prevPos.x,prevPos.y,prevPos.z,pos.x,pos.y,pos.z)
 			if (dist > 5) then
 				local minipoints = GetLinePoints(prevPos,pos,5)
-				if (ValidTable(minipoints)) then
+				if (table.valid(minipoints)) then
 					for i,pos in pairsByKeys(minipoints) do
 						points[x] = pos
 						x = x + 1
@@ -2622,36 +2587,6 @@ function GetAggroDetectionPoints(pos1,pos2)
 		end
 	end
 	return points
-end
-function PathDistanceTable(gotoPos)
-	if (ValidTable(gotoPos)) then
-		local ppos = Player.pos
-		local path = NavigationManager:GetPath(ppos.x,ppos.y,ppos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-		
-		local prevPos = nil
-		for k,v in pairsByKeys(path) do
-			if (prevPos == nil) then
-				d("Distance:"..tostring(Distance3D(ppos.x,ppos.y,ppos.z,v.x,v.y,v.z)))
-			else
-				d("Distance:"..tostring(Distance3D(prevPos.x,prevPos.y,prevPos.z,v.x,v.y,v.z)))
-			end
-			prevPos = {x=v.x,y=v.y,z=v.z}
-		end
-		
-		--[[
-		local dist
-		if ( pathdist ) then
-			local pdist = PathDistance(pathdist)
-			if ( pdist ~= nil ) then
-				dist = pdist
-			else
-				dist = Distance3DT(gotoPos,ppos)
-			end
-		else
-			dist = Distance3DT(gotoPos,ppos)
-		end	
-		--]]
-	end
 end
 function IsLeader()
 	local leader = nil
@@ -2671,10 +2606,10 @@ function IsLeader()
     return false
 end
 function GetPartyLeader()
-	if (FFXIV_Common_BotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
+	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
 		if (gPartyLeaderName ~= "") then
 			local el = MEntityList("type=1,name="..gPartyLeaderName)
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
 					return leaderentity, true
@@ -2682,7 +2617,7 @@ function GetPartyLeader()
 			end
 			
 			local party = EntityList.myparty
-			if (ValidTable(party)) then
+			if (table.valid(party)) then
 				for i,member in pairs(party) do
 					if (member.name == gPartyLeaderName) then
 						leader = member
@@ -2695,7 +2630,7 @@ function GetPartyLeader()
 		local leader = nil
 		local isEntity = false
 		local party = EntityList.myparty
-		if (ValidTable(party)) then
+		if (table.valid(party)) then
 			for i,member in pairs(party) do
 				if member.isleader then
 					leader = member
@@ -2706,7 +2641,7 @@ function GetPartyLeader()
 		
 		if (leader) then
 			local el = MEntityList("type=1,name="..leader.name)
-			if (ValidTable(el)) then
+			if (table.valid(el)) then
 				local i,leaderentity = next (el)
 				if (i and leaderentity) then
 					leader = leaderentity
@@ -2737,7 +2672,7 @@ end
 function IsInParty(id)
 	local found = false
 	local party = EntityList.myparty
-	if (ValidTable(party)) then
+	if (table.valid(party)) then
 		for i, member in pairs(party) do
 			if member.id == id then
 				return true
@@ -2756,23 +2691,23 @@ function InCombatRange(targetid)
 	if (type(targetid) == "table") then
 		local id = targetid.id
 		target = MGetEntity(id)
-		if (not target or not ValidTable(target)) then
+		if (not target or not table.valid(target)) then
 			return false
 		end
 	else
 		target = MGetEntity(targetid)
-		if (not target or not ValidTable(target)) then
+		if (not target or not table.valid(target)) then
 			return false
 		end
 	end
 	
 	--If we're in duty, consider the player always in-range, should be handled by the profile.
 	--d(ml_task_queue.rootTask)
-	if (FFXIV_Common_BotMode == GetString("dutyMode")) then
+	if (gBotMode == GetString("dutyMode")) then
 		return true
 	end
 	
-	if (FFXIV_Common_BotMode == GetString("gatherMode")) then
+	if (gBotMode == GetString("gatherMode")) then
 		local node = EntityList:Get(targetid)
 		if (node and node.distance2d < 4) then
 			return true
@@ -2798,7 +2733,7 @@ function InCombatRange(targetid)
 		return true
 	end
 	
-	local highestRange = 0
+	local highestRange = 5
 	local charge = false
 	local skillID = nil
 	
@@ -2819,8 +2754,8 @@ function InCombatRange(targetid)
 		end
 	end
 	
-	if ( attackRange < 5 ) then			
-		if (skillID ~= nil) then
+	--if ( attackRange < 5 ) then			
+		--if (skillID ~= nil) then
 			--[[
 			if (highestRange > 5) then
 				if ((target.targetid == 0 or target.targetid == nil) and rootTaskName ~= "LT_PVP") then
@@ -2842,12 +2777,12 @@ function InCombatRange(targetid)
 				end
 			end
 			--]]
-		end
-	else
+		--end
+	--else
 		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))
-	end
+	--end
 
-	return false
+	--return false
 end
 function CanAttack(targetid,skillid,skilltype)
 	local target = {}
@@ -2873,58 +2808,20 @@ function CanAttack(targetid,skillid,skilltype)
 			if (skilltype ~= nil and tonumber(skilltype) ~= nil) then
 				stype = skilltype
 			end
-			action = ActionList:Get(skillid,stype,target.id)
+			action = ActionList:Get(stype,skillid)
 		else
 			testSkill = SkillMgr.GCDSkills[Player.job]
-			action = ActionList:Get(testSkill,1,target.id)
+			action = ActionList:Get(1,testSkill)
 		end
 		
 		if (action) then
-			if (action.range >= ((target.distance - target.hitradius) * .98)) then
+			if (action:IsReady(target.id) or (action.range >= ((target.distance - target.hitradius) * .98))) then
 				return true
 			end
 		end
 	end
 		
 	return false
-end
-function GetMounts()
-	local mounts = "None"
-	local eq = ActionList("type=13")
-	for k,v in pairsByKeys(eq) do
-		mounts = mounts..","..v.name
-	end
-	
-	return mounts
-end
-function GetMountID()
-	local mountID
-	local mountIndex
-	local mountlist = ActionList("type=13")
-	
-	if (ValidTable(mountlist)) then
-		--First pass, look for our named mount.
-		for k,v in pairsByKeys(mountlist) do
-			if (v.name == FFXIV_Common_MountIndex) then
-				local acMount = ActionList:Get(v.id,13)
-				if (acMount and acMount.isready) then
-					return v.id
-				end
-			end
-		end
-		
-		--Second pass, look for any mount as backup.
-		if (FFXIV_Common_MountIndex == GetString("none")) then
-			for k,v in pairsByKeys(mountlist) do
-				local acMount = ActionList:Get(v.id,13)
-				if (acMount and acMount.isready) then
-					return v.id
-				end
-			end		
-		end
-	end
-	
-	return nil
 end
 function IsMounting()
 	return (not Player.ismounted and (Player.action == 83 or Player.action == 84 or Player.action == 165))
@@ -2936,8 +2833,8 @@ function IsDismounting()
 	return (Player.action == 31 or Player.action == 32 or Player.action == 33)
 end
 function IsPositionLocked()
-	local jump = ActionList:Get(2,5)
-	return (jump and not jump.isready)
+	local jump = ActionList:Get(5,2)
+	return (jump and not jump:IsReady(Player.id))
 end
 function IsLoading()
 	if (IsControlOpen("NowLoading")) then
@@ -2946,41 +2843,40 @@ function IsLoading()
 	elseif (Player.localmapid == 0) then
 		--d("IsLoading [2]")
 		return true
-	elseif (ml_mesh_mgr.loadingMesh) then
-		--d("IsLoading [3]")
-		return true
+	else
+		local meshState = NavigationManager:GetNavMeshState()
+		if (meshState ~= GLOBAL.MESHSTATE.MESHREADY and meshState ~= GLOBAL.MESHSTATE.MESHEMPTY) then
+			--d("IsLoading [3]")
+			return true
+		end
 	end
 	
 	return false
-	--return (IsControlOpen("NowLoading") or Player.localmapid == 0 or ml_mesh_mgr.loadingMesh)
 end
 function HasAction(id, category)
-	id = tonumber(id) or 0
-	category = category or 1
+	local id = tonumber(id) or 0
+	local category = category or 1
 	
 	if (id ~= 0) then
-		local actions = ActionList("type="..tostring(category))
-		if (ValidTable(actions)) then
-			for k,v in pairsByKeys(actions) do
-				if (v.id == id) then
-					return true
-				end
-			end
+		local action = ActionList:Get(category,id)
+		if (table.valid(action)) then
+			return true
 		end
+		return false
 	end
 	return false			
 end
 function ActionIsReady(id, category)
-	if (MIsLoading()) then
+	if (MIsLoading() or not ActionList:IsReady()) then
 		return false
 	end
 
-	id = tonumber(id) or 0
-	category = category or 1
+	local id = tonumber(id) or 0
+	local category = category or 1
 	
-	local action = ActionList:Get(id,category)
-	if (IsNull(action,0) ~= 0) then
-		if (action.isready) then
+	local action = ActionList:Get(category,id)
+	if (table.valid(action)) then
+		if (action:IsReady(Player.id)) then
 			return true
 		end
 	end
@@ -2994,27 +2890,27 @@ function Mount(id)
 		return
 	end
 	
-	local mounts = ActionList("type=13")
-	if (ValidTable(mounts)) then
-		--If we weren't passed an id (party-grind), look it up.
+	local mounts = ActionList:Get(13)
+	if (table.valid(mounts)) then
 		if (mountID == 0) then
-			for k,v in pairsByKeys(mounts) do
-				if (v.name == FFXIV_Common_MountIndex) then
-					mountID = v.id
-				end
-			end
-		end
-			
-		if (mountID ~= 0) then
-			for k,acmount in pairsByKeys(mounts) do
-				if (acmount.id == mountID and acmount.isready) then
-					--d("Casted the mount.")
-					if (acmount:Cast()) then
+			for mountid,mountaction in pairsByKeys(mounts) do
+				if (mountaction.name == gMountName) then
+					if (mountaction:IsReady(Player.id)) then
+						mountaction:Cast(Player.id)
 						return true
 					end
 				end
 			end
-		end	
+		else
+			for mountid,mountaction in pairsByKeys(mounts) do
+				if (mountid == mountID) then
+					if (mountaction:IsReady(Player.id)) then
+						mountaction:Cast(Player.id)
+						return true
+					end
+				end
+			end
+		end
 	end
 	
 	return false
@@ -3096,7 +2992,7 @@ function NodeHasItem(searchItem)
 	if (searchItem and type(searchItem) == "string" and searchItem ~= "") then
 		for itemName in StringSplit(searchItem,",") do
 			local list = MGatherableSlotList()
-			if (ValidTable(list)) then
+			if (table.valid(list)) then
 				for i,item in pairs(list) do
 					if (item.name == itemName) then
 						return true
@@ -3122,7 +3018,7 @@ function WhitelistTarget()
 		_G["Field_"..key] = whitelistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+		if (table.valid(ml_marker_mgr.currentEditMarker)) then
 			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
 			ml_marker_mgr.WriteMarkerFile()
 		end
@@ -3142,7 +3038,7 @@ function BlacklistTarget()
 		_G["Field_"..key] = blacklistGlobal
 		GUI_RefreshWindow(ml_marker_mgr.editwindow.name)
 		
-		if (ValidTable(ml_marker_mgr.currentEditMarker)) then
+		if (table.valid(ml_marker_mgr.currentEditMarker)) then
 			ml_marker_mgr.currentEditMarker:SetFieldValue(key, _G["Field_"..key])
 			ml_marker_mgr.WriteMarkerFile()
 		end
@@ -3445,7 +3341,7 @@ function PartyMemberWithBuff(hasbuffs, hasnot, maxdistance)
 	
 	local el = MEntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
 	--local el = MEntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
@@ -3460,7 +3356,7 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
  
 	local el = MEntityList("myparty,alive,targetable,chartype=4,maxdistance="..tostring(maxdistance))
 	--local el = MEntityList("myparty,alive,chartype=4,maxdistance="..tostring(maxdistance))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		for i,e in pairs(el) do	
 			if ((hasbuffs=="" or HasBuffs(e,hasbuffs)) and (hasnot=="" or MissingBuffs(e,hasnot))) then
 				return e
@@ -3500,7 +3396,7 @@ function GetAetheryteList(force)
 end
 function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
-	if (ValidTable(apiList)) then
+	if (table.valid(apiList)) then
 		local aethData = {}
 		for i,aetheryte in pairsByKeys(apiList) do
 			aethData[i] = {
@@ -3522,7 +3418,7 @@ function CopyAetheryteData()
 end
 function GetLocalAetheryte()
     local list = ml_global_information.Player_Aetherytes
-	if (ValidTable(list)) then
+	if (table.valid(list)) then
 		for index,aetheryte in pairsByKeys(list) do
 			if (aetheryte.islocalmap) then
 				return aetheryte.id
@@ -3538,7 +3434,7 @@ function GetAttunedAetheryteList(force)
 	local attuned = {}
 	
 	local list = GetAetheryteList(force)
-	if (ValidTable(list)) then
+	if (table.valid(list)) then
 		for id,aetheryte in pairsByKeys(list) do
 			if (aetheryte.isattuned) then
 				table.insert(attuned, aetheryte)
@@ -3564,9 +3460,9 @@ function GetUnattunedAetheryteList()
 		end
 	end
 	
-	if (ValidTable(aethList)) then
+	if (table.valid(aethList)) then
 		local list = ml_global_information.Player_Aetherytes
-		if (ValidTable(list)) then
+		if (table.valid(list)) then
 			for id,aetheryte in pairsByKeys(list) do
 				if (aetheryte.isattuned and aethList[aetheryte.id]) then
 					aethList[aetheryte.id] = nil
@@ -3581,7 +3477,7 @@ function GetHomepoint()
 	local homepoint = 0
 	
 	local attuned = GetAttunedAetheryteList(true)
-	if (ValidTable(attuned)) then
+	if (table.valid(attuned)) then
 		for id,aetheryte in pairsByKeys(attuned) do
 			if (aetheryte.ishomepoint) then
 				homepoint = aetheryte.territory
@@ -3595,7 +3491,7 @@ function GetAetheryteByID(id,force)
 	local force = IsNull(force,false)
 	
 	local list = GetAetheryteList(force)
-	if (ValidTable(list)) then
+	if (table.valid(list)) then
 		for index,aetheryte in pairsByKeys(list) do
 			if (aetheryte.id == aethid) then
 				return aetheryte
@@ -3718,7 +3614,7 @@ function GetAetheryteByMapID(mapid, p)
 	}
 	
 	local list = GetAttunedAetheryteList()
-	if (ValidTable(list)) then
+	if (table.valid(list)) then
 		if (not pos or not sharedMaps[mapid]) then
 			--d("This is not a shared map or we were not given a position.")
 			for index,aetheryte in pairsByKeys(list) do
@@ -3806,7 +3702,7 @@ function CanUseAetheryte(aethid)
 	local aethid = tonumber(aethid) or 0
 	if (aethid ~= 0) then
 		local list = GetAttunedAetheryteList()
-		if (ValidTable(list)) then
+		if (table.valid(list)) then
 			for k,aetheryte in pairs(list) do
 				if (aetheryte.id == aethid) then
 					if (GilCount() >= aetheryte.price and aetheryte.price > 0) then
@@ -3910,7 +3806,7 @@ function GetOffMapMarkerPos(strMeshName, strMarkerName)
 	return newMarkerPos
 end
 function ShouldTeleport(pos)
-	if (MIsLocked() or MIsLoading() or ControlVisible("SelectString") or ControlVisible("SelectIconString") or IsShopWindowOpen()) then
+	if (MIsLocked() or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen()) then
 		return false
 	end
 	
@@ -4104,187 +4000,90 @@ function GetBestGrindMap()
 end
 function EquipItem(itemid, itemslot)
 	local itemid = tonumber(itemid)
-	
-	local item = MGetItem(itemid)
+	local item = GetItem(itemid)
 	if (item and item.canequip) then
 		item:Move(1000,itemslot)
 	end
 end
 function IsEquipped(itemid)
 	local itemid = tonumber(itemid)
-	local currEquippedItems = MInventory("type=1000")
-	for id,item in pairs(currEquippedItems) do
-		if (item.hqid == itemid) then
+	
+	local bag = Inventory:Get(1000)
+	if (table.valid(bag)) then
+		local item = bag:Get(itemid)
+		if (item) then
 			return true
 		end
 	end
+	
 	return false
 end
 function EquippedItemLevel(slot)
 	local slot = tonumber(slot)
-	local currEquippedItems = MInventory("type=1000")
-	if (currEquippedItems) then
-		for id,item in pairs(currEquippedItems) do
-			if (item.slot == slot) then
-				return item.level
-			end
+	
+	local bag = Inventory:Get(1000)
+	if (table.valid(bag)) then
+		local item = bag:GetItem(slot)
+		if (item) then
+			return item.level
 		end
 	end
 	
-	--d("Could not find an equipped item in slot ["..tostring(slot).."], returning 0.")
 	return 0
 end
-function GetItemInSlot(equipSlot)
-	local currEquippedItems = MInventory("type=1000")
-	for id,item in pairs(currEquippedItems) do
-		if(item.slot == equipSlot) then
-			return item
-		end
-	end
-	return nil
-end
-function ItemReady(hqid)
-	local itemid = tonumber(hqid)
-	local hqid = tonumber(hqid)
+function ItemReady(hqid,targetid)
+	local targetid = targetid or 0
 	
-	if (itemid > 1000000) then
-		itemid = itemid - 1000000
-	end
-	
-	local items = Inventory("itemid="..tostring(itemid))
-	if (ValidTable(items)) then
-		for _,item in pairs(items) do
-			if (item.hqid == hqid) then
-				return item.isready
-			end
-		end
+	local item = GetItem(hqid)
+	if (item) then
+		if (targetid ~= 0) then
+			return item:IsReady(targetid)
+		else
+			return item:IsReady()
+		end		
 	end
 	
 	return false
 end	
-function IsInventoryFull()
-	local itemcount = 0
+function IsInventoryFull(maxitems)
+	local maxitems = maxitems or 100
 	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			itemcount = itemcount + 1
+	local itemcount = 0
+	local inventories = inventories or {0,1,2,3}
+	for _,invid in pairsByKeys(inventories) do
+		local bag = Inventory:Get(invid)
+		if (table.valid(bag)) then
+			itemcount = itemcount + bag.used
 		end
 	end
 	
-	if (itemcount == 100) then
-		return true
-	end
-	
-	return false
+	return itemcount >= maxitems
 end
 function GetInventorySnapshot()
 	local currentSnapshot = {}
 	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for k,item in pairs(inv) do
-				if currentSnapshot[item.id] == nil then
-					-- New item
-					currentSnapshot[item.id] = {}
-					currentSnapshot[item.id].HQcount = 0
-					currentSnapshot[item.id].count = 0
+	local inventories = inventories or {0,1,2,3,1000,2004,2000}
+	for _,invid in pairs(inventories) do
+		local bag = Inventory:Get(invid)
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot,item in pairs(ilist) do
+					if currentSnapshot[item.id] == nil then
+						-- New item
+						currentSnapshot[item.id] = {}
+						currentSnapshot[item.id].HQcount = 0
+						currentSnapshot[item.id].count = 0
+					end
+					-- Increment item counts
+					if (item.ishq == 1) then
+						-- HQ
+						currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
+					else
+						-- NQ
+						currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
+					end
 				end
-				-- Increment item counts
-				if (item.IsHQ == 1) then
-					-- HQ
-					currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-				else
-					-- NQ
-					currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-				end
-			end
-		end
-	end
-	
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through key items bag.
-	local inv = MInventory("type=2004")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
 			end
 		end
 	end
@@ -4301,7 +4100,7 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local original = ml_global_information.lastInventorySnapshot
 	
-	if (ValidTable(original)) then
+	if (table.valid(original)) then
 		for id,item in pairs(original) do
 			if (id == itemid) then
 				if (hqonly) then
@@ -4315,7 +4114,7 @@ function GetInventoryItemGains(itemid,hqonly)
 	
 	local new = GetInventorySnapshot()
 	
-	if (ValidTable(new)) then
+	if (table.valid(new)) then
 		for id,item in pairs(new) do
 			if (id == itemid) then
 				if (hqonly) then
@@ -4331,102 +4130,24 @@ function GetInventoryItemGains(itemid,hqonly)
 	return gained
 end
 
-function GetItem(hqid)
-	local itemid = tonumber(hqid) or 0
+function GetItem(hqid,inventories)
 	local hqid = tonumber(hqid) or 0
+	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
 	
-	if (itemid >= 1000000 and itemid < 2000000) then
-		itemid = itemid - 1000000
-	elseif (itemid >= 500000 and itemid < 600000) then
-		itemid = itemid - 500000
-	end
-	
-	local items = Inventory("itemid="..tostring(itemid))
-	if (ValidTable(items)) then
-		for _,item in pairs(items) do
-			if (item.hqid == hqid) then
-				return item
-			end
-		end
-	end
-	
-	local inv = Inventory("type=2004,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x)..",itemid="..tostring(itemid))
-		if (ValidTable(inv)) then
-			for i,item in pairs(inv) do
-				if (item.hqid == itemid) then
-					return item
+	if (hqid ~= 0) then
+		if (table.valid(inventories)) then
+			for _,invid in pairsByKeys(inventories) do
+				local bag = Inventory:Get(invid)
+				if (table.valid(bag)) then
+					local ilist = bag:GetList()
+					if (table.valid(ilist)) then
+						for slot,item in pairs(ilist) do
+							if (item.hqid == hqid) then
+								return item
+							end
+						end
+					end
 				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500,itemid="..tostring(itemid))
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
 			end
 		end
 	end
@@ -4434,203 +4155,66 @@ function GetItem(hqid)
 	return nil
 end	
 
---[[
-function GetItem(itemid)
-	itemid = tonumber(itemid) or 0
-	--includehq = IsNull(includehq,true)
-	--requirehq = IsNull(requirehq,false)
+function GetItemBySlot(slotid,inventoryid)
+	local slotid = tonumber(slotid) or 1
+	local inventoryid = inventoryid or 2000
 	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i, item in pairs(inv) do				
-				if (item.hqid == itemid) then
-					return item
-				end
-			end
-		end
-	end
-
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i,item in pairs(inv) do
-				if (item.hqid == itemid) then
-					return item
-				end
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through quest/key items bag.
-	local inv = MInventory("type=2004")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
+	local bag = Inventory:Get(inventoryid)
+	if (table.valid(bag)) then
+		local ilist = bag:GetList()
+		if (table.valid(ilist)) then
+			return ilist[slotid]
 		end
 	end
 	
 	return nil
-end
---]]
+end	
 
-function ItemCount(itemid,includehq,requirehq)
-	itemid = tonumber(itemid) or 0
-	includehq = IsNull(includehq,false)
-	requirehq = IsNull(requirehq,false)
+function GetFirstFreeSlot(hqid,inventories)
+	local hqid = tonumber(hqid) or 0
+	local inventories = inventories or {0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	
+	if (hqid ~= 0) then
+		if (table.valid(inventories)) then
+			for _,invid in pairsByKeys(inventories) do
+				local bag = Inventory:Get(invid)
+				if (table.valid(bag)) then
+					if (bag.free > 0) then
+						if (bag.free == bag.size) then
+							return invid,1
+						else
+							local ilist = bag:GetList()
+							if (table.valid(ilist)) then
+								for i = 1, bag.size do
+									if (not ilist[i]) then
+										return invid,i
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return nil,nil
+end	
+
+function ItemCount(hqid,inventories)
+	local hqid = tonumber(hqid) or 0
+	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
 	local itemcount = 0
 	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i, item in pairs(inv) do	
-				if (not includehq and not requirehq) then
-					if (item.hqid == itemid) then
-						itemcount = itemcount + item.count
-					end
-				else
-					if (item.id == itemid) then
-						if (requirehq) then
-							if (toboolean(item.IsHQ)) then
-								itemcount = itemcount + item.count
-							end
-						else	
-							if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-								itemcount = itemcount + item.count
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				itemcount = itemcount + item.count
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				itemcount = itemcount + item.count
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for i,item in pairs(inv) do
-				if (not includehq and not requirehq) then
-					if (item.hqid == itemid) then
-						itemcount = itemcount + item.count
-					end
-				else
-					if (item.id == itemid) then
-						if (requirehq) then
-							if (toboolean(item.IsHQ)) then
-								itemcount = itemcount + item.count
-							end
-						else	
-							if (includehq or (not includehq and not toboolean(item.IsHQ))) then
+	if (hqid ~= 0) then
+		if (table.valid(inventories)) then
+			for _,invid in pairsByKeys(inventories) do
+				local bag = Inventory:Get(invid)
+				if (table.valid(bag)) then
+					local ilist = bag:GetList()
+					if (table.valid(ilist)) then
+						for slot,item in pairs(ilist) do
+							if (item.hqid == itemid) then
 								itemcount = itemcount + item.count
 							end
 						end
@@ -4640,141 +4224,23 @@ function ItemCount(itemid,includehq,requirehq)
 		end
 	end
 	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	--Look through quest/key items bag.
-	local inv = MInventory("type=2004")
-	if (ValidTable(inv)) then
-		for i, item in pairs(inv) do
-			if (not includehq and not requirehq) then
-				if (item.hqid == itemid) then
-					itemcount = itemcount + item.count
-				end
-			else
-				if (item.id == itemid) then
-					if (requirehq) then
-						if (toboolean(item.IsHQ)) then
-							itemcount = itemcount + item.count
-						end
-					else	
-						if (includehq or (not includehq and not toboolean(item.IsHQ))) then
-							itemcount = itemcount + item.count
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	return itemcount
+	return 0
 end
 function GilCount()
 	local gil = 0
-	local inv = MInventory("type=2000")
-	for i,item in pairs(inv) do
-		if (item.slot == 0) then
-			gil = item.count
-		end
+	local gilItem = GetItemBySlot(0,2000)
+	if (gilItem) then
+		gil = gilItem.count
 	end
 	return gil
 end
-function PoeticCount()
-	local poetic = 0
-	local inv = MInventory("type=2000")
-	for i,item in pairs(inv) do
-		if (item.slot == 6) then
-			poetic = item.count
-		end
-	end
-	return poetic
-end
-function SoldieryCount()
-	local soldiery = 0
-	local inv = MInventory("type=2000")
-	for i,item in pairs(inv) do
-		if (item.slot == 7) then
-			soldiery = item.count
-		end
-	end
-	return soldiery
-end
 function IsCompanionSummoned()
-	local el = MEntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
-	if (ValidTable(el)) then
+	local companion = GetCompanionEntity()
+	if (companion) then
 		return true
 	end
 	
-	local dismiss = ActionList:Get(2,6)
+	local dismiss = ActionList:Get(6,2)
 	if (dismiss and dismiss.isready) then
 		return true
 	end
@@ -4783,7 +4249,7 @@ function IsCompanionSummoned()
 end
 function GetCompanionEntity()
 	local el = MEntityList("type=2,chartype=3,ownerid="..tostring(Player.id))
-	if (ValidTable(el)) then
+	if (table.valid(el)) then
 		local i,entity = next(el)
 		if (i and entity) then
 			return entity
@@ -4793,8 +4259,8 @@ function GetCompanionEntity()
 	return nil
 end
 function IsShopWindowOpen()
-	return (ControlVisible("Shop") or ControlVisible("ShopExchangeItem") or ControlVisible("ShopExchangeCurrency")
-		or ControlVisible("ShopCard") or ControlVisible("ShopExchangeCoin"))
+	return (IsControlOpen("Shop") or IsControlOpen("ShopExchangeItem") or IsControlOpen("ShopExchangeCurrency")
+		or IsControlOpen("ShopCard") or IsControlOpen("ShopExchangeCoin"))
 end
 function IsArmoryFull(slot)
 	local slot = tonumber(slot)
@@ -4813,18 +4279,11 @@ function IsArmoryFull(slot)
 		[11] = 3300, -- Rings
 		[12] = 3300, -- Rings		
 	}
+	
 	if (slot ~= 13) then
-		local inv = MInventory("type="..tostring(xref[slot]))
-		if (inv) then
-			local occupiedSlots = 0
-			for i, item in pairs(inv) do
-				if (item.id ~= 0) then
-					occupiedSlots = occupiedSlots + 1
-				end
-			end
-			if (occupiedslots == 25) then
-				return true
-			end
+		local bag = Inventory:Get(xref[slot])
+		if (table.valid(bag)) then
+			return bag.free > 0
 		end
 	end
 	return false
@@ -4846,16 +4305,11 @@ function ArmoryItemCount(slot)
 		[11] = 3300, -- Rings
 		[12] = 3300, -- Rings		
 	}
+	
 	if (slot ~= 13) then
-		local inv = MInventory("type="..tostring(xref[slot]))
-		if (inv) then
-			local occupiedSlots = 0
-			for i, item in pairs(inv) do
-				if (item and item.id ~= 0) then
-					occupiedSlots = occupiedSlots + 1
-				end
-			end
-			return occupiedSlots
+		local bag = Inventory:Get(xref[slot])
+		if (table.valid(bag)) then
+			return bag.used > 0
 		end
 	end
 	return 0
@@ -4882,12 +4336,14 @@ function LowestArmoryItem(slot)
 	local lowesti = 999
 	
 	if (slot ~= 13) then
-		local inv = MInventory("type="..tostring(xref[slot]))
-		if (inv) then
-			for i, item in pairs(inv) do
-				if (not lowest or (lowest and item.level < lowesti)) then
-					lowest,lowesti = item, item.level
-					lowest.bag = xref[slot]
+		local bag = Inventory:Get(xref[slot])
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot, item in pairs(inv) do
+					if (not lowest or (lowest and item.level < lowesti)) then
+						lowest,lowesti = item, item.level
+					end
 				end
 			end
 		end
@@ -4895,107 +4351,20 @@ function LowestArmoryItem(slot)
 	return lowest
 end
 function GetFirstFreeArmorySlot(armoryType)
-	local armoryType = tonumber(armoryType)
-	local inv = MInventory("type="..tostring(armoryType))
-	if (inv) then
-		local maxslots = (armoryType == 3400 and 10) or 25
-		for i=0,maxslots do
-			local found = false
-			for id,item in pairs(inv) do
-				if (item.slot == i) then
-					if (item and item.id ~= 0) then
-						local found = true
-					end
-				end
-			end
-			if (not found) then
-				return i
-			end
-		end
-	end
-	return nil
+	return GetFirstFreeSlot({armoryType})
 end
 function GetFirstFreeInventorySlot()
-	for x = 0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (inv) then
-			for i=0,24 do
-				local found = false
-				for id,item in pairs(inv) do
-					if (item.slot == i) then
-						if (item and item.id ~= 0) then
-							found = true
-						end
-					end
-				end
-				if (not found) then
-					return x,i
-				end
-			end
-		end
-	end
-	return nil,nil
+	return GetFirstFreeSlot({0,1,2,3})
 end
 function GetEquippedItem(itemid)
 	local itemid = tonumber(itemid)
-	
-	local inv = MInventory("type=1000")
-	for i, item in pairs(inv) do
-		if (item.hqid == itemid) then
-			return item
-		end
-	end
-	
-	return nil
+	local inventories = inventories or {1000}
+	return GetItem(hqid,inventories)
 end
 function GetUnequippedItem(itemid)
 	local itemid = tonumber(itemid)
-	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through armory bags for off-hand through wrists
-	for x=3200,3209 do
-		local inv = MInventory("type="..tostring(x))
-		for i, item in pairs(inv) do
-			if (item.hqid == itemid) then
-				return item
-			end
-		end
-	end
-	
-	--Look through rings armory bag.
-	local inv = MInventory("type=3300")
-	for i, item in pairs(inv) do
-		if (item.hqid == itemid) then
-			return item
-		end
-	end
-	
-	--Look through soulstones armory bag.
-	local inv = MInventory("type=3400")
-	for i, item in pairs(inv) do
-		if (item.hqid == itemid) then
-			return item
-		end
-	end
-	
-	--Look through weapons armory bag.
-	local inv = MInventory("type=3500")
-	for i, item in pairs(inv) do
-		if (item.hqid == itemid) then
-			return item
-		end
-	end
-	
-	return nil
+	local inventories = inventories or {0,1,2,3,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	return GetItem(hqid,inventories)
 end
 function GetEquipSlotForItem(slot)
 	local slot = tonumber(slot)
@@ -5102,63 +4471,6 @@ function GetUTCTime()
 	
 	return utcTime
 end
-function EorzeaTime()
-	local et = {}
-    local ratioRealToGame = (1440 / 70)
-
-	local jpTime = {}
-	jpTime.year = os.date("!%Y")
-	jpTime.month = os.date("!%m")
-	jpTime.day = os.date("!%d")
-
-	local utcHour = tonumber(os.date("!%H"))
-	local offset = 9
-	local jphour = AddHours(utcHour,offset)
-	if ( utcHour >= 15 ) then
-		jpTime.day = jpTime.day + 1
-	end
-	jpTime.hour = jphour
-	jpTime.min = os.date("!%M")
-	jpTime.sec = os.date("!%S")
-	jpTime.isdst = false
-	
-	local jpSecs = os.time(jpTime)
-	local epoch = { year = 2010, month = 6, day = 11, hour = 16, min = 0, sec = 0, isdst = false }
-	local epochSecs = os.time(epoch)
-
-	local diffTime = (jpSecs - epochSecs) - 90000
-	local delta = (diffTime * ratioRealToGame)
-
-	local gameSecond = (delta % 60) or 0
-	delta = delta - gameSecond
-	delta = delta / 60
-	et.second = gameSecond
-
-	local gameMinute = (delta % 60) or 0
-	delta = delta - gameMinute
-	delta = delta / 60
-	et.minute = gameMinute
-
-	local gameHour = (delta % 24) or 0
-	delta = delta - gameHour
-	delta = delta / 24
-	et.hour = gameHour
-
-	local gameDay = (delta % 32) or 0
-	delta = delta - gameDay
-	delta = delta / 32
-	et.day = gameDay
-
-	local gameMonth = (delta % 12) or 0
-	delta = delta - gameMonth
-	delta = delta / 12
-	et.month = gameMonth
-
-	local gameYear = delta or 0
-	et.year = gameYear
-
-	return et
-end
 function GetCurrentTime()
 	local t = os.date('!*t')
 	local thisTime = os.time(t)
@@ -5170,7 +4482,7 @@ function TimePassed(t1, t2)
 end
 function GetQuestByID(questID)
 	local list = Quest:GetQuestList()
-	if(ValidTable(list)) then
+	if(table.valid(list)) then
 		for id, quest in pairs(list) do
 			if(id == questID) then
 				return quest
@@ -5196,81 +4508,6 @@ function GameRegion()
 	end
 	return 1
 end
-function NewCheckbox(strWinName,strText,strVarName,varDefaultValue,strGroup)
-	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
-	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
-	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
-	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
-	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
-	
-	if (Settings.FFXIVMINION[strVarName] == nil) then
-		Settings.FFXIVMINION[strVarName] = varDefaultValue
-	end
-	
-	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
-	
-	_G[strVarName] = Settings.FFXIVMINION[strVarName]
-end
-function NewComboBox(strWinName,strText,strVarName,varDefaultValue,strGroup,strOptions)
-	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
-	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
-	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
-	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
-	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
-	
-	if (Settings.FFXIVMINION[strVarName] == nil) then
-		Settings.FFXIVMINION[strVarName] = varDefaultValue
-	end
-	
-	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup,strOptions)
-	
-	_G[strVarName] = Settings.FFXIVMINION[strVarName]
-end
-function NewField(strWinName,strText,strVarName,varDefaultValue,strGroup)
-	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
-	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
-	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
-	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
-	assert(varDefaultValue ~= nil, "Default value for field required.")
-	
-	if (Settings.FFXIVMINION[strVarName] == nil) then
-		Settings.FFXIVMINION[strVarName] = varDefaultValue
-	end
-	
-	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
-	
-	_G[strVarName] = Settings.FFXIVMINION[strVarName]
-end
-function NewNumeric(strWinName,strText,strVarName,varDefaultValue,strGroup,lngMin,lngMax)
-	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
-	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
-	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
-	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
-	
-	if (Settings.FFXIVMINION[strVarName] == nil) then
-		Settings.FFXIVMINION[strVarName] = varDefaultValue
-	end
-	
-	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
-	
-	_G[strVarName] = Settings.FFXIVMINION[strVarName]
-end
-function NewButton(strWinName,strText,strVarName,varDefaultValue,strGroup)
-	assert(strWinName and type(strWinName) == "string", "Window name of type string expected. Received "..tostring(strWinName).." of type "..tostring(type(strWinName)))
-	assert(strText and type(strText) == "string", "Description of type string expected. Received "..tostring(strText).." of type "..tostring(type(strText)))
-	assert(strVarName and type(strVarName) == "string", "Variable name of type string expected. Received "..tostring(strVarName).." of type "..tostring(type(strVarName)))
-	assert(strGroup and type(strGroup) == "string", "Group name of type string expected. Received "..tostring(strGroup).." of type "..tostring(type(strGroup)))
-	assert(varDefaultValue ~= nil, "Default value for checkbox required.")
-	
-	if (Settings.FFXIVMINION[strVarName] == nil) then
-		Settings.FFXIVMINION[strVarName] = varDefaultValue
-	end
-	
-	GUI_NewCheckbox(strWinName,strText,strVarName,strGroup)
-	
-	_G[strVarName] = Settings.FFXIVMINION[strVarName]
-end
-
 function IsNull(variant,default)
 	if (variant == nil) then
 		if (default == nil) then
@@ -5282,7 +4519,6 @@ function IsNull(variant,default)
 		return variant
 	end
 end
-
 function IIF(test,truepart,falsepart)
 	if (ValidString(test)) then
 		local f = assert(loadstring("return (" .. test .. ")"))()
@@ -5296,22 +4532,12 @@ function IIF(test,truepart,falsepart)
 	end
 	return falsepart
 end
-
-function ClearTable(t)
-	if (t ~= nil and type(t) == "table") then
-		for k,v in pairs(t) do
-			t[k] = nil
-		end
-	end
-end
-
 function IsTable(t)
 	if (t ~= nil and type(t) == "table") then
 		return true
 	end
 	return false
 end
-
 function IsPVPMap(mapid)
 	local mapid = tonumber(mapid) or 0
 	local pvpMaps = {
@@ -5376,7 +4602,7 @@ function CanAccessMap(mapid)
 			local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 														Player.localmapid,
 														mapid	)
-			if (ValidTable(pos)) then
+			if (table.valid(pos)) then
 				--d("Found a nav path for mapid ["..tostring(mapid).."].")
 				return true
 			end
@@ -5403,7 +4629,7 @@ function CanAccessMap(mapid)
 				if (aetheryte.id == 70 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,mapid)
-					if (ValidTable(backupPos)) then
+					if (table.valid(backupPos)) then
 						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						return true
 					end
@@ -5415,7 +4641,7 @@ function CanAccessMap(mapid)
 				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
 					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
-					if (ValidTable(backupPos)) then
+					if (table.valid(backupPos)) then
 						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
 						return true
 					end
@@ -5455,7 +4681,7 @@ function GetHinterlandsSection(pos)
 	}
 	
 	local sec = 2
-	if (ValidTable(pos)) then
+	if (table.valid(pos)) then
 		local ent1Dist = PDistance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
 		if (ent1Dist <= 250) then
 			sec = 1
@@ -5513,7 +4739,7 @@ function GetSeaOfCloudsSection(pos)
     }
 
     local sec = 2
-    if (ValidTable(pos)) then
+    if (table.valid(pos)) then
         for i,section in pairs(sections) do
             local isInsideRect = AceLib.API.Math.IsInsideRectangle(pos,section)
             if (isInsideRect) then
@@ -5831,8 +5057,6 @@ function Transport399(pos1,pos2)
 	local pos2 = pos2
 	
 	if (not CanFlyInZone()) then
-		d("pos1:"..tostring(pos1))
-		d("pos2:"..tostring(pos2))
 		if (GetHinterlandsSection(pos1) ~= GetHinterlandsSection(pos2)) then
 			return true, function()
 				local newTask = ffxiv_task_movetomap.Create()
@@ -5937,31 +5161,6 @@ function GetPitch()
 	return false
 end
 
-function ValidTable(t)
-	if ( t ~= nil and type(t) == "table" ) then
-		for k,v in pairs(t) do
-			if (k ~= nil and v ~= nil) then
-				return true
-			end
-		end
-	end
-	
-    return false
-end
-
-function TableSize(t)
-	if ( t == nil or type(t) ~= "table" ) then
-		return 0
-	end
-	
-	local count = 0
-	for k,v in pairs(t) do
-		count = count + 1
-	end
-
-	return count
-end
-
 function DoWait(ms)
 	ms = tonumber(ms) or 150
 	local instructions = {
@@ -5977,44 +5176,6 @@ function Stop()
 	ml_mesh_mgr.ParseInstructions(instructions)
 end
 
-function MoveTo(x,y,z,range,useFollowMovement,useRandomPath,useSmoothTurns)
-	local gotoPos = {x = x, y = y, z = z}
-	local myPos = Player.pos
-		
-	if (ValidTable(ff.lastPos)) then
-		local lastPos = ff.lastPos
-		local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		if (dist < 1) then
-			if ((TimeSince(ff.lastPath) < 20000 and Player:IsMoving()) or
-				(TimeSince(ff.lastPath) < 1000) or
-				(TimeSince(ff.lastFail) < 10000)) 
-			then
-				return
-			end
-		end
-	end
-		
-	local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),range,useFollowMovement,useRandomPath,useSmoothTurns)
-	ff.lastPos = gotoPos
-	
-	if (not tonumber(path)) then
-		ml_debug("[MoveTo]: An error occurred in creating the path.", "FFXIV_Common_LogCNE", 2)
-		if (path ~= nil) then
-			ml_debug(path)
-		end
-		Stop()
-		ff.lastFail = Now()
-	elseif (path >= 0) then
-		ml_debug("[MoveTo]: A path with ["..tostring(path).."] points was created.", "FFXIV_Common_LogCNE", 2)
-		ff.lastPos = gotoPos
-		ff.lastPath = Now()
-	elseif (path <= -1) then
-		ml_debug("[MoveTo]: A path could not be created towards the goal, error code ["..tostring(path).."].", "FFXIV_Common_LogCNE", 2)
-		Stop()
-		ff.lastFail = Now()
-	end
-end
-
 function UsingBattleItem()
 	local currentAction = Player.action
 	return (currentAction == 83 or currentAction == 84 or currentAction == 85 or currentAction == 89 or currentAction == 90 or currentAction == 91)
@@ -6022,21 +5183,6 @@ end
 
 function IsTransporting()
 	return HasBuff(Player.id,404)
-end
-
-function toboolean(input)
-	if (input ~= nil) then
-		if (type(input) == "string") then
-			if (input  or input == "true") then
-				return true
-			else
-				return false
-			end
-		elseif (type(input) == "number") then
-			return input == 1
-		end
-	end
-	return false
 end
 
 function TestConditions(conditions)			
@@ -6069,11 +5215,6 @@ function TestConditions(conditions)
 	return true, conditions
 end
 
-function string.pad(str, padding, padchar)
-    if padchar == nil then padchar = ' ' end
-    return str .. string.rep(padchar, padding - string.len(str))
-end
-
 function IsPOTD(mapid)
 	local potd = {
 		[561] = true,
@@ -6099,87 +5240,6 @@ function IsHW(mapid)
 	return hw[mapid]
 end
 
-function ParseString(varString)
-	if (string.valid(varString)) then
-		local target = Player:GetTarget()
-		local myparty = EntityList("myparty,maxdistance=40")
-		
-		if (string.find(varString,"{targetid}")) then
-			target = Player:GetTarget()
-			if (target) then
-				varString = string.gsub(varString, "{targetid}", tostring(target.id))
-			else
-				varString = string.gsub(varString, "{targetid}", tostring(0))
-			end
-		end
-		
-		if (string.find(varString,"{nearest_tank}")) then
-			local foundTank = false
-			if (table.valid(myparty)) then
-				local nearest,nearestDistance = nil,100
-				for i,member in pairs(myparty) do
-					if (IsTank(member.job)) then
-						if (not nearest or member.distance < nearestDistance) then
-							nearest, nearestDistance = member, member.distance
-						end
-					end
-				end
-				
-				if (nearest) then
-					foundTank = true
-					varString = string.gsub(varString, "{nearest_tank}", tostring(nearest.id))
-				end
-			end
-			
-			if (not foundTank) then
-				varString = string.gsub(varString, "{nearest_tank}", tostring(0))
-			end
-		end
-		
-		if (string.find(varString,"{nearest_healer}")) then
-			local foundHealer = false
-			if (table.valid(myparty)) then
-				local nearest,nearestDistance = nil,100
-				for i,member in pairs(myparty) do
-					if (IsHealer(member.job)) then
-						if (not nearest or member.distance < nearestDistance) then
-							nearest, nearestDistance = member, member.distance
-						end
-					end
-				end
-				
-				if (nearest) then
-					foundHealer = true
-					varString = string.gsub(varString, "{nearest_healer}", tostring(nearest.id))
-				end
-			end
-			
-			if (not foundHealer) then
-				varString = string.gsub(varString, "{nearest_healer}", tostring(0))
-			end
-		end
-		
-		if (string.find(varString,"{boss}")) then
-			local foundBoss = false
-			local enemies = EntityList("alive,attackable,maxdistance=50")
-			if (table.valid(enemies)) then
-				for i,enemy in pairs(enemies) do
-					if ((enemy.hp.max / Player.hp.max) >= 11) then
-						foundBoss = true
-						varString = string.gsub(varString, "{boss}", tostring(enemy.id))
-						break
-					end
-				end
-			end
-			
-			if (not foundBoss) then
-				varString = string.gsub(varString, "{boss}", tostring(0))
-			end
-		end
-	end
-	return varString
-end
-
 function QueueAction( actionid, targetid, actiontype )
 	local actionid = actionid or 0
 	local actiontype = actiontype or 1
@@ -6187,8 +5247,8 @@ function QueueAction( actionid, targetid, actiontype )
 	
 	local target = MGetEntity(tid)
 	if (table.valid(target)) then
-		local action = ActionList:Get(actionid,actiontype,tid)
-		if (action and action.isready) then
+		local action = ActionList:Get(actiontype,actionid)
+		if (action and action:IsReady(tid)) then
 			local tpos = target.pos
 			if (tid ~= Player.id) then
 				Player:SetFacing(tpos.x,tpos.y,tpos.z)
@@ -6202,8 +5262,8 @@ function QueueAction( actionid, targetid, actiontype )
 					end,
 					function ()
 						Player:SetFacing(tpos.x,tpos.y,tpos.z)
-						local action = ActionList:Get(actionid,actiontype,tid)
-						if (action and action.isready) then
+						local action = ActionList:Get(actiontype,actionid)
+						if (action and action:IsReady(tid)) then
 							action:Cast(tid)
 						end
 					end
@@ -6221,14 +5281,14 @@ function QueueActionXYZ( actionid, targetid, actiontype )
 	
 	local target = MGetEntity(tid)
 	if (table.valid(target)) then
-		local action = ActionList:Get(actionid,actiontype,tid)
-		if (action and action.isready) then
+		local action = ActionList:Get(actiontype,actionid)
+		if (action and action:IsReady(tid)) then
 			local tpos = target.pos
 			if (tid ~= Player.id) then
 				Player:SetFacing(tpos.x,tpos.y,tpos.z)
 			end
 				
-			if (action:Cast(tid)) then
+			if (action:Cast(tpos.x,tpos.y,tpos.z)) then
 				local castid = action.id
 				ml_global_information.AwaitDo(100, 1000, 
 					function ()
@@ -6236,9 +5296,9 @@ function QueueActionXYZ( actionid, targetid, actiontype )
 					end,
 					function ()
 						Player:SetFacing(tpos.x,tpos.y,tpos.z)
-						local action = ActionList:Get(actionid,actiontype,tid)
-						if (action and action.isready) then
-							action:Cast(tid)
+						local action = ActionList:Get(actiontype,actionid)
+						if (action and action:IsReady(tid)) then
+							action:Cast(tpos.x,tpos.y,tpos.z)
 						end
 					end
 				)

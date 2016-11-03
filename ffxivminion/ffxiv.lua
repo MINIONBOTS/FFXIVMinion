@@ -97,26 +97,27 @@ end
 function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
+		--d("checking mainmenu")
 		if (not IsControlOpen("TitleDataCenter")) then
 			if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
-				ml_global_information.Await(3000, function () return IsControlOpen("TitleDataCenter") end)
+				ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
 			end
 		else
 			if (not login.datacenterSelected) then
 				if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
-					d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
+					--d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
 					if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
 						login.datacenterSelected = true
-						ml_global_information.Await(3000, function () return IsControlOpen("TitleDataCenter") end)
+						ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
 					end
 				else
-					d("login paused:Attempt to issue notice")
+					--d("login paused:Attempt to issue notice")
 					login.loginPaused = true
 					ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
 				end
 			else
 				if (UseControlAction("TitleDataCenter","Proceed",0)) then
-					ml_global_information.Await(10000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+					ml_global_information.Await(1000, 60000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
 				end
 			end
 		end	
@@ -126,31 +127,42 @@ end
 function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
+		--d("checking charselect")
 		if (not login.serverSelected) then
-			if (FFXIV_Login_Server and FFXIV_Login_Server > 0) then
-				local servers = GetServerList()
-				if (table.valid(servers)) then
-					for id, e in pairs(servers) do
-						if (e.name == FFXIV_Login_ServerName) then
-							d("selected server id:"..tostring(id))
-							SelectServer(id)
-							login.serverSelected = true
-							ml_global_information.Await(1000)
-						end
+			if (IsControlOpen("CharaSelect")) then
+				if (not IsControlOpen("_CharaSelectWorldServer")) then
+					local serverControl = GetControl("_CharaSelectWorldServer")
+					if (serverControl) then
+						serverControl:Open()
+						ml_global_information.Await(1000, 10000, function () return IsControlOpen("_CharaSelectWorldServer") end)
 					end
-				end	
-			else
-				login.loginPaused = true
-				ffxiv_dialog_manager.IssueNotice("Server Required", "You must select a Server to continue the login process.")
+				else
+					if (FFXIV_Login_Server and FFXIV_Login_Server > 0) then
+						local servers = GetServerList()
+						if (table.valid(servers)) then
+							for id, e in pairs(servers) do
+								if (e.name == FFXIV_Login_ServerName) then
+									d("selected server id:"..tostring(id))
+									SelectServer(id)
+									login.serverSelected = true
+									ml_global_information.Await(2000)
+								end
+							end
+						end	
+					else
+						login.loginPaused = true
+						ffxiv_dialog_manager.IssueNotice("Server Required", "You must select a Server to continue the login process.")
+					end
+				end
 			end
 		else
 			if (IsControlOpen("SelectYesno")) then
 				if (UseControlAction("SelectYesno","Yes",0)) then
-					ml_global_information.Await(5000, function () return not IsControlOpen("_CharaSelectListMenu") end)
+					ml_global_information.Await(500, 5000, function () return not IsControlOpen("_CharaSelectListMenu") end)
 				end
 			else
 				if (UseControlAction("_CharaSelectListMenu","SelectCharacter",FFXIV_Login_Character)) then
-					ml_global_information.Await(5000, function () return IsControlOpen("SelectYesno") end)
+					ml_global_information.Await(500, 5000, function () return IsControlOpen("SelectYesno") end)
 				end
 			end
 		end
@@ -164,7 +176,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		return false
 	end
 
-	if (ValidTable(ffxivminion.modesToLoad)) then
+	if (table.valid(ffxivminion.modesToLoad)) then
 		ffxivminion.LoadModes()
 		FFXIV_Common_BotRunning = false
 	end
@@ -201,7 +213,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 
-	local pulseTime = tonumber(FFXIV_Core_PulseTime) or 150
+	local pulseTime = tonumber(gPulseTime) or 150
 	local skillPulse = (pulseTime/2)
 	
 	--if (TimeSince(ml_global_information.lastrun2) > skillPulse) then
@@ -209,7 +221,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		--SkillMgr.OnUpdate()
 	--end
 	
-	--if (TimeSince(ml_global_information.lastrun) > pulseTime) then
 	if (Now() >= ml_global_information.nextRun) then
 		
 		ml_global_information.nextRun = tickcount + pulseTime
@@ -217,12 +228,12 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
         --ml_global_information.lastrun = tickcount
 		
-		--ffxivminion.UpdateGlobals()
+		ffxivminion.UpdateGlobals()
 		
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and 
-			FFXIV_Common_BotMode ~= GetString("assistMode") and
-			FFXIV_Common_BotMode ~= GetString("dutyMode")) 
+			gBotMode ~= GetString("assistMode") and
+			gBotMode ~= GetString("dutyMode")) 
 		then
 			ffxivminion.ClearAddons()
 		end
@@ -240,14 +251,14 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		
 		--update marker status
 		--[[
-		if (	FFXIV_Common_BotMode == GetString("grindMode") or
-				FFXIV_Common_BotMode == GetString("gatherMode") or
-				FFXIV_Common_BotMode == GetString("fishMode") or
-				FFXIV_Common_BotMode == GetString("questMode") or
-				FFXIV_Common_BotMode == GetString("huntMode") or 
-				FFXIV_Common_BotMode == GetString("pvpMode") ) and
+		if (	gBotMode == GetString("grindMode") or
+				gBotMode == GetString("gatherMode") or
+				gBotMode == GetString("fishMode") or
+				gBotMode == GetString("questMode") or
+				gBotMode == GetString("huntMode") or 
+				gBotMode == GetString("pvpMode") ) and
 				ml_task_hub.shouldRun and 
-				ValidTable(ml_global_information.currentMarker)
+				table.valid(ml_global_information.currentMarker)
 		then
 			local timeleft = (ml_global_information.MarkerTime - Now()) / 1000
 			if (timeleft > 0) then
@@ -261,8 +272,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 		--]]
 		
-		--local et = AceLib.API.Weather.GetDateTime() 
-		--FFXIV_Common_EorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
+		local et = AceLib.API.Weather.GetDateTime() 
+		FFXIV_Common_EorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		--if (SkillMgr) then
 			--ffxivminion.CheckClass()
@@ -392,9 +403,6 @@ function ffxivminion.SetMainVars()
 	end
 	FFXIV_Login_DataCenter = GetKeyByValue(FFXIV_Login_DataCenterName,ffxivminion.logincenters)
 	
-	d("datacentername:"..tostring(FFXIV_Login_DataCenterName))
-	d("datacenter:"..tostring(FFXIV_Login_DataCenter))
-	
 	if ( Settings.FFXIVMINION.FFXIV_Login_Servers and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] ) then
 		FFXIV_Login_ServerName = Settings.FFXIVMINION.FFXIV_Login_Servers[uuid]
 	else
@@ -406,29 +414,22 @@ function ffxivminion.SetMainVars()
 		FFXIV_Login_ServerName = ""
 	end
 	
-	d("loginservername:"..tostring(FFXIV_Login_ServerName))
-	d("loginserver:"..tostring(FFXIV_Login_Server))
-	
 	if ( Settings.FFXIVMINION.FFXIV_Login_Characters and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] ) then
 		FFXIV_Login_Character = Settings.FFXIVMINION.FFXIV_Login_Characters[uuid]
 	else
 		FFXIV_Login_Character = ffxivminion.GetSetting("FFXIV_Login_Character",0)
 	end
 	
-	-- In-Game
-	FFXIV_Common_Profile = GetString("none")
-	FFXIV_Common_ProfileIndex = 1
-	FFXIV_Common_ProfileList = {GetString("none")}
-	
+	-- In-Game	
 	FFXIV_Common_NavMesh = GetString("none")
 	FFXIV_Common_NavMeshIndex = 1
 	FFXIV_Common_MeshList = {GetString("none")}
 	
-	FFXIV_Common_BotModeIndex = 1
+	gBotModeIndex = 1
 	if ( Settings.FFXIVMINION.gBotModes and string.valid(uuid) and Settings.FFXIVMINION.gBotModes[uuid] ) then
-		FFXIV_Common_BotMode = Settings.FFXIVMINION.gBotModes[uuid]
+		gBotMode = Settings.FFXIVMINION.gBotModes[uuid]
 	else
-		FFXIV_Common_BotMode = ffxivminion.GetSetting("FFXIV_Common_BotMode",GetString("assistMode"))
+		gBotMode = ffxivminion.GetSetting("gBotMode",GetString("assistMode"))
 	end
 	FFXIV_Common_ModeList = {GetString("none")}
 	
@@ -438,7 +439,7 @@ function ffxivminion.SetMainVars()
 	
 	FFXIV_Common_BotRunning = false
 	FFXIV_Core_Version = 2
-	FFXIV_Core_PulseTime = ffxivminion.GetSetting("FFXIV_Core_PulseTime",150)
+	gPulseTime = ffxivminion.GetSetting("gPulseTime",150)
 	FFXIV_Core_ActiveTaskCount = 0
 	FFXIV_Core_ActiveTaskName = ""
 	FFXIV_Core_ActiveTaskDelay = 0
@@ -447,21 +448,21 @@ function ffxivminion.SetMainVars()
 	FFXIV_Core_MemoryGain = 0
 	
 	FFXIV_Common_EorzeaTime = ""
-	FFXIV_Common_EnableLog = ffxivminion.GetSetting("FFXIV_Common_EnableLog",false)
-	FFXIV_Common_LogCNE = ffxivminion.GetSetting("FFXIV_Common_LogCNE",false)
+	gEnableLog = ffxivminion.GetSetting("gEnableLog",false)
+	gLogCNE = ffxivminion.GetSetting("gLogCNE",false)
 	
-	FFXIV_Common_LogLevel = ffxivminion.GetSetting("FFXIV_Common_LogLevel",1)
-	FFXIV_Common_LogLevels = {1,2,3}
+	gLogLevel = ffxivminion.GetSetting("gLogLevel",1)
+	gLogLevels = {1,2,3}
 	
-	FFXIV_Common_MountIndex = 1
-	FFXIV_Common_Mounts = {GetString("none")}
-	FFXIV_Common_Mount = ffxivminion.GetSetting("FFXIV_Common_Mount",GetString("none"))
+	gMountNameIndex = 1
+	gMountNames = {GetString("none")}
+	gMountName = ffxivminion.GetSetting("gMountName",GetString("none"))
 	ffxivminion.FillMountOptions()
 	
-	FFXIV_Common_UseMount = ffxivminion.GetSetting("FFXIV_Common_UseMount",true)
-	FFXIV_Common_MountDist = ffxivminion.GetSetting("FFXIV_Common_MountDist",75)
-	FFXIV_Common_UseSprint = ffxivminion.GetSetting("FFXIV_Common_UseSprint",false)
-	FFXIV_Common_SprintDist = ffxivminion.GetSetting("FFXIV_Common_SprintDist",50)
+	gUseMount = ffxivminion.GetSetting("gUseMount",true)
+	gMountDist = ffxivminion.GetSetting("gMountDist",75)
+	gUseSprint = ffxivminion.GetSetting("gUseSprint",false)
+	gSprintDist = ffxivminion.GetSetting("gSprintDist",50)
 	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
@@ -512,13 +513,13 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
 	ml_global_information.autoStartQueued = FFXIV_Common_AutoStart		
-	--GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
-	--GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	--GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	--GameHacks:SetClickToTeleport(FFXIV_Common_ClickTeleport)
-	--GameHacks:SetClickToTravel(FFXIV_Common_ClickTravel)
-	--GameHacks:SetPermaSprint(FFXIV_Common_PermaSprint)
-	--GameHacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
+	--HackManager:Disable3DRendering(FFXIV_Common_DisableDrawing)
+	--HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+	--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--HackManager:SetClickToTeleport(FFXIV_Common_ClickTeleport)
+	--HackManager:SetClickToTravel(FFXIV_Common_ClickTravel)
+	--HackManager:SetPermaSprint(FFXIV_Common_PermaSprint)
+	--HackManager:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
 	--Crafting:UseHQMats(FFXIV_Craft_UseHQMats)
 end
 
@@ -534,7 +535,7 @@ function ffxivminion.HandleInit()
 	
 	-- Add "known" modes, safe.
 	--ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
-	--ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
+	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
 	--ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
 	--ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
 	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
@@ -561,7 +562,7 @@ function ffxivminion.HandleInit()
 	--[[
 	FFXIV_Common_SkillProfileList = {GetString("none")}
     local profilelist = dirlist(SkillMgr.profilepath,".*lua")
-    if (ValidTable(profilelist)) then
+    if (table.valid(profilelist)) then
 		for i,profile in pairs(profilelist) do		
             profile = string.gsub(profile, ".lua", "")
 			table.insert(FFXIV_Common_SkillProfileList,profile)
@@ -596,7 +597,7 @@ function ffxivminion.SwitchMode(mode)
 		
 		--[[
 		--Setup default options.
-		if (FFXIV_Common_BotMode == GetString("dutyMode")) then
+		if (gBotMode == GetString("dutyMode")) then
 			if (Duties) then
 				Duties.UpdateProfiles()
 			end
@@ -605,12 +606,12 @@ function ffxivminion.SwitchMode(mode)
 			FFXIV_Common_SkipCutscene = "1"
 			FFXIV_Common_SkipDialogue = "1"
 			FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-			GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-			GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-			GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
+			HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+			HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+			HackManager:Disable3DRendering(FFXIV_Common_DisableDrawing)
 			SendTextCommand("/busy off")
 			FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
-		elseif (FFXIV_Common_BotMode == GetString("questMode")) then
+		elseif (gBotMode == GetString("questMode")) then
 			if (Questing) then
 				Questing.UpdateProfiles()
 			end
@@ -619,9 +620,9 @@ function ffxivminion.SwitchMode(mode)
 			FFXIV_Common_SkipCutscene = "1"
 			FFXIV_Common_SkipDialogue = "1"
 			FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-			GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-			GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-			GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
+			HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+			HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+			HackManager:Disable3DRendering(FFXIV_Common_DisableDrawing)
 			FFXIV_Common_AvoidAOE = "1"
 			FFXIV_Common_AutoEquip = gAutoEquipDefaultQuesting
 		end
@@ -640,9 +641,9 @@ function ffxivminion.SetModeOptions(mode)
 			FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
 			FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
 			FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-			--GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-			--GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-			--GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
+			--HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+			--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+			--HackManager:Disable3DRendering(FFXIV_Common_DisableDrawing)
 			FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
 			FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip			
 			FFXIV_Common_Profile = "NA"
@@ -655,8 +656,8 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-		--GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-		--GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+		--HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+		--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
 end
@@ -689,7 +690,7 @@ function ffxivminion.VerifyClassSettings()
 			["FFXIV_Common_PotionMP"] = true,
 			["FFXIV_Common_FleeHP"] = true,
 			["FFXIV_Common_FleeMP"] = true,
-			["FFXIV_Common_UseSprint"] = true,
+			["gUseSprint"] = true,
 		}
 		
 		local requiredUpdate = false
@@ -763,7 +764,7 @@ function ffxivminion.UseClassSettings()
 end
 
 function ffxivminion.CheckClass()
-	if (not ValidTable(ml_global_information.classes)) then
+	if (not table.valid(ml_global_information.classes)) then
 		ml_global_information.classes = {
 			[FF.JOBS.ARCANIST] 		= ffxiv_combat_arcanist,
 			[FF.JOBS.ARCHER]		= ffxiv_combat_archer,
@@ -831,7 +832,7 @@ function ffxivminion.CheckClass()
 		
 		-- autosetting the correct botmode
 		
-		if (FFXIV_Common_BotMode ~= GetString("questMode")) then
+		if (gBotMode ~= GetString("questMode")) then
 			local newModeName = ""
 			if ( ml_global_information.CurrentClass == ffxiv_gather_botanist or ml_global_information.CurrentClass == ffxiv_gather_miner) then
 				newModeName = GetString("gatherMode")
@@ -843,11 +844,11 @@ function ffxivminion.CheckClass()
 					or ml_global_information.CurrentClass == ffxiv_crafting_alchemist or ml_global_information.CurrentClass == ffxiv_crafting_culinarian) then
 				newModeName = GetString("craftMode")
 			--default it to Grind if crafting/gathering/fishing mode was selected but we are not in that class
-			elseif ( FFXIV_Common_BotMode == GetString("gatherMode") or FFXIV_Common_BotMode == GetString("fishMode") or FFXIV_Common_BotMode == GetString("craftMode")) then
+			elseif ( gBotMode == GetString("gatherMode") or gBotMode == GetString("fishMode") or gBotMode == GetString("craftMode")) then
 				newModeName = GetString("assistMode")				
 			end
 					
-			if (FFXIV_Common_BotMode ~= newModeName and newModeName ~= "") then
+			if (gBotMode ~= newModeName and newModeName ~= "") then
 				ffxivminion.SwitchMode(newModeName)
 			end
 		end
@@ -855,12 +856,12 @@ function ffxivminion.CheckClass()
 end
 
 function ffxivminion.CheckMode()
-    local task = ffxivminion.modes[FFXIV_Common_BotMode]
+    local task = ffxivminion.modes[gBotMode]
     if (task ~= nil) then
         if (not ml_task_hub:CheckForTask(task)) then
-            ffxivminion.SetMode(FFXIV_Common_BotMode)
+            ffxivminion.SetMode(gBotMode)
         end
-    elseif (FFXIV_Common_BotMode == "None") then
+    elseif (gBotMode == "None") then
         ml_task_hub:ClearQueues()
     end
 end
@@ -869,10 +870,10 @@ function ffxivminion.UpdateGlobals()
 	if (Player) then
 		ml_global_information.Player_Aetherytes = GetAetheryteList()
 		ml_global_information.Player_Map = Player.localmapid
-		ml_global_information.Player_HP = Player.hp
-		ml_global_information.Player_MP = Player.mp
-		ml_global_information.Player_TP = Player.tp
 	end
+	
+	local meshState = NavigationManager:GetNavMeshState()
+	ml_global_information.MeshReady = (meshState == GLOBAL.MESHSTATE.MESHREADY or meshState == GLOBAL.MESHSTATE.MESHEMPTY)
 end
 
 function ml_global_information.Reset()
@@ -885,8 +886,8 @@ function ml_global_information.Stop()
         Player:Stop()
     end
 	--SkillMgr.receivedMacro = {}
-	--GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	--GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--HackManager:SkipCutscene(FFXIV_Common_SkipCutscene)
+	--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
 end
 
 function ffxivminion.AddMode(name, task)
@@ -926,7 +927,7 @@ function ffxivminion.FillFoodOptions()
 	
 	FFXIV_Common_Foods = {GetString("none")}
 	local foods = ml_global_information.foods
-	if (ValidTable(foods)) then
+	if (table.valid(foods)) then
 		for id,item in spairs(foods, function( item,a,b ) return item[a].name < item[b].name end) do
 			table.insert(FFXIV_Common_Foods,item.name)
 		end
@@ -934,13 +935,13 @@ function ffxivminion.FillFoodOptions()
 end
 
 function ffxivminion.FillMountOptions()
-	FFXIV_Common_Mounts = { GetString("none") }
+	gMountNames = { GetString("none") }
 	local mounts = ActionList:Get(13)
 	if (mounts) then
 		for k,v in pairs(mounts) do
-			table.insert(FFXIV_Common_Mounts,v.name)
-			if (v.name == FFXIV_Common_Mount) then
-				FFXIV_Common_MountIndex = table.size(FFXIV_Common_Mounts)
+			table.insert(gMountNames,v.name)
+			if (v.name == gMountName) then
+				gMountNameIndex = table.size(gMountNames)
 			end
 		end
 	end
@@ -948,7 +949,7 @@ end
 
 function ffxivminion.LoadModes()
 	
-	if (ValidTable(ffxivminion.modesToLoad)) then
+	if (table.valid(ffxivminion.modesToLoad)) then
 		for modeName,task in pairs(ffxivminion.modesToLoad) do
 			d("Loading mode ["..tostring(modeName).."].")
 			ffxivminion.modes[modeName] = task
@@ -962,32 +963,32 @@ function ffxivminion.LoadModes()
 	end
 	
 	FFXIV_Common_ModeList = {}
-	if (ValidTable(ffxivminion.modes)) then
+	if (table.valid(ffxivminion.modes)) then
 		local modes = ffxivminion.modes
 		for modeName,task in spairs(modes, function(modes,a,b) return modes[a].friendly < modes[b].friendly end) do
 			table.insert(FFXIV_Common_ModeList,modeName)
-			d("checking if ["..tostring(modeName).."] is ["..tostring(FFXIV_Common_BotMode).."]")
-			if (modeName == FFXIV_Common_BotMode) then
-				FFXIV_Common_BotModeIndex = table.size(FFXIV_Common_ModeList)
+			d("checking if ["..tostring(modeName).."] is ["..tostring(gBotMode).."]")
+			if (modeName == gBotMode) then
+				gBotModeIndex = table.size(FFXIV_Common_ModeList)
 			end
 		end				
 	end
 	
 	d("load modes: mode list has ["..tostring(table.size(FFXIV_Common_ModeList)).."]")
-	d("last bot mode setting:"..tostring(FFXIV_Common_BotMode))
+	d("last bot mode setting:"..tostring(gBotMode))
 	
-	local modeIndex = GetKeyByValue(Retranslate(FFXIV_Common_BotMode),FFXIV_Common_ModeList)
+	local modeIndex = GetKeyByValue(Retranslate(gBotMode),FFXIV_Common_ModeList)
 	if (modeIndex) then
-		FFXIV_Common_BotModeIndex = modeIndex
+		gBotModeIndex = modeIndex
 	else
 		local backupIndex = GetKeyByValue(GetString("assistMode"),FFXIV_Common_ModeList)
-		FFXIV_Common_BotModeIndex = backupIndex
-		FFXIV_Common_BotMode = GetString("assistMode")
+		gBotModeIndex = backupIndex
+		gBotMode = GetString("assistMode")
 	end
 	
-	d("new bot mode setting:"..tostring(FFXIV_Common_BotMode))
+	d("new bot mode setting:"..tostring(gBotMode))
 	
-	ffxivminion.SwitchMode(FFXIV_Common_BotMode)
+	ffxivminion.SwitchMode(gBotMode)
 end
 
 -- clear any addons displayed by social actions like trade/party invites
@@ -1066,17 +1067,18 @@ function ml_global_information.DrawMainFull()
 					--]]
 					
 					GUI:PushItemWidth(150)
-					local modeChanged = GUI_Combo(GetString("botMode"), "FFXIV_Common_BotModeIndex", "FFXIV_Common_BotMode", FFXIV_Common_ModeList)
+					local modeChanged = GUI_Combo(GetString("botMode"), "gBotModeIndex", "gBotMode", FFXIV_Common_ModeList)
 					if (modeChanged) then
-						ffxivminion.SwitchMode(FFXIV_Common_BotMode)
+						ffxivminion.SwitchMode(gBotMode)
 						local uuid = GetUUID()
 						if ( string.valid(uuid) ) then
 							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
-							Settings.FFXIVMINION.gBotModes[uuid] = FFXIV_Common_BotMode
+							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
 						end
 					end
 					GUI:PopItemWidth()
 					
+					--[[
 					GUI:PushItemWidth(width-80)
 					GUI_Combo(GetString("navmesh"), "FFXIV_Common_NavMeshIndex", "FFXIV_Common_NavMesh", FFXIV_Common_MeshList, 
 						function ()
@@ -1091,6 +1093,7 @@ function ml_global_information.DrawMainFull()
 						end
 					)
 					GUI:PopItemWidth()
+					--]]
 
 					GUI:BeginChild("##main-task-section",0,-50,false)
 					local mainTask = ml_global_information.mainTask
@@ -1146,9 +1149,9 @@ function ml_global_information.DrawSmall()
 				GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,10)
 				GUI:PushStyleColor(GUI.Col_ChildWindowBg, child_color.r, child_color.g, child_color.b, child_color.a)
 
-				GUI:BeginChild("##label-"..FFXIV_Common_BotMode,120,35,true)
+				GUI:BeginChild("##label-"..gBotMode,120,35,true)
 				GUI:AlignFirstTextHeightToWidgets()
-				GUI:Text(FFXIV_Common_BotMode)
+				GUI:Text(gBotMode)
 				GUI:EndChild()
 				GUI:PopStyleColor()
 				GUI:PopStyleVar()
@@ -1184,18 +1187,20 @@ function ml_global_information.DrawSettings()
 				if (tabs.tabs[1].isselected) then
 					GUI:BeginChild("##main-header-botstatus",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(100)
-					GUI_DrawIntMinMax(GetString("pulseTime"),"FFXIV_Core_PulseTime",5,10,30,2000)
+					GUI_DrawIntMinMax(GetString("pulseTime"),"gPulseTime",5,10,30,2000)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(60)
-					GUI:LabelText("# Active Task Count",FFXIV_Core_ActiveTaskCount)
-					GUI:LabelText("# Active Task Name",FFXIV_Core_ActiveTaskName)
-					GUI:LabelText("# Active Task Delay",FFXIV_Core_ActiveTaskDelay)
-					GUI:LabelText("Idle Pulse Count",FFXIV_Core_IdlePulseCount)
+					GUI:Text("# Active Task Count"); GUI:SameLine(150); GUI:InputText("##active-task-count",FFXIV_Core_ActiveTaskCount,GUI.InputTextFlags_ReadOnly)
+					GUI:PushItemWidth(200)
+					GUI:Text("# Active Task Name"); GUI:SameLine(150); GUI:InputText("##active-task-name",FFXIV_Core_ActiveTaskName,GUI.InputTextFlags_ReadOnly)
+					GUI:PopItemWidth()
+					GUI:Text("# Active Task Delay"); GUI:SameLine(150); GUI:InputText("##active-task-delay",FFXIV_Core_ActiveTaskDelay,GUI.InputTextFlags_ReadOnly)
+					GUI:Text("Idle Pulse Count"); GUI:SameLine(150); GUI:InputText("##idle-pulse-count",FFXIV_Core_IdlePulseCount,GUI.InputTextFlags_ReadOnly)
 					GUI:PopItemWidth()
 					GUI:PushItemWidth(100)
-					GUI_Capture(GUI:Checkbox(GetString("enableLog"),FFXIV_Common_EnableLog),"FFXIV_Common_EnableLog");
-					GUI_Capture(GUI:Checkbox(GetString("logCNE"),FFXIV_Common_LogCNE),"FFXIV_Common_LogCNE");
-					GUI_Capture(GUI:Combo("Log Level", FFXIV_Common_LogLevel, FFXIV_Common_LogLevels ),"FFXIV_Common_LogLevel")
+					GUI_Capture(GUI:Checkbox(GetString("enableLog"),gEnableLog),"gEnableLog");
+					GUI_Capture(GUI:Checkbox(GetString("logCNE"),gLogCNE),"gLogCNE");
+					GUI_Capture(GUI:Combo("Log Level", gLogLevel, gLogLevels ),"gLogLevel")
 					
 					GUI:LabelText("Eorzea Time",FFXIV_Common_EorzeaTime)
 					GUI:LabelText("Memory Usage",FFXIV_Core_MemoryUsage)
@@ -1210,27 +1215,27 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("autoStartBot"),FFXIV_Common_AutoStart),"FFXIV_Common_AutoStart");
 					GUI_Capture(GUI:Checkbox(GetString("autoEquip"),FFXIV_Common_AutoEquip),"FFXIV_Common_AutoEquip",
 						function ()
-							if (FFXIV_Common_BotMode == GetString("questMode")) then
+							if (gBotMode == GetString("questMode")) then
 								 GUI_Set("FFXIV_Questing_AutoEquip",FFXIV_Common_AutoEquip)
 							end
 						end
 					);
-					GUI_Capture(GUI:Checkbox(GetString("useMount"),FFXIV_Common_UseMount),"FFXIV_Common_UseMount", 
+					GUI_Capture(GUI:Checkbox(GetString("useMount"),gUseMount),"gUseMount", 
 						function ()
-							if (FFXIV_Common_Mount == GetString("none")) then
-								FFXIV_Common_MountIndex = 1
-								 GUI_Set("FFXIV_Common_Mount",FFXIV_Common_Mounts[1])
+							if (gMountName == GetString("none")) then
+								gMountNameIndex = 1
+								 GUI_Set("gMountName",gMountNames[1])
 							end
 						end					
 					)
-					GUI_DrawIntMinMax(GetString("mountDist"),"FFXIV_Common_MountDist",5,10,0,200)
-					GUI_Combo(GetString("mount"), "FFXIV_Common_MountIndex", "FFXIV_Common_Mount", FFXIV_Common_Mounts)
+					GUI_DrawIntMinMax(GetString("mountDist"),"gMountDist",5,10,0,200)
+					GUI_Combo(GetString("mount"), "gMountNameIndex", "gMountName", gMountNames)
 					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
 						ffxivminion.FillMountOptions()
 					end
-					GUI_Capture(GUI:Checkbox(GetString("useSprint"),FFXIV_Common_UseSprint),"FFXIV_Common_UseSprint",function () ffxivminion.SaveClassSettings("FFXIV_Common_UseSprint",FFXIV_Common_UseSprint) end );
-					GUI_DrawIntMinMax(GetString("sprintDist"),"FFXIV_Common_SprintDist",5,10,0,200)
+					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
+					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
 					GUI_Combo(GetString("food"), "FFXIV_Common_FoodIndex", "FFXIV_Common_Food", FFXIV_Common_Foods)
 					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
@@ -1276,23 +1281,23 @@ function ml_global_information.DrawSettings()
 				if (tabs.tabs[5].isselected) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
 					GUI_Capture(GUI:Checkbox(GetString("repair"),FFXIV_Common_Repair),"FFXIV_Common_Repair")
-					--GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),FFXIV_Common_DisableDrawing),"FFXIV_Common_DisableDrawing", function () GameHacks:Disable3DRendering(FFXIV_Common_DisableDrawing) end)
+					--GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),FFXIV_Common_DisableDrawing),"FFXIV_Common_DisableDrawing", function () HackManager:Disable3DRendering(FFXIV_Common_DisableDrawing) end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"),FFXIV_Common_Teleport),"FFXIV_Common_Teleport", 
 						function () 
-							if (FFXIV_Common_BotMode == GetString("dutyMode")) then
+							if (gBotMode == GetString("dutyMode")) then
 								 GUI_Set("FFXIV_Duty_Teleport",FFXIV_Duty_Teleport)
 							end
 						end
 					)
-					--[[
-					GUI_Capture(GUI:Checkbox(GetString("paranoid"),FFXIV_Common_Paranoid),"FFXIV_Common_Paranoid")
-					GUI_Capture(GUI:Checkbox(GetString("permaSprint"),FFXIV_Common_PermaSprint),"FFXIV_Common_PermaSprint", function () GameHacks:SetPermaSprint(FFXIV_Common_PermaSprint) end)
-					GUI_Capture(GUI:Checkbox(GetString("permaSwiftcast"),FFXIV_Common_PermaSwift),"FFXIV_Common_PermaSwift", function () GameHacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift) end)
-					GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),FFXIV_Common_SkipCutscene),"FFXIV_Common_SkipCutscene", function () GameHacks:SkipCutscene(FFXIV_Common_SkipCutscene) end)
-					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),FFXIV_Common_SkipDialogue),"FFXIV_Common_SkipDialogue", function () GameHacks:SkipDialogue(FFXIV_Common_SkipDialogue) end)
-					GUI_Capture(GUI:Checkbox(GetString("clickToTeleport"),FFXIV_Common_ClickTeleport),"FFXIV_Common_ClickTeleport", function () GameHacks:SetClickToTeleport(FFXIV_Common_ClickTeleport) end)
-					GUI_Capture(GUI:Checkbox(GetString("clickToTravel"),FFXIV_Common_ClickTravel),"FFXIV_Common_ClickTravel", function () GameHacks:SetClickToTravel(FFXIV_Common_ClickTravel) end)
-					--]]				
+
+					--GUI_Capture(GUI:Checkbox(GetString("paranoid"),FFXIV_Common_Paranoid),"FFXIV_Common_Paranoid")
+					--GUI_Capture(GUI:Checkbox(GetString("permaSprint"),FFXIV_Common_PermaSprint),"FFXIV_Common_PermaSprint", function () HackManager:SetPermaSprint(FFXIV_Common_PermaSprint) end)
+					--GUI_Capture(GUI:Checkbox(GetString("permaSwiftcast"),FFXIV_Common_PermaSwift),"FFXIV_Common_PermaSwift", function () HackManager:SetPermaSwiftCast(FFXIV_Common_PermaSwift) end)
+					--GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),FFXIV_Common_SkipCutscene),"FFXIV_Common_SkipCutscene", function () HackManager:SkipCutscene(FFXIV_Common_SkipCutscene) end)
+					--GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),FFXIV_Common_SkipDialogue),"FFXIV_Common_SkipDialogue", function () HackManager:SkipDialogue(FFXIV_Common_SkipDialogue) end)
+					--GUI_Capture(GUI:Checkbox(GetString("clickToTeleport"),FFXIV_Common_ClickTeleport),"FFXIV_Common_ClickTeleport", function () HackManager:SetClickToTeleport(FFXIV_Common_ClickTeleport) end)
+					--GUI_Capture(GUI:Checkbox(GetString("clickToTravel"),FFXIV_Common_ClickTravel),"FFXIV_Common_ClickTravel", function () HackManager:SetClickToTravel(FFXIV_Common_ClickTravel) end)
+			
 					GUI:EndChild()
 				end
 				
@@ -1324,20 +1329,20 @@ function ml_global_information.DrawMiniButtons()
 		local vars = menu.vars
 		local flags = menu.flags
 		
-		if (ValidTable(windows)) then
+		if (table.valid(windows)) then
 			
 			local width,height = GUI:GetScreenSize()
 			local currentX = vars.menuX
 			local buttonsNeeded = {}
 			for i,window in pairsByKeys(windows) do
-				if (ValidTable(window)) then
+				if (table.valid(window)) then
 					if (not window.isOpen()) then
 						table.insert(buttonsNeeded,window)
 					end
 				end
 			end
 			
-			if (ValidTable(buttonsNeeded)) then
+			if (table.valid(buttonsNeeded)) then
 				local fontSize = GUI:GetWindowFontSize()
 				local windowPaddingY = ml_gui.style.current.windowpadding.y
 				local framePaddingY = ml_gui.style.current.framepadding.y

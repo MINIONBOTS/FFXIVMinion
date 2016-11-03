@@ -35,14 +35,15 @@ function c_stuck:evaluate()
 	c_stuck.state = {}
 	c_stuck.blockOnly = false
 	
-	if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(FFXIV_Core_PulseTime) < 150) then
+	--if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or Player:GetNavStatus() ~= 1 or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
+	if (not Player.alive or (MIsLocked() and not IsFlying()) or MIsLoading() or HasBuffs(Player, "13") or ffxiv_unstuck.disabled or tonumber(gPulseTime) < 150) then
 		--d("[Unstuck]: We're locked, loading, or nav status is not operational.")
 		return false
 	end
 	
 	local currentPos = Player.pos
 	local lastPos = ffxiv_unstuck.lastpos
-	if  (not ValidTable(lastPos)) then
+	if  (not table.valid(lastPos)) then
 		--d("[Unstuck]: Need to set up the original last pos.")
 		ffxiv_unstuck.lastpos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
 		return false
@@ -70,7 +71,7 @@ function c_stuck:evaluate()
 	end
 	
 	local coarse = ffxiv_unstuck.coarse
-	if (not ValidTable(coarse.lastPos) or TimeSince(coarse.lastMeasure) > 4000 or ffxiv_unstuck.State.STALLED.ticks == 0) then
+	if (not table.valid(coarse.lastPos) or TimeSince(coarse.lastMeasure) > 4000 or ffxiv_unstuck.State.STALLED.ticks == 0) then
 		coarse.lastPos = { x = currentPos.x, y = currentPos.y, z = currentPos.z }
 		coarse.lastMeasure = Now()
 	end

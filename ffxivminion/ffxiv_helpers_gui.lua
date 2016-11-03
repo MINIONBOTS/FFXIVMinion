@@ -70,7 +70,7 @@ end
 
 
 function GUI_Capture(newVal,varName,onChange,forceSave)
-	local forceSave = IsNull(forceSave,true)
+	local forceSave = IsNull(forceSave,false)
 	local needsSave = false
 	
 	local currentVal = _G[varName]
@@ -185,7 +185,7 @@ function GUI_DrawTabs(tTabs)
 	local tabs = tTabs.tabs
 	
 	for i,tab in pairsByKeys(tabs) do
-		if (ValidTable(tab)) then
+		if (table.valid(tab)) then
 			if (counter == 1) then
 				GUI:AlignFirstTextHeightToWidgets()
 			end
@@ -214,7 +214,7 @@ function GUI_DrawTabs(tTabs)
 				end
 			end
 			
-			tabs[i].ishovered = GUI:IsItemHoveredRect()
+			tabs[i].ishovered = GUI:IsItemHovered()
 			if (tab.ishovered) then
 				if (events.onHover and type(events.onHover) == "function") then
 					events.onHover()
