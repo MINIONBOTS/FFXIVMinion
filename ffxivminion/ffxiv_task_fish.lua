@@ -732,7 +732,7 @@ end
 c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
-	if (ControlVisible("SelectYesNoItem")) then
+	if (ControlVisible("SelectYesNoItem") or ControlVisible("SelectYesNoCountItem")) then
 		local info = Player:GetYesNoItemInfo()
 		if (ValidTable(info)) then
 			fd(info,2)			
@@ -793,7 +793,8 @@ function c_collectibleaddonfish:evaluate()
 				fd("Attempting to collect item, collectibility rating approved.",2)
 				PressYesNoItem(true)
 			end
-			ml_global_information.Await(3000, function () return (not ControlVisible("SelectYesNoItem")) end)				
+			
+			ml_global_information.Await(3000, function () return (not ControlVisible("SelectYesNoItem") and not ControlVisible("SelectYesNoCountItem")) end)				
 			return true
 		end
 	end

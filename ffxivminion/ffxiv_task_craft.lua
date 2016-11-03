@@ -377,7 +377,7 @@ end
 c_collectibleaddoncraft = inheritsFrom( ml_cause )
 e_collectibleaddoncraft = inheritsFrom( ml_effect )
 function c_collectibleaddoncraft:evaluate()
-	if (ControlVisible("SelectYesNoItem")) then
+	if (ControlVisible("SelectYesNoItem") or ControlVisible("SelectYesNoCountItem")) then
 		local info = Player:GetYesNoItemInfo()
 		if (ValidTable(info)) then
 			local validCollectible = false
@@ -421,11 +421,12 @@ function c_collectibleaddoncraft:evaluate()
 			
 			if (not validCollectible) then
 				PressYesNoItem(false) 
-				return true
 			else
 				PressYesNoItem(true) 
-				return true
 			end
+			
+			ml_global_information.Await(3000, function () return (not ControlVisible("SelectYesNoItem") and not ControlVisible("SelectYesNoCountItem")) end)	
+			return true
 		end
 	end
 	return false
