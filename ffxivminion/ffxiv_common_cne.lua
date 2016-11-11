@@ -956,14 +956,16 @@ function c_movetogate:evaluate()
 	e_movetogate.pos = {}
 	
     if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
-        local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+        local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
 													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (ValidTable(pos)) then
+			d("gatepos:"..tostring(pos))
 			e_movetogate.pos = pos
 			return true
 		else
-			local backupPos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+			--[[
+			local backupPos = ml_nav_manager.GetNextPathPos(	Player.pos,
 																Player.localmapid,
 																155	)
 			if (ValidTable(backupPos)) then
@@ -971,6 +973,7 @@ function c_movetogate:evaluate()
 				e_movetogate.pos = backupPos
 				return true
 			end
+			--]]
 		end
 	end
 	
@@ -978,7 +981,7 @@ function c_movetogate:evaluate()
 end
 function e_movetogate:execute()
 	local pos = e_movetogate.pos
-	
+
 	local mapid = ml_task_hub:CurrentTask().destMapID
 	if (mapid == 399 and Player.localmapid == 478) then
 		local destPos = ml_task_hub:CurrentTask().pos
@@ -1096,11 +1099,12 @@ function c_teleporttomap:evaluate()
 	
 	local destMapID = ml_task_hub:ThisTask().destMapID
     if (destMapID) then
-        local pos = ml_nav_manager.GetNextPathPos(	ml_global_information.Player_Position,
+		local ppos = Player.pos
+        local pos = ml_nav_manager.GetNextPathPos(	ppos,
                                                     Player.localmapid,
                                                     destMapID	)
 		if (ValidTable(pos)) then
-			local ppos = ml_global_information.Player_Position
+			d("path is valid")
 			local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
 			
 			if (ValidTable(ml_nav_manager.currPath) and (TableSize(ml_nav_manager.currPath) > 2 or (TableSize(ml_nav_manager.currPath) <= 2 and dist > 120))) then
@@ -1127,9 +1131,10 @@ function c_teleporttomap:evaluate()
 				end
 			end
 		else
-			--d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
+			d("Attempting to find aetheryte for mapid ["..tostring(destMapID).."].")
 			local aeth = GetAetheryteByMapID(destMapID, ml_task_hub:ThisTask().pos)
 			if (aeth) then
+				d("using block 1")
 				e_teleporttomap.aeth = aeth
 				return true
 			end
@@ -1141,6 +1146,20 @@ function c_teleporttomap:evaluate()
 					local aethPos = {x = -68.819107055664, y = 8.1133041381836, z = 46.482696533203}
 					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,418,destMapID)
 					if (ValidTable(backupPos)) then
+						d("using block 2")
+						e_teleporttomap.aeth = aetheryte
+						return true
+					end
+				end
+			end
+			
+			-- Fall back check to see if we can get to Idyllshire, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
+					if (ValidTable(backupPos)) then
+						d("using block 3")
 						e_teleporttomap.aeth = aetheryte
 						return true
 					end
@@ -1391,27 +1410,35 @@ function c_walktopos:evaluate()
 	then
 		return false
 	end
-	
+
     if (ValidTable(ml_task_hub:CurrentTask().pos) or ValidTable(ml_task_hub:CurrentTask().gatePos)) then		
-		local myPos = ml_global_information.Player_Position
+		local myPos = Player.pos
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
-			gotoPos = ml_task_hub:CurrentTask().gatePos
+			if (table.valid(ml_task_hub:CurrentTask().gatePos)) then
+				if (ml_task_hub:CurrentTask().gatePos.x == 0 and ml_task_hub:CurrentTask().gatePos.y == 0 and ml_task_hub:CurrentTask().gatePos.z == 0) then
+					d("[c_walktopos]: Picked up an invalid gatePos during task ["..tostring(ml_task_hub:CurrentTask().name).."]")
+					if (ml_task_hub:CurrentTask():ParentTask()) then
+						d("[c_walktopos: Parent task ["..tostring(ml_task_hub:CurrentTask():ParentTask().name).."]")
+					end
+				else
+					gotoPos = ml_task_hub:CurrentTask().gatePos
+				end
+			end
 			--ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
-			gotoPos = ml_task_hub:CurrentTask().pos
-			--[[
-			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist ~= 0 and dist < 6) then
-				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
-				gotoPos = p
+			if (ml_task_hub:CurrentTask().pos.x == 0 and ml_task_hub:CurrentTask().pos.y == 0 and ml_task_hub:CurrentTask().pos.z == 0) then
+				d("[c_walktopos]: Picked up an invalid pos during task ["..tostring(ml_task_hub:CurrentTask().name).."]")
+				if (ml_task_hub:CurrentTask():ParentTask()) then
+					d("[c_walktopos: Parent task ["..tostring(ml_task_hub:CurrentTask():ParentTask().name).."]")
+				end
+			else
+				gotoPos = ml_task_hub:CurrentTask().pos
 			end
-			--]]
 			--ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
 		if (ValidTable(gotoPos)) then
-			
 			-- If we're very close to an interactable
 			local target = MGetTarget()
 			if (target) then
@@ -1769,7 +1796,7 @@ function c_usenavinteraction:evaluate(pos)
 	
 	local transportFunction = _G["Transport"..tostring(Player.localmapid)]
 	if (transportFunction ~= nil and type(transportFunction) == "function") then
-		local retval,task = transportFunction(ml_global_information.Player_Position,gotoPos)
+		local retval,task = transportFunction(Player.pos,gotoPos)
 		if (retval == true) then
 			e_usenavinteraction.task = task
 			return true
@@ -3208,6 +3235,12 @@ function c_buy:evaluate()
 		return false
 	end
 	
+	if (ControlVisible("SelectYesno")) then
+		PressYesNo(true)
+		ml_global_information.Await(1000, function () return not ControlVisible("SelectYesno") end)
+		return true
+	end
+	
 	local itemid;
 	local itemtable = ml_task_hub:CurrentTask().itemid
 	if (ValidTable(itemtable)) then
@@ -3218,21 +3251,22 @@ function c_buy:evaluate()
 	
 	if (itemid) then
 		e_buy.itemid = tonumber(itemid)
+		local buyamount = ml_task_hub:CurrentTask().buyamount or 1
+		if (buyamount > 99) then
+			buyamount = 99
+		end
+		
+		d("Buying item ID ["..tostring(e_buy.itemid).."].")
+		
+		Inventory:BuyShopItem(e_buy.itemid,buyamount)
+		ml_task_hub:CurrentTask():SetDelay(1000)
 		return true
 	end
 	
 	return false
 end
 function e_buy:execute()
-	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
-	if (buyamount > 99) then
-		buyamount = 99
-	end
 	
-	d("Buying item ID ["..tostring(e_buy.itemid).."].")
-	
-	Inventory:BuyShopItem(e_buy.itemid,buyamount)
-	ml_task_hub:CurrentTask():SetDelay(1000)
 end
 
 c_moveandinteract = inheritsFrom( ml_cause )

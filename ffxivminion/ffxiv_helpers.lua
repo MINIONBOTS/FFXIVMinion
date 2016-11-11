@@ -2358,8 +2358,9 @@ function ScanForMobs(ids,distance)
 
 	return false
 end
-function ScanForCaster(ids,distance,spells)
-	local ids = (type(ids) == "string" and ids) or tostring(ids)
+function ScanForCaster(ids,distance,spells,includeself)
+	local includeself = IsNull(includeself,false)
+	local ids = (type(ids) == "string" and ids) or tostring(ids) or ""
 	local spells = (type(spells) == "string" and spells) or tostring(spells)
 	
 	local maxdistance = tonumber(distance) or 30
@@ -2372,14 +2373,64 @@ function ScanForCaster(ids,distance,spells)
 	if (ValidTable(el)) then
 		for i,e in pairs(el) do
 			if (i and e and e.castinginfo) then
-				if (MultiComp(e.castinginfo.channelingid,spells) or MultiComp(e.castinginfo.castingid,spells)) then
-					return true
+				if (MultiComp(e.castinginfo.channelingid,spells)) then
+					local hits = {}
+					local hit = EntityList:Get(e.castinginfo.channeltargetid)
+					if (table.valid(hit)) then
+						hits[hit.id] = hit
+					end
+					return true, e, hits
+				elseif (MultiComp(e.castinginfo.castingid,spells)) then
+					local hits = {}
+					local targets = e.castinginfo.castingtargets
+					if (table.valid(targets)) then
+						for i,target in pairs(targets) do
+							local entity = EntityList:Get(target)
+							if (table.valid(entity)) then
+								hits[entity.id] = entity
+							end							
+						end
+					else
+						local hit = EntityList:Get(e.castinginfo.channeltargetid)
+						if (table.valid(hit)) then
+							hits[hit.id] = hit
+						end
+					end
+					return true, e, hits
 				end
 			end
 		end
 	end
 	
-	return false
+	if (includeself) then
+		if (MultiComp(Player.castinginfo.channelingid,spells)) then
+			local hits = {}
+			local hit = EntityList:Get(Player.castinginfo.channeltargetid)
+			if (table.valid(hit)) then
+				hits[hit.id] = hit
+			end
+			return true, Player, hits
+		elseif (MultiComp(Player.castinginfo.castingid,spells)) then
+			local hits = {}
+			local targets = Player.castinginfo.castingtargets
+			if (table.valid(targets)) then
+				for i,target in pairs(targets) do
+					local entity = EntityList:Get(target)
+					if (table.valid(entity)) then
+						hits[entity.id] = entity
+					end							
+				end
+			else
+				local hit = EntityList:Get(Player.castinginfo.channeltargetid)
+				if (table.valid(hit)) then
+					hits[hit.id] = hit
+				end
+			end
+			return true, Player, hits
+		end
+	end
+	
+	return false, nil, nil
 end
 function ScanForObjects(ids,distance)
 	local ids = (type(ids) == "string" and ids) or tostring(ids)
@@ -4105,11 +4156,9 @@ function GetItemInSlot(equipSlot)
 	return nil
 end
 function ItemReady(hqid)
-	local hqid = tonumber(hqid)
-	
-	local item = Inventory:Get(hqid)
-	if (table.valid(item)) then
-		return item.isready
+	local item = GetItem(hqid)
+	if (item and item.isready) then
+		return true
 	end
 	
 	return false
@@ -4297,17 +4346,17 @@ function GetItem(hqid)
 	
 	for _,invid in pairsByKeys(inventories) do
 		local inv = Inventory("type="..tostring(invid))
-	if (ValidTable(inv)) then
+		if (ValidTable(inv)) then
 			for _,item in pairs(inv) do
 				if (item.hqid == hqid) then
-				return item
+					return item
+				end
 			end
 		end
 	end
-	end
 	
 	return nil
-end
+end	
 
 function ItemCount(itemid,includehq,requirehq)
 	itemid = tonumber(itemid) or 0
@@ -5180,6 +5229,18 @@ function CanAccessMap(mapid)
 					end
 				end
 			end
+			
+			-- Fall back check to see if we can get to Idyllshire, and from there to the destination.
+			for k,aetheryte in pairs(attunedAetherytes) do
+				if (aetheryte.id == 75 and GilCount() >= aetheryte.price) then
+					local aethPos = {x = 66.53, y = 207.82, z = -26.03}
+					local backupPos = ml_nav_manager.GetNextPathPos(aethPos,478,mapid)
+					if (ValidTable(backupPos)) then
+						--d("Found an attuned backup position aetheryte for mapid ["..tostring(mapid).."].")
+						return true
+					end
+				end
+			end
 		else
 			return true
 		end
@@ -5216,7 +5277,7 @@ function GetHinterlandsSection(pos)
 	local sec = 2
 	if (ValidTable(pos)) then
 		local ent1Dist = PDistance3D(pos.x,pos.y,pos.z,-542.46624755859,155.99462890625,-518.10394287109)
-		if (ent1Dist <= 200) then
+		if (ent1Dist <= 250) then
 			sec = 1
 		else
 			for i,section in pairs(sections) do
@@ -5877,4 +5938,12 @@ function deepcompare(t1,t2,ignore_mt)
 		return true
 	end
 	return _deepcompare(t1, t2, ignore_mt)
+end
+
+function math.magnitude(t)
+	if ( type(t) == "table" and table.size(t) >= 3) then
+		return math.sqrt( t.x*t.x + t.y*t.y + t.z*t.z )
+	end
+	ml_error("math.magnitude: invalid arguments, table{ x, y ,z } expected")
+	return 0
 end

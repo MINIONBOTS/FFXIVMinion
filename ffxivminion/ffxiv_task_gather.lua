@@ -261,12 +261,15 @@ function e_movetonode:execute()
 		gd("[MoveToNode]: Adjusted position x = "..tostring(adjustedPos.x)..",y = "..tostring(adjustedPos.y)..",z ="..tostring(adjustedPos.z),2)
 		
 		local pos;
-		if (ValidTable(adjustedPos)) then
+		if (ValidTable(adjustedPos) and math.magnitude(adjustedPos) ~= 0) then
 			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos,false)
 		end
 		
 		if (not ValidTable(pos)) then
-			pos = NavigationManager:GetClosestPointOnMesh(gpos,false)
+			local newPos = NavigationManager:GetClosestPointOnMesh(gpos,false)
+			if (math.magnitude(newPos) ~= 0) then
+				pos = newPos
+			end
 		end
 
 		local ppos = ml_global_information.Player_Position
@@ -293,7 +296,7 @@ function e_movetonode:execute()
 				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-					if (p) then
+					if (p and math.magnitude(p) ~= 0) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = p
 						alternateTask.useTeleport = (gTeleport == "1")
@@ -354,7 +357,7 @@ function c_returntobase:evaluate()
 		end
 		
 		local p,dist = NavigationManager:GetClosestPointOnMesh(basePos)
-		if (p) then
+		if (p and math.magnitude(p) ~= 0) then
 			basePos = p
 		end
 
@@ -387,11 +390,6 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
-	local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
-	if (p) then
-		pos = p
-	end
-	
 	
 	--ffxiv_task_test.RenderPoint(pos,1,5,5)
 	
@@ -530,14 +528,10 @@ function DoGathering(item)
 		return 1
 	end
 	
-	if (Player.action ~= 264 and Player.action ~= 256) then
-		return 2
-	end
-
 	if (SkillMgr.Gather(item)) then
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return 2
-	end
+	end	
 
 	Player:Gather(item.index)
 	if (HasBuffs(Player,"805")) then
@@ -1047,33 +1041,30 @@ function CanUseCordial()
 		local cordialQuick = MGetItem(1016911) or MGetItem(16911)
 		local cordialNormal = MGetItem(1006141) or MGetItem(6141)
 		local cordialHigh = MGetItem(1012669) or MGetItem(12669)
-			
+		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
 			if (cordialQuick and cordialQuick.isready) then
-				d("[CanUseCordial]: Returning cordial quick.")
+				--d("[CanUseCordial]: Returning cordial.")
 				return true, cordialQuick
 			end
 		end
 		
 		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
 			if (cordialNormal and cordialNormal.isready) then
-				d("[CanUseCordial]: Returning cordial normal.")
+				--d("[CanUseCordial]: Returning cordial.")
 				return true, cordialNormal
 			end
 		end
 		
 		if (gpDeficit >= 400 and cordialHigh and cordialHigh.isready) then
-			d("[CanUseCordial]: Returning cordial high.")
 			return true, cordialHigh
 		elseif (gpDeficit >= 300 and cordialNormal and cordialNormal.isready) then
-			d("[CanUseCordial]: Returning cordial normal.")
 			return true, cordialNormal
 		elseif (gpDeficit >= 150 and cordialQuick and cordialQuick.isready) then
-			d("[CanUseCordial]: Returning cordial quick.")
 			return true, cordialQuick
-		end
+		end	
 	else
 		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
 	end
@@ -1376,7 +1367,6 @@ function c_nodeprebuff:evaluate()
 	return false
 end
 function e_nodeprebuff:execute()
-	
 	local activity = e_nodeprebuff.activity
 	local activityclass = e_nodeprebuff.class
 	local activityitem = e_nodeprebuff.item

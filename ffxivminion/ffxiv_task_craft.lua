@@ -286,7 +286,7 @@ function c_precraftbuff:evaluate()
 		
 		local canUse,manualItem = CanUseExpManual()
 		if (canUse and ValidTable(manualItem)) then
-			d("[NodePreBuff]: Need to use a cordial.")
+			d("[NodePreBuff]: Need to use an exp manual.")
 			e_precraftbuff.activity = "usemanual"
 			e_precraftbuff.item = manualItem
 			e_precraftbuff.requiresLogClose = true
@@ -421,12 +421,11 @@ function c_collectibleaddoncraft:evaluate()
 			
 			if (not validCollectible) then
 				PressYesNoItem(false) 
+				return true
 			else
 				PressYesNoItem(true) 
+				return true
 			end
-			
-			ml_global_information.Await(3000, function () return (not ControlVisible("SelectYesNoItem") and not ControlVisible("SelectYesNoCountItem")) end)	
-			return true
 		end
 	end
 	return false
@@ -622,7 +621,10 @@ function ffxiv_task_craft:Init()
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 140 )
     self:add( ke_inventoryFull, self.process_elements)
 	
-	local ke_selectCraft = ml_element:create( "SelectCraft", c_selectcraft, e_selectcraft, 130 )
+	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
+    self:add( ke_autoEquip, self.process_elements)
+	
+	local ke_selectCraft = ml_element:create( "SelectCraft", c_selectcraft, e_selectcraft, 100 )
     self:add(ke_selectCraft, self.process_elements)
 end
 
@@ -1012,7 +1014,7 @@ function ffxiv_craft.LoadProfile(strName)
 		if (FileExists(ffxiv_craft.profilePath..strName..".lua")) then
 			local info,e = persistence.load(ffxiv_craft.profilePath..strName..".lua")
 			if (ValidTable(info)) then
-				ffxiv_craft.orders = info.orders
+				ffxiv_craft.orders = info.orders or {}
 				ffxiv_craft.ResetOrders()
 			else
 				if (e) then
