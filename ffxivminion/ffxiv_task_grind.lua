@@ -147,6 +147,7 @@ function e_nextgrindmarker:execute()
     ml_global_information.BlacklistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("NOTcontentIDEquals"))
     ml_global_information.WhitelistContentID = ml_task_hub:ThisTask().currentMarker:GetFieldValue(GetUSString("contentIDEquals"))
 	gStatusMarkerName = ml_task_hub:ThisTask().currentMarker:GetName()
+	ml_task_hub:CurrentTask().failedSearches = 0
 end
 
 c_grindisloading = inheritsFrom( ml_cause )
