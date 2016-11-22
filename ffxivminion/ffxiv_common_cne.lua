@@ -65,7 +65,11 @@ function c_add_killtarget:evaluate()
             c_add_killtarget.targetid = target.id
             return true
         end
-    end
+	end
+	
+	if (tonumber(ml_task_hub:CurrentTask().failedSearches)) then
+		ml_task_hub:CurrentTask().failedSearches = ml_task_hub:CurrentTask().failedSearches + 1
+	end
     
     return false
 end
@@ -2548,6 +2552,8 @@ function c_returntomarker:evaluate()
     return false
 end
 function e_returntomarker:execute()
+	ml_task_hub:CurrentTask().failedSearches = 0
+	
 	if (gBotMode == GetString("fishMode")) then
 		local fs = tonumber(Player:GetFishingState())
 		if (fs ~= 0) then

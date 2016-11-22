@@ -48,6 +48,7 @@ function ffxiv_task_grind.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	newinst.filterLevel = true
+	newinst.failedSearches = 0 
 	newinst.correctMap = Player.localmapid
 	newinst.suppressRestTimer = 0
 	newinst.safeLevel = false
@@ -93,6 +94,16 @@ function c_nextgrindmarker:evaluate()
         
         --Check level range, this section only executes if marker is in list mode.
 		if (gMarkerMgrMode ~= GetString("singleMarker")) then
+			--d("Checking secondary sections.")
+			if (marker == nil) then
+				if (gMarkerMgrMode == GetString("markerTeam")) then
+					if (ml_task_hub:CurrentTask().failedSearches > 5) then
+						d("Checking marker team section.")
+						marker = ml_marker_mgr.GetNextMarker(GetString("grindMarker"), ml_task_hub:ThisTask().filterLevel)
+					end
+				end
+			end
+			
 			if (marker == nil) then
 				if (ValidTable(ml_task_hub:ThisTask().currentMarker) and Player:GetSyncLevel() == 0) then
 					if 	(ml_task_hub:ThisTask().filterLevel) and
