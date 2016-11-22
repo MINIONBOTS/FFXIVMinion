@@ -463,10 +463,10 @@ function dev.DrawCall(event, ticks )
 																GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
 																GUI:BulletText("IsFacing(Target)") GUI:SameLine(200) GUI:InputText("##devac19"..tostring(actionid),tostring(action:IsFacing(tar.id)))
 															end
-															if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast())) end 
+															if (GUI:Button("Cast(Player)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast())) end 
 															if ( tar ) then
 																GUI:SameLine(200)
-																if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(action:Cast(tar.id))) end
+																if (GUI:Button("Cast(Target)##"..tostring(actionid),100,15) ) then d("Cast Result: "..tostring(item:Cast(tar.id))) end
 															end
 															GUI:TreePop()
 														end
