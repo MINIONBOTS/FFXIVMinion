@@ -440,6 +440,12 @@ function dev.DrawCall(event, ticks )
 													GUI:BulletText("UICategory") GUI:SameLine(200) GUI:InputText("##devbag21"..tostring(slot),tostring(item.uicategory))
 													GUI:BulletText("SearchCategory") GUI:SameLine(200) GUI:InputText("##devbag22"..tostring(slot),tostring(item.searchcategory))
 													GUI:BulletText("CanEquip") GUI:SameLine(200) GUI:InputText("##devbag16"..tostring(slot),tostring(item.canequip))
+													GUI:BulletText("IsReady") GUI:SameLine(200) GUI:InputText("##devbag25"..tostring(slot),tostring(item:IsReady()))
+													local tar = Player:GetTarget()													
+													if ( tar ) then
+														GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devbag24"..tostring(slot),tostring(item:IsReady(tar.id)))
+													end
+													
 																										
 													local action = item:GetAction()
 													if (table.valid(action)) then
