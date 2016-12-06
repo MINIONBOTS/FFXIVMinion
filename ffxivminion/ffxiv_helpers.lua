@@ -5899,6 +5899,17 @@ function IsPOTD(mapid)
 		[563] = true,
 		[564] = true,
 		[565] = true,
+		[593] = true,
+		[594] = true,
+		[595] = true,
+		[596] = true,
+		[597] = true,
+		[598] = true,
+		[599] = true,
+		[600] = true,
+		[601] = true,
+		[602] = true,
+		[603] = true,
 	}
 	
 	return potd[mapid]
