@@ -4180,14 +4180,15 @@ function IsInventoryFull()
 	
 	return false
 end
+
 function GetInventorySnapshot()
 	local currentSnapshot = {}
 	
-	--Look through regular bags first.
-	for x=0,3 do
-		local inv = MInventory("type="..tostring(x))
-		if (ValidTable(inv)) then
-			for k,item in pairs(inv) do
+	local inventories = inventories or {0,1,2,3,1000,2004,2000}
+	for _,invid in pairs(inventories) do
+		local bag = Inventory("type="..tostring(invid))
+		if (table.valid(bag)) then
+			for slot,item in pairs(bag) do
 				if currentSnapshot[item.id] == nil then
 					-- New item
 					currentSnapshot[item.id] = {}
@@ -4202,90 +4203,6 @@ function GetInventorySnapshot()
 					-- NQ
 					currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
 				end
-			end
-		end
-	end
-	
-	--Look through equipped items bag.
-	local inv = MInventory("type=1000")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through currency bag.
-	local inv = MInventory("type=2000")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through crystals bag.
-	local inv = MInventory("type=2001")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-			end
-		end
-	end
-	
-	--Look through key items bag.
-	local inv = MInventory("type=2004")
-	if (ValidTable(inv)) then
-		for k,item in pairs(inv) do
-			if currentSnapshot[item.id] == nil then
-				-- New item
-				currentSnapshot[item.id] = {}
-				currentSnapshot[item.id].HQcount = 0
-				currentSnapshot[item.id].count = 0
-			end
-			-- Increment item counts
-			if (item.IsHQ == 1) then
-				-- HQ
-				currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-			else
-				-- NQ
-				currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
 			end
 		end
 	end
