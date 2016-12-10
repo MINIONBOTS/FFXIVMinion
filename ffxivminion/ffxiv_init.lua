@@ -458,7 +458,7 @@ function GetPublicProfiles(path,ext)
 			local profileData, e = persistence.load(path..profile)
 			if (table.valid(profileData)) then
 				local profileName = string.gsub(profile,"%..+$","")
-				if (profileName ~= "") then
+				if (IsNull(profileName,"") ~= "") then
 					if (table.valid(profileData.names) and profileData.names[gCurrentLanguage]) then
 						local translatedName = profileData.names[gCurrentLanguage]
 						if (profiles[translatedName] == nil) then
@@ -466,9 +466,9 @@ function GetPublicProfiles(path,ext)
 							table.insert(profilesDisplay,translatedName)
 						end
 					else
-						if (profiles[entryName] == nil) then
-							profiles[entryName] = profileData
-							table.insert(profilesDisplay,entryName)
+						if (profiles[profileName] == nil) then
+							profiles[profileName] = profileData
+							table.insert(profilesDisplay,profileName)
 						end
 					end
 				end
