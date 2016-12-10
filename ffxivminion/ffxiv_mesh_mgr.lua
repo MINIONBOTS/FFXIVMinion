@@ -770,7 +770,7 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 				
 				-- obk: PROCESS-TELEPORT
 				elseif ( ml_mesh_mgr.OMCType == "OMC_TELEPORT" ) then
-					if ( table.valid(ml_mesh_mgr.OMCEndposition) and FFXIV_Common_Teleport) then
+					if ( table.valid(ml_mesh_mgr.OMCEndposition) and gTeleportHack) then
 						if ( Player:IsMoving() ) then Player:Stop() end
 						-- Add playerdetection when distance to OMCEndposition is > xxx
 						local enddist = PDistance3D(ePos.x,ePos.y,ePos.z,pPos.x,pPos.y,pPos.z)

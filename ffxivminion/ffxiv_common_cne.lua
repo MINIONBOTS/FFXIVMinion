@@ -20,7 +20,7 @@ e_add_killtarget = inheritsFrom( ml_effect )
 c_add_killtarget.oocCastTimer = 0
 function c_add_killtarget:evaluate()
 	-- block killtarget for grinding when user has specified "Fates Only"
-	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and FFXIV_Grind_FatesOnly ) then
+	if ((ml_task_hub:CurrentTask().name == "LT_GRIND" or ml_task_hub:CurrentTask().name == "LT_PARTY" ) and gGrindFatesOnly ) then
 		if (ml_task_hub:CurrentTask().name == "LT_GRIND") then
 			local aggro = GetNearestAggro()
 			if table.valid(aggro) then
@@ -274,67 +274,6 @@ function e_assistleader:execute()
 end
 
 ---------------------------------------------------------------------------------------------
---ADD_COMBAT: If (target hp > 0) Then (add combat task)
---Adds a task to use a combat routine to attack/kill target 
----------------------------------------------------------------------------------------------
-c_add_combat = inheritsFrom( ml_cause )
-e_add_combat = inheritsFrom( ml_effect )
-function c_add_combat:evaluate()
-	
-    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-	
-	--Do some special checking here for hunts.
-	if (target) then
-		if (ml_task_hub:RootTask().name == "LT_HUNT") then
-			if (ml_task_hub:CurrentTask().rank == "S") then
-				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
-				if ((target.hp.percent > tonumber(gHuntSRankHP)) and (not allies or TableSize(allies) < tonumber(gHuntSRankAllies))) then
-					return false
-				end
-			elseif (ml_task_hub:CurrentTask().rank == "A") then
-				local allies = EntityList("alive,friendly,chartype=4,targetable,maxdistance=50")
-				if ((target.hp.percent > tonumber(gHuntARankHP)) and (not allies or TableSize(allies) < tonumber(gHuntARankAllies))) then
-					return false
-				end
-			elseif (ml_task_hub:CurrentTask().rank == "B") then
-				if (Now() < ml_task_hub:CurrentTask().waitTimer and target.targetid == 0) then
-					return false
-				end
-			end
-		end
-	end
-	
-	--If we made it this far without stopping, assume the target can be safely engaged.
-	if (not ml_task_hub:CurrentTask().canEngage) then
-		ml_task_hub:CurrentTask().canEngage = true
-	end
-	
-	if (target and target.id ~= 0) then
-		return InCombatRange(target.id) and target.alive and not IsMounting()
-	end
-        
-    return false
-end
-function e_add_combat:execute()
-	Dismount()
-	
-	if (IsMounting() or Player.ismounted) then	
-		return
-	end
-	
-    if ( gSMactive  ) then
-        local newTask = ffxiv_task_skillmgrAttack.Create()
-        newTask.targetid = ml_task_hub:CurrentTask().targetid
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    else
-		ml_debug("Skill manager is not active, defaulting to class routine.")
-        local newTask = ml_global_information.CurrentClass.Create()
-        newTask.targetid = ml_task_hub:CurrentTask().targetid
-        ml_task_hub:CurrentTask():AddSubTask(newTask)
-    end
-end
-
----------------------------------------------------------------------------------------------
 --ADD_FATE: If (fate of proper level is on mesh) Then (add longterm fate task)
 --Adds a fate task if there is a fate on the mesh
 ---------------------------------------------------------------------------------------------
@@ -348,7 +287,7 @@ function c_add_fate:evaluate()
 	
 	c_add_fate.fate = {}
     
-    if (FFXIV_Grind_DoFates ) then
+    if (gGrindDoFates ) then
 		local fate = GetClosestFate(Player.pos,true)
 		if (fate and fate.completion < 100) then
 			c_add_fate.fate = fate
@@ -369,7 +308,7 @@ c_nextatma = inheritsFrom( ml_cause )
 e_nextatma = inheritsFrom( ml_effect )
 e_nextatma.atma = nil
 function c_nextatma:evaluate()	
-	if (not FFXIV_Grind_Atma or Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
+	if (not gGrindAtmaMode or Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
 		return false
 	end
 	
@@ -460,7 +399,7 @@ c_nextluminous = inheritsFrom( ml_cause )
 e_nextluminous = inheritsFrom( ml_effect )
 e_nextluminous.crystal = nil
 function c_nextluminous:evaluate()	
-	if (not FFXIV_Grind_Luminous or Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
+	if (not gGrindLuminousMode or Player.incombat or ffxiv_task_grind.inFate or MIsLoading()) then
 		return false
 	end
 	
@@ -524,7 +463,7 @@ e_avoid = inheritsFrom( ml_effect )
 e_avoid.lastAvoid = {}
 c_avoid.newAvoid = {}
 function c_avoid:evaluate()	
-	if (not FFXIV_Common_AvoidAOE or tonumber(FFXIV_Common_AvoidHP) == 0 or tonumber(FFXIV_Common_AvoidHP) < Player.hp.percent) then
+	if (not gAvoidAOE or tonumber(gAvoidHP) == 0 or tonumber(gAvoidHP) < Player.hp.percent) then
 		return false
 	end
 	
@@ -639,7 +578,7 @@ function c_autopotion:evaluate()
 	
 	if (Player.alive) then
 		local potions = c_autopotion.potions
-		if (tonumber(FFXIV_Common_PotionHP) > 0 and Player.hp.percent < tonumber(FFXIV_Common_PotionHP)) then
+		if (tonumber(gPotionHP) > 0 and Player.hp.percent < tonumber(gPotionHP)) then
 			for k,itempair in pairsByKeys(potions) do
 				if (Player.level >= itempair.minlevel) then
 					local item = GetItem(tonumber(itempair.item))
@@ -658,7 +597,7 @@ function c_autopotion:evaluate()
 		end
 		
 		local ethers = c_autopotion.ethers
-		if (tonumber(FFXIV_Common_PotionMP) > 0 and Player.mp.percent < tonumber(FFXIV_Common_PotionMP)) then
+		if (tonumber(gPotionMP) > 0 and Player.mp.percent < tonumber(gPotionMP)) then
 			for k,itempair in pairsByKeys(ethers) do
 				if (Player.level >= itempair.minlevel) then
 					local item = GetItem(tonumber(itempair.item))
@@ -681,8 +620,8 @@ function c_autopotion:evaluate()
 end
 function e_autopotion:execute()
 	local item = c_autopotion.item
-	if (item and item:IsReady(Player.id)) then
-		item:Use()
+	if (item) then
+		item:Cast(Player.id)
 	end
 	--local newTask = ffxiv_task_useitem.Create()
 	--newTask.itemid = c_autopotion.itemid
@@ -712,27 +651,6 @@ end
 function e_movetotarget:execute()
     ml_debug( "Moving within combat range of target" )
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-	local newTask = ffxiv_task_movetopos.Create()
-	newTask.pos = target.pos
-	newTask.targetid = target.id
-	newTask.useFollowMovement = false
-	ml_task_hub:CurrentTask():AddSubTask(newTask)
-end
-
-c_movecloser = inheritsFrom( ml_cause )
-e_movecloser = inheritsFrom( ml_effect )
-function c_movecloser:evaluate()
-	if ( ml_task_hub:CurrentTask().targetid ~= nil and ml_task_hub:CurrentTask().targetid ~= 0 ) then
-		local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-		if (target and target.id ~= 0 and target.alive) then
-			return (target.distance > 40)
-		end
-	end
-	
-	return false
-end
-function e_movecloser:execute()
-	local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = target.pos
 	newTask.targetid = target.id
@@ -832,9 +750,9 @@ function e_interactgate:execute()
 			if (table.valid(convoList)) then
 				if (table.valid(conversationstrings)) then
 					for convoindex,convo in pairs(convoList) do
-						local cleanedline = string.gsub(convo.line,"[()-]","")
+						local cleanedline = string.gsub(convo.line,"[()-/]","")
 						for k,v in pairs(conversationstrings) do
-							local cleanedv = string.gsub(v,"[()-]","")
+							local cleanedv = string.gsub(v,"[()-/]","")
 							if (string.find(cleanedline,cleanedv) ~= nil) then
 								SelectConversationIndex(convoindex)
 								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
@@ -902,7 +820,7 @@ end
 function e_transportgate:execute()
 	local gateDetails = e_transportgate.details
 	local newTask = ffxiv_nav_interact.Create()
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
@@ -986,56 +904,10 @@ function e_movetogate:execute()
 	newTask.remainMounted = true
 	newTask.ignoreAggro = true
 	newTask.destMapID = ml_task_hub:CurrentTask().destMapID
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
-end
-
-c_leavelockedarea = inheritsFrom( ml_cause )
-e_leavelockedarea = inheritsFrom( ml_effect )
-e_leavelockedarea.map = 0
-function c_leavelockedarea:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting(true)) then
-		return false
-	end
-	
-	e_leavelockedarea.map = 0
-	
-    if (ml_task_hub:CurrentTask().destMapID and (Player.localmapid ~= ml_task_hub:CurrentTask().destMapID)) then
-        local pos = ml_nav_manager.GetNextPathPos(	Player.pos,
-													Player.localmapid,
-													ml_task_hub:CurrentTask().destMapID	)
-		if (not table.valid(pos)) then
-			-- No valid path forward, set a new destination for the nearest map.
-			local currNode = ml_nav_manager.GetNode(Player.localmapid)
-			if (table.valid(currNode)) then
-				local neighbors = currNode:ValidNeighbors()
-				if (table.valid(neighbors)) then
-					local nearest = nil
-					local nearestDistance = math.huge
-					local ppos = Player.pos
-					
-					for id,entries in pairs(neighbors) do
-						for _,gate in pairs(entries) do
-							local dist = PDistance3D(ppos.x,ppos.y,ppos.z,gate.x,gate.y,gate.z)
-							if (not nearest or (nearest and dist < nearestDistance)) then
-								nearest = id
-								nearestDistance = dist
-							end
-						end
-					end
-					
-					if (nearest) then
-						e_leavelockedarea.map = nearest
-					end
-				end
-			end
-		end
-	end
-end
-function e_leavelockedarea:execute()
-	ml_task_hub:CurrentTask().destMapID = e_leavelockedarea.map
 end
 
 c_teleporttomap = inheritsFrom( ml_cause )
@@ -1265,7 +1137,7 @@ function e_followleader:execute()
 			end
 		end
 		
-		if (FFXIV_Common_Teleport) then
+		if (gTeleportHack) then
 			if (distance > 100) then
 				Hacks:TeleportToXYZ(leaderPos.x,leaderPos.y,leaderPos.z)
 				Player:SetFacingSynced(leaderPos.x,leaderPos.y,leaderPos.z)
@@ -1395,13 +1267,6 @@ function c_walktopos:evaluate()
 			--ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
-			--[[
-			local p,dist = NavigationManager:GetClosestPointOnMesh(gotoPos)
-			if (p and dist ~= 0 and dist < 6) then
-				--ml_debug("[c_walktopos]: Position adjusted to closest mesh point.", "gLogCNE", 2)
-				gotoPos = p
-			end
-			--]]
 			--ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
 		end
 		
@@ -1410,15 +1275,17 @@ function c_walktopos:evaluate()
 			-- If we're very close to an interactable
 			local target = MGetTarget()
 			if (target) then
-				local tpos = target.pos
-				local distFromGoal = PDistance3D(tpos.x,tpos.y,tpos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-				if (distFromGoal <= 5) then
-					if (target.distance < 2.5 and target.los) then
-						if (Player:IsMoving()) then
-							--d("Stopped because we are very close to the target.")
-							Player:Stop()
+				if (ml_task_hub:CurrentTask().contentid == target.contentid) then
+					local tpos = target.pos
+					local distFromGoal = PDistance3D(tpos.x,tpos.y,tpos.z,gotoPos.x,gotoPos.y,gotoPos.z)
+					if (distFromGoal <= 5) then
+						if (target.distance < 2.5 and target.los) then
+							if (Player:IsMoving()) then
+								--d("Stopped because we are very close to the target.")
+								Player:Stop()
+							end
+							return false
 						end
-						return false
 					end
 				end
 			end
@@ -1477,25 +1344,17 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = Player.pos
 		
-		if (table.valid(c_walktopos.lastPos)) then
-			local lastPos = c_walktopos.lastPos
-			--d("Checking if last wanted position was the same position.")
-			local dist = PDistance3D(lastPos.x, lastPos.y, lastPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-			--if (dist < 1 and Player.GetNavStatus ~= nil and Player:GetNavStatus() == 1) then
-				--return
-			--end
-		end
-		
 		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
 		
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		if (dist > 3) then
 			
 			local useFollow = ml_task_hub:CurrentTask().useFollowMovement and dist < 6
-			local useRandom = (FFXIV_Common_RandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
+			--local useRandom = (FFXIV_Common_RandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
 			
 			ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
-			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
+			--local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
+			local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 			
 			c_walktopos.lastPos = gotoPos
 			if (not tonumber(path)) then
@@ -2056,13 +1915,9 @@ end
 c_companion = inheritsFrom( ml_cause )
 e_companion = inheritsFrom( ml_effect )
 function c_companion:evaluate()
-	if (ffxiv_task_quest.noCompanion == true) then
-		return false
-	end
-	
-    if (gBotMode == GetString("pvpMode") or 
+    if (ffxiv_task_quest.noCompanion == true or gBotMode == GetString("pvpMode") or 
 		Player.ismounted or IsMounting() or IsDismounting() or
-		IsCompanionSummoned() or InInstance()) 
+		IsCompanionSummoned() or InInstance() or Player.castinginfo.lastcastid == 851) 
 	then
         return false
     end
@@ -2072,7 +1927,7 @@ function c_companion:evaluate()
 		(FFXIV_Common_ChocoQuest and gBotMode == GetString("questMode"))) 
 	then	
 		local green = GetItem(4868)
-		if (green and green:IsReady(Player.id)) then
+		if (green and green:IsReady()) then
 			return true
 		end
     end
@@ -2087,20 +1942,8 @@ function e_companion:execute()
 	end
 	
 	local green = GetItem(4868)
-	if (green and green:IsReady(Player.id)) then
-		green:Use()
-		ml_global_information.AwaitDo(250, 5000, 
-			function () 
-				return (IsCompanionSummoned() or Player.castinginfo.castingid == 851) 
-			end,
-			function () 
-				--local bestPotion = Inventory:Get(itemID)
-				local green = GetItem(4868)
-				if (green and green:IsReady(Player.id)) then
-					green:Use()
-				end
-			end
-		)
+	if (green and green:IsReady()) then
+		green:Cast()
 	end
 end
 
@@ -2123,7 +1966,6 @@ function c_stance:evaluate()
     
     return false
 end
-
 function e_stance:execute()
 	ml_global_information.stanceTimer = Now()
 	ml_task_hub:ThisTask().preserveSubtasks = true
@@ -2169,54 +2011,6 @@ function e_sprint:execute()
 	end
 end
 
---minor abuse of the cne system here to update target pos
-c_updatetarget = inheritsFrom( ml_cause )
-e_updatetarget = inheritsFrom( ml_effect )
-function c_updatetarget:evaluate()	
-    if (ml_task_hub:ThisTask().targetid~=nil and ml_task_hub:ThisTask().targetid~=0)then
-        local target = EntityList:Get(ml_task_hub.ThisTask().targetid)
-        if (target ~= nil) then
-            if (target.alive and target.attackable) then
-                if (ml_task_hub:CurrentTask().name == "MOVETOPOS" ) then
-					e_updatetarget.pos = target.pos				
-                end
-				return false
-            end
-        end
-    end	
-end
-function e_updatetarget:execute()
-end
-
-c_attarget = inheritsFrom( ml_cause )
-e_attarget = inheritsFrom( ml_effect )
-function c_attarget:evaluate()
-    if (ml_task_hub:CurrentTask().name == "MOVETOPOS") then
-        if ml_global_information.AttackRange > 20 then
-            local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
-            if table.valid(target) then
-                local rangePercent = tonumber(gCombatRangePercent) * 0.01
-                return InCombatRange(ml_task_hub:ThisTask().targetid) and target.distance2d < (ml_global_information.AttackRange * rangePercent)
-            end
-        else
-            return InCombatRange(ml_task_hub:ThisTask().targetid)
-        end
-    end
-    return false
-end
-function e_attarget:execute()
-    Player:Stop()
-    ml_task_hub:CurrentTask():task_complete_execute()
-    ml_task_hub:CurrentTask():Terminate()
-end
-
----------------------------------------------------------------------------------------------
---REACTIVE/IMMEDIATE Game State CNEs
---These are cnes which are used to check the current game state and perform some kind of
---emergency action. They should generally be placed in the overwatch element list at an
---appropriate level in the subtask tree so that they can monitor all subtasks below them
----------------------------------------------------------------------------------------------
-
 ---------------------------------------------------------------------------------------------
 --REST: If (not player.hasAggro and player.hp.percent < 50) Then (do nothing)
 --Blocks all subtask execution until player hp has increased
@@ -2233,7 +2027,7 @@ function c_rest:evaluate()
 	end
 	
 	if (ml_task_hub:ThisTask().name == "LT_GRIND") then
-		if (FFXIV_Grind_DoFates and FFXIV_Grind_FatesOnly ) then
+		if (gGrindDoFates and gGrindFatesOnly ) then
 			return false
 		end
 	elseif (ml_task_hub:ThisTask().name == "LT_FATE") then
@@ -2251,8 +2045,8 @@ function c_rest:evaluate()
 	local isDOL = (Player.job >= 16 and Player.job <= 18)
 	local isDOH = (Player.job >= 8 and Player.job <= 15)
 	
-	if (( tonumber(FFXIV_Common_RestHP) > 0 and Player.hp.percent < tonumber(FFXIV_Common_RestHP)) or
-		(( tonumber(FFXIV_Common_RestMP) > 0 and Player.mp.percent < tonumber(FFXIV_Common_RestMP)) and not isDOL and not isDOH))
+	if (( tonumber(gRestHP) > 0 and Player.hp.percent < tonumber(gRestHP)) or
+		(( tonumber(gRestMP) > 0 and Player.mp.percent < tonumber(gRestMP)) and not isDOL and not isDOH))
 	then
 		if (Player.incombat or not Player.alive) then
 			--d("Cannot rest, still in combat or not alive.")
@@ -2302,7 +2096,7 @@ function c_flee:evaluate()
 	
 	e_flee.fleePos = {}
 	
-	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(FFXIV_Common_FleeMP))) then
+	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
 		local ppos = Player.pos
 		
 		if (table.valid(ml_marker_mgr.markerList["evacPoint"])) then
@@ -2332,7 +2126,7 @@ function e_flee:execute()
 	if (table.valid(fleePos)) then
 		local newTask = ffxiv_task_flee.Create()
 		newTask.pos = fleePos
-		newTask.useTeleport = (FFXIV_Common_Teleport)
+		newTask.useTeleport = (gTeleportHack)
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
 end
@@ -2538,7 +2332,7 @@ function e_returntomarker:execute()
         newTask.range = 0.5
         newTask.doFacing = true
     end
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	
@@ -2649,6 +2443,7 @@ function e_handoverquest:execute()
 	Quest:RequestHandOver()
 end
 
+--[[  -- A little unsafe right now, need to know really which quest the dialog represents.
 c_completequest = inheritsFrom( ml_cause )
 e_completequest = inheritsFrom( ml_effect )
 function c_completequest:evaluate()
@@ -2658,15 +2453,28 @@ function c_completequest:evaluate()
 	return Quest:IsQuestRewardDialogOpen()
 end
 function e_completequest:execute()
-	Quest:CompleteQuestReward(0)
+	local questid = questing.currentQuest.id or 0
+	if (questid ~= 0) then
+		local hasReward = AceLib.API.Quest.HasReward(questid)
+		if (hasReward) then
+			local reward = AceLib.API.Quest.ChooseBestReward(questid)
+			if (reward) then
+				ml_global_information.Await(math.random(1000,1500),function () Quest:CompleteQuestReward(reward) end)
+			end
+		else
+			ml_global_information.Await(math.random(1000,1500),function () Quest:CompleteQuestReward() end)
+		end
+	end
+	return false
 end
+--]]
 
 c_teleporttopos = inheritsFrom( ml_cause )
 e_teleporttopos = inheritsFrom( ml_effect )
 c_teleporttopos.pos = 0
 e_teleporttopos.teleCooldown = 0
 function c_teleporttopos:evaluate()
-	if (Now() < e_teleporttopos.teleCooldown or not FFXIV_Common_Teleport or IsFlying()) then
+	if (Now() < e_teleporttopos.teleCooldown or not gTeleportHack or IsFlying()) then
 		return false
 	end
 	
@@ -2724,7 +2532,7 @@ e_autoequip.item = nil
 e_autoequip.bag = nil
 e_autoequip.slot = nil
 function c_autoequip:evaluate()	
-	if (((not FFXIV_Common_AutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
+	if (((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 		not Player.alive or Player.incombat or
 		IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
@@ -2947,9 +2755,9 @@ function e_selectconvindex:execute()
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			for convoindex,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo.line,"[()-]","")
+				local cleanedline = string.gsub(convo.line,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
-					local cleanedv = string.gsub(v,"[()-]","")
+					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
@@ -3011,22 +2819,6 @@ function e_inventoryfull:execute()
 		d("Inventory is full, bot will stop.")
 		ml_task_hub:ToggleRun()
 	end
-end
-
-c_unpackdata = inheritsFrom( ml_cause )
-e_unpackdata = inheritsFrom( ml_effect )
-function c_unpackdata:evaluate()
-	--if (not ml_task_hub:CurrentTask().dataUnpacked and (ml_task_hub:CurrentTask().encounterData or ml_task_hub:CurrentTask().params)) then
-		--return true
-	--end
-	
-    return false
-end
-function e_unpackdata:execute()
-	if (ml_task_hub:CurrentTask().encounterData) then
-		
-	end
-	ml_task_hub:CurrentTask().dataUnpacked = true
 end
 
 c_falling = inheritsFrom( ml_cause )
@@ -3260,7 +3052,7 @@ function e_moveandinteract:execute()
 	newTask.pos = ml_task_hub:CurrentTask().pos
 	newTask.use3d = true
 	
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	
@@ -3298,4 +3090,18 @@ function e_switchclass:execute()
 		weapon:Move(1000,0)
 		ml_task_hub:CurrentTask():SetDelay(2500)
 	end
+end
+
+
+c_skiptalk = inheritsFrom( ml_cause )
+e_skiptalk = inheritsFrom( ml_effect )
+function c_skiptalk:evaluate()	
+	if IsControlOpen("Talk") then
+		UseControlAction("Talk","Click",1)
+		return true
+	end
+	return false
+end
+function e_skiptalk:execute()
+	ml_task_hub:ThisTask().preserveSubtasks = true
 end

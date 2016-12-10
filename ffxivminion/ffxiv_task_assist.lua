@@ -25,7 +25,7 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
-	--[[
+
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	
@@ -35,8 +35,8 @@ function ffxiv_task_assist:Init()
 	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 23 )
     self:add(ke_handoverQuest, self.process_elements)
 	
-	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
-    self:add(ke_completeQuest, self.process_elements)
+	--local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
+    --self:add(ke_completeQuest, self.process_elements)
 	
 	local ke_yesnoAssist = ml_element:create( "QuestYesNo", c_assistyesno, e_assistyesno, 23 )
     self:add(ke_yesnoAssist, self.process_elements)
@@ -52,7 +52,6 @@ function ffxiv_task_assist:Init()
 	
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
     self:add( ke_stance, self.process_elements)
-	--]]
 	
     self:AddTaskCheckCEs()
 	self:InitAddon()

@@ -221,7 +221,7 @@ function MFateList()
 	if (memoized) then
 		return memoized
 	else
-		local fateList = MapObject:GetFateList()
+		local fateList = GetFateList()
 		SetMemoized(memString,fateList)
 		return fateList
 	end

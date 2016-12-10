@@ -1476,6 +1476,19 @@ function GetNearestUnspoiled(class)
 	
     return nil
 end
+function GetNearestEvacPoint()
+	local nearest, nearestDistance = nil, math.huge
+	local evacPoints = ml_marker_mgr.GetMarkers("type=Evac,mapid="..tostring(Player.localmapid))
+	if (table.valid(evacPoints)) then
+		for id, evac in pairs(evacPoints) do
+			local dist = math.distance3d(Player.pos,evac.pos)
+			if (not nearest or (dist < nearestDistance)) then
+				nearest, nearestDistance = evac, dist
+			end
+		end
+	end
+	return nearest
+end
 function HasBuff(targetid, buffID, stacks, duration, ownerid)
 	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
@@ -1633,7 +1646,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 end
 function GetFleeHP()
 	local attackingMobs = TableSize(MEntityList("onmesh,alive,attackable,targetingme,maxdistance=15"))
-	local fleeHP = tonumber(FFXIV_Common_FleeHP) + (3 * attackingMobs)
+	local fleeHP = tonumber(gFleeHP) + (3 * attackingMobs)
 	return fleeHP
 end
 function HasInfiniteDuration(id)
@@ -2135,25 +2148,25 @@ function GetApprovedFates()
 	local fatelist = MFateList()
 	if (table.valid(fatelist)) then
 		for _,fate in pairs(fatelist) do
-			local minFateLevel = tonumber(FFXIV_Grind_FatesMinLevel) or 0
-			local maxFateLevel = tonumber(FFXIV_Grind_FatesMaxLevel) or 0
+			local minFateLevel = tonumber(gGrindFatesMinLevel) or 0
+			local maxFateLevel = tonumber(gGrindFatesMaxLevel) or 0
 			local fatePos = {x = fate.x, y = fate.y, z = fate.z}
 			
 			local isChain,firstChain = ffxiv_task_fate.IsChain(Player.localmapid, fate.id)
 			local isPrio = ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id)
 			
-			if ((minFateLevel == 0 or (fate.level >= (level - minFateLevel))) and 
-				(maxFateLevel == 0 or (fate.level <= (level + maxFateLevel)))) 
+			if ((gGrindFatesNoMinLevel or (fate.level >= (level - minFateLevel))) and 
+				(gGrindFatesNoMaxLevel or (fate.level <= (level + maxFateLevel)))) 
 			then
-				if (not (isChain or isPrio) and (fate.type == 0 and FFXIV_Grind_DoBattleFates  and fate.completion >= tonumber(FFXIV_Grind_FateBattleWaitPercent))) then
+				if (not (isChain or isPrio) and (fate.type == 0 and gGrindDoBattleFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 1 and FFXIV_Grind_DoBossFates  and fate.completion >= tonumber(FFXIV_Grind_FateBossWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 1 and gGrindDoBossFates  and fate.completion >= tonumber(gFateBossWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 2 and FFXIV_Grind_DoGatherFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 2 and gGrindDoGatherFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 3 and FFXIV_Grind_DoDefenseFates  and fate.completion >= tonumber(FFXIV_Grind_FateDefenseWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 3 and gGrindDoDefenseFates  and fate.completion >= tonumber(gFateDefenseWaitPercent))) then
 					table.insert(approvedFates,fate)
-				elseif (not (isChain or isPrio) and (fate.type == 4 and FFXIV_Grind_DoEscortFates  and fate.completion >= tonumber(gFateEscortWaitPercent))) then
+				elseif (not (isChain or isPrio) and (fate.type == 4 and gGrindDoEscortFates  and fate.completion >= tonumber(gFateEscortWaitPercent))) then
 					table.insert(approvedFates,fate)
 				elseif ((isChain or isPrio) and gDoChainFates ) then
 					if (fate.completion >= tonumber(gFateChainWaitPercent) or not firstChain) then
@@ -2201,7 +2214,8 @@ function GetClosestFate(pos,pathcheck)
 	
 	local fateList = GetApprovedFates()
 	if (table.valid(fateList)) then		
-		if (pathcheck and not FFXIV_Common_Teleport) then
+	
+		if (pathcheck and not gTeleportHack) then
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
 				local fatePos = {x = fate.x, y = fate.y, z = fate.z}
@@ -2217,7 +2231,8 @@ function GetClosestFate(pos,pathcheck)
         local nearestDistance = 9999
         local level = Player.level
 		local myPos = Player.pos
-		local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
+		--local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
+		local whitelistString = ""
 		local whitelistTable = {}
 		
 		if (not IsNullString(whitelistString)) then
@@ -2253,30 +2268,30 @@ function GetClosestFate(pos,pathcheck)
 			local validFates = {}
 			--Add fates that are high priority or chains first.
 			for k, fate in pairs(fateList) do
-				if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+				--if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 					if (fate.status == 2) then	
 						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
-							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-							if (p and dist <= 20) then
+							--local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+							--if (p and dist <= 20) then
 								table.insert(validFates,fate)
 								--d("Added 1 high priority fate.")
-							end
+							--end
 						end
 					end
-				end
+				--end
 			end
 			
 			if (not table.valid(validFates)) then
 				for k, fate in pairs(fateList) do
-					if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+					--if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
 						if (fate.status == 2) then	
-							local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-							if (p and dist <= 20) then
+							--local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+							--if (p and dist <= 20) then
 								table.insert(validFates,fate)
 								--d("Added 1 normal fate.")
-							end
+							--end
 						end
-					end
+					--end
 				end
 			end
 			
@@ -2299,6 +2314,8 @@ function GetClosestFate(pos,pathcheck)
 			--d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
             return nearestFate
         end
+	else
+		d("no approved fates")
     end
     
     return nil
@@ -2563,8 +2580,8 @@ function GetAggroDetectionPoints(pos1,pos2)
 	assert(table.valid(pos2),"Second argument is not a valid position.")
 	
 	local points = {}
-	local path = NavigationManager:GetPath(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
-	if (path) then
+	local path = ffnav.currentPath
+	if (table.valid(path)) then
 		local x = 1
 		local prevPos = pos1
 		
@@ -2727,9 +2744,10 @@ function InCombatRange(targetid)
 	end
 	
 	local attackRange = ml_global_information.AttackRange
-	if (attackRange < 5 and ((target.distance - target.hitradius) <= (3 * (tonumber(gCombatRangePercent) / 100)))) then
+	local combatRange = 85
+	if (attackRange < 5 and (target.distance2d <= (3 * (tonumber(gCombatRangePercent) / 100)))) then
 		return true
-	elseif (attackRange > 5 and ((target.distance - target.hitradius) <= (24 * (tonumber(gCombatRangePercent) / 100)))) then
+	elseif (attackRange > 5 and (target.distance2d <= (24 * (tonumber(gCombatRangePercent) / 100)))) then
 		return true
 	end
 	
@@ -2779,7 +2797,7 @@ function InCombatRange(targetid)
 			--]]
 		--end
 	--else
-		return (target.distance - target.hitradius) <= (highestRange * (tonumber(gCombatRangePercent) / 100))
+		return target.distance2d <= (attackRange * (tonumber(gCombatRangePercent) / 100))
 	--end
 
 	--return false
@@ -2894,18 +2912,31 @@ function Mount(id)
 	if (table.valid(mounts)) then
 		if (mountID == 0) then
 			for mountid,mountaction in pairsByKeys(mounts) do
-				if (mountaction.name == gMountName) then
-					if (mountaction:IsReady(Player.id)) then
-						mountaction:Cast(Player.id)
-						return true
+				d("name:"..tostring(mountaction.name)..",isready:"..tostring(mountaction:IsReady()))
+				--if (gMountName ~= GetString("None")) then
+					--if (mountaction.name == gMountName) then
+						--if (mountaction:IsReady()) then
+							--mountaction:Cast()
+							--return true
+						--end
+					--end
+				--else
+					if (mountid == 1) then
+						d("trying to use mount 1")
+						if (mountaction:IsReady()) then
+							mountaction:Cast()
+							return true
+						else
+							d("mount isn't ready")
+						end
 					end
-				end
+				--end
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do
 				if (mountid == mountID) then
-					if (mountaction:IsReady(Player.id)) then
-						mountaction:Cast(Player.id)
+					if (mountaction:IsReady()) then
+						mountaction:Cast()
 						return true
 					end
 				end
@@ -2922,23 +2953,27 @@ function Dismount()
 		SendTextCommand("/mount")
 	end
 end
-
 function Repair()
-	if (FFXIV_Common_Repair ) then
+	if (FFXIV_Common_Repair) then
 		local blacklist = ml_global_information.repairBlacklist
-		local eq = MInventory("type=1000")
-		for i,e in pairs(eq) do
-			if (e.condition <= 30) then
-				if (blacklist[e.id] == nil) then
-					blacklist[e.id] = 0
-				end
-				if (blacklist[e.id] < 3) then
-					e:Repair()
-					blacklist[e.id] = blacklist[e.id] + 1
-				end
-			else
-				if (blacklist[e.id]) then
-					blacklist[e.id] = nil
+		local bag = Inventory:Get(1000)
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot,item in pairs(ilist) do
+					if (item.condition <= 30) then
+						if (blacklist[item.id] == nil) then
+							blacklist[item.id] = 0
+						end
+						if (blacklist[item.id] < 3) then
+							item:Repair()
+							blacklist[item.id] = blacklist[item.id] + 1
+						end
+					else
+						if (blacklist[item.id]) then
+							blacklist[item.id] = nil
+						end
+					end
 				end
 			end
 		end
@@ -3372,6 +3407,9 @@ function PartySMemberWithBuff(hasbuffs, hasnot, maxdistance)
 end
 ml_global_information.lastAetheryteCache = 0
 function GetAetheryteList(force)
+	
+	return Player:GetAetheryteList()
+	--[[
 	local force = IsNull(force,false)
 	
 	if (force == true or ml_global_information.Player_Aetherytes == nil) then
@@ -3393,6 +3431,7 @@ function GetAetheryteList(force)
 	end
 	
 	return ml_global_information.Player_Aetherytes
+	--]]
 end
 function CopyAetheryteData()
 	local apiList = Player:GetAetheryteList()
@@ -3814,10 +3853,10 @@ function ShouldTeleport(pos)
 		return false
 	end
 	
-	if (not FFXIV_Common_Teleport) then
+	if (not gTeleportHack) then
 		return false
 	else
-		if (FFXIV_Common_Paranoid == "0") then
+		if (gTeleportHackParanoid == "0") then
 			return true
 		else
 			local scanDistance = 50
@@ -4034,12 +4073,12 @@ end
 function ItemReady(hqid,targetid)
 	local targetid = targetid or 0
 	
-	local item = GetItem(hqid)
-	if (item) then
+	local item,itemaction = GetItem(hqid)
+	if (item and itemaction) then
 		if (targetid ~= 0) then
-			return item:IsReady(targetid)
+			return itemaction:IsReady(targetid)
 		else
-			return item:IsReady()
+			return itemaction:IsReady()
 		end		
 	end
 	
@@ -4143,7 +4182,32 @@ function GetItem(hqid,inventories)
 					if (table.valid(ilist)) then
 						for slot,item in pairs(ilist) do
 							if (item.hqid == hqid) then
-								return item
+								return item,item:GetAction()
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return nil,nil
+end	
+
+function GetItemAction(hqid,inventories)
+	local hqid = tonumber(hqid) or 0
+	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	
+	if (hqid ~= 0) then
+		if (table.valid(inventories)) then
+			for _,invid in pairsByKeys(inventories) do
+				local bag = Inventory:Get(invid)
+				if (table.valid(bag)) then
+					local ilist = bag:GetList()
+					if (table.valid(ilist)) then
+						for slot,item in pairs(ilist) do
+							if (item.hqid == hqid) then
+								return item:GetAction()
 							end
 						end
 					end
@@ -5322,4 +5386,34 @@ function IsReadying()
 end
 function InInstance()
 	return Duty:GetQueueStatus() == 4
+end
+function GetConversationList()
+	local controlName;
+	if (IsControlOpen("SelectIconString")) then
+		controlName = "SelectIconString"
+	elseif (IsControlOpen("SelectString")) then
+		controlName = "SelectString"
+	end
+	
+	if (controlName) then
+		local control = GetControl(controlName)
+		if (control) then
+			return control:GetData()
+		end
+	end
+	return nil
+end
+function SelectConversationIndex(index)
+	local index = IsNull(index,0)
+	local controlName;
+	if (IsControlOpen("SelectIconString")) then
+		controlName = "SelectIconString"
+	elseif (IsControlOpen("SelectString")) then
+		controlName = "SelectString"
+	end
+	
+	if (controlName) then
+		return UseControlAction(controlName,"SelectIndex",index)
+	end
+	return false
 end

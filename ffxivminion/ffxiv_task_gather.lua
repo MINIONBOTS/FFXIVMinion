@@ -3,7 +3,9 @@ ffxiv_gather.lastTick = 0
 ffxiv_gather.timer = 0
 ffxiv_gather.lastItemAttempted = 0
 ffxiv_gather.editwindow = {name = GetString("locationEditor"), x = 0, y = 0, width = 250, height = 230}
-ffxiv_gather.editwindow = GetStartupPath()..[[\LuaMods\ffxivminion\GatherProfiles\]]
+ffxiv_gather.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\GatherProfiles\]]
+ffxiv_gather.profiles = {}
+ffxiv_gather.profilesDisplay = {}
 ffxiv_gather.profileData = {}
 ffxiv_gather.currentTask = {}
 ffxiv_gather.currentTaskIndex = 0
@@ -40,8 +42,6 @@ function ffxiv_task_gather.Create()
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.failedSearches = 0 
-	
-	table.insert(tasktracking, newinst)
     
     return newinst
 end
@@ -296,7 +296,7 @@ function e_movetonode:execute()
 					if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = p
-						alternateTask.useTeleport = (FFXIV_Common_Teleport)
+						alternateTask.useTeleport = (gTeleportHack)
 						alternateTask.range = 3
 						alternateTask.remainMounted = true
 						alternateTask.stealthFunction = ffxiv_gather.NeedsStealth
@@ -308,7 +308,7 @@ function e_movetonode:execute()
 				return
 			end
 			
-			if (FFXIV_Common_Teleport and dist3d > 8) then
+			if (gTeleportHack and dist3d > 8) then
 				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 				local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
 				if (p and dist ~= 0) then
@@ -397,7 +397,7 @@ function e_returntobase:execute()
 	
 	local newTask = ffxiv_task_movetopos.Create()
 	newTask.pos = pos
-	newTask.useTeleport = (FFXIV_Common_Teleport)
+	newTask.useTeleport = (gTeleportHack)
 	newTask.range = range
 	newTask.alwaysMount = true
 	newTask.remainMounted = true
@@ -1514,7 +1514,7 @@ function e_gatherflee:execute()
 	if (table.valid(fleePos)) then
 		local newTask = ffxiv_task_flee.Create()
 		newTask.pos = fleePos
-		newTask.useTeleport = (FFXIV_Common_Teleport)
+		newTask.useTeleport = (gTeleportHack)
 		newTask.task_complete_eval = 
 			function ()
 				return not Player.incombat
@@ -2453,7 +2453,7 @@ function c_gatherstealth:evaluate()
 				end
 				
 				if (gatherable) then
-					if (FFXIV_Common_Teleport and c_teleporttopos:evaluate()) then
+					if (gTeleportHack and c_teleporttopos:evaluate()) then
 						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(FFXIV_Common_StealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 						if (TableSize(potentialAdds) > 0) then
 							if (not HasBuff(Player.id, 47)) then
@@ -2572,7 +2572,7 @@ function ffxiv_gather.NeedsStealth()
 				end
 				
 				if (gatherable) then
-					if (FFXIV_Common_Teleport and c_teleporttopos:evaluate()) then
+					if (gTeleportHack and c_teleporttopos:evaluate()) then
 						local potentialAdds = EntityList("alive,attackable,aggressive,maxdistance="..tostring(FFXIV_Common_StealthDetect)..",minlevel="..tostring(Player.level - 10)..",distanceto="..tostring(gatherable.id))
 						if (table.valid(potentialAdds)) then
 							return true
@@ -2725,19 +2725,20 @@ function ffxiv_task_gather:Init()
 end
 
 function ffxiv_task_gather.SetModeOptions()
-	FFXIV_Common_Teleport = Settings.FFXIVMINION.FFXIV_Common_Teleport
-	FFXIV_Common_Paranoid = Settings.FFXIVMINION.FFXIV_Common_Paranoid
-	FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-	FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
-	FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-	Hacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	--Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	Hacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
-	FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
-	FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
+	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
+	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
+	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
+	Hacks:SkipCutscene(gSkipCutscene)
+	--Hacks:SkipDialogue(gSkipTalk)
+	Hacks:Disable3DRendering(gDisableDrawing)
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
 -- UI settings etc
+--[[
 function ffxiv_task_gather.UIInit()
 	--Add it to the main tracking table, so that we can save positions for it.
 	ffxivminion.Windows.Gather = { id = strings["us"].gatherMode, Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
@@ -2857,23 +2858,11 @@ function ffxiv_task_gather.UIInit()
 	gGatherDebug = Settings.FFXIVMINION.gGatherDebug
 	gGatherDebugLevel = Settings.FFXIVMINION.gGatherDebugLevel
 end
+--]]
 
---[[
-function ffxiv_task_gather.SetModeOptions()
-	FFXIV_Common_Teleport = Settings.FFXIVMINION.FFXIV_Common_Teleport
-	FFXIV_Common_Paranoid = Settings.FFXIVMINION.FFXIV_Common_Paranoid
-	FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-	FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
-	FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-	Hacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	Hacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
-	FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
-	FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
-end
 
 function ffxiv_task_gather:UIInit()
-	ffxiv_fish.profiles, ffxiv_fish.profilesDisplay = GetPublicProfiles(ffxiv_fish.profilePath,".*lua")
+	ffxiv_gather.profiles, ffxiv_gather.profilesDisplay = GetPublicProfiles(ffxiv_gather.profilePath,".*lua")
 	
 	local uuid = GetUUID()
 	if (Settings.FFXIVMINION.gLastGatherProfiles == nil) then
@@ -2883,15 +2872,17 @@ function ffxiv_task_gather:UIInit()
 		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = {}
 	end
 	
-	_G["gGatherProfile"] = Settings.FFXIVMINION.gLastGatherProfiles[uuid] or ffxiv_fish.profilesDisplay[1]
-	_G["gGatherProfileIndex"] = GetKeyByValue(gGatherProfile,ffxiv_fish.profilesDisplay) or 1
-	if (ffxiv_fish.profilesDisplay[gGatherProfileIndex] ~= gGatherProfile) then
-		_G["gGatherProfile"] = ffxiv_fish.profilesDisplay[gGatherProfileIndex]
+	_G["gGatherProfile"] = Settings.FFXIVMINION.gLastGatherProfiles[uuid] or ffxiv_gather.profilesDisplay[1]
+	_G["gGatherProfileIndex"] = GetKeyByValue(gGatherProfile,ffxiv_gather.profilesDisplay) or 1
+	if (ffxiv_gather.profilesDisplay[gGatherProfileIndex] ~= gGatherProfile) then
+		_G["gGatherProfile"] = ffxiv_gather.profilesDisplay[gGatherProfileIndex]
 	end
-	ffxiv_fish.profileData = ffxiv_fish.profiles[gGatherProfile] or {}
+	ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile] or {}
 	
 	gGatherDebug = ffxivminion.GetSetting("gGatherDebug",false)
+	local debugLevels = { 1, 2, 3}
 	gGatherDebugLevel = ffxivminion.GetSetting("gGatherDebugLevel",1)
+	gGatherDebugLevelIndex = GetKeyByValue(gGatherDebugLevel,debugLevels)
 	
 	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
 	gGatherCollectablesList = { GetString("none") }
@@ -2908,9 +2899,9 @@ end
 
 function ffxiv_task_gather:Draw()
 	
-	local profileChanged = GUI_Combo(GetString("profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_fish.profilesDisplay)
+	local profileChanged = GUI_Combo(GetString("profile"), "gGatherProfileIndex", "gGatherProfile", ffxiv_gather.profilesDisplay)
 	if (profileChanged) then
-		ffxiv_fish.profileData = ffxiv_fish.profiles[gGatherProfile]
+		ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
 		local uuid = GetUUID()
 		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = gGatherProfile
 	end
@@ -2923,9 +2914,9 @@ function ffxiv_task_gather:Draw()
 		GUI:PushItemWidth(120)					
 		
 		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
-		GUI_Capture(GUI:Checkbox("Quest Debug",gQuestDebug),"gQuestDebug");
+		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
 		local debugLevels = { 1, 2, 3}
-		GUI_Combo("Debug Level", "gQuestDebugLevelIndex", "gQuestDebugLevel", debugLevels)
+		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
@@ -2933,13 +2924,13 @@ function ffxiv_task_gather:Draw()
 	
 	if (tabs.tabs[2].isselected) then
 		GUI:BeginChild("##header-settings",0,60,true)
-		GUI:PushItemWidth(120)				
+		GUI:PushItemWidth(120)		
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
 	end
 end
---]]
+
 
 function ffxiv_gather.SwitchClass(class)
 	class = tonumber(class) or 0

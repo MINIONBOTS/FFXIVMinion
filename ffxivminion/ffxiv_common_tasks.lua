@@ -1,104 +1,4 @@
 ---------------------------------------------------------------------------------------------
---LONGTERM GOALS--
---These are strategy level tasks which incorporate multiple layers of subtasks and reactive
---tasks to complete a specific action. They should generally be placed near the root level
---of task in the LONGTERM task queue
----------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------
---TASK_KILLTARGET: LongTerm Goal - Kill the specified target
----------------------------------------------------------------------------------------------
-ffxiv_task_killtarget = inheritsFrom(ml_task)
-
-function ffxiv_task_killtarget.Create()
-    local newinst = inheritsFrom(ffxiv_task_killtarget)
-    
-    --ml_task members
-    newinst.valid = true
-    newinst.completed = false
-    newinst.subtask = nil
-    newinst.auxiliary = false
-    newinst.process_elements = {}
-    newinst.overwatch_elements = {}
-    
-    --ffxiv_task_killtarget members
-    newinst.name = "LT_KILLTARGET"
-    newinst.targetid = 0
-	newinst.targetRank = ""
-	newinst.failTimer = 0
-	newinst.waitTimer = Now()
-	newinst.canEngage = true
-    newinst.safeDistance = 30
-	
-    return newinst
-end
-
-function ffxiv_task_killtarget:Init()
-	local ke_avoidance = ml_element:create( "Avoidance", c_avoid, e_avoid, 20 )
-    self:add( ke_avoidance, self.overwatch_elements)
-	
-	local ke_autoPotion = ml_element:create( "AutoPotion", c_autopotion, e_autopotion, 19)
-	self:add(ke_autoPotion, self.process_elements)
-	
-	local ke_attarget = ml_element:create("AtTarget", c_attarget, e_attarget, 15)
-	self:add( ke_attarget, self.overwatch_elements)
-	
-	local ke_bettertargetsearch = ml_element:create("SearchBetterTarget", c_bettertargetsearch, e_bettertargetsearch, 10)
-	self:add( ke_bettertargetsearch, self.overwatch_elements)
-	
-	local ke_updateTarget = ml_element:create("UpdateTarget", c_updatetarget, e_updatetarget, 5)
-	self:add( ke_updateTarget, self.overwatch_elements)
-	
-	local ke_companion = ml_element:create( "Companion", c_companion, e_companion, 3 )
-    self:add( ke_companion, self.overwatch_elements)
-	
-	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 1 )
-    self:add( ke_stance, self.overwatch_elements)
-		
-	--Process() cnes
-	local ke_moveToTargetSafe = ml_element:create( "MoveToTargetSafe", c_movetotargetsafe, e_movetotargetsafe, 11 )
-	self:add( ke_moveToTargetSafe, self.process_elements)
-	
-	local ke_moveToTarget = ml_element:create( "MoveToTarget", c_movetotarget, e_movetotarget, 10 )
-	self:add( ke_moveToTarget, self.process_elements)
-	
-	local ke_huntQuit = ml_element:create( "HuntQuit", c_huntquit, e_huntquit, 9 )
-	self:add( ke_huntQuit, self.process_elements)
-	
-	local ke_combat = ml_element:create( "AddCombat", c_add_combat, e_add_combat, 5 )
-	self:add( ke_combat, self.process_elements)
-	
-	self:AddTaskCheckCEs()
-end
-
-function ffxiv_task_killtarget:task_complete_eval()	
-    local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
-    if 	((target and not target.attackable) or 
-		(target and not target.alive) or 
-		(target and not target.onmesh and not InCombatRange(target.id) and ml_task_hub:CurrentTask().canEngage)) 
-	then
-		return true
-    end
-    
-    return false
-end
-
-function ffxiv_task_killtarget:task_complete_execute()
-    self.completed = true
-	ffxiv_task_hunt.hasTarget = false
-end
-
-function ffxiv_task_killtarget:task_fail_eval()
-	local target = EntityList:Get(ml_task_hub:ThisTask().targetid)
-	return not table.valid(target)
-end
-
-function ffxiv_task_killtarget:task_fail_execute()
-	ffxiv_task_hunt.hasTarget = false
-	self:Terminate()
-end
-
----------------------------------------------------------------------------------------------
 --REACTIVE GOALS--
 --These are tasks which may be called in reaction to changes in the game state, such as
 --mob movement/aggro. They should be placed in the REACTIVE queue and continue to pulse 
@@ -157,7 +57,6 @@ function ffxiv_task_movetopos.Create()
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
 	
-	table.insert(tasktracking, newinst)
 	ffxiv_unstuck.Reset()
     
     return newinst
@@ -527,8 +426,8 @@ function ffxiv_task_movetofate:task_complete_eval()
 						
 						local selection = options[math.random(1,TableSize(options))]
 						if (table.valid(selection)) then
-							local p,dist = NavigationManager:GetClosestPointOnMesh(selection)
-							if (p and dist ~= 0 and dist < 5) then
+							local p = NavigationManager:GetClosestPointOnMesh(selection)
+							if (table.valid(p)) then
 								newPos = p
 							end
 						end
@@ -541,16 +440,16 @@ function ffxiv_task_movetofate:task_complete_eval()
 			if (not table.valid(newPos)) then
 				local randomPoint = NavigationManager:GetRandomPointOnCircle(self.pos.x,self.pos.y,self.pos.z,math.random(1,3),math.random(8,12))
 				if (table.valid(randomPoint)) then
-					local p,dist = NavigationManager:GetClosestPointOnMesh(randomPoint)
-					if (p and dist ~= 0 and dist < 5) then
+					local p = NavigationManager:GetClosestPointOnMesh(randomPoint)
+					if (table.valid(p)) then
 						newPos = p
 					end
 				end
 			end
 			
 			if (not table.valid(newPos)) then
-				local p,dist = NavigationManager:GetClosestPointOnMesh(self.pos)
-				if (p and dist ~= 0 and dist < 5) then
+				local p = NavigationManager:GetClosestPointOnMesh(self.pos)
+				if (table.valid(p)) then
 					newPos = p
 				end
 			end
@@ -666,11 +565,10 @@ function ffxiv_task_movetointeract.Create()
 	
 	newinst.stealthFunction = nil
 	
-	Hacks:SkipDialogue(true)
+	--Hacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
-	table.insert(tasktracking, newinst)
 	ffxiv_unstuck.Reset()
 	
     return newinst
@@ -747,6 +645,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	if ((MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
+		d("ending in block 1")
 		return true
 	end
 	
@@ -756,6 +655,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (not interact or not interact.targetable) then
+			d("ending in block 2")
 			return true
 		end
 	else
@@ -763,7 +663,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
+			d("looking for interacts:"..tostring("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")..", found:"..tostring(table.size(interacts)))
 			if (not table.valid(interacts)) then
+				d("ending in block 3")
 				return true
 			end
 		end			
@@ -818,8 +720,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					self.pos = shallowcopy(ipos)
 				end
 			else
-				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-				if (p and dist ~= 0 and dist < 5) then
+				local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				if (table.valid(p)) then
 					if (not deepcompare(self.pos,p,true)) then
 						self.pos = shallowcopy(p)
 					end
@@ -860,7 +762,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
 									d("[MoveToInteract]: Initiating await until interaction is complete.")
-									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) end)
+									ml_global_information.Await(15000, function () 
+										return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) 
+										end
+									)
 								end
 							end,
 							function ()
@@ -872,6 +777,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						)
 						self.blockExecution = true
 						self.lastInteract = Now()
+						d("ending in block 4")
 						return true
 					end
 				end
@@ -913,6 +819,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							)
 							self.blockExecution = true
 							self.lastInteract = Now()
+							d("ending in block 5")
 							return true
 						--end
 					end
@@ -925,12 +832,13 @@ function ffxiv_task_movetointeract:task_complete_eval()
 end
 
 function ffxiv_task_movetointeract:task_complete_execute()
+	d("task completed")
 	if (self.blockExecution) then
 		return false
 	end
 	
     Player:Stop()
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
 	if (self.killParent) then
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
@@ -953,7 +861,7 @@ function ffxiv_task_movetointeract:task_fail_eval()
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end
 
@@ -1132,7 +1040,7 @@ function e_sethomepoint:execute()
 	newTask.pos = e_sethomepoint.aethpos
 	newTask.use3d = true
 	
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
@@ -1157,9 +1065,9 @@ function ffxiv_task_teleport:task_complete_eval()
 			}
 
 			for convoindex,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo.line,"[()-]","")
+				local cleanedline = string.gsub(convo.line,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
-					local cleanedv = string.gsub(v,"[()-]","")
+					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						SelectConversationIndex(convoindex)
 						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
@@ -1553,11 +1461,11 @@ function ffxiv_task_rest:task_complete_eval()
 	--Try to cast self-heals if we have them.
 	SkillMgr.Cast( Player, true )
 	
-	if (FFXIV_Common_Teleport and TimeSince(self.timer) < 5000) then
+	if (gTeleportHack and TimeSince(self.timer) < 5000) then
 		return false
 	end
 	
-    if ((Player.hp.percent > math.random(90,95) or tonumber(FFXIV_Common_RestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(FFXIV_Common_RestMP) == 0)) then
+    if ((Player.hp.percent > math.random(90,95) or tonumber(gRestHP) == 0) and (Player.mp.percent > math.random(90,95) or tonumber(gRestMP) == 0)) then
 		return true
 	end
 	
@@ -1646,9 +1554,9 @@ function ffxiv_task_flee:task_complete_eval()
     end
 	
 	return (not Player.incombat or 
-		(tonumber(FFXIV_Common_RestHP) > tonumber(FFXIV_Common_FleeHP) and Player.hp.percent > tonumber(FFXIV_Common_RestHP) and tonumber(FFXIV_Common_RestMP) > tonumber(FFXIV_Common_FleeMP) and Player.mp.percent > tonumber(FFXIV_Common_RestMP)) or
-		(tonumber(FFXIV_Common_FleeHP) > 0 and Player.hp.percent > tonumber(FFXIV_Common_PotionHP)) or
-		(tonumber(FFXIV_Common_FleeHP) > 0 and Player.hp.percent > 75))
+		(tonumber(gRestHP) > tonumber(gFleeHP) and Player.hp.percent > tonumber(gRestHP) and tonumber(gRestMP) > tonumber(gFleeMP) and Player.mp.percent > tonumber(gRestMP)) or
+		(tonumber(gFleeHP) > 0 and Player.hp.percent > tonumber(gPotionHP)) or
+		(tonumber(gFleeHP) > 0 and Player.hp.percent > 75))
 end
 
 function ffxiv_task_flee:task_complete_execute()
@@ -1834,8 +1742,8 @@ function ffxiv_task_grindCombat:Process()
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
-					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-					if (p and dist ~= 0 and dist < 5) then
+					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					if (table.valid(p)) then
 						Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 						self.teleportThrottle = Now() + 1500
 					end
@@ -1890,8 +1798,8 @@ function ffxiv_task_grindCombat:Process()
 				if (not self.attemptPull or nearbyMobCount == 0 or (self.attemptPull and (self.pullTimer == 0 or Now() > self.pullTimer))) then
 					if (teleport and not self.attemptPull and dist > 60 and Now() > self.teleportThrottle) then
 						local telePos = GetPosFromDistanceHeading(pos, 2, mobRear)
-						local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-						if (p and dist ~= 0 and dist < 5) then
+						local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+						if (table.valid(p)) then
 							Hacks:TeleportToXYZ(tonumber(p.x),tonumber(p.y),tonumber(p.z))
 							self.teleportThrottle = Now() + 1500
 						end
@@ -1916,7 +1824,7 @@ function ffxiv_task_grindCombat:Process()
 			end
 			if (InCombatRange(target.id) and not IsFlying()) then
 				Player:SetFacing(pos.x,pos.y,pos.z) 
-				if (target.los) then
+				if (Player:IsMoving() and target.los) then
 					Player:Stop()
 				end
 				
@@ -2003,7 +1911,7 @@ function ffxiv_task_grindCombat:task_fail_eval()
 		return true
 	end
 	
-	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(FFXIV_Common_FleeMP))) then
+	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
 		ml_debug("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
@@ -2032,7 +1940,7 @@ function ffxiv_mesh_interact.Create()
 	newinst.interact = 0
     newinst.interactLatency = 0
 	
-	Hacks:SkipDialogue(true)
+	----Hacks:SkipDialogue(true)
 	
 	d("Mesh interact task created.")
 	
@@ -2096,7 +2004,7 @@ end
 
 function ffxiv_mesh_interact:task_complete_execute()
 	d("Mesh interact task completed normally.")
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	----Hacks:SkipDialogue(gSkipTalk)
 	ml_mesh_mgr.ResetOMC()
 	self.completed = true
 end
@@ -2111,7 +2019,7 @@ end
 
 function ffxiv_mesh_interact:task_fail_execute()
 	d("Mesh interact task failed.")
-    Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+    ----Hacks:SkipDialogue(gSkipTalk)
 	ml_mesh_mgr.ResetOMC()
     self.valid = false
 end
@@ -2168,7 +2076,7 @@ function ffxiv_nav_interact.Create()
 	newinst.interactDelay = 500
 	newinst.abort = nil
 	
-	Hacks:SkipDialogue(true)
+	----Hacks:SkipDialogue(true)
 	newinst.alwaysMount = false
 	
     return newinst
@@ -2261,8 +2169,8 @@ function ffxiv_nav_interact:task_complete_eval()
 		if (interactable and interactable.targetable and interactable.distance < 10) then
 			Player:SetTarget(interactable.id)
 			local ipos = shallowcopy(interactable.pos)
-			local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-			if (p and dist ~= 0 and dist < 5) then
+			local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+			if (table.valid(p)) then
 				if (not deepcompare(self.pos,p,true)) then
 					self.pos = p
 				end
@@ -2294,7 +2202,7 @@ end
 
 function ffxiv_nav_interact:task_complete_execute()
     Player:Stop()
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
 	self.completed = true
 end
 
@@ -2307,7 +2215,7 @@ function ffxiv_nav_interact:task_fail_eval()
 end
 
 function ffxiv_nav_interact:task_fail_execute()
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end
 
@@ -2544,11 +2452,10 @@ function ffxiv_task_moveaethernet.Create()
 	
 	newinst.stealthFunction = nil
 	
-	Hacks:SkipDialogue(true)
+	--Hacks:SkipDialogue(true)
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
-	table.insert(tasktracking, newinst)
 	ffxiv_unstuck.Reset()
 	
     return newinst
@@ -2723,8 +2630,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					self.pos = shallowcopy(ipos)
 				end
 			else
-				local p,dist = NavigationManager:GetClosestPointOnMesh(ipos,false)
-				if (p and dist ~= 0 and dist < 5) then
+				local p = NavigationManager:GetClosestPointOnMesh(ipos,false)
+				if (table.valid(p)) then
 					if (not deepcompare(self.pos,p,true)) then
 						self.pos = shallowcopy(p)
 					end
@@ -2784,7 +2691,7 @@ function ffxiv_task_moveaethernet:task_complete_execute()
 		return false
 	end
 	
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
     Player:Stop()
 	self.completed = true
 end
@@ -2804,6 +2711,6 @@ function ffxiv_task_moveaethernet:task_fail_eval()
 end
 
 function ffxiv_task_moveaethernet:task_fail_execute()
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end

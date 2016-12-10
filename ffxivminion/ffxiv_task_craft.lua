@@ -618,17 +618,17 @@ function ffxiv_task_craft:Init()
 end
 
 function ffxiv_task_craft.SetModeOptions()
-	FFXIV_Common_Teleport = Settings.FFXIVMINION.FFXIV_Common_Teleport
-	FFXIV_Common_Paranoid = Settings.FFXIVMINION.FFXIV_Common_Paranoid
-	FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-	FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
-	FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-	Hacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	Hacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
-	FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
+	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
+	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
+	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
+	Hacks:SkipCutscene(gSkipCutscene)
+	Hacks:SkipDialogue(gSkipTalk)
+	Hacks:Disable3DRendering(gDisableDrawing)
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	ffxiv_craft.UpdateProfiles()
-	FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
+	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
 function ffxiv_task_craft.UIInit()

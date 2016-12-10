@@ -1636,7 +1636,7 @@ function e_fishnextprofilepos:execute()
     newTask.pos = task.pos
 	newTask.range = 1
 	newTask.doFacing = true
-	if (FFXIV_Common_Teleport) then
+	if (gTeleportHack) then
 		newTask.useTeleport = true
 	end
 	newTask.stealthFunction = ffxiv_fish.NeedsStealth
@@ -1993,16 +1993,16 @@ function ffxiv_task_fish:Init()
 end
 
 function ffxiv_task_fish.SetModeOptions()
-	FFXIV_Common_Teleport = Settings.FFXIVMINION.FFXIV_Common_Teleport
-	FFXIV_Common_Paranoid = Settings.FFXIVMINION.FFXIV_Common_Paranoid
-	FFXIV_Common_DisableDrawing = Settings.FFXIVMINION.FFXIV_Common_DisableDrawing
-	FFXIV_Common_SkipCutscene = Settings.FFXIVMINION.FFXIV_Common_SkipCutscene
-	FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-	Hacks:SkipCutscene(FFXIV_Common_SkipCutscene)
-	Hacks:SkipDialogue(FFXIV_Common_SkipDialogue)
-	Hacks:Disable3DRendering(FFXIV_Common_DisableDrawing)
-	FFXIV_Common_AvoidAOE = Settings.FFXIVMINION.FFXIV_Common_AvoidAOE
-	FFXIV_Common_AutoEquip = Settings.FFXIVMINION.FFXIV_Common_AutoEquip
+	gTeleportHack = Settings.FFXIVMINION.gTeleportHack
+	gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
+	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
+	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
+	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
+	Hacks:SkipCutscene(gSkipCutscene)
+	Hacks:SkipDialogue(gSkipTalk)
+	Hacks:Disable3DRendering(gDisableDrawing)
+	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
+	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
 function ffxiv_task_fish:UIInit()
@@ -2024,7 +2024,9 @@ function ffxiv_task_fish:UIInit()
 	ffxiv_fish.profileData = ffxiv_fish.profiles[gFishProfile] or {}
 	
 	gFishDebug = ffxivminion.GetSetting("gFishDebug",false)
+	local debugLevels = { 1, 2, 3}
 	gFishDebugLevel = ffxivminion.GetSetting("gFishDebugLevel",1)
+	gFishDebugLevelIndex = GetKeyByValue(gFishDebugLevel,debugLevels)
 	
 	local uistring = IsNull(AceLib.API.Items.BuildUIString(47,120),"")
 	gFishCollectablesList = { GetString("none") }
@@ -2056,9 +2058,9 @@ function ffxiv_task_fish:Draw()
 		GUI:PushItemWidth(120)					
 		
 		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
-		GUI_Capture(GUI:Checkbox("Quest Debug",gQuestDebug),"gQuestDebug");
+		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
 		local debugLevels = { 1, 2, 3}
-		GUI_Combo("Debug Level", "gQuestDebugLevelIndex", "gQuestDebugLevel", debugLevels)
+		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
