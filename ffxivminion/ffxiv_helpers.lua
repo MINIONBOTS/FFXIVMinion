@@ -2982,18 +2982,23 @@ end
 function NeedsRepair()
 	if (FFXIV_Common_Repair ) then
 		local blacklist = ml_global_information.repairBlacklist
-		local eq = MInventory("type=1000")
-		for i,e in pairs(eq) do
-			if (e.condition <= 30) then
-				if (blacklist[e.id] == nil) then
-					blacklist[e.id] = 0
-				end
-				if (blacklist[e.id] < 3) then
-					return true
-				end
-			else
-				if (blacklist[e.id]) then
-					blacklist[e.id] = nil
+		local bag = Inventory:Get(1000)
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot,item in pairs(ilist) do
+					if (item.condition <= 30) then
+						if (blacklist[item.id] == nil) then
+							blacklist[item.id] = 0
+						end
+						if (blacklist[item.id] < 3) then
+							return true
+						end
+					else
+						if (blacklist[item.id]) then
+							blacklist[item.id] = nil
+						end
+					end
 				end
 			end
 		end
