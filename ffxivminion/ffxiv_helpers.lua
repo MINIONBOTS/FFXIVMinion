@@ -5273,7 +5273,7 @@ function Transport139(pos1,pos2)
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -341.24, y = -1, z = 112.098}
-				newTask.uniqueid = 1003586
+				newTask.contentid = 1003586
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		else
@@ -5284,7 +5284,7 @@ function Transport139(pos1,pos2)
 			return true, function ()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 222.812, y = -.959197, z = 258.17599}
-				newTask.uniqueid = 1003587
+				newTask.contentid = 1003587
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		else
@@ -5305,7 +5305,7 @@ function Transport156(pos1,pos2)
 		return true, function ()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = .70, y = -157, z = 16.2}
-			newTask.uniqueid = 2002502
+			newTask.contentid = 2002502
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.y < -150 and pos1.x < 12 and pos1.x > -10 and pos1.z < 16.5 and pos1.z > -14.1) and 
@@ -5314,7 +5314,7 @@ function Transport156(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 21.9, y = 20.7, z = -682}
-			newTask.uniqueid = 1006530
+			newTask.contentid = 1006530
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -5331,7 +5331,7 @@ function Transport137(pos1,pos2)
 		return true, function ()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 607.8, y = 11.6, z = 391.8}
-			newTask.uniqueid = 1003585
+			newTask.contentid = 1003585
 			newTask.conversationstrings = {
 				["us"] = "Board the Rhotano privateer",
 				de = "Zum Großen Schoner",
@@ -5348,7 +5348,7 @@ function Transport137(pos1,pos2)
 			-- Need to leave the boat, talk to the captain.
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 886.9, y = 21.4, z = 134.2}
-			newTask.uniqueid = 1005414
+			newTask.contentid = 1005414
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -5380,7 +5380,7 @@ function Transport137(pos1,pos2)
 					d("Aetheryte 12 check?:"..tostring(CanUseAetheryte(12)))
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 344.447, y = 32.770, z = 91.694}
-					newTask.uniqueid = 1003588
+					newTask.contentid = 1003588
 					newTask.abort = function () return (CanUseAetheryte(12) and not Player.incombat) end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
@@ -5410,7 +5410,7 @@ function Transport137(pos1,pos2)
 					d("Aetheryte 11 check?:"..tostring(CanUseAetheryte(11)))
 					local newTask = ffxiv_nav_interact.Create()
 					newTask.pos = {x = 21.919, y = 34.0788, z = 223.187}
-					newTask.uniqueid = 1003589
+					newTask.contentid = 1003589
 					newTask.abort = function () return (CanUseAetheryte(11) and not Player.incombat) end
 					ml_task_hub:CurrentTask():AddSubTask(newTask)
 				end
@@ -5430,7 +5430,7 @@ function Transport138(pos1,pos2)
 			return true, function()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = 318.314, y = -36, z = 351.376}
-				newTask.uniqueid = 1003584
+				newTask.contentid = 1003584
 				newTask.conversationIndex = 3
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
@@ -5438,7 +5438,7 @@ function Transport138(pos1,pos2)
 			return true, function()
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -290, y = -41.263, z = 407.726}
-				newTask.uniqueid = 1005239
+				newTask.contentid = 1005239
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end
@@ -5455,7 +5455,7 @@ function Transport130(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = -20.760, y = 10, z = -45.3617}
-			newTask.uniqueid = 1001834
+			newTask.contentid = 1001834
 			newTask.conversationIndex = 1
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
@@ -5463,7 +5463,7 @@ function Transport130(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = -25.125, y = 81.799, z = -30.658}
-			newTask.uniqueid = 1004339
+			newTask.contentid = 1004339
 			newTask.conversationIndex = 2
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
@@ -5480,7 +5480,7 @@ function Transport128(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 7.802, y = 40, z = 16.158}
-			newTask.uniqueid = 1003597
+			newTask.contentid = 1003597
 			newTask.conversationIndex = 1
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
@@ -5488,7 +5488,7 @@ function Transport128(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = -8.922, y = 91.5, z = -15.193}
-			newTask.uniqueid = 1003583
+			newTask.contentid = 1003583
 			newTask.conversationIndex = 1
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
@@ -5505,14 +5505,14 @@ function Transport212(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 22.386226654053, y = 0.99999862909317, z = -0.097462706267834}
-			newTask.uniqueid = 2001715
+			newTask.contentid = 2001715
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.x < 23.85 and pos1.x > -15.46) and (pos2.x < 23.85 and pos2.x > -15.46 )) then
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 26.495914459229, y = 1.0000013113022, z = -0.018158292397857}
-			newTask.uniqueid = 2001717
+			newTask.contentid = 2001717
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -5528,14 +5528,14 @@ function Transport351(pos1,pos2)
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 0.060269583016634, y = -1.9736720323563, z = -26.994096755981}
-			newTask.uniqueid = 2002878
+			newTask.contentid = 2002878
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	elseif (not (pos1.z < 27.394 and pos1.z > -27.20) and (pos2.z < 27.39 and pos2.z > -27.20)) then
 		return true, function()
 			local newTask = ffxiv_nav_interact.Create()
 			newTask.pos = {x = 0.010291699320078, y = -2, z = -29.227424621582}
-			newTask.uniqueid = 2002880
+			newTask.contentid = 2002880
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		end
 	end
@@ -5554,7 +5554,7 @@ function Transport146(pos1,pos2)
 				local myPos = Player.pos
 				local newTask = ffxiv_nav_interact.Create()
 				newTask.pos = {x = -69.099, y = -25.899, z = -574.400}
-				newTask.uniqueid = 1004609
+				newTask.contentid = 1004609
 				ml_task_hub:CurrentTask():AddSubTask(newTask)
 			end
 		end

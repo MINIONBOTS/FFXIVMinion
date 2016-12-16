@@ -196,7 +196,7 @@ function GetQuickGrindTarget()
 	
 	if ( el ) then
 		local i,e = next(el)
-		if (ValidTable(e) and e.uniqueid ~= 541) then
+		if (ValidTable(e) and e.contentid ~= 541) then
 			return e
 		end
 	end	
@@ -215,7 +215,7 @@ function GetQuickGrindTarget()
 				
 				if ( el ) then
 					local i,e = next(el)
-					if (ValidTable(e) and e.uniqueid ~= 541) then
+					if (ValidTable(e) and e.contentid ~= 541) then
 						return e
 					end
 				end
@@ -232,7 +232,7 @@ function GetQuickGrindTarget()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (ValidTable(e) and e.contentid ~= 541) then
 				return e
 			end
 		end
@@ -243,7 +243,7 @@ function GetQuickGrindTarget()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (ValidTable(e) and e.contentid ~= 541) then
 				if (e.targetid == 0 or e.targetid == Player.id) then
 					return e
 				end
@@ -260,7 +260,7 @@ function GetQuickGrindTarget()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (ValidTable(e) and e.contentid ~= 541) then
 				return e
 			end
 		end
@@ -273,7 +273,7 @@ function GetQuickGrindTarget()
 		
 		if ( el ) then
 			local i,e = next(el)
-			if (ValidTable(e) and e.uniqueid ~= 541) then
+			if (ValidTable(e) and e.contentid ~= 541) then
 				return e
 			end
 		end
@@ -297,7 +297,7 @@ function ffxiv_task_qs_grind.Create()
     --ffxiv_task_grind members
     newinst.name = "LT_QS_GRIND"
     newinst.targetid = 0
-	newinst.correctMap = ml_global_information.Player_Map
+	newinst.correctMap = Player.localmapid
 	newinst.startingPosition = shallowcopy(Player.pos)
 	newinst.killFunction = ffxiv_task_grindCombat
 	newinst.targetFunction = GetQuickGrindTarget

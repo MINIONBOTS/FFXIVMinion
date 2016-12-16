@@ -1,4 +1,4 @@
--- Skillmanager for adv. skill customization
+﻿-- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.version = "v2.0";
 SkillMgr.lastTick = 0
@@ -3380,14 +3380,23 @@ end
 function SkillMgr.Gather(item)
     local node = MGetTarget()
     if ( ValidTable(node) and ValidTable(SkillMgr.SkillProfile)) then
+        
+		local doHalt = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-               local realskilldata = ActionList:Get(skillid,1)
-			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
+                local realskilldata = ActionList:Get(skillid,1)
+			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
 					local castable = true
+					
+					if (Player.action == 264 or Player.action == 256) then
+						if (not realskilldata.isready) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the idling ready check.")
+							castable = false
+						end
+					end
 					
 					if ( tonumber(skill.gsecspassed) > 0 and skill.lastcast ) then
 						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then
@@ -3492,6 +3501,7 @@ function SkillMgr.Gather(item)
 					end
 					
 					if ( castable ) then
+						doHalt = true
 						if (realskilldata.isready) then
 							if ( ActionList:Cast(skillid,Player.id)) then	
 								--d("CASTING (gathering) : "..tostring(skill.name))
@@ -3503,8 +3513,8 @@ function SkillMgr.Gather(item)
 								if IsUncoverSkill(skillid) then
 									ml_task_hub:CurrentTask().itemsUncovered = true
 								end
+								return true
 							end	
-							return true
 						else
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use because it is not ready.")
 						end
@@ -3512,6 +3522,9 @@ function SkillMgr.Gather(item)
                 end
             end
         end
+		if (doHalt) then
+			return true
+		end
     end
     return false
 end
@@ -5251,7 +5264,7 @@ function SkillMgr.AddDefaultConditions()
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
 			(thpcb > 0 and thpcb < target.hp.current) or
-			(thpadv > 0 and (((ml_global_information.Player_HP.max * thpadv) > target.hp.max) and target.uniqueid ~= 541))) 
+			(thpadv > 0 and (((ml_global_information.Player_HP.max * thpadv) > target.hp.max) and target.contentid ~= 541))) 
 		then 
 			return true 
 		end

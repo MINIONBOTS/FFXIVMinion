@@ -1901,8 +1901,8 @@ function QM.LoadCurrentValues(strWindow)
 	if (strWindow == "add") then
 		local target = Player:GetTarget()
 		if (target ~= nil) then
-			qTaskKillTarget = target.uniqueid
-			qTaskNPC = target.uniqueid
+			qTaskKillTarget = target.contentid
+			qTaskNPC = target.contentid
 		end
 		local pos = ml_global_information.Player_Position
 		qTaskIndex = Quest:GetQuestCurrentStep(questid)
@@ -1914,8 +1914,8 @@ function QM.LoadCurrentValues(strWindow)
 	elseif (strWindow == "edit") then
 		local target = Player:GetTarget()
 		if (target ~= nil) then
-			eTaskKillTarget = target.uniqueid
-			eTaskNPC = target.uniqueid
+			eTaskKillTarget = target.contentid
+			eTaskNPC = target.contentid
 		end
 		local pos = ml_global_information.Player_Position
 		eTaskIndex = Quest:GetQuestCurrentStep(questid)
