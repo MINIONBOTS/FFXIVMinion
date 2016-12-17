@@ -45,6 +45,7 @@ ml_global_information.queueSync = nil
 ml_global_information.queueSyncForce = false
 ml_global_information.queueSyncForced = false
 ml_global_information.lastInventorySnapshot = {}
+ml_global_information.buyBlacklist = {}
 ml_global_information.repairBlacklist = {}
 ml_global_information.avoidanceAreas = {}
 ml_global_information.lastMeasure = 0
