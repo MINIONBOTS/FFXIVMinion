@@ -260,8 +260,8 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
-		if (FFXIV_Common_Food ~= "None") then
-			local foodID = ffxivminion.foods[FFXIV_Common_Food]
+		if (gFood ~= "None") then
+			local foodID = ffxivminion.foods[gFood]
 			
 			local food = MGetItem(foodID,false,false)
 			if (food and not HasBuffs(Player,"48")) then

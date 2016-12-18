@@ -2954,7 +2954,7 @@ function Dismount()
 	end
 end
 function Repair()
-	if (FFXIV_Common_Repair) then
+	if (gRepair) then
 		local blacklist = ml_global_information.repairBlacklist
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
@@ -2980,7 +2980,7 @@ function Repair()
 	end
 end
 function NeedsRepair()
-	if (FFXIV_Common_Repair ) then
+	if (gRepair ) then
 		local blacklist = ml_global_information.repairBlacklist
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
@@ -3007,8 +3007,8 @@ function NeedsRepair()
 end
 function ShouldEat()
 	local foodID = nil
-	if (FFXIV_Common_Food ~= "None") then
-		foodID = ffxivminion.foods[FFXIV_Common_Food]
+	if (gFood ~= "None") then
+		foodID = ffxivminion.foods[gFood]
 		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
@@ -3019,8 +3019,8 @@ function ShouldEat()
 end
 function Eat()
 	local foodID = nil
-	if (FFXIV_Common_Food ~= "None") then
-		foodID = ffxivminion.foods[FFXIV_Common_Food]
+	if (gFood ~= "None") then
+		foodID = ffxivminion.foods[gFood]
 		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 		local food = MGetItem(foodID)
 		if (food and food.isready and not HasBuffs(Player,"48")) then
@@ -3555,7 +3555,7 @@ function IsAetheryteUnattuned(id)
 end
 function IsAetheryte(id)
 	local aethData = ffxiv_aetheryte_data
-	if (table.valid(aetherytes)) then
+	if (table.valid(aethData)) then
 		for mapid,aetherytes in pairs(aethData) do
 			for aetheryte,aethdata in pairs(aetherytes) do
 				if (aethdata.aethid == id) then

@@ -615,22 +615,24 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
-				for convoindex,convo in pairs(convoList) do
+				for _,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
-						SelectConversationIndex(convoindex)
+						d("Use conversation line ["..tostring(convo.line).."]")
+						SelectConversationIndex(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
-				for convoindex,convo in pairs(convoList) do
+				for _,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
-							SelectConversationIndex(convoindex)
+							d("Use conversation line ["..tostring(convo.line).."]")
+							SelectConversationIndex(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
@@ -1064,12 +1066,13 @@ function ffxiv_task_teleport:task_complete_eval()
 				["KR"] = "귀환 지점 설정";
 			}
 
-			for convoindex,convo in pairs(convoList) do
+			for _,convo in pairs(convoList) do
 				local cleanedline = string.gsub(convo.line,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
-						SelectConversationIndex(convoindex)
+						d("Use conversation line ["..tostring(convo.line).."]")
+						SelectConversationIndex(convo.index)
 						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
 						return false
 					end
@@ -2511,13 +2514,13 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					kr = "모험가 거주구로 이동",
 				}
 				
-				for convoindex,convo in pairs(convoList) do
+				for _,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for language,astring in pairs(aethernet) do
 						local cleanedastring = string.gsub(astring,"[()-/]","")
 						if (string.find(cleanedline,cleanedastring) ~= nil and string.find(convo.line,residential[language]) == nil) then
-							d("Open Aethernet menu on index ["..tostring(convoindex).."]")
-							SelectConversationIndex(convoindex)
+							d("Use conversation line ["..tostring(convo.line).."]")
+							SelectConversationIndex(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						end
 					end
@@ -2526,22 +2529,24 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			end
 			
 			if (string.valid(self.conversationstring)) then
-				for convoindex,convo in pairs(convoList) do
+				for _,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
-						SelectConversationIndex(convoindex)
+						d("Use conversation line ["..tostring(convo.line).."]")
+						SelectConversationIndex(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
-				for convoindex,convo in pairs(convoList) do
+				for _,convo in pairs(convoList) do
 					local cleanedline = string.gsub(convo.line,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
-							SelectConversationIndex(convoindex)
+							d("Use conversation line ["..tostring(convo.line).."]")
+							SelectConversationIndex(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
@@ -2647,12 +2652,12 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			if (table.valid(interactable)) then			
 				if (interactable.type == 5) then
 					
-					local minDist = 10
+					local minDist, minHeight = 10, 4.95
 					if (not IsAetheryte(interactable.contentid)) then
-						minDist = 7.5
+						minDist,minHeight = 7.5, 1.4
 					end
 					
-					if (dist2d <= minDist and ydiff <= 4.95) then
+					if (dist2d <= minDist and ydiff <= minHeight) then
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
@@ -2664,12 +2669,21 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then
-									d("[MoveToInteract]: Initiating await until interaction is complete.")
-									ml_global_information.Await(15000, function () return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) end)
+									d("[MoveToAethernet]: Initiating await until interaction is complete.")
+									ml_global_information.Await(15000, 
+										function () 
+											--d("channelingid:"..tostring(Player.castinginfo.channelingid))
+											--d("MIsLocked():"..tostring(MIsLocked()))
+											--d("contentid:"..tostring(self.contentid))
+											--d("hasattunements:"..tostring(AceLib.API.Map.HasAttunements(self.contentid)))
+											if (c_skiptalk:evaluate()) then e_skiptalk():execute() end
+											return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) 
+										end
+									)
 								end
 							end,
 							function ()
-								d("[MoveToInteract]: Interact failed, attempting to move closer.")
+								d("[MoveToAethernet]: Interact failed, attempting to move closer.")
 								Player:MoveTo(ipos.x,ipos.y,ipos.z)
 								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
 							end

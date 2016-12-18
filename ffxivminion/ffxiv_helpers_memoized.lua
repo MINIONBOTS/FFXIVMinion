@@ -100,20 +100,6 @@ function MEntityList(elstring)
 	end
 end
 
-function MInventory(invstring)
-	invstring = invstring or ""
-	
-	local memString = "MInventory;"..tostring(invstring)
-	local memoized = GetMemoized(memString)
-	if (memoized) then
-		return memoized
-	else
-		local inventory = Inventory(invstring)
-		SetMemoized(memString,inventory)
-		return inventory
-	end
-end
-
 function MGetItem(hqid,includehq,requirehq)
 	local memString = "MGetItem;"..tostring(hqid)..";"..tostring(includehq)..";"..tostring(requirehq)
 	local memoized = GetMemoized(memString)

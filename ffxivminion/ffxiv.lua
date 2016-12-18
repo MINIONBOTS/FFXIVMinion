@@ -80,6 +80,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 		gamestate = 1
 	end
 	
+	memoize = {}
 	if (ml_global_information.IsYielding()) then
 		return false
 	end
@@ -91,6 +92,20 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	elseif (gamestate == FFXIV.GAMESTATE.CHARACTERSCREEN ) then
 		ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
+	elseif (gamestate == 4) then
+		ml_global_information.ErrorScreenOnUpdate( event, tickcount )
+	end
+end
+
+function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
+	local login = ffxivminion.loginvars
+	if (not login.loginPaused) then
+		--d("checking mainmenu")
+		if (not IsControlOpen("Dialogue")) then
+			if (UseControlAction("Dialogue","PressOK",0)) then
+				ml_global_information.Await(1000, 60000, function () return GetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
+			end
+		end	
 	end
 end
 
@@ -169,9 +184,7 @@ function ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	end
 end
 
-function ml_global_information.InGameOnUpdate( event, tickcount )
-	memoize = {}
-	
+function ml_global_information.InGameOnUpdate( event, tickcount )	
 	if (not Player) then
 		return false
 	end
@@ -294,7 +307,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 	
-			if ( FFXIV_Common_Food ~= "None") then
+			if ( gFood ~= "None") then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
 						Eat()
@@ -303,14 +316,14 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
-			if (FFXIV_Common_ChocoItemString ~= "None") then
+			if (gChocoItemString ~= "None") then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 					ml_global_information.rootCheckTimer = tickcount
 					
 					local itemBuffs = ml_global_information.chocoItemBuffs
 					if (table.valid(itemBuffs)) then
 						for itemid,itemdetails in pairs(itemBuffs) do
-							if (FFXIV_Common_ChocoItemString == itemdetails.name) then
+							if (gChocoItemString == itemdetails.name) then
 								local item = nil
 								for i = 0,3 do
 									local bag = Inventory:Get(i)
@@ -472,34 +485,34 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_UseEXPManuals = ffxivminion.GetSetting("FFXIV_Common_UseEXPManuals",true)
 	FFXIV_Common_DeclineParties = ffxivminion.GetSetting("FFXIV_Common_DeclineParties",true)
 	
-	FFXIV_Common_Food = ffxivminion.GetSetting("FFXIV_Common_Food",GetString("none"))
-	FFXIV_Common_FoodIndex = 1
-	FFXIV_Common_Foods = {GetString("none")}
+	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
+	gFoodIndex = 1
+	gFoods = {GetString("none")}
 	ffxivminion.FillFoodOptions()
 	
-	FFXIV_Common_AutoStart = ffxivminion.GetSetting("FFXIV_Common_AutoStart",false)
+	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
 	gTeleportHack = ffxivminion.GetSetting("gTeleportHack",false)
-	FFXIV_Duty_Teleport = ffxivminion.GetSetting("FFXIV_Duty_Teleport",true)
+	gDutyTeleportHack = ffxivminion.GetSetting("gDutyTeleportHack",true)
 	gTeleportHackParanoid = ffxivminion.GetSetting("gTeleportHackParanoid",false)
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene",false)
-	FFXIV_Common_SkipDialogue = ffxivminion.GetSetting("FFXIV_Common_SkipDialogue",false)
-	FFXIV_Common_ClickTeleport = ffxivminion.GetSetting("FFXIV_Common_ClickTeleport",false)
-	FFXIV_Common_ClickTravel = ffxivminion.GetSetting("FFXIV_Common_ClickTravel",false)
+	gSkipTalk = ffxivminion.GetSetting("gSkipTalk",false)
+	gClickTeleport = ffxivminion.GetSetting("gClickTeleport",false)
+	gClickTravel = ffxivminion.GetSetting("gClickTravel",false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing",false)
-	FFXIV_Common_Repair = ffxivminion.GetSetting("FFXIV_Common_Repair",false)
-	FFXIV_Common_PermaSprint = ffxivminion.GetSetting("FFXIV_Common_PermaSprint",false)
+	gRepair = ffxivminion.GetSetting("gRepair",false)
+	gPermaSprint = ffxivminion.GetSetting("gPermaSprint",false)
 	FFXIV_Common_PermaSwift = ffxivminion.GetSetting("FFXIV_Common_PermaSwift",false)
-	FFXIV_Common_ChocoAssist = ffxivminion.GetSetting("FFXIV_Common_ChocoAssist",false)
-	FFXIV_Common_ChocoGrind = ffxivminion.GetSetting("FFXIV_Common_ChocoGrind",true)
-	FFXIV_Common_ChocoQuest = ffxivminion.GetSetting("FFXIV_Common_ChocoQuest",true)
+	gChocoAssist = ffxivminion.GetSetting("gChocoAssist",false)
+	gChocoGrind = ffxivminion.GetSetting("gChocoGrind",true)
+	gChocoQuest = ffxivminion.GetSetting("gChocoQuest",true)
 	
-	FFXIV_Common_ChocoStance = ffxivminion.GetSetting("FFXIV_Common_ChocoStance",1)
-	FFXIV_Common_ChocoStances = {GetString("stFree"), GetString("stDefender"), GetString("stAttacker"), GetString("stHealer"), GetString("stFollow")}
-	FFXIV_Common_ChocoStanceString = FFXIV_Common_ChocoStances[FFXIV_Common_ChocoStance]
+	gChocoStance = ffxivminion.GetSetting("gChocoStance",1)
+	gChocoStances = {GetString("stFree"), GetString("stDefender"), GetString("stAttacker"), GetString("stHealer"), GetString("stFollow")}
+	gChocoStanceString = gChocoStances[gChocoStance]
 	
-	FFXIV_Common_ChocoItem = ffxivminion.GetSetting("FFXIV_Common_ChocoItem",1)
-	FFXIV_Common_ChocoItems = {"Curiel Root (EXP)", "Sylkis Bud (ATK)", "Mimmet Gourd (Heal)", "Tantalplant (HP)", "Pahsana Fruit (ENM)"}
-	FFXIV_Common_ChocoItemString = FFXIV_Common_ChocoItems[FFXIV_Common_ChocoItem]
+	gChocoItem = ffxivminion.GetSetting("gChocoItem",1)
+	gChocoItems = {"Curiel Root (EXP)", "Sylkis Bud (ATK)", "Mimmet Gourd (Heal)", "Tantalplant (HP)", "Pahsana Fruit (ENM)"}
+	gChocoItemString = gChocoItems[gChocoItem]
 	
 	gAvoidAOE = ffxivminion.GetSetting("gAvoidAOE",false)
 	gAvoidHP = ffxivminion.GetSetting("gAvoidHP",100)
@@ -510,19 +523,19 @@ function ffxivminion.SetMainVars()
 	gFleeHP = ffxivminion.GetSetting("gFleeHP",25)
 	gFleeMP = ffxivminion.GetSetting("gFleeMP",0)
 	gAutoEquip = ffxivminion.GetSetting("gAutoEquip",true)
-	FFXIV_Questing_AutoEquip = ffxivminion.GetSetting("FFXIV_Questing_AutoEquip",true)	
+	gQuestAutoEquip = ffxivminion.GetSetting("gQuestAutoEquip",true)	
 	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
-	ml_global_information.autoStartQueued = FFXIV_Common_AutoStart		
-	--HackManager:Disable3DRendering(gDisableDrawing)
-	--HackManager:SkipCutscene(gSkipCutscene)
-	--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
-	--HackManager:SetClickToTeleport(FFXIV_Common_ClickTeleport)
-	--HackManager:SetClickToTravel(FFXIV_Common_ClickTravel)
-	--HackManager:SetPermaSprint(FFXIV_Common_PermaSprint)
-	--HackManager:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
+	ml_global_information.autoStartQueued = gAutoStart		
+	--Hacks:Disable3DRendering(gDisableDrawing)
+	--Hacks:SkipCutscene(gSkipCutscene)
+	--Hacks:SkipDialogue(gSkipTalk)
+	--Hacks:SetClickToTeleport(gClickTeleport)
+	--Hacks:SetClickToTravel(gClickTravel)
+	--Hacks:SetPermaSprint(gPermaSprint)
+	--Hacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
 	--Crafting:UseHQMats(FFXIV_Craft_UseHQMats)
 end
 
@@ -607,11 +620,11 @@ function ffxivminion.SwitchMode(mode)
 			gTeleportHack = gTeleportHackDefaultDuties
 			gTeleportHackParanoid = "0"
 			gSkipCutscene = "1"
-			FFXIV_Common_SkipDialogue = "1"
+			gSkipTalk = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			HackManager:SkipCutscene(gSkipCutscene)
-			HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
-			HackManager:Disable3DRendering(gDisableDrawing)
+			Hacks:SkipCutscene(gSkipCutscene)
+			Hacks:SkipDialogue(gSkipTalk)
+			Hacks:Disable3DRendering(gDisableDrawing)
 			SendTextCommand("/busy off")
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 		elseif (gBotMode == GetString("questMode")) then
@@ -621,11 +634,11 @@ function ffxivminion.SwitchMode(mode)
 			gTeleportHack = Settings.FFXIVMINION.gTeleportHack
 			gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 			gSkipCutscene = "1"
-			FFXIV_Common_SkipDialogue = "1"
+			gSkipTalk = "1"
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			HackManager:SkipCutscene(gSkipCutscene)
-			HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
-			HackManager:Disable3DRendering(gDisableDrawing)
+			Hacks:SkipCutscene(gSkipCutscene)
+			Hacks:SkipDialogue(gSkipTalk)
+			Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = "1"
 			gAutoEquip = gAutoEquipDefaultQuesting
 		end
@@ -643,10 +656,10 @@ function ffxivminion.SetModeOptions(mode)
 			gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
-			FFXIV_Common_SkipDialogue = Settings.FFXIVMINION.FFXIV_Common_SkipDialogue
-			--HackManager:SkipCutscene(gSkipCutscene)
-			--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
-			--HackManager:Disable3DRendering(gDisableDrawing)
+			gSkipTalk = Settings.FFXIVMINION.gSkipTalk
+			--Hacks:SkipCutscene(gSkipCutscene)
+			--Hacks:SkipDialogue(gSkipTalk)
+			--Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip			
 			FFXIV_Common_Profile = "NA"
@@ -659,8 +672,8 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-		--HackManager:SkipCutscene(gSkipCutscene)
-		--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+		--Hacks:SkipCutscene(gSkipCutscene)
+		--Hacks:SkipDialogue(gSkipTalk)
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
 end
@@ -889,8 +902,8 @@ function ml_global_information.Stop()
         Player:Stop()
     end
 	--SkillMgr.receivedMacro = {}
-	--HackManager:SkipCutscene(gSkipCutscene)
-	--HackManager:SkipDialogue(FFXIV_Common_SkipDialogue)
+	--Hacks:SkipCutscene(gSkipCutscene)
+	--Hacks:SkipDialogue(gSkipTalk)
 end
 
 function ffxivminion.AddMode(name, task)
@@ -928,11 +941,11 @@ function ffxivminion.FillFoodOptions()
 		end
 	end
 	
-	FFXIV_Common_Foods = {GetString("none")}
+	gFoods = {GetString("none")}
 	local foods = ml_global_information.foods
 	if (table.valid(foods)) then
 		for id,item in spairs(foods, function( item,a,b ) return item[a].name < item[b].name end) do
-			table.insert(FFXIV_Common_Foods,item.name)
+			table.insert(gFoods,item.name)
 		end
 	end
 end
@@ -1217,11 +1230,11 @@ function ml_global_information.DrawSettings()
 					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
 					GUI:PushItemWidth(150)
 					
-					GUI_Capture(GUI:Checkbox(GetString("autoStartBot"),FFXIV_Common_AutoStart),"FFXIV_Common_AutoStart");
+					GUI_Capture(GUI:Checkbox(GetString("autoStartBot"),gAutoStart),"gAutoStart");
 					GUI_Capture(GUI:Checkbox(GetString("autoEquip"),gAutoEquip),"gAutoEquip",
 						function ()
 							if (gBotMode == GetString("questMode")) then
-								 GUI_Set("FFXIV_Questing_AutoEquip",gAutoEquip)
+								 GUI_Set("gQuestAutoEquip",gAutoEquip)
 							end
 						end
 					);
@@ -1241,7 +1254,7 @@ function ml_global_information.DrawSettings()
 					end
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
-					GUI_Combo(GetString("food"), "FFXIV_Common_FoodIndex", "FFXIV_Common_Food", FFXIV_Common_Foods)
+					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods)
 					GUI:SameLine(0,5)
 					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
 						ffxivminion.FillFoodOptions()
@@ -1256,13 +1269,13 @@ function ml_global_information.DrawSettings()
 				if (tabs.tabs[3].isselected) then
 					GUI:BeginChild("##main-header-companion",0,GUI_GetFrameHeight(3),true)
 					
-					GUI_Capture(GUI:Checkbox(GetString("assistMode"),FFXIV_Common_ChocoAssist),"FFXIV_Common_ChocoAssist"); GUI:SameLine()
-					GUI_Capture(GUI:Checkbox(GetString("grindMode"),FFXIV_Common_ChocoGrind),"FFXIV_Common_ChocoGrind"); GUI:SameLine()
-					GUI_Capture(GUI:Checkbox(GetString("questMode"),FFXIV_Common_ChocoQuest),"FFXIV_Common_ChocoQuest");
+					GUI_Capture(GUI:Checkbox(GetString("assistMode"),gChocoAssist),"gChocoAssist"); GUI:SameLine()
+					GUI_Capture(GUI:Checkbox(GetString("grindMode"),gChocoGrind),"gChocoGrind"); GUI:SameLine()
+					GUI_Capture(GUI:Checkbox(GetString("questMode"),gChocoQuest),"gChocoQuest");
 					
 					GUI:PushItemWidth(160)
-					GUI_Combo(GetString("stance"), "FFXIV_Common_ChocoStance", "FFXIV_Common_ChocoStanceString", FFXIV_Common_ChocoStances)
-					GUI_Combo("Feed", "FFXIV_Common_ChocoItem", "FFXIV_Common_ChocoItemString", FFXIV_Common_ChocoItems)
+					GUI_Combo(GetString("stance"), "gChocoStance", "gChocoStanceString", gChocoStances)
+					GUI_Combo("Feed", "gChocoItem", "gChocoItemString", gChocoItems)
 					GUI:PopItemWidth()
 					GUI:EndChild()
 				end
@@ -1285,23 +1298,22 @@ function ml_global_information.DrawSettings()
 				
 				if (tabs.tabs[5].isselected) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
-					GUI_Capture(GUI:Checkbox(GetString("repair"),FFXIV_Common_Repair),"FFXIV_Common_Repair")
-					--GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),gDisableDrawing),"gDisableDrawing", function () HackManager:Disable3DRendering(gDisableDrawing) end)
+					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair")
+					--GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),gDisableDrawing),"gDisableDrawing", function () Hacks:Disable3DRendering(gDisableDrawing) end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"),gTeleportHack),"gTeleportHack", 
 						function () 
 							if (gBotMode == GetString("dutyMode")) then
-								 GUI_Set("FFXIV_Duty_Teleport",FFXIV_Duty_Teleport)
+								 GUI_Set("gDutyTeleportHack",gDutyTeleportHack)
 							end
 						end
 					)
 
-					--GUI_Capture(GUI:Checkbox(GetString("paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
-					--GUI_Capture(GUI:Checkbox(GetString("permaSprint"),FFXIV_Common_PermaSprint),"FFXIV_Common_PermaSprint", function () HackManager:SetPermaSprint(FFXIV_Common_PermaSprint) end)
-					--GUI_Capture(GUI:Checkbox(GetString("permaSwiftcast"),FFXIV_Common_PermaSwift),"FFXIV_Common_PermaSwift", function () HackManager:SetPermaSwiftCast(FFXIV_Common_PermaSwift) end)
-					--GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () HackManager:SkipCutscene(gSkipCutscene) end)
-					--GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),FFXIV_Common_SkipDialogue),"FFXIV_Common_SkipDialogue", function () HackManager:SkipDialogue(FFXIV_Common_SkipDialogue) end)
-					--GUI_Capture(GUI:Checkbox(GetString("clickToTeleport"),FFXIV_Common_ClickTeleport),"FFXIV_Common_ClickTeleport", function () HackManager:SetClickToTeleport(FFXIV_Common_ClickTeleport) end)
-					--GUI_Capture(GUI:Checkbox(GetString("clickToTravel"),FFXIV_Common_ClickTravel),"FFXIV_Common_ClickTravel", function () HackManager:SetClickToTravel(FFXIV_Common_ClickTravel) end)
+					GUI_Capture(GUI:Checkbox(GetString("paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
+					GUI_Capture(GUI:Checkbox(GetString("permaSprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
+					--GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
+					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),gSkipTalk),"gSkipTalk")
+					--GUI_Capture(GUI:Checkbox(GetString("clickToTeleport"),gClickTeleport),"gClickTeleport", function () Hacks:SetClickToTeleport(gClickTeleport) end)
+					--GUI_Capture(GUI:Checkbox(GetString("clickToTravel"),gClickTravel),"gClickTravel", function () Hacks:SetClickToTravel(gClickTravel) end)
 			
 					GUI:EndChild()
 				end

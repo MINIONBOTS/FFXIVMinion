@@ -749,12 +749,13 @@ function e_interactgate:execute()
 			local convoList = GetConversationList()
 			if (table.valid(convoList)) then
 				if (table.valid(conversationstrings)) then
-					for convoindex,convo in pairs(convoList) do
+					for _,convo in pairs(convoList) do
 						local cleanedline = string.gsub(convo.line,"[()-/]","")
 						for k,v in pairs(conversationstrings) do
 							local cleanedv = string.gsub(v,"[()-/]","")
 							if (string.find(cleanedline,cleanedv) ~= nil) then
-								SelectConversationIndex(convoindex)
+								d("Use conversation line ["..tostring(convo.line).."]")
+								SelectConversationIndex(convo.index)
 								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 								return false
 							end
@@ -1538,6 +1539,7 @@ function c_useaethernet:evaluate(mapid, pos)
 	local bestAethernet,bestDistance = AceLib.API.Map.GetBestAethernet(destMapID,gotoPos)
 	if (nearestAethernet and bestAethernet and (nearestAethernet.id ~= bestAethernet.id) and (bestDistance < gotoDist or destMapID ~= Player.localmapid)) then
 		if (IsNull(ml_task_hub:CurrentTask().contentid,0) ~= nearestAethernet.id) then 
+			d("best athernet for ["..tostring(destMapID).."] - ["..tostring(gotoPos.x)..","..tostring(gotoPos.y)..","..tostring(gotoPos.z).."] is ["..tostring(bestAethernet.id))
 			--d("current id:"..tostring(ml_task_hub:CurrentTask().contentid)..", new id:"..tostring(nearestAethernet.id))
 			e_useaethernet.nearest = nearestAethernet
 			e_useaethernet.destination = bestAethernet
@@ -1550,7 +1552,7 @@ end
 function e_useaethernet:execute()
 	if (table.valid(e_useaethernet.nearest)) then
 		if (table.valid(e_useaethernet.destination)) then
-			--d("Use aethernet task to go from ["..tostring(e_useaethernet.nearest.id).."] to ["..tostring(e_useaethernet.destination.id).."]")
+			d("Use aethernet task to go from ["..tostring(e_useaethernet.nearest.id).."] to ["..tostring(e_useaethernet.destination.id).."]")
 			local newTask = ffxiv_task_moveaethernet.Create()
 			newTask.contentid = e_useaethernet.nearest.id
 			newTask.pos = e_useaethernet.nearest.pos
@@ -1922,9 +1924,9 @@ function c_companion:evaluate()
         return false
     end
 
-    if ((FFXIV_Common_ChocoGrind and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
-		(FFXIV_Common_ChocoAssist and gBotMode == GetString("assistMode")) or
-		(FFXIV_Common_ChocoQuest and gBotMode == GetString("questMode"))) 
+    if ((gChocoGrind and (gBotMode == GetString("grindMode") or gBotMode == GetString("partyMode"))) or
+		(gChocoAssist and gBotMode == GetString("assistMode")) or
+		(gChocoQuest and gBotMode == GetString("questMode"))) 
 	then	
 		local green = GetItem(4868)
 		if (green and green:IsReady()) then
@@ -1950,10 +1952,10 @@ end
 c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
-	if (IsCompanionSummoned() and ValidString(FFXIV_Common_ChocoStanceString)) then
+	if (IsCompanionSummoned() and ValidString(gChocoStanceString)) then
 		
 		if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
-			local stanceAction = ml_global_information.chocoStance[FFXIV_Common_ChocoStanceString]
+			local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
 			if (stanceAction) then
 				local acStance = ActionList:Get(6,stanceAction)		
 				if (acStance and acStance:IsReady(Player.id)) then
@@ -2754,12 +2756,13 @@ function e_selectconvindex:execute()
 	if (table.valid(conversationstrings)) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
-			for convoindex,convo in pairs(convoList) do
+			for _,convo in pairs(convoList) do
 				local cleanedline = string.gsub(convo.line,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
-						SelectConversationIndex(convoindex)
+						d("Use conversation line ["..tostring(convo.line).."]")
+						SelectConversationIndex(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end

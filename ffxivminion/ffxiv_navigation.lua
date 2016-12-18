@@ -299,11 +299,11 @@ function ffnav.GetPath(px, py, pz, x, y, z, randomizedpath)
 			ffnav.currentPathIndex = 0
 			ffnav.currentPathGoal = { x = x, y = y, z = z }
 			ffnav.AddPathRender()
-			d("returned a new path.")
+			--d("returned a new path.")
 			return table.size(tmp)
 		end
 	else
-		d("returned an existing path.")
+		--d("returned an existing path.")
 		return table.size(ffnav.currentPath)
 	end
 end
@@ -382,13 +382,21 @@ function ffnav.WalkTo(pos)
 	if (ffnav.currentPathIndex > 0) then
 		previousGoal = ffnav.currentPath[ffnav.currentPathIndex-1]
 	end
-	local dist2d,dist3d = math.distance2d(myPos,pos), math.distance3d(myPos,pos)
 	
+	local dist2d,dist3d = math.distance2d(myPos,pos), math.distance3d(myPos,pos)
 	local pdist2d,pdist3d = math.distance2d(previousGoal,pos), math.distance3d(previousGoal,pos)
 	local mdist2d,mdist3d = math.distance2d(previousGoal,myPos), math.distance3d(previousGoal,myPos)
 	
 	if (ffnav.IsGoalClose(pos) or mdist2d > pdist2d) then
+		
 		ffnav.currentPathIndex = ffnav.currentPathIndex + 1
+		
+		--d("walk from ["..tostring(previousGoal.x)..","..tostring(previousGoal.y)..","..tostring(previousGoal.z))
+		--d("mypos ["..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z))
+		--d("walk to ["..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z))
+		
+		--d("mdist2d:"..tostring(mdist2d)..",pdist2d:"..tostring(pdist2d))
+		--d("goalclose?:"..tostring(ffnav.IsGoalClose(pos))..", further than original distance?:"..tostring(mdist2d > pdist2d)..", newindex:"..tostring(ffnav.currentPathIndex))
 		
 		local newPos = ffnav.currentPath[ffnav.currentPathIndex]
 		if (table.valid(newPos)) then
@@ -413,6 +421,12 @@ function ffnav.WalkTo(pos)
 		ml_global_information.Await(2000, function () return Player:IsMoving() end)
 	end
 end
+
+-- D = "walk from [-48.799991607666,18.250001907349,49.35001373291"
+--  D = "mypos [-48.544151306152,18,49.401268005371"
+--  D = "walk to [-48.799991607666,18.25,56.350009918213"
+
+--d(math.distance2d({x = -48.799991607666, z = 49.35001373291},{x = -48.799991607666,z = 56.350009918213}))
 
 function ffnav.FlyTo(pos)
 	
@@ -454,7 +468,7 @@ function ffnav.FlyTo(pos)
 	--local previousPitch = math.round(math.atan2((previousGoal.y - pos.y), pdist2d),3)
 	
 	--sqrt(x^2 + y^2)/
-	d("necessary pitch:"..tostring(pitch)..", "..tostring(myPos.y).." - "..tostring(pos.y)..", dist2d:"..tostring(dist2d))
+	--d("necessary pitch:"..tostring(pitch)..", "..tostring(myPos.y).." - "..tostring(pos.y)..", dist2d:"..tostring(dist2d))
 	--d("previous pitch:"..tostring(pitch)..", "..tostring(previousGoal.y).." - "..tostring(pos.y)..", dist2d:"..tostring(pdist2d))
 	--d("current pitch:"..tostring(currentPitch)..", distFromPath:"..tostring(distFromPath))
 	
@@ -551,12 +565,12 @@ end
 -- for replacing the original c++ navi with our lua version
 function Player:MoveTo(x, y, z, randomnodes, smoothturns)
 	if (not ffnav.IsGoalClose({x = x, y = y, z = z})) then
-		d("goal was not close enough")
+		--d("goal was not close enough")
 		--if (not table.valid(ffnav.currentPathGoal) or not ffnav.IsPosSame(ffnav.currentPathGoal,{x = x, y = y, z = z})) then
 			return ffnav.MoveTo(x, y, z, randomnodes, smoothturns)
 		--end
 	else
-		d("goal was too close")
+		--d("goal was too close")
 	end
 	return 0
 end
@@ -747,6 +761,7 @@ function ffnav.Navigate(event, ticks )
 								end
 							end
 						else
+							--d("walk to ["..tostring(nextpos.x)..","..tostring(nextpos.y)..","..tostring(nextpos.z))
 							ffnav.WalkTo(nextpos)
 						end
 					else
@@ -776,14 +791,14 @@ function ffnav.IsStillOnPath()
 end
 
 function ffnav.AddPathRender()
-	d("checking path rendering")
+	--d("checking path rendering")
 	local vertices = {}
 	local vertices2 = {}
 	local vertices3 = {}
 	local vertices4 = {}
 	local vertices5 = {}
 	
-	d("type:"..tostring(type(ffnav.currentPath)))
+	--d("type:"..tostring(type(ffnav.currentPath)))
 	for idx, node in pairsByKeys(ffnav.currentPath) do
 		if (idx > 0 ) then
 			-- from "last node"
@@ -807,7 +822,7 @@ function ffnav.AddPathRender()
 		ffnav.pathRenderObject3 = RenderManager:AddObject("NavPath", vertices3, 1)
 		ffnav.pathRenderObject4 = RenderManager:AddObject("NavPath", vertices4, 1)
 		ffnav.pathRenderObject5 = RenderManager:AddObject("NavPath", vertices5, 1)
-		d("add new render object.")
+		--d("add new render object.")
 	else
 		ffnav.pathRenderObject = RenderManager:GetObject(ffnav.pathRenderObject.id)
 		if (table.valid(ffnav.pathRenderObject)) then
@@ -816,14 +831,14 @@ function ffnav.AddPathRender()
 			ffnav.pathRenderObject3:SetVertices(vertices3)
 			ffnav.pathRenderObject4:SetVertices(vertices4)
 			ffnav.pathRenderObject5:SetVertices(vertices5)
-			d("update render object.")
+			--d("update render object.")
 		else
 			ffnav.pathRenderObject = RenderManager:AddObject("NavPath", vertices, 1)
 			ffnav.pathRenderObject2 = RenderManager:AddObject("NavPath", vertices2, 1)
 			ffnav.pathRenderObject3 = RenderManager:AddObject("NavPath", vertices3, 1)
 			ffnav.pathRenderObject4 = RenderManager:AddObject("NavPath", vertices4, 1)
 			ffnav.pathRenderObject5 = RenderManager:AddObject("NavPath", vertices5, 1)
-			d("fix render object render object.")
+			--d("fix render object render object.")
 		end
 	end	
 end

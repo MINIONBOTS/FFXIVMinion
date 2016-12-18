@@ -214,6 +214,7 @@ end
 function ml_global_information.Init()
 	-- Update default meshes.
 	do
+		BehaviorManager:ToggleMenu()
 		ml_mesh_mgr.averagegameunitsize = 1
 		ml_mesh_mgr.useQuaternion = false
 		
