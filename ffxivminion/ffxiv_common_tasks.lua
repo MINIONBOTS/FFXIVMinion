@@ -712,6 +712,9 @@ end
 
 function ffxiv_task_movetointeract:task_complete_eval()
 	self.blockExecution = false
+	if (self.uniqueid ~= nil and self.contentid == nil) then
+		self.contentid = self.uniqueid
+	end
 	
 	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		local convoList = GetConversationList()
