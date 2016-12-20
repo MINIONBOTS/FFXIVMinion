@@ -520,10 +520,10 @@ function dev.DrawCall(event, ticks )
 							if ( GUI:TreeNode(tostring(id)) ) then
 								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devLoot1"..tostring(id),tostring(string.format( "%X",e.ptr)))
 								GUI:BulletText(".id") GUI:SameLine(200) GUI:InputText("##devLoot2"..tostring(id),tostring(e.id))
-								GUI:BulletText(".StateA") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.StateA))
-								GUI:BulletText(".StateB") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.StateB))
-								GUI:BulletText(".StateC") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.StateC))
-								GUI:BulletText(".StateD") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.StateD))
+								GUI:BulletText(".timeleft") GUI:SameLine(200) GUI:InputText("##devLoot3"..tostring(id),tostring(e.timeleft))
+								GUI:BulletText(".rollvalue") GUI:SameLine(200) GUI:InputText("##devLoot4"..tostring(id),tostring(e.rollvalue))--	// the "number 0-99 rolled"
+								GUI:BulletText(".rollstate") GUI:SameLine(200) GUI:InputText("##devLoot5"..tostring(id),tostring(e.rollstate))--	// 0=No Roll, 1=Need, 2=Greed, 3=Pass  , after rolling that is
+								GUI:BulletText(".info") GUI:SameLine(200) GUI:InputText("##devLoot6"..tostring(id),tostring(e.info)) --// 0 = Needable items if loot exists, 1=only greed items available, 17 = already rolled
 								GUI:TreePop()
 							end
 						end
