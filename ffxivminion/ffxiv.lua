@@ -92,7 +92,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 		ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	elseif (gamestate == FFXIV.GAMESTATE.CHARACTERSCREEN ) then
 		ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
-	elseif (gamestate == 4) then
+	elseif (gamestate == FFXIV.GAMESTATE.ERROR) then
 		ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 	end
 end
@@ -101,7 +101,7 @@ function ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
-		if (not IsControlOpen("Dialogue")) then
+		if (IsControlOpen("Dialogue")) then
 			if (UseControlAction("Dialogue","PressOK",0)) then
 				ml_global_information.Await(1000, 60000, function () return GetGameState() == FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
@@ -289,7 +289,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		FFXIV_Common_EorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
 		--if (SkillMgr) then
-			--ffxivminion.CheckClass()
+		ffxivminion.CheckClass()
 		--end
 		
 		if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
@@ -800,7 +800,7 @@ function ffxivminion.CheckClass()
 			[FF.JOBS.SUMMONER] 		= ffxiv_combat_summoner,
 			[FF.JOBS.THAUMATURGE] 	= ffxiv_combat_thaumaturge,
 			[FF.JOBS.WARRIOR] 	 	= ffxiv_combat_warrior,
-			[FF.JOBS.WHITEMAGE] 	 = ffxiv_combat_whitemage,
+			[FF.JOBS.WHITEMAGE] 	= ffxiv_combat_whitemage,
 			[FF.JOBS.ROGUE]			= ffxiv_combat_rogue,
 			[FF.JOBS.NINJA]			= ffxiv_combat_ninja,
 			[FF.JOBS.MACHINIST]		= ffxiv_combat_machinist,
@@ -824,7 +824,7 @@ function ffxivminion.CheckClass()
 	local classes = ml_global_information.classes
 	local playerClass = classes[Player.job]
 	if (not playerClass) then
-		ffxiv_dialog_manager.IssueStopNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
+		--ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
 		return
 	end
 	
@@ -865,7 +865,7 @@ function ffxivminion.CheckClass()
 			end
 					
 			if (gBotMode ~= newModeName and newModeName ~= "") then
-				ffxivminion.SwitchMode(newModeName)
+				--ffxivminion.SwitchMode(newModeName)
 			end
 		end
     end

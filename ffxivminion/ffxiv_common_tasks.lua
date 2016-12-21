@@ -709,8 +709,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	local ipos = interactable.pos
-	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
-	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local dist3d = interactable.distance
+	local dist2d = interactable.distance2d
 	local ydiff = math.abs(ipos.y - ppos.y)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 	
@@ -1677,9 +1677,7 @@ function ffxiv_task_grindCombat:Process()
 		
 	local target = EntityList:Get(self.targetid)
 	if (table.valid(target)) then
-		
-		--d("Target is valid, commence checks.")
-		
+	
 		if (target.targetable) then
 			local currentTarget = MGetTarget()
 			if (not currentTarget or (currentTarget and currentTarget.id ~= target.id)) then
@@ -1740,8 +1738,7 @@ function ffxiv_task_grindCombat:Process()
 		end
 		
 		local dist = PDistance3D(ppos.x,ppos.y,ppos.z,pos.x,pos.y,pos.z)
-		if (ml_global_information.AttackRange > 5) then
-			--d("Ranged class, check if we're in combat range and such..")
+		if (ml_global_information.AttackRange > 5) then			
 			if ((not InCombatRange(target.id) or not target.los) and not MIsCasting()) then
 				if (teleport and dist > 60 and Now() > self.teleportThrottle) then
 					local telePos = GetPosFromDistanceHeading(pos, 20, mobRear)
@@ -1763,7 +1760,7 @@ function ffxiv_task_grindCombat:Process()
 					end
 				end
 			end
-			--d("Checking if we are in combat range now.")
+			
 			if (InCombatRange(target.id)) then
 				if (Player.ismounted) then
 					--d("Need to dismount if we are close.")
@@ -2585,6 +2582,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 		end			
 	end
 	
+	d("checking movetoaethernet")
+	
 	local interactable = nil
 	if (self.interact == 0 and TimeSince(self.lastInteractableSearch) > 500) then
 		if (self.contentid ~= 0) then
@@ -2621,8 +2620,8 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 	end
 	
 	local ipos = interactable.pos
-	local dist3d = Distance3D(ppos.x,ppos.y,ppos.z,ipos.x,ipos.y,ipos.z)
-	local dist2d = Distance2D(ppos.x,ppos.z,ipos.x,ipos.z)
+	local dist3d = interactable.distance
+	local dist2d = interactable.distance2d
 	local ydiff = math.abs(ipos.y - ppos.y)
 	local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 	local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
@@ -2654,7 +2653,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					
 					local minDist, minHeight = 10, 4.95
 					if (not IsAetheryte(interactable.contentid)) then
-						minDist,minHeight = 7.5, 1.4
+						minDist,minHeight = 4, 5
 					end
 					
 					if (dist2d <= minDist and ydiff <= minHeight) then
@@ -2691,6 +2690,9 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						self.blockExecution = true
 						self.lastInteract = Now()
 						return true
+					else
+						--d("dist2d:"..tostring(dist2d))
+						--d("ydiff:"..tostring(ydiff))
 					end
 				end
 			end

@@ -1,4 +1,41 @@
 -- Add things to ml_global_information, we no longer create it.	
+FFXIV.JOBS = {
+	ADVENTURER = 0,
+	GLADIATOR = 1,
+	PUGILIST = 2,
+	MARAUDER = 3,
+	LANCER = 4,
+	ARCHER = 5,
+	CONJURER = 6,
+	THAUMAGURGE = 7,
+	CARPENTER = 8,
+	BLACKSMITH = 9,
+	ARMORER = 10,
+	GOLDSMITH = 11,
+	LEATHERWORKER = 12,
+	WEAVER = 13,
+	ALCHEMIST = 14,
+	CULINARIAN = 15,
+	MINER = 16,
+	BOTANIST = 17,
+	FISHER = 18,
+	PALADIN = 19,
+	MONK = 20,
+	WARRIOR = 21,
+	DRAGOON = 22,
+	BARD = 23,
+	WHITEMAGE = 24,
+	BLACKMAGE = 25,
+	ARCANIST = 26,
+	SUMMONER = 27,
+	SCHOLER= 28,
+	ROGUE = 29,
+	NINJA = 30,
+	MACHINIST = 31,
+	DARKKNIGHT = 32,
+	ASTROLOGIAN = 33,
+}
+
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
 ml_global_information.yield = {}
@@ -393,6 +430,20 @@ function ml_global_information.Init()
 				return { [mapid] = mapid }
 			end
 		end
+	end
+	
+	-- Load class files here instead of the module.def
+	local classFiles = FolderList(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines")
+	if (classFiles) then
+		for i,file in pairs(classFiles) do
+			if ( string.ends(file,".lua") ) then
+				--d("loading file ["..tostring(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines\\"..file).."]")
+				local file, e = persistence.load(GetStartupPath().."\\LuaMods\\ffxivminion\\class_routines\\"..file)
+				if (e) then
+					d(e)
+				end
+			end
+		end		
 	end
 
 	local ffxiv_mainmenu = {

@@ -1680,6 +1680,18 @@ function HasContentID(entity, contentIDs)
 	end
 	return false
 end
+function IsPetSummonSkill(skillID)
+    if (skillID == 165 or
+		skillID == 150 or
+        skillID == 170 or
+        skillID == 180 or
+		skillID == 2864 or
+		skillID == 2865) 
+	then
+        return true
+    end
+    return false
+end
 function IsHealingSkill(skillID)
 	local id = tonumber(skillID)
 	
@@ -2726,7 +2738,7 @@ function InCombatRange(targetid)
 	
 	if (gBotMode == GetString("gatherMode")) then
 		local node = EntityList:Get(targetid)
-		if (node and node.distance2d < 4) then
+		if (node and node.distance2d ~= 0 and node.distance2d < 4) then
 			return true
 		end
 		return false
@@ -2745,9 +2757,9 @@ function InCombatRange(targetid)
 	
 	local attackRange = ml_global_information.AttackRange
 	local combatRange = 85
-	if (attackRange < 5 and (target.distance2d <= (3 * (tonumber(gCombatRangePercent) / 100)))) then
+	if (attackRange < 5 and (target.distance2d ~= 0 and target.distance2d <= (3 * (tonumber(combatRange) / 100)))) then
 		return true
-	elseif (attackRange > 5 and (target.distance2d <= (24 * (tonumber(gCombatRangePercent) / 100)))) then
+	elseif (attackRange > 5 and (target.distance2d ~= 0 and target.distance2d <= (24 * (tonumber(combatRange) / 100)))) then
 		return true
 	end
 	
@@ -2797,7 +2809,7 @@ function InCombatRange(targetid)
 			--]]
 		--end
 	--else
-		return target.distance2d <= (attackRange * (tonumber(gCombatRangePercent) / 100))
+		return (target.distance2d ~= 0 and target.distance2d <= (attackRange * (tonumber(combatRange) / 100)))
 	--end
 
 	--return false
