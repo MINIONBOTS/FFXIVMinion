@@ -647,7 +647,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	end
 	
 	if ((MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsShopWindowOpen() or self.startMap ~= Player.localmapid) then
-		d("ending in block 1")
 		return true
 	end
 	
@@ -657,7 +656,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 	if (self.interact ~= 0) then
 		local interact = EntityList:Get(tonumber(self.interact))
 		if (not interact or not interact.targetable) then
-			d("ending in block 2")
 			return true
 		end
 	else
@@ -665,9 +663,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local dist = Distance3DT(ppos,epos)
 		if (dist <= 2) then
 			local interacts = EntityList("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")
-			d("looking for interacts:"..tostring("targetable,contentid="..tostring(self.contentid)..",maxdistance=10")..", found:"..tostring(table.size(interacts)))
 			if (not table.valid(interacts)) then
-				d("ending in block 3")
 				return true
 			end
 		end			
@@ -756,7 +752,9 @@ function ffxiv_task_movetointeract:task_complete_eval()
 
 						d("[MoveToInteract]: Interacting with target.")
 						
-						local currentDist = Distance3DT(ppos,ipos)
+						local iid = interactable.id
+						local currentDist = dist2d
+						
 						ml_global_information.AwaitSuccessFail(250, 1500,
 							function ()
 								return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
@@ -772,9 +770,17 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							end,
 							function ()
 								d("[MoveToInteract]: Interact failed, attempting to move closer.")
-								Player:SetFacing(ipos.x,ipos.y,ipos.z)
-								Player:Move(FFXIV.MOVEMENT.FORWARD)
-								ml_global_information.Await(250, 1500, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+								Player:SetFacing(ipos.x, ipos.y, ipos.z)
+								if (not Player:IsMoving()) then
+									Player:Move(FFXIV.MOVEMENT.FORWARD)
+								end
+								ml_global_information.Await(1000, 3000, 
+									function () 
+										local entity = EntityList:Get(iid)
+										return (not entity or entity.distance2d < (currentDist - .5))
+									end
+									, function () Player:Stop() end 
+								)
 							end
 						)
 						self.blockExecution = true
@@ -815,8 +821,17 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								end,
 								function ()
 									d("[MoveToInteract]: Interact failed, attempting to move closer.")
-									Player:MoveTo(ipos.x,ipos.y,ipos.z)
-									ml_global_information.Await(250, 1500, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+									Player:SetFacing(ipos.x, ipos.y, ipos.z)
+									if (not Player:IsMoving()) then
+										Player:Move(FFXIV.MOVEMENT.FORWARD)
+									end
+									ml_global_information.Await(1000, 3000, 
+										function () 
+											local entity = EntityList:Get(iid)
+											return (not entity or entity.distance2d < (currentDist - .5))
+										end
+										, function () Player:Stop() end 
+									)
 								end
 							)
 							self.blockExecution = true
@@ -2660,8 +2675,10 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
 						Player:Stop()
 						Player:Interact(interactable.id)
-							
-						local currentDist = Distance3DT(ppos,ipos)
+						
+						local iid = interactable.id
+						local currentDist = dist2d
+						
 						ml_global_information.AwaitSuccessFail(250, 1500,
 							function () 
 								return (MIsLocked() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
@@ -2675,7 +2692,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 											--d("MIsLocked():"..tostring(MIsLocked()))
 											--d("contentid:"..tostring(self.contentid))
 											--d("hasattunements:"..tostring(AceLib.API.Map.HasAttunements(self.contentid)))
-											if (c_skiptalk:evaluate()) then e_skiptalk():execute() end
+											if (c_skiptalk:evaluate()) then e_skiptalk:execute() end
 											return (Player.castinginfo.channelingid == 0 and not MIsLocked() and AceLib.API.Map.HasAttunements(self.contentid)) 
 										end
 									)
@@ -2683,8 +2700,17 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 							end,
 							function ()
 								d("[MoveToAethernet]: Interact failed, attempting to move closer.")
-								Player:MoveTo(ipos.x,ipos.y,ipos.z)
-								ml_global_information.Await(500, 3000, function () return (Distance3DT(Player.pos,ipos) < currentDist) end, function () Player:Stop() end )
+								Player:SetFacing(ipos.x, ipos.y, ipos.z)
+								if (not Player:IsMoving()) then
+									Player:Move(FFXIV.MOVEMENT.FORWARD)
+								end
+								ml_global_information.Await(1000, 3000, 
+									function () 
+										local entity = EntityList:Get(iid)
+										return (not entity or entity.distance2d < (currentDist - .5))
+									end
+									, function () Player:Stop() end 
+								)
 							end
 						)
 						self.blockExecution = true
