@@ -712,7 +712,7 @@ end
 
 function ffxiv_task_movetointeract:task_complete_eval()
 	self.blockExecution = false
-	if (self.uniqueid ~= nil and self.contentid == nil) then
+	if (self.uniqueid ~= nil) then
 		self.contentid = self.uniqueid
 	end
 	
@@ -2209,6 +2209,10 @@ function ffxiv_nav_interact:task_complete_eval()
 	local myTarget = MGetTarget()
 	local ppos = ml_global_information.Player_Position
 	
+	if (self.uniqueid ~= nil) then
+		self.contentid = self.uniqueid
+	end
+	
 	if (self.abort and type(self.abort) == "function") then
 		if (self.abort() == true) then
 			return true
@@ -2584,6 +2588,10 @@ end
 
 function ffxiv_task_moveaethernet:task_complete_eval()
 	self.blockExecution = false
+	
+	if (self.uniqueid ~= nil) then
+		self.contentid = self.uniqueid
+	end
 	
 	if (ControlVisible("SelectString") or ControlVisible("SelectIconString")) then
 		local convoList = GetConversationList()
