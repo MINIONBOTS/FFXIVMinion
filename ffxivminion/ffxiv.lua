@@ -447,11 +447,11 @@ function ffxivminion.SetMainVars()
 	else
 		gBotMode = ffxivminion.GetSetting("gBotMode",GetString("assistMode"))
 	end
-	FFXIV_Common_ModeList = {GetString("none")}
+	gBotModeList = {GetString("none")}
 	
-	FFXIV_Common_SkillProfile = ffxivminion.GetSetting("FFXIV_Common_SkillProfile",GetString("assistMode"))
-	FFXIV_Common_SkillProfileIndex = 1
-	FFXIV_Common_SkillProfileList = {GetString("none")}
+	gSkillProfileIndex = 1
+	gSkillProfile = ffxivminion.GetSetting("gSkillProfile",GetString("none"))
+	gSkillProfileList = {GetString("none"),GetString("ACR")}
 	
 	FFXIV_Common_BotRunning = false
 	FFXIV_Core_Version = 2
@@ -576,12 +576,12 @@ function ffxivminion.HandleInit()
 	end
 	
 	--[[
-	FFXIV_Common_SkillProfileList = {GetString("none")}
+	gSkillProfileList = {GetString("none")}
     local profilelist = dirlist(SkillMgr.profilepath,".*lua")
     if (table.valid(profilelist)) then
 		for i,profile in pairs(profilelist) do		
             profile = string.gsub(profile, ".lua", "")
-			table.insert(FFXIV_Common_SkillProfileList,profile)
+			table.insert(gSkillProfileList,profile)
         end		
     end
 	--]]
@@ -980,26 +980,26 @@ function ffxivminion.LoadModes()
 		ffxivminion.modesToLoad = {}
 	end
 	
-	FFXIV_Common_ModeList = {}
+	gBotModeList = {}
 	if (table.valid(ffxivminion.modes)) then
 		local modes = ffxivminion.modes
 		for modeName,task in spairs(modes, function(modes,a,b) return modes[a].friendly < modes[b].friendly end) do
-			table.insert(FFXIV_Common_ModeList,modeName)
+			table.insert(gBotModeList,modeName)
 			d("checking if ["..tostring(modeName).."] is ["..tostring(gBotMode).."]")
 			if (modeName == gBotMode) then
-				gBotModeIndex = table.size(FFXIV_Common_ModeList)
+				gBotModeIndex = table.size(gBotModeList)
 			end
 		end				
 	end
 	
-	d("load modes: mode list has ["..tostring(table.size(FFXIV_Common_ModeList)).."]")
+	d("load modes: mode list has ["..tostring(table.size(gBotModeList)).."]")
 	d("last bot mode setting:"..tostring(gBotMode))
 	
-	local modeIndex = GetKeyByValue(Retranslate(gBotMode),FFXIV_Common_ModeList)
+	local modeIndex = GetKeyByValue(Retranslate(gBotMode),gBotModeList)
 	if (modeIndex) then
 		gBotModeIndex = modeIndex
 	else
-		local backupIndex = GetKeyByValue(GetString("assistMode"),FFXIV_Common_ModeList)
+		local backupIndex = GetKeyByValue(GetString("assistMode"),gBotModeList)
 		gBotModeIndex = backupIndex
 		gBotMode = GetString("assistMode")
 	end
@@ -1055,7 +1055,7 @@ function ml_global_information.DrawMainFull()
 	local gamestate = GetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then
-			--if (ffxivminion.GUI.draw_mode == 1) then
+			if (ml_global_information.drawMode == 1) then
 				GUI:SetNextWindowSize(350,300,GUI.SetCond_Once) --set the next window size, only on first ever	
 				GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 				
@@ -1067,26 +1067,37 @@ function ml_global_information.DrawMainFull()
 				
 					local x, y = GUI:GetWindowPos()
 					local width, height = GUI:GetWindowSize()
+					local contentwidth = GUI:GetContentRegionAvailWidth()
 					
 					ffxivminion.GUI.x = x; ffxivminion.GUI.y = y; ffxivminion.GUI.width = width; ffxivminion.GUI.height = height;
 					
-					--[[
+					GUI:PushItemWidth(150)
+					local modeChanged = GUI_Combo(GetString("botMode"), "gBotModeIndex", "gBotMode", gBotModeList)
+					if (modeChanged) then
+						ffxivminion.SwitchMode(gBotMode)
+						local uuid = GetUUID()
+						if ( string.valid(uuid) ) then
+							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
+							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
+						end
+					end
+					
+					GUI:SameLine(contentwidth-20);
 					GUI:Image(ml_global_information.GetMainIcon(),14,14)
-					if (GUI:IsItemHoveredRect()) then
+					if (GUI:IsItemHovered()) then
 						if (GUI:IsMouseClicked(0)) then
-							if (ffxivminion.GUI.draw_mode == 1) then
-								ffxivminion.GUI.draw_mode = 0
+							if (ml_global_information.drawMode == 1) then
+								ml_global_information.drawMode = 0
 							else
-								ffxivminion.GUI.draw_mode = 1
+								ml_global_information.drawMode = 1
 							end
 						end
 					end
-					GUI:SameLine(0,10)
-					--]]
+					GUI:PopItemWidth()
 					
-					GUI:PushItemWidth(150)
-					local modeChanged = GUI_Combo(GetString("botMode"), "gBotModeIndex", "gBotMode", FFXIV_Common_ModeList)
-					if (modeChanged) then
+					GUI:PushItemWidth(200)
+					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", gSkillProfileList)
+					if (skillsChanged) then
 						ffxivminion.SwitchMode(gBotMode)
 						local uuid = GetUUID()
 						if ( string.valid(uuid) ) then
@@ -1122,7 +1133,6 @@ function ml_global_information.DrawMainFull()
 					end
 					GUI:EndChild()
 					
-					local width = GUI:GetContentRegionAvailWidth()
 					if (GUI:Button(GetString("advancedSettings"),width,20)) then
 						ffxivminion.GUI.settings.open = not ffxivminion.GUI.settings.open
 					end
@@ -1132,7 +1142,7 @@ function ml_global_information.DrawMainFull()
 				end
 				GUI:End()
 				GUI:PopStyleColor()
-			--end
+			end
 		end
 	end
 end
@@ -1141,7 +1151,7 @@ function ml_global_information.DrawSmall()
 	local gamestate = GetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then		
-			--if (ffxivminion.GUI.draw_mode ~= 1) then
+			if (ml_global_information.drawMode ~= 1) then
 				GUI:SetNextWindowSize(200,50,GUI.SetCond_Always) --set the next window size, only on first ever	
 				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 				GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .35)
@@ -1149,19 +1159,9 @@ function ml_global_information.DrawSmall()
 				local flags = (GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoResize + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoCollapse)
 				GUI:Begin("FFXIVMINION_MAIN_WINDOW_MINIMIZED", true, flags)
 				
-				--[[			
-				GUI:Image(ml_global_information.GetMainIcon(),14,14)
-				if (GUI:IsItemHoveredRect()) then
-					if (GUI:IsMouseClicked(0)) then
-						if (ffxivminion.GUI.draw_mode == 1) then
-							ffxivminion.GUI.draw_mode = 0
-						else
-							ffxivminion.GUI.draw_mode = 1
-						end
-					end
-				end
-				GUI:SameLine(0,10)
-				--]]
+				local x, y = GUI:GetWindowPos()
+				local width, height = GUI:GetWindowSize()
+				local contentwidth = GUI:GetContentRegionAvailWidth()
 				
 				local child_color = (FFXIV_Common_BotRunning == true and { r = 0, g = .10, b = 0, a = .75 }) or { r = .10, g = 0, b = 0, a = .75 }
 				GUI:PushStyleVar(GUI.StyleVar_ChildWindowRounding,10)
@@ -1179,9 +1179,25 @@ function ml_global_information.DrawSmall()
 					end
 				end
 				
+				GUI:SameLine(contentwidth-35);
+				
+				GUI:BeginChild("##style-switch",35,35,false)
+				GUI:Text("");
+				GUI:Image(ml_global_information.GetMainIcon(),14,14)
+				if (GUI:IsItemHovered()) then
+					if (GUI:IsMouseClicked(0)) then
+						if (ml_global_information.drawMode == 1) then
+							ml_global_information.drawMode = 0
+						else
+							ml_global_information.drawMode = 1
+						end
+					end
+				end
+				GUI:EndChild()
+				
 				GUI:End()
 				GUI:PopStyleColor()
-			--end
+			end
 		end
 	end
 end

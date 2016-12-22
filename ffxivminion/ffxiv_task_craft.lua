@@ -171,7 +171,7 @@ function e_startcraft:execute()
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
 			local skillProfile = ml_task_hub:CurrentTask().skillProfile
-			if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
+			if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
 				if (SkillMgr.HasProfile(skillProfile)) then
 					SkillMgr.UseProfile(skillProfile)
 				end
@@ -721,7 +721,7 @@ function ffxiv_task_craft.UIInit()
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
 	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
 	GUI_NewCheckbox(winName,"Craft Debug","gCraftDebug",group)
 	GUI_NewComboBox(winName,"Debug Level","gCraftDebugLevel",group,"1,2,3")

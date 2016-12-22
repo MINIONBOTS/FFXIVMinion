@@ -1,23 +1,39 @@
 -- Skillmanager for adv. skill customization
 SkillMgr = {}
-SkillMgr.version = "v2.0";
+SkillMgr.version = 3;
 SkillMgr.lastTick = 0
+SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
+
 SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
 SkillMgr.CurrentSkillData = {}
 SkillMgr.CurrentTarget = {}
 SkillMgr.CurrentTID = 0
 SkillMgr.CurrentPet = {}
-SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
-SkillMgr.skillbook = { name = GetString("skillbook"), x = 250, y = 50, w = 250, h = 350}
-SkillMgr.mainwindow = { name = GetString("skillManager"), x = 350, y = 50, w = 250, h = 350}
-SkillMgr.editwindow = { name = GetString("skillEditor"), x = 250, y = 50, w = 250, h = 550}
-SkillMgr.editwindow_macro = { name = "Skill Editor - Macro", x = 250, y = 50, w = 250, h = 550, visible = false}
---SkillMgr.editwindow_buff = { name = "Skill Editor - Buff", x = 250, y = 50, w = 250, h = 550, visible = false}
-SkillMgr.editwindow_crafting = { name = GetString("skillEditor_craft"), x = 250, y = 50, w = 250, h = 550}
-SkillMgr.editwindow_gathering = { name = GetString("skillEditor_gather"), x = 250, y = 50, w = 250, h = 550}
-SkillMgr.confirmwindow = { name = GetString("confirm"), x = 250, y = 50, w = 250, h = 120}
-SkillMgr.filterwindow = { name = "Filter Manager", x = 250, y = 50, w = 250, h = 160}
+
+SkillMgr.GUI = {
+	skillbook = {
+		name = GetString("skillbook"),
+		visible = true,
+		open = false,
+	},
+	manager = {
+		name = GetString("skillManager"),
+		visible = true,
+		open = false,
+	},
+	editor = {
+		name = GetString("skillEditor"),
+		visible = true,
+		open = false,
+	},
+	filters = {
+		name = "Filters",
+		visible = true,
+		open = false,
+	},
+}
+
 SkillMgr.SkillBook = {}
 SkillMgr.SkillProfile = {}
 SkillMgr.lastQueued = 0
@@ -48,67 +64,67 @@ SkillMgr.lastCast = 0
 SkillMgr.lastCastUnique = 0
 SkillMgr.throw = {}
 
-SkillMgr.comboQueue = {}
-SkillMgr.otherQueue = {}
+SkillMgr.profiles = {}
+
 SkillMgr.latencyTimer = 0
 SkillMgr.forceStop = false
 SkillMgr.preCombat = false
 SkillMgr.knownDebuffs = "1,3,4,5,6,7,9,10,14,15,17,18,19,20,26,28,30,32,34,36,38,54,55,58,59,62,67,181,19​3,210,213,215,216,240,250,267,275,280,284,268,285,235,269,270,271,272,273,283,28​6,287,288,320,339,343,407,442,48​2,485,503,509,530,532,533,534,535,559,560,561,5​64,569,571,605,610,619,620,642,643,666,677,686,723,785,801,893,910,926"
-SkillMgr.doLoad = false
+SkillMgr.doLoad = true
 
 SkillMgr.GCDSkills = {
-	[FFXIV.JOBS.GLADIATOR] = 9,
-	[FFXIV.JOBS.PALADIN] = 9,
-    [FFXIV.JOBS.MARAUDER] = 31,
-	[FFXIV.JOBS.WARRIOR] = 31,
-	[FFXIV.JOBS.PUGILIST] = 53,
-	[FFXIV.JOBS.MONK] = 53,
-	[FFXIV.JOBS.LANCER] = 75,
-	[FFXIV.JOBS.DRAGOON] = 75,
-	[FFXIV.JOBS.ARCHER] = 97,
-	[FFXIV.JOBS.BARD] = 97,
-	[FFXIV.JOBS.CONJURER] = 119,
-	[FFXIV.JOBS.WHITEMAGE] = 119,
-	[FFXIV.JOBS.THAUMATURGE] = 142,
-	[FFXIV.JOBS.BLACKMAGE] = 142,
-	[FFXIV.JOBS.ARCANIST] = 163,
-	[FFXIV.JOBS.SUMMONER] = 163,
-	[FFXIV.JOBS.SCHOLAR] = 163,
-	[FFXIV.JOBS.BOTANIST] = 218,
-	[FFXIV.JOBS.MINER] = 235,
-	[FFXIV.JOBS.ROGUE] = 2240,
-	[FFXIV.JOBS.NINJA] = 2240,
-	[FFXIV.JOBS.MACHINIST] = 2866,
-	[FFXIV.JOBS.ASTROLOGIAN] = 3596,
-	[FFXIV.JOBS.DARKKNIGHT] = 3617,
+	[FF.JOBS.GLADIATOR] = 9,
+	[FF.JOBS.PALADIN] = 9,
+    [FF.JOBS.MARAUDER] = 31,
+	[FF.JOBS.WARRIOR] = 31,
+	[FF.JOBS.PUGILIST] = 53,
+	[FF.JOBS.MONK] = 53,
+	[FF.JOBS.LANCER] = 75,
+	[FF.JOBS.DRAGOON] = 75,
+	[FF.JOBS.ARCHER] = 97,
+	[FF.JOBS.BARD] = 97,
+	[FF.JOBS.CONJURER] = 119,
+	[FF.JOBS.WHITEMAGE] = 119,
+	[FF.JOBS.THAUMATURGE] = 142,
+	[FF.JOBS.BLACKMAGE] = 142,
+	[FF.JOBS.ARCANIST] = 163,
+	[FF.JOBS.SUMMONER] = 163,
+	[FF.JOBS.SCHOLAR] = 163,
+	[FF.JOBS.BOTANIST] = 218,
+	[FF.JOBS.MINER] = 235,
+	[FF.JOBS.ROGUE] = 2240,
+	[FF.JOBS.NINJA] = 2240,
+	[FF.JOBS.MACHINIST] = 2866,
+	[FF.JOBS.ASTROLOGIAN] = 3596,
+	[FF.JOBS.DARKKNIGHT] = 3617,
 }
 
 SkillMgr.StartingProfiles = {
-	[FFXIV.JOBS.GLADIATOR] = "Gladiator",
-	[FFXIV.JOBS.PALADIN] = "Paladin",
-    [FFXIV.JOBS.MARAUDER] = "Marauder",
-	[FFXIV.JOBS.WARRIOR] = "Warrior",
-	[FFXIV.JOBS.PUGILIST] = "Monk",
-	[FFXIV.JOBS.MONK] = "Monk",
-	[FFXIV.JOBS.LANCER] = "Lancer",
-	[FFXIV.JOBS.DRAGOON] = "Dragoon",
-	[FFXIV.JOBS.ARCHER] = "Archer",
-	[FFXIV.JOBS.BARD] = "Bard",
-	[FFXIV.JOBS.CONJURER] = "Conjurer",
-	[FFXIV.JOBS.WHITEMAGE] = "White_Mage",
-	[FFXIV.JOBS.THAUMATURGE] = "Black_Mage",
-	[FFXIV.JOBS.BLACKMAGE] = "Black_Mage",
-	[FFXIV.JOBS.ARCANIST] = "Arcanist",
-	[FFXIV.JOBS.SUMMONER] = "Summoner",
-	[FFXIV.JOBS.SCHOLAR] = "Scholar",
-	[FFXIV.JOBS.BOTANIST] = "Botanist",
-	[FFXIV.JOBS.MINER] = "Miner",
-	[FFXIV.JOBS.CULINARIAN] = "Culinarian",
-	[FFXIV.JOBS.ROGUE] = "Rogue",
-	[FFXIV.JOBS.NINJA] = "Ninja",
-	[FFXIV.JOBS.MACHINIST] = "Machinist",
-	[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian",
-	[FFXIV.JOBS.DARKKNIGHT] = "DarkKnight",
+	[FF.JOBS.GLADIATOR] = "Gladiator",
+	[FF.JOBS.PALADIN] = "Paladin",
+    [FF.JOBS.MARAUDER] = "Marauder",
+	[FF.JOBS.WARRIOR] = "Warrior",
+	[FF.JOBS.PUGILIST] = "Monk",
+	[FF.JOBS.MONK] = "Monk",
+	[FF.JOBS.LANCER] = "Lancer",
+	[FF.JOBS.DRAGOON] = "Dragoon",
+	[FF.JOBS.ARCHER] = "Archer",
+	[FF.JOBS.BARD] = "Bard",
+	[FF.JOBS.CONJURER] = "Conjurer",
+	[FF.JOBS.WHITEMAGE] = "White_Mage",
+	[FF.JOBS.THAUMATURGE] = "Black_Mage",
+	[FF.JOBS.BLACKMAGE] = "Black_Mage",
+	[FF.JOBS.ARCANIST] = "Arcanist",
+	[FF.JOBS.SUMMONER] = "Summoner",
+	[FF.JOBS.SCHOLAR] = "Scholar",
+	[FF.JOBS.BOTANIST] = "Botanist",
+	[FF.JOBS.MINER] = "Miner",
+	[FF.JOBS.CULINARIAN] = "Culinarian",
+	[FF.JOBS.ROGUE] = "Rogue",
+	[FF.JOBS.NINJA] = "Ninja",
+	[FF.JOBS.MACHINIST] = "Machinist",
+	[FF.JOBS.ASTROLOGIAN] = "Astrologian",
+	[FF.JOBS.DARKKNIGHT] = "DarkKnight",
 }
 
 SkillMgr.ExtraProfiles = {
@@ -498,748 +514,121 @@ SkillMgr.Variables = {
 }
 
 function SkillMgr.ModuleInit() 	
-    Settings.FFXIVMINION.gSMactive = Settings.FFXIVMINION.gSMactive or "1"
-    Settings.FFXIVMINION.gSMlastprofile = Settings.FFXIVMINION.gSMlastprofile or "None"
-	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles or {}	
-	--Settings.FFXIVMINION.gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing or "0"
-	Settings.FFXIVMINION.gSkillManagerDebug = Settings.FFXIVMINION.gSkillManagerDebug or "0"
-	Settings.FFXIVMINION.gSkillManagerDebugPriorities = Settings.FFXIVMINION.gSkillManagerDebugPriorities or ""
+	local uuid = GetUUID()
 	
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
+	if (Settings.FFXIVMINION.gSMDefaultProfiles == nil) then
+		Settings.FFXIVMINION.gSMDefaultProfiles = {}
 	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Marauder"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.LANCER] = "Lancer"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Archer"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Conjurer"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black_Mage"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MONK] = "Monk"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White_Mage"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black_Mage"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Arcanist"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "Dark Knight"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist"
-	end
-	if (Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) then
-		Settings.FFXIVMINION.SMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
+	if (Settings.FFXIVMINION.gSMDefaultProfiles[uuid] == nil) then
+		Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = {}
 	end
 	
-	-- Move the filter settings here, since we're going to break them out of the window.
-	if (Settings.FFXIVMINION.gAssistFilter1 == nil) then
-        Settings.FFXIVMINION.gAssistFilter1 = "0"
-    end
-	if (Settings.FFXIVMINION.gAssistFilter2 == nil) then
-		Settings.FFXIVMINION.gAssistFilter2 = "0"
-	end
-	if (Settings.FFXIVMINION.gAssistFilter3 == nil) then
-        Settings.FFXIVMINION.gAssistFilter3 = "0"
-    end
-	if (Settings.FFXIVMINION.gAssistFilter4 == nil) then
-		Settings.FFXIVMINION.gAssistFilter4 = "0"
-	end
-	if (Settings.FFXIVMINION.gAssistFilter5 == nil) then
-        Settings.FFXIVMINION.gAssistFilter5 = "0"
-    end
-		
-    -- Skillbook
-    GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
-    GUI_NewButton(SkillMgr.skillbook.name,GetString("skillbookrefresh"),"SMRefreshSkillbookEvent")
-	GUI_NewButton(SkillMgr.skillbook.name,"New Text Command","SkillMgr.AddTextCommandToSkills")
-	GUI_NewButton(SkillMgr.skillbook.name,"New Item","SkillMgr.AddItemToSkills")
-    GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
-    GUI_SizeWindow(SkillMgr.skillbook.name,SkillMgr.skillbook.w,SkillMgr.skillbook.h)
-    GUI_WindowVisible(SkillMgr.skillbook.name,false)	
-    
-    -- SelectedSkills/Main Window
-    GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
-    GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("activated"),"gSMactive",GetString("generalSettings"))
-    GUI_NewComboBox(SkillMgr.mainwindow.name,GetString("profile"),"gSMprofile",GetString("generalSettings"),"")
-	--GUI_NewCheckbox(SkillMgr.mainwindow.name,"Queueing Allowed","gSkillManagerQueueing",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("debugging"),"gSkillManagerDebug",GetString("generalSettings"))
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("debugItems"),"gSkillManagerDebugPriorities",GetString("generalSettings"))
+	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	
-	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug","0")
+	if (gSMDefaultProfiles[FF.JOBS.GLADIATOR] == nil) then
+		gSMDefaultProfiles[FF.JOBS.GLADIATOR] = "Gladiator"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.PUGILIST] == nil) then
+		gSMDefaultProfiles[FF.JOBS.PUGILIST] = "Monk"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.MARAUDER] == nil) then
+		gSMDefaultProfiles[FF.JOBS.MARAUDER] = "Marauder"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.LANCER] == nil) then
+		gSMDefaultProfiles[FF.JOBS.LANCER] = "Lancer"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.ARCHER] == nil) then
+		gSMDefaultProfiles[FF.JOBS.ARCHER] = "Archer"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.CONJURER] == nil) then
+		gSMDefaultProfiles[FF.JOBS.CONJURER] = "Conjurer"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.THAUMATURGE] == nil) then
+		gSMDefaultProfiles[FF.JOBS.THAUMATURGE] = "Black_Mage"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.CULINARIAN] == nil) then
+		gSMDefaultProfiles[FF.JOBS.CULINARIAN] = "Culinarian"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.PALADIN] == nil) then
+		gSMDefaultProfiles[FF.JOBS.PALADIN] = "Paladin"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.MONK] == nil) then
+		gSMDefaultProfiles[FF.JOBS.MONK] = "Monk"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.WARRIOR] == nil) then
+		gSMDefaultProfiles[FF.JOBS.WARRIOR] = "Warrior"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.DRAGOON] == nil) then
+		gSMDefaultProfiles[FF.JOBS.DRAGOON] = "Dragoon"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.BARD] == nil) then
+		gSMDefaultProfiles[FF.JOBS.BARD] = "Bard"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.WHITEMAGE] == nil) then
+		gSMDefaultProfiles[FF.JOBS.WHITEMAGE] = "White_Mage"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.BLACKMAGE] == nil) then
+		gSMDefaultProfiles[FF.JOBS.BLACKMAGE] = "Black_Mage"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.ARCANIST] == nil) then
+		gSMDefaultProfiles[FF.JOBS.ARCANIST] = "Arcanist"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.SUMMONER] == nil) then
+		gSMDefaultProfiles[FF.JOBS.SUMMONER] = "Summoner"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.SCHOLAR] == nil) then
+		gSMDefaultProfiles[FF.JOBS.SCHOLAR] = "Scholar"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.ROGUE] == nil) then
+		gSMDefaultProfiles[FF.JOBS.ROGUE] = "Rogue"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.NINJA] == nil) then
+		gSMDefaultProfiles[FF.JOBS.NINJA] = "Ninja"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.DARKKNIGHT] == nil) then
+		gSMDefaultProfiles[FF.JOBS.DARKKNIGHT] = "Dark Knight"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.MACHINIST] == nil) then
+		gSMDefaultProfiles[FF.JOBS.MACHINIST] = "Machinist"
+	end
+	if (gSMDefaultProfiles[FF.JOBS.ASTROLOGIAN] == nil) then
+		gSMDefaultProfiles[FF.JOBS.ASTROLOGIAN] = "Astrologian"
+	end
+	
+	gSkillManagerQueueing = ffxivminion.GetSetting("gSkillManagerQueueing",false)
+	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug",false)
 	gSkillManagerDebugPriorities = ffxivminion.GetSetting("gSkillManagerDebugPriorities","")
 	
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter1"),"gSkillManagerFilter1","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter2"),"gSkillManagerFilter2","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter3"),"gSkillManagerFilter3","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter4"),"gSkillManagerFilter4","Filters")
-	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter5"),"gSkillManagerFilter5","Filters")
+	gAssistFilter1 = ffxivminion.GetSetting("gAssistFilter1",false)
+	gAssistFilter2 = ffxivminion.GetSetting("gAssistFilter2",false)
+	gAssistFilter3 = ffxivminion.GetSetting("gAssistFilter3",false)
+	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
+	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
-	gSkillManagerFilter1 = ""
-	gSkillManagerFilter2 = ""
-	gSkillManagerFilter3 = ""
-	gSkillManagerFilter4 = ""
-	gSkillManagerFilter5 = ""
-	
-    GUI_NewButton(SkillMgr.mainwindow.name,GetString("saveProfile"),"SMSaveEvent")
-    RegisterEventHandler("SMSaveEvent",SkillMgr.SaveProfile)
-	GUI_NewButton(SkillMgr.mainwindow.name,GetString("clearProfile"),"SMClearEvent")
-    RegisterEventHandler("SMClearEvent",SkillMgr.ClearProfilePrompt)
-    GUI_NewField(SkillMgr.mainwindow.name,GetString("newProfileName"),"gSMnewname",GetString("skillEditor"))
-    GUI_NewButton(SkillMgr.mainwindow.name,GetString("newProfile"),"newSMProfileEvent",GetString("skillEditor"))
-    RegisterEventHandler("newSMProfileEvent",SkillMgr.NewProfile)
-    GUI_UnFoldGroup(SkillMgr.mainwindow.name,GetString("generalSettings"))
-    GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-    GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
-
-	GUI_NewWindow(SkillMgr.confirmwindow.name, SkillMgr.confirmwindow.x, SkillMgr.confirmwindow.y, SkillMgr.confirmwindow.w, SkillMgr.confirmwindow.h)
-	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("yes"),"SKMClearProfileYes")
-	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
-	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
-	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
-	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)	
-
-	ffxivminion.Windows.FilterManager = { id = "Filter Manager", Name = "Filter Manager", x=250, y=50, width=250, height=160 }
-	ffxivminion.CreateWindow(ffxivminion.Windows.FilterManager)
-	local winName = "Filter Manager"
-	local group = "Filters"
-	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
-	GUI_NewCheckbox(winName,GetString("filter2"),"gAssistFilter2",group)
-	GUI_NewCheckbox(winName,GetString("filter3"),"gAssistFilter3",group)
-	GUI_NewCheckbox(winName,GetString("filter4"),"gAssistFilter4",group)
-	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)	
-	GUI_UnFoldGroup(winName,group)
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
-	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
-	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
-	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
-	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
-                        
-    gSMactive = "1"
-    gSMnewname = ""
-    
-    -- EDITOR WINDOW
-    GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("alias"),"SKM_ALIAS",GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet,Macro,Item,Text Command")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("removesBuff"),"SKM_REMOVESBUFF",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMax"),"SKM_LevelMax",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMin"),"SKM_LevelMin",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("minRange"),"SKM_MinR",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("maxRange"),"SKM_MaxR",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkill"),"SKM_PCSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkillNot"),"SKM_NPCSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill","SKM_PGSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill NOT","SKM_NPGSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillID"),"SKM_PSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillIDNot"),"SKM_NPSkillID",GetString("basicDetails"))
-	--GUI_NewField(SkillMgr.editwindow.name,GetString("skmNSkillID"),"SKM_NSkillID",GetString("basicDetails"))
-	--GUI_NewField(SkillMgr.editwindow.name,GetString("nextSkillPrio"),"SKM_NSkillPrio",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("currentActionNot"),"SKM_NCURRENTACTION",GetString("basicDetails"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter1"),"SKM_FilterOne",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter2"),"SKM_FilterTwo",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter3"),"SKM_FilterThree",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter4"),"SKM_FilterFour",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter5"),"SKM_FilterFive",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlySolo"),"SKM_OnlySolo",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Party Size <=","SKM_PartySizeLT",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Secs Passed Unique","SKM_SecsPassedUnique",GetString("basicDetails"))
-	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("name"),"SKM_CHAINNAME",GetString("chain"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainEnd"),"SKM_CHAINEND",GetString("chain"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("isReady"),"SKM_SKREADY",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdIsReady"),"SKM_SKOFFCD",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("isNotReady"),"SKM_SKNREADY",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdNotReady"),"SKM_SKNOFFCD",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeGT"),"SKM_SKNCDTIMEMIN",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeLT"),"SKM_SKNCDTIMEMAX",GetString("skillChecks"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
-	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPLT"),"SKM_PHPB",GetString("playerHPMPTP"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttack"),"SKM_PUnderAttack",GetString("playerHPMPTP"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttackMelee"),"SKM_PUnderAttackMelee",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerGT"),"SKM_PPowL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPB"),"SKM_PMPPB",GetString("playerHPMPTP"))
-	
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP >=","SKM_PMPRGT",GetString("playerHPMPTP"))
-	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP <=","SKM_PMPRLT",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % >=","SKM_PMPPRGT",GetString("playerHPMPTP"))
-	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % <=","SKM_PMPPRLT",GetString("playerHPMPTP"))
-	GUI_NewField(SkillMgr.editwindow.name,"Result MP >= Cost of [ID]","SKM_PMPRSGT",GetString("playerHPMPTP"))
-	--GUI_NewField(SkillMgr.editwindow.name,"Result MP <= Cost of [ID]","SKM_PMPRSLT",GetString("playerHPMPTP"))
-	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPL"),"SKM_PTPL",GetString("playerHPMPTP"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPB"),"SKM_PTPB",GetString("playerHPMPTP"))	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTCount"),"SKM_PTCount",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPL"),"SKM_PTHPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPB"),"SKM_PTHPB",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPL"),"SKM_PTMPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPB"),"SKM_PTMPB",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPL"),"SKM_PTTPL",GetString("party"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPB"),"SKM_PTTPB",GetString("party"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",GetString("party"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Known Debuffs","SKM_PTKBuff",GetString("party"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PTNBuff",GetString("party"))
-	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
-	
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
-	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
-	
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
-	
-	--GUI_NewButton(SkillMgr.editwindow.name,"Build Buffs","SMToggleBuffs","Buffs")
-	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
-	
-	--GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
-	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
-	
-    GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
-	
-    GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
-    GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
-    GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
-	GUI_NewButton(SkillMgr.editwindow.name,"PASTE","SKMPasteSkill")
-	GUI_NewButton(SkillMgr.editwindow.name,"COPY","SKMCopySkill")
-    GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
-    GUI_WindowVisible(SkillMgr.editwindow.name,false)
-	
-	
-	-- ========= Macro Window =============
-	
-	GUI_NewWindow(SkillMgr.editwindow_macro.name, SkillMgr.editwindow_macro.x, SkillMgr.editwindow_macro.y, SkillMgr.editwindow_macro.w, SkillMgr.editwindow_macro.h,"",true)
-	
-	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 1","gSkillManagerFoldMacro1",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 2","gSkillManagerFoldMacro2",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 3","gSkillManagerFoldMacro3",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 4","gSkillManagerFoldMacro4",GetString("generalSettings"))
-	
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Completion","SKM_M1ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Completion","SKM_M2ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Completion","SKM_M3ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Completion","SKM_M4ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Completion","SKM_M5ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Completion","SKM_M6ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Completion","SKM_M7ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Completion","SKM_M8ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Completion","SKM_M9ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Completion","SKM_M10ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Completion","SKM_M11ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Completion","SKM_M12ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Completion","SKM_M13ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Completion","SKM_M14ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Completion","SKM_M15ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Completion","SKM_M16ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Completion","SKM_M17ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Completion","SKM_M18ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Completion","SKM_M19ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Completion","SKM_M20ACTIONCOMPLETE","Macro Group 4")
-	
-	gSkillManagerFoldMacro1 = ffxivminion.GetSetting("gSkillManagerFoldMacro1","1")
-	gSkillManagerFoldMacro2 = ffxivminion.GetSetting("gSkillManagerFoldMacro2","0")
-	gSkillManagerFoldMacro3 = ffxivminion.GetSetting("gSkillManagerFoldMacro3","0")
-	gSkillManagerFoldMacro4 = ffxivminion.GetSetting("gSkillManagerFoldMacro4","0")
-	
-	GUI_UnFoldGroup(SkillMgr.editwindow_macro.name,GetString("generalSettings"))
-	SkillMgr.FoldMacroGroups()
-	
-	GUI_WindowVisible(SkillMgr.editwindow_macro.name,false)
-	
-	-- ========= Buff Window =============
-	
-	--[[
-	GUI_NewWindow(SkillMgr.editwindow_buff.name, SkillMgr.editwindow_buff.x, SkillMgr.editwindow_buff.y, SkillMgr.editwindow_buff.w, SkillMgr.editwindow_buff.h,"",true)
-	
-	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 1","gSkillManagerFoldBuff1",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 2","gSkillManagerFoldBuff2",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 3","gSkillManagerFoldBuff3",GetString("generalSettings"))
-	GUI_NewCheckbox(SkillMgr.editwindow_buff.name,"Expand Group 4","gSkillManagerFoldBuff4",GetString("generalSettings"))
-	
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M1 Completion","SKM_M1ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M2 Completion","SKM_M2ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M3 Completion","SKM_M3ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M4 Completion","SKM_M4ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M5 Completion","SKM_M5ACTIONCOMPLETE","Macro Group 1")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M6 Completion","SKM_M6ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M7 Completion","SKM_M7ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M8 Completion","SKM_M8ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M9 Completion","SKM_M9ACTIONCOMPLETE","Macro Group 2")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M10 Completion","SKM_M10ACTIONCOMPLETE","Macro Group 2")
-	--]]
-	
-	--[[
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M11 Completion","SKM_M11ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M12 Completion","SKM_M12ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M13 Completion","SKM_M13ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M14 Completion","SKM_M14ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M15 Completion","SKM_M15ACTIONCOMPLETE","Macro Group 3")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M16 Completion","SKM_M16ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M17 Completion","SKM_M17ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M18 Completion","SKM_M18ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M19 Completion","SKM_M19ACTIONCOMPLETE","Macro Group 4")
-
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
-	GUI_NewComboBox(SkillMgr.editwindow_buff.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
-	GUI_NewField(SkillMgr.editwindow_buff.name,"M20 Completion","SKM_M20ACTIONCOMPLETE","Macro Group 4")
-	
-	gSkillManagerFoldBuff1 = ffxivminion.GetSetting("gSkillManagerFoldBuff1","1")
-	gSkillManagerFoldBuff2 = ffxivminion.GetSetting("gSkillManagerFoldBuff2","0")
-	
-	--gSkillManagerFoldBuff3 = ffxivminion.GetSetting("gSkillManagerFoldBuff3","0")
-	--gSkillManagerFoldBuff4 = ffxivminion.GetSetting("gSkillManagerFoldBuff4","0")
-	
-	GUI_UnFoldGroup(SkillMgr.editwindow_buff.name,GetString("generalSettings"))
-	SkillMgr.FoldBuffGroups()
-	
-	GUI_WindowVisible(SkillMgr.editwindow_buff.name,false)
-	--]]
-    
-    -- ========= Crafting Editor Window =============
-	
-    GUI_NewWindow(SkillMgr.editwindow_crafting.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_crafting.w, SkillMgr.editwindow_crafting.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
-    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
-    GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmin"),"SKM_STMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmax"),"SKM_STMAX",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmin"),"SKM_CPMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmax"),"SKM_CPMAX",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmin"),"SKM_DURMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmax"),"SKM_DURMAX",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmin"),"SKM_PROGMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmax"),"SKM_PROGMAX",GetString("skillDetails"));
-	
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymin"),"SKM_QUALMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymax"),"SKM_QUALMAX",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualityminper"),"SKM_QUALMINPer",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymaxper"),"SKM_QUALMAXPer",GetString("skillDetails")) 
-
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship >=","SKM_CRAFTMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship <","SKM_CRAFTMAX",GetString("skillDetails")) 
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control >=","SKM_CONTROLMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control <","SKM_CONTROLMAX",GetString("skillDetails")) 
-	
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Great Strides Stack >=","SKM_GSSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand Stack >=","SKM_SHSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 2 Stack >=","SKM_SH2STACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 1/2 Stack >=","SKM_SH12STACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity Stack >=","SKM_INGENSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity 2 Stack >=","SKM_INGEN2STACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not Stack >=","SKM_WNSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not 2 Stack >=","SKM_WN2STACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Manipulation Stack >=","SKM_MANIPSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Innovation Stack >=","SKM_INNOSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Comfort Zone Stack >=","SKM_CZONESTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Maker's Mark Stack >=","SKM_MAKERSSTACKMIN",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Whistle Stack >=","SKM_WHSTACKMIN",GetString("skillDetails"));
-	GUI_NewField(SkillMgr.editwindow_crafting.name,"Whistle Stack =","SKM_WHSTACK",GetString("skillDetails"))
-	
-    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,GetString("condition"),"SKM_CONDITION",GetString("skillDetails"),GetString("notused")..","..GetString("excellent")..","..GetString("good")..","..GetString("normal")..","..GetString("poor"))
-	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",GetString("skillDetails"));
-    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmMissBuffs"),"SKM_CPNBuff",GetString("skillDetails"));
-	
-	
-	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,GetString("skillDetails"))
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
-    GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
-	GUI_NewButton(SkillMgr.editwindow_crafting.name,"PASTE","SKMPasteSkill")
-	GUI_NewButton(SkillMgr.editwindow_crafting.name,"COPY","SKMCopySkill")
-    GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
-    GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
-    
-    -- Gathering EDITOR WINDOW
-    GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h,"",true)		
-    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
-    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
-    GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
-	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("singleUse"),"SKM_SingleUse",GetString("skillDetails"))	
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmin"),"SKM_GPMIN",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity < ","SKM_CollRarityLT",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear >= ","SKM_CollWearGT",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear <= ","SKM_CollWearLT",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear =","SKM_CollWearEQ",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
-    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
-	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMax"),"SKM_GAttemptsMax",GetString("skillDetails"));
-    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_HasItem",GetString("skillDetails"));
-	GUI_NewField(SkillMgr.editwindow_gathering.name,"Is Item","SKM_IsItem",GetString("skillDetails"));
-	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("skmUnspoiled"),"SKM_UNSP",GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",GetString("skillDetails"));
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",GetString("skillDetails"));
-	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("prevSkillID"),"SKM_PSkillIDG",GetString("skillDetails"));
-
-    GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,GetString("skillDetails"))
-    GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
-    GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
-    GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
-	GUI_NewButton(SkillMgr.editwindow_gathering.name,"PASTE","SKMPasteSkill")
-	GUI_NewButton(SkillMgr.editwindow_gathering.name,"COPY","SKMCopySkill")
-    GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
-    GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
-	
-	SkillMgr.AddDefaultConditions()
-	
-	--gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing
+	SkillMgr.UpdateProfiles()
 end
 
+function SkillMgr.LoadInit()
+	gSkillProfile = gSMDefaultProfiles[Player.job]
+	if (not gSkillProfile) then
+		local starterDefault = SkillMgr.StartingProfiles[Player.job]
+		if ( starterDefault ) then
+			local filePath = SkillMgr.profilepath..starterDefault..".lua"
+			if (FileExists(filePath)) then
+				gSkillProfile = gSMDefaultProfiles[Player.job]
+				local uuid = GetUUID()
+				Settings.FFXIVMINION.gSMDefaultProfiles[uuid] = gSMDefaultProfiles
+			end
+		end
+	end
+
+	gSkillProfileIndex = GetKeyByValue(gSkillProfile,SkillMgr.profiles) or 1
+	if (SkillMgr.profiles[gSkillProfileIndex] ~= gSkillProfile) then
+		gSkillProfile = SkillMgr.profiles[gSkillProfileIndex]
+	end
+end
+
+--[[
 function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
     for k,v in pairs(NewVals) do
 		
@@ -1254,7 +643,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 			k == "gAssistFilter5") 
 		then			
             SafeSetVar(tostring(k),v)	
-		elseif ( k == "gSMprofile" ) then
+		elseif ( k == "gSkillProfile" ) then
             gSMactive = "1"					
             GUI_WindowVisible(SkillMgr.editwindow.name,false)
             GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
@@ -1284,6 +673,7 @@ function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
 		end
     end
 end
+--]]
 
 SkillMgr.receivedMacro = {}
 SkillMgr.macroCasted = false
@@ -1293,7 +683,7 @@ SkillMgr.recastTimer = 0
 function SkillMgr.ParseMacro(data)
 	SkillMgr.receivedMacro = {}
 	
-	if (ValidTable(data)) then
+	if (table.valid(data)) then
 		local itype,iparams = nil,nil
 		for i,instruction in pairsByKeys(data) do
 			itype,iparams = instruction[1],instruction[2]
@@ -1371,7 +761,8 @@ function SkillMgr.ParseMacro(data)
 							targetid = Player.id
 						end
 
-						local action = ActionList:Get(actionid,actiontype,targetid)
+						--local action = ActionList:Get(actionid,actiontype,targetid)
+						local action = ActionList:Get(actiontype,actionid)
 						if (action) then
 
 							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
@@ -1407,7 +798,7 @@ function SkillMgr.ParseMacro(data)
 							
 								if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 									return true
-								elseif (action.recasttime ~= 2.5 and action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+								elseif (action.recasttime ~= 2.5 and action.isoncd and ((action.cdmax - action.cd) > 2.5)) then
 									if (msg ~= "") then
 										SendTextCommand(msg)
 									end
@@ -1446,7 +837,7 @@ function SkillMgr.ParseMacro(data)
 									
 									if (SkillMgr.lastTick > SkillMgr.recastTimer) then
 										if (Player.castinginfo.channelingid == 0) then
-											if (action.isready or action.id == 2260) then
+											if (action:IsReady(targetid) or action.id == 2260) then
 												d("Action ["..tostring(action.name).."] is being reattempted.")
 												action:Cast(targetid)	
 											end
@@ -1454,7 +845,7 @@ function SkillMgr.ParseMacro(data)
 									end
 								else
 									if (Player.castinginfo.channelingid == 0) then
-										if (action.isready or action.id == 2260) then
+										if (action:IsReady(targetid) or action.id == 2260) then
 											if (action:Cast(targetid)) then		
 												SkillMgr.macroCasted = true
 											end
@@ -1486,22 +877,24 @@ function SkillMgr.AddThrottleTime(t)
 	SkillMgr.MacroThrottle = SkillMgr.lastTick + t
 end
 
+--[[
 function SkillMgr.FoldMacroGroups()
 	for i = 1,4 do
 		local unfoldvar = _G["gSkillManagerFoldMacro"..tostring(i)]
-		if (unfoldvar == "1") then
+		if (unfoldvar ) then
 			GUI_UnFoldGroup(SkillMgr.editwindow_macro.name,"Macro Group "..tostring(i))
 		else
 			GUI_FoldGroup(SkillMgr.editwindow_macro.name,"Macro Group "..tostring(i))
 		end
 	end
 end
+--]]
 
 --[[
 function SkillMgr.FoldBuffGroups()
 	for i = 1,2 do
 		local unfoldvar = _G["gSkillManagerFoldBuff"..tostring(i)]
-		if (unfoldvar == "1") then
+		if (unfoldvar ) then
 			GUI_UnFoldGroup(SkillMgr.editwindow_macro.name,"Buff Group "..tostring(i))
 		else
 			GUI_FoldGroup(SkillMgr.editwindow_macro.name,"Buff Group "..tostring(i))
@@ -1514,7 +907,7 @@ end
 function SkillMgr.OnGameUpdate(event, tickcount)
 	SkillMgr.lastTick = tickcount
 	
-	if (ValidTable(SkillMgr.receivedMacro)) then
+	if (table.valid(SkillMgr.receivedMacro)) then
 		--d("Macro table size:"..tostring(TableSize(SkillMgr.receivedMacro)))
 		if (SkillMgr.lastTick > SkillMgr.MacroThrottle) then
 		
@@ -1537,7 +930,7 @@ end
 
 function SkillMgr.OnUpdate()
 	--[[
-	if (ValidTable(SkillMgr.recoverTarget)) then
+	if (table.valid(SkillMgr.recoverTarget)) then
 		local recovery = SkillMgr.recoverTarget
 		if (Now() > recover.failure) then
 			SkillMgr.recoverTarget = {}
@@ -1556,10 +949,8 @@ function SkillMgr.OnUpdate()
 	--]]
 	
 	if (SkillMgr.doLoad == true) then
-		SkillMgr.SkillBook = {}
-		SkillMgr.UpdateProfiles()
+		SkillMgr.LoadInit()
 		SkillMgr.UpdateCurrentProfileData()
-		GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 		SkillMgr.doLoad = false
 	end
 	
@@ -1572,7 +963,7 @@ function SkillMgr.OnUpdate()
 	end
 	
 	local actionWatch = SkillMgr.actionWatch
-	if (ValidTable(actionWatch)) then
+	if (table.valid(actionWatch)) then
 		if (Now() > actionWatch.expiration) then
 			actionWatch = {}
 		else
@@ -1587,7 +978,7 @@ function SkillMgr.OnUpdate()
 	if (pcast.lastcastid ~= 0) then
 		local castingskill = pcast.lastcastid
 		if ( job >= 8 and job <=15 ) then
-			local action = ActionList:Get(castingskill,9)
+			local action = ActionList:Get(9,castingskill)
 			if (action) then
 				SkillMgr.prevSkillID = castingskill
 				SkillMgr.UpdateLastCast(castingskill)
@@ -1618,7 +1009,7 @@ function SkillMgr.OnUpdate()
 				SkillMgr.failTimer = Now() + 6000
 			else
 				if (SkillMgr.prevSkillID ~= castingskill) then
-					local action = ActionList:Get(castingskill,1)
+					local action = ActionList:Get(1,castingskill)
 					if (action) then
 						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
@@ -1631,7 +1022,7 @@ function SkillMgr.OnUpdate()
 					end
 				end
 				if (SkillMgr.queuedPrio ~= 0) then
-					local action = ActionList:Get(castingskill,1)
+					local action = ActionList:Get(1,castingskill)
 					if (action) then
 						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
 							--d("Updating chain information.")
@@ -1657,100 +1048,14 @@ function SkillMgr.ReadFile(strFile)
 	assert(type(strFile) == "string" and strFile ~= "", "[SkillMgr.ReadFile]: File target is not valid")
 	local filename = SkillMgr.profilepath..strFile..".lua"
 	
-	--Attempt to read old files and convert them.
-	local profile = fileread(filename)
-	if (profile) then
-		local version = nil
-		for i,line in pairsByKeys(profile) do
-			local _, key, id, value = string.match(line, "(%w+)_(%w+)_(%d+)=(.*)")
-			if ( tostring(key) == "SMVersion" and tostring(id) == "1") then
-				version = 1
-			end
-			if (version == 1) then
-				break
-			end
-		end
-		if (version == 1) then
-			local newskill = {}
-			local sortedSkillList = {}
-			for i,line in pairsByKeys(profile) do
-				local _, key, value = string.match(line, "(%w+)_(%w+)=(.*)")
-				if ( key and value ) then
-					value = string.gsub(value, "\r", "")					
-					if ( key == "END" ) then
-						local job = Player.job
-						if (job >= 8 and job <= 15) then
-							for k,v in pairs(SkillMgr.Variables) do
-								if (v.section == "crafting") then
-									newskill[v.profile] = newskill[v.profile] or v.default
-								end
-							end
-						elseif (job >=16 and job <=17) then
-							for k,v in pairs(SkillMgr.Variables) do
-								if (v.section == "gathering") then
-									newskill[v.profile] = newskill[v.profile] or v.default
-								end
-							end
-						else
-							for k,v in pairs(SkillMgr.Variables) do
-								if (v.section == "fighting") then
-									newskill[v.profile] = newskill[v.profile] or v.default
-								end
-							end
-						end
-						
-						-- try to update the names 
-						local found = false
-						for i, actiontype in pairsByKeys(SkillMgr.ActionTypes) do
-							local actionlist = ActionList("type="..tostring(actiontype))
-							for k, action in pairs(actionlist) do
-								if (action.id == newskill.id and action.name and action.name ~= "") then
-									newskill.name = action.name
-									found = true
-									break
-								end
-							end
-							if (found) then
-								break
-							end
-						end
-						
-						sortedSkillList = TableInsertSort(sortedSkillList,tonumber(newskill.prio),newskill)
-						newskill = {}
-					elseif (SkillMgr.Variables["SKM_"..key] ~= nil) then
-						local t = SkillMgr.Variables["SKM_"..key]
-						if (t ~= nil) then
-							if (t.cast == "number") then
-								newskill[t.profile] = tonumber(value)
-							elseif (t.cast == "string") then
-								if (key == "TRG" and value == "Enemy") then
-									newskill[t.profile] = GetString("target")
-								else
-									newskill[t.profile] = tostring(value)
-								end
-							end
-						end
-					end
-				end
-			end
-			if ( TableSize(sortedSkillList) > 0 ) then
-				local reorder = 1
-				for k,v in pairsByKeys(sortedSkillList) do
-					v.prio = reorder
-					SkillMgr.SkillProfile[reorder] = v
-					reorder = reorder + 1
-				end
-			end
-			--Overwrite the old file with the new file type.
-			SkillMgr.WriteToFile(strFile)
-		end
-	end	
-	
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
-	if (ValidTable(profile)) then
+	if (table.valid(profile)) then
 		SkillMgr.SkillProfile = profile.skills
+	else
+		d(e)
 	end
+	
 	SkillMgr.ResetSkillTracking()
 	local filters = profile.filters
 	if (filters) then
@@ -1766,8 +1071,6 @@ function SkillMgr.ReadFile(strFile)
 		gSkillManagerFilter4 = ""
 		gSkillManagerFilter5 = ""
 	end
-	
-	SkillMgr.RefreshFilterWindow()
 	
 	local isdefault = false
 	local startingProfiles = SkillMgr.StartingProfiles
@@ -1799,7 +1102,7 @@ function SkillMgr.WriteToFile(strFile)
 	local filename = SkillMgr.profilepath ..strFile..".lua"
 	
 	local info = {}
-	info.version = 2
+	info.version = 3
 	SkillMgr.ResetSkillTracking()
 	info.skills = SkillMgr.SkillProfile or {}	
 	info.filters = {
@@ -1812,7 +1115,7 @@ function SkillMgr.WriteToFile(strFile)
 	persistence.store(filename,info)
 end
 
-function SkillMgr.SetGUIVar(strName, value)
+function SkillMgr.GUI_Set(strName, value)
 	if (SkillMgr.Variables[strName] ~= nil and SKM_Prio ~= nil and SKM_Prio > 0) then	
 		skillVar = SkillMgr.Variables[strName]
 		if (value == nil) then
@@ -1827,13 +1130,13 @@ end
 
 function SkillMgr.AceOnly()
 	local startingProfiles = SkillMgr.StartingProfiles
-	if (ValidTable(startingProfiles)) then
+	if (table.valid(startingProfiles)) then
 		for jobid,profilename in pairs(startingProfiles) do
 			d("Checking profile ["..tostring(profilename).."]")
-			gSMprofile = profilename
+			gSkillProfile = profilename
 			local filename = SkillMgr.profilepath..profilename..".lua"
 			local profile,e = persistence.load(filename)
-			if (ValidTable(profile)) then
+			if (table.valid(profile)) then
 				SkillMgr.SkillProfile = profile.skills
 			end
 			SkillMgr.ResetSkillTracking()
@@ -1842,13 +1145,13 @@ function SkillMgr.AceOnly()
 	end
 	
 	local extraProfiles = SkillMgr.ExtraProfiles
-	if (ValidTable(extraProfiles)) then
+	if (table.valid(extraProfiles)) then
 		for k,profilename in pairs(extraProfiles) do
 			d("Checking profile ["..tostring(profilename).."]")
-			gSMprofile = profilename
+			gSkillProfile = profilename
 			local filename = SkillMgr.profilepath..profilename..".lua"
 			local profile,e = persistence.load(filename)
-			if (ValidTable(profile)) then
+			if (table.valid(profile)) then
 				SkillMgr.SkillProfile = profile.skills
 			end
 			SkillMgr.ResetSkillTracking()
@@ -1862,11 +1165,11 @@ function SkillMgr.CheckProfileValidity()
 	
 	local job = Player.job
 	local requiredUpdate = false
-	if (ValidTable(profile)) then
+	if (table.valid(profile)) then
 		for prio,skill in pairsByKeys(profile) do
 			local skID = tonumber(skill.id)
 			local skType = tonumber(skill.type)
-			local realskilldata = ActionList:Get(skID,skType)
+			local realskilldata = ActionList:Get(skType,skID)
 			
 			if (tonumber(skill.prio) ~= tonumber(prio)) then
 				skill.prio = tonumber(prio)
@@ -1941,24 +1244,23 @@ function SkillMgr.CheckProfileValidity()
 end
 
 function SkillMgr.UseProfile(strName)
-	gSMprofile = strName
-    gSMactive = "1"					
-	GUI_WindowVisible(SkillMgr.editwindow.name,false)
-	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
-	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.UpdateCurrentProfileData()
-	Settings.FFXIVMINION.gSMlastprofile = strName
+	gSkillProfile = strName
+	gSkillProfileIndex = GetKeyByValue(gSkillProfile,SkillMgr.profiles) or 1
+	if (SkillMgr.profiles[gSkillProfileIndex] ~= gSkillProfile) then
+		gSkillProfile = SkillMgr.profiles[gSkillProfileIndex]
+	end
 end
 
+--[[
 function SkillMgr.ButtonHandler(event, Button)
     gSMRecactive = "0"
 	if (event == "GUI.Item" and (string.find(Button,"SKM") ~= nil or string.find(Button,"SM") ~= nil )) then
 	
 		if (string.find(Button,"SMDeleteEvent") ~= nil) then
 			-- Delete the currently selected Profile - file from the HDD
-			if (gSMprofile ~= nil and gSMprofile ~= "None" and gSMprofile ~= "") then
-				d("Deleting current Profile: "..gSMprofile)
-				os.remove(SkillMgr.profilepath ..gSMprofile..".lua")	
+			if (gSkillProfile ~= nil and gSkillProfile ~= "None" and gSkillProfile ~= "") then
+				d("Deleting current Profile: "..gSkillProfile)
+				os.remove(SkillMgr.profilepath ..gSkillProfile..".lua")	
 				SkillMgr.UpdateProfiles()	
 			end
 		end
@@ -2049,20 +1351,23 @@ function SkillMgr.ButtonHandler(event, Button)
 		ExecuteFunction(Button)
 	end
 end
+--]]
 
+--[[
 function SkillMgr.NewProfile()
     if ( gSMnewname and gSMnewname ~= "" ) then
-		gSMprofile_listitems = gSMprofile_listitems..","..gSMnewname
-        gSMprofile = gSMnewname
+		gSkillProfile_listitems = gSkillProfile_listitems..","..gSMnewname
+        gSkillProfile = gSMnewname
         gSMnewname = ""
 		
 		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 		SkillMgr.SkillProfile = {}
-		SkillMgr.WriteToFile(gSMprofile)
+		SkillMgr.WriteToFile(gSkillProfile)
 	else
 		d("New profile name is invalid, couldn't create new profile.")
     end
 end
+
 
 function SkillMgr.ClearProfilePrompt()
 	local wnd = GUI_GetWindowInfo(SkillMgr.mainwindow.name)
@@ -2075,7 +1380,7 @@ function SkillMgr.ClearProfile(arg)
 	if (arg == "Yes") then
 		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 		SkillMgr.SkillProfile = {}
-		SkillMgr.WriteToFile(gSMprofile)
+		SkillMgr.WriteToFile(gSkillProfile)
 	end
 	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)
 end
@@ -2088,13 +1393,13 @@ function SkillMgr.SaveProfile()
         filename = gSMnewname
         gSMnewname = ""
 
-		gSMprofile_listitems = gSMprofile_listitems..","..filename
-		gSMprofile = filename
+		gSkillProfile_listitems = gSkillProfile_listitems..","..filename
+		gSkillProfile = filename
 		Settings.FFXIVMINION.gSMlastprofile = filename
 		
 		SkillMgr.WriteToFile(filename)
-    elseif (gSMprofile ~= nil and gSMprofile ~= "None" and gSMprofile ~= "") then
-        filename = gSMprofile
+    elseif (gSkillProfile ~= nil and gSkillProfile ~= "None" and gSkillProfile ~= "") then
+        filename = gSkillProfile
         gSMnewname = ""		
 		
 		SkillMgr.WriteToFile(filename)
@@ -2103,19 +1408,20 @@ function SkillMgr.SaveProfile()
 end
 
 function SkillMgr.SetDefaultProfile(strName)
-	local profile = strName or gSMprofile
-	Settings.FFXIVMINION.SMDefaultProfiles[Player.job] = profile
-	Settings.FFXIVMINION.SMDefaultProfiles = Settings.FFXIVMINION.SMDefaultProfiles
+	local profile = strName or gSkillProfile
+	Settings.FFXIVMINION.gSMDefaultProfiles[Player.job] = profile
+	Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
 end
 
+
 function SkillMgr.UseDefaultProfile()
-	local defaultTable = Settings.FFXIVMINION.SMDefaultProfiles
+	local defaultTable = Settings.FFXIVMINION.gSMDefaultProfiles
 	local default = nil
 	local profile = nil
 	local profileFound = false
 	
 	--Try default profile first.
-	if (ValidTable(defaultTable)) then
+	if (table.valid(defaultTable)) then
 		default = defaultTable[Player.job]
 		if (default) then
 			if (FileExists(SkillMgr.profilepath..default..".lua")) then
@@ -2137,7 +1443,7 @@ function SkillMgr.UseDefaultProfile()
 		end
 	end
 	
-	gSMprofile = profileFound and default or "None"
+	gSkillProfile = profileFound and default or "None"
 	GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
 	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
@@ -2146,45 +1452,19 @@ function SkillMgr.UseDefaultProfile()
 	
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
+--]]
 
 --Grasb all Profiles and enlist them in the dropdown field
 function SkillMgr.UpdateProfiles()
-    
-    local profiles = "None"
-    local found = "None"	
-    local profilelist = dirlist(SkillMgr.profilepath,".*lua")
-    if ( TableSize(profilelist) > 0) then			
-        local i,profile = next ( profilelist)
-        while i and profile do				
-            profile = string.gsub(profile, ".lua", "")
-            profiles = profiles..","..profile
-            if ( Settings.FFXIVMINION.gSMlastprofile ~= nil and Settings.FFXIVMINION.gSMlastprofile == profile ) then
-                found = profile
-            end
-            i,profile = next ( profilelist,i)
-        end		
-    else
-        d("No Skillmanager profiles found")
+	SkillMgr.profiles = {GetString("None"),GetString("ACR")}
+    local profileList = FolderList(SkillMgr.profilepath,[[(.*)lua$]])
+    if (table.valid(profileList)) then		
+		for i,profile in pairs(profileList) do
+            profileName = string.gsub(profile, ".lua", "")
+			table.insert(SkillMgr.profiles,profileName)
+        end	
     end
-	
-    gSMprofile_listitems = profiles
-    gSMprofile = found
-	
-	return profiles
-end
-
-function SkillMgr.HasProfile(strProfile)
-	local profilelist = dirlist(SkillMgr.profilepath,".*lua")
-	if (ValidTable(profilelist)) then
-		for i,profile in pairs(profilelist) do
-			local profileName = string.gsub(profile,"%.lua","")
-			if (profileName == strProfile) then
-				return true
-			end
-		end
-	end
-	
-	return false
+	table.print(SkillMgr.profiles)
 end
 
 function SkillMgr.CopySkill()
@@ -2205,12 +1485,20 @@ function SkillMgr.PasteSkill()
 	local source = SkillMgr.copiedSkill
 	for k,v in pairs(SkillMgr.copiedSkill) do
 		_G[tostring(k)] = v
-		SkillMgr.SetGUIVar(tostring(k),v)
+		SkillMgr. GUI_Set(tostring(k),v)
 	end
 end
 
 function SkillMgr.UpdateCurrentProfileData()
-	local profile = gSMprofile
+	SkillMgr.SkillProfile = {}
+	if (gSkillProfile ~= GetString("None")) then
+		SkillMgr.ReadFile(gSkillProfile)
+	end
+end
+
+--[[
+function SkillMgr.UpdateCurrentProfileData()
+	local profile = gSkillProfile
 	if (profile and profile ~= "") then
 		GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 		SkillMgr.SkillProfile = {}
@@ -2224,20 +1512,23 @@ function SkillMgr.UpdateCurrentProfileData()
 		GUI_RefreshWindow(SkillMgr.mainwindow.name)
 	end
 end
+--]]
 
 --+Rebuilds the UI Entries for the SkillbookList
+
+--[[
 function SkillMgr.RefreshSkillBook()
 	local job = Player.job
 	
     local SkillList = ActionList("type=1,minlevel=1")
-    if ( ValidTable( SkillList ) ) then
+    if ( table.valid( SkillList ) ) then
 		for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 			SkillMgr.CreateNewSkillBookEntry(i)
 		end
     end
 	
 	local SkillList = ActionList("type=1,level=0")
-    if ( ValidTable( SkillList ) ) then
+    if ( table.valid( SkillList ) ) then
 		for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 			if (skill.level == 0) then
 				SkillMgr.CreateNewSkillBookEntry(i, 1, "MiscSkills")
@@ -2248,7 +1539,7 @@ function SkillMgr.RefreshSkillBook()
 	--summoning pet skills
 	if ( job >= 26 ) then
 		SkillList = ActionList("type=11")
-		if ( ValidTable( SkillList) ) then
+		if ( table.valid( SkillList) ) then
 			for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 				local actionlvl = skill.level
 				if (actionlvl == nil or actionlvl < 0) then actionlvl = 0 end
@@ -2262,7 +1553,7 @@ function SkillMgr.RefreshSkillBook()
 	--craftingskills
     if ( job >= 8 and job <=15 ) then
 		local SkillList = ActionList("type=9")
-		if ( ValidTable( SkillList ) ) then
+		if ( table.valid( SkillList ) ) then
 			for i,skill in spairs(SkillList, function( skill,a,b ) return skill[a].name < skill[b].name end) do
 				SkillMgr.CreateNewSkillBookEntry(i, 9)
 			end
@@ -2271,8 +1562,9 @@ function SkillMgr.RefreshSkillBook()
 
     GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
 end
+--]]
 
-
+--[[
 function SkillMgr.CreateNewSkillBookEntry(id, actiontype, group)
 	actiontype = actiontype or 1
 	local skName = TranslateAction(id,actiontype)
@@ -2290,7 +1582,7 @@ function SkillMgr.CreateNewSkillBookEntry(id, actiontype, group)
 		GUI_NewButton(SkillMgr.skillbook.name, skName.." ["..skID.."]", handlers[actiontype]..skID, "AvailableSkills")
 	end
 	
-	if (not ValidTable(SkillMgr.SkillBook[actiontype])) then
+	if (not table.valid(SkillMgr.SkillBook[actiontype])) then
 		SkillMgr.SkillBook[actiontype] = {}
 	end
 	
@@ -2305,15 +1597,17 @@ function SkillMgr.AddSkillToProfile(skilltype,skillid)
 	local skillid = tonumber(skillid)
 	
 	local bookSection = SkillMgr.SkillBook[skilltype]
-	if (ValidTable(bookSection)) then
+	if (table.valid(bookSection)) then
 		local thisAction = bookSection[skillid]
 		if (thisAction) then
 			SkillMgr.CreateNewSkillEntry(thisAction)
 		end
 	end
 end
+--]]
 
 --+Rebuilds the UI Entries for the Profile-SkillList
+--[[
 function SkillMgr.RefreshSkillList()
 	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
     if ( TableSize( SkillMgr.SkillProfile ) > 0 ) then
@@ -2322,9 +1616,9 @@ function SkillMgr.RefreshSkillList()
 			if (skill.id ~= nil and tonumber(skill.id) ~= nil) then
 				local clientSkill = nil;
 				if (skill.type ~= nil) then
-					clientSkill = ActionList:Get(skill.id,skill.type)
+					clientSkill = ActionList:Get(skill.type,skill.id)
 				end
-				local skillFound = ValidTable(clientSkill)
+				local skillFound = table.valid(clientSkill)
 				
 				if (not IsNullString(skill.alias)) then
 					viewString = tostring(prio)..": "..skill.alias.." ["..tostring(TranslateAction(skill.id,skill.type)).."]["..tostring(skill.id).."]"
@@ -2353,7 +1647,7 @@ function SkillMgr.RefreshSkillList()
 		SkillMgr.highestRangeSkills = {}
 		
 		for prio,skill in pairs(SkillMgr.SkillProfile) do
-			if (skill.used == "1" and skill.stype == "Action") then
+			if (skill.used  and skill.stype == "Action") then
 				local levelmin = tonumber(skill.levelmin) or 0
 				local levelmax = tonumber(skill.levelmax) or 0
 				local mylevel = Player.level
@@ -2361,7 +1655,7 @@ function SkillMgr.RefreshSkillList()
 				if ((levelmin == 0 or (levelmin > 0 and levelmin <= mylevel)) and
 					(levelmax == 0 or (levelmax > 0 and levelmax >= mylevel)))
 				then
-					local skilldata = ActionList:Get(tonumber(skill.id))
+					local skilldata = ActionList:Get(1,tonumber(skill.id))
 					if (skilldata) then
 						--d("do nothing")
 						if (skilldata.range > 0) then
@@ -2379,10 +1673,11 @@ function SkillMgr.RefreshSkillList()
 		end
     end
 end
+--]]
 
 function SkillMgr.ResetSkillTracking()
 	local skills = SkillMgr.SkillProfile
-	if (ValidTable(skills)) then
+	if (table.valid(skills)) then
 		for prio,skill in pairs(skills) do
 			skill.lastcast = 0
 			skill.lastcastunique = {}
@@ -2390,6 +1685,7 @@ function SkillMgr.ResetSkillTracking()
 	end
 end
 
+--[[
 function SkillMgr.CreateNewSkillEntry(skill)
 	assert(type(skill) == "table", "CreateNewSkillEntry was called with a non-table value.")
 	
@@ -2400,7 +1696,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	local skName = skill.name
 	local skID = tonumber(skill.id)
 	local skType = tonumber(skill.type) or 1
-	local realskilldata = ActionList:Get(skID,skType)
+	local realskilldata = ActionList:Get(skType,skID)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
 
@@ -2446,7 +1742,9 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	end	
 	SkillMgr.RefreshSkillList()
 end	
+--]]
 
+--[[
 function SkillMgr.AddItemToSkills()
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
@@ -2469,7 +1767,9 @@ function SkillMgr.AddItemToSkills()
 	end	
 	SkillMgr.RefreshSkillList()
 end	
+--]]
 
+--[[
 function SkillMgr.AddTextCommandToSkills()
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
@@ -2492,8 +1792,10 @@ function SkillMgr.AddTextCommandToSkills()
 	end	
 	SkillMgr.RefreshSkillList()
 end	
+--]]
 
 --+	Button Handler for ProfileList Skills
+--[[
 function SkillMgr.EditSkill(event)
     local wnd = GUI_GetWindowInfo(SkillMgr.mainwindow.name)		
 	
@@ -2556,8 +1858,9 @@ function SkillMgr.EditSkill(event)
 	
 	SKM_Prio = tonumber(event)
 end
+--]]
 
-
+--[[
 function SkillMgr.ToggleMenu()
     if (SkillMgr.visible) then
         GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
@@ -2605,7 +1908,9 @@ end
 function SkillMgr.ShowFilterWindow()
 	GUI_WindowVisible(SkillMgr.filterwindow.name,true)		
 end
+--]]
 
+--[[
 function SkillMgr.RefreshFilterWindow()
 	local group = "Filters"
 	GUI_DeleteGroup(SkillMgr.filterwindow.name,group)
@@ -2626,6 +1931,89 @@ function SkillMgr.RefreshFilterWindow()
 	GUI_SizeWindow(SkillMgr.filterwindow.name, SkillMgr.filterwindow.w, SkillMgr.filterwindow.h)
 	GUI_RefreshWindow(SkillMgr.filterwindow.name)
 end
+--]]
+
+function SkillMgr.GetAction(actionid,actiontype,target)
+	local target = IsNull(target,Player)
+	local actiontype = IsNull(actiontype,1)
+	local targetid;
+	if (type(target) == "table") then
+		targetid = target.id
+	elseif (type(target) == "number") then
+		targetid = target
+	end
+	
+	if (GetVersion() == 32) then
+		return ActionList:Get(actionid,actiontype,targetid)
+	else
+		local action = ActionList:Get(actiontype,actionid)
+		if (action) then
+			action.isready = action:IsReady(targetid)
+		end
+		return action
+	end
+end
+
+function SkillMgr.CanCast(action,target,costpool,checkfacing)
+	local target = IsNull(target,Player)
+	local checkfacing = IsNull(checkfacing,false)
+	if (action and target) then
+		if (GetVersion() == 32) then
+			if (action.isready) then
+				return true
+			--elseif ((action.cd - action.cdmax) > 0 and action.cost <= costpool and (action.cd - action.cdmax) < .200) then
+				--if ((target.id ~= Player.id) or ((not checkfacing or action.isfacing) and ((target.distance2d - target.hitradius) < action.range))) then
+					--return true
+				--end
+			end
+		else
+			if (action:IsReady(target.id)) then
+				return true
+			--elseif ((action.cdmax - action.cd) > 0 and action.cost <= costpool and (action.cdmax - action.cd) < .200) then
+				--if ((target.id ~= Player.id) or ((not checkfacing or action:IsFacing(target.id)) and (target.distance2d < action.range))) then
+					--return true
+				--end
+			end
+		end
+	end
+	return false
+end
+
+function SkillMgr.ActionReady(action,target,checkfacing)
+	local target = IsNull(target,Player)
+	local checkfacing = IsNull(checkfacing,false)
+	local targetid;
+	if (type(target) == "table") then
+		targetid = target.id
+	elseif (type(target) == "number") then
+		targetid = target
+	end
+	
+	if (action and target) then
+		if (GetVersion() == 32) then
+			if (action.isready and (not checkfacing or action.isfacing)) then
+				return true
+			end
+		else
+			if (action:IsReady(targetid) and (not checkfacing or action:IsFacing(targetid))) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function SkillMgr.GetCooldown(action)
+	if (action) then
+		if (GetVersion() == 32) then
+			return (action.cd - action.cdmax)
+		else
+			return (action.cdmax - action.cd)
+		end
+	end
+	return nil
+end
+
 
 function SkillMgr.IsPetSummonSkill(skillID)
     if (skillID == 165 or
@@ -2649,14 +2037,14 @@ function SkillMgr.IsPetSummonActive(skillID)
 		[180] = "1402",
 	}
 	
-	if (ValidTable(Player.pet)) then
+	if (table.valid(Player.pet)) then
 		return true
 	end
 	
 	local petstring = contentids[skillID]
 	if (petstring) then
 		local el = EntityList("ownerid="..tostring(Player.id)..",contentid="..petstring)
-		if (ValidTable(el)) then
+		if (table.valid(el)) then
 			local i,entity = next(el)
 			if (i and entity) then
 				return true
@@ -2684,7 +2072,7 @@ end
 function SkillMgr.UpdateLastCast(skillid)
 	local skillid = tonumber(skillid) or 0
 	
-	if (ValidTable(SkillMgr.SkillProfile)) then
+	if (table.valid(SkillMgr.SkillProfile)) then
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			if (tonumber(skill.id) == skillid) then
 				SkillMgr.SkillProfile[prio].lastcast = Now()
@@ -2692,7 +2080,7 @@ function SkillMgr.UpdateLastCast(skillid)
 				if (SkillMgr.throw[skillid]) then
 					local catch = SkillMgr.throw[skillid]
 					if (Now() < catch.expiration) then
-						if (not ValidTable(SkillMgr.SkillProfile[prio].lastcastunique)) then
+						if (not table.valid(SkillMgr.SkillProfile[prio].lastcastunique)) then
 							SkillMgr.SkillProfile[prio].lastcastunique = {}
 						end
 						SkillMgr.SkillProfile[prio].lastcastunique[catch.targetid] = Now()
@@ -2728,10 +2116,7 @@ function SkillMgr.IsGaussAffected(skillid)
 		[2872] = "Hot Shot",
 		[2869] = "Lead Shot",
 		[2870] = "Spread Shot",
-		[2868] = "Slug Shot",
-		[2873] = "Clean Shot",		
 		[2871] = "Grenado Shot"
-
 	}
 	
 	return affectedSkills[skillid]
@@ -2742,14 +2127,14 @@ function SkillMgr.UpdateChain(prio,castedskill)
 	local castedskill = tonumber(castedskill) or 0
 	
 	if (prio ~= 0 and castedskill ~= 0) then
-		if (ValidTable(SkillMgr.SkillProfile)) then
+		if (table.valid(SkillMgr.SkillProfile)) then
 			local thisSkill = SkillMgr.SkillProfile[prio]
-			if (ValidTable(thisSkill) and (thisSkill.id == castedskill or (IsNinjutsuSkill(thisSkill.id) and IsNinjutsuSkill(castedskill)))) then
-				if (thisSkill.chainstart == "1") then
+			if (table.valid(thisSkill) and (thisSkill.id == castedskill or (IsNinjutsuSkill(thisSkill.id) and IsNinjutsuSkill(castedskill)))) then
+				if (thisSkill.chainstart ) then
 					SkillMgr.currentChain = thisSkill.chainname
 					d("Starting chain ["..tostring(SkillMgr.currentChain).."]")
 					return true
-				elseif (thisSkill.chainend == "1") then
+				elseif (thisSkill.chainend ) then
 					d("Ending chain ["..tostring(SkillMgr.currentChain).."]")
 					SkillMgr.currentChain = ""
 					return true
@@ -2763,19 +2148,6 @@ function SkillMgr.UpdateChain(prio,castedskill)
 	return false
 end
 
--- Goes through all spells and returns the highest HP% of all spells
-function SkillMgr.GetHealSpellHPLimit()
-	local highestHPLimit = 0
-	if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
-		for prio,skill in pairs(SkillMgr.SkillProfile) do
-			if ( skill.thpb > 0 and skill.thpb > highestHPLimit ) then
-				highestHPLimit = skill.thpb
-			end
-		end
-	end
-	return highestHPLimit
-end
-
 function SkillMgr.GetTankableTarget( range )
 	local range = range or ml_global_information.AttackRange
 	local closest = nil
@@ -2783,11 +2155,11 @@ function SkillMgr.GetTankableTarget( range )
 	local targets = {}
 	
 	local party = EntityList("myparty,chartype=4")
-	if (ValidTable(party)) then
+	if (table.valid(party)) then
 		for i,member in pairs(party) do
 			if (member.id ~= Player.id) then
 				local list = EntityList("nearest,alive,attackable,targeting="..tostring(member.id)..",maxrange="..tostring(range))
-				if (ValidTable(list)) then
+				if (table.valid(list)) then
 					for k,entity in pairs(list) do
 						targets[k] = entity
 					end
@@ -2796,7 +2168,7 @@ function SkillMgr.GetTankableTarget( range )
 		end
 	end
 	
-	if (ValidTable(targets)) then
+	if (table.valid(targets)) then
 		for k,entity in pairs(targets) do
 			if (not closest or (closest and entity.distance < closestRange)) then
 				closest = entity
@@ -2818,7 +2190,7 @@ function SkillMgr.GetTankedTarget( range )
 	local targets = {}
 
     local party = EntityList("chartype=4,myparty")
-    if ( ValidTable(party) ) then
+    if ( table.valid(party) ) then
 		for i,e in pairs(party) do
 			if (IsTank(e.job)) then
 				tanks[i] = e
@@ -2826,10 +2198,10 @@ function SkillMgr.GetTankedTarget( range )
         end
     end
 	
-	if (ValidTable(tanks)) then
+	if (table.valid(tanks)) then
 		for i,tank in pairs(tanks) do
 			local list = EntityList("nearest,alive,attackable,targeting="..tostring(tank.id)..",maxrange="..tostring(range))
-			if (ValidTable(list)) then
+			if (table.valid(list)) then
 				for k,entity in pairs(list) do
 					targets[k] = entity
 				end
@@ -2837,7 +2209,7 @@ function SkillMgr.GetTankedTarget( range )
 		end
 	end
 	
-	if (ValidTable(targets)) then
+	if (table.valid(targets)) then
 		for i,target in pairs(targets) do
 			if (not closest or (closest and closest.distance < closestRange)) then
 				closest = target
@@ -2855,7 +2227,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	preCombat = IsNull(preCombat,false)
 	forceStop = IsNull(forceStop,false)
 	
-	if (not entity or IsFlying() or ValidTable(SkillMgr.receivedMacro)) then
+	if (not entity or IsFlying() or table.valid(SkillMgr.receivedMacro)) then
 		return false
 	end
 				
@@ -2920,54 +2292,10 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					elseif (skill.stype == "Action") then
 						if (skill.trg == "Ground Target") then
 						
-							local action = ActionList:Get(skill.id)
+							local action = ActionList:Get(1,skill.id)
 							local entity = MGetEntity(TID)
 							local tpos = entity.pos
 							if (entity) then
-								if (skill.pgtrg == "Behind") then
-									local eh = AceLib.API.Math.ConvertHeading(tpos.h)
-									local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
-									local rangePercent = tonumber(gCombatRangePercent) * 0.01
-									local dist = (entity.hitradius * rangePercent)
-									if (dist < 2) then
-										dist = 2
-									end
-							
-									local newpos = GetPosFromDistanceHeading(tpos, dist, mobRear)
-									if (newpos) then
-										tpos = newpos
-									end
-								elseif (skill.pgtrg == "Near") then
-									local eh = AceLib.API.Math.ConvertHeading(tpos.h)
-									
-									local randomFront = (math.random(1,5) / 100)
-									local randomRearFlank = (math.random(65,80) / 100)
-									local randomFrontFlank = (math.random(20,35) / 100)
-									local randomFlank = (math.random(40,60) / 100)
-									local randomRear = (math.random(90,100) / 100)
-									
-									local positions = {
-										AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh) + (math.pi * randomFront))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh) - (math.pi * randomFront))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFlank)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFlank)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRearFlank)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRearFlank)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh - (math.pi * randomRear)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh + (math.pi * randomRear)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh + (math.pi * randomFrontFlank)))%(2*math.pi),
-										AceLib.API.Math.ConvertHeading((eh - (math.pi * randomFrontFlank)))%(2*math.pi),
-									}
-									
-									local draw = math.random(1,11)
-									local range = (math.random(30,110) / 100)
-									local newpos = AceLib.API.Math.GetPosFromDistanceHeading(tpos, range, positions[draw])
-									if (newpos) then
-										tpos = newpos
-									end
-								end
-								
 								if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 									SkillMgr.latencyTimer = Now()
 									
@@ -2984,7 +2312,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										end
 										SkillMgr.failTimer = Now() + 6000
 									else
-										if (skill.chainstart == "1" or skill.chainend == "1") then
+										if (skill.chainstart  or skill.chainend ) then
 											SkillMgr.queuedPrio = prio
 										end
 									end
@@ -2994,12 +2322,12 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						else
-							local action = ActionList:Get(skill.id,1,TID)
+							local action = ActionList:Get(1,skill.id)
 							local entity = MGetEntity(TID)
 							
-							if (ValidTable(action)) then
+							if (table.valid(action)) then
 								--d("Attempting to cast skill ["..tostring(prio).."]:"..tostring(action.name).." on "..tostring(entity.name))
-								--if (gSkillManagerQueueing == "1") then
+								--if (gSkillManagerQueueing ) then
 									--SkillMgr.DebugOutput(prio, "Attempting to cast skill:"..tostring(action.name))
 								--end
 								--if (ActionList:Cast(skill.id,TID,1)) then
@@ -3030,7 +2358,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										end
 										SkillMgr.failTimer = Now() + 6000
 									else
-										if (skill.chainstart == "1" or skill.chainend == "1") then
+										if (skill.chainstart or skill.chainend ) then
 											SkillMgr.queuedPrio = prio
 										end
 									end
@@ -3038,7 +2366,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									casted = true
 									break
 								--else
-									--if (gSkillManagerQueueing == "1") then
+									--if (gSkillManagerQueueing ) then
 										--SkillMgr.DebugOutput(prio, "Skill failed to cast.")
 									--end
 								end
@@ -3062,26 +2390,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					
 					if (skill.trg == "Ground Target") then
 					
-						local s = ActionList:Get(skill.id,11)
+						local s = ActionList:Get(11,skill.id)
 						local entity = MGetEntity(TID)
 						
 						if (entity) then
-							local tpos = entity.pos
-							if (skill.pgtrg == "Behind") then
-								local eh = ConvertHeading(tpos.h)
-								local mobRear = ConvertHeading((eh - (math.pi)))%(2*math.pi)
-								local rangePercent = tonumber(gCombatRangePercent) * 0.01
-								local dist = math.random(entity.hitradius + 5, entity.hitradius + 10)
-								if (dist < 2) then
-									dist = 2
-								end
-						
-								local newpos = GetPosFromDistanceHeading(tpos, dist, mobRear)
-								if (newpos) then
-									tpos = newpos
-								end
-							end
-							
+							local tpos = entity.pos							
 							if (s:Cast(tpos.x, tpos.y, tpos.z)) then
 								if (SkillMgr.SkillProfile[prio]) then
 									SkillMgr.SkillProfile[prio].lastcast = Now()
@@ -3091,7 +2404,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 					else
-						local s = ActionList:Get(skill.id,11,TID)
+						local s = ActionList:Get(11,skill.id)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						if (s:Cast(TID)) then
 							if (SkillMgr.SkillProfile[prio]) then
@@ -3163,7 +2476,7 @@ function SkillMgr.Craft()
 	local al = ActionList("type=8")
 	
     local synth = Crafting:SynthInfo()
-    if ( ValidTable(synth) and ValidTable(SkillMgr.SkillProfile)) then
+    if ( table.valid(synth) and table.valid(SkillMgr.SkillProfile)) then
 		
 		if (SkillMgr.newCraft) then
 			SkillMgr.currentSHStack = 0
@@ -3215,8 +2528,8 @@ function SkillMgr.Craft()
         for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
 			
-            if ( skill.used == "1" ) then                
-                local realskilldata = ActionList:Get(skillid,9,Player.id)
+            if ( skill.used  ) then                
+                local realskilldata = ActionList:Get(9,skillid)
 				local skid = skillid
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
@@ -3224,7 +2537,7 @@ function SkillMgr.Craft()
 						for job, sid in pairs(data) do
 							if (sid == skill.id) then
 								skid = tonumber(data[Player.job]) or 0
-								realskilldata = ActionList:Get(skid,9,Player.id)
+								realskilldata = ActionList:Get(9,skid)
 							end
 							if (realskilldata) then
 								break
@@ -3236,7 +2549,7 @@ function SkillMgr.Craft()
 					end
 				end
 
-                if ( realskilldata and realskilldata.isready ) then
+                if ( realskilldata and realskilldata:IsReady(Player.id) ) then
                     local castable = true
                     if ((tonumber(skill.stepmin) > 0 and synth.step >= tonumber(skill.stepmin)) or
                         (tonumber(skill.stepmax) > 0 and synth.step < tonumber(skill.stepmax)) or
@@ -3379,15 +2692,24 @@ end
 
 function SkillMgr.Gather(item)
     local node = MGetTarget()
-    if ( ValidTable(node) and ValidTable(SkillMgr.SkillProfile)) then
+    if ( table.valid(node) and table.valid(SkillMgr.SkillProfile)) then
+        
+		local doHalt = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
-            if ( skill.used == "1" ) then		-- takes care of los, range, facing target and valid target		
-               local realskilldata = ActionList:Get(skillid,1)
-			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
+            if ( skill.used  ) then		-- takes care of los, range, facing target and valid target		
+                local realskilldata = ActionList:Get(1,skillid)
+			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
 					local castable = true
+					
+					if (Player.action == 264 or Player.action == 256) then
+						if (not realskilldata:IsReady(Player.id)) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the idling ready check.")
+							castable = false
+						end
+					end
 					
 					if ( tonumber(skill.gsecspassed) > 0 and skill.lastcast ) then
 						if (TimeSince(skill.lastcast) < (tonumber(skill.gsecspassed) * 1000)) then
@@ -3396,22 +2718,13 @@ function SkillMgr.Gather(item)
 						end
 					end
 					
-					if (ValidTable(item)) then
+					if (table.valid(item)) then
 						if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unknown status.")
 							castable = false
 						end
 						if (IsNull(skill.isitem,"") ~= "") then
-							local searchid = AceLib.API.Items.GetIDByName(item.name) or 0
-							local found = false
-							for itemName in StringSplit(skill.isitem,",") do
-								local translatedid = AceLib.API.Items.GetIDByName(itemName)
-								if (translatedid == searchid) then
-									found = true
-									break
-								end
-							end
-							if (not found) then
+							if (not MultiComp(item.name,skill.isitem)) then
 								castable = false
 							end
 						end
@@ -3422,7 +2735,7 @@ function SkillMgr.Gather(item)
 						(tonumber(skill.gatherattempts) > 0 and node.gatherattempts <= tonumber(skill.gatherattempts)) or
 						(tonumber(skill.gatherattemptsmax) > 0 and node.gatherattempts > tonumber(skill.gatherattemptsmax)) or
 						(skill.hasitem ~= "" and not NodeHasItem(skill.hasitem)) or
-						(skill.isunspoiled == "1" and not IsUnspoiled(node.contentid)))
+						(skill.isunspoiled  and not IsUnspoiled(node.contentid)))
 					then 
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] failed one ore more conditional checks.")
 						castable = false 
@@ -3436,9 +2749,9 @@ function SkillMgr.Gather(item)
 						end
 					end
 					
-					if (ControlVisible("GatheringMasterpiece")) then
+					if (IsControlOpen("GatheringMasterpiece")) then
 						local info = Player:GetCollectableInfo()
-						if (ValidTable(info)) then
+						if (table.valid(info)) then
 							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
 								castable = false
@@ -3457,7 +2770,7 @@ function SkillMgr.Gather(item)
 							end
 						end
 					else
-						if (ValidTable(item)) then
+						if (table.valid(item)) then
 							if (tonumber(skill.itemchancemax) > 0 and item and item.chance > tonumber(skill.itemchancemax)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the item chance max check.")
 								castable = false
@@ -3486,13 +2799,14 @@ function SkillMgr.Gather(item)
                     end	
 					
 					--Single use check
-					if (skill.singleuseonly == "1" and SkillMgr.prevSkillList[skillid]) then
+					if (skill.singleuseonly  and SkillMgr.prevSkillList[skillid]) then
 						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
 						castable = false
 					end
 					
 					if ( castable ) then
-						if (realskilldata.isready) then
+						doHalt = true
+						if (realskilldata:IsReady(Player.id)) then
 							if ( ActionList:Cast(skillid,Player.id)) then	
 								--d("CASTING (gathering) : "..tostring(skill.name))
 								SkillMgr.SkillProfile[prio].lastcast = Now()
@@ -3503,8 +2817,8 @@ function SkillMgr.Gather(item)
 								if IsUncoverSkill(skillid) then
 									ml_task_hub:CurrentTask().itemsUncovered = true
 								end
+								return true
 							end	
-							return true
 						else
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use because it is not ready.")
 						end
@@ -3512,6 +2826,9 @@ function SkillMgr.Gather(item)
                 end
             end
         end
+		if (doHalt) then
+			return true
+		end
     end
     return false
 end
@@ -3520,7 +2837,7 @@ function SkillMgr.GetBuffStacks(buffs,buffID,ownerid)
 	local buffID = tonumber(buffID) or 0
 	local ownerid = tonumber(ownerid) or 0
 	
-	if (ValidTable(buffs)) then
+	if (table.valid(buffs)) then
 		for i, buff in pairs(buffs) do
 			if (buff.id == buffID) then
 				if (ownerid == 0 or buff.ownerid == ownerid) then
@@ -3541,7 +2858,7 @@ function SkillMgr.GCDTimeLT(mintime)
 	if (actionID) then
 		local action = MGetAction(actionID)
 		if (action) then
-			if (action.cd - action.cdmax) < mintime then
+			if (action.cdmax - action.cd) < mintime then
 				return true
 			end
 		end
@@ -3558,12 +2875,11 @@ function SkillMgr.IsGCDReady(maxtime)
 	local timediff = 0
 	
 	local actionID = SkillMgr.GCDSkills[Player.job]
-	
 	if (actionID) then
-		local action = MGetAction(actionID)
+		local action = ActionList:Get(1,actionID)
 		if (action) then
-			timediff = (action.cd - action.cdmax)
-			if (action.cd - action.cdmax) < maxtime then
+			timediff = (action.cdmax - action.cd)
+			if (action.cdmax - action.cd) < maxtime then
 				castable = true
 			end
 		end
@@ -3578,13 +2894,13 @@ function SkillMgr.IsReady( actionid, actiontype, targetid )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	
-	local actionself = ActionList:Get(actionid, actiontype)
-	if (actionself and actionself.isready) then
+	local actionself = ActionList:Get(actiontype,actionid)
+	if (actionself and actionself:IsReady(Player.id)) then
 		return true
 	end
 	
-	local actiontarget =  ActionList:Get(actionid, actiontype, targetid)
-	if (actiontarget and actiontarget.isready) then
+	local actiontarget =  ActionList:Get(actiontype,actionid)
+	if (actiontarget and actiontarget:IsReady(targetid)) then
 		return true
 	end
 	
@@ -3595,9 +2911,9 @@ function SkillMgr.GetCDTime( actionid, actiontype )
 	local actionid = tonumber(actionid)
 	local actiontype = actiontype or 1
 	
-	local action = MGetAction(actionid, actiontype)
+	local action = ActionList:Get(actiontype,actionid)
 	if (action) then
-		return (action.cd - action.cdmax)
+		return (action.cdmax - action.cd)
 	end
 	
 	return nil
@@ -3609,8 +2925,8 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 	
 	local target = MGetEntity(targetid)
 	if (target and target.los) then
-		local action = ActionList:Get(actionid,actiontype,tid)
-		if (action and action.isready and (gAssistAutoFace == "1" or action.isfacing)) then
+		local action = ActionList:Get(actiontype,actionid)
+		if (action and action:IsReady(tid) and (gAssistAutoFace or action:IsFacing(tid))) then
 			if (action.range == 0 or (action.range >= (target.distance - target.hitradius))) then
 				action:Cast(tid)
 			end
@@ -3622,7 +2938,7 @@ function SkillMgr.DebugOutput( prio, message )
 	local prio = tonumber(prio) or 0
 	local message = tostring(message)
 	
-	if (gSkillManagerDebug == "1") then
+	if (gSkillManagerDebug ) then
 		if (not gSkillManagerDebugPriorities or gSkillManagerDebugPriorities == "") then
 			d("[SkillManager] : " .. message)
 		else
@@ -3680,7 +2996,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 	elseif ( skill.trg == "Pet" ) then
 		local valid = false
 		if (SkillMgr.IsPetSummonActive(skillid)) then
-			if (ValidTable(pet)) then
+			if (table.valid(pet)) then
 				if (not SkillMgr.IsPetSummonSkill(skillid)) then
 					valid = true
 					target = pet
@@ -3707,7 +3023,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			 else
 				return nil
 			end
-		elseif (skill.ptkbuff == "1") then
+		elseif (skill.ptkbuff ) then
 			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
@@ -3717,7 +3033,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			end
 		else
 			local ally = nil
-			if ( skill.npc == "1" ) then
+			if ( skill.npc  ) then
 				ally = MGetBestPartyHealTarget( true, maxrange )
 			else
 				ally = MGetBestPartyHealTarget( false, maxrange )
@@ -3739,7 +3055,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 			else
 				return nil
 			end
-		elseif (skill.ptkbuff == "1") then
+		elseif (skill.ptkbuff ) then
 			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
@@ -3766,7 +3082,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Ally" ) then
 		local ally = nil
-		if ( skill.npc == "1" ) then
+		if ( skill.npc  ) then
 			ally = MGetBestHealTarget( true, maxrange )
 		else
 			ally = MGetBestHealTarget( false, maxrange )
@@ -3852,7 +3168,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		local healTargets = {}
 		healTargets["Self"] = Player
 		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
-		if ( skill.npc == "1" ) then
+		if ( skill.npc  ) then
 			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
 			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
 		else
@@ -3888,7 +3204,7 @@ function SkillMgr.GetSkillTarget(skill, entity, maxrange)
 		end
 	end
 	
-	if (ValidTable(target) and TID ~= 0) then
+	if (table.valid(target) and TID ~= 0) then
 		targetTable.target = target
 		targetTable.TID = TID
 		return targetTable
@@ -3957,7 +3273,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 			 else
 				return nil
 			end
-		elseif (skill.ptkbuff == "1") then
+		elseif (skill.ptkbuff ) then
 			local newtarget = MPartyMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
@@ -3967,7 +3283,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 			end
 		else
 			local ally = nil
-			if ( skill.npc == "1" ) then
+			if ( skill.npc  ) then
 				ally = MGetBestPartyHealTarget( true, maxrange )
 			else
 				ally = MGetBestPartyHealTarget( false, maxrange )
@@ -3989,7 +3305,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 			else
 				return nil
 			end
-		elseif (skill.ptkbuff == "1") then
+		elseif (skill.ptkbuff ) then
 			local newtarget = MPartySMemberWithBuff(SkillMgr.knownDebuffs, skill.ptnbuff, maxrange)
 			if (newtarget) then
 				target = newtarget
@@ -4016,7 +3332,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		end
 	elseif ( skill.trg == "Ally" ) then
 		local ally = nil
-		if ( skill.npc == "1" ) then
+		if ( skill.npc  ) then
 			ally = MGetBestHealTarget( true, maxrange )
 		else
 			ally = MGetBestHealTarget( false, maxrange )
@@ -4102,7 +3418,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		local healTargets = {}
 		healTargets["Self"] = Player
 		healTargets["Tank"] = MGetBestTankHealTarget( maxrange )
-		if ( skill.npc == "1" ) then
+		if ( skill.npc  ) then
 			healTargets["Party"] = MGetBestPartyHealTarget( true, maxrange )
 			healTargets["Any"] = MGetBestHealTarget( true, maxrange, requiredHP )
 		else
@@ -4138,7 +3454,7 @@ function SkillMgr.GetMacroTarget(skill, entity, maxrange)
 		end
 	end
 	
-	if (ValidTable(target) and TID ~= 0) then
+	if (table.valid(target) and TID ~= 0) then
 		targetTable.target = target
 		targetTable.TID = TID
 		return targetTable
@@ -4180,11 +3496,11 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
-		--realskilldata = ActionList:Get(skillid,11) 
-		realskilldata = MGetAction(skillid,11) 
+		realskilldata = ActionList:Get(11,skillid) 
+		--realskilldata = MGetAction(skillid,11) 
 	else
-		--realskilldata = ActionList:Get(skillid,1)
-		realskilldata = MGetAction(skillid,1) 		
+		realskilldata = ActionList:Get(1,skillid)
+		--realskilldata = MGetAction(skillid,1) 		
 	end
 	
 	if (not realskilldata) then
@@ -4227,7 +3543,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	-- Just in case, these shouldn't happen.
-	if (not ValidTable(targetTable.target)) then
+	if (not table.valid(targetTable.target)) then
 		SkillMgr.DebugOutput( prio, "Target function returned an invalid target, should never happen.")
 		return 0
 	elseif (targetTable.TID == 0) then
@@ -4237,9 +3553,17 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	--Secondary Get() with proper target ID.
 	if (skill.stype == "Macro" or skill.stype == "Action") then 
-		realskilldata = ActionList:Get(skillid,1,targetTable.TID) 
+		realskilldata = ActionList:Get(1,skillid) --targetTable.TID) 
+		if (realskilldata) then
+			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
+			realskilldata.isfacing = realskilldata:IsFacing(targetTable.TID)
+		end
 	elseif (skill.stype == "Pet") then
-		realskilldata = ActionList:Get(skillid,11,targetTable.TID) 
+		realskilldata = ActionList:Get(11,skillid) --targetTable.TID) 
+		if (realskilldata) then
+			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
+			realskilldata.isfacing = realskilldata:IsFacing(targetTable.TID)
+		end
 	end
 	
 	SkillMgr.CurrentSkill = skill
@@ -4335,7 +3659,7 @@ function ffxiv_task_skillmgrAttack:Process()
 		d("Condition1:"..tostring(ml_global_information.AttackRange < 5))
 		d("Condition2:"..tostring(gBotMode == GetString("dutyMode")))
 		d("Condition3:"..tostring(target.castinginfo.channelingid == 0))
-		d("Condition4:"..tostring(gTeleport == "1"))
+		d("Condition4:"..tostring(gTeleportHack))
 		d("Condition5:"..tostring(not IsDutyLeader() or ffxiv_task_duty.independentMode))
 		d("not IsDutyLeader():"..tostring(not IsDutyLeader()))
 		d("independent:"..tostring(ffxiv_task_duty.independentMode))
@@ -4346,9 +3670,9 @@ function ffxiv_task_skillmgrAttack:Process()
 		d("Condition8:"..tostring(target.targetid ~= Player.id))
 		--]]
 		
-		if (ml_global_information.AttackRange < 5 and gUseTelecast == "1" and
+		if (ml_global_information.AttackRange < 5 and gUseTelecast  and
 			gBotMode == GetString("dutyMode") and target.castinginfo and target.castinginfo.channelingid == 0 and
-			gTeleport == "1" and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
+			gTeleportHack and (not IsDutyLeader() or ffxiv_task_duty.independentMode) and SkillMgr.teleCastTimer == 0 and SkillMgr.IsGCDReady()
 			and target.targetid ~= Player.id) then
 			
 			ml_task_hub:CurrentTask().suppressFollow = true
@@ -4356,7 +3680,7 @@ function ffxiv_task_skillmgrAttack:Process()
 			
 			SkillMgr.teleBack = self.safePos
 			Player:Stop()
-			GameHacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
+			Hacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
 			Player:SetFacingSynced(pos.h)
 			SkillMgr.teleCastTimer = Now() + 1600
 		end
@@ -4368,7 +3692,7 @@ function ffxiv_task_skillmgrAttack:Process()
 			gBotMode == GetString("dutyMode") and 
 			(Now() > SkillMgr.teleCastTimer or (target.castinginfo and target.castinginfo.channelingid ~= 0))) then
 			local back = SkillMgr.teleBack
-			GameHacks:TeleportToXYZ(back.x, back.y, back.z)
+			Hacks:TeleportToXYZ(back.x, back.y, back.z)
 			Player:SetFacingSynced(back.h)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
@@ -4402,7 +3726,7 @@ function c_triggersuppressions:evaluate()
 		return false
 	end
 	
-	if (not IsDutyLeader() and OnDutyMap() and not MIsLoading() and ml_global_information.Player_InCombat and not ml_task_hub:CurrentTask().suppressFollow) then
+	if (not IsDutyLeader() and OnDutyMap() and not MIsLoading() and Player.incombat and not ml_task_hub:CurrentTask().suppressFollow) then
 		local leader = GetDutyLeader()
 		if leader.dead then
 			return true
@@ -4433,8 +3757,8 @@ function SkillMgr.AddConditional(conditional)
 end
 
 function SkillMgr.IsFacing(skilldata,autoface,target)
-	local hasPet = ValidTable(Player.pet)
-	return (skilldata.isfacing == true or autoface == "1" or target.id == Player.id or (hasPet and target.id == Player.pet.id) or IsHealingSkill(skilldata.id) or IsFriendlyBuff(skilldata.id))
+	local hasPet = table.valid(Player.pet)
+	return (skilldata.isfacing == true or autoface or target.id == Player.id or (hasPet and target.id == Player.pet.id) or IsHealingSkill(skilldata.id) or IsFriendlyBuff(skilldata.id))
 end
 
 function SkillMgr.CanBeQueued(skilldata)
@@ -4492,7 +3816,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		elseif (skill.trg == "Ground Target" and realskilldata.isready) then
 			return false
-		elseif (skill.type == 11 and (realskilldata.isready)) then
+		elseif (skill.type == 11 and realskilldata.isready) then
 			return false
 		end
 		
@@ -4593,7 +3917,7 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if ( skill.dobuff == "1" and skill.lastcast) then
+		if ( skill.dobuff  and skill.lastcast) then
 			if ((skill.lastcast + 1000) > Now()) then
 				return true
 			end
@@ -4863,13 +4187,13 @@ function SkillMgr.AddDefaultConditions()
 		local plist = EntityList("myparty")
 		local partySize = TableSize(plist)
 		
-		if ( skill.onlysolo == "1" and partySize > 0) then
+		if ( skill.onlysolo  and partySize > 0) then
 			if (IsCompanionSummoned()) then
 				return (partySize - 1) > 0
 			else
 				return true
 			end
-		elseif ( skill.onlyparty == "1" ) then
+		elseif ( skill.onlyparty  ) then
 			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():ParentTask()) then
 				if (ml_task_hub:CurrentTask():ParentTask().name == "QUEST_DUTYKILL") then
 					return false
@@ -4895,7 +4219,7 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if (skill.punderattack == "1") then
+		if (skill.punderattack ) then
 			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=20")
 			if (list) then
 				for i,e in pairs(list) do
@@ -4907,7 +4231,7 @@ function SkillMgr.AddDefaultConditions()
 			return true
 		end
 		
-		if (skill.punderattackmelee == "1") then
+		if (skill.punderattackmelee ) then
 			local list = EntityList("nearest,alive,attackable,targetingme,maxdistance=6")
 			if (list) then
 				for i,e in pairs(list) do
@@ -4931,10 +4255,10 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local preCombat = SkillMgr.preCombat
 		
-		if (((skill.combat == "Out of Combat") and ml_global_information.Player_InCombat) or
+		if (((skill.combat == "Out of Combat") and Player.incombat) or
 			((skill.combat == "In Combat") and (preCombat == true)) or
-			((skill.combat == "In Combat") and not ml_global_information.Player_InCombat and skill.trg ~= "Target") or
-			((skill.combat == "In Combat") and not ml_global_information.Player_InCombat and not target.attackable))
+			((skill.combat == "In Combat") and not Player.incombat and skill.trg ~= "Target") or
+			((skill.combat == "In Combat") and not Player.incombat and not target.attackable))
 		then 
 			return true
 		end
@@ -4948,15 +4272,15 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if 	((gAssistFilter1 == "1" and skill.filterone == "Off") or 
+		if 	((gAssistFilter1  and skill.filterone == "Off") or 
 			(gAssistFilter1 == "0" and skill.filterone == "On" ) or 
-			(gAssistFilter2 == "1" and skill.filtertwo == "Off") or
+			(gAssistFilter2  and skill.filtertwo == "Off") or
 			(gAssistFilter2 == "0" and skill.filtertwo == "On" ) or
-			(gAssistFilter3 == "1" and skill.filterthree == "Off") or
+			(gAssistFilter3  and skill.filterthree == "Off") or
 			(gAssistFilter3 == "0" and skill.filterthree == "On" ) or
-			(gAssistFilter4 == "1" and skill.filterfour == "Off") or
+			(gAssistFilter4  and skill.filterfour == "Off") or
 			(gAssistFilter4 == "0" and skill.filterfour == "On" ) or
-			(gAssistFilter5 == "1" and skill.filterfive == "Off") or
+			(gAssistFilter5  and skill.filterfive == "Off") or
 			(gAssistFilter5 == "0" and skill.filterfive == "On" ))
 		then
 			return true
@@ -4991,7 +4315,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		
 		local secspassedu = tonumber(skill.secspassedu) or 0
-		if ( secspassedu > 0 and ValidTable(skill.lastcastunique)) then
+		if ( secspassedu > 0 and table.valid(skill.lastcastunique)) then
 			local entry = skill.lastcastunique[target.id]
 			if (entry and entry > 0) then
 				if (TimeSince(entry) < (secspassedu * 1000)) then 
@@ -5032,10 +4356,10 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		local target = SkillMgr.CurrentTarget
 		
-		if ((tonumber(skill.phpl) > 0 and tonumber(skill.phpl) > ml_global_information.Player_HP.percent)	or 
-			(tonumber(skill.phpb) > 0 and tonumber(skill.phpb) < ml_global_information.Player_HP.percent)	or 
-			(tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > ml_global_information.Player_TP)	or 
-			(tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < ml_global_information.Player_TP)) 
+		if ((tonumber(skill.phpl) > 0 and tonumber(skill.phpl) > Player.hp.percent)	or 
+			(tonumber(skill.phpb) > 0 and tonumber(skill.phpb) < Player.hp.percent)	or 
+			(tonumber(skill.ptpl) > 0 and tonumber(skill.ptpl) > Player.tp)	or 
+			(tonumber(skill.ptpb) > 0 and tonumber(skill.ptpb) < Player.tp)) 
 		then 
 			return true
 		end				
@@ -5069,7 +4393,7 @@ function SkillMgr.AddDefaultConditions()
 			SkillMgr.DebugOutput(skill.prio, "[Resultant MP]:"..tostring((pmp.current - realskilldata.cost)).." is < "..tostring(skill.pmprgt))
 			return true
 		elseif (IsNull(tonumber(skill.pmprsgt),0) > 0) then -- or tonumber(skill.pmprslt) > 0) then
-			local otherskilldata = ActionList:Get(tonumber(skill.pmprsgt),1)
+			local otherskilldata = ActionList:Get(1,tonumber(skill.pmprsgt))
 			if (otherskilldata) then
 				local otherskillcost = otherskilldata.cost
 				if ((tonumber(skill.pmprsgt) > 0 and (pmp.current - realskilldata.cost) < otherskillcost)) then
@@ -5251,7 +4575,7 @@ function SkillMgr.AddDefaultConditions()
 			(thpb > 0 and thpb < target.hp.percent) or
 			(thpcl > 0 and thpcl > target.hp.current) or
 			(thpcb > 0 and thpcb < target.hp.current) or
-			(thpadv > 0 and (((ml_global_information.Player_HP.max * thpadv) > target.hp.max) and target.uniqueid ~= 541))) 
+			(thpadv > 0 and (((Player.hp.max * thpadv) > target.hp.max) and target.contentid ~= 541))) 
 		then 
 			return true 
 		end
@@ -5333,7 +4657,7 @@ function SkillMgr.AddDefaultConditions()
 			local target = EntityList:Get(TID)
 			if (target and target.fateid ~= 0) then
 				local fate = GetFateByID(target.fateid)
-				if (ValidTable(fate)) then
+				if (table.valid(fate)) then
 					if (fate.status == 2) then
 						if (Player:GetSyncLevel() == 0 and AceLib.API.Fate.RequiresSync(fate.id)) then
 							return true
@@ -5400,7 +4724,7 @@ function SkillMgr.AddDefaultConditions()
 					return true
 				end
 			elseif (skill.tcastids ~= "") then								
-				local ctid = (skill.tcastonme == "1" and Player.id or nil)
+				local ctid = (skill.tcastonme  and Player.id or nil)
 				if ( not isCasting(target, skill.tcastids, casttime, ctid ) ) then
 					return true
 				end
@@ -5439,9 +4763,9 @@ function SkillMgr.AddDefaultConditions()
 		local TID = SkillMgr.CurrentTID
 		
 		if (skill.tecenter == "Auto") then
-			if (skill.frontalconeaoe == "1") then
+			if (skill.frontalconeaoe ) then
 				TID = Player.id
-			elseif ((realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) or skill.frontalconeaoe == "1") then
+			elseif ((realskilldata.casttime == 0 and realskilldata.recasttime > 2.5) or skill.frontalconeaoe ) then
 				TID = target.id
 			end
 		else
@@ -5466,11 +4790,11 @@ function SkillMgr.AddDefaultConditions()
 			
 			--Remove all that are targeting me if it's an enmity AOE.
 			for i,entity in pairs(targets) do
-				if (skill.enmityaoe == "1" and entity.aggropercentage == 100) then
+				if (skill.enmityaoe  and entity.aggropercentage == 100) then
 					targets[i] = nil
-				elseif (skill.frontalconeaoe == "1" and not EntityIsFrontWide(entity)) then
+				elseif (skill.frontalconeaoe  and not EntityIsFrontWide(entity)) then
 					targets[i] = nil
-				elseif (skill.tankedonlyaoe == "1" and entity.targetid == 0) then
+				elseif (skill.tankedonlyaoe  and entity.targetid == 0) then
 					targets[i] = nil
 				end
 			end
@@ -5496,7 +4820,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		end	
 		
-		if (ValidTable(tlistAE) and skill.televel ~= "Any") then
+		if (table.valid(tlistAE) and skill.televel ~= "Any") then
 			local level = tonumber(Player.level) + tonumber(skill.televel)
 			for _, entity in pairs(tlistAE) do
 				if entity.level > level then
@@ -5505,7 +4829,7 @@ function SkillMgr.AddDefaultConditions()
 			end
 		end
 		
-		if (ValidTable(tlistAE) and IsNull(tonumber(skill.tehpavggt),0) > 0) then
+		if (table.valid(tlistAE) and IsNull(tonumber(skill.tehpavggt),0) > 0) then
 			local enemies = TableSize(tlistAE)
 			local hptotal = 0
 			
@@ -5550,7 +4874,7 @@ function SkillMgr.AddDefaultConditions()
 		local tahpl = tonumber(skill.tahpl) or 0
 		if (tahpl > 0) then
 			local count = 0
-			if (ValidTable(plistAE)) then
+			if (table.valid(plistAE)) then
 				for id, entity in pairs(plistAE) do
 					if (entity.alive and entity.targetable and (entity.hp.percent < tahpl)) then
 						count = count + 1
@@ -5591,8 +4915,528 @@ function SkillMgr.AddDefaultConditions()
 	SkillMgr.AddConditional(conditional)
 end
 
+function SkillMgr.DrawSkillEditor()
+	--[[
+	 -- EDITOR WINDOW
+    GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h,"",true)		
+    GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("alias"),"SKM_ALIAS",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_STYPE",GetString("skillDetails"),"Action,Pet,Macro,Item,Text Command")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("removesBuff"),"SKM_REMOVESBUFF",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMax"),"SKM_LevelMax",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMin"),"SKM_LevelMin",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("minRange"),"SKM_MinR",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("maxRange"),"SKM_MaxR",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkill"),"SKM_PCSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkillNot"),"SKM_NPCSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill","SKM_PGSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill NOT","SKM_NPGSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillID"),"SKM_PSkillID",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillIDNot"),"SKM_NPSkillID",GetString("basicDetails"))
+	--GUI_NewField(SkillMgr.editwindow.name,GetString("skmNSkillID"),"SKM_NSkillID",GetString("basicDetails"))
+	--GUI_NewField(SkillMgr.editwindow.name,GetString("nextSkillPrio"),"SKM_NSkillPrio",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("currentActionNot"),"SKM_NCURRENTACTION",GetString("basicDetails"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter1"),"SKM_FilterOne",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter2"),"SKM_FilterTwo",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter3"),"SKM_FilterThree",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter4"),"SKM_FilterFour",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter5"),"SKM_FilterFive",GetString("basicDetails"), "Ignore,Off,On")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlySolo"),"SKM_OnlySolo",GetString("basicDetails"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Party Size <=","SKM_PartySizeLT",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
+	GUI_NewField(SkillMgr.editwindow.name,"Secs Passed Unique","SKM_SecsPassedUnique",GetString("basicDetails"))
+	
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("name"),"SKM_CHAINNAME",GetString("chain"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainEnd"),"SKM_CHAINEND",GetString("chain"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("isReady"),"SKM_SKREADY",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdIsReady"),"SKM_SKOFFCD",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("isNotReady"),"SKM_SKNREADY",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdNotReady"),"SKM_SKNOFFCD",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeGT"),"SKM_SKNCDTIMEMIN",GetString("skillChecks"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeLT"),"SKM_SKNCDTIMEMAX",GetString("skillChecks"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPLT"),"SKM_PHPB",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttack"),"SKM_PUnderAttack",GetString("playerHPMPTP"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("underAttackMelee"),"SKM_PUnderAttackMelee",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerGT"),"SKM_PPowL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerPowerLT"),"SKM_PPowB",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPL"),"SKM_PMPPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPMPPB"),"SKM_PMPPB",GetString("playerHPMPTP"))
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP >=","SKM_PMPRGT",GetString("playerHPMPTP"))
+	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP <=","SKM_PMPRLT",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % >=","SKM_PMPPRGT",GetString("playerHPMPTP"))
+	--GUI_NewNumeric(SkillMgr.editwindow.name,"Result MP % <=","SKM_PMPPRLT",GetString("playerHPMPTP"))
+	GUI_NewField(SkillMgr.editwindow.name,"Result MP >= Cost of [ID]","SKM_PMPRSGT",GetString("playerHPMPTP"))
+	--GUI_NewField(SkillMgr.editwindow.name,"Result MP <= Cost of [ID]","SKM_PMPRSLT",GetString("playerHPMPTP"))
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPL"),"SKM_PTPL",GetString("playerHPMPTP"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTPB"),"SKM_PTPB",GetString("playerHPMPTP"))	
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTCount"),"SKM_PTCount",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPL"),"SKM_PTHPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTHPB"),"SKM_PTHPB",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPL"),"SKM_PTMPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTMPB"),"SKM_PTMPB",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPL"),"SKM_PTTPL",GetString("party"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmPTTPB"),"SKM_PTTPB",GetString("party"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PTBuff",GetString("party"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Known Debuffs","SKM_PTKBuff",GetString("party"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PTNBuff",GetString("party"))
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRG"),"SKM_TRG",GetString("target"),"Target,Ground Target,Player,SMN DoT,SMN Bane,Cast Target,Party,PartyS,Low TP,Low MP,Pet,Ally,Tank,Tankable Target,Tanked Target,Heal Priority,Dead Ally,Dead Party")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTRGTYPE"),"SKM_TRGTYPE",GetString("target"),"Any,Tank,DPS,Caster,Healer")
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Include Self","SKM_TRGSELF",GetString("target"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmNPC"),"SKM_NPC",GetString("target"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPTRG"),"SKM_PTRG",GetString("target"),"Any,Enemy,Player")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPGTRG"),"SKM_PGTRG",GetString("target"),"Direct,Behind,Near")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmPPos"),"SKM_PPos",GetString("target"),"None,Front,Flanking,Behind")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPGT"),"SKM_THPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetHPLT"),"SKM_THPB",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCL"),"SKM_THPCL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTHPCB"),"SKM_THPCB",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("hpAdvantage"),"SKM_THPADV",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetTPLE"),"SKM_TTPL",GetString("target"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("targetMPLE"),"SKM_TMPL",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCONTIDS"),"SKM_TCONTIDS",GetString("target"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTNCONTIDS"),"SKM_TNCONTIDS",GetString("target"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTID"),"SKM_TCASTID",GetString("casting"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmTCASTTM"),"SKM_TCASTTM",GetString("casting"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmTCASTTIME"),"SKM_TCASTTIME",GetString("casting"))
+	
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmHPRIOHP"),"SKM_HPRIOHP",GetString("healPriority"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO1"),"SKM_HPRIO1",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO2"),"SKM_HPRIO2",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO3"),"SKM_HPRIO3",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmHPRIO4"),"SKM_HPRIO4",GetString("healPriority"),"Self,Tank,Party,Any,None")
+	
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enmityAOE"),"SKM_EnmityAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("frontalCone"),"SKM_FrontalConeAOE",GetString("aoe"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("tankedTargetsOnly"),"SKM_TankedOnly",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,"Average HP % >=","SKM_TEHPAvgGT",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount"),"SKM_TECount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTECount2"),"SKM_TECount2",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTERange"),"SKM_TERange",GetString("aoe"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTELevel"),"SKM_TELevel",GetString("aoe"),"0,2,4,6,Any")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("aoeCenter"),"SKM_TECenter",GetString("aoe"),"Auto,Self,Target")
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTACount"),"SKM_TACount",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmTARange"),"SKM_TARange",GetString("aoe"))
+	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("alliesNearHPLT"),"SKM_TAHPL",GetString("aoe"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PBuffDura",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PNBuff",GetString("playerBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PNBuffDura",GetString("playerBuffs"))
+	
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TBuffOwner",GetString("targetBuffs"), "Player,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_TBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_TBuffDura",GetString("targetBuffs"))
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmTBuffOwner"),"SKM_TNBuffOwner",GetString("targetBuffs"), "Player,Any")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_TNBuff",GetString("targetBuffs"))
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_TNBuffDura",GetString("targetBuffs"))
+	
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmHasBuffs"),"SKM_PetBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmAndBuffDura"),"SKM_PetBuffDura","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmMissBuffs"),"SKM_PetNBuff","Pet Buffs")
+	GUI_NewField(SkillMgr.editwindow.name,GetString("skmOrBuffDura"),"SKM_PetNBuffDura","Pet Buffs")
+	
+	--GUI_NewButton(SkillMgr.editwindow.name,"Build Buffs","SMToggleBuffs","Buffs")
+	GUI_NewButton(SkillMgr.editwindow.name,"Build Macro","SMToggleMacro","Macro")
+	
+	--GUI_NewComboBox(SkillMgr.editwindow.name,GetString("comboSkill"),"SKM_ComboSkill",GetString("advancedSettings"),"Auto,True,False")
+	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("offGCDSkill"),"SKM_OffGCD",GetString("advancedSettings"),"Auto,True,False")
+	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time >=","SKM_OffGCDTime",GetString("advancedSettings"))
+	GUI_NewField(SkillMgr.editwindow.name,"Off GCD Time <=","SKM_OffGCDTimeLT",GetString("advancedSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow.name,"Ignore Moving","SKM_IgnoreMoving",GetString("advancedSettings"))
+	
+    GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
+	
+    GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
+    GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
+    GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow.name,"COPY","SKMCopySkill")
+    GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
+    GUI_WindowVisible(SkillMgr.editwindow.name,false)
+	--]]
+end
+
+function SkillMgr.DrawMacroEditor()
+	-- ========= Macro Window =============
+	--[[
+	
+	GUI_NewWindow(SkillMgr.editwindow_macro.name, SkillMgr.editwindow_macro.x, SkillMgr.editwindow_macro.y, SkillMgr.editwindow_macro.w, SkillMgr.editwindow_macro.h,"",true)
+	
+	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 1","gSkillManagerFoldMacro1",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 2","gSkillManagerFoldMacro2",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 3","gSkillManagerFoldMacro3",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.editwindow_macro.name,"Expand Group 4","gSkillManagerFoldMacro4",GetString("generalSettings"))
+	
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Type","SKM_M1ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 ID","SKM_M1ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M1 Target","SKM_M1ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Wait (ms)","SKM_M1ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Message","SKM_M1ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M1 Completion","SKM_M1ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Type","SKM_M2ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 ID","SKM_M2ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M2 Target","SKM_M2ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Wait (ms)","SKM_M2ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Message","SKM_M2ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M2 Completion","SKM_M2ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Type","SKM_M3ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 ID","SKM_M3ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M3 Target","SKM_M3ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Wait (ms)","SKM_M3ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Message","SKM_M3ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M3 Completion","SKM_M3ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Type","SKM_M4ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 ID","SKM_M4ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M4 Target","SKM_M4ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Wait (ms)","SKM_M4ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Message","SKM_M4ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M4 Completion","SKM_M4ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Type","SKM_M5ACTIONTYPE","Macro Group 1","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 ID","SKM_M5ACTIONID","Macro Group 1")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M5 Target","SKM_M5ACTIONTARGET","Macro Group 1","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Wait (ms)","SKM_M5ACTIONWAIT","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Message","SKM_M5ACTIONMSG","Macro Group 1")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M5 Completion","SKM_M5ACTIONCOMPLETE","Macro Group 1")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Type","SKM_M6ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 ID","SKM_M6ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M6 Target","SKM_M6ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Wait (ms)","SKM_M6ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Message","SKM_M6ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M6 Completion","SKM_M6ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Type","SKM_M7ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 ID","SKM_M7ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M7 Target","SKM_M7ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Wait (ms)","SKM_M7ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Message","SKM_M7ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M7 Completion","SKM_M7ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Type","SKM_M8ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 ID","SKM_M8ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M8 Target","SKM_M8ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Wait (ms)","SKM_M8ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Message","SKM_M8ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M8 Completion","SKM_M8ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Type","SKM_M9ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 ID","SKM_M9ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M9 Target","SKM_M9ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Wait (ms)","SKM_M9ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Message","SKM_M9ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M9 Completion","SKM_M9ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Type","SKM_M10ACTIONTYPE","Macro Group 2","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 ID","SKM_M10ACTIONID","Macro Group 2")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M10 Target","SKM_M10ACTIONTARGET","Macro Group 2","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Wait (ms)","SKM_M10ACTIONWAIT","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Message","SKM_M10ACTIONMSG","Macro Group 2")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M10 Completion","SKM_M10ACTIONCOMPLETE","Macro Group 2")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Type","SKM_M11ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 ID","SKM_M11ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M11 Target","SKM_M11ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Wait (ms)","SKM_M11ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Message","SKM_M11ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M11 Completion","SKM_M11ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Type","SKM_M12ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 ID","SKM_M12ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M12 Target","SKM_M12ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Wait (ms)","SKM_M12ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Message","SKM_M12ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M12 Completion","SKM_M12ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Type","SKM_M13ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 ID","SKM_M13ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M13 Target","SKM_M13ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Wait (ms)","SKM_M13ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Message","SKM_M13ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M13 Completion","SKM_M13ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Type","SKM_M14ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 ID","SKM_M14ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M14 Target","SKM_M14ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Wait (ms)","SKM_M14ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Message","SKM_M14ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M14 Completion","SKM_M14ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Type","SKM_M15ACTIONTYPE","Macro Group 3","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 ID","SKM_M15ACTIONID","Macro Group 3")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M15 Target","SKM_M15ACTIONTARGET","Macro Group 3","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Wait (ms)","SKM_M15ACTIONWAIT","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Message","SKM_M15ACTIONMSG","Macro Group 3")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M15 Completion","SKM_M15ACTIONCOMPLETE","Macro Group 3")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Type","SKM_M16ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 ID","SKM_M16ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M16 Target","SKM_M16ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Wait (ms)","SKM_M16ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Message","SKM_M16ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M16 Completion","SKM_M16ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Type","SKM_M17ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 ID","SKM_M17ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M17 Target","SKM_M17ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Wait (ms)","SKM_M17ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Message","SKM_M17ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M17 Completion","SKM_M17ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Type","SKM_M18ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 ID","SKM_M18ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M18 Target","SKM_M18ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Wait (ms)","SKM_M18ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Message","SKM_M18ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M18 Completion","SKM_M18ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Type","SKM_M19ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 ID","SKM_M19ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M19 Target","SKM_M19ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Wait (ms)","SKM_M19ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Message","SKM_M19ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M19 Completion","SKM_M19ACTIONCOMPLETE","Macro Group 4")
+
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Type","SKM_M20ACTIONTYPE","Macro Group 4","Action,ActionWait,Item")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 ID","SKM_M20ACTIONID","Macro Group 4")
+	GUI_NewComboBox(SkillMgr.editwindow_macro.name,"M20 Target","SKM_M20ACTIONTARGET","Macro Group 4","Target,Player,Ground Target,Ground Player")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Wait (ms)","SKM_M20ACTIONWAIT","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Message","SKM_M20ACTIONMSG","Macro Group 4")
+	GUI_NewField(SkillMgr.editwindow_macro.name,"M20 Completion","SKM_M20ACTIONCOMPLETE","Macro Group 4")
+	
+	gSkillManagerFoldMacro1 = ffxivminion.GetSetting("gSkillManagerFoldMacro1","1")
+	gSkillManagerFoldMacro2 = ffxivminion.GetSetting("gSkillManagerFoldMacro2","0")
+	gSkillManagerFoldMacro3 = ffxivminion.GetSetting("gSkillManagerFoldMacro3","0")
+	gSkillManagerFoldMacro4 = ffxivminion.GetSetting("gSkillManagerFoldMacro4","0")
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow_macro.name,GetString("generalSettings"))
+	SkillMgr.FoldMacroGroups()
+	
+	GUI_WindowVisible(SkillMgr.editwindow_macro.name,false)
+	--]]
+end
+
+function SkillMgr.DrawCraftEditor()
+	-- ========= Crafting Editor Window =============
+	--[[
+    GUI_NewWindow(SkillMgr.editwindow_crafting.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_crafting.w, SkillMgr.editwindow_crafting.h,"",true)		
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+    GUI_NewCheckbox(SkillMgr.editwindow_crafting.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmin"),"SKM_STMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("stepmax"),"SKM_STMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmin"),"SKM_CPMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("cpmax"),"SKM_CPMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmin"),"SKM_DURMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("durabmax"),"SKM_DURMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmin"),"SKM_PROGMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("progrmax"),"SKM_PROGMAX",GetString("skillDetails"));
+	
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymin"),"SKM_QUALMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymax"),"SKM_QUALMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualityminper"),"SKM_QUALMINPer",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("qualitymaxper"),"SKM_QUALMAXPer",GetString("skillDetails")) 
+
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship >=","SKM_CRAFTMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Craftsmanship <","SKM_CRAFTMAX",GetString("skillDetails")) 
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control >=","SKM_CONTROLMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Control <","SKM_CONTROLMAX",GetString("skillDetails")) 
+	
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMin"),"SKM_TOTMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("totMax"),"SKM_TOTMAX",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("htSucceedMax"),"SKM_HTSUCCEED",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("manipMax"),"SKM_MANIPMAX",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,GetString("iqstack"),"SKM_IQSTACK",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Great Strides Stack >=","SKM_GSSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand Stack >=","SKM_SHSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 2 Stack >=","SKM_SH2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Steady Hand 1/2 Stack >=","SKM_SH12STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity Stack >=","SKM_INGENSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Ingenuity 2 Stack >=","SKM_INGEN2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not Stack >=","SKM_WNSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Waste Not 2 Stack >=","SKM_WN2STACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Manipulation Stack >=","SKM_MANIPSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Innovation Stack >=","SKM_INNOSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Comfort Zone Stack >=","SKM_CZONESTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Maker's Mark Stack >=","SKM_MAKERSSTACKMIN",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_crafting.name,"Whistle Stack >=","SKM_WHSTACKMIN",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_crafting.name,"Whistle Stack =","SKM_WHSTACK",GetString("skillDetails"))
+	
+    GUI_NewComboBox(SkillMgr.editwindow_crafting.name,GetString("condition"),"SKM_CONDITION",GetString("skillDetails"),GetString("notused")..","..GetString("excellent")..","..GetString("good")..","..GetString("normal")..","..GetString("poor"))
+	GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmHasBuffs"),"SKM_CPBuff",GetString("skillDetails"));
+    GUI_NewField(SkillMgr.editwindow_crafting.name,GetString("skmMissBuffs"),"SKM_CPNBuff",GetString("skillDetails"));
+	
+	
+	GUI_UnFoldGroup(SkillMgr.editwindow_crafting.name,GetString("skillDetails"))
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DELETE","SMEDeleteEvent")	
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"DOWN","SMESkillDOWNEvent")	
+    GUI_NewButton(SkillMgr.editwindow_crafting.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow_crafting.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow_crafting.name,"COPY","SKMCopySkill")
+    GUI_SizeWindow(SkillMgr.editwindow_crafting.name,SkillMgr.editwindow_crafting.w,SkillMgr.editwindow_crafting.h)
+    GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)
+	--]]
+end
+
+function SkillMgr.DrawGatherEditor()
+	--[[
+	-- Gathering EDITOR WINDOW
+    GUI_NewWindow(SkillMgr.editwindow_gathering.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow_gathering.w, SkillMgr.editwindow_gathering.h,"",true)		
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerName"),"SKM_NAME",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmTYPE"),"SKM_TYPE",GetString("skillDetails"))
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
+    GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))	
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("singleUse"),"SKM_SingleUse",GetString("skillDetails"))	
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmin"),"SKM_GPMIN",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gpmax"),"SKM_GPMAX",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Rarity < ","SKM_CollRarityLT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear >= ","SKM_CollWearGT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear <= ","SKM_CollWearLT",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Wear =","SKM_CollWearEQ",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"Chance <=","SKM_ItemChanceMax",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,"HQ Chance >=","SKM_ItemHQChanceMin",GetString("skillDetails"));
+    GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMin"),"SKM_GAttemptsMin",GetString("skillDetails"));
+	GUI_NewNumeric(SkillMgr.editwindow_gathering.name,GetString("gatherAttemptsMax"),"SKM_GAttemptsMax",GetString("skillDetails"));
+    GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("nodeHas"),"SKM_HasItem",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,"Is Item","SKM_IsItem",GetString("skillDetails"));
+	GUI_NewCheckbox(SkillMgr.editwindow_gathering.name,GetString("skmUnspoiled"),"SKM_UNSP",GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("secsSinceLastCast"),"SKM_GSecsPassed", GetString("skillDetails"))
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmHasBuffs"),"SKM_GPBuff",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("skmMissBuffs"),"SKM_GPNBuff",GetString("skillDetails"));
+	GUI_NewField(SkillMgr.editwindow_gathering.name,GetString("prevSkillID"),"SKM_PSkillIDG",GetString("skillDetails"));
+
+    GUI_UnFoldGroup(SkillMgr.editwindow_gathering.name,GetString("skillDetails"))
+    GUI_NewButton(SkillMgr.editwindow_gathering.name,"DELETE","SMEDeleteEvent")
+    GUI_NewButton(SkillMgr.editwindow_gathering.name,"DOWN","SMESkillDOWNEvent")		
+    GUI_NewButton(SkillMgr.editwindow_gathering.name,"UP","SMESkillUPEvent")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"PASTE","SKMPasteSkill")
+	GUI_NewButton(SkillMgr.editwindow_gathering.name,"COPY","SKMCopySkill")
+    GUI_SizeWindow(SkillMgr.editwindow_gathering.name,SkillMgr.editwindow_gathering.w,SkillMgr.editwindow_gathering.h)
+    GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)
+	
+	SkillMgr.AddDefaultConditions()
+	
+	--gSkillManagerQueueing = Settings.FFXIVMINION.gSkillManagerQueueing
+	--]]
+end
+
+function SkillMgr.DrawManager()
+	--[[
+	-- Skillbook
+    GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
+    GUI_NewButton(SkillMgr.skillbook.name,GetString("skillbookrefresh"),"SMRefreshSkillbookEvent")
+	GUI_NewButton(SkillMgr.skillbook.name,"New Text Command","SkillMgr.AddTextCommandToSkills")
+	GUI_NewButton(SkillMgr.skillbook.name,"New Item","SkillMgr.AddItemToSkills")
+    GUI_UnFoldGroup(SkillMgr.skillbook.name,"AvailableSkills")
+    GUI_SizeWindow(SkillMgr.skillbook.name,SkillMgr.skillbook.w,SkillMgr.skillbook.h)
+    GUI_WindowVisible(SkillMgr.skillbook.name,false)	
+    
+    -- SelectedSkills/Main Window
+    GUI_NewWindow(SkillMgr.mainwindow.name, SkillMgr.skillbook.x+SkillMgr.skillbook.w,SkillMgr.mainwindow.y,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+    GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("activated"),"gSMactive",GetString("generalSettings"))
+    GUI_NewComboBox(SkillMgr.mainwindow.name,GetString("profile"),"gSkillProfile",GetString("generalSettings"),"")
+	--GUI_NewCheckbox(SkillMgr.mainwindow.name,"Queueing Allowed","gSkillManagerQueueing",GetString("generalSettings"))
+	GUI_NewCheckbox(SkillMgr.mainwindow.name,GetString("debugging"),"gSkillManagerDebug",GetString("generalSettings"))
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("debugItems"),"gSkillManagerDebugPriorities",GetString("generalSettings"))
+	
+	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug","0")
+	gSkillManagerDebugPriorities = ffxivminion.GetSetting("gSkillManagerDebugPriorities","")
+	
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter1"),"gSkillManagerFilter1","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter2"),"gSkillManagerFilter2","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter3"),"gSkillManagerFilter3","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter4"),"gSkillManagerFilter4","Filters")
+	GUI_NewField(SkillMgr.mainwindow.name,GetString("filter5"),"gSkillManagerFilter5","Filters")
+	
+	gSkillManagerFilter1 = ""
+	gSkillManagerFilter2 = ""
+	gSkillManagerFilter3 = ""
+	gSkillManagerFilter4 = ""
+	gSkillManagerFilter5 = ""
+	
+    GUI_NewButton(SkillMgr.mainwindow.name,GetString("saveProfile"),"SMSaveEvent")
+    RegisterEventHandler("SMSaveEvent",SkillMgr.SaveProfile)
+	GUI_NewButton(SkillMgr.mainwindow.name,GetString("clearProfile"),"SMClearEvent")
+    RegisterEventHandler("SMClearEvent",SkillMgr.ClearProfilePrompt)
+    GUI_NewField(SkillMgr.mainwindow.name,GetString("newProfileName"),"gSMnewname",GetString("skillEditor"))
+    GUI_NewButton(SkillMgr.mainwindow.name,GetString("newProfile"),"newSMProfileEvent",GetString("skillEditor"))
+    RegisterEventHandler("newSMProfileEvent",SkillMgr.NewProfile)
+    GUI_UnFoldGroup(SkillMgr.mainwindow.name,GetString("generalSettings"))
+    GUI_UnFoldGroup(SkillMgr.mainwindow.name,"ProfileSkills")
+    GUI_WindowVisible(SkillMgr.mainwindow.name,false)	
+
+	GUI_NewWindow(SkillMgr.confirmwindow.name, SkillMgr.confirmwindow.x, SkillMgr.confirmwindow.y, SkillMgr.confirmwindow.w, SkillMgr.confirmwindow.h)
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("yes"),"SKMClearProfileYes")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_NewButton(SkillMgr.confirmwindow.name,GetString("no"),"SKMClearProfileNo")
+	GUI_WindowVisible(SkillMgr.confirmwindow.name,false)	
+
+	ffxivminion.Windows.FilterManager = { id = "Filter Manager", Name = "Filter Manager", x=250, y=50, width=250, height=160 }
+	ffxivminion.CreateWindow(ffxivminion.Windows.FilterManager)
+	local winName = "Filter Manager"
+	local group = "Filters"
+	GUI_NewCheckbox(winName,GetString("filter1"),"gAssistFilter1",group)
+	GUI_NewCheckbox(winName,GetString("filter2"),"gAssistFilter2",group)
+	GUI_NewCheckbox(winName,GetString("filter3"),"gAssistFilter3",group)
+	GUI_NewCheckbox(winName,GetString("filter4"),"gAssistFilter4",group)
+	GUI_NewCheckbox(winName,GetString("filter5"),"gAssistFilter5",group)	
+	GUI_UnFoldGroup(winName,group)
+	ffxivminion.SizeWindow(winName)
+	GUI_WindowVisible(winName, false)
+	
+	gAssistFilter1 = Settings.FFXIVMINION.gAssistFilter1
+	gAssistFilter2 = Settings.FFXIVMINION.gAssistFilter2
+	gAssistFilter3 = Settings.FFXIVMINION.gAssistFilter3
+	gAssistFilter4 = Settings.FFXIVMINION.gAssistFilter4
+	gAssistFilter5 = Settings.FFXIVMINION.gAssistFilter5
+                        
+    gSMactive = "1"
+    gSMnewname = ""
+	--]]
+end
+
+function SkillMgr.Draw( event, ticks ) 
+	local gamestate;
+	if (GetGameState and GetGameState()) then
+		gamestate = GetGameState()
+	else
+		gamestate = 1
+	end
+	
+	-- Switch according to the gamestate
+	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then
+		ml_global_information.InGameOnUpdate( event, tickcount );
+
+		SkillMgr.DrawManager()
+		SkillMgr.DrawSkillBook()
+		--ml_global_information.DrawMacroEditor()
+		--SkillMgr.DrawSkillEditor()
+		--SkillMgr.DrawCraftEditor()
+		--SkillMgr.DrawGatherEditor()
+	end
+end
+
 RegisterEventHandler("Gameloop.Update",SkillMgr.OnGameUpdate)
-RegisterEventHandler("GUI.Item",SkillMgr.ButtonHandler)
-RegisterEventHandler("SkillManager.toggle", SkillMgr.ToggleMenu)
-RegisterEventHandler("GUI.Update",SkillMgr.GUIVarUpdate)
 RegisterEventHandler("Module.Initalize",SkillMgr.ModuleInit)
+--RegisterEventHandler("Gameloop.Draw", SkillMgr.Draw)

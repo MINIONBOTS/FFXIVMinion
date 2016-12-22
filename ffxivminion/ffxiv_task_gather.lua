@@ -1220,7 +1220,7 @@ function c_nodeprebuff:evaluate()
 		return false
 	end
 	
-	if (skillProfile ~= "" and gSMprofile ~= skillProfile) then
+	if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
 		if (SkillMgr.HasProfile(skillProfile)) then
 			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 			SkillMgr.UseProfile(skillProfile)
@@ -2809,7 +2809,7 @@ function ffxiv_task_gather.UIInit()
 	local group = GetString("status")
 	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"")
 	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gSMprofile",group,ffxivminion.Strings.SKMProfiles())
+	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
 	GUI_NewComboBox(winName,GetString("navmesh") ,"FFXIV_Common_NavMesh",group, ffxivminion.Strings.Meshes())
     GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
 	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )

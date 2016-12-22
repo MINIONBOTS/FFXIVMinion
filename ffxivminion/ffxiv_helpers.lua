@@ -5404,6 +5404,13 @@ end
 function InInstance()
 	return Duty:GetQueueStatus() == 4
 end
+function GetVersion()
+	if (GUI_NewWindow) then
+		return 32
+	else
+		return 64
+	end
+end
 function GetConversationList()
 	local controlName;
 	if (IsControlOpen("SelectIconString")) then
