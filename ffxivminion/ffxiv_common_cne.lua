@@ -3265,13 +3265,14 @@ function c_buy:evaluate()
 			end
 			
 			d("Buying item ID ["..tostring(itemid).."].")
+			local itemCount = ItemCount(itemid)
 			Inventory:BuyShopItem(itemid,buyamount)
 			ml_global_information.AwaitSuccessFail(2000, 
-				function () return GetInventoryItemGains(itemid) > 0 end,
+				function () return ItemCount(itemid) > itemCount end,
 				function () c_buy.failedAttempts = 0 end, 
 				function () 
 					c_buy.failedAttempts = c_buy.failedAttempts + 1 
-					if (c_buy.failedAttempts >= 2) then
+					if (c_buy.failedAttempts >= 3) then
 						ml_global_information.buyBlacklist[itemid] = true
 					end
 					d("Failed buy item id ["..tostring(itemid).."], blacklisting item for this session.")
