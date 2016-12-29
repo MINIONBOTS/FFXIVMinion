@@ -360,10 +360,8 @@ function c_syncfatelevel:evaluate()
 	
     local myPos = Player.pos
 	local fateID = ml_task_hub:ThisTask().fateid
-	d("current fateid:"..tostring(fateID))
 	local fate = MGetFateByID(fateID)
 	if ( table.valid(fate)) then
-		d("fate is valid, maxlevel:"..tostring(fate.maxlevel))
 		if (fate.maxlevel < Player.level) then
 		--if (AceLib.API.Fate.RequiresSync(fate.id)) then
 			local distance = Distance2D(myPos.x, myPos.z, fate.x, fate.z)

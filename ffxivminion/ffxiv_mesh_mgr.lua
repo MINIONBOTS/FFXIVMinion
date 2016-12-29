@@ -799,9 +799,9 @@ function ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 					
 					if (IsControlOpen("SelectYesno")) then
 						if (IsControlOpen("_NotificationParty")) then
-							PressYesNo(false)
+							UseControlAction("SelectYesno","No")
 						else
-							PressYesNo(true)
+							UseControlAction("SelectYesno","Yes")
 						end
 						ml_mesh_mgr.OMCThrottle = Now() + 1500
 						return

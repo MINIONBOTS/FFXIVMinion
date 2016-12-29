@@ -1100,7 +1100,7 @@ function ffxiv_task_teleport:task_complete_eval()
 	
 	if (IsControlOpen("SelectYesno")) then
 		--d("select yesno, pressyesno")
-		PressYesNo(true)
+		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return GetHomepoint() == Player.localmapid end)
 		return
 	end

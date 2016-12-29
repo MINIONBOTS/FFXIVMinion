@@ -86,11 +86,11 @@ function ml_global_information.OnUpdate( event, tickcount )
 	end
 	
 	-- Switch according to the gamestate
-	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then
+	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		ml_global_information.InGameOnUpdate( event, tickcount );
-	elseif (gamestate == FFXIV.GAMESTATE.MAINMENUSCREEN ) then
+	elseif (gamestate == FFXIV.GAMESTATE.MAINMENUSCREEN) then
 		ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
-	elseif (gamestate == FFXIV.GAMESTATE.CHARACTERSCREEN ) then
+	elseif (gamestate == FFXIV.GAMESTATE.CHARACTERSCREEN) then
 		ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	elseif (gamestate == FFXIV.GAMESTATE.ERROR) then
 		ml_global_information.ErrorScreenOnUpdate( event, tickcount )
@@ -113,6 +113,14 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	local login = ffxivminion.loginvars
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
+		
+		local serviceAccountList = GetConversationList()
+		if (table.valid(serviceAccountList)) then
+			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
+				ml_global_information.Await(500, 5000, function () return not table.valid(GetConversationList) end)
+			end
+		end
+		
 		if (not IsControlOpen("TitleDataCenter")) then
 			if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
 				ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
@@ -133,6 +141,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 			else
 				if (UseControlAction("TitleDataCenter","Proceed",0)) then
 					ml_global_information.Await(1000, 60000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+					login.datacenterSelected = false
 				end
 			end
 		end	
@@ -428,6 +437,12 @@ function ffxivminion.SetMainVars()
 	if (FFXIV_Login_Server == nil) then 
 		FFXIV_Login_Server = 1
 		FFXIV_Login_ServerName = ""
+	end
+	
+	if ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] ) then
+		FFXIV_Login_ServiceAccount = Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid]
+	else
+		FFXIV_Login_ServiceAccount = ffxivminion.GetSetting("FFXIV_Login_ServiceAccount",1)
 	end
 	
 	if ( Settings.FFXIVMINION.FFXIV_Login_Characters and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] ) then
@@ -1040,7 +1055,7 @@ function ffxivminion.ClearAddons()
 				ffxivminion.declineTimer = Now() + math.random(3000,5000)
 			elseif(Now() > ffxivminion.declineTimer) then
 				if(not ffxivminion.inviteDeclined) then
-					PressYesNo(false)
+					UseControlAction("SelectYesno","No")
 					ffxivminion.inviteDeclined = true
 					ffxivminion.declineTimer = 0
 				end
@@ -1437,7 +1452,7 @@ function ml_global_information.DrawLoginHandler()
 	local gamestate = GetGameState()
 	if (gamestate ~= FFXIV.GAMESTATE.INGAME or ffxivminion.GUI.login.open) then
 		
-		GUI:SetNextWindowSize(300,135,GUI.SetCond_Always) --set the next window size, only on first ever	
+		GUI:SetNextWindowSize(330,145,GUI.SetCond_Always) --set the next window size, only on first ever	
 		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
 		
 		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
@@ -1481,6 +1496,18 @@ function ml_global_information.DrawLoginHandler()
 			else
 				d("no servers valid for this datacenter")
 			end
+			
+			GUI_DrawIntMinMax("Service Account Index (1-n)","FFXIV_Login_ServiceAccount",1,1,1,15,
+				function () 
+					local uuid = GetUUID()
+					if ( string.valid(uuid) ) then
+						if  ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts == nil ) then 
+							Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts = {} 
+						end
+						Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] = FFXIV_Login_ServiceAccount
+					end
+				end 
+			)
 
 			GUI_DrawIntMinMax("Character Index (0-n)","FFXIV_Login_Character",1,1,0,15,
 				function () 

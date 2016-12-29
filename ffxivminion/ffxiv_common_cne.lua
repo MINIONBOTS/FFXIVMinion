@@ -2067,8 +2067,9 @@ function c_flee:evaluate()
 	if ((Player.incombat) and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
 		local ppos = Player.pos
 		
-		if (table.valid(ml_marker_mgr.markerList["evacPoint"])) then
-			local fpos = ml_marker_mgr.markerList["evacPoint"]
+		local evacPoint = GetNearestEvacPoint()
+		if (evacPoint) then
+			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
 				e_flee.fleePos = fpos
 				return true
@@ -2161,7 +2162,7 @@ function e_dead:execute()
 
 	if (Player.revivestate == 2) then
 		-- try raise first
-		if (PressYesNo(true)) then
+		if (UseControlAction("SelectYesno","Yes")) then
 			c_dead.timer = 0
 			ml_global_information.Await(20000, function () return Player.alive end)
 			return
@@ -2557,7 +2558,8 @@ function c_autoequip:evaluate()
 	}
 	
 	for slot,data in pairs(applicableSlots) do
-		if (ffxiv_task_quest.lockedSlots[slot] or IsArmoryFull(slot)) then
+		if (ffxiv_task_quest.lockedSlots[slot]) then
+			--d("isarmoryfull:"..tostring(IsArmoryFull(slot)).." for slot ["..tostring(slot).."] is true")
 			applicableSlots[slot] = nil
 		else
 			applicableSlots[slot] = {}
@@ -2934,9 +2936,9 @@ function c_mapyesno:evaluate()
 end
 function e_mapyesno:execute()
 	if (IsControlOpen("_NotificationParty")) then
-		PressYesNo(false)
+		UseControlAction("SelectYesno","No")
 	else
-		PressYesNo(true)
+		UseControlAction("SelectYesno","Yes")
 	end
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
@@ -2980,36 +2982,55 @@ end
 
 c_buy = inheritsFrom( ml_cause )
 e_buy = inheritsFrom( ml_effect )
+c_buy.failedAttempts = 0
 function c_buy:evaluate()	
 	if (not IsShopWindowOpen()) then
 		return false
 	end
 	
+	if (IsControlOpen("SelectYesno")) then
+		UseControlAction("SelectYesno","Yes")
+		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesno") end)
+		return true
+	end
+	
 	local itemid;
 	local itemtable = ml_task_hub:CurrentTask().itemid
-	if (table.valid(itemtable)) then
+	if (ValidTable(itemtable)) then
 		itemid = itemtable[Player.job] or itemtable[-1]
 	elseif (tonumber(itemtable)) then
 		itemid = tonumber(itemtable)
 	end
 	
 	if (itemid) then
-		e_buy.itemid = tonumber(itemid)
-		return true
-	end
+		if (ml_global_information.buyBlacklist[itemid] == nil) then
 	
-	return false
-end
-function e_buy:execute()
 	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
 	if (buyamount > 99) then
 		buyamount = 99
 	end
 	
-	d("Buying item ID ["..tostring(e_buy.itemid).."].")
+			d("Buying item ID ["..tostring(itemid).."].")
+			local itemCount = ItemCount(itemid)
+			Inventory:BuyShopItem(itemid,buyamount)
+			ml_global_information.AwaitSuccessFail(2000, 
+				function () return ItemCount(itemid) > itemCount end,
+				function () c_buy.failedAttempts = 0 end, 
+				function () 
+					c_buy.failedAttempts = c_buy.failedAttempts + 1 
+					if (c_buy.failedAttempts >= 3) then
+						ml_global_information.buyBlacklist[itemid] = true
+					end
+					d("Failed buy item id ["..tostring(itemid).."], blacklisting item for this session.")
+				end
+			)
+		end
+	end
 	
-	Inventory:BuyShopItem(e_buy.itemid,buyamount)
-	ml_task_hub:CurrentTask():SetDelay(1000)
+	return false
+end
+function e_buy:execute()
+	
 end
 
 c_moveandinteract = inheritsFrom( ml_cause )

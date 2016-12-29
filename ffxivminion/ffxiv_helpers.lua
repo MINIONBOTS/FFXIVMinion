@@ -4309,7 +4309,7 @@ function ItemCount(hqid,inventories)
 end
 function GilCount()
 	local gil = 0
-	local gilItem = GetItemBySlot(0,2000)
+	local gilItem = GetItemBySlot(1,2000)
 	if (gilItem) then
 		gil = gilItem.count
 	end
@@ -4364,7 +4364,7 @@ function IsArmoryFull(slot)
 	if (slot ~= 13) then
 		local bag = Inventory:Get(xref[slot])
 		if (table.valid(bag)) then
-			return bag.free > 0
+			return bag.free <= 0
 		end
 	end
 	return false
