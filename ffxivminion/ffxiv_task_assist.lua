@@ -156,7 +156,7 @@ function ffxiv_task_assist:Process()
 			SkillMgr.Cast( Player, true )
 		end
 	end
-
+	
     if (TableSize(self.process_elements) > 0) then
 		ml_cne_hub.clear_queue()
 		ml_cne_hub.eval_elements(self.process_elements)
@@ -172,7 +172,7 @@ end
 function ffxiv_task_assist:UIInit()
 	FFXIV_Assist_StartCombat = ffxivminion.GetSetting("FFXIV_Assist_StartCombat",true)
 	FFXIV_Assist_ConfirmDuty = ffxivminion.GetSetting("FFXIV_Assist_ConfirmDuty",false)
-	FFXIV_Assist_QuestHelpers = ffxivminion.GetSetting("FFXIV_Assist_QuestHelpers",false)
+	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
 	FFXIV_Assist_AutoFace = ffxivminion.GetSetting("FFXIV_Assist_AutoFace",false)
 	FFXIV_Assist_FollowTarget = ffxivminion.GetSetting("FFXIV_Assist_FollowTarget",false)
 	FFXIV_Assist_TrackTarget = ffxivminion.GetSetting("FFXIV_Assist_TrackTarget",false)
@@ -230,13 +230,13 @@ function ffxiv_task_assist:Draw()
 		GUI_Capture(GUI:Checkbox("Use Autoface",FFXIV_Assist_AutoFace),"FFXIV_Assist_AutoFace");
 		GUI_Capture(GUI:Checkbox(GetString("startCombat"),FFXIV_Assist_StartCombat),"FFXIV_Assist_StartCombat");
 		GUI_Capture(GUI:Checkbox(GetString("confirmDuty"),FFXIV_Assist_ConfirmDuty),"FFXIV_Assist_ConfirmDuty");
-		GUI_Capture(GUI:Checkbox(GetString("questHelpers"),FFXIV_Assist_QuestHelpers),"FFXIV_Assist_QuestHelpers", 
+		GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
 			function ()
 				local message = {
 					[1] = "Quest helpers are beta functionality, and should be used with caution.",
 					[2] = "It is not advisable to use this feature on a main account at this time.",
 				}
-				ffxiv_dialog_manager.IssueNotice("FFXIV_Assist_QuestHelpersNotify", message)
+				ffxiv_dialog_manager.IssueNotice("gQuestHelpersNotify", message)
 			end
 		);
 		
@@ -248,7 +248,7 @@ end
 c_assistyesno = inheritsFrom( ml_cause )
 e_assistyesno = inheritsFrom( ml_effect )
 function c_assistyesno:evaluate()
-	if ((gBotMode == GetString("assistMode") and not FFXIV_Assist_QuestHelpers) or
+	if ((gBotMode == GetString("assistMode") and not gQuestHelpers) or
 		IsControlOpen("_NotificationParty") or
 		IsControlOpen("_NotificationTelepo") or
 		IsControlOpen("_NotificationFcJoin") or
@@ -259,7 +259,7 @@ function c_assistyesno:evaluate()
 	return IsControlOpen("SelectYesno")
 end
 function e_assistyesno:execute()
-	PressYesNo(true)
+	UseControlAction("SelectYesno","Yes")
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end
 

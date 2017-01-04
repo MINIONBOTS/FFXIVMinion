@@ -1220,7 +1220,7 @@ function c_nodeprebuff:evaluate()
 		return false
 	end
 	
-	if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then
+	if (skillProfile ~= "" and gSkillProfile ~= skillProfile and false) then -- fix later
 		if (SkillMgr.HasProfile(skillProfile)) then
 			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 			SkillMgr.UseProfile(skillProfile)
@@ -1406,7 +1406,7 @@ function e_nodeprebuff:execute()
 	if (activity == "usemanual") then
 		local manual = MGetItem(activityitemid)
 		if (manual and manual:IsReady(Player.id)) then
-			manual:Use()
+			manual:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
 			return
 		end
@@ -1415,7 +1415,7 @@ function e_nodeprebuff:execute()
 	if (activity == "usefood") then
 		local food = MGetItem(activityitemid)
 		if (food and food:IsReady(Player.id)) then
-			food:Use()
+			food:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 48) end)
 			return
 		end
@@ -1440,7 +1440,7 @@ function e_nodeprebuff:execute()
 		local favorBuff = favors[activityitemid]
 		local favor = MGetItem(activityitemid)
 		if (favor and favor:IsReady(Player.id)) then
-			favor:Use()
+			favor:Cast(Player.id)
 			ml_global_information.Await(4000, function () return (HasBuff(Player.id, favorBuff)) end)
 			return
 		end
@@ -1449,7 +1449,7 @@ function e_nodeprebuff:execute()
 	if (activity == "usecordial") then
 		local cordial = MGetItem(activityitemid)
 		if (cordial and cordial:IsReady(Player.id)) then
-			cordial:Use()
+			cordial:Cast(Player.id)
 			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
 			return
 		end
@@ -2092,12 +2092,13 @@ function c_gathernexttask:evaluate()
 				c_gathernexttask.subset = validTasks
 				local eTime = AceLib.API.Weather.GetDateTime() 
 				local eMinute = eTime.minute
-				local quarters = { [15] = true, [30] = true, [45] = true, [60] = true }
+				local quarters = { [5] = true, [10] = true, [15] = true, [20] = true, [25] = true, [30] = true, [35] = true, [40] = true, [45] = true, [50] = true, [55] = true, [60] = true }
 				local expirationDelay = 0
 				for quarter,_ in pairs(quarters) do
 					local diff = (quarter - eMinute)
-					if (diff <= 15 and diff > 0) then
+					if (diff <= 5 and diff > 0) then
 						expirationDelay = (diff * 2.92) * 1000
+						d("[Gather]: Setting expiration delay of ["..tostring(expirationDelay).."] ms")
 						break
 					end	
 				end

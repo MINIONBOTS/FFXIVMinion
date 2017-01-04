@@ -1,4 +1,5 @@
 -- Add things to ml_global_information, we no longer create it.	
+--[[
 FFXIV.JOBS = {
 	ADVENTURER = 0,
 	GLADIATOR = 1,
@@ -35,6 +36,7 @@ FFXIV.JOBS = {
 	DARKKNIGHT = 32,
 	ASTROLOGIAN = 33,
 }
+--]]
 
 ml_global_information.path = GetStartupPath()
 ml_global_information.Now = 0
@@ -466,6 +468,25 @@ function IsControlOpen(strControl)
 		end
 	end
 	return false
+end
+
+function GetControlData(strControl,strData)
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,control in pairs(controls) do
+			if (control.name == strControl) then
+				local data = control:GetData()
+				if (table.valid(data)) then
+					for dataid, dataval in pairs(data) do
+						if (dataid == strData) then
+							return dataval
+						end
+					end
+				end
+			end
+		end
+	end
+	return nil
 end
 
 function UseControlAction(strControl,strAction,actionArg)

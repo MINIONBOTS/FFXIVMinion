@@ -7,6 +7,7 @@ ffxivminion.busyTimer = 0
 ffxivminion.declineTimer = 0
 
 ffxivminion.loginvars = {
+	reset = true,
 	loginPaused = false,
 	datacenterSelected = false,
 	serverSelected = false,
@@ -70,6 +71,18 @@ pmemoize = {}
 tasktracking = {}
 setmetatable(tasktracking, { __mode = 'v' })
 
+function ml_global_information.ResetLoginVars()
+	if (not ffxivminion.loginvars.reset) then
+		ffxivminion.loginvars = {
+			reset = true,
+			loginPaused = false,
+			datacenterSelected = false,
+			serverSelected = false,
+			charSelected = false,
+		}
+	end
+end
+
 function ml_global_information.OnUpdate( event, tickcount )
     ml_global_information.Now = tickcount
 	
@@ -87,12 +100,14 @@ function ml_global_information.OnUpdate( event, tickcount )
 	
 	-- Switch according to the gamestate
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
+		ml_global_information.ResetLoginVars()
 		ml_global_information.InGameOnUpdate( event, tickcount );
 	elseif (gamestate == FFXIV.GAMESTATE.MAINMENUSCREEN) then
 		ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	elseif (gamestate == FFXIV.GAMESTATE.CHARACTERSCREEN) then
 		ml_global_information.CharacterSelectScreenOnUpdate( event, tickcount )
 	elseif (gamestate == FFXIV.GAMESTATE.ERROR) then
+		ml_global_information.ResetLoginVars()
 		ml_global_information.ErrorScreenOnUpdate( event, tickcount )
 	end
 end
@@ -430,13 +445,16 @@ function ffxivminion.SetMainVars()
 	
 	if ( Settings.FFXIVMINION.FFXIV_Login_Servers and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] ) then
 		FFXIV_Login_ServerName = Settings.FFXIVMINION.FFXIV_Login_Servers[uuid]
+		--d("pulling login server name for uuid ["..tostring(uuid).."], ["..tostring(FFXIV_Login_ServerName).."]")
 	else
 		FFXIV_Login_ServerName = ffxivminion.GetSetting("FFXIV_Login_ServerName",ffxivminion.loginservers[FFXIV_Login_DataCenter][1])
+		--d("pulling first available login server name ["..tostring(FFXIV_Login_ServerName).."]")
 	end
 	FFXIV_Login_Server = GetKeyByValue(FFXIV_Login_ServerName,ffxivminion.loginservers[FFXIV_Login_DataCenter])
 	if (FFXIV_Login_Server == nil) then 
 		FFXIV_Login_Server = 1
 		FFXIV_Login_ServerName = ""
+		--d("reset server selection to first server.")
 	end
 	
 	if ( Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts and string.valid(uuid) and Settings.FFXIVMINION.FFXIV_Login_ServiceAccounts[uuid] ) then
@@ -514,7 +532,7 @@ function ffxivminion.SetMainVars()
 	gClickTeleport = ffxivminion.GetSetting("gClickTeleport",false)
 	gClickTravel = ffxivminion.GetSetting("gClickTravel",false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing",false)
-	gRepair = ffxivminion.GetSetting("gRepair",false)
+	gRepair = ffxivminion.GetSetting("gRepair",true)
 	gPermaSprint = ffxivminion.GetSetting("gPermaSprint",false)
 	FFXIV_Common_PermaSwift = ffxivminion.GetSetting("FFXIV_Common_PermaSwift",false)
 	gChocoAssist = ffxivminion.GetSetting("gChocoAssist",false)
@@ -1471,13 +1489,18 @@ function ml_global_information.DrawLoginHandler()
 					if  ( Settings.FFXIVMINION.FFXIV_Login_DataCenters == nil ) then 
 						Settings.FFXIVMINION.FFXIV_Login_DataCenters = {} 
 					end
+					--d("set login datacenter to ["..tostring(FFXIV_Login_DataCenterName).."] for UUID ["..tostring(uuid).."]")
 					Settings.FFXIVMINION.FFXIV_Login_DataCenters[uuid] = FFXIV_Login_DataCenterName
+				else
+					--d("uuid not valid")
 				end
 				GUI_Set("FFXIV_Login_Server",1)
 				GUI_Set("FFXIV_Login_ServerName","")
 				if ( string.valid(uuid) ) then
 					Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
 				end
+				
+				ffxivminion.loginvars.datacenterSelected = false
 			end
 			
 			if (table.valid(ffxivminion.loginservers[FFXIV_Login_DataCenter])) then
@@ -1490,11 +1513,14 @@ function ml_global_information.DrawLoginHandler()
 						if  ( Settings.FFXIVMINION.FFXIV_Login_Servers == nil ) then 
 							Settings.FFXIVMINION.FFXIV_Login_Servers = {} 
 						end
+						--d("set login server to ["..tostring(FFXIV_Login_ServerName).."] for UUID ["..tostring(uuid).."]")
 						Settings.FFXIVMINION.FFXIV_Login_Servers[uuid] = FFXIV_Login_ServerName
+					else	
+						--d("uuid not valid")
 					end
+					
+					ffxivminion.loginvars.serverSelected = false
 				end
-			else
-				d("no servers valid for this datacenter")
 			end
 			
 			GUI_DrawIntMinMax("Service Account Index (1-n)","FFXIV_Login_ServiceAccount",1,1,1,15,
@@ -1518,6 +1544,8 @@ function ml_global_information.DrawLoginHandler()
 						end
 						Settings.FFXIVMINION.FFXIV_Login_Characters[uuid] = FFXIV_Login_Character
 					end
+						
+					ffxivminion.loginvars.charSelected = false
 				end 
 			)
 			GUI:PopItemWidth()

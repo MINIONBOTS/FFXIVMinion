@@ -2523,7 +2523,9 @@ function c_autoequip:evaluate()
 		return false
 	end
 	
-	if (true) then
+	-- Check to see if we can get valid data from the game, if not, skip it.
+	local weapon = GetItemBySlot(1,1000)
+	if (not weapon and IsNull(weapon.name,"") == "") then
 		return false
 	end
 	
@@ -2597,19 +2599,19 @@ function c_autoequip:evaluate()
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
 				if (IsNull(data.unequippedItem,0) ~= 0) then
-					ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+					d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 				end
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		end
 	end
@@ -2696,6 +2698,8 @@ function c_autoequip:evaluate()
 				return false
 			end
 			
+			--d("Try to equip item ["..tostring(data.unequippedItem.hqid).."]")
+			
 			e_autoequip.item = data.unequippedItem
 			e_autoequip.bag = 1000
 			e_autoequip.slot = slot
@@ -2706,7 +2710,7 @@ function c_autoequip:evaluate()
 	end
 	
 	if (doPostpone) then
-		c_autoequip.postpone = Now() + 5000
+		c_autoequip.postpone = Now() + 30000
 	end
 	
 	return false
@@ -2715,7 +2719,7 @@ function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (table.valid(item)) then
 		local itemid = item.hqid
-		ml_debug("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		--d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 		ml_global_information.Await(1500, function () return (IsEquipped(itemid)) end)
 	end
@@ -2775,6 +2779,8 @@ function c_returntomap:evaluate()
 		if (CanAccessMap(mapID)) then
 			e_returntomap.mapID = mapID
 			return true
+		else
+			d("can't access map ["..tostring(mapID).."]")
 		end
 	end
 	
@@ -3004,12 +3010,12 @@ function c_buy:evaluate()
 	
 	if (itemid) then
 		if (ml_global_information.buyBlacklist[itemid] == nil) then
-	
-	local buyamount = ml_task_hub:CurrentTask().buyamount or 1
-	if (buyamount > 99) then
-		buyamount = 99
-	end
-	
+		
+			local buyamount = ml_task_hub:CurrentTask().buyamount or 1
+			if (buyamount > 99) then
+				buyamount = 99
+			end
+			
 			d("Buying item ID ["..tostring(itemid).."].")
 			local itemCount = ItemCount(itemid)
 			Inventory:BuyShopItem(itemid,buyamount)

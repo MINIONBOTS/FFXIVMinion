@@ -269,7 +269,6 @@ function ffxiv_task_grind.SetModeOptions()
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	Hacks:SkipCutscene(gSkipCutscene)
-	Hacks:SkipDialogue(gSkipTalk)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = true
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
@@ -307,7 +306,7 @@ function ffxiv_task_grind:UIInit()
 	gGrindDoEscortFates = ffxivminion.GetSetting("gGrindDoEscortFates",true)
 	
 	gFateChainWaitPercent = ffxivminion.GetSetting("gFateChainWaitPercent",0)
-	gFateGatherWaitPercent = ffxivminion.GetSetting("gFateGatherWaitPercent",0)
+	gFateBattleWaitPercent = ffxivminion.GetSetting("gFateBattleWaitPercent",0)
 	gFateBossWaitPercent = ffxivminion.GetSetting("gFateBossWaitPercent",1)
 	gFateGatherWaitPercent = ffxivminion.GetSetting("gFateGatherWaitPercent",0)
 	gFateDefenseWaitPercent = ffxivminion.GetSetting("gFateDefenseWaitPercent",0)
@@ -391,7 +390,7 @@ function ffxiv_task_grind:Draw()
 		GUI_Capture(GUI:Checkbox(GetString("Chain Fates"),gDoChainFates),"gDoChainFates");
 		GUI_DrawIntMinMax(GetString("Chain Fate Wait %"),"gFateChainWaitPercent",1,5,0,99)
 		GUI_Capture(GUI:Checkbox(GetString("Battle Fates"),gGrindDoBattleFates),"gGrindDoBattleFates");
-		GUI_DrawIntMinMax(GetString("Battle Fate Wait %"),"gFateGatherWaitPercent",1,5,0,99)
+		GUI_DrawIntMinMax(GetString("Battle Fate Wait %"),"gFateBattleWaitPercent",1,5,0,99)
 		GUI_Capture(GUI:Checkbox(GetString("Boss Fates"),gGrindDoBossFates),"gGrindDoBossFates");
 		GUI_DrawIntMinMax(GetString("Boss Fate Wait %"),"gFateBossWaitPercent",1,5,0,99)
 		GUI_Capture(GUI:Checkbox(GetString("Gather Fates"),gGrindDoGatherFates),"gGrindDoGatherFates");

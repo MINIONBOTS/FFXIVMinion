@@ -2170,7 +2170,7 @@ function GetApprovedFates()
 			if ((gGrindFatesNoMinLevel or (fate.level >= (level - minFateLevel))) and 
 				(gGrindFatesNoMaxLevel or (fate.level <= (level + maxFateLevel)))) 
 			then
-				if (not (isChain or isPrio) and (fate.type == 0 and gGrindDoBattleFates  and fate.completion >= tonumber(gFateGatherWaitPercent))) then
+				if (not (isChain or isPrio) and (fate.type == 0 and gGrindDoBattleFates  and fate.completion >= tonumber(gFateBattleWaitPercent))) then
 					table.insert(approvedFates,fate)
 				elseif (not (isChain or isPrio) and (fate.type == 1 and gGrindDoBossFates  and fate.completion >= tonumber(gFateBossWaitPercent))) then
 					table.insert(approvedFates,fate)
@@ -2225,8 +2225,7 @@ function GetClosestFate(pos,pathcheck)
 	if (pathcheck == nil) then pathcheck = false end
 	
 	local fateList = GetApprovedFates()
-	if (table.valid(fateList)) then		
-	
+	if (table.valid(fateList)) then	
 		if (pathcheck and not gTeleportHack) then
 			for i=TableSize(fateList),1,-1 do
 				local fate = fateList[i]
@@ -2973,18 +2972,17 @@ function Repair()
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					if (item.condition <= 30) then
-						if (blacklist[item.id] == nil) then
-							blacklist[item.id] = 0
-						end
-						if (blacklist[item.id] < 3) then
-							item:Repair()
-							blacklist[item.id] = blacklist[item.id] + 1
-						end
-					else
+					if (item.condition > 95) then
 						if (blacklist[item.id]) then
 							blacklist[item.id] = nil
 						end
+					end
+					if (blacklist[item.id] == nil) then
+						blacklist[item.id] = 0
+					end
+					if (blacklist[item.id] < 3) then
+						item:Repair()
+						blacklist[item.id] = blacklist[item.id] + 1
 					end
 				end
 			end
@@ -2999,16 +2997,12 @@ function NeedsRepair()
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					if (item.condition <= 30) then
+					if (item.condition <= 50) then
 						if (blacklist[item.id] == nil) then
 							blacklist[item.id] = 0
 						end
 						if (blacklist[item.id] < 3) then
 							return true
-						end
-					else
-						if (blacklist[item.id]) then
-							blacklist[item.id] = nil
 						end
 					end
 				end
