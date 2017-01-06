@@ -777,15 +777,15 @@ function GetLowestMPParty( range, role, includeself )
 	local role = tostring(role) or ""
 	
 	local mpUsers = {
-		[FF.JOBS.GLADIATOR] = true,
-		[FF.JOBS.CONJURER] = true,
-		[FF.JOBS.PALADIN] = true,
-		[FF.JOBS.WHITEMAGE] = true,
-		[FF.JOBS.ARCANIST] = true,
-		[FF.JOBS.SUMMONER] = true,
-		[FF.JOBS.SCHOLAR] = true,
-		[FF.JOBS.DARKKNIGHT] = true,
-		[FF.JOBS.ASTROLOGIAN] = true,
+		[FFXIV.JOBS.GLADIATOR] = true,
+		[FFXIV.JOBS.CONJURER] = true,
+		[FFXIV.JOBS.PALADIN] = true,
+		[FFXIV.JOBS.WHITEMAGE] = true,
+		[FFXIV.JOBS.ARCANIST] = true,
+		[FFXIV.JOBS.SUMMONER] = true,
+		[FFXIV.JOBS.SCHOLAR] = true,
+		[FFXIV.JOBS.DARKKNIGHT] = true,
+		[FFXIV.JOBS.ASTROLOGIAN] = true,
 	}
 	
 	-- DPS, Healer, Tank, Caster
@@ -1127,7 +1127,7 @@ function GetPVPTarget()
                     if (targets[GetString("dps")] ~= nil) then
 						-- keep blackmage as highest prioritized ranged target
 						if (gPrioritizeRanged  and IsRangedDPS(entity.job)) then
-							if (targets[GetString("dps")].job ~= FF.JOBS.BLACKMAGE) then
+							if (targets[GetString("dps")].job ~= FFXIV.JOBS.BLACKMAGE) then
 								targets[GetString("dps")] = entity
 							end
                         end
@@ -1162,7 +1162,7 @@ function GetPVPTarget()
 				
 				if IsCasterDPS(entity.job) then
 					if (targets[GetString("caster")] ~= nil) then
-						if (targets[GetString("caster")].job ~= FF.JOBS.BLACKMAGE) then
+						if (targets[GetString("caster")].job ~= FFXIV.JOBS.BLACKMAGE) then
 							targets[GetString("caster")] = entity
 						end
 					else
@@ -1172,7 +1172,7 @@ function GetPVPTarget()
 				
 				if IsRangedDPS(entity.job) then
 					if (targets[GetString("ranged")] ~= nil) then
-						if (targets[GetString("ranged")].job ~= FF.JOBS.BLACKMAGE) then
+						if (targets[GetString("ranged")].job ~= FFXIV.JOBS.BLACKMAGE) then
 							targets[GetString("ranged")] = entity
 						end
 					else
@@ -1180,9 +1180,9 @@ function GetPVPTarget()
 					end
 				end
 				
-				if (entity.job == FF.JOBS.BLACKMAGE or entity.job == FF.JOBS.WHITEMAGE) then
+				if (entity.job == FFXIV.JOBS.BLACKMAGE or entity.job == FFXIV.JOBS.WHITEMAGE) then
 					if (targets[GetString("sleeper")] ~= nil) then
-						if (targets[GetString("sleeper")].job ~= FF.JOBS.BLACKMAGE) then
+						if (targets[GetString("sleeper")].job ~= FFXIV.JOBS.BLACKMAGE) then
 							targets[GetString("sleeper")] = entity
 						end
 					else
@@ -1464,7 +1464,7 @@ function GetNearestUnspoiled(class)
 	--Mining Node = 5
 	--Mature Tree = 7
 	--Vegetation = 8
-	local contentID = (class == FF.JOBS.MINER) and "5;6" or "7;8"
+	local contentID = (class == FFXIV.JOBS.MINER) and "5;6" or "7;8"
     local el = MEntityList("nearest,onmesh,gatherable,contentid="..tostring(contentID))
     
     if ( el ) then
@@ -2299,6 +2299,7 @@ function GetClosestFate(pos,pathcheck)
 							--local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
 							--if (p and dist <= 20) then
 								table.insert(validFates,fate)
+								--d("Added 1 normal priority fate.")
 								--d("Added 1 normal fate.")
 							--end
 						end
@@ -2325,8 +2326,6 @@ function GetClosestFate(pos,pathcheck)
 			--d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
             return nearestFate
         end
-	else
-		d("no approved fates")
     end
     
     return nil
@@ -3193,34 +3192,34 @@ end
 --===========================
 function GetRoleString(jobID)
     if 
-        jobID == FF.JOBS.ARCANIST or
-        jobID == FF.JOBS.ARCHER or
-        jobID == FF.JOBS.BARD or
-        jobID == FF.JOBS.BLACKMAGE or
-        jobID == FF.JOBS.DRAGOON or
-        jobID == FF.JOBS.LANCER or
-        jobID == FF.JOBS.MONK or
-        jobID == FF.JOBS.PUGILIST or
-        jobID == FF.JOBS.SUMMONER or
-        jobID == FF.JOBS.THAUMATURGE or
-		jobID == FF.JOBS.ROGUE or
-		jobID == FF.JOBS.NINJA or
-		jobID == FF.JOBS.MACHINIST
+        jobID == FFXIV.JOBS.ARCANIST or
+        jobID == FFXIV.JOBS.ARCHER or
+        jobID == FFXIV.JOBS.BARD or
+        jobID == FFXIV.JOBS.BLACKMAGE or
+        jobID == FFXIV.JOBS.DRAGOON or
+        jobID == FFXIV.JOBS.LANCER or
+        jobID == FFXIV.JOBS.MONK or
+        jobID == FFXIV.JOBS.PUGILIST or
+        jobID == FFXIV.JOBS.SUMMONER or
+        jobID == FFXIV.JOBS.THAUMATURGE or
+		jobID == FFXIV.JOBS.ROGUE or
+		jobID == FFXIV.JOBS.NINJA or
+		jobID == FFXIV.JOBS.MACHINIST
     then
         return GetString("dps")
     elseif
-        jobID == FF.JOBS.CONJURER or
-        jobID == FF.JOBS.SCHOLAR or
-        jobID == FF.JOBS.WHITEMAGE or
-		jobID == FF.JOBS.ASTROLOGIAN
+        jobID == FFXIV.JOBS.CONJURER or
+        jobID == FFXIV.JOBS.SCHOLAR or
+        jobID == FFXIV.JOBS.WHITEMAGE or
+		jobID == FFXIV.JOBS.ASTROLOGIAN
     then
         return GetString("healer")
     elseif 
-        jobID == FF.JOBS.GLADIATOR or
-        jobID == FF.JOBS.MARAUDER or
-        jobID == FF.JOBS.PALADIN or
-        jobID == FF.JOBS.WARRIOR or 
-		jobID == FF.JOBS.DARKKNIGHT
+        jobID == FFXIV.JOBS.GLADIATOR or
+        jobID == FFXIV.JOBS.MARAUDER or
+        jobID == FFXIV.JOBS.PALADIN or
+        jobID == FFXIV.JOBS.WARRIOR or 
+		jobID == FFXIV.JOBS.DARKKNIGHT
     then
         return GetString("tank")
     end
@@ -3228,127 +3227,179 @@ end
 function GetRoleTable(rolestring)
 	if (rolestring == "DPS") then
 		return {
-			[FF.JOBS.ARCHER] = true,
-			[FF.JOBS.BARD] = true,
-			[FF.JOBS.BLACKMAGE] = true,
-			[FF.JOBS.DRAGOON] = true,
-			[FF.JOBS.LANCER] = true,
-			[FF.JOBS.MONK] = true,
-			[FF.JOBS.PUGILIST] = true,
-			[FF.JOBS.ROGUE] = true,
-			[FF.JOBS.NINJA] = true,
-			[FF.JOBS.MACHINIST] = true,
+			[FFXIV.JOBS.ARCHER] = true,
+			[FFXIV.JOBS.BARD] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.DRAGOON] = true,
+			[FFXIV.JOBS.LANCER] = true,
+			[FFXIV.JOBS.MONK] = true,
+			[FFXIV.JOBS.PUGILIST] = true,
+			[FFXIV.JOBS.ROGUE] = true,
+			[FFXIV.JOBS.NINJA] = true,
+			[FFXIV.JOBS.MACHINIST] = true,
 		}
 	elseif (rolestring == "Healer") then
 		return {
-			[FF.JOBS.CONJURER] = true,
-			[FF.JOBS.SCHOLAR] = true,
-			[FF.JOBS.WHITEMAGE] = true,
-			[FF.JOBS.ASTROLOGIAN] = true,
+			[FFXIV.JOBS.CONJURER] = true,
+			[FFXIV.JOBS.SCHOLAR] = true,
+			[FFXIV.JOBS.WHITEMAGE] = true,
+			[FFXIV.JOBS.ASTROLOGIAN] = true,
 		}
 	elseif (rolestring == "Tank") then
 		return {
-			[FF.JOBS.GLADIATOR] = true,
-			[FF.JOBS.MARAUDER] = true,
-			[FF.JOBS.PALADIN] = true,
-			[FF.JOBS.WARRIOR] = true,
-			[FF.JOBS.DARKKNIGHT] = true,
+			[FFXIV.JOBS.GLADIATOR] = true,
+			[FFXIV.JOBS.MARAUDER] = true,
+			[FFXIV.JOBS.PALADIN] = true,
+			[FFXIV.JOBS.WARRIOR] = true,
+			[FFXIV.JOBS.DARKKNIGHT] = true,
 		}
 	elseif (rolestring == "Caster") then
 		return {
-			[FF.JOBS.ARCANIST] = true,
-			[FF.JOBS.BLACKMAGE] = true,
-			[FF.JOBS.SUMMONER] = true,
-			[FF.JOBS.THAUMATURGE] = true,
-			[FF.JOBS.WHITEMAGE] = true,
-			[FF.JOBS.CONJURER] = true,
-			[FF.JOBS.SCHOLAR] = true,
-			[FF.JOBS.ASTROLOGIAN] = true,
+			[FFXIV.JOBS.ARCANIST] = true,
+			[FFXIV.JOBS.BLACKMAGE] = true,
+			[FFXIV.JOBS.SUMMONER] = true,
+			[FFXIV.JOBS.THAUMATURGE] = true,
+			[FFXIV.JOBS.WHITEMAGE] = true,
+			[FFXIV.JOBS.CONJURER] = true,
+			[FFXIV.JOBS.SCHOLAR] = true,
+			[FFXIV.JOBS.ASTROLOGIAN] = true,
 		}
 	end
 	return nil
 end
-function IsMeleeDPS(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.MONK or
-			jobID == FF.JOBS.PUGILIST or
-			jobID == FF.JOBS.DRAGOON or
-			jobID == FF.JOBS.LANCER or
-			jobID == FF.JOBS.ROGUE or
-			jobID == FF.JOBS.NINJA
-end
-function IsRangedDPS(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.ARCANIST or
-			jobID == FF.JOBS.ARCHER or
-			jobID == FF.JOBS.BARD or
-			jobID == FF.JOBS.BLACKMAGE or
-			jobID == FF.JOBS.SUMMONER or
-			jobID == FF.JOBS.THAUMATURGE or
-			jobID == FF.JOBS.MACHINIST
-end
-function IsRanged(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.ARCANIST or
-			jobID == FF.JOBS.ARCHER or
-			jobID == FF.JOBS.BARD or
-			jobID == FF.JOBS.BLACKMAGE or
-			jobID == FF.JOBS.SUMMONER or
-			jobID == FF.JOBS.THAUMATURGE or
-			jobID == FF.JOBS.CONJURER or
-			jobID == FF.JOBS.SCHOLAR or
-			jobID == FF.JOBS.WHITEMAGE or
-			jobID == FF.JOBS.ASTROLOGIAN or
-			jobID == FF.JOBS.MACHINIST
-end
-function IsPhysicalDPS(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.MONK or
-			jobID == FF.JOBS.PUGILIST or
-			jobID == FF.JOBS.DRAGOON or
-			jobID == FF.JOBS.LANCER or
-			jobID == FF.JOBS.ROGUE or
-			jobID == FF.JOBS.NINJA or 
-			jobID == FF.JOBS.ARCHER or
-			jobID == FF.JOBS.BARD or
-			jobID == FF.JOBS.MACHINIST
-end
-function IsCasterDPS(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.ARCANIST or
-			jobID == FF.JOBS.BLACKMAGE or
-			jobID == FF.JOBS.SUMMONER or
-			jobID == FF.JOBS.THAUMATURGE
-end
-function IsCaster(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.ARCANIST or
-			jobID == FF.JOBS.BLACKMAGE or
-			jobID == FF.JOBS.SUMMONER or
-			jobID == FF.JOBS.THAUMATURGE or
-			jobID == FF.JOBS.WHITEMAGE or
-			jobID == FF.JOBS.CONJURER or
-			jobID == FF.JOBS.SCHOLAR or 
-			jobID == FF.JOBS.ASTROLOGIAN
-end
-function IsHealer(jobID)
-	local jobID = tonumber(jobID)
-	return 	jobID == FF.JOBS.WHITEMAGE or
-			jobID == FF.JOBS.CONJURER or
-			jobID == FF.JOBS.SCHOLAR or 
-			jobID == FF.JOBS.ASTROLOGIAN
-end
-function IsTank(jobID)
-	local jobID = tonumber(jobID)
-	local tanks = {
-		[FF.JOBS.GLADIATOR] = true,
-		[FF.JOBS.MARAUDER] = true,
-		[FF.JOBS.PALADIN] = true,
-		[FF.JOBS.WARRIOR] = true,
-		[FF.JOBS.DARKKNIGHT] = true,
-	}
+function IsMeleeDPS(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
 	
-	return tanks[jobID]
+	return 	(jobid == FFXIV.JOBS.MONK or
+			jobid == FFXIV.JOBS.PUGILIST or
+			jobid == FFXIV.JOBS.DRAGOON or
+			jobid == FFXIV.JOBS.LANCER or
+			jobid == FFXIV.JOBS.ROGUE or
+			jobid == FFXIV.JOBS.NINJA)
+end
+function IsRangedDPS(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+	
+	return 	(jobid == FFXIV.JOBS.ARCANIST or
+			jobid == FFXIV.JOBS.ARCHER or
+			jobid == FFXIV.JOBS.BARD or
+			jobid == FFXIV.JOBS.BLACKMAGE or
+			jobid == FFXIV.JOBS.SUMMONER or
+			jobid == FFXIV.JOBS.THAUMATURGE or
+			jobid == FFXIV.JOBS.MACHINIST)
+end
+function IsRanged(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+	
+	return 	(jobid == FFXIV.JOBS.ARCANIST or
+			jobid == FFXIV.JOBS.ARCHER or
+			jobid == FFXIV.JOBS.BARD or
+			jobid == FFXIV.JOBS.BLACKMAGE or
+			jobid == FFXIV.JOBS.SUMMONER or
+			jobid == FFXIV.JOBS.THAUMATURGE or
+			jobid == FFXIV.JOBS.CONJURER or
+			jobid == FFXIV.JOBS.SCHOLAR or
+			jobid == FFXIV.JOBS.WHITEMAGE or
+			jobid == FFXIV.JOBS.ASTROLOGIAN or
+			jobid == FFXIV.JOBS.MACHINIST)
+end
+function IsPhysicalDPS(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+
+	return 	(jobid == FFXIV.JOBS.MONK or
+			jobid == FFXIV.JOBS.PUGILIST or
+			jobid == FFXIV.JOBS.DRAGOON or
+			jobid == FFXIV.JOBS.LANCER or
+			jobid == FFXIV.JOBS.ROGUE or
+			jobid == FFXIV.JOBS.NINJA or 
+			jobid == FFXIV.JOBS.ARCHER or
+			jobid == FFXIV.JOBS.BARD or
+			jobid == FFXIV.JOBS.MACHINIST)
+end
+function IsCasterDPS(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+
+	return 	(jobid == FFXIV.JOBS.ARCANIST or
+			jobid == FFXIV.JOBS.BLACKMAGE or
+			jobid == FFXIV.JOBS.SUMMONER or
+			jobid == FFXIV.JOBS.THAUMATURGE)
+end
+function IsCaster(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+
+	return 	(jobid == FFXIV.JOBS.ARCANIST or
+			jobid == FFXIV.JOBS.BLACKMAGE or
+			jobid == FFXIV.JOBS.SUMMONER or
+			jobid == FFXIV.JOBS.THAUMATURGE or
+			jobid == FFXIV.JOBS.WHITEMAGE or
+			jobid == FFXIV.JOBS.CONJURER or
+			jobid == FFXIV.JOBS.SCHOLAR or 
+			jobid == FFXIV.JOBS.ASTROLOGIAN)
+end
+function IsHealer(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+
+	return 	(jobid == FFXIV.JOBS.WHITEMAGE or
+			jobid == FFXIV.JOBS.CONJURER or
+			jobid == FFXIV.JOBS.SCHOLAR or 
+			jobid == FFXIV.JOBS.ASTROLOGIAN)
+end
+function IsTank(var)
+	local var = IsNull(var,Player)
+	local jobid;
+	if (type(var) == "table") then
+		jobid = var.job or 0
+	elseif (type(var) == "number") then
+		jobid = var
+	end
+	
+	return (jobid == FFXIV.JOBS.GLADIATOR or
+		jobid == FFXIV.JOBS.MARAUDER or
+		jobid == FFXIV.JOBS.PALADIN or
+		jobid == FFXIV.JOBS.WARRIOR or
+		jobid == FFXIV.JOBS.DARKKNIGHT)
 end
 function IsGatherer(jobID)
 	local jobID = tonumber(jobID)
@@ -4289,7 +4340,7 @@ function ItemCount(hqid,inventories)
 					local ilist = bag:GetList()
 					if (table.valid(ilist)) then
 						for slot,item in pairs(ilist) do
-							if (item.hqid == itemid) then
+							if (item.hqid == hqid) then
 								itemcount = itemcount + item.count
 							end
 						end
@@ -4299,7 +4350,7 @@ function ItemCount(hqid,inventories)
 		end
 	end
 	
-	return 0
+	return itemcount
 end
 function GilCount()
 	local gil = 0
@@ -4684,9 +4735,9 @@ function CanAccessMap(mapid)
 			
 			local attunedAetherytes = GetAttunedAetheryteList()
 			for k,aetheryte in pairs(attunedAetherytes) do
-				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
+				d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
-					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
+					d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -5420,6 +5471,20 @@ function GetConversationList()
 		end
 	end
 	return nil
+end
+function SelectConversationIndexOld(index)
+	local index = IsNull(index,0)
+	local controlName;
+	if (IsControlOpen("SelectIconString")) then
+		controlName = "SelectIconString"
+	elseif (IsControlOpen("SelectString")) then
+		controlName = "SelectString"
+	end
+	
+	if (controlName) then
+		return UseControlAction(controlName,"SelectIndex",index-1)
+	end
+	return false
 end
 function SelectConversationIndex(index)
 	local index = IsNull(index,0)
