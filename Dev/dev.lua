@@ -149,7 +149,7 @@ function dev.DrawCall(event, ticks )
 								local actionlist = ActionList:Get(actiontype) 	-- ALTERNATIVE:  ActionList:Get(actiontype, skillID) , to get the single action back
 								if (table.valid(actionlist)) then
 									for actionid, action in pairs(actionlist) do
-										if (not gDevFilterActions or (action.job == Player.job or (dev.job_class[Player.job] and action.job == dev.job_class[Player.job]))) then
+										if (not gDevFilterActions or (action.usable)) then
 											--local action = ActionList:Get(actiontype,actionid)
 											if ( GUI:TreeNode(tostring(actionid).." - "..action.name)) then --rather slow making 6000+ names :D
 											--if ( GUI:TreeNode(tostring(actionid).." - ")) then
@@ -170,9 +170,9 @@ function dev.DrawCall(event, ticks )
 												GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac15"..tostring(actionid),tostring(action.iscasting))
 												GUI:BulletText("ComboSpellID") GUI:SameLine(200) GUI:InputText("##devac16"..tostring(actionid),tostring(action.combospellid))
 												GUI:BulletText("IsGroundTargeted") GUI:SameLine(200) GUI:InputText("##devac17"..tostring(actionid),tostring(action.isgroundtargeted))
-												
 												GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
 												GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
+												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
 												local tar = Player:GetTarget()
 												if ( tar ) then
 													GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
@@ -217,6 +217,7 @@ function dev.DrawCall(event, ticks )
 								GUI:BulletText(".isattuned") GUI:SameLine(200) GUI:InputText("##devae6"..tostring(id),tostring(e.isattuned))
 								GUI:BulletText(".isfavpoint") GUI:SameLine(200) GUI:InputText("##devae7"..tostring(id),tostring(e.isfavpoint))
 								GUI:BulletText(".price") GUI:SameLine(200) GUI:InputText("##devae8"..tostring(id),tostring(e.price))
+								GUI:BulletText(".territory") GUI:SameLine(200) GUI:InputText("##devae9"..tostring(id),tostring(e.territory))
 								if (GUI:Button("Teleport##"..tostring(id),50,15) ) then d("Teleport Result: "..tostring(Player:Teleport(e.id))) end
 								GUI:TreePop()
 							end
