@@ -3036,18 +3036,22 @@ function Repair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
 		local eq = MInventory("type=1000")
-		for i,e in pairs(eq) do
-			if (e.condition > 95) then
-				if (blacklist[e.id]) then
-					blacklist[e.id] = nil
+		if (table.valid(eq)) then
+			for i,e in pairs(eq) do
+				if (e.condition > 95) then
+					if (blacklist[e.id]) then
+						blacklist[e.id] = nil
+					end
 				end
-			end
-			if (blacklist[e.id] == nil) then
-				blacklist[e.id] = 0
-			end
-			if (blacklist[e.id] < 3) then
-				e:Repair()
-				blacklist[e.id] = blacklist[e.id] + 1
+				if (e.condition <= 75) then
+					if (blacklist[e.id] == nil) then
+						blacklist[e.id] = 0
+					end
+					if (blacklist[e.id] < 3) then
+						e:Repair()
+						blacklist[e.id] = blacklist[e.id] + 1
+					end
+				end
 			end
 		end
 	end
@@ -3056,16 +3060,27 @@ function NeedsRepair()
 	if (gRepair == "1") then
 		local blacklist = ml_global_information.repairBlacklist
 		local eq = MInventory("type=1000")
-		for i,e in pairs(eq) do
-			if (e.condition <= 50) then
-				if (blacklist[e.id] == nil) then
-					blacklist[e.id] = 0
-				end
-				if (blacklist[e.id] < 3) then
-					return true
+		if (table.valid(eq)) then
+			for i,e in pairs(eq) do
+				if (e.condition <= 75) then
+					--d("Found some low condition gear.")
+					if (blacklist[e.id] == nil) then
+						--d("Set blacklist for ["..tostring(e.id).."] to initial state.")
+						blacklist[e.id] = 0
+					end
+					if (blacklist[e.id] < 3) then
+						--d("Trigger repair sequence.")
+						return true
+					else
+						--d("Couldn't repair item, attempted repair ["..tostring(blacklist[e.id]).."] times.")
+					end
 				end
 			end
+		else
+			--d("Can't repair, couldn't find any equipped inventory.")
 		end
+	else
+		--d("Can't repair, option is off.")
 	end
 	return false
 end
