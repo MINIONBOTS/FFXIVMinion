@@ -129,12 +129,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
 		
-		local serviceAccountList = GetConversationList()
-		if (table.valid(serviceAccountList)) then
-			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
-				ml_global_information.Await(500, 5000, function () return not table.valid(GetConversationList) end)
-			end
-		end
+		
 		
 		if (not IsControlOpen("TitleDataCenter")) then
 			if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
@@ -155,11 +150,18 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 				end
 			else
 				if (UseControlAction("TitleDataCenter","Proceed",0)) then
-					ml_global_information.Await(1000, 60000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+					ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
 					login.datacenterSelected = false
 				end
 			end
 		end	
+		
+		local serviceAccountList = GetConversationList()
+		if (table.valid(serviceAccountList)) then
+			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
+				ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+			end
+		end
 	end
 end
 
@@ -234,7 +236,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
-			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+			--ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			
 			local currentFile = NavigationManager.CurrentFile
 			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
@@ -1523,7 +1525,7 @@ function ml_global_information.DrawLoginHandler()
 				end
 			end
 			
-			GUI_DrawIntMinMax("Service Account Index (1-n)","FFXIV_Login_ServiceAccount",1,1,1,15,
+			GUI_DrawIntMinMax("Service Account Index (0-n)","FFXIV_Login_ServiceAccount",1,1,0,15,
 				function () 
 					local uuid = GetUUID()
 					if ( string.valid(uuid) ) then
