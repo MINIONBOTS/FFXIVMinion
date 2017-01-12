@@ -1,32 +1,532 @@
 -- Extends minionlib's ml_navigation.lua by adding the game specific navigation handler
-ffnav = {}
-ffnav.lastTick = 0
-ffnav.lastPitchTick = 0
-ffnav.lastPathTick = 0
-ffnav.lastPathDistance = 0
-ffnav.newPathThrottle = 1000
-ffnav.currentPath = {}
-ffnav.renderPath = {}
-ffnav.currentPathIndex = 0
-ffnav.currentPathGoal = {}
-ffnav.currentPathEntity = 0
-ffnav.currentPathType = ""
-ffnav.showNavPath = true
-ffnav.pathRenderObject = nil
-ffnav.pathRenderObject2 = nil
-ffnav.pathRenderObject3 = nil
-ffnav.pathRenderObject4 = nil
-ffnav.pathRenderObject5 = nil
-ffnav.nodedist = {
-	["3dwalk"] = 2,
+
+--*** ALL 4 LISTS BELOW ARE USED / MODIFY-ABLE IN THE NAVIGATION->MESHMANAGER MINIONLIB UI
+-- Distance to the next node in the path at which the ml_navigation.pathindex is iterated 
+ml_navigation.NavPointReachedDistances = { 	
+	["3dwalk"] = 2,		
 	["2dwalk"] = 0.3,
 	["3dmount"] = 5,
-	["2dmount"] = 0.4,
+	["2dmount"] = 0.5,
+	["3dfly"] = 5,
+	["2dfly"] = 1,
+	["3dflysc"] = 5,
+	["2dflysc"] = 3,	
+}
+-- Distance to the next node in the path, in case it is an OffMeshConnection, at which the ml_navigation.pathindex is iterated 
+ml_navigation.OMCReachedDistances = { 			
+	["3dwalk"] = 2,		
+	["2dwalk"] = 0.3,
+	["3dmount"] = 5,
+	["2dmount"] = 0.5,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
 	["3dflysc"] = 5,
 	["2dflysc"] = 3,
+} 
+-- We have a path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
+ml_navigation.NewPathDistanceThresholds = { 	
+	["3dwalk"] = 0.1,		
+	["2dwalk"] = 0.1,
+	["3dmount"] = 0.1,
+	["2dmount"] = 0.1,
+	["3dfly"] = 0.1,
+	["2dfly"] = 0.1,
+	["3dflysc"] = 0.1,
+	["2dflysc"] = 0.1,
 }
+-- The max. distance the playerposition can be away from the current path. (The Point-Line distance between player and the last & next pathnode)
+ml_navigation.PathDeviationDistances = { 		
+	["3dwalk"] = 3,		
+	["2dwalk"] = 2,
+	["3dmount"] = 3,
+	["2dmount"] = 2,
+	["3dfly"] = 3,
+	["2dfly"] = 2,
+	["3dflysc"] = 3,
+	["2dflysc"] = 2,
+}	
+
+-- Return the EXACT NAMES you used above in the 4 tables for movement type keys
+ml_navigation.GetMovementType = function() 
+	if ( not Player.ismounted ) then 
+		return "2dwalk" 
+	elseif ( Player.flying.isflying ) then
+		return "3dmount"
+	else
+		return "2dmount"
+	end
+end		
+ml_navigation.CanRun = function() return GetGameState() == FFXIV.GAMESTATE.INGAME end 			-- Return true here, if the current GameState is "ingame" aka Player and such values are available
+ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
+ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
+ml_navigation.avoidanceareasize = 2
+
+
+
+-- Tries to use RayCast to determine the exact floor height from Player and Node, and uses that to calculate the correct distance.
+function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
+	local dist = math.distance3d(ppos,nodepos)
+	local dist2d = math.distance2d(ppos,nodepos)
+	if ( not IsFlying() ) then
+		-- Raycast from "top to bottom" @PlayerPos and @NodePos	
+		local P_hit, P_hitx, P_hity, P_hitz = RayCast(ppos.x,ppos.y+3,ppos.z,ppos.x,ppos.y-3,ppos.z) 
+		--d("nodepos:"..tostring(nodepos))
+		local N_hit, N_hitx, N_hity, N_hitz = RayCast(nodepos.x,nodepos.y+3,nodepos.z,nodepos.x,nodepos.y-3,nodepos.z) 
+
+		if (P_hit and N_hit ) then 
+			local raydist = math.distance3d(P_hitx, P_hity, P_hitz , N_hitx, N_hity, N_hitz)
+			local raydist2d = math.distance2d(P_hitx, P_hitz , N_hitx, N_hitz)
+			if (raydist < dist) then 
+				dist = raydist
+			end
+			if (raydist2d < dist2d) then
+				dist2d = raydist2d
+			end
+		end
+	end
+	return dist,dist2d
+end
+
+-- Often  used function to determine if the next node in the path is reached
+function ml_navigation:IsGoalClose(ppos,node)
+	local goaldist,goaldist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,node)
+	if (not Player.ismounted) then
+		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+			return true
+		end
+	else
+		if (Player.flying.isflying) then
+			--d("currentPathIndex:"..tostring(ml_navigation.currentPathIndex))
+			--d("checking flying dist")
+			--d("index:"..tostring(ml_navigation.currentPathIndex)..",goaldist:"..tostring(goaldist)..", goaldist2d:"..tostring(goaldist2d)..",from [ "..tostring(math.round(Player.pos.x,2)).." / "..tostring(math.round(Player.pos.y,2)).." / "..tostring(math.round(Player.pos.z,2)).."] - to - [".. tostring(math.round(goal.x,2)).. " / "..tostring(math.round(goal.y,2)).." / "..tostring(math.round(goal.z,2)).."]")
+			if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
+				return true
+			end
+		else
+			if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+
+-- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
+function Player:MoveTo(x, y, z, navpointreacheddistance, navigationmode, randomnodes, smoothturns)
+		-- ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance, newpathdistancetreshold, pathdeviationdistance)	
+		return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance)
+end
+
+-- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
+function Player:Stop()
+	ml_navigation:ResetCurrentPath()
+	ml_navigation:ResetOMCHandler()
+	ffnav.yield = {}
+	ffnav.process = {}
+	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
+end
+
+-- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
+-- Also handles OMCs
+function ml_navigation.Navigate(event, ticks )	
+	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
+		ml_navigation.lastupdate = ticks
+				
+		if ( ml_navigation.CanRun() ) then				
+			local ppos = Player.pos
+			
+			-- Normal Navigation Mode
+			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
+				
+				if ( table.valid(ml_navigation.path) and table.size(ml_navigation.path) > ml_navigation.pathindex ) then					
+					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
+			
+			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise OMC bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
+					if ( table.valid (ml_navigation.ensureposition) and ml_navigation:EnsurePosition() ) then						
+						return
+					end
+					
+		-- OffMeshConnection Navigation
+					if (nextnode.type == "OMC_END") then
+						if ( nextnode.id == nil ) then ml_error("[Navigation] - No OffMeshConnection ID received!") return end
+						local omc = ml_mesh_mgr.offmeshconnections[nextnode.id]
+						if( not omc ) then ml_error("[Navigation] - No OffMeshConnection Data found for ID: "..tostring(nextnode.id)) return end
+							
+						-- A general check, for the case that the player never reaches either OMC END
+						if ( not ml_navigation.omc_id or ml_navigation.omc_id ~= nextnode.id ) then	-- Update the currently tracked omc_id and variables
+							ml_navigation.omc_id = nextnode.id
+							ml_navigation.omc_traveltimer = ticks
+							ml_navigation.omc_traveldist = math.distance3d(ppos,nextnode)
+							
+						else	-- We are still pursuing the same omc, check if we are getting closer over time
+							local timepassed = ticks - ml_navigation.omc_traveltimer
+							if ( timepassed < 3000) then 
+								local dist = math.distance3d(ppos,nextnode)
+								if ( timepassed > 2000 and ml_navigation.omc_traveldist > dist) then
+									ml_navigation.omc_traveldist = dist
+									ml_navigation.omc_traveltimer = ticks
+								end
+							else
+								d("[Navigation] - Not getting closer to OMC END node. We are most likely stuck.")
+								ml_navigation.StopMovement()
+								return
+							end								
+						end
+							
+						-- Max Timer Check in case something unexpected happened
+						if ( ml_navigation.omc_starttimer ~= 0 and ticks - ml_navigation.omc_starttimer > 10000 ) then
+							d("[Navigation] - Could not read OMC END in ~10 seconds, something went wrong..")
+							ml_navigation.StopMovement()
+							return
+						end
+								
+						-- OMC Handling by Type
+						if ( omc.type == 1 ) then
+							-- OMC JUMP
+							
+							if ( Player:IsJumping()) then
+								if ( not ml_navigation.omc_startheight ) then ml_navigation.omc_startheight = ppos.y end
+								-- Additionally check if we are "above" the target point already, in that case, stop moving forward
+								local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
+								if ( nodedist < ml_navigation.NavPointReachedDistances["2dwalk"] or (ppos.y > nextnode.y and math.distance2d(ppos,nextnode) < ml_navigation.NavPointReachedDistances["2dwalk"]) ) then
+									d("[Navigation] - We are above the OMC_END Node, stopping movement. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances["2dwalk"])..")")
+									Player:StopMovement()
+									if ( omc.precise == nil or omc.precise == true  ) then
+										ml_navigation:SetEnsurePosition(nextnode)
+									end
+									
+								-- If Playerheight is lower than 4*omcreached dist AND Playerheight is lower than 4* our Startposition -> we fell below the OMC START & END Point
+								elseif( ( ppos.y+ 4*ml_navigation.NavPointReachedDistances["2dwalk"]) < (nextnode.y) and ( ppos.y + 4*ml_navigation.NavPointReachedDistances["2dwalk"]) <  ml_navigation.omc_startheight) then
+									if ( ml_navigation.omcteleportallowed and math.distance3d(ppos,nextnode) < ml_navigation.NavPointReachedDistances["2dwalk"]*10) then										
+										d("SetEnsurePosition JUMP ")
+										ml_navigation:SetEnsurePosition(nextnode) 
+									else
+										d("[Navigation] - We felt below the OMC start & END height, missed our goal...")
+										ml_navigation.StopMovement()
+									end
+								
+								else
+									Player:Move(FFXIV.MOVEMENT.FORWARD)
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- doesnt do shit afaik, since you cannot steer once in the air..
+								end
+							
+							else	 
+								-- We are still before our Jump
+								if ( not ml_navigation.omc_startheight ) then
+									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+									if ( anglediff > 0.3 ) then
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+										
+									elseif ( ml_navigation.omc_starttimer == 0 ) then
+										ml_navigation.omc_starttimer = ticks										
+										Player:Move(FFXIV.MOVEMENT.FORWARD)
+										
+									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then										
+										Player:Jump()
+									end
+									
+								else
+									
+									d("-- We are after the Jump and landed already")
+									local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
+									if ( nodedist < ml_navigation.NavPointReachedDistances["2dwalk"]) then
+										d("[Navigation] - We reached the OMC END Node. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances["2dwalk"])..")")
+										if ( omc.precise == nil or omc.precise == true ) then
+											ml_navigation:SetEnsurePosition(nextnode)
+										end
+										ml_navigation.pathindex = ml_navigation.pathindex + 1
+									else									
+										Player:Move(FFXIV.MOVEMENT.FORWARD)
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									end
+								end
+							end								
+									
+						elseif ( omc.type == 2 ) then
+						-- OMC Walk
+							ml_navigation:NavigateToNode(ppos,nextnode,1000)
+										
+						elseif ( omc.type == 3 ) then
+						-- OMC Teleport
+							Hacks:TeleportToXYZ(nextnode.x,nextnode.y,nextnode.z)
+							ml_navigation.pathindex = ml_navigation.pathindex + 1
+							
+						elseif ( omc.type == 4 ) then
+						-- OMC Interact  I AM SO UNSURE IF THAT IS WORKING OR EVEN USED ANYMORE :D:D:D:D
+							if (IsControlOpen("SelectYesno")) then
+								if (IsControlOpen("_NotificationParty")) then
+									UseControlAction("SelectYesno","No")
+								else
+									UseControlAction("SelectYesno","Yes")
+								end
+								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+								return
+							end
+							
+							if (MIsLoading()) then
+								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+								ml_mesh_mgr.ResetOMC()
+								return
+							end
+							
+							if (IsControlOpen("SelectString") or IsControlOpen("SelectIconString")) then
+								SelectConversationIndex(1)
+								ml_navigation.lastupdate = ml_navigation.lastupdate + 1000
+								return
+							end
+							
+							if (IsPositionLocked()) then
+								ml_navigation.lastupdate = ml_navigation.lastupdate + 500
+								return
+							end
+							
+							-- We got moved to the End already, finish this.
+							local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
+							if ( nodedist < ml_navigation.NavPointReachedDistances["2dwalk"] or (ppos.y > nextnode.y and math.distance2d(ppos,nextnode) < ml_navigation.NavPointReachedDistances["2dwalk"]) ) then
+								d("[Navigation] - OMC_END - Interact Node reached")
+								ml_navigation.pathindex = ml_navigation.pathindex + 1								
+							end
+							
+							-- Find a target to interact with
+							local interactnpc
+							local EList = EntityList("nearest,targetable,type=7,chartype=0,maxdistance=5")								
+							if ( table.valid(EList)) then interactnpc = select(2,next(EList)) end
+							
+							if ( not interactnpc ) then 
+								EList = EntityList("nearest,targetable,type=3,chartype=0,maxdistance=5")								
+								if ( table.valid(EList)) then interactnpc = select(2,next(EList)) end
+							end
+							
+							if ( not interactnpc ) then 
+								EList = EntityList("nearest,targetable,maxdistance=7")								
+								if ( table.valid(EList)) then interactnpc = select(2,next(EList)) end
+							end
+															
+							if ( interactnpc ) then
+								local target = MGetTarget()
+								if (not target or (target and target.id ~= interactnpc)) then
+									d("Setting target for interaction : "..interactnpc.name)
+									Player:SetTarget(interactnpc)
+									ml_navigation.lastupdate = ml_navigation.lastupdate + 500
+								
+								else
+									local npcpos = interactnpc.pos
+									Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
+									Player:Interact(interactnpc.id)
+									ml_navigation.lastupdate = ml_navigation.lastupdate + 500
+								end
+							end
+						
+						elseif ( omc.type == 5 ) then
+						-- OMC Portal
+							ml_navigation:NavigateToNode(ppos,nextnode,2000)
+						
+						elseif ( omc.type == 6 ) then
+						-- OMC Lift
+							ml_navigation:NavigateToNode(ppos,nextnode,1500)						
+																
+						end	
+	
+					
+		-- Cube Navigation
+					elseif (string.contains(nextnode.type,"CUBE") or IsFlying()) then
+						
+						if (not Player.ismounted) then
+							d("[Navigation] - Mount for flight.")
+							if (Player:IsMoving()) then
+									Player:StopMovement()
+									ffnav.Await(3000, function () return not Player:IsMoving() end)
+							else
+								Mount()
+								ffnav.Await(5000, function () return Player.ismounted end)
+							end							
+						
+						else
+							if (not IsFlying()) then
+								if (Player:IsMoving()) then
+									Player:StopMovement()
+									ffnav.Await(3000, function () return not Player:IsMoving() end)
+								else
+									d("[Navigation] - Ascend for flight.")
+									ffnav.Ascend()
+									ffnav.isascending = true
+								end
+							
+							else
+	-- TODO: ADD UNSTUCK HERE !!	
+								-- Check if we left our path
+								if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end
+																
+								-- Check if the next node is reached:
+								local dist3D = math.distance3d(nextnode,ppos)
+								if ( ml_navigation:IsGoalClose(ppos,nextnode) ) then
+									-- We reached the node
+									d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+									ml_navigation.pathindex = ml_navigation.pathindex + 1							
+									ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
+									
+									-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
+									if (not string.contains(nextnode.type,"CUBE") ) then
+										d("[Navigation] - Landing...")
+										Player:Move(FFXIV.MOVEMENT.DOWN)
+									end
+									
+								else						
+									-- We have not yet reached our node
+									-- Face next node
+									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
+									if ( anglediff < 35 and dist3D > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z, true) -- smooth facing
+									else
+										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+									end
+									
+									-- Set Pitch							
+									local currentPitch = math.round(Player.flying.pitch,3)
+									local minVector = math.normalize(math.vectorize(ppos,nextnode))
+									local pitch = math.asin(-1 * minVector.y)
+									Player:SetPitch(pitch)
+									
+									-- Move
+									if (not Player:IsMoving()) then
+										Player:Move(FFXIV.MOVEMENT.FORWARD)	
+										ml_global_information.Await(2000, function () return Player:IsMoving() end)
+									end
+								end
+							end
+						end
+		
+		-- Normal Navigation
+					else
+
+-- TODO: ADD UNSTUCK HERE !!
+						ml_navigation:NavigateToNode(ppos,nextnode)
+										
+					end
+				
+				else
+					d("[Navigation] - Path end reached.")
+					ml_navigation.StopMovement()
+					Player:Stop()							-- this literally makes no sense...both functions are the SAME but if I remove this one, the bot doesnt stop ..yeah right ...fuck you ffxiv 
+
+				end	
+			
+			elseif (ml_navigation.pathsettings.navigationmode == 2 ) then
+				d("[ml_navigation.Navigate] - Addd  other navmode type 2 ...is that used...?")
+			end
+		end		
+	end
+end
+RegisterEventHandler("Gameloop.Draw", ml_navigation.Navigate)
+
+
+-- Used by multiple places in the Navigate() function above, so I'll put it here ...no redudant code...
+function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
+
+	-- Check if we left our path
+	if ( stillonpaththreshold ) then
+		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
+	else
+		if ( not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end	
+	end
+				
+	-- Check if the next node is reached
+	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
+	if ( ml_navigation:IsGoalClose(ppos,nextnode) ) then
+		d("[Navigation] - Node reached. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
+							
+		-- We arrived at an OMC Node
+		if ( string.contains(nextnode.type,"OMC")) then
+			ml_navigation:ResetOMCHandler()
+			if ( nextnode.id == nil ) then ml_error("[Navigation] - No OffMeshConnection ID received!") return end
+			local omc = ml_mesh_mgr.offmeshconnections[nextnode.id]
+			if( not omc ) then ml_error("[Navigation] - No OffMeshConnection Data found for ID: "..tostring(nextnode.id)) return end
+			if ( omc.precise == nil or omc.precise == true ) then	
+				ml_navigation:SetEnsurePosition(nextnode) 
+			end			
+		end
+		ml_navigation.pathindex = ml_navigation.pathindex + 1
+	else						
+		-- We have not yet reached our node
+		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})														
+		if ( ml_navigation.pathsettings.smoothturns and anglediff < 35 and nodedist > 5*ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()] ) then
+			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z,true)
+		else
+			Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
+		end
+		
+		if (not Player:IsMoving()) then
+			Player:Move(FFXIV.MOVEMENT.FORWARD)
+			ml_global_information.Await(2000, function () return Player:IsMoving() end)
+		end
+	end
+end
+
+
+function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
+	if ( ml_navigation.pathindex > 0 ) then
+		local treshold = deviationthreshold or ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
+		if ( not Player:IsJumping() and math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos) > treshold) then			
+			d("[Navigation] - Player not on Path anymore. - Distance to Path: "..tostring(math.distancepointline(ml_navigation.path[ml_navigation.pathindex-1],ml_navigation.path[ml_navigation.pathindex],ppos)).." > "..tostring(treshold))
+			Player:Stop()
+			return false
+		end
+	end
+	return true
+end
+
+
+-- Sets the position and heading which the main navigation call will make sure that it has "arrived", before continuing the movement
+function ml_navigation:SetEnsurePosition(node, isstartnode)
+	Player:StopMovement() -- stop just the player, not hte navpath!
+	ml_navigation.ensureposition = {x = node.x, y = node.y, z = node.z}										
+	if ( table.size(ml_navigation.path) > ml_navigation.pathindex+1 ) then
+		node = ml_navigation.path[ ml_navigation.pathindex+1 ]		
+		ml_navigation.ensureheading = {x = node.x, y = node.y, z = node.z}	-- Face Next Node
+	else
+		ml_navigation.ensureheading = {x = node.x, y = node.y, z = node.z}	-- Fallback case
+	end
+	ml_navigation:EnsurePosition()
+end
+
+-- Ensures that the player is really at a specific position, stopped and facing correctly
+function ml_navigation:EnsurePosition()
+	if ( not ml_navigation.ensurepositionstarttime ) then ml_navigation.ensurepositionstarttime = ml_global_information.Now end
+	if ( (ml_global_information.Now - ml_navigation.ensurepositionstarttime) < 750 ) then		
+		if ( Player:IsMoving () ) then Player:StopMovement() end
+		local ppos = Player.pos
+		local dist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,ml_navigation.ensureposition)
+						
+		if ( dist > 0.5 and ml_navigation.omcteleportallowed ) then
+			Hacks:TeleportToXYZ(ml_navigation.ensureposition.x,ml_navigation.ensureposition.y,ml_navigation.ensureposition.z)
+		end
+		local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = ml_navigation.ensureposition.x-ppos.x, y = 0, z = ml_navigation.ensureposition.z-ppos.z})
+		if ( anglediff > 5 ) then 
+			Player:SetFacing(ml_navigation.ensureheading.x,ml_navigation.ensureheading.y,ml_navigation.ensureheading.z) -- face hard
+		end
+		return true
+	else	-- We waited long enough
+		ml_navigation.ensureposition = nil
+		ml_navigation.ensureheading = nil
+		ml_navigation.ensurepositionstarttime = nil
+	end
+	return false
+end
+
+-- Resets all OMC related variables
+function ml_navigation:ResetOMCHandler()
+	self.omc_id = nil
+	self.omc_traveltimer = nil
+	self.ensureposition = nil
+	self.ensureheading = nil
+	self.ensurepositionstarttime = nil
+	self.omc_starttimer = 0
+	self.omc_startheight = nil	
+end
+
+
+ffnav = {}
 ffnav.yield = {}
 ffnav.process = {}
 
@@ -168,354 +668,8 @@ function ffnav.AwaitDo(param1, param2, param3, param4, param5)
 	end
 end
 
-function ffnav.SetNodeDistances(vals)
-	if (table.valid(vals)) then
-		for k,v in pairs(vals) do
-			ffnav.nodedist[k] = v
-		end
-	else
-		ffnav.nodedist = {
-			["3dwalk"] = 2,
-			["2dwalk"] = 0.4,
-			["3dmount"] = 3,
-			["2dmount"] = 0.5,
-			["3dfly"] = 5,
-			["2dfly"] = 0.75,
-		}
-	end
-end
 
-function ffnav.ResetPath()
-	d("Path was reset.")
-	ffnav.newPathThrottle = 1000
-	ffnav.currentPath = {}
-	ffnav.currentPathIndex = 0
-	ffnav.currentPathGoal = {}
-	ffnav.currentPathEntity = 0
-	ffnav.currentPathType = ""
-end
-
-function ffnav.IsGoalClose(goal)
-	
-	local goaldist,goaldist2d = ffnav.GetNodeDistance(Player.pos,goal)
-	if (not Player.ismounted) then
-		if (goaldist <= ffnav.nodedist["3dwalk"] and goaldist2d <= ffnav.nodedist["2dwalk"]) then
-			return true
-		end
-	else
-		if (Player.flying.isflying) then
-			--d("currentPathIndex:"..tostring(ffnav.currentPathIndex))
-			--d("checking flying dist")
-			--d("index:"..tostring(ffnav.currentPathIndex)..",goaldist:"..tostring(goaldist)..", goaldist2d:"..tostring(goaldist2d)..",from [ "..tostring(math.round(Player.pos.x,2)).." / "..tostring(math.round(Player.pos.y,2)).." / "..tostring(math.round(Player.pos.z,2)).."] - to - [".. tostring(math.round(goal.x,2)).. " / "..tostring(math.round(goal.y,2)).." / "..tostring(math.round(goal.z,2)).."]")
-			if (goaldist <= ffnav.nodedist["3dfly"] and goaldist2d <= ffnav.nodedist["2dfly"]) then
-				return true
-			end
-		else
-			if (goaldist <= ffnav.nodedist["3dmount"] and goaldist2d <= ffnav.nodedist["2dmount"]) then
-				return true
-			end
-		end
-	end
-	return false
-end
-
-function ffnav.IsEntityClose(entity)
-	if (table.valid(entity)) then
-		local goaldist2d = entity.distance2d
-		if (not Player.ismounted) then
-			if (goaldist2d <= ffnav.nodedist["2dwalk"]) then
-				return true
-			end
-		else
-			if (Player.flying.isflying) then
-				if (goaldist2d <= ffnav.nodedist["2dfly"]) then
-					return true
-				end
-			else
-				if (goaldist2d <= ffnav.nodedist["2dmount"]) then
-					return true
-				end
-			end
-		end
-	end
-	return false
-end
-
--- Look for a new index to fast forward to that isn't the next one to make flying behave a bit less awkwardly.
-function ffnav.CanFastForward()
-	if (table.valid(ffnav.currentPath)) then
-		local currentNode = ffnav.currentPath[ffnav.currentPathIndex]
-		local nextNode = ffnav.currentPath[ffnav.currentPathIndex+1]
-		
-		if (currentNode and nextNode) then
-			local currentdist,currentdist2d = ffnav.GetNodeDistance(Player.pos,{currentNode.x, currentNode.y, currentNode.z})
-			local interdist,interdist2d = ffnav.GetNodeDistance({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})
-			local nextdist,nextdist2d = ffnav.GetNodeDistance(Player.pos,{nextNode.x, nextNode.y, nextNode.z})
-			
-			if (ffnav.IsPathClear({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})) then
-				if (currentDist < 10 and currentDist2d < 8 and interdist < 10 and interdist2d < 8) then
-					d("okay to fastforward to next node")
-					return true
-				end
-			end
-		end
-	end
-	return false
-end
-
-function ffnav.GetPath(px, py, pz, x, y, z, randomizedpath)
-	if ( NavigationManager:GetNavMeshState() ~= GLOBAL.MESHSTATE.MESHREADY ) then
-		d("[Navigation] - MESH_NOT_READY - State : "..tostring(NavigationManager:GetNavMeshState() ))
-		return -8		
-	end
-	
-	-- Generate a new Path only if...
-	if (not table.valid(ffnav.currentPath) or not ffnav.IsPosSame(ffnav.currentPathGoal,{x = x, y = y, z = z})) then
-		ffnav.lastPathTick = Now() -- tiny throttle, else it can go a bit nutz when the target moves too fast
-		
-		-- We create a new path
-		local tmp = NavigationManager:GetPath(px, py, pz, x, y, z)
-		if ( not table.valid(tmp) ) then
-			if ( type(tmp) == "number") then
-				if ( tmp == -6 ) then 
-					d("[Navigation] - NO_RANDOM_PATH_FOUND - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")
-				elseif( tmp == -5 ) then 
-					d("[Navigation] - NO_STRAIGHT_PATH_FOUND - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")
-				elseif( tmp == -4 ) then 
-					d("[Navigation] - NO_POLY_PATH_FOUND - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")
-				elseif( tmp == -3 ) then 
-					d("[Navigation] - NO_POLY_FOUND - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")
-				elseif( tmp == -2 ) then 
-					d("[Navigation] - END_NOT_ON_MESH - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")
-				elseif( tmp == -1 ) then 
-					d("[Navigation] - START_NOT_ON_MESH - From [ "..tostring(math.round(px,2)).." / "..tostring(math.round(py,2)).." / "..tostring(math.round(pz,2)).."] - To - [".. tostring(math.round(x,2)).. " / "..tostring(math.round(y,2)).." / "..tostring(math.round(z,2)).."]")			
-				end
-			end
-			return tmp
-			-- Cancel the old path ?
-		else
-			-- We received a valid path table 
-			ffnav.currentPath = tmp
-			ffnav.currentPathIndex = 0
-			ffnav.currentPathGoal = { x = x, y = y, z = z }
-			ffnav.AddPathRender()
-			--d("returned a new path.")
-			return table.size(tmp)
-		end
-	else
-		--d("returned an existing path.")
-		return table.size(ffnav.currentPath)
-	end
-end
-
--- Tries to use RayCast to determine the exact floor height from Player and Node, and uses that to calculate the correct distance.
-function ffnav.GetNodeDistance(ppos,nodepos)
-	-- Raycast from "top to bottom" @PlayerPos and @NodePos
-	local P_hit, P_hitx, P_hity, P_hitz = RayCast(ppos.x,ppos.y+3,ppos.z,ppos.x,ppos.y-3,ppos.z) 
-	--d("nodepos:"..tostring(nodepos))
-	local N_hit, N_hitx, N_hity, N_hitz = RayCast(nodepos.x,nodepos.y+3,nodepos.z,nodepos.x,nodepos.y-3,nodepos.z) 
-	local dist = math.distance3d(ppos,nodepos)
-	local dist2d = math.distance2d(ppos,nodepos)
-	if (P_hit and N_hit and not IsFlying()) then 
-		local raydist = math.distance3d(P_hitx, P_hity, P_hitz , N_hitx, N_hity, N_hitz)
-		local raydist2d = math.distance2d(P_hitx, P_hitz , N_hitx, N_hitz)
-		if (raydist < dist) then 
-			dist = raydist
-		end
-		if (raydist2d < dist2d) then
-			dist2d = raydist2d
-		end
-	end
-	return dist,dist2d
-end
-
-function ffnav.IsPathClear(pos1,pos2)
-	local hit, hitx, hity, hitz = RayCast(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) 
-	return (hit == nil)
-end
-
-function ffnav.TurnAngle(pos)
-	local ppos = Player.pos
-	return math.angle({x = math.sin(ppos.h), y = 0,  z =math.cos(ppos.h)}, {x = pos.x-ppos.x, y = 0, z = pos.z-ppos.z})
-end
-
-function ffnav.IsPosSame(pos1,pos2)
-	if (type(pos1) == "table" and type(pos2) == "table") then
-		if (pos1.x and pos1.y and pos1.z and pos2.x and pos2.y and pos2.z) then
-			if (math.round(pos1.x,1) == math.round(pos2.x,1) and math.round(pos1.y,1) == math.round(pos2.y,1) and math.round(pos1.z,1) == math.round(pos2.z,1)) then
-				return true
-			end
-		end
-	end
-	return false
-end
-
-function ffnav.IsWalking()
-	return Player:IsMoving()
-end
-
-function ffnav.IsRiding()
-	return Player:IsMoving()
-end
-
-function ffnav.IsFlying()
-	return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0)
-end
-
--- Creates / Updates the current Path, this usually gets spam-called by the bot
-function ffnav.MoveTo(x, y, z, randomnodes, smoothturns)		
-	local ppos = Player.pos
-	local pathSize = ffnav.GetPath(ppos.x,ppos.y,ppos.z,x,y,z)
-	return pathSize
-end
-
--- Creates / Updates the current Path, this usually gets spam-called by the bot
-function ffnav.MoveToEntity(entityid)		
-	local ppos = Player.pos
-	local pathSize = ffnav.GetPath(ppos.x,ppos.y,ppos.z,x,y,z)
-	return pathSize
-end
-
-function ffnav.WalkTo(pos)
-	local myPos = Player.pos
-	local previousGoal = ffnav.currentPath[0]
-	if (ffnav.currentPathIndex > 0) then
-		previousGoal = ffnav.currentPath[ffnav.currentPathIndex-1]
-	end
-	
-	local dist2d,dist3d = math.distance2d(myPos,pos), math.distance3d(myPos,pos)
-	local pdist2d,pdist3d = math.distance2d(previousGoal,pos), math.distance3d(previousGoal,pos)
-	local mdist2d,mdist3d = math.distance2d(previousGoal,myPos), math.distance3d(previousGoal,myPos)
-	
-	if (ffnav.IsGoalClose(pos) or mdist2d > pdist2d) then
-		
-		ffnav.currentPathIndex = ffnav.currentPathIndex + 1
-		
-		--d("walk from ["..tostring(previousGoal.x)..","..tostring(previousGoal.y)..","..tostring(previousGoal.z))
-		--d("mypos ["..tostring(myPos.x)..","..tostring(myPos.y)..","..tostring(myPos.z))
-		--d("walk to ["..tostring(pos.x)..","..tostring(pos.y)..","..tostring(pos.z))
-		
-		--d("mdist2d:"..tostring(mdist2d)..",pdist2d:"..tostring(pdist2d))
-		--d("goalclose?:"..tostring(ffnav.IsGoalClose(pos))..", further than original distance?:"..tostring(mdist2d > pdist2d)..", newindex:"..tostring(ffnav.currentPathIndex))
-		
-		local newPos = ffnav.currentPath[ffnav.currentPathIndex]
-		if (table.valid(newPos)) then
-			local turnDegrees = ffnav.TurnAngle(newPos)
-			if (turnDegrees > 75 and dist3d > 8) then
-				Player:SetFacing(newPos.x,newPos.y,newPos.z,true)
-			else
-				Player:SetFacing(newPos.x,newPos.y,newPos.z)
-			end
-		end		
-		return false
-	end
-	
-	local turnDegrees = ffnav.TurnAngle(pos)
-	if (turnDegrees > 75 and dist3d > 8) then
-		Player:SetFacing(pos.x,pos.y,pos.z,true)
-	else
-		Player:SetFacing(pos.x,pos.y,pos.z)
-	end
-	if (not Player:IsMoving()) then
-		Player:Move(FFXIV.MOVEMENT.FORWARD)	
-		ml_global_information.Await(2000, function () return Player:IsMoving() end)
-	end
-end
-
--- D = "walk from [-48.799991607666,18.250001907349,49.35001373291"
---  D = "mypos [-48.544151306152,18,49.401268005371"
---  D = "walk to [-48.799991607666,18.25,56.350009918213"
-
---d(math.distance2d({x = -48.799991607666, z = 49.35001373291},{x = -48.799991607666,z = 56.350009918213}))
-
-function ffnav.FlyTo(pos)
-	
-	local myPos = Player.pos
-	local previousGoal = ffnav.currentPath[0]
-	if (ffnav.currentPathIndex > 0) then
-		previousGoal = ffnav.currentPath[ffnav.currentPathIndex-1]
-	end
-	local dist2d,dist3d = math.distance2d(myPos,pos), math.distance3d(myPos,pos)
-	local pdist2d,pdist3d = math.distance2d(previousGoal,pos), math.distance3d(previousGoal,pos)
-	
-	if (false) then
-	--if (ffnav.CanFastForward()) then
-		ffnav.currentPathIndex = ffnav.currentPathIndex + 2
-		return false
-	elseif (ffnav.IsGoalClose(pos)) then
-		ffnav.currentPathIndex = ffnav.currentPathIndex + 1
-		ffnav.lastPathDistance = 0
-		return false
-	end
-	
-	local distFromPath = 0
-	if (ffnav.currentPathIndex > 0) then 
-		distFromPath = math.distancepointline(ffnav.currentPath[ffnav.currentPathIndex-1],ffnav.currentPath[ffnav.currentPathIndex],myPos)
-	end
-	
-	local turnDegrees = ffnav.TurnAngle(pos)
-	if (turnDegrees > 60) then
-		Player:SetFacing(pos.x,pos.y,pos.z,true)
-	else
-		Player:SetFacing(pos.x,pos.y,pos.z)
-	end
-	
-	local currentPitch = math.round(Player.flying.pitch,3)
-	--local pitch = math.round(math.atan2((myPos.y - pos.y), dist2d),3)
-	--local pitch = math.round(math.atan((myPos.y - pos.y)/dist2d),3)
-	local minVector = math.normalize(math.vectorize(myPos,pos))
-	local pitch = math.asin(-1 * minVector.y)
-	--local previousPitch = math.round(math.atan2((previousGoal.y - pos.y), pdist2d),3)
-	
-	--sqrt(x^2 + y^2)/
-	--d("necessary pitch:"..tostring(pitch)..", "..tostring(myPos.y).." - "..tostring(pos.y)..", dist2d:"..tostring(dist2d))
-	--d("previous pitch:"..tostring(pitch)..", "..tostring(previousGoal.y).." - "..tostring(pos.y)..", dist2d:"..tostring(pdist2d))
-	--d("current pitch:"..tostring(currentPitch)..", distFromPath:"..tostring(distFromPath))
-	
-	--[[
-	if (distFromPath > 1 and ffnav.lastPathDistance >= distFromPath) then
-		if (pitch < 0) then
-			if (pitch < currentPitch) then
-				d("adjust pitch up, heading up already")
-				pitch = pitch + 0.1
-			elseif (pitch > currentPitch) then
-				d("adjust pitch down, heading up already")
-				pitch = pitch - 0.2
-			end
-		elseif (pitch > 0) then
-			if (pitch < currentPitch) then
-				d("adjust pitch down, heading down already")
-				pitch = pitch - 0.1
-			elseif (pitch > currentPitch) then
-				d("adjust pitch up, heading down already")
-				pitch = pitch + 0.1
-			end
-		end
-	end
-	--]]
-	
-	--[[
-	if (pitch < -0.785) then
-		d("adjusting pitch to highest value")
-		pitch = -0.785
-	elseif (pitch > 1.377) then
-		d("adjusting pitch to lowest value")
-		pitch = 1.377
-	end
-	--]]
-	
-	Player:SetPitch(pitch)
-	--ffnav.Await(200, function () return math.round(Player.flying.pitch,3) == pitch end)
-	
-	if (not Player:IsMoving()) then
-		Player:Move(FFXIV.MOVEMENT.FORWARD)	
-		ml_global_information.Await(2000, function () return Player:IsMoving() end)
-	end
-	
-	ffnav.lastPathDistance = distFromPath
-end
-
-function ffnav.Ascend()
+function ffnav.Ascend()	
 	ffnav.process = {
 		mintime = 150, maxtime = 10000, 
 		evaluator = function ()
@@ -545,36 +699,46 @@ function ffnav.Ascend()
 			end
 		end, 
 		followsuccess = function ()
-			ffnav.ResetPath()
+			--ffnav.ResetPath()
 			--ffnav.MoveTo(ffnav.currentPathGoal.x, ffnav.currentPathGoal.y, ffnav.currentPathGoal.z) 
 		end
 	}
 end
 
--- Resets all OMC related variables
-function ml_navigation:ResetOMCHandler()
-	self.omc_id = nil
-	self.omc_traveltimer = nil
-	self.ensureposition = nil
-	self.ensureheading = nil
-	self.ensurepositionstarttime = nil
-	self.omc_starttimer = 0
-	self.omc_startheight = nil	
-end
-	
--- for replacing the original c++ navi with our lua version
-function Player:MoveTo(x, y, z, randomnodes, smoothturns)
-	if (not ffnav.IsGoalClose({x = x, y = y, z = z})) then
-		--d("goal was not close enough")
-		--if (not table.valid(ffnav.currentPathGoal) or not ffnav.IsPosSame(ffnav.currentPathGoal,{x = x, y = y, z = z})) then
-			return ffnav.MoveTo(x, y, z, randomnodes, smoothturns)
-		--end
-	else
-		--d("goal was too close")
-	end
-	return 0
-end
 
+
+--*******************************************
+--*******************************************
+-- NOT USED STUFF BELOW !?!?! , I 'll leave it here in  case you need some CLUTTER :P
+--*******************************************
+--*******************************************
+
+-- THIS CANNOT WORK, using a single raycast from the bottom of the feet ..what about the rest of the body and it's actual fat ass ?
+-- Look for a new index to fast forward to that isn't the next one to make flying behave a bit less awkwardly.
+function ffnav.CanFastForward()
+	if (table.valid(ffnav.currentPath)) then
+		local currentNode = ffnav.currentPath[ffnav.currentPathIndex]
+		local nextNode = ffnav.currentPath[ffnav.currentPathIndex+1]
+		
+		if (currentNode and nextNode) then
+			local currentdist,currentdist2d = ffnav.GetNodeDistance(Player.pos,{currentNode.x, currentNode.y, currentNode.z})
+			local interdist,interdist2d = ffnav.GetNodeDistance({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})
+			local nextdist,nextdist2d = ffnav.GetNodeDistance(Player.pos,{nextNode.x, nextNode.y, nextNode.z})
+			
+			if (ffnav.IsPathClear({currentNode.x, currentNode.y, currentNode.z},{nextNode.x, nextNode.y, nextNode.z})) then
+				if (currentDist < 10 and currentDist2d < 8 and interdist < 10 and interdist2d < 8) then
+					d("okay to fastforward to next node")
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+function ffnav.IsPathClear(pos1,pos2)
+	local hit, hitx, hity, hitz = RayCast(pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) 
+	return (hit == nil)
+end
 function Player:MoveToEntity(entityid)
 	if (ffnav.currentPathEntity ~= entityid) then
 		local entity = EntityList:Get(entityid)
@@ -586,264 +750,39 @@ function Player:MoveToEntity(entityid)
 	end
 	return false
 end
-
-function Player:Stop()
-	d("Player Stop()")
-	ffnav.ResetPath()
-	--ffnav.ResetOMCHandler()
-	ffnav.yield = {}
-	ffnav.process = {}
-	Player:StopMovement()
+-- Creates / Updates the current Path, this usually gets spam-called by the bot
+function ffnav.MoveToEntity(entityid)		
+	local ppos = Player.pos
+	local pathSize = ffnav.GetPath(ppos.x,ppos.y,ppos.z,x,y,z)
+	return pathSize
 end
-
--- Handles the Navigation along the current Path. Is not supposed to be called manually.
-function ffnav.Navigate(event, ticks )	
-	
-	if ((ticks - ffnav.lastTick) >= 25) then 
-		ffnav.lastTick = ticks
-				
-		if ( FFXIV.GAMESTATE.INGAME ) then
-			if (not ffnav.IsProcessing()) then
-				local ppos = Player.pos
-				
-				if ( table.valid(ffnav.currentPath) and table.size(ffnav.currentPath) > ffnav.currentPathIndex ) then	
-					local nextnode = ffnav.currentPath[ffnav.currentPathIndex]
-					if (table.valid(nextnode)) then
-						
-						local nextpos = { x = nextnode.x, y = nextnode.y, z = nextnode.z }
-					
-						-- OffMeshConnection Navigation
-						if (nextnode.type == "OMC_END") then
-						
-							--[[
-							if ( nextnode.id == nil ) then ml_error("[Navigation] - No OffMeshConnection ID received!") return end
-							local omc = ml_mesh_mgr.offmeshconnections[nextnode.id]
-							if( not omc ) then ml_error("[Navigation] - No OffMeshConnection Data found for ID: "..tostring(nextnode.id)) return end
-								
-							-- A general check, for the case that the player never reaches either OMC END
-							if ( not ml_navigation.omc_id or ml_navigation.omc_id ~= nextnode.id ) then	-- Update the currently tracked omc_id and variables
-								ml_navigation.omc_id = nextnode.id
-								ml_navigation.omc_traveltimer = ticks
-								ml_navigation.omc_traveldist = math.distance3d(ppos,nextnode)
-							else	-- We are still pursuing the same omc, check if we are getting closer over time
-								local timepassed = ticks - ml_navigation.omc_traveltimer
-								if ( timepassed < 3000) then 
-									local dist = math.distance3d(ppos,nextnode)
-									if ( timepassed > 2000 and ml_navigation.omc_traveldist > dist) then
-										ml_navigation.omc_traveldist = dist
-										ml_navigation.omc_traveltimer = ticks
-									end
-								else
-									d("[Navigation] - Not getting closer to OMC END node. We are most likely stuck.")
-									ml_navigation.StopMovement()
-									return
-								end								
-							end
-								
-							-- Max Timer Check in case something unexpected happened
-							if ( ml_navigation.omc_starttimer ~= 0 and ticks - ml_navigation.omc_starttimer > 10000 ) then
-								d("[Navigation] - Could not read OMC END in ~10 seconds, something went wrong..")
-								ml_navigation.StopMovement()
-								return
-							end
-									
-							-- OMC Handling by Type
-							if ( omc.type == 1 ) then
-								-- OMC JUMP										
-								local movementstate = Player:GetMovementState()	
-								
-								if ( movementstate == GW2.MOVEMENTSTATE.Jumping) then
-									if ( not ml_navigation.omc_startheight ) then ml_navigation.omc_startheight = ppos.z end
-									-- Additionally check if we are "above" the target point already, in that case, stop moving forward
-									local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-									if ( nodedist < ml_navigation.OMCREACHEDDISTANCE) then
-										d("[Navigation] - We are above the OMC_END Node, stopping movement. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.OMCREACHEDDISTANCE)..")")
-										Player:Stop()
-										if ( omc.precise ) then
-											ml_navigation:SetEnsurePosition(nextnode)
-										end									
-									else									
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
-										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-									end
-									
-								elseif ( movementstate == GW2.MOVEMENTSTATE.Falling and ml_navigation.omc_startheight) then
-									-- If Playerheight is lower than 4*omcreached dist AND Playerheight is lower than 4* our Startposition -> we fell below the OMC START & END Point
-									if (( ppos.z > (nextnode.z + 4*ml_navigation.OMCREACHEDDISTANCE)) and ( ppos.z > ( ml_navigation.omc_startheight + 4*ml_navigation.OMCREACHEDDISTANCE))) then
-										if ( ml_navigation.omcteleportallowed and math.distance3d(ppos,nextnode) < ml_navigation.OMCREACHEDDISTANCE*10) then
-											ml_navigation:SetEnsurePosition(nextnode) 
-										else
-											d("[Navigation] - We felt below the OMC start & END height, missed our goal...")
-											ml_navigation.StopMovement()
-										end
-									else
-										-- Additionally check if we are "above" the target point already, in that case, stop moving forward
-										local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-										if ( nodedist < ml_navigation.OMCREACHEDDISTANCE) then
-											d("[Navigation] - We are above the OMC END Node, stopping movement. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.OMCREACHEDDISTANCE)..")")
-											Player:Stop()
-											if ( omc.precise ) then
-												ml_navigation:SetEnsurePosition(nextnode)											
-											end									
-										else									
-											Player:Move(FFXIV.MOVEMENT.FORWARD)
-											Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-										end
-									end
-									
-								else	 
-									-- We are still before our Jump
-									if ( not ml_navigation.omc_startheight ) then
-										if ( Player:CanMove() and ml_navigation.omc_starttimer == 0 ) then
-											ml_navigation.omc_starttimer = ticks
-											Player:Move(FFXIV.MOVEMENT.FORWARD)
-											Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-										elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then
-											Player:Jump()
-										end
-										
-									else
-										-- We are after the Jump and landed already
-										local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-										if ( nodedist < ml_navigation.OMCREACHEDDISTANCE) then
-											d("[Navigation] - We reached the OMC END Node. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.OMCREACHEDDISTANCE)..")")
-											if ( omc.precise ) then
-												ml_navigation:SetEnsurePosition(nextnode)
-											end
-											ml_navigation.pathindex = ml_navigation.pathindex + 1
-										else									
-											Player:Move(FFXIV.MOVEMENT.FORWARD)
-											Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
-										end
-									end
-								end								
-										
-							elseif ( omc.type == 2 ) then
-								ml_navigation:NavigateToNode(ppos,nextnode,10)
-											
-							elseif ( omc.type == 3 ) then
-							-- OMC Teleport
-								Hacks:Teleport(nextnode.x,nextnode.y,nextnode.z)
-								ml_navigation.pathindex = ml_navigation.pathindex + 1
-								
-							elseif ( omc.type == 4 ) then
-							-- OMC Interact
-								Player:Interact()
-								ml_navigation.lastupdate = ml_navigation.lastupdate + 1000
-								ml_navigation.pathindex = ml_navigation.pathindex + 1
-							
-							elseif ( omc.type == 5 ) then
-							-- OMC Portal
-								ml_navigation:NavigateToNode(ppos,nextnode,20)
-							
-							elseif ( omc.type == 6 ) then
-							-- OMC Lift
-								ml_navigation:NavigateToNode(ppos,nextnode,15)						
-																	
-							end						
-							--]]
-						elseif (string.contains(nextnode.type,"CUBE") or IsFlying()) then
-							if (not Player.ismounted) then
-								d("[Navigation] - Mount for flight.")
-								Mount()
-								ffnav.Await(5000, function () return Player.ismounted end)
-							else
-								if (not IsFlying()) then
-									if (Player:IsMoving()) then
-										Player:StopMovement()
-										ffnav.Await(3000, function () return not Player:IsMoving() end)
-									else
-										d("[Navigation] - Ascend for flight.")
-										ffnav.Ascend()
-									end
-								else
-									ffnav.FlyTo(nextpos)
-								end
-							end
-						else
-							--d("walk to ["..tostring(nextpos.x)..","..tostring(nextpos.y)..","..tostring(nextpos.z))
-							ffnav.WalkTo(nextpos)
-						end
-					else
-						d("[Navigation] - Something went wrong, the node is invalid.")
-					end
-				else
-					if (table.valid(ffnav.currentPath)) then
-						d("[Navigation] - Path end reached.")
-						Player:Stop()
-					end
+function ffnav.IsEntityClose(entity)
+	if (table.valid(entity)) then
+		local goaldist2d = entity.distance2d
+		if (not Player.ismounted) then
+			if (goaldist2d <= ffnav.nodedist["2dwalk"]) then
+				return true
+			end
+		else
+			if (Player.flying.isflying) then
+				if (goaldist2d <= ffnav.nodedist["2dfly"]) then
+					return true
+				end
+			else
+				if (goaldist2d <= ffnav.nodedist["2dmount"]) then
+					return true
 				end
 			end
 		end
 	end
+	return false
 end
-
-function ffnav.IsStillOnPath()
-	if ( ffnav.currentPathIndex > 0 ) then
-		local ppos = Player.pos
-		d("[Navigation] - Distance to Path: "..tostring(math.distancepointline(ffnav.currentPath[ffnav.currentPathIndex-1],ffnav.currentPath[ffnav.currentPathIndex],ppos)).." > "..tostring(3))
-		if ( math.distancepointline(ffnav.currentPath[ffnav.currentPathIndex-1],ffnav.currentPath[ffnav.currentPathIndex],ppos) > 3) then			
-			--ml_navigation.StopMovement()
-			return false
-		end
-	end
-	return true
+function ffnav.IsWalking()
+	return Player:IsMoving()
 end
-
-function ffnav.AddPathRender()
-	--d("checking path rendering")
-	local vertices = {}
-	local vertices2 = {}
-	local vertices3 = {}
-	local vertices4 = {}
-	local vertices5 = {}
-	
-	--d("type:"..tostring(type(ffnav.currentPath)))
-	for idx, node in pairsByKeys(ffnav.currentPath) do
-		if (idx > 0 ) then
-			-- from "last node"
-			table.insert(vertices, {x=ffnav.currentPath[idx-1].x, y=ffnav.currentPath[idx-1].y, z=ffnav.currentPath[idx-1].z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices2, {x=ffnav.currentPath[idx-1].x, y=ffnav.currentPath[idx-1].y+1, z=ffnav.currentPath[idx-1].z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices3, {x=ffnav.currentPath[idx-1].x, y=ffnav.currentPath[idx-1].y-1, z=ffnav.currentPath[idx-1].z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices4, {x=ffnav.currentPath[idx-1].x, y=ffnav.currentPath[idx-1].y+0.5, z=ffnav.currentPath[idx-1].z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices5, {x=ffnav.currentPath[idx-1].x, y=ffnav.currentPath[idx-1].y-0.5, z=ffnav.currentPath[idx-1].z, r=0.12, g=1.0, b=0.165, a=1.0})
-			-- to "current node"
-			table.insert(vertices, {x=node.x, y=node.y, z=node.z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices2, {x=node.x, y=node.y+1, z=node.z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices3, {x=node.x, y=node.y-1, z=node.z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices4, {x=node.x, y=node.y+0.5, z=node.z, r=0.12, g=1.0, b=0.165, a=1.0})
-			table.insert(vertices5, {x=node.x, y=node.y-0.5, z=node.z, r=0.12, g=1.0, b=0.165, a=1.0})
-		end
-	end
-	
-	if (ffnav.pathRenderObject == nil) then
-		ffnav.pathRenderObject = RenderManager:AddObject("NavPath", vertices, 1)
-		ffnav.pathRenderObject2 = RenderManager:AddObject("NavPath", vertices2, 1)
-		ffnav.pathRenderObject3 = RenderManager:AddObject("NavPath", vertices3, 1)
-		ffnav.pathRenderObject4 = RenderManager:AddObject("NavPath", vertices4, 1)
-		ffnav.pathRenderObject5 = RenderManager:AddObject("NavPath", vertices5, 1)
-		--d("add new render object.")
-	else
-		ffnav.pathRenderObject = RenderManager:GetObject(ffnav.pathRenderObject.id)
-		if (table.valid(ffnav.pathRenderObject)) then
-			ffnav.pathRenderObject:SetVertices(vertices)
-			ffnav.pathRenderObject2:SetVertices(vertices2)
-			ffnav.pathRenderObject3:SetVertices(vertices3)
-			ffnav.pathRenderObject4:SetVertices(vertices4)
-			ffnav.pathRenderObject5:SetVertices(vertices5)
-			--d("update render object.")
-		else
-			ffnav.pathRenderObject = RenderManager:AddObject("NavPath", vertices, 1)
-			ffnav.pathRenderObject2 = RenderManager:AddObject("NavPath", vertices2, 1)
-			ffnav.pathRenderObject3 = RenderManager:AddObject("NavPath", vertices3, 1)
-			ffnav.pathRenderObject4 = RenderManager:AddObject("NavPath", vertices4, 1)
-			ffnav.pathRenderObject5 = RenderManager:AddObject("NavPath", vertices5, 1)
-			--d("fix render object render object.")
-		end
-	end	
+function ffnav.IsRiding()
+	return Player:IsMoving()
 end
-
---Player:MoveTo(-304.2,96.06,24.99)
---Player:MoveTo(-224.2,127.38,-85.89)
-
-RegisterEventHandler("Gameloop.Draw", ffnav.Navigate)
+function ffnav.IsFlying()
+	return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0)
+end

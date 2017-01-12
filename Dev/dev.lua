@@ -555,8 +555,7 @@ function dev.DrawCall(event, ticks )
 			
 			if ( GUI:TreeNode("Movement")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
-					GUI:PushItemWidth(150)
-					GUI:BulletText("GetSpeed") GUI:SameLine(200) GUI:InputText("##devmov9",tostring(Player:GetSpeed()))
+					GUI:PushItemWidth(150)					
 					GUI:BulletText("IsMoving") GUI:SameLine(200) GUI:InputText("##devmov1",tostring(Player:IsMoving()))					
 					GUI:SameLine()
 					if (GUI:Button("Stop##"..tostring(id),50,15) ) then Player:Stop() end 					
@@ -569,16 +568,21 @@ function dev.DrawCall(event, ticks )
 					GUI:BulletText("IsJumping") GUI:SameLine(200) GUI:InputText("##devmov8",tostring(Player:IsJumping()))
 					GUI:SameLine()
 					if (GUI:Button("Jump##"..tostring(id),50,15) ) then Player:Jump() end				
-					if (not dev.pitch) then dev.pitch = 0 end
-					GUI:BulletText("IsJumping") GUI:SameLine(200) dev.pitch = GUI:InputText("##devmov10",dev.pitch) 
-					GUI:SameLine()
-					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.isflying))
-					GUI:BulletText("CanFlyInZone") GUI:SameLine(200) GUI:InputText("##devmov12",tostring(Player.canflyinzone))
-					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
+					GUI:BulletText("GetSpeed-Forward") GUI:SameLine(200) GUI:InputText("##devmov9",tostring(Player:GetSpeed()["Forward"]))
+					GUI:BulletText("GetSpeed-Backward") GUI:SameLine(200) GUI:InputText("##devmov9a",tostring(Player:GetSpeed()["Backward"]))
+					GUI:BulletText("GetSpeed-Strafe") GUI:SameLine(200) GUI:InputText("##devmov9b",tostring(Player:GetSpeed()["Strafe"]))
 					
-				
-				
-				
+					-- THere is also a Player:SetSpeed(type, forwardspeed, backwardspeeed, strafespeed) 
+					-- Where type is 0 for flying, 1 for walking and 2 for mounted speed which you can set seperately
+					
+					GUI:BulletText("IsFlying") GUI:SameLine(200) GUI:InputText("##devmov11",tostring(Player.flying.isflying))
+					GUI:BulletText("CanFlyInZone") GUI:SameLine(200) GUI:InputText("##devmov12",tostring(Player.flying.canflyinzone))
+					GUI:BulletText(" Pitch") GUI:SameLine(200) GUI:InputText("##devmov13",tostring(Player.flying.pitch))
+					if (not dev.pitch) then dev.pitch = 0 end
+					GUI:BulletText("SetPitch") GUI:SameLine(200) dev.pitch = GUI:InputText("##devmov10",dev.pitch)
+					GUI:SameLine()					
+					if (GUI:Button("SetPitch##"..tostring(id),50,15) ) then Player:SetPitch(dev.pitch) end
+									
 					GUI:PopItemWidth()
 				else
 					GUI:Text("Not Ingame...")
@@ -689,7 +693,7 @@ function dev.DrawCall(event, ticks )
 											if ( GUI:TreeNode(tostring(vi).."##vtx") ) then
 												GUI:BulletText("Position") GUI:SameLine(200)  vertex.x, vertex.y, vertex.z, changed = GUI:InputFloat3( "##robj4"..tostring(vi), vertex.x, vertex.y, vertex.z, 2, GUI.InputTextFlags_CharsDecimal)
 												if ( changed ) then needupdate = true end
-												GUI:BulletText("Color") GUI:SameLine(200)  vertex.r, vertex.g, vertex.b, vertex.a, changed = GUI:InputFloat4( "##robj5"..tostring(vi), vertex.r, vertex.g, vertex.b, vertex.a, 2, GUI.InputTextFlags_CharsDecimal)											
+												GUI:BulletText("Color (RGBA)") GUI:SameLine(200)  vertex.r, vertex.g, vertex.b, vertex.a, changed = GUI:InputFloat4( "##robj5"..tostring(vi), vertex.r, vertex.g, vertex.b, vertex.a, 2, GUI.InputTextFlags_CharsDecimal)											
 												if ( changed ) then needupdate = true end
 												if (GUI:Button("Delete Vertex##object"..tostring(id),150,15) ) then removeid = vi end
 												GUI:TreePop()
@@ -817,7 +821,7 @@ function dev.DrawCall(event, ticks )
 					
 					local t = Player:GetTarget()
 					if ( t ) then
-						if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.h))) end					
+						if (GUI:Button("Face Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:SetFacing(t.pos.x,t.pos.y,t.pos.z,true))) end	-- without the "true" argument, the facing is 100% instant, else it is smooth
 						GUI:SameLine()
 						if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
 						if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
