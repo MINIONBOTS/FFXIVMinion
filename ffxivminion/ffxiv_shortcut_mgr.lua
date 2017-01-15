@@ -3,14 +3,22 @@ sck.hotkeyThrottle = 0
 
 sck.GUI = {
 	name = "Shortcut Manager",
-	open = true,
+	open = false,
 	visible = true,
 }
 
 sck.hotkeys = {
 	{
 		label = "Start / Stop", mod1 = "SCK_StartStop_Mod1", mod2 = "SCK_StartStop_Mod2", key = "SCK_StartStop_Key", 
-		event = function() ml_global_information.ToggleRun() end
+		event = function () ml_global_information.ToggleRun() end
+	},
+	{
+		label = "Reload", mod1 = "SCK_Reload_Mod1", mod2 = "SCK_Reload_Mod2", key = "SCK_Reload_Key", 
+		event = function () Reload() end
+	},
+	{
+		label = "Unload Bot", mod1 = "SCK_Unload_Mod1", mod2 = "SCK_Unload_Mod2", key = "SCK_Unload_Key", 
+		event = function () Unload() end
 	},
 }
 
@@ -19,6 +27,17 @@ function sck.ModuleInit()
 		_G[hotkey.mod1] = ffxivminion.GetSetting(hotkey.mod1,1)
 		_G[hotkey.mod2] = ffxivminion.GetSetting(hotkey.mod2,1)
 		_G[hotkey.key] = ffxivminion.GetSetting(hotkey.key,1)
+	end
+	
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_SHORTCUTS", name = "Shortcuts", onClick = function() sck.GUI.open = not sck.GUI.open end, tooltip = "Open the Shortcut Manager."},"FFXIVMINION##MENU_HEADER")
+end
+
+-- Use this for third-party to add their own shortcuts.
+function sck.AddShortcuts(shortcuts)
+	if (table.valid(shortcuts)) then
+		for i,shortcut in pairs(shortcuts) do
+			table.insert(sck.hotkeys,shortcut)
+		end
 	end
 end
 
