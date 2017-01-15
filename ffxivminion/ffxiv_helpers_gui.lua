@@ -173,6 +173,8 @@ function GUI_CreateTabs(strTabs,doTranslate)
 end
 
 function GUI_DrawTabs(tTabs)
+
+	local returnIndex,returnName;
 	local fontSize = GUI:GetWindowFontSize()
 	local windowPaddingY = ml_gui.style.current.windowpadding.y
 	local framePaddingY = ml_gui.style.current.framepadding.y
@@ -200,18 +202,21 @@ function GUI_DrawTabs(tTabs)
 				else
 					GUI:TextColored(selected.r,selected.g,selected.b,selected.a,selected.name)
 				end
+				returnIndex, returnName = i, selected.name
 			elseif (tab.ishovered) then
 				if (hovered.r > 1 or hovered.g > 1 or hovered.b > 1) then
 					GUI:TextColored(GUI:ColorConvertRGBtoHSV(hovered.r,hovered.g,hovered.b),hovered.a,hovered.name)
 				else
 					GUI:TextColored(hovered.r,hovered.g,hovered.b,hovered.a,hovered.name)
 				end
+				returnIndex, returnName = i, hovered.name
 			else
 				if (normal.r > 1 or normal.g > 1 or normal.b > 1) then
 					GUI:TextColored(GUI:ColorConvertRGBtoHSV(normal.r,normal.g,normal.b),normal.a,normal.name)
 				else
 					GUI:TextColored(normal.r,normal.g,normal.b,normal.a,normal.name)
 				end
+				returnIndex, returnName = i, normal.name
 			end
 			
 			tabs[i].ishovered = GUI:IsItemHovered()
@@ -247,7 +252,7 @@ function GUI_DrawTabs(tTabs)
 			counter = counter + 1
 			local itemsPerLine = IsNull(tTabs.itemsPerLine,(TableSize(tabs) + 1))
 			if (counter <= itemsPerLine and i < TableSize(tabs)) then
-				GUI:SameLine(0,15);
+				GUI:SameLine(0,8); GUI:Text("|"); GUI:SameLine(0,8) 
 			else
 				counter = 1;
 			end
@@ -255,8 +260,10 @@ function GUI_DrawTabs(tTabs)
 	end
 	
 	GUI:EndChild()
-	
 	GUI:Separator();
+	GUI:Spacing()
+	
+	return returnIndex,returnName
 end
 
 RegisterEventHandler("Gameloop.Draw", ffxiv_dialog_manager.Draw)
