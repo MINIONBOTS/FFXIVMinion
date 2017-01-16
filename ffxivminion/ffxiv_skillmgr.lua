@@ -2,7 +2,9 @@
 SkillMgr = {}
 SkillMgr.version = 3;
 SkillMgr.lastTick = 0
-SkillMgr.profilepath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
+SkillMgr.profilePath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
+SkillMgr.yield = {}
+SkillMgr.monitor = {}
 
 SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
@@ -13,17 +15,18 @@ SkillMgr.CurrentPet = {}
 
 SkillMgr.GUI = {
 	skillbook = {
-		name = GetString("skillbook"),
+		name = GetString("Skill Book"),
 		visible = true,
 		open = false,
 	},
 	manager = {
-		name = GetString("skillManager"),
+		name = GetString("Skill Manager"),
 		visible = true,
 		open = false,
+		height = 0, width = 0, x = 0, y = 0,
 	},
 	editor = {
-		name = GetString("skillEditor"),
+		name = GetString("Skill Editor"),
 		visible = true,
 		open = false,
 	},
@@ -514,8 +517,8 @@ SkillMgr.Variables = {
 }
 
 function SkillMgr.ModuleInit() 	
+
 	local uuid = GetUUID()
-	
 	if (Settings.FFXIVMINION.gSMDefaultProfiles == nil) then
 		Settings.FFXIVMINION.gSMDefaultProfiles = {}
 	end
@@ -525,79 +528,80 @@ function SkillMgr.ModuleInit()
 	
 	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 	
-	if (gSMDefaultProfiles[FF.JOBS.GLADIATOR] == nil) then
-		gSMDefaultProfiles[FF.JOBS.GLADIATOR] = "Gladiator"
+	if (gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.GLADIATOR] = "Gladiator"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.PUGILIST] == nil) then
-		gSMDefaultProfiles[FF.JOBS.PUGILIST] = "Monk"
+	if (gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.PUGILIST] = "Monk"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.MARAUDER] == nil) then
-		gSMDefaultProfiles[FF.JOBS.MARAUDER] = "Marauder"
+	if (gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.MARAUDER] = "Marauder"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.LANCER] == nil) then
-		gSMDefaultProfiles[FF.JOBS.LANCER] = "Lancer"
+	if (gSMDefaultProfiles[FFXIV.JOBS.LANCER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.LANCER] = "Lancer"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.ARCHER] == nil) then
-		gSMDefaultProfiles[FF.JOBS.ARCHER] = "Archer"
+	if (gSMDefaultProfiles[FFXIV.JOBS.ARCHER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.ARCHER] = "Archer"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.CONJURER] == nil) then
-		gSMDefaultProfiles[FF.JOBS.CONJURER] = "Conjurer"
+	if (gSMDefaultProfiles[FFXIV.JOBS.CONJURER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.CONJURER] = "Conjurer"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.THAUMATURGE] == nil) then
-		gSMDefaultProfiles[FF.JOBS.THAUMATURGE] = "Black_Mage"
+	if (gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.THAUMATURGE] = "Black_Mage"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.CULINARIAN] == nil) then
-		gSMDefaultProfiles[FF.JOBS.CULINARIAN] = "Culinarian"
+	if (gSMDefaultProfiles[FFXIV.JOBS.PALADIN] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.PALADIN] = "Paladin"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.PALADIN] == nil) then
-		gSMDefaultProfiles[FF.JOBS.PALADIN] = "Paladin"
+	if (gSMDefaultProfiles[FFXIV.JOBS.MONK] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.MONK] = "Monk"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.MONK] == nil) then
-		gSMDefaultProfiles[FF.JOBS.MONK] = "Monk"
+	if (gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.WARRIOR] = "Warrior"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.WARRIOR] == nil) then
-		gSMDefaultProfiles[FF.JOBS.WARRIOR] = "Warrior"
+	if (gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.DRAGOON] = "Dragoon"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.DRAGOON] == nil) then
-		gSMDefaultProfiles[FF.JOBS.DRAGOON] = "Dragoon"
+	if (gSMDefaultProfiles[FFXIV.JOBS.BARD] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.BARD] = "Bard"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.BARD] == nil) then
-		gSMDefaultProfiles[FF.JOBS.BARD] = "Bard"
+	if (gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.WHITEMAGE] = "White_Mage"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.WHITEMAGE] == nil) then
-		gSMDefaultProfiles[FF.JOBS.WHITEMAGE] = "White_Mage"
+	if (gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.BLACKMAGE] = "Black_Mage"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.BLACKMAGE] == nil) then
-		gSMDefaultProfiles[FF.JOBS.BLACKMAGE] = "Black_Mage"
+	if (gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.ARCANIST] = "Arcanist"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.ARCANIST] == nil) then
-		gSMDefaultProfiles[FF.JOBS.ARCANIST] = "Arcanist"
+	if (gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.SUMMONER] = "Summoner"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.SUMMONER] == nil) then
-		gSMDefaultProfiles[FF.JOBS.SUMMONER] = "Summoner"
+	if (gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.SCHOLAR] = "Scholar"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.SCHOLAR] == nil) then
-		gSMDefaultProfiles[FF.JOBS.SCHOLAR] = "Scholar"
+	if (gSMDefaultProfiles[FFXIV.JOBS.ROGUE] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.ROGUE] = "Rogue"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.ROGUE] == nil) then
-		gSMDefaultProfiles[FF.JOBS.ROGUE] = "Rogue"
+	if (gSMDefaultProfiles[FFXIV.JOBS.NINJA] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.NINJA] = "Ninja"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.NINJA] == nil) then
-		gSMDefaultProfiles[FF.JOBS.NINJA] = "Ninja"
+	if (gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.DARKKNIGHT] = "Dark Knight"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.DARKKNIGHT] == nil) then
-		gSMDefaultProfiles[FF.JOBS.DARKKNIGHT] = "Dark Knight"
+	if (gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.MACHINIST] = "Machinist"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.MACHINIST] == nil) then
-		gSMDefaultProfiles[FF.JOBS.MACHINIST] = "Machinist"
+	if (gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.ASTROLOGIAN] = "Astrologian"
 	end
-	if (gSMDefaultProfiles[FF.JOBS.ASTROLOGIAN] == nil) then
-		gSMDefaultProfiles[FF.JOBS.ASTROLOGIAN] = "Astrologian"
+	if (gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] == nil) then
+		gSMDefaultProfiles[FFXIV.JOBS.CULINARIAN] = "Culinarian"
 	end
 	
 	gSkillManagerQueueing = ffxivminion.GetSetting("gSkillManagerQueueing",false)
 	gSkillManagerDebug = ffxivminion.GetSetting("gSkillManagerDebug",false)
 	gSkillManagerDebugPriorities = ffxivminion.GetSetting("gSkillManagerDebugPriorities","")
+	gSkillManagerNewProfile = ""
 	
 	gAssistFilter1 = ffxivminion.GetSetting("gAssistFilter1",false)
 	gAssistFilter2 = ffxivminion.GetSetting("gAssistFilter2",false)
@@ -605,15 +609,52 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
+	gSkillProfileValidGLD = false
+	gSkillProfileValidPLD = false
+	gSkillProfileValidPUG = false
+	gSkillProfileValidMNK = false
+	gSkillProfileValidMRD = false
+	gSkillProfileValidWAR = false
+	gSkillProfileValidLNC = false
+	gSkillProfileValidDRG = false
+	gSkillProfileValidARC = false
+	gSkillProfileValidBRD = false
+	gSkillProfileValidCNJ = false
+	gSkillProfileValidWHM = false
+	gSkillProfileValidTHM = false
+	gSkillProfileValidBLM = false
+	gSkillProfileValidACN = false
+	gSkillProfileValidSMN = false
+	gSkillProfileValidSCH = false
+	gSkillProfileValidROG = false
+	gSkillProfileValidNIN = false
+	gSkillProfileValidDRK = false
+	gSkillProfileValidMCH = false
+	gSkillProfileValidAST = false
+	
+	gSkillProfileValidMIN = false
+	gSkillProfileValidBTN = false
+	gSkillProfileValidFSH = false
+	
+	gSkillProfileValidCRP = false
+	gSkillProfileValidBSM = false
+	gSkillProfileValidARM = false
+	gSkillProfileValidGSM = false
+	gSkillProfileValidLTW = false
+	gSkillProfileValidWVR = false
+	gSkillProfileValidALC = false
+	gSkillProfileValidCUL = false
+	
 	SkillMgr.UpdateProfiles()
 end
 
 function SkillMgr.LoadInit()
 	gSkillProfile = gSMDefaultProfiles[Player.job]
+	d("skill profile is currently set to ["..tostring(gSkillProfile).."]")
 	if (not gSkillProfile) then
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
-			local filePath = SkillMgr.profilepath..starterDefault..".lua"
+			local filePath = SkillMgr.profilePath..starterDefault..".lua"
 			if (FileExists(filePath)) then
 				gSkillProfile = gSMDefaultProfiles[Player.job]
 				local uuid = GetUUID()
@@ -628,52 +669,291 @@ function SkillMgr.LoadInit()
 	end
 end
 
---[[
-function SkillMgr.GUIVarUpdate(Event, NewVals, OldVals)
-    for k,v in pairs(NewVals) do
-		
-        if (k == "gSMactive" or
-			--k == "gSkillManagerQueueing" or 
-			k == "gSkillManagerDebug" or
-			k == "gSkillManagerDebugPriorities" or
-			k == "gAssistFilter1" or
-			k == "gAssistFilter2" or 
-			k == "gAssistFilter3" or
-			k == "gAssistFilter4" or 
-			k == "gAssistFilter5") 
-		then			
-            SafeSetVar(tostring(k),v)	
-		elseif ( k == "gSkillProfile" ) then
-            gSMactive = "1"					
-            GUI_WindowVisible(SkillMgr.editwindow.name,false)
-            GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)			
-            GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-            SkillMgr.UpdateCurrentProfileData()
-			SafeSetVar("gSMlastprofile",v)
-			SkillMgr.SetDefaultProfile()
-		elseif (string.find(k,"gSkillManagerFoldMacro")) then
-			SkillMgr.FoldMacroGroups()
-			SafeSetVar(tostring(k),v)
-		elseif (string.find(k,"gSkillManagerFoldBuff")) then
-			SkillMgr.FoldBuffGroups()
-			SafeSetVar(tostring(k),v)
-		end
-		
-		if (SkillMgr.Variables[tostring(k)] ~= nil and tonumber(SKM_Prio) ~= nil and SKM_Prio > 0) then	
-			if (v == "?") then
-				d("Question mark was typed.")
-			end
-			if (v == nil) then
-				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = SkillMgr.Variables[tostring(k)].default
-			elseif (SkillMgr.Variables[k].cast == "string") then
-				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = v
-			elseif (SkillMgr.Variables[k].cast == "number") then
-				SkillMgr.SkillProfile[SKM_Prio][SkillMgr.Variables[tostring(k)].profile] = tonumber(v)
-			end
-		end
-    end
+function GetVersion()
+	if (GUI_NewWindow) then
+		return 32
+	else
+		return 64
+	end
 end
---]]
+
+function SkillMgr.GetAction(actionid,actiontype,target)
+	local target = IsNull(target,Player)
+	local actiontype = IsNull(actiontype,1)
+	local targetid;
+	if (type(target) == "table") then
+		targetid = target.id
+	elseif (type(target) == "number") then
+		targetid = target
+	end
+	
+	if (GetVersion() == 32) then
+		return ActionList:Get(actionid,actiontype,targetid)
+	else
+		local action = ActionList:Get(actiontype,actionid)
+		if (action) then
+			if (not action.usable) then
+				action = nil
+			else
+				action.isready = action:IsReady(targetid)
+			end
+		end
+		return action
+	end
+end
+
+function SkillMgr.CheckMonitor()
+	if (ValidTable(SkillMgr.monitor)) then
+		local monitor = SkillMgr.monitor
+		
+		local checkBoth = IsNull(monitor.both,false)
+		local successTimer = false
+		local successEval = false
+		
+		if (monitor.dowhile ~= nil and type(monitor.dowhile) == "function") then
+			monitor.dowhile()
+		end
+		
+		if (monitor.mintimer ~= 0) then
+			if (Now() < monitor.mintimer) then
+				return true
+			end
+		end
+		
+		if (monitor.maxtimer ~= 0 and Now() >= monitor.maxtimer) then
+			successTimer = true
+		end
+		if (monitor.evaluator ~= nil and type(monitor.evaluator) == "function") then
+			local ret = monitor.evaluator()
+			if (ret == true) then
+				successEval = true
+			end
+		end
+		
+		if ((not checkBoth and (successTimer or successEval)) or
+			(checkBoth and successTimer and successEval)) 
+		then		
+			SkillMgr.monitor = {}
+			
+			if (successEval and monitor.followsuccess ~= nil and type(monitor.followsuccess) == "function") then
+				monitor.followsuccess()
+				return true
+			end
+			
+			if (successTimer and monitor.followfail ~= nil and type(monitor.followfail) == "function") then
+				monitor.followfail()
+				return true
+			end
+			
+			if (monitor.followall ~= nil and type(monitor.followall) == "function") then
+				monitor.followall()
+				return true
+			end
+			
+			return false
+		end
+		
+		return true
+	end
+	return false
+end
+
+function SkillMgr.IsYielding()
+	if (ValidTable(SkillMgr.yield)) then
+		local yield = SkillMgr.yield
+		
+		local checkBoth = IsNull(yield.both,false)
+		local successTimer = false
+		local successEval = false
+		
+		if (yield.dowhile ~= nil and type(yield.dowhile) == "function") then
+			yield.dowhile()
+		end
+		
+		if (yield.mintimer ~= 0) then
+			if (Now() < yield.mintimer) then
+				return true
+			end
+		end
+		
+		if (yield.maxtimer ~= 0 and Now() >= yield.maxtimer) then
+			successTimer = true
+		end
+		if (yield.evaluator ~= nil and type(yield.evaluator) == "function") then
+			local ret = yield.evaluator()
+			if (ret == true) then
+				successEval = true
+			end
+		end
+		if (yield.failure ~= nil and type(yield.failure) == "function") then
+			local ret = yield.failure()
+			if (ret == true) then
+				SkillMgr.yield = {}
+				
+				if (yield.followfail ~= nil and type(yield.followfail) == "function") then
+					yield.followfail()
+					return true
+				end
+				
+				if (yield.followall ~= nil and type(yield.followall) == "function") then
+					yield.followall()
+					return true
+				end
+				
+				return false
+			end
+		end
+		
+		if ((not checkBoth and (successTimer or successEval)) or
+			(checkBoth and successTimer and successEval)) 
+		then		
+			SkillMgr.yield = {}
+			
+			if (successEval and yield.followsuccess ~= nil and type(yield.followsuccess) == "function") then
+				yield.followsuccess()
+				return true
+			end
+			
+			if (successTimer and yield.followfail ~= nil and type(yield.followfail) == "function") then
+				yield.followfail()
+				return true
+			end
+			
+			if (yield.followall ~= nil and type(yield.followall) == "function") then
+				yield.followall()
+				return true
+			end
+			
+			return false
+		end
+		
+		return true
+	end
+	return false
+end
+
+function SkillMgr.Await(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followall = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		SkillMgr.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followall = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function SkillMgr.Monitor(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.monitor = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followall = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		SkillMgr.monitor = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followall = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function SkillMgr.AwaitDo(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			dowhile = param4,
+			followall = param5,
+		}
+	else
+		SkillMgr.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			dowhile = param3,
+			followall = param4
+		}
+	end
+end
+
+function SkillMgr.AwaitFail(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			both = IsNull(param4,false),
+			followfail = param5,
+		}
+	else
+		SkillMgr.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followfail = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function SkillMgr.AwaitSuccess(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followsuccess = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		SkillMgr.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followsuccess = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function SkillMgr.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		SkillMgr.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			failure = param4,
+			followsuccess = param5,
+			followfail = param6,
+		}
+	else
+		SkillMgr.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			failure = param3,
+			followsuccess = param4,
+			followfail = param5,
+		}
+	end
+end
+
 
 SkillMgr.receivedMacro = {}
 SkillMgr.macroCasted = false
@@ -761,8 +1041,8 @@ function SkillMgr.ParseMacro(data)
 							targetid = Player.id
 						end
 
-						--local action = ActionList:Get(actionid,actiontype,targetid)
-						local action = ActionList:Get(actiontype,actionid)
+						--local action = SkillMgr.GetAction(actionid,actiontype,targetid)
+						local action = SkillMgr.GetAction(actionid,actiontype)
 						if (action) then
 
 							if (targetidentifer == "Ground Target" or targetidentifer == "Ground Player") then
@@ -903,7 +1183,6 @@ function SkillMgr.FoldBuffGroups()
 end
 --]]
 
-
 function SkillMgr.OnGameUpdate(event, tickcount)
 	SkillMgr.lastTick = tickcount
 	
@@ -929,31 +1208,15 @@ function SkillMgr.OnGameUpdate(event, tickcount)
 end
 
 function SkillMgr.OnUpdate()
-	--[[
-	if (table.valid(SkillMgr.recoverTarget)) then
-		local recovery = SkillMgr.recoverTarget
-		if (Now() > recover.failure) then
-			SkillMgr.recoverTarget = {}
-		elseif (Now() > recovery.timer) then
-			local myTarget = Player:GetTarget()
-			local target = MGetEntity(recovery.id)
-			if (target) then
-				if (not myTarget or (myTarget and myTarget.id ~= target.id)) then
-					Player:SetTarget(target.id)
-				end
-			else
-				SkillMgr.recoverTarget = {}
-			end
-		end
-	end
-	--]]
 	
 	if (SkillMgr.doLoad == true) then
+		d("do skillmanager loadup")
 		SkillMgr.LoadInit()
 		SkillMgr.UpdateCurrentProfileData()
 		SkillMgr.doLoad = false
 	end
 	
+	--[[
 	local pcast = Player.castinginfo
 	
 	local job = Player.job
@@ -978,7 +1241,7 @@ function SkillMgr.OnUpdate()
 	if (pcast.lastcastid ~= 0) then
 		local castingskill = pcast.lastcastid
 		if ( job >= 8 and job <=15 ) then
-			local action = ActionList:Get(9,castingskill)
+			local action = SkillMgr.GetAction(castingskill,9)
 			if (action) then
 				SkillMgr.prevSkillID = castingskill
 				SkillMgr.UpdateLastCast(castingskill)
@@ -1009,7 +1272,7 @@ function SkillMgr.OnUpdate()
 				SkillMgr.failTimer = Now() + 6000
 			else
 				if (SkillMgr.prevSkillID ~= castingskill) then
-					local action = ActionList:Get(1,castingskill)
+					local action = SkillMgr.GetAction(castingskill,1)
 					if (action) then
 						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
@@ -1022,7 +1285,7 @@ function SkillMgr.OnUpdate()
 					end
 				end
 				if (SkillMgr.queuedPrio ~= 0) then
-					local action = ActionList:Get(1,castingskill)
+					local action = SkillMgr.GetAction(castingskill,1)
 					if (action) then
 						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
 							--d("Updating chain information.")
@@ -1041,36 +1304,83 @@ function SkillMgr.OnUpdate()
 		SkillMgr.failTimer = 0
 		SkillMgr.queuedPrio = 0
 	end
+	--]]
 end
 
 --This is the only function that should actually read from the file.
 function SkillMgr.ReadFile(strFile)
 	assert(type(strFile) == "string" and strFile ~= "", "[SkillMgr.ReadFile]: File target is not valid")
-	local filename = SkillMgr.profilepath..strFile..".lua"
+	local filename = SkillMgr.profilePath..strFile..".lua"
+	local validJob = true
 	
 	--Load the file, which should only be the new type.
 	local profile, e = persistence.load(filename)
 	if (table.valid(profile)) then
-		SkillMgr.SkillProfile = profile.skills
+		if (table.valid(profile.classes)) then
+			validJob = false
+			for jobid,validity in pairs(profile.classes) do
+				if (jobid == Player.job) then
+					validJob = true
+				end
+			end
+		end
+		if (validJob) then
+			SkillMgr.SkillProfile = profile.skills
+		end
 	else
 		d(e)
+		validJob = false
+	end
+	
+	if (not validJob) then
+		d("[SkillMgr.ReadFile]: File is not valid for this class, it will not be used.")
+		return false
 	end
 	
 	SkillMgr.ResetSkillTracking()
-	local filters = profile.filters
-	if (filters) then
-		gSkillManagerFilter1 = filters[1] or ""
-		gSkillManagerFilter2 = filters[2] or ""
-		gSkillManagerFilter3 = filters[3] or ""
-		gSkillManagerFilter4 = filters[4] or ""
-		gSkillManagerFilter5 = filters[5] or ""
-	else
-		gSkillManagerFilter1 = ""
-		gSkillManagerFilter2 = ""
-		gSkillManagerFilter3 = ""
-		gSkillManagerFilter4 = ""
-		gSkillManagerFilter5 = ""
-	end
+	local filters = IsNull(profile.filters,{})
+	gSkillManagerFilter1 = IsNull(filters[1],"")
+	gSkillManagerFilter2 = IsNull(filters[2],"")
+	gSkillManagerFilter3 = IsNull(filters[3],"")
+	gSkillManagerFilter4 = IsNull(filters[4],"")
+	gSkillManagerFilter5 = IsNull(filters[5],"")
+	
+	local classes = IsNull(profile.classes,{})
+	gSkillProfileValidGLD = IsNull(classes[FFXIV.JOBS.GLADIATOR],false)
+	gSkillProfileValidPLD = IsNull(classes[FFXIV.JOBS.PALADIN],false) 
+	gSkillProfileValidPUG = IsNull(classes[FFXIV.JOBS.PUGILIST],false)
+	gSkillProfileValidMNK = IsNull(classes[FFXIV.JOBS.MONK],false)
+	gSkillProfileValidMRD = IsNull(classes[FFXIV.JOBS.MARAUDER],false) 
+	gSkillProfileValidWAR = IsNull(classes[FFXIV.JOBS.WARRIOR],false) 
+	gSkillProfileValidLNC = IsNull(classes[FFXIV.JOBS.LANCER],false) 
+	gSkillProfileValidDRG = IsNull(classes[FFXIV.JOBS.DRAGOON],false) 
+	gSkillProfileValidARC = IsNull(classes[FFXIV.JOBS.ARCHER],false) 
+	gSkillProfileValidBRD = IsNull(classes[FFXIV.JOBS.BARD],false) 
+	gSkillProfileValidCNJ = IsNull(classes[FFXIV.JOBS.CONJURER],false) 
+	gSkillProfileValidWHM = IsNull(classes[FFXIV.JOBS.WHITEMAGE],false) 
+	gSkillProfileValidTHM = IsNull(classes[FFXIV.JOBS.THAUMATURGE],false) 
+	gSkillProfileValidBLM = IsNull(classes[FFXIV.JOBS.BLACKMAGE],false) 
+	gSkillProfileValidACN = IsNull(classes[FFXIV.JOBS.ARCANIST],false) 
+	gSkillProfileValidSMN = IsNull(classes[FFXIV.JOBS.SUMMONER],false) 
+	gSkillProfileValidSCH = IsNull(classes[FFXIV.JOBS.SCHOLAR],false) 
+	gSkillProfileValidROG = IsNull(classes[FFXIV.JOBS.ROGUE],false) 
+	gSkillProfileValidNIN = IsNull(classes[FFXIV.JOBS.NINJA],false)
+	gSkillProfileValidDRK = IsNull(classes[FFXIV.JOBS.DARKKNIGHT],false) 
+	gSkillProfileValidMCH = IsNull(classes[FFXIV.JOBS.MACHINIST],false) 
+	gSkillProfileValidAST = IsNull(classes[FFXIV.JOBS.ASTROLOGIAN],false) 
+	
+	gSkillProfileValidMIN = IsNull(classes[FFXIV.JOBS.MINER],false) 
+	gSkillProfileValidBTN = IsNull(classes[FFXIV.JOBS.BOTANIST],false) 
+	gSkillProfileValidFSH = IsNull(classes[FFXIV.JOBS.FISHER],false) 
+	
+	gSkillProfileValidCRP = IsNull(classes[FFXIV.JOBS.CARPENTER],false) 
+	gSkillProfileValidBSM = IsNull(classes[FFXIV.JOBS.BLACKSMITH],false) 
+	gSkillProfileValidARM = IsNull(classes[FFXIV.JOBS.ARMORER],false) 
+	gSkillProfileValidGSM = IsNull(classes[FFXIV.JOBS.GOLDSMITH],false) 
+	gSkillProfileValidLTW = IsNull(classes[FFXIV.JOBS.LEATHERWORKER],false) 
+	gSkillProfileValidWVR = IsNull(classes[FFXIV.JOBS.WEAVER],false) 
+	gSkillProfileValidALC = IsNull(classes[FFXIV.JOBS.ALCHEMIST],false) 
+	gSkillProfileValidCUL = IsNull(classes[FFXIV.JOBS.CULINARIAN],false) 
 	
 	local isdefault = false
 	local startingProfiles = SkillMgr.StartingProfiles
@@ -1099,7 +1409,7 @@ function SkillMgr.WriteToFile(strFile)
 	assert(strFile and type(strFile) == "string" and strFile ~= "", "[SkillMgr.WriteToFile]: File target is not valid.")
 	assert(string.find(strFile,"\\") == nil, "[SkillMgr.WriteToFile]: File contains illegal characters.")
 	
-	local filename = SkillMgr.profilepath ..strFile..".lua"
+	local filename = SkillMgr.profilePath ..strFile..".lua"
 	
 	local info = {}
 	info.version = 3
@@ -1112,6 +1422,44 @@ function SkillMgr.WriteToFile(strFile)
 		[4] = gSkillManagerFilter4,
 		[5] = gSkillManagerFilter5,
 	}
+	info.classes = {
+		[FFXIV.JOBS.GLADIATOR] = IsNull(gSkillProfileValidGLD,false),
+		[FFXIV.JOBS.PALADIN] = IsNull(gSkillProfileValidPLD,false),
+		[FFXIV.JOBS.PUGILIST] = IsNull(gSkillProfileValidPUG,false),
+		[FFXIV.JOBS.MONK] = IsNull(gSkillProfileValidMNK,false),
+		[FFXIV.JOBS.MARAUDER] = IsNull(gSkillProfileValidMRD,false),
+		[FFXIV.JOBS.WARRIOR] = IsNull(gSkillProfileValidWAR,false),
+		[FFXIV.JOBS.LANCER] = IsNull(gSkillProfileValidLNC,false),
+		[FFXIV.JOBS.DRAGOON] = IsNull(gSkillProfileValidDRG,false),
+		[FFXIV.JOBS.ARCHER] = IsNull(gSkillProfileValidARC,false),
+		[FFXIV.JOBS.BARD] = IsNull(gSkillProfileValidBRD,false),
+		[FFXIV.JOBS.CONJURER] = IsNull(gSkillProfileValidCNJ,false),
+		[FFXIV.JOBS.WHITEMAGE] = IsNull(gSkillProfileValidWHM,false),
+		[FFXIV.JOBS.THAUMATURGE] = IsNull(gSkillProfileValidTHM,false),
+		[FFXIV.JOBS.BLACKMAGE] = IsNull(gSkillProfileValidBLM,false),
+		[FFXIV.JOBS.ARCANIST] = IsNull(gSkillProfileValidACN,false),
+		[FFXIV.JOBS.SUMMONER] = IsNull(gSkillProfileValidSMN,false),
+		[FFXIV.JOBS.SCHOLAR] = IsNull(gSkillProfileValidSCH,false),
+		[FFXIV.JOBS.ROGUE] = IsNull(gSkillProfileValidROG,false),
+		[FFXIV.JOBS.NINJA] = IsNull(gSkillProfileValidNIN,false),
+		[FFXIV.JOBS.DARKKNIGHT] = IsNull(gSkillProfileValidDRK,false),
+		[FFXIV.JOBS.MACHINIST] = IsNull(gSkillProfileValidMCH,false),
+		[FFXIV.JOBS.ASTROLOGIAN] = IsNull(gSkillProfileValidAST,false),
+		
+		[FFXIV.JOBS.MINER] = IsNull(gSkillProfileValidMIN,false),
+		[FFXIV.JOBS.BOTANIST] = IsNull(gSkillProfileValidBTN,false),
+		[FFXIV.JOBS.FISHER] = IsNull(gSkillProfileValidFSH,false),
+		
+		[FFXIV.JOBS.CARPENTER] = IsNull(gSkillProfileValidCRP,false),
+		[FFXIV.JOBS.BLACKSMITH] = IsNull(gSkillProfileValidBSM,false),
+		[FFXIV.JOBS.ARMORER] = IsNull(gSkillProfileValidARM,false),
+		[FFXIV.JOBS.GOLDSMITH] = IsNull(gSkillProfileValidGSM,false),
+		[FFXIV.JOBS.LEATHERWORKER] = IsNull(gSkillProfileValidLTW,false),
+		[FFXIV.JOBS.WEAVER] = IsNull(gSkillProfileValidWVR,false),
+		[FFXIV.JOBS.ALCHEMIST] = IsNull(gSkillProfileValidALC,false),
+		[FFXIV.JOBS.CULINARIAN] = IsNull(gSkillProfileValidCUL,false),
+	}
+	
 	persistence.store(filename,info)
 end
 
@@ -1128,13 +1476,14 @@ function SkillMgr.GUI_Set(strName, value)
 	end
 end
 
+--[[
 function SkillMgr.AceOnly()
 	local startingProfiles = SkillMgr.StartingProfiles
 	if (table.valid(startingProfiles)) then
 		for jobid,profilename in pairs(startingProfiles) do
 			d("Checking profile ["..tostring(profilename).."]")
 			gSkillProfile = profilename
-			local filename = SkillMgr.profilepath..profilename..".lua"
+			local filename = SkillMgr.profilePath..profilename..".lua"
 			local profile,e = persistence.load(filename)
 			if (table.valid(profile)) then
 				SkillMgr.SkillProfile = profile.skills
@@ -1149,7 +1498,7 @@ function SkillMgr.AceOnly()
 		for k,profilename in pairs(extraProfiles) do
 			d("Checking profile ["..tostring(profilename).."]")
 			gSkillProfile = profilename
-			local filename = SkillMgr.profilepath..profilename..".lua"
+			local filename = SkillMgr.profilePath..profilename..".lua"
 			local profile,e = persistence.load(filename)
 			if (table.valid(profile)) then
 				SkillMgr.SkillProfile = profile.skills
@@ -1159,6 +1508,8 @@ function SkillMgr.AceOnly()
 		end
 	end
 end
+--]]
+
 
 function SkillMgr.CheckProfileValidity()
 	local profile = SkillMgr.SkillProfile
@@ -1169,7 +1520,7 @@ function SkillMgr.CheckProfileValidity()
 		for prio,skill in pairsByKeys(profile) do
 			local skID = tonumber(skill.id)
 			local skType = tonumber(skill.type)
-			local realskilldata = ActionList:Get(skType,skID)
+			local realskilldata = SkillMgr.GetAction(skID,skType)
 			
 			if (tonumber(skill.prio) ~= tonumber(prio)) then
 				skill.prio = tonumber(prio)
@@ -1260,7 +1611,7 @@ function SkillMgr.ButtonHandler(event, Button)
 			-- Delete the currently selected Profile - file from the HDD
 			if (gSkillProfile ~= nil and gSkillProfile ~= "None" and gSkillProfile ~= "") then
 				d("Deleting current Profile: "..gSkillProfile)
-				os.remove(SkillMgr.profilepath ..gSkillProfile..".lua")	
+				os.remove(SkillMgr.profilePath ..gSkillProfile..".lua")	
 				SkillMgr.UpdateProfiles()	
 			end
 		end
@@ -1407,15 +1758,16 @@ function SkillMgr.SaveProfile()
 	SkillMgr.RefreshFilterWindow()
 end
 
+--]]
 function SkillMgr.SetDefaultProfile(strName)
+	local uuid = GetUUID()
 	local profile = strName or gSkillProfile
-	Settings.FFXIVMINION.gSMDefaultProfiles[Player.job] = profile
-	Settings.FFXIVMINION.gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles
+	Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = profile
+	gSMDefaultProfiles = Settings.FFXIVMINION.gSMDefaultProfiles[uuid]
 end
 
-
 function SkillMgr.UseDefaultProfile()
-	local defaultTable = Settings.FFXIVMINION.gSMDefaultProfiles
+	local defaultTable = gSMDefaultProfiles
 	local default = nil
 	local profile = nil
 	local profileFound = false
@@ -1424,7 +1776,7 @@ function SkillMgr.UseDefaultProfile()
 	if (table.valid(defaultTable)) then
 		default = defaultTable[Player.job]
 		if (default) then
-			if (FileExists(SkillMgr.profilepath..default..".lua")) then
+			if (FileExists(SkillMgr.profilePath..default..".lua")) then
 				profileFound = true
 			end
 		end
@@ -1433,7 +1785,7 @@ function SkillMgr.UseDefaultProfile()
 	if (not profileFound) then
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
-			local filePath = SkillMgr.profilepath..starterDefault..".lua"
+			local filePath = SkillMgr.profilePath..starterDefault..".lua"
 			if (FileExists(filePath)) then
 				d("No default profile set, using start default ["..tostring(starterDefault).."]")
 				SkillMgr.SetDefaultProfile(starterDefault)
@@ -1452,19 +1804,18 @@ function SkillMgr.UseDefaultProfile()
 	
 	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
 end
---]]
 
 --Grasb all Profiles and enlist them in the dropdown field
 function SkillMgr.UpdateProfiles()
 	SkillMgr.profiles = {GetString("None"),GetString("ACR")}
-    local profileList = FolderList(SkillMgr.profilepath,[[(.*)lua$]])
+    local profileList = FolderList(SkillMgr.profilePath,[[(.*)lua$]])
     if (table.valid(profileList)) then		
 		for i,profile in pairs(profileList) do
             profileName = string.gsub(profile, ".lua", "")
 			table.insert(SkillMgr.profiles,profileName)
         end	
     end
-	table.print(SkillMgr.profiles)
+	--table.print(SkillMgr.profiles)
 end
 
 function SkillMgr.CopySkill()
@@ -1616,7 +1967,7 @@ function SkillMgr.RefreshSkillList()
 			if (skill.id ~= nil and tonumber(skill.id) ~= nil) then
 				local clientSkill = nil;
 				if (skill.type ~= nil) then
-					clientSkill = ActionList:Get(skill.type,skill.id)
+					clientSkill = SkillMgr.GetAction(skill.id,skill.type)
 				end
 				local skillFound = table.valid(clientSkill)
 				
@@ -1655,7 +2006,7 @@ function SkillMgr.RefreshSkillList()
 				if ((levelmin == 0 or (levelmin > 0 and levelmin <= mylevel)) and
 					(levelmax == 0 or (levelmax > 0 and levelmax >= mylevel)))
 				then
-					local skilldata = ActionList:Get(1,tonumber(skill.id))
+					local skilldata = SkillMgr.GetAction(tonumber(skill.id),1)
 					if (skilldata) then
 						--d("do nothing")
 						if (skilldata.range > 0) then
@@ -1696,7 +2047,7 @@ function SkillMgr.CreateNewSkillEntry(skill)
 	local skName = skill.name
 	local skID = tonumber(skill.id)
 	local skType = tonumber(skill.type) or 1
-	local realskilldata = ActionList:Get(skType,skID)
+	local realskilldata = SkillMgr.GetAction(skID,skType)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
 
@@ -1933,76 +2284,6 @@ function SkillMgr.RefreshFilterWindow()
 end
 --]]
 
-function SkillMgr.GetAction(actionid,actiontype,target)
-	local target = IsNull(target,Player)
-	local actiontype = IsNull(actiontype,1)
-	local targetid;
-	if (type(target) == "table") then
-		targetid = target.id
-	elseif (type(target) == "number") then
-		targetid = target
-	end
-	
-	if (GetVersion() == 32) then
-		return ActionList:Get(actionid,actiontype,targetid)
-	else
-		local action = ActionList:Get(actiontype,actionid)
-		if (action) then
-			action.isready = action:IsReady(targetid)
-		end
-		return action
-	end
-end
-
-function SkillMgr.CanCast(action,target,costpool,checkfacing)
-	local target = IsNull(target,Player)
-	local checkfacing = IsNull(checkfacing,false)
-	if (action and target) then
-		if (GetVersion() == 32) then
-			if (action.isready) then
-				return true
-			--elseif ((action.cd - action.cdmax) > 0 and action.cost <= costpool and (action.cd - action.cdmax) < .200) then
-				--if ((target.id ~= Player.id) or ((not checkfacing or action.isfacing) and ((target.distance2d - target.hitradius) < action.range))) then
-					--return true
-				--end
-			end
-		else
-			if (action:IsReady(target.id)) then
-				return true
-			--elseif ((action.cdmax - action.cd) > 0 and action.cost <= costpool and (action.cdmax - action.cd) < .200) then
-				--if ((target.id ~= Player.id) or ((not checkfacing or action:IsFacing(target.id)) and (target.distance2d < action.range))) then
-					--return true
-				--end
-			end
-		end
-	end
-	return false
-end
-
-function SkillMgr.ActionReady(action,target,checkfacing)
-	local target = IsNull(target,Player)
-	local checkfacing = IsNull(checkfacing,false)
-	local targetid;
-	if (type(target) == "table") then
-		targetid = target.id
-	elseif (type(target) == "number") then
-		targetid = target
-	end
-	
-	if (action and target) then
-		if (GetVersion() == 32) then
-			if (action.isready and (not checkfacing or action.isfacing)) then
-				return true
-			end
-		else
-			if (action:IsReady(targetid) and (not checkfacing or action:IsFacing(targetid))) then
-				return true
-			end
-		end
-	end
-	return false
-end
-
 function SkillMgr.GetCooldown(action)
 	if (action) then
 		if (GetVersion() == 32) then
@@ -2230,26 +2511,6 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	if (not entity or IsFlying() or table.valid(SkillMgr.receivedMacro)) then
 		return false
 	end
-				
-	--Check for current target cast preventions first.
-	local cp = Settings.FFXIVMINION.cpOptions
-	local target = MGetTarget()
-	if (target) then
-		for k,v in pairs(cp) do
-			if ( v.castids and v.castids ~= "" ) then
-				if (isCasting(target, v.castids, nil, nil )) then
-					if (MIsCasting()) then
-						ActionList:Cast(2,Player.id,5)
-					end
-					return false
-				end
-			elseif (v.tbuffs and v.tbuffs ~= "" ) then
-				if (HasBuffs(target, v.tbuffs)) then
-					return false
-				end
-			end
-		end
-	end	
 	
 	--This call is here to refresh the action list in case new skills are equipped.
 	if (SkillMgr.SkillProfile) then
@@ -2292,7 +2553,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					elseif (skill.stype == "Action") then
 						if (skill.trg == "Ground Target") then
 						
-							local action = ActionList:Get(1,skill.id)
+							local action = SkillMgr.GetAction(skill.id,1)
 							local entity = MGetEntity(TID)
 							local tpos = entity.pos
 							if (entity) then
@@ -2322,7 +2583,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 								end
 							end
 						else
-							local action = ActionList:Get(1,skill.id)
+							local action = SkillMgr.GetAction(skill.id,1)
 							local entity = MGetEntity(TID)
 							
 							if (table.valid(action)) then
@@ -2390,7 +2651,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 					
 					if (skill.trg == "Ground Target") then
 					
-						local s = ActionList:Get(11,skill.id)
+						local s = SkillMgr.GetAction(skill.id,1)
 						local entity = MGetEntity(TID)
 						
 						if (entity) then
@@ -2404,7 +2665,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 							end
 						end
 					else
-						local s = ActionList:Get(11,skill.id)
+						local s = SkillMgr.GetAction(skill.id,1)
 						SkillMgr.DebugOutput(prio, "Grabbed pet skill:"..tostring(s.name).." to cast on target ID :"..tostring(TID))
 						if (s:Cast(TID)) then
 							if (SkillMgr.SkillProfile[prio]) then
@@ -2529,7 +2790,7 @@ function SkillMgr.Craft()
 			local skillid = tonumber(skill.id)
 			
             if ( skill.used  ) then                
-                local realskilldata = ActionList:Get(9,skillid)
+                local realskilldata = SkillMgr.GetAction(skillid,9)
 				local skid = skillid
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
@@ -2537,7 +2798,7 @@ function SkillMgr.Craft()
 						for job, sid in pairs(data) do
 							if (sid == skill.id) then
 								skid = tonumber(data[Player.job]) or 0
-								realskilldata = ActionList:Get(9,skid)
+								realskilldata = SkillMgr.GetAction(skid,9)
 							end
 							if (realskilldata) then
 								break
@@ -2698,7 +2959,7 @@ function SkillMgr.Gather(item)
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
             if ( skill.used  ) then		-- takes care of los, range, facing target and valid target		
-                local realskilldata = ActionList:Get(1,skillid)
+                local realskilldata = SkillMgr.GetAction(skillid,1)
 			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
@@ -2856,7 +3117,7 @@ function SkillMgr.GCDTimeLT(mintime)
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	
 	if (actionID) then
-		local action = MGetAction(actionID)
+		local action = SkillMgr.GetAction(actionID,1)
 		if (action) then
 			if (action.cdmax - action.cd) < mintime then
 				return true
@@ -2876,7 +3137,7 @@ function SkillMgr.IsGCDReady(maxtime)
 	
 	local actionID = SkillMgr.GCDSkills[Player.job]
 	if (actionID) then
-		local action = ActionList:Get(1,actionID)
+		local action = SkillMgr.GetAction(actionID,1)
 		if (action) then
 			timediff = (action.cdmax - action.cd)
 			if (action.cdmax - action.cd) < maxtime then
@@ -2894,13 +3155,13 @@ function SkillMgr.IsReady( actionid, actiontype, targetid )
 	actionid = tonumber(actionid)
 	actiontype = actiontype or 1
 	
-	local actionself = ActionList:Get(actiontype,actionid)
-	if (actionself and actionself:IsReady(Player.id)) then
+	local actionself = SkillMgr.GetAction(actionid,actiontype,Player.id)
+	if (actionself and actionself.isready) then
 		return true
 	end
 	
-	local actiontarget =  ActionList:Get(actiontype,actionid)
-	if (actiontarget and actiontarget:IsReady(targetid)) then
+	local actiontarget =  SkillMgr.GetAction(actionid,actiontype,targetid)
+	if (actiontarget and actiontarget.isready) then
 		return true
 	end
 	
@@ -2911,7 +3172,7 @@ function SkillMgr.GetCDTime( actionid, actiontype )
 	local actionid = tonumber(actionid)
 	local actiontype = actiontype or 1
 	
-	local action = ActionList:Get(actiontype,actionid)
+	local action = SkillMgr.GetAction(actionid,actiontype)
 	if (action) then
 		return (action.cdmax - action.cd)
 	end
@@ -2925,7 +3186,7 @@ function SkillMgr.Use( actionid, targetid, actiontype )
 	
 	local target = MGetEntity(targetid)
 	if (target and target.los) then
-		local action = ActionList:Get(actiontype,actionid)
+		local action = SkillMgr.GetAction(actionid,actiontype)
 		if (action and action:IsReady(tid) and (gAssistAutoFace or action:IsFacing(tid))) then
 			if (action.range == 0 or (action.range >= (target.distance - target.hitradius))) then
 				action:Cast(tid)
@@ -3496,11 +3757,9 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	--Pull the real skilldata, if we can't find it, consider it uncastable.
 	local realskilldata = nil	
 	if (skill.stype == "Pet") then 
-		realskilldata = ActionList:Get(11,skillid) 
-		--realskilldata = MGetAction(skillid,11) 
+		realskilldata = SkillMgr.GetAction(skillid,11) 
 	else
-		realskilldata = ActionList:Get(1,skillid)
-		--realskilldata = MGetAction(skillid,1) 		
+		realskilldata = SkillMgr.GetAction(skillid,1)
 	end
 	
 	if (not realskilldata) then
@@ -3553,13 +3812,13 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	--Secondary Get() with proper target ID.
 	if (skill.stype == "Macro" or skill.stype == "Action") then 
-		realskilldata = ActionList:Get(1,skillid) --targetTable.TID) 
+		realskilldata = SkillMgr.GetAction(skillid,1) --targetTable.TID) 
 		if (realskilldata) then
 			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
 			realskilldata.isfacing = realskilldata:IsFacing(targetTable.TID)
 		end
 	elseif (skill.stype == "Pet") then
-		realskilldata = ActionList:Get(11,skillid) --targetTable.TID) 
+		realskilldata = SkillMgr.GetAction(skillid,11) --targetTable.TID) 
 		if (realskilldata) then
 			realskilldata.isready = realskilldata:IsReady(targetTable.TID)
 			realskilldata.isfacing = realskilldata:IsFacing(targetTable.TID)
@@ -3616,9 +3875,9 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 end
 
 -- Skillmanager Task for the mainbot & assistmode
-ffxiv_task_skillmgrAttack = inheritsFrom(ml_task)
-function ffxiv_task_skillmgrAttack.Create()
-    local newinst = inheritsFrom(ffxiv_task_skillmgrAttack)
+ffxiv_task_SkillMgrAttack = inheritsFrom(ml_task)
+function ffxiv_task_SkillMgrAttack.Create()
+    local newinst = inheritsFrom(ffxiv_task_SkillMgrAttack)
     
     --ml_task members
     newinst.valid = true
@@ -3638,7 +3897,7 @@ function ffxiv_task_skillmgrAttack.Create()
     return newinst
 end
 
-function ffxiv_task_skillmgrAttack:Init() 	
+function ffxiv_task_SkillMgrAttack:Init() 	
 	local ke_resetSuppress = ml_element:create( "ResetSuppress", c_resetsuppressions, e_resetsuppressions, 10 )
     self:add(ke_resetSuppress, self.process_elements)
 	
@@ -3648,7 +3907,7 @@ function ffxiv_task_skillmgrAttack:Init()
     self:AddTaskCheckCEs()
 end
 
-function ffxiv_task_skillmgrAttack:Process()
+function ffxiv_task_SkillMgrAttack:Process()
     local target = EntityList:Get(ml_task_hub:CurrentTask().targetid)
     if (target ~= nil and target.alive and InCombatRange(target.id)) then
         
@@ -3703,7 +3962,7 @@ function ffxiv_task_skillmgrAttack:Process()
     end
 end
 
-function ffxiv_task_skillmgrAttack:task_complete_eval()
+function ffxiv_task_SkillMgrAttack:task_complete_eval()
     local target = MGetTarget()
     if (target == nil or not target.alive or not target.attackable or (not InCombatRange(target.id) and Player.castinginfo.channelingid == 0)) then
 		ml_task_hub:CurrentTask().suppressFollow = false
@@ -3713,7 +3972,7 @@ function ffxiv_task_skillmgrAttack:task_complete_eval()
     return false
 end
 
-function ffxiv_task_skillmgrAttack:task_complete_execute()
+function ffxiv_task_SkillMgrAttack:task_complete_execute()
     self.targetid = 0
     self.completed = true
 end
@@ -4393,7 +4652,7 @@ function SkillMgr.AddDefaultConditions()
 			SkillMgr.DebugOutput(skill.prio, "[Resultant MP]:"..tostring((pmp.current - realskilldata.cost)).." is < "..tostring(skill.pmprgt))
 			return true
 		elseif (IsNull(tonumber(skill.pmprsgt),0) > 0) then -- or tonumber(skill.pmprslt) > 0) then
-			local otherskilldata = ActionList:Get(1,tonumber(skill.pmprsgt))
+			local otherskilldata = SkillMgr.GetAction(1,tonumber(skill.pmprsgt))
 			if (otherskilldata) then
 				local otherskillcost = otherskilldata.cost
 				if ((tonumber(skill.pmprsgt) > 0 and (pmp.current - realskilldata.cost) < otherskillcost)) then
@@ -4915,7 +5174,34 @@ function SkillMgr.AddDefaultConditions()
 	SkillMgr.AddConditional(conditional)
 end
 
+function SkillMgr.DrawSkillBook()
+	if (SkillMgr.GUI.skillbook.open) then	
+		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		SkillMgr.GUI.skillbook.visible, SkillMgr.GUI.skillbook.open = GUI:Begin(SkillMgr.GUI.skillbook.name, SkillMgr.GUI.skillbook.open)
+		if ( SkillMgr.GUI.skillbook.visible ) then 
+			
+		end
+		GUI:End()
+	end
+end
+
 function SkillMgr.DrawSkillEditor()
+	if (SkillMgr.GUI.editor.open) then	
+		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		SkillMgr.GUI.editor.visible, SkillMgr.GUI.editor.open = GUI:Begin(SkillMgr.GUI.editor.name, SkillMgr.GUI.editor.open)
+		if ( SkillMgr.GUI.editor.visible ) then 
+			
+		end
+		GUI:End()
+	end
+	
+	
+	
+	
+
+
 	--[[
 	 -- EDITOR WINDOW
     GUI_NewWindow(SkillMgr.editwindow.name, SkillMgr.mainwindow.x+SkillMgr.mainwindow.w, SkillMgr.mainwindow.y, SkillMgr.editwindow.w, SkillMgr.editwindow.h,"",true)		
@@ -5341,6 +5627,36 @@ function SkillMgr.DrawGatherEditor()
 end
 
 function SkillMgr.DrawManager()
+	if (SkillMgr.GUI.manager.open) then	
+		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		SkillMgr.GUI.manager.visible, SkillMgr.GUI.manager.open = GUI:Begin(SkillMgr.GUI.manager.name, SkillMgr.GUI.manager.open)
+		if ( SkillMgr.GUI.manager.visible ) then 
+		
+			local x, y = GUI:GetWindowPos()
+			local width, height = GUI:GetWindowSize()
+			local contentwidth = GUI:GetContentRegionAvailWidth()
+			
+			SkillMgr.GUI.manager.x = x; SkillMgr.GUI.manager.y = y; SkillMgr.GUI.manager.width = width; SkillMgr.GUI.manager.height = height;
+			
+			if ( GUI:TreeNode("New Profile")) then
+				GUI_Capture(GUI:InputText(GetString("name"),gSkillManagerNewProfile),"gSkillManagerNewProfile");
+				if ( GUI:Button("Create Profile")) then
+					SkillMgr.WriteToFile(gSkillManagerNewProfile)
+				end
+				GUI:TreePop()
+			end			
+			if ( GUI:TreeNode("Debugging")) then
+				GUI_Capture(GUI:Checkbox(GetString("debugging"),gSkillManagerDebug),"gSkillManagerDebug");
+				GUI_Capture(GUI:InputText(GetString("debugItems"),gSkillManagerDebugPriorities),"gSkillManagerDebugPriorities");
+				GUI:TreePop()
+			end
+			if ( GUI:Button("Edit Skills",width,20)) then
+				SkillMgr.GUI.editor.open = not SkillMgr.GUI.editor.open
+			end
+		end
+		GUI:End()
+	end
 	--[[
 	-- Skillbook
     GUI_NewWindow(SkillMgr.skillbook.name, SkillMgr.skillbook.x, SkillMgr.skillbook.y, SkillMgr.skillbook.w, SkillMgr.skillbook.h)
@@ -5416,21 +5732,33 @@ function SkillMgr.DrawManager()
 	--]]
 end
 
+function SkillMgr.DrawSkillFilters()
+	if (SkillMgr.GUI.filters.open) then	
+		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		SkillMgr.GUI.filters.visible, SkillMgr.GUI.filters.open = GUI:Begin(SkillMgr.GUI.filters.name, SkillMgr.GUI.filters.open)
+		if ( SkillMgr.GUI.filters.visible ) then 
+			
+		end
+		GUI:End()
+	end
+end
+
 function SkillMgr.Draw( event, ticks ) 
 	local gamestate;
 	if (GetGameState and GetGameState()) then
 		gamestate = GetGameState()
 	else
-		gamestate = 1
+		gamestate = 3
 	end
 	
 	-- Switch according to the gamestate
 	if ( gamestate == FFXIV.GAMESTATE.INGAME ) then
-		ml_global_information.InGameOnUpdate( event, tickcount );
 
 		SkillMgr.DrawManager()
+		SkillMgr.DrawSkillEditor()
 		SkillMgr.DrawSkillBook()
-		--ml_global_information.DrawMacroEditor()
+		SkillMgr.DrawSkillFilters()
 		--SkillMgr.DrawSkillEditor()
 		--SkillMgr.DrawCraftEditor()
 		--SkillMgr.DrawGatherEditor()
@@ -5439,4 +5767,4 @@ end
 
 RegisterEventHandler("Gameloop.Update",SkillMgr.OnGameUpdate)
 RegisterEventHandler("Module.Initalize",SkillMgr.ModuleInit)
---RegisterEventHandler("Gameloop.Draw", SkillMgr.Draw)
+RegisterEventHandler("Gameloop.Draw", SkillMgr.Draw)
