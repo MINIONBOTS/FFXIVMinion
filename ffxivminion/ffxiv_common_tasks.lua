@@ -1190,11 +1190,11 @@ function ffxiv_task_stealth:task_complete_eval()
 	end
 	
 	local action = nil
-    if (Player.job == FF.JOBS.BOTANIST) then
+    if (Player.job == FFXIV.JOBS.BOTANIST) then
         action = ActionList:Get(212)
-    elseif (Player.job == FF.JOBS.MINER) then
+    elseif (Player.job == FFXIV.JOBS.MINER) then
         action = ActionList:Get(229)
-    elseif (Player.job == FF.JOBS.FISHER) then
+    elseif (Player.job == FFXIV.JOBS.FISHER) then
         action = ActionList:Get(298)
     end
 

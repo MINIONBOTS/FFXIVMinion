@@ -68,6 +68,14 @@ function GUI_Set(varName,newVal)
 	Settings.FFXIVMINION[varName] = newVal
 end
 
+function GUI_Detect(newVal,varName,onChange)
+	local currentVal = _G[varName]
+	if (currentVal ~= newVal or (type(newVal) == "table" and not deepcompare(currentVal,newVal))) then
+		_G[varName] = newVal
+	end
+		
+	return newVal
+end
 
 function GUI_Capture(newVal,varName,onChange,forceSave)
 	local forceSave = IsNull(forceSave,false)
@@ -170,6 +178,16 @@ function GUI_CreateTabs(strTabs,doTranslate)
 		end
 	end
 	return tab_control
+end
+
+function GUI_SwitchTab(tTabs,iTab)
+	local tabs = tTabs.tabs
+	tabs[iTab].isselected = true
+	for k,tab2 in pairs(tabs) do
+		if (iTab ~= k and tab2.isselected) then
+			tabs[k].isselected = false
+		end
+	end
 end
 
 function GUI_DrawTabs(tTabs)

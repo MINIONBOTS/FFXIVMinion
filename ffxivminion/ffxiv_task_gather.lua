@@ -427,7 +427,7 @@ function c_nextgathermarker:evaluate()
 		--d("Checking for new markers.")
         local marker = nil
         local markerType = ""
-		if (Player.job == FF.JOBS.BOTANIST) then
+		if (Player.job == FFXIV.JOBS.BOTANIST) then
 			markerType = GetString("botanyMarker")
 		else
 			markerType = GetString("miningMarker")
@@ -525,16 +525,19 @@ function e_nextgathermarker:execute()
 end
 
 function DoGathering(item)
+	d("do gathering, check buffs")
 	if (ffxiv_gather.CheckBuffs(item)) then
 		ml_task_hub:CurrentTask():SetDelay(1500)
 		return 1
 	end
 	
+	d("do gathering, use skills")
 	if (SkillMgr.Gather(item)) then
 		ml_task_hub:CurrentTask():SetDelay(500)
 		return 2
 	end	
 
+	d("do gathering, collect stuff")
 	Player:Gather(item.index)
 	if (HasBuffs(Player,"805")) then
 		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
@@ -1308,7 +1311,7 @@ function c_nodeprebuff:evaluate()
 	
 	if (taskType ~= "") then
 		if (taskType == "botany") then
-			if (Player.job ~= FF.JOBS.BOTANIST and CanSwitchToClass(FF.JOBS.BOTANIST)) then
+			if (Player.job ~= FFXIV.JOBS.BOTANIST and CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
 				if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetbotany,0) ~= 0) then
 					local commandString = "/gs change "..tostring(profile.setup.gearsetbotany)
 					SendTextCommand(commandString)
@@ -1318,14 +1321,14 @@ function c_nodeprebuff:evaluate()
 					return true
 				else
 					e_nodeprebuff.activity = "switchclass"
-					e_nodeprebuff.class = FF.JOBS.BOTANIST
+					e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
 					e_nodeprebuff.requirestop = true
 					e_nodeprebuff.requiredismount = false
 					return true
 				end
 			end
 		elseif (taskType == "mining") then
-			if (Player.job ~= FF.JOBS.MINER and CanSwitchToClass(FF.JOBS.MINER)) then
+			if (Player.job ~= FFXIV.JOBS.MINER and CanSwitchToClass(FFXIV.JOBS.MINER)) then
 				if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetmining,0) ~= 0) then
 					local commandString = "/gs change "..tostring(profile.setup.gearsetmining)
 					SendTextCommand(commandString)
@@ -1335,7 +1338,7 @@ function c_nodeprebuff:evaluate()
 					return true
 				else
 					e_nodeprebuff.activity = "switchclass"
-					e_nodeprebuff.class = FF.JOBS.MINER
+					e_nodeprebuff.class = FFXIV.JOBS.MINER
 					e_nodeprebuff.requirestop = true
 					e_nodeprebuff.requiredismount = false
 					return true
@@ -1355,7 +1358,7 @@ function c_nodeprebuff:evaluate()
 		return true
 	end
 	
-	if ((Player.job == FF.JOBS.MINER or Player.job == FF.JOBS.BOTANIST) and 
+	if ((Player.job == FFXIV.JOBS.MINER or Player.job == FFXIV.JOBS.BOTANIST) and 
 		Player.level >= 46 and 
 		MissingBuffs(Player,"221+222"))
 	then
@@ -2408,9 +2411,9 @@ function c_gatherstealth:evaluate()
 		end
 		
 		local stealth = nil
-		if (Player.job == FF.JOBS.BOTANIST) then
+		if (Player.job == FFXIV.JOBS.BOTANIST) then
 			stealth = ActionList:Get(1,212)
-		elseif (Player.job == FF.JOBS.MINER) then
+		elseif (Player.job == FFXIV.JOBS.MINER) then
 			stealth = ActionList:Get(1,229)
 		end
 		
@@ -2534,9 +2537,9 @@ function ffxiv_gather.NeedsStealth()
 	
 	if (useStealth) then	
 		local stealth = nil
-		if (Player.job == FF.JOBS.BOTANIST) then
+		if (Player.job == FFXIV.JOBS.BOTANIST) then
 			stealth = ActionList:Get(1,212)
-		elseif (Player.job == FF.JOBS.MINER) then
+		elseif (Player.job == FFXIV.JOBS.MINER) then
 			stealth = ActionList:Get(1,229)
 		end
 		
@@ -2935,14 +2938,14 @@ end
 
 function ffxiv_gather.SwitchClass(class)
 	class = tonumber(class) or 0
-	if (class ~= FF.JOBS.MINER and class ~= FF.JOBS.BOTANIST) then
+	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
 	end
 	
 	local commandString = "/gearset change "
-	if (FF.JOBS.MINER == class) then
+	if (FFXIV.JOBS.MINER == class) then
 		commandString = commandString..tostring(gGatherMinerGearset)
-	elseif (FF.JOBS.BOTANIST == class) then
+	elseif (FFXIV.JOBS.BOTANIST == class) then
 		commandString = commandString..tostring(gGatherBotanistGearset)
 	end
 	
@@ -2951,14 +2954,14 @@ end
 
 function ffxiv_gather.LocatorBuff(class)
 	class = tonumber(class) or 0
-	if (class ~= FF.JOBS.MINER and class ~= FF.JOBS.BOTANIST) then
+	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
 	end
 	
 	local actionid = nil
-	if (FF.JOBS.MINER == class) then
+	if (FFXIV.JOBS.MINER == class) then
 		actionid = 238
-	elseif (FF.JOBS.BOTANIST == class) then
+	elseif (FFXIV.JOBS.BOTANIST == class) then
 		actionid = 221
 	end
 	local action = ActionList:Get(1,actionid)
@@ -2969,14 +2972,14 @@ end
 
 function ffxiv_gather.VisibilityBuff(class)
 	class = tonumber(class) or 0
-	if (class ~= FF.JOBS.MINER and class ~= FF.JOBS.BOTANIST) then
+	if (class ~= FFXIV.JOBS.MINER and class ~= FFXIV.JOBS.BOTANIST) then
 		return
 	end
 	
 	local actionid = nil
-	if (FF.JOBS.MINER == class) then
+	if (FFXIV.JOBS.MINER == class) then
 		actionid = 227
-	elseif (FF.JOBS.BOTANIST == class) then
+	elseif (FFXIV.JOBS.BOTANIST == class) then
 		actionid = 210
 	end
 	local action = ActionList:Get(1,actionid)
