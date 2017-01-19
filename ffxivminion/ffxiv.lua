@@ -129,12 +129,7 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
 		
-		local serviceAccountList = GetConversationList()
-		if (table.valid(serviceAccountList)) then
-			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
-				ml_global_information.Await(500, 5000, function () return not table.valid(GetConversationList) end)
-			end
-		end
+		
 		
 		if (not IsControlOpen("TitleDataCenter")) then
 			if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
@@ -155,11 +150,18 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 				end
 			else
 				if (UseControlAction("TitleDataCenter","Proceed",0)) then
-					ml_global_information.Await(1000, 60000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+					ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
 					login.datacenterSelected = false
 				end
 			end
 		end	
+		
+		local serviceAccountList = GetConversationList()
+		if (table.valid(serviceAccountList)) then
+			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
+				ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
+			end
+		end
 	end
 end
 
@@ -253,10 +255,10 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	local pulseTime = tonumber(gPulseTime) or 150
 	local skillPulse = (pulseTime/2)
 	
-	--if (TimeSince(ml_global_information.lastrun2) > skillPulse) then
-		--ml_global_information.lastrun2 = tickcount
-		--SkillMgr.OnUpdate()
-	--end
+	if (TimeSince(ml_global_information.lastrun2) > skillPulse) then
+		ml_global_information.lastrun2 = tickcount
+		SkillMgr.OnUpdate()
+	end
 	
 	if (Now() >= ml_global_information.nextRun) then
 		
@@ -483,7 +485,7 @@ function ffxivminion.SetMainVars()
 	gBotModeList = {GetString("none")}
 	
 	gSkillProfileIndex = 1
-	gSkillProfile = ffxivminion.GetSetting("gSkillProfile",GetString("none"))
+	gSkillProfile = GetString("none")
 	gSkillProfileList = {GetString("none"),GetString("ACR")}
 	
 	FFXIV_Common_BotRunning = false
@@ -607,17 +609,6 @@ function ffxivminion.HandleInit()
 			end
 		end		
 	end
-	
-	--[[
-	gSkillProfileList = {GetString("none")}
-    local profilelist = dirlist(SkillMgr.profilepath,".*lua")
-    if (table.valid(profilelist)) then
-		for i,profile in pairs(profilelist) do		
-            profile = string.gsub(profile, ".lua", "")
-			table.insert(gSkillProfileList,profile)
-        end		
-    end
-	--]]
 
 	FFXIV_Core_ActiveTaskName = ""
 	FFXIV_Common_BotRunning = false
@@ -1129,16 +1120,18 @@ function ml_global_information.DrawMainFull()
 					GUI:PopItemWidth()
 					
 					GUI:PushItemWidth(200)
-					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", gSkillProfileList)
+					local skillsChanged = GUI_Combo(GetString("skillProfile"), "gSkillProfileIndex", "gSkillProfile", SkillMgr.profiles)
 					if (skillsChanged) then
-						ffxivminion.SwitchMode(gBotMode)
 						local uuid = GetUUID()
-						if ( string.valid(uuid) ) then
-							if  ( Settings.FFXIVMINION.gBotModes == nil ) then Settings.FFXIVMINION.gBotModes = {} end
-							Settings.FFXIVMINION.gBotModes[uuid] = gBotMode
-						end
+						Settings.FFXIVMINION.gSMDefaultProfiles[uuid][Player.job] = gSkillProfile
+						SkillMgr.UseProfile(gSkillProfile)
 					end
 					GUI:PopItemWidth()
+			
+					GUI:SameLine(0,5)
+					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 18, 18)) then
+						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
+					end
 					
 					--[[
 					GUI:PushItemWidth(width-80)
@@ -1239,7 +1232,7 @@ function ml_global_information.DrawSettings()
 	local gamestate = GetGameState()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.settings.open) then
-			GUI:SetNextWindowSize(300,300,GUI.SetCond_Once) --set the next window size, only on first ever	
+			GUI:SetNextWindowSize(600,500,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 			
 			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
@@ -1523,7 +1516,7 @@ function ml_global_information.DrawLoginHandler()
 				end
 			end
 			
-			GUI_DrawIntMinMax("Service Account Index (1-n)","FFXIV_Login_ServiceAccount",1,1,1,15,
+			GUI_DrawIntMinMax("Service Account Index (0-n)","FFXIV_Login_ServiceAccount",1,1,0,15,
 				function () 
 					local uuid = GetUUID()
 					if ( string.valid(uuid) ) then
