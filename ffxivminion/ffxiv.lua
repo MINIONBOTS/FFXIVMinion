@@ -234,7 +234,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 				end
 			end
 			
-			ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
+			--ml_mesh_mgr.OMC_Handler_OnUpdate( tickcount )
 			
 			local currentFile = NavigationManager.CurrentFile
 			currentFile = ml_mesh_mgr.GetString(string.gsub(currentFile,ml_mesh_mgr.defaultpath.."\\", ""))
