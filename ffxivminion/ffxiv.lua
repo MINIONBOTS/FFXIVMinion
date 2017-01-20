@@ -129,38 +129,36 @@ function ml_global_information.MainMenuScreenOnUpdate( event, tickcount )
 	if (not login.loginPaused) then
 		--d("checking mainmenu")
 		
-		
-		
-		if (not IsControlOpen("TitleDataCenter")) then
-			if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
-				ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
-			end
-		else
-			if (not login.datacenterSelected) then
-				if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
-					--d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
-					if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
-						login.datacenterSelected = true
-						ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
-					end
-				else
-					--d("login paused:Attempt to issue notice")
-					login.loginPaused = true
-					ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
-				end
-			else
-				if (UseControlAction("TitleDataCenter","Proceed",0)) then
-					ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
-					login.datacenterSelected = false
-				end
-			end
-		end	
-		
 		local serviceAccountList = GetConversationList()
 		if (table.valid(serviceAccountList)) then
-			if (SelectConversationIndex(FFXIV_Login_ServiceAccount)) then
+			if (SelectConversationLine(FFXIV_Login_ServiceAccount)) then
 				ml_global_information.Await(500, 5000, function () return GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN end)
 			end
+		else
+			if (not IsControlOpen("TitleDataCenter")) then
+				if (UseControlAction("_TitleMenu","OpenDataCenter",0)) then
+					ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
+				end
+			else
+				if (not login.datacenterSelected) then
+					if (FFXIV_Login_DataCenter and FFXIV_Login_DataCenter >= 2 and FFXIV_Login_DataCenter <= 7) then
+						--d("trying to login on datacenter:"..tostring(FFXIV_Login_DataCenter))
+						if (UseControlAction("TitleDataCenter","SetDataCenter",(FFXIV_Login_DataCenter-2))) then
+							login.datacenterSelected = true
+							ml_global_information.Await(100, 10000, function () return IsControlOpen("TitleDataCenter") end)
+						end
+					else
+						--d("login paused:Attempt to issue notice")
+						login.loginPaused = true
+						ffxiv_dialog_manager.IssueNotice("DataCenter Required", "You must select a DataCenter to continue the login process.")
+					end
+				else
+					if (UseControlAction("TitleDataCenter","Proceed",0)) then
+						ml_global_information.Await(1000, 60000, function () return (table.valid(GetConversationList()) or  GetGameState() ~= FFXIV.GAMESTATE.MAINMENUSCREEN) end)
+						login.datacenterSelected = false
+					end
+				end
+			end	
 		end
 	end
 end
@@ -314,9 +312,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		local et = AceLib.API.Weather.GetDateTime() 
 		FFXIV_Common_EorzeaTime = tostring(et.hour)..":"..(et.minute < 10 and "0" or "")..tostring(et.minute)
 		
-		--if (SkillMgr) then
-		ffxivminion.CheckClass()
-		--end
+		if (SkillMgr) then
+			ffxivminion.CheckClass()
+		end
 		
 		if (TimeSince(ml_global_information.updateFoodTimer) > 15000) then
 			ml_global_information.updateFoodTimer = tickcount
@@ -564,12 +562,12 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
 	ml_global_information.autoStartQueued = gAutoStart		
-	--Hacks:Disable3DRendering(gDisableDrawing)
-	--Hacks:SkipCutscene(gSkipCutscene)
+	Hacks:Disable3DRendering(gDisableDrawing)
+	Hacks:SkipCutscene(gSkipCutscene)
 	--Hacks:SkipDialogue(gSkipTalk)
 	--Hacks:SetClickToTeleport(gClickTeleport)
 	--Hacks:SetClickToTravel(gClickTravel)
-	--Hacks:SetPermaSprint(gPermaSprint)
+	Hacks:SetPermaSprint(gPermaSprint)
 	--Hacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
 	--Crafting:UseHQMats(FFXIV_Craft_UseHQMats)
 end
@@ -696,7 +694,7 @@ end
 function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
-		--Hacks:SkipCutscene(gSkipCutscene)
+		Hacks:SkipCutscene(gSkipCutscene)
 		--Hacks:SkipDialogue(gSkipTalk)
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
     end
@@ -735,7 +733,7 @@ function ffxivminion.VerifyClassSettings()
 		
 		local requiredUpdate = false
 		for name,value in pairs(settingsTemplate) do
-			if (not classSettings[name]) then
+			if (classSettings[name] == nil) then
 				d("[VerifyClassSettings]: Setting ["..name.."] does not exist, creating fresh instance from global variable.")
 				classSettings[name] = _G[name]
 				if (not requiredUpdate) then
@@ -848,7 +846,7 @@ function ffxivminion.CheckClass()
 	local classes = ml_global_information.classes
 	local playerClass = classes[Player.job]
 	if (not playerClass) then
-		--ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
+		ffxiv_dialog_manager.IssueNotice("FFXIV_CheckClass_InvalidClass", "Missing class routine file.")
 		return
 	end
 	
@@ -925,9 +923,8 @@ function ml_global_information.Stop()
     if (Player:IsMoving()) then
         Player:Stop()
     end
-	--SkillMgr.receivedMacro = {}
-	--Hacks:SkipCutscene(gSkipCutscene)
-	--Hacks:SkipDialogue(gSkipTalk)
+	SkillMgr.receivedMacro = {}
+	Hacks:SkipCutscene(gSkipCutscene)
 end
 
 function ffxivminion.AddMode(name, task)
@@ -1352,7 +1349,7 @@ function ml_global_information.DrawSettings()
 
 					GUI_Capture(GUI:Checkbox(GetString("paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
 					GUI_Capture(GUI:Checkbox(GetString("permaSprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
-					--GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
+					GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
 					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),gSkipTalk),"gSkipTalk")
 					--GUI_Capture(GUI:Checkbox(GetString("clickToTeleport"),gClickTeleport),"gClickTeleport", function () Hacks:SetClickToTeleport(gClickTeleport) end)
 					--GUI_Capture(GUI:Checkbox(GetString("clickToTravel"),gClickTravel),"gClickTravel", function () Hacks:SetClickToTravel(gClickTravel) end)

@@ -5472,8 +5472,8 @@ function GetConversationList()
 	end
 	return nil
 end
-function SelectConversationIndexOld(index)
-	local index = IsNull(index,0)
+function SelectConversationLine(line)
+	local line = IsNull(line,0)
 	local controlName;
 	if (IsControlOpen("SelectIconString")) then
 		controlName = "SelectIconString"
@@ -5482,7 +5482,7 @@ function SelectConversationIndexOld(index)
 	end
 	
 	if (controlName) then
-		return UseControlAction(controlName,"SelectIndex",index-1)
+		return UseControlAction(controlName,"SelectIndex",line)
 	end
 	return false
 end
@@ -5496,7 +5496,7 @@ function SelectConversationIndex(index)
 	end
 	
 	if (controlName) then
-		return UseControlAction(controlName,"SelectIndex",index)
+		return UseControlAction(controlName,"SelectIndex",index-1)
 	end
 	return false
 end

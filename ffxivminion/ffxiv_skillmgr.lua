@@ -171,7 +171,6 @@ SkillMgr.ActionTypes = {
 	PET = 11,
 }
 
---[[  New x64 shit, wait until GUI is done though..
 SkillMgr.Variables = {
 	SKM_NAME = { default = "", cast = "string", profile = "name", section = "main"},
 	SKM_ALIAS = { default = "", cast = "string", profile = "alias", section = "main"},
@@ -534,374 +533,14 @@ SkillMgr.Variables = {
 	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
 	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", section = "gathering"},
 }
---]]
-
-SkillMgr.Variables = {
-	SKM_NAME = { default = "", cast = "string", profile = "name", section = "main"},
-	SKM_ALIAS = { default = "", cast = "string", profile = "alias", section = "main"},
-	SKM_ID = { default = 0, cast = "number", profile = "id", section = "main"},
-	SKM_TYPE = { default = 1, cast = "number", profile = "type", section = "main", useData = "type" },
-	SKM_ON = { default = "0", cast = "string", profile = "used", section = "main"},
-	SKM_Prio = { default = 0, cast = "number", profile = "prio", section = "main"},
-	
-	SKM_STYPE = { default = "Action", cast = "string", profile = "stype", section = "fighting"},
-	SKM_CHARGE = { default = "0", cast = "string", profile = "charge", section = "fighting" },
-	SKM_DOBUFF = { default = "0", cast = "string", profile = "dobuff", section = "fighting" },
-	SKM_REMOVESBUFF = { default = "0", cast = "string", profile = "removebuff", section = "fighting" },
-	SKM_DOPREV = { default = "0", cast = "string", profile = "doprev", section = "fighting"  },
-	SKM_LevelMin = { default = 0, cast = "number", profile = "levelmin", section = "fighting", useData = "level" },
-	SKM_LevelMax = { default = 0, cast = "number", profile = "levelmax", section = "fighting"   },
-	SKM_Combat = { default = "In Combat", cast = "string", profile = "combat", section = "fighting"  },
-	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
-	SKM_OnlySolo = { default = "0", cast = "string", profile = "onlysolo", section = "fighting"  },
-	SKM_OnlyParty = { default = "0", cast = "string", profile = "onlyparty", section = "fighting"  },
-	SKM_PartySizeLT = { default = "0", cast = "string", profile = "partysizelt", section = "fighting"  },
-	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting"  },
-	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting"  },
-	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
-	SKM_FilterFour = { default = "Ignore", cast = "string", profile = "filterfour", section = "fighting"  },
-	SKM_FilterFive = { default = "Ignore", cast = "string", profile = "filterfive", section = "fighting"  },
-	SKM_ComboSkill = { default = "Auto", cast = "string", profile = "comboskill", section = "fighting"  },
-	--SKM_MPLock = { default = "0", cast = "string", profile = "mplock", section = "fighting" },
-	--SKM_MPLocked = { default = "0", cast = "string", profile = "mplocked", section = "fighting" },
-	--SKM_MPLockPer = { default = 0, cast = "number", profile = "mplockper", section = "fighting" },
-	SKM_TRG = { default = GetString("target"), cast = "string", profile = "trg", section = "fighting"  },
-	SKM_TRGTYPE = { default = "Any", cast = "string", profile = "trgtype", section = "fighting"  },
-	SKM_TRGSELF = { default = "0", cast = "string", profile = "trgself", section = "fighting" },
-	SKM_NPC = { default = "0", cast = "string", profile = "npc", section = "fighting"  },
-	SKM_PTRG = { default = "Any", cast = "string", profile = "ptrg", section = "fighting" },
-	SKM_PGTRG = { default = "Direct", cast = "string", profile = "pgtrg", section = "fighting"  },
-	SKM_HPRIOHP = { default = 0, cast = "number", profile = "hpriohp", section = "fighting"  },
-	SKM_HPRIO1 = { default = "None", cast = "string", profile = "hprio1", section = "fighting"  },
-	SKM_HPRIO2 = { default = "None", cast = "string", profile = "hprio2", section = "fighting"  },
-	SKM_HPRIO3 = { default = "None", cast = "string", profile = "hprio3", section = "fighting"  },
-	SKM_HPRIO4 = { default = "None", cast = "string", profile = "hprio4", section = "fighting"  },
-	SKM_MinR = { default = 0, cast = "number", profile = "minRange", section = "fighting"  },
-	SKM_MaxR = { default = 24, cast = "number", profile = "maxRange", section = "fighting", useData = "range" },
-	SKM_PHPL = { default = 0, cast = "number", profile = "phpl", section = "fighting"   },
-	SKM_PHPB = { default = 0, cast = "number", profile = "phpb", section = "fighting"   },
-	SKM_PUnderAttack = { default = "0", cast = "string", profile = "punderattack", section = "fighting"  },
-	SKM_PUnderAttackMelee = { default = "0", cast = "string", profile = "punderattackmelee", section = "fighting"  },
-	SKM_PPowL = { default = 0, cast = "number", profile = "ppowl", section = "fighting"   },
-	SKM_PPowB = { default = 0, cast = "number", profile = "ppowb", section = "fighting"   },
-	SKM_PMPPL = { default = 0, cast = "number", profile = "pmppl", section = "fighting"   },
-	SKM_PMPPB = { default = 0, cast = "number", profile = "pmppb", section = "fighting"   },
-	
-	SKM_PMPRGT = { default = 0, cast = "number", profile = "pmprgt", section = "fighting"   },
-	SKM_PMPRLT = { default = 0, cast = "number", profile = "pmprlt", section = "fighting"   },
-	SKM_PMPPRGT = { default = 0, cast = "number", profile = "pmpprgt", section = "fighting"   },
-	SKM_PMPPRLT = { default = 0, cast = "number", profile = "pmpprlt", section = "fighting"   },
-	SKM_PMPRSGT = { default = "", cast = "string", profile = "pmprsgt", section = "fighting"   },
-	SKM_PMPRSLT = { default = "", cast = "string", profile = "pmprslt", section = "fighting"   },
-	
-	SKM_PTPL = { default = 0, cast = "number", profile = "ptpl", section = "fighting"  },
-	SKM_PTPB = { default = 0, cast = "number", profile = "ptpb", section = "fighting"  },
-	SKM_THPL = { default = 0, cast = "number", profile = "thpl", section = "fighting"  },
-	SKM_THPB = { default = 0, cast = "number", profile = "thpb", section = "fighting"  },
-	SKM_THPADV = { default = 0, cast = "number", profile = "thpadv", section = "fighting"  },
-	SKM_TTPL = { default = 0, cast = "number", profile = "ttpl", section = "fighting"  },
-	SKM_TMPL = { default = 0, cast = "number", profile = "tmpl", section = "fighting"  },
-	SKM_PTCount = { default = 0, cast = "number", profile = "ptcount", section = "fighting"   },
-	SKM_PTHPL = { default = 0, cast = "number", profile = "pthpl", section = "fighting"   },
-	SKM_PTHPB = { default = 0, cast = "number", profile = "pthpb", section = "fighting"   },
-	SKM_PTMPL = { default = 0, cast = "number", profile = "ptmpl", section = "fighting"   },
-	SKM_PTMPB = { default = 0, cast = "number", profile = "ptmpb", section = "fighting"   },
-	SKM_PTTPL = { default = 0, cast = "number", profile = "pttpl", section = "fighting"   },
-	SKM_PTTPB = { default = 0, cast = "number", profile = "pttpb", section = "fighting"   },
-	SKM_PTBuff = { default = "", cast = "string", profile = "ptbuff", section = "fighting"  },
-	SKM_PTKBuff = { default = "0", cast = "string", profile = "ptkbuff", section = "fighting"  },
-	SKM_PTNBuff = { default = "", cast = "string", profile = "ptnbuff", section = "fighting"  },
-	SKM_THPCL = { default = 0, cast = "number", profile = "thpcl", section = "fighting"   },
-	SKM_THPCB = { default = 0, cast = "number", profile = "thpcb", section = "fighting"   },
-	SKM_TCONTIDS = { default = "", cast = "string", profile = "tcontids", section = "fighting"  },
-	SKM_TNCONTIDS = { default = "", cast = "string", profile = "tncontids", section = "fighting"  },
-	SKM_TCASTID = { default = "", cast = "string", profile = "tcastids", section = "fighting"  },
-	SKM_TCASTTM = { default = "0", cast = "string", profile = "tcastonme", section = "fighting"  },
-	SKM_TCASTTIME = { default = "0.0", cast = "string", profile = "tcasttime", section = "fighting"  },
-	SKM_TECount = { default = 0, cast = "number", profile = "tecount", section = "fighting"   },
-	SKM_TECount2 = { default = 0, cast = "number", profile = "tecount2", section = "fighting"   },
-	
-	SKM_EnmityAOE = { default = "0", cast = "string", profile = "enmityaoe", section = "fighting"   },
-	SKM_FrontalConeAOE = { default = "0", cast = "string", profile = "frontalconeaoe", section = "fighting"   },
-	SKM_TankedOnly = { default = "0", cast = "string", profile = "tankedonlyaoe", section = "fighting"   },
-	SKM_TEHPAvgGT = { default = 0, cast = "number", profile = "tehpavggt", section = "fighting"   },
-	
-	SKM_TERange = { default = 0, cast = "number", profile = "terange", section = "fighting" , useData = "radius" },
-	SKM_TECenter = { default = "Auto", cast = "string", profile = "tecenter", section = "fighting"  },
-	SKM_TELevel = { default = "Any", cast = "string", profile = "televel", section = "fighting"  },
-	SKM_TACount = { default = 0, cast = "number", profile = "tacount", section = "fighting"   },
-	SKM_TARange = { default = 0, cast = "number", profile = "tarange", section = "fighting", useData = "radius" },
-	SKM_TAHPL = { default = 0, cast = "number", profile = "tahpl", section = "fighting"   },
-	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting"  },
-	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
-	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting"  },
-	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
-	
-	SKM_TBuffOwner = { default = "Player", cast = "string", profile = "tbuffowner", section = "fighting"  },
-	SKM_TBuff = { default = "", cast = "string", profile = "tbuff", section = "fighting"  },
-	SKM_TBuffDura = { default = 0, cast = "number", profile = "tbuffdura", section = "fighting"   },
-	SKM_TNBuffOwner = { default = "Player", cast = "string", profile = "tnbuffowner", section = "fighting"  },
-	SKM_TNBuff = { default = "", cast = "string", profile = "tnbuff", section = "fighting"  },
-	SKM_TNBuffDura = { default = 0, cast = "number", profile = "tnbuffdura", section = "fighting"   },
-	
-	SKM_PetBuff = { default = "", cast = "string", profile = "petbuff", section = "fighting"  },
-	SKM_PetBuffDura = { default = 0, cast = "number", profile = "petbuffdura", section = "fighting" },
-	SKM_PetNBuff = { default = "", cast = "string", profile = "petnbuff", section = "fighting"  },
-	SKM_PetNBuffDura = { default = 0, cast = "number", profile = "petnbuffdura", section = "fighting"   },
-	
-	SKM_PSkillID = { default = "", cast = "string", profile = "pskill", section = "fighting"  },
-	SKM_NPSkillID = { default = "", cast = "string", profile = "npskill", section = "fighting"  },
-	SKM_PCSkillID = { default = "", cast = "string", profile = "pcskill", section = "fighting"  },
-	SKM_NPCSkillID = { default = "", cast = "string", profile = "npcskill", section = "fighting"  },
-	SKM_PGSkillID = { default = "", cast = "string", profile = "pgskill", section = "fighting"  },
-	SKM_NPGSkillID = { default = "", cast = "string", profile = "npgskill", section = "fighting"  },
-	--SKM_NSkillID = { default = "", cast = "string", profile = "nskill", section = "fighting"  },
-	--SKM_NSkillPrio = { default = "", cast = "string", profile = "nskillprio", section = "fighting"  },
-	
-	SKM_SecsPassed = { default = 0, cast = "number", profile = "secspassed", section = "fighting"   },
-	SKM_SecsPassedUnique = { default = 0, cast = "number", profile = "secspassedu", section = "fighting"   },
-	SKM_PPos = { default = "None", cast = "string", profile = "ppos", section = "fighting" },
-	SKM_OffGCD = { default = "Auto", cast = "string", profile = "gcd", section = "fighting" },
-	SKM_OffGCDTime = { default = 1.5, cast = "number", profile = "gcdtime", section = "fighting" },
-	SKM_OffGCDTimeLT = { default = 2.5, cast = "number", profile = "gcdtimelt", section = "fighting" },
-	
-	SKM_SKREADY = { default = "", cast = "string", profile = "skready", section = "fighting" },
-	SKM_SKOFFCD = { default = "", cast = "string", profile = "skoffcd", section = "fighting" },
-	SKM_SKNREADY = { default = "", cast = "string", profile = "sknready", section = "fighting" },
-	SKM_SKNOFFCD = { default = "", cast = "string", profile = "sknoffcd", section = "fighting" },
-	SKM_SKNCDTIMEMIN = { default = "", cast = "string", profile = "skncdtimemin", section = "fighting" },
-	SKM_SKNCDTIMEMAX = { default = "", cast = "string", profile = "skncdtimemax", section = "fighting" },
-	SKM_SKTYPE = { default = "Action", cast = "string", profile = "sktype", section = "fighting"},
-	SKM_NCURRENTACTION = { default = "", cast = "string", profile = "ncurrentaction", section = "fighting" },
-	
-	SKM_CHAINSTART = { default = "0", cast = "string", profile = "chainstart", section = "fighting" },
-	SKM_CHAINNAME = { default = "", cast = "string", profile = "chainname", section = "fighting" },
-	SKM_CHAINEND = { default = "0", cast = "string", profile = "chainend", section = "fighting" },
-	
-	-- Macro Vars.
-	SKM_M1ACTIONTYPE = { default = "Action", cast = "string", profile = "m1actiontype", section = "fighting" },
-	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
-	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
-	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
-	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
-	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", section = "fighting" },
-
-	SKM_M2ACTIONTYPE = { default = "Action", cast = "string", profile = "m2actiontype", section = "fighting" },
-	SKM_M2ACTIONID = { default = 0, cast = "number", profile = "m2actionid", section = "fighting" },
-	SKM_M2ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m2actiontarget", section = "fighting" },
-	SKM_M2ACTIONWAIT = { default = 100, cast = "number", profile = "m2actionwait", section = "fighting" },
-	SKM_M2ACTIONMSG = { default = "", cast = "string", profile = "m2actionmsg", section = "fighting" },
-	SKM_M2ACTIONCOMPLETE = { default = "", cast = "string", profile = "m2actioncomplete", section = "fighting" },
-
-	SKM_M3ACTIONTYPE = { default = "Action", cast = "string", profile = "m3actiontype", section = "fighting" },
-	SKM_M3ACTIONID = { default = 0, cast = "number", profile = "m3actionid", section = "fighting" },
-	SKM_M3ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m3actiontarget", section = "fighting" },
-	SKM_M3ACTIONWAIT = { default = 100, cast = "number", profile = "m3actionwait", section = "fighting" },
-	SKM_M3ACTIONMSG = { default = "", cast = "string", profile = "m3actionmsg", section = "fighting" },
-	SKM_M3ACTIONCOMPLETE = { default = "", cast = "string", profile = "m3actioncomplete", section = "fighting" },
-
-	SKM_M4ACTIONTYPE = { default = "Action", cast = "string", profile = "m4actiontype", section = "fighting" },
-	SKM_M4ACTIONID = { default = 0, cast = "number", profile = "m4actionid", section = "fighting" },
-	SKM_M4ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m4actiontarget", section = "fighting" },
-	SKM_M4ACTIONWAIT = { default = 100, cast = "number", profile = "m4actionwait", section = "fighting" },
-	SKM_M4ACTIONMSG = { default = "", cast = "string", profile = "m4actionmsg", section = "fighting" },
-	SKM_M4ACTIONCOMPLETE = { default = "", cast = "string", profile = "m4actioncomplete", section = "fighting" },
-
-	SKM_M5ACTIONTYPE = { default = "Action", cast = "string", profile = "m5actiontype", section = "fighting" },
-	SKM_M5ACTIONID = { default = 0, cast = "number", profile = "m5actionid", section = "fighting" },
-	SKM_M5ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m5actiontarget", section = "fighting" },
-	SKM_M5ACTIONWAIT = { default = 100, cast = "number", profile = "m5actionwait", section = "fighting" },
-	SKM_M5ACTIONMSG = { default = "", cast = "string", profile = "m5actionmsg", section = "fighting" },
-	SKM_M5ACTIONCOMPLETE = { default = "", cast = "string", profile = "m5actioncomplete", section = "fighting" },
-
-	SKM_M6ACTIONTYPE = { default = "Action", cast = "string", profile = "m6actiontype", section = "fighting" },
-	SKM_M6ACTIONID = { default = 0, cast = "number", profile = "m6actionid", section = "fighting" },
-	SKM_M6ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m6actiontarget", section = "fighting" },
-	SKM_M6ACTIONWAIT = { default = 100, cast = "number", profile = "m6actionwait", section = "fighting" },
-	SKM_M6ACTIONMSG = { default = "", cast = "string", profile = "m6actionmsg", section = "fighting" },
-	SKM_M6ACTIONCOMPLETE = { default = "", cast = "string", profile = "m6actioncomplete", section = "fighting" },
-
-	SKM_M7ACTIONTYPE = { default = "Action", cast = "string", profile = "m7actiontype", section = "fighting" },
-	SKM_M7ACTIONID = { default = 0, cast = "number", profile = "m7actionid", section = "fighting" },
-	SKM_M7ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m7actiontarget", section = "fighting" },
-	SKM_M7ACTIONWAIT = { default = 100, cast = "number", profile = "m7actionwait", section = "fighting" },
-	SKM_M7ACTIONMSG = { default = "", cast = "string", profile = "m7actionmsg", section = "fighting" },
-	SKM_M7ACTIONCOMPLETE = { default = "", cast = "string", profile = "m7actioncomplete", section = "fighting" },
-
-	SKM_M8ACTIONTYPE = { default = "Action", cast = "string", profile = "m8actiontype", section = "fighting" },
-	SKM_M8ACTIONID = { default = 0, cast = "number", profile = "m8actionid", section = "fighting" },
-	SKM_M8ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m8actiontarget", section = "fighting" },
-	SKM_M8ACTIONWAIT = { default = 100, cast = "number", profile = "m8actionwait", section = "fighting" },
-	SKM_M8ACTIONMSG = { default = "", cast = "string", profile = "m8actionmsg", section = "fighting" },
-	SKM_M8ACTIONCOMPLETE = { default = "", cast = "string", profile = "m8actioncomplete", section = "fighting" },
-
-	SKM_M9ACTIONTYPE = { default = "Action", cast = "string", profile = "m9actiontype", section = "fighting" },
-	SKM_M9ACTIONID = { default = 0, cast = "number", profile = "m9actionid", section = "fighting" },
-	SKM_M9ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m9actiontarget", section = "fighting" },
-	SKM_M9ACTIONWAIT = { default = 100, cast = "number", profile = "m9actionwait", section = "fighting" },
-	SKM_M9ACTIONMSG = { default = "", cast = "string", profile = "m9actionmsg", section = "fighting" },
-	SKM_M9ACTIONCOMPLETE = { default = "", cast = "string", profile = "m9actioncomplete", section = "fighting" },
-
-	SKM_M10ACTIONTYPE = { default = "Action", cast = "string", profile = "m10actiontype", section = "fighting" },
-	SKM_M10ACTIONID = { default = 0, cast = "number", profile = "m10actionid", section = "fighting" },
-	SKM_M10ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m10actiontarget", section = "fighting" },
-	SKM_M10ACTIONWAIT = { default = 100, cast = "number", profile = "m10actionwait", section = "fighting" },
-	SKM_M10ACTIONMSG = { default = "", cast = "string", profile = "m10actionmsg", section = "fighting" },
-	SKM_M10ACTIONCOMPLETE = { default = "", cast = "string", profile = "m10actioncomplete", section = "fighting" },
-
-	SKM_M11ACTIONTYPE = { default = "Action", cast = "string", profile = "m11actiontype", section = "fighting" },
-	SKM_M11ACTIONID = { default = 0, cast = "number", profile = "m11actionid", section = "fighting" },
-	SKM_M11ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m11actiontarget", section = "fighting" },
-	SKM_M11ACTIONWAIT = { default = 100, cast = "number", profile = "m11actionwait", section = "fighting" },
-	SKM_M11ACTIONMSG = { default = "", cast = "string", profile = "m11actionmsg", section = "fighting" },
-	SKM_M11ACTIONCOMPLETE = { default = "", cast = "string", profile = "m11actioncomplete", section = "fighting" },
-
-	SKM_M12ACTIONTYPE = { default = "Action", cast = "string", profile = "m12actiontype", section = "fighting" },
-	SKM_M12ACTIONID = { default = 0, cast = "number", profile = "m12actionid", section = "fighting" },
-	SKM_M12ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m12actiontarget", section = "fighting" },
-	SKM_M12ACTIONWAIT = { default = 100, cast = "number", profile = "m12actionwait", section = "fighting" },
-	SKM_M12ACTIONMSG = { default = "", cast = "string", profile = "m12actionmsg", section = "fighting" },
-	SKM_M12ACTIONCOMPLETE = { default = "", cast = "string", profile = "m12actioncomplete", section = "fighting" },
-
-	SKM_M13ACTIONTYPE = { default = "Action", cast = "string", profile = "m13actiontype", section = "fighting" },
-	SKM_M13ACTIONID = { default = 0, cast = "number", profile = "m13actionid", section = "fighting" },
-	SKM_M13ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m13actiontarget", section = "fighting" },
-	SKM_M13ACTIONWAIT = { default = 100, cast = "number", profile = "m13actionwait", section = "fighting" },
-	SKM_M13ACTIONMSG = { default = "", cast = "string", profile = "m13actionmsg", section = "fighting" },
-	SKM_M13ACTIONCOMPLETE = { default = "", cast = "string", profile = "m13actioncomplete", section = "fighting" },
-
-	SKM_M14ACTIONTYPE = { default = "Action", cast = "string", profile = "m14actiontype", section = "fighting" },
-	SKM_M14ACTIONID = { default = 0, cast = "number", profile = "m14actionid", section = "fighting" },
-	SKM_M14ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m14actiontarget", section = "fighting" },
-	SKM_M14ACTIONWAIT = { default = 100, cast = "number", profile = "m14actionwait", section = "fighting" },
-	SKM_M14ACTIONMSG = { default = "", cast = "string", profile = "m14actionmsg", section = "fighting" },
-	SKM_M14ACTIONCOMPLETE = { default = "", cast = "string", profile = "m14actioncomplete", section = "fighting" },
-
-	SKM_M15ACTIONTYPE = { default = "Action", cast = "string", profile = "m15actiontype", section = "fighting" },
-	SKM_M15ACTIONID = { default = 0, cast = "number", profile = "m15actionid", section = "fighting" },
-	SKM_M15ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m15actiontarget", section = "fighting" },
-	SKM_M15ACTIONWAIT = { default = 100, cast = "number", profile = "m15actionwait", section = "fighting" },
-	SKM_M15ACTIONMSG = { default = "", cast = "string", profile = "m15actionmsg", section = "fighting" },
-	SKM_M15ACTIONCOMPLETE = { default = "", cast = "string", profile = "m15actioncomplete", section = "fighting" },
-
-	SKM_M16ACTIONTYPE = { default = "Action", cast = "string", profile = "m16actiontype", section = "fighting" },
-	SKM_M16ACTIONID = { default = 0, cast = "number", profile = "m16actionid", section = "fighting" },
-	SKM_M16ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m16actiontarget", section = "fighting" },
-	SKM_M16ACTIONWAIT = { default = 100, cast = "number", profile = "m16actionwait", section = "fighting" },
-	SKM_M16ACTIONMSG = { default = "", cast = "string", profile = "m16actionmsg", section = "fighting" },
-	SKM_M16ACTIONCOMPLETE = { default = "", cast = "string", profile = "m16actioncomplete", section = "fighting" },
-
-	SKM_M17ACTIONTYPE = { default = "Action", cast = "string", profile = "m17actiontype", section = "fighting" },
-	SKM_M17ACTIONID = { default = 0, cast = "number", profile = "m17actionid", section = "fighting" },
-	SKM_M17ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m17actiontarget", section = "fighting" },
-	SKM_M17ACTIONWAIT = { default = 100, cast = "number", profile = "m17actionwait", section = "fighting" },
-	SKM_M17ACTIONMSG = { default = "", cast = "string", profile = "m17actionmsg", section = "fighting" },
-	SKM_M17ACTIONCOMPLETE = { default = "", cast = "string", profile = "m17actioncomplete", section = "fighting" },
-
-	SKM_M18ACTIONTYPE = { default = "Action", cast = "string", profile = "m18actiontype", section = "fighting" },
-	SKM_M18ACTIONID = { default = 0, cast = "number", profile = "m18actionid", section = "fighting" },
-	SKM_M18ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m18actiontarget", section = "fighting" },
-	SKM_M18ACTIONWAIT = { default = 100, cast = "number", profile = "m18actionwait", section = "fighting" },
-	SKM_M18ACTIONMSG = { default = "", cast = "string", profile = "m18actionmsg", section = "fighting" },
-	SKM_M18ACTIONCOMPLETE = { default = "", cast = "string", profile = "m18actioncomplete", section = "fighting" },
-
-	SKM_M19ACTIONTYPE = { default = "Action", cast = "string", profile = "m19actiontype", section = "fighting" },
-	SKM_M19ACTIONID = { default = 0, cast = "number", profile = "m19actionid", section = "fighting" },
-	SKM_M19ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m19actiontarget", section = "fighting" },
-	SKM_M19ACTIONWAIT = { default = 100, cast = "number", profile = "m19actionwait", section = "fighting" },
-	SKM_M19ACTIONMSG = { default = "", cast = "string", profile = "m19actionmsg", section = "fighting" },
-	SKM_M19ACTIONCOMPLETE = { default = "", cast = "string", profile = "m19actioncomplete", section = "fighting" },
-
-	SKM_M20ACTIONTYPE = { default = "Action", cast = "string", profile = "m20actiontype", section = "fighting" },
-	SKM_M20ACTIONID = { default = 0, cast = "number", profile = "m20actionid", section = "fighting" },
-	SKM_M20ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m20actiontarget", section = "fighting" },
-	SKM_M20ACTIONWAIT = { default = 100, cast = "number", profile = "m20actionwait", section = "fighting" },
-	SKM_M20ACTIONMSG = { default = "", cast = "string", profile = "m20actionmsg", section = "fighting" },
-	SKM_M20ACTIONCOMPLETE = { default = "", cast = "string", profile = "m20actioncomplete", section = "fighting" },
-	
-	-- Buff Vars.
-	--SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", section = "fighting" },
-	--SKM_B1QUALIFIER = { default = "HasBuff", cast = "string", profile = "b1qualifier", section = "fighting" },
-	
-	--[[
-	SKM_PBuff = { default = "", cast = "string", profile = "pbuff", section = "fighting"  },
-	SKM_PBuffDura = { default = 0, cast = "number", profile = "pbuffdura", section = "fighting" },
-	SKM_PNBuff = { default = "", cast = "string", profile = "pnbuff", section = "fighting"  },
-	SKM_PNBuffDura = { default = 0, cast = "number", profile = "pnbuffdura", section = "fighting"   },
-	
-	SKM_B1TARGET = { default = "Target", cast = "string", profile = "b1target", section = "fighting" },
-	SKM_M1ACTIONID = { default = 0, cast = "number", profile = "m1actionid", section = "fighting" },
-	SKM_M1ACTIONTARGET = { default = GetString("target"), cast = "string", profile = "m1actiontarget", section = "fighting" },
-	SKM_M1ACTIONWAIT = { default = 100, cast = "number", profile = "m1actionwait", section = "fighting" },
-	SKM_M1ACTIONMSG = { default = "", cast = "string", profile = "m1actionmsg", section = "fighting" },
-	SKM_M1ACTIONCOMPLETE = { default = "", cast = "string", profile = "m1actioncomplete", section = "fighting" },
-	--]]
-	
-	SKM_IgnoreMoving = { default = "0", cast = "string", profile = "ignoremoving", section = "fighting" },
-	
-	SKM_SingleUseCraft = { default = "1", cast = "string", profile = "singleuseonly", section = "crafting"},
-	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
-	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
-	SKM_CPMIN = { default = 0, cast = "number", profile = "cpmin", section = "crafting"},
-	SKM_CPMAX = { default = 0, cast = "number", profile = "cpmax", section = "crafting"},
-	SKM_DURMIN = { default = 0, cast = "number", profile = "durabmin", section = "crafting"},
-	SKM_DURMAX = { default = 0, cast = "number", profile = "durabmax", section = "crafting"},
-	SKM_PROGMIN = { default = 0, cast = "number", profile = "progrmin", section = "crafting"},
-	SKM_PROGMAX = { default = 0, cast = "number", profile = "progrmax", section = "crafting"},
-	SKM_CRAFTMIN = { default = 0, cast = "number", profile = "craftmin", section = "crafting"},
-	SKM_CRAFTMAX = { default = 0, cast = "number", profile = "craftmax", section = "crafting"},
-	SKM_CONTROLMIN = { default = 0, cast = "number", profile = "controlmin", section = "crafting"},
-	SKM_CONTROLMAX = { default = 0, cast = "number", profile = "controlmax", section = "crafting"},
-	SKM_QUALMIN = { default = 0, cast = "number", profile = "qualitymin", section = "crafting"},
-	SKM_QUALMAX = { default = 0, cast = "number", profile = "qualitymax", section = "crafting"},
-	SKM_QUALMINPer = { default = 0, cast = "number", profile = "qualityminper", section = "crafting"},
-	SKM_QUALMAXPer = { default = 0, cast = "number", profile = "qualitymaxper", section = "crafting"},
-	SKM_CONDITION = { default = "NotUsed", cast = "string", profile = "condition", section = "crafting"},
-	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", section = "crafting"},
-	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", section = "crafting"},
-	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", section = "crafting"},
-	SKM_GSSTACKMIN = { default = 0, cast = "number", profile = "gsstackmin", section = "crafting"},
-	SKM_SHSTACKMIN = { default = 0, cast = "number", profile = "shstackmin", section = "crafting"},
-	SKM_SH2STACKMIN = { default = 0, cast = "number", profile = "sh2stackmin", section = "crafting"},
-	SKM_SH12STACKMIN = { default = 0, cast = "number", profile = "sh12stackmin", section = "crafting"},
-	SKM_INGENSTACKMIN = { default = 0, cast = "number", profile = "ingenstackmin", section = "crafting"},
-	SKM_INGEN2STACKMIN = { default = 0, cast = "number", profile = "ingen2stackmin", section = "crafting"},
-	SKM_WNSTACKMIN = { default = 0, cast = "number", profile = "wnstackmin", section = "crafting"},
-	SKM_WN2STACKMIN = { default = 0, cast = "number", profile = "wn2stackmin", section = "crafting"},
-	SKM_MANIPSTACKMIN = { default = 0, cast = "number", profile = "manipstackmin", section = "crafting"},
-	SKM_INNOSTACKMIN = { default = 0, cast = "number", profile = "innostackmin", section = "crafting"},
-	SKM_CZONESTACKMIN = { default = 0, cast = "number", profile = "czonestackmin", section = "crafting"},
-	SKM_MAKERSSTACKMIN = { default = 0, cast = "number", profile = "makersstackmin", section = "crafting"},
-	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
-	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
-	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
-	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
-	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
-	SKM_MANIPMAX = { default = 0, cast = "number", profile = "manipmax", section = "crafting"},	
-	
-	SKM_SingleUse = { default = "1", cast = "string", profile = "singleuseonly", section = "gathering"},
-	SKM_GPMIN = { default = 0, cast = "number", profile = "gpmin", section = "gathering"},
-	SKM_GPMAX = { default = 0, cast = "number", profile = "gpmax", section = "gathering"},
-	SKM_GAttemptsMin = { default = 0, cast = "number", profile = "gatherattempts", section = "gathering"},
-	SKM_GAttemptsMax = { default = 0, cast = "number", profile = "gatherattemptsmax", section = "gathering"},
-	SKM_HasItem = { default = "", cast = "string", profile = "hasitem", section = "gathering"},
-	SKM_IsItem = { default = "", cast = "string", profile = "isitem", section = "gathering"},
-	SKM_UNSP = { default = "0", cast = "string", profile = "isunspoiled", section = "gathering"},
-	SKM_GSecsPassed = { default = 0, cast = "number", profile = "gsecspassed", section = "gathering"},
-	SKM_ItemChanceMax = { default = 0, cast = "number", profile = "itemchancemax", section = "gathering"},
-	SKM_ItemHQChanceMin = { default = 0, cast = "number", profile = "itemhqchancemin", section = "gathering"},
-	SKM_CollRarityLT = { default = 0, cast = "number", profile = "collraritylt", section = "gathering"},
-	SKM_CollWearLT = { default = 0, cast = "number", profile = "collwearlt", section = "gathering"},
-	SKM_CollWearGT = { default = 0, cast = "number", profile = "collweargt", section = "gathering"},
-	SKM_CollWearEQ = { default = 0, cast = "number", profile = "collweareq", section = "gathering"},
-	SKM_GPBuff = { default = "", cast = "string", profile = "gpbuff", section = "gathering"},
-	SKM_GPNBuff = { default = "", cast = "string", profile = "gpnbuff", section = "gathering"},
-	SKM_PSkillIDG = { default = "", cast = "string", profile = "pskillg", section = "gathering"},
-}
 
 function SkillMgr.ModuleInit() 	
 
 	SkillMgr.GUI.manager.main_tabs = GUI_CreateTabs("Edit,Add,Debug",false)
+	
+	for varname,info in pairs(SkillMgr.Variables) do
+		_G[varname] = info.default
+	end
 
 	local uuid = GetUUID()
 	if (Settings.FFXIVMINION.gSMDefaultProfiles == nil) then
@@ -1966,6 +1605,7 @@ function SkillMgr.UseProfile(strName)
 	if (SkillMgr.profiles[gSkillProfileIndex] ~= gSkillProfile) then
 		gSkillProfile = SkillMgr.profiles[gSkillProfileIndex]
 	end
+	SkillMgr.UpdateCurrentProfileData()
 end
 
 --[[
@@ -2091,20 +1731,13 @@ end
 function SkillMgr.UseDefaultProfile()
 	local defaultTable = gSMDefaultProfiles
 	local default = nil
-	local profile = nil
-	local profileFound = false
 	
 	--Try default profile first.
 	if (table.valid(defaultTable)) then
 		default = defaultTable[Player.job]
-		if (default) then
-			if (FileExists(SkillMgr.profilePath..default..".lua")) then
-				profileFound = true
-			end
-		end
 	end
 	
-	if (not profileFound) then
+	if (not default) then
 		local starterDefault = SkillMgr.StartingProfiles[Player.job]
 		if ( starterDefault ) then
 			local filePath = SkillMgr.profilePath..starterDefault..".lua"
@@ -2112,19 +1745,12 @@ function SkillMgr.UseDefaultProfile()
 				d("No default profile set, using start default ["..tostring(starterDefault).."]")
 				SkillMgr.SetDefaultProfile(starterDefault)
 				default = starterDefault
-				profileFound = true
 			end
 		end
 	end
 	
-	gSkillProfile = profileFound and default or "None"
-	GUI_WindowVisible(SkillMgr.editwindow.name,false)
-	GUI_WindowVisible(SkillMgr.editwindow_crafting.name,false)	
-	GUI_WindowVisible(SkillMgr.editwindow_gathering.name,false)		
-	GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
-	SkillMgr.UpdateCurrentProfileData()
-	
-	GUI_SizeWindow(SkillMgr.mainwindow.name,SkillMgr.mainwindow.w,SkillMgr.mainwindow.h)
+	local profileName = IsNull(default,"None")
+	SkillMgr.UseProfile(profileName)
 end
 
 --Grasb all Profiles and enlist them in the dropdown field
@@ -5487,20 +5113,20 @@ end
 function SkillMgr.DrawSkillEditor(prio)
 	if (SkillMgr.GUI.editor.open) then	
 		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
-		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		GUI:SetNextWindowSize(350,300,GUI.SetCond_Appearing) --set the next window size, only on first ever
 		SkillMgr.GUI.editor.visible, SkillMgr.GUI.editor.open = GUI:Begin(SkillMgr.GUI.editor.name, SkillMgr.GUI.editor.open)
 		if ( SkillMgr.GUI.editor.visible ) then 
-			local skill = SkillProfile[SkillMgr.EditingSkill]
+			local skill = SkillMgr.SkillProfile[SkillMgr.EditingSkill]
 			if (table.valid(skill)) then
 				
 				GUI:Columns(2,"#table-main",false)
-				GUI:SetColumnOffset(1,350); GUI:SetColumnOffset(2,550);
+				GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 				
 				GUI:Text(GetString("Name")); GUI:NextColumn(); GUI:Text(skill.name); GUI:NextColumn();
-				GUI:Text(GetString("Alias")); GUI:NextColumn(); GUI_Detect(GUI:InputText("#SKM_ALIAS",SKM_ALIAS),"SKM_ALIAS"); GUI:NextColumn();
+				GUI:Text(GetString("Alias")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_ALIAS",SKM_ALIAS),"SKM_ALIAS"); GUI:NextColumn();
 				GUI:Text(GetString("ID")); GUI:NextColumn(); GUI:Text(skill.id); GUI:NextColumn();
-				GUI:Text(GetString("Type")); GUI:NextColumn(); GUI_Detect(GUI:InputText("#SKM_TYPE",SKM_TYPE),"SKM_TYPE"); GUI:NextColumn();
-				GUI:Text(GetString("Used")); GUI:NextColumn(); GUI_Detect(GUI:Checkbox("#SKM_ON",SKM_ON),"SKM_ON"); GUI:NextColumn();		
+				GUI:Text(GetString("Type")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TYPE",SKM_TYPE),"SKM_TYPE"); GUI:NextColumn();
+				GUI:Text(GetString("Used")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ON",SKM_ON),"SKM_ON"); GUI:NextColumn();		
 				
 				GUI:Columns(1)
 				
@@ -5511,13 +5137,13 @@ function SkillMgr.DrawSkillEditor(prio)
 				
 				for i,abrev in pairsByKeys(classes) do
 					if (_G["gSkillProfileValid"..abrev] == true) then
-						if ((i >= 1 and i <= 7) or (i >= 20 and i <= 33)) then
+						if (i <= 22) then
 							fighting = true
 							break
-						elseif (i >= 8 and i <= 15) then
+						elseif (i >= 23 and i <= 31) then
 							crafting = true
 							break
-						elseif (i >= 16 and i <= 18) then
+						elseif (i >= 32 and i <= 34) then
 							gathering = true
 							break
 						end
@@ -5700,10 +5326,45 @@ function SkillMgr.DrawMacroEditor()
 end
 
 function SkillMgr.DrawBattleEditor()
+	
+	if (GUI:CollapsingHeader("Basic","battle-basic-header",true,true)) then
+		GUI:Columns(2,"#battle-basic-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader("Chain","battle-chain-header",true,true)) then
+		GUI:Columns(2,"#battle-chain-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Text(GetString("Chain Name")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINNAME",SKM_CHAINNAME),"SKM_CHAINNAME"); GUI:NextColumn();
+		GUI:Text(GetString("Chain Start")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINSTART",SKM_CHAINSTART),"SKM_CHAINSTART"); GUI:NextColumn();
+		GUI:Text(GetString("Chain End")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CHAINEND",SKM_CHAINEND),"SKM_CHAINEND"); GUI:NextColumn();
+		
+		GUI:Columns(1)
+	end
+	
+	if (GUI:CollapsingHeader("Other Skill Checks","battle-otherskills-header",true,true)) then
+		GUI:Columns(2,"#battle-otherskills-main",false)
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		
+		GUI:Text(GetString("Is Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKREADY",SKM_SKREADY),"SKM_SKREADY"); GUI:NextColumn();
+		GUI:Text(GetString("CD Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKOFFCD",SKM_SKOFFCD),"SKM_SKOFFCD"); GUI:NextColumn();
+		GUI:Text(GetString("Is Not Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNREADY",SKM_SKNREADY),"SKM_SKNREADY"); GUI:NextColumn();
+		GUI:Text(GetString("CD Not Ready")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SKNOFFCD",SKM_SKNOFFCD),"SKM_SKNOFFCD"); GUI:NextColumn();
+		GUI:Text(GetString("CD Time >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMIN",SKM_SKNCDTIMEMIN,0,0,3),"SKM_SKNCDTIMEMIN"); GUI:NextColumn();
+		GUI:Text(GetString("CD Time <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_SKNCDTIMEMAX",SKM_SKNCDTIMEMAX,0,0,3),"SKM_SKNCDTIMEMAX"); GUI:NextColumn();
+		
+		GUI:Columns(1)
+	end
+	
 	--[[
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
 	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
+	
+	
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
 	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("removesBuff"),"SKM_REMOVESBUFF",GetString("basicDetails"))
@@ -5731,16 +5392,7 @@ function SkillMgr.DrawBattleEditor()
 	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
 	GUI_NewField(SkillMgr.editwindow.name,"Secs Passed Unique","SKM_SecsPassedUnique",GetString("basicDetails"))
 	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainStart"),"SKM_CHAINSTART",GetString("chain"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("name"),"SKM_CHAINNAME",GetString("chain"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("chainEnd"),"SKM_CHAINEND",GetString("chain"))
-	
-	GUI_NewField(SkillMgr.editwindow.name,GetString("isReady"),"SKM_SKREADY",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdIsReady"),"SKM_SKOFFCD",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("isNotReady"),"SKM_SKNREADY",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdNotReady"),"SKM_SKNOFFCD",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeGT"),"SKM_SKNCDTIMEMIN",GetString("skillChecks"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("cdTimeLT"),"SKM_SKNCDTIMEMAX",GetString("skillChecks"))
+
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
 	
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))
@@ -5854,54 +5506,54 @@ function SkillMgr.DrawCraftEditor()
 	
 	if (GUI:CollapsingHeader("Crafting","crafting-header",true,true)) then
 		GUI:Columns(2,"#craft-main",false)
-		GUI:SetColumnOffset(1,350); GUI:SetColumnOffset(2,550);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 		
-		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("#SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
+		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Separator();		
-		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("CP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("CP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("CP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("CP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_DURMIN",SKM_DURMIN,0,0),"SKM_DURMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_DURMAX",SKM_DURMAX,0,0),"SKM_DURMAX"); GUI:NextColumn();
+		GUI:Text(GetString("Durability >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMIN",SKM_DURMIN,0,0),"SKM_DURMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Durability <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_DURMAX",SKM_DURMAX,0,0),"SKM_DURMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_PROGMIN",SKM_PROGMIN,0,0),"SKM_PROGMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Progress <");) GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_PROGMAX",SKM_PROGMAX,0,0),"SKM_PROGMAX"); GUI:NextColumn();
+		GUI:Text(GetString("Progress >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMIN",SKM_PROGMIN,0,0),"SKM_PROGMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Progress <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PROGMAX",SKM_PROGMAX,0,0),"SKM_PROGMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Quality >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Quality <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
+		GUI:Text(GetString("Quality >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Quality <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Quality % >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
-		GUI:Text(GetString("Quality % <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
+		GUI:Text(GetString("Quality % >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
+		GUI:Text(GetString("Quality % <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Craftsmanship >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CRAFTMIN",SKM_CRAFTMIN,0,0),"SKM_CRAFTMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Craftsmanship <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CRAFTMAX",SKM_CRAFTMAX,0,0),"SKM_CRAFTMAX"); GUI:NextColumn();
+		GUI:Text(GetString("Craftsmanship >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMIN",SKM_CRAFTMIN,0,0),"SKM_CRAFTMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Craftsmanship <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMAX",SKM_CRAFTMAX,0,0),"SKM_CRAFTMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Control >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CONTROLMIN",SKM_CONTROLMIN,0,0),"SKM_CONTROLMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("Control <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CONTROLMAX",SKM_CONTROLMAX,0,0),"SKM_CONTROLMAX"); GUI:NextColumn();
+		GUI:Text(GetString("Control >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CONTROLMIN",SKM_CONTROLMIN,0,0),"SKM_CONTROLMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("Control <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CONTROLMAX",SKM_CONTROLMAX,0,0),"SKM_CONTROLMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("ToT Used >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_TOTMIN",SKM_TOTMIN,0,0),"SKM_TOTMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("ToT Used <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_TOTMAX",SKM_TOTMAX,0,0),"SKM_TOTMAX"); GUI:NextColumn();
+		GUI:Text(GetString("ToT Used >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TOTMIN",SKM_TOTMIN,0,0),"SKM_TOTMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("ToT Used <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TOTMAX",SKM_TOTMAX,0,0),"SKM_TOTMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Hasty Touch Successes >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_HTSUCCEED",SKM_HTSUCCEED,0,0),"SKM_HTSUCCEED"); GUI:NextColumn();	
-		GUI:Text(GetString("Manipulation Uses <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_MANIPMAX",SKM_MANIPMAX,0,0),"SKM_MANIPMAX"); GUI:NextColumn();
-		GUI:Text(GetString("IQ Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_IQSTACK",SKM_IQSTACK,0,0),"SKM_IQSTACK"); GUI:NextColumn();	
-		GUI:Text(GetString("Great Strides Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_GSSTACKMIN",SKM_GSSTACKMIN,0,0),"SKM_GSSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_SHSTACKMIN",SKM_SHSTACKMIN,0,0),"SKM_SHSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_SH2STACKMIN",SKM_SH2STACKMIN,0,0),"SKM_SH2STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Steady Hand 1/2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_SH12STACKMIN",SKM_SH12STACKMIN,0,0),"SKM_SH12STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Ingenuity Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_INGENSTACKMIN",SKM_INGENSTACKMIN,0,0),"SKM_INGENSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Ingenuity 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_INGEN2STACKMIN",SKM_INGEN2STACKMIN,0,0),"SKM_INGEN2STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Waste Not Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_WNSTACKMIN",SKM_WNSTACKMIN,0,0),"SKM_WNSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Waste Not 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_WN2STACKMIN",SKM_WN2STACKMIN,0,0),"SKM_WN2STACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Manipulation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_MANIPSTACKMIN",SKM_MANIPSTACKMIN,0,0),"SKM_MANIPSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Innovation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_INNOSTACKMIN",SKM_INNOSTACKMIN,0,0),"SKM_INNOSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Comfort Zone Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CZONESTACKMIN",SKM_CZONESTACKMIN,0,0),"SKM_CZONESTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Maker's Mark Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_MAKERSSTACKMIN",SKM_MAKERSSTACKMIN,0,0),"SKM_MAKERSSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Whistle Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_WHSTACKMIN",SKM_WHSTACKMIN,0,0),"SKM_WHSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Whistle Stack =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_WHSTACK",SKM_WHSTACK,0,0),"SKM_WHSTACK"); GUI:NextColumn();
+		GUI:Text(GetString("Hasty Touch Successes >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_HTSUCCEED",SKM_HTSUCCEED,0,0),"SKM_HTSUCCEED"); GUI:NextColumn();	
+		GUI:Text(GetString("Manipulation Uses <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPMAX",SKM_MANIPMAX,0,0),"SKM_MANIPMAX"); GUI:NextColumn();
+		GUI:Text(GetString("IQ Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_IQSTACK",SKM_IQSTACK,0,0),"SKM_IQSTACK"); GUI:NextColumn();	
+		GUI:Text(GetString("Great Strides Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GSSTACKMIN",SKM_GSSTACKMIN,0,0),"SKM_GSSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Steady Hand Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SHSTACKMIN",SKM_SHSTACKMIN,0,0),"SKM_SHSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Steady Hand 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SH2STACKMIN",SKM_SH2STACKMIN,0,0),"SKM_SH2STACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Steady Hand 1/2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_SH12STACKMIN",SKM_SH12STACKMIN,0,0),"SKM_SH12STACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Ingenuity Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INGENSTACKMIN",SKM_INGENSTACKMIN,0,0),"SKM_INGENSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Ingenuity 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INGEN2STACKMIN",SKM_INGEN2STACKMIN,0,0),"SKM_INGEN2STACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Waste Not Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WNSTACKMIN",SKM_WNSTACKMIN,0,0),"SKM_WNSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Waste Not 2 Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WN2STACKMIN",SKM_WN2STACKMIN,0,0),"SKM_WN2STACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Manipulation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MANIPSTACKMIN",SKM_MANIPSTACKMIN,0,0),"SKM_MANIPSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Innovation Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_INNOSTACKMIN",SKM_INNOSTACKMIN,0,0),"SKM_INNOSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Comfort Zone Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CZONESTACKMIN",SKM_CZONESTACKMIN,0,0),"SKM_CZONESTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Maker's Mark Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAKERSSTACKMIN",SKM_MAKERSSTACKMIN,0,0),"SKM_MAKERSSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Whistle Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WHSTACKMIN",SKM_WHSTACKMIN,0,0),"SKM_WHSTACKMIN"); GUI:NextColumn();
+		GUI:Text(GetString("Whistle Stack =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WHSTACK",SKM_WHSTACK,0,0),"SKM_WHSTACK"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5910,31 +5562,31 @@ end
 function SkillMgr.DrawGatherEditor()
 	if (GUI:CollapsingHeader("Gathering","gathering-header",true,true)) then
 		GUI:Columns(2,"#gathering-main",false)
-		GUI:SetColumnOffset(1,350); GUI:SetColumnOffset(2,550);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 		
-		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("#SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
-		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("#SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
+		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
+		GUI:Text(GetString("Unspoiled Node")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_UNSP",SKM_UNSP),"SKM_UNSP"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("Gather Attempts >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	
-		GUI:Text(GetString("Gather Attempts <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_GAttemptsMax",SKM_GAttemptsMax,0,0),"SKM_GAttemptsMax"); GUI:NextColumn();
+		GUI:Text(GetString("Gather Attempts >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMin",SKM_GAttemptsMin,0,0),"SKM_GAttemptsMin"); GUI:NextColumn();	
+		GUI:Text(GetString("Gather Attempts <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GAttemptsMax",SKM_GAttemptsMax,0,0),"SKM_GAttemptsMax"); GUI:NextColumn();
 		GUI:Separator();		
-		GUI:Text(GetString("GP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
-		GUI:Text(GetString("GP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
+		GUI:Text(GetString("GP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMIN",SKM_GPMIN,0,0),"SKM_GPMIN"); GUI:NextColumn();	
+		GUI:Text(GetString("GP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_GPMAX",SKM_GPMAX,0,0),"SKM_GPMAX"); GUI:NextColumn();	
 		GUI:Separator();
-		GUI:Text(GetString("Has Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("#SKM_HasItem",SKM_HasItem),"SKM_HasItem"); GUI:NextColumn();	
-		GUI:Text(GetString("Is Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("#SKM_IsItem",SKM_IsItem),"SKM_IsItem"); GUI:NextColumn();
+		GUI:Text(GetString("Has Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_HasItem",SKM_HasItem),"SKM_HasItem"); GUI:NextColumn();	
+		GUI:Text(GetString("Is Item")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_IsItem",SKM_IsItem),"SKM_IsItem"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Rarity <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CollRarityLT",SKM_CollRarityLT,0,0),"SKM_CollRarityLT"); GUI:NextColumn();	
-		GUI:Text(GetString("Wear >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CollWearGT",SKM_CollWearGT,0,0),"SKM_CollWearGT"); GUI:NextColumn();
-		GUI:Text(GetString("Wear <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
-		GUI:Text(GetString("Wear =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_CollWearEQ",SKM_CollWearEQ,0,0),"SKM_CollWearEQ"); GUI:NextColumn();
-		GUI:Text(GetString("Chance <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_ItemChanceMax",SKM_ItemChanceMax,0,0),"SKM_ItemChanceMax"); GUI:NextColumn();	
-		GUI:Text(GetString("HQ Chance >=");) GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_ItemHQChanceMin",SKM_ItemHQChanceMin,0,0),"SKM_ItemHQChanceMin"); GUI:NextColumn();
+		GUI:Text(GetString("Rarity <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollRarityLT",SKM_CollRarityLT,0,0),"SKM_CollRarityLT"); GUI:NextColumn();	
+		GUI:Text(GetString("Wear >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearGT",SKM_CollWearGT,0,0),"SKM_CollWearGT"); GUI:NextColumn();
+		GUI:Text(GetString("Wear <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearLT",SKM_CollWearLT,0,0),"SKM_CollWearLT"); GUI:NextColumn();
+		GUI:Text(GetString("Wear =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CollWearEQ",SKM_CollWearEQ,0,0),"SKM_CollWearEQ"); GUI:NextColumn();
+		GUI:Text(GetString("Chance <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemChanceMax",SKM_ItemChanceMax,0,0),"SKM_ItemChanceMax"); GUI:NextColumn();	
+		GUI:Text(GetString("HQ Chance >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_ItemHQChanceMin",SKM_ItemHQChanceMin,0,0),"SKM_ItemHQChanceMin"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Time Since Last Cast(s) >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("#SKM_GSecsPassed",SKM_GSecsPassed,0,0,2),"SKM_GSecsPassed"); GUI:NextColumn();
-		GUI:Text(GetString("Has Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("#SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	
-		GUI:Text(GetString("Missing Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("#SKM_GPNBuff",SKM_GPNBuff),"SKM_GPNBuff"); GUI:NextColumn();
-		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("#SKM_PSkillIDG",SKM_PSkillIDG,0,0),"SKM_PSkillIDG"); GUI:NextColumn();		
+		GUI:Text(GetString("Time Since Last Cast(s) >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputFloat("##SKM_GSecsPassed",SKM_GSecsPassed,0,0,2),"SKM_GSecsPassed"); GUI:NextColumn();
+		GUI:Text(GetString("Has Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPBuff",SKM_GPBuff),"SKM_GPBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("Missing Buffs")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_GPNBuff",SKM_GPNBuff),"SKM_GPNBuff"); GUI:NextColumn();
+		GUI:Text(GetString("Previous Skill ID")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PSkillIDG",SKM_PSkillIDG,0,0),"SKM_PSkillIDG"); GUI:NextColumn();		
 		GUI:Columns(1)
 	end
 end
@@ -5956,15 +5608,41 @@ function SkillMgr.DrawManager()
 			local tabs = SkillMgr.GUI.manager.main_tabs
 			if (tabs.tabs[1].isselected) then
 				SkillMgr.DrawSkillBook()
-				if (GUI:CollapsingHeader("Valid Classes","classes-header",true,true)) then
-					local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST",
-						"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
+				if (GUI:CollapsingHeader("Valid Classes","classes-header",true,false)) then
+					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST"}
+					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
+					local gatherers = {"BTN","FSH","CRP"}
 					
-					for i,abrev in pairsByKeys(classes) do
+					local count = 1
+					for i,abrev in pairsByKeys(fighters) do
 						SkillMgr.Capture(GUI:Checkbox(abrev,_G["gSkillProfileValid"..abrev]),"gSkillProfileValid"..abrev)
+						GUI:SameLine(0,10)
+						if (count % 4) == 0 and count ~= table.size(fighters) then GUI:NewLine() end
+						count = count + 1
 					end
+					GUI:NewLine(2);
+					GUI:Separator();
+					GUI:Spacing(2)
+					
+					count = 1
+					for i,abrev in pairsByKeys(crafters) do
+						SkillMgr.Capture(GUI:Checkbox(abrev,_G["gSkillProfileValid"..abrev]),"gSkillProfileValid"..abrev)
+						GUI:SameLine(0,10)
+						if (count % 4) == 0 and count ~= table.size(crafters) then GUI:NewLine() end
+						count = count + 1
+					end
+					GUI:NewLine(2);
+					GUI:Separator();
+					GUI:Spacing(2)
+					
+					for i,abrev in pairsByKeys(gatherers) do
+						SkillMgr.Capture(GUI:Checkbox(abrev,_G["gSkillProfileValid"..abrev]),"gSkillProfileValid"..abrev)
+						GUI:SameLine(0,10)
+					end
+					GUI:NewLine();
+					GUI:Spacing(2)
 				end
-				if (GUI:CollapsingHeader("Extra Filters","filters-header",true,true)) then
+				if (GUI:CollapsingHeader("Extra Filters","filters-header",true,false)) then
 					for i = 1, 5 do
 						SkillMgr.Capture(GUI:InputText("Filter "..tostring(i),_G["gSkillManagerFilter"..tostring(i)]),"gSkillManagerFilter"..tostring(i))
 					end
@@ -5987,8 +5665,24 @@ function SkillMgr.DrawManager()
 										classCheck = true
 									end
 								end
+								
+								SkillMgr.EditingSkill = prio
+								local requiredUpdate = false
 								if (classCheck) then
-									SkillMgr.EditingSkill = prio
+									for varname,info in pairsByKeys(SkillMgr.Variables) do
+										if (skill[info.profile] ~= nil) then
+											if (info.cast == type(skill[info.profile])) then
+												_G[varname] = skill[info.profile]
+											else
+												_G[varname] = info.default
+												skill[info.profile] = info.default
+												requiredUpdate = true
+											end
+										end
+									end
+									if (requiredUpdate) then
+										SkillMgr.WriteToFile(gSkillProfile)
+									end
 									SkillMgr.GUI.editor.open = not SkillMgr.GUI.editor.open
 								else
 									ffxiv_dialog_manager.IssueNotice("Class Selection Required", "You must select at least one valid class before editing skills.")
@@ -6008,9 +5702,7 @@ function SkillMgr.DrawManager()
 			if (tabs.tabs[3].isselected) then
 				GUI_Capture(GUI:Checkbox(GetString("debugging"),gSkillManagerDebug),"gSkillManagerDebug");
 				GUI_Capture(GUI:InputText(GetString("debugItems"),gSkillManagerDebugPriorities),"gSkillManagerDebugPriorities");
-			end
-			
-			
+			end	
 			
 		end
 		GUI:End()
