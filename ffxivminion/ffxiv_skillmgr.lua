@@ -1352,7 +1352,7 @@ function SkillMgr.ReadFile(strFile)
 		end
 	else
 		d(e)
-		validJob = false
+		return false
 	end
 	
 	SkillMgr.ResetSkillTracking()
