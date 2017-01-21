@@ -3817,6 +3817,7 @@ function CanUseAetheryte(aethid)
 	return false
 end
 function GetOffMapMarkerList(strMeshName, strMarkerType)
+	--[[
 	local markerPath = ml_mesh_mgr.defaultpath.."\\"..strMeshName..".info"
 	if (FileExists(markerPath)) then
 		local markerList, e = persistence.load(markerPath)
@@ -3848,7 +3849,7 @@ function GetOffMapMarkerList(strMeshName, strMarkerType)
 	else
 		d("No marker file found for destination mesh ["..tostring(strMeshName).."].")
 	end
-	
+	--]]
 	return nil
 end
 function IsCityMap(mapid)

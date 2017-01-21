@@ -397,12 +397,14 @@ function ml_global_information.Init()
 				end
 			end
 			
+			--[[
 			ml_mesh_mgr.SetEvacPoint = function ()
 				if (FFXIV_Common_NavMesh ~= "" and Player.onmesh) then
 					ml_marker_mgr.markerList["evacPoint"] = Player.pos
 					ml_marker_mgr.WriteMarkerFile(ml_marker_mgr.markerPath)
 				end
 			end
+			--]]
 			
 			ml_mesh_mgr.GetString = function (meshname)
 				local returnstring = meshname

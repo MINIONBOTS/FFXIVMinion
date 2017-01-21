@@ -944,18 +944,16 @@ function ffxivminion.FillFoodOptions()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
 					if (item.category == 5) then
-						if (item.class ~= 0) then
-							local itemName = item.name
-							if (toboolean(item.IsHQ)) then
-								itemName = itemName.." (HQ)"
-							end
-							ml_global_information.foods[item.hqid] = {
-								name = itemName,
-								max = item.max,
-								slot = item.slot,
-								category = item.category,
-							}
+						local itemName = item.name
+						if (toboolean(item.IsHQ)) then
+							itemName = itemName.." (HQ)"
 						end
+						ml_global_information.foods[item.hqid] = {
+							name = itemName,
+							max = item.max,
+							slot = item.slot,
+							category = item.category,
+						}
 					end
 				end
 			end

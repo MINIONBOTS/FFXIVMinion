@@ -755,7 +755,7 @@ function e_interactgate:execute()
 							local cleanedv = string.gsub(v,"[()-/]","")
 							if (string.find(cleanedline,cleanedv) ~= nil) then
 								d("Use conversation line ["..tostring(convo.line).."]")
-								SelectConversationIndex(convo.index)
+								SelectConversationLine(convo.index)
 								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 								return false
 							end
@@ -2079,7 +2079,7 @@ function c_flee:evaluate()
 		for i = 1,10 do
 			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
 			if (table.valid(newPos)) then
-				local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+				local p = NavigationManager:GetClosestPointOnMesh(newPos)
 				if (p) then
 					e_flee.fleePos = p
 					return true
@@ -2748,7 +2748,7 @@ function e_selectconvindex:execute()
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationIndex(convo.index)
+						SelectConversationLine(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end

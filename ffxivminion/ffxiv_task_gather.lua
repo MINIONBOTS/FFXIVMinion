@@ -1495,19 +1495,25 @@ function c_gatherflee:evaluate()
 	if (Player.incombat and not Player:IsMoving() and ml_task_hub:CurrentTask().name ~= "MOVETOPOS") then
 		local ppos = Player.pos
 		
-		if (table.valid(ml_marker_mgr.markerList["evacPoint"])) then
-			local fpos = ml_marker_mgr.markerList["evacPoint"]
+		local evacPoint = GetNearestEvacPoint()
+		if (evacPoint) then
+			local fpos = evacPoint.pos
 			if (Distance3D(ppos.x, ppos.y, ppos.z, fpos.x, fpos.y, fpos.z) > 50) then
 				e_gatherflee.fleePos = fpos
 				return true
 			end
 		end
 		
-		local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
-		if (table.valid(newPos)) then
-			e_gatherflee.fleePos = newPos
-			return true
-		end
+		for i = 1,10 do
+			local newPos = NavigationManager:GetRandomPointOnCircle(ppos.x,ppos.y,ppos.z,100,200)
+			if (table.valid(newPos)) then
+				local p = NavigationManager:GetClosestPointOnMesh(newPos)
+				if (p) then
+					e_gatherflee.fleePos = p
+					return true
+				end
+			end
+		end		
 	end
     
     return false
