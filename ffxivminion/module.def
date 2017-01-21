@@ -1,6 +1,6 @@
 [Module]
 Name=FFXIVMINION
 Version=1
-Files=languages.lua,ffxiv_helpers_gui.lua,ffxiv_chatcodes.lua,ffxiv_nav_data.lua,ffxiv_init.lua,ffxiv_skillmgr.lua,ffxiv_task_assist.lua,ffxiv_task_grind.lua,ffxiv_task_huntlog.lua,ffxiv_task_fate.lua,ffxiv_task_gather.lua,ffxiv_task_fish.lua,ffxiv.lua,ffxiv_mesh_mgr.lua,ffxiv_marker_mgr.lua,ffxiv_navigation.lua,ffxiv_helpers.lua,ffxiv_helpers_memoized.lua,ffxiv_common_cne.lua,ffxiv_common_tasks.lua,ffxiv_unstuck.lua,ffxiv_shortcut_mgr.lua
+Files=languages.lua,ffxiv_helpers_gui.lua,ffxiv_chatcodes.lua,ffxiv_nav_data.lua,ffxiv_init.lua,ffxiv_skillmgr.lua,ffxiv_task_assist.lua,ffxiv_task_grind.lua,ffxiv_task_huntlog.lua,ffxiv_task_fate.lua,ffxiv_task_gather.lua,ffxiv_task_fish.lua,ffxiv_task_minigames.lua,ffxiv.lua,ffxiv_mesh_mgr.lua,ffxiv_marker_mgr.lua,ffxiv_navigation.lua,ffxiv_helpers.lua,ffxiv_helpers_memoized.lua,ffxiv_common_cne.lua,ffxiv_common_tasks.lua,ffxiv_unstuck.lua,ffxiv_shortcut_mgr.lua
 Dependencies=minionlib,AceLib
 Enabled=1

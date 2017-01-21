@@ -2996,7 +2996,7 @@ function c_buy:evaluate()
 	
 	if (IsControlOpen("SelectYesno")) then
 		UseControlAction("SelectYesno","Yes")
-		ml_global_information.Await(1000, function () return not IsControlOpen("SelectYesno") end)
+		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
 		return true
 	end
 	

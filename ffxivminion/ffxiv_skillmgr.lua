@@ -190,7 +190,7 @@ SkillMgr.Variables = {
 	SKM_PVEPVP = { default = "Both", cast = "string", profile = "pvepvp", section = "fighting" },
 	SKM_OnlySolo = { default = false, cast = "boolean", profile = "onlysolo", section = "fighting"  },
 	SKM_OnlyParty = { default = false, cast = "boolean", profile = "onlyparty", section = "fighting"  },
-	SKM_PartySizeLT = { default = false, cast = "boolean", profile = "partysizelt", section = "fighting"  },
+	SKM_PartySizeLT = { default = 0, cast = "number", profile = "partysizelt", section = "fighting"  },
 	SKM_FilterOne = { default = "Ignore", cast = "string", profile = "filterone", section = "fighting"  },
 	SKM_FilterTwo = { default = "Ignore", cast = "string", profile = "filtertwo", section = "fighting"  },
 	SKM_FilterThree = { default = "Ignore", cast = "string", profile = "filterthree", section = "fighting"  },
@@ -1399,7 +1399,7 @@ function SkillMgr.ReadFile(strFile)
 	gSkillProfileValidWVR = IsNull(classes[FFXIV.JOBS.WEAVER],false) 
 	gSkillProfileValidALC = IsNull(classes[FFXIV.JOBS.ALCHEMIST],false) 
 	gSkillProfileValidCUL = IsNull(classes[FFXIV.JOBS.CULINARIAN],false) 
-	
+	 
 	local isdefault = false
 	local startingProfiles = SkillMgr.StartingProfiles
 	for job,name in pairs(startingProfiles) do
@@ -1417,9 +1417,7 @@ function SkillMgr.ReadFile(strFile)
 		end		
 	end
 
-	if (not isdefault) then
-		SkillMgr.CheckProfileValidity()
-	end
+	SkillMgr.CheckProfileValidity()
 end
 
 --All writes to the profiles should come through this function.
@@ -1578,10 +1576,15 @@ function SkillMgr.CheckProfileValidity()
 			for k,v in pairs(SkillMgr.Variables) do
 				if (skill[v.profile] ~= nil) then
 					if (type(skill[v.profile]) ~= v.cast) then
-						if (v.cast == "number") then
-							skill[v.profile] = tonumber(skill[v.profile])
-						elseif (v.cast == "string") then
-							skill[v.profile] = tonumber(skill[v.profile])
+						if (v.cast == "number" and type(skill[v.profile]) ~= "number") then
+							skill[v.profile] = IsNull(tonumber(skill[v.profile]),v.default)
+							requiredUpdate = true
+						elseif (v.cast == "string" and type(skill[v.profile]) ~= "string") then
+							skill[v.profile] = IsNull(tostring(skill[v.profile]),v.default)
+							requiredUpdate = true
+						elseif (v.cast == "boolean" and type(skill[v.profile]) ~= "boolean") then
+							skill[v.profile] = toboolean(skill[v.profile])
+							requiredUpdate = true
 						end
 					end
 				end
@@ -1718,7 +1721,6 @@ function SkillMgr.SaveProfile()
 		
 		SkillMgr.WriteToFile(filename)
     end
-	SkillMgr.RefreshFilterWindow()
 end
 
 function SkillMgr.SetDefaultProfile(strName)
@@ -2370,12 +2372,14 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	forceStop = IsNull(forceStop,false)
 	
 	if (SkillMgr.IsYielding()) then
+		d("yielding, don't cast")
 		return false
 	end
 	
 	SkillMgr.CheckMonitor()
 	
 	if (not entity or IsFlying() or table.valid(SkillMgr.receivedMacro)) then
+		d("no entity or something")
 		return false
 	end
 	
@@ -4321,13 +4325,13 @@ function SkillMgr.AddDefaultConditions()
 		local plist = EntityList("myparty")
 		local partySize = TableSize(plist)
 		
-		if ( skill.onlysolo  and partySize > 0) then
+		if ( skill.onlysolo and partySize > 0) then
 			if (IsCompanionSummoned()) then
 				return (partySize - 1) > 0
 			else
 				return true
 			end
-		elseif ( skill.onlyparty  ) then
+		elseif ( skill.onlyparty) then
 			if (ml_task_hub:CurrentTask() and ml_task_hub:CurrentTask():ParentTask()) then
 				if (ml_task_hub:CurrentTask():ParentTask().name == "QUEST_DUTYKILL") then
 					return false
@@ -5651,11 +5655,11 @@ function SkillMgr.DrawManager()
 					local skills = SkillMgr.SkillProfile
 					if (table.valid(skills)) then
 						for prio,skill in pairsByKeys(skills) do
-							local alias = skill.name
-							if (IsNull(skill.alias,"") == "") then
+							local alias = IsNull(skill.name,"No Name")
+							if (IsNull(skill.alias,"") ~= "") then
 								alias = skill.alias
 							end							
-							if ( GUI:Button(alias.." ["..tostring(skill.id).."]",width,20)) then
+							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",width,20)) then
 								local classCheck = false
 								local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST",
 									"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}

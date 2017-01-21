@@ -5,6 +5,7 @@ function ffxiv_marker_mgr.HandleInit()
 	ffxiv_marker_mgr.BuildGrind()
 	ffxiv_marker_mgr.BuildGather()
 	ffxiv_marker_mgr.BuildFishing()
+	ml_gui.ui_mgr:AddMember({ id = "FFXIVMINION##MENU_MARKERS", name = "Markers", onClick = function() ml_marker_mgr.GUI.main_window.open = not ml_marker_mgr.GUI.main_window.open end, tooltip = "Open the Marker Manager."},"FFXIVMINION##MENU_HEADER")
 end
 
 function ffxiv_marker_mgr.BasicDraw(marker)

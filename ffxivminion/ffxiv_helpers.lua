@@ -342,8 +342,6 @@ function GetNearestFateAttackable()
 	
     if (fate and fate.status == 2 and fate.completion < 100) then
 		if (fate.type == 1) then
-			d("fate type is 1")
-			
 			el = MEntityList("alive,attackable,onmesh,fateid="..tostring(fate.id))
 			if (table.valid(el)) then
 				local bestTarget = nil
@@ -361,7 +359,6 @@ function GetNearestFateAttackable()
 						-- See if we have something attacking us that can be killed quickly, if we are not currently the target.
 						el = MEntityList("nearest,alive,attackable,targetingme,onmesh,maxdistance=25")
 						if (table.valid(el)) then
-							d("searching targets that are targeting me")
 							local nearestQuick = nil
 							local nearestQuickDistance = 500
 							

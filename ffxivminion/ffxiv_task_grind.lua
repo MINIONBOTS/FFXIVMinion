@@ -66,7 +66,7 @@ e_nextgrindmarker = inheritsFrom( ml_effect )
 function c_nextgrindmarker:evaluate()
 
     if ((gBotMode == GetString("partyMode") and not IsPartyLeader()) or
-		(gGrindDoFates  and gGrindFatesOnly ) or
+		(gGrindDoFates and gGrindFatesOnly) or
 		(not ml_marker_mgr.markersLoaded)) 
 	then
         return false
