@@ -25,6 +25,8 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
+	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 26 )
+    self:add(ke_skipTalk, self.process_elements)
 
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
@@ -35,8 +37,8 @@ function ffxiv_task_assist:Init()
 	local ke_handoverQuest = ml_element:create( "HandoverQuestItem", c_handoverquest, e_handoverquest, 23 )
     self:add(ke_handoverQuest, self.process_elements)
 	
-	--local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
-    --self:add(ke_completeQuest, self.process_elements)
+	local ke_completeQuest = ml_element:create( "CompleteQuest", c_completequest, e_completequest, 23 )
+    self:add(ke_completeQuest, self.process_elements)
 	
 	local ke_yesnoAssist = ml_element:create( "QuestYesNo", c_assistyesno, e_assistyesno, 23 )
     self:add(ke_yesnoAssist, self.process_elements)
@@ -54,7 +56,7 @@ function ffxiv_task_assist:Init()
     self:add( ke_stance, self.process_elements)
 	
     self:AddTaskCheckCEs()
-	self:InitAddon()
+	--self:InitAddon()
 end
 
 function ffxiv_task_assist:InitAddon()
@@ -89,7 +91,7 @@ function ffxiv_task_assist:Process()
 		
 		local casted = false
 		if ( target and (target.chartype ~= 0 and target.chartype ~= 7) and (target.distance <= 35 or gAssistFollowTarget )) then
-			if (FFXIV_Assist_StartCombat or (not FFXIV_Assist_StartCombat and Player.incombat)) then
+			if (gStartCombat or (not gStartCombat and Player.incombat)) then
 				
 				if (gAssistFollowTarget ) then
 					local ppos = Player.pos
@@ -170,12 +172,12 @@ end
 
 -- New GUI.
 function ffxiv_task_assist:UIInit()
-	FFXIV_Assist_StartCombat = ffxivminion.GetSetting("FFXIV_Assist_StartCombat",true)
-	FFXIV_Assist_ConfirmDuty = ffxivminion.GetSetting("FFXIV_Assist_ConfirmDuty",false)
+	gStartCombat = ffxivminion.GetSetting("gStartCombat",true)
+	gAssistConfirmDuty = ffxivminion.GetSetting("gAssistConfirmDuty",false)
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
-	FFXIV_Assist_AutoFace = ffxivminion.GetSetting("FFXIV_Assist_AutoFace",false)
-	FFXIV_Assist_FollowTarget = ffxivminion.GetSetting("FFXIV_Assist_FollowTarget",false)
-	FFXIV_Assist_TrackTarget = ffxivminion.GetSetting("FFXIV_Assist_TrackTarget",false)
+	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
+	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
+	gAssistTraceTarget = ffxivminion.GetSetting("gAssistTraceTarget",false)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
 	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("nearest"), GetString("tankAssist") }
@@ -210,11 +212,11 @@ function ffxiv_task_assist:Draw()
 		
 		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
 		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
-		GUI_Capture(GUI:Checkbox("Follow Target",FFXIV_Assist_FollowTarget),"FFXIV_Assist_FollowTarget");
-		GUI_Capture(GUI:Checkbox("Face Target",FFXIV_Assist_TrackTarget),"FFXIV_Assist_TrackTarget");
+		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
+		GUI_Capture(GUI:Checkbox("Face Target",gAssistTraceTarget),"gAssistTraceTarget");
 		
 		if (GUI:Button("Show Filters",0,20)) then
-			--SkillMgr.ShowFilterWindow()
+			SkillMgr.ShowFilterWindow()
 		end
 		
 		GUI:PopItemWidth()
@@ -227,9 +229,9 @@ function ffxiv_task_assist:Draw()
 		
 		GUI_Combo(GetString("assistMode"), "FFXIV_Assist_ModeIndex", "FFXIV_Assist_Mode", FFXIV_Assist_Modes)
 		GUI_Combo(GetString("assistPriority"), "FFXIV_Assist_PriorityIndex", "FFXIV_Assist_Priority", FFXIV_Assist_Priorities)		
-		GUI_Capture(GUI:Checkbox("Use Autoface",FFXIV_Assist_AutoFace),"FFXIV_Assist_AutoFace");
-		GUI_Capture(GUI:Checkbox(GetString("startCombat"),FFXIV_Assist_StartCombat),"FFXIV_Assist_StartCombat");
-		GUI_Capture(GUI:Checkbox(GetString("confirmDuty"),FFXIV_Assist_ConfirmDuty),"FFXIV_Assist_ConfirmDuty");
+		GUI_Capture(GUI:Checkbox("Use Autoface",gAssistUseAutoFace),"gAssistUseAutoFace");
+		GUI_Capture(GUI:Checkbox(GetString("startCombat"),gStartCombat),"gStartCombat");
+		GUI_Capture(GUI:Checkbox(GetString("confirmDuty"),gAssistConfirmDuty),"gAssistConfirmDuty");
 		GUI_Capture(GUI:Checkbox(GetString("questHelpers"),gQuestHelpers),"gQuestHelpers", 
 			function ()
 				local message = {

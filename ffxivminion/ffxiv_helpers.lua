@@ -2962,24 +2962,12 @@ function Dismount()
 end
 function Repair()
 	if (gRepair) then
-		local blacklist = ml_global_information.repairBlacklist
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					if (item.condition > 95) then
-						if (blacklist[item.id]) then
-							blacklist[item.id] = nil
-						end
-					end
-					if (blacklist[item.id] == nil) then
-						blacklist[item.id] = 0
-					end
-					if (blacklist[item.id] < 3) then
-						item:Repair()
-						blacklist[item.id] = blacklist[item.id] + 1
-					end
+					item:Repair()
 				end
 			end
 		end
@@ -2987,19 +2975,13 @@ function Repair()
 end
 function NeedsRepair()
 	if (gRepair ) then
-		local blacklist = ml_global_information.repairBlacklist
 		local bag = Inventory:Get(1000)
 		if (table.valid(bag)) then
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
 					if (item.condition <= 50) then
-						if (blacklist[item.id] == nil) then
-							blacklist[item.id] = 0
-						end
-						if (blacklist[item.id] < 3) then
-							return true
-						end
+						return true
 					end
 				end
 			end

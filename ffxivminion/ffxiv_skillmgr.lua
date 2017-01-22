@@ -637,6 +637,13 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
+	for i = 1,5 do
+		if (type(_G["gAssistFilter"..tostring(i)]) ~= "boolean") then
+			_G["gAssistFilter"..tostring(i)] = toboolean(_G["gAssistFilter"..tostring(i)])
+			Settings.FFXIVMINION["gAssistFilter"..tostring(i)] = _G["gAssistFilter"..tostring(i)]
+		end
+	end
+	
 	gSkillProfileValidGLD = false
 	gSkillProfileValidPLD = false
 	gSkillProfileValidPUG = false
@@ -2143,11 +2150,10 @@ function SkillMgr.ToggleBuffMenu()
         SkillMgr.editwindow_buff.visible = true
     end
 end
-
-function SkillMgr.ShowFilterWindow()
-	GUI_WindowVisible(SkillMgr.filterwindow.name,true)		
-end
 --]]
+function SkillMgr.ShowFilterWindow()
+	SkillMgr.GUI.filters.open = true		
+end
 
 function SkillMgr.GetCooldown(action)
 	if (action) then

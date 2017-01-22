@@ -20,6 +20,41 @@ sck.hotkeys = {
 		label = "Unload Bot", mod1 = "SCK_Unload_Mod1", mod2 = "SCK_Unload_Mod2", key = "SCK_Unload_Key", 
 		event = function () Unload() end
 	},
+	{
+		label = "SKM Filter 1", mod1 = "SCK_Filter1_Mod1", mod2 = "SCK_Filter1_Mod2", key = "SCK_Filter1_Key", 
+		event = function () 
+			gAssistFilter1 = not gAssistFilter1
+			Settings.FFXIVMINION.gAssistFilter1 = gAssistFilter1
+		end
+	},
+	{
+		label = "SKM Filter 2", mod1 = "SCK_Filter2_Mod1", mod2 = "SCK_Filter2_Mod2", key = "SCK_Filter2_Key", 
+		event = function () 
+			gAssistFilter2 = not gAssistFilter2
+			Settings.FFXIVMINION.gAssistFilter2 = gAssistFilter2
+		end
+	},
+	{
+		label = "SKM Filter 3", mod1 = "SCK_Filter3_Mod1", mod2 = "SCK_Filter3_Mod2", key = "SCK_Filter3_Key", 
+		event = function () 
+			gAssistFilter3 = not gAssistFilter3
+			Settings.FFXIVMINION.gAssistFilter3 = gAssistFilter3
+		end
+	},
+	{
+		label = "SKM Filter 4", mod1 = "SCK_Filter4_Mod1", mod2 = "SCK_Filter4_Mod2", key = "SCK_Filter4_Key", 
+		event = function () 
+			gAssistFilter4 = not gAssistFilter4
+			Settings.FFXIVMINION.gAssistFilter4 = gAssistFilter4
+		end
+	},
+	{
+		label = "SKM Filter 5", mod1 = "SCK_Filter5_Mod1", mod2 = "SCK_Filter5_Mod2", key = "SCK_Filter5_Key", 
+		event = function () 
+			gAssistFilter5 = not gAssistFilter5
+			Settings.FFXIVMINION.gAssistFilter5 = gAssistFilter5
+		end
+	},
 }
 
 function sck.ModuleInit() 	

@@ -2180,7 +2180,7 @@ c_pressconfirm = inheritsFrom( ml_cause )
 e_pressconfirm = inheritsFrom( ml_effect )
 function c_pressconfirm:evaluate()
 	if (gBotMode == GetString("assistMode")) then
-		return (FFXIV_Assist_ConfirmDuty  and IsControlOpen("ContentsFinderConfirm") and not MIsLoading())
+		return (gAssistConfirmDuty and IsControlOpen("ContentsFinderConfirm") and not MIsLoading())
 	end
 	
     return (IsControlOpen("ContentsFinderConfirm") and not MIsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3)
@@ -2990,14 +2990,14 @@ c_buy = inheritsFrom( ml_cause )
 e_buy = inheritsFrom( ml_effect )
 c_buy.failedAttempts = 0
 function c_buy:evaluate()	
-	if (not IsShopWindowOpen()) then
-		return false
-	end
-	
 	if (IsControlOpen("SelectYesno")) then
 		UseControlAction("SelectYesno","Yes")
 		ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesno") end)
 		return true
+	end
+	
+	if (not IsShopWindowOpen()) then
+		return false
 	end
 	
 	local itemid;
@@ -3036,7 +3036,7 @@ function c_buy:evaluate()
 	return false
 end
 function e_buy:execute()
-	
+	--don't really need this
 end
 
 c_moveandinteract = inheritsFrom( ml_cause )

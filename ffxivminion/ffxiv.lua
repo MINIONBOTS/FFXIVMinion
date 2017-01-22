@@ -321,16 +321,18 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			ffxivminion.FillFoodOptions()
 		end
 		
-		if (FFXIV_Common_BotRunning) then
+		if ((FFXIV_Common_BotRunning or not gRepairRunningOnly) and gRepair) then
 			if ( TimeSince(ml_global_information.repairTimer) > 30000 ) then
-				if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple") and not Player.incombat) then
+				if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not Player.incombat) then
 					if (NeedsRepair()) then
 						Repair()
 					end
 					ml_global_information.repairTimer = tickcount
 				end
 			end
-	
+		end
+		
+		if (FFXIV_Common_BotRunning) then	
 			if ( gFood ~= "None") then
 				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
 					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
@@ -533,6 +535,7 @@ function ffxivminion.SetMainVars()
 	gClickTravel = ffxivminion.GetSetting("gClickTravel",false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing",false)
 	gRepair = ffxivminion.GetSetting("gRepair",true)
+	gRepairRunningOnly = ffxivminion.GetSetting("gRepairRunningOnly",false)
 	gPermaSprint = ffxivminion.GetSetting("gPermaSprint",false)
 	FFXIV_Common_PermaSwift = ffxivminion.GetSetting("FFXIV_Common_PermaSwift",false)
 	gChocoAssist = ffxivminion.GetSetting("gChocoAssist",false)
@@ -1335,8 +1338,9 @@ function ml_global_information.DrawSettings()
 				
 				if (tabs.tabs[5].isselected) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
-					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair")
-					--GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),gDisableDrawing),"gDisableDrawing", function () Hacks:Disable3DRendering(gDisableDrawing) end)
+					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair"); GUI:SameLine(0,15)
+					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running"),gRepairRunningOnly),"gRepairRunningOnly")
+					GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),gDisableDrawing),"gDisableDrawing", function () Hacks:Disable3DRendering(gDisableDrawing) end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"),gTeleportHack),"gTeleportHack", 
 						function () 
 							if (gBotMode == GetString("dutyMode")) then
