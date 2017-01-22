@@ -2373,21 +2373,19 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	forceStop = IsNull(forceStop,false)
 	
 	if (SkillMgr.IsYielding()) then
-		d("yielding, don't cast")
 		return false
 	end
 	
 	SkillMgr.CheckMonitor()
 	
 	if (not entity or IsFlying() or table.valid(SkillMgr.receivedMacro)) then
-		d("no entity or something")
 		return false
 	end
 	
 	--This call is here to refresh the action list in case new skills are equipped.
 	if (SkillMgr.SkillProfile) then
 	
-		local testSkill = profile.GetAction(SkillMgr.GCDSkills[Player.job],1)
+		local testSkill = SkillMgr.GetAction(SkillMgr.GCDSkills[Player.job],1)
 		if (testSkill) then
 			SkillMgr.gcdTime = testSkill.recasttime
 		end
