@@ -4,6 +4,7 @@ SkillMgr.lastTick = 0
 SkillMgr.profilePath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
 SkillMgr.yield = {}
 SkillMgr.monitor = {}
+SkillMgr.gcdTime = 2.5
 
 SkillMgr.ConditionList = {}
 SkillMgr.CurrentSkill = {}
@@ -1104,7 +1105,7 @@ function SkillMgr.ParseMacro(data)
 							
 								if (action:Cast(tpos.x, tpos.y, tpos.z)) then
 									return true
-								elseif (action.recasttime ~= 2.5 and action.isoncd and ((action.cdmax - action.cd) > 2.5)) then
+								elseif (math.abs(SkillMgr.gcdTime - action.recasttime) > .1 and action.isoncd and ((action.cdmax - action.cd) > 2.5)) then
 									if (msg ~= "") then
 										SendTextCommand(msg)
 									end
@@ -1301,7 +1302,7 @@ function SkillMgr.OnUpdate()
 						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 						SkillMgr.prevSkillID = castingskill
 						SkillMgr.prevSkillTimestamp = Now()
-						if (action.recasttime == 2.5) then
+						if (math.abs(SkillMgr.gcdTime - action.recasttime) <= .1) then
 							SkillMgr.prevGCDSkillID = castingskill
 						end
 						SkillMgr.UpdateLastCast(castingskill)
@@ -2386,6 +2387,11 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 	--This call is here to refresh the action list in case new skills are equipped.
 	if (SkillMgr.SkillProfile) then
 	
+		local testSkill = profile.GetAction(SkillMgr.GCDSkills[Player.job],1)
+		if (testSkill) then
+			SkillMgr.gcdTime = testSkill.recasttime
+		end
+	
 		-- Start Main Loop
 		local casted = false
 		for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
@@ -2435,7 +2441,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 									if (castingskill == action.id or (IsNinjutsuSkill(castingskill) and IsNinjutsuSkill(action.id))) then
 										SkillMgr.prevSkillID = castingskill
 										SkillMgr.prevSkillTimestamp = Now()
-										if (action.recasttime == 2.5) then
+										if (math.abs(SkillMgr.gcdTime - action.recasttime) <= .1) then
 											SkillMgr.prevGCDSkillID = castingskill
 										end
 										SkillMgr.UpdateLastCast(castingskill)
@@ -2481,7 +2487,7 @@ function SkillMgr.Cast( entity , preCombat, forceStop )
 										--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
 										SkillMgr.prevSkillID = castingskill
 										SkillMgr.prevSkillTimestamp = Now()
-										if (action.recasttime == 2.5) then
+										if (math.abs(SkillMgr.gcdTime - action.recasttime) <= .1) then
 											SkillMgr.prevGCDSkillID = castingskill
 										end
 										SkillMgr.UpdateLastCast(castingskill)
@@ -3651,7 +3657,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 		return 0
 	end
 	
-	if (realskilldata.recasttime ~= 2.5) then
+	if (math.abs(SkillMgr.gcdTime - realskilldata.recasttime) > .1) then
 		if (TimeSince(SkillMgr.latencyTimer) < 150 or (SkillMgr.queuedPrio ~= 0 and TimeSince(SkillMgr.latencyTimer) < 1000)) then
 			SkillMgr.DebugOutput( prio, "Skill cannot be casted due to latency timer." )
 			return 0
@@ -3900,7 +3906,7 @@ function SkillMgr.IsFacing(skilldata,autoface,target)
 end
 
 function SkillMgr.CanBeQueued(skilldata)
-	return (skilldata.recasttime == 2.5 and not skilldata.isoncd)
+	return (math.abs(SkillMgr.gcdTime - skilldata.recasttime) <= .1 and not skilldata.isoncd)
 end
 
 function SkillMgr.AddDefaultConditions()	
@@ -3970,7 +3976,7 @@ function SkillMgr.AddDefaultConditions()
 		local realskilldata = SkillMgr.CurrentSkillData
 		
 		if (skill.gcd == "Auto") then
-			if (realskilldata.recasttime ~= 2.5) then
+			if (math.abs(SkillMgr.gcdTime - realskilldata.recasttime) > .1) then
 				--SkillMgr.DebugOutput( skill.prio, "skill.gcdtime = "..tostring(skill.gcdtime)..", IsGCDReady: "..tostring(SkillMgr.IsGCDReady(skill.gcdtime)))
 				if (SkillMgr.IsGCDReady(skill.gcdtime) and not IsCaster(Player.job)) then
 					return true
