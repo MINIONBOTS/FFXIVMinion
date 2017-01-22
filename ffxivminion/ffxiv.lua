@@ -854,7 +854,7 @@ function ffxivminion.CheckClass()
 		ml_global_information.CurrentClass = playerClass
 		ml_global_information.CurrentClassID = Player.job
 		ml_global_information.AttackRange = playerClass.range or 2
-		--SkillMgr.UseDefaultProfile()
+		SkillMgr.UseDefaultProfile()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
 		return
@@ -864,7 +864,7 @@ function ffxivminion.CheckClass()
         ml_global_information.CurrentClass = playerClass
         ml_global_information.CurrentClassID = Player.job
 		ml_global_information.AttackRange = playerClass.range or 2
-		--SkillMgr.UseDefaultProfile()
+		SkillMgr.UseDefaultProfile()
 		ffxivminion.VerifyClassSettings()
 		ffxivminion.UseClassSettings()
 		
