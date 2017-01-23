@@ -1079,7 +1079,7 @@ function CanUseCordial()
 end
 
 function CanUseExpManual()
-	if (FFXIV_Common_UseEXPManuals == "0") then
+	if (not FFXIV_Common_UseEXPManuals) then
 		return false
 	end
 	
@@ -2622,7 +2622,7 @@ function ffxiv_gather.NeedsStealth()
 			end
 			
 			if (hasStealth) then
-				if (FFXIV_Common_StealthSmart == "0") then
+				if (not FFXIV_Common_StealthSmart) then
 					local removeMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthRemove))
 					if (table.valid(removeMobList)) then
 						--d("Still detecting enemies, need to keep stealth.")

@@ -3635,7 +3635,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	local skill = SkillMgr.SkillProfile[prio]
 	if (not skill) then
 		return 0
-	elseif (skill and skill.used == "0") then
+	elseif (skill and skill.used) then
 		return 0
 	end
 	
@@ -3919,7 +3919,7 @@ function SkillMgr.AddDefaultConditions()
 	, eval = function()	
 		local skill = SkillMgr.CurrentSkill
 	
-		if (skill.chainstart == "0") then
+		if (not skill.chainstart) then
 			if (SkillMgr.currentChain ~= "") then
 				if (skill.chainname ~= "") then
 					local found = false
@@ -4420,16 +4420,16 @@ function SkillMgr.AddDefaultConditions()
 		local skill = SkillMgr.CurrentSkill
 		local realskilldata = SkillMgr.CurrentSkillData
 		
-		if 	((gAssistFilter1  and skill.filterone == "Off") or 
-			(gAssistFilter1 == "0" and skill.filterone == "On" ) or 
-			(gAssistFilter2  and skill.filtertwo == "Off") or
-			(gAssistFilter2 == "0" and skill.filtertwo == "On" ) or
-			(gAssistFilter3  and skill.filterthree == "Off") or
-			(gAssistFilter3 == "0" and skill.filterthree == "On" ) or
-			(gAssistFilter4  and skill.filterfour == "Off") or
-			(gAssistFilter4 == "0" and skill.filterfour == "On" ) or
-			(gAssistFilter5  and skill.filterfive == "Off") or
-			(gAssistFilter5 == "0" and skill.filterfive == "On" ))
+		if 	((gAssistFilter1 and skill.filterone == "Off") or 
+			(not gAssistFilter1 and skill.filterone == "On" ) or 
+			(gAssistFilter2 and skill.filtertwo == "Off") or
+			(not gAssistFilter2 and skill.filtertwo == "On" ) or
+			(gAssistFilter3 and skill.filterthree == "Off") or
+			(not gAssistFilter3 and skill.filterthree == "On" ) or
+			(gAssistFilter4 and skill.filterfour == "Off") or
+			(not gAssistFilter4 and skill.filterfour == "On" ) or
+			(gAssistFilter5 and skill.filterfive == "Off") or
+			(not gAssistFilter5 and skill.filterfive == "On" ))
 		then
 			return true
 		end
@@ -5034,7 +5034,7 @@ function SkillMgr.AddDefaultConditions()
 		local target = SkillMgr.CurrentTarget
 		local TID = SkillMgr.CurrentTID
 		
-		if (Player:IsMoving() and skill.ignoremoving == "0") then
+		if (Player:IsMoving() and not skill.ignoremoving) then
 			if (realskilldata.casttime > 0) then
 				if (not HasBuffs(Player,"167",1)) then
 					return true

@@ -970,8 +970,8 @@ end
 function ffxiv_task_summonchoco:task_complete_eval()	
 	local al = ActionList("type=6")
 	local dismiss = al[2]
-	local acDismiss = ActionList:Get(dismiss.id,6)
-	local item = Inventory:Get(4868)	
+	local acDismiss = SkillMgr.GetAction(dismiss.id,6)
+	local item = GetItem(4868,{0,1,2,3})	
 	
 	if ( acDismiss.isready or item.isready) then
 		return true
@@ -1193,11 +1193,11 @@ function ffxiv_task_stealth:task_complete_eval()
 	
 	local action = nil
     if (Player.job == FFXIV.JOBS.BOTANIST) then
-        action = ActionList:Get(212)
+        action = SkillMgr.GetAction(212)
     elseif (Player.job == FFXIV.JOBS.MINER) then
-        action = ActionList:Get(229)
+        action = SkillMgr.GetAction(229)
     elseif (Player.job == FFXIV.JOBS.FISHER) then
-        action = ActionList:Get(298)
+        action = SkillMgr.GetAction(298)
     end
 
 	if (self.droppingStealth) then
@@ -1567,7 +1567,7 @@ function ffxiv_task_flee:task_complete_eval()
 	end
 	
 	if (Player:IsMoving()) then
-		local sprint = ActionList:Get(3)
+		local sprint = SkillMgr.GetAction(3)
 		if (sprint and sprint.isready) then
 			sprint:Cast()
 		end
@@ -2303,9 +2303,10 @@ function ffxiv_misc_shopping:task_complete_eval()
 end
 
 function ffxiv_misc_shopping:task_complete_execute()
-	if (IsShopWindowOpen()) then
-		Inventory:CloseShopWindow()
-		ml_global_information.Await(500)
+	local shop = GetControl("Shop")
+	if (shop and shop:IsOpen()) then
+		shop:Close()	
+		ml_global_information.Await(1500, function () return not IsControlOpen("Shop") end) 
 		return
 	end
 	

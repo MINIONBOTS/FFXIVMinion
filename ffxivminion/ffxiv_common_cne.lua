@@ -2021,7 +2021,7 @@ function c_rest:evaluate()
 		end
 		
 		-- don't rest if we have rest in fates disabled and we're in a fate or FatesOnly is enabled
-		if (gRestInFates == "0") then
+		if (not gRestInFates) then
 			if (gBotMode == GetString("grindMode")) then
 				return not IsInsideFate()
 			end

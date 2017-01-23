@@ -31,7 +31,7 @@ end
 function cd(var,level)
 	local level = tonumber(level) or 3
 
-	if ( gCraftDebug == "1" ) then
+	if ( gCraftDebug ) then
 		if ( level <= tonumber(gCraftDebugLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)

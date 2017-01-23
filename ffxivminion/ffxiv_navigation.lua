@@ -370,8 +370,9 @@ function ml_navigation.Navigate(event, ticks )
 									if (not string.contains(nextnode.type,"CUBE") ) then
 										d("[Navigation] - Landing...")
 										Player:Move(FFXIV.MOVEMENT.DOWN)
+										SendTextCommand("/mount")
+										ffnav.Await(5000, function () return not IsFlying() end)
 									end
-									
 								else						
 									-- We have not yet reached our node
 									-- Face next node
@@ -666,6 +667,68 @@ function ffnav.AwaitDo(param1, param2, param3, param4, param5)
 			evaluator = param2,
 			dowhile = param3,
 			followall = param4,
+		}
+	end
+end
+
+function ffnav.AwaitFail(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ffnav.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			both = IsNull(param4,false),
+			followfail = param5,
+		}
+	else
+		ffnav.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followfail = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function ffnav.AwaitSuccess(param1, param2, param3, param4, param5)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ffnav.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			followsuccess = param4,
+			both = IsNull(param5,false),
+		}
+	else
+		ffnav.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			followsuccess = param3,
+			both = IsNull(param4,false),
+		}
+	end
+end
+
+function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		ffnav.yield = {
+			mintimer = IIF(param1 ~= 0,Now() + param1,0),
+			maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+			evaluator = param3,
+			failure = param4,
+			followsuccess = param5,
+			followfail = param6,
+		}
+	else
+		ffnav.yield = {
+			mintimer = 0,
+			maxtimer = Now() + param1,
+			evaluator = param2,
+			failure = param3,
+			followsuccess = param4,
+			followfail = param5,
 		}
 	end
 end

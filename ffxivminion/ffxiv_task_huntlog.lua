@@ -165,7 +165,7 @@ c_grind_addhuntlogtask = inheritsFrom( ml_cause )
 e_grind_addhuntlogtask = inheritsFrom( ml_effect )
 c_grind_addhuntlogtask.target = nil
 function c_grind_addhuntlogtask:evaluate()
-	if (gGrindDoHuntlog == "0") then
+	if (not gGrindDoHuntlog) then
 		return false
 	end
 	

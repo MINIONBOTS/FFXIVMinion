@@ -59,7 +59,7 @@ function ffxiv_task_fish.Create()
 	newinst.requiresAdjustment = false
 	newinst.requiresRelocate = false
 	
-	newinst.snapshot = GetSnapshot()
+	newinst.snapshot = GetInventorySnapshot({0,1,2,3})
 	ffxiv_fish.currentTask = {}
 	ffxiv_fish.currentTaskIndex = 0
 	ffxiv_fish.attemptedCasts = 0
@@ -132,7 +132,7 @@ function c_precastbuff:evaluate()
 		
 		local hasStealth = HasBuff(Player.id,47)
 		if (not hasStealth and needsStealth) then
-			local stealth = ActionList:Get(1,298)
+			local stealth = SkillMgr.GetAction(298,1)
 			if (stealth and stealth:IsReady(Player.id) and Player.action ~= 367) then
 				c_precastbuff.activity = "stealth"
 				c_precastbuff.requiredismount = true
@@ -221,7 +221,7 @@ function c_mooch:evaluate()
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-			local mooch = ActionList:Get(1,297)
+			local mooch = SkillMgr.GetAction(297,1)
 			if (useMooch and mooch and mooch:IsReady(Player.id)) then
 				local moochables = ""
 				if (table.valid(task)) then
@@ -248,10 +248,10 @@ function c_mooch:evaluate()
     return false
 end
 function e_mooch:execute()
-    local mooch = ActionList:Get(1,297)
+    local mooch = SkillMgr.GetAction(297,1)
     if (mooch and mooch:IsReady(Player.id)) then
         if (mooch:Cast()) then
-			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
     end
@@ -268,7 +268,7 @@ function c_release:evaluate()
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-			local release = ActionList:Get(1,300)
+			local release = SkillMgr.GetAction(300,1)
 			if (release and release:IsReady(Player.id)) then
 				
 				local whitelist = ""
@@ -369,10 +369,10 @@ function c_release:evaluate()
     return false
 end
 function e_release:execute()
-    local release = ActionList:Get(1,300)
+    local release = SkillMgr.GetAction(300,1)
     if (release and release:IsReady(Player.id)) then
         if (release:Cast()) then
-			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		ml_task_hub:CurrentTask().castTimer = Now() + 1500
     end
@@ -394,7 +394,7 @@ function c_cast:evaluate()
     if (Now() > castTimer) then
         local fs = tonumber(Player:GetFishingState())
         if (fs == 0 or fs == 4) then
-			local cast = ActionList:Get(1,289)
+			local cast = SkillMgr.GetAction(289,1)
 			if (cast and cast:IsReady(Player.id)) then
 				return true
 			end
@@ -403,10 +403,10 @@ function c_cast:evaluate()
     return false
 end
 function e_cast:execute()
-	local cast = ActionList:Get(1,289)
+	local cast = SkillMgr.GetAction(289,1)
 	if (cast and cast:IsReady(Player.id)) then	
 		if (cast:Cast()) then
-			ml_task_hub:CurrentTask().snapshot = GetSnapshot()
+			ml_task_hub:CurrentTask().snapshot = GetInventorySnapshot({0,1,2,3})
 		end
 		if (table.valid(ffxiv_fish.currentTask)) then
 			if (ffxiv_fish.currentTask.taskStarted == 0) then
@@ -419,38 +419,9 @@ function e_cast:execute()
 	end
 end
 
-function GetSnapshot()
-	local currentSnapshot = {}
-	
-	for x=0,3 do
-		local inv = Inventory("type="..tostring(x))
-		if (table.valid(inv)) then
-			for k,item in pairs(inv) do
-				if currentSnapshot[item.id] == nil then
-					-- New item
-					currentSnapshot[item.id] = {}
-					currentSnapshot[item.id].name = item.name
-					currentSnapshot[item.id].HQcount = 0
-					currentSnapshot[item.id].count = 0
-				end
-				-- Increment item counts
-				if (toboolean(item.ishq)) then
-					-- HQ
-					currentSnapshot[item.id].HQcount = currentSnapshot[item.id].HQcount + item.count
-				else
-					-- NQ
-					currentSnapshot[item.id].count = currentSnapshot[item.id].count + item.count
-				end
-			end
-		end
-	end
-	
-	return currentSnapshot
-end
-
 function GetNewInventory(snapshot)
-	local currentInventory = GetSnapshot()
-		
+	local currentInventory = GetInventorySnapshot({0,1,2,3})
+
 	for itemid,item in pairs(currentInventory) do
 		if (snapshot[itemid] == nil) then
 			-- Item is new in inventory
@@ -516,8 +487,8 @@ function e_bite:execute()
 		return
 	elseif (Now() > ffxiv_fish.biteDetected) then
 		if (HasBuffs(Player,"764")) then
-			local precisionHook = ActionList:Get(1,4179)
-			local powerfulHook = ActionList:Get(1,4103)
+			local precisionHook = SkillMgr.GetAction(4179,1)
+			local powerfulHook = SkillMgr.GetAction(4103,1)
 			local status = Player.status
 			
 			if (status == 56 and precisionHook and precisionHook:IsReady(Player.id)) then
@@ -529,7 +500,7 @@ function e_bite:execute()
 			end
 		end
 			
-		local bite = ActionList:Get(1,296)
+		local bite = SkillMgr.GetAction(296,1)
 		if (bite and bite:IsReady(Player.id)) then
 			bite:Cast()
 		end
@@ -551,7 +522,7 @@ function c_chum:evaluate()
 			useBuff = (marker:GetFieldValue(GetUSString("useChum")) )
 		end
 		
-		local chum = ActionList:Get(1,4104)
+		local chum = SkillMgr.GetAction(4104,1)
 		if (chum and chum:IsReady(Player.id)) then	
 			if (useBuff) then
 				if (MissingBuffs(Player,"763")) then
@@ -583,7 +554,7 @@ function c_fisheyes:evaluate()
 		local useBuff = false
 		local task = ffxiv_fish.currentTask
 		if (table.valid(task)) then
-			local fisheyes = ActionList:Get(1,4105)
+			local fisheyes = SkillMgr.GetAction(4105,1)
 			if (fisheyes and fisheyes:IsReady(Player.id)) then
 				useBuff = IsNull(task.usefisheyes,false)
 				if (useBuff) then
@@ -620,7 +591,7 @@ function c_snagging:evaluate()
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
-			local snagging = ActionList:Get(1,4100)
+			local snagging = SkillMgr.GetAction(4100,1)
 			if (snagging and snagging:IsReady(Player.id)) then
 				useBuff = IsNull(task.usesnagging,false)
 			
@@ -660,7 +631,7 @@ function c_usecollect:evaluate()
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
 			
-			local collect = ActionList:Get(1,4101)
+			local collect = SkillMgr.GetAction(4101,1)
 			if (collect and collect:IsReady(Player.id)) then
 				useBuff = IsNull(task.usecollect,false)
 				
@@ -716,18 +687,18 @@ function c_patience:evaluate()
 		end
 		
 		if (usePatience) then
-			local patience = ActionList:Get(1,4102)
+			local patience = SkillMgr.GetAction(4102,1)
 			if (patience and patience:IsReady(Player.id)) then	
 				if (patience:Cast()) then
-					ml_global_information.Await(3000, function () return (ActionList:Get(4102,1).isoncd) end)
+					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4102,1).isoncd) end)
 				end
 				return true
 			end
 		elseif (usePatience2) then
-			local patience2 = ActionList:Get(1,4106)
+			local patience2 = SkillMgr.GetAction(4106,1)
 			if (patience2 and patience2:IsReady(Player.id)) then	
 				if (patience2:Cast()) then
-					ml_global_information.Await(3000, function () return (ActionList:Get(4106,1).isoncd) end)
+					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4106,1).isoncd) end)
 				end
 				return true
 			end
@@ -743,7 +714,18 @@ c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
 	if (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) then
-		local info = Player:GetYesNoItemInfo()
+		local info;
+		
+		local control = GetControl("SelectYesNoItem")
+		if (not control) then
+			control = GetControl("SelectYesNoCountItem")
+		end
+		if (control) then
+			info = control:GetData()
+		else
+			control:Close()
+			ml_global_information.Await(1500, function () return not (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) end)
+		end
 		if (table.valid(info)) then
 			fd(info,2)		
 			
@@ -920,7 +902,7 @@ function e_setbait:execute()
 		for bait in StringSplit(baitChoice,",") do
 			if (tonumber(bait) ~= nil) then
 				baitIDs[#baitIDs+1] = tonumber(bait)
-				local item = Inventory:Get(tonumber(bait))
+				local item = GetItem(tonumber(bait),{0,1,2,3})
 				if (item) then
 					Player:SetBait(item.id)
 					foundSuitable = true
@@ -930,7 +912,7 @@ function e_setbait:execute()
 				local thisID = AceLib.API.Items.GetIDByName(bait)
 				if (thisID) then
 					baitIDs[#baitIDs+1] = thisID
-					local item = Inventory:Get(thisID)
+					local item = GetItem(thisID,{0,1,2,3})
 					if (item) then
 						Player:SetBait(item.id)
 						foundSuitable = true
@@ -1060,7 +1042,7 @@ end
 function e_nextfishingmarker:execute()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
-		local finishcast = ActionList:Get(1,299)
+		local finishcast = SkillMgr.GetAction(299,1)
 		if (finishcast and finishcast:IsReady(Player.id)) then
 			finishcast:Cast()
 		end
@@ -1120,7 +1102,12 @@ function c_fishnexttask:evaluate()
 			
 			if (ffxiv_fish.attemptedCasts > 2) then
 				fd("Attempted casts reached 3, check for a new location.")
-				ffxiv_fish.SetLockout(gProfile,ffxiv_fish.currentTaskIndex)
+				
+				local profileName = gFishProfile
+				if (gBotMode == GetString("questMode")) then
+					profileName = gQuestProfile
+				end
+				ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 				invalid = true
 			end
 			
@@ -1362,19 +1349,8 @@ function c_fishnexttask:evaluate()
 						
 						if (valid) then
 							if (data.condition) then
-								local conditions = shallowcopy(data.condition)
-								for condition,value in pairs(conditions) do
-									local f = assert(loadstring("return " .. condition))()
-									if (f ~= nil) then
-										if (f ~= value) then
-											valid = false
-										end
-										conditions[condition] = nil
-									end
-									if (not valid) then
-										break
-									end
-								end
+								local conditions = deepcopy(data.condition,true)
+								valid = TestConditions(conditions)
 							end
 						end
 						
@@ -1487,7 +1463,7 @@ function c_fishnexttask:evaluate()
 							
 							local fs = tonumber(Player:GetFishingState())
 							if (fs ~= 0) then
-								local finishcast = ActionList:Get(1,299)
+								local finishcast = SkillMgr.GetAction(299,1)
 								if (finishcast and finishcast:IsReady(Player.id)) then
 									finishcast:Cast()
 								end
@@ -1554,7 +1530,7 @@ function e_fishnextprofilemap:execute()
 	
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
-		local finishcast = ActionList:Get(1,299)
+		local finishcast = SkillMgr.GetAction(299,1)
 		if (finishcast and finishcast:IsReady(Player.id)) then
 			finishcast:Cast()
 		end
@@ -1622,7 +1598,7 @@ end
 function e_fishnextprofilepos:execute()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
-		local finishcast = ActionList:Get(1,299)
+		local finishcast = SkillMgr.GetAction(299,1)
 		if (finishcast and finishcast:IsReady(Player.id)) then
 			if (finishcast:Cast()) then
 				ml_global_information.Await(3000, function () return (Player:GetFishingState() == 0) end)
@@ -1676,7 +1652,7 @@ function ffxiv_fish.NeedsStealth()
 	end
 	
 	if (useStealth) then		
-		local stealth = ActionList:Get(1,298)
+		local stealth = SkillMgr.GetAction(298,1)
 		if (stealth) then
 			local dangerousArea = false
 			local myPos = Player.pos
@@ -1736,7 +1712,7 @@ end
 function ffxiv_fish.StopFishing()
 	local fs = tonumber(Player:GetFishingState())
 	if (fs ~= 0) then
-		local finishcast = ActionList:Get(1,299)
+		local finishcast = SkillMgr.GetAction(299,1)
 		if (finishcast and finishcast:IsReady(Player.id)) then
 			if (finishcast:Cast()) then
 				ml_global_information.Await(3000, function () return (Player:GetFishingState() == 0) end)
@@ -1772,7 +1748,7 @@ function c_fishstealth:evaluate()
 			return false
 		end
 		
-		local stealth = ActionList:Get(1,298)
+		local stealth = SkillMgr.GetAction(298,1)
 		if (stealth) then
 			local dangerousArea = false
 			local destPos = {}

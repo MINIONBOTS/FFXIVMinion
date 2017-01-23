@@ -2630,7 +2630,7 @@ function IsLeader()
     return false
 end
 function GetPartyLeader()
-	if (gBotMode == GetString("partyMode") and gPartyGrindUsePartyLeader == "0") then
+	if (gBotMode == GetString("partyMode") and not gPartyGrindUsePartyLeader) then
 		if (gPartyLeaderName ~= "") then
 			local el = MEntityList("type=1,name="..gPartyLeaderName)
 			if (table.valid(el)) then
@@ -3898,7 +3898,7 @@ function ShouldTeleport(pos)
 	if (not gTeleportHack) then
 		return false
 	else
-		if (gTeleportHackParanoid == "0") then
+		if (not gTeleportHackParanoid) then
 			return true
 		else
 			local scanDistance = 50
@@ -4157,7 +4157,7 @@ function IsInventoryFull(maxitems)
 	
 	return itemcount >= maxitems
 end
-function GetInventorySnapshot()
+function GetInventorySnapshot(inventories)
 	local currentSnapshot = {}
 	
 	local inventories = inventories or {0,1,2,3,1000,2004,2000}
@@ -4172,6 +4172,7 @@ function GetInventorySnapshot()
 						currentSnapshot[item.id] = {}
 						currentSnapshot[item.id].HQcount = 0
 						currentSnapshot[item.id].count = 0
+						currentSnapshot[item.id].name = item.name
 					end
 					-- Increment item counts
 					if (item.ishq == 1) then
