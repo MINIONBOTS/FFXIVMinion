@@ -232,7 +232,7 @@ function c_movetonode:evaluate()
 						Player:Interact(gatherable.id)
 					end
 					
-					ml_task_hub:CurrentTask():SetDelay(500)
+					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
 				end
@@ -525,20 +525,17 @@ function e_nextgathermarker:execute()
 end
 
 function DoGathering(item)
-	d("do gathering, check buffs")
 	if (ffxiv_gather.CheckBuffs(item)) then
-		ml_task_hub:CurrentTask():SetDelay(1500)
+		ml_global_information.Await(1500)
 		return 1
 	end
 	
-	d("do gathering, use skills")
 	if (SkillMgr.Gather(item)) then
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(500)
 		return 2
 	end	
 
-	d("do gathering, collect stuff")
-	Player:Gather(item.index)
+	Player:Gather(item.index-1)
 	if (HasBuffs(Player,"805")) then
 		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
 	end
@@ -606,7 +603,7 @@ function e_gather:execute()
 			item1 = IsNull(task.item1,"")
 			item2 = IsNull(task.item2,"")
 			item3 = IsNull(task.item3,"")
-		elseif (table.valid(marker)) then
+		elseif (table.valid(marker) and false) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
 			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
 			gatherGardening = (gatherGardening )
@@ -828,7 +825,7 @@ function e_gather:execute()
 			-- Gather unknown items to unlock them.
 		if (Player.level < 60) then
 			for i,item in pairs(list) do
-				if (item.isunknown) then
+				if (toboolean(item.isunknown)) then
 					return DoGathering(item)
 				end
 			end
@@ -848,7 +845,7 @@ function e_gather:execute()
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
-				gd("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",3)
 			end
 		end
 		if (tonumber(item1) ~= nil) then
@@ -858,7 +855,7 @@ function e_gather:execute()
 		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
 			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
-				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",3)
 			end
 		end
 		if (tonumber(item2) ~= nil) then
@@ -868,7 +865,7 @@ function e_gather:execute()
 		if (item3 and item2 ~= "" and item3 ~= GetString("none")) then
 			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
-				gd("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item3).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item3).."].",3)
 			end
 		end
 		if (tonumber(item3) ~= nil) then
@@ -906,6 +903,7 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid3 ~= 0) then
 				if (item.id == itemid3) then
+
 					return DoGathering(item)
 				end
 			end
@@ -921,7 +919,7 @@ function e_gather:execute()
 			
 		-- Gather unknown items to unlock them.
 		for i,item in pairs(list) do
-			if (item.isunknown or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
+			if (toboolean(item.isunknown) or (IsUnspoiled(thisNode.contentid) and item.chance == 25 and (item.name == "" or item.name == nil))) then
 				return DoGathering(item)
 			end
 		end
@@ -1002,7 +1000,7 @@ function ffxiv_gather.CheckBuffs(item)
 	end
 	
 	local hasCollect = HasBuffs(Player,"805")
-	local isCollectable = (idpairs[item.id] ~= nil) and not item.isunknown
+	local isCollectable = (idpairs[item.id] ~= nil) and not toboolean(item.isunknown)
 	
 	if ((hasCollect and not isCollectable) or (not hasCollect and isCollectable)) then
 		local collect = ActionList:Get(1,ffxiv_gather.collectors[Player.job])
@@ -1857,6 +1855,7 @@ function c_gathernexttask:evaluate()
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
 	if (not table.valid(currentTask)) then
+		d("no current task, pick something")
 		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
 		invalid = true
 	else
@@ -1999,6 +1998,7 @@ function c_gathernexttask:evaluate()
 				gd("[GatherNextTask]: Check the cached subset of tasks.",3)
 				validTasks = c_gathernexttask.subset
 			else
+				gd("[GatherNextTask]: Check the non-cached subset of tasks.",3)
 				validTasks = deepcopy(profileData.tasks,true)
 				for i,data in pairs(validTasks) do
 				
@@ -2011,8 +2011,10 @@ function c_gathernexttask:evaluate()
 
 					if (data.minlevel and Player.level < data.minlevel) then
 						valid = false
+						gd("Task ["..tostring(i).."] not valid due to min level requirement.",3)
 					elseif (data.maxlevel and Player.level > data.maxlevel) then
 						valid = false
+						gd("Task ["..tostring(i).."] not valid due to max level requirement.",3)
 					end
 					
 					if (valid) then
@@ -2029,6 +2031,7 @@ function c_gathernexttask:evaluate()
 						if (data.condition) then
 							local conditions = deepcopy(data.condition,true)
 							valid = TestConditions(conditions)
+							gd("Task ["..tostring(i).."] not valid due to conditions.",3)
 						end
 					end
 					
@@ -2602,8 +2605,8 @@ function ffxiv_gather.NeedsStealth()
 					for i,entity in pairs(addMobList) do
 						if (entity.targetid == 0) then
 							local epos = entity.pos
-							local ray1 = MeshManager:RayCast(epos.x,(epos.y+1.5),epos.z,myPos.x,(myPos.y+1.5),myPos.z)
-							local ray2 = MeshManager:RayCast(epos.x,(epos.y+1.5),epos.z,nextPos.x,(nextPos.y+1.5),nextPos.z)
+							local ray1 = RayCast(epos.x,(epos.y+1.5),epos.z,myPos.x,(myPos.y+1.5),myPos.z)
+							local ray2 = RayCast(epos.x,(epos.y+1.5),epos.z,nextPos.x,(nextPos.y+1.5),nextPos.z)
 							if ((IsFrontSafer(entity) and ray1 == nil) or 
 								(IsFrontSafer(entity,nextPos) and ray2 == nil)) 
 							then
@@ -2662,7 +2665,7 @@ function c_gathernoactivity:evaluate()
 	local marker = ml_global_information.currentMarker
 	local task = ffxiv_gather.currentTask
 	if (not table.valid(task) and not table.valid(marker)) then
-		ml_task_hub:CurrentTask():SetDelay(1000)
+		ml_global_information.Await(1000)
 		return true
 	end
 	return false

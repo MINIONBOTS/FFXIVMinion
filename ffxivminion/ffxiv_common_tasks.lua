@@ -620,7 +620,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationIndex(convo.index)
+						SelectConversationLine(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
@@ -632,7 +632,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							d("Use conversation line ["..tostring(convo.line).."]")
-							SelectConversationIndex(convo.index)
+							SelectConversationLine(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
@@ -795,6 +795,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 				local forceLOS = self.forceLOS
 				local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 				--if (interactable.gatherable or interactable.los) then
+				d("los:"..tostring(interactable.los))
+				d("range:"..tostring(range)..",dist:"..tostring(dist3d)..",ydiff:"..tostring(ydiff))
 				if (not forceLOS or (forceLOS and interactable.los)) then
 					if (interactable and dist3d <= range and ydiff <= 4.95) then
 						--local ydiff = math.abs(ppos.y - interactable.pos.y)
@@ -808,7 +810,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 						
 							Player:Interact(interactable.id)
 							
-							local currentDist = Distance3DT(ppos,ipos)
+							local currentDist = dist2d
 							ml_global_information.AwaitSuccessFail(250, 1500,  
 								function () 
 									return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
@@ -825,7 +827,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
 									end
-									ml_global_information.Await(1000, 3000, 
+									ml_global_information.Await(500, 1000, 
 										function () 
 											local entity = EntityList:Get(iid)
 											return (not entity or entity.distance2d < (currentDist - .5))
@@ -1087,7 +1089,7 @@ function ffxiv_task_teleport:task_complete_eval()
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationIndex(convo.index)
+						SelectConversationLine(convo.index)
 						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
 						return false
 					end
@@ -1321,17 +1323,17 @@ function ffxiv_task_useitem:task_complete_eval()
 		if (self.targetid == 0) then
 			item:Use()
 			self.useAttempts = self.useAttempts + 1
-			ml_task_hub:CurrentTask():SetDelay(1000)
+			ml_global_information.Await(1000)
 			return false
 		elseif (self.targetid ~= 0) then
 			item:Use(self.targetid)
 			self.useAttempts = self.useAttempts + 1
-			ml_task_hub:CurrentTask():SetDelay(1000)
+			ml_global_information.Await(1000)
 			return false
 		elseif (table.valid(self.pos)) then
 			item:Use(self.pos.x, self.pos.y, self.pos.z)
 			self.useAttempts = self.useAttempts + 1
-			ml_task_hub:CurrentTask():SetDelay(1000)
+			ml_global_information.Await(1000)
 			return false
 		end
 	end
@@ -1582,7 +1584,7 @@ function ffxiv_task_flee:task_complete_execute()
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true
-	ml_task_hub:CurrentTask():SetDelay(2000)
+	ml_global_information.Await(2000)
 end
 
 function ffxiv_task_flee:task_fail_eval()
@@ -2303,7 +2305,7 @@ end
 function ffxiv_misc_shopping:task_complete_execute()
 	if (IsShopWindowOpen()) then
 		Inventory:CloseShopWindow()
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(500)
 		return
 	end
 	
@@ -2363,8 +2365,8 @@ function ffxiv_misc_switchclass:Init()
 	local ke_switchClass = ml_element:create( "SwitchClass", c_switchclass, e_switchclass, 100 )
     self:add( ke_switchClass, self.process_elements)
 	
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
-    self:add( ke_autoEquip, self.process_elements)
+	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
+    --self:add( ke_autoEquip, self.process_elements)
 	
 	local c_complete = inheritsFrom(ml_cause)
     function c_complete:evaluate() return ml_task_hub:CurrentTask():task_complete_eval() end
@@ -2532,7 +2534,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedastring = string.gsub(astring,"[()-/]","")
 						if (string.find(cleanedline,cleanedastring) ~= nil and string.find(convo.line,residential[language]) == nil) then
 							d("Use conversation line ["..tostring(convo.line).."]")
-							SelectConversationIndex(convo.index)
+							SelectConversationLine(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						end
 					end
@@ -2546,7 +2548,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationIndex(convo.index)
+						SelectConversationLine(convo.index)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
@@ -2558,7 +2560,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.find(cleanedline,cleanedv) ~= nil) then
 							d("Use conversation line ["..tostring(convo.line).."]")
-							SelectConversationIndex(convo.index)
+							SelectConversationLine(convo.index)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end

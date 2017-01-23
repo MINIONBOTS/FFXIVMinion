@@ -4091,10 +4091,27 @@ function IsEquipped(itemid)
 	
 	local bag = Inventory:Get(1000)
 	if (table.valid(bag)) then
+		--d("bag was valid, looking for ["..tostring(itemid).."]")
 		local item = bag:Get(itemid)
 		if (item) then
+			--d("found item via easy method.")
 			return true
 		end
+		
+		local ilist = bag:GetList()
+		if (table.valid(ilist)) then
+			for slot,item in pairs(ilist) do
+				--d("checking item ["..tostring(item.hqid).."]")
+				if (item.hqid == itemid) then
+					--d("found item via list method")
+					return true
+				end
+			end
+		else
+			--d("list was empty.")
+		end
+	else
+		--d("bag wasn't valid.")
 	end
 	
 	return false
@@ -4715,9 +4732,9 @@ function CanAccessMap(mapid)
 			
 			local attunedAetherytes = GetAttunedAetheryteList()
 			for k,aetheryte in pairs(attunedAetherytes) do
-				d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
+				--d("Checking attuned aetheryte for territory ["..tostring(aetheryte.territory).."] and cost ["..tostring(aetheryte.price).."].")
 				if (aetheryte.territory == mapid and GilCount() >= aetheryte.price) then
-					d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
+					--d("Found an attuned aetheryte for mapid ["..tostring(mapid).."].")
 					return true
 				end
 			end
@@ -5291,30 +5308,60 @@ function IsTransporting()
 	return HasBuff(Player.id,404)
 end
 
-function TestConditions(conditions)			
+function TestConditions(conditions)
+	if (not memoize.conditions) then
+		memoize.conditions = {}
+	end
+		
 	local testKey,testVal = next(conditions)
 	if (tonumber(testKey) ~= nil) then
 		for i,conditionset in pairsByKeys(conditions) do
 			for condition,value in pairs(conditionset) do
-				local f = assert(loadstring("return " .. condition))()
-				if (f ~= nil) then
-					if (f ~= value) then
+				if (memoize.conditions[condition]) then
+					if (memoize.conditions[condition] ~= value) then
 						return false
 					end
-					conditions[i][condition] = nil
+				else
+					local startTime = os.clock()
+					local f = assert(loadstring("return " .. condition))()
+					local finishTime = os.clock()
+					local elapsed = (finishTime - startTime)
+					if (elapsed > 0.1) then
+						d("condition:"..tostring(condition).." took ["..tostring(elapsedTime).."] to evaluate")
+					end
+					if (f ~= nil) then
+						memoize.conditions[condition] = f
+						if (f ~= value) then
+							return false
+						end
+					end
 				end
+				conditions[i][condition] = nil
 			end
 			conditions[i] = nil
 		end
 	else
 		for condition,value in pairs(conditions) do
-			local f = assert(loadstring("return " .. condition))()
-			if (f ~= nil) then
-				if (f ~= value) then
+			if (memoize.conditions[condition]) then
+				if (memoize.conditions[condition] ~= value) then
 					return false
 				end
-				conditions[condition] = nil
+			else
+				local startTime = os.clock()
+				local f = assert(loadstring("return " .. condition))()
+				local finishTime = os.clock()
+				local elapsed = (finishTime - startTime)
+				if (elapsed > 0.1) then
+					d("condition:"..tostring(condition).." took ["..tostring(elapsedTime).."] to evaluate")
+				end
+				if (f ~= nil) then
+					memoize.conditions[condition] = f
+					if (f ~= value) then
+						return false
+					end
+				end
 			end
+			conditions[condition] = nil
 		end
 	end
 	

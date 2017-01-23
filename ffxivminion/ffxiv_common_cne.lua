@@ -1041,7 +1041,6 @@ function e_teleporttomap:execute()
 			newTask.aetheryte = e_teleporttomap.aeth.id
 			newTask.mapID = e_teleporttomap.aeth.territory
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-			ml_task_hub:CurrentTask():SetDelay(1500)
 		end
 	end
 end
@@ -1282,11 +1281,6 @@ function c_walktopos:evaluate()
 					elseif (table.valid(ml_task_hub:CurrentTask().gatePos)) then
 						d("change gatepos")
 						ml_task_hub:CurrentTask().gatePos = gotoPos
-					end
-				else
-					d("meshpos?:"..tostring(meshpos ~= nil))
-					if (meshpos) then
-						d("distance?:"..tostring(meshpos.distance))
 					end
 				end
 			else
@@ -1771,7 +1765,7 @@ function e_mount:execute()
 	if (IsMounting() or UsingBattleItem()) then
 		--d("Adding a wait.")
 		if (CanFlyInZone()) then
-			ml_task_hub:CurrentTask():SetDelay(2000)
+			ml_global_information.Await(2000)
 		end
 		return
 	end
@@ -1780,7 +1774,7 @@ function e_mount:execute()
 		ml_global_information.Await(5000, function () return Player.ismounted end)
 	end
 	
-	--ml_task_hub:CurrentTask():SetDelay(500)
+	--ml_global_information.Await(500)
 	--c_mount.reattempt = Now() + 10000
 	--local ppos = Player.pos
 	--c_mount.attemptPos = { x = round(ppos.x,1), y = round(ppos.y,1), z = round(ppos.z,1) }
@@ -1862,13 +1856,13 @@ function e_battlemount:execute()
 	
 	if (IsMounting() or UsingBattleItem()) then
 		--d("Adding a wait.")
-		ml_task_hub:CurrentTask():SetDelay(2000)
+		ml_global_information.Await(2000)
 		return
 	end
 	
     Mount(e_battlemount.id)
 	--d("Set a delay for 500")
-	ml_task_hub:CurrentTask():SetDelay(500)
+	ml_global_information.Await(500)
 end
 
 c_battleitem = inheritsFrom( ml_cause )
@@ -2526,7 +2520,12 @@ function c_autoequip:evaluate()
 	-- Check to see if we can get valid data from the game, if not, skip it.
 	local weapon = GetItemBySlot(1,1000)
 	if (not weapon and IsNull(weapon.name,"") == "") then
-		return false
+		if (gBotMode ~= GetString("assistMode")) then
+			ml_global_information.Await(1000, function () return GetItemBySlot(1,1000) ~= nil end)
+			return true
+		else
+			return false
+		end		
 	end
 	
 	e_autoequip.item = nil
@@ -2599,25 +2598,27 @@ function c_autoequip:evaluate()
 		if (slot == 0) then
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindWeaponUpgrade()
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		elseif (slot == 1) then
 			if (AceLib.API.Items.IsShieldEligible()) then
 				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
 				if (IsNull(data.unequippedItem,0) ~= 0) then
-					d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+					ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 				end
 			end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
 			if (IsNull(data.unequippedItem,0) ~= 0) then
-				d("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
 		end
 	end
 	
 	for slot,data in pairsByKeys(applicableSlots) do		
 		if (IsNull(data.unequippedItem,0) ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
+			
+			--[[
 			if (ArmoryItemCount(slot) == 25 and (data.unequippedItem.bag >= 0 and data.unequippedItem.bag <= 3)) then
 				ml_debug("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
 				
@@ -2697,8 +2698,9 @@ function c_autoequip:evaluate()
 				ml_debug("Autoequip cannot be used for slot ["..tostring(slot).."], all armoury slots are full.")
 				return false
 			end
+			--]]
 			
-			--d("Try to equip item ["..tostring(data.unequippedItem.hqid).."]")
+			d("Try to equip item ["..tostring(data.unequippedItem.hqid).."]")
 			
 			e_autoequip.item = data.unequippedItem
 			e_autoequip.bag = 1000
@@ -2721,11 +2723,10 @@ function e_autoequip:execute()
 		local itemid = item.hqid
 		--d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
-		ml_global_information.Await(1500, function () return (IsEquipped(itemid)) end)
+		ml_global_information.Await(500, 2000, function () return IsEquipped(itemid) end)
+	else
+		ml_global_information.Await(1000)
 	end
-	--if (ml_task_hub:CurrentTask()) then
-		--ml_task_hub:CurrentTask():SetDelay(200)
-	--end
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )
@@ -3085,11 +3086,9 @@ function c_switchclass:evaluate()
 		end
 			
 		local canSwitch,bestWeapon = CanSwitchToClass(class)
-		if (canSwitch) then
-			if (bestWeapon) then
-				e_switchclass.weapon = bestWeapon
-				return true
-			end
+		if (canSwitch and bestWeapon) then
+			e_switchclass.weapon = bestWeapon
+			return true
 		end	
 	end
 	return false
@@ -3097,8 +3096,9 @@ end
 function e_switchclass:execute()	
 	local weapon = e_switchclass.weapon
 	if (weapon) then
+		local weaponid = weapon.hqid
 		weapon:Move(1000,0)
-		ml_task_hub:CurrentTask():SetDelay(2500)
+		ml_global_information.Await(1000, 2000, function() return IsEquipped(weaponid) end)
 	end
 end
 

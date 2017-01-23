@@ -416,7 +416,7 @@ function e_huntlogkill:execute()
 		newTask.task_complete_execute = function ()
 			Player:Stop()
 			ml_task_hub:CurrentTask().completed = true
-			ml_task_hub:CurrentTask():SetDelay(2000)
+			ml_global_information.Await(2000)
 		end
 	end
 	ml_task_hub:CurrentTask():AddSubTask(newTask)

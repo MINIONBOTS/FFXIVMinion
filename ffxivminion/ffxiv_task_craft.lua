@@ -177,7 +177,7 @@ function e_startcraft:execute()
 				end
 			end
 			
-			ml_task_hub:CurrentTask():SetDelay(1000)
+			ml_global_information.Await(1000)
 			return
 		else
 			local usehq = ml_task_hub:CurrentTask().useHQ
@@ -210,13 +210,13 @@ function e_startcraft:execute()
 					SkillMgr.newCraft = true
 					ml_task_hub:CurrentTask().allowWindowOpen = false
 				end
-				ml_task_hub:CurrentTask():SetDelay(2500)
+				ml_global_information.Await(2500)
 				return
 			else
 				if (ml_task_hub:CurrentTask().failedAttempts < 3) then
 					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
 					ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-					ml_task_hub:CurrentTask():SetDelay(1000)
+					ml_global_information.Await(1000)
 					return
 				else
 					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
@@ -303,7 +303,7 @@ function e_precraftbuff:execute()
 		if ( Crafting:IsCraftingLogOpen()) then
 			Crafting:ToggleCraftingLog()
 			ml_task_hub:CurrentTask().allowWindowOpen = true
-			ml_task_hub:CurrentTask():SetDelay(1500)
+			ml_global_information.Await(1500)
 			return
 		end
 	end
@@ -312,13 +312,13 @@ function e_precraftbuff:execute()
 	if (activity == "repair") then
 		cd("[PreCraftBuff]: Attempting repairs.",3)
 		Repair()
-		ml_task_hub:CurrentTask():SetDelay(500)
+		ml_global_information.Await(500)
 	elseif (activity == "eat") then
 		local food = Inventory:Get(e_precraftbuff.id)
 		if (food) then
 			cd("[PreCraftBuff]: Attempting to eat.",3)
 			food:Use()
-			ml_task_hub:CurrentTask():SetDelay(3000)
+			ml_global_information.Await(3000)
 		end	
 	elseif (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
@@ -327,12 +327,12 @@ function e_precraftbuff:execute()
 		cd("[PreCraftBuff]: Attempting to switch to gearset ["..tostring(gearset).."].",3)
 		local commandString = "/gearset change "..tostring(gearset)
 		SendTextCommand(commandString)
-		ml_task_hub:CurrentTask():SetDelay(3000)
+		ml_global_information.Await(3000)
 	elseif (activity == "usemanual") then
 		local manual = activityItem
 		if (manual and manual.isready) then
 			manual:Use()
-			ml_task_hub:CurrentTask():SetDelay(1500)
+			ml_global_information.Await(1500)
 			return
 		end
 	end
@@ -431,7 +431,7 @@ end
 function e_quicksynth:execute()
 	if (ml_task_hub:CurrentTask().quickTimer > 0 and TimeSince(ml_task_hub:CurrentTask().quickTimer) > 7000) then
 		Crafting:EndSynthesis(true)
-		ml_task_hub:CurrentTask():SetDelay(6000)
+		ml_global_information.Await(6000)
 		return true
 	end
 	

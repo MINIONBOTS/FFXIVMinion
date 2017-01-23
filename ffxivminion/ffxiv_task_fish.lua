@@ -185,7 +185,7 @@ function e_precastbuff:execute()
 		local newTask = ffxiv_task_stealth.Create()
 		newTask.addingStealth = true
 		ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
-		ml_task_hub:CurrentTask():SetDelay(2000)
+		ml_global_information.Await(2000)
 		return
 	end
 	
@@ -1652,7 +1652,7 @@ function c_fishnoactivity:evaluate()
 	local marker = ml_global_information.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (not table.valid(task) and not table.valid(marker)) then
-		ml_task_hub:CurrentTask():SetDelay(1000)
+		ml_global_information.Await(1000)
 		return true
 	end
 	return false

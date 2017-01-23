@@ -2824,7 +2824,7 @@ function SkillMgr.Craft()
 							
 							SkillMgr.SkillProfile[prio].lastcast = Now()
 							SkillMgr.prevSkillID = tostring(skill.id)
-							ml_task_hub:CurrentTask():SetDelay(750)
+							ml_global_information.Await(750)
 							return true
 						end	
 					end
@@ -2870,7 +2870,7 @@ function SkillMgr.Gather(item)
 					end
 					
 					if (table.valid(item)) then
-						if (item.isunknown and (skillid == 4074 or skillid == 4088)) then
+						if (toboolean(item.isunknown) and (skillid == 4074 or skillid == 4088)) then
 							SkillMgr.DebugOutput(prio, "["..skill.name.."] was prevented from use due to object's unknown status.")
 							castable = false
 						end
@@ -2958,7 +2958,7 @@ function SkillMgr.Gather(item)
 					if ( castable ) then
 						doHalt = true
 						if (realskilldata:IsReady(Player.id)) then
-							if ( ActionList:Cast(skillid,Player.id)) then	
+							if ( realskilldata:Cast(Player.id)) then	
 								--d("CASTING (gathering) : "..tostring(skill.name))
 								SkillMgr.SkillProfile[prio].lastcast = Now()
 								SkillMgr.prevGatherSkillID = tostring(skillid)

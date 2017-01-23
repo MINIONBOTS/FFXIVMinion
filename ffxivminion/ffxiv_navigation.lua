@@ -55,13 +55,12 @@ ml_navigation.GetMovementType = function()
 	else
 		return "2dmount"
 	end
-end		
+end
+		
 ml_navigation.CanRun = function() return GetGameState() == FFXIV.GAMESTATE.INGAME end 			-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
 ml_navigation.avoidanceareasize = 2
-
-
 
 -- Tries to use RayCast to determine the exact floor height from Player and Node, and uses that to calculate the correct distance.
 function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
@@ -96,9 +95,6 @@ function ml_navigation:IsGoalClose(ppos,node)
 		end
 	else
 		if (Player.flying.isflying) then
-			--d("currentPathIndex:"..tostring(ml_navigation.currentPathIndex))
-			--d("checking flying dist")
-			--d("index:"..tostring(ml_navigation.currentPathIndex)..",goaldist:"..tostring(goaldist)..", goaldist2d:"..tostring(goaldist2d)..",from [ "..tostring(math.round(Player.pos.x,2)).." / "..tostring(math.round(Player.pos.y,2)).." / "..tostring(math.round(Player.pos.z,2)).."] - to - [".. tostring(math.round(goal.x,2)).. " / "..tostring(math.round(goal.y,2)).." / "..tostring(math.round(goal.z,2)).."]")
 			if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
 				return true
 			end
@@ -114,14 +110,18 @@ end
 
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
 function Player:MoveTo(x, y, z, navpointreacheddistance, navigationmode, randomnodes, smoothturns)
-		-- ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance, newpathdistancetreshold, pathdeviationdistance)	
-		return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance)
+		-- ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance, newpathdistancetreshold, pathdeviationdistance)
+	ffnav.currentGoal = { x = x, y = y, z = z }
+	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randomnodes, smoothturns = smoothturns}
+	return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance)
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
 function Player:Stop()
 	ml_navigation:ResetCurrentPath()
 	ml_navigation:ResetOMCHandler()
+	ffnav.currentGoal = {}
+	ffnav.currentParams = {}
 	ffnav.yield = {}
 	ffnav.process = {}
 	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
@@ -529,6 +529,8 @@ end
 ffnav = {}
 ffnav.yield = {}
 ffnav.process = {}
+ffnav.currentGoal = {}
+ffnav.currentParams = {}
 
 function ffnav.IsProcessing()
 	if (ffnav.IsYielding()) then
@@ -699,8 +701,11 @@ function ffnav.Ascend()
 			end
 		end, 
 		followsuccess = function ()
-			--ffnav.ResetPath()
-			--ffnav.MoveTo(ffnav.currentPathGoal.x, ffnav.currentPathGoal.y, ffnav.currentPathGoal.z) 
+			ml_navigation:ResetCurrentPath()
+			ml_navigation:ResetOMCHandler()
+			local goal = ffnav.currentGoal
+			local params = ffnav.currentParams
+			Player:MoveTo(goal.x, goal.y, goal.z, params.range, params.navmode, params.randompath, params.smoothturns)
 		end
 	}
 end

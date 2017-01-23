@@ -42,7 +42,7 @@ function MiniGames.OnUpdate( event, tickcount )
 				local delay = tonumber(gMGGameDelay)
 				local mindelay = delay - (delay * .20)
 				local maxdelay = delay + (delay * .10)
-				ml_task_hub:CurrentTask():SetDelay(math.random(mindelay,maxdelay))
+				ml_global_information.Await(math.random(mindelay,maxdelay))
 				ml_task_hub:CurrentTask().catchWin = false
 				ml_task_hub:CurrentTask().awaitingWin = false
 				return
@@ -226,12 +226,6 @@ end
 
 function ffxiv_task_minigames:task_complete_execute()
 	if (FFXIV_Common_BotRunning == true) then
-		GUI_ToggleConsole(true)
-		if (self.invalidState == 1) then
-			d("You have left gold saucer, this mode will not work outside of that area.")
-		elseif (self.invalidState == 2) then
-			d("You do not have any games selected to play.")
-		end
 		ml_task_hub:ToggleRun()
 	end
 end
@@ -391,13 +385,13 @@ function e_restbreak:execute()
 			
 			newTask.task_complete_execute = function()
 				ml_task_hub:CurrentTask().completed = true
-				ml_task_hub:CurrentTask():ParentTask():SetDelay(tonumber(gMGRestTime) * 60 * 1000)
+				ml_global_information.Await(tonumber(gMGRestTime) * 60 * 1000)
 				ml_task_hub:CurrentTask():ParentTask().lastRest = Now() + (tonumber(gMGRestTime) * 60 * 1000)
 			end
 			
 			ml_task_hub:CurrentTask():AddSubTask(newTask)
 		else
-			ml_task_hub:CurrentTask():SetDelay(tonumber(gMGRestTime) * 60 * 1000)
+			ml_global_information.Await(tonumber(gMGRestTime) * 60 * 1000)
 			ml_task_hub:CurrentTask().lastRest = Now() + (tonumber(gMGRestTime) * 60 * 1000)
 		end
 	end	

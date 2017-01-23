@@ -466,7 +466,7 @@ function e_faterandomdelay:execute()
 	local minWait = tonumber(gFateRandomDelayMin) * 1000
 	local maxWait = tonumber(gFateRandomDelayMax) * 1000
 	
-	ml_task_hub:CurrentTask():SetDelay(math.random(minWait,maxWait))
+	ml_global_information.Await(math.random(minWait,maxWait))
 	ml_task_hub:ThisTask().randomDelayCompleted = true
 	ml_debug("Random delay commenced.")
 end
@@ -634,7 +634,7 @@ function e_endfate:execute()
 		Player:Stop()
 		ml_task_hub:ThisTask().completed = true
 		ml_task_hub:ThisTask():DeleteSubTasks()
-		ml_task_hub:ThisTask():ParentTask():SetDelay(1000)
+		ml_global_information.Await(1000)
 		ml_global_information.suppressRestTimer = Now() + 10000
 	end
 end
