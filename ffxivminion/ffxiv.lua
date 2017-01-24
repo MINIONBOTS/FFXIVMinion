@@ -946,7 +946,7 @@ function ffxivminion.FillFoodOptions()
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					if (item.category == 5) then
+					if (item.class == 5) then
 						local itemName = item.name
 						if (toboolean(item.IsHQ)) then
 							itemName = itemName.." (HQ)"
@@ -955,7 +955,7 @@ function ffxivminion.FillFoodOptions()
 							name = itemName,
 							max = item.max,
 							slot = item.slot,
-							category = item.category,
+							class = item.class,
 						}
 					end
 				end
