@@ -795,7 +795,8 @@ function dev.DrawCall(event, ticks )
 					local p = Player
 					if ( p ) then 
 						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
+						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
+						GUI:BulletText(".pettype") GUI:SameLine(200) GUI:InputText("##devuf4", tostring(p.pettype))						
 						
 						if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
 						
