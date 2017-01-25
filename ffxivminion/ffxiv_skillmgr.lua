@@ -1765,7 +1765,7 @@ end
 
 --Grasb all Profiles and enlist them in the dropdown field
 function SkillMgr.UpdateProfiles()
-	SkillMgr.profiles = {GetString("None"),GetString("ACR")}
+	SkillMgr.profiles = {GetString("None")}
     local profileList = FolderList(SkillMgr.profilePath,[[(.*)lua$]])
     if (table.valid(profileList)) then		
 		for i,profile in pairs(profileList) do
@@ -3616,11 +3616,13 @@ end
 
 function SkillMgr.CanCast(prio, entity, outofcombat)
 	if (not entity) then
+		SkillMgr.DebugOutput( prio, "Missing entity." )
 		return 0
 	end
 	
 	--Check for buffs on the player that prevent using weaponskills
 	if (not ActionList:IsReady()) then
+		SkillMgr.DebugOutput( prio, "Hotbar is locked, no skills are usable." )
 		return 0
 	end
 	
@@ -3634,13 +3636,16 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	
 	local skill = SkillMgr.SkillProfile[prio]
 	if (not skill) then
+		SkillMgr.DebugOutput( prio, "Skill is missing.. weird error." )
 		return 0
-	elseif (skill and skill.used) then
+	elseif (skill and not skill.used) then
+		SkillMgr.DebugOutput( prio, "Skill is not used." )
 		return 0
 	end
 	
 	local skillid = tonumber(skill.id) or -1
 	if (skillid == -1) then
+		SkillMgr.DebugOutput( prio, "Skill ID doesn't exist." )
 		return 0
 	end
 	
