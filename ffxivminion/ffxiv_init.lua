@@ -241,15 +241,6 @@ function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
 	end
 end
 
-function ml_global_information.GetMainIcon()
-	local iconPath = ml_global_information.path.."\\GUI\\UI_Textures\\"
-	if (ml_global_information.drawMode == 1) then
-		return iconPath.."collapse.png"
-	else
-		return iconPath.."expand.png"
-	end
-end
-
 function ml_global_information.Init()
 	-- Update default meshes.
 	do
