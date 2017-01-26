@@ -1786,7 +1786,7 @@ function IsFlanking(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
@@ -1818,7 +1818,7 @@ function IsBehind(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
@@ -1845,7 +1845,7 @@ function IsBehind(entity,dorangecheck)
 end
 function IsBehindSafe(entity)
 	if not entity or entity.id == Player.id then return false end
-	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	
@@ -1872,7 +1872,7 @@ function IsFront(entity,dorangecheck)
 	if not entity or entity.id == Player.id then return false end
 	local dorangecheck = IsNull(dorangecheck,true)
 	
-	if (entity.pos.h > math.pi or entity.pos.h < (-1 * math.pi)) then
+	if (round(entity.pos.h,4) > round(math.pi,4) or round(entity.pos.h,4) < (-1 * round(math.pi,4))) then
 		return true
 	end
 	

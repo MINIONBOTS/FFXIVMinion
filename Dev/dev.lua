@@ -20,9 +20,9 @@ dev.renderobjdrawmode = { [0] = "POINTS", [1] = "LINES", [2] = "TRIANGLES", }
 
 function dev.Init()
 	gDevFilterActions = false	
+	gDevAddonTextFilter = ""
 end
 RegisterEventHandler("Module.Initalize",dev.Init)
-
 
 function dev.DrawCall(event, ticks )
 	
@@ -37,60 +37,63 @@ function dev.DrawCall(event, ticks )
 			GUI:PushStyleVar(GUI.StyleVar_ItemSpacing, 8, 2)
 			
 			if ( GUI:TreeNode("AddonControls")) then
+				GUI:PushItemWidth(200); gDevAddonTextFilter = GUI:InputText("Filter by Name",gDevAddonTextFilter); GUI:PopItemWidth();
 				if ( GUI:TreeNode("Active Controls")) then
 					local controls = GetControls()
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
-							GUI:PushItemWidth(150)
-							if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
-								GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
-								local isopen = e:IsOpen()
-								GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
-								if (isopen == false) then
-									if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
-									GUI:SameLine()
-									if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
-								else
-									if (GUI:Button("Close",100,15) ) then d("Closing Control Result: "..tostring(e:Close())) end
-									GUI:SameLine()
-									if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
-									
-									local ac = e:GetActions()
-									if (table.valid(ac)) then
-										GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Always)
-										if ( GUI:TreeNode("Control Actions##"..tostring(id)) ) then
-											for aid, action in pairs(ac) do
-												if (GUI:Button(action,150,15) ) then d("Action Result with arg "..tostring(dev.addoncontrolarg).." :" ..tostring(e:Action(action,dev.addoncontrolarg))) end
-												GUI:SameLine()
-												if (not dev.addoncontrolarg) then dev.addoncontrolarg = 0 end
-												dev.addoncontrolarg = GUI:InputInt("Arg 1##"..tostring(aid)..tostring(id), dev.addoncontrolarg)
+							if (string.contains(e.name,gDevAddonTextFilter)) then
+								GUI:PushItemWidth(150)
+								if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
+									GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+									local isopen = e:IsOpen()
+									GUI:BulletText("IsOpen") GUI:SameLine(200) GUI:InputText("##devc1"..tostring(id),tostring(isopen))
+									if (isopen == false) then
+										if (GUI:Button("Open",100,15) ) then d("Opening Control Result: "..tostring(e:Open())) end
+										GUI:SameLine()
+										if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+									else
+										if (GUI:Button("Close",100,15) ) then d("Closing Control Result: "..tostring(e:Close())) end
+										GUI:SameLine()
+										if (GUI:Button("Destroy",100,15) ) then d("Destroy Control Result: "..tostring(e:Destroy())) end
+										
+										local ac = e:GetActions()
+										if (table.valid(ac)) then
+											GUI:SetNextTreeNodeOpened(true,GUI.SetCond_Always)
+											if ( GUI:TreeNode("Control Actions##"..tostring(id)) ) then
+												for aid, action in pairs(ac) do
+													if (GUI:Button(action,150,15) ) then d("Action Result with arg "..tostring(dev.addoncontrolarg).." :" ..tostring(e:Action(action,dev.addoncontrolarg))) end
+													GUI:SameLine()
+													if (not dev.addoncontrolarg) then dev.addoncontrolarg = 0 end
+													dev.addoncontrolarg = GUI:InputInt("Arg 1##"..tostring(aid)..tostring(id), dev.addoncontrolarg)
+												end
+												GUI:TreePop()
 											end
+										end
+										
+										local ad = e:GetData()
+										if (table.valid(ad)) then
+											for key, value in pairs(ad) do
+												GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))											
+											end										
+										end
+										
+										
+										if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
+											if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
+											GUI:SameLine()										
+											if ( not dev.pushbuttonA or dev.pushbuttonA < 0) then dev.pushbuttonA = 0 end
+											dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1) 
+											GUI:SameLine()
+											if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
+											dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
 											GUI:TreePop()
 										end
-									end
-									
-									local ad = e:GetData()
-									if (table.valid(ad)) then
-										for key, value in pairs(ad) do
-											GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))											
-										end										
-									end
-									
-									
-									if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
-										if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
-										GUI:SameLine()										
-										if ( not dev.pushbuttonA or dev.pushbuttonA < 0) then dev.pushbuttonA = 0 end
-										dev.pushbuttonA = GUI:InputInt("##devc2"..tostring(id),dev.pushbuttonA ,1,1) 
-										GUI:SameLine()
-										if ( not dev.pushbuttonB or dev.pushbuttonB < 0) then dev.pushbuttonB = 0 end
-										dev.pushbuttonB = GUI:InputInt("##devc3"..tostring(id),dev.pushbuttonB ,1,1)																					
-										GUI:TreePop()
-									end
-								end								
-								GUI:TreePop()
-							end					
-							GUI:PopItemWidth()
+									end								
+									GUI:TreePop()
+								end					
+								GUI:PopItemWidth()
+							end
 						end
 					end
 					GUI:TreePop()
@@ -100,9 +103,11 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(200)
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
-							GUI:BulletText("ID: "..tostring(id)) GUI:SameLine(150) GUI:InputText("##devac0"..tostring(id), e) 
-							GUI:SameLine() 
-							if (GUI:Button("Create##"..tostring(id),50,15) ) then d("Creating Control Result: "..tostring(CreateControl(id))) end
+							if (string.contains(e,gDevAddonTextFilter)) then
+								GUI:BulletText("ID: "..tostring(id)) GUI:SameLine(150) GUI:InputText("##devac0"..tostring(id), e) 
+								GUI:SameLine() 
+								if (GUI:Button("Create##"..tostring(id),50,15) ) then d("Creating Control Result: "..tostring(CreateControl(id))) end
+							end
 						end
 					end
 					GUI:PopItemWidth()
@@ -110,30 +115,41 @@ function dev.DrawCall(event, ticks )
 				end				
 				GUI:TreePop()
 			end
---End Active Controls
-
+			--End Active Controls
 			
 			if ( GUI:TreeNode("Player") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player
-					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player Found") end
+					if ( c ) then dev.DrawGameObjectDetails(c,true) else	GUI:Text("No Player found.") end
 				else
 					GUI:Text("Not Ingame...")
 				end
 				GUI:TreePop()
+			end
+			
+			if (Player.pet) then
+				if ( GUI:TreeNode("Pet") ) then
+					if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+						local c = Player.pet
+						if ( c ) then dev.DrawGameObjectDetails(c,false,true) else	GUI:Text("No pet found.") end
+					else
+						GUI:Text("Not Ingame...")
+					end
+					GUI:TreePop()
+				end
 			end
 			
 			if ( GUI:TreeNode("Target") ) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					local c = Player:GetTarget()
-					if ( c ) then dev.DrawGameObjectDetails(c) else	GUI:Text("No Target Found") end
+					if ( c ) then dev.DrawGameObjectDetails(c) else	GUI:Text("No target found.") end
 				else
 					GUI:Text("Not Ingame...")
 				end
 				GUI:TreePop()
 			end
 			
-		if ( GUI:TreeNode("ActionList")) then
+			if ( GUI:TreeNode("ActionList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
 					GUI:PushItemWidth(100)	
 					GUI:BulletText("IsCasting") GUI:SameLine(200) GUI:InputText("##devac22",tostring(ActionList:IsCasting())) GUI:SameLine()
@@ -200,7 +216,6 @@ function dev.DrawCall(event, ticks )
 			end
 -- END ACTIONLIST
 
-			
 			if ( GUI:TreeNode("Aetheryte List")) then				
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -230,7 +245,6 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END Aetheryte LIST
-	
 
 			if ( GUI:TreeNode("Crafting")) then
 				GUI:PushItemWidth(200)
@@ -248,7 +262,6 @@ function dev.DrawCall(event, ticks )
 			end
 --  END CRAFTING	
 
-	
 			if ( GUI:TreeNode("Duty List")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then
 					GUI:PushItemWidth(200)
@@ -275,7 +288,6 @@ function dev.DrawCall(event, ticks )
 				GUI:TreePop()
 			end
 -- END DUTY LIST
-
 
 			if ( GUI:TreeNode("EnmityList")) then
 				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
@@ -846,8 +858,7 @@ function dev.DrawCall(event, ticks )
 end
 RegisterEventHandler("Gameloop.Draw", dev.DrawCall)
 
-
-function dev.DrawGameObjectDetails(c,isplayer) 
+function dev.DrawGameObjectDetails(c,isplayer,ispet) 
 	GUI:PushItemWidth(200)
 	if ( GUI:TreeNode("Core Data") ) then
 		GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##dev0",tostring(string.format( "%X",c.ptr)))
@@ -855,6 +866,9 @@ function dev.DrawGameObjectDetails(c,isplayer)
 		GUI:BulletText("Name") GUI:SameLine(200) GUI:InputText("##dev2",c.name)	
 		GUI:BulletText("ContentID") GUI:SameLine(200) GUI:InputText("##dev4",tostring(c.contentid))
 		GUI:BulletText("Type") GUI:SameLine(200) GUI:InputText("##dev5",tostring(c.type))
+		if (ispet) then
+			GUI:BulletText("PetType") GUI:SameLine(200) GUI:InputText("##objpettype",tostring(c.pettype))
+		end
 		GUI:BulletText("CharType") GUI:SameLine(200) GUI:InputText("##dev6",tostring(c.chartype))
 		GUI:BulletText("TargetID") GUI:SameLine(200) GUI:InputText("##dev7",tostring(c.targetid))
 		GUI:BulletText("OwnerID") GUI:SameLine(200) GUI:InputText("##dev8",tostring(c.ownerid))

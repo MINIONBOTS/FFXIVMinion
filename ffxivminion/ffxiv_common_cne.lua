@@ -2161,12 +2161,6 @@ function e_dead:execute()
 			ml_global_information.Await(20000, function () return Player.alive end)
 			return
 		end
-		-- press ok
-		if (PressOK()) then
-			c_dead.timer = 0
-			ml_global_information.Await(20000, function () return Player.alive end)
-			return
-		end
 	end
 end
 
@@ -2180,13 +2174,14 @@ function c_pressconfirm:evaluate()
     return (IsControlOpen("ContentsFinderConfirm") and not MIsLoading() and Player.revivestate ~= 2 and Player.revivestate ~= 3)
 end
 function e_pressconfirm:execute()
-	PressDutyConfirm(true)
-	if (gBotMode == GetString("pvpMode")) then
-		ml_task_hub:ThisTask().state = "DUTY_STARTED"
-	elseif (gBotMode == GetString("dutyMode") and IsDutyLeader()) then
-		ffxiv_task_duty.state = "DUTY_ENTER"
+	if (UseControlAction("ContentsFinderConfirm","Confirm")) then
+		if (gBotMode == GetString("pvpMode")) then
+			ml_task_hub:ThisTask().state = "DUTY_STARTED"
+		elseif (gBotMode == GetString("dutyMode") and IsDutyLeader()) then
+			ffxiv_task_duty.state = "DUTY_ENTER"
+		end
+		ml_global_information.Await(5000, function () return not IsControlOpen("ContentsFinderConfirm")  end)
 	end
-	ml_global_information.Await(5000, function () return not IsControlOpen("ContentsFinderConfirm")  end)
 end
 
 -- more to refactor here later most likely
