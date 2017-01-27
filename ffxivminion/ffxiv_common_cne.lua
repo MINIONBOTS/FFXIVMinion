@@ -2745,7 +2745,7 @@ function e_selectconvindex:execute()
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
 						SelectConversationLine(convo.index)
-						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+						ml_global_information.Await(2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
@@ -2758,7 +2758,7 @@ function e_selectconvindex:execute()
 			index = c_selectconvindex.unexpected
 		end
 		SelectConversationIndex(tonumber(index))
-		ml_task_hub:ThisTask():SetDelay(1000)
+		ml_global_information.Await(2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 	end	
 end
 

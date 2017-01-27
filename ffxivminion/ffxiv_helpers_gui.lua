@@ -227,14 +227,12 @@ function GUI_DrawTabs(tTabs)
 				else
 					GUI:TextColored(hovered.r,hovered.g,hovered.b,hovered.a,hovered.name)
 				end
-				returnIndex, returnName = i, hovered.name
 			else
 				if (normal.r > 1 or normal.g > 1 or normal.b > 1) then
 					GUI:TextColored(GUI:ColorConvertRGBtoHSV(normal.r,normal.g,normal.b),normal.a,normal.name)
 				else
 					GUI:TextColored(normal.r,normal.g,normal.b,normal.a,normal.name)
 				end
-				returnIndex, returnName = i, normal.name
 			end
 			
 			tabs[i].ishovered = GUI:IsItemHovered()

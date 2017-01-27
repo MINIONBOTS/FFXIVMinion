@@ -486,7 +486,6 @@ function ffxivminion.SetMainVars()
 	
 	gSkillProfileIndex = 1
 	gSkillProfile = GetString("none")
-	gSkillProfileList = {GetString("none"),GetString("ACR")}
 	
 	FFXIV_Common_BotRunning = false
 	FFXIV_Core_Version = 2

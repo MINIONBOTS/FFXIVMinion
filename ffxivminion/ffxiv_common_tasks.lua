@@ -857,7 +857,6 @@ function ffxiv_task_movetointeract:task_complete_execute()
 	end
 	
     Player:Stop()
-	--Hacks:SkipDialogue(gSkipTalk)
 	if (self.killParent) then
 		ml_task_hub:ThisTask():ParentTask().stepCompleted = true
 		ml_task_hub:ThisTask():ParentTask().stepCompletedTimer = Now() + 1000
@@ -880,7 +879,6 @@ function ffxiv_task_movetointeract:task_fail_eval()
 end
 
 function ffxiv_task_movetointeract:task_fail_execute()
-	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end
 
@@ -908,6 +906,9 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
+	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
+    self:add(ke_skipTalk, self.overwatch_elements)
+	
 	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 150 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
 	
@@ -1967,6 +1968,9 @@ end
 function ffxiv_mesh_interact:Init()
 	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 25 )
     self:add( ke_detectYesNo, self.overwatch_elements)
+	
+	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
+    self:add(ke_skipTalk, self.process_elements)
 
 	self:AddTaskCheckCEs()
 end
@@ -2021,7 +2025,6 @@ end
 
 function ffxiv_mesh_interact:task_complete_execute()
 	d("Mesh interact task completed normally.")
-	----Hacks:SkipDialogue(gSkipTalk)
 	ml_mesh_mgr.ResetOMC()
 	self.completed = true
 end
@@ -2036,7 +2039,6 @@ end
 
 function ffxiv_mesh_interact:task_fail_execute()
 	d("Mesh interact task failed.")
-    ----Hacks:SkipDialogue(gSkipTalk)
 	ml_mesh_mgr.ResetOMC()
     self.valid = false
 end
@@ -2100,6 +2102,9 @@ function ffxiv_nav_interact.Create()
 end
 
 function ffxiv_nav_interact:Init()
+	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
+    self:add(ke_skipTalk, self.overwatch_elements)
+	
 	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 20 )
     self:add( ke_detectYesNo, self.overwatch_elements)
 	
@@ -2219,7 +2224,6 @@ end
 
 function ffxiv_nav_interact:task_complete_execute()
     Player:Stop()
-	--Hacks:SkipDialogue(gSkipTalk)
 	self.completed = true
 end
 
@@ -2232,7 +2236,6 @@ function ffxiv_nav_interact:task_fail_eval()
 end
 
 function ffxiv_nav_interact:task_fail_execute()
-	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end
 
@@ -2736,7 +2739,6 @@ function ffxiv_task_moveaethernet:task_complete_execute()
 		return false
 	end
 	
-	--Hacks:SkipDialogue(gSkipTalk)
     Player:Stop()
 	self.completed = true
 end
@@ -2756,6 +2758,5 @@ function ffxiv_task_moveaethernet:task_fail_eval()
 end
 
 function ffxiv_task_moveaethernet:task_fail_execute()
-	--Hacks:SkipDialogue(gSkipTalk)
     self.valid = false
 end

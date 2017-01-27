@@ -422,7 +422,10 @@ function e_huntlogkill:execute()
 	ml_task_hub:CurrentTask():AddSubTask(newTask)
 end
 
-function ffxiv_task_huntlog:Init()    
+function ffxiv_task_huntlog:Init()
+	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
+    self:add(ke_skipTalk, self.overwatch_elements)
+	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 50 )
     self:add(ke_dead, self.overwatch_elements)
     
