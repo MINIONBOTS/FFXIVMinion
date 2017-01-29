@@ -190,10 +190,11 @@ function e_precastbuff:execute()
 	end
 	
 	if (activity == "usecordial") then
-		local cordial = MGetItem(activityitemid)
+		local cordial, action = GetItem(activityitemid)
 		if (cordial and cordial:IsReady(Player.id)) then
-			cordial:Use()
-			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
+			cordial:Cast(Player.id)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return
 		end
 	end

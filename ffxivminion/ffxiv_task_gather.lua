@@ -1044,9 +1044,9 @@ function CanUseCordial()
 	end
 	
 	if (useCordials) then
-		local cordialQuick = MGetItem(1016911) or MGetItem(16911)
-		local cordialNormal = MGetItem(1006141) or MGetItem(6141)
-		local cordialHigh = MGetItem(1012669) or MGetItem(12669)
+		local cordialQuick = GetItem(1016911) or GetItem(16911)
+		local cordialNormal = GetItem(1006141) or GetItem(6141)
+		local cordialHigh = GetItem(1012669) or GetItem(12669)
 		
 		local gpDeficit = (Player.gp.max - Player.gp.current)
 		
@@ -1086,33 +1086,33 @@ function CanUseExpManual()
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"46")) then
 			if (Player.level >= 15 and Player.level < 35) then
-				local manual1 = MGetItem(4633)
-				if (manual1 and manual1:IsReady(Player.id)) then
+				local manual1, action = GetItem(4633)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 			
 			if (Player.level >= 35 and Player.level < 50) then
-				local manual2 = MGetItem(4635)
-				if (manual2 and manual2:IsReady(Player.id)) then
+				local manual2, action = GetItem(4635)
+				if (manual2 and action and manual2:IsReady(Player.id)) then
 					return true, manual2
 				end
 				
-				local manual1 = MGetItem(4633)
-				if (manual1 and manual1:IsReady(Player.id)) then
+				local manual1, action = GetItem(4633)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 
 			if (Player.level >= 50 and CanAccessMap(397)) then
-				local commercial = MGetItem(12668)
-				if (commercial and commercial:IsReady(Player.id)) then
+				local commercial, action = GetItem(12668)
+				if (commercial and action and commercial:IsReady(Player.id)) then
 					--d("Can use commercial manual.")
 					return true, commercial
 				end
 				
-				local manual2 = MGetItem(4635)
-				if (manual2 and manual2:IsReady(Player.id)) then
+				local manual2, action = GetItem(4635)
+				if (manual2 and action and manual2:IsReady(Player.id)) then
 					--d("Can use level 2 manual.")
 					return true, manual2
 				end
@@ -1121,32 +1121,32 @@ function CanUseExpManual()
 	elseif (IsCrafter(Player.job)) then
 		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"45")) then
 			if (Player.level >= 15 and Player.level < 35) then
-				local manual1 = MGetItem(4632)
-				if (manual1 and manual1:IsReady(Player.id)) then
+				local manual1, action = GetItem(4632)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 			
 			if (Player.level >= 35 and Player.level < 50) then
-				local manual2 = MGetItem(4634)
-				if (manual2 and manual2:IsReady(Player.id)) then
+				local manual2, action = GetItem(4634)
+				if (manual2 and action and manual2:IsReady(Player.id)) then
 					return true, manual2
 				end
 				
-				local manual1 = MGetItem(4632)
-				if (manual1 and manual1:IsReady(Player.id)) then
+				local manual1, action = GetItem(4632)
+				if (manual1 and action and manual1:IsReady(Player.id)) then
 					return true, manual1
 				end
 			end
 
 			if (Player.level >= 50 and CanAccessMap(397)) then
-				local commercial = MGetItem(12667)
-				if (commercial and commercial:IsReady(Player.id)) then
+				local commercial, action = GetItem(12667)
+				if (commercial and action and commercial:IsReady(Player.id)) then
 					return true, commercial
 				end
 				
-				local manual2 = MGetItem(4634)
-				if (manual2 and manual2:IsReady(Player.id)) then
+				local manual2, action = GetItem(4634)
+				if (manual2 and action and manual2:IsReady(Player.id)) then
 					return true, manual2
 				end
 			end
@@ -1280,8 +1280,8 @@ function c_nodeprebuff:evaluate()
 					if (favorBuff) then
 						if (MissingBuff(Player.id, favorBuff)) then
 							if (ItemCount(useFavor) > 0) then
-								local favor = MGetItem(useFavor)
-								if (favor and favor:IsReady(Player.id)) then
+								local favor, action = GetItem(useFavor)
+								if (favor and action and favor:IsReady(Player.id)) then
 									e_nodeprebuff.activity = "usefavor"
 									e_nodeprebuff.itemid = favor.hqid
 									e_nodeprebuff.requirestop = true
@@ -1295,8 +1295,8 @@ function c_nodeprebuff:evaluate()
 			end
 			
 			if (useFood ~= 0) then
-				local food = MGetItem(useFood)
-				if (food and food:IsReady(Player.id) and MissingBuffs(Player,"48")) then
+				local food, action = GetItem(useFood)
+				if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
 					e_nodeprebuff.activity = "usefood"
 					e_nodeprebuff.itemid = food.hqid
 					e_nodeprebuff.requirestop = true
@@ -1405,8 +1405,8 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usemanual") then
-		local manual = MGetItem(activityitemid)
-		if (manual and manual:IsReady(Player.id)) then
+		local manual, action = GetItem(activityitemid)
+		if (manual and action and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
 			return
@@ -1414,8 +1414,8 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usefood") then
-		local food = MGetItem(activityitemid)
-		if (food and food:IsReady(Player.id)) then
+		local food = GetItem(activityitemid)
+		if (food and action and food:IsReady(Player.id)) then
 			food:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 48) end)
 			return
@@ -1439,7 +1439,7 @@ function e_nodeprebuff:execute()
 		}
 		
 		local favorBuff = favors[activityitemid]
-		local favor = MGetItem(activityitemid)
+		local favor = GetItem(activityitemid)
 		if (favor and favor:IsReady(Player.id)) then
 			favor:Cast(Player.id)
 			ml_global_information.Await(4000, function () return (HasBuff(Player.id, favorBuff)) end)
@@ -1448,10 +1448,11 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usecordial") then
-		local cordial = MGetItem(activityitemid)
-		if (cordial and cordial:IsReady(Player.id)) then
+		local cordial, action = GetItem(activityitemid)
+		if (cordial and action and cordial:IsReady(Player.id)) then
 			cordial:Cast(Player.id)
-			ml_global_information.Await(400, function () return (not ItemReady(activityitemid)) end)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return
 		end
 	end

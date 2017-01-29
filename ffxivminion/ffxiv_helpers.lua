@@ -2990,13 +2990,15 @@ function NeedsRepair()
 	return false
 end
 function ShouldEat()
-	local foodID = nil
 	if (gFood ~= "None") then
-		foodID = ffxivminion.foods[gFood]
-		--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
-		local food = MGetItem(foodID)
-		if (food and food.isready and not HasBuffs(Player,"48")) then
-			return true
+		local foodEntry = ml_global_information.foods[gFood]
+		if (foodEntry) then
+			local foodID = foodEntry.id
+			--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
+			local food, action = GetItem(foodID)
+			if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
+				return true
+			end
 		end
 	end
 	return false
@@ -3004,11 +3006,16 @@ end
 function Eat()
 	local foodID = nil
 	if (gFood ~= "None") then
-		foodID = ffxivminion.foods[gFood]
-		--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
-		local food = MGetItem(foodID)
-		if (food and food.isready and not HasBuffs(Player,"48")) then
-			food:Use()
+		local foodEntry = ml_global_information.foods[gFood]
+		if (foodEntry) then
+			local foodID = foodEntry.id
+			--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
+			local food, action = GetItem(foodID)
+			if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
+				food:Cast(Player.id)
+				local castid = action.id
+				ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
+			end
 		end
 	end
 end

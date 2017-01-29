@@ -262,9 +262,8 @@ function c_precraftbuff:evaluate()
 		
 		if (gFood ~= "None") then
 			local foodID = ffxivminion.foods[gFood]
-			
-			local food = MGetItem(foodID,false,false)
-			if (food and not HasBuffs(Player,"48")) then
+			local food, action = GetItem(foodID)
+			if (food and food:IsReady(Player.id) and action and MissingBuffs(Player,"48",60)) then
 				cd("[PreCraftBuff]: Need to eat.",3)
 				e_precraftbuff.activity = "eat"
 				e_precraftbuff.id = foodID
@@ -314,11 +313,12 @@ function e_precraftbuff:execute()
 		Repair()
 		ml_global_information.Await(500)
 	elseif (activity == "eat") then
-		local food = Inventory:Get(e_precraftbuff.id)
-		if (food) then
+		local food, action = GetItem(e_precraftbuff.id)
+		if (food and action and food:IsReady(Player.id)) then
 			cd("[PreCraftBuff]: Attempting to eat.",3)
-			food:Use()
-			ml_global_information.Await(3000)
+			food:Cast(Player.id)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 		end	
 	elseif (activity == "switchclass") then
 		local recipe = ml_task_hub:CurrentTask().recipe
@@ -329,10 +329,11 @@ function e_precraftbuff:execute()
 		SendTextCommand(commandString)
 		ml_global_information.Await(3000)
 	elseif (activity == "usemanual") then
-		local manual = activityItem
-		if (manual and manual.isready) then
-			manual:Use()
-			ml_global_information.Await(1500)
+		local manual, action = activityItem
+		if (manual and action and manual:IsReady(Player.id)) then
+			manual:Cast(Player.id)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return
 		end
 	end

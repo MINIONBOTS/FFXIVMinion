@@ -1,6 +1,4 @@
 ffxivminion = {}
-ffxivminion.foods = {}
-ffxivminion.foodsHQ = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
 ffxivminion.busyTimer = 0
@@ -366,7 +364,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 								end
 								
 								local companion = GetCompanionEntity()
-								if (item and item.isready and companion and companion.alive) then
+								if (item and item:IsReady() and companion and companion.alive) then
 									local buffString = tostring(itemdetails.buff1).."+"..tostring(itemdetails.buff2)
 									if (MissingBuffs(companion, buffString)) then
 										Player:Stop()
@@ -945,16 +943,14 @@ function ffxivminion.FillFoodOptions()
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					if (item.class == 5) then
+					if (item.uicategory == 46) then
 						local itemName = item.name
 						if (toboolean(item.IsHQ)) then
 							itemName = itemName.." (HQ)"
 						end
-						ml_global_information.foods[item.hqid] = {
-							name = itemName,
-							max = item.max,
-							slot = item.slot,
-							class = item.class,
+						ml_global_information.foods[itemName] = {
+							id = item.hqid,
+							name = itemName
 						}
 					end
 				end

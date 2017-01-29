@@ -1013,11 +1013,13 @@ function SkillMgr.ParseMacro(data)
 				local itemid = IsNull(iparams[1],0)
 				table.insert(SkillMgr.receivedMacro, 
 					function ()
-						local item = MGetItem(itemid)
-						if (not item or (item and item.isoncd)) then	
+						local item, action = GetItem(itemid)
+						if (not item or not action or (item and not item:IsReady(Player.id))) then	
 							return true			
-						elseif (item and item.isready) then
-							if (item:Use()) then
+						elseif (item and item:IsReady(Player.id)) then
+							if (item:Cast(Player.id)) then
+								local castid = action.id
+								ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 								return true
 							end
 							return false

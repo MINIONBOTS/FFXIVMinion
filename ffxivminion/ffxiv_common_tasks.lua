@@ -1319,22 +1319,25 @@ function ffxiv_task_useitem:task_complete_eval()
 		return false 
 	end
 	
-	local item = Inventory:Get(self.itemid)
-	if (item and item.isready) then
-		if (self.targetid == 0) then
-			item:Use()
+	local item, action = GetItem(self.itemid)
+	if (item and action and not action.isoncd) then
+		if (item:IsReady(Player.id) and self.targetid == 0) then
+			item:Cast()
 			self.useAttempts = self.useAttempts + 1
-			ml_global_information.Await(1000)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return false
-		elseif (self.targetid ~= 0) then
-			item:Use(self.targetid)
+		elseif (item:IsReady(targetid) and self.targetid ~= 0) then
+			item:Cast(self.targetid)
 			self.useAttempts = self.useAttempts + 1
-			ml_global_information.Await(1000)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return false
-		elseif (table.valid(self.pos)) then
-			item:Use(self.pos.x, self.pos.y, self.pos.z)
+		elseif (item:IsReady() and table.valid(self.pos)) then
+			item:Cast(self.pos.x, self.pos.y, self.pos.z)
 			self.useAttempts = self.useAttempts + 1
-			ml_global_information.Await(1000)
+			local castid = action.id
+			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
 			return false
 		end
 	end
