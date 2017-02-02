@@ -1612,6 +1612,17 @@ function SkillMgr.CheckProfileValidity()
 	end
 end
 
+function SkillMgr.HasProfile(strName)
+	if (table.valid(SkillMgr.profiles)) then
+		for i,profileName in pairs(SkillMgr.profiles) do
+			if (profileName == strName) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function SkillMgr.UseProfile(strName)
 	gSkillProfile = strName
 	gSkillProfileIndex = GetKeyByValue(gSkillProfile,SkillMgr.profiles) or 1

@@ -92,7 +92,7 @@ function e_craftlimit:execute()
 		cd("[CraftLimit]: Setting order with recipe ID ["..tostring(recipeid).."] to complete.",3)
 		ml_task_hub:CurrentTask().completed = true
 	else
-		ml_task_hub:ToggleRun()
+		ml_global_information:ToggleRun()
 	end
 end
 

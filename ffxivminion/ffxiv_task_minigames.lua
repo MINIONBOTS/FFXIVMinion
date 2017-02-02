@@ -226,7 +226,7 @@ end
 
 function ffxiv_task_minigames:task_complete_execute()
 	if (FFXIV_Common_BotRunning == true) then
-		ml_task_hub:ToggleRun()
+		ml_global_information:ToggleRun()
 	end
 end
 

@@ -2919,25 +2919,12 @@ function Mount(id)
 	if (table.valid(mounts)) then
 		if (mountID == 0) then
 			for mountid,mountaction in pairsByKeys(mounts) do
-				d("name:"..tostring(mountaction.name)..",isready:"..tostring(mountaction:IsReady()))
-				--if (gMountName ~= GetString("None")) then
-					--if (mountaction.name == gMountName) then
-						--if (mountaction:IsReady()) then
-							--mountaction:Cast()
-							--return true
-						--end
-					--end
-				--else
-					if (mountid == 1) then
-						d("trying to use mount 1")
-						if (mountaction:IsReady()) then
-							mountaction:Cast()
-							return true
-						else
-							d("mount isn't ready")
-						end
+				if (mountid == 1) then
+					if (mountaction:IsReady()) then
+						mountaction:Cast()
+						return true
 					end
-				--end
+				end
 			end
 		else
 			for mountid,mountaction in pairsByKeys(mounts) do

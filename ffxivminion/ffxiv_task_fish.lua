@@ -113,7 +113,7 @@ function c_precastbuff:evaluate()
 			return true
 		end
 		
-		local useCordials = (gGatherUseCordials )
+		local useCordials = (gGatherUseCordials)
 		local useFood = 0
 		local needsStealth = false
 		
@@ -151,7 +151,6 @@ function c_precastbuff:evaluate()
 				return true
 			end					
 		end
-		
 	end
 	
 	return false
@@ -714,21 +713,15 @@ end
 c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
-	if (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) then
-		local info;
-		
-		local control = GetControl("SelectYesNoItem")
-		if (not control) then
-			control = GetControl("SelectYesNoCountItem")
-		end
+	if (IsControlOpen("SelectYesNoCountItem")) then
+		local control = GetControl("SelectYesNoCountItem")
 		if (control) then
 			info = control:GetData()
 		else
 			control:Close()
-			ml_global_information.Await(1500, function () return not (IsControlOpen("SelectYesNoItem") or IsControlOpen("SelectYesNoCountItem")) end)
+			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesNoCountItem") end)
 		end
 		if (table.valid(info)) then
-			fd(info,2)		
 			
 			-- remove later
 			table.print(info)
@@ -784,15 +777,15 @@ function c_collectibleaddonfish:evaluate()
 			end
 			
 			-- needs to be removed
-			ml_task_hub:ToggleRun()
+			--ml_global_information:ToggleRun()
 			if (not validCollectible) then
-				fd("Cannot collect item, collectibility rating not approved.",2)
-				--PressYesNoItem(false) 
+				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				UseControlAction("SelectYesNoCountItem","No")
 			else
-				fd("Attempting to collect item, collectibility rating approved.",2)
-				--PressYesNoItem(true)
+				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				UseControlAction("SelectYesNoCountItem","No")
 			end
-			ml_global_information.Await(3000, function () return (not IsControlOpen("SelectYesNoItem")) end)				
+			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
 			return true
 		end
 	end

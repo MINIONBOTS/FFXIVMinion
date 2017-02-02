@@ -880,7 +880,7 @@ function e_gather:execute()
 			end
 					
 			if (itemslot1 ~= 0) then
-				if (item.index == (itemslot1-1) and item.id ~= nil) then
+				if (item.index == itemslot1 and item.id ~= nil) then
 					return DoGathering(item)
 				end
 			end
@@ -894,7 +894,7 @@ function e_gather:execute()
 			end
 				
 			if (itemslot2 ~= 0) then
-				if (item.index == (itemslot2-1) and item.id ~= nil) then
+				if (item.index == itemslot2 and item.id ~= nil) then
 					return DoGathering(item)
 				end
 			end
@@ -909,7 +909,7 @@ function e_gather:execute()
 			end
 				
 			if (itemslot3 ~= 0) then
-				if (item.index == (itemslot3-1) and item.id ~= nil) then
+				if (item.index == itemslot3 and item.id ~= nil) then
 					return DoGathering(item)
 				end
 			end
@@ -1221,7 +1221,7 @@ function c_nodeprebuff:evaluate()
 		return false
 	end
 	
-	if (skillProfile ~= "" and gSkillProfile ~= skillProfile and false) then -- fix later
+	if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then -- fix later
 		if (SkillMgr.HasProfile(skillProfile)) then
 			d("[NodePreBuff]: Need to switch to profile ["..skillProfile.."].")
 			SkillMgr.UseProfile(skillProfile)
@@ -1561,7 +1561,7 @@ e_collectiblegame = inheritsFrom( ml_effect )
 e_collectiblegame.timer = 0
 function c_collectiblegame:evaluate()
 	if (IsControlOpen("GatheringMasterpiece")) then
-	--d("[CollectableGame]: Found the gathering masterpiece addon.")
+		--d("[CollectableGame]: Found the gathering masterpiece addon.")
 		return true
 	end
 	return false
@@ -1700,8 +1700,14 @@ end
 c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
-	if (IsControlOpen("SelectYesNoItem")) then
-		local info = Player:GetYesNoItemInfo()
+	if (IsControlOpen("SelectYesNoCountItem")) then
+		local control = GetControl("SelectYesNoCountItem")
+		if (control) then
+			info = control:GetData()
+		else
+			control:Close()
+			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesNoCountItem") end)
+		end
 		if (table.valid(info)) then
 			local validCollectible = false
 			
@@ -1821,12 +1827,14 @@ function c_collectibleaddongather:evaluate()
 			end
 			
 			if (not validCollectible) then
-				PressYesNoItem(false) 
-				return true
+				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				UseControlAction("SelectYesNoCountItem","No")
 			else
-				PressYesNoItem(true) 
-				return true
+				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				UseControlAction("SelectYesNoCountItem","No")
 			end
+			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
+			return true
 		end
 	end
 	return false

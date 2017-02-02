@@ -139,7 +139,7 @@ function ml_navigation.Navigate(event, ticks )
 			-- Normal Navigation Mode
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
 				
-				if ( table.valid(ml_navigation.path) and table.size(ml_navigation.path) > ml_navigation.pathindex ) then					
+				if ( table.valid(ml_navigation.path) and (table.size(ml_navigation.path) > ml_navigation.pathindex)) then					
 					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
 			
 			-- Ensure Position: Takes a second to make sure the player is really stopped at the wanted position (used for precise OMC bunnyhopping and others where the player REALLY has to be on the start point & facing correctly)
@@ -224,8 +224,8 @@ function ml_navigation.Navigate(event, ticks )
 										
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then										
 										Player:Jump()
+										d("[Navigation]: Jump for OMC.")
 									end
-									
 								else
 									
 									d("-- We are after the Jump and landed already")
@@ -327,8 +327,6 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation:NavigateToNode(ppos,nextnode,1500)						
 																
 						end	
-	
-					
 		-- Cube Navigation
 					elseif (string.contains(nextnode.type,"CUBE") or IsFlying()) then
 						
@@ -341,9 +339,12 @@ function ml_navigation.Navigate(event, ticks )
 								Mount()
 								ffnav.Await(5000, function () return Player.ismounted end)
 							end							
-						
 						else
-							if (not IsFlying()) then
+							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
+							if (hit) then
+								d("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+							end
+							if (not IsFlying() and (not hit or math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5)) then								
 								if (Player:IsMoving()) then
 									Player:StopMovement()
 									ffnav.Await(3000, function () return not Player:IsMoving() end)
@@ -352,7 +353,6 @@ function ml_navigation.Navigate(event, ticks )
 									ffnav.Ascend()
 									ffnav.isascending = true
 								end
-							
 							else
 	-- TODO: ADD UNSTUCK HERE !!	
 								-- Check if we left our path
@@ -363,16 +363,25 @@ function ml_navigation.Navigate(event, ticks )
 								if ( ml_navigation:IsGoalClose(ppos,nextnode) ) then
 									-- We reached the node
 									d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
-									ml_navigation.pathindex = ml_navigation.pathindex + 1							
 									ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
 									
 									-- We are flying and the last node was a cube-node. This next one now is a "floor-node", so we need to land now asap
 									if (not string.contains(nextnode.type,"CUBE") ) then
 										d("[Navigation] - Landing...")
-										Player:Move(FFXIV.MOVEMENT.DOWN)
-										SendTextCommand("/mount")
-										ffnav.Await(5000, function () return not IsFlying() end)
+										--Player:Move(FFXIV.MOVEMENT.DOWN)
+										--SendTextCommand("/mount")
+										if (IsFlying()) then
+											Player:SetPitch(1.377) 
+											if (not Player:IsMoving()) then
+												Player:Move(FFXIV.MOVEMENT.FORWARD)
+												ffnav.Await(3000, function () return Player:IsMoving() end)
+												return false
+											end
+											ffnav.Await(5000, function () return not IsFlying() end)
+											return false
+										end
 									end
+									ml_navigation.pathindex = ml_navigation.pathindex + 1		
 								else						
 									-- We have not yet reached our node
 									-- Face next node
@@ -757,6 +766,7 @@ function ffnav.Ascend()
 					return false
 				end
 			else
+				d("[Navigation]: Jump to Ascend.")
 				Player:Jump()
 				Player:Move(FFXIV.MOVEMENT.UP) 
 				ffnav.Await(math.random(50,150))

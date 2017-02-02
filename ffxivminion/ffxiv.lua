@@ -218,7 +218,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 	
 	if (ml_global_information.autoStartQueued) then
 		ml_global_information.autoStartQueued = false
-		ml_task_hub:ToggleRun() -- convert
+		ml_global_information:ToggleRun() -- convert
 	end
 	
 	FFXIV_Core_ActiveTaskCount = TableSize(tasktracking)
@@ -630,7 +630,7 @@ function ffxivminion.SwitchMode(mode)
 		ml_global_information.mainTask = task
 		
 		if (FFXIV_Common_BotRunning) then
-			ml_task_hub.ToggleRun()
+			ml_global_information:ToggleRun()
 		end
 		
 		--[[

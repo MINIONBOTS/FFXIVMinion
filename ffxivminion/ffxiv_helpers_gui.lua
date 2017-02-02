@@ -17,7 +17,7 @@ function ffxiv_dialog_manager.IssueStopNotice(title, message, controlset)
 	ffxiv_dialog_manager.popup = { ["type"] = "okonly", lines = message, title = title, popped = false }
 	
 	if (FFXIV_Common_BotRunning) then
-		ml_task_hub.ToggleRun()
+		ml_global_information:ToggleRun()
 	end
 end
 
