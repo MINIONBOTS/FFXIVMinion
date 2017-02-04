@@ -2027,7 +2027,7 @@ function ffxiv_task_fish:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(120)					
 		
-		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)

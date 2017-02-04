@@ -124,7 +124,7 @@ function ffxiv_task_minigames:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(5),true)
 		GUI:PushItemWidth(120)	
 
-		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()

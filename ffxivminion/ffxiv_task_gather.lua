@@ -2937,7 +2937,7 @@ function ffxiv_task_gather:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
 		GUI:PushItemWidth(120)					
 		
-		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)

@@ -920,9 +920,9 @@ function ml_global_information.Reset()
 end
 
 function ml_global_information.Stop()
-    if (Player:IsMoving()) then
-        Player:Stop()
-    end
+	if (Player:IsMoving() or table.valid(ml_navigation.path)) then
+		Player:Stop()
+	end
 	SkillMgr.receivedMacro = {}
 	Hacks:SkipCutscene(gSkipCutscene)
 end

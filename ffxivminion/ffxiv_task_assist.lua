@@ -211,7 +211,7 @@ function ffxiv_task_assist:Draw()
 		GUI:PushItemWidth(120)					
 		
 		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
-		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
 		GUI_Capture(GUI:Checkbox("Face Target",gAssistTraceTarget),"gAssistTraceTarget");
 		

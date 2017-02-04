@@ -332,7 +332,7 @@ function ffxiv_task_grind:Draw()
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(1),true)
 		GUI:PushItemWidth(120)					
 		
-		GUI_Capture(GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning),"FFXIV_Common_BotRunning");
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()

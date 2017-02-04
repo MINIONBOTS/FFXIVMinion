@@ -1678,13 +1678,6 @@ function c_mount:evaluate()
 		local myPos = Player.pos
 		local gotoPos = ml_task_hub:CurrentTask().pos
 		local lastPos = e_mount.lastPathPos
-		
-		--if (table.valid(c_mount.attemptPos)) then
-			--local lastDist = Distance3D(myPos.x, myPos.y, myPos.z, c_mount.attemptPos.x, c_mount.attemptPos.y, c_mount.attemptPos.z)
-			--if (Now() < c_mount.reattempt and lastDist < 15) then
-				--return false
-			--end
-		--end
 
 		-- If we change our gotoPos or have never measured it, reset the watch.
 		if (table.valid(lastPos)) then
@@ -1695,30 +1688,10 @@ function c_mount:evaluate()
 		end
 		
 		local distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-		
 		local forcemount = false
 		if (CanFlyInZone()) then
-			
 			if (ml_task_hub:CurrentTask().alwaysMount) then
 				forcemount = true
-			else
-				if (not Player:IsMoving() or TimeSince(e_mount.lastPathCheck) > 5000) then
-					local path = NavigationManager:GetPath(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-					local pathsize = TableSize(path)
-					if (pathsize > 0) then
-						if (table.valid(path)) then
-							local lasthop = path[pathsize-1]
-							if (lasthop) then
-								local goaltohop = PDistance3D(lasthop.x, lasthop.y, lasthop.z, gotoPos.x, gotoPos.y, gotoPos.z)
-								if (goaltohop > 5) then
-									forcemount = true
-								end
-							end
-						end
-					end
-					
-					e_mount.lastPathCheck = Now()
-				end
 			end
 		end
 

@@ -554,27 +554,45 @@ function ffnav.IsProcessing()
 		local successTimer = false
 		local successEval = false
 		
+		if (process.dowhile ~= nil and type(process.dowhile) == "function") then
+			process.dowhile()
+		end
 		if (process.mintimer and process.mintimer ~= 0) then
 			if (Now() < process.mintimer) then
 				return true
 			end
 		end
+		if (process.maxtimer and process.maxtimer ~= 0 and Now() >= process.maxtimer) then
+			successTimer = true
+		end
 		
 		if (process.evaluator ~= nil and type(process.evaluator) == "function") then
 			local ret = process.evaluator()
 			if (ret == true) then
-				successEval = true
+				ffnav.process = {}
+				
+				if (process.followsuccess ~= nil and type(process.followsuccess) == "function") then
+					process.followsuccess()
+					return true
+				end
+				
+				if (process.followall ~= nil and type(process.followall) == "function") then
+					process.followall()
+					return true
+				end
 			end
 		end		
-		if (process.maxtimer and process.maxtimer ~= 0 and Now() >= process.maxtimer) then
-			successTimer = true
-		end
-		if (successTimer or successEval) then
-			ffnav.process = {}
-			
-			if (successEval and process.followsuccess ~= nil and type(process.followsuccess) == "function") then
-				process.followsuccess()
+		
+		local failed = false
+		if (process.failure ~= nil and type(process.failure) == "function") then
+			local ret = process.failure()
+			if (ret == true) then
+				failed = true
 			end
+		end
+		
+		if (successTimer or failed) then
+			ffnav.process = {}
 			if (successTimer and process.followfail ~= nil and type(process.followfail) == "function") then
 				process.followfail()
 			end
@@ -742,7 +760,6 @@ function ffnav.AwaitSuccessFail(param1, param2, param3, param4, param5, param6)
 	end
 end
 
-
 function ffnav.Ascend()	
 	ffnav.process = {
 		mintime = 150, maxtime = 10000, 
@@ -773,6 +790,9 @@ function ffnav.Ascend()
 				return false
 			end
 		end, 
+		failure = function ()
+			return (Player.incombat or not Player.ismounted)
+		end,
 		followsuccess = function ()
 			ml_navigation:ResetCurrentPath()
 			ml_navigation:ResetOMCHandler()
