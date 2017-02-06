@@ -25,14 +25,14 @@ ml_navigation.OMCReachedDistances = {
 } 
 -- We have a path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
 ml_navigation.NewPathDistanceThresholds = { 	
-	["3dwalk"] = 0.1,		
-	["2dwalk"] = 0.1,
-	["3dmount"] = 0.1,
-	["2dmount"] = 0.1,
-	["3dfly"] = 0.1,
-	["2dfly"] = 0.1,
-	["3dflysc"] = 0.1,
-	["2dflysc"] = 0.1,
+	["3dwalk"] = 1.0,		
+	["2dwalk"] = 0.3,
+	["3dmount"] = 3.0,
+	["2dmount"] = 0.5,
+	["3dfly"] = 3.0,
+	["2dfly"] = 1.0,
+	["3dflysc"] = 5.0,
+	["2dflysc"] = 3.0,
 }
 -- The max. distance the playerposition can be away from the current path. (The Point-Line distance between player and the last & next pathnode)
 ml_navigation.PathDeviationDistances = { 		
@@ -69,7 +69,7 @@ ml_navigation.GUI = {
 }
 
 -- Tries to use RayCast to determine the exact floor height from Player and Node, and uses that to calculate the correct distance.
-function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
+function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)	
 	local dist = math.distance3d(ppos,nodepos)
 	local dist2d = math.distance2d(ppos,nodepos)
 	if ( not IsFlying() ) then
@@ -116,12 +116,12 @@ end
 
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
 function Player:MoveTo(x, y, z, navpointreacheddistance, navigationmode, randomnodes, smoothturns)
-	if (not ml_navigation:IsGoalClose(Player.pos,{x = x, y = y, z = z})) then
+	--if (not ml_navigation:IsGoalClose(Player.pos,{x = x, y = y, z = z})) then	-- There is a check already in the minionlib::ml_navigation.lua::MoveTo(..) which checks against the NewPathDistanceThresholds table. So you just need to adjust the values of that table here ontop of this file.
 		ffnav.currentGoal = { x = x, y = y, z = z }
 		ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randomnodes, smoothturns = smoothturns}
 		return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance)
-	end
-	return false
+	--end
+	--return false
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
@@ -366,11 +366,11 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						-- Check if we left our path
-						--if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end
+						if ( not ffnav.isascending and not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) <= 5 )) then
+						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) <= 5 ))) then
 							-- We reached the node
 							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
@@ -381,6 +381,7 @@ function ml_navigation.Navigate(event, ticks )
 								--Player:Move(FFXIV.MOVEMENT.DOWN)
 								--SendTextCommand("/mount")
 								if (IsFlying()) then
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it
 									Player:SetPitch(1.377) 
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
@@ -423,7 +424,7 @@ function ml_navigation.Navigate(event, ticks )
 							if (hit) then
 								d("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
 							end
-							if (not IsFlying() and (not hit or math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5)) then		
+							if (not IsFlying() and (not hit or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5))) then		
 								if (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									if (Player:IsMoving()) then
@@ -485,11 +486,11 @@ RegisterEventHandler("Gameloop.Draw", ml_navigation.DebugDraw)
 function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 
 	-- Check if we left our path
-	--if ( stillonpaththreshold ) then
-		--if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
-	--else
-		--if ( not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end	
-	--end
+	if ( stillonpaththreshold ) then
+		if ( not ml_navigation:IsStillOnPath(ppos,stillonpaththreshold) ) then return end	
+	else
+		if ( not ml_navigation:IsStillOnPath(ppos,ml_navigation.pathsettings.pathdeviationdistance) ) then return end	
+	end
 				
 	-- Check if the next node is reached
 	local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
@@ -868,7 +869,9 @@ function ffnav.Ascend()
 			ml_navigation:ResetOMCHandler()
 			local goal = ffnav.currentGoal
 			local params = ffnav.currentParams
-			Player:MoveTo(goal.x, goal.y, goal.z, params.range, params.navmode, params.randompath, params.smoothturns)
+			if ( table.valid (goal) and table.valid(params) ) then -- yes, this was nil for me when using the navigation path testing 
+				Player:MoveTo(goal.x, goal.y, goal.z, params.range, params.navmode, params.randompath, params.smoothturns)
+			end
 		end
 	}
 end
