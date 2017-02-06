@@ -1572,7 +1572,7 @@ function e_collectiblegame:execute()
 	end
 	
 	d("[CollectableGame]: Checking collectable info.")
-	local info = Player:GetCollectableInfo()
+	local info = GetControlData("GatheringMasterpiece")
 	if (table.valid(info)) then
 		local valuepairs = {
 			[gMinerCollectibleName or ""] = gMinerCollectibleValue or 0,

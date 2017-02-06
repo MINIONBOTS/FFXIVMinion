@@ -470,9 +470,13 @@ function GetControlData(strControl,strData)
 			if (control.name == strControl) then
 				local data = control:GetData()
 				if (table.valid(data)) then
-					for dataid, dataval in pairs(data) do
-						if (dataid == strData) then
-							return dataval
+					if (strData == nil) then
+						return data
+					else
+						for dataid, dataval in pairs(data) do
+							if (dataid == strData) then
+								return dataval
+							end
 						end
 					end
 				end
