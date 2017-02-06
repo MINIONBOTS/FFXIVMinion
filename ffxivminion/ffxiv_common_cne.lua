@@ -1873,12 +1873,12 @@ function e_companion:execute()
 	if (Player:IsMoving()) then
 		Player:Stop()
 		ml_global_information.Await(2000, function () return not Player:IsMoving() end)
-		return
 	end
 	
 	local green = GetItem(4868)
 	if (green and green:IsReady()) then
 		green:Cast()
+		ml_global_information.Await(5000, function () return Player.castinginfo.castingid == 851 end)
 	end
 end
 

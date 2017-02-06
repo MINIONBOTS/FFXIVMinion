@@ -1889,7 +1889,7 @@ end
 function ffxiv_task_grindCombat:task_complete_eval()
 	local target = EntityList:Get(self.targetid)
     if (not target or not target.alive or not target.attackable) then
-		ml_debug("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
+		d("[GrindCombat]: Task complete due to no target, target not alive, or target not attackable.")
         return true
     end
 	return false
@@ -1918,22 +1918,22 @@ function ffxiv_task_grindCombat:task_fail_eval()
 			local fateID = target.fateid
 			local fate = MGetFateByID(fateID)
 			if (not fate) then
-				ml_debug("[GrindCombat]: Task complete due to fate target and fate not found.")
+				d("[GrindCombat]: Task complete due to fate target and fate not found.")
 				return true
 			elseif (fate and fate.completion > 99) then
-				ml_debug("[GrindCombat]: Task complete due to fate target and fate completion > 99 ["..tostring(fate.completion).."].")
+				d("[GrindCombat]: Task complete due to fate target and fate completion > 99 ["..tostring(fate.completion).."].")
 				return true
 			end
 		end
 	end
 	
 	if (not Player.alive) then
-		ml_debug("[GrindCombat]: Task failure due to death.")
+		d("[GrindCombat]: Task failure due to death.")
 		return true
 	end
 	
 	if (not self.noFlee and (Player.hp.percent < GetFleeHP() or Player.mp.percent < tonumber(gFleeMP))) then
-		ml_debug("[GrindCombat]: Task failure due to flee.")
+		d("[GrindCombat]: Task failure due to flee.")
 		return true
 	end
 	
