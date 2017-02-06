@@ -147,7 +147,7 @@ function sck.DrawCall( event, ticks )
 		end
 	end
 	if (doThrottle) then
-		profile.hotkeyThrottle = os.clock() + .25
+		sck.hotkeyThrottle = os.clock() + .25
 	end
 end
 

@@ -67,6 +67,7 @@ function GUI_Set(varName,newVal)
 	_G[varName] = newVal
 	Settings.FFXIVMINION[varName] = newVal
 end
+SetGUIVar = GUI_Set -- For backwards compatibility
 
 function GUI_Detect(newVal,varName,onChange)
 	local currentVal = _G[varName]
