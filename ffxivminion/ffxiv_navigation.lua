@@ -430,6 +430,7 @@ function ml_navigation.Navigate(event, ticks )
 									if (Player:IsMoving()) then
 											Player:StopMovement()
 											ffnav.Await(3000, function () return not Player:IsMoving() end)
+											return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
 										Mount()
 										ffnav.Await(5000, function () return Player.ismounted end)
@@ -438,6 +439,7 @@ function ml_navigation.Navigate(event, ticks )
 									if (Player:IsMoving()) then
 										Player:StopMovement()
 										ffnav.Await(3000, function () return not Player:IsMoving() end)
+										return -- need to return here, else  NavigateToNode below continues to move it ;)
 									else
 										d("[Navigation] - Ascend for flight.")
 										ffnav.Ascend()
