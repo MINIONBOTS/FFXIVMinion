@@ -868,7 +868,11 @@ function ffnav.Ascend()
 			end
 		end, 
 		failure = function ()
-			return (Player.incombat or not Player.ismounted)
+			local fail = Player.incombat or not Player.ismounted
+			if ( fail ) then
+				Player:StopMovement()  -- need to stop here, else it will keep flying up and do the weirdest movements when in combat while ascending.
+			end
+			return fail
 		end,
 		followsuccess = function ()
 			ml_navigation:ResetRenderPath()
