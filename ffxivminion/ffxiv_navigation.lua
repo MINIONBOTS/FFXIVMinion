@@ -528,7 +528,7 @@ end
 
 
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
-	if ( ml_navigation.pathindex > 0 ) then
+	if ( ml_navigation.pathindex > 1 ) then
 		local treshold = deviationthreshold or ml_navigation.PathDeviationDistances[ml_navigation.GetMovementType()]
 		if ( not Player:IsJumping() ) then
 			-- measuring the distance from player to the straight line from navnode A to B  works only when we use the 2D distance, since it cuts obvioulsy through height differences. Only when flying it should use 3D.
