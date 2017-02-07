@@ -438,6 +438,7 @@ function ml_navigation.Navigate(event, ticks )
 									else
 										Mount()
 										ffnav.Await(5000, function () return Player.ismounted end)
+										return
 									end							
 								else
 									if (Player:IsMoving()) then
