@@ -358,7 +358,7 @@ function ml_navigation.Navigate(event, ticks )
 																
 						end	
 		-- Cube Navigation
-					elseif (IsFlying()) then
+					elseif (IsFlying()) then -- we are in the air or our last node which was reached was a cube node, now continuing to the next node which can be either CUBE or POLY node
 						ml_navigation.GUI.lastAction = "Flying to Node"
 						local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
 						if (hit) then
@@ -370,7 +370,7 @@ function ml_navigation.Navigate(event, ticks )
 														
 						-- Check if the next node is reached:
 						local dist3D = math.distance3d(nextnode,ppos)
-						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) <= 5 ))) then
+						if ( ml_navigation:IsGoalClose(ppos,nextnode) and (string.contains(nextnode.type,"CUBE") or (hit and math.distance3d(ppos.x, ppos.y, ppos.z, hitx, hity, hitz) <= 5 ))) then
 							-- We reached the node
 							d("[Navigation] - Cube Node reached. ("..tostring(math.round(dist3D,2)).." < "..tostring(ml_navigation.NavPointReachedDistances[ml_navigation.GetMovementType()])..")")
 							ffnav.isascending = nil	-- allow the isstillonpath again after we reached our 1st node after ascending to fly
@@ -381,7 +381,7 @@ function ml_navigation.Navigate(event, ticks )
 								--Player:Move(FFXIV.MOVEMENT.DOWN)
 								--SendTextCommand("/mount")
 								if (IsFlying()) then
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it
+									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- facing it, in case we run over it while descending, it would turn around again.
 									Player:SetPitch(1.377) 
 									if (not Player:IsMoving()) then
 										Player:Move(FFXIV.MOVEMENT.FORWARD)
@@ -420,11 +420,15 @@ function ml_navigation.Navigate(event, ticks )
 						if (string.contains(nextnode.type,"CUBE")) then
 							ml_navigation.GUI.lastAction = "Walk to Cube Node"
 							
-							local hit, hitx, hity, hitz = RayCast(nextnode.x,nextnode.y+5,nextnode.z,nextnode.x,nextnode.y-3,nextnode.z) 
-							if (hit) then
-								d("[Navigation]: Next node ground clearance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+							-- Make sure the player has enough space above his head to start flying, casting a ray above his head to check space, if fail, it will walk towards the next cube node we are aiming at and keep checking until it has enough space...let's hope it never gets stuck :D
+							local hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+5,ppos.z,ppos.x,ppos.y,ppos.z) -- top to bottom							
+							if ( not hit ) then
+								hit, hitx, hity, hitz = RayCast(ppos.x,ppos.y+1,ppos.z, ppos.x,ppos.y+5,ppos.z) -- bottom to top  /raycast works often only into one direction of geometry
 							end
-							if (not IsFlying() and (not hit or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5))) then		
+							if (hit) then
+								d("[Navigation]: Next node ground clearance distance:"..tostring(math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz)))
+							end
+							if (not IsFlying() and (not hit or (hit and math.distance3d(nextnode.x, nextnode.y, nextnode.z, hitx, hity, hitz) > 5))) then	-- it will start flying if we have enough space above our head, if not, it keels wwalking on the poly mesh towards the next cube node in the air until it has space to fly
 								if (not Player.ismounted) then
 									d("[Navigation] - Mount for flight.")
 									if (Player:IsMoving()) then
