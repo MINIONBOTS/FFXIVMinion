@@ -115,12 +115,16 @@ end
 
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
 function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff)
-	--if (not ml_navigation:IsGoalClose(Player.pos,{x = x, y = y, z = z})) then	-- There is a check already in the minionlib::ml_navigation.lua::MoveTo(..) which checks against the NewPathDistanceThresholds table. So you just need to adjust the values of that table here ontop of this file.
-		ffnav.currentGoal = { x = x, y = y, z = z }
-		ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
-		return ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
-	--end
-	--return false
+	-- Catching it trying to use cubes incombat still.
+	-- Seems to originate from the fact that if a path can only be built with cubes that it will include them.
+	-- Need something to build a partial path for walking only, to get it out of danger.
+	if (Player.incombat and not Player.ismounted) then
+		NavigationManager:CanUseCubes(false)
+	end
+	
+	ffnav.currentGoal = { x = x, y = y, z = z }
+	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
+	return ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
@@ -157,6 +161,10 @@ function ml_navigation.Navigate(event, ticks )
 					
 					if (ml_navigation.IsPathInvalid()) then 
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
+						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
+						NavigationManager:CanUseCubes(false)
+						Player:MoveTo(ffnav.currentGoal.x,ffnav.currentGoal.y,ffnav.currentGoal.z)
+						NavigationManager:CanUseCubes(true)
 						Player:Stop()
 						return
 					end

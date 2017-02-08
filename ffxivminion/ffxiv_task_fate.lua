@@ -98,7 +98,7 @@ e_betterfatesearch = inheritsFrom( ml_effect )
 c_betterfatesearch.timer = 0
 e_betterfatesearch.fateid = 0
 function c_betterfatesearch:evaluate()
-    if (TimeSince(c_betterfatesearch.timer) < 10000 or ml_task_hub:ThisTask().waitingForChain) then
+    if (TimeSince(c_betterfatesearch.timer) < 10000 or ml_task_hub:ThisTask().waitingForChain or Player.incombat) then
         return false
     end
 	

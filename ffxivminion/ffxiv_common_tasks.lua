@@ -1416,6 +1416,7 @@ function ffxiv_task_avoid:task_complete_eval()
 	end
 	
 	if (dist > 1) then
+		NavigationManager:CanUseCubes(false)
 		Player:MoveTo(self.pos.x,self.pos.y,self.pos.z,0.5,false,false,false)
 	end
 	

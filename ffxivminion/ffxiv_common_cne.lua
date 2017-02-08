@@ -1263,10 +1263,10 @@ function c_walktopos:evaluate()
 		local gotoPos = nil
 		if (ml_task_hub:CurrentTask().gatePos) then
 			gotoPos = ml_task_hub:CurrentTask().gatePos
-			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 2)
+			ml_debug("[c_walktopos]: Position adjusted to gate position.", "gLogCNE", 3)
 		else
 			gotoPos = ml_task_hub:CurrentTask().pos
-			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 2)
+			ml_debug("[c_walktopos]: Position left as original position.", "gLogCNE", 3)
 		end
 		
 		if (table.valid(gotoPos)) then
@@ -1276,10 +1276,8 @@ function c_walktopos:evaluate()
 				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
 					gotoPos = meshpos
 					if (table.valid(ml_task_hub:CurrentTask().pos)) then
-						d("change regular pos")
 						ml_task_hub:CurrentTask().pos = gotoPos
 					elseif (table.valid(ml_task_hub:CurrentTask().gatePos)) then
-						d("change gatepos")
 						ml_task_hub:CurrentTask().gatePos = gotoPos
 					end
 				end
@@ -1361,13 +1359,13 @@ function e_walktopos:execute()
 		local gotoPos = c_walktopos.pos
 		local myPos = Player.pos
 		
-		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 2)
+		ml_debug("[e_walktopos]: Position = { x = "..tostring(gotoPos.x)..", y = "..tostring(gotoPos.y)..", z = "..tostring(gotoPos.z).."}", "gLogCNE", 3)
 		
 		local dist = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
 		local useFollow = ml_task_hub:CurrentTask().useFollowMovement and dist < 6
 		--local useRandom = (FFXIV_Common_RandomPaths=="1" and not IsHW(Player.localmapid) and not CanFlyInZone())
 		
-		ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 2)
+		ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 3)
 		--local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
 		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
 		
@@ -1886,13 +1884,12 @@ c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
 	if (IsCompanionSummoned() and ValidString(gChocoStanceString)) then
-		
 		if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
 			local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
 			if (stanceAction) then
 				local acStance = ActionList:Get(6,stanceAction)		
-				if (acStance and acStance:IsReady(Player.id)) then
-					acStance:Cast(Player.id)
+				if (acStance and acStance:IsReady()) then
+					acStance:Cast()
 					return true
 				end
 			end
@@ -2775,8 +2772,8 @@ function c_inventoryfull:evaluate()
 end
 function e_inventoryfull:execute()
 	if (FFXIV_Common_BotRunning) then
-		ml_gui.showconsole = true
-		ml_error("Inventory is full, bot will stop.")
+		GUI_ToggleConsole(true)
+		d("Inventory is full, bot will stop.")
 		ml_global_information:ToggleRun()
 	end
 end
