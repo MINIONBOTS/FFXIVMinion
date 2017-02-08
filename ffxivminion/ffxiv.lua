@@ -564,12 +564,7 @@ function ffxivminion.SetMainVars()
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
 	Hacks:SkipCutscene(gSkipCutscene)
-	--Hacks:SkipDialogue(gSkipTalk)
-	--Hacks:SetClickToTeleport(gClickTeleport)
-	--Hacks:SetClickToTravel(gClickTravel)
 	Hacks:SetPermaSprint(gPermaSprint)
-	--Hacks:SetPermaSwiftCast(FFXIV_Common_PermaSwift)
-	--Crafting:UseHQMats(FFXIV_Craft_UseHQMats)
 end
 
 -- Module Event Handler
@@ -627,6 +622,7 @@ end
 function ffxivminion.SwitchMode(mode)	
 	local task = ffxivminion.modes[mode]
     if (task ~= nil) then
+		ffxivminion.SetModeOptions(mode)
 		ml_global_information.mainTask = task
 		
 		if (FFXIV_Common_BotRunning) then
@@ -649,20 +645,6 @@ function ffxivminion.SwitchMode(mode)
 			Hacks:Disable3DRendering(gDisableDrawing)
 			SendTextCommand("/busy off")
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip
-		elseif (gBotMode == GetString("questMode")) then
-			if (Questing) then
-				Questing.UpdateProfiles()
-			end
-			gTeleportHack = Settings.FFXIVMINION.gTeleportHack
-			gTeleportHackParanoid = Settings.FFXIVMINION.gTeleportHackParanoid
-			gSkipCutscene = "1"
-			gSkipTalk = "1"
-			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
-			Hacks:SkipCutscene(gSkipCutscene)
-			Hacks:SkipDialogue(gSkipTalk)
-			Hacks:Disable3DRendering(gDisableDrawing)
-			gAvoidAOE = "1"
-			gAutoEquip = gAutoEquipDefaultQuesting
 		end
 		--]]
 	end
@@ -679,14 +661,10 @@ function ffxivminion.SetModeOptions(mode)
 			gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 			gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 			gSkipTalk = Settings.FFXIVMINION.gSkipTalk
-			--Hacks:SkipCutscene(gSkipCutscene)
-			--Hacks:SkipDialogue(gSkipTalk)
-			--Hacks:Disable3DRendering(gDisableDrawing)
+			Hacks:SkipCutscene(gSkipCutscene)
+			Hacks:Disable3DRendering(gDisableDrawing)
 			gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 			gAutoEquip = Settings.FFXIVMINION.gAutoEquip			
-			FFXIV_Common_Profile = "NA"
-			FFXIV_Common_ProfileIndex = 1
-			FFXIV_Common_ProfileList = { "NA" }
 		end
 	end
 end
@@ -695,8 +673,8 @@ function ffxivminion.SetMode(mode)
     local task = ffxivminion.modes[mode]
     if (task ~= nil) then
 		Hacks:SkipCutscene(gSkipCutscene)
-		--Hacks:SkipDialogue(gSkipTalk)
 		ml_task_hub:Add(task.Create(), LONG_TERM_GOAL, TP_ASAP)
+		ffxivminion.SetModeOptions(task)
     end
 end
 
@@ -928,7 +906,7 @@ function ml_global_information.Stop()
 end
 
 function ffxivminion.AddMode(name, task)
-	d("added mode ["..name.."] with type ["..tostring(type(task)).."]")
+	--d("added mode ["..name.."] with type ["..tostring(type(task)).."]")
 	task.friendly = name
 	ffxivminion.modesToLoad[name] = task
 end

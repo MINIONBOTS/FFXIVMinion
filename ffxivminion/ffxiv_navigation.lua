@@ -113,13 +113,12 @@ function ml_navigation:IsGoalClose(ppos,node)
 	return false
 end
 
-
 -- for replacing the original c++ Player:MoveTo with our lua version.  Every argument behind x,y,z is optional and the default values from above's tables will be used depending on the current movement type ! 
-function Player:MoveTo(x, y, z, navpointreacheddistance, navigationmode, randomnodes, smoothturns)
+function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns, navigationmode, cubesoff)
 	--if (not ml_navigation:IsGoalClose(Player.pos,{x = x, y = y, z = z})) then	-- There is a check already in the minionlib::ml_navigation.lua::MoveTo(..) which checks against the NewPathDistanceThresholds table. So you just need to adjust the values of that table here ontop of this file.
 		ffnav.currentGoal = { x = x, y = y, z = z }
-		ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randomnodes, smoothturns = smoothturns}
-		return ml_navigation:MoveTo(x, y, z, navigationmode, randomnodes, smoothturns, navpointreacheddistance)
+		ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
+		return ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
 	--end
 	--return false
 end
@@ -155,6 +154,13 @@ function ml_navigation.Navigate(event, ticks )
 			if ( ml_navigation.pathsettings.navigationmode == 1 and not ffnav.IsProcessing()) then
 				
 				if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
+					
+					if (ml_navigation.IsPathInvalid()) then 
+						d("[Navigation]: Resetting path, need to pull a non-cube path.")
+						Player:Stop()
+						return
+					end
+				
 					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
 					
 					ml_navigation.GUI.pathHops = table.size(ml_navigation.path)
@@ -533,6 +539,18 @@ function ml_navigation:NavigateToNode(ppos, nextnode, stillonpaththreshold)
 	end
 end
 
+function ml_navigation.IsPathInvalid()
+	if (table.valid(ml_navigation.path)) then
+		if (Player.incombat and not Player.ismounted) then
+			for i, node in pairs(ml_navigation.path) do
+				if (node.type == "CUBE") then
+					return true
+				end
+			end		
+		end		
+	end
+	return false
+end
 
 function ml_navigation:IsStillOnPath(ppos,deviationthreshold)	
 	if ( ml_navigation.pathindex > 1 ) then
@@ -560,7 +578,6 @@ function ml_navigation:IsStillOnPath(ppos,deviationthreshold)
 	end
 	return true
 end
-
 
 -- Sets the position and heading which the main navigation call will make sure that it has "arrived", before continuing the movement
 function ml_navigation:SetEnsurePosition(node, isstartnode)

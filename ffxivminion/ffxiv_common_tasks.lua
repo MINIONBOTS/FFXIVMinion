@@ -565,7 +565,7 @@ function ffxiv_task_movetointeract.Create()
 	
 	newinst.stealthFunction = nil
 	
-	--Hacks:SkipDialogue(true)
+	gSkipTalk = true
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	
@@ -1775,6 +1775,9 @@ function ffxiv_task_grindCombat:Process()
 						if (target.distance <= (target.hitradius + 1)) then
 							Player:MoveTo(pos.x,pos.y,pos.z, 1.5, false, false, false)
 						else
+							if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
+								NavigationManager:CanUseCubes(false)
+							end
 							Player:MoveTo(pos.x,pos.y,pos.z, (target.hitradius + 1), false, false, false)
 						end
 						self.movementDelay = Now() + 1000
@@ -1825,6 +1828,9 @@ function ffxiv_task_grindCombat:Process()
 							self.teleportThrottle = Now() + 1500
 						end
 					else
+						if (math.distance3d(ppos,pos) < 60 and not IsFlying()) then
+							NavigationManager:CanUseCubes(false)
+						end
 						--d("Melee class needs to move closer, fire moveto..")
 						Player:MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
 						--MoveTo(pos.x,pos.y,pos.z, 2, false, false, false)
@@ -1961,10 +1967,7 @@ function ffxiv_mesh_interact.Create()
 	newinst.interact = 0
     newinst.interactLatency = 0
 	
-	----Hacks:SkipDialogue(true)
-	
-	d("Mesh interact task created.")
-	
+	gSkipTalk = true
     return newinst
 end
 
@@ -2098,7 +2101,7 @@ function ffxiv_nav_interact.Create()
 	newinst.interactDelay = 500
 	newinst.abort = nil
 	
-	----Hacks:SkipDialogue(true)
+	gSkipTalk = true
 	newinst.alwaysMount = false
 	
     return newinst
@@ -2476,7 +2479,7 @@ function ffxiv_task_moveaethernet.Create()
 	
 	newinst.stealthFunction = nil
 	
-	--Hacks:SkipDialogue(true)
+	gSkipTalk = true
 	ml_global_information.monitorStuck = true
 	newinst.alwaysMount = false
 	

@@ -625,7 +625,6 @@ function ffxiv_task_craft.SetModeOptions()
 	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
 	Hacks:SkipCutscene(gSkipCutscene)
-	Hacks:SkipDialogue(gSkipTalk)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	ffxiv_craft.UpdateProfiles()

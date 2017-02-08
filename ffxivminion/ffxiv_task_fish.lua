@@ -143,12 +143,14 @@ function c_precastbuff:evaluate()
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
-				d("[NodePreBuff]: Need to use a cordial.")
-				c_precastbuff.activity = "usecordial"
-				c_precastbuff.itemid = cordialItem.hqid
-				c_precastbuff.requirestop = true
-				c_precastbuff.requiredismount = true
-				return true
+				if (not ffxiv_fish.NeedsPatienceCheck() or HasBuffs(Player,"764")) then
+					d("[NodePreBuff]: Need to use a cordial.")
+					c_precastbuff.activity = "usecordial"
+					c_precastbuff.itemid = cordialItem.hqid
+					c_precastbuff.requirestop = true
+					c_precastbuff.requiredismount = true
+					return true
+				end
 			end					
 		end
 	end
@@ -689,6 +691,17 @@ function c_patience:evaluate()
 		if (usePatience) then
 			local patience = SkillMgr.GetAction(4102,1)
 			if (patience and patience:IsReady(Player.id)) then	
+				if (ffxiv_fish.NeedsCordialCheck()) then
+					if (Player:GetFishingState() ~= 0) then
+						local finishcast = SkillMgr.GetAction(299,1)
+						if (finishcast and finishcast.isready) then
+							finishcast:Cast()
+						end
+						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
+						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
+						return false
+					end
+				end
 				if (patience:Cast()) then
 					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4102,1).isoncd) end)
 				end
@@ -697,6 +710,17 @@ function c_patience:evaluate()
 		elseif (usePatience2) then
 			local patience2 = SkillMgr.GetAction(4106,1)
 			if (patience2 and patience2:IsReady(Player.id)) then	
+				if (ffxiv_fish.NeedsCordialCheck()) then
+					if (Player:GetFishingState() ~= 0) then
+						local finishcast = SkillMgr.GetAction(299,1)
+						if (finishcast and finishcast.isready) then
+							finishcast:Cast()
+						end
+						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
+						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
+						return false
+					end
+				end
 				if (patience2:Cast()) then
 					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4106,1).isoncd) end)
 				end
@@ -707,8 +731,7 @@ function c_patience:evaluate()
 	
     return false
 end
-function e_patience:execute()
-end
+function e_patience:execute() end
 
 c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
@@ -1631,6 +1654,39 @@ function e_fishnoactivity:execute()
 	-- Do nothing here, but there's no point in continuing to process and eat CPU.
 end
 
+function ffxiv_fish.NeedsCordialCheck()
+	local useCordials = (gGatherUseCordials)
+	local task = ffxiv_fish.currentTask
+	if (table.valid(task)) then
+		useCordials = IsNull(task.usecordials,useCordials)
+	end
+
+	if (useCordials) then
+		local canUse,cordialItem = CanUseCordialSoon()
+		if (canUse and table.valid(cordialItem)) then
+			return true
+		end					
+	end
+	return false
+end
+
+function ffxiv_fish.NeedsPatienceCheck()
+	local usePatience = false
+	local usePatience2 = false
+	
+	local task = ffxiv_fish.currentTask
+	local marker = ml_global_information.currentMarker
+	if (table.valid(task)) then
+		usePatience = IsNull(task.usepatience,false)
+		usePatience2 = IsNull(task.usepatience2,false)
+	elseif (table.valid(marker)) then
+		usePatience = (IsNull(marker:GetFieldValue(GetUSString("usePatience")),"0") )
+		usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") )
+	end
+	
+	return (usePatience or usePatience2)
+end
+
 function ffxiv_fish.NeedsStealth()
 	if (MIsCasting() or MIsLoading() or IsFlying() or Player.incombat) then
 		return false
@@ -1929,9 +1985,6 @@ function ffxiv_task_fish:Init()
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
 	self:add(ke_syncadjust, self.process_elements)
 	
-	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 70 )
-    self:add(ke_precast, self.process_elements)
-	
 	local ke_collect = ml_element:create( "Collect", c_usecollect, e_usecollect, 68 )
     self:add(ke_collect, self.process_elements)
 	
@@ -1946,6 +1999,9 @@ function ffxiv_task_fish:Init()
 	
 	local ke_patience = ml_element:create( "Patience", c_patience, e_patience, 50 )
     self:add(ke_patience, self.process_elements)
+	
+	local ke_precast = ml_element:create( "PreCast", c_precastbuff, e_precastbuff, 45 )
+    self:add(ke_precast, self.process_elements)
 	
 	local ke_mooch = ml_element:create( "Mooch", c_mooch, e_mooch, 40 )
     self:add(ke_mooch, self.process_elements)
@@ -1969,7 +2025,6 @@ function ffxiv_task_fish.SetModeOptions()
 	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
 	Hacks:SkipCutscene(gSkipCutscene)
-	Hacks:SkipDialogue(gSkipTalk)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip

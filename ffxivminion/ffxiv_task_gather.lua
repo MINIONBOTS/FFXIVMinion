@@ -1019,6 +1019,74 @@ function ffxiv_gather.CheckBuffs(item)
 	return false
 end
 
+function CanUseCordialSoon()
+	local minimumGP = 0
+	local useCordials = (gGatherUseCordials )
+	
+	local profile, task;
+	if (IsFisher(Player.job)) then
+		profile = ffxiv_fish.profileData
+		task = ffxiv_fish.currentTask
+	elseif (IsGatherer(Player.job)) then
+		profile = ffxiv_gather.profileData
+		task = ffxiv_gather.currentTask
+	end
+	
+	local marker = ml_global_information.currentMarker
+	if (table.valid(task)) then
+		minimumGP = IsNull(task.mingp,0)
+		useCordials = IsNull(task.usecordials,useCordials)
+	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
+		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
+	else
+		return false
+	end
+	
+	if (useCordials) then
+		local cordialQuick, cordialQuickAction = GetItem(1016911)
+		if (not cordialQuick) then
+			cordialQuick, cordialQuickAction = GetItem(16911)
+		end
+		local cordialNormal, cordialNormalAction = GetItem(1006141)
+		if (not cordialNormal) then
+			cordialNormal, cordialNormalAction = GetItem(6141)
+		end
+		local cordialHigh, cordialHighAction = GetItem(1012669)
+		if (not cordialHigh) then
+			cordialHigh, cordialHighAction = GetItem(12669)
+		end
+		
+		local gpDeficit = (Player.gp.max - Player.gp.current)
+		
+		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 200 or (cordialNormal == nil and cordialHigh == nil))) then
+			if (cordialQuick and cordialQuickAction and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+				--d("[CanUseCordial]: Returning cordial.")
+				return true, cordialQuick
+			end
+		end
+		
+		if ((minimumGP - Player.gp.current) >= 50 and (gpDeficit <= 350 or cordialHigh == nil)) then
+			if (cordialNormal and cordialNormalAction and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+				--d("[CanUseCordial]: Returning cordial.")
+				return true, cordialNormal
+			end
+		end
+		
+		if (gpDeficit >= 400 and cordialHigh and (cordialHighAction.cdmax - cordialHighAction.cd) < 5) then
+			return true, cordialHigh
+		elseif (gpDeficit >= 300 and cordialNormal and (cordialNormalAction.cdmax - cordialNormalAction.cd) < 5) then
+			return true, cordialNormal
+		elseif (gpDeficit >= 150 and cordialQuick and (cordialQuickAction.cdmax - cordialQuickAction.cd) < 5) then
+			return true, cordialQuick
+		end	
+	else
+		ml_debug("[CanUseCordials]: Can't use cordials on this task.",2)
+	end
+	
+	return false, nil
+end
+
 function CanUseCordial()
 	local minimumGP = 0
 	local useCordials = (gGatherUseCordials )
@@ -2755,7 +2823,6 @@ function ffxiv_task_gather.SetModeOptions()
 	gSkipCutscene = Settings.FFXIVMINION.gSkipCutscene
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
 	Hacks:SkipCutscene(gSkipCutscene)
-	--Hacks:SkipDialogue(gSkipTalk)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
