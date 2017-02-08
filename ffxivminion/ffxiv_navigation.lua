@@ -119,7 +119,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	-- Seems to originate from the fact that if a path can only be built with cubes that it will include them.
 	-- Need something to build a partial path for walking only, to get it out of danger.
 	if (Player.incombat and not Player.ismounted) then
-		NavigationManager:CanUseCubes(false)
+		NavigationManager:UseCubes(false)
 	end
 	
 	ffnav.currentGoal = { x = x, y = y, z = z }
@@ -162,9 +162,9 @@ function ml_navigation.Navigate(event, ticks )
 					if (ml_navigation.IsPathInvalid()) then 
 						d("[Navigation]: Resetting path, need to pull a non-cube path.")
 						-- Calling Stop() wasn't enough here, had to completely pull a new path otherwise it keeps trying to use the same path.
-						NavigationManager:CanUseCubes(false)
+						NavigationManager:UseCubes(false)
 						Player:MoveTo(ffnav.currentGoal.x,ffnav.currentGoal.y,ffnav.currentGoal.z)
-						NavigationManager:CanUseCubes(true)
+						NavigationManager:UseCubes(true)
 						Player:Stop()
 						return
 					end

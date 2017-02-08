@@ -264,7 +264,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
         --ml_global_information.lastrun = tickcount
 		
 		ffxivminion.UpdateGlobals()
-		NavigationManager:CanUseCubes(true) -- set this back to true every cycle, just in case. override when necessary.
+		NavigationManager:UseCubes(true) -- set this back to true every cycle, just in case. override when necessary.
 		
 		-- close any social addons that might screw up behavior first
 		if (FFXIV_Common_BotRunning and 
