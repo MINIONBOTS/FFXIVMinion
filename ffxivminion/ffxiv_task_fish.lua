@@ -990,7 +990,7 @@ end
 c_nextfishingmarker = inheritsFrom( ml_cause )
 e_nextfishingmarker = inheritsFrom( ml_effect )
 function c_nextfishingmarker:evaluate()
-	if (gProfile ~= GetString("none")) then
+	if (gFishProfile ~= GetString("none")) then
 		return false
 	end
 	
@@ -1120,10 +1120,7 @@ function c_fishnexttask:evaluate()
 			if (ffxiv_fish.attemptedCasts > 2) then
 				fd("Attempted casts reached 3, check for a new location.")
 				
-				local profileName = gFishProfile
-				if (gBotMode == GetString("questMode")) then
-					profileName = gQuestProfile
-				end
+				local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
 				ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 				invalid = true
 			end
@@ -1274,7 +1271,8 @@ function c_fishnexttask:evaluate()
 						end
 						
 						if (valid) then
-							local lockout = ffxiv_fish.GetLockout(gProfile,i)
+							local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
+							local lockout = ffxiv_fish.GetLockout(profileName,i)
 							if (lockout ~= 0) then
 								local lockoutTime = data.lockout or 300
 								
@@ -2137,6 +2135,7 @@ function ffxiv_fish.GetLockout(profile,task)
 	return 0
 end
 function ffxiv_fish.SetLockout(profile,task)
+	local profile = IsNull(profile,"placeholder")
 	if (Settings.FFXIVMINION.gFishLockout == nil or type(Settings.FFXIVMINION.gFishLockout) ~= "table") then
 		Settings.FFXIVMINION.gFishLockout = {}
 	end
