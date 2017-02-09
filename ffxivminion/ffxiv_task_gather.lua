@@ -569,7 +569,8 @@ function e_gather:execute()
 	else
 		if (table.valid(ffxiv_gather.currentTask)) then
 			if (IsUnspoiled(thisNode.contentid) or IsNull(ffxiv_gather.currentTask.resetdaily,false)) then
-				ffxiv_gather.SetLastGather(gProfile,ffxiv_gather.currentTaskIndex)
+				local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+				ffxiv_gather.SetLastGather(profileName,ffxiv_gather.currentTaskIndex)
 			end
 		end
 	end
@@ -1958,7 +1959,8 @@ function c_gathernexttask:evaluate()
 		end
 		
 		if (not invalid) then
-			local lastGather = ffxiv_gather.GetLastGather(gProfile,currentTaskIndex)
+			local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+			local lastGather = ffxiv_gather.GetLastGather(profileName,currentTaskIndex)
 			if (lastGather ~= 0) then
 				if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 					gd("[GatherNextTask]: Our last gather was only ["..tostring(TimePassed(GetCurrentTime(), lastGather)).."] seconds ago, invalidate.",3)
@@ -2095,7 +2097,8 @@ function c_gathernexttask:evaluate()
 					end
 					
 					if (valid) then
-						local lastGather = ffxiv_gather.GetLastGather(gProfile,i)
+						local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+						local lastGather = ffxiv_gather.GetLastGather(profileName,i)
 						if (lastGather ~= 0) then
 							if (TimePassed(GetCurrentTime(), lastGather) < 1400) then
 								valid = false
@@ -2951,7 +2954,6 @@ function ffxiv_task_gather.UIInit()
 end
 --]]
 
-
 function ffxiv_task_gather:UIInit()
 	ffxiv_gather.profiles, ffxiv_gather.profilesDisplay = GetPublicProfiles(ffxiv_gather.profilePath,".*lua")
 	
@@ -3108,6 +3110,7 @@ function ffxiv_gather.GetLastGather(profile,task)
 end
 
 function ffxiv_gather.SetLastGather(profile,taskid)
+	local profile = IsNull(profile,"placeholder")
 	if (Settings.FFXIVMINION.gLastGather == nil or type(Settings.FFXIVMINION.gLastGather) ~= "table") then
 		Settings.FFXIVMINION.gLastGather = {}
 	end
