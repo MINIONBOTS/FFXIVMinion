@@ -806,7 +806,7 @@ function c_collectibleaddonfish:evaluate()
 				UseControlAction("SelectYesNoCountItem","No")
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
-				UseControlAction("SelectYesNoCountItem","No")
+				UseControlAction("SelectYesNoCountItem","Yes")
 			end
 			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
 			return true

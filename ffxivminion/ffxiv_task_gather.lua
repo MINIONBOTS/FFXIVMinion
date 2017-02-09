@@ -526,15 +526,18 @@ end
 
 function DoGathering(item)
 	if (ffxiv_gather.CheckBuffs(item)) then
+		d("[Gather]: Running a buff check.")
 		ml_global_information.Await(1500)
 		return 1
 	end
 	
 	if (SkillMgr.Gather(item)) then
+		d("[Gather]: Running a skillmanager process.")
 		ml_global_information.Await(500)
 		return 2
 	end	
-
+	
+	d("[Gather]: Using Gather ["..tostring(item.index-1).."].")
 	Player:Gather(item.index-1)
 	if (HasBuffs(Player,"805")) then
 		ml_global_information.Await(10000, function () return IsControlOpen("GatheringMasterpiece") end)
@@ -579,7 +582,7 @@ function e_gather:execute()
     if (table.valid(list)) then
 		if (thisNode.contentid >= 5) then	
 			if (TimeSince(ml_task_hub:CurrentTask().gatherTimer) < 500) then
-				ml_debug("Still under a delay due to this being an unspoiled node.")
+				d("Still under a delay due to this being an unspoiled node.")
 				return
 			end
 		end
@@ -664,7 +667,7 @@ function e_gather:execute()
 			end
 		end
 			
-		--d("Checking gardening section.")
+		d("Checking gardening section.")
 			
 		-- 2nd pass, gardening supplies
 		if (gatherGardening ~= "" and gatherGardening ~= false and gatherGardening ~= "0") then
@@ -691,7 +694,7 @@ function e_gather:execute()
 			end
 		end
 			
-		--d("Checking special rare item section.")
+		d("Checking special rare item section.")
 			
 		-- 3rd pass, try to get special rare items
 		if (gatherSuperRares ~= "" and gatherSuperRares ~= false and gatherSuperRares ~= "0") then
@@ -718,7 +721,7 @@ function e_gather:execute()
 			end
 		end
 			
-		--d("Checking ixali rare item section.")
+		d("Checking ixali rare item section.")
 						
 		-- 5th pass, ixali rare items
 		for i, item in pairs(list) do
@@ -730,7 +733,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking ixali semi-rare item section.")
+		d("Checking ixali semi-rare item section.")
 
 		-- 6th pass, semi-rare ixali items
 		for i, item in pairs(list) do
@@ -742,7 +745,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking chocobo rare item section.")
+		d("Checking chocobo rare item section.")
 		
 		-- 7th pass to get chocobo rare items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
@@ -769,7 +772,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking regular rare item section.")
+		d("Checking regular rare item section.")
 		
 		-- 4th pass, regular rare items
 		if (gatherRares ~= "" and gatherRares ~= false and gatherRares ~= "0") then
@@ -794,7 +797,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking chocobo item section.")
+		d("Checking chocobo item section.")
 		
 		-- 7th pass to get chocobo items
 		if (gatherChocoFood ~= "" and gatherChocoFood ~= false and gatherChocoFood ~= "0") then
@@ -821,7 +824,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking unknown item section.")
+		d("Checking unknown item section.")
 		
 			-- Gather unknown items to unlock them.
 		if (Player.level < 60) then
@@ -832,7 +835,7 @@ function e_gather:execute()
 			end
 		end
 		
-		--d("Checking regular item section.")
+		d("Checking regular item section.")
 		
 		local itemid1 = 0
 		local itemid2 = 0
@@ -846,31 +849,41 @@ function e_gather:execute()
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 1 - ["..tostring(item1).."].")
+			else
+				d("[Gather]: Setting itemid1 to ["..tostring(itemid1).."]")
 			end
 		end
+		
 		if (tonumber(item1) ~= nil) then
 			itemslot1 = tonumber(item1)
+			d("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].")
 		end
 		
 		if (item2 and item2 ~= "" and item2 ~= GetString("none")) then
 			itemid2 = AceLib.API.Items.GetIDByName(item2) or 0
 			if (itemid2 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item2).."].")
+			else
+				d("[Gather]: Setting itemid2 to ["..tostring(itemid2).."]")
 			end
 		end
 		if (tonumber(item2) ~= nil) then
 			itemslot2 = tonumber(item2)
+			d("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].")
 		end
 		
 		if (item3 and item2 ~= "" and item3 ~= GetString("none")) then
 			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
-				d("[Gather]: Could not find a valid item ID for Item 2 - ["..tostring(item3).."].",3)
+				d("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].")
+			else
+				d("[Gather]: Setting itemid3 to ["..tostring(itemid3).."]")
 			end
 		end
 		if (tonumber(item3) ~= nil) then
 			itemslot3 = tonumber(item3)
+			d("[Gather]: Using slot for item 3 - ["..tostring(itemslot3).."].")
 		end
 		
 		for i, item in pairs(list) do
@@ -882,6 +895,7 @@ function e_gather:execute()
 					
 			if (itemslot1 ~= 0) then
 				if (item.index == itemslot1 and item.id ~= nil) then
+					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
 					return DoGathering(item)
 				end
 			end
@@ -890,12 +904,14 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (itemid2 ~= 0) then
 				if (item.id == itemid2) then
+					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
 					return DoGathering(item)
 				end
 			end
 				
 			if (itemslot2 ~= 0) then
 				if (item.index == itemslot2 and item.id ~= nil) then
+					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
 					return DoGathering(item)
 				end
 			end
@@ -1608,7 +1624,6 @@ end
 
 --[[
 GatheringMasterpiece
-Player:GetCollectableInfo()
 .rarity
 .raritymax
 .wear
@@ -1716,8 +1731,9 @@ function e_collectiblegame:execute()
 			(info.rarity == info.raritymax) or
 			(info.wear == 30)))
 		then
-			PressCollectReturn(true)
-			e_collectiblegame.timer = Now() + 500
+			if (UseControlAction("GatheringMasterpiece","Collect")) then
+				e_collectiblegame.timer = Now() + 500
+			end
 			return
 		else
 			if (SkillMgr.Gather()) then
