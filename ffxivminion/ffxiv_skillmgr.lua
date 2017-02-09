@@ -2914,7 +2914,7 @@ function SkillMgr.Gather(item)
 					end
 					
 					if (IsControlOpen("GatheringMasterpiece")) then
-						local info = Player:GetCollectableInfo()
+						local info = GetControlData("GatheringMasterpiece")
 						if (table.valid(info)) then
 							if (tonumber(skill.collraritylt) > 0 and info.rarity >= tonumber(skill.collraritylt)) then
 								SkillMgr.DebugOutput(prio, "["..skill.name.."] failed the collectible rarity max check.")
