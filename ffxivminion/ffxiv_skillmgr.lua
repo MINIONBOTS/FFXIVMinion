@@ -2850,6 +2850,7 @@ end
 
 function SkillMgr.Gather(item)
 	if (SkillMgr.IsYielding()) then
+		d("[SkillManager]: Wait a bit, yielding..")
 		return false
 	end
 	
@@ -2863,7 +2864,7 @@ function SkillMgr.Gather(item)
 			local skillid = tonumber(skill.id)
             if ( skill.used  ) then		-- takes care of los, range, facing target and valid target		
                 local realskilldata = SkillMgr.GetAction(skillid,1)
-			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 					
+			   if ( realskilldata and realskilldata.cost <= Player.gp.current ) then 
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] has available GP, check the other factors.")
 					
 					local castable = true
@@ -2969,10 +2970,10 @@ function SkillMgr.Gather(item)
 					end
 					
 					if ( castable ) then
-						doHalt = true
 						if (realskilldata:IsReady(Player.id)) then
+							doHalt = true
 							if ( realskilldata:Cast(Player.id)) then	
-								--d("CASTING (gathering) : "..tostring(skill.name))
+								d("CASTING (gathering) : "..tostring(skill.name))
 								SkillMgr.SkillProfile[prio].lastcast = Now()
 								SkillMgr.prevGatherSkillID = tostring(skillid)
 								--After a skill is used here, mark it unusable for the rest of the duration of the node.
