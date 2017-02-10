@@ -188,8 +188,8 @@ function c_teletofate:evaluate()
 					end
 				end
 	
-				local dest,dist = NavigationManager:GetClosestPointOnMesh(fatePos,false)
-				if (dest and dist < 10) then
+				local dest = NavigationManager:GetClosestPointOnMesh(fatePos,false)
+				if (dest and dest.distance ~= 0 and dest.distance < 10) then
 					if Distance2D(myPos.x,myPos.z,dest.x,dest.z) > (fate.radius * 2) then
 						c_teletofate.radius = fate.radius
 						c_teletofate.pos = dest
@@ -205,7 +205,7 @@ end
 function e_teletofate:execute()
 	local dest = c_teletofate.pos
 	local newPos = NavigationManager:GetRandomPointOnCircle(dest.x,dest.y,dest.z,c_teletofate.radius,(c_teletofate.radius + 15))
-	local newdest,dist = NavigationManager:GetClosestPointOnMesh(newPos,false)
+	local newdest = NavigationManager:GetClosestPointOnMesh(newPos,false)
 	
 	Player:Stop()
 	if (newdest) then
@@ -505,6 +505,8 @@ function c_add_fatetarget:evaluate()
 						c_add_fatetarget.targetid = target.id
 						return true
 					end
+				else
+					d("no nearest fate attackable")
 				end
 			end
 		end

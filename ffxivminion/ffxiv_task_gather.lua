@@ -292,7 +292,7 @@ function e_movetonode:execute()
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
 				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-					local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
+					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
 					if (p) then
 						local alternateTask = ffxiv_task_movetopos.Create()
 						alternateTask.pos = p
@@ -310,8 +310,8 @@ function e_movetonode:execute()
 			
 			if (gTeleportHack and dist3d > 8) then
 				local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
-				local p,dist = NavigationManager:GetClosestPointOnMesh(telePos,false)
-				if (p and dist ~= 0) then
+				local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
+				if (p and p.distance ~= 0 and p.distance <= 6) then
 					newTask.pos = p
 					newTask.useTeleport = true
 				end
@@ -353,7 +353,7 @@ function c_returntobase:evaluate()
 			basePos = marker:GetPosition()
 		end
 		
-		local p,dist = NavigationManager:GetClosestPointOnMesh(basePos)
+		local p = NavigationManager:GetClosestPointOnMesh(basePos)
 		if (p) then
 			basePos = p
 		end
@@ -387,7 +387,7 @@ function e_returntobase:execute()
 	end
 	
 	local pos = e_returntobase.pos
-	local p,dist = NavigationManager:GetClosestPointOnMesh(pos)
+	local p = NavigationManager:GetClosestPointOnMesh(pos)
 	if (p) then
 		pos = p
 	end

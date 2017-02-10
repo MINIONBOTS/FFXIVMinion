@@ -2442,8 +2442,8 @@ function c_teleporttopos:evaluate()
 			properPos = ml_task_hub:CurrentTask().pos
 		else
 			properPos = ml_task_hub:CurrentTask().pos
-			local p,dist = NavigationManager:GetClosestPointOnMesh(properPos)
-			if (p and dist ~= 0) then
+			local p = NavigationManager:GetClosestPointOnMesh(properPos)
+			if (p and p.distance ~= 0) then
 				properPos = p
 			end
 		end

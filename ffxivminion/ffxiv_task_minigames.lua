@@ -373,7 +373,7 @@ function e_restbreak:execute()
 	
 	local newPos = NavigationManager:GetRandomPointOnCircle(restPosition.x,restPosition.y,restPosition.z,restPosition.minrad,restPosition.maxrad)
 	if (ValidTable(newPos)) then
-		local p,dist = NavigationManager:GetClosestPointOnMesh(newPos)
+		local p = NavigationManager:GetClosestPointOnMesh(newPos)
 		if (p) then
 			local newTask = ffxiv_task_movetopos.Create()
 			newTask.pos = p

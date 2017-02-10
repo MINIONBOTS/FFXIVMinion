@@ -174,26 +174,6 @@ function ffxiv_task_movetopos:task_complete_eval()
 								distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
 							end 
 						end
-						
-						--[[
-						local p,dist = NavigationManager:GetClosestPointOnMesh(entity.pos)
-						if (p and dist ~= 0 and dist < entity.hitradius) then
-							if (not deepcompare(self.pos,p,true)) then
-								self.pos = p
-								gotoPos = self.pos
-								ml_debug("[MOVETOPOS]: Using target's exact coordinate : [x:"..tostring(self.pos.x)..",y:"..tostring(self.pos.y)..",z:"..tostring(self.pos.z).."]")
-								
-								if (self.use3d) then
-									distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-								else
-									distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-									distance2d = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-								end 
-								--pathdistance = GetPathDistance(myPos,gotoPos)
-							end
-						end
-						--]]
 					end
 				end
 			end

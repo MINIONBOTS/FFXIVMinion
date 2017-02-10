@@ -2247,8 +2247,8 @@ function GetClosestFate(pos,pathcheck)
 		if (table.valid(whitelistTable)) then
 			for k, fate in pairs(fateList) do
 				if (whitelistTable[fate.id] and	fate.status == 2) then	
-					local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					if (p and dist <= 5) then
+					local p = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
+					if (p and p.distance ~= 0 and p.distance <= 5) then
 						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
 						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
 						if (distance) then
@@ -2454,8 +2454,8 @@ function GetPathDistance(pos1,pos2)
 	
 	local dist = nil
 	
-	local p1,dist1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
-	local p2,dist2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
+	local p1 = NavigationManager:GetClosestPointOnMesh(pos1) or pos1
+	local p2 = NavigationManager:GetClosestPointOnMesh(pos2) or pos2
 	
 	local path = NavigationManager:GetPath(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z)
 	if (table.valid(path)) then
