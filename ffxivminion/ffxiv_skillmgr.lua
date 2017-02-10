@@ -5644,7 +5644,7 @@ function SkillMgr.DrawManager()
 				if (GUI:CollapsingHeader("Valid Classes","classes-header",true,false)) then
 					local fighters = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST"}
 					local crafters = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
-					local gatherers = {"BTN","FSH","CRP"}
+					local gatherers = {"MIN","BTN","FSH"}
 					
 					local count = 1
 					for i,abrev in pairsByKeys(fighters) do

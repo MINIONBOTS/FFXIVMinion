@@ -688,26 +688,7 @@ function c_patience:evaluate()
 			usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") )
 		end
 		
-		if (usePatience) then
-			local patience = SkillMgr.GetAction(4102,1)
-			if (patience and patience:IsReady(Player.id)) then	
-				if (ffxiv_fish.NeedsCordialCheck()) then
-					if (Player:GetFishingState() ~= 0) then
-						local finishcast = SkillMgr.GetAction(299,1)
-						if (finishcast and finishcast.isready) then
-							finishcast:Cast()
-						end
-						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
-						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
-						return false
-					end
-				end
-				if (patience:Cast()) then
-					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4102,1).isoncd) end)
-				end
-				return true
-			end
-		elseif (usePatience2) then
+		if (usePatience2) then
 			local patience2 = SkillMgr.GetAction(4106,1)
 			if (patience2 and patience2:IsReady(Player.id)) then	
 				if (ffxiv_fish.NeedsCordialCheck()) then
@@ -726,6 +707,25 @@ function c_patience:evaluate()
 				end
 				return true
 			end
+		elseif (usePatience) then
+			local patience = SkillMgr.GetAction(4102,1)
+			if (patience and patience:IsReady(Player.id)) then	
+				if (ffxiv_fish.NeedsCordialCheck()) then
+					if (Player:GetFishingState() ~= 0) then
+						local finishcast = SkillMgr.GetAction(299,1)
+						if (finishcast and finishcast.isready) then
+							finishcast:Cast()
+						end
+						qd("[QuestFishComplete]: Quitting out of fishing state.",2)
+						ml_global_information.Await(2500, function () return Player:GetFishingState() == 0 end)
+						return false
+					end
+				end
+				if (patience:Cast()) then
+					ml_global_information.Await(3000, function () return (SkillMgr.GetAction(4102,1).isoncd) end)
+				end
+				return true
+			end
 		end
 	end
 	
@@ -737,13 +737,7 @@ c_collectibleaddonfish = inheritsFrom( ml_cause )
 e_collectibleaddonfish = inheritsFrom( ml_effect )
 function c_collectibleaddonfish:evaluate()
 	if (IsControlOpen("SelectYesNoCountItem")) then
-		local control = GetControl("SelectYesNoCountItem")
-		if (control) then
-			info = control:GetData()
-		else
-			control:Close()
-			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesNoCountItem") end)
-		end
+		local info = GetControlData("SelectYesNoCountItem")
 		if (table.valid(info)) then
 			
 			-- remove later

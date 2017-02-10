@@ -873,7 +873,7 @@ function e_gather:execute()
 			d("[Gather]: Using slot for item 2 - ["..tostring(itemslot2).."].")
 		end
 		
-		if (item3 and item2 ~= "" and item3 ~= GetString("none")) then
+		if (item3 and item3 ~= "" and item3 ~= GetString("none")) then
 			itemid3 = AceLib.API.Items.GetIDByName(item3) or 0
 			if (itemid3 == 0) then
 				d("[Gather]: Could not find a valid item ID for Item 3 - ["..tostring(item3).."].")
@@ -1721,10 +1721,10 @@ function e_collectiblegame:execute()
 			end
 		end
 					
-		d("Item current rarity ["..tostring(info.rarity).."].",3)
-		d("Item required rarity ["..tostring(requiredRarity).."].",3)
-		d("Item current wear ["..tostring(info.wear).."].",3)
-		d("Item max wear ["..tostring(info.wearmax).."].",3)
+		d("Item current rarity ["..tostring(info.rarity).."].")
+		d("Item required rarity ["..tostring(requiredRarity).."].")
+		d("Item current wear ["..tostring(info.wear).."].")
+		d("Item max wear ["..tostring(info.wearmax).."].")
 				
 		if (info.rarity > 0 and
 			(((info.rarity >= tonumber(requiredRarity)) and tonumber(requiredRarity) > 0) or 
@@ -1786,13 +1786,7 @@ c_collectibleaddongather = inheritsFrom( ml_cause )
 e_collectibleaddongather = inheritsFrom( ml_effect )
 function c_collectibleaddongather:evaluate()
 	if (IsControlOpen("SelectYesNoCountItem")) then
-		local control = GetControl("SelectYesNoCountItem")
-		if (control) then
-			info = control:GetData()
-		else
-			control:Close()
-			ml_global_information.Await(1500, function () return not IsControlOpen("SelectYesNoCountItem") end)
-		end
+		local info = GetControlData("SelectYesNoCountItem")
 		if (table.valid(info)) then
 			local validCollectible = false
 			
@@ -1916,7 +1910,7 @@ function c_collectibleaddongather:evaluate()
 				UseControlAction("SelectYesNoCountItem","No")
 			else
 				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
-				UseControlAction("SelectYesNoCountItem","No")
+				UseControlAction("SelectYesNoCountItem","Yes")
 			end
 			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
 			return true
