@@ -93,6 +93,7 @@ function ml_global_information.OnUpdate( event, tickcount )
 	
 	memoize = {}
 	if (ml_global_information.IsYielding()) then
+		--d("stuck in yield")
 		return false
 	end
 	
@@ -405,8 +406,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			
 			if (not ml_task_hub:Update()) then
 				d("No task queued, please select a valid bot mode in the Settings drop-down menu")
-			else
-				--d("running cne")
 			end
 		end
     end
@@ -590,7 +589,7 @@ function ffxivminion.HandleInit()
 	--ffxivminion.AddMode(GetString("huntMode"), ffxiv_task_hunt)
 	--ffxivminion.AddMode(GetString("huntlogMode"), ffxiv_task_huntlog)
 	--ffxivminion.AddMode(GetString("quickStartMode"), ffxiv_task_qs_wrapper)
-	--ffxivminion.AddMode("NavTest", ffxiv_task_test)
+	ffxivminion.AddMode("NavTest", ffxiv_task_test)
 	
 	-- New GUI code, need new strings and handlers for combo boxes.
 	FFXIV_Common_MeshList = {""}

@@ -211,7 +211,6 @@ function e_teletofate:execute()
 	if (newdest) then
 		Hacks:TeleportToXYZ(newdest.x,newdest.y,newdest.z)
 	end
-	Player:SetFacingSynced(Player.pos.h)
 	c_teletofate.lastTele = Now() + 10000
 	ffxiv_task_grind.inFate = true
 end

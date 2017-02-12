@@ -57,7 +57,9 @@ ml_navigation.GetMovementType = function()
 	end
 end
 		
-ml_navigation.CanRun = function() return GetGameState() == FFXIV.GAMESTATE.INGAME end 			-- Return true here, if the current GameState is "ingame" aka Player and such values are available
+ml_navigation.CanRun = function() 
+	return GetGameState() == FFXIV.GAMESTATE.INGAME and (not MIsLocked() or IsFlying()) 
+end 	-- Return true here, if the current GameState is "ingame" aka Player and such values are available
 ml_navigation.StopMovement = function() Player:Stop() end				 		-- Stop the navi + Playermovement
 ml_navigation.IsMoving = function() return Player:IsMoving() end				-- Take a wild guess											
 ml_navigation.avoidanceareasize = 2
@@ -140,7 +142,7 @@ end
 
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
-function ml_navigation.Navigate(event, ticks )	
+function ml_navigation.Navigate(event, ticks )		
 	if ((ticks - (ml_navigation.lastupdate or 0)) > 50) then 
 		ml_navigation.lastupdate = ticks
 				

@@ -1140,7 +1140,6 @@ function e_followleader:execute()
 		if (gTeleportHack) then
 			if (distance > 100) then
 				Hacks:TeleportToXYZ(leaderPos.x,leaderPos.y,leaderPos.z)
-				Player:SetFacingSynced(leaderPos.x,leaderPos.y,leaderPos.z)
 			end
 		end
 		
@@ -2715,7 +2714,7 @@ function e_selectconvindex:execute()
 					if (string.find(cleanedline,cleanedv) ~= nil) then
 						d("Use conversation line ["..tostring(convo.line).."]")
 						SelectConversationLine(convo.index)
-						ml_global_information.Await(2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+						ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
 						return false
 					end
 				end
@@ -2728,7 +2727,7 @@ function e_selectconvindex:execute()
 			index = c_selectconvindex.unexpected
 		end
 		SelectConversationIndex(tonumber(index))
-		ml_global_information.Await(2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
+		ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
 	end	
 end
 

@@ -3849,7 +3849,6 @@ function ffxiv_task_skillmgrAttack:Process()
 			SkillMgr.teleBack = self.safePos
 			Player:Stop()
 			Hacks:TeleportToXYZ(pos.x + 1,pos.y, pos.z)
-			Player:SetFacingSynced(pos.h)
 			SkillMgr.teleCastTimer = Now() + 1600
 		end
 		
@@ -3861,7 +3860,6 @@ function ffxiv_task_skillmgrAttack:Process()
 			(Now() > SkillMgr.teleCastTimer or (target.castinginfo and target.castinginfo.channelingid ~= 0))) then
 			local back = SkillMgr.teleBack
 			Hacks:TeleportToXYZ(back.x, back.y, back.z)
-			Player:SetFacingSynced(back.h)
 			SkillMgr.teleBack = {}
 			SkillMgr.teleCastTimer = 0
 		end

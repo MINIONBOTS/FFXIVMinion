@@ -1956,16 +1956,16 @@ function ffxiv_mesh_interact.Create()
 end
 
 function ffxiv_mesh_interact:Init()
-	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 25 )
-    self:add( ke_detectYesNo, self.overwatch_elements)
-	
 	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
-    self:add(ke_skipTalk, self.process_elements)
+    self:add(ke_skipTalk, self.overwatch_elements)
+	
+	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 150 )
+    self:add( ke_detectYesNo, self.overwatch_elements)
 
 	self:AddTaskCheckCEs()
 end
 
-function ffxiv_mesh_interact:task_complete_eval()		
+function ffxiv_mesh_interact:task_complete_eval()	
 	if (self.interact == 0) then
 		local interacts = EntityList("nearest,targetable,type=7,chartype=0,maxdistance=6")
 		if (table.valid(interacts)) then
@@ -2095,7 +2095,7 @@ function ffxiv_nav_interact:Init()
 	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
     self:add(ke_skipTalk, self.overwatch_elements)
 	
-	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 20 )
+	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 150 )
     self:add( ke_detectYesNo, self.overwatch_elements)
 	
 	local ke_convIndex = ml_element:create( "ConversationIndex", c_selectconvindex, e_selectconvindex, 19 )
