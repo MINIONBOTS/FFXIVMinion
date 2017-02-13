@@ -42,7 +42,7 @@ function dev.DrawCall(event, ticks )
 					local controls = GetControls()
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
-							if (string.contains(e.name,gDevAddonTextFilter)) then
+							if (gDevAddonTextFilter == "" or string.contains(e.name,gDevAddonTextFilter)) then
 								GUI:PushItemWidth(150)
 								if ( GUI:TreeNode(tostring(id).." - "..e.name.." ("..tostring(table.size(e:GetActions())).." / "..tostring(table.size(e:GetData()))..")") ) then
 									GUI:BulletText("Ptr") GUI:SameLine(200) GUI:InputText("##devc0"..tostring(id),tostring(string.format( "%X",e.ptr)))
@@ -103,7 +103,7 @@ function dev.DrawCall(event, ticks )
 					GUI:PushItemWidth(200)
 					if (table.valid(controls)) then
 						for id, e in pairs(controls) do
-							if (string.contains(e,gDevAddonTextFilter)) then
+							if (gDevAddonTextFilter == "" or string.contains(e,gDevAddonTextFilter)) then
 								GUI:BulletText("ID: "..tostring(id)) GUI:SameLine(150) GUI:InputText("##devac0"..tostring(id), e) 
 								GUI:SameLine() 
 								if (GUI:Button("Create##"..tostring(id),50,15) ) then d("Creating Control Result: "..tostring(CreateControl(id))) end
@@ -395,11 +395,10 @@ function dev.DrawCall(event, ticks )
 			end
 --End GATHERING
 
-
 			if ( GUI:TreeNode("Gathering - Collectable")) then
-				if( gamestate == FFXIV.GAMESTATE.INGAME ) then 
+				if( gamestate == FFXIV.GAMESTATE.INGAME and IsControlOpen("GatheringMasterpiece")) then 
 					GUI:PushItemWidth(200)
-					local e = Player:GatherCollectableInfo()
+					local e = GetControlData("GatheringMasterpiece")
 					if (table.valid(e)) then
 						GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##devgac0",tostring(string.format( "%X",e.ptr)))
 						GUI:BulletText(".rarity") GUI:SameLine(200) GUI:InputText("##devga1",tostring(e.rarity))
@@ -807,8 +806,7 @@ function dev.DrawCall(event, ticks )
 					local p = Player
 					if ( p ) then 
 						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
-						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))
-						GUI:BulletText(".pettype") GUI:SameLine(200) GUI:InputText("##devuf4", tostring(p.pettype))						
+						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
 						
 						if (GUI:Button("Respawn##"..tostring(id),100,15) ) then d("Respawn Result : "..tostring(Player:Respawn())) end					
 						

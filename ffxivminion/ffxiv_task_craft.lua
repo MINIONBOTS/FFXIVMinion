@@ -395,7 +395,7 @@ function c_collectibleaddoncraft:evaluate()
 				for job,collectible in pairs(variables) do
 					--d("Checking variable ["..tostring(job).."]")
 					--d("id ["..tostring(collectible.id).."], value ["..tostring(collectible.value).."]")
-					if (string.find(tostring(info.itemid),tostring(collectible.id))) then
+					if (string.contains(tostring(info.itemid),tostring(collectible.id))) then
 						if (info.collectability >= collectible.value) then
 							validCollectible = true
 						else
@@ -1323,14 +1323,14 @@ function ffxiv_craft.GUIVarUpdate(Event, NewVals, OldVals)
 				k == "gCraftMaxItems" or
 				k == "gCraftDebug" or
 				k == "gCraftDebugLevel" or
-				string.find(tostring(k),"gCraftCollectible") or
-				string.find(tostring(k),"gCraftGearset"))				
+				string.contains(tostring(k),"gCraftCollectible") or
+				string.contains(tostring(k),"gCraftGearset"))				
 		then
             SafeSetVar(tostring(k),v)
 		elseif (k == "gCraftOrderSelect") then
 			SafeSetVar(tostring(k),v)
 			ffxiv_craft.SwitchCraftWindow()
-		elseif (string.find(tostring(k),"gCraftOrderEdit")) then
+		elseif (string.contains(tostring(k),"gCraftOrderEdit")) then
 			ffxiv_craft.EditOrderElement(k,v)
 		elseif ( k == "gProfile" and gBotMode == GetString("craftMode")) then
 			ffxiv_craft.LoadProfile(v)
@@ -1342,11 +1342,11 @@ end
 
 function ffxiv_craft.HandleButtons( Event, Button )	
 	if ( Event == "GUI.Item" ) then
-		if (string.find(Button,"ffxiv_craft_InspectRecipe")) then
+		if (string.contains(Button,"ffxiv_craft_InspectRecipe")) then
 			ffxiv_craft.InspectRecipe(string.gsub(Button,"ffxiv_craft_InspectRecipe",""))
-		elseif (string.find(Button,"ffxiv_craft_EditOrder")) then
+		elseif (string.contains(Button,"ffxiv_craft_EditOrder")) then
 			ffxiv_craft.EditOrder(string.gsub(Button,"ffxiv_craft_EditOrder",""))	
-		elseif (string.find(Button,"ffxiv_craft%.")) then
+		elseif (string.contains(Button,"ffxiv_craft%.")) then
 			ExecuteFunction(Button)
 		end
 	end

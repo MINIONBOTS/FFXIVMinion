@@ -78,7 +78,7 @@ function ffxiv_marker_mgr.GrindDraw(marker)
 			if (marker.fields.whitelist == "") then
 				marker.fields.whitelist = tostring(target.contentid)
 			else
-				if (not string.find(marker.fields.whitelist,tostring(target.contentid))) then
+				if (not string.contains(marker.fields.whitelist,tostring(target.contentid))) then
 					marker.fields.whitelist = marker.fields.whitelist..";"..tostring(target.contentid)
 				end
 			end
@@ -94,7 +94,7 @@ function ffxiv_marker_mgr.GrindDraw(marker)
 			if (marker.fields.blacklist == "") then
 				marker.fields.blacklist = tostring(target.contentid)
 			else
-				if (not string.find(marker.fields.blacklist,tostring(target.contentid))) then
+				if (not string.contains(marker.fields.blacklist,tostring(target.contentid))) then
 					marker.fields.blacklist = marker.fields.blacklist..";"..tostring(target.contentid)
 				end
 			end
@@ -173,7 +173,7 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 			if (marker.fields.whitelist == "") then
 				marker.fields.whitelist = tostring(target.contentid)
 			else
-				if (not string.find(marker.fields.whitelist,tostring(target.contentid))) then
+				if (not string.contains(marker.fields.whitelist,tostring(target.contentid))) then
 					marker.fields.whitelist = marker.fields.whitelist..";"..tostring(target.contentid)
 				end
 			end
@@ -189,7 +189,7 @@ function ffxiv_marker_mgr.GatherDraw(marker)
 			if (marker.fields.blacklist == "") then
 				marker.fields.blacklist = tostring(target.contentid)
 			else
-				if (not string.find(marker.fields.blacklist,tostring(target.contentid))) then
+				if (not string.contains(marker.fields.blacklist,tostring(target.contentid))) then
 					marker.fields.blacklist = marker.fields.blacklist..";"..tostring(target.contentid)
 				end
 			end

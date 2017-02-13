@@ -1433,7 +1433,7 @@ end
 --All writes to the profiles should come through this function.
 function SkillMgr.WriteToFile(strFile)
 	assert(strFile and type(strFile) == "string" and strFile ~= "", "[SkillMgr.WriteToFile]: File target is not valid.")
-	assert(string.find(strFile,"\\") == nil, "[SkillMgr.WriteToFile]: File contains illegal characters.")
+	assert(not string.contains(strFile,"\\"), "[SkillMgr.WriteToFile]: File contains illegal characters.")
 	
 	local filename = SkillMgr.profilePath ..strFile..".lua"
 	
@@ -1635,9 +1635,9 @@ end
 --[[
 function SkillMgr.ButtonHandler(event, Button)
     gSMRecactive = "0"
-	if (event == "GUI.Item" and (string.find(Button,"SKM") ~= nil or string.find(Button,"SM") ~= nil )) then
+	if (event == "GUI.Item" and (string.contains(Button,"SKM") ~= nil or string.contains(Button,"SM") ~= nil )) then
 	
-		if (string.find(Button,"SMDeleteEvent") ~= nil) then
+		if (string.contains(Button,"SMDeleteEvent") ~= nil) then
 			-- Delete the currently selected Profile - file from the HDD
 			if (gSkillProfile ~= nil and gSkillProfile ~= "None" and gSkillProfile ~= "") then
 				d("Deleting current Profile: "..gSkillProfile)
@@ -1646,14 +1646,14 @@ function SkillMgr.ButtonHandler(event, Button)
 			end
 		end
 		
-		if (string.find(Button,"SMRefreshSkillbookEvent") ~= nil) then
+		if (string.contains(Button,"SMRefreshSkillbookEvent") ~= nil) then
 			SkillMgr.SkillBook = {}
 			GUI_DeleteGroup(SkillMgr.skillbook.name,"AvailableSkills")
 			GUI_DeleteGroup(SkillMgr.skillbook.name,"MiscSkills")	
 			SkillMgr.RefreshSkillBook()		
 		end
         
-		if (string.find(Button,"SMEDeleteEvent") ~= nil) then
+		if (string.contains(Button,"SMEDeleteEvent") ~= nil) then
 			if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 				GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
 				SkillMgr.SkillProfile = TableRemoveSort(SkillMgr.SkillProfile,tonumber(SKM_Prio))
@@ -1665,7 +1665,7 @@ function SkillMgr.ButtonHandler(event, Button)
 			end
 		end
 
-		if (string.find(Button,"SMESkillUPEvent") ~= nil) then
+		if (string.contains(Button,"SMESkillUPEvent") ~= nil) then
 			if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 				if ( SKM_Prio > 1) then
 					GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")
@@ -1680,7 +1680,7 @@ function SkillMgr.ButtonHandler(event, Button)
 			end
 		end
 	
-		if (string.find(Button,"SMESkillDOWNEvent") ~= nil) then
+		if (string.contains(Button,"SMESkillDOWNEvent") ~= nil) then
 			if ( TableSize(SkillMgr.SkillProfile) > 0 ) then
 				if ( SKM_Prio < TableSize(SkillMgr.SkillProfile)) then
 					GUI_DeleteGroup(SkillMgr.mainwindow.name,"ProfileSkills")		
@@ -1695,40 +1695,40 @@ function SkillMgr.ButtonHandler(event, Button)
 			end
 		end
 	
-		if (string.find(Button,"SKMEditSkill") ~= nil) then
+		if (string.contains(Button,"SKMEditSkill") ~= nil) then
 			local key = Button:gsub("SKMEditSkill", "")
 			SkillMgr.EditSkill(key)
 		end
-		if (string.find(Button,"SKMClearProfile") ~= nil) then
+		if (string.contains(Button,"SKMClearProfile") ~= nil) then
 			local key = Button:gsub("SKMClearProfile", "")
 			SkillMgr.ClearProfile(key)
 		end
-		if (string.find(Button,"SKMAddSkill") ~= nil) then
+		if (string.contains(Button,"SKMAddSkill") ~= nil) then
 			local key = Button:gsub("SKMAddSkill", "")
 			SkillMgr.AddSkillToProfile(1,key)
 		end
-		if (string.find(Button,"SKMAddPetSkill") ~= nil) then
+		if (string.contains(Button,"SKMAddPetSkill") ~= nil) then
 			local key = Button:gsub("SKMAddPetSkill", "")
 			SkillMgr.AddSkillToProfile(11,key)
 		end
-		if (string.find(Button,"SKMAddCraftSkill") ~= nil) then
+		if (string.contains(Button,"SKMAddCraftSkill") ~= nil) then
 			local key = Button:gsub("SKMAddCraftSkill", "")
 			SkillMgr.AddSkillToProfile(9,key)
 		end
-		if (string.find(Button,"SKMCopySkill") ~= nil) then
+		if (string.contains(Button,"SKMCopySkill") ~= nil) then
 			SkillMgr.CopySkill()
 		end
-		if (string.find(Button,"SKMPasteSkill") ~= nil) then
+		if (string.contains(Button,"SKMPasteSkill") ~= nil) then
 			SkillMgr.PasteSkill()
 		end
 		
-		if (string.find(Button,"SMToggleBuffs") ~= nil) then	
+		if (string.contains(Button,"SMToggleBuffs") ~= nil) then	
 			SkillMgr.ToggleBuffMenu()		
 		end
-		if (string.find(Button,"SMToggleMacro") ~= nil) then	
+		if (string.contains(Button,"SMToggleMacro") ~= nil) then	
 			SkillMgr.ToggleMacroMenu()		
 		end
-	elseif (string.find(Button,"SkillMgr%.")) then
+	elseif (string.contains(Button,"SkillMgr%.")) then
 		ExecuteFunction(Button)
 	end
 end

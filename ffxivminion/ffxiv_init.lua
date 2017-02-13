@@ -86,6 +86,8 @@ ml_global_information.targetid = 0
 ml_global_information.foods = {}
 ml_global_information.mainTask = nil;
 ml_global_information.drawMode = 1
+ml_global_information.lastEquip = 0
+ml_global_information.lastSkipTalk = 0
 
 --Setup Globals
 ml_global_information.lastUpdate = 0
@@ -407,7 +409,7 @@ function ml_global_information.Init()
 				
 			ml_mesh_mgr.GetFileName = function (inputString) 
 				if (ValidString(inputString)) then
-					if (string.find(inputString,'%s%-%s%[.+%]')) then
+					if (string.contains(inputString,'%s%-%s%[.+%]')) then
 						inputString = string.gsub(inputString,'%s%-%s%[.+%]',"")
 					end
 				end
@@ -507,7 +509,18 @@ function UseControlAction(strControl,strAction,actionArg)
 	return false
 end
 
-function GetControl(strControl) 
+function OpenControl(strControl)
+	local control = GetControl(strControl)
+	if (control and type(control) == "number") then
+		CreateControl(control)
+	elseif (control and type(control) == "table") then
+		control:Open()
+	end
+end
+
+function GetControl(strControl,allControls)
+	local allControls = IsNull(allControls,false)
+	
 	local controls = GetControls()
 	if (table.valid(controls)) then
 		for id,e in pairs(controls) do
@@ -516,6 +529,18 @@ function GetControl(strControl)
 			end
 		end
 	end
+	
+	if (allControls) then
+		local controls = GetControlList()
+		if (table.valid(controls)) then
+			for id, e in pairs(controls) do
+				if (e == strControl) then
+					return id
+				end
+			end
+		end
+	end
+	
 	return nil
 end
 

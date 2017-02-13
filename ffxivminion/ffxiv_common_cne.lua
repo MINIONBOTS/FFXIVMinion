@@ -753,7 +753,7 @@ function e_interactgate:execute()
 						local cleanedline = string.gsub(convo.line,"[()-/]","")
 						for k,v in pairs(conversationstrings) do
 							local cleanedv = string.gsub(v,"[()-/]","")
-							if (string.find(cleanedline,cleanedv) ~= nil) then
+							if (string.contains(cleanedline,cleanedv)) then
 								d("Use conversation line ["..tostring(convo.line).."]")
 								SelectConversationLine(convo.index)
 								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
@@ -1269,7 +1269,6 @@ function c_walktopos:evaluate()
 		end
 		
 		if (table.valid(gotoPos)) then
-			
 			if (e_walktopos.lastCode == -2 and TimeSince(e_walktopos.lastFail) < 1000) then
 				local meshpos = NavigationManager:GetClosestPointOnMesh(gotoPos)
 				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 6) then
@@ -1280,44 +1279,12 @@ function c_walktopos:evaluate()
 						ml_task_hub:CurrentTask().gatePos = gotoPos
 					end
 				end
-			else
-				--d("lastcode:"..tostring(e_walktopos.lastCode)..",lastfail:"..tostring(TimeSince(e_walktopos.lastFail)))
 			end
 			
-			-- If we're very close to an interactable
-			local target = MGetTarget()
-			if (target) then
-				if (ml_task_hub:CurrentTask().contentid == target.contentid) then
-					local tpos = target.pos
-					local distFromGoal = PDistance3D(tpos.x,tpos.y,tpos.z,gotoPos.x,gotoPos.y,gotoPos.z)
-					if (distFromGoal <= 5) then
-						local dist2d = target.distance2d
-						if (dist2d ~= 0 and dist2d < 2.5 and target.los) then
-							if (Player:IsMoving()) then
-								d("Stopped because we are very close to the target. Distance = ["..tostring(target.distance2d).."]")
-								Player:Stop()
-							end
-							d("Target is very close.")
-							return false
-						end
-					end
-				end
-			end
+			local range2d, range3d = ml_navigation.GetMovementThresholds()
+			local dist2d, dist3d = math.distance2d(myPos,gotoPos), math.distance3d(myPos,gotoPos)
 			
-			local range = ml_task_hub:CurrentTask().range or 0
-			if (range > 0) then
-				local distance = 0.0
-				if (ml_task_hub:CurrentTask().use3d) then
-					distance = PDistance3D(myPos.x, myPos.y, myPos.z, gotoPos.x, gotoPos.y, gotoPos.z)
-				else
-					distance = Distance2D(myPos.x, myPos.z, gotoPos.x, gotoPos.z)
-				end
-			
-				if (distance > ml_task_hub:CurrentTask().range) then
-					c_walktopos.pos = gotoPos
-					return true
-				end
-			else
+			if (dist2d > range2d or dist3d > range3d) then
 				c_walktopos.pos = gotoPos
 				return true
 			end
@@ -1327,7 +1294,6 @@ function c_walktopos:evaluate()
     return false
 end
 function e_walktopos:execute()
-
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
 		local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount
 		local hasStealth = HasBuff(Player.id,47)
@@ -1471,10 +1437,6 @@ e_useaethernet = inheritsFrom( ml_effect )
 e_useaethernet.nearest = nil
 e_useaethernet.destination = nil
 function c_useaethernet:evaluate(mapid, pos)
-	--if (true) then
-		--return false
-	--end
-	
 	local gotoPos = pos or ml_task_hub:CurrentTask().pos
 	local destMapID = IsNull(ml_task_hub:CurrentTask().destMapID,0)
 	if (destMapID == 0) then
@@ -2693,6 +2655,24 @@ function e_autoequip:execute()
 	end
 end
 
+c_recommendequip = inheritsFrom( ml_cause )
+e_recommendequip = inheritsFrom( ml_effect )
+function c_recommendequip:evaluate()
+	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5)) or IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
+		not Player.alive or Player.incombat or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
+	then
+		return false
+	end	
+	
+	return true
+end
+function e_recommendequip:execute()
+	local control = GetControl("RecommendEquip")
+	
+	--ml_global_information.lastEquip = 0
+	ml_task_hub:ThisTask().preserveSubtasks = true
+end
+
 c_selectconvindex = inheritsFrom( ml_cause )
 e_selectconvindex = inheritsFrom( ml_effect )
 c_selectconvindex.unexpected = 0
@@ -2711,7 +2691,7 @@ function e_selectconvindex:execute()
 				local cleanedline = string.gsub(convo.line,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
 					local cleanedv = string.gsub(v,"[()-/]","")
-					if (string.find(cleanedline,cleanedv) ~= nil) then
+					if (string.contains(cleanedline,cleanedv)) then
 						d("Use conversation line ["..tostring(convo.line).."]")
 						SelectConversationLine(convo.index)
 						ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
@@ -3075,7 +3055,7 @@ function c_skiptalk:evaluate()
 	end
 	
 	if IsControlOpen("Talk") then
-		UseControlAction("Talk","Click",1)
+		UseControlAction("Talk","Click")
 		return true
 	end
 	return false

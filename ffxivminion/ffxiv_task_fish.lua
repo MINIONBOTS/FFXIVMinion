@@ -752,7 +752,7 @@ function c_collectibleaddonfish:evaluate()
 				if (var and var ~= "" and tonumber(valuevar) > 0) then
 					local itemid = AceLib.API.Items.GetIDByName(var,47)
 					if (itemid) then
-						if (string.find(tostring(info.itemid),tostring(itemid))) then
+						if (string.contains(tostring(info.itemid),tostring(itemid))) then
 							if (info.collectability >= tonumber(valuevar)) then
 								validCollectible = true
 							else
@@ -781,7 +781,7 @@ function c_collectibleaddonfish:evaluate()
 						end
 						
 						if (itemid) then
-							if (string.find(tostring(info.itemid),tostring(itemid))) then
+							if (string.contains(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(minvalue)) then
 									validCollectible = true
 								else
@@ -1930,6 +1930,12 @@ function ffxiv_task_syncadjust:task_complete_execute()
     Player:Stop()
 	self:ParentTask().requiresAdjustment = false
 	self.completed = true
+end
+
+function ffxiv_task_syncadjust:task_fail_eval()
+	if (not Player.alive) then
+		return true
+	end
 end
 
 function ffxiv_task_fish:Init()

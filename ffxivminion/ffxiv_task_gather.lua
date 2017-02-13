@@ -646,7 +646,7 @@ function e_gather:execute()
 						local attemptGather = false
 						if (gatherMaps == "Any" or gatherMaps == true) then
 							attemptGather = true
-						elseif (type(gatherMaps) == "string" and string.find(gatherMaps,",")) then
+						elseif (type(gatherMaps) == "string" and string.contains(gatherMaps,",")) then
 							for map in StringSplit(gatherMaps,",") do
 								if (tonumber(map) ~= nil and tonumber(map) == item.id) then
 									attemptGather = true
@@ -678,7 +678,7 @@ function e_gather:execute()
 						attemptGather = true
 					elseif (tonumber(gatherGardening) ~= nil and tonumber(gatherGardening) == item.id) then
 						attemptGather = true
-					elseif (type(gatherGardening) == "string" and string.find(gatherGardening,",")) then
+					elseif (type(gatherGardening) == "string" and string.contains(gatherGardening,",")) then
 						for gardenitem in StringSplit(gatherGardening,",") do
 							if (tonumber(gardenitem) ~= nil and tonumber(gardenitem) == item.id) then
 								attemptGather = true
@@ -705,7 +705,7 @@ function e_gather:execute()
 						attemptGather = true
 					elseif (tonumber(gatherSuperRares) ~= nil and tonumber(gatherSuperRares) == item.id) then
 						attemptGather = true
-					elseif (type(gatherSuperRares) == "string" and string.find(gatherSuperRares,",")) then
+					elseif (type(gatherSuperRares) == "string" and string.contains(gatherSuperRares,",")) then
 						for srareitem in StringSplit(gatherSuperRares,",") do
 							if (tonumber(srareitem) ~= nil and tonumber(srareitem) == item.id) then
 								attemptGather = true
@@ -756,7 +756,7 @@ function e_gather:execute()
 						attemptGather = true
 					elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
 						attemptGather = true
-					elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
+					elseif (type(gatherChocoFood) == "string" and string.contains(gatherChocoFood,",")) then
 						for chocoitem in StringSplit(gatherChocoFood,",") do
 							if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
 								attemptGather = true
@@ -782,7 +782,7 @@ function e_gather:execute()
 					attemptGather = true
 				elseif (tonumber(gatherRares) ~= nil and tonumber(gatherRares) == item.id) then
 					attemptGather = true
-				elseif (type(gatherRares) == "string" and string.find(gatherRares,",")) then
+				elseif (type(gatherRares) == "string" and string.contains(gatherRares,",")) then
 					for rareitem in StringSplit(gatherRares,",") do
 						if (tonumber(rareitem) ~= nil and tonumber(rareitem) == item.id) then
 							attemptGather = true
@@ -808,7 +808,7 @@ function e_gather:execute()
 						attemptGather = true
 					elseif (tonumber(gatherChocoFood) ~= nil and tonumber(gatherChocoFood) == item.id) then
 						attemptGather = true
-					elseif (type(gatherChocoFood) == "string" and string.find(gatherChocoFood,",")) then
+					elseif (type(gatherChocoFood) == "string" and string.contains(gatherChocoFood,",")) then
 						for chocoitem in StringSplit(gatherChocoFood,",") do
 							if (tonumber(chocoitem) ~= nil and tonumber(chocoitem) == item.id) then
 								attemptGather = true
@@ -1795,7 +1795,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName,48)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue)) then
 							validCollectible = true
 						else
@@ -1810,7 +1810,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName2,48)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue2)) then
 							validCollectible = true
 						else
@@ -1825,7 +1825,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gMinerCollectibleName3,48)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gMinerCollectibleValue3)) then
 							validCollectible = true
 						else
@@ -1840,7 +1840,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName,45)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue)) then
 							validCollectible = true
 						else
@@ -1855,7 +1855,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName2,45)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue2)) then
 							validCollectible = true
 						else
@@ -1870,7 +1870,7 @@ function c_collectibleaddongather:evaluate()
 			then
 				local itemid = AceLib.API.Items.GetIDByName(gBotanistCollectibleName3,45)
 				if (itemid) then
-					if (string.find(tostring(info.itemid),tostring(itemid))) then
+					if (string.contains(tostring(info.itemid),tostring(itemid))) then
 						if (info.collectability >= tonumber(gBotanistCollectibleValue3)) then
 							validCollectible = true
 						else
@@ -1893,7 +1893,7 @@ function c_collectibleaddongather:evaluate()
 						end
 						
 						if (itemid) then
-							if (string.find(tostring(info.itemid),tostring(itemid))) then
+							if (string.contains(tostring(info.itemid),tostring(itemid))) then
 								if (info.collectability >= tonumber(minvalue)) then
 									validCollectible = true
 								else

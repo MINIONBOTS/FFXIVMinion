@@ -4,20 +4,31 @@
 -- Distance to the next node in the path at which the ml_navigation.pathindex is iterated 
 ml_navigation.NavPointReachedDistances = { 	
 	["3dwalk"] = 2,		
-	["2dwalk"] = 0.3,
+	["2dwalk"] = 0.4,
 	["3dmount"] = 5,
-	["2dmount"] = 0.5,
+	["2dmount"] = 0.6,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
+	["3dflysc"] = 5,
+	["2dflysc"] = 3,	
+}
+-- Distance required basic task goals. A little softer than nav points.
+ml_navigation.PointReachedDistances = { 	
+	["3dwalk"] = 2,		
+	["2dwalk"] = 1,
+	["3dmount"] = 5,
+	["2dmount"] = 1,
+	["3dfly"] = 5,
+	["2dfly"] = 1.5,
 	["3dflysc"] = 5,
 	["2dflysc"] = 3,	
 }
 -- Distance to the next node in the path, in case it is an OffMeshConnection, at which the ml_navigation.pathindex is iterated 
 ml_navigation.OMCReachedDistances = { 			
 	["3dwalk"] = 2,		
-	["2dwalk"] = 0.3,
+	["2dwalk"] = 0.4,
 	["3dmount"] = 5,
-	["2dmount"] = 0.5,
+	["2dmount"] = 0.6,
 	["3dfly"] = 5,
 	["2dfly"] = 1,
 	["3dflysc"] = 5,
@@ -26,9 +37,9 @@ ml_navigation.OMCReachedDistances = {
 -- We have a path already and a new one is requested, if the distance between old and new target position is larger than this one, a new path is being build.
 ml_navigation.NewPathDistanceThresholds = { 	
 	["3dwalk"] = 1.0,		
-	["2dwalk"] = 0.3,
+	["2dwalk"] = 0.4,
 	["3dmount"] = 3.0,
-	["2dmount"] = 0.5,
+	["2dmount"] = 0.6,
 	["3dfly"] = 3.0,
 	["2dfly"] = 1.0,
 	["3dflysc"] = 5.0,
@@ -54,6 +65,16 @@ ml_navigation.GetMovementType = function()
 		return "3dmount"
 	else
 		return "2dmount"
+	end
+end
+
+ml_navigation.GetMovementThresholds = function() 
+	if ( not Player.ismounted ) then 
+		return ml_navigation.PointReachedDistances["2dwalk"],ml_navigation.PointReachedDistances["3dwalk"]
+	elseif ( Player.flying.isflying ) then
+		return ml_navigation.PointReachedDistances["2dfly"],ml_navigation.PointReachedDistances["3dfly"]
+	else
+		return ml_navigation.PointReachedDistances["2dmount"],ml_navigation.PointReachedDistances["3dmount"]
 	end
 end
 		
@@ -225,31 +246,7 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Jump OMC"
 							
 							if ( Player:IsJumping()) then
-								if ( not ml_navigation.omc_startheight ) then ml_navigation.omc_startheight = ppos.y end
-								-- Additionally check if we are "above" the target point already, in that case, stop moving forward
-								local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
-								if ( nodedist < ml_navigation.NavPointReachedDistances["2dwalk"] or (ppos.y > nextnode.y and math.distance2d(ppos,nextnode) < ml_navigation.NavPointReachedDistances["2dwalk"]) ) then
-									d("[Navigation] - We are above the OMC_END Node, stopping movement. ("..tostring(math.round(nodedist,2)).." < "..tostring(ml_navigation.NavPointReachedDistances["2dwalk"])..")")
-									Player:StopMovement()
-									if ( omc.precise == nil or omc.precise == true  ) then
-										ml_navigation:SetEnsurePosition(nextnode)
-									end
-									
-								-- If Playerheight is lower than 4*omcreached dist AND Playerheight is lower than 4* our Startposition -> we fell below the OMC START & END Point
-								elseif( ( ppos.y+ 4*ml_navigation.NavPointReachedDistances["2dwalk"]) < (nextnode.y) and ( ppos.y + 4*ml_navigation.NavPointReachedDistances["2dwalk"]) <  ml_navigation.omc_startheight) then
-									if ( ml_navigation.omcteleportallowed and math.distance3d(ppos,nextnode) < ml_navigation.NavPointReachedDistances["2dwalk"]*10) then										
-										d("SetEnsurePosition JUMP ")
-										ml_navigation:SetEnsurePosition(nextnode) 
-									else
-										d("[Navigation] - We felt below the OMC start & END height, missed our goal...")
-										ml_navigation.StopMovement()
-									end
-								
-								else
-									Player:Move(FFXIV.MOVEMENT.FORWARD)
-									Player:SetFacing(nextnode.x,nextnode.y,nextnode.z) -- doesnt do shit afaik, since you cannot steer once in the air..
-								end
-							
+								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:Stop() end)
 							else	 
 								-- We are still before our Jump
 								if ( not ml_navigation.omc_startheight ) then
@@ -266,7 +263,6 @@ function ml_navigation.Navigate(event, ticks )
 										d("[Navigation]: Jump for OMC.")
 									end
 								else
-									
 									d("-- We are after the Jump and landed already")
 									local nodedist = ml_navigation:GetRaycast_Player_Node_Distance(ppos,nextnode)
 									if ( nodedist < ml_navigation.NavPointReachedDistances["2dwalk"]) then
@@ -297,6 +293,12 @@ function ml_navigation.Navigate(event, ticks )
 						elseif ( omc.type == 4 ) then
 							-- OMC Interact  I AM SO UNSURE IF THAT IS WORKING OR EVEN USED ANYMORE :D:D:D:D
 							ml_navigation.GUI.lastAction = "Interact OMC"
+							
+							if (Player:IsMoving()) then
+								Player:StopMovement()
+								ffnav.Await(1000, function () return not Player:IsMoving() end)
+								return
+							end
 							
 							if (IsControlOpen("SelectYesno")) then
 								if (IsControlOpen("_NotificationParty")) then
@@ -346,19 +348,19 @@ function ml_navigation.Navigate(event, ticks )
 								EList = EntityList("nearest,targetable,maxdistance=7")								
 								if ( table.valid(EList)) then interactnpc = select(2,next(EList)) end
 							end
-															
+							
 							if ( interactnpc ) then
 								local target = MGetTarget()
-								if (not target or (target and target.id ~= interactnpc)) then
+								local interactid = interactnpc.id
+								if (not target or (target and target.id ~= interactid)) then
 									d("Setting target for interaction : "..interactnpc.name)
-									Player:SetTarget(interactnpc)
-									ml_navigation.lastupdate = ml_navigation.lastupdate + 500
-								
+									Player:SetTarget(interactid)
+									ffnav.Await(1500, function () return (Player:GetTarget() and Player:GetTarget().id == interactid) end)
 								else
 									local npcpos = interactnpc.pos
 									Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
 									Player:Interact(interactnpc.id)
-									ml_navigation.lastupdate = ml_navigation.lastupdate + 500
+									ffnav.Await(2000, function () return (MIsLoading() or table.valid(GetConversationList())) end)
 								end
 							end
 						
