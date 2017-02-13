@@ -576,4 +576,15 @@ function GetPublicProfiles(path,ext)
 	return profiles,profilesDisplay
 end
 
+-- Yes, a dev asked for this, since the current C&E Framework is impossible to get into or to understand at the current point, with 0 documentation.
+function ml_global_information.LoadBehaviorFiles()
+	-- Load all our local "bot/addon" BTree files
+	local path = GetStartupPath()  .. "\\LuaMods\\ffxivminion\\Behavior"
+	if (not FolderExists(path)) then
+		FolderCreate(path)
+	end
+	BehaviorManager:LoadBehaviorFromFolder(path)
+ end
+RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles)
+
 RegisterEventHandler("Module.Initalize",ml_global_information.Init)
