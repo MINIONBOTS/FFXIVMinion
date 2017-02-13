@@ -1,7 +1,8 @@
 -- Skillmanager for adv. skill customization
 SkillMgr = {}
 SkillMgr.lastTick = 0
-SkillMgr.profilePath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]];
+SkillMgr.profilePath = GetStartupPath() .. [[\LuaMods\ffxivminion\SkillManagerProfiles\]]
+SkillMgr.defaultProfilePath = SkillMgr.profilePath .. [[Defaults\]]
 SkillMgr.yield = {}
 SkillMgr.monitor = {}
 SkillMgr.gcdTime = 2.5
@@ -151,20 +152,50 @@ SkillMgr.StartingProfiles = {
 SkillMgr.ExtraProfiles = {
 	"BLM_50",
 	"Monk_50",
+	"Craft_2Star_TokenNQ",
 	"Craft_Artisan_2Star_Token",
+	"Craft_BasicFinisher",
+	"Craft_BasicFinisher2",
 	"Craft_Supra_3Star_Token",
-	
 	"Aetherial_Gathering",
 	"Aetherial_Multi",
 	"Gathering_530",
+	"Gathering_Blue",
 	"Gathering_Clusters",
 	"Gathering_Collectables",
 	"Gathering_Crystals",
+	"Gathering_Favors",
 	"Gathering_HQ",
 	"Gathering_Leveling",
 	"Gathering_Scrips",	
 	"Gathering_Shards",	
 }
+
+function SkillMgr.UpdateDefaultProfiles()
+	for _,profile in pairs(SkillMgr.StartingProfiles) do
+		local filePath = SkillMgr.profilePath..profile..".lua"
+		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
+		if (not FileExists(filePath) and FileExists(defaultPath)) then
+			local fileData = persistence.load(defaultPath)
+			if (fileData) then
+				persistence.store(filePath, fileData)
+			end
+		end
+	end
+	
+	for _,profile in pairs(SkillMgr.ExtraProfiles) do
+		local filePath = SkillMgr.profilePath..profile..".lua"
+		local defaultPath = SkillMgr.defaultProfilePath..profile..".lua"
+		if (not FileExists(filePath) and FileExists(defaultPath)) then
+			local fileData = persistence.load(defaultPath)
+			if (fileData) then
+				persistence.store(filePath, fileData)
+			end
+		end
+	end
+end
+
+SkillMgr.UpdateDefaultProfiles()
 
 SkillMgr.ActionTypes = {
 	ACTIONS = 1,
@@ -536,7 +567,6 @@ SkillMgr.Variables = {
 }
 
 function SkillMgr.ModuleInit() 	
-
 	SkillMgr.GUI.manager.main_tabs = GUI_CreateTabs("Edit,Add,Debug",false)
 	
 	for varname,info in pairs(SkillMgr.Variables) do
