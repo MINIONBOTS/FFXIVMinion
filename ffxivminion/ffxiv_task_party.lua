@@ -119,8 +119,8 @@ function ffxiv_task_party.SetLeaderFromTarget()
 	local t = Player:GetTarget()
 	if (t~=nil) then
 		if (t.type == 1) then
-			GUI_Set(t.name,"gPartyLeaderName")
-			GUI_Set(false,"gPartyGrindUsePartyLeader")
+			GUI_Set("gPartyLeaderName",t.name)
+			GUI_Set("gPartyGrindUsePartyLeader",false)
 		end
 	end
 end
@@ -151,7 +151,6 @@ function ffxiv_task_party.SetModeOptions()
 	gSkipTalk = Settings.FFXIVMINION.gSkipTalk
 	gDisableDrawing = Settings.FFXIVMINION.gDisableDrawing
 	Hacks:SkipCutscene(gSkipCutscene)
-	Hacks:SkipDialogue(gSkipTalk)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = true
 	FFXIV_Common_Profile = "NA"
@@ -163,7 +162,7 @@ end
 -- New GUI.
 function ffxiv_task_party:UIInit()
 	gPartyLeaderName = ffxivminion.GetSetting("gPartyLeaderName","")
-	gPartyGrindUsePartyLeader = ffxivminion.GetSetting("gPartyGrindUsePartyLeader","")
+	gPartyGrindUsePartyLeader = ffxivminion.GetSetting("gPartyGrindUsePartyLeader",true)
 	gPartyGrindFateSync = ffxivminion.GetSetting("gPartyGrindFateSync",true)
 	
 	self.GUI.main_tabs = GUI_CreateTabs("status",true)
@@ -187,11 +186,12 @@ function ffxiv_task_party:Draw()
 	
 	if (tabs.tabs[1].isselected) then
 		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
-		GUI:PushItemWidth(120)					
+		GUI:PushItemWidth(200)					
 		
 		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:InputText(GetString("PartyLeader"),gPartyLeaderName),"gPartyLeaderName");
-		GUI:Checkbox(GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader)
+		GUI_Capture(GUI:Checkbox(GetString("UseGamePartyLeader"),gPartyGrindUsePartyLeader),"gPartyGrindUsePartyLeader")
+		GUI_Capture(GUI:Checkbox("Sync to Fates",gPartyGrindFateSync),"gPartyGrindFateSync")
 		if (GUI:Button(GetString("GetPartyLeader"))) then
 			ffxiv_task_party.SetLeaderFromTarget()
 		end
