@@ -749,13 +749,13 @@ function e_interactgate:execute()
 			local convoList = GetConversationList()
 			if (table.valid(convoList)) then
 				if (table.valid(conversationstrings)) then
-					for _,convo in pairs(convoList) do
-						local cleanedline = string.gsub(convo.line,"[()-/]","")
+					for selectindex,convo in pairs(convoList) do
+						local cleanedline = string.gsub(convo,"[()-/]","")
 						for k,v in pairs(conversationstrings) do
 							local cleanedv = string.gsub(v,"[()-/]","")
 							if (string.contains(cleanedline,cleanedv)) then
-								d("Use conversation line ["..tostring(convo.line).."]")
-								SelectConversationLine(convo.index)
+								d("Use conversation line ["..tostring(convo).."]")
+								SelectConversationLine(selectindex)
 								ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 								return false
 							end
@@ -2701,13 +2701,13 @@ function e_selectconvindex:execute()
 	if (table.valid(conversationstrings)) then
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
-			for _,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo.line,"[()-/]","")
+			for selectindex,convo in pairs(convoList) do
+				local cleanedline = string.gsub(convo,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.contains(cleanedline,cleanedv)) then
-						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationLine(convo.index)
+						d("Use conversation line ["..tostring(convo).."]")
+						SelectConversationLine(selectindex)
 						ml_global_information.Await(2000, function () return not (table.valid(GetConversationList())) end)
 						return false
 					end

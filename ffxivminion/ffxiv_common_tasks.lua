@@ -527,24 +527,24 @@ function ffxiv_task_movetointeract:task_complete_eval()
 		local convoList = GetConversationList()
 		if (table.valid(convoList)) then
 			if (string.valid(self.conversationstring)) then
-				for _,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()-/]","")
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo,"[()-/]","")
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationLine(convo.index)
+						d("Use conversation line ["..tostring(convo).."]")
+						SelectConversationLine(selectindex)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
-				for _,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()-/]","")
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-							d("Use conversation line ["..tostring(convo.line).."]")
-							SelectConversationLine(convo.index)
+							d("Use conversation line ["..tostring(convo).."]")
+							SelectConversationLine(selectindex)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end
@@ -1027,13 +1027,13 @@ function ffxiv_task_teleport:task_complete_eval()
 				["KR"] = "귀환 지점 설정";
 			}
 
-			for _,convo in pairs(convoList) do
-				local cleanedline = string.gsub(convo.line,"[()-/]","")
+			for selectindex,convo in pairs(convoList) do
+				local cleanedline = string.gsub(convo,"[()-/]","")
 				for k,v in pairs(conversationstrings) do
 					local cleanedv = string.gsub(v,"[()-/]","")
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-						d("Use conversation line ["..tostring(convo.line).."]")
-						SelectConversationLine(convo.index)
+						d("Use conversation line ["..tostring(convo).."]")
+						SelectConversationLine(selectindex)
 						ml_global_information.Await(2000, function () return IsControlOpen("SelectYesno") end)
 						return false
 					end
@@ -2493,13 +2493,13 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 					kr = "모험가 거주구로 이동",
 				}
 				
-				for _,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()-/]","")
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo,"[()-/]","")
 					for language,astring in pairs(aethernet) do
 						local cleanedastring = string.gsub(astring,"[()-/]","")
 						if (string.contains(cleanedline,cleanedastring) and not string.contains(cleanedline,residential[language])) then
-							d("Use conversation line ["..tostring(convo.line).."] to open Aethernet menu.")
-							SelectConversationLine(convo.index)
+							d("Use conversation line ["..tostring(convo).."] to open Aethernet menu.")
+							SelectConversationLine(selectindex)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						end
 					end
@@ -2508,24 +2508,24 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 			end
 			
 			if (string.valid(self.conversationstring)) then
-				for _,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()-/]","")
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo,"[()-/]","")
 					local cleanedv = string.gsub(self.conversationstring,"[()-/]","")
 					if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-						d("Use conversation line ["..tostring(convo.index).."] to select ["..tostring(convo.line).." for ["..tostring(self.conversationstring).."].")
-						SelectConversationLine(convo.index)
+						d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(self.conversationstring).."].")
+						SelectConversationLine(selectindex)
 						ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 						return false
 					end
 				end
 			elseif (table.valid(self.conversationstrings)) then
-				for _,convo in pairs(convoList) do
-					local cleanedline = string.gsub(convo.line,"[()-/]","")
+				for selectindex,convo in pairs(convoList) do
+					local cleanedline = string.gsub(convo,"[()-/]","")
 					for k,v in pairs(self.conversationstrings) do
 						local cleanedv = string.gsub(v,"[()-/]","")
 						if (string.contains(IsNull(cleanedline,""),IsNull(cleanedv,""))) then
-							d("Use conversation line ["..tostring(convo.index).."] to select ["..tostring(convo.line).." for ["..tostring(cleanedv).."].")
-							SelectConversationLine(convo.index)
+							d("Use conversation line ["..tostring(selectindex).."] to select ["..tostring(convo).." for ["..tostring(cleanedv).."].")
+							SelectConversationLine(selectindex)
 							ml_global_information.Await(500,2000, function () return not (IsControlOpen("SelectString") and IsControlOpen("SelectIconString")) end)
 							return false
 						end

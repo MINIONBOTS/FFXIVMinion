@@ -504,10 +504,7 @@ function dev.DrawCall(event, ticks )
 													if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then d("Convert Result: "..tostring(item:Convert())) end
 													GUI:SameLine(200)
 													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
-													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
-													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
-																										
-													
+												
 													GUI:Separator()
 													GUI:TreePop()
 												end
