@@ -2438,7 +2438,7 @@ function c_autoequip:evaluate()
 	if (((not gAutoEquip or Now() < c_autoequip.postpone) and gForceAutoEquip == false) or 
 		IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or 
 		not Player.alive or Player.incombat or
-		IsControlOpen("Gathering") or Player:GetFishingState() ~= 0) 
+		IsControlOpen("Gathering") or Player:GetFishingState() ~= 0 or Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) 
 	then
 		return false
 	end
@@ -2667,8 +2667,22 @@ function c_recommendequip:evaluate()
 	return true
 end
 function e_recommendequip:execute()
-	local control = GetControl("RecommendEquip")
-	
+	if (not IsControlOpen("Character")) then
+		d("character control not open")
+		ActionList:Get(10,2):Cast()
+		ml_global_information.Await(1000, function () return IsControlOpen("Character") end)
+	else
+		if (not IsControlOpen("RecommendEquip")) then
+			UseControlAction("Character","OpenRecommendEquip")
+			ml_global_information.Await(1000, function () return IsControlOpen("RecommendEquip") end)
+		else
+			if (UseControlAction("RecommendEquip","Equip")) then
+				ActionList:Get(10,2):Cast()
+				ml_global_information.lastEquip = Now()
+			end
+		end
+	end
+
 	--ml_global_information.lastEquip = 0
 	ml_task_hub:ThisTask().preserveSubtasks = true
 end

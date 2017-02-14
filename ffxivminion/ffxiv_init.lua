@@ -489,6 +489,7 @@ function GetControlData(strControl,strData)
 end
 
 function UseControlAction(strControl,strAction,actionArg)
+	local actionArg = IsNull(actionArg,0)
 	local controls = GetControls()
 	if (table.valid(controls)) then
 		for id,control in pairs(controls) do

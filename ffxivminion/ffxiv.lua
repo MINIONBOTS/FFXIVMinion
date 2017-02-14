@@ -249,6 +249,8 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 
+	ml_navigation.InstructionHandler(tickcount)
+	
 	local pulseTime = tonumber(gPulseTime) or 150
 	local skillPulse = (pulseTime/2)
 	
@@ -921,8 +923,7 @@ function ffxivminion.FillFoodOptions()
 			local ilist = bag:GetList()
 			if (table.valid(ilist)) then
 				for slot,item in pairs(ilist) do
-					--if (item.uicategory == 46)    , does not show all types of food acc. to user reports
-					if (item.class== 5) then
+					if (item.class == 5) then
 						local itemName = item.name
 						if (toboolean(item.IsHQ)) then
 							itemName = itemName.." (HQ)"

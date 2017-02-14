@@ -55,10 +55,455 @@ ml_navigation.PathDeviationDistances = {
 	["2dfly"] = 2,
 	["3dflysc"] = 3,
 	["2dflysc"] = 2,
-}	
+}
+
+ml_navigation.receivedInstructions = {}
+function ml_navigation.ParseInstructions(data)
+	d("Received instruction set.")
+	ml_navigation.receivedInstructions = {}
+	
+	if (ValidTable(data)) then
+		local itype,iparams = nil,nil
+		for i,instruction in pairsByKeys(data) do
+			itype,iparams = instruction[1],instruction[2]
+			if (itype == "Ascend") then
+				table.insert(ml_navigation.receivedInstructions,
+					function ()
+						if (IsFlying()) then
+							if (Player:IsMoving(FFXIV.MOVEMENT.UP)) then
+								return true
+							else
+								Player:Move(128) 
+								ml_global_information.Await(math.random(300,500))
+								return false
+							end
+						else
+							Player:Jump()
+							ml_global_information.Await(math.random(50,150))
+							return false
+						end
+					end
+				)
+			elseif (itype == "QuickAscend") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function ()
+						if (IsFlying()) then
+							return true
+						else
+							Player:Jump()
+							ml_global_information.Await(math.random(50,150))
+							return false
+						end
+					end
+				)
+			elseif (itype == "Descend") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (IsFlying()) then
+							Player:SetPitch(1.377) 
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+								ml_global_information.Await(3000, function () return Player:IsMoving() end)
+							end
+							ml_global_information.Await(300)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "StraightDescend") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (IsFlying()) then
+							if (not Player:IsMoving(FFXIV.MOVEMENT.DOWN)) then
+								Dismount()
+							end
+							ml_global_information.Await(1000, function () return not IsFlying() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Stop") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (Player:IsMoving()) then
+							Player:Stop()
+							ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Mount") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (not Player.ismounted) then
+							Mount()
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Dismount") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						if (Player.ismounted) then
+							Dismount()
+							ml_global_information.Await(1000, function () return not Player.ismounted end)
+							return false
+						else
+							return true
+						end
+					end
+				)
+			elseif (itype == "Wait") then
+				local length = tonumber(iparams[1]) or 150
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						ml_global_information.Await(length)
+						return true						
+					end
+				)
+			elseif (itype == "Interact") then
+				local interactid = tonumber(iparams[1]) or 0
+				local complete = tonumber(iparams[2]) or ""
+				table.insert(ml_navigation.receivedInstructions, 
+					function ()
+						if (interactid ~= 0) then
+							local interacts = EntityList("targetable,contentid="..tostring(interactid)..",maxdistance=15")
+							if (table.valid(interacts)) then
+								local i,interactable = next(interacts)
+								if (table.valid(interactable) and interactable.targetable) then
+									Player:SetFacing(interactable.pos.x,interactable.pos.y,interactable.pos.z)
+									
+									local currentTarget = Player:GetTarget()
+									if (not currentTarget or currentTarget.id ~= interactable.id) then
+										Player:SetTarget(interactable.id)
+										return false
+									end
+									
+									if (Player:IsMoving()) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+										return false
+									end
+									
+									Player:Interact(interactable.id)
+									if (string.valid(complete)) then
+										local f = assert(loadstring("return " .. complete))()
+										if (f ~= nil) then
+											return f
+										end
+									end
+								end		
+							end
+						end
+						return true				
+					end
+				)
+			elseif (itype == "Jump") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						Player:Jump()
+						ml_global_information.Await(2000, function () return Player:IsJumping() end)
+						return true						
+					end
+				)
+			elseif (itype == "FacePosition") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil}
+				if (pos.x ~= nil) then
+					if (pos.y ~= nil and pos.z ~= nil) then
+						table.insert(ml_navigation.receivedInstructions, 
+							function () 
+								Player:SetFacing(pos.x,pos.y,pos.z) 
+								return true
+							end
+						)
+					else
+						table.insert(ml_navigation.receivedInstructions, 
+							function () 
+								Player:SetFacing(pos.x) 
+								ml_global_information.Await(1000, function () return Player.pos.h == pos.x end)
+								return true
+							end
+						)
+					end
+				end
+			elseif (itype == "MoveForward") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						Player:Move(FFXIV.MOVEMENT.FORWARD) 
+						ml_global_information.Await(3000, function () return Player:IsMoving() end)
+						return true
+					end
+				)
+			elseif (itype == "CheckIfLocked") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						return IsPositionLocked()
+					end
+				)
+			elseif (itype == "CheckIfMoveable") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 
+						return not IsPositionLocked()
+					end
+				)
+			elseif (itype == "Action") then
+				local actionid = iparams[1] or 0
+				local actiontype = iparams[2] or 0 
+				local targetid = iparams[3] or 0
+				
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 						
+						if (action) then
+							if (action.isoncd and ((action.cd - action.cdmax) > 2.5)) then
+								return true
+							else
+								if (action:Cast(targetid)) then
+									return true
+								end
+							end
+						end
+						return false
+					end
+				)
+			elseif (itype == "Teleport") then
+				local aetheryteid = iparams[1] or 0
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 	
+						if (not Player:IsMoving()) then
+							if (Player:Teleport(aetheryteid)) then
+								ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+								return true
+							end
+						else
+							Player:Stop()
+							ml_global_information.Await(3000, function () return (not Player:IsMoving()) end)
+						end
+						return false
+					end
+				)
+			elseif (itype == "Return") then
+				table.insert(ml_navigation.receivedInstructions, 
+					function () 	
+						if (not Player:IsMoving()) then
+							local casting = Player.castinginfo.channelingid
+							local returnHome = ActionList:Get(6)
+							
+							if (returnHome and returnHome.isready) then
+								if (returnHome:Cast()) then
+									ml_global_information.Await(10000, function () return Quest:IsLoading() end)
+									return true
+								end		
+							elseif (not returnHome) then
+								return true
+							end
+						else
+							Player:Stop()
+							ml_global_information.Await(3000, function () return (not Player:IsMoving()) end)
+						end
+						return false
+					end
+				)
+			elseif (itype == "CheckIfNear") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_navigation.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+						end
+					)
+				end	
+			elseif (itype == "MoveStraightTo") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				local jumps = {}
+				if (TableSize(iparams) > 5) then
+					for i = 6,TableSize(iparams) do
+						if (table.valid(iparams[i])) then
+							table.insert(jumps,iparams[i])
+						end
+					end
+				end
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_navigation.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (not Player:IsMoving()) then
+										return true
+									end
+									local myPos = Player.pos
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not Player:IsJumping()) then
+										if (table.valid(jumps)) then
+											for i,jump in pairs(jumps) do
+												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+													Player:Jump()
+												end
+											end
+										end
+									end
+								end,
+								function ()
+									if (Player:IsMoving()) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			elseif (itype == "MoveStraightToContinue") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				
+				local jumps = {}
+				if (TableSize(iparams) > 5) then
+					for i = 6,TableSize(iparams) do
+						if (table.valid(iparams[i])) then
+							table.insert(jumps,iparams[i])
+						end
+					end
+				end
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_navigation.receivedInstructions, 
+						function ()
+							local myPos = Player.pos
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							if (not Player:IsMoving()) then
+								Player:Move(FFXIV.MOVEMENT.FORWARD)
+							end
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (not Player:IsMoving()) then
+										return true
+									end
+									local myPos = Player.pos
+									return (Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									Player:SetFacing(pos.x,pos.y,pos.z)
+									if (not Player:IsJumping()) then
+										if (table.valid(jumps)) then
+											for i,jump in pairs(jumps) do
+												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+													Player:Jump()
+												end
+											end
+										end
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			elseif (itype == "FlyStraightTo") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 5
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.75
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_navigation.receivedInstructions, 
+						function ()
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+										return true
+									end
+									local myPos = Player.pos
+									d("3D:"..tostring(ml_navigation.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (ml_navigation.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									local myPos = Player.pos
+									Player:SetFacing(pos.x,pos.y,pos.z)
+									--local distNext = ml_navigation.Distance2DT(myPos,pos)
+									local distNext = Distance2DT(myPos,pos)
+									local pitch = math.atan2((myPos.y - pos.y), distNext)
+									
+									if (GetPitch() ~= pitch) then
+										Player:SetPitch(pitch)
+									end
+								end,
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0) then
+										Player:Stop()
+										ml_global_information.Await(1000, function () return (not Player:IsMoving()) end)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			elseif (itype == "FlyStraightToContinue") then
+				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
+				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 5
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.75
+				
+				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
+					table.insert(ml_navigation.receivedInstructions, 
+						function ()
+							Player:SetFacing(pos.x,pos.y,pos.z)
+							Player:Move(FFXIV.MOVEMENT.FORWARD)
+							ml_global_information.AwaitDo(100, 120000, 
+								function ()
+									if (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) == 0) then
+										return true
+									end
+									local myPos = Player.pos
+									d("3D:"..tostring(ml_navigation.Distance3DT(pos,myPos))..", 2D:"..tostring(Distance2DT(pos,myPos)))
+									return (ml_navigation.Distance3DT(pos,myPos) <= dist3d and Distance2DT(pos,myPos) <= dist2d)
+								end,
+								function ()
+									local myPos = Player.pos
+									SmartTurn(pos)
+									--local distNext = ml_navigation.Distance3DT(myPos,pos)
+									local distNext = Distance2DT(myPos,pos)
+									local pitch = math.atan2((myPos.y - pos.y), distNext)
+									if (GetPitch() ~= pitch) then
+										Player:SetPitch(pitch)
+									end
+								end
+							)
+							return true
+						end
+					)
+				end	
+			end
+		end
+	end
+end	
 
 -- Return the EXACT NAMES you used above in the 4 tables for movement type keys
-ml_navigation.GetMovementType = function() 
+function ml_navigation.GetMovementType()
 	if ( not Player.ismounted ) then 
 		return "2dwalk" 
 	elseif ( Player.flying.isflying ) then
@@ -68,7 +513,7 @@ ml_navigation.GetMovementType = function()
 	end
 end
 
-ml_navigation.GetMovementThresholds = function() 
+function ml_navigation.GetMovementThresholds()
 	if ( not Player.ismounted ) then 
 		return ml_navigation.PointReachedDistances["2dwalk"],ml_navigation.PointReachedDistances["3dwalk"]
 	elseif ( Player.flying.isflying ) then
@@ -161,6 +606,27 @@ function Player:Stop()
 	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
 end
 
+function ml_navigation.InstructionHandler( tickcount )
+	if (ValidTable(ml_mesh_mgr.receivedInstructions)) then
+		--d("Running instruction set.")
+		ml_global_information.nextRun = Now() + 1
+		
+		if (Now() > ml_mesh_mgr.OMCThrottle) then
+			ffxivminion.UpdateGlobals()
+			
+			local newInstruction = ml_mesh_mgr.receivedInstructions[1]
+			if (newInstruction and type(newInstruction) == "function") then
+				local retval = newInstruction()
+				if (retval == true) then
+					table.remove(ml_mesh_mgr.receivedInstructions,1)
+				end
+			end			
+		end
+		return true
+	end
+	return false
+end
+
 -- Handles the actual Navigation along the current Path. Is not supposed to be called manually! 
 -- Also handles OMCs
 function ml_navigation.Navigate(event, ticks )		
@@ -246,17 +712,22 @@ function ml_navigation.Navigate(event, ticks )
 							ml_navigation.GUI.lastAction = "Jump OMC"
 							
 							if ( Player:IsJumping()) then
+								d("[Navigation]: Jumping for OMC.")
 								ffnav.Await(10000, function () return (not Player:IsJumping()) end, function () Player:Stop() end)
 							else	 
 								-- We are still before our Jump
 								if ( not ml_navigation.omc_startheight ) then
 									local anglediff = math.angle({x = math.sin(ppos.h), y = 0, z =math.cos(ppos.h)}, {x = nextnode.x-ppos.x, y = 0, z = nextnode.z-ppos.z})
 									if ( anglediff > 0.3 ) then
+										
 										Player:SetFacing(nextnode.x,nextnode.y,nextnode.z)
 										
 									elseif ( ml_navigation.omc_starttimer == 0 ) then
-										ml_navigation.omc_starttimer = ticks										
-										Player:Move(FFXIV.MOVEMENT.FORWARD)
+										ml_navigation.omc_starttimer = ticks	
+										if (not Player:IsMoving()) then
+											Player:Move(FFXIV.MOVEMENT.FORWARD)
+											ffnav.Await(1000, function () return Player:IsMoving() end)
+										end
 										
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then										
 										Player:Jump()
@@ -279,7 +750,7 @@ function ml_navigation.Navigate(event, ticks )
 							end								
 									
 						elseif ( omc.type == 2 ) then
-							-- OMC Walk
+							-- OMC Walk							
 							ml_navigation.GUI.lastAction = "Walk OMC"
 							ml_navigation:NavigateToNode(ppos,nextnode,1000)
 										
@@ -312,7 +783,7 @@ function ml_navigation.Navigate(event, ticks )
 							
 							if (MIsLoading()) then
 								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
-								ml_mesh_mgr.ResetOMC()
+								ml_navigation:ResetOMCHandler()
 								return
 							end
 							

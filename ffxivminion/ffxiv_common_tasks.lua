@@ -2337,9 +2337,6 @@ function ffxiv_misc_switchclass:Init()
 	local ke_switchClass = ml_element:create( "SwitchClass", c_switchclass, e_switchclass, 100 )
     self:add( ke_switchClass, self.process_elements)
 	
-	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 50 )
-    --self:add( ke_autoEquip, self.process_elements)
-	
 	local c_complete = inheritsFrom(ml_cause)
     function c_complete:evaluate() return ml_task_hub:CurrentTask():task_complete_eval() end
     
@@ -2374,15 +2371,10 @@ function ffxiv_misc_switchclass:task_complete_eval()
 	end
 	
 	d("[SwitchClass]: Checking autoequip.")
-	if (c_autoequip:evaluate()) then
+	if (c_recommendequip:evaluate()) then
+		e_recommendequip:execute()
 		d("[SwitchClass]: Autoequip had work to do, so don't complete yet.")
 		return false
-	else
-		if (self.autoequipCheck < 3) then
-			d("[SwitchClass]: Autoequip had no work to do, increment the counter.")
-			self.autoequipCheck = self.autoequipCheck + 1
-			return false
-		end
 	end
 	
 	d("[SwitchClass]: Completing task.")
