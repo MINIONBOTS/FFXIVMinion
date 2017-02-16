@@ -1374,16 +1374,7 @@ function ffnav.Ascend()
 			end
 			return fail
 		end,
-		followsuccess = function ()
-			ml_navigation:ResetRenderPath()
-			ml_navigation:ResetCurrentPath()
-			ml_navigation:ResetOMCHandler()
-			local goal = ffnav.currentGoal
-			local params = ffnav.currentParams
-			if ( table.valid (goal) and table.valid(params) ) then -- yes, this was nil for me when using the navigation path testing 
-				Player:MoveTo(goal.x, goal.y, goal.z, params.range, params.navmode, params.randompath, params.smoothturns)
-			end
-		end
+		followall = function () Player:Stop() end
 	}
 end
 

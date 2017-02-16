@@ -461,7 +461,6 @@ function ffxiv_task_movetointeract.Create()
 	newinst.dataUnpacked = false
 	newinst.failTimer = 0
 	newinst.forceLOS = false
-	newinst.pathRange = nil
 	newinst.interactRange = nil
 	newinst.dismountDistance = 5
 	newinst.killParent = false
@@ -721,7 +720,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					end
 					
 					local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-					local pathRange = self.pathRange or 10
 					local forceLOS = self.forceLOS
 					local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 					--if (interactable.gatherable or interactable.los) then
@@ -736,6 +734,16 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								if (Player:IsMoving()) then
 									Player:Stop()
 									ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+								end
+								
+								if (IsNull(self.minGP,0) > Player.gp.current) then
+									d("[MoveToInteract]: Waiting on GP before attempting node.")
+									return false
+								end
+								
+								if (IsGatherer(Player.job) and interactable.contentid > 4 and table.size(EntityList.aggro) > 0) then
+									d("[MoveToInteract]: Don't attempt a special node if we gained aggro.")
+									return false
 								end
 							
 								Player:Interact(interactable.id)
@@ -2032,7 +2040,6 @@ function ffxiv_nav_interact.Create()
 	newinst.useTeleport = true
 	newinst.failTimer = 0
 	newinst.forceLOS = false
-	newinst.pathRange = nil
 	newinst.interactRange = nil
 	newinst.dismountDistance = 15
 	newinst.killParent = false
@@ -2170,7 +2177,6 @@ function ffxiv_nav_interact:task_complete_eval()
 	if (myTarget) then
 		if (table.valid(interactable)) then			
 			local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
-			local pathRange = self.pathRange or 10
 			local forceLOS = self.forceLOS
 			local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 4)
 			if (not forceLOS or (forceLOS and interactable.los)) then
@@ -2416,7 +2422,6 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.dataUnpacked = false
 	newinst.failTimer = 0
 	newinst.forceLOS = false
-	newinst.pathRange = nil
 	newinst.interactRange = nil
 	newinst.dismountDistance = 5
 	newinst.killParent = false

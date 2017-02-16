@@ -142,7 +142,7 @@ function ffxiv_task_assist:Process()
 						end
 					end
 					
-				elseif (gAssistFollowTarget ) then
+				elseif (gAssistTrackTarget ) then
 					Player:SetFacing(target.pos.x,target.pos.y,target.pos.z)
 				end
 				
@@ -177,7 +177,7 @@ function ffxiv_task_assist:UIInit()
 	gQuestHelpers = ffxivminion.GetSetting("gQuestHelpers",false)
 	gAssistUseAutoFace = ffxivminion.GetSetting("gAssistUseAutoFace",false)
 	gAssistFollowTarget = ffxivminion.GetSetting("gAssistFollowTarget",false)
-	gAssistTraceTarget = ffxivminion.GetSetting("gAssistTraceTarget",false)
+	gAssistTrackTarget = ffxivminion.GetSetting("gAssistTrackTarget",false)
 	
 	FFXIV_Assist_Mode = ffxivminion.GetSetting("FFXIV_Assist_Mode", GetString("none"))
 	FFXIV_Assist_Modes = { GetString("none"), GetString("lowestHealth"), GetString("nearest"), GetString("tankAssist") }
@@ -213,7 +213,7 @@ function ffxiv_task_assist:Draw()
 		--GUI_Capture(GUI:Combo(GetString("skillProfile"), FFXIV_Common_SkillProfile, FFXIV_Common_SkillProfileList ),"FFXIV_Common_SkillProfile")		
 		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Follow Target",gAssistFollowTarget),"gAssistFollowTarget");
-		GUI_Capture(GUI:Checkbox("Face Target",gAssistTraceTarget),"gAssistTraceTarget");
+		GUI_Capture(GUI:Checkbox("Face Target",gAssistTrackTarget),"gAssistTrackTarget");
 		
 		if (GUI:Button("Show Filters",0,20)) then
 			SkillMgr.ShowFilterWindow()

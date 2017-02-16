@@ -2669,6 +2669,14 @@ function GetPartyLeader()
     
     return nil	    
 end
+function IsPartyLeader()
+	local partyLeader = GetPartyLeader()
+	if (partyLeader) then
+		return partyLeader.name == Player.name
+	end
+	
+	return false
+end
 function GetPartyLeaderPos()
 	local pos = nil
 	

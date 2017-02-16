@@ -5,13 +5,6 @@ ffxiv_task_test.flightMesh = {}
 ffxiv_task_test.lastTaskSet = {}
 ffxiv_task_test.lastRect = {}
 
-local INF = 1/0
-local cachedPaths = nil
-local insert = table.insert
-local atan2 = math.atan2
-local asin = math.asin
-local dist_3d = PDistance3D
-
 function ffxiv_task_test.Create()
     local newinst = inheritsFrom(ffxiv_task_test)
     
@@ -165,8 +158,8 @@ function ffxiv_task_test:Init()
 	local ke_startMapTest = ml_element:create( "GoToMapTest", c_gotomaptest, e_gotomaptest, 20 )
     self:add(ke_startMapTest, self.process_elements)
 	
-	local ke_startMoveTest = ml_element:create( "GoToNPCTest", c_gotonpctest, e_gotonpctest, 15 )
-    self:add(ke_startMoveTest, self.process_elements)
+	--local ke_startMoveTest = ml_element:create( "GoToNPCTest", c_gotonpctest, e_gotonpctest, 15 )
+    --self:add(ke_startMoveTest, self.process_elements)
 	
 	local ke_startMoveTest = ml_element:create( "GoToPosTest", c_gotopostest, e_gotopostest, 15 )
     self:add(ke_startMoveTest, self.process_elements)
@@ -204,7 +197,7 @@ function ffxiv_task_test:Draw()
 	GUI_Capture(GUI:InputText("X",gTestMapX),"gTestMapX");
 	GUI_Capture(GUI:InputText("Y",gTestMapY),"gTestMapY");
 	GUI_Capture(GUI:InputText("Z",gTestMapZ),"gTestMapZ");	
-	if (GUI:Button("Get Current Pos")) then
+	if (GUI:Button("Get Current Pos",200,20)) then
 		ffxiv_task_test.GetCurrentPosition()
 	end
 	
