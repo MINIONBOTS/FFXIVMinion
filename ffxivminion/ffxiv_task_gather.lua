@@ -277,7 +277,6 @@ function e_movetonode:execute()
 			
 			local newTask = ffxiv_task_movetointeract.Create()
 			newTask.pos = pos
-			
 			newTask.useTeleport = false
 			
 			local minimumGP = 0
@@ -288,6 +287,7 @@ function e_movetonode:execute()
 			elseif (table.valid(marker)) then
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
+			newTask.minGP = minimumGP
 			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
 				if (dist3d > 8 or IsFlying()) then
@@ -2687,7 +2687,7 @@ function ffxiv_gather.NeedsStealth()
 			local hasStealth = HasBuff(Player.id,47)
 			local addMobList = EntityList("alive,attackable,aggressive,minlevel="..tostring(Player.level - 10)..",maxdistance="..tostring(FFXIV_Common_StealthDetect))
 			if (table.valid(addMobList)) then
-				if (FFXIV_Common_StealthSmart  and not dangerousArea) then
+				if (FFXIV_Common_StealthSmart and not dangerousArea) then
 					local ph = ConvertHeading(Player.pos.h)
 					local playerFront = ConvertHeading((ph + (math.pi)))%(2*math.pi)
 					local nextPos = IsNull(GetPosFromDistanceHeading(Player.pos, 10, playerFront),Player.pos)
@@ -2789,8 +2789,11 @@ function ffxiv_task_gather:Init()
 	local ke_isLoading = ml_element:create( "IsLoading", c_gatherisloading, e_gatherisloading, 250 )
     self:add( ke_isLoading, self.process_elements)
 	
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 220 )
-    self:add( ke_autoEquip, self.process_elements)
+	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 220 )
+    --self:add( ke_autoEquip, self.process_elements)
+	
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 220 )
+    self:add( ke_recommendEquip, self.process_elements)
 	
 	local ke_collectible = ml_element:create( "Collectible", c_collectibleaddongather, e_collectibleaddongather, 210 )
     self:add( ke_collectible, self.process_elements)

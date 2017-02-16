@@ -184,8 +184,11 @@ function ffxiv_task_grind:Init()
 	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
     self:add( ke_inventoryFull, self.process_elements)
     
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
-    self:add( ke_autoEquip, self.process_elements)
+	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 130 )
+    --self:add( ke_autoEquip, self.process_elements)
+	
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
+    self:add( ke_recommendEquip, self.process_elements)
 	
 	local ke_addHuntlog = ml_element:create( "AddHuntlog", c_grind_addhuntlogtask, e_grind_addhuntlogtask, 40 )
     self:add(ke_addHuntlog, self.process_elements)

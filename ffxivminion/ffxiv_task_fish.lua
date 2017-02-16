@@ -1953,8 +1953,11 @@ function ffxiv_task_fish:Init()
     self:add( ke_inventoryFull, self.overwatch_elements)
   
     --init Process() cnes
-	local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
-    self:add( ke_autoEquip, self.process_elements)
+	--local ke_autoEquip = ml_element:create( "AutoEquip", c_autoequip, e_autoequip, 250 )
+    --self:add( ke_autoEquip, self.process_elements)
+	
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 250 )
+    self:add( ke_recommendEquip, self.process_elements)
 	
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
