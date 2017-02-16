@@ -257,6 +257,22 @@ function dev.DrawCall(event, ticks )
 					end
 					GUI:TreePop()
 				end	
+				if ( GUI:TreeNode("Craft Mats List")) then
+					local cmList = Crafting:GetCraftingMats()
+					if (table.valid(cmList)) then
+						for id, e in pairs(cmList) do
+							if ( GUI:TreeNode(tostring(e.index).." - "..e.name)) then
+								GUI:BulletText(".ptr") GUI:SameLine(200) GUI:InputText("##deCML0"..tostring(id),tostring(string.format( "%X",e.ptr)))
+								GUI:BulletText(".itemid") GUI:SameLine(200) GUI:InputText("##deCML1"..tostring(id),tostring(e.itemid))
+								GUI:BulletText(".inventoryhq") GUI:SameLine(200) GUI:InputText("##deCML2"..tostring(id),tostring(e.inventoryhq))
+								GUI:BulletText(".inventorynq") GUI:SameLine(200) GUI:InputText("##deCML3"..tostring(id),tostring(e.inventorynq))
+								GUI:BulletText(".needed") GUI:SameLine(200) GUI:InputText("##deCML4"..tostring(id),tostring(e.needed))
+								GUI:TreePop()
+							end
+						end
+					end
+					GUI:TreePop()
+				end	
 				GUI:PopItemWidth()
 				GUI:TreePop()
 			end
