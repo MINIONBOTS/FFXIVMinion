@@ -613,13 +613,15 @@ function ml_navigation:IsGoalClose(ppos,node)
 	--d("[Navigation]: Goal 3D ["..tostring(goaldist).."] , 2D ["..tostring(goaldist2d).."]")
 	--d("[Navigation]: Clearance 3D ["..tostring(clear3d).."] , 2D ["..tostring(clear2d).."]")
 	
-	if (clear3d < goaldist) then
-		--d("[Navigation]: Using clearance 3D distance.")
-		goaldist = clear3d
-	end
-	if (clear2d < goaldist2d) then
-		--d("[Navigation]: Using clearance 2D distance.")
-		goaldist2d = clear2d
+	if (goaldist2d < 4 and goaldist < 6) then
+		if (clear3d < goaldist) then
+			--d("[Navigation]: Using clearance 3D distance.")
+			goaldist = clear3d
+		end
+		if (clear2d < goaldist2d) then
+			--d("[Navigation]: Using clearance 2D distance.")
+			goaldist2d = clear2d
+		end
 	end
 	
 	if (not Player.ismounted) then
