@@ -560,9 +560,68 @@ function ml_navigation:GetRaycast_Player_Node_Distance(ppos,nodepos)
 	return dist,dist2d
 end
 
+function ml_navigation.GetClearance(nodepos)
+	local ppos = Player.pos
+	
+	local posBase = { x = ppos.x, y = ppos.y + 0.5, z = ppos.z }
+	local posMid = { x = ppos.x, y = ppos.y + 1.5, z = ppos.z }
+	local posHigh = { x = ppos.x, y = ppos.y + 2.5, z = ppos.z }
+	
+	local nodeMid = { x = nodepos.x, y = nodepos.y + 1.5, z = nodepos.z }
+	local nodeHigh = { x = nodepos.x, y = nodepos.y + 2.5, z = nodepos.z }
+	
+	local castBaseHit, castBaseHitX, castBaseHitY, castBaseHitZ = RayCast(posBase.x,posBase.y,posBase.z,nodeHigh.x,nodeHigh.y,nodeHigh.z) 
+	local castMidHit, castMidHitX, castMidHitY, castMidHitZ = RayCast(posMid.x,posMid.y,posMid.z,nodeMid.x,nodeMid.y,nodeMid.z) 
+	local castHighHit, castHighHitX, castHighHitY, castHighHitZ = RayCast(posHigh.x,posHigh.y,posHigh.z,nodeHigh.x,nodeHigh.y,nodeHigh.z) 
+	
+	local lowest2d, lowest3d = 1000,1000
+	if (castBaseHit) then
+		lowest2d = math.distance2d(posBase.x, posBase.z , castBaseHitX, castBaseHitZ)
+		lowest3d = math.distance3d(posBase.x, posBase.y, posBase.z , castBaseHitX, castBaseHitY, castBaseHitZ)
+	end
+	
+	if (castMidHit) then
+		local dist2d = math.distance2d(posMid.x, posMid.z , castMidHitX, castMidHitZ)
+		local dist3d = math.distance3d(posMid.x, posMid.y, posMid.z , castMidHitX, castMidHitY, castMidHitZ)
+		if (dist2d < lowest2d) then
+			lowest2d = dist2d
+		end
+		if (dist3d < lowest3d) then
+			lowest3d = dist3d
+		end
+	end
+	
+	if (castHighHit) then
+		local dist2d = math.distance2d(posHigh.x, posHigh.z , castHighHitX, castHighHitZ)
+		local dist3d = math.distance3d(posHigh.x, posHigh.y, posHigh.z , castHighHitX, castHighHitY, castHighHitZ)
+		if (dist2d < lowest2d) then
+			lowest2d = dist2d
+		end
+		if (dist3d < lowest3d) then
+			lowest3d = dist3d
+		end
+	end
+
+	return lowest3d,lowest2d
+end
+
 -- Often  used function to determine if the next node in the path is reached
 function ml_navigation:IsGoalClose(ppos,node)
 	local goaldist,goaldist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,node)
+	local clear3d,clear2d = ml_navigation.GetClearance(node)
+	
+	--d("[Navigation]: Goal 3D ["..tostring(goaldist).."] , 2D ["..tostring(goaldist2d).."]")
+	--d("[Navigation]: Clearance 3D ["..tostring(clear3d).."] , 2D ["..tostring(clear2d).."]")
+	
+	if (clear3d < goaldist) then
+		--d("[Navigation]: Using clearance 3D distance.")
+		goaldist = clear3d
+	end
+	if (clear2d < goaldist2d) then
+		--d("[Navigation]: Using clearance 2D distance.")
+		goaldist2d = clear2d
+	end
+	
 	if (not Player.ismounted) then
 		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
 			return true

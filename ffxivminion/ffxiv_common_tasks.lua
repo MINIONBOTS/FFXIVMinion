@@ -714,7 +714,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							)
 							self.blockExecution = true
 							self.lastInteract = Now()
-							d("ending in block 4")
 							return true
 						end
 					end
@@ -722,9 +721,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 					local forceLOS = self.forceLOS
 					local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
-					--if (interactable.gatherable or interactable.los) then
-					d("los:"..tostring(interactable.los))
-					d("range:"..tostring(range)..",dist:"..tostring(dist3d)..",ydiff:"..tostring(ydiff))
+
+					--d("los:"..tostring(interactable.los))
+					--d("range:"..tostring(range)..",dist:"..tostring(dist3d)..",ydiff:"..tostring(ydiff))
+					
 					if (not forceLOS or (forceLOS and interactable.los)) then
 						if (interactable and dist3d <= range and ydiff <= 4.95) then
 							--local ydiff = math.abs(ppos.y - interactable.pos.y)
@@ -745,7 +745,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 									d("[MoveToInteract]: Don't attempt a special node if we gained aggro.")
 									return false
 								end
-							
+								
+								d("[MoveToInteract]: Interacting with target type ["..tostring(interactable.type).."].")
 								Player:Interact(interactable.id)
 								
 								local currentDist = dist2d
@@ -776,7 +777,6 @@ function ffxiv_task_movetointeract:task_complete_eval()
 								)
 								self.blockExecution = true
 								self.lastInteract = Now()
-								d("ending in block 5")
 								return true
 							--end
 						end

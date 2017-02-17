@@ -49,7 +49,7 @@ end
 function gd(var,level)
 	local level = tonumber(level) or 3
 
-	if ( gGatherDebug  ) then
+	if ( gGatherDebug ) then
 		if ( level <= tonumber(gGatherDebugLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
@@ -289,6 +289,8 @@ function e_movetonode:execute()
 			end
 			newTask.minGP = minimumGP
 			
+			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
+			
 			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
 				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
@@ -320,7 +322,6 @@ function e_movetonode:execute()
 			newTask.interact = ml_task_hub:CurrentTask().gatherid
 			newTask.use3d = true
 			newTask.interactRange = 3.3
-			newTask.pathRange = 5
 			newTask.stealthFunction = ffxiv_gather.NeedsStealth
 			ml_task_hub:CurrentTask():AddSubTask(newTask)	
 			gd("Starting alternate MOVETOINTERACT task.",2)

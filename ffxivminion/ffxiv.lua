@@ -1053,7 +1053,7 @@ function ml_global_information.DrawMainFull()
 	if (gamestate == FFXIV.GAMESTATE.INGAME) then
 		if (ffxivminion.GUI.main.open) then
 			if (ml_global_information.drawMode == 1) then
-				GUI:SetNextWindowSize(350,300,GUI.SetCond_Once) --set the next window size, only on first ever	
+				GUI:SetNextWindowSize(350,300,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
 				GUI:SetNextWindowCollapsed(false,GUI.SetCond_Once)
 				
 				local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
