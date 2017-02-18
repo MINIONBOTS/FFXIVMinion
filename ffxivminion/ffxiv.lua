@@ -517,7 +517,7 @@ function ffxivminion.SetMainVars()
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	FFXIV_Common_UseEXPManuals = ffxivminion.GetSetting("FFXIV_Common_UseEXPManuals",true)
-	FFXIV_Common_DeclineParties = ffxivminion.GetSetting("FFXIV_Common_DeclineParties",true)
+	gDeclinePartyInvites = ffxivminion.GetSetting("gDeclinePartyInvites",true)
 	
 	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
 	gFoodIndex = 1
@@ -1031,7 +1031,7 @@ function ffxivminion.ClearAddons()
 	end
 	
 	--party invite
-	if (IsControlOpen("_NotificationParty") and toboolean(FFXIV_Common_DeclineParties)) then
+	if (IsControlOpen("_NotificationParty") and toboolean(gDeclinePartyInvites)) then
 		if (IsControlOpen("SelectYesno")) then
 			if(ffxivminion.declineTimer == 0) then
 				ffxivminion.declineTimer = Now() + math.random(3000,5000)
@@ -1253,6 +1253,8 @@ function ml_global_information.DrawSettings()
 							end
 						end
 					);
+					
+					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
 					GUI_Capture(GUI:Checkbox(GetString("useMount"),gUseMount),"gUseMount", 
 						function ()
 							if (gMountName == GetString("none")) then
