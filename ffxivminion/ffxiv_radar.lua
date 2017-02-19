@@ -131,8 +131,8 @@ function ffxiv_radar.GetDrawableEntities()
 					doDraw = true
 					tag = "yellow"
 				elseif (((gRadarAllObjects or gRadarHuntSRankHW) and MultiComp(entity.contentid,"4374,4375,4376,4377,4378,4380")) or 
-					((gRadarAllObjects or gRadarHuntBRankHW) and MultiComp(entity.contentid,"4362,4363,4364,4365,4366,4367,4368,4369,4370,4371,4372,4373")) or 
-					((gRadarAllObjects or gRadarHuntARankHW) and MultiComp(entity.contentid,"4350,4351,4352,4353,4354,4355,4356,4357,4358,4359,4360,4361")) or 
+					((gRadarAllObjects or gRadarHuntARankHW) and MultiComp(entity.contentid,"4362,4363,4364,4365,4366,4367,4368,4369,4370,4371,4372,4373")) or 
+					((gRadarAllObjects or gRadarHuntBRankHW) and MultiComp(entity.contentid,"4350,4351,4352,4353,4354,4355,4356,4357,4358,4359,4360,4361")) or 
 					((gRadarAllObjects or gRadarHuntSRankARR) and MultiComp(entity.contentid,"2953,2954,2955,2956,2957,2958,2959,2960,2961,2962,2963,2964,2965,2966,2967,2968,2969")) or
 					((gRadarAllObjects or gRadarHuntARankARR) and MultiComp(entity.contentid,"2936,2937,2938,2939,2940,2941,2942,2943,2944,2945,2946,2947,2948,2949,2950,2951,2952")) or 
 					((gRadarAllObjects or gRadarHuntBRankARR) and MultiComp(entity.contentid,"2919,2920,2921,2922,2923,2924,2925,2926,2927,2928,2929,2930,2931,2932,2933,2934,2935")))
