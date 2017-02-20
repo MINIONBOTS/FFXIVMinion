@@ -1509,19 +1509,21 @@ function ffxivminion.UpdateFoodOptions()
 	local foodlistHQ = "None"
     local foodlist = "None"	
 	for x = 0,3 do
-		local inv = Inventory("category=5,type="..tostring(x))
+		local inv = Inventory("type="..tostring(x))
 		if ( inv ) then
 			for i,item in pairs(inv) do
-				if (toboolean(item.IsHQ)) then
-					if (ffxivminion.foodsHQ[item.name] ~= item.hqid) then
-						ffxivminion.foodsHQ[item.name] = item.hqid 
+				if (item.uicategory == 46) then
+					if (toboolean(item.IsHQ)) then
+						if (ffxivminion.foodsHQ[item.name] ~= item.hqid) then
+							ffxivminion.foodsHQ[item.name] = item.hqid 
+						end
+						foodlistHQ = foodlistHQ..","..item.name
+					else
+						if (ffxivminion.foods[item.name] ~= item.hqid) then
+							ffxivminion.foods[item.name] = item.hqid
+						end
+						foodlist = foodlist..","..item.name
 					end
-					foodlistHQ = foodlistHQ..","..item.name
-				else
-					if (ffxivminion.foods[item.name] ~= item.hqid) then
-						ffxivminion.foods[item.name] = item.hqid
-					end
-					foodlist = foodlist..","..item.name
 				end
 			end
 		end

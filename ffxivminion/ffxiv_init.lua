@@ -98,6 +98,7 @@ function ml_global_information.ToggleRun()
 		ml_task_hub.shouldRun = true
 		gBotRunning = "1"
 		FFXIV_Common_BotRunning = true
+		ml_global_information.lastEquip = 0
 	end	
 
 	if (ml_task_hub.shouldRun and ml_global_information.UnstuckTimer == 0) then

@@ -4166,7 +4166,7 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 	end
 	
 	--Check for buffs on the player that prevent using weaponskills
-	if (HasBuffs(Player,"2,3,6")) then
+	if (HasBuffs(Player,"2,3")) then
 		return 0
 	end
 	
@@ -4214,6 +4214,10 @@ function SkillMgr.CanCast(prio, entity, outofcombat)
 			SkillMgr.DebugOutput( prio, "Skill cannot be casted due to latency timer." )
 			return 0
 		end
+	end
+	
+	if (HasBuffs(Player,"6") and realskilldata.recasttime == 2.5) then
+		return 0
 	end
 	
 	--Check the latency timer to see if casting is currently allowed.
