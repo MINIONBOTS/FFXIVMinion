@@ -92,7 +92,7 @@ function ffxiv_radar.Draw(event, ticks )
 				if (table.valid(screenPos)) then
 					GUI:AddCircleFilled(screenPos.x - 8, screenPos.y + 8, 5, tags[entity.tag])
 					GUI:AddText(screenPos.x, screenPos.y, tags.yellow, "["..entity.name.."]["..tostring(round(entity.distance2d,1)).."]")
-					if (gRadar3dHP and table.valid(entity.hp) and entity.hp.max > 0 and entity.targetable and MultiComp(entity.type,"1,2,3,7") and entity.alive) then
+					if (gRadar3dHP and table.valid(entity.hp) and entity.hp.max > 0 and entity.hp.percent <= 100 and entity.targetable and MultiComp(entity.type,"1,2,3") and entity.alive) then
 						GUI:AddRect(screenPos.x, screenPos.y + 15, screenPos.x + 100, screenPos.y + 25, tags.white)
 						GUI:AddRectFilled(screenPos.x + 2, screenPos.y + 17, (screenPos.x + (100 * (entity.hp.percent/100)) - 2), screenPos.y + 23, tags.green)
 						GUI:AddText(screenPos.x + 100, screenPos.y + 13, tags.white, tostring(entity.hp.percent).."%")
