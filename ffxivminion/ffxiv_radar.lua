@@ -92,7 +92,7 @@ function ffxiv_radar.Draw(event, ticks )
 				if (table.valid(screenPos)) then
 					GUI:AddCircleFilled(screenPos.x - 8, screenPos.y + 8, 5, tags[entity.tag])
 					GUI:AddText(screenPos.x, screenPos.y, tags.yellow, "["..entity.name.."]["..tostring(round(entity.distance2d,1)).."]")
-					if (gRadar3dHP and table.valid(entity.hp) and entity.hp.max > 0 and entity.targetable and MultiComp(entity.type,"1,2,3,7")) then
+					if (gRadar3dHP and table.valid(entity.hp) and entity.hp.max > 0 and entity.targetable and MultiComp(entity.type,"1,2,3,7") and entity.alive) then
 						GUI:AddRect(screenPos.x, screenPos.y + 15, screenPos.x + 100, screenPos.y + 25, tags.white)
 						GUI:AddRectFilled(screenPos.x + 2, screenPos.y + 17, (screenPos.x + (100 * (entity.hp.percent/100)) - 2), screenPos.y + 23, tags.green)
 						GUI:AddText(screenPos.x + 100, screenPos.y + 13, tags.white, tostring(entity.hp.percent).."%")
@@ -157,7 +157,7 @@ function ffxiv_radar.GetDrawableEntities()
 				
 				if (doDraw) then
 					local dataset = { id = entity.id, contentid = entity.contentid, name = entity.name, pos = entity.pos, attackable = entity.attackable, gatherable = entity.gatherable, targetable = entity.targetable,
-						distance2d = entity.distance2d, distance = entity.distance, ["type"] = entity.type, chartype = entity.chartype, fateid = entity.fateid, hp = entity.hp, tag = tag }
+						distance2d = entity.distance2d, distance = entity.distance, ["type"] = entity.type, chartype = entity.chartype, alive = entity.alive, fateid = entity.fateid, hp = entity.hp, tag = tag }
 					table.insert(ffxiv_radar.lastList, dataset)
 				end
 			end
