@@ -73,11 +73,20 @@ function dev.DrawCall(event, ticks )
 										
 										local ad = e:GetData()
 										if (table.valid(ad)) then
-											for key, value in pairs(ad) do
-												GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))											
+											for key, value in pairs(ad) do												
+												GUI:BulletText(key) GUI:SameLine(200) GUI:InputText("##devcdata"..tostring(key),tostring(value))													
 											end										
 										end
 										
+										if ( GUI:TreeNode("Strings##"..tostring(id)) ) then
+											local str = e:GetStrings()
+											if (table.valid(str)) then
+												for key, value in pairs(str) do												
+													GUI:BulletText(tostring(key)) GUI:SameLine(200) GUI:InputText("##devcdatastr"..tostring(key),value)													
+												end										
+											end
+											GUI:TreePop()
+										end										
 										
 										if ( GUI:TreeNode("Dev##"..tostring(id)) ) then										
 											if (GUI:Button("PushButton",100,15) ) then d("Push Button Result: "..tostring(e:PushButton(dev.pushbuttonA, dev.pushbuttonB))) end
