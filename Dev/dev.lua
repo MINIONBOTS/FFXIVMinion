@@ -517,20 +517,37 @@ function dev.DrawCall(event, ticks )
 													else
 														GUI:BulletText("No Action Available")
 													end
-																										
-													if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
-													GUI:SameLine(200)
-													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
+													
 													
 													if (GUI:Button("HandOver()##"..tostring(slot),100,15) ) then d("HandOver Result: "..tostring(item:HandOver())) end
-													GUI:SameLine(200)
-													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
 													
-													if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then d("Convert Result: "..tostring(item:Convert())) end
+													if ( item:CanCast(5, 5) ) then -- Can Cast check of Actiontype "General" , Action "desynthesis" on the item
+														GUI:SameLine(200)
+														if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
+													end
+													
+													if (GUI:Button("Sell()##"..tostring(slot),100,15) ) then d("Sell Result: "..tostring(item:Sell())) end
+													if ( item:CanCast(5, 21) ) then -- Can Cast check of Actiontype "General" , Action "purify" on the item
+														GUI:SameLine(200)
+														if (GUI:Button("Purify()##"..tostring(slot),100,15) ) then d("Purify Result: "..tostring(item:Purify())) end
+													end
+													
+													if (GUI:Button("Repair()##"..tostring(slot),100,15) ) then d("Repair Result: "..tostring(item:Repair())) end
 													GUI:SameLine(200)
-													if (GUI:Button("Salvage()##"..tostring(slot),100,15) ) then d("Salvage Result: "..tostring(item:Salvage())) end
+													if ( item:CanCast(5, 14) ) then -- Can Cast check of Actiontype "General" , Action "materialize" on the item
+														GUI:SameLine(200)
+														if (GUI:Button("Convert()##"..tostring(slot),100,15) ) then d("Convert Result: "..tostring(item:Convert())) end
+													end
+													
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
 													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
+													
+													
+													
+													
+													
+													
+													
 																										
 													
 													GUI:Separator()
