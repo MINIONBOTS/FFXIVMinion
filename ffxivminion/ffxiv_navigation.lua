@@ -58,6 +58,7 @@ ml_navigation.PathDeviationDistances = {
 }
 
 ml_navigation.receivedInstructions = {}
+ml_navigation.instructionThrottle = 0
 function ml_navigation.ParseInstructions(data)
 	d("Received instruction set.")
 	ml_navigation.receivedInstructions = {}
@@ -647,7 +648,7 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 	-- Catching it trying to use cubes incombat still.
 	-- Seems to originate from the fact that if a path can only be built with cubes that it will include them.
 	-- Need something to build a partial path for walking only, to get it out of danger.
-	if (Player.incombat and not Player.ismounted) then
+	if ((Player.incombat and not Player.ismounted) or cubesoff) then
 		NavigationManager:UseCubes(false)
 	end
 	
@@ -667,23 +668,31 @@ function Player:Stop()
 	Player:StopMovement()	-- The "new" c++ sided STOP which stops the player's movement completely
 end
 
-function ml_navigation.InstructionHandler( tickcount )
-	if (ValidTable(ml_mesh_mgr.receivedInstructions)) then
+function ml_navigation.IsHandlingInstructions(tickcount)
+	if (ValidTable(ml_navigation.receivedInstructions)) then
 		--d("Running instruction set.")
-		ml_global_information.nextRun = Now() + 1
-		
-		if (Now() > ml_mesh_mgr.OMCThrottle) then
+		if (Now() > ml_navigation.instructionThrottle) then
 			ffxivminion.UpdateGlobals()
 			
-			local newInstruction = ml_mesh_mgr.receivedInstructions[1]
+			local newInstruction = ml_navigation.receivedInstructions[1]
 			if (newInstruction and type(newInstruction) == "function") then
 				local retval = newInstruction()
 				if (retval == true) then
-					table.remove(ml_mesh_mgr.receivedInstructions,1)
+					table.remove(ml_navigation.receivedInstructions,1)
 				end
 			end			
 		end
 		return true
+	end
+	return false
+end
+
+function ml_navigation.IsHandlingOMC(tickcount)
+	if ( table.valid(ml_navigation.path) and ml_navigation.path[ml_navigation.pathindex] ~= nil) then	
+		local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
+		if (nextnode.type == "OMC_END") then
+			return true
+		end
 	end
 	return false
 end
@@ -733,6 +742,10 @@ function ml_navigation.Navigate(event, ticks )
 		-- OffMeshConnection Navigation
 					if (nextnode.type == "OMC_END") then
 						
+						if IsControlOpen("Talk") then
+							UseControlAction("Talk","Click")
+						end
+						
 						ml_navigation.GUI.lastAction = "Ending OMC"
 						
 						if ( nextnode.id == nil ) then ml_error("[Navigation] - No OffMeshConnection ID received!") return end
@@ -770,6 +783,7 @@ function ml_navigation.Navigate(event, ticks )
 						-- OMC Handling by Type
 						if ( omc.type == 1 ) then
 							-- OMC JUMP
+							
 							ml_navigation.GUI.lastAction = "Jump OMC"
 							
 							if ( Player:IsJumping()) then
@@ -829,6 +843,12 @@ function ml_navigation.Navigate(event, ticks )
 							if (Player:IsMoving()) then
 								Player:StopMovement()
 								ffnav.Await(1000, function () return not Player:IsMoving() end)
+								return
+							end
+							
+							if (Player.ismounted) then
+								Dismount()
+								ffnav.Await(2000, function () return not Player.ismounted end)
 								return
 							end
 							
@@ -1025,7 +1045,7 @@ end
 RegisterEventHandler("Gameloop.Draw", ml_navigation.Navigate)
 
 function ml_navigation.DebugDraw(event, ticks )
-	if ( table.valid(ml_navigation.path)) then	
+	if ( table.valid(ml_navigation.path) and false) then	
 		GUI:Begin("Nav-Monitor")
 		
 		GUI:Text("Path Hops:"); GUI:SameLine(150); GUI:Text(ml_navigation.GUI.pathHops)

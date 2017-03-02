@@ -56,6 +56,7 @@ function ffxiv_task_movetopos.Create()
 	
 	newinst.destMapID = 0
 	newinst.alwaysMount = false
+	newinst.noFly = false
 	
 	ffxiv_unstuck.Reset()
     
@@ -578,11 +579,11 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			self.lastDismountCheck = Now()
 		end
 		
-		if (dist2d < 1 and dist3d < 3.5) then
+		if (ml_navigation:IsGoalClose(ppos,self.pos)) then
 			self.posVisited = true
-		end	
+		end
 		
-		if (dist2d < 5 and dist3d < 5 and not Player:IsMoving() and not c_walktopos:evaluate()) then
+		if (dist2d < 5 and dist3d < 8 and not Player:IsMoving() and not c_walktopos:evaluate()) then
 			local closestMeshPos = NavigationManager:GetClosestPointOnMesh(self.pos)
 			if (closestMeshPos and closestMeshPos.distance < 10) then
 				self.pos = closestMeshPos

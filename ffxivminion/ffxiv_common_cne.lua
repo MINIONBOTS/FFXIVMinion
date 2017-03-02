@@ -429,31 +429,16 @@ function c_nextluminous:evaluate()
 end
 function e_nextluminous:execute()
 	local crystal = e_nextluminous.crystal
+	ml_task_hub:ThisTask().correctMap = crystal.map
 	
 	if (Player:IsMoving()) then
 		Player:Stop()
 		ml_global_information.Await(1500, function () return not Player:IsMoving() end)
 	end
 	
-	if (Player.ismounted and GetGameRegion() ~= 1) then
-		Dismount()
-		return
-	end
-	
-	if (ActionIsReady(7,5)) then
-		local aetheryte = GetAetheryteByMapID(crystal.map)
-		if (aetheryte) then
-			Player:Teleport(aetheryte.id)
-			
-			local newTask = ffxiv_task_teleport.Create()
-			d("[Grind]: Changing to new location for "..tostring(crystal.name).." luminous crystal.")
-			newTask.aetheryte = aetheryte.id
-			newTask.mapID = crystal.map
-			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
-		end
-	end
-	
-	ml_task_hub:ThisTask().correctMap = crystal.map
+	local task = ffxiv_task_movetomap.Create()
+	task.destMapID = crystal.map
+	ml_task_hub:Add(task, REACTIVE_GOAL, TP_IMMEDIATE)
 end
 
 --=======Avoidance============
@@ -538,7 +523,7 @@ function e_avoid:execute()
 			newTask.attackTarget = IsNull(ml_task_hub:ThisTask().targetid,0)
 			newTask.interruptCasting = true
 			newTask.maxTime = seconds
-			ml_task_hub:ThisTask().preserveSubtasks = true
+			SetThisTaskProperty("preserveSubtasks",true)
 			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 			d("Adding avoidance task.")
 			
@@ -851,20 +836,8 @@ function c_movetogate:evaluate()
 													Player.localmapid,
 													ml_task_hub:CurrentTask().destMapID	)
 		if (table.valid(pos)) then
-			d("gatepos:"..tostring(pos))
 			e_movetogate.pos = pos
 			return true
-		else
-			--[[
-			local backupPos = ml_nav_manager.GetNextPathPos(	Player.pos,
-																Player.localmapid,
-																155	)
-			if (table.valid(backupPos)) then
-				ml_task_hub:CurrentTask().destMapID = 155
-				e_movetogate.pos = backupPos
-				return true
-			end
-			--]]
 		end
 	end
 	
@@ -892,10 +865,6 @@ function e_movetogate:execute()
 	newTask.pos = pos
 	local newPos = { x = pos.x, y = pos.y, z = pos.z }
 	local newPos = GetPosFromDistanceHeading(newPos, 5, pos.h)
-	
-	d("section player:"..tostring(GetHinterlandsSection(Player.pos)))
-	d("section newpos:"..tostring(GetHinterlandsSection(newPos)))
-	d("newPos:"..tostring(newPos))
 	
 	if (not e_movetogate.pos.g and not e_movetogate.pos.b and not e_movetogate.pos.a) then
 		newTask.gatePos = newPos
@@ -1332,7 +1301,8 @@ function e_walktopos:execute()
 		
 		ml_debug("[e_walktopos]: Hit MoveTo..", "gLogCNE", 3)
 		--local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),0.75,useFollow,useRandom,false)
-		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z))
+		local noFly = IsNull(ml_task_hub:CurrentTask().noFly,false)
+		local path = Player:MoveTo(tonumber(gotoPos.x),tonumber(gotoPos.y),tonumber(gotoPos.z),nil,nil,nil,nil,noFly)
 		
 		c_walktopos.lastPos = gotoPos
 		if (path >= 0) then
@@ -1478,7 +1448,7 @@ function e_useaethernet:execute()
 			newTask.conversationstrings = e_useaethernet.destination.conversationstrings
 			newTask.useAethernet = true
 			
-			ml_task_hub:Add(newTask, REACTIVE_GOAL, TP_IMMEDIATE)
+			ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 		end
 	end
 end
@@ -1861,7 +1831,7 @@ function c_stance:evaluate()
 end
 function e_stance:execute()
 	ml_global_information.stanceTimer = Now()
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	SetThisTaskProperty("preserveSubtasks",true)
 end
 
 -----------------------------------------------------------------------------------------------
@@ -2470,17 +2440,17 @@ function c_autoequip:evaluate()
 	
 	local applicableSlots = {
 		[0] = true,
-		[1] = true,
-		[2] = true,
-		[3] = true,
-		[4] = true,
-		[5] = true,
-		[6] = true,
-		[7] = true,
-		[8] = true,
-		[9] = true,
-		[10] = true,
-		[11] = true,
+		--[1] = true,
+		--[2] = true,
+		--[3] = true,
+		--[4] = true,
+		--[5] = true,
+		--[6] = true,
+		--[7] = true,
+		--[8] = true,
+		--[9] = true,
+		--[10] = true,
+		--[11] = true,
 		[12] = true,
 	}
 	
@@ -2526,13 +2496,13 @@ function c_autoequip:evaluate()
 			if (IsNull(data.unequippedItem,0) ~= 0) then
 				ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
 			end
-		elseif (slot == 1) then
-			if (AceLib.API.Items.IsShieldEligible()) then
-				data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
-				if (IsNull(data.unequippedItem,0) ~= 0) then
-					ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
-				end
-			end
+		--elseif (slot == 1) then
+			--if (AceLib.API.Items.IsShieldEligible()) then
+				--data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindShieldUpgrade()
+				--if (IsNull(data.unequippedItem,0) ~= 0) then
+					--ml_debug("Slot ["..tostring(slot).."] Best upgrade item ["..tostring(data.unequippedItem.name).."] has a value of :"..tostring(data.unequippedValue))
+				--end
+			--end
 		else
 			data.unequippedItem,data.unequippedValue = AceLib.API.Items.FindArmorUpgrade(slot)
 			if (IsNull(data.unequippedItem,0) ~= 0) then
@@ -2543,7 +2513,6 @@ function c_autoequip:evaluate()
 	
 	for slot,data in pairsByKeys(applicableSlots) do		
 		if (IsNull(data.unequippedItem,0) ~= 0 and ((data.unequippedValue > data.equippedValue) or (data.equippedItem == 0))) then
-			
 			--[[
 			if (ArmoryItemCount(slot) == 25 and (data.unequippedItem.bag >= 0 and data.unequippedItem.bag <= 3)) then
 				ml_debug("Armoury slots for ["..tostring(slot).."] are full, attempting to rearrange inventory.")
@@ -2647,7 +2616,7 @@ function e_autoequip:execute()
 	local item = e_autoequip.item
 	if (table.valid(item)) then
 		local itemid = item.hqid
-		--d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
+		d("Moving item ["..tostring(itemid).."] to bag "..tostring(e_autoequip.bag)..", slot "..tostring(e_autoequip.slot))
 		item:Move(e_autoequip.bag,e_autoequip.slot)
 		ml_global_information.Await(500, 2000, function () return IsEquipped(itemid) end)
 	else
@@ -2668,7 +2637,6 @@ function c_recommendequip:evaluate()
 end
 function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then
-		d("character control not open")
 		ActionList:Get(10,2):Cast()
 		ml_global_information.Await(1000, function () return IsControlOpen("Character") end)
 	else
@@ -2684,7 +2652,7 @@ function e_recommendequip:execute()
 	end
 
 	--ml_global_information.lastEquip = 0
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	SetThisTaskProperty("preserveSubtasks",true)
 end
 
 c_selectconvindex = inheritsFrom( ml_cause )
@@ -2905,7 +2873,7 @@ function e_mapyesno:execute()
 	else
 		UseControlAction("SelectYesno","Yes")
 	end
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	SetThisTaskProperty("preserveSubtasks",true)
 end
 
 c_reachedmap = inheritsFrom( ml_cause )
@@ -3055,11 +3023,11 @@ function e_switchclass:execute()
 	local weapon = e_switchclass.weapon
 	if (weapon) then
 		local weaponid = weapon.hqid
+		d("attempting to move weapon ["..tostring(weaponid).."] into equipment")
 		weapon:Move(1000,0)
 		ml_global_information.Await(1000, 2000, function() return IsEquipped(weaponid) end)
 	end
 end
-
 
 c_skiptalk = inheritsFrom( ml_cause )
 e_skiptalk = inheritsFrom( ml_effect )
@@ -3075,5 +3043,5 @@ function c_skiptalk:evaluate()
 	return false
 end
 function e_skiptalk:execute()
-	ml_task_hub:ThisTask().preserveSubtasks = true
+	SetThisTaskProperty("preserveSubtasks",true)
 end

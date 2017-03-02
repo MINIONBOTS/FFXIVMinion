@@ -611,13 +611,9 @@ function e_gather:execute()
 		elseif (table.valid(marker) and false) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
 			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
-			gatherGardening = (gatherGardening )
 			gatherRares = IsNull(marker:GetFieldValue("Rare Items"),"0")
-			gatherRares = (gatherRares )
 			gatherSuperRares = IsNull(marker:GetFieldValue("Special Rare Items"),"0")
-			gatherSuperRares = (gatherChocoFood )
 			gatherChocoFood = IsNull(marker:GetFieldValue(GetUSString("gatherChocoFood")),"0")
-			gatherChocoFood = (gatherChocoFood )
 			item1 = IsNull(marker:GetFieldValue(GetUSString("selectItem1")),"")
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
@@ -1395,36 +1391,50 @@ function c_nodeprebuff:evaluate()
 	
 	if (taskType ~= "") then
 		if (taskType == "botany") then
-			if (Player.job ~= FFXIV.JOBS.BOTANIST and CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
-				if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetbotany,0) ~= 0) then
-					local commandString = "/gs change "..tostring(profile.setup.gearsetbotany)
-					SendTextCommand(commandString)
-					e_nodeprebuff.activity = "switchclasslegacy"
-					e_nodeprebuff.requirestop = true
-					e_nodeprebuff.requiredismount = false
-					return true
+			if (Player.job ~= FFXIV.JOBS.BOTANIST) then
+				if (CanSwitchToClass(FFXIV.JOBS.BOTANIST)) then
+					if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetbotany,0) ~= 0) then
+						d("Attempting to change to gearset ["..tostring(profile.setup.gearsetbotany).."]")
+						local commandString = "/gs change "..tostring(profile.setup.gearsetbotany)
+						SendTextCommand(commandString)
+						e_nodeprebuff.activity = "switchclasslegacy"
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+						return true
+					else
+						e_nodeprebuff.activity = "switchclass"
+						e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+						return true
+					end
 				else
-					e_nodeprebuff.activity = "switchclass"
-					e_nodeprebuff.class = FFXIV.JOBS.BOTANIST
-					e_nodeprebuff.requirestop = true
-					e_nodeprebuff.requiredismount = false
+					d("Cannot swap yet, but we have no choice, wait a second")
+					e_nodeprebuff.activity = "switchclasslegacy"
 					return true
 				end
 			end
 		elseif (taskType == "mining") then
-			if (Player.job ~= FFXIV.JOBS.MINER and CanSwitchToClass(FFXIV.JOBS.MINER)) then
-				if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetmining,0) ~= 0) then
-					local commandString = "/gs change "..tostring(profile.setup.gearsetmining)
-					SendTextCommand(commandString)
-					e_nodeprebuff.activity = "switchclasslegacy"
-					e_nodeprebuff.requirestop = true
-					e_nodeprebuff.requiredismount = false
-					return true
+			if (Player.job ~= FFXIV.JOBS.MINER) then
+				if (CanSwitchToClass(FFXIV.JOBS.MINER)) then
+					if (table.valid(profile) and table.valid(profile.setup) and IsNull(profile.setup.gearsetmining,0) ~= 0) then
+						d("Attempting to change to gearset ["..tostring(profile.setup.gearsetmining).."]")
+						local commandString = "/gs change "..tostring(profile.setup.gearsetmining)
+						SendTextCommand(commandString)
+						e_nodeprebuff.activity = "switchclasslegacy"
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+						return true
+					else
+						e_nodeprebuff.activity = "switchclass"
+						e_nodeprebuff.class = FFXIV.JOBS.MINER
+						e_nodeprebuff.requirestop = true
+						e_nodeprebuff.requiredismount = false
+						return true
+					end
 				else
-					e_nodeprebuff.activity = "switchclass"
-					e_nodeprebuff.class = FFXIV.JOBS.MINER
-					e_nodeprebuff.requirestop = true
-					e_nodeprebuff.requiredismount = false
+					d("Cannot swap yet, but we have no choice, wait a second")
+					e_nodeprebuff.activity = "switchclasslegacy"
 					return true
 				end
 			end
@@ -1544,7 +1554,7 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "switchclasslegacy") then
-		ml_task_hub:ThisTask():SetDelay(2000)
+		ml_global_information.Await(2000)
 		return
 	end
 	

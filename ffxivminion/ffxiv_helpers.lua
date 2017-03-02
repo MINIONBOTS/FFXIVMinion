@@ -38,13 +38,6 @@ function GetNearestGrindAttackable()
 	local el = nil
 	local nearestGrind = nil
 	local nearestDistance = 9999
-	local marker = ml_global_information.currentMarker
-	local minLevel = ml_global_information.MarkerMinLevel 
-	local maxLevel = ml_global_information.MarkerMaxLevel
-	
-	if (ml_task_hub:CurrentTask().safeLevel) then
-		maxLevel = Player.level + 2
-	end
 	
 	if (excludeString == "") then
 		excludeString = "541"
@@ -52,17 +45,34 @@ function GetNearestGrindAttackable()
 		excludeString = excludeString..";541"
 	end
 	
-	local radius = 0
-	local markerPos;
+	local minLevel, maxLevel, basePos, radius = 1, 60, Player.pos, 150
+	local maxLevel = ml_global_information.MarkerMaxLevel
+	
+	local task = ffxiv_grind.currentTask
+	local marker = ml_global_information.currentMarker
+	if (table.valid(task)) then
+		maxLevel = IsNull(task.mobmaxlevel,60)
+		minLevel = IsNull(task.mobminlevel,1)
+		radius = IsNull(task.radius,150)
+		basePos = task.pos
+	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
+		minLevel = ml_global_information.MarkerMinLevel 
+		maxLevel = ml_global_information.MarkerMaxLevel
+		radius = IsNull(marker:GetFieldValue(GetUSString("maxRadius")),150)
+		if (radius == 0) then radius = 150 end
+		basePos = marker:GetPosition()
+	end
+	
+	local basePos;
 	if (table.valid(marker)) then
 		local maxradius = marker:GetFieldValue(GetUSString("maxRadius"))
 		if (tonumber(maxradius) and tonumber(maxradius) > 0) then
 			radius = tonumber(maxradius)
 		end
-		markerPos = marker:GetPosition()
+		basePos = marker:GetPosition()
 	end
 	
-	if (radius > 0 and table.valid(markerPos)) then
+	if (radius > 0 and table.valid(basePos)) then
 		--d("Checking marker with radius section.")
 		if (gClaimFirst	) then		
 			if (not IsNullString(huntString)) then
@@ -110,7 +120,7 @@ function GetNearestGrindAttackable()
 					el = MEntityList("alive,attackable,onmesh,targeting="..tostring(member.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance=30")
 					
 					if (table.valid(el)) then
-						local filtered = FilterByProximity(el,markerPos,radius,"distance")
+						local filtered = FilterByProximity(el,basePos,radius,"distance")
 						if (table.valid(filtered)) then
 							for i,e in pairs(filtered) do
 								if (table.valid(e)) then
@@ -127,7 +137,7 @@ function GetNearestGrindAttackable()
 			el = MEntityList("alive,attackable,onmesh,targeting="..tostring(Player.pet.id)..",fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"distance")
+				local filtered = FilterByProximity(el,basePos,radius,"distance")
 				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
 						if (table.valid(e)) then
@@ -154,7 +164,7 @@ function GetNearestGrindAttackable()
 			el = MEntityList("contentid="..huntString..",fateid=0,alive,attackable,onmesh,exclude_contentid="..excludeString)
 			
 			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"distance")
+				local filtered = FilterByProximity(el,basePos,radius,"distance")
 				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
 						if (table.valid(e)) then
@@ -172,7 +182,7 @@ function GetNearestGrindAttackable()
 			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString..",maxdistance="..tostring(ml_global_information.AttackRange))
 			
 			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"distance")
+				local filtered = FilterByProximity(el,basePos,radius,"distance")
 				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
 						if (table.valid(e)) then
@@ -184,7 +194,7 @@ function GetNearestGrindAttackable()
 		
 			el = MEntityList("alive,attackable,onmesh,minlevel="..minLevel..",maxlevel="..maxLevel..",targeting=0,fateid=0,exclude_contentid="..excludeString)
 			if (table.valid(el)) then
-				local filtered = FilterByProximity(el,markerPos,radius,"distance")
+				local filtered = FilterByProximity(el,basePos,radius,"distance")
 				if (table.valid(filtered)) then
 					for i,e in pairs(filtered) do
 						if (table.valid(e)) then
@@ -314,6 +324,7 @@ function GetNearestGrindAttackable()
     --d("GetNearestGrindAttackable() failed with no entity found matching params")
     return nil
 end
+
 function GetNearestGrindPriority()
 	local huntString = GetWhitelistIDString
 	local excludeString = GetBlacklistIDString
@@ -4048,9 +4059,9 @@ function GetBestGrindMap()
 		return 153 --south shroud
 	elseif (level >= 30 and level < 44) then
 		return 137 --eastern la noscea
-	--elseif (level >= 40 and level < 44) then
-		--return 155 --coerthas
-	elseif (level >= 44 and level < 50) then
+	elseif (level >= 40 and level < 44) then
+		return 155 --coerthas
+	elseif (level >= 45 and level < 50) then
 		return 138
 	--
 	--elseif (level < 49) then
@@ -4059,12 +4070,12 @@ function GetBestGrindMap()
 		--return 147 --north than
 	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
 		return 397
-	--elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
-		--return 398
-	--elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
-		--return 397
-	--elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
-		--return 398
+	elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
+		return 398
+	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
+		return 397
+	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
+		return 398
 	else
 		return 138
 	end
@@ -5539,4 +5550,40 @@ function deepcompare(t1,t2,ignore_mt)
 		return true
 	end
 	return _deepcompare(t1, t2, ignore_mt)
+end
+function SetCurrentTaskProperty(strProperty, value)
+	local currentTask = ml_task_hub:CurrentTask()
+	if (table.valid(currentTask)) then
+		currentTask[strProperty] = value
+	end
+end
+function SetThisTaskProperty(strProperty, value)
+	local thisTask = ml_task_hub:ThisTask()
+	if (table.valid(thisTask)) then
+		thisTask[strProperty] = value
+	end
+end
+function SetNamedTaskProperty(strTask, strProperty, value)
+	local task = _G[strTask]
+	if (task) then
+		task[strProperty] = value
+	end
+end
+function GetCurrentTaskProperty(strProperty)
+	local currentTask = ml_task_hub:CurrentTask()
+	if (table.valid(currentTask)) then
+		return currentTask[strProperty]
+	end
+end
+function GetThisTaskProperty(strProperty)
+	local thisTask = ml_task_hub:ThisTask()
+	if (table.valid(thisTask)) then
+		return thisTask[strProperty]
+	end
+end
+function GetNamedTaskProperty(strTask, strProperty)
+	local task = _G[strTask]
+	if (task) then
+		return task[strProperty]
+	end
 end

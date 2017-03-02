@@ -240,7 +240,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			if (currentFile ~= FFXIV_Common_NavMesh) then
 				FFXIV_Common_NavMesh = currentFile
 				FFXIV_Common_NavMeshIndex = GetKeyByValue(FFXIV_Common_NavMesh,FFXIV_Common_MeshList)
-				
 			end
 		else
 			if (ml_global_information.queueLoader == false) then
@@ -249,7 +248,9 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 	end
 
-	ml_navigation.InstructionHandler(tickcount)
+	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
+		return false
+	end
 	
 	local pulseTime = tonumber(gPulseTime) or 150
 	local skillPulse = (pulseTime/2)
@@ -386,26 +387,6 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 		end
 			
 		if (ml_task_hub.shouldRun) then
-
-			--[[
-			if (IsFighter(Player.job) and not ml_global_information.lastPulseShortened) then
-				local actionID = SkillMgr.GCDSkills[Player.job]
-				if (actionID) then
-					local action = ActionList:Get(1,actionID)
-					if (action) then
-						if (action.isoncd) then
-							local timediff = math.ceil((action.cd - action.cdmax) * 1000)
-							if (timediff < pulseTime) then
-								--d("shortening next pulse to occur in ["..tostring(timediff).."] ms")
-								ml_global_information.nextRun = Now() + timediff
-								ml_global_information.lastPulseShortened = true
-							end
-						end
-					end
-				end
-			end
-			--]]
-			
 			if (not ml_task_hub:Update()) then
 				d("No task queued, please select a valid bot mode in the Settings drop-down menu")
 			end

@@ -488,6 +488,29 @@ function GetControlData(strControl,strData)
 	return nil
 end
 
+function GetControlStrings(strControl,numString)
+	local controls = GetControls()
+	if (table.valid(controls)) then
+		for id,control in pairs(controls) do
+			if (control.name == strControl) then
+				local strings = control:GetStrings()
+				if (table.valid(strings)) then
+					if (numString == nil) then
+						return strings
+					else
+						for stringid, stringval in pairs(strings) do
+							if (stringid == numString) then
+								return stringval
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return nil
+end
+
 function UseControlAction(strControl,strAction,actionArg)
 	local actionArg = IsNull(actionArg,0)
 	local controls = GetControls()

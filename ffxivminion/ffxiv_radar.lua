@@ -153,7 +153,6 @@ function ffxiv_radar.GetDrawableEntities()
 					tag = "black"
 					doDraw = true
 				end
-					
 				
 				if (doDraw) then
 					local dataset = { id = entity.id, contentid = entity.contentid, name = entity.name, pos = entity.pos, attackable = entity.attackable, gatherable = entity.gatherable, targetable = entity.targetable,
