@@ -579,7 +579,8 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			self.lastDismountCheck = Now()
 		end
 		
-		if (ml_navigation:IsDestinationClose(ppos,self.pos)) then
+		local movementSpeed = IsNull(Player:GetSpeed()["Backward"],0)
+		if ((((movementSpeed <= 6 and dist2d < 1) or (movementSpeed > 6 and dist2d < 2)) and dist3d < 3.5) or ml_navigation:IsDestinationClose(ppos,self.pos)) then
 			self.posVisited = true
 		end
 		
