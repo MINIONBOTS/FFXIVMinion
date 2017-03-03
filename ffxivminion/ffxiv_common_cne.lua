@@ -2638,20 +2638,25 @@ end
 function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then
 		ActionList:Get(10,2):Cast()
-		ml_global_information.Await(1000, function () return IsControlOpen("Character") end)
+		ml_global_information.Await(500, 2000, function () return IsControlOpen("Character") end)
 	else
 		if (not IsControlOpen("RecommendEquip")) then
 			UseControlAction("Character","OpenRecommendEquip")
-			ml_global_information.Await(1000, function () return IsControlOpen("RecommendEquip") end)
+			ml_global_information.Await(500, 2000, function () return IsControlOpen("RecommendEquip") end)
 		else
 			if (UseControlAction("RecommendEquip","Equip")) then
-				ActionList:Get(10,2):Cast()
-				ml_global_information.lastEquip = Now()
+				ml_global_information.yield = { 
+					mintimer = 500,
+					maxtimer = 2000, 
+					followall = function () 
+						ActionList:Get(10,2):Cast()
+						ml_global_information.lastEquip = Now()
+					end
+				}
 			end
 		end
 	end
 
-	--ml_global_information.lastEquip = 0
 	SetThisTaskProperty("preserveSubtasks",true)
 end
 
@@ -3026,6 +3031,7 @@ function e_switchclass:execute()
 		d("attempting to move weapon ["..tostring(weaponid).."] into equipment")
 		weapon:Move(1000,0)
 		ml_global_information.Await(1000, 2000, function() return IsEquipped(weaponid) end)
+		ml_global_information.lastEquip = 0
 	end
 end
 

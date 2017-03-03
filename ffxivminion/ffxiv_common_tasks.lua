@@ -579,7 +579,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			self.lastDismountCheck = Now()
 		end
 		
-		if (ml_navigation:IsGoalClose(ppos,self.pos)) then
+		if (ml_navigation:IsDestinationClose(ppos,self.pos)) then
 			self.posVisited = true
 		end
 		
@@ -1532,7 +1532,6 @@ function ffxiv_task_flee:task_complete_eval()
 end
 
 function ffxiv_task_flee:task_complete_execute()
-	d("Flee task completed properly.")
     Player:Stop()
 	NavigationManager:ClearAvoidanceAreas()
     self.completed = true

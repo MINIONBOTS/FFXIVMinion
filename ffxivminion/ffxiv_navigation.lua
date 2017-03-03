@@ -606,6 +606,38 @@ function ml_navigation.GetClearance(nodepos)
 	return lowest3d,lowest2d
 end
 
+function ml_navigation:IsDestinationClose(ppos,goal)
+	if (table.valid(ffnav.currentGoal)) then
+		local dist2d,dist3d = math.distance2d(goal,ffnav.currentGoal),math.distance3d(goal,ffnav.currentGoal)
+		if (dist2d < 1 and dist3d < 1) then
+			if (table.valid(ffnav.alteredGoal)) then
+				goal = ffnav.alteredGoal
+			end
+		end
+	end
+	
+	local goaldist,goaldist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,goal)
+	if (not Player.ismounted) then
+		if (goaldist <= ml_navigation.NavPointReachedDistances["3dwalk"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dwalk"]) then
+			return true
+		end
+	else
+		if (Player.flying.isflying) then
+			if (goaldist <= ml_navigation.NavPointReachedDistances["3dfly"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dfly"]) then
+				return true
+			end
+		else
+			if (goaldist <= ml_navigation.NavPointReachedDistances["3dmount"] and goaldist2d <= ml_navigation.NavPointReachedDistances["2dmount"]) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+--table.print(NavigationManager:GetPath(Player.pos.x,Player.pos.y,Player.pos.z,Player:GetTarget().pos.x,Player:GetTarget().pos.y,Player:GetTarget().pos.z))
+--Player:MoveTo(Player:GetTarget().pos.x,Player:GetTarget().pos.y,Player:GetTarget().pos.z)
+
 -- Often  used function to determine if the next node in the path is reached
 function ml_navigation:IsGoalClose(ppos,node)
 	local goaldist,goaldist2d = ml_navigation:GetRaycast_Player_Node_Distance(ppos,node)
@@ -652,9 +684,16 @@ function Player:MoveTo(x, y, z, navpointreacheddistance, randompath, smoothturns
 		NavigationManager:UseCubes(false)
 	end
 	
+	ffnav.alteredGoal = {}
 	ffnav.currentGoal = { x = x, y = y, z = z }
 	ffnav.currentParams = { navmode = navigationmode, range = navpointreacheddistance, randompath = randompath, smoothturns = smoothturns}
-	return ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
+	
+	local ret = ml_navigation:MoveTo(x, y, z, navigationmode, randompath, smoothturns, navpointreacheddistance)
+	if (ret > 0) then
+		local goal = ml_navigation.path[table.size(ml_navigation.path)-1]
+		ffnav.alteredGoal = goal
+	end
+	return ret
 end
 
 -- Overriding  the (old) c++ Player:Stop(), to handle the additionally needed navigation functions
@@ -1031,6 +1070,10 @@ function ml_navigation.Navigate(event, ticks )
 				
 				else
 					d("[Navigation] - Path end reached.")
+					
+					ffnav.lastGoalReachedFrom = ppos
+					ffnav.lastGoalReached = ffnav.currentGoal
+					
 					ml_navigation.StopMovement()
 					Player:Stop()							-- this literally makes no sense...both functions are the SAME but if I remove this one, the bot doesnt stop ..yeah right ...fuck you ffxiv 
 
@@ -1195,8 +1238,11 @@ end
 ffnav = {}
 ffnav.yield = {}
 ffnav.process = {}
+ffnav.alteredGoal = {}
 ffnav.currentGoal = {}
 ffnav.currentParams = {}
+ffnav.lastGoalReachedFrom = {}
+ffnav.lastGoalReached = {}
 
 function ffnav.IsProcessing()
 	if (ffnav.IsYielding()) then
