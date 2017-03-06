@@ -542,7 +542,7 @@ function dev.DrawCall(event, ticks )
 													-- This Gardening() handles fertilizing and also handing over of items (seeds n stuff)
 													if (GUI:Button("Gardening()##"..tostring(slot),100,15) ) then d("Gardening Result: "..tostring(item:Gardening())) end
 													
-													
+													if (GUI:Button("Discard()##"..tostring(slot),100,15) ) then d("Discard Result: "..tostring(item:Discard())) end
 													
 													
 													
