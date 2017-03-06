@@ -493,10 +493,10 @@ function e_bite:execute()
 			local powerfulHook = SkillMgr.GetAction(4103,1)
 			local status = Player.status
 			
-			if (status == 56 and precisionHook and precisionHook:IsReady(Player.id)) then
+			if (status == 36 and precisionHook and precisionHook:IsReady(Player.id)) then
 				precisionHook:Cast()
 				return
-			elseif (status == 57 and powerfulHook and powerfulHook:IsReady(Player.id)) then
+			elseif (status == 37 and powerfulHook and powerfulHook:IsReady(Player.id)) then
 				powerfulHook:Cast()
 				return
 			end

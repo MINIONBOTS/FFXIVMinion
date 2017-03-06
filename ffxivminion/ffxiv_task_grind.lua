@@ -569,9 +569,6 @@ function ffxiv_task_grind:Init()
 	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
     self:add( ke_isLoading, self.overwatch_elements)
 	
-	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
-    self:add(ke_skipTalk, self.overwatch_elements)
-	
     local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 200 )
     self:add(ke_dead, self.overwatch_elements)
 	

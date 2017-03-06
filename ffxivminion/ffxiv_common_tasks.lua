@@ -851,9 +851,6 @@ function ffxiv_task_movetomap.Create()
 end
 
 function ffxiv_task_movetomap:Init()
-	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
-    self:add(ke_skipTalk, self.overwatch_elements)
-	
 	local ke_yesnoQuest = ml_element:create( "QuestYesNo", c_mapyesno, e_mapyesno, 150 )
     self:add(ke_yesnoQuest, self.overwatch_elements)
 	
@@ -1918,9 +1915,6 @@ function ffxiv_mesh_interact.Create()
 end
 
 function ffxiv_mesh_interact:Init()
-	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
-    self:add(ke_skipTalk, self.overwatch_elements)
-	
 	local ke_detectYesNo = ml_element:create( "DetectYesNo", c_detectyesno, e_detectyesno, 150 )
     self:add( ke_detectYesNo, self.overwatch_elements)
 

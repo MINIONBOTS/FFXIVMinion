@@ -247,6 +247,11 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
 	end
+	
+	if (c_skiptalk:evaluate()) then
+		e_skiptalk:execute()
+		return false
+	end
 
 	if (ml_navigation.IsHandlingInstructions(tickcount) or ml_navigation.IsHandlingOMC(tickcount)) then
 		return false
@@ -511,6 +516,7 @@ function ffxivminion.SetMainVars()
 	gTeleportHackParanoid = ffxivminion.GetSetting("gTeleportHackParanoid",false)
 	gSkipCutscene = ffxivminion.GetSetting("gSkipCutscene",false)
 	gSkipTalk = ffxivminion.GetSetting("gSkipTalk",false)
+	gSkipTalkRunningOnly = ffxivminion.GetSetting("gSkipTalkRunningOnly",false)
 	gDisableDrawing = ffxivminion.GetSetting("gDisableDrawing",false)
 	gRepair = ffxivminion.GetSetting("gRepair",true)
 	gRepairRunningOnly = ffxivminion.GetSetting("gRepairRunningOnly",false)
@@ -1295,7 +1301,7 @@ function ml_global_information.DrawSettings()
 				if (tabs.tabs[5].isselected) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
 					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair"); GUI:SameLine(0,15)
-					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running"),gRepairRunningOnly),"gRepairRunningOnly")
+					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##repair",gRepairRunningOnly),"gRepairRunningOnly")
 					GUI_Capture(GUI:Checkbox(GetString("disabledrawing"),gDisableDrawing),"gDisableDrawing", function () Hacks:Disable3DRendering(gDisableDrawing) end)
 					GUI_Capture(GUI:Checkbox(GetString("teleport"),gTeleportHack),"gTeleportHack", 
 						function () 
@@ -1308,8 +1314,8 @@ function ml_global_information.DrawSettings()
 					GUI_Capture(GUI:Checkbox(GetString("paranoid"),gTeleportHackParanoid),"gTeleportHackParanoid")
 					GUI_Capture(GUI:Checkbox(GetString("permaSprint"),gPermaSprint),"gPermaSprint", function () Hacks:SetPermaSprint(gPermaSprint) end)
 					GUI_Capture(GUI:Checkbox(GetString("skipCutscene"),gSkipCutscene),"gSkipCutscene", function () Hacks:SkipCutscene(gSkipCutscene) end)
-					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),gSkipTalk),"gSkipTalk")
-			
+					GUI_Capture(GUI:Checkbox(GetString("skipDialogue"),gSkipTalk),"gSkipTalk"); GUI:SameLine(0,15)
+					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##skiptalk",gSkipTalkRunningOnly),"gSkipTalkRunningOnly")
 					GUI:EndChild()
 				end
 				

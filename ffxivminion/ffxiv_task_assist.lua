@@ -25,9 +25,6 @@ end
 
 function ffxiv_task_assist:Init()
     --init Process() cnes
-	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 26 )
-    self:add(ke_skipTalk, self.process_elements)
-
 	local ke_pressConfirm = ml_element:create( "ConfirmDuty", c_pressconfirm, e_pressconfirm, 25 )
     self:add(ke_pressConfirm, self.process_elements)
 	

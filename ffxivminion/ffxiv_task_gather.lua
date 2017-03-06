@@ -2777,9 +2777,6 @@ end
 
 function ffxiv_task_gather:Init()
 	--[[ Overwatch Elements ]]
-	local ke_skipTalk = ml_element:create( "SkipTalk", c_skiptalk, e_skiptalk, 200 )
-    self:add(ke_skipTalk, self.overwatch_elements)
-	
 	local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 150 )
     self:add( ke_dead, self.overwatch_elements)
 	
