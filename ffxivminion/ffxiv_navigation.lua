@@ -844,6 +844,7 @@ function ml_navigation.Navigate(event, ticks )
 										end
 										
 									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then										
+										ml_navigation.omc_startheight = ppos.y
 										Player:Jump()
 										d("[Navigation]: Jump for OMC.")
 									end

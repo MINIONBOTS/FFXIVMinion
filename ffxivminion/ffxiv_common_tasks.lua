@@ -152,6 +152,7 @@ function ffxiv_task_movetopos:task_complete_eval()
         ml_debug("Current Distance: "..tostring(dist3d))
 		--ml_debug("Path Distance: "..tostring(pathdistance))
         ml_debug("Completion Distance: "..tostring(self.range + self.gatherRange))
+		local requiredRange = (self.range + self.gatherRange)
 		
 		if (not IsFlying()) then
 			if (not self.remainMounted and self.dismountDistance > 0 and dist3d <= self.dismountDistance and Player.ismounted and not IsDismounting() and Now() > self.dismountTimer) then
@@ -163,7 +164,7 @@ function ffxiv_task_movetopos:task_complete_eval()
 		--d("[MOVETOPOS]: Checking range ["..tostring(dist2d).."], ["..tostring(dist3d).."]")
 		--d("[MOVETOPOS]: Checking requirement ["..tostring(range2d).."], ["..tostring(range3d).."]")
 		
-		if (dist2d <= range2d and dist3d <= range3d) then
+		if ((dist2d <= requiredRange or dist2d <= range2d) and (dist3d <= (requiredRange + 2) or dist3d <= range3d)) then
 			return true
 		end
     end    
@@ -2409,7 +2410,7 @@ function ffxiv_task_moveaethernet.Create()
 	newinst.pos = false
 	newinst.posVisited = false
 	newinst.adjustedPos = false
-	newinst.range = nil
+	newinst.range = 1.5
 	newinst.areaChanged = false
 	newinst.addedMoveElement = false
 	newinst.use3d = true

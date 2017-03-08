@@ -126,6 +126,7 @@ function ml_global_information.ToggleRun()
 	if (ml_task_hub.shouldRun) then
 		ml_global_information.Reset()
 	else
+		ml_global_information.yield = {}
 		ml_global_information.Stop()
 	end
 end
@@ -240,6 +241,40 @@ function ml_global_information.AwaitDo(param1, param2, param3, param4, param5)
 			dowhile = param3,
 			followall = param4,
 		}
+	end
+end
+
+function ml_global_information.AwaitThen(param1, param2, param3, param4)
+	if (param1 and type(param2) == "number" and param2 and type(param2) == "number") then
+		if (param4 ~= nil and type(param4) == "function") then
+			ml_global_information.yield = {
+				mintimer = IIF(param1 ~= 0,Now() + param1,0),
+				maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+				evaluator = param3,
+				followall = param4,
+			}
+		else
+			ml_global_information.yield = {
+				mintimer = IIF(param1 ~= 0,Now() + param1,0),
+				maxtimer = IIF(param2 ~= 0,Now() + param2,0),
+				followall = param3,
+			}
+		end
+	else
+		if (param3 ~= nil and type(param3) == "function") then
+			ml_global_information.yield = {
+				mintimer = 0,
+				maxtimer = Now() + param1,
+				evaluator = param2,
+				followall = param3,
+			}
+		else
+			ml_global_information.yield = {
+				mintimer = 0,
+				maxtimer = Now() + param1,
+				followall = param2,
+			}
+		end
 	end
 end
 
