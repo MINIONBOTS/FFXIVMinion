@@ -215,15 +215,30 @@ function c_movetonode:evaluate()
 				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local task = ffxiv_gather.currentTask
+				local nogpitem = ""
 				local marker = ml_global_information.currentMarker
 				if (table.valid(task)) then
 					minimumGP = IsNull(task.mingp,0)
+					nogpitem = IsNull(task.nogpitem,"")
 				elseif (table.valid(marker)) then
 					minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 				end
 				
 				if (Player.gp.current >= minimumGP) then
 					gd("[MoveToNode]: We have enough GP, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
+					Player:SetTarget(gatherable.id)
+					Player:SetFacing(gpos.x,gpos.y,gpos.z)
+					
+					local myTarget = MGetTarget()
+					if (myTarget and myTarget.id == gatherable.id) then
+						Player:Interact(gatherable.id)
+					end
+					
+					ml_global_information.Await(500)
+					e_movetonode.blockOnly = true
+					return true
+				elseif (nogpitem ~= "") then
+					gd("[MoveToNode]: We don't have enough GP but have a No GP item, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
 					
@@ -281,17 +296,24 @@ function e_movetonode:execute()
 			
 			local minimumGP = 0
 			local task = ffxiv_gather.currentTask
+			local nogpitem = ""
 			local marker = ml_global_information.currentMarker
 			if (table.valid(task)) then
 				minimumGP = IsNull(task.mingp,0)
+				nogpitem = IsNull(task.nogpitem,"")
 			elseif (table.valid(marker)) then
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
-			newTask.minGP = minimumGP
+			
+			if (Player.gp.current < minimumGP and nogpitem == "") then
+				newTask.minGP = minimumGP
+			else
+				newTask.minGP = 0
+			end
 			
 			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
 			
-			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < minimumGP) then
+			if (CanUseCordial() or CanUseExpManual() or (Player.gp.current < minimumGP and nogpitem == "")) then
 				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -592,11 +614,14 @@ function e_gather:execute()
 		local gatherGardening = ""
 		local gatherRares = false
 		local gatherSuperRares = false
+		local touchOnly = false
 
 		local item1 = ""
 		local item2 = ""
 		local item3 = ""
-		
+		local nogpitem = ""
+		local minimumGP = 0
+
 		local task = ffxiv_gather.currentTask
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
@@ -605,9 +630,12 @@ function e_gather:execute()
 			gatherRares = IsNull(task.gatherrares,false)
 			gatherSuperRares = IsNull(task.gatherspecialrares,false)
 			gatherChocoFood = IsNull(task.gatherchocofood,false)
+			touchOnly = IsNull(task.touchonly,false)
 			item1 = IsNull(task.item1,"")
 			item2 = IsNull(task.item2,"")
 			item3 = IsNull(task.item3,"")
+			nogpitem = IsNull(task.nogpitem,"")
+			minimumGP = IsNull(task.mingp,0)
 		elseif (table.valid(marker) and false) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
 			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
@@ -617,7 +645,19 @@ function e_gather:execute()
 			item1 = IsNull(marker:GetFieldValue(GetUSString("selectItem1")),"")
 			item2 = IsNull(marker:GetFieldValue(GetUSString("selectItem2")),"")
 		end
-		
+	
+        if (touchOnly) then
+            local gatheringControl = GetControl("Gathering")
+			--local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
+			--ffxiv_gather.SetLastGather(profileName,ffxiv_gather.currentTaskIndex)
+            if (gatheringControl and gatheringControl:IsOpen()) then
+                gatheringControl:Close()
+                ml_global_information.Await(5000, function () return not IsControlOpen("Gathering") end)
+				c_gathernexttask.subset[ffxiv_gather.currentTaskIndex] = nil
+				return 3
+            end
+        end
+
 		-- 1st pass, maps
 		if (gatherMaps ~= "" and gatherMaps ~= false and gatherMaps ~= "None") then
 			local hasMap = false
@@ -837,12 +877,23 @@ function e_gather:execute()
 		local itemid1 = 0
 		local itemid2 = 0
 		local itemid3 = 0
+		local nogpitemid = 0
+		
 		local itemslot1 = 0
 		local itemslot2 = 0
 		local itemslot3 = 0
 		
 		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
-		
+
+		if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none") and Player.gp.current < minimumGP) then
+			nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
+			if (nogpitemid == 0) then
+				d("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].")
+			else
+				d("[Gather]: Setting nogpitemid to ["..tostring(nogpitemid).."]")
+			end
+		end
+
 		if (item1 and item1 ~= "" and item1 ~= GetString("none")) then
 			itemid1 = AceLib.API.Items.GetIDByName(item1) or 0
 			if (itemid1 == 0) then
@@ -881,6 +932,14 @@ function e_gather:execute()
 		if (tonumber(item3) ~= nil) then
 			itemslot3 = tonumber(item3)
 			d("[Gather]: Using slot for item 3 - ["..tostring(itemslot3).."].")
+		end
+		
+		for i, item in pairs(list) do
+			if (nogpitemid ~= 0) then
+				if (item.id == nogpitemid) then
+					return DoGathering(item)
+				end
+			end
 		end
 		
 		for i, item in pairs(list) do

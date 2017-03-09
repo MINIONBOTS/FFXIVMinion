@@ -8,24 +8,24 @@ MiniGames.restPositions = {
 }
 MiniGames.vendors = {
 	["cuff"] = {
-		{id = 2005029, mapid = 388, x = 12, y = 0.7, z = -33},
-		{id = 2005029, mapid = 144, x = 24.8, y = -5.1, z = -50.6},
-		{id = 2005029, mapid = 144, x = 13, y = -5.1, z = -52.7},
+		{id = 2005029, mapid = 388, x = 9.75, y = 0.03, z = -33.43},
+		{id = 2005029, mapid = 144, x = 25.17, y = -5, z = -48.85},
+		{id = 2005029, mapid = 144, x = 14.35, y = -5, z = -54.01},
 	},
 	["toss"] = {
-		{id = 2004804, mapid = 144, x = 43.4, 5.1, z = 17},
-		{id = 2004804, mapid = 144, x = 35.4, 5.0, z = 17},
+		{id = 2004804, mapid = 144, x = 41.39, y = 4, z = 18},
+		{id = 2004804, mapid = 144, x = 37.18, y = 4, z = 17.70},
 	},
 	["striker"] = {
-		{ id = 2005035, mapid = 144, x = 25.1, y = 4.9, z = 92.2},
-		{ id = 2005035, mapid = 144, x = 24.3, y = 4.9, z = 102.5},
+		{ id = 2005035, mapid = 144, x = 25.28, y = 4, z = 89.28},
+		{ id = 2005035, mapid = 144, x = 24.55, y = 4, z = 99.63},
 	},
 }
 MiniGames.optionGroups = {
 	[1] = {
-		["gMGOptionPunch"] = { id = 2005029, x = 25.62, y = -5.00, z = -47.06},
-		["gMGOptionToss"] = { id = 2004804, x = 38.81, y = 3.99, z = 26.79},
-		["gMGOptionHammer"] = { id = 2005035, x = 31.46, y = 3.99, z = 90.23},
+		["gMGOptionPunch"] = { id = 2005029, x = 25.17, y = -5, z = -48.85},
+		["gMGOptionToss"] = { id = 2004804, x = 37.18, y = 4, z = 17.70},
+		["gMGOptionHammer"] = { id = 2005035, x = 25.28, y = 4, z = 89.28},
 	}
 }
 
@@ -425,7 +425,14 @@ function e_randomizegame:execute()
 	
 	local randomSeed = math.random(1,2)
 	local newGame = choices[randomSeed]
-	ffxiv_task_minigames.SwitchOption(1,newGame)
+	
+	for varName,gameData in pairs(gamesGroup) do
+		if (newGame == varName) then
+			_G[varName] = true
+		else
+			_G[varName] = false
+		end
+	end
 	ml_task_hub:CurrentTask().randomizeTimer = Now()
 end
 

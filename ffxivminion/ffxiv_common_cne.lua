@@ -2737,9 +2737,7 @@ function c_inventoryfull:evaluate()
 end
 function e_inventoryfull:execute()
 	if (FFXIV_Common_BotRunning) then
-		GUI_ToggleConsole(true)
-		d("Inventory is full, bot will stop.")
-		ml_global_information:ToggleRun()
+		ffxiv_dialog_manager.IssueStopNotice("Inventory","Inventory is full, bot will stop.")
 	end
 end
 

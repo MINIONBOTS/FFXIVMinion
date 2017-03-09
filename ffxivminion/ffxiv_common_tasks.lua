@@ -585,9 +585,10 @@ function ffxiv_task_movetointeract:task_complete_eval()
 			self.posVisited = true
 		end
 		
-		if (dist2d < 5 and dist3d < 8 and not Player:IsMoving() and not c_walktopos:evaluate()) then
+		if (dist2d < 5 and dist3d < 8) then
 			local closestMeshPos = NavigationManager:GetClosestPointOnMesh(self.pos)
 			if (closestMeshPos and closestMeshPos.distance < 10) then
+				d("Move position to nearest mesh position.")
 				self.pos = closestMeshPos
 			end
 		end
