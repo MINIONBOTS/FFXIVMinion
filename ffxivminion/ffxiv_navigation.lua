@@ -315,7 +315,7 @@ function ml_navigation.ParseInstructions(data)
 			elseif (itype == "CheckIfNear") then
 				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
 				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
-				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.55
 				
 				if (pos.x ~= nil and pos.y ~= nil and pos.z ~= nil) then
 					table.insert(ml_navigation.receivedInstructions, 
@@ -328,7 +328,7 @@ function ml_navigation.ParseInstructions(data)
 			elseif (itype == "MoveStraightTo") then
 				local pos = { x = iparams[1] or nil, y = iparams[2] or nil, z = iparams[3] or nil }
 				local dist3d = ((iparams[4] and iparams[4] ~= 0) and iparams[4]) or 2
-				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.4
+				local dist2d = ((iparams[5] and iparams[5] ~= 0) and iparams[5]) or 0.55
 				
 				local jumps = {}
 				if (TableSize(iparams) > 5) then
@@ -358,7 +358,7 @@ function ml_navigation.ParseInstructions(data)
 									if (not Player:IsJumping()) then
 										if (table.valid(jumps)) then
 											for i,jump in pairs(jumps) do
-												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.5) then
+												if (Distance3DT(pos,myPos) <= 2 and Distance2DT(pos,myPos) <= 0.55) then
 													Player:Jump()
 												end
 											end
@@ -843,7 +843,7 @@ function ml_navigation.Navigate(event, ticks )
 											ffnav.Await(1000, function () return Player:IsMoving() end)
 										end
 										
-									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then										
+									elseif ( Player:IsMoving() and ticks - ml_navigation.omc_starttimer > 100 ) then	
 										ml_navigation.omc_startheight = ppos.y
 										Player:Jump()
 										d("[Navigation]: Jump for OMC.")
@@ -1586,4 +1586,10 @@ function ffnav.IsRiding()
 end
 function ffnav.IsFlying()
 	return (Player:GetSpeed(FFXIV.MOVEMENT.FORWARD) > 0)
+end
+function ffnav.FindNearestCubePoint()
+
+end
+function ffnav.FindNearestMeshPoint()
+
 end

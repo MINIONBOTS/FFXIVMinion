@@ -215,11 +215,11 @@ function c_movetonode:evaluate()
 				gd("[MoveToNode]: <= 3.3 distance, need to move to id ["..tostring(gatherable.id).."].",2)
 				local minimumGP = 0				
 				local task = ffxiv_gather.currentTask
-				local nogpitem = ""
+				local noGPitem = ""
 				local marker = ml_global_information.currentMarker
 				if (table.valid(task)) then
 					minimumGP = IsNull(task.mingp,0)
-					nogpitem = IsNull(task.nogpitem,"")
+					noGPitem = IsNull(task.nogpitem,"")
 				elseif (table.valid(marker)) then
 					minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 				end
@@ -237,7 +237,7 @@ function c_movetonode:evaluate()
 					ml_global_information.Await(500)
 					e_movetonode.blockOnly = true
 					return true
-				elseif (nogpitem ~= "") then
+				elseif (noGPitem ~= "") then
 					gd("[MoveToNode]: We don't have enough GP but have a No GP item, set target to id ["..tostring(gatherable.id).."] and try to interact.",2)
 					Player:SetTarget(gatherable.id)
 					Player:SetFacing(gpos.x,gpos.y,gpos.z)
@@ -296,24 +296,24 @@ function e_movetonode:execute()
 			
 			local minimumGP = 0
 			local task = ffxiv_gather.currentTask
-			local nogpitem = ""
+			local noGPitem = ""
 			local marker = ml_global_information.currentMarker
 			if (table.valid(task)) then
 				minimumGP = IsNull(task.mingp,0)
-				nogpitem = IsNull(task.nogpitem,"")
+				noGPitem = IsNull(task.nogpitem,"")
 			elseif (table.valid(marker)) then
 				minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 			end
 			
-			if (Player.gp.current < minimumGP and nogpitem == "") then
-				newTask.minGP = minimumGP
-			else
+			if (Player.gp.current < minimumGP and noGPitem ~= "") then
 				newTask.minGP = 0
+			else
+				newTask.minGP = minimumGP
 			end
 			
 			gd("[MoveToNode]: Setting minGP to ["..tostring(minimumGP).."]")
 			
-			if (CanUseCordial() or CanUseExpManual() or (Player.gp.current < minimumGP and nogpitem == "")) then
+			if (CanUseCordial() or CanUseExpManual() or Player.gp.current < newTask.minGP) then
 				if (dist3d > 8 or IsFlying()) then
 					local telePos = GetPosFromDistanceHeading(pos, 5, nodeFront)
 					local p = NavigationManager:GetClosestPointOnMesh(telePos,false)
@@ -615,6 +615,7 @@ function e_gather:execute()
 		local gatherRares = false
 		local gatherSuperRares = false
 		local touchOnly = false
+		local noGPGather = false
 
 		local item1 = ""
 		local item2 = ""
@@ -636,6 +637,7 @@ function e_gather:execute()
 			item3 = IsNull(task.item3,"")
 			nogpitem = IsNull(task.nogpitem,"")
 			minimumGP = IsNull(task.mingp,0)
+			noGPGather = IsNull(task.nogpgather,false)
 		elseif (table.valid(marker) and false) then
 			gatherMaps = IsNull(marker:GetFieldValue(GetUSString("gatherMaps")),"")
 			gatherGardening = IsNull(marker:GetFieldValue(GetUSString("gatherGardening")),"0")
@@ -648,12 +650,10 @@ function e_gather:execute()
 	
         if (touchOnly) then
             local gatheringControl = GetControl("Gathering")
-			--local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gGatherProfile
-			--ffxiv_gather.SetLastGather(profileName,ffxiv_gather.currentTaskIndex)
             if (gatheringControl and gatheringControl:IsOpen()) then
                 gatheringControl:Close()
                 ml_global_information.Await(5000, function () return not IsControlOpen("Gathering") end)
-				c_gathernexttask.subset[ffxiv_gather.currentTaskIndex] = nil
+				ffxiv_gather.currentTask.touchCompleted = true
 				return 3
             end
         end
@@ -882,15 +882,26 @@ function e_gather:execute()
 		local itemslot1 = 0
 		local itemslot2 = 0
 		local itemslot3 = 0
+		local nogpitemslot = 0
 		
 		--d(AceLib.API.Items.GetIDByName("Silkworm Cocoon"))
 
-		if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none") and Player.gp.current < minimumGP) then
-			nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
-			if (nogpitemid == 0) then
-				d("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].")
-			else
-				d("[Gather]: Setting nogpitemid to ["..tostring(nogpitemid).."]")
+		if (Player.gp.current < minimumGP or noGPGather) then
+			if (nogpitem and nogpitem ~= "" and nogpitem ~= GetString("none")) then
+				nogpitemid = AceLib.API.Items.GetIDByName(nogpitem) or 0
+				if (nogpitemid == 0) then
+					d("[Gather]: Could not find a valid item ID for No GP Item - ["..tostring(nogpitem).."].")
+				else
+					ffxiv_gather.currentTask.nogpgather = true
+					noGPGather = true
+					d("[Gather]: Setting nogpitemid to ["..tostring(nogpitemid).."]")
+				end
+			end
+			if (tonumber(nogpitem) ~= nil) then
+				nogpitemslot = tonumber(nogpitem)
+				ffxiv_gather.currentTask.nogpgather = true
+				noGPGather = true
+				d("[Gather]: Using slot for No GP item - ["..tostring(nogpitemslot).."].")
 			end
 		end
 
@@ -901,8 +912,7 @@ function e_gather:execute()
 			else
 				d("[Gather]: Setting itemid1 to ["..tostring(itemid1).."]")
 			end
-		end
-		
+		end		
 		if (tonumber(item1) ~= nil) then
 			itemslot1 = tonumber(item1)
 			d("[Gather]: Using slot for item 1 - ["..tostring(itemslot1).."].")
@@ -937,6 +947,13 @@ function e_gather:execute()
 		for i, item in pairs(list) do
 			if (nogpitemid ~= 0) then
 				if (item.id == nogpitemid) then
+					return DoGathering(item)
+				end
+			end
+
+			if (nogpitemslot ~= 0) then
+				if (item.index == nogpitemslot and item.id ~= nil) then
+					d("[Gather]: Run gathering procedure for item ["..item.name.."]")
 					return DoGathering(item)
 				end
 			end
@@ -2013,7 +2030,6 @@ function c_gathernexttask:evaluate()
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
 	if (not table.valid(currentTask)) then
-		d("no current task, pick something")
 		gd("[GatherNextTask]: We have no current task, so set the invalid flag.",3)
 		invalid = true
 	else
@@ -2124,6 +2140,13 @@ function c_gathernexttask:evaluate()
 				end
 			end
 		end
+
+		if (not invalid) then
+			if (currentTask.touchCompleted) then
+				gd("[GatherNextTask]: Single touch task has been completed, invalidate.",3)
+				invalid = true
+			end
+		end
 			
 		if (currentTask.complete) then
 			local conditions = shallowcopy(currentTask.complete)
@@ -2143,7 +2166,8 @@ function c_gathernexttask:evaluate()
 		end
 	end
 	
-	if (invalid and not tempinvalid) then
+	if (invalid and not tempinvalid and table.valid(ffxiv_gather.currentTask)) then
+		profileData.tasks[currentTaskIndex].lockout = Now() + 10000
 		gd("[GatherNextTask]: Remove this index from the cached subset.",3)
 		c_gathernexttask.subset[currentTaskIndex] = nil
 	end
@@ -2163,7 +2187,7 @@ function c_gathernexttask:evaluate()
 				
 					local valid = true
 
-					if (data.enabled and data.enabled ~="1") then
+					if (data.enabled and data.enabled ~= "1") then
 						valid = false
 						gd("Task ["..tostring(i).."] not enabled.",3)
 					end
@@ -2284,25 +2308,27 @@ function c_gathernexttask:evaluate()
 				local lowPriority = {}
 				
 				for i,data in pairsByKeys(validTasks) do
-					-- Items with weather requirements go into high priority
-					if (data.highpriority) then
-						gd("Added task at ["..tostring(i).."] to the high priority queue.")
-						highPriority[i] = data
-					elseif (data.normalpriority) then
-						gd("Added task at ["..tostring(i).."] to the normal priority queue.")
-						normalPriority[i] = data
-					elseif (data.lowpriority) then
-						gd("Added task at ["..tostring(i).."] to the low priority queue.")
-						lowPriority[i] = data
-					elseif (data.weatherlast or data.weathernow or data.weathernext) then
-						gd("Added task at ["..tostring(i).."] to the high priority queue.")
-						highPriority[i] = data
-					elseif (data.eorzeaminhour or data.eorzeamaxhour) then
-						gd("Added task at ["..tostring(i).."] to the normal priority queue.")
-						normalPriority[i] = data
-					else
-						gd("Added task at ["..tostring(i).."] to the low priority queue.")
-						lowPriority[i] = data
+					if (not data.lockout or Now() > data.lockout) then
+						-- Items with weather requirements go into high priority
+						if (data.highpriority) then
+							gd("Added task at ["..tostring(i).."] to the high priority queue.")
+							highPriority[i] = data
+						elseif (data.normalpriority) then
+							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
+							normalPriority[i] = data
+						elseif (data.lowpriority) then
+							gd("Added task at ["..tostring(i).."] to the low priority queue.")
+							lowPriority[i] = data
+						elseif (data.weatherlast or data.weathernow or data.weathernext) then
+							gd("Added task at ["..tostring(i).."] to the high priority queue.")
+							highPriority[i] = data
+						elseif (data.eorzeaminhour or data.eorzeamaxhour) then
+							gd("Added task at ["..tostring(i).."] to the normal priority queue.")
+							normalPriority[i] = data
+						else
+							gd("Added task at ["..tostring(i).."] to the low priority queue.")
+							lowPriority[i] = data
+						end
 					end
 				end
 				
@@ -2489,6 +2515,7 @@ function e_gathernexttask:execute()
 	ml_task_hub:CurrentTask().failedSearches = 0
 	ffxiv_gather.currentTask.taskStarted = 0
 	ffxiv_gather.currentTask.taskFailed = 0
+	ffxiv_gather.currentTask.touchCompleted = false
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
 end
 
