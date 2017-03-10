@@ -4148,7 +4148,7 @@ function IsInventoryFull(maxitems)
 	local maxitems = maxitems or 100
 	
 	local itemcount = 0
-	local inventories = inventories or {0,1,2,3}
+	local inventories = {0,1,2,3}
 	for _,invid in pairsByKeys(inventories) do
 		local bag = Inventory:Get(invid)
 		if (table.valid(bag)) then

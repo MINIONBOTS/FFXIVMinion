@@ -967,15 +967,11 @@ function ffxivminion.LoadModes()
 		local modes = ffxivminion.modes
 		for modeName,task in spairs(modes, function(modes,a,b) return modes[a].friendly < modes[b].friendly end) do
 			table.insert(gBotModeList,modeName)
-			d("checking if ["..tostring(modeName).."] is ["..tostring(gBotMode).."]")
 			if (modeName == gBotMode) then
 				gBotModeIndex = table.size(gBotModeList)
 			end
 		end				
 	end
-	
-	d("load modes: mode list has ["..tostring(table.size(gBotModeList)).."]")
-	d("last bot mode setting:"..tostring(gBotMode))
 	
 	local modeIndex = GetKeyByValue(Retranslate(gBotMode),gBotModeList)
 	if (modeIndex) then
@@ -985,8 +981,6 @@ function ffxivminion.LoadModes()
 		gBotModeIndex = backupIndex
 		gBotMode = GetString("assistMode")
 	end
-	
-	d("new bot mode setting:"..tostring(gBotMode))
 	
 	ffxivminion.SwitchMode(gBotMode)
 end

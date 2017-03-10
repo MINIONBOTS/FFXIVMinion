@@ -2026,6 +2026,7 @@ function c_gathernexttask:evaluate()
 	local invalid = false
 	local tempinvalid = false
 	
+	local profileData = ffxiv_gather.profileData
 	local currentTask = ffxiv_gather.currentTask
 	local currentTaskIndex = ffxiv_gather.currentTaskIndex
 	
@@ -2173,7 +2174,6 @@ function c_gathernexttask:evaluate()
 	end
 
 	if (evaluate or invalid) then
-		local profileData = ffxiv_gather.profileData
 		if (table.valid(profileData.tasks)) then
 			
 			local validTasks = {}
