@@ -4145,7 +4145,7 @@ function ItemReady(hqid,targetid)
 	return false
 end	
 function IsInventoryFull(maxitems)
-	local maxitems = maxitems or 100
+	local maxitems = maxitems or 97
 	
 	local itemcount = 0
 	local inventories = {0,1,2,3}

@@ -140,6 +140,16 @@ function c_precastbuff:evaluate()
 			end
 		end
 		
+		local canUse,manualItem = CanUseExpManual()
+		if (canUse and table.valid(manualItem)) then
+			d("[NodePreBuff]: Need to use a manual, grabbed item ["..tostring(manualItem.hqid).."]")
+			e_nodeprebuff.activity = "usemanual"
+			e_nodeprebuff.itemid = manualItem.hqid
+			e_nodeprebuff.requirestop = true
+			e_nodeprebuff.requiredismount = true
+			return true
+		end
+		
 		if (useCordials) then
 			local canUse,cordialItem = CanUseCordial()
 			if (canUse and table.valid(cordialItem)) then
@@ -175,6 +185,15 @@ function e_precastbuff:execute()
 		Dismount()
 		ml_global_information.Await(2500, function () return (not Player.ismounted) end)
 		return
+	end
+	
+	if (activity == "usemanual") then
+		local manual, action = GetItem(activityitemid)
+		if (manual and action and manual:IsReady(Player.id)) then
+			manual:Cast(Player.id)
+			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
+			return
+		end
 	end
 	
 	if (activity == "eat") then

@@ -3104,6 +3104,7 @@ function ffxiv_task_gather:Draw()
 		ffxiv_gather.profileData = ffxiv_gather.profiles[gGatherProfile]
 		local uuid = GetUUID()
 		Settings.FFXIVMINION.gLastGatherProfiles[uuid] = gGatherProfile
+		c_gathernexttask.subsetExpiration = 0
 	end
 	
 	GUI_DrawTabs(self.GUI.main_tabs)

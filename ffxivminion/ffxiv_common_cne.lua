@@ -2627,7 +2627,7 @@ c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5)) or IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
-		not Player.alive or Player.incombat or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
+		not Player.alive or Player.incombat or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0 or not gAutoEquip)
 	then
 		return false
 	end	
