@@ -124,7 +124,7 @@ end
 
 function GUI_DrawIntMinMax(label,varname,step,stepfast,minval,maxval,onchange)
 	local var = _G[varname]
-	local returned = GUI_Capture(GUI:InputInt(label,var,step,stepfast),varname)
+	local returned = GUI_Capture(GUI:InputInt(label,var,step,stepfast),varname, onchange)
 	if (minval ~= nil and returned < minval) then GUI_Set(varname,minval) elseif (maxval ~= nil and returned > maxval) then GUI_Set(varname,minval) end
 end
 

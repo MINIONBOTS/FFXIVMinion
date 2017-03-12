@@ -783,6 +783,18 @@ function ml_navigation.Navigate(event, ticks )
 						
 						if IsControlOpen("Talk") then
 							UseControlAction("Talk","Click")
+							ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+							return
+						end
+						
+						if (IsControlOpen("SelectYesno")) then
+							if (IsControlOpen("_NotificationParty")) then
+								UseControlAction("SelectYesno","No")
+							else
+								UseControlAction("SelectYesno","Yes")
+							end
+							ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+							return
 						end
 						
 						ml_navigation.GUI.lastAction = "Ending OMC"
@@ -889,16 +901,6 @@ function ml_navigation.Navigate(event, ticks )
 							if (Player.ismounted) then
 								Dismount()
 								ffnav.Await(2000, function () return not Player.ismounted end)
-								return
-							end
-							
-							if (IsControlOpen("SelectYesno")) then
-								if (IsControlOpen("_NotificationParty")) then
-									UseControlAction("SelectYesno","No")
-								else
-									UseControlAction("SelectYesno","Yes")
-								end
-								ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
 								return
 							end
 							

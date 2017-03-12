@@ -2,6 +2,9 @@ ffxivminion = {}
 ffxivminion.modes = {}
 ffxivminion.modesToLoad = {}
 ffxivminion.busyTimer = 0
+ffxivminion.lastTradeDecline = 0
+ffxivminion.lastTradeMessage = 0
+ffxivminion.tradeDeclines = 0
 ffxivminion.declineTimer = 0
 
 ffxivminion.loginvars = {
@@ -504,6 +507,9 @@ function ffxivminion.SetMainVars()
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
 	FFXIV_Common_UseEXPManuals = ffxivminion.GetSetting("FFXIV_Common_UseEXPManuals",true)
 	gDeclinePartyInvites = ffxivminion.GetSetting("gDeclinePartyInvites",true)
+	gTradeInviteBusy = ffxivminion.GetSetting("gTradeInviteBusy",true)
+	gTradeInviteMessage = ffxivminion.GetSetting("gTradeInviteMessage",false)
+	gTradeInviteMessages = ffxivminion.GetSetting("gTradeInviteMessages","?;/shrug")
 	
 	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
 	gFoodIndex = 1
@@ -558,7 +564,7 @@ end
 function ffxivminion.HandleInit()
 
 	-- Build bottom menu for new GUI addons.
-	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("botStatus,generalSettings,companion,playerHPMPTP,hacks,advancedSettings",true)
+	ffxivminion.GUI.settings.main_tabs = GUI_CreateTabs("botStatus,generalSettings,Behavioral,companion,playerHPMPTP,hacks,advancedSettings",true)
 	ml_global_information.BuildMenu()
 	ffxivminion.SetMainVars()
 	
@@ -937,7 +943,7 @@ function ffxivminion.FillMountOptions()
 	local mounts = ActionList:Get(13)
 	if (mounts) then
 		for k,v in pairs(mounts) do
-			if (v:IsReady(Player.id)) then
+			if (ValidString(v.name)) then
 				table.insert(gMountNames,v.name)
 				if (v.name == gMountName) then
 					gMountNameIndex = table.size(gMountNames)
@@ -992,20 +998,52 @@ function ffxivminion.ClearAddons()
 		ffxivminion.busyTimer = 0
 	end
 	
+	if (ffxivminion.tradeDeclines > 0 and Now() > ffxivminion.lastTradeDecline + 30000) then
+		if (not IsControlOpen("Trade")) then
+			ffxivminion.tradeDeclines = 0
+		end
+	end
+	
 	--trade window
-	if (IsControlOpen("Trade")) then
-		--local traders = EntityList("nearest,maxdistance=5,chartype=4")
-		Player:Stop()
-		ml_global_information.Await(2000, 
-			function () 
-				return not Player:IsMoving() 
-			end,
-			function ()
-				SendTextCommand("/busy on")
-				Player:CheckTradeWindow()
-				ffxivminion.busyTimer = Now() + 60000
+	if (IsControlOpen("Trade") and not Player:IsMoving()) then
+		
+		if (Now() < ffxivminion.lastTradeDecline + 15000 and ffxivminion.tradeDeclines > 0 and gTradeInviteBusy) then
+			Player:CheckTradeWindow()
+			ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
+			ffxivminion.lastTradeDecline = Now()
+			ml_global_information.Await(5000, 
+				function () return IsControlOpen("Trade") end, 
+				function () 
+					SendTextCommand("/busy on")
+					ffxivminion.busyTimer = Now() + 60000
+				end
+			)
+		end
+		
+		if (Now() > ffxivminion.lastTradeMessage + 15000 and ffxivminion.tradeDeclines == 0) then
+			if (ValidString(gTradeInviteMessages)) then
+				local messageTable = {}
+				for message in StringSplit(gTradeInviteMessages,";") do
+					table.insert(messageTable,message)
+				end
+				local thisMessage = messageTable[math.random(1,table.size(messageTable))]
+				if (ValidString(thisMessage)) then
+					if (not string.starts(thisMessage,"/")) then
+						thisMessage = "/say "..thisMessage
+					end
+					SendTextCommand(thisMessage)
+					ffxivminion.lastTradeMessage = Now()
+				end
 			end
-		)
+			ml_global_information.AwaitThen(math.random(2000,7000), 
+				function ()
+					Player:CheckTradeWindow()
+					ffxivminion.tradeDeclines = ffxivminion.tradeDeclines + 1
+					ffxivminion.lastTradeDecline = Now()
+				end
+			)
+		end
+		
 		return true
 	end
 	
@@ -1232,8 +1270,6 @@ function ml_global_information.DrawSettings()
 							end
 						end
 					);
-					
-					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
 					GUI_Capture(GUI:Checkbox(GetString("useMount"),gUseMount),"gUseMount", 
 						function ()
 							if (gMountName == GetString("none")) then
@@ -1263,6 +1299,17 @@ function ml_global_information.DrawSettings()
 				end	
 				
 				if (tabs.tabs[3].isselected) then
+					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(4),true)
+					
+					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
+					GUI_Capture(GUI:Checkbox("/busy After Trade invite",gTradeInviteBusy),"gTradeInviteBusy");
+					GUI_Capture(GUI:Checkbox("Send Message After Trade Invite.",gTradeInviteMessage),"gTradeInviteMessage");
+					GUI_Capture(GUI:InputText("Message Options",gTradeInviteMessages),"gTradeInviteMessages");
+					
+					GUI:EndChild()
+				end
+				
+				if (tabs.tabs[4].isselected) then
 					GUI:BeginChild("##main-header-companion",0,GUI_GetFrameHeight(3),true)
 					
 					GUI_Capture(GUI:Checkbox(GetString("assistMode"),gChocoAssist),"gChocoAssist"); GUI:SameLine()
@@ -1276,7 +1323,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[4].isselected) then
+				if (tabs.tabs[5].isselected) then
 					GUI:BeginChild("##main-header-playerhpmptp",0,GUI_GetFrameHeight(7),true)
 					GUI:PushItemWidth(120)
 
@@ -1292,7 +1339,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[5].isselected) then
+				if (tabs.tabs[6].isselected) then
 					GUI:BeginChild("##main-header-hacks",0,GUI_GetFrameHeight(10),true)
 					GUI_Capture(GUI:Checkbox(GetString("repair"),gRepair),"gRepair"); GUI:SameLine(0,15)
 					GUI_Capture(GUI:Checkbox(GetString("Require Bot Running").."##repair",gRepairRunningOnly),"gRepairRunningOnly")
@@ -1313,7 +1360,7 @@ function ml_global_information.DrawSettings()
 					GUI:EndChild()
 				end
 				
-				if (tabs.tabs[6].isselected) then
+				if (tabs.tabs[7].isselected) then
 					GUI:BeginChild("##main-header-advancedsettings",0,GUI_GetFrameHeight(4),true)
 					GUI:PushItemWidth(120)
 					GUI_DrawIntMinMax("Stealth - Detect Range","FFXIV_Common_StealthDetect",1,10,0,100)

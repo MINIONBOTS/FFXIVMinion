@@ -308,6 +308,7 @@ function ml_global_information.Init()
 		ml_mesh_mgr.SetDefaultMesh(175, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(352, "Wolves Den")
 		ml_mesh_mgr.SetDefaultMesh(186, "Wolves Den")
+		ml_mesh_mgr.SetDefaultMesh(250, "Wolves Den Pier")
 		
 		--ml_mesh_mgr.SetDefaultMesh(431, "Seal Rock")
 		
