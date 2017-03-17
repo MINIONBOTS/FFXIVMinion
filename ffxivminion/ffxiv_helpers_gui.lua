@@ -63,6 +63,10 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 	end
 end
 
+function GUI_Get(varName)
+	return _G[varName]
+end
+
 function GUI_Set(varName,newVal)
 	_G[varName] = newVal
 	Settings.FFXIVMINION[varName] = newVal

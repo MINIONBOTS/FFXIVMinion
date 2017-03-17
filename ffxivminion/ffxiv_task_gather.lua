@@ -121,6 +121,8 @@ function c_findnode:evaluate()
 			basePos = marker:GetPosition()
 		end
 		
+		d("finding node with whitelist value ["..whitelist.."]")
+		
 		if (table.valid(basePos)) then
 			local myPos = Player.pos
 			local distance = PDistance3D(myPos.x, myPos.y, myPos.z, basePos.x, basePos.y, basePos.z)
@@ -135,13 +137,13 @@ function c_findnode:evaluate()
 				local filter = ""
 				if (whitelist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",contentid="..whitelist
-					gd("Using whitelist filter ["..filter.."].",3)
+					d("Using whitelist filter ["..filter.."].",3)
 				elseif (blacklist ~= "") then
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)..",exclude_contentid="..blacklist
-					gd("Using blacklist filter ["..filter.."].",3)
+					d("Using blacklist filter ["..filter.."].",3)
 				else
 					filter = "onmesh,gatherable,minlevel="..tostring(nodeminlevel)..",maxlevel="..tostring(nodemaxlevel)
-					gd("Using filter ["..filter.."].",3)
+					d("Using filter ["..filter.."].",3)
 				end
 				
 				local gatherable = nil
@@ -1377,6 +1379,22 @@ function c_nodeprebuff:evaluate()
 		useFavor = IsNull(marker:GetFieldValue(GetUSString("favor")),0)
 	else
 		return false
+	end
+	
+	if (type(skillProfile) == "string" and GUI_Get(skillProfile) ~= nil) then
+		skillProfile = GUI_Get(skillProfile)
+	end
+	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+		minimumGP = GUI_Get(minimumGP)
+	end
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
+	end
+	if (type(useFavor) == "string" and GUI_Get(useFavor) ~= nil) then
+		useFavor = GUI_Get(useFavor)
+	end
+	if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
+		useFood = GUI_Get(useFood)
 	end
 	
 	if (skillProfile ~= "" and gSkillProfile ~= skillProfile) then -- fix later

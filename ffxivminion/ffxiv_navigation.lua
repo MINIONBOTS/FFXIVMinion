@@ -788,11 +788,7 @@ function ml_navigation.Navigate(event, ticks )
 						end
 						
 						if (IsControlOpen("SelectYesno")) then
-							if (IsControlOpen("_NotificationParty")) then
-								UseControlAction("SelectYesno","No")
-							else
-								UseControlAction("SelectYesno","Yes")
-							end
+							UseControlAction("SelectYesno","Yes")
 							ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
 							return
 						end
@@ -954,7 +950,7 @@ function ml_navigation.Navigate(event, ticks )
 									local npcpos = interactnpc.pos
 									Player:SetFacing(npcpos.x,npcpos.y,npcpos.z)
 									Player:Interact(interactnpc.id)
-									ffnav.Await(2000, function () return (MIsLoading() or table.valid(GetConversationList())) end)
+									ffnav.Await(2000, function () return (MIsLoading() or IsControlOpen("SelectYesno") or table.valid(GetConversationList())) end)
 								end
 							end
 						

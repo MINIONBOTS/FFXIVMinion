@@ -690,7 +690,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 							
 							ml_global_information.AwaitSuccessFail(250, 1500,
 								function ()
-									return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+									return (MIsLocked() or IsShopWindowOpen() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsDismounting() or Player.castinginfo.channelingid ~= 0) 
 								end, 
 								function ()
 									if (Player.castinginfo.channelingid ~= 0) then
@@ -2667,7 +2667,7 @@ function ffxiv_task_moveaethernet:task_complete_eval()
 						
 						ml_global_information.AwaitSuccessFail(250, 1500,
 							function () 
-								return (MIsLocked() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or Player.castinginfo.channelingid ~= 0) 
+								return (MIsLocked() or IsControlOpen("SelectString") or IsControlOpen("SelectIconString") or IsDismounting() or Player.castinginfo.channelingid ~= 0) 
 							end, 
 							function ()
 								if (Player.castinginfo.channelingid ~= 0) then

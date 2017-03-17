@@ -4057,7 +4057,7 @@ function GetBestGrindMap()
 		return 152 --east shroud
 	elseif (level >= 22 and level < 30) then
 		return 153 --south shroud
-	elseif (level >= 30 and level < 44) then
+	elseif (level >= 30 and level < 39) then
 		return 137 --eastern la noscea
 	elseif (level >= 40 and level < 44) then
 		return 155 --coerthas
