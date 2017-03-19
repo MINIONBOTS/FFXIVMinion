@@ -71,9 +71,14 @@ end
 
 function fd(var,level)
 	local level = tonumber(level) or 3
-
-	if ( gFishDebug  ) then
-		if ( level <= tonumber(gFishDebugLevel)) then
+	
+	local requiredLevel = gFishDebugLevel
+	if (gBotMode == GetString("questMode") and gQuestDebug) then
+		requiredLevel = gQuestDebugLevel
+	end
+	
+	if ( gFishDebug or (gQuestDebug and gBotMode == GetString("questMode"))) then
+		if ( level <= tonumber(requiredLevel)) then
 			if (type(var) == "string") then
 				d("[L"..tostring(level).."]["..tostring(Now()).."]: "..var)
 			elseif (type(var) == "number" or type(var) == "boolean") then
@@ -95,7 +100,7 @@ function HasBaits(name)
 			if (tonumber(bait) ~= nil) then
 				itemid = tonumber(bait)
 			else
-				fd("[HasBaits] Searching for bait ID for ["..IsNull(bait,"").."].",3)
+				--fd("[HasBaits] Searching for bait ID for ["..IsNull(bait,"").."].",3)
 				itemid = AceLib.API.Items.GetIDByName(bait)
 			end
 
@@ -107,11 +112,9 @@ function HasBaits(name)
 			end
 		end
 	else
-		fd("[HasBaits] No bait choices selected.",3)
 		return false
 	end
 	
-	fd("[HasBaits] No Baits found.",3)
 	return false
 end
 
@@ -125,6 +128,14 @@ function GetCurrentTaskPos()
 			if (table.valid(taskMultiPos)) then
 				if (table.valid(taskMultiPos[task.currentPositionIndex])) then
 					pos = taskMultiPos[task.currentPositionIndex]
+				else
+					for i,choice in pairs(taskMultiPos) do
+						if (table.valid(choice)) then
+							ffxiv_fish.currentTask.currentPositionIndex = i
+							pos = choice
+							break
+						end
+					end
 				end
 			end
 		else
@@ -136,6 +147,32 @@ function GetCurrentTaskPos()
 	end
 
 	return pos
+end
+
+function GetNextTaskPos()
+	local newIndex,newPos = nil,{}
+	
+	local multipos = ffxiv_fish.currentTask.multipos
+	local attempted = ffxiv_fish.currentTask.attemptedPositions
+	local rerollMap = {}
+	
+	if (table.valid(multipos)) then
+		for k,v in pairs(multipos) do
+			if (not table.valid(attempted) or not attempted[k]) then
+				table.insert(rerollMap,k)
+			end
+		end
+		
+		if (table.size(rerollMap) > 0) then
+			local actual = rerollMap[math.random(1,table.size(rerollMap))]
+			if (actual) then
+				newIndex = actual
+				newPos = multipos[actual]
+			end		
+		end
+	end
+
+	return newIndex, newPos
 end
 
 c_precastbuff = inheritsFrom( ml_cause )
@@ -181,6 +218,19 @@ function c_precastbuff:evaluate()
 			needsStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
 		else
 			return false
+		end
+		
+		if (type(needsStealth) == "string" and GUI_Get(needsStealth) ~= nil) then
+			needsStealth = GUI_Get(needsStealth)
+		end
+		if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+			useCordials = GUI_Get(useCordials)
+		end
+		if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+			minimumGP = GUI_Get(minimumGP)
+		end
+		if (type(useFood) == "string" and GUI_Get(useFood) ~= nil) then
+			useFood = GUI_Get(useFood)
 		end
 		
 		local hasStealth = HasBuff(Player.id,47)
@@ -758,14 +808,13 @@ function c_patience:evaluate()
 	local castTimer = ml_task_hub:CurrentTask().castTimer
     if (Now() > castTimer) then
 		
-		local patienceVar = ""
 		local usePatience = false
 		local usePatience2 = false
 		
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
-			patienceVar = IsNull(task.patiencevar,"")
+			local patienceVar = IsNull(task.patiencevar,"")
 			if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
 				patienceVar = _G[patienceVar]
 				if (patienceVar == "Patience") then
@@ -941,13 +990,12 @@ function c_setbait:evaluate()
 	
 	local fs = tonumber(Player:GetFishingState())
     if (fs == 0 or fs == 4) then
-		local baitVar = ""
 		local baitChoice = ""
 		
 		local task = ffxiv_fish.currentTask
 		local marker = ml_global_information.currentMarker
 		if (table.valid(task)) then
-			baitVar = IsNull(task.baitvar,"")
+			local baitVar = IsNull(task.baitvar,"")
 			if (baitVar ~= "") then
 				if (_G[baitVar] ~= nil) then
 					baitChoice = _G[baitVar]
@@ -1229,19 +1277,46 @@ function c_fishnexttask:evaluate()
 			end
 			
 			if (ffxiv_fish.attemptedCasts > 2) then
-				if (ffxiv_fish.currentTask.currentPositionIndex >= ffxiv_fish.currentTask.maxPositions) then
+				if (table.size(ffxiv_fish.currentTask.attemptedPositions) >= ffxiv_fish.currentTask.maxPositions) then
 					local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
 					ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
 					invalid = true
 				else
 					fd("Attempted casts reached 3, check for a new location.")
-					ffxiv_fish.currentTask.currentPositionIndex = ffxiv_fish.currentTask.currentPositionIndex + 1
-					ffxiv_fish.attemptedCasts = 0
-					ffxiv_fish.currentTask.taskStarted = 0
-					ml_task_hub:CurrentTask().requiresRelocate = true
-					ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
-					c_fishnexttask.blockOnly = true
-					return true
+					local newIndex, newPos = GetNextTaskPos()
+					if (newIndex and newPos) then
+						ffxiv_fish.currentTask.currentPositionIndex = newIndex
+						ffxiv_fish.currentTask.attemptedPositions[newIndex] = true
+						ffxiv_fish.attemptedCasts = 0
+						ffxiv_fish.currentTask.taskStarted = 0
+						ml_task_hub:CurrentTask().requiresRelocate = true
+						ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
+						c_fishnexttask.blockOnly = true
+						return true
+					else
+						fd("Couldn't find a new location, maybe something went wrong.")
+						local profileName = (gBotMode == GetString("questMode") and gQuestProfile) or gFishProfile
+						ffxiv_fish.SetLockout(profileName,ffxiv_fish.currentTaskIndex)
+						invalid = true
+					end
+				end
+			end
+			
+			if (not invalid) then
+				if (not table.valid(currentTask.rebuy)) then
+					local baitChoice = ""
+					local baitVar = IsNull(currentTask.baitvar,"")
+					if (baitVar ~= "") then
+						if (_G[baitVar] ~= nil) then
+							baitChoice = _G[baitVar]
+						end
+					else
+						baitChoice = IsNull(currentTask.baitname,"")
+					end
+					
+					if (not HasBaits(baitChoice)) then
+						invalid = true
+					end
 				end
 			end
 			
@@ -1397,8 +1472,26 @@ function c_fishnexttask:evaluate()
 								local lockoutTime = data.lockout or 300
 								
 								if (TimePassed(GetCurrentTime(), lockout) < lockoutTime) then
-									valid = false
 									fd("Task ["..tostring(i).."] not valid due to lockout.",3)
+									valid = false
+								end
+							end
+						end
+						
+						if (valid) then
+							if (not table.valid(data.rebuy)) then
+								local baitChoice = ""
+								local baitVar = IsNull(data.baitvar,"")
+								if (baitVar ~= "") then
+									if (_G[baitVar] ~= nil) then
+										baitChoice = _G[baitVar]
+									end
+								else
+									baitChoice = IsNull(data.baitname,"")
+								end
+								
+								if (not HasBaits(baitChoice)) then
+									valid = false
 								end
 							end
 						end
@@ -1641,8 +1734,14 @@ function e_fishnexttask:execute()
 	ffxiv_fish.attemptedCasts = 0
 	ffxiv_fish.currentTask.currentPositionIndex = 0
 	ffxiv_fish.currentTask.maxPositions = 0
+	ffxiv_fish.currentTask.attemptedPositions = {}
 	if (table.valid(ffxiv_fish.currentTask.multipos)) then
 		ffxiv_fish.currentTask.maxPositions = table.size(ffxiv_fish.currentTask.multipos)
+		local newIndex, newPos = GetNextTaskPos()
+		if (newIndex and newPos) then
+			ffxiv_fish.currentTask.currentPositionIndex = newIndex
+			ffxiv_fish.currentTask.attemptedPositions[newIndex] = true
+		end
 	end
 	ml_task_hub:CurrentTask().requiresRelocate = true
 	ml_global_information.lastInventorySnapshot = GetInventorySnapshot()
@@ -1684,7 +1783,7 @@ function e_fishnextprofilemap:execute()
 	if(table.valid(pos)) then		
 		local newTask = ffxiv_task_movetomap.Create()
 		newTask.destMapID = mapID
-		newTask.pos = task.pos
+		newTask.pos = taskPos
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	else
 		if (mapID and taskPos) then
@@ -1784,6 +1883,10 @@ function ffxiv_fish.NeedsCordialCheck()
 	if (table.valid(task)) then
 		useCordials = IsNull(task.usecordials,useCordials)
 	end
+	
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
+	end
 
 	if (useCordials) then
 		local canUse,cordialItem = CanUseCordialSoon()
@@ -1801,11 +1904,28 @@ function ffxiv_fish.NeedsPatienceCheck()
 	local task = ffxiv_fish.currentTask
 	local marker = ml_global_information.currentMarker
 	if (table.valid(task)) then
-		usePatience = IsNull(task.usepatience,false)
-		usePatience2 = IsNull(task.usepatience2,false)
+		local patienceVar = IsNull(task.patiencevar,"")
+		if (patienceVar ~= "" and _G[patienceVar] ~= nil) then
+			patienceVar = _G[patienceVar]
+			if (patienceVar == "Patience") then
+				usePatience = true
+			elseif (patienceVar == "Patience II") then
+				usePatience2 = true
+			end
+		else
+			usePatience = IsNull(task.usepatience,false)
+			usePatience2 = IsNull(task.usepatience2,false)
+		end
 	elseif (table.valid(marker)) then
 		usePatience = (IsNull(marker:GetFieldValue(GetUSString("usePatience")),"0") )
 		usePatience2 = (IsNull(marker:GetFieldValue(GetUSString("usePatience2")),"0") )
+	end
+	
+	if (type(usePatience) == "string" and GUI_Get(usePatience) ~= nil) then
+		usePatience = GUI_Get(usePatience)
+	end
+	if (type(usePatience2) == "string" and GUI_Get(usePatience2) ~= nil) then
+		usePatience2 = GUI_Get(usePatience2)
 	end
 	
 	return (usePatience or usePatience2)
@@ -1825,6 +1945,10 @@ function ffxiv_fish.NeedsStealth()
 		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
 	end
 	
+	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
+		useStealth = GUI_Get(useStealth)
+	end
+	
 	if (useStealth) then		
 		local stealth = SkillMgr.GetAction(298,1)
 		if (stealth) then
@@ -1839,6 +1963,10 @@ function ffxiv_fish.NeedsStealth()
 			elseif (table.valid(marker)) then
 				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
 				--destPos = marker:GetPosition()
+			end
+			
+			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
+				dangerousArea = GUI_Get(dangerousArea)
 			end
 		
 			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
@@ -1912,6 +2040,10 @@ function c_fishstealth:evaluate()
 		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
 	end
 	
+	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
+		useStealth = GUI_Get(useStealth)
+	end
+	
 	if (useStealth) then
 		if (Player.incombat) then
 			return false
@@ -1935,6 +2067,10 @@ function c_fishstealth:evaluate()
 			elseif (table.valid(marker)) then
 				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
 				destPos = marker:GetPosition()
+			end
+		
+			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
+				dangerousArea = GUI_Get(dangerousArea)
 			end
 		
 			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
@@ -2008,7 +2144,8 @@ function e_syncadjust:execute()
 	local marker = ml_global_information.currentMarker
 	local task = ffxiv_fish.currentTask
 	if (table.valid(task)) then
-		heading = task.pos.h
+		local taskPos = GetCurrentTaskPos()
+		heading = taskPos.h
 	elseif (table.valid(marker)) then
 		local pos = ml_task_hub:CurrentTask().currentMarker:GetPosition()
 		if (pos) then
@@ -2094,6 +2231,9 @@ function ffxiv_task_fish:Init()
     local ke_resetIdle = ml_element:create( "ResetIdle", c_resetidle, e_resetidle, 200 )
     self:add(ke_resetIdle, self.process_elements)
 	
+	local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 190 )
+    self:add(ke_setbait, self.process_elements)
+	
 	local ke_nextTask = ml_element:create( "NextTask", c_fishnexttask, e_fishnexttask, 180 )
     self:add( ke_nextTask, self.process_elements)
 	
@@ -2111,9 +2251,7 @@ function ffxiv_task_fish:Init()
     
     local ke_returnToMarker = ml_element:create( "ReturnToMarker", c_returntomarker, e_returntomarker, 100 )
     self:add( ke_returnToMarker, self.process_elements)
-    
-    local ke_setbait = ml_element:create( "SetBait", c_setbait, e_setbait, 90 )
-    self:add(ke_setbait, self.process_elements)
+ 
 	
 	local ke_syncadjust = ml_element:create( "SyncAdjust", c_syncadjust, e_syncadjust, 80)
 	self:add(ke_syncadjust, self.process_elements)

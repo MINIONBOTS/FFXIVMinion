@@ -1129,11 +1129,18 @@ function CanUseCordialSoon()
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
-		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	else
 		return false
 	end
+
+	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+		minimumGP = GUI_Get(minimumGP)
+	end
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
+	end
+	
 	
 	if (useCordials) then
 		local cordialQuick, cordialQuickAction = GetItem(1016911)
@@ -1181,7 +1188,7 @@ end
 
 function CanUseCordial()
 	local minimumGP = 0
-	local useCordials = (gGatherUseCordials )
+	local useCordials = (gGatherUseCordials)
 	
 	local profile, task;
 	if (IsFisher(Player.job)) then
@@ -1197,10 +1204,16 @@ function CanUseCordial()
 		minimumGP = IsNull(task.mingp,0)
 		useCordials = IsNull(task.usecordials,useCordials)
 	elseif (table.valid(marker) and not table.valid(ffxiv_gather.profileData)) then
-		skillProfile = IsNull(marker:GetFieldValue(GetUSString("skillProfile")),"")
 		minimumGP = IsNull(marker:GetFieldValue(GetUSString("minimumGP")),0)
 	else
 		return false
+	end
+	
+	if (type(minimumGP) == "string" and GUI_Get(minimumGP) ~= nil) then
+		minimumGP = GUI_Get(minimumGP)
+	end
+	if (type(useCordials) == "string" and GUI_Get(useCordials) ~= nil) then
+		useCordials = GUI_Get(useCordials)
 	end
 	
 	if (useCordials) then
@@ -1595,8 +1608,8 @@ function e_nodeprebuff:execute()
 	end
 	
 	if (activity == "usemanual") then
-		local manual, action = GetItem(activityitemid)
-		if (manual and action and manual:IsReady(Player.id)) then
+		local manual = GetItem(activityitemid)
+		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
 			ml_global_information.Await(4000, function () return HasBuff(Player.id, 46) end)
 			return
@@ -2615,6 +2628,10 @@ function c_gatherstealth:evaluate()
 		return false
 	end
 	
+	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
+		useStealth = GUI_Get(useStealth)
+	end
+	
 	if (useStealth) then
 		if (Player.incombat) then
 			return false
@@ -2643,6 +2660,10 @@ function c_gatherstealth:evaluate()
 			elseif (table.valid(marker)) then
 				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
 				destPos = marker:GetPosition()
+			end
+			
+			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
+				dangerousArea = GUI_Get(dangerousArea)
 			end
 		
 			if (not dangerousArea and ml_task_hub:CurrentTask().name == "MOVETOPOS") then
@@ -2749,6 +2770,10 @@ function ffxiv_gather.NeedsStealth()
 		useStealth = (marker:GetFieldValue(GetUSString("useStealth")) )
 	end
 	
+	if (type(useStealth) == "string" and GUI_Get(useStealth) ~= nil) then
+		useStealth = GUI_Get(useStealth)
+	end
+	
 	if (useStealth) then	
 		local stealth = nil
 		if (Player.job == FFXIV.JOBS.BOTANIST) then
@@ -2767,6 +2792,10 @@ function ffxiv_gather.NeedsStealth()
 				dangerousArea = IsNull(task.dangerousarea,false)
 			elseif (table.valid(marker)) then
 				dangerousArea = marker:GetFieldValue(GetUSString("dangerousArea")) 
+			end
+			
+			if (type(dangerousArea) == "string" and GUI_Get(dangerousArea) ~= nil) then
+				dangerousArea = GUI_Get(dangerousArea)
 			end
 			
 			if (destPos) then

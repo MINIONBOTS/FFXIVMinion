@@ -1410,7 +1410,7 @@ function ml_global_information.DrawMiniButtons()
 				GUI:SetNextWindowPos(currentX,height - ((fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2)) * 2) + windowPaddingY)
 				local totalSize = 30
 				for i,window in pairs(buttonsNeeded) do
-					totalSize = totalSize + (string.len(window.name) * 7.15) + 5
+					totalSize = totalSize + (string.len(window.name) * 7.25) + 8
 				end
 				GUI:SetNextWindowSize(totalSize,fontSize + (framePaddingY * 2) + (itemSpacingY) + (windowPaddingY * 2),GUI.SetCond_Always)
 				
@@ -1422,7 +1422,7 @@ function ml_global_information.DrawMiniButtons()
 				for i,window in pairsByKeys(buttonsNeeded) do
 					GUI:PushStyleColor(GUI.Col_Button, buttonBG[1], buttonBG[2], buttonBG[3], 1)
 					GUI:PushStyleVar(GUI.StyleVar_FrameRounding,4)
-					if (GUI:Button(window.name,string.len(window.name) * 7.15,fontSize + (framePaddingY * 2) + (itemSpacingY))) then
+					if (GUI:Button(window.name,string.len(window.name) * 7.25 + 8,fontSize + (framePaddingY * 2) + (itemSpacingY))) then
 						if (not GUI:IsMouseDown(0) and not menu.vars.dragging) then
 							window.openWindow()
 						end
