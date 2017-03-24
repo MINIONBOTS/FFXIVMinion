@@ -61,9 +61,9 @@ function c_craftlimit:evaluate()
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
 			local itemcount = 0
-			if (order.requirehq or order.counthq) then
+			if (requireHQ or countHQ) then
 				itemcount = itemcount + ItemCount(itemid + 1000000)
-			elseif (order.counthq or not order.requirehq) then
+			elseif (not requireHQ) then
 				itemcount = itemcount + ItemCount(itemid)
 			end
 			
@@ -139,9 +139,9 @@ function c_startcraft:evaluate()
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 				
 				local itemcount = 0
-				if (order.requirehq or order.counthq) then
+				if (requireHQ or countHQ) then
 					itemcount = itemcount + ItemCount(itemid + 1000000)
-				elseif (order.counthq or not order.requirehq) then
+				elseif (not requireHQ) then
 					itemcount = itemcount + ItemCount(itemid)
 				end
 					
