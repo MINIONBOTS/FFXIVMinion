@@ -66,6 +66,7 @@ SkillMgr.prevGatherSkillID = ""
 SkillMgr.prevSkillTimestamp = 0
 SkillMgr.prevGCDSkillID = ""
 SkillMgr.prevSkillList = {}
+SkillMgr.tempPrevSkillList = {}
 SkillMgr.nextSkillID = ""
 SkillMgr.nextSkillPrio = ""
 SkillMgr.failTimer = 0
@@ -2669,8 +2670,6 @@ function SkillMgr.Craft()
 	
 	SkillMgr.CheckMonitor()
 	
-	
-	
     local synth = GetControlData("Synthesis")
     if ( table.valid(synth) and table.valid(SkillMgr.SkillProfile)) then
 		
@@ -2725,7 +2724,7 @@ function SkillMgr.Craft()
 			local skillid = tonumber(skill.id)
 			
             if ( skill.used  ) then                
-                local realskilldata = SkillMgr.GetAction(skillid,9)
+                local realskilldata = SkillMgr.GetAction(skillid,skill.type)
 				local skid = skillid
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
@@ -2733,7 +2732,7 @@ function SkillMgr.Craft()
 						for job, sid in pairs(data) do
 							if (sid == skill.id) then
 								skid = tonumber(data[Player.job]) or 0
-								realskilldata = SkillMgr.GetAction(skid,9)
+								realskilldata = SkillMgr.GetAction(skid,skill.type)
 							end
 							if (realskilldata) then
 								break
@@ -5799,7 +5798,7 @@ function SkillMgr.DrawManager()
 									if (requiredUpdate) then
 										SkillMgr.WriteToFile(gSkillProfile)
 									end
-									SkillMgr.GUI.editor.open = not SkillMgr.GUI.editor.open
+									SkillMgr.GUI.editor.open = true
 								else
 									ffxiv_dialog_manager.IssueNotice("Class Selection Required", "You must select at least one valid class before editing skills.")
 								end

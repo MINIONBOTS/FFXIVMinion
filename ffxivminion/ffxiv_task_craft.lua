@@ -196,6 +196,7 @@ end
 
 function e_startcraft:execute()
 	SkillMgr.prevSkillList = {}
+	SkillMgr.tempPrevSkillList = {}
 	
 	if (ffxiv_craft.UsingProfile()) then
 		local recipe = ml_task_hub:CurrentTask().recipe
