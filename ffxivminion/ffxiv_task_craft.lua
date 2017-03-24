@@ -204,7 +204,7 @@ function e_startcraft:execute()
 								Crafting:SetCraftingMats(i-1,hqAmount)
 							else
 								d("Stop crafting item, not enough HQ.")
-								ffxiv_craft.orders[recipe.id].completed = true
+								e_craftlimit:execute()
 								return false
 							end
 						end
