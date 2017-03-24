@@ -3011,12 +3011,37 @@ function Mount(id)
 	local mounts = ActionList:Get(13)
 	if (table.valid(mounts)) then
 		if (mountID == 0) then
-			for mountid,mountaction in pairsByKeys(mounts) do
-				if (mountid == 1) then
-					if (mountaction:IsReady()) then
-						mountaction:Cast()
-						return true
+			
+			if (table.valid(mounts)) then
+				--First pass, look for our named mount.
+				for mountid,mountaction in pairsByKeys(mounts) do
+					if (mountaction.name == gMountName) then
+						if (mountaction:IsReady(Player.id)) then
+							mountaction:Cast()
+							return true
+						end
 					end
+				end
+				
+				--Second pass, look for any mount as backup.
+				if (gMountName == GetString("none")) then
+					--[[
+					if (CanFlyInZone()) then
+						for mountid,mountaction in pairsByKeys(mounts) do
+							if (mountaction:IsReady(Player.id)) then
+								mountaction:Cast()
+								return true
+							end
+						end	
+					end
+					--]]
+				
+					for mountid,mountaction in pairsByKeys(mounts) do
+						if (mountaction:IsReady(Player.id)) then
+							mountaction:Cast()
+							return true
+						end
+					end		
 				end
 			end
 		else

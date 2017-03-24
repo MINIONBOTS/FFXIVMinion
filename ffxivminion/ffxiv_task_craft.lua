@@ -259,6 +259,27 @@ function e_startcraft:execute()
 			end
 		end
 	else
+		local mats = Crafting:GetCraftingMats()
+		if (table.valid(mats)) then
+			for i = 1,6 do
+				local ingredient = mats[i]
+				if (ingredient) then
+					if (gCraftUseHQ) then
+						if (ingredient.needed <= ingredient.inventoryhq) then
+							Crafting:SetCraftingMats(i-1,ingredient.needed)
+						else
+							Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+						end
+					else
+						if (ingredient.needed > ingredient.inventorynq) then
+							ffxiv_dialog_manager.IssueStopNotice("Need HQ", "Cannot craft this item without using HQ mats.", "okonly")
+							return false
+						end
+					end
+				end
+			end
+		end	
+				
 		Crafting:CraftSelectedItem()
 		if (IsControlOpen("RecipeNote")) then
 			ffxiv_craft.ToggleCraftingLog()
@@ -732,6 +753,7 @@ function ffxiv_task_craft:UIInit()
 	
 	gCraftMinCP = ffxivminion.GetSetting("gCraftMinCP",0)
 	gCraftMaxItems = ffxivminion.GetSetting("gCraftMaxItems",0)
+	gCraftUseHQ = ffxivminion.GetSetting("gCraftUseHQ",false)
 	
 	for i = 8,15 do
 		_G["gCraftGearset"..tostring(i)] = ffxivminion.GetSetting("gCraftGearset"..tostring(i),0)
@@ -845,7 +867,9 @@ function ffxiv_task_craft:Draw()
 	
 	GUI:SameLine(0,5)
 	if (GUI:ImageButton("##main-order-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 16, 16)) then
-		ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
+		if (gCraftProfile ~= GetString("None")) then
+			ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
+		end
 	end
 	GUI:SameLine(0,5)
 	if (GUI:ImageButton("##main-order-add",ml_global_information.path.."\\GUI\\UI_Textures\\addon.png", 16, 16)) then
@@ -899,6 +923,7 @@ function ffxiv_task_craft:Draw()
 		GUI:Text("For Single Crafts Only")
 		GUI_Capture(GUI:InputInt(GetString("craftAmount"),gCraftMaxItems,0,0),"gCraftMaxItems")
 		GUI_Capture(GUI:InputInt(GetString("minimumCP"),gCraftMinCP,0,0),"gCraftMinCP")
+		GUI_Capture(GUI:Checkbox(GetString("Use HQ Mats"),gCraftUseHQ),"gCraftUseHQ")
 		GUI:Separator()
 		
 		GUI:PopItemWidth()
@@ -1423,7 +1448,7 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:Text(tostring(recipeDetails["iamount"..tostring(i)])); GUI:Dummy(); GUI:NextColumn();
 									
 									GUI:PushItemWidth(50)
-									local newVal, changed = GUI:InputInt("##HQ Amount",_G["gCraftOrderAddHQIngredient"..tostring(i)],0,0)
+									local newVal, changed = GUI:InputInt("##HQ Amount"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i)],0,0)
 									if (changed and not GUI:IsItemActive()) then
 										if (newVal > recipeDetails["iamount"..tostring(i)]) then
 											newVal = recipeDetails["iamount"..tostring(i)]
@@ -1441,7 +1466,7 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:PopItemWidth()
 									GUI:NextColumn();
 									
-									local newVal, changed = GUI:Checkbox("##Max##hq-ing1",_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"])
+									local newVal, changed = GUI:Checkbox("##Max-"..tostring(i),_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"])
 									if (changed) then
 										if (newVal == false) then
 											if (_G["gCraftOrderAddHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then
@@ -1516,7 +1541,7 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:Text(recipeDetails["iamount"..tostring(i)]); GUI:Dummy();GUI:NextColumn();
 									GUI:PushItemWidth(50)
 									GUI:AlignFirstTextHeightToWidgets()
-									local newVal, changed = GUI:InputInt("##HQ Amount",_G["gCraftOrderEditHQIngredient"..tostring(i)],0,0)
+									local newVal, changed = GUI:InputInt("##HQ Amount-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i)],0,0)
 									if (changed and not GUI:IsItemActive()) then
 										if (newVal > recipeDetails["iamount"..tostring(i)]) then
 											newVal = recipeDetails["iamount"..tostring(i)]
@@ -1534,7 +1559,7 @@ function ffxiv_craft.Draw( event, ticks )
 									GUI:PopItemWidth()
 									GUI:NextColumn();
 									GUI:AlignFirstTextHeightToWidgets()
-									local newVal, changed = GUI:Checkbox("##Max##hq-ing1",_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"])
+									local newVal, changed = GUI:Checkbox("##Max-"..tostring(i),_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"])
 									if (changed) then
 										if (newVal == false) then
 											if (_G["gCraftOrderEditHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then

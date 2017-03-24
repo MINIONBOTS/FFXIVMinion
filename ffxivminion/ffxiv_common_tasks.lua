@@ -724,7 +724,7 @@ function ffxiv_task_movetointeract:task_complete_eval()
 					
 					local radius = (interactable.hitradius >= 1 and interactable.hitradius) or 1.25
 					local forceLOS = self.forceLOS
-					local range = ((self.interactRange and self.interactRange >= 3) or (radius * 3.5))
+					local range = ((self.interactRange and self.interactRange >= 3) and self.interactRange) or (radius * 3.5)
 
 					--d("los:"..tostring(interactable.los))
 					--d("range:"..tostring(range)..",dist:"..tostring(dist3d)..",ydiff:"..tostring(ydiff))
