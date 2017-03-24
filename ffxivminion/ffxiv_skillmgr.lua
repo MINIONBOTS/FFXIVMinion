@@ -540,7 +540,7 @@ SkillMgr.Variables = {
 	SKM_CZONESTACKMIN = { default = 0, cast = "number", profile = "czonestackmin", section = "crafting"},
 	SKM_MAKERSSTACKMIN = { default = 0, cast = "number", profile = "makersstackmin", section = "crafting"},
 	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
-	SKM_WHSTACK = { default = 0, cast = "string", profile = "whstack", section = "crafting"},
+	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
 	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
@@ -5162,8 +5162,8 @@ function SkillMgr.DrawSkillBook()
 			
 			SkillMgr.GUI.skillbook.x = x; SkillMgr.GUI.skillbook.y = y; SkillMgr.GUI.skillbook.width = width; SkillMgr.GUI.skillbook.height = height;
 			
-			gSkillMgrFilterJob = GUI:Checkbox("This Job Only",gSkillMgrFilterJob)
-			gSkillMgrFilterUsable = GUI:Checkbox("Usable Only",gSkillMgrFilterUsable)
+			GUI_Capture(GUI:Checkbox("This Job Only",gSkillMgrFilterJob),"gSkillMgrFilterJob")
+			GUI_Capture(GUI:Checkbox("Usable Only",gSkillMgrFilterUsable),"gSkillMgrFilterUsable")
 			
 			local types = {[1] = "Actions",[9] = "Crafting", [11] = "Pets"}
 			
@@ -5637,7 +5637,7 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Comfort Zone Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CZONESTACKMIN",SKM_CZONESTACKMIN,0,0),"SKM_CZONESTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Maker's Mark Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MAKERSSTACKMIN",SKM_MAKERSSTACKMIN,0,0),"SKM_MAKERSSTACKMIN"); GUI:NextColumn();
 		GUI:Text(GetString("Whistle Stack >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WHSTACKMIN",SKM_WHSTACKMIN,0,0),"SKM_WHSTACKMIN"); GUI:NextColumn();
-		GUI:Text(GetString("Whistle Stack =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_WHSTACK",SKM_WHSTACK,0,0),"SKM_WHSTACK"); GUI:NextColumn();
+		GUI:Text(GetString("Whistle Stack =")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_WHSTACK",SKM_WHSTACK),"SKM_WHSTACK"); GUI:NextColumn();
 		
 		GUI:Columns(1)
 	end
@@ -5820,6 +5820,7 @@ function SkillMgr.DrawManager()
 				GUI_Capture(GUI:InputText(GetString("name"),gSkillManagerNewProfile),"gSkillManagerNewProfile");
 				if ( GUI:Button("Create Profile")) then
 					SkillMgr.WriteToFile(gSkillManagerNewProfile)
+					SkillMgr.UpdateProfiles()
 					GUI_SwitchTab(tabs,1)
 				end
 			end
