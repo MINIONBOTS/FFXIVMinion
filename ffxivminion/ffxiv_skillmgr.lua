@@ -667,6 +667,9 @@ function SkillMgr.ModuleInit()
 	gAssistFilter4 = ffxivminion.GetSetting("gAssistFilter4",false)
 	gAssistFilter5 = ffxivminion.GetSetting("gAssistFilter5",false)
 	
+	gSMCraftConditions = { GetString("notused"),GetString("excellent"),GetString("good"),GetString("normal"),GetString("poor") }
+	gSMCraftConditionIndex = 1
+	
 	for i = 1,5 do
 		if (type(_G["gAssistFilter"..tostring(i)]) ~= "boolean") then
 			_G["gAssistFilter"..tostring(i)] = toboolean(_G["gAssistFilter"..tostring(i)])
@@ -5149,6 +5152,27 @@ function SkillMgr.CaptureElement(newVal, varName)
 	end
 end
 
+function SKM_Combo(label, varindex, varval, itemlist, height)
+	local changed = false
+	
+	local newIndex = GUI:Combo(label, _G[varindex], itemlist, height)
+	if (newIndex ~= _G[varindex]) then
+		changed = true
+		
+		_G[varindex] = newIndex
+		_G[varval] = itemlist[_G[varindex]]
+		
+		local prio = SkillMgr.EditingSkill
+		if (SkillMgr.Variables[varval] ~= nil) then	
+			skillVar = SkillMgr.Variables[varval]
+			SkillMgr.SkillProfile[prio][skillVar.profile] = _G[varval]
+		end
+		SkillMgr.SaveProfile()
+	end
+	
+	return changed, _G[varindex], _G[varval]
+end
+
 function SkillMgr.DrawSkillBook()
 	--if (SkillMgr.GUI.skillbook.open) then	
 		GUI:SetNextWindowPos((SkillMgr.GUI.manager.x - SkillMgr.GUI.skillbook.width),SkillMgr.GUI.manager.y,GUI.SetCond_Appearing)
@@ -5590,12 +5614,18 @@ function SkillMgr.DrawCraftEditor()
 	
 	if (GUI:CollapsingHeader("Crafting","crafting-header",true,true)) then
 		GUI:Columns(2,"#craft-main",false)
-		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
+		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,500);
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
 		GUI:Separator();		
 		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
+		GUI:Separator()
+		
+		GUI:Text(GetString("Condition")); GUI:NextColumn(); SKM_Combo("##SKM_CONDITION","gSMCraftConditionIndex","SKM_CONDITION",gSMCraftConditions); GUI:NextColumn();
+		GUI:Text(GetString("Has Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPBuff",SKM_CPBuff),"SKM_CPBuff"); GUI:NextColumn();	
+		GUI:Text(GetString("Missing Buff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_CPNBuff",SKM_CPNBuff),"SKM_CPNBuff"); GUI:NextColumn();	
+		
 		GUI:Separator();
 		GUI:Text(GetString("CP >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMIN",SKM_CPMIN,0,0),"SKM_CPMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("CP <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CPMAX",SKM_CPMAX,0,0),"SKM_CPMAX"); GUI:NextColumn();	
