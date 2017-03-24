@@ -163,6 +163,28 @@ function c_startcraft:evaluate()
 			if (Player.cp.current < minCP) then
 				return false
 			end
+			
+			local mats = Crafting:GetCraftingMats()
+			if (table.valid(mats)) then
+				for i = 1,6 do
+					local ingredient = mats[i]
+					if (ingredient) then
+						if (gCraftUseHQ) then
+							if (ingredient.needed <= ingredient.inventoryhq) then
+								Crafting:SetCraftingMats(i-1,ingredient.needed)
+							else
+								Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
+							end
+						else
+							if (ingredient.needed > ingredient.inventorynq) then
+								ffxiv_dialog_manager.IssueStopNotice("Need HQ", "Cannot craft this item without using HQ mats.", "okonly")
+								return false
+							end
+						end
+					end
+				end
+			end	
+			
 			if ( Crafting:CanCraftSelectedItem() ) then
 				return true
 			end
@@ -173,6 +195,8 @@ function c_startcraft:evaluate()
 end
 
 function e_startcraft:execute()
+	SkillMgr.prevSkillList = {}
+	
 	if (ffxiv_craft.UsingProfile()) then
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
@@ -188,7 +212,6 @@ function e_startcraft:execute()
 				end
 			end
 			
-			SkillMgr.prevSkillList = {}
 			ml_global_information.Await(1000)
 			return
 		else
@@ -258,28 +281,7 @@ function e_startcraft:execute()
 				end			
 			end
 		end
-	else
-		local mats = Crafting:GetCraftingMats()
-		if (table.valid(mats)) then
-			for i = 1,6 do
-				local ingredient = mats[i]
-				if (ingredient) then
-					if (gCraftUseHQ) then
-						if (ingredient.needed <= ingredient.inventoryhq) then
-							Crafting:SetCraftingMats(i-1,ingredient.needed)
-						else
-							Crafting:SetCraftingMats(i-1,ingredient.inventoryhq)
-						end
-					else
-						if (ingredient.needed > ingredient.inventorynq) then
-							ffxiv_dialog_manager.IssueStopNotice("Need HQ", "Cannot craft this item without using HQ mats.", "okonly")
-							return false
-						end
-					end
-				end
-			end
-		end	
-				
+	else				
 		Crafting:CraftSelectedItem()
 		if (IsControlOpen("RecipeNote")) then
 			ffxiv_craft.ToggleCraftingLog()
@@ -1122,21 +1124,21 @@ function ffxiv_craft.InspectRecipe(key)
 	gCraftInspectControl = recipeDetails.control or ""
 	gCraftInspectREquip = IIF(recipeDetails.requiredequip ~= 0,IsNull(recipeDetails.requipname,"").."["..IsNull(recipeDetails.requiredequip,"").."]","")
 	gCraftInspectCrystal1 = IIF(recipeDetails.crystal1 ~= 0,IsNull(recipeDetails.c1name,"").."["..IsNull(recipeDetails.crystal1,"").."]","")
-	gCraftInspectCAmount1 = IIF(recipeDetails.crystal1 ~= 0,tostring(IsNull(recipeDetails.camount1,0)).."("..IsNull(ItemCount(recipeDetails.crystal1),0)..")","")
+	gCraftInspectCAmount1 = IIF(recipeDetails.crystal1 ~= 0,tostring(IsNull(recipeDetails.camount1,0)).."("..IsNull(ItemCount(recipeDetails.crystal1,{2001},true),0)..")","")
 	gCraftInspectCrystal2 = IIF(recipeDetails.crystal2 ~= 0,IsNull(recipeDetails.c2name,"").."["..IsNull(recipeDetails.crystal2,"").."]","")
-	gCraftInspectCAmount2 = IIF(recipeDetails.crystal2 ~= 0,tostring(IsNull(recipeDetails.camount2,0)).."("..IsNull(ItemCount(recipeDetails.crystal2),0)..")","")
+	gCraftInspectCAmount2 = IIF(recipeDetails.crystal2 ~= 0,tostring(IsNull(recipeDetails.camount2,0)).."("..IsNull(ItemCount(recipeDetails.crystal2,{2001},true),0)..")","")
 	gCraftInspectIngredient1 = IIF(recipeDetails.ingredient1 ~= 0,IsNull(recipeDetails.ing1name,"").."["..IsNull(recipeDetails.ingredient1,"").."]","")
-	gCraftInspectIAmount1 = IIF(recipeDetails.iamount1 > 0,tostring(IsNull(recipeDetails.iamount1,0)).."("..IsNull(ItemCount(recipeDetails.ingredient1),0)..")","")
+	gCraftInspectIAmount1 = IIF(recipeDetails.iamount1 > 0,tostring(IsNull(recipeDetails.iamount1,0)).."("..IsNull(ItemCount(recipeDetails.ingredient1,{0,1,2,3},true),0)..")","")
 	gCraftInspectIngredient2 = IIF(recipeDetails.ingredient2 ~= 0,IsNull(recipeDetails.ing2name,"").."["..IsNull(recipeDetails.ingredient2,"").."]","")
-	gCraftInspectIAmount2 = IIF(recipeDetails.iamount2 > 0,tostring(IsNull(recipeDetails.iamount2,0)).."("..IsNull(ItemCount(recipeDetails.ingredient2),0)..")","")
+	gCraftInspectIAmount2 = IIF(recipeDetails.iamount2 > 0,tostring(IsNull(recipeDetails.iamount2,0)).."("..IsNull(ItemCount(recipeDetails.ingredient2,{0,1,2,3},true),0)..")","")
 	gCraftInspectIngredient3 = IIF(recipeDetails.ingredient3 ~= 0,IsNull(recipeDetails.ing3name,"").."["..IsNull(recipeDetails.ingredient3,"").."]","")
-	gCraftInspectIAmount3 = IIF(recipeDetails.iamount3 > 0,tostring(IsNull(recipeDetails.iamount3,0)).."("..IsNull(ItemCount(recipeDetails.ingredient3),0)..")","")
+	gCraftInspectIAmount3 = IIF(recipeDetails.iamount3 > 0,tostring(IsNull(recipeDetails.iamount3,0)).."("..IsNull(ItemCount(recipeDetails.ingredient3,{0,1,2,3},true),0)..")","")
 	gCraftInspectIngredient4 = IIF(recipeDetails.ingredient4 ~= 0,IsNull(recipeDetails.ing4name,"").."["..IsNull(recipeDetails.ingredient4,"").."]","")
-	gCraftInspectIAmount4 = IIF(recipeDetails.iamount4 > 0,tostring(IsNull(recipeDetails.iamount4,0)).."("..IsNull(ItemCount(recipeDetails.ingredient4),0)..")","")
+	gCraftInspectIAmount4 = IIF(recipeDetails.iamount4 > 0,tostring(IsNull(recipeDetails.iamount4,0)).."("..IsNull(ItemCount(recipeDetails.ingredient4,{0,1,2,3},true),0)..")","")
 	gCraftInspectIngredient5 = IIF(recipeDetails.ingredient5 ~= 0,IsNull(recipeDetails.ing5name,"").."["..IsNull(recipeDetails.ingredient5,"").."]","")
-	gCraftInspectIAmount5 = IIF(recipeDetails.iamount5 > 0,tostring(IsNull(recipeDetails.iamount5,0)).."("..IsNull(ItemCount(recipeDetails.ingredient5),0)..")","")
+	gCraftInspectIAmount5 = IIF(recipeDetails.iamount5 > 0,tostring(IsNull(recipeDetails.iamount5,0)).."("..IsNull(ItemCount(recipeDetails.ingredient5,{0,1,2,3},true),0)..")","")
 	gCraftInspectIngredient6 = IIF(recipeDetails.ingredient6 ~= 0,IsNull(recipeDetails.ing6name,"").."["..IsNull(recipeDetails.ingredient6,"").."]","")
-	gCraftInspectIAmount6 = IIF(recipeDetails.iamount6 > 0,tostring(IsNull(recipeDetails.iamount6,0)).."("..IsNull(ItemCount(recipeDetails.ingredient6),0)..")","")
+	gCraftInspectIAmount6 = IIF(recipeDetails.iamount6 > 0,tostring(IsNull(recipeDetails.iamount6,0)).."("..IsNull(ItemCount(recipeDetails.ingredient6,{0,1,2,3},true),0)..")","")
 
 	local canCraft,maxAmount = AceLib.API.Items.CanCraft(key)
 	gCraftInspectCanCraft = tostring(canCraft)
@@ -1369,9 +1371,7 @@ function ffxiv_craft.Draw( event, ticks )
 				end
 			end
 			
-			if (tabs.tabs[2].isselected) then
-				gCraftOrderSelectIndex = 1
-				gCraftOrderSelect = ffxivminion.GetSetting("gCraftOrderSelect","CRP")	
+			if (tabs.tabs[2].isselected) then	
 				GUI:PushItemWidth(50)
 				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
 				GUI:PopItemWidth()

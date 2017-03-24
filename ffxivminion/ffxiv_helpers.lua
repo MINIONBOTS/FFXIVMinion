@@ -4438,9 +4438,10 @@ function GetFirstFreeSlot(hqid,inventories)
 	return nil,nil
 end	
 
-function ItemCount(hqid,inventories)
+function ItemCount(hqid,inventories,includehq)
 	local hqid = tonumber(hqid) or 0
 	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	local includehq = IsNull(includehq,false)
 	local itemcount = 0
 	
 	if (hqid ~= 0) then
@@ -4451,7 +4452,7 @@ function ItemCount(hqid,inventories)
 					local ilist = bag:GetList()
 					if (table.valid(ilist)) then
 						for slot,item in pairs(ilist) do
-							if (item.hqid == hqid) then
+							if (item.hqid == hqid or (includehq and (item.hqid == hqid + 1000000))) then
 								itemcount = itemcount + item.count
 							end
 						end

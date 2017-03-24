@@ -2879,7 +2879,7 @@ function SkillMgr.Craft()
 							SkillMgr.prevSkillList[skillid] = true
 							SkillMgr.SkillProfile[prio].lastcast = Now()
 							SkillMgr.prevSkillID = tostring(skill.id)
-							ml_global_information.Await(750)
+							ml_global_information.Await(1500)
 							return true
 						end	
 					end
