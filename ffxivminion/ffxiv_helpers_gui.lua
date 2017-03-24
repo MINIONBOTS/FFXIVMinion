@@ -4,20 +4,165 @@ ffxiv_dialog_manager.controls = {
 	["okonly"] = { "OK" },
 	["yesno"] = { "Yes", "No" },
 	["okcancel"] = { "OK", "Cancel" },
+	["none"] = {},
 }
 ffxiv_dialog_manager.popupresult = 0
 
-function ffxiv_dialog_manager.IssueNotice(title, message, controlset)
-	local controlset = IsNull(controlset,1)
-	ffxiv_dialog_manager.popup = { ["type"] = "okonly", lines = message, title = title, popped = false }
+function ffxiv_dialog_manager.IssueNotice(title, message, buttonset, guivars)
+	local buttonset = IsNull(buttonset,"okonly")
+	ffxiv_dialog_manager.popup = { ["type"] = buttonset, lines = message, title = title, gui = guivars, popped = false }
 end
 
-function ffxiv_dialog_manager.IssueStopNotice(title, message, controlset)
-	local controlset = IsNull(controlset,1)
-	ffxiv_dialog_manager.popup = { ["type"] = "okonly", lines = message, title = title, popped = false }
+function ffxiv_dialog_manager.IssueStopNotice(title, message, buttonset, guivars)
+	local buttonset = IsNull(buttonset,"okonly")
+	ffxiv_dialog_manager.popup = { ["type"] = buttonset, lines = message, title = title, gui = guivars, popped = false }
 	
 	if (FFXIV_Common_BotRunning) then
-		ml_global_information:ToggleRun()
+		ml_global_information.ToggleRun()
+	end
+end
+
+function ffxiv_dialog_manager.TableToGUI(vars)
+	
+	local popup = ffxiv_dialog_manager.popup
+	if (table.valid(popup)) then
+		if (table.valid(vars)) then
+			
+			local selectedIndex, selectedName = 0,""
+			if (table.valid(popup.tab_control)) then
+				if (TableSize(popup.tab_control.tabs) > 0) then
+					selectedIndex,selectedName = ml_gui.DrawTabs(popup.tab_control)
+				end
+			end
+			
+			for k,vartable in pairsByKeys(vars) do
+				local controltype = vartable.type
+				local controldisplay = vartable.display
+				local controlvar = vartable.var
+				local controlisdefault = vartable.isdefault
+				local controldefault = vartable.default
+				local controlclick = vartable.onclick
+				local controlstep = IsNull(vartable.step,1)
+				local controlmin = vartable.minvalue
+				local controlmax = vartable.maxvalue
+				local controltab = vartable.tab
+				local onchange = vartable.onchange
+				local tooltip = vartable.tooltip
+				local sameline = vartable.sameline
+				local controlamount = vartable.amount
+				local width = vartable.width
+				
+				if (not controltab or (controltab and (selectedName == controltab))) then
+					local changedVal = false
+					
+					if (width and type(width) == "number") then
+						GUI:PushItemWidth(width)
+					end
+					
+					if (controltype == "combobox") then
+						local controllist = vartable.list or ""
+						local combotable = string.totable(controllist,",")
+						local currentval = _G[controlvar]
+						local currentindex = GetKeyByValue(currentval,combotable)
+						
+						local newindex = GUI:Combo(controldisplay, _G[controlvar.."_index"], combotable)
+						if (newindex ~= _G[controlvar.."_index"]) then
+							changedVal = true
+							_G[controlvar.."_index"] = newindex
+							_G[controlvar] = combotable[newindex]
+							Settings.FFXIVMINION[controlvar.."_index"] = _G[controlvar.."_index"]
+							Settings.FFXIVMINION[controlvar] = _G[controlvar]
+						end
+					elseif (controltype == "checkbox" or controltype == "boolean") then
+						local newval = GUI:Checkbox(controldisplay,_G[controlvar])
+						if (newval ~= _G[controlvar]) then
+							changedVal = true
+							_G[controlvar] = newval
+							Settings.FFXIVMINION[controlvar] = _G[controlvar]
+						end
+					elseif (controltype == "numeric" or controltype == "number") then
+						local newval = GUI:InputInt(controldisplay,_G[controlvar],controlstep,(controlstep * 2))
+						if (newval ~= _G[controlvar]) then
+							local allowSave = true
+							if (controlmin and newval < controlmin) then
+								allowSave = false
+							elseif (controlmax and newval > controlmax) then
+								allowSave = false
+							end
+							if (allowSave) then
+								changedVal = true
+								_G[controlvar] = newval
+								Settings.FFXIVMINION[controlvar] = _G[controlvar]
+							end	
+						end
+					elseif (controltype == "field" or controltype == "string") then
+						local newval = GUI:InputText(controldisplay,_G[controlvar])
+						if (newval ~= _G[controlvar]) then
+							changedVal = true
+							_G[controlvar] = newval
+							Settings.FFXIVMINION[controlvar] = _G[controlvar]
+						end
+					elseif (controltype == "button") then
+						local doExecute = false
+						if (controlisdefault and GUI:IsKeyPressed(13)) then
+							doExecute = true
+						end
+						if (width and type(width) == "number") then
+							if (GUI:Button(controldisplay,width,20)) then
+								doExecute = true
+							end
+						else
+							if (GUI:Button(controldisplay)) then
+								doExecute = true
+							end
+						end
+						if (doExecute) then
+							if (controlclick and type(controlclick) == "function") then
+								controlclick()
+							elseif (controlclick and type(controlclick) == "string") then
+								local f = assert(loadstring(controlclick))()
+							end
+						end
+					end	
+
+					if (changedVal and onchange and type(onchange) == "string") then
+						local f = assert(loadstring(onchange))()
+					end
+					
+					if (width and type(width) == "number") then
+						GUI:PopItemWidth()
+					end
+
+					if (string.valid(tooltip)) then
+						if (GUI:IsItemHovered()) then
+							GUI:SetTooltip(tooltip)
+						end
+					end
+					
+					if (sameline and sameline == true) then
+						if (controlamount and type(controlamount) == "number") then
+							GUI:SameLine(0,controlamount)
+						else
+							GUI:SameLine(0,10)
+						end
+					end
+					
+					if (controltype == "spacing") then
+						if (controlamount and type(controlamount) == "number") then
+							for i = 1,controlamount do
+								GUI:Spacing()
+							end
+						else
+							GUI:Spacing()
+						end
+					end
+					
+					if (controltype == "separator") then
+						GUI:Separator()
+					end					
+				end
+			end
+		end
 	end
 end
 
@@ -29,7 +174,21 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 			GUI:OpenPopup(popup.title)
 		end
 		
-		if (GUI:BeginPopupModal(popup.title)) then
+		local width, height = 500, 100
+		if (popup.gui) then
+			if (popup.gui.height) then
+				height = popup.gui.height
+			end
+			if (popup.gui.width) then
+				width = popup.gui.width
+			end
+		end
+		
+		GUI:SetNextWindowSize(width,height,GUI.SetCond_Once)
+		
+		if (GUI:BeginPopupModal(popup.title, true)) then
+			GUI:Spacing(); GUI:Spacing(); 
+			
 			local lines = popup.lines
 			if (type(lines) == "table") then
 				for i,line in pairsByKeys(lines) do
@@ -39,22 +198,28 @@ function ffxiv_dialog_manager.Draw( event, ticks )
 				GUI:Text(lines)
 			end
 			
-			local controls = ffxiv_dialog_manager.controls
-			local controlset = controls[popup.type]
-			if (controlset[1] ~= nil) then
-				if (GUI:IsKeyPressed(13) or GUI:Button(controlset[1],100,20)) then
-					GUI:CloseCurrentPopup()
-					ffxiv_dialog_manager.popupresult = 1
-					ffxiv_dialog_manager.popup = {}
-				end
-			end
+			GUI:Spacing(); GUI:Spacing(); 
 			
-			if (controlset[2] ~= nil) then
-				GUI:SameLine(0,20)
-				if (GUI:Button(controlset[2],100,20)) then
-					GUI:CloseCurrentPopup()
-					ffxiv_dialog_manager.popupresult = 0
-					ffxiv_dialog_manager.popup = {}
+			ffxiv_dialog_manager.TableToGUI(popup.gui)
+			
+			local controls = ffxiv_dialog_manager.controls
+			if (table.valid(controls[popup.type])) then
+				local controlset = controls[popup.type]
+				if (controlset[1] ~= nil) then
+					if (GUI:IsKeyPressed(13) or GUI:Button(controlset[1],100,20)) then
+						GUI:CloseCurrentPopup()
+						ffxiv_dialog_manager.popupresult = 1
+						ffxiv_dialog_manager.popup = {}
+					end
+				end
+				
+				if (controlset[2] ~= nil) then
+					GUI:SameLine(0,20)
+					if (GUI:Button(controlset[2],100,20)) then
+						GUI:CloseCurrentPopup()
+						ffxiv_dialog_manager.popupresult = 0
+						ffxiv_dialog_manager.popup = {}
+					end
 				end
 			end
 			

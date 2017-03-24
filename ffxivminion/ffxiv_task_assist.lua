@@ -52,6 +52,9 @@ function ffxiv_task_assist:Init()
 	local ke_stance = ml_element:create( "Stance", c_stance, e_stance, 17 )
     self:add( ke_stance, self.process_elements)
 	
+	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 16 )
+    self:add( ke_eat, self.process_elements)
+	
     self:AddTaskCheckCEs()
 	--self:InitAddon()
 end

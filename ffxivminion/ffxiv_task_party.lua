@@ -80,6 +80,12 @@ function ffxiv_task_party:Init()
 	local ke_assistleader = ml_element:create( "AssistLeader", c_assistleader, e_assistleader, 70 )--minion only
     self:add( ke_assistleader, self.overwatch_elements )
 	
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
+    self:add( ke_recommendEquip, self.process_elements)
+	
+	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 120 )
+    self:add( ke_eat, self.process_elements)
+	
 	local ke_killAggroTarget = ml_element:create( "KillAggroTarget", c_killaggrotarget, e_killaggrotarget, 20 ) --minion only
     self:add(ke_killAggroTarget, self.process_elements)
     

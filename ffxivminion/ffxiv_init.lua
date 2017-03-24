@@ -554,12 +554,18 @@ function UseControlAction(strControl,strAction,actionArg)
 	if (table.valid(controls)) then
 		for id,control in pairs(controls) do
 			if (control.name == strControl) then
-				local actions = control:GetActions()
-				if (table.valid(actions)) then
-					for aid, action in pairs(actions) do
-						if (action == strAction) then
-							if (control:Action(action,actionArg)) then
-								return true
+				if (strAction == "Close") then
+					control:Close()
+				elseif (strAction == "Destroy") then
+					control:Destroy()
+				else
+					local actions = control:GetActions()
+					if (table.valid(actions)) then
+						for aid, action in pairs(actions) do
+							if (action == strAction) then
+								if (control:Action(action,actionArg)) then
+									return true
+								end
 							end
 						end
 					end

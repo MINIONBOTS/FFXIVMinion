@@ -1813,13 +1813,14 @@ end
 c_stance = inheritsFrom( ml_cause )
 e_stance = inheritsFrom( ml_effect )
 function c_stance:evaluate()
-	if (IsCompanionSummoned() and ValidString(gChocoStanceString)) then
+	local companion = GetCompanionEntity()
+	if (companion and ValidString(gChocoStanceString)) then
 		if (TimeSince(ml_global_information.stanceTimer) >= 30000) then
 			local stanceAction = ml_global_information.chocoStance[gChocoStanceString]
 			if (stanceAction) then
 				local acStance = ActionList:Get(6,stanceAction)		
-				if (acStance and acStance:IsReady()) then
-					acStance:Cast()
+				if (acStance and acStance:IsReady(Player.id)) then
+					acStance:Cast(Player.id)
 					return true
 				end
 			end
@@ -1992,6 +1993,30 @@ function e_flee:execute()
 		newTask.useTeleport = (gTeleportHack)
 		ml_task_hub:Add(newTask, IMMEDIATE_GOAL, TP_IMMEDIATE)
 	end
+end
+
+c_eat = inheritsFrom( ml_cause )
+e_eat = inheritsFrom( ml_effect )
+function c_eat:evaluate()
+	if (MIsLoading() or MIsLocked() or MIsCasting() or IsFlying() or Player:IsMoving() or Player.incombat) then
+		return false
+	end
+	
+	if ( gFood ~= "None") then
+		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000) then
+			if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
+				if (ShouldEat()) then
+					Eat()
+					ml_global_information.foodCheckTimer = tickcount
+					return true
+				end
+			end
+		end
+	end
+    return false
+end
+function e_eat:execute()
+	ml_global_information.Await(2000)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -2627,12 +2652,12 @@ c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
 	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5)) or IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
-		not Player.alive or Player.incombat or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0 or not gAutoEquip)
+		not Player.alive or Player.incombat or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
 	then
 		return false
 	end	
 	
-	return true
+	return (gAutoEquip or gForceAutoEquip)
 end
 function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then

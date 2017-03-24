@@ -423,14 +423,29 @@ function e_huntlogkill:execute()
 end
 
 function ffxiv_task_huntlog:Init()
-    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 50 )
+	local ke_isLoading = ml_element:create( "GrindIsLoading", c_grindisloading, e_grindisloading, 250 )
+    self:add( ke_isLoading, self.overwatch_elements)
+	
+    local ke_dead = ml_element:create( "Dead", c_dead, e_dead, 220 )
     self:add(ke_dead, self.overwatch_elements)
     
-    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 45 )
+    local ke_flee = ml_element:create( "Flee", c_flee, e_flee, 210 )
     self:add(ke_flee, self.overwatch_elements)
     
-    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 40 )
+    local ke_rest = ml_element:create( "Rest", c_rest, e_rest, 200 )
     self:add(ke_rest, self.overwatch_elements)
+	
+	local ke_isLocked = ml_element:create( "IsLocked", c_grindislocked, e_grindislocked, 180 )
+    self:add( ke_isLocked, self.process_elements)
+
+	local ke_inventoryFull = ml_element:create( "InventoryFull", c_inventoryfull, e_inventoryfull, 150 )
+    self:add( ke_inventoryFull, self.process_elements)
+	
+	local ke_recommendEquip = ml_element:create( "RecommendEquip", c_recommendequip, e_recommendequip, 130 )
+    self:add( ke_recommendEquip, self.process_elements)
+	
+	local ke_eat = ml_element:create( "Eat", c_eat, e_eat, 120 )
+    self:add( ke_eat, self.process_elements)
 	
 	local ke_evalBestTarget = ml_element:create( "EvalBestTarget", c_evaluatebesttarget, e_evaluatebesttarget, 35 )
     self:add(ke_evalBestTarget, self.process_elements)

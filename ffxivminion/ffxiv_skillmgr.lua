@@ -19,7 +19,7 @@ SkillMgr.GUI = {
 		name = GetString("Skill Book"),
 		visible = true,
 		open = false,
-		height = 0, width = 0, x = 0, y = 0,
+		height = 0, width = 350, x = 0, y = 0,
 	},
 	manager = {
 		name = GetString("Skill Manager"),
@@ -31,7 +31,7 @@ SkillMgr.GUI = {
 		name = GetString("Skill Editor"),
 		visible = true,
 		open = false,
-		height = 0, width = 0, x = 0, y = 0,
+		height = 0, width = 350, x = 0, y = 0,
 	},
 	filters = {
 		name = GetString("Skill Filters"),
@@ -540,7 +540,7 @@ SkillMgr.Variables = {
 	SKM_CZONESTACKMIN = { default = 0, cast = "number", profile = "czonestackmin", section = "crafting"},
 	SKM_MAKERSSTACKMIN = { default = 0, cast = "number", profile = "makersstackmin", section = "crafting"},
 	SKM_WHSTACKMIN = { default = 0, cast = "number", profile = "whstackmin", section = "crafting"},	
-	SKM_WHSTACK = { default = "", cast = "string", profile = "whstack", section = "crafting"},
+	SKM_WHSTACK = { default = 0, cast = "string", profile = "whstack", section = "crafting"},
 	SKM_TOTMIN = { default = 0, cast = "number", profile = "totmin", section = "crafting"},
 	SKM_TOTMAX = { default = 0, cast = "number", profile = "totmax", section = "crafting"},
 	SKM_HTSUCCEED = { default = 0, cast = "number", profile = "htsucceed", section = "crafting"},
@@ -659,7 +659,7 @@ function SkillMgr.ModuleInit()
 	gSkillManagerNewProfile = ""
 	
 	gSkillMgrFilterJob = ffxivminion.GetSetting("gSkillMgrFilterJob",true)
-	gSkillMgrFilterUsable = ffxivminion.GetSetting("gSkillMgrFilterUsable",false)
+	gSkillMgrFilterUsable = ffxivminion.GetSetting("gSkillMgrFilterUsable",true)
 	
 	gAssistFilter1 = ffxivminion.GetSetting("gAssistFilter1",false)
 	gAssistFilter2 = ffxivminion.GetSetting("gAssistFilter2",false)
@@ -1819,26 +1819,29 @@ function SkillMgr.UpdateProfiles()
 	--table.print(SkillMgr.profiles)
 end
 
-function SkillMgr.CopySkill()
-	d("COPYING SKILL #:"..tostring(SKM_Prio))
-	local source = SkillMgr.SkillProfile[tonumber(SKM_Prio)]
+function SkillMgr.CopySkill(prio)
+	d("COPYING SKILL #:"..tostring(prio))
+	local source = SkillMgr.SkillProfile[tonumber(prio)]
 	SkillMgr.copiedSkill = {}
 	local temp = {}
 	for k,v in pairs(SkillMgr.Variables) do
-		if (v.section ~= "main") then
-			temp[k] = _G[tostring(k)]
+		if (v.section ~= "main" and source[v.profile] ~= nil) then
+			temp[k] = source[v.profile]
 		end
 	end
 	SkillMgr.copiedSkill = temp
 end
 
-function SkillMgr.PasteSkill()
-	d("PASTING INTO SKILL #:"..tostring(SKM_Prio))
+function SkillMgr.PasteSkill(prio)
+	d("PASTING INTO SKILL #:"..tostring(prio))
 	local source = SkillMgr.copiedSkill
 	for k,v in pairs(SkillMgr.copiedSkill) do
-		_G[tostring(k)] = v
-		SkillMgr. GUI_Set(tostring(k),v)
+		if (SkillMgr.Variables[k] ~= nil) then
+			skillVar = SkillMgr.Variables[varName]
+			SkillMgr.SkillProfile[prio][skillVar.profile] = v
+		end
 	end
+	SkillMgr.SaveProfile()
 end
 
 function SkillMgr.UpdateCurrentProfileData()
@@ -2657,13 +2660,15 @@ SkillMgr.checkHT = false
 SkillMgr.newCraft = true
 
 function SkillMgr.Craft()
-	if (SkillMgr.IsYielding()) then
+	if (SkillMgr.IsYielding() or not IsControlOpen("Synthesis")) then
 		return false
 	end
 	
 	SkillMgr.CheckMonitor()
 	
-    local synth = Crafting:SynthInfo()
+	
+	
+    local synth = GetControlData("Synthesis")
     if ( table.valid(synth) and table.valid(SkillMgr.SkillProfile)) then
 		
 		if (SkillMgr.newCraft) then
@@ -2849,11 +2854,17 @@ function SkillMgr.Craft()
 						if not MissingBuffs(Player, skill.cpnbuff) then
 							castable = false 
 						end								
-                    end								
+                    end			
+
+					--Single use check
+					if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
+						castable = false
+					end
 					
 					local currentQuality = synth.quality
 					if ( castable ) then
-						if ( ActionList:Cast(skid,0) ) then	
+						if ( realskilldata:Cast(Player.id) ) then	
 							d("CASTING(Crafting): "..tostring(skill.name))	
 							SkillMgr.lastquality = currentQuality
 							
@@ -2865,6 +2876,7 @@ function SkillMgr.Craft()
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
 							end
 							
+							SkillMgr.prevSkillList[skillid] = true
 							SkillMgr.SkillProfile[prio].lastcast = Now()
 							SkillMgr.prevSkillID = tostring(skill.id)
 							ml_global_information.Await(750)
@@ -5116,26 +5128,32 @@ function SkillMgr.Capture(newVal,varName)
 end
 
 function SkillMgr.CaptureElement(newVal, varName)
+	local needsSave = false
+	
 	local currentVal = _G[varName]
+	--d("varName:"..varName..",currentVal:"..tostring(_G[varName]))
 	if (currentVal ~= newVal or (type(newVal) == "table" and not deepcompare(currentVal,newVal))) then
+		--d("set ["..varName.."] to ["..tostring(newVal).."]")
 		_G[varName] = newVal
 		needsSave = true
 	end
 		
 	if (needsSave) then
+		d("save the element ["..tostring(varName))
 		local prio = SkillMgr.EditingSkill
-		if (SkillMgr.Variables[strName] ~= nil) then	
-			skillVar = SkillMgr.Variables[strName]
-			SkillMgr.SkillProfile[prio][skillVar.profile] = value
+		if (SkillMgr.Variables[varName] ~= nil) then	
+			skillVar = SkillMgr.Variables[varName]
+			SkillMgr.SkillProfile[prio][skillVar.profile] = newVal
 		end
+		SkillMgr.SaveProfile()
 	end
 end
 
 function SkillMgr.DrawSkillBook()
-	if (SkillMgr.GUI.skillbook.open) then	
-		GUI:SetNextWindowPos((SkillMgr.GUI.manager.x - SkillMgr.GUI.skillbook.width),SkillMgr.GUI.manager.y,GUI.SetCond_Always)
-		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always)
-		SkillMgr.GUI.skillbook.visible, SkillMgr.GUI.skillbook.open = GUI:Begin(SkillMgr.GUI.skillbook.name, SkillMgr.GUI.skillbook.open)
+	--if (SkillMgr.GUI.skillbook.open) then	
+		GUI:SetNextWindowPos((SkillMgr.GUI.manager.x - SkillMgr.GUI.skillbook.width),SkillMgr.GUI.manager.y,GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,450,GUI.SetCond_Appearing)
+		SkillMgr.GUI.skillbook.visible, SkillMgr.GUI.skillbook.open = GUI:Begin(SkillMgr.GUI.skillbook.name, true, GUI.WindowFlags_NoTitleBar)
 		if ( SkillMgr.GUI.skillbook.visible ) then 
 			
 			local x, y = GUI:GetWindowPos()
@@ -5151,7 +5169,7 @@ function SkillMgr.DrawSkillBook()
 			
 			for actiontype,actiondesc in pairsByKeys(types) do
 				if ( GUI:TreeNode(tostring(actiontype).." - "..tostring(actiondesc))) then
-					local actionlist = ActionList:Get(1)
+					local actionlist = ActionList:Get(actiontype)
 					if (table.valid(actionlist)) then
 						for actionid, action in pairs(actionlist) do
 							if (not gSkillMgrFilterJob or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job]))) then
@@ -5168,13 +5186,13 @@ function SkillMgr.DrawSkillBook()
 			end
 		end
 		GUI:End()
-	end
+	--end
 end
 
 function SkillMgr.DrawSkillEditor(prio)
 	if (SkillMgr.GUI.editor.open) then	
-		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
-		GUI:SetNextWindowSize(350,300,GUI.SetCond_Appearing) --set the next window size, only on first ever
+		GUI:SetNextWindowPos(SkillMgr.GUI.manager.x + SkillMgr.GUI.manager.width,SkillMgr.GUI.manager.y,GUI.SetCond_Appearing)
+		GUI:SetNextWindowSize(350,600,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever
 		SkillMgr.GUI.editor.visible, SkillMgr.GUI.editor.open = GUI:Begin(SkillMgr.GUI.editor.name, SkillMgr.GUI.editor.open)
 		if ( SkillMgr.GUI.editor.visible ) then 
 			local skill = SkillMgr.SkillProfile[SkillMgr.EditingSkill]
@@ -5210,6 +5228,7 @@ function SkillMgr.DrawSkillEditor(prio)
 						end
 					end
 				end
+				
 				if (fighting) then
 					SkillMgr.DrawBattleEditor(skill)
 				elseif (crafting) then
@@ -5563,6 +5582,10 @@ function SkillMgr.DrawBattleEditor()
 	--]]
 end
 
+function SkillMgr.FillCraftVars()
+	
+end
+
 function SkillMgr.DrawCraftEditor()
 	
 	if (GUI:CollapsingHeader("Crafting","crafting-header",true,true)) then
@@ -5655,7 +5678,7 @@ end
 function SkillMgr.DrawManager()
 	if (SkillMgr.GUI.manager.open) then	
 		GUI:SetNextWindowPosCenter(GUI.SetCond_Appearing)
-		GUI:SetNextWindowSize(350,300,GUI.SetCond_Always) --set the next window size, only on first ever
+		GUI:SetNextWindowSize(350,450,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever
 		SkillMgr.GUI.manager.visible, SkillMgr.GUI.manager.open = GUI:Begin(SkillMgr.GUI.manager.name, SkillMgr.GUI.manager.open)
 		if ( SkillMgr.GUI.manager.visible ) then 
 		
@@ -5694,7 +5717,7 @@ function SkillMgr.DrawManager()
 					end
 					GUI:NewLine(2);
 					GUI:Separator();
-					GUI:Spacing(2)
+					GUI:Spacing(); GUI:Spacing();
 					
 					for i,abrev in pairsByKeys(gatherers) do
 						SkillMgr.Capture(GUI:Checkbox(abrev,_G["gSkillProfileValid"..abrev]),"gSkillProfileValid"..abrev)
@@ -5716,7 +5739,7 @@ function SkillMgr.DrawManager()
 							if (IsNull(skill.alias,"") ~= "") then
 								alias = skill.alias
 							end							
-							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",width,20)) then
+							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
 								local classCheck = false
 								local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST",
 									"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
@@ -5733,8 +5756,10 @@ function SkillMgr.DrawManager()
 									for varname,info in pairsByKeys(SkillMgr.Variables) do
 										if (skill[info.profile] ~= nil) then
 											if (info.cast == type(skill[info.profile])) then
+												--d("setting variable ["..tostring(varname).."] to ["..tostring(skill[info.profile]).."]")
 												_G[varname] = skill[info.profile]
 											else
+												--d("setting variable ["..tostring(varname).."] to default ["..tostring(info.default).."]")
 												_G[varname] = info.default
 												skill[info.profile] = info.default
 												requiredUpdate = true
@@ -5749,6 +5774,44 @@ function SkillMgr.DrawManager()
 									ffxiv_dialog_manager.IssueNotice("Class Selection Required", "You must select at least one valid class before editing skills.")
 								end
 							end
+							
+							GUI:SameLine(0,5)
+							
+							GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+							GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+							if (GUI:ImageButton("##skillmgr-manage-prioup-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\w_up.png", 16, 16)) then	
+								if (prio > 1) then
+									local tmp = SkillMgr.SkillProfile[prio-1]
+									SkillMgr.SkillProfile[prio-1] = SkillMgr.SkillProfile[prio]
+									SkillMgr.SkillProfile[prio-1].prio = SkillMgr.SkillProfile[prio-1].prio - 1
+									SkillMgr.SkillProfile[prio] = tmp
+									SkillMgr.SkillProfile[prio].prio = SkillMgr.SkillProfile[prio].prio + 1
+									SkillMgr.SaveProfile()
+								end
+							end
+							GUI:SameLine(0,5)
+							if (GUI:ImageButton("##skillmgr-manage-priodown-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\w_down.png", 16, 16)) then
+								if (prio < table.size(SkillMgr.SkillProfile)) then
+									local tmp = SkillMgr.SkillProfile[prio+1]
+									SkillMgr.SkillProfile[prio+1] = SkillMgr.SkillProfile[prio]
+									SkillMgr.SkillProfile[prio+1].prio = SkillMgr.SkillProfile[prio+1].prio + 1
+									SkillMgr.SkillProfile[prio] = tmp
+									SkillMgr.SkillProfile[prio].prio = SkillMgr.SkillProfile[prio].prio - 1
+									SkillMgr.SaveProfile()
+								end
+							end
+							GUI:SameLine(0,5)
+							if (GUI:ImageButton("##skillmgr-manage-delete-"..tostring(prio),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
+								SkillMgr.SkillProfile = TableRemoveSort(SkillMgr.SkillProfile,prio)
+								for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
+									if (skill.prio ~= prio) then
+										SkillMgr.SkillProfile[prio].prio = prio
+									end
+								end
+								SkillMgr.SaveProfile()
+							end
+							
+							GUI:PopStyleColor(2)
 						end
 					end
 				end

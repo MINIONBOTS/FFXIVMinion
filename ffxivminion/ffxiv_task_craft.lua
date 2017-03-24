@@ -4,9 +4,14 @@ ffxiv_craft.crafts = {
 	["LTW"] = 12,	["WVR"] = 13,	["ALC"] = 14,	["CUL"] = 15,
 }
 ffxiv_craft.profilePath = GetStartupPath()..[[\LuaMods\ffxivminion\CraftProfiles\]]
+ffxiv_craft.profiles = {}
+ffxiv_craft.profilesDisplay = {}
+ffxiv_craft.profileData = {}
 ffxiv_craft.orders = {}
 ffxiv_craft.ordersVisible = false
 ffxiv_craft.orderSelectorVisible = false
+ffxiv_craft.dictionaries = {}
+ffxiv_craft.dictionariesDisplay = {}
 
 ffxiv_task_craft = inheritsFrom(ml_task)
 ffxiv_task_craft.name = "LT_CRAFT"
@@ -22,7 +27,6 @@ function ffxiv_task_craft.Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_task_craft members
-	newinst.networkLatency = 0
 	ffxiv_craft.ResetOrders()
     
     return newinst
@@ -47,12 +51,7 @@ end
 c_craftlimit = inheritsFrom( ml_cause )
 e_craftlimit = inheritsFrom( ml_effect )
 function c_craftlimit:evaluate()
-	if ( Now() < ml_task_hub:CurrentTask().networkLatency) then
-		return false
-	end
-	
-	local synth = Crafting:SynthInfo()
-	if (synth == nil) then
+	if (not ffxiv_craft.IsCrafting()) then
 		if (ffxiv_craft.UsingProfile()) then
 			local recipe = ml_task_hub:CurrentTask().recipe
 			local itemid = ml_task_hub:CurrentTask().itemid
@@ -61,7 +60,13 @@ function c_craftlimit:evaluate()
 			local requiredItems = ml_task_hub:CurrentTask().requiredItems
 			local startingCount = ml_task_hub:CurrentTask().startingCount 
 			
-			local itemcount = ItemCount(itemid,countHQ,requireHQ)
+			local itemcount = 0
+			if (order.requirehq or order.counthq) then
+				itemcount = itemcount + ItemCount(itemid + 1000000)
+			elseif (order.counthq or not order.requirehq) then
+				itemcount = itemcount + ItemCount(itemid)
+			end
+			
 			local canCraft = AceLib.API.Items.CanCraft(recipe.id)			
 			if (not canCraft) then
 				cd("[CraftLimit]: We can no longer craft this item, complete the order.",3)
@@ -99,33 +104,29 @@ end
 c_opencraftwnd = inheritsFrom( ml_cause )
 e_opencraftwnd  = inheritsFrom( ml_effect )
 function c_opencraftwnd:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency or MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
+	if (MIsCasting() or not ml_task_hub:CurrentTask().allowWindowOpen ) then
 		return false
 	end
 	
-    local synth = Crafting:SynthInfo()
-	if ( not synth and not Crafting:IsCraftingLogOpen() ) then
+	if (not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple") and not IsControlOpen("RecipeNote")) then
+		local logOpen = ActionList:Get(10,9)
+		if (logOpen and logOpen.usable) then
+			logOpen:Cast(Player.id)
+			ml_global_information.Await(1000, 1500, function () return IsControlOpen("RecipeNote") end)
+		end
 		return true
-	end	
+	end
 	
     return false
 end
 
 function e_opencraftwnd:execute()
-    Crafting:ToggleCraftingLog()
-	ml_task_hub:ThisTask().networkLatency = Now() + 1500
 end
 
 c_startcraft = inheritsFrom( ml_cause )
 e_startcraft = inheritsFrom( ml_effect )
 function c_startcraft:evaluate()
-	local minCP = tonumber(gCraftMinCP) or 0
-	if (Now() < ml_task_hub:ThisTask().networkLatency or Player.cp.current < minCP) then
-		return false
-	end
-
-    local synth = Crafting:SynthInfo()
-	if ( synth == nil and Crafting:IsCraftingLogOpen()) then
+	if (not ffxiv_craft.IsCrafting() and IsControlOpen("RecipeNote")) then
 		
 		if (ffxiv_craft.UsingProfile()) then
 			local recipe = ml_task_hub:CurrentTask().recipe
@@ -137,7 +138,13 @@ function c_startcraft:evaluate()
 				local countHQ = ml_task_hub:CurrentTask().countHQ
 				local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
 				
-				local itemcount = ItemCount(itemid,countHQ,requireHQ)				
+				local itemcount = 0
+				if (order.requirehq or order.counthq) then
+					itemcount = itemcount + ItemCount(itemid + 1000000)
+				elseif (order.counthq or not order.requirehq) then
+					itemcount = itemcount + ItemCount(itemid)
+				end
+					
 				local requiredItems = ml_task_hub:CurrentTask().requiredItems
 				local startingCount = ml_task_hub:CurrentTask().startingCount 
 				
@@ -152,6 +159,10 @@ function c_startcraft:evaluate()
 				end
 			end
 		else
+			local minCP = tonumber(gCraftMinCP) or 0
+			if (Player.cp.current < minCP) then
+				return false
+			end
 			if ( Crafting:CanCraftSelectedItem() ) then
 				return true
 			end
@@ -166,8 +177,8 @@ function e_startcraft:execute()
 		local recipe = ml_task_hub:CurrentTask().recipe
 		local itemid = ml_task_hub:CurrentTask().itemid
 		if (not ml_task_hub:CurrentTask().recipeSelected) then
-			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(itemid).."].",3)
-			Crafting:SetRecipe(recipe.class,recipe.page,itemid)
+			cd("Recipe phase 1, set to: ["..tostring(recipe.class)..","..tostring(recipe.page)..","..tostring(recipe.id).."].",3)
+			Crafting:SetRecipe(recipe.class,recipe.page,recipe.id)
 			ml_task_hub:CurrentTask().recipeSelected = true
 			
 			local skillProfile = ml_task_hub:CurrentTask().skillProfile
@@ -177,60 +188,84 @@ function e_startcraft:execute()
 				end
 			end
 			
+			SkillMgr.prevSkillList = {}
 			ml_global_information.Await(1000)
 			return
 		else
-			local usehq = ml_task_hub:CurrentTask().useHQ
-			cd("[StartCraft]: Order HQ Status :"..tostring(usehq)..".",3)
-			Crafting:UseHQMats(usehq)
-			
-			if (Crafting:CanCraftSelectedItem()) then
-			--if (true) then
-				ml_task_hub:CurrentTask().failedAttempts = 0
-				local usequick = ml_task_hub:CurrentTask().useQuick
-				if (usequick) then
-					local itemid = ml_task_hub:CurrentTask().itemid
-					local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
-					local wantedAmount = ml_task_hub:ThisTask().requiredItems
-					if (wantedAmount > 0 and wantedAmount <= maxAmount and wantedAmount <= 99) then
-						Crafting:CraftSelectedItem(wantedAmount)
-					else
-						if (maxAmount > 99) then
-							Crafting:CraftSelectedItem(99)
-						else
-							Crafting:CraftSelectedItem(maxAmount)
+			if (not ml_task_hub:CurrentTask().matsSet) then
+				local useHQ = ml_task_hub:CurrentTask().useHQ
+				local mats = Crafting:GetCraftingMats()
+				if (table.valid(mats) and useHQ) then
+					for i = 1,6 do
+						local ingredient = mats[i]
+						local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+						if (hqAmount > 0) then
+							if (ingredient.inventoryhq >= hqAmount) then
+								Crafting:SetCraftingMats(i-1,hqAmount)
+							else
+								d("Stop crafting item, not enough HQ.")
+								ffxiv_craft.orders[recipe.id].completed = true
+								return false
+							end
 						end
 					end
-					Crafting:ToggleCraftingLog()
-					SkillMgr.newCraft = true
-					ml_task_hub:CurrentTask().allowWindowOpen = false
-				else
-					Crafting:CraftSelectedItem()
-					Crafting:ToggleCraftingLog()
-					SkillMgr.newCraft = true
-					ml_task_hub:CurrentTask().allowWindowOpen = false
-				end
-				ml_global_information.Await(2500)
-				return
+					ml_task_hub:CurrentTask().matsSet = true
+				end				
 			else
-				if (ml_task_hub:CurrentTask().failedAttempts < 3) then
-					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
-					ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
-					ml_global_information.Await(1000)
+				if (Crafting:CanCraftSelectedItem()) then
+				--if (true) then
+					ml_task_hub:CurrentTask().failedAttempts = 0
+					local usequick = ml_task_hub:CurrentTask().useQuick
+					if (usequick) then
+						local itemid = ml_task_hub:CurrentTask().itemid
+						local canCraft,maxAmount = AceLib.API.Items.CanCraft(recipe.id)
+						local wantedAmount = ml_task_hub:ThisTask().requiredItems
+						if (wantedAmount > 0 and wantedAmount <= maxAmount and wantedAmount <= 99) then
+							Crafting:CraftSelectedItem(wantedAmount)
+						else
+							if (maxAmount > 99) then
+								Crafting:CraftSelectedItem(99)
+							else
+								Crafting:CraftSelectedItem(maxAmount)
+							end
+						end
+						if (IsControlOpen("RecipeNote")) then
+							ffxiv_craft.ToggleCraftingLog()
+						end
+						SkillMgr.newCraft = true
+						ml_task_hub:CurrentTask().allowWindowOpen = false
+					else
+						Crafting:CraftSelectedItem()
+						if (IsControlOpen("RecipeNote")) then
+							ffxiv_craft.ToggleCraftingLog()
+						end
+						SkillMgr.newCraft = true
+						ml_task_hub:CurrentTask().allowWindowOpen = false
+					end
+					ml_global_information.Await(2500)
 					return
 				else
-					cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
-					ffxiv_craft.orders[recipe.id].completed = true
-					ml_task_hub:CurrentTask().completed = true
-				end
-			end			
+					if (ml_task_hub:CurrentTask().failedAttempts < 2) then
+						cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."], but we will try a couple more times to be sure.",3)
+						ml_task_hub:CurrentTask().failedAttempts = ml_task_hub:CurrentTask().failedAttempts + 1
+						ml_global_information.Await(1000)
+						return
+					else
+						cd("[StartCraft]: API Detected that we cannot craft anymore of item ["..tostring(recipe.id).."].",3)
+						ffxiv_craft.orders[recipe.id].completed = true
+						ml_task_hub:CurrentTask().completed = true
+					end
+				end			
+			end
 		end
 	else
 		Crafting:CraftSelectedItem()
-		Crafting:ToggleCraftingLog()
+		if (IsControlOpen("RecipeNote")) then
+			ffxiv_craft.ToggleCraftingLog()
+		end
 		ml_task_hub:ThisTask().attemptedStarts = ml_task_hub:ThisTask().attemptedStarts + 1
 		SkillMgr.newCraft = true
-		ml_task_hub:ThisTask().networkLatency = Now() + 2500
+		ml_global_information.Await(2500)
 		ml_task_hub:CurrentTask().allowWindowOpen = false
 	end
 end
@@ -242,17 +277,13 @@ e_precraftbuff.activity = ""
 e_precraftbuff.item = nil
 e_precraftbuff.requiresLogClose = false
 function c_precraftbuff:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency ) then
-		return false
-	end
-	
+
 	e_precraftbuff.id = 0
 	e_precraftbuff.item = nil
 	e_precraftbuff.activity = ""
 	e_precraftbuff.requiresLogClose = false
 	
-	local synth = Crafting:SynthInfo()	
-	if (not synth) then
+	if (not ffxiv_craft.IsCrafting()) then
 		if (NeedsRepair()) then
 			cd("[PreCraftBuff]: Need to repair.",3)
 			e_precraftbuff.activity = "repair"
@@ -260,15 +291,52 @@ function c_precraftbuff:evaluate()
 			return true
 		end
 		
-		if (gFood ~= "None") then
-			local foodID = ffxivminion.foods[gFood]
-			local food, action = GetItem(foodID)
-			if (food and food:IsReady(Player.id) and action and MissingBuffs(Player,"48",60)) then
-				cd("[PreCraftBuff]: Need to eat.",3)
-				e_precraftbuff.activity = "eat"
-				e_precraftbuff.id = foodID
-				e_precraftbuff.requiresLogClose = true
-				return true
+		if (ffxiv_craft.UsingProfile()) then
+			if (gCraftFood ~= GetString("None")) then
+				local foodDetails = ml_global_information.foods[gCraftFood]
+				if (foodDetails) then
+					local foodID = foodDetails.id
+					local foodStack = foodDetails.buffstackid
+					
+					local food, action = GetItem(foodID)
+					if (food and food:IsReady(Player.id) and action and MissingBuffX(Player,48,foodStack,60)) then
+						cd("[PreCraftBuff]: Need to eat, using override food choice.",3)
+						e_precraftbuff.activity = "eat"
+						e_precraftbuff.id = foodID
+						e_precraftbuff.requiresLogClose = true
+						return true
+					end
+				end
+			else
+				local requiredFood = ml_task_hub:CurrentTask().requiredFood
+				if (requiredFood) then
+					local foodDetails = ml_global_information.foods[requiredFood]
+					if (foodDetails) then
+						local foodID = foodDetails.id
+						local foodStack = foodDetails.buffstackid
+						
+						local food, action = GetItem(foodID)
+						if (food and food:IsReady(Player.id) and action and MissingBuffX(Player,48,foodStack,60)) then
+							cd("[PreCraftBuff]: Need to eat, using order specific food.",3)
+							e_precraftbuff.activity = "eat"
+							e_precraftbuff.id = foodID
+							e_precraftbuff.requiresLogClose = true
+							return true
+						end
+					end
+				end
+			end
+		else
+			if (gFood ~= "None") then
+				local foodID = ml_global_information.foods[gFood]
+				local food, action = GetItem(foodID)
+				if (food and food:IsReady(Player.id) and action and MissingBuff(Player,48,60)) then
+					cd("[PreCraftBuff]: Need to eat.",3)
+					e_precraftbuff.activity = "eat"
+					e_precraftbuff.id = foodID
+					e_precraftbuff.requiresLogClose = true
+					return true
+				end
 			end
 		end
 		
@@ -299,10 +367,10 @@ function e_precraftbuff:execute()
 	local activityItem = e_precraftbuff.item
 	
 	if (e_precraftbuff.requiresLogClose) then
-		if ( Crafting:IsCraftingLogOpen()) then
-			Crafting:ToggleCraftingLog()
+		if (IsControlOpen("RecipeNote")) then
+			ffxiv_craft.ToggleCraftingLog()
 			ml_task_hub:CurrentTask().allowWindowOpen = true
-			ml_global_information.Await(1500)
+			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not IsLocked()) end)
 			return
 		end
 	end
@@ -342,26 +410,21 @@ end
 c_craft = inheritsFrom( ml_cause )
 e_craft = inheritsFrom( ml_effect )
 function c_craft:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency ) then
-		return false
-	end
-
-    local synth = Crafting:SynthInfo()
-	if ( synth or IsControlOpen("Synthesis")) then		
+	if ( ffxiv_craft.IsCrafting() or IsControlOpen("Synthesis")) then		
 		return true	
 	end
     return false
 end
 function e_craft:execute()
 	ml_task_hub:CurrentTask().recipeSelected = false
-	ml_task_hub:CurrentTask().recipeSelected2 = false
+	ml_task_hub:CurrentTask().matsSet = false
 	if (ml_task_hub:ThisTask().attemptedStarts > 0) then
 		ml_task_hub:ThisTask().attemptedStarts = 0
 		ml_task_hub:ThisTask().synthStarted = true
 		ml_task_hub:ThisTask().itemsCrafted = ml_task_hub:ThisTask().itemsCrafted + 1
 	end
     SkillMgr.Craft()
-	ml_task_hub:ThisTask().networkLatency = Now() + 1000
+	ml_global_information.Await(1000)
 end
 
 c_collectibleaddoncraft = inheritsFrom( ml_cause )
@@ -377,9 +440,6 @@ function c_collectibleaddoncraft:evaluate()
 				local var = _G["gCraftCollectibleName"..tostring(i)]
 				local valuevar = _G["gCraftCollectibleValue"..tostring(i-7)]
 				
-				--d("Checking selection [gCraftCollectibleName"..tostring(i).."], value:"..tostring(var))
-				--d("Checking selection [gCraftCollectibleValue"..tostring(i-7).."], value:"..tostring(valuevar))
-				
 				if (var and valuevar and var ~= "") then
 					local recipeid,itemid = AceLib.API.Items.GetRecipeIDByName(var,i)
 					if (itemid) then
@@ -393,8 +453,6 @@ function c_collectibleaddoncraft:evaluate()
 			
 			if (table.valid(variables)) then
 				for job,collectible in pairs(variables) do
-					--d("Checking variable ["..tostring(job).."]")
-					--d("id ["..tostring(collectible.id).."], value ["..tostring(collectible.value).."]")
 					if (string.contains(tostring(info.itemid),tostring(collectible.id))) then
 						if (info.collectability >= collectible.value) then
 							validCollectible = true
@@ -410,12 +468,14 @@ function c_collectibleaddoncraft:evaluate()
 			end
 			
 			if (not validCollectible) then
-				PressYesNoItem(false) 
-				return true
+				d("Cannot collect item ["..info.name.."], collectibility rating not approved.",2)
+				UseControlAction("SelectYesNoCountItem","No")
 			else
-				PressYesNoItem(true) 
-				return true
+				d("Attempting to collect item ["..info.name.."], collectibility rating approved.",2)
+				UseControlAction("SelectYesNoCountItem","Yes")
 			end
+			ml_global_information.Await(3000, function () return not IsControlOpen("SelectYesNoCountItem") end)				
+			return true
 		end
 	end
 	return false
@@ -431,9 +491,10 @@ function c_quicksynth:evaluate()
 end
 function e_quicksynth:execute()
 	if (ml_task_hub:CurrentTask().quickTimer > 0 and TimeSince(ml_task_hub:CurrentTask().quickTimer) > 7000) then
-		Crafting:EndSynthesis(true)
-		ml_global_information.Await(6000)
-		return true
+		if (UseControlAction("SynthesisSimple","Quit")) then
+			ml_global_information.Await(6000)
+			return true
+		end
 	end
 	
 	if (Player.action == 241) then
@@ -444,10 +505,6 @@ end
 c_selectcraft = inheritsFrom( ml_cause )
 e_selectcraft = inheritsFrom( ml_effect )
 function c_selectcraft:evaluate()
-	if ( Now() < ml_task_hub:ThisTask().networkLatency ) then
-		return false
-	end
-	
 	if (ffxiv_craft.UsingProfile()) then
 		local orders = ffxiv_craft.orders
 		for id,order in pairs(orders) do
@@ -455,22 +512,23 @@ function c_selectcraft:evaluate()
 				cd("[SelectCraft]: Initializing the completion status for id ["..tostring(id).."].",3)
 				orders[id].completed = false
 			end
-			if (order.completed == false) then
-				cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
-				return true
+			if (order.completed == false and order.skip ~= true) then
+				local canCraft = AceLib.API.Items.CanCraft(id)
+				if (canCraft) then
+					cd("[SelectCraft]: Found an incomplete order ["..tostring(id).."], select a new craft.",3)
+					return true
+				end
 			end
 		end
+		
+		ffxiv_dialog_manager.IssueStopNotice("Nothing Craftable", "You cannot craft any of the items in the profile.", "okonly")
 	else
 		return true
 	end
-
 	return false
 end
 function e_selectcraft:execute()
-	ml_task_hub:ThisTask().networkLatency = Now() + 2500
-	
 	local newTask = ffxiv_task_craftitems.Create()
-	
 	if (ffxiv_craft.UsingProfile()) then
 		local orders = ffxiv_craft.orders
 		
@@ -480,11 +538,17 @@ function e_selectcraft:execute()
 		
 		local foundSelection = false
 		for id,order in spairs(orders, sortfunc) do
-			if (not order.completed) then
+			if (not order.completed and not order.skip) then
 				local canCraft = AceLib.API.Items.CanCraft(id)
 				if (canCraft) then
 					
-					local itemcount = ItemCount(itemid,order.counthq,order.requirehq)
+					local itemid = order.item
+					local itemcount = 0
+					if (order.requirehq or order.counthq) then
+						itemcount = itemcount + ItemCount(itemid + 1000000)
+					elseif (not order.requirehq) then
+						itemcount = itemcount + ItemCount(itemid)
+					end
 					
 					newTask.startingCount = itemcount
 					cd("[SelectCraft]: Starting Amount :"..tostring(itemcount)..".",3)
@@ -497,6 +561,12 @@ function e_selectcraft:execute()
 					newTask.useHQ = order.usehq
 					cd("[SelectCraft]: Order HQ Status :"..tostring(order.usehq)..".",3)
 					newTask.skillProfile = order.profile
+					newTask.requiredFood = order.requiredfood
+					
+					for i = 1,6 do
+						newTask["hq"..tostring(i)] = IsNull(order["hq"..tostring(i)],0)
+					end
+					
 					newTask.recipe = { id = order.id, class = order.class, page = order.page }
 					
 					cd("[SelectCraft]: Can craft id ["..tostring(id).."], recipe details [ id = "..tostring(order.id).."].",2)
@@ -522,6 +592,7 @@ function e_selectcraft:execute()
 		newTask.maxItems = tonumber(gCraftMaxItems) or 0
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
+	ml_global_information.Await(2500)
 end
 
 ffxiv_task_craftitems = inheritsFrom(ml_task)
@@ -538,7 +609,6 @@ function ffxiv_task_craftitems.Create()
     newinst.overwatch_elements = {}
     
     --ffxiv_task_craft members
-	newinst.networkLatency = 0
 	newinst.synthStarted = false
 	newinst.attemptedStarts = 0
 	newinst.itemsCrafted = 0
@@ -551,9 +621,10 @@ function ffxiv_task_craftitems.Create()
 	newinst.countHQ = false
 	newinst.itemid = 0
 	newinst.useQuick = false
-	newinst.useHQ = (FFXIV_Craft_UseHQMats == "1")
+	newinst.useHQ = false
 	newinst.recipe = {}
 	newinst.recipeSelected = false
+	newinst.matsSet = false
 	newinst.skillProfile = ""
 	newinst.quickTimer = 0
 	
@@ -627,337 +698,79 @@ function ffxiv_task_craft.SetModeOptions()
 	Hacks:SkipCutscene(gSkipCutscene)
 	Hacks:Disable3DRendering(gDisableDrawing)
 	gAvoidAOE = Settings.FFXIVMINION.gAvoidAOE
-	ffxiv_craft.UpdateProfiles()
 	gAutoEquip = Settings.FFXIVMINION.gAutoEquip
 end
 
-function ffxiv_task_craft.UIInit()
-	if ( not ffxivminion.Windows) then
-		ffxivminion.Windows = {}
+-- New GUI.
+function ffxiv_task_craft:UIInit()
+	gCrafts = {"CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
+	ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
+	
+	local uuid = GetUUID()
+	if (Settings.FFXIVMINION.gLastCraftProfiles == nil) then
+		Settings.FFXIVMINION.gLastCraftProfiles = {}
 	end
-    ffxivminion.Windows.Craft = { id = strings["us"].craftMode, Name = GetString("craftMode"), x=50, y=50, width=210, height=300 }
-	ffxivminion.CreateWindow(ffxivminion.Windows.Craft)
-
-    Settings.FFXIVMINION.gLastCraftProfile = IsNull(Settings.FFXIVMINION.gLastCraftProfile,GetString("none"))
-	
-	if ( Settings.FFXIVMINION.gCraftMinCP == nil ) then
-        Settings.FFXIVMINION.gCraftMinCP = 0
-    end
-	if ( Settings.FFXIVMINION.gCraftMaxItems == nil ) then
-        Settings.FFXIVMINION.gCraftMaxItems = 0
-    end
-	if (Settings.FFXIVMINION.gCraftCollectibleName8 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName8 = ""
+	if (Settings.FFXIVMINION.gLastCraftProfiles[uuid] == nil) then
+		Settings.FFXIVMINION.gLastCraftProfiles[uuid] = {}
 	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue1 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue1 = 0
+	
+	_G["gCraftProfile"] = Settings.FFXIVMINION.gLastCraftProfiles[uuid] or ffxiv_craft.profilesDisplay[1]
+	_G["gCraftProfileIndex"] = GetKeyByValue(gCraftProfile,ffxiv_craft.profilesDisplay) or 1
+	if (ffxiv_craft.profilesDisplay[gCraftProfileIndex] ~= gCraftProfile) then
+		_G["gCraftProfile"] = ffxiv_craft.profilesDisplay[gCraftProfileIndex]
 	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName9 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName9 = ""
+	ffxiv_craft.profileData = ffxiv_craft.profiles[gCraftProfile] or {}
+	if (table.valid(ffxiv_craft.profileData)) then
+		ffxiv_craft.orders = ffxiv_craft.profileData.orders
+		ffxiv_craft.ResetOrders()
 	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue2 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue2 = 0
+	
+	gCraftDebug = ffxivminion.GetSetting("gCraftDebug",false)
+	local debugLevels = { 1, 2, 3 }
+	gCraftDebugLevel = ffxivminion.GetSetting("gCraftDebugLevel",1)
+	gCraftDebugLevelIndex = GetKeyByValue(gCraftDebugLevel,debugLevels)
+	
+	gCraftMinCP = ffxivminion.GetSetting("gCraftMinCP",0)
+	gCraftMaxItems = ffxivminion.GetSetting("gCraftMaxItems",0)
+	
+	for i = 8,15 do
+		_G["gCraftGearset"..tostring(i)] = ffxivminion.GetSetting("gCraftGearset"..tostring(i),0)
 	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName10 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName10 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue3 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue3 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName11 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName11 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue4 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue4 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName12 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName12 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue5 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue5 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName13 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName13 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue6 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue6 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName14 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName14 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue7 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue7 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleName15 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleName15 = ""
-	end
-	if (Settings.FFXIVMINION.gCraftCollectibleValue8 == nil) then
-		Settings.FFXIVMINION.gCraftCollectibleValue8 = 0
-	end
-	if (Settings.FFXIVMINION.gCraftDebug == nil) then
-		Settings.FFXIVMINION.gCraftDebug = "0"
-	end
-	if (Settings.FFXIVMINION.gCraftDebugLevel == nil) then
-		Settings.FFXIVMINION.gCraftDebugLevel = "1"
-	end	
 	
-	Settings.FFXIVMINION.gCraftGearset8 = Settings.FFXIVMINION.gCraftGearset8 or ""
-	Settings.FFXIVMINION.gCraftGearset9 = Settings.FFXIVMINION.gCraftGearset9 or ""
-	Settings.FFXIVMINION.gCraftGearset10 = Settings.FFXIVMINION.gCraftGearset10 or ""
-	Settings.FFXIVMINION.gCraftGearset11 = Settings.FFXIVMINION.gCraftGearset11 or ""
-	Settings.FFXIVMINION.gCraftGearset12 = Settings.FFXIVMINION.gCraftGearset12 or ""
-	Settings.FFXIVMINION.gCraftGearset13 = Settings.FFXIVMINION.gCraftGearset13 or ""
-	Settings.FFXIVMINION.gCraftGearset14 = Settings.FFXIVMINION.gCraftGearset14 or ""
-	Settings.FFXIVMINION.gCraftGearset15 = Settings.FFXIVMINION.gCraftGearset15 or ""
-	Settings.FFXIVMINION.gCraftOrderSelect = Settings.FFXIVMINION.gCraftOrderSelect or "CRP"
+	gCraftOrderSelectIndex = 1
+	gCraftOrderSelect = ffxivminion.GetSetting("gCraftOrderSelect","CRP")	
+	gCraftCollectablePresets = ffxivminion.GetSetting("gCraftCollectablePresets",{})	
 	
-	local winName = GetString("craftMode")
-	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
+	gCraftFood = ffxivminion.GetSetting("gCraftFood",GetString("none"))
+	gCraftFoodIndex = 1
 	
-	GUI_NewButton(winName, "Add Craft Orders","ffxiv_craft.SwitchCraftWindow")
-	GUI_NewButton(winName, "View Craft Orders","ffxiv_craft.ShowCraftOrders")
+	-- Order Stuff
 	
-	local group = GetString("status")
-	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"None")
-	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
-    GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
-	GUI_NewCheckbox(winName,"Craft Debug","gCraftDebug",group)
-	GUI_NewComboBox(winName,"Debug Level","gCraftDebugLevel",group,"1,2,3")
+	--Add
+	gCraftOrderAddID = 0
+	gCraftOrderAddAmount = 1
+	gCraftOrderAddRequireHQ = false
+	gCraftOrderAddCountHQ = false
+	gCraftOrderAddQuick = false
+	gCraftOrderAddHQ = false
+	gCraftOrderAddSkillProfileIndex = 1
+	gCraftOrderAddSkillProfile = GetString("None")
+	gCraftOrderAddFoodIndex = 1
+	gCraftOrderAddFood = GetString("None")
 	
-	group = GetString("settings")
-	GUI_NewField(winName,GetString("craftAmount"),"gCraftMaxItems",group)
-    GUI_NewField(winName,GetString("minimumCP"),"gCraftMinCP",group)
-
-	group = "Collectible"
-	local collectStringCraft1 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.CARPENTER,0,51)
-	local collectStringCraft2 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.BLACKSMITH,0,51)
-	local collectStringCraft3 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.ARMORER,0,51)
-	local collectStringCraft4 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.GOLDSMITH,0,51)
-	local collectStringCraft5 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.LEATHERWORKER,0,51)
-	local collectStringCraft6 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.WEAVER,0,51)
-	local collectStringCraft7 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.ALCHEMIST,0,51)
-	local collectStringCraft8 = AceLib.API.Items.BuildRecipeString(FFXIV.JOBS.CULINARIAN,0,51)
-	
-	GUI_NewComboBox(winName,"CRP","gCraftCollectibleName8",group,collectStringCraft1)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue1",group)
-	GUI_NewComboBox(winName,"BSM","gCraftCollectibleName9",group,collectStringCraft2)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue2",group)
-	GUI_NewComboBox(winName,"ARM","gCraftCollectibleName10",group,collectStringCraft3)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue3",group)
-	GUI_NewComboBox(winName,"GSM","gCraftCollectibleName11",group,collectStringCraft4)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue4",group)
-	GUI_NewComboBox(winName,"LTW","gCraftCollectibleName12",group,collectStringCraft5)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue5",group)
-	GUI_NewComboBox(winName,"WVR","gCraftCollectibleName13",group,collectStringCraft6)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue6",group)
-	GUI_NewComboBox(winName,"ALC","gCraftCollectibleName14",group,collectStringCraft7)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue7",group)
-	GUI_NewComboBox(winName,"CUL","gCraftCollectibleName15",group,collectStringCraft8)
-	GUI_NewField(winName,"Min Value","gCraftCollectibleValue8",group)
-	
-	group = "Gearsets"
-	GUI_NewNumeric(winName,"CRP","gCraftGearset8",group,"1","50")
-	GUI_NewNumeric(winName,"BSM","gCraftGearset9",group,"1","50")
-	GUI_NewNumeric(winName,"ARM","gCraftGearset10",group,"1","50")
-	GUI_NewNumeric(winName,"GSM","gCraftGearset11",group,"1","50")
-	GUI_NewNumeric(winName,"LTW","gCraftGearset12",group,"1","50")
-	GUI_NewNumeric(winName,"WVR","gCraftGearset13",group,"1","50")
-	GUI_NewNumeric(winName,"ALC","gCraftGearset14",group,"1","50")
-	GUI_NewNumeric(winName,"CUL","gCraftGearset15",group,"1","50")
-	
-	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	GUI_UnFoldGroup(winName,"Collectible")
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	gCraftMinCP = Settings.FFXIVMINION.gCraftMinCP
-    gCraftMaxItems = Settings.FFXIVMINION.gCraftMaxItems
-	gCraftDebug = Settings.FFXIVMINION.gCraftDebug
-	gCraftDebugLevel = Settings.FFXIVMINION.gCraftDebugLevel
-	gCraftCollectibleName8 = Settings.FFXIVMINION.gCraftCollectibleName8
-	gCraftCollectibleName9 = Settings.FFXIVMINION.gCraftCollectibleName9
-	gCraftCollectibleName10 = Settings.FFXIVMINION.gCraftCollectibleName10
-	gCraftCollectibleName11 = Settings.FFXIVMINION.gCraftCollectibleName11
-	gCraftCollectibleName12 = Settings.FFXIVMINION.gCraftCollectibleName12
-	gCraftCollectibleName13 = Settings.FFXIVMINION.gCraftCollectibleName13
-	gCraftCollectibleName14 = Settings.FFXIVMINION.gCraftCollectibleName14
-	gCraftCollectibleName15 = Settings.FFXIVMINION.gCraftCollectibleName15
-	gCraftCollectibleValue1 = Settings.FFXIVMINION.gCraftCollectibleValue1
-	gCraftCollectibleValue2 = Settings.FFXIVMINION.gCraftCollectibleValue2
-	gCraftCollectibleValue3 = Settings.FFXIVMINION.gCraftCollectibleValue3
-	gCraftCollectibleValue4 = Settings.FFXIVMINION.gCraftCollectibleValue4
-	gCraftCollectibleValue5 = Settings.FFXIVMINION.gCraftCollectibleValue5
-	gCraftCollectibleValue6 = Settings.FFXIVMINION.gCraftCollectibleValue6
-	gCraftCollectibleValue7 = Settings.FFXIVMINION.gCraftCollectibleValue7
-	gCraftCollectibleValue8 = Settings.FFXIVMINION.gCraftCollectibleValue8
-	
-	gCraftGearset8 = Settings.FFXIVMINION.gCraftGearset8
-	gCraftGearset9 = Settings.FFXIVMINION.gCraftGearset9
-	gCraftGearset10 = Settings.FFXIVMINION.gCraftGearset10
-	gCraftGearset11 = Settings.FFXIVMINION.gCraftGearset11
-	gCraftGearset12 = Settings.FFXIVMINION.gCraftGearset12
-	gCraftGearset13 = Settings.FFXIVMINION.gCraftGearset13
-	gCraftGearset14 = Settings.FFXIVMINION.gCraftGearset14
-	gCraftGearset15 = Settings.FFXIVMINION.gCraftGearset15
-	
-	ffxiv_craft.CreateSubWindows()	
-	gCraftOrderSelect = Settings.FFXIVMINION.gCraftOrderSelect
-end
-
-function ffxiv_craft.CreateSubWindows()
-	ffxivminion.Windows.CraftOrders = { id = "CraftOrders", Name = "Craft Orders", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftOrders)
-	winName = ffxivminion.Windows.CraftOrders.Name
-	GUI_NewButton(winName,"Save Profile","ffxiv_craft.SaveProfile")
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftOrderSaveDialog = { id = "CraftOrderSaveDialog", Name = "Craft - Save As..", x=50, y=50, width=250, height=100, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftOrderSaveDialog)
-	winName = ffxivminion.Windows.CraftOrderSaveDialog.Name
-	
-	GUI_NewButton(winName,"Create New Profile","ffxiv_craft.CreateNewProfile")
-	
-	local group = GetString("details")
-	GUI_NewField(winName,"New Order List","gCraftOrderNewProfile",group)
-	
-	GUI_UnFoldGroup(winName,group)
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftOrderEdit = { id = "CraftOrderEdit", Name = "Craft Order Edit", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftOrderEdit)
-	winName = ffxivminion.Windows.CraftOrderEdit.Name
-	
-	local group = GetString("details")	
-	GUI_NewNumeric(winName,"Amount","gCraftOrderEditAmount",group)
-	GUI_NewCheckbox(winName,"Count HQ Only","gCraftOrderEditRequireHQ",group)
-	GUI_NewCheckbox(winName,"Count HQ","gCraftOrderEditCountHQ",group)
-	GUI_NewCheckbox(winName,"Use QuickSynth","gCraftOrderEditQuick",group)
-	GUI_NewCheckbox(winName,"Use HQ Mats","gCraftOrderEditHQ",group)
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gCraftOrderEditProfile",group,ffxivminion.Strings.SKMProfiles())
-	
-	GUI_NewButton(winName,"Delete Order","ffxiv_craft.DeleteOrder")
-	
-	gCraftOrderEditID = ""
+	--Edit
+	gCraftOrderEditID = 0
 	gCraftOrderEditAmount = 1
-	gCraftOrderEditRequireHQ = "0"
-	gCraftOrderEditCountHQ = "0"
-	gCraftOrderEditQuick = "0"
-	gCraftOrderEditHQ = "0"
-	gCraftOrderEditProfile = GetString("none")
+	gCraftOrderEditRequireHQ = false
+	gCraftOrderEditCountHQ = false
+	gCraftOrderEditQuick = false
+	gCraftOrderEditHQ = false
+	gCraftOrderEditSkillProfileIndex = 1
+	gCraftOrderEditSkillProfile = GetString("None")
+	gCraftOrderEditFoodIndex = 1
+	gCraftOrderEditFood = GetString("None")
 	
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes8 = { id = "CraftRecipes8", Name = "Carpenter Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes8)
-	winName = ffxivminion.Windows.CraftRecipes8.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes9 = { id = "CraftRecipes9", Name = "Blacksmith Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes9)
-	winName = ffxivminion.Windows.CraftRecipes9.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes10 = { id = "CraftRecipes10", Name = "Armorer Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes10)
-	winName = ffxivminion.Windows.CraftRecipes10.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes11 = { id = "CraftRecipes11", Name = "Goldsmith Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes11)
-	winName = ffxivminion.Windows.CraftRecipes11.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes12 = { id = "CraftRecipes12", Name = "Leatherworker Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes12)
-	winName = ffxivminion.Windows.CraftRecipes12.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes13 = { id = "CraftRecipes13", Name = "Weaver Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes13)
-	winName = ffxivminion.Windows.CraftRecipes13.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes14 = { id = "CraftRecipes14", Name = "Alchemy Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes14)
-	winName = ffxivminion.Windows.CraftRecipes14.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipes15 = { id = "CraftRecipes15", Name = "Culinarian Recipes", x=50, y=50, width=350, height=300, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipes15)
-	winName = ffxivminion.Windows.CraftRecipes15.Name
-	local group = GetString("settings")
-	GUI_NewComboBox(winName,"Craft","gCraftOrderSelect",group,"CRP,BSM,ARM,GSM,LTW,WVR,ALC,CUL")
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	ffxivminion.Windows.CraftRecipesInspect = { id = "Inspect Recipe", Name = "Inspect Recipe", x=50, y=50, width=250, height=400, hideModule = true }
-	ffxivminion.CreateWindow(ffxivminion.Windows.CraftRecipesInspect)
-	winName = ffxivminion.Windows.CraftRecipesInspect.Name
-	
-	local group = "Elements"
-	GUI_NewField(winName,"Recipe ID","gCraftInspectID",group)
-	GUI_NewField(winName,"Progress","gCraftInspectProgress",group)
-	GUI_NewField(winName,"Durability","gCraftInspectDurability",group)
-	GUI_NewField(winName,"Craftsmanship","gCraftInspectCraftsmanship",group)
-	GUI_NewField(winName,"Control","gCraftInspectControl",group)
-	GUI_NewField(winName,"Required Equip","gCraftInspectREquip",group)
-	GUI_NewField(winName,"Crystal 1","gCraftInspectCrystal1",group)
-	GUI_NewField(winName,"Amount","gCraftInspectCAmount1",group)
-	GUI_NewField(winName,"Crystal 2","gCraftInspectCrystal2",group)
-	GUI_NewField(winName,"Amount","gCraftInspectCAmount2",group)
-	GUI_NewField(winName,"Ingredient 1","gCraftInspectIngredient1",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount1",group)
-	GUI_NewField(winName,"Ingredient 2","gCraftInspectIngredient2",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount2",group)
-	GUI_NewField(winName,"Ingredient 3","gCraftInspectIngredient3",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount3",group)
-	GUI_NewField(winName,"Ingredient 4","gCraftInspectIngredient4",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount4",group)
-	GUI_NewField(winName,"Ingredient 5","gCraftInspectIngredient5",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount5",group)
-	GUI_NewField(winName,"Ingredient 6","gCraftInspectIngredient6",group)
-	GUI_NewField(winName,"Amount","gCraftInspectIAmount6",group)
-	GUI_NewField(winName,"Can Craft","gCraftInspectCanCraft",group)
-	GUI_NewField(winName,"Craftable","gCraftInspectCraftable",group)
-	
-	GUI_NewButton(winName, "Refresh","ffxiv_craft.RefreshRecipe",group)
-	
-	GUI_NewButton(winName, "Add to Orders","ffxiv_craft.AddToOrders")
+	gCraftNewProfileName = ""
 	
 	gCraftInspectProgress = ""
 	gCraftInspectDurability = ""
@@ -980,56 +793,188 @@ function ffxiv_craft.CreateSubWindows()
 	gCraftInspectIAmount5 = ""
 	gCraftInspectIngredient6 = ""
 	gCraftInspectIAmount6 = ""
+	gCraftInspectCanCraft = ""
+	gCraftInspectCraftable = ""
 	
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-end
-
-function ffxiv_craft.UpdateProfiles(doload)
-	doload = IsNull(doload,true)
-	
-    local profiles = GetString("none")
-    local found = GetString("none")	
-    local profilelist = dirlist(ffxiv_craft.profilePath,".*lua")
-    if ( TableSize(profilelist) > 0) then
-		for i,profile in pairs(profilelist) do			
-            profile = string.gsub(profile, ".lua", "")
-            profiles = profiles..","..profile
-			if (doload) then
-				if ( Settings.FFXIVMINION.gLastCraftProfile ~= nil and Settings.FFXIVMINION.gLastCraftProfile == profile ) then
-					found = profile
-				end
-			end
-        end		
-    end
-	
-    gProfile_listitems = profiles
-	GUI_RefreshWindow(GetString("craftMode"))
-	
-	if (doload) then
-		gProfile = found
-		ffxiv_craft.LoadProfile(gProfile)
+	for i = 1,6 do
+		_G["gCraftOrderAddHQIngredient"..tostring(i)] = 0
+		_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"] = false
 	end
+	
+	for i = 1,6 do
+		_G["gCraftOrderEditHQIngredient"..tostring(i)] = 0
+		_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
+	end
+	
+	for k = 10,60,10 do
+		_G["gCraftDictionarySelectIndex"..tostring(k)] = 1
+		_G["gCraftDictionarySelect"..tostring(k)] = GetString("None")				
+	end
+	
+	self.GUI.main_tabs = GUI_CreateTabs("status,Collectable,Gearsets",true)
 end
 
-function ffxiv_craft.LoadProfile(strName)
-	if (strName ~= GetString("none")) then
-		if (FileExists(ffxiv_craft.profilePath..strName..".lua")) then
-			local info,e = persistence.load(ffxiv_craft.profilePath..strName..".lua")
-			if (table.valid(info)) then
-				ffxiv_craft.orders = info.orders
-				ffxiv_craft.ResetOrders()
-			else
-				if (e) then
-					d("Encountered error loading crafting profile ["..e.."].")
+ffxiv_task_craft.GUI = {
+	x = 0,
+	y = 0, 
+	height = 0,
+	width = 0,
+	
+	orders = {
+		open = false,
+		visible = true,
+		name = "Craft - Order Management",
+		main_tabs = GUI_CreateTabs("Manage,Add,Edit",true),
+	},
+}
+
+function ffxiv_task_craft:Draw()
+	local fontSize = GUI:GetWindowFontSize()
+	local windowPaddingY = ml_gui.style.current.windowpadding.y
+	local framePaddingY = ml_gui.style.current.framepadding.y
+	local itemSpacingY = ml_gui.style.current.itemspacing.y
+	
+	local profileChanged = GUI_Combo(GetString("profile"), "gCraftProfileIndex", "gCraftProfile", ffxiv_craft.profilesDisplay)
+	if (profileChanged) then
+		ffxiv_craft.profileData = ffxiv_craft.profiles[gCraftProfile]
+		local uuid = GetUUID()
+		Settings.FFXIVMINION.gLastCraftProfiles[uuid] = gCraftProfile
+		ffxiv_craft.orders = ffxiv_craft.profileData.orders
+		ffxiv_craft.ResetOrders()
+	end
+	
+	GUI:SameLine(0,5)
+	if (GUI:ImageButton("##main-order-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 16, 16)) then
+		ffxiv_task_craft.GUI.orders.open = not ffxiv_task_craft.GUI.orders.open
+	end
+	GUI:SameLine(0,5)
+	if (GUI:ImageButton("##main-order-add",ml_global_information.path.."\\GUI\\UI_Textures\\addon.png", 16, 16)) then
+		local vars = {
+			{
+				["type"] = "string",
+				["var"] = "gCraftNewProfileName",
+				["display"] = "##new-profile",
+				["width"] = 300,
+			},
+			{
+				["type"] = "spacing",
+				["amount"] = 3,
+			},
+			{
+				["type"] = "button",
+				["display"] = "OK",
+				["isdefault"] = true,
+				["sameline"] = true,
+				["amount"] = 50,
+				["width"] = 100,
+				["onclick"] = function ()
+					GUI:CloseCurrentPopup()
+					ffxiv_craft.CreateNewProfile()
+				end,
+			},
+			{
+				["type"] = "button",
+				["display"] = "Cancel",
+				["width"] = 100,
+				["onclick"] = function ()
+					GUI:CloseCurrentPopup()
+				end,
+			},
+		}
+		ffxiv_dialog_manager.IssueNotice("New Profile", "Please pick a name for the new profile.", "none", vars)
+	end
+	
+	GUI_DrawTabs(self.GUI.main_tabs)
+	local tabs = self.GUI.main_tabs
+	
+	if (tabs.tabs[1].isselected) then
+		GUI:PushItemWidth(120)					
+		
+		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
+		GUI_Capture(GUI:Checkbox("Craft Debug",gCraftDebug),"gCraftDebug")
+		local debugLevels = { 1, 2, 3}
+		GUI_Combo("Debug Level", "gCraftDebugLevelIndex", "gCraftDebugLevel", debugLevels)
+		
+		GUI:Separator()
+		GUI:Text("For Single Crafts Only")
+		GUI_Capture(GUI:InputInt(GetString("craftAmount"),gCraftMaxItems,0,0),"gCraftMaxItems")
+		GUI_Capture(GUI:InputInt(GetString("minimumCP"),gCraftMinCP,0,0),"gCraftMinCP")
+		GUI:Separator()
+		
+		GUI:PopItemWidth()
+	end
+	
+	if (tabs.tabs[2].isselected) then
+		if (GUI:Button("Add Collectable",150,20)) then
+			local newCollectable = { name = "", value = 0 }
+			table.insert(gCraftCollectablePresets,newCollectable)
+			GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
+		end
+		
+		if (table.valid(gCraftCollectablePresets)) then
+			for i,collectable in pairsByKeys(gCraftCollectablePresets) do
+				GUI:AlignFirstTextHeightToWidgets()
+				GUI:PushItemWidth(200)
+				local newName = GUI:InputText("##craft-collectablepair-name"..tostring(i),collectable.name)
+				if (newName ~= collectable.name) then
+					gCraftCollectablePresets[i].name = newName
+					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
 				end
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(40)
+				GUI:SameLine()
+				local newValue = GUI:InputInt("##craft-collectablepair-value"..tostring(i),collectable.value,0,0)
+				if (newValue ~= collectable.value) then
+					gCraftCollectablePresets[i].value = newValue
+					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
+				end
+				GUI:PopItemWidth()
+				GUI:SameLine()
+				
+				GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+				--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+				GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+				if (GUI:ImageButton("##craft-collectablepair-delete"..tostring(i),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 14, 14)) then
+					gCraftCollectablePresets[i] = nil
+					GUI_Set("gCraftCollectablePresets",gCraftCollectablePresets)
+				end
+				GUI:PopStyleColor(2)
 			end
 		end
-	else
-		ffxiv_craft.orders = {}
 	end
 	
-	ffxiv_craft.RefreshOrders(false)
+	if (tabs.tabs[3].isselected) then
+		GUI:PushItemWidth(40)
+		for i = 8,15 do
+			GUI:AlignFirstTextHeightToWidgets()
+			GUI:Text(gCrafts[i-7])
+			GUI:SameLine()
+			GUI_Capture(GUI:InputInt("##craft-gearset"..tostring(i),_G["gCraftGearset"..tostring(i)],0,0),"gCraftGearset"..tostring(i))
+			if (i ~= 11 and i ~= 15) then
+				GUI:SameLine()
+			end
+		end
+		GUI:PopItemWidth()
+	end
+end
+
+function ffxiv_craft.IsCrafting()
+	return (IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple"))
+end
+
+function ffxiv_craft.ToggleCraftingLog()
+	if (IsControlOpen("RecipeNote")) then
+		if (UseControlAction("RecipeNote","Close")) then
+			return true
+		end
+	else
+		local logOpen = ActionList:Get(10,9)
+		if (logOpen and logOpen.usable) then
+			if (logOpen:Cast(Player.id)) then
+				ml_global_information.Await(1000, 1500, function () return IsControlOpen("RecipeNote") end)
+			end
+		end
+	end
 end
 
 function ffxiv_craft.ResetOrders()
@@ -1053,98 +998,50 @@ function ffxiv_craft.SaveProfile(strName)
 	
 	if (strName ~= "") then
 		persistence.store(ffxiv_craft.profilePath..strName..".lua",info)
-		ffxiv_craft.UpdateProfiles(false)
-		gProfile = strName
-	elseif (gProfile == GetString("none")) then
-		d("No profile currently selected, asking user for new selection name.")
-		ffxiv_craft.SaveProfileDialog()
 	else
-		persistence.store(ffxiv_craft.profilePath..gProfile..".lua",info)
+		persistence.store(ffxiv_craft.profilePath..gCraftProfile..".lua",info)
 	end
-end
-
-function ffxiv_craft.SaveProfileDialog()
-	local winName = ffxivminion.Windows.CraftOrderSaveDialog.Name
-	local wnd = GUI_GetWindowInfo(ffxivminion.Windows.CraftOrders.Name)
-	if (wnd) then
-		GUI_MoveWindow( winName, wnd.x,wnd.y) 
-	end
-	gCraftOrderNewProfile = ""
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName,true)
 end
 
 function ffxiv_craft.CreateNewProfile()
-	if (ValidString(gCraftOrderNewProfile)) then
-		local winName = ffxivminion.Windows.CraftOrderSaveDialog.Name
-		GUI_WindowVisible(winName,false)
-		d("Creating new profile ["..tostring(gCraftOrderNewProfile).."].")
-		ffxiv_craft.SaveProfile(gCraftOrderNewProfile)
+	if (ValidString(gCraftNewProfileName)) then
+		d("Creating new profile ["..tostring(gCraftNewProfileName).."].")
+		ffxiv_craft.SaveProfile(gCraftNewProfileName)
+		ffxiv_craft.profiles, ffxiv_craft.profilesDisplay = GetPublicProfiles(ffxiv_craft.profilePath,".*lua")
 	end
 end
 
-function ffxiv_craft.ShowCraftOrders()
-	local winName = ffxivminion.Windows.CraftOrders.Name
-	
-	if (ffxiv_craft.ordersVisible ) then
-        GUI_WindowVisible(winName,false)	
-        ffxiv_craft.ordersVisible = false
-    else
-        local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Craft.Name)
-		GUI_MoveWindow( winName, wnd.x+wnd.width,wnd.y) 
-		ffxivminion.SizeWindow(winName)
-		GUI_WindowVisible(winName, true)
-        ffxiv_craft.ordersVisible  = true
-    end
-end
-
-function ffxiv_craft.SwitchCraftWindow()
-	local crafts = ffxiv_craft.crafts
-	
-	local craftid = crafts[tostring(gCraftOrderSelect)]
-	if (not craftid) then
-		Settings.FFXIVMINION.gCraftOrderSelect = "CRP"
-		gCraftOrderSelect = Settings.FFXIVMINION.gCraftOrderSelect
-		craftid = crafts[tostring(gCraftOrderSelect)]
-	end
-	
-	for craftstring,craftnum in pairs(crafts) do
-		if (craftnum ~= craftid) then
-			local windowid = "CraftRecipes"..tostring(craftnum)
-			local window = ffxivminion.Windows[windowid]
-			if (window) then
-				local winName = window.Name
-				GUI_WindowVisible(winName, false)
-			end
-		end
-	end
-	
-	local windowid = "CraftRecipes"..tostring(craftid)
-	local window = ffxivminion.Windows[windowid]
-	if (window) then
-		local winName = window.Name
-		local wnd = GUI_GetWindowInfo(ffxivminion.Windows.Craft.Name)
-		GUI_MoveWindow( winName, wnd.x+wnd.width,wnd.y) 
-		ffxiv_craft.RefreshItems(craftid)
-		ffxivminion.SizeWindow(winName)
-		GUI_WindowVisible(winName, true)
-	end
-end
-
-function ffxiv_craft.AddToOrders()
-	local recipeid = tonumber(gCraftInspectID) or 0
+function ffxiv_craft.AddToProfile()
+	local recipeid = tonumber(gCraftOrderAddID) or 0
 	
 	if (recipeid ~= 0) then
 		local orders = ffxiv_craft.orders
 		if (orders[recipeid] == nil) then
 			local recipeDetails = AceLib.API.Items.GetRecipeDetails(recipeid)
-			local neworder = { 	id = recipeid, item = recipeDetails.id, amount = 0, usequick = false, usehq = false, profile = "",
-								requirehq = false, counthq = false,
-								name = recipeDetails.name, level = recipeDetails.attemptlevel,
-								class = recipeDetails.class, page = recipeDetails.page}
-			orders[recipeid] = neworder
+			local thisOrder = { 	
+				id = recipeid, 
+				item = recipeDetails.id, 
+				name = recipeDetails.name, 
+				level = recipeDetails.attemptlevel,
+				class = recipeDetails.class, 
+				page = recipeDetails.page,
+				amount = gCraftOrderAddAmount, 
+				usequick = gCraftOrderAddQuick, 
+				usehq = gCraftOrderAddHQ, 
+				skillprofile = gCraftOrderAddSkillProfile,
+				requirehq = gCraftOrderAddRequireHQ, 
+				counthq = gCraftOrderAddCountHQ,
+				skip = false,
+				completed = false,
+			}
 			
-			ffxiv_craft.RefreshOrders()
+			for i = 1,6 do
+				thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"],false)
+				thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderAddHQIngredient"..tostring(i)],0)
+			end
+			
+			orders[recipeid] = thisOrder
+			ffxiv_craft.SaveProfile()
 		end
 	end
 end
@@ -1153,60 +1050,8 @@ function ffxiv_craft.UsingProfile()
 	return table.valid(ffxiv_craft.orders)
 end
 
-function ffxiv_craft.RefreshOrders(doshow)
-	doshow = IsNull(doshow,true)
-	
-	local winName = ffxivminion.Windows.CraftOrders.Name
-	local group = "Orders"
-	GUI_DeleteGroup(winName,group)
-		
-	local orders = ffxiv_craft.orders
-	if (table.valid(orders)) then
-		local sortfunc = function(orders,a,b) 
-			return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
-		end
-		for id,order in spairs(orders, sortfunc) do
-			GUI_NewButton(winName,order.name.."["..tostring(id).."]","ffxiv_craft_EditOrder"..tostring(id),group)
-		end
-		GUI_UnFoldGroup(winName,group)
-	end
-	
-	ffxivminion.SizeWindow(winName)
-	if (doshow) then
-		GUI_WindowVisible(winName, true)
-	end
-end
-
-function ffxiv_craft.RefreshRecipe()
-	ffxiv_craft.InspectRecipe(gCraftInspectID)
-end
-
-function ffxiv_craft.EditOrder(key)
-	local key = tonumber(key) or 0
-	
-	local orders = ffxiv_craft.orders
-	if (table.valid(orders)) then
-		local thisOrder = orders[key]
-		if (thisOrder) then
-			local winName = ffxivminion.Windows.CraftOrderEdit.Name
-				
-			gCraftOrderEditID = thisOrder.id
-			gCraftOrderEditAmount = thisOrder.amount
-			gCraftOrderEditRequireHQ = IIF(thisOrder.requirehq,"1","0")
-			gCraftOrderEditCountHQ = IIF(thisOrder.counthq,"1","0")
-			gCraftOrderEditQuick = IIF(thisOrder.usequick,"1","0")
-			gCraftOrderEditHQ = IIF(thisOrder.usehq,"1","0")
-			gCraftOrderEditProfile = IsNull(thisOrder.profile,GetString("none"))
-			
-			GUI_UnFoldGroup(winName,GetString("details"))
-			ffxivminion.SizeWindow(winName)
-			GUI_WindowVisible(winName, true)
-		end
-	end
-end
-
-function ffxiv_craft.DeleteOrder()
-	local key = tonumber(gCraftOrderEditID) or 0
+function ffxiv_craft.DeleteOrder(key)
+	local key = (tonumber(key) or tonumber(gCraftOrderEditID) or 0)
 	
 	local orders = ffxiv_craft.orders
 	if (orders and orders[key]) then
@@ -1215,44 +1060,37 @@ function ffxiv_craft.DeleteOrder()
 		else
 			ffxiv_craft.orders = {}
 		end
-		GUI_WindowVisible(ffxivminion.Windows.CraftOrderEdit.Name, false)
-		ffxiv_craft.RefreshOrders()
+		ffxiv_craft.SaveProfile()
 	end
 end
 
-function ffxiv_craft.EditOrderElement(elem,newval)
+function ffxiv_craft.UpdateOrderElement()
 	local key = tonumber(gCraftOrderEditID) or 0
-	
 	local orders = ffxiv_craft.orders
 	if (table.valid(orders)) then
 		local thisOrder = orders[key]
 		if (thisOrder) then
-			if (elem == "gCraftOrderEditAmount") then
-				thisOrder["amount"] = tonumber(newval)
-			elseif (elem == "gCraftOrderEditRequireHQ") then
-				thisOrder["requirehq"] = (newval == "1")
-			elseif (elem == "gCraftOrderEditCountHQ") then
-				thisOrder["counthq"] = (newval == "1")
-			elseif (elem == "gCraftOrderEditQuick") then
-				thisOrder["usequick"] = (newval == "1")
-			elseif (elem == "gCraftOrderEditHQ") then
-				thisOrder["usehq"] = (newval == "1")
-			elseif (elem == "gCraftOrderEditProfile") then
-				thisOrder["profile"] = newval
+			thisOrder["amount"] = gCraftOrderEditAmount
+			thisOrder["requirehq"] = gCraftOrderEditRequireHQ
+			thisOrder["counthq"] = gCraftOrderEditCountHQ
+			thisOrder["usequick"] = gCraftOrderEditQuick
+			thisOrder["usehq"] = gCraftOrderEditHQ
+			thisOrder["skillprofile"] = IsNull(gCraftOrderEditSkillProfile,GetString("None"))
+			thisOrder["requiredfood"] = gCraftOrderEditFood
+			
+			for i = 1,6 do
+				thisOrder["hq"..tostring(i).."max"] = IsNull(_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"],false)
+				thisOrder["hq"..tostring(i)] = IsNull(_G["gCraftOrderEditHQIngredient"..tostring(i)],0)
 			end
+			
+			ffxiv_craft.SaveProfile()
 		end
 	end
 end
 
 function ffxiv_craft.InspectRecipe(key)
 	local key = tonumber(key) or 0
-	local crafts = ffxiv_craft.crafts
-	
-	local craftid = crafts[tostring(gCraftOrderSelect)]
-	local winName = ffxivminion.Windows.CraftRecipesInspect.Name
-	
 	local recipeDetails = AceLib.API.Items.GetRecipeDetails(key)
-	gCraftInspectID = key
 	gCraftInspectProgress = recipeDetails.progress or ""
 	gCraftInspectDurability = recipeDetails.durability or ""
 	gCraftInspectCraftsmanship = recipeDetails.craftsmanship or ""
@@ -1263,56 +1101,105 @@ function ffxiv_craft.InspectRecipe(key)
 	gCraftInspectCrystal2 = IIF(recipeDetails.crystal2 ~= 0,IsNull(recipeDetails.c2name,"").."["..IsNull(recipeDetails.crystal2,"").."]","")
 	gCraftInspectCAmount2 = IIF(recipeDetails.crystal2 ~= 0,tostring(IsNull(recipeDetails.camount2,0)).."("..IsNull(ItemCount(recipeDetails.crystal2),0)..")","")
 	gCraftInspectIngredient1 = IIF(recipeDetails.ingredient1 ~= 0,IsNull(recipeDetails.ing1name,"").."["..IsNull(recipeDetails.ingredient1,"").."]","")
-	gCraftInspectIAmount1 = IIF(recipeDetails.iamount1 > 0,tostring(IsNull(recipeDetails.iamount1,0)).."("..IsNull(ItemCount(recipeDetails.ingredient1,true),0)..")","")
+	gCraftInspectIAmount1 = IIF(recipeDetails.iamount1 > 0,tostring(IsNull(recipeDetails.iamount1,0)).."("..IsNull(ItemCount(recipeDetails.ingredient1),0)..")","")
 	gCraftInspectIngredient2 = IIF(recipeDetails.ingredient2 ~= 0,IsNull(recipeDetails.ing2name,"").."["..IsNull(recipeDetails.ingredient2,"").."]","")
-	gCraftInspectIAmount2 = IIF(recipeDetails.iamount2 > 0,tostring(IsNull(recipeDetails.iamount2,0)).."("..IsNull(ItemCount(recipeDetails.ingredient2,true),0)..")","")
+	gCraftInspectIAmount2 = IIF(recipeDetails.iamount2 > 0,tostring(IsNull(recipeDetails.iamount2,0)).."("..IsNull(ItemCount(recipeDetails.ingredient2),0)..")","")
 	gCraftInspectIngredient3 = IIF(recipeDetails.ingredient3 ~= 0,IsNull(recipeDetails.ing3name,"").."["..IsNull(recipeDetails.ingredient3,"").."]","")
-	gCraftInspectIAmount3 = IIF(recipeDetails.iamount3 > 0,tostring(IsNull(recipeDetails.iamount3,0)).."("..IsNull(ItemCount(recipeDetails.ingredient3,true),0)..")","")
+	gCraftInspectIAmount3 = IIF(recipeDetails.iamount3 > 0,tostring(IsNull(recipeDetails.iamount3,0)).."("..IsNull(ItemCount(recipeDetails.ingredient3),0)..")","")
 	gCraftInspectIngredient4 = IIF(recipeDetails.ingredient4 ~= 0,IsNull(recipeDetails.ing4name,"").."["..IsNull(recipeDetails.ingredient4,"").."]","")
-	gCraftInspectIAmount4 = IIF(recipeDetails.iamount4 > 0,tostring(IsNull(recipeDetails.iamount4,0)).."("..IsNull(ItemCount(recipeDetails.ingredient4,true),0)..")","")
+	gCraftInspectIAmount4 = IIF(recipeDetails.iamount4 > 0,tostring(IsNull(recipeDetails.iamount4,0)).."("..IsNull(ItemCount(recipeDetails.ingredient4),0)..")","")
 	gCraftInspectIngredient5 = IIF(recipeDetails.ingredient5 ~= 0,IsNull(recipeDetails.ing5name,"").."["..IsNull(recipeDetails.ingredient5,"").."]","")
-	gCraftInspectIAmount5 = IIF(recipeDetails.iamount5 > 0,tostring(IsNull(recipeDetails.iamount5,0)).."("..IsNull(ItemCount(recipeDetails.ingredient5,true),0)..")","")
+	gCraftInspectIAmount5 = IIF(recipeDetails.iamount5 > 0,tostring(IsNull(recipeDetails.iamount5,0)).."("..IsNull(ItemCount(recipeDetails.ingredient5),0)..")","")
 	gCraftInspectIngredient6 = IIF(recipeDetails.ingredient6 ~= 0,IsNull(recipeDetails.ing6name,"").."["..IsNull(recipeDetails.ingredient6,"").."]","")
-	gCraftInspectIAmount6 = IIF(recipeDetails.iamount6 > 0,tostring(IsNull(recipeDetails.iamount6,0)).."("..IsNull(ItemCount(recipeDetails.ingredient6,true),0)..")","")
+	gCraftInspectIAmount6 = IIF(recipeDetails.iamount6 > 0,tostring(IsNull(recipeDetails.iamount6,0)).."("..IsNull(ItemCount(recipeDetails.ingredient6),0)..")","")
 
 	local canCraft,maxAmount = AceLib.API.Items.CanCraft(key)
 	gCraftInspectCanCraft = tostring(canCraft)
 	gCraftInspectCraftable = maxAmount
 	
-	local windowid = "CraftRecipes"..tostring(craftid)
-	local window = ffxivminion.Windows[windowid]
-	if (window) then
-		local wnd = GUI_GetWindowInfo(window.Name)
-		GUI_MoveWindow( winName, wnd.x+wnd.width,wnd.y) 
+	GUI:Columns(2, "##craft-recipe-inspection", true)
+	GUI:SetColumnOffset(1, 200); GUI:SetColumnOffset(2, 400)
+	GUI:Text("Can Craft"); GUI:NextColumn(); GUI:Text(gCraftInspectCanCraft); GUI:NextColumn();
+	GUI:Text("Amount Craftable"); GUI:NextColumn(); GUI:Text(gCraftInspectCraftable); GUI:NextColumn();
+	
+	GUI:Text("Progress"); GUI:NextColumn(); GUI:Text(gCraftInspectProgress); GUI:NextColumn();
+	GUI:Text("Durability"); GUI:NextColumn(); GUI:Text(gCraftInspectDurability); GUI:NextColumn();
+	GUI:Text("Craftsmanship"); GUI:NextColumn(); GUI:Text(gCraftInspectCraftsmanship); GUI:NextColumn();
+	GUI:Text("Control"); GUI:NextColumn(); GUI:Text(gCraftInspectControl); GUI:NextColumn();
+	GUI:Text("Equipment"); GUI:NextColumn(); GUI:Text(gCraftInspectREquip); GUI:NextColumn();
+	if (gCraftInspectCrystal1 ~= "") then
+		GUI:Text(gCraftInspectCrystal1); GUI:NextColumn(); GUI:Text(gCraftInspectCAmount1); GUI:NextColumn();
 	end
-	GUI_UnFoldGroup(winName,"Elements")
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, true)
+	if (gCraftInspectCrystal2 ~= "") then
+		GUI:Text(gCraftInspectCrystal2); GUI:NextColumn(); GUI:Text(gCraftInspectCAmount2); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient1 ~= "") then
+		GUI:Text(gCraftInspectIngredient1); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount1); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient2 ~= "") then
+		GUI:Text(gCraftInspectIngredient2); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount2); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient3 ~= "") then
+		GUI:Text(gCraftInspectIngredient3); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount3); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient4 ~= "") then
+		GUI:Text(gCraftInspectIngredient4); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount4); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient5 ~= "") then
+		GUI:Text(gCraftInspectIngredient5); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount5); GUI:NextColumn();
+	end
+	if (gCraftInspectIngredient6 ~= "") then
+		GUI:Text(gCraftInspectIngredient6); GUI:NextColumn(); GUI:Text(gCraftInspectIAmount6); GUI:NextColumn();
+	end	
+	GUI:Columns(1)
 end
 
-function ffxiv_craft.RefreshItems(craftid)
-	local crafts = ffxiv_craft.crafts
+function ffxiv_craft.GetDictionary(maxattemptlevel, craftid)
+	local craftid = IsNull(craftid,0)
+	local maxattemptlevel = IsNull(maxattemptlevel,10)
+	if (craftid == 0) then
+		local crafts = ffxiv_craft.crafts
+		craftid = crafts[gCraftOrderSelect]
+	end
 	
-	local craftid = crafts[tostring(gCraftOrderSelect)]
-	local windowid = "CraftRecipes"..tostring(craftid)
-	local window = ffxivminion.Windows[windowid]
-	if (window) then
-		local winName = window.Name
-		for k = 10,60,10 do
-			local group = tostring(k-9).."-"..tostring(k)
-			local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(k-9),k)
-			if (dictionary) then
-				local sortfunc = function(dictionary,a,b) 
-					return (dictionary[a].name < dictionary[b].name)
-				end
-				for _,data in spairs(dictionary, sortfunc) do
-					GUI_NewButton(winName,data.name,"ffxiv_craft_InspectRecipe"..tostring(data.recipeid),group)
-				end
+	if (craftid) then
+		if (ffxiv_craft.dictionaries[craftid] and ffxiv_craft.dictionariesDisplay[craftid]) then
+			if (ffxiv_craft.dictionaries[craftid][maxattemptlevel] and ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]) then
+				return ffxiv_craft.dictionaries[craftid][maxattemptlevel], ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]
 			end
 		end
+			
+		local recipes,dictionary = AceLib.API.Items.BuildRecipeString(craftid,0,(maxattemptlevel-9),maxattemptlevel)
+		if (dictionary) then
+			if (not ffxiv_craft.dictionaries[craftid] or not not ffxiv_craft.dictionariesDisplay[craftid]) then
+				ffxiv_craft.dictionaries[craftid] = {}
+				ffxiv_craft.dictionariesDisplay[craftid] = {}
+			end
+			ffxiv_craft.dictionaries[craftid][maxattemptlevel] = {}
+			ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]  = {}
+			
+			local newDictionary = { [1] = {recipeid = 0, itemid = 0, name = GetString("None")} }
+			local newDisplayDictionary = { [1] = GetString("None") }
+			
+			local sortfunc = function(dictionary,a,b) 
+				return (dictionary[a].name < dictionary[b].name)
+			end
+			for _,data in spairs(dictionary, sortfunc) do
+				table.insert(newDictionary, {recipeid = data.recipeid, itemid = data.itemid, name = data.name})
+				table.insert(newDisplayDictionary, data.name.." ["..tostring(data.recipeid).."]")
+			end
+			
+			ffxiv_craft.dictionaries[craftid][maxattemptlevel] = newDictionary
+			ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel] = newDisplayDictionary
+		
+			return ffxiv_craft.dictionaries[craftid][maxattemptlevel], ffxiv_craft.dictionariesDisplay[craftid][maxattemptlevel]
+		end
 	end
+	
+	return nil, nil
 end
 
+--[[
 function ffxiv_craft.GUIVarUpdate(Event, NewVals, OldVals)
 	local backupVals = {}
 	for k,v in pairs(OldVals) do
@@ -1339,18 +1226,340 @@ function ffxiv_craft.GUIVarUpdate(Event, NewVals, OldVals)
     end
     GUI_RefreshWindow(GetString("craftMode"))
 end
+--]]
 
-function ffxiv_craft.HandleButtons( Event, Button )	
-	if ( Event == "GUI.Item" ) then
-		if (string.contains(Button,"ffxiv_craft_InspectRecipe")) then
-			ffxiv_craft.InspectRecipe(string.gsub(Button,"ffxiv_craft_InspectRecipe",""))
-		elseif (string.contains(Button,"ffxiv_craft_EditOrder")) then
-			ffxiv_craft.EditOrder(string.gsub(Button,"ffxiv_craft_EditOrder",""))	
-		elseif (string.contains(Button,"ffxiv_craft%.")) then
-			ExecuteFunction(Button)
+function ffxiv_craft.Draw( event, ticks ) 
+	if (ffxiv_task_craft.GUI.orders.open) then
+		GUI:SetNextWindowSize(500,200,GUI.SetCond_FirstUseEver) --set the next window size, only on first ever	
+		GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
+		
+		local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+		GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+		
+		ffxiv_task_craft.GUI.orders.visible, ffxiv_task_craft.GUI.orders.open = GUI:Begin(ffxiv_task_craft.GUI.orders.name, ffxiv_task_craft.GUI.orders.open)
+		if ( ffxiv_task_craft.GUI.orders.visible ) then 
+		
+			GUI_DrawTabs(ffxiv_task_craft.GUI.orders.main_tabs)
+			local tabs = ffxiv_task_craft.GUI.orders.main_tabs
+			
+			if (tabs.tabs[1].isselected) then
+				local width, height = GUI:GetWindowSize()		
+				local cwidth, cheight = GUI:GetContentRegionAvail()
+				
+				if (GUI:CollapsingHeader("Overrides","craft-overrides",true,true)) then
+					GUI:Separator()				
+					GUI:BeginChild("##craft-overrides-frame",0,GUI_GetFrameHeight(2), true)
+					GUI:PushItemWidth(250)
+					GUI_Combo(GetString("food"), "gCraftFoodIndex", "gCraftFood", gFoods)
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("This option will override any profile-specific food choices.")
+					end
+					GUI:PopItemWidth()
+					GUI:SameLine(0,5)
+					GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+					GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+					if (GUI:ImageButton("##craft-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 16, 16)) then
+						ffxivminion.FillFoodOptions()
+					end
+					GUI:PopStyleColor(2)
+					GUI:EndChild()
+				end
+				
+				GUI:Spacing();
+				
+				local orders = ffxiv_craft.orders
+				if (table.valid(orders)) then
+					
+					GUI:Separator();
+					GUI:Columns(6, "#craft-manage-orders", true)
+					GUI:SetColumnOffset(1, 125); GUI:SetColumnOffset(2, 225); GUI:SetColumnOffset(3, 300); GUI:SetColumnOffset(4, 400); GUI:SetColumnOffset(5, 500); GUI:SetColumnOffset(6, 600);				
+					GUI:Text("Item"); GUI:NextColumn();
+					GUI:Text("Recipe"); GUI:NextColumn();
+					GUI:Text("Amount"); GUI:NextColumn();
+					GUI:Text("Skip"); GUI:NextColumn();
+					GUI:Text("Edit"); GUI:NextColumn();
+					GUI:Text("Remove"); GUI:NextColumn();
+					GUI:Separator();
+				
+					local sortfunc = function(orders,a,b) 
+						return (orders[a].page < orders[b].page) or (orders[a].page == orders[b].page and orders[a].level < orders[b].level) 
+					end
+					for id,order in spairs(orders, sortfunc) do
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.name); 
+						if (GUI:IsItemHovered()) then
+							GUI:BeginTooltip()
+							ffxiv_craft.InspectRecipe(id)
+							GUI:EndTooltip()
+						end						
+						GUI:NextColumn()
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(id); GUI:NextColumn()
+						GUI:AlignFirstTextHeightToWidgets(); GUI:Text(order.amount); GUI:NextColumn()
+						
+						if (order.skip == nil) then
+							orders[id].skip = false
+							ffxiv_craft.SaveProfile()
+						end
+						local newVal, changed = GUI:Checkbox("##skip-"..tostring(id),order.skip)
+						if (changed) then
+							orders[id].skip = newVal
+						end
+						GUI:NextColumn()
+						
+						GUI:PushStyleColor(GUI.Col_Button, 0, 0, 0, 0)
+						--GUI:PushStyleColor(GUI.Col_ButtonHovered, 0, 0, 0, 0)
+						GUI:PushStyleColor(GUI.Col_ButtonActive, 0, 0, 0, 0)
+						
+						if (GUI:ImageButton("##craft-manage-edit"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\w_edit.png", 16, 16)) then
+							gCraftOrderEditID = id
+							gCraftOrderEditAmount = order["amount"]
+							gCraftOrderEditRequireHQ = order["requirehq"]
+							gCraftOrderEditCountHQ = order["counthq"]
+							gCraftOrderEditQuick = order["usequick"]
+							gCraftOrderEditHQ = order["usehq"]
+							gCraftOrderEditSkillProfile = IsNull(order["skillprofile"],GetString("None"))
+							gCraftOrderEditFood = IsNull(order["requiredfood"],GetString("None"))
+							
+							for i = 1,6 do
+								if (not order["hq"..tostring(i)]) then
+									_G["gCraftOrderEditHQIngredient"..tostring(i)] = 0
+									_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
+									ffxiv_craft.UpdateOrderElement()
+								else
+									_G["gCraftOrderEditHQIngredient"..tostring(i)] = order["hq"..tostring(i)]
+									_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = order["hq"..tostring(i).."max"]
+								end
+							end
+							
+							GUI_SwitchTab(ffxiv_task_craft.GUI.orders.main_tabs,3)
+						end
+						GUI:NextColumn()
+						if (GUI:ImageButton("##craft-manage-delete"..tostring(id),ml_global_information.path.."\\GUI\\UI_Textures\\bt_alwaysfail_fail.png", 16, 16)) then
+							ffxiv_craft.DeleteOrder(id)
+						end
+						GUI:NextColumn()
+						GUI:PopStyleColor(2)
+					end
+					
+					GUI:Columns(1)
+				end
+			end
+			
+			if (tabs.tabs[2].isselected) then
+				gCraftOrderSelectIndex = 1
+				gCraftOrderSelect = ffxivminion.GetSetting("gCraftOrderSelect","CRP")	
+				GUI:PushItemWidth(50)
+				GUI_Combo("Class", "gCraftOrderSelectIndex", "gCraftOrderSelect", gCrafts)
+				GUI:PopItemWidth()
+				
+				for k = 10,60,10 do
+					local dictionary, dictionaryDisplay = ffxiv_craft.GetDictionary(k)
+					if (dictionary and dictionaryDisplay) then
+						GUI:PushItemWidth(300)
+						local selectionChanged = GUI_Combo(tostring(k-9).."-"..tostring(k), "gCraftDictionarySelectIndex"..tostring(k), "gCraftDictionarySelect"..tostring(k), dictionaryDisplay)
+						if (selectionChanged) then
+							local thisRecipe = dictionary[_G["gCraftDictionarySelectIndex"..tostring(k)]]
+							if (thisRecipe) then
+								gCraftOrderAddID = thisRecipe.recipeid
+								gCraftOrderAddAmount = 1
+								gCraftOrderAddRequireHQ = false
+								gCraftOrderAddCountHQ = false
+								gCraftOrderAddQuick = false
+								gCraftOrderAddHQ = false
+								gCraftOrderAddSkillProfileIndex = 1
+								gCraftOrderAddSkillProfile = GetString("None")
+								gCraftOrderAddFoodIndex = 1
+								gCraftOrderAddFood = GetString("None")
+							end
+							for j = 10,60,10 do
+								if (j ~= k) then
+									_G["gCraftDictionarySelectIndex"..tostring(j)] = 1
+									_G["gCraftDictionarySelect"..tostring(j)] = GetString("None")		
+								end
+							end
+						end
+						GUI:PopItemWidth()
+					else
+						GUI:Text("Could not find display dictionary for ["..gCraftOrderSelect.."] with attempt level ["..tostring(k).."]")
+					end					
+				end
+				
+				if (gCraftOrderAddID ~= 0) then
+					
+					GUI:Separator()
+				
+					GUI:PushItemWidth(50)
+					GUI_Capture(GUI:InputInt("Amount to Craft",gCraftOrderAddAmount,0,0),"gCraftOrderAddAmount")
+					GUI:PopItemWidth()
+					GUI_Capture(GUI:Checkbox("Require HQ",gCraftOrderAddRequireHQ),"gCraftOrderAddRequireHQ")
+					GUI_Capture(GUI:Checkbox("Count HQ",gCraftOrderAddCountHQ),"gCraftOrderAddCountHQ")
+					GUI_Capture(GUI:Checkbox("Use QuickSynth",gCraftOrderAddQuick),"gCraftOrderAddQuick")
+					if (not gCraftOrderAddQuick) then
+						GUI:PushItemWidth(200)
+						GUI_Combo(GetString("skillProfile"), "gCraftOrderAddSkillProfileIndex", "gCraftOrderAddSkillProfile", SkillMgr.profiles)
+						GUI:PopItemWidth()
+					end
+					GUI_Capture(GUI:Checkbox("Use HQ Items",gCraftOrderAddHQ),"gCraftOrderAddHQ")
+					if (gCraftOrderAddHQ) then						
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderAddID)
+						if (recipeDetails) then
+							
+							GUI:Columns(4, "#craft-add-hq", true)
+							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 350); GUI:SetColumnOffset(3, 475); GUI:SetColumnOffset(4, 600);
+							GUI:AlignFirstTextHeightToWidgets()
+							
+							GUI:Text("Ingredient"); GUI:NextColumn();
+							GUI:Text("Required"); GUI:NextColumn();
+							GUI:Text("Choose HQ Amount"); GUI:NextColumn();
+							GUI:Text("Use All HQ"); GUI:NextColumn();
+							
+							GUI:Separator();
+							
+							for i = 1,6 do
+								local ing = recipeDetails["ingredient"..tostring(i)]
+								if (ing and ing ~= 0) then
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy(); GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(tostring(recipeDetails["iamount"..tostring(i)])); GUI:Dummy(); GUI:NextColumn();
+									
+									GUI:PushItemWidth(50)
+									local newVal, changed = GUI:InputInt("##HQ Amount",_G["gCraftOrderAddHQIngredient"..tostring(i)],0,0)
+									if (changed and not GUI:IsItemActive()) then
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										if (newVal == recipeDetails["iamount"..tostring(i)]) then
+											_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"] = true
+										else
+											_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"] = false
+										end
+										_G["gCraftOrderAddHQIngredient"..tostring(i)] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
+									
+									local newVal, changed = GUI:Checkbox("##Max##hq-ing1",_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"])
+									if (changed) then
+										if (newVal == false) then
+											if (_G["gCraftOrderAddHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then
+												_G["gCraftOrderAddHQIngredient"..tostring(i)] = 0
+											end
+										elseif (newVal == true) then
+											_G["gCraftOrderAddHQIngredient"..tostring(i)] = recipeDetails["iamount"..tostring(i)]
+										end
+										_G["gCraftOrderAddHQIngredient"..tostring(i).."Max"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									GUI:NextColumn();
+								end
+							end
+							
+							GUI:Columns(1)
+						else
+							GUI:Text("Could not find recipe details.")
+						end					
+					end
+					
+					GUI:Spacing()
+					GUI:Separator()
+					GUI:Spacing()
+					
+					if (GUI:Button("Add to Profile",200,20)) then
+						ffxiv_craft.AddToProfile()
+					end
+				end
+			end
+			
+			if (tabs.tabs[3].isselected) then
+				if (ffxiv_craft.orders[gCraftOrderEditID] ~= nil) then
+					local orders = ffxiv_craft.orders[gCraftOrderEditID]
+					GUI:PushItemWidth(50)
+					GUI_Capture(GUI:InputInt("Amount to Craft",gCraftOrderEditAmount,0,0),"gCraftOrderEditAmount", function () ffxiv_craft.UpdateOrderElement()  end)
+					GUI:PopItemWidth()
+					GUI_Capture(GUI:Checkbox("Require HQ",gCraftOrderEditRequireHQ),"gCraftOrderEditRequireHQ", function () ffxiv_craft.UpdateOrderElement() end)
+					GUI_Capture(GUI:Checkbox("Count HQ",gCraftOrderEditCountHQ),"gCraftOrderEditCountHQ", function () ffxiv_craft.UpdateOrderElement() end)
+					GUI_Capture(GUI:Checkbox("Use QuickSynth",gCraftOrderEditQuick),"gCraftOrderEditQuick", function () ffxiv_craft.UpdateOrderElement() end)
+					if (not gCraftOrderEditQuick) then
+						GUI:PushItemWidth(200)
+						local skillsChanged = GUI_Combo(GetString("skillProfile"), "gCraftOrderEditSkillProfileIndex", "gCraftOrderEditSkillProfile", SkillMgr.profiles)
+						if (skillsChanged) then
+							ffxiv_craft.UpdateOrderElement()
+						end
+						GUI:PopItemWidth()
+					end
+					
+					GUI_Capture(GUI:Checkbox("Use HQ Items",gCraftOrderEditHQ),"gCraftOrderEditHQ", function () ffxiv_craft.UpdateOrderElement() end)
+					if (gCraftOrderEditHQ) then
+						GUI:Separator()
+						local recipeDetails = AceLib.API.Items.GetRecipeDetails(gCraftOrderEditID)
+						if (recipeDetails) then
+							
+							GUI:Columns(4, "#craft-edit-hq", true)
+							GUI:SetColumnOffset(1, 250); GUI:SetColumnOffset(2, 350); GUI:SetColumnOffset(3, 475); GUI:SetColumnOffset(4, 600);
+							GUI:AlignFirstTextHeightToWidgets()
+							
+							GUI:Text("Ingredient"); GUI:NextColumn();
+							GUI:Text("Required"); GUI:NextColumn();
+							GUI:Text("Choose HQ Amount"); GUI:NextColumn();
+							GUI:Text("Use All HQ"); GUI:NextColumn();
+							GUI:Separator();
+							
+							for i = 1,6 do
+								local ing = recipeDetails["ingredient"..tostring(i)]
+								if (ing and ing ~= 0) then
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["ing"..tostring(i).."name"]); GUI:Dummy();GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									GUI:Text(recipeDetails["iamount"..tostring(i)]); GUI:Dummy();GUI:NextColumn();
+									GUI:PushItemWidth(50)
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:InputInt("##HQ Amount",_G["gCraftOrderEditHQIngredient"..tostring(i)],0,0)
+									if (changed and not GUI:IsItemActive()) then
+										if (newVal > recipeDetails["iamount"..tostring(i)]) then
+											newVal = recipeDetails["iamount"..tostring(i)]
+										elseif (newVal < 0) then
+											newVal = 0
+										end
+										if (newVal == recipeDetails["iamount"..tostring(i)]) then
+											_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = true
+										else
+											_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = false
+										end
+										_G["gCraftOrderEditHQIngredient"..tostring(i)] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									GUI:PopItemWidth()
+									GUI:NextColumn();
+									GUI:AlignFirstTextHeightToWidgets()
+									local newVal, changed = GUI:Checkbox("##Max##hq-ing1",_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"])
+									if (changed) then
+										if (newVal == false) then
+											if (_G["gCraftOrderEditHQIngredient"..tostring(i)] == recipeDetails["iamount"..tostring(i)]) then
+												_G["gCraftOrderEditHQIngredient"..tostring(i)] = 0
+											end
+										elseif (newVal == true) then
+											_G["gCraftOrderEditHQIngredient"..tostring(i)] = recipeDetails["iamount"..tostring(i)]
+										end
+										_G["gCraftOrderEditHQIngredient"..tostring(i).."Max"] = newVal
+										ffxiv_craft.UpdateOrderElement()
+									end
+									GUI:NextColumn();
+								end
+							end
+							
+							GUI:Columns(1)
+						else
+							GUI:Text("Could not find recipe details.")
+						end					
+					end
+				end
+			end
 		end
+		GUI:End()
 	end
 end
 
-RegisterEventHandler("GUI.Update",ffxiv_craft.GUIVarUpdate)
-RegisterEventHandler("GUI.Item", ffxiv_craft.HandleButtons )
+RegisterEventHandler("Gameloop.Draw", ffxiv_craft.Draw)

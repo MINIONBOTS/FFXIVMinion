@@ -343,16 +343,7 @@ function ml_global_information.InGameOnUpdate( event, tickcount )
 			end
 		end
 		
-		if (FFXIV_Common_BotRunning) then	
-			if ( gFood ~= "None") then
-				if ( TimeSince(ml_global_information.foodCheckTimer) > 10000 and not Player.ismounted and not Player:IsMoving()) then
-					if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
-						Eat()
-						ml_global_information.foodCheckTimer = tickcount
-					end
-				end
-			end
-			
+		if (FFXIV_Common_BotRunning) then				
 			if (gChocoItemString ~= "None") then
 				if ( TimeSince(ml_global_information.rootCheckTimer) > 10000 and not Player.ismounted and not IsMounting() and IsCompanionSummoned()) then
 					ml_global_information.rootCheckTimer = tickcount
@@ -514,6 +505,7 @@ function ffxivminion.SetMainVars()
 	gFood = ffxivminion.GetSetting("gFood",GetString("none"))
 	gFoodIndex = 1
 	gFoods = {GetString("none")}
+	gFoodSpecific = ffxivminion.GetSetting("gFoodSpecific",true)
 	ffxivminion.FillFoodOptions()
 	
 	gAutoStart = ffxivminion.GetSetting("gAutoStart",false)
@@ -574,7 +566,7 @@ function ffxivminion.HandleInit()
 	ffxivminion.AddMode(GetString("grindMode"), ffxiv_task_grind) 
 	ffxivminion.AddMode(GetString("fishMode"), ffxiv_task_fish)
 	ffxivminion.AddMode(GetString("gatherMode"), ffxiv_task_gather)
-	--ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
+	ffxivminion.AddMode(GetString("craftMode"), ffxiv_task_craft)
 	ffxivminion.AddMode(GetString("assistMode"), ffxiv_task_assist)
 	ffxivminion.AddMode(GetString("partyMode"), ffxiv_task_party)
 	--ffxivminion.AddMode(GetString("pvpMode"), ffxiv_task_pvp)
@@ -906,26 +898,17 @@ end
 
 -- New GUI methods.
 function ffxivminion.FillFoodOptions()
+	local allFoods = AceLib.API.Items.GetAllFoods()
+
 	ml_global_information.foods = {}
-	
-	for i = 0,3 do
-		local bag = Inventory:Get(i)
-		if (table.valid(bag)) then
-			local ilist = bag:GetList()
-			if (table.valid(ilist)) then
-				for slot,item in pairs(ilist) do
-					if (item.class == 5) then
-						local itemName = item.name
-						if (toboolean(item.IsHQ)) then
-							itemName = itemName.." (HQ)"
-						end
-						ml_global_information.foods[itemName] = {
-							id = item.hqid,
-							name = itemName
-						}
-					end
-				end
-			end
+	if (table.valid(allFoods)) then
+		for i,item in pairsByKeys(allFoods) do
+			ml_global_information.foods[item.name] = {
+				id = item.hqid,
+				name = item.name,
+				buffid = item.buffid,
+				buffstackid = item.buffstackid,
+			}
 		end
 	end
 	
@@ -1054,7 +1037,7 @@ function ffxivminion.ClearAddons()
 				ffxivminion.declineTimer = Now() + math.random(3000,5000)
 			elseif(Now() > ffxivminion.declineTimer) then
 				if(not ffxivminion.inviteDeclined) then
-					UseControlAction("SelectYesno","No")
+					UseControlAction("SelectYesno","Yes")
 					ffxivminion.inviteDeclined = true
 					ffxivminion.declineTimer = 0
 				end
@@ -1119,7 +1102,7 @@ function ml_global_information.DrawMainFull()
 					GUI:PopItemWidth()
 			
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 18, 18)) then
+					if (GUI:ImageButton("##main-skillmanager-edit",ml_global_information.path.."\\GUI\\UI_Textures\\w_eye.png", 16, 16)) then
 						SkillMgr.GUI.manager.open = not SkillMgr.GUI.manager.open
 					end
 					
@@ -1260,7 +1243,7 @@ function ml_global_information.DrawSettings()
 				
 				if (tabs.tabs[2].isselected) then
 					GUI:BeginChild("##main-header-generalsettings",0,GUI_GetFrameHeight(10),true)
-					GUI:PushItemWidth(150)
+					GUI:PushItemWidth(200)
 					
 					GUI_Capture(GUI:Checkbox(GetString("autoStartBot"),gAutoStart),"gAutoStart");
 					GUI_Capture(GUI:Checkbox(GetString("autoEquip"),gAutoEquip),"gAutoEquip",
@@ -1280,17 +1263,26 @@ function ml_global_information.DrawSettings()
 					)
 					GUI_DrawIntMinMax(GetString("mountDist"),"gMountDist",5,10,0,200)
 					GUI_Combo(GetString("mount"), "gMountNameIndex", "gMountName", gMountNames)
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("Pick only a mount that you can actually use.")
+					end
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
+					if (GUI:ImageButton("##main-mounts-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 16, 16)) then
 						ffxivminion.FillMountOptions()
 					end
 					GUI_Capture(GUI:Checkbox(GetString("useSprint"),gUseSprint),"gUseSprint",function () ffxivminion.SaveClassSettings("gUseSprint",gUseSprint) end );
 					GUI_DrawIntMinMax(GetString("sprintDist"),"gSprintDist",5,10,0,200)
 					GUI_Combo(GetString("food"), "gFoodIndex", "gFood", gFoods)
 					GUI:SameLine(0,5)
-					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 18, 18)) then
+					if (GUI:ImageButton("##main-food-refresh",ml_global_information.path.."\\GUI\\UI_Textures\\change.png", 16, 16)) then
 						ffxivminion.FillFoodOptions()
 					end
+					GUI:SameLine(0,5)
+					GUI_Capture(GUI:Checkbox("Enforce Specifics",gFoodSpecific),"gFoodSpecific");
+					if (GUI:IsItemHovered()) then
+						GUI:SetTooltip("This option will force this specific food to be used, even if another one is currently in use.")
+					end
+					
 					GUI_Capture(GUI:Checkbox(GetString("avoidAOE"),gAvoidAOE),"gAvoidAOE");
 					GUI_Capture(GUI:Checkbox(GetString("randomPaths"),FFXIV_Common_RandomPaths),"FFXIV_Common_RandomPaths");
 

@@ -1492,13 +1492,51 @@ function HasBuff(targetid, buffID, stacks, duration, ownerid)
 	local duration = tonumber(duration) or 0
 	local ownerid = tonumber(ownerid) or 0
 	
-	local entity = MGetEntity(targetid)
+	local entity;
+	if (type(targetid) == "number") then
+		entity = MGetEntity(targetid)
+	elseif (type(targetid) == "table") then
+		entity = targetid
+	end
+	
 	if (table.valid(entity)) then
 		local buffs = entity.buffs
 		if (table.valid(buffs)) then
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
 					if ((stacks == 0 or stacks >= buff.stacks) and
+						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
+						(ownerid == 0 or buff.ownerid == ownerid)) 
+					then
+						return true
+					end
+				end
+			end
+		end
+	end
+    
+    return false
+end
+function HasBuffX(targetid, buffID, stacks, duration, ownerid)
+	local targetid = tonumber(targetid) or 0
+	local buffID = tonumber(buffID) or 0
+	local stacks = tonumber(stacks) or 0
+	local duration = tonumber(duration) or 0
+	local ownerid = tonumber(ownerid) or 0
+	
+	local entity;
+	if (type(targetid) == "number") then
+		entity = MGetEntity(targetid)
+	elseif (type(targetid) == "table") then
+		entity = targetid
+	end
+	
+	if (table.valid(entity)) then
+		local buffs = entity.buffs
+		if (table.valid(buffs)) then
+			for i, buff in pairs(buffs) do
+				if (buff.id == buffID) then
+					if ((stacks == 0 or stacks == buff.stacks) and
 						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
 						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
@@ -1518,7 +1556,13 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 	local duration = tonumber(duration) or 0
 	local ownerid = tonumber(ownerid) or 0
 	
-	local entity = MGetEntity(targetid)
+	local entity;
+	if (type(targetid) == "number") then
+		entity = MGetEntity(targetid)
+	elseif (type(targetid) == "table") then
+		entity = targetid
+	end
+	
 	if (table.valid(entity)) then
 		local buffs = entity.buffs
 		if (table.valid(buffs)) then
@@ -1526,6 +1570,44 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 			for i, buff in pairs(buffs) do
 				if (buff.id == buffID) then
 					if ((stacks == 0 or stacks >= buff.stacks) and
+						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
+						(ownerid == 0 or buff.ownerid == ownerid)) 
+					then
+						missing = false
+					end
+				end
+				if (not missing) then
+					return false
+				end
+			end
+		end
+		
+		return true
+	end
+	
+	return false
+end
+function MissingBuffX(targetid, buffID, stacks, duration, ownerid)
+	local targetid = tonumber(targetid) or 0
+	local buffID = tonumber(buffID) or 0
+	local stacks = tonumber(stacks) or 0
+	local duration = tonumber(duration) or 0
+	local ownerid = tonumber(ownerid) or 0
+	
+	local entity;
+	if (type(targetid) == "number") then
+		entity = MGetEntity(targetid)
+	elseif (type(targetid) == "table") then
+		entity = targetid
+	end
+	
+	if (table.valid(entity)) then
+		local buffs = entity.buffs
+		if (table.valid(buffs)) then
+			local missing = true
+			for i, buff in pairs(buffs) do
+				if (buff.id == buffID) then
+					if ((stacks == 0 or stacks == buff.stacks) and
 						(duration == 0 or buff.duration >= duration or HasInfiniteDuration(buff.id)) and 
 						(ownerid == 0 or buff.ownerid == ownerid)) 
 					then
@@ -1571,6 +1653,7 @@ end
 function HasBuffs(entity, buffIDs, dura, ownerid)
 	local duration = dura or 0
 	local owner = ownerid or 0
+	local stackid = stackid or 0
 	local buffIDs = IsNull(tostring(buffIDs),"")
 	
 	if (table.valid(entity) and buffIDs ~= "") then
@@ -1583,6 +1666,7 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 					found = false
 					for i, buff in pairs(buffs) do
 						if (buff.id == tonumber(_andid) 
+							and (stackid == 0 or stackid == buff.stacks)
 							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id)) 
 							and (owner == 0 or buff.ownerid == owner)) 
 						then 
@@ -1601,9 +1685,10 @@ function HasBuffs(entity, buffIDs, dura, ownerid)
 	end
 	return false
 end
-function MissingBuffs(entity, buffIDs, dura, ownerid)
+function MissingBuffs(entity, buffIDs, dura, ownerid, stackid)
 	local duration = dura or 0
 	local owner = ownerid or 0
+	local stackid = stackid or 0
 	local buffIDs = IsNull(tostring(buffIDs),"")
 	
 	if (table.valid(entity) and buffIDs ~= "") then
@@ -1617,6 +1702,7 @@ function MissingBuffs(entity, buffIDs, dura, ownerid)
 				for _andid in StringSplit(_orids,"+") do
 					for i, buff in pairs(buffs) do
 						if (buff.id == tonumber(_andid) 
+							and (stackid == 0 or stackid == buff.stacks)
 							and (duration == 0 or buff.duration > duration or HasInfiniteDuration(buff.id))
 							and (owner == 0 or buff.ownerid == owner)) 
 						then
@@ -2988,9 +3074,10 @@ function ShouldEat()
 		local foodEntry = ml_global_information.foods[gFood]
 		if (foodEntry) then
 			local foodID = foodEntry.id
+			local foodStack = foodEntry.buffstackid
 			--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 			local food, action = GetItem(foodID)
-			if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
+			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
 				return true
 			end
 		end
@@ -2998,14 +3085,14 @@ function ShouldEat()
 	return false
 end
 function Eat()
-	local foodID = nil
 	if (gFood ~= "None") then
 		local foodEntry = ml_global_information.foods[gFood]
 		if (foodEntry) then
 			local foodID = foodEntry.id
+			local foodStack = foodEntry.buffstackid
 			--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 			local food, action = GetItem(foodID)
-			if (food and action and food:IsReady(Player.id) and MissingBuffs(Player,"48",60)) then
+			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
 				food:Cast(Player.id)
 				local castid = action.id
 				ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
@@ -4366,7 +4453,7 @@ function IsCompanionSummoned()
 	end
 	
 	local dismiss = ActionList:Get(6,2)
-	if (dismiss and dismiss.isready) then
+	if (dismiss and dismiss:IsReady()) then
 		return true
 	end
 	
