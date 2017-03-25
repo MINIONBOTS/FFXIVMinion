@@ -198,6 +198,9 @@ function dev.DrawCall(event, ticks )
 												GUI:BulletText("IsReady(Player)") GUI:SameLine(200) GUI:InputText("##devac20"..tostring(actionid),tostring(action:IsReady()))
 												GUI:BulletText("IsFacing(Player)") GUI:SameLine(200) GUI:InputText("##devac21"..tostring(actionid),tostring(action:IsFacing()))
 												GUI:BulletText(".usable") GUI:SameLine(200) GUI:InputText("##devac22"..tostring(actionid),tostring(action.usable))
+												if (action.type == 13) then
+													GUI:BulletText(".canfly") GUI:SameLine(200) GUI:InputText("##devac23"..tostring(actionid),tostring(action.canfly))
+												end												
 												local tar = Player:GetTarget()
 												if ( tar ) then
 													GUI:BulletText("IsReady(Target)") GUI:SameLine(200) GUI:InputText("##devac18"..tostring(actionid),tostring(action:IsReady(tar.id)))
