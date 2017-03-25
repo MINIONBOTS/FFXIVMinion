@@ -209,7 +209,7 @@ SkillMgr.Variables = {
 	SKM_ALIAS = { default = "", cast = "string", profile = "alias", section = "main"},
 	SKM_ID = { default = 0, cast = "number", profile = "id", section = "main"},
 	SKM_TYPE = { default = 1, cast = "number", profile = "type", section = "main", useData = "type" },
-	SKM_ON = { default = false, cast = "boolean", profile = "used", section = "main"},
+	SKM_ON = { default = true, cast = "boolean", profile = "used", section = "main"},
 	SKM_Prio = { default = 0, cast = "number", profile = "prio", section = "main"},
 	
 	SKM_STYPE = { default = "Action", cast = "string", profile = "stype", section = "fighting"},
@@ -508,6 +508,8 @@ SkillMgr.Variables = {
 	SKM_IgnoreMoving = { default = false, cast = "boolean", profile = "ignoremoving", section = "fighting" },
 	
 	SKM_SingleUseCraft = { default = true, cast = "boolean", profile = "singleuseonly", section = "crafting"},
+	SKM_ConsecutiveUseCraft = { default = false, cast = "boolean", profile = "consecutiveuseonly", section = "crafting"},
+	
 	SKM_STMIN = { default = 0, cast = "number", profile = "stepmin", section = "crafting"},
 	SKM_STMAX = { default = 0, cast = "number", profile = "stepmax", section = "crafting"},
 	SKM_CPMIN = { default = 0, cast = "number", profile = "cpmin", section = "crafting"},
@@ -759,6 +761,7 @@ function SkillMgr.GetAction(actionid,actiontype,target)
 	if (GetVersion() == 32) then
 		return ActionList:Get(actionid,actiontype,targetid)
 	else
+		--d("performing a lookup on ["..tostring(actiontype).."], ["..tostring(actionid).."]")
 		local action = ActionList:Get(actiontype,actionid)
 		if (action) then
 			if (not action.usable) then
@@ -1308,57 +1311,50 @@ function SkillMgr.OnUpdate()
 	
 	if (pcast.lastcastid ~= 0) then
 		local castingskill = pcast.lastcastid
-		if ( job >= 8 and job <=15 ) then
-			local action = SkillMgr.GetAction(castingskill,9)
-			if (action) then
-				SkillMgr.prevSkillID = castingskill
-				SkillMgr.UpdateLastCast(castingskill)
-			end
-		else
-			local caughtMudra = 0
-			if (Player.action == 235 and SkillMgr.prevSkillID ~= 2263) then
-				--d("Detected Jin.")
-				caughtMudra = 2263
-			elseif (Player.action == 234 and SkillMgr.prevSkillID ~= 2261) then
-				--d("Detected Chi.")
-				caughtMudra = 2261
-			elseif (Player.action == 233 and SkillMgr.prevSkillID ~= 2259) then
-				--d("Detected Ten.")
-				caughtMudra = 2259
-			end
+
+		local caughtMudra = 0
+		if (Player.action == 235 and SkillMgr.prevSkillID ~= 2263) then
+			--d("Detected Jin.")
+			caughtMudra = 2263
+		elseif (Player.action == 234 and SkillMgr.prevSkillID ~= 2261) then
+			--d("Detected Chi.")
+			caughtMudra = 2261
+		elseif (Player.action == 233 and SkillMgr.prevSkillID ~= 2259) then
+			--d("Detected Ten.")
+			caughtMudra = 2259
+		end
+		
+		if (caughtMudra ~= 0) then
+			SkillMgr.prevSkillID = caughtMudra
+			SkillMgr.prevSkillTimestamp = Now()
 			
-			if (caughtMudra ~= 0) then
-				SkillMgr.prevSkillID = caughtMudra
-				SkillMgr.prevSkillTimestamp = Now()
-				
-				if (SkillMgr.queuedPrio ~= 0) then
-					if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,caughtMudra)) then
+			if (SkillMgr.queuedPrio ~= 0) then
+				if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,caughtMudra)) then
+					SkillMgr.queuedPrio = 0
+				end
+			end
+			SkillMgr.UpdateLastCast(caughtMudra)
+			SkillMgr.failTimer = Now() + 6000
+		else
+			if (SkillMgr.prevSkillID ~= castingskill) then
+				local action = SkillMgr.GetAction(castingskill,1)
+				if (action) then
+					--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
+					SkillMgr.prevSkillID = castingskill
+					SkillMgr.prevSkillTimestamp = Now()
+					if (math.abs(SkillMgr.gcdTime - action.recasttime) <= .1) then
+						SkillMgr.prevGCDSkillID = castingskill
+					end
+					SkillMgr.UpdateLastCast(castingskill)
+					SkillMgr.failTimer = Now() + 6000
+				end
+			end
+			if (SkillMgr.queuedPrio ~= 0) then
+				local action = SkillMgr.GetAction(castingskill,1)
+				if (action) then
+					if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
+						--d("Updating chain information.")
 						SkillMgr.queuedPrio = 0
-					end
-				end
-				SkillMgr.UpdateLastCast(caughtMudra)
-				SkillMgr.failTimer = Now() + 6000
-			else
-				if (SkillMgr.prevSkillID ~= castingskill) then
-					local action = SkillMgr.GetAction(castingskill,1)
-					if (action) then
-						--d("Setting previous skill ID to :"..tostring(castingskill).."["..action.name.."]")
-						SkillMgr.prevSkillID = castingskill
-						SkillMgr.prevSkillTimestamp = Now()
-						if (math.abs(SkillMgr.gcdTime - action.recasttime) <= .1) then
-							SkillMgr.prevGCDSkillID = castingskill
-						end
-						SkillMgr.UpdateLastCast(castingskill)
-						SkillMgr.failTimer = Now() + 6000
-					end
-				end
-				if (SkillMgr.queuedPrio ~= 0) then
-					local action = SkillMgr.GetAction(castingskill,1)
-					if (action) then
-						if (SkillMgr.UpdateChain(SkillMgr.queuedPrio,castingskill)) then
-							--d("Updating chain information.")
-							SkillMgr.queuedPrio = 0
-						end
 					end
 				end
 			end
@@ -1998,7 +1994,7 @@ function SkillMgr.AddSkillToProfile(skill)
 	local job = Player.job
 	local newskillprio = TableSize(SkillMgr.SkillProfile)+1
 
-	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skName, ["used"] = false, ["alias"] = "", ["type"] = skType }
+	SkillMgr.SkillProfile[newskillprio] = {	["id"] = skID, ["prio"] = newskillprio, ["name"] = skName, ["used"] = true, ["alias"] = "", ["type"] = skType }
 	if (job >= 8 and job <= 15) then
 		for k,v in pairs(SkillMgr.Variables) do
 			if (v.section == "crafting") then
@@ -2038,6 +2034,8 @@ function SkillMgr.AddSkillToProfile(skill)
 			end
 		end
 	end	
+	
+	SkillMgr.SaveProfile()
 end	
 
 --[[
@@ -2723,16 +2721,16 @@ function SkillMgr.Craft()
         for prio,skill in pairsByKeys(SkillMgr.SkillProfile) do
 			local skillid = tonumber(skill.id)
 			
-            if ( skill.used  ) then                
+            if ( skill.used  ) then
+				SkillMgr.DebugOutput(prio, "["..skill.name.."] performing lookup based on ID ["..tostring(skillid).."] and type ["..tostring(skill.type).."].")
                 local realskilldata = SkillMgr.GetAction(skillid,skill.type)
-				local skid = skillid
 				--if skill is not found, see if we can find it
 				if (not realskilldata) then
 					for skillname,data in pairs(SkillMgr.MatchingCraftSkills) do
 						for job, sid in pairs(data) do
 							if (sid == skill.id) then
-								skid = tonumber(data[Player.job]) or 0
-								realskilldata = SkillMgr.GetAction(skid,skill.type)
+								skillid = tonumber(data[Player.job]) or 0
+								realskilldata = SkillMgr.GetAction(skillid,skill.type)
 							end
 							if (realskilldata) then
 								break
@@ -2743,26 +2741,66 @@ function SkillMgr.Craft()
 						end
 					end
 				end
+				
+				local castable = true
+				
+				--Single use check
+				if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
+					SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
+					castable = false
+				end
+				
+				--Consecutive use check
+				if (skill.consecutiveuseonly and SkillMgr.prevSkillList[skillid]) then
+					SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked for consecutive use only and has already been used.")
+					castable = false
+				end
 
                 if ( realskilldata and realskilldata:IsReady(Player.id) ) then
-                    local castable = true
-                    if ((tonumber(skill.stepmin) > 0 and synth.step >= tonumber(skill.stepmin)) or
-                        (tonumber(skill.stepmax) > 0 and synth.step < tonumber(skill.stepmax)) or
-                        (tonumber(skill.cpmin) > 0 and Player.cp.current >= tonumber(skill.cpmin)) or
-                        (tonumber(skill.cpmax) > 0 and Player.cp.current < tonumber(skill.cpmax)) or
-                        (tonumber(skill.durabmin) > 0 and synth.durability >= tonumber(skill.durabmin)) or
-                        (tonumber(skill.durabmax) > 0 and synth.durability < tonumber(skill.durabmax)) or
-                        (tonumber(skill.progrmin) > 0 and synth.progress >= tonumber(skill.progrmin)) or
-                        (tonumber(skill.progrmax) > 0 and synth.progress < tonumber(skill.progrmax)) or
+					SkillMgr.DebugOutput(prio, "["..skill.name.."] is ready.")
+					
+					local stats = Player.stats
+					local cp = Player.cp
+					local step = synth.step
+					local durability = synth.durability
+					local progress = synth.progress
+					local quality = synth.quality
+					local qualitypercent = synth.qualitypercent
+					
+                    if ((tonumber(skill.stepmin) > 0 and synth.step < tonumber(skill.stepmin)) or
+                        (tonumber(skill.stepmax) > 0 and synth.step >= tonumber(skill.stepmax)) or
+                        (tonumber(skill.cpmin) > 0 and Player.cp.current < tonumber(skill.cpmin)) or
+                        (tonumber(skill.cpmax) > 0 and Player.cp.current >= tonumber(skill.cpmax)) or
+                        (tonumber(skill.durabmin) > 0 and synth.durability < tonumber(skill.durabmin)) or
+                        (tonumber(skill.durabmax) > 0 and synth.durability >= tonumber(skill.durabmax)) or
+                        (tonumber(skill.progrmin) > 0 and synth.progress < tonumber(skill.progrmin)) or
+                        (tonumber(skill.progrmax) > 0 and synth.progress >= tonumber(skill.progrmax)) or
 						(tonumber(skill.craftmin) > 0 and Player.stats.craftmanship < tonumber(skill.craftmin)) or
                         (tonumber(skill.craftmax) > 0 and Player.stats.craftmanship >= tonumber(skill.craftmax)) or
                         (tonumber(skill.controlmin) > 0 and Player.stats.control < tonumber(skill.controlmin)) or
                         (tonumber(skill.controlmax) > 0 and Player.stats.control >= tonumber(skill.controlmax)) or
-                        (tonumber(skill.qualitymin) > 0 and synth.quality >= tonumber(skill.qualitymin)) or
-                        (tonumber(skill.qualitymax) > 0 and synth.quality < tonumber(skill.qualitymax)) or
-                        (tonumber(skill.qualityminper) > 0 and synth.qualitypercent >= tonumber(skill.qualityminper)) or
-                        (tonumber(skill.qualitymaxper) > 0 and synth.qualitypercent < tonumber(skill.qualitymaxper)))							 
-                    then 
+                        (tonumber(skill.qualitymin) > 0 and synth.quality < tonumber(skill.qualitymin)) or
+                        (tonumber(skill.qualitymax) > 0 and synth.quality >= tonumber(skill.qualitymax)) or
+                        (tonumber(skill.qualityminper) > 0 and synth.qualitypercent < tonumber(skill.qualityminper)) or
+                        (tonumber(skill.qualitymaxper) > 0 and synth.qualitypercent >= tonumber(skill.qualitymaxper)))							 
+                    then 						
+						if tonumber(skill.stepmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(step).." < "..tonumber(skill.stepmin).."]") end
+						if tonumber(skill.stepmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(step).." >= "..tonumber(skill.stepmax).."]") end
+						if tonumber(skill.durabmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(durability).." < "..tonumber(skill.durabmin).."]") end
+						if tonumber(skill.durabmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(durability).." >= "..tonumber(skill.durabmax).."]") end
+						if tonumber(skill.progrmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(progress).." < "..tonumber(skill.progrmin).."]") end
+						if tonumber(skill.progrmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(progress).." >= "..tonumber(skill.progrmax).."]") end
+						if tonumber(skill.qualitymin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(quality).." < "..tonumber(skill.qualitymin).."]") end
+						if tonumber(skill.qualitymax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(quality).." >= "..tonumber(skill.qualitymax).."]") end
+						if tonumber(skill.qualityminper) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(qualitypercent).." < "..tonumber(skill.qualityminper).."]") end
+						if tonumber(skill.qualitymaxper) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(qualitypercent).." >= "..tonumber(skill.qualitymaxper).."]") end
+						if tonumber(skill.cpmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(cp.current).." < "..tonumber(skill.cpmin).."]") end
+						if tonumber(skill.cpmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(cp.current).." >=  "..tonumber(skill.cpmax).."]") end
+						if tonumber(skill.craftmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(stats.craftmanship).." < "..tonumber(skill.craftmin).."]") end
+						if tonumber(skill.craftmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(stats.craftmanship).." >=  "..tonumber(skill.craftmax).."]") end
+						if tonumber(skill.controlmin) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(stats.control).." < "..tonumber(skill.controlmin).."]") end
+						if tonumber(skill.controlmax) > 0 then SkillMgr.DebugOutput(prio, "["..skill.name.."] ["..tostring(stats.control).." >=  "..tonumber(skill.controlmax).."]") end
+						
 						castable = false 
                     end
 					
@@ -2770,6 +2808,7 @@ function SkillMgr.Craft()
 					local translatedRequirement = GetStringKey(skill.condition)
 					if (translatedRequirement ~= "" and translatedRequirement ~= "notused") then
 						if (translatedCondition ~= translatedRequirement) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] condition requirement was not met.")
 							castable = false
 						end
 					end
@@ -2777,53 +2816,69 @@ function SkillMgr.Craft()
 					if ((tonumber(skill.totmin) > 0 and SkillMgr.currentToTUses < tonumber(skill.totmin)) or
 						(tonumber(skill.totmax) > 0 and SkillMgr.currentToTUses >= tonumber(skill.totmax)))
 					then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet trick of the trade usage requirements.")
 						castable = false
 					end
 					
 					if (tonumber(skill.htsucceed) > 0 and SkillMgr.currentHTSuccesses > tonumber(skill.htsucceed)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet hasty touch success count requirements.")
 						castable = false
 					end
 					
 					if (tonumber(skill.iqstack) > 0 and SkillMgr.currentIQStack < tonumber(skill.iqstack)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet IQ stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.gsstackmin) > 0 and SkillMgr.currentGSStack < tonumber(skill.gsstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet great strides stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.shstackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.shstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 1 stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.sh2stackmin) > 0 and SkillMgr.currentSH2Stack < tonumber(skill.sh2stackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 2 stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.sh12stackmin) > 0 and SkillMgr.currentSHStack < tonumber(skill.sh12stackmin) and SkillMgr.currentSH2Stack < tonumber(skill.sh12stackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet steady hand 1/2 (combined check) stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.ingenstackmin) > 0 and SkillMgr.currentIngenStack < tonumber(skill.ingenstackmin)) then
+					SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet ingenuity stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.ingen2stackmin) > 0 and SkillMgr.currentIngen2Stack < tonumber(skill.ingen2stackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet ingenuity 2 stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.wnstackmin) > 0 and SkillMgr.currentWasteNotStack < tonumber(skill.wnstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet waste not requirements.")
 						castable = false
 					end
 					if (tonumber(skill.wn2stackmin) > 0 and SkillMgr.currentWasteNot2Stack < tonumber(skill.wn2stackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet waste not 2 requirements.")
 						castable = false
 					end
 					if (tonumber(skill.manipstackmin) > 0 and SkillMgr.currentManipStack < tonumber(skill.manipstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet manipulation stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.innostackmin) > 0 and SkillMgr.currentInnoStack < tonumber(skill.innostackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet innovation stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.czonestackmin) > 0 and SkillMgr.currentCZoneStack < tonumber(skill.czonestackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet comfort zone stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.makersstackmin) > 0 and SkillMgr.currentMakersStack < tonumber(skill.makersstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet makers mark stack requirements.")
 						castable = false
 					end
 					if (tonumber(skill.whstackmin) > 0 and SkillMgr.currentWhistleStack < tonumber(skill.whstackmin)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet whistle stack requirements.")
 						castable = false
 					end
 					if (skill.whstack ~= "") then
@@ -2837,53 +2892,76 @@ function SkillMgr.Craft()
 							end
 						end
 						if (not valid) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet specific whistle stack requirements.")
 							castable = false
 						end
 					end
 					
 					if (tonumber(skill.manipmax) > 0 and SkillMgr.manipulationUses >= tonumber(skill.manipmax)) then
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet manipulation uses requirements.")
 						castable = false
 					end
                         
 					-- buff checks
                     if ( skill.cpbuff ~= "" ) then
 						if not HasBuffs(Player, skill.cpbuff) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet has buff requirements.")
 							castable = false 
 						end
                     end						
                     
                     if (skill.cpnbuff ~= "" ) then
 						if not MissingBuffs(Player, skill.cpnbuff) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] did not meet missing buff requirements.")
 							castable = false 
 						end								
-                    end			
-
-					--Single use check
-					if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
-						SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
-						castable = false
-					end
+                    end	
 					
 					local currentQuality = synth.quality
 					if ( castable ) then
-						if ( realskilldata:Cast(Player.id) ) then	
-							d("CASTING(Crafting): "..tostring(skill.name))	
-							SkillMgr.lastquality = currentQuality
-							
-							if (skid == 100098) then
-								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
-							elseif (skid == 100108) then
-								SkillMgr.checkHT = true
-							elseif (skid == 278) then
-								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
+					
+						d("CASTING(Crafting): "..tostring(skill.name))	
+						SkillMgr.lastquality = currentQuality
+						
+						realskilldata:Cast(Player.id)
+
+						local thisPrio = prio
+						ml_global_information.AwaitSuccess(3000, 
+							function () 
+								return (Player.castinginfo.lastcastid == skillid)
+							end,
+							function () 
+								if (skid == 100098) then
+									SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
+								elseif (skid == 100108) then
+									SkillMgr.checkHT = true
+								elseif (skid == 278) then
+									SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
+								end
+
+								SkillMgr.prevSkillList[skillid] = true
+								SkillMgr.tempPrevSkillList[thisPrio] = skillid
+								if (table.valid(SkillMgr.tempPrevSkillList)) then
+									for kprio,kskillid in pairsByKeys(SkillMgr.tempPrevSkillList) do
+										if (kprio < thisPrio) then
+											SkillMgr.prevSkillList[kskillid] = true
+										end
+									end								
+								end							
+								SkillMgr.SkillProfile[thisPrio].lastcast = Now()
+								SkillMgr.prevSkillID = tostring(skillid)
 							end
-							
-							SkillMgr.prevSkillList[skillid] = true
-							SkillMgr.SkillProfile[prio].lastcast = Now()
-							SkillMgr.prevSkillID = tostring(skill.id)
-							ml_global_information.Await(1500)
-							return true
-						end	
+						)							
+
+						return true
+					end
+				else
+					if (realskilldata) then
+						if (not realskilldata:IsReady(Player.id)) then
+							SkillMgr.DebugOutput(prio, "["..skill.name.."] was not ready for use.")
+						end
+					else
+						SkillMgr.DebugOutput(prio, "["..skill.name.."] could not be found as a valid skill.")
 					end
                 end
             end
@@ -5195,7 +5273,7 @@ function SkillMgr.DrawSkillBook()
 					local actionlist = ActionList:Get(actiontype)
 					if (table.valid(actionlist)) then
 						for actionid, action in pairs(actionlist) do
-							if (not gSkillMgrFilterJob or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job]))) then
+							if ((actiontype ~= 1 or action.job ~= 0) and (not gSkillMgrFilterJob or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) then
 								if (not gSkillMgrFilterUsable or action.usable == true) then
 									if ( GUI:Button(action.name.." ["..tostring(action.id).."]",width,20)) then
 										SkillMgr.AddSkillToProfile(action)
@@ -5227,7 +5305,7 @@ function SkillMgr.DrawSkillEditor(prio)
 				GUI:Text(GetString("Name")); GUI:NextColumn(); GUI:Text(skill.name); GUI:NextColumn();
 				GUI:Text(GetString("Alias")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_ALIAS",SKM_ALIAS),"SKM_ALIAS"); GUI:NextColumn();
 				GUI:Text(GetString("ID")); GUI:NextColumn(); GUI:Text(skill.id); GUI:NextColumn();
-				GUI:Text(GetString("Type")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_TYPE",SKM_TYPE),"SKM_TYPE"); GUI:NextColumn();
+				GUI:Text(GetString("Type")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_TYPE",SKM_TYPE,0,0),"SKM_TYPE"); GUI:NextColumn();
 				GUI:Text(GetString("Used")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ON",SKM_ON),"SKM_ON"); GUI:NextColumn();		
 				
 				GUI:Columns(1)
@@ -5595,11 +5673,6 @@ function SkillMgr.DrawBattleEditor()
 	
     GUI_UnFoldGroup(SkillMgr.editwindow.name,GetString("skillDetails"))
 	
-    GUI_NewButton(SkillMgr.editwindow.name,"DELETE","SMEDeleteEvent")
-    GUI_NewButton(SkillMgr.editwindow.name,"DOWN","SMESkillDOWNEvent")	
-    GUI_NewButton(SkillMgr.editwindow.name,"UP","SMESkillUPEvent")
-	GUI_NewButton(SkillMgr.editwindow.name,"PASTE","SKMPasteSkill")
-	GUI_NewButton(SkillMgr.editwindow.name,"COPY","SKMCopySkill")
     GUI_SizeWindow(SkillMgr.editwindow.name,SkillMgr.editwindow.w,SkillMgr.editwindow.h)
     GUI_WindowVisible(SkillMgr.editwindow.name,false)
 	--]]
@@ -5616,6 +5689,8 @@ function SkillMgr.DrawCraftEditor()
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,500);
 		
 		GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUseCraft",SKM_SingleUseCraft),"SKM_SingleUseCraft"); GUI:NextColumn();
+		GUI:Text(GetString("Consecutive Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_ConsecutiveUseCraft",SKM_ConsecutiveUseCraft),"SKM_ConsecutiveUseCraft"); GUI:NextColumn();
+		
 		GUI:Separator();		
 		GUI:Text(GetString("Step >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMIN",SKM_STMIN,0,0),"SKM_STMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Step <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_STMAX",SKM_STMAX,0,0),"SKM_STMAX"); GUI:NextColumn();	
@@ -5638,8 +5713,8 @@ function SkillMgr.DrawCraftEditor()
 		GUI:Text(GetString("Quality >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMIN",SKM_QUALMIN,0,0),"SKM_QUALMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Quality <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAX",SKM_QUALMAX,0,0),"SKM_QUALMAX"); GUI:NextColumn();
 		GUI:Separator();
-		GUI:Text(GetString("Quality % >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
-		GUI:Text(GetString("Quality % <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
+		GUI:Text(GetString("Quality %% >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMINPer",SKM_QUALMINPer,0,0),"SKM_QUALMINPer"); GUI:NextColumn();	
+		GUI:Text(GetString("Quality %% <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_QUALMAXPer",SKM_QUALMAXPer,0,0),"SKM_QUALMAXPer"); GUI:NextColumn();
 		GUI:Separator();
 		GUI:Text(GetString("Craftsmanship >=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMIN",SKM_CRAFTMIN,0,0),"SKM_CRAFTMIN"); GUI:NextColumn();	
 		GUI:Text(GetString("Craftsmanship <")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_CRAFTMAX",SKM_CRAFTMAX,0,0),"SKM_CRAFTMAX"); GUI:NextColumn();
@@ -5769,39 +5844,41 @@ function SkillMgr.DrawManager()
 								alias = skill.alias
 							end							
 							if ( GUI:Button(tostring(prio)..": "..alias.." ["..tostring(skill.id).."]",250,20)) then
-								local classCheck = false
-								local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST",
-									"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
-								
-								for i,abrev in pairsByKeys(classes) do
-									if (_G["gSkillProfileValid"..abrev] == true) then
-										classCheck = true
-									end
-								end
-								
-								SkillMgr.EditingSkill = prio
-								local requiredUpdate = false
-								if (classCheck) then
-									for varname,info in pairsByKeys(SkillMgr.Variables) do
-										if (skill[info.profile] ~= nil) then
-											if (info.cast == type(skill[info.profile])) then
-												--d("setting variable ["..tostring(varname).."] to ["..tostring(skill[info.profile]).."]")
-												_G[varname] = skill[info.profile]
-											else
-												--d("setting variable ["..tostring(varname).."] to default ["..tostring(info.default).."]")
-												_G[varname] = info.default
-												skill[info.profile] = info.default
-												requiredUpdate = true
-											end
+								--if (SkillMgr.EditingSkill ~= prio) then
+									local classCheck = false
+									local classes = {"GLD","PLD","PUG","MNK","MRD","WAR","LNC","DRG","ARC","BRD","CNJ","WHM","THM","BLM","ACN","SMN","SCH","ROG","NIN","DRK","MCH","AST",
+										"MIN","BTN","FSH","CRP","BSM","ARM","GSM","LTW","WVR","ALC","CUL"}
+									
+									for i,abrev in pairsByKeys(classes) do
+										if (_G["gSkillProfileValid"..abrev] == true) then
+											classCheck = true
 										end
 									end
-									if (requiredUpdate) then
-										SkillMgr.WriteToFile(gSkillProfile)
+									
+									SkillMgr.EditingSkill = prio
+									local requiredUpdate = false
+									if (classCheck) then
+										for varname,info in pairsByKeys(SkillMgr.Variables) do
+											if (skill[info.profile] ~= nil) then
+												if (info.cast == type(skill[info.profile])) then
+													_G[varname] = skill[info.profile]
+												else
+													d("info.cast = "..tostring(info.cast)..", type :"..tostring(type(skill[info.profile]))..", tag:"..tostring(info.profile))
+													d("setting variable ["..tostring(varname).."] to default ["..tostring(info.default).."]")
+													_G[varname] = info.default
+													skill[info.profile] = info.default
+													requiredUpdate = true
+												end
+											end
+										end
+										if (requiredUpdate) then
+											SkillMgr.WriteToFile(gSkillProfile)
+										end
+										SkillMgr.GUI.editor.open = true
+									else
+										ffxiv_dialog_manager.IssueNotice("Class Selection Required", "You must select at least one valid class before editing skills.")
 									end
-									SkillMgr.GUI.editor.open = true
-								else
-									ffxiv_dialog_manager.IssueNotice("Class Selection Required", "You must select at least one valid class before editing skills.")
-								end
+								--end
 							end
 							
 							GUI:SameLine(0,5)
@@ -5860,6 +5937,10 @@ function SkillMgr.DrawManager()
 			
 		end
 		GUI:End()
+	else
+		if (SkillMgr.GUI.editor.open) then
+			SkillMgr.GUI.editor.open = false
+		end
 	end
 end
 

@@ -448,7 +448,6 @@ function e_craft:execute()
 		ml_task_hub:ThisTask().itemsCrafted = ml_task_hub:ThisTask().itemsCrafted + 1
 	end
     SkillMgr.Craft()
-	ml_global_information.Await(1000)
 end
 
 c_collectibleaddoncraft = inheritsFrom( ml_cause )
