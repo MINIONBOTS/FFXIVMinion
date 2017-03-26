@@ -1554,7 +1554,6 @@ function SkillMgr.AceOnly()
 end
 --]]
 
-
 function SkillMgr.CheckProfileValidity()
 	local profile = SkillMgr.SkillProfile
 	
@@ -2742,6 +2741,26 @@ function SkillMgr.Craft()
 						end
 					end
 				end
+				if (not realskilldata) then
+					local oppositetype = (skill.type == 1 and 9) or 1
+					realskilldata = SkillMgr.GetAction(skillid,oppositetype)
+					if (not realskilldata) then
+						for skillname,data in pairs(SkillMgr.MatchingCraftSkills) do
+							for job, sid in pairs(data) do
+								if (sid == skill.id) then
+									skillid = tonumber(data[Player.job]) or 0
+									realskilldata = SkillMgr.GetAction(skillid,oppositetype)
+								end
+								if (realskilldata) then
+									break
+								end
+							end
+							if (realskilldata) then
+								break
+							end
+						end
+					end
+				end
 				
 				local castable = true
 				
@@ -2921,38 +2940,44 @@ function SkillMgr.Craft()
 					local currentQuality = synth.quality
 					if ( castable ) then
 					
-						d("CASTING(Crafting): "..tostring(skill.name))	
+						d("CASTING(Crafting): ["..tostring(prio).."] : "..tostring(skill.name).." : "..tostring(skillid))	
 						SkillMgr.lastquality = currentQuality
-						
-						realskilldata:Cast(Player.id)
-
 						local thisPrio = prio
-						ml_global_information.AwaitSuccess(3000, 
-							function () 
-								return (Player.castinginfo.lastcastid == skillid)
-							end,
-							function () 
-								if (skid == 100098) then
-									SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
-								elseif (skid == 100108) then
-									SkillMgr.checkHT = true
-								elseif (skid == 278) then
-									SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
-								end
-
-								SkillMgr.prevSkillList[skillid] = true
-								SkillMgr.tempPrevSkillList[thisPrio] = skillid
-								if (table.valid(SkillMgr.tempPrevSkillList)) then
-									for kprio,kskillid in pairsByKeys(SkillMgr.tempPrevSkillList) do
-										if (kprio < thisPrio) then
-											SkillMgr.prevSkillList[kskillid] = true
-										end
-									end								
-								end							
-								SkillMgr.SkillProfile[thisPrio].lastcast = Now()
-								SkillMgr.prevSkillID = tostring(skillid)
+						
+						local ret = realskilldata:Cast(Player.id)
+						local successFunction = function ()
+							if (skid == 100098) then
+								SkillMgr.currentToTUses = SkillMgr.currentToTUses + 1
+							elseif (skid == 100108) then
+								SkillMgr.checkHT = true
+							elseif (skid == 278) then
+								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
 							end
-						)							
+
+							SkillMgr.prevSkillList[skillid] = true
+							SkillMgr.tempPrevSkillList[thisPrio] = skillid
+							if (table.valid(SkillMgr.tempPrevSkillList)) then
+								for kprio,kskillid in pairsByKeys(SkillMgr.tempPrevSkillList) do
+									if (kprio < thisPrio) then
+										SkillMgr.prevSkillList[kskillid] = true
+									end
+								end								
+							end							
+							SkillMgr.SkillProfile[thisPrio].lastcast = Now()
+							SkillMgr.prevSkillID = tostring(skillid)
+						end
+							
+						if (ret == true) then
+							successFunction()
+						else
+							ml_global_information.AwaitSuccess(3000, 
+								function () 
+									--d("checking if ["..tostring(Player.castinginfo.lastcastid).."] = ["..tostring(skillid).."]")
+									return (Player.castinginfo.lastcastid == skillid)
+								end,
+								successFunction
+							)			
+						end
 
 						return true
 					end
@@ -5274,7 +5299,7 @@ function SkillMgr.DrawSkillBook()
 					local actionlist = ActionList:Get(actiontype)
 					if (table.valid(actionlist)) then
 						for actionid, action in pairs(actionlist) do
-							if ((actiontype ~= 1 or action.job ~= 0) and (not gSkillMgrFilterJob or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) then
+							if ((actiontype ~= 1 or action.job ~= 0) and (not gSkillMgrFilterJob or actiontype ~= 1 or (action.job == Player.job or (SkillMgr.ClassJob[Player.job] and action.job == SkillMgr.ClassJob[Player.job])))) then
 								if (not gSkillMgrFilterUsable or action.usable == true) then
 									if ( GUI:Button(action.name.." ["..tostring(action.id).."]",width,20)) then
 										SkillMgr.AddSkillToProfile(action)
@@ -5321,11 +5346,11 @@ function SkillMgr.DrawSkillEditor(prio)
 						if (i <= 22) then
 							fighting = true
 							break
-						elseif (i >= 23 and i <= 31) then
-							crafting = true
-							break
-						elseif (i >= 32 and i <= 34) then
+						elseif (i >= 23 and i <= 25) then
 							gathering = true
+							break
+						elseif (i >= 26 and i <= 33) then
+							crafting = true
 							break
 						end
 					end
