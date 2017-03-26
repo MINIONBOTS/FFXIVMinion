@@ -592,7 +592,9 @@ function ffxivminion.HandleInit()
 	FFXIV_Common_BotRunning = false
 	
     local fateBlacklist = ml_list_mgr.AddList("FATE Blacklist")
+	fateBlacklist.DefaultDraw = DrawFateListUI
 	local fateWhitelist = ml_list_mgr.AddList("FATE Whitelist")
+	fateBlacklist.DefaultDraw = DrawFateListUI
 	local monsterBlacklist = ml_list_mgr.AddList(GetString("monsters"))
 	
 	--[[

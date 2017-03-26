@@ -526,7 +526,8 @@ SkillMgr.Variables = {
 	SKM_QUALMAX = { default = 0, cast = "number", profile = "qualitymax", section = "crafting"},
 	SKM_QUALMINPer = { default = 0, cast = "number", profile = "qualityminper", section = "crafting"},
 	SKM_QUALMAXPer = { default = 0, cast = "number", profile = "qualitymaxper", section = "crafting"},
-	SKM_CONDITION = { default = "NotUsed", cast = "string", profile = "condition", section = "crafting"},
+	SKM_CONDITION = { default = "NotUsed", cast = "string", list = true, profile = "condition", section = "crafting"},
+	
 	SKM_CPBuff = { default = "", cast = "string", profile = "cpbuff", section = "crafting"},
 	SKM_CPNBuff = { default = "", cast = "string", profile = "cpnbuff", section = "crafting"},
 	SKM_IQSTACK = { default = 0, cast = "number", profile = "iqstack", section = "crafting"},
@@ -5219,7 +5220,6 @@ function SkillMgr.CaptureElement(newVal, varName)
 	end
 		
 	if (needsSave) then
-		d("save the element ["..tostring(varName))
 		local prio = SkillMgr.EditingSkill
 		if (SkillMgr.Variables[varName] ~= nil) then	
 			skillVar = SkillMgr.Variables[varName]
@@ -5230,8 +5230,9 @@ function SkillMgr.CaptureElement(newVal, varName)
 end
 
 function SKM_Combo(label, varindex, varval, itemlist, height)
-	local changed = false
+	_G[varindex] = GetKeyByValue(_G[varval],itemlist)
 	
+	local changed = false
 	local newIndex = GUI:Combo(label, _G[varindex], itemlist, height)
 	if (newIndex ~= _G[varindex]) then
 		changed = true
@@ -5861,10 +5862,11 @@ function SkillMgr.DrawManager()
 										for varname,info in pairsByKeys(SkillMgr.Variables) do
 											if (skill[info.profile] ~= nil) then
 												if (info.cast == type(skill[info.profile])) then
+													if (varname == "SKM_CONDITION") then
+														d("setting ["..tostring(varname).."] to ["..tostring(skill[info.profile]).."]")
+													end
 													_G[varname] = skill[info.profile]
 												else
-													d("info.cast = "..tostring(info.cast)..", type :"..tostring(type(skill[info.profile]))..", tag:"..tostring(info.profile))
-													d("setting variable ["..tostring(varname).."] to default ["..tostring(info.default).."]")
 													_G[varname] = info.default
 													skill[info.profile] = info.default
 													requiredUpdate = true

@@ -1486,7 +1486,6 @@ function GetNearestEvacPoint()
 	return nearest
 end
 function HasBuff(targetid, buffID, stacks, duration, ownerid)
-	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
 	local stacks = tonumber(stacks) or 0
 	local duration = tonumber(duration) or 0
@@ -1518,7 +1517,6 @@ function HasBuff(targetid, buffID, stacks, duration, ownerid)
     return false
 end
 function HasBuffX(targetid, buffID, stacks, duration, ownerid)
-	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
 	local stacks = tonumber(stacks) or 0
 	local duration = tonumber(duration) or 0
@@ -1550,7 +1548,6 @@ function HasBuffX(targetid, buffID, stacks, duration, ownerid)
     return false
 end
 function MissingBuff(targetid, buffID, stacks, duration, ownerid)
-	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
 	local stacks = tonumber(stacks) or 0
 	local duration = tonumber(duration) or 0
@@ -1588,7 +1585,6 @@ function MissingBuff(targetid, buffID, stacks, duration, ownerid)
 	return false
 end
 function MissingBuffX(targetid, buffID, stacks, duration, ownerid)
-	local targetid = tonumber(targetid) or 0
 	local buffID = tonumber(buffID) or 0
 	local stacks = tonumber(stacks) or 0
 	local duration = tonumber(duration) or 0
@@ -2324,35 +2320,19 @@ function GetClosestFate(pos,pathcheck)
         local nearestDistance = 9999
         local level = Player.level
 		local myPos = Player.pos
-		--local whitelistString = ml_blacklist.GetExcludeString("FATE Whitelist")
-		local whitelistString = ""
-		local whitelistTable = {}
 		
-		if (not IsNullString(whitelistString)) then
-			for entry in StringSplit(whitelistString,";") do
-				local delimiter = entry:find('-')
-				if (delimiter ~= nil and delimiter ~= 0) then
-					local mapid = entry:sub(0,delimiter-1)
-					local fateid = entry:sub(delimiter+1)
-					if (tonumber(mapid) == Player.localmapid) then
-						whitelistTable[fateid] = true
-					end
-				end
-			end
-		end
+		local fateBlacklist = ml_list_mgr.GetList("FATE Blacklist")
+		local fateWhitelist = ml_list_mgr.GetList("FATE Whitelist")
 		
-		if (table.valid(whitelistTable)) then
+		if (table.valid(fateWhitelist:GetList())) then
 			for k, fate in pairs(fateList) do
-				if (whitelistTable[fate.id] and	fate.status == 2) then	
-					local p = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-					if (p and p.distance ~= 0 and p.distance <= 5) then
-						--local distance = PathDistance(NavigationManager:GetPath(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z))
-						local distance = PDistance3D(myPos.x,myPos.y,myPos.z,p.x,p.y,p.z)
-						if (distance) then
-							if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
-								nearestFate = fate
-								nearestDistance = distance
-							end
+				local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+				if (fateWhitelist:Find(id,"id") ~= nil and status == 2) then
+					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z)
+					if (distance) then
+						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
+							nearestFate = fate
+							nearestDistance = distance
 						end
 					end
 				end
@@ -2361,38 +2341,32 @@ function GetClosestFate(pos,pathcheck)
 			local validFates = {}
 			--Add fates that are high priority or chains first.
 			for k, fate in pairs(fateList) do
-				--if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+				local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+				if (fateBlacklist:Find(id,"id") == nil) then
 					if (fate.status == 2) then	
 						if (ffxiv_task_fate.IsHighPriority(Player.localmapid, fate.id) or ffxiv_task_fate.IsChain(Player.localmapid, fate.id)) then
-							--local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-							--if (p and dist <= 20) then
-								table.insert(validFates,fate)
-								--d("Added 1 high priority fate.")
-							--end
+							table.insert(validFates,fate)
 						end
 					end
-				--end
+				end
 			end
 			
 			if (not table.valid(validFates)) then
 				for k, fate in pairs(fateList) do
-					--if (not ml_blacklist.CheckBlacklistEntry("Fates", fate.id)) then
+					local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+					if (fateBlacklist:Find(id,"id") == nil) then
 						if (fate.status == 2) then	
-							--local p,dist = NavigationManager:GetClosestPointOnMesh({x=fate.x, y=fate.y, z=fate.z},false)
-							--if (p and dist <= 20) then
-								table.insert(validFates,fate)
-								--d("Added 1 normal priority fate.")
-								--d("Added 1 normal fate.")
-							--end
+							table.insert(validFates,fate)
 						end
-					--end
+					end
 				end
 			end
 			
 			if (table.valid(validFates)) then
 				--d("Found some valid fates, figuring out which one is closest.")
 				for k, fate in pairs(validFates) do
-					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,fate.x,fate.y,fate.z) or 0
+					local id,status,x,y,z = fate.id, fate.status, fate.x, fate.y, fate.z
+					local distance = PDistance3D(myPos.x,myPos.y,myPos.z,x,y,z) or 0
 					if (distance ~= 0) then
 						if (not nearestFate or (nearestFate and (distance < nearestDistance))) then
 							nearestFate = fate
@@ -2405,7 +2379,7 @@ function GetClosestFate(pos,pathcheck)
     
         if (nearestFate ~= nil) then
 			local fate = nearestFate
-			--d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
+			d("Fate details: Name="..fate.name..",id="..tostring(fate.id)..",completion="..tostring(fate.completion)..",pos="..tostring(fate.x)..","..tostring(fate.y)..","..tostring(fate.z))
             return nearestFate
         end
     end
@@ -3102,7 +3076,7 @@ function ShouldEat()
 			local foodStack = foodEntry.buffstackid
 			--d("[ShouldEat]: Looking for foodID ["..tostring(foodID).."].")
 			local food, action = GetItem(foodID)
-			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
+			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,0,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
 				return true
 			end
 		end
@@ -3117,7 +3091,7 @@ function Eat()
 			local foodStack = foodEntry.buffstackid
 			--d("[Eat]: Looking for foodID ["..tostring(foodID).."].")
 			local food, action = GetItem(foodID)
-			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
+			if (food and action and food:IsReady(Player.id) and (MissingBuff(Player,48,0,60) or (gFoodSpecific and MissingBuffX(Player,48,foodStack,60)))) then
 				food:Cast(Player.id)
 				local castid = action.id
 				ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
@@ -4438,10 +4412,22 @@ function GetFirstFreeSlot(hqid,inventories)
 	return nil,nil
 end	
 
-function ItemCount(hqid,inventories,includehq)
+function ItemCount(hqid,inventoriesArg,includehqArg)
 	local hqid = tonumber(hqid) or 0
-	local inventories = inventories or {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
-	local includehq = IsNull(includehq,false)
+	local inventories = {0,1,2,3,1000,2004,2000,2001,3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3300,3400,3500}
+	local includehq = false
+	
+	if (type(inventoriesArg) == "table") then
+		inventories = inventoriesArg
+	elseif (type(inventoriesArg) == "boolean") then
+		includehq = inventoriesArg
+	end
+	if (type(includehqArg) == "table") then
+		inventories = includehqArg
+	elseif (type(includehqArg) == "boolean") then
+		includehq = includehqArg
+	end
+
 	local itemcount = 0
 	
 	if (hqid ~= 0) then

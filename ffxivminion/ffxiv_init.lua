@@ -643,15 +643,85 @@ function GetPublicProfiles(path,ext)
 	return profiles,profilesDisplay
 end
 
--- Yes, a dev asked for this, since the current C&E Framework is impossible to get into or to understand at the current point, with 0 documentation.
-function ml_global_information.LoadBehaviorFiles()
-	-- Load all our local "bot/addon" BTree files
-	local path = GetStartupPath()  .. "\\LuaMods\\ffxivminion\\Behavior"
-	if (not FolderExists(path)) then
-		FolderCreate(path)
+function DrawFateListUI(self)
+	local vars = self.GUI.vars
+	
+	ml_gui.DrawTabs(self.GUI.main_tabs)
+	
+	-- dbk: Edit
+	if (self.GUI.main_tabs.tabs[1].isselected) then
+		GUI:Columns(4, "##listdetail-view", true)
+		GUI:SetColumnOffset(1,60); GUI:SetColumnOffset(2,140); GUI:SetColumnOffset(3,210); GUI:SetColumnOffset(4,280); GUI:SetColumnOffset(5,350); GUI:SetColumnOffset(6,450);
+		GUI:Text(GetString("Map")); GUI:NextColumn();
+		GUI:Text(GetString("Name")); GUI:NextColumn();
+		GUI:Text(GetString("ID")); GUI:NextColumn(); GUI:NextColumn();
+		GUI:Separator();
+		
+		local entries = self.entries
+		if (table.valid(entries)) then
+			for i, entry in pairs(entries) do
+				GUI:Text(entry.mapid); GUI:NextColumn();
+				GUI:Text(entry.name); GUI:NextColumn();
+				GUI:Text(entry.id); GUI:NextColumn();
+				if (GUI:Button(GetString("Delete").."##"..tostring(i))) then
+					self:DeleteEntry(i); 
+				end
+				GUI:NextColumn();
+			end
+		end
+		
+		GUI:Columns(1)		
 	end
-	BehaviorManager:LoadBehaviorFromFolder(path)
- end
-RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles)
+			
+	-- dbk: Add
+	if (self.GUI.main_tabs.tabs[2].isselected) then
+		
+		local fateList = {}
+		local fateDisplayList = {}
+		
+		local flist = MFateList()
+		if (table.valid(flist)) then
+			for id, e in pairs(flist) do
+				if (self:Find(e.id,"id") == nil) then
+					table.insert(fateDisplayList,e.name)
+					table.insert(fateList,{ name = e.name, mapid = Player.localmapid, id = e.id })
+				end
+			end
+		end			
+		
+		if (table.valid(fateList)) then
+			if (FateListComboIndex == nil) then
+				FateListComboIndex = 1
+				FateListCombo = GetKeyByValue(FateListComboIndex,fateDisplayList)
+			end
+			
+			GUI_Combo("Fates","FateListComboIndex","FateListCombo",fateDisplayList)
+			
+			GUI:Spacing(); GUI:Spacing();
+			
+			local fate = fateList[FateListComboIndex]
+			GUI:Text("ID :"); GUI:SameLine(75); GUI:Text(fate.id)
+			GUI:Text("Name :"); GUI:SameLine(75); GUI:Text(fate.name)
+			GUI:Text("Map ID :"); GUI:SameLine(75); GUI:Text(fate.mapid)
+			
+			GUI:Spacing(); GUI:Spacing();
+
+			if (GUI:Button(GetString("Add Entry"),200,24)) then
+				local details = { name = fate.name, mapid = fate.mapid, id = fate.id }
+				self:AddEntry(details)
+				vars.temptext = "Added ["..tostring(fate.id).." : "..tostring(fate.name).."] to the blacklist."
+				vars.temptimer = Now() + 2000
+			end
+
+			if (vars.temptimer ~= 0) then
+				if (Now() < vars.temptimer) then
+					GUI:Text(vars.temptext)
+				end
+			end
+		else
+			GUI:Text("No active fates.")
+		end
+	end
+end
 
 RegisterEventHandler("Module.Initalize",ml_global_information.Init)

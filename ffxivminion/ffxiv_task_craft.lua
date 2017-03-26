@@ -394,7 +394,7 @@ function e_precraftbuff:execute()
 		if (IsControlOpen("RecipeNote")) then
 			ffxiv_craft.ToggleCraftingLog()
 			ml_task_hub:CurrentTask().allowWindowOpen = true
-			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not IsLocked()) end)
+			ml_global_information.Await(5000, function () return (not IsControlOpen("RecipeNote") and not MIsLocked()) end)
 			return
 		end
 	end
@@ -615,7 +615,6 @@ function e_selectcraft:execute()
 		newTask.maxItems = tonumber(gCraftMaxItems) or 0
 		ml_task_hub:CurrentTask():AddSubTask(newTask)
 	end
-	ml_global_information.Await(2500)
 end
 
 ffxiv_task_craftitems = inheritsFrom(ml_task)

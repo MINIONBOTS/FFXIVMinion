@@ -1998,7 +1998,7 @@ end
 c_eat = inheritsFrom( ml_cause )
 e_eat = inheritsFrom( ml_effect )
 function c_eat:evaluate()
-	if (MIsLoading() or MIsLocked() or MIsCasting() or IsFlying() or Player:IsMoving() or Player.incombat) then
+	if (MIsLoading() or MIsLocked() or MIsCasting() or IsFlying() or Player.incombat) then
 		return false
 	end
 	
@@ -2006,8 +2006,6 @@ function c_eat:evaluate()
 		if ( TimeSince(ml_global_information.foodCheckTimer) > 10000) then
 			if (not IsControlOpen("Gathering") and not IsControlOpen("Synthesis") and not IsControlOpen("SynthesisSimple")) then
 				if (ShouldEat()) then
-					Eat()
-					ml_global_information.foodCheckTimer = tickcount
 					return true
 				end
 			end
@@ -2016,6 +2014,14 @@ function c_eat:evaluate()
     return false
 end
 function e_eat:execute()
+	if (Player:IsMoving()) then
+		Player:Stop()
+		ml_global_information.Await(1000, function () return not Player:IsMoving() end)
+		return false
+	end
+	
+	Eat()
+	ml_global_information.foodCheckTimer = Now()
 	ml_global_information.Await(2000)
 end
 
@@ -2308,17 +2314,20 @@ function c_handoverquest:evaluate()
 	return IsControlOpen("Request")
 end
 function e_handoverquest:execute()
-	local bag = Inventory:Get(2004)
-	if (table.valid(bag)) then
-		local ilist = bag:GetList()
-		if (table.valid(ilist)) then
-			for slot, item in pairs(ilist) do 
-				local result = item:HandOver()
-				if (result and (result == 1 or result == true or result == 65536)) then
-					ml_global_information.Await(math.random(800,1200))
-					return
-				end
-			end	
+	local inventories = {0,1,2,3,2004}
+	for _,invid in pairs(inventories) do
+		local bag = Inventory:Get(invid)
+		if (table.valid(bag)) then
+			local ilist = bag:GetList()
+			if (table.valid(ilist)) then
+				for slot, item in pairs(ilist) do 
+					local result = item:HandOver()
+					if (result and (result == 1 or result == true or result == 65536)) then
+						ml_global_information.Await(math.random(800,1200))
+						return
+					end
+				end	
+			end
 		end
 	end
 	
