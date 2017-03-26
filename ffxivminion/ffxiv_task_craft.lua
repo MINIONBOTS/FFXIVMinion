@@ -219,17 +219,19 @@ function e_startcraft:execute()
 			if (not ml_task_hub:CurrentTask().matsSet) then
 				local useHQ = ml_task_hub:CurrentTask().useHQ
 				local mats = Crafting:GetCraftingMats()
-				if (table.valid(mats) and useHQ) then
-					for i = 1,6 do
-						local ingredient = mats[i]
-						local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
-						if (hqAmount > 0) then
-							if (ingredient.inventoryhq >= hqAmount) then
-								Crafting:SetCraftingMats(i-1,hqAmount)
-							else
-								d("Stop crafting item, not enough HQ.")
-								e_craftlimit:execute()
-								return false
+				if (table.valid(mats)) then
+					if (useHQ) then
+						for i = 1,6 do
+							local ingredient = mats[i]
+							local hqAmount = ml_task_hub:CurrentTask()["hq"..tostring(i)]
+							if (hqAmount > 0) then
+								if (ingredient.inventoryhq >= hqAmount) then
+									Crafting:SetCraftingMats(i-1,hqAmount)
+								else
+									d("Stop crafting item, not enough HQ.")
+									e_craftlimit:execute()
+									return false
+								end
 							end
 						end
 					end
