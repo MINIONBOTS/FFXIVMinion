@@ -1253,12 +1253,12 @@ function CanUseCordial()
 end
 
 function CanUseExpManual()
-	if (not FFXIV_Common_UseEXPManuals) then
+	if (not gUseExpManuals) then
 		return false
 	end
 	
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		if (Player.level >= 15 and Player.level < 60 and MissingBuffs(Player,"46")) then
+		if (Player.level >= 15 and Player.level < 60 and MissingBuff(Player,46)) then
 			if (Player.level >= 15 and Player.level < 35) then
 				local manual1, action = GetItem(4633)
 				if (manual1 and action and manual1:IsReady(Player.id)) then
@@ -2987,128 +2987,6 @@ function ffxiv_task_gather.SetModeOptions()
 end
 
 -- UI settings etc
---[[
-function ffxiv_task_gather.UIInit()
-	--Add it to the main tracking table, so that we can save positions for it.
-	ffxivminion.Windows.Gather = { id = strings["us"].gatherMode, Name = GetString("gatherMode"), x=50, y=50, width=210, height=300 }
-	ffxivminion.CreateWindow(ffxivminion.Windows.Gather)
-	
-	if (Settings.FFXIVMINION.gGatherVersion == nil) then
-		Settings.FFXIVMINION.gGatherVersion = 2.0
-		Settings.FFXIVMINION.gLastGathered = nil
-	end
-	if (Settings.FFXIVMINION.gLastGatherProfile == nil) then
-        Settings.FFXIVMINION.gLastGatherProfile = GetString("none")
-    end
-	if ( Settings.FFXIVMINION.gGatherUseCordials == nil ) then
-		Settings.FFXIVMINION.gGatherUseCordials = "1"
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleName == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleName = ""
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleValue == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleValue = 0
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleName2 == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleName2 = ""
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleValue2 == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleValue2 = 0
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleName3 == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleName3 = ""
-	end
-	if (Settings.FFXIVMINION.gMinerCollectibleValue3 == nil) then
-		Settings.FFXIVMINION.gMinerCollectibleValue3 = 0
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleName == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleName = ""
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleValue == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleValue = 0
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleName2 == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleName2 = ""
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleValue2 == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleValue2 = 0
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleName3 == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleName3 = ""
-	end
-	if (Settings.FFXIVMINION.gBotanistCollectibleValue3 == nil) then
-		Settings.FFXIVMINION.gBotanistCollectibleValue3 = 0
-	end
-	if (Settings.FFXIVMINION.gLastGathered == nil) then
-		Settings.FFXIVMINION.gLastGathered = {}
-	end
-	
-	if (Settings.FFXIVMINION.gGatherDebug == nil) then
-		Settings.FFXIVMINION.gGatherDebug = "0"
-	end
-	if (Settings.FFXIVMINION.gGatherDebugLevel == nil) then
-		Settings.FFXIVMINION.gGatherDebugLevel = "1"
-	end	
-	
-	local winName = GetString("gatherMode")
-	GUI_NewButton(winName, ml_global_information.BtnStart.Name , ml_global_information.BtnStart.Event)
-	GUI_NewButton(winName, GetString("advancedSettings"), "ffxivminion.OpenSettings")
-	GUI_NewButton(winName, GetString("markerManager"), "ToggleMarkerMgr")
-	
-	local group = GetString("status")
-	GUI_NewComboBox(winName,GetString("botMode"),"gBotMode",group,"")
-	GUI_NewComboBox(winName,GetString("profile"),"gProfile",group,"None")
-	GUI_NewComboBox(winName,GetString("skillProfile"),"gSkillProfile",group,ffxivminion.Strings.SKMProfiles())
-	GUI_NewComboBox(winName,GetString("navmesh") ,"FFXIV_Common_NavMesh",group, ffxivminion.Strings.Meshes())
-    GUI_NewCheckbox(winName,GetString("botEnabled"),"FFXIV_Common_BotRunning",group)
-	GUI_NewField(winName,GetString("markerName"),"gStatusMarkerName",group )
-	GUI_NewField(winName,GetString("markerTime"),"gStatusMarkerTime",group )
-	GUI_NewField(winName,"Current Task","gStatusTaskName",group )
-	GUI_NewCheckbox(winName,"Gather Debug","gGatherDebug",group)
-	GUI_NewComboBox(winName,"Debug Level","gGatherDebugLevel",group,"1,2,3")
-	
-	group = GetString("settings")
-	GUI_NewCheckbox(winName,GetString("useCordials"), "gGatherUseCordials",group)
-	
-	group = "Collectible"
-	local collectStringMiner = AceLib.API.Items.BuildUIString(48,115)
-	local collectStringBotanist = AceLib.API.Items.BuildUIString(45,115)
-	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName",group,collectStringMiner)
-	GUI_NewField(winName,"Min Value","gMinerCollectibleValue",group)
-	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName2",group,collectStringMiner)
-	GUI_NewField(winName,"Min Value","gMinerCollectibleValue2",group)
-	GUI_NewComboBox(winName,"Mining","gMinerCollectibleName3",group,collectStringMiner)
-	GUI_NewField(winName,"Min Value","gMinerCollectibleValue3",group)
-	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName",group,collectStringBotanist)
-	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue",group)
-	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName2",group,collectStringBotanist)
-	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue2",group)
-	GUI_NewComboBox(winName,"Botany","gBotanistCollectibleName3",group,collectStringBotanist)
-	GUI_NewField(winName,"Min Value","gBotanistCollectibleValue3",group)
-	
-	GUI_UnFoldGroup(winName,GetString("status"))
-	GUI_UnFoldGroup(winName,GetString("settings"))
-	ffxivminion.SizeWindow(winName)
-	GUI_WindowVisible(winName, false)
-	
-	gGatherUseCordials = Settings.FFXIVMINION.gGatherUseCordials
-	gMinerCollectibleName = Settings.FFXIVMINION.gMinerCollectibleName
-	gMinerCollectibleValue = Settings.FFXIVMINION.gMinerCollectibleValue
-	gMinerCollectibleName2 = Settings.FFXIVMINION.gMinerCollectibleName2
-	gMinerCollectibleValue2 = Settings.FFXIVMINION.gMinerCollectibleValue2
-	gMinerCollectibleName3 = Settings.FFXIVMINION.gMinerCollectibleName3
-	gMinerCollectibleValue3 = Settings.FFXIVMINION.gMinerCollectibleValue3
-	gBotanistCollectibleName = Settings.FFXIVMINION.gBotanistCollectibleName
-	gBotanistCollectibleValue = Settings.FFXIVMINION.gBotanistCollectibleValue
-	gBotanistCollectibleName2 = Settings.FFXIVMINION.gBotanistCollectibleName2
-	gBotanistCollectibleValue2 = Settings.FFXIVMINION.gBotanistCollectibleValue2
-	gBotanistCollectibleName3 = Settings.FFXIVMINION.gBotanistCollectibleName3
-	gBotanistCollectibleValue3 = Settings.FFXIVMINION.gBotanistCollectibleValue3
-	gGatherDebug = Settings.FFXIVMINION.gGatherDebug
-	gGatherDebugLevel = Settings.FFXIVMINION.gGatherDebugLevel
-end
---]]
-
 function ffxiv_task_gather:UIInit()
 	ffxiv_gather.profiles, ffxiv_gather.profilesDisplay = GetPublicProfiles(ffxiv_gather.profilePath,".*lua")
 	
@@ -3159,13 +3037,15 @@ function ffxiv_task_gather:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 		GUI:PushItemWidth(120)					
 		
 		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Gather Debug",gGatherDebug),"gGatherDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gGatherDebugLevelIndex", "gGatherDebugLevel", debugLevels)
+		
+		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()

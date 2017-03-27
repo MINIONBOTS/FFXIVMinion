@@ -27,6 +27,57 @@ ffxivminion.loginservers = {
 	[7] = {	"None","Cerberus","Lich","Moogle","Odin","Phoenix","Shiva","Zodiark","Ragnarok" },
 }
 
+ffxivminion.AutoGrindDefault = [[
+	local mapid = Player.localmapid
+	local level = Player.level
+	
+	local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
+	local inshroud = 	In(mapid,148,152,153,154,132,133)
+	local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
+	
+	if (level < 12) then
+		if (inthanalan) then
+			return 140 --western than
+		elseif (inshroud) then
+			return 148 --central shroud
+		elseif (inlanoscea) then
+			return 134 --middle la noscea
+		else
+			return 148
+		end
+	elseif ( level >= 12 and level < 20) then
+		if (inthanalan) then
+			return 140 --western than
+		elseif (inshroud) then
+			return 152 --east shroud
+		elseif (inlanoscea) then
+			return 138 --middle la noscea
+		else
+			return 152
+		end
+	elseif (level >= 20 and level < 22) then
+		return 152 --east shroud
+	elseif (level >= 22 and level < 30) then
+		return 153 --south shroud
+	elseif (level >= 30 and level < 40) then
+		return 137 --eastern la noscea
+	elseif (level >= 40 and level < 45) then
+		return 155 --coerthas
+	elseif (level >= 45 and level < 50) then
+		return 138
+	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
+		return 397
+	elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then
+		return 398
+	elseif (level <= 60 and (not QuestCompleted(1609) or not CanAccessMap(398))) then
+		return 397
+	elseif (level <= 60 and (QuestCompleted(1609) and CanAccessMap(398))) then
+		return 398
+	else
+		return 138
+	end
+]]
+
 -- Create the main GUI container.
 ffxivminion.GUI = {
 	main = {
@@ -60,6 +111,13 @@ ffxivminion.GUI = {
 		name = "Login",
 		open = false,
 		visible = true,
+	},
+	autogrind = {
+		name = "Auto-Grind - Edit",
+		open = false,
+		visible = true,
+		modified = false,
+		error_text = "",
 	},
 	current_tab = 1,
 	draw_mode = 1,
@@ -496,7 +554,7 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_RandomPaths = ffxivminion.GetSetting("FFXIV_Common_RandomPaths",false)
 	
 	FFXIV_Craft_UseHQMats = ffxivminion.GetSetting("FFXIV_Craft_UseHQMats",true)
-	FFXIV_Common_UseEXPManuals = ffxivminion.GetSetting("FFXIV_Common_UseEXPManuals",true)
+	gUseExpManuals = ffxivminion.GetSetting("gUseExpManuals",true)
 	gDeclinePartyInvites = ffxivminion.GetSetting("gDeclinePartyInvites",true)
 	gTradeInviteBusy = ffxivminion.GetSetting("gTradeInviteBusy",true)
 	gTradeInviteMessage = ffxivminion.GetSetting("gTradeInviteMessage",false)
@@ -545,6 +603,16 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthDetect = ffxivminion.GetSetting("FFXIV_Common_StealthDetect",25)
 	FFXIV_Common_StealthRemove = ffxivminion.GetSetting("FFXIV_Common_StealthRemove",30)
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
+	
+	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
+	gAutoGrindFunction = GetBestGrindMap
+	local f = loadstring(gAutoGrindCode)
+	if (f ~= nil) then
+		gAutoGrindFunction = f
+	else
+		ml_error("Compilation error in auto-grind code:")
+		assert(loadstring(gAutoGrindCode))
+	end
 	
 	ml_global_information.autoStartQueued = gAutoStart		
 	Hacks:Disable3DRendering(gDisableDrawing)
@@ -1293,12 +1361,17 @@ function ml_global_information.DrawSettings()
 				end	
 				
 				if (tabs.tabs[3].isselected) then
-					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(4),true)
+					GUI:BeginChild("##main-header-behavior",0,GUI_GetFrameHeight(5),true)
 					
 					GUI_Capture(GUI:Checkbox("Decline Party Invites",gDeclinePartyInvites),"gDeclinePartyInvites");
 					GUI_Capture(GUI:Checkbox("/busy After Trade invite",gTradeInviteBusy),"gTradeInviteBusy");
 					GUI_Capture(GUI:Checkbox("Send Message After Trade Invite.",gTradeInviteMessage),"gTradeInviteMessage");
 					GUI_Capture(GUI:InputText("Message Options",gTradeInviteMessages),"gTradeInviteMessages");
+					
+					if (GUI:Button("Modify Auto-Grind")) then
+						ffxivminion.GUI.autogrind.open = true
+						ffxivminion.GUI.autogrind.error_text = ""
+					end
 					
 					GUI:EndChild()
 				end
@@ -1548,6 +1621,62 @@ function ml_global_information.DrawLoginHandler()
 	end
 end
 
+function ml_global_information.DrawAutoGrindEditor()
+	local gamestate = GetGameState()
+	if (gamestate == FFXIV.GAMESTATE.INGAME) then
+		
+		if (ffxivminion.GUI.autogrind.open) then
+		
+			GUI:SetNextWindowSize(700,500,GUI.SetCond_Always) --set the next window size, only on first ever	
+			GUI:SetNextWindowCollapsed(false,GUI.SetCond_Always)
+			
+			local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
+			GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], .75)
+			
+			ffxivminion.GUI.autogrind.visible, ffxivminion.GUI.autogrind.open = GUI:Begin(ffxivminion.GUI.autogrind.name, ffxivminion.GUI.autogrind.open)
+			if ( ffxivminion.GUI.autogrind.visible ) then 
+				
+				local width, height = GUI:GetWindowSize()
+				
+				local changed = false
+				gAutoGrindCode,changed = GUI:InputTextEditor("##autogrind-editor", gAutoGrindCode, 680, 400, GUI.InputTextFlags_AllowTabInput)
+				if (changed) then
+					ffxivminion.GUI.autogrind.modified = true
+				end
+				
+				if (ffxivminion.GUI.autogrind.modified) then
+					if (GUI:Button("Apply",width,20)) then
+						local f = loadstring(gAutoGrindCode)
+						if (f ~= nil) then
+							gAutoGrindFunction = f
+							ffxivminion.GUI.autogrind.modified = false
+							ffxivminion.GUI.autogrind.error_text = ""
+						else
+							local errormsg = "Compilation error in auto-grind code:"
+							local f,e = loadstring(gAutoGrindCode)
+							errormsg = errormsg.."\n"..e
+							
+							ffxivminion.GUI.autogrind.error_text = errormsg
+						end
+					end
+					
+					if (ffxivminion.GUI.autogrind.error_text ~= "") then
+						GUI:TextWrapped(ffxivminion.GUI.autogrind.error_text)
+					end
+				end
+			end
+			
+			GUI:End()
+			GUI:PopStyleColor()
+		else
+			if (ffxivminion.GUI.autogrind.modified) then
+				ffxivminion.GUI.autogrind.modified = false
+				ffxivminion.GUI.autogrind.error_text = ""
+			end
+		end
+	end
+end
+
 function ml_global_information.Draw( event, ticks ) 
 	-- Main "mode" window.
 	-- DrawMode 1 is fully drawn, 2 is minimized, mode visible only.
@@ -1557,6 +1686,7 @@ function ml_global_information.Draw( event, ticks )
 	ml_global_information.DrawSettings()
 	ml_global_information.DrawMiniButtons()
 	ml_global_information.DrawLoginHandler()
+	ml_global_information.DrawAutoGrindEditor()
 end
 
 -- Register Event Handlers
