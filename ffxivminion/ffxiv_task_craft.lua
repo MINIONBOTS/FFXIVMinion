@@ -391,6 +391,7 @@ function c_precraftbuff:evaluate()
 end
 function e_precraftbuff:execute()
 	local activityItem = e_precraftbuff.item
+	local activity = e_precraftbuff.activity
 	
 	if (e_precraftbuff.requiresLogClose) then
 		if (IsControlOpen("RecipeNote")) then
@@ -401,7 +402,6 @@ function e_precraftbuff:execute()
 		end
 	end
 	
-	local activity = e_precraftbuff.activity
 	if (activity == "repair") then
 		cd("[PreCraftBuff]: Attempting repairs.",3)
 		Repair()
@@ -423,8 +423,8 @@ function e_precraftbuff:execute()
 		SendTextCommand(commandString)
 		ml_global_information.Await(3000)
 	elseif (activity == "usemanual") then
-		local manual, action = activityItem
-		if (manual and action and manual:IsReady(Player.id)) then
+		local manual = activityItem
+		if (manual and manual:IsReady(Player.id)) then
 			manual:Cast(Player.id)
 			local castid = action.id
 			ml_global_information.Await(5000, function () return Player.castinginfo.lastcastid == castid end)
@@ -928,6 +928,8 @@ function ffxiv_task_craft:Draw()
 		GUI_Capture(GUI:InputInt(GetString("minimumCP"),gCraftMinCP,0,0),"gCraftMinCP")
 		GUI_Capture(GUI:Checkbox(GetString("Use HQ Mats"),gCraftUseHQ),"gCraftUseHQ")
 		GUI:Separator()
+		
+		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		
 		GUI:PopItemWidth()
 	end

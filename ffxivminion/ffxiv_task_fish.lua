@@ -2351,13 +2351,15 @@ function ffxiv_task_fish:Draw()
 	local tabs = self.GUI.main_tabs
 	
 	if (tabs.tabs[1].isselected) then
-		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(3),true)
+		GUI:BeginChild("##header-status",0,GUI_GetFrameHeight(4),true)
 		GUI:PushItemWidth(120)					
 		
 		GUI:Checkbox(GetString("botEnabled"),FFXIV_Common_BotRunning)
 		GUI_Capture(GUI:Checkbox("Fish Debug",gFishDebug),"gFishDebug");
 		local debugLevels = { 1, 2, 3}
 		GUI_Combo("Debug Level", "gFishDebugLevelIndex", "gFishDebugLevel", debugLevels)
+		
+		GUI_Capture(GUI:Checkbox(GetString("Use Exp Manuals"),gUseExpManuals),"gUseExpManuals")
 		
 		GUI:PopItemWidth()
 		GUI:EndChild()
