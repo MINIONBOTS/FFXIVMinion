@@ -853,6 +853,7 @@ function dev.DrawCall(event, ticks )
 					
 					local p = Player
 					if ( p ) then 
+						GUI:BulletText("Pulse Duration") GUI:SameLine(200) GUI:InputText("##devuf4",tostring(GetBotPerformance()))
 						GUI:BulletText("Map ID") GUI:SameLine(200) GUI:InputText("##devuf2",tostring(p.localmapid))
 						GUI:BulletText("Map Name") GUI:SameLine(200) GUI:InputText("##devuf3",GetMapName(p.localmapid))					
 						
@@ -885,9 +886,7 @@ function dev.DrawCall(event, ticks )
 						GUI:SameLine()
 						if (GUI:Button("Clear Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:ClearTarget())) end
 						if (GUI:Button("Follow Target##"..tostring(id),100,15) ) then d("Result : "..tostring(Player:FollowTarget(t.id))) end
-						
-						
-						
+												
 					else
 						GUI:Text("Select a Target...")
 					end
