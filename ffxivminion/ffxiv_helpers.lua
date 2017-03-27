@@ -5686,3 +5686,15 @@ function GetNamedTaskProperty(strTask, strProperty)
 		return task[strProperty]
 	end
 end
+function In(var,...)
+	local var = var
+	
+	local args = {...}
+	for i=1, #args do
+		if (args[i] == var) then
+			return true
+		end
+	end
+	
+	return false
+end

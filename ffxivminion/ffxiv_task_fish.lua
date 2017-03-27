@@ -53,6 +53,7 @@ function ffxiv_task_fish.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
+	ml_global_information.lastEquip = 0
 	
 	newinst.filterLevel = true
 	newinst.networkLatency = 0

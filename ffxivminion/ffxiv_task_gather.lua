@@ -32,6 +32,7 @@ function ffxiv_task_gather.Create()
     newinst.markerTime = 0
     newinst.currentMarker = false
 	ml_global_information.currentMarker = false
+	ml_global_information.lastEquip = 0
 	
 	ffxiv_gather.currentTask = {}
 	ffxiv_gather.currentTaskIndex = 0
@@ -42,7 +43,7 @@ function ffxiv_task_gather.Create()
     newinst.idleTimer = 0
 	newinst.filterLevel = true
 	newinst.failedSearches = 0 
-    
+	
     return newinst
 end
 
@@ -765,7 +766,7 @@ function e_gather:execute()
 		-- 5th pass, ixali rare items
 		for i, item in pairs(list) do
 			if (IsIxaliRare(item.id)) then
-				local itemCount = ItemCount(item.id,true)
+				local itemCount = ItemCount(item.id)
 				if (itemCount < 5) then
 					return DoGathering(item)
 				end
@@ -777,7 +778,7 @@ function e_gather:execute()
 		-- 6th pass, semi-rare ixali items
 		for i, item in pairs(list) do
 			if (IsIxaliSemiRare(item.id)) then
-				local itemCount = ItemCount(item.id,true)
+				local itemCount = ItemCount(item.id)
 				if (itemCount < 15) then
 					return DoGathering(item)
 				end

@@ -2660,22 +2660,37 @@ end
 c_recommendequip = inheritsFrom( ml_cause )
 e_recommendequip = inheritsFrom( ml_effect )
 function c_recommendequip:evaluate()
-	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5)) or IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
+	if (IsShopWindowOpen() or (MIsLocked() and not IsFlying()) or MIsLoading() or IsControlOpen("Talk") or
 		not Player.alive or Player.incombat or IsControlOpen("Synthesis") or IsControlOpen("SynthesisSimple") or IsControlOpen("Gathering") or Player:GetFishingState() ~= 0)
 	then
 		return false
 	end	
 	
-	return (gAutoEquip or gForceAutoEquip)
+	if (Now() < (ml_global_information.lastEquip + (1000 * 60 * 5))) then
+		d("[RecommendEquip]: Last equip was too soon ["..tostring(TimeSince(ml_global_information.lastEquip)).."]")
+		return false
+	end
+	
+	if (gBotMode == GetString("questMode")) then
+		d("[RecommendEquip]: Checking quest version ["..tostring(gQuestAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
+		return (gQuestAutoEquip or gForceAutoEquip)
+	else
+		d("[RecommendEquip]: Checking non-quest version ["..tostring(gAutoEquip).."] or ["..tostring(gForceAutoEquip).."]")
+		return (gAutoEquip or gForceAutoEquip)
+	end
+	
+	return false
 end
 function e_recommendequip:execute()
 	if (not IsControlOpen("Character")) then
 		ActionList:Get(10,2):Cast()
 		ml_global_information.Await(500, 2000, function () return IsControlOpen("Character") end)
+		d("[RecommendEquip]: Opened character panel.")
 	else
 		if (not IsControlOpen("RecommendEquip")) then
 			UseControlAction("Character","OpenRecommendEquip")
 			ml_global_information.Await(500, 2000, function () return IsControlOpen("RecommendEquip") end)
+			d("[RecommendEquip]: Open Recommended Equipment panel.")
 		else
 			if (UseControlAction("RecommendEquip","Equip")) then
 				ml_global_information.yield = { 
@@ -2686,6 +2701,7 @@ function e_recommendequip:execute()
 						ml_global_information.lastEquip = Now()
 					end
 				}
+				d("[RecommendEquip]: Equipping recommended gear, setting last use timer.")
 			end
 		end
 	end
@@ -3056,12 +3072,13 @@ function c_switchclass:evaluate()
 	return false
 end
 function e_switchclass:execute()	
+	local job = Player.job
 	local weapon = e_switchclass.weapon
 	if (weapon) then
 		local weaponid = weapon.hqid
 		d("attempting to move weapon ["..tostring(weaponid).."] into equipment")
 		weapon:Move(1000,0)
-		ml_global_information.Await(1000, 2000, function() return IsEquipped(weaponid) end)
+		ml_global_information.Await(1000, 3000, function() return Player.job ~= job end)
 		ml_global_information.lastEquip = 0
 	end
 end
