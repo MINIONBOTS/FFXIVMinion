@@ -643,6 +643,16 @@ function GetPublicProfiles(path,ext)
 	return profiles,profilesDisplay
 end
 
+function ml_global_information.LoadBehaviorFiles()
+	-- Load all our local "bot/addon" BTree files
+	local path = GetStartupPath()  .. "\\LuaMods\\ffxivminion\\Behavior"
+	if (not FolderExists(path)) then
+		FolderCreate(path)
+	end
+	BehaviorManager:LoadBehaviorFromFolder(path)
+ end
+RegisterEventHandler("RefreshBehaviorFiles", ml_global_information.LoadBehaviorFiles)
+
 function DrawFateListUI(self)
 	local vars = self.GUI.vars
 	
