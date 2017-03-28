@@ -4089,36 +4089,14 @@ function HuntingLogsUnlocked()
 	
 	return false
 end
-function GetBestGrindMap()
+function GetBestGrindMapDefault()
 	local mapid = Player.localmapid
 	local level = Player.level
 	
-	local inthanalan = 	mapid == 140 or
-						mapid == 141 or
-						mapid == 145 or
-						mapid == 146 or
-						mapid == 147 or
-						mapid == 140 or
-						mapid == 141 or
-						mapid == 130 or
-						mapid == 131
-						
-	local inshroud =	mapid == 148 or
-						mapid == 152 or
-						mapid == 153 or
-						mapid == 154 or
-						mapid == 132 or --new gridania
-						mapid == 133 --old gridania
-						
-	local inlanoscea = 	mapid == 129 or --upper limsa
-						mapid == 128 or --lower limsa
-						mapid == 134 or
-						mapid == 135 or
-						mapid == 137 or
-						mapid == 138 or
-						mapid == 139 or
-						mapid == 180
-						
+	local inthanalan = 	In(mapid,140,141,145,146,147,140,141,130,131)
+	local inshroud = 	In(mapid,148,152,153,154,132,133)
+	local inlanoscea = 	In(mapid,129,128,134,135,137,138,139,180)
+	
 	if (level < 12) then
 		if (inthanalan) then
 			return 140 --western than
@@ -4149,11 +4127,6 @@ function GetBestGrindMap()
 		return 155 --coerthas
 	elseif (level >= 45 and level < 50) then
 		return 138
-	--
-	--elseif (level < 49) then
-		--return 156
-	--elseif (level <= 49 or (level > 49 and not QuestCompleted(1583))) then
-		--return 147 --north than
 	elseif (level >= 50 and level <= 60 and QuestCompleted(1583) and CanAccessMap(397)) then
 		return 397
 	elseif (level >= 57 and level <= 60 and QuestCompleted(1583) and CanAccessMap(398)) then

@@ -766,6 +766,18 @@ function ml_navigation.Navigate(event, ticks )
 						Player:Stop()
 						return
 					end
+					
+					if IsControlOpen("Talk") then
+						UseControlAction("Talk","Click")
+						ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+						return
+					end
+					
+					if (IsControlOpen("SelectYesno")) then
+						UseControlAction("SelectYesno","Yes")
+						ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
+						return
+					end
 				
 					local nextnode = ml_navigation.path[ ml_navigation.pathindex ]
 					
@@ -780,18 +792,6 @@ function ml_navigation.Navigate(event, ticks )
 					
 		-- OffMeshConnection Navigation
 					if (nextnode.type == "OMC_END") then
-						
-						if IsControlOpen("Talk") then
-							UseControlAction("Talk","Click")
-							ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
-							return
-						end
-						
-						if (IsControlOpen("SelectYesno")) then
-							UseControlAction("SelectYesno","Yes")
-							ml_navigation.lastupdate = ml_navigation.lastupdate + 1500
-							return
-						end
 						
 						ml_navigation.GUI.lastAction = "Ending OMC"
 						

@@ -605,10 +605,10 @@ function ffxivminion.SetMainVars()
 	FFXIV_Common_StealthSmart = ffxivminion.GetSetting("FFXIV_Common_StealthSmart",true)
 	
 	gAutoGrindCode = ffxivminion.GetSetting("gAutoGrindCode",ffxivminion.AutoGrindDefault)
-	gAutoGrindFunction = GetBestGrindMap
+	GetBestGrindMap = GetBestGrindMapDefault
 	local f = loadstring(gAutoGrindCode)
 	if (f ~= nil) then
-		gAutoGrindFunction = f
+		GetBestGrindMap = f
 	else
 		ml_error("Compilation error in auto-grind code:")
 		assert(loadstring(gAutoGrindCode))
@@ -1638,6 +1638,11 @@ function ml_global_information.DrawAutoGrindEditor()
 				
 				local width, height = GUI:GetWindowSize()
 				
+				if (GUI:Button("Reset to Default")) then
+					GUI_Set("gAutoGrindCode",ffxivminion.AutoGrindDefault)
+					GetBestGrindMap = GetBestGrindMapDefault
+				end
+				
 				local changed = false
 				gAutoGrindCode,changed = GUI:InputTextEditor("##autogrind-editor", gAutoGrindCode, 680, 400, GUI.InputTextFlags_AllowTabInput)
 				if (changed) then
@@ -1648,7 +1653,7 @@ function ml_global_information.DrawAutoGrindEditor()
 					if (GUI:Button("Apply",width,20)) then
 						local f = loadstring(gAutoGrindCode)
 						if (f ~= nil) then
-							gAutoGrindFunction = f
+							GetBestGrindMap = f
 							ffxivminion.GUI.autogrind.modified = false
 							ffxivminion.GUI.autogrind.error_text = ""
 						else
