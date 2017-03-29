@@ -12,7 +12,7 @@ ffxiv_radar.GUI = {
 }
 
 -- Check and load Custom List + Preset data.
-local ColourAlpha = 0.7 -- Alpha value for transparent colours.
+local ColourAlpha = 0.8 -- Alpha value for transparent colours.
 local lastupdate = 0
 local RadarList = {}
 local RadarTable = {}
@@ -26,6 +26,7 @@ local CloseColourR,CloseColourG,CloseColourB = 1,0,0
 local ContentID = ""
 local CustomName = ""
 local AddColour = ""
+local HPBarStyles = {"New", "Original"}
 local MainWindowPosx, MainWindowPosy, MainWindowSizex, MainWindowSizey
 -- Tab Data
 local TabVal = 1
@@ -53,8 +54,8 @@ local TabsColours = {
 }
 
 function ffxiv_radar.Init()
-	if Settings.Radar.RadarList == nil then ffxiv_radar.AddPreset() end
-	RadarList = Settings.Radar.RadarList 
+	if Settings.ffxiv_radar.RadarList == nil then ffxiv_radar.AddPreset() end
+	RadarList = Settings.ffxiv_radar.RadarList 
 	ffxiv_radar.SetColours()
 	ffxiv_radar.Settings()
 	ffxiv_radar.UpdateColours()
@@ -75,8 +76,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Show 3D Radar:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
 					GUI:AlignFirstTextHeightToWidgets() GUI:Text("Show 2D Radar:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
 					GUI:NextColumn()
-					ffxiv_radar.Enable3D, changed  = GUI:Checkbox("##Enable3D", ffxiv_radar.Enable3D) if (changed) then Settings.Radar.Enable3D = ffxiv_radar.Enable3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
-					ffxiv_radar.Enable2D, changed  = GUI:Checkbox("##Enable2D", ffxiv_radar.Enable2D) if (changed) then Settings.Radar.Enable2D = ffxiv_radar.Enable2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
+					ffxiv_radar.Enable3D, changed  = GUI:Checkbox("##Enable3D", ffxiv_radar.Enable3D) if (changed) then Settings.ffxiv_radar.Enable3D = ffxiv_radar.Enable3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 3D radar." ) end
+					ffxiv_radar.Enable2D, changed  = GUI:Checkbox("##Enable2D", ffxiv_radar.Enable2D) if (changed) then Settings.ffxiv_radar.Enable2D = ffxiv_radar.Enable2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show 2D radar." ) end
 					GUI:Columns()
 					GUI:Separator()
 					-- Tabs.
@@ -120,13 +121,13 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("EventObjects:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("All:")
 							GUI:NextColumn() -- Toggles.
-							ffxiv_radar.Attackables, changed = GUI:Checkbox("##Attackables", ffxiv_radar.Attackables) if (changed) then Settings.Radar.Attackables = ffxiv_radar.Attackables RadarTable = {} end
-							ffxiv_radar.Fates, changed = GUI:Checkbox("##Fates", ffxiv_radar.Fates) if (changed) then Settings.Radar.Fates = ffxiv_radar.Attackables RadarTable = {} end
-							ffxiv_radar.Gatherables, changed = GUI:Checkbox("##Gatherables", ffxiv_radar.Gatherables) if (changed) then Settings.Radar.Gatherables = ffxiv_radar.Gatherables RadarTable = {} end
-							ffxiv_radar.Players, changed = GUI:Checkbox("##Players", ffxiv_radar.Players) if (changed) then Settings.Radar.Players = ffxiv_radar.Players RadarTable = {} end
-							ffxiv_radar.NPCs, changed = GUI:Checkbox("##NPCs", ffxiv_radar.NPCs) if (changed) then Settings.Radar.NPCs = ffxiv_radar.NPCs RadarTable = {} end
-							ffxiv_radar.EventObjects, changed = GUI:Checkbox("##EventObjects", ffxiv_radar.EventObjects) if (changed) then Settings.Radar.EventObjects = ffxiv_radar.EventObjects RadarTable = {} end
-							ffxiv_radar.All, changed = GUI:Checkbox("##All", ffxiv_radar.All) if (changed) then Settings.Radar.All = ffxiv_radar.All RadarTable = {} end
+							ffxiv_radar.Attackables, changed = GUI:Checkbox("##Attackables", ffxiv_radar.Attackables) if (changed) then Settings.ffxiv_radar.Attackables = ffxiv_radar.Attackables RadarTable = {} end
+							ffxiv_radar.Fates, changed = GUI:Checkbox("##Fates", ffxiv_radar.Fates) if (changed) then Settings.ffxiv_radar.Fates = ffxiv_radar.Attackables RadarTable = {} end
+							ffxiv_radar.Gatherables, changed = GUI:Checkbox("##Gatherables", ffxiv_radar.Gatherables) if (changed) then Settings.ffxiv_radar.Gatherables = ffxiv_radar.Gatherables RadarTable = {} end
+							ffxiv_radar.Players, changed = GUI:Checkbox("##Players", ffxiv_radar.Players) if (changed) then Settings.ffxiv_radar.Players = ffxiv_radar.Players RadarTable = {} end
+							ffxiv_radar.NPCs, changed = GUI:Checkbox("##NPCs", ffxiv_radar.NPCs) if (changed) then Settings.ffxiv_radar.NPCs = ffxiv_radar.NPCs RadarTable = {} end
+							ffxiv_radar.EventObjects, changed = GUI:Checkbox("##EventObjects", ffxiv_radar.EventObjects) if (changed) then Settings.ffxiv_radar.EventObjects = ffxiv_radar.EventObjects RadarTable = {} end
+							ffxiv_radar.All, changed = GUI:Checkbox("##All", ffxiv_radar.All) if (changed) then Settings.ffxiv_radar.All = ffxiv_radar.All RadarTable = {} end
 							GUI:NextColumn() -- Current colours.
 							GUI:ColorButton(ffxiv_radar.AttackablesColour.r,ffxiv_radar.AttackablesColour.g,ffxiv_radar.AttackablesColour.b,ffxiv_radar.AttackablesColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "AttackablesColour" end
 							GUI:ColorButton(ffxiv_radar.FatesColour.r,ffxiv_radar.FatesColour.g,ffxiv_radar.FatesColour.b,ffxiv_radar.FatesColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "FatesColour" end
@@ -138,13 +139,13 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:Columns()
 							GUI:TreePop()
 							-- Update colour from colour picker.
-							if tablecheck == "AttackablesColour" and writedata ~= nil then ffxiv_radar.AttackablesColour = writedata writedata = nil tablecheck = nil Settings.Radar.AttackablesColour = ffxiv_radar.AttackablesColour RadarTable = {}
-							elseif tablecheck == "FatesColour" and writedata ~= nil then ffxiv_radar.FatesColour = writedata writedata = nil tablecheck = nil Settings.Radar.FatesColour = ffxiv_radar.FatesColour RadarTable = {}
-							elseif tablecheck == "GatherablesColour" and writedata ~= nil then ffxiv_radar.GatherablesColour = writedata writedata = nil tablecheck = nil Settings.Radar.GatherablesColour = ffxiv_radar.GatherablesColour RadarTable = {}
-							elseif tablecheck == "PlayersColour" and writedata ~= nil then ffxiv_radar.PlayersColour = writedata writedata = nil tablecheck = nil Settings.Radar.PlayersColour = ffxiv_radar.PlayersColour RadarTable = {}
-							elseif tablecheck == "NPCsColour" and writedata ~= nil then ffxiv_radar.NPCsColour = writedata writedata = nil tablecheck = nil Settings.Radar.NPCsColour = ffxiv_radar.NPCsColour RadarTable = {}
-							elseif tablecheck == "EventObjectsColour" and writedata ~= nil then ffxiv_radar.EventObjectsColour = writedata writedata = nil tablecheck = nil Settings.Radar.EventObjectsColour = ffxiv_radar.EventObjectsColour RadarTable = {}
-							elseif tablecheck == "AllColour" and writedata ~= nil then ffxiv_radar.AllColour = writedata writedata = nil tablecheck = nil Settings.Radar.AllColour = ffxiv_radar.AllColour RadarTable = {}			
+							if tablecheck == "AttackablesColour" and writedata ~= nil then ffxiv_radar.AttackablesColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.AttackablesColour = ffxiv_radar.AttackablesColour RadarTable = {}
+							elseif tablecheck == "FatesColour" and writedata ~= nil then ffxiv_radar.FatesColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.FatesColour = ffxiv_radar.FatesColour RadarTable = {}
+							elseif tablecheck == "GatherablesColour" and writedata ~= nil then ffxiv_radar.GatherablesColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.GatherablesColour = ffxiv_radar.GatherablesColour RadarTable = {}
+							elseif tablecheck == "PlayersColour" and writedata ~= nil then ffxiv_radar.PlayersColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.PlayersColour = ffxiv_radar.PlayersColour RadarTable = {}
+							elseif tablecheck == "NPCsColour" and writedata ~= nil then ffxiv_radar.NPCsColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.NPCsColour = ffxiv_radar.NPCsColour RadarTable = {}
+							elseif tablecheck == "EventObjectsColour" and writedata ~= nil then ffxiv_radar.EventObjectsColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.EventObjectsColour = ffxiv_radar.EventObjectsColour RadarTable = {}
+							elseif tablecheck == "AllColour" and writedata ~= nil then ffxiv_radar.AllColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.AllColour = ffxiv_radar.AllColour RadarTable = {}			
 							end
 						end
 						GUI:Separator()
@@ -160,12 +161,12 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("HW - A Rank:")
 							GUI:AlignFirstTextHeightToWidgets() GUI:Text("HW - S Rank:")
 							GUI:NextColumn() -- Toggles.
-							ffxiv_radar.HuntBRankARR, changed = GUI:Checkbox("##HuntBRankARR", ffxiv_radar.HuntBRankARR) if (changed) then Settings.Radar.HuntBRankARR = ffxiv_radar.HuntBRankARR RadarTable = {} end
-							ffxiv_radar.HuntARankARR, changed = GUI:Checkbox("##HuntARankARR", ffxiv_radar.HuntARankARR) if (changed) then Settings.Radar.HuntARankARR = ffxiv_radar.HuntARankARR RadarTable = {} end
-							ffxiv_radar.HuntSRankARR, changed = GUI:Checkbox("##HuntSRankARR", ffxiv_radar.HuntSRankARR) if (changed) then Settings.Radar.HuntSRankARR = ffxiv_radar.HuntSRankARR RadarTable = {} end
-							ffxiv_radar.HuntBRankHW, changed = GUI:Checkbox("##HuntBRankHW", ffxiv_radar.HuntBRankHW) if (changed) then Settings.Radar.HuntBRankHW = ffxiv_radar.HuntBRankHW RadarTable = {} end
-							ffxiv_radar.HuntARankHW, changed = GUI:Checkbox("##HuntARankHW", ffxiv_radar.HuntARankHW) if (changed) then Settings.Radar.HuntARankHW = ffxiv_radar.HuntARankHW RadarTable = {} end
-							ffxiv_radar.HuntSRankHW, changed = GUI:Checkbox("##HuntSRankHW", ffxiv_radar.HuntSRankHW) if (changed) then Settings.Radar.HuntSRankHW = ffxiv_radar.HuntSRankHW RadarTable = {} end
+							ffxiv_radar.HuntBRankARR, changed = GUI:Checkbox("##HuntBRankARR", ffxiv_radar.HuntBRankARR) if (changed) then Settings.ffxiv_radar.HuntBRankARR = ffxiv_radar.HuntBRankARR RadarTable = {} end
+							ffxiv_radar.HuntARankARR, changed = GUI:Checkbox("##HuntARankARR", ffxiv_radar.HuntARankARR) if (changed) then Settings.ffxiv_radar.HuntARankARR = ffxiv_radar.HuntARankARR RadarTable = {} end
+							ffxiv_radar.HuntSRankARR, changed = GUI:Checkbox("##HuntSRankARR", ffxiv_radar.HuntSRankARR) if (changed) then Settings.ffxiv_radar.HuntSRankARR = ffxiv_radar.HuntSRankARR RadarTable = {} end
+							ffxiv_radar.HuntBRankHW, changed = GUI:Checkbox("##HuntBRankHW", ffxiv_radar.HuntBRankHW) if (changed) then Settings.ffxiv_radar.HuntBRankHW = ffxiv_radar.HuntBRankHW RadarTable = {} end
+							ffxiv_radar.HuntARankHW, changed = GUI:Checkbox("##HuntARankHW", ffxiv_radar.HuntARankHW) if (changed) then Settings.ffxiv_radar.HuntARankHW = ffxiv_radar.HuntARankHW RadarTable = {} end
+							ffxiv_radar.HuntSRankHW, changed = GUI:Checkbox("##HuntSRankHW", ffxiv_radar.HuntSRankHW) if (changed) then Settings.ffxiv_radar.HuntSRankHW = ffxiv_radar.HuntSRankHW RadarTable = {} end
 							GUI:NextColumn() -- Current colours.
 							GUI:ColorButton(ffxiv_radar.HuntBRankARRColour.r,ffxiv_radar.HuntBRankARRColour.g,ffxiv_radar.HuntBRankARRColour.b,ffxiv_radar.HuntBRankARRColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntBRankARRColour" end
 							GUI:ColorButton(ffxiv_radar.HuntARankARRColour.r,ffxiv_radar.HuntARankARRColour.g,ffxiv_radar.HuntARankARRColour.b,ffxiv_radar.HuntARankARRColour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = "HuntARankARRColour" end
@@ -176,12 +177,12 @@ function ffxiv_radar.DrawCall(event, ticks )
 							GUI:Columns()
 							GUI:TreePop()
 							-- Update colour from colour picker.
-							if tablecheck == "HuntBRankARRColour" and writedata ~= nil then ffxiv_radar.HuntBRankARRColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntBRankARRColour = ffxiv_radar.HuntBRankARRColour RadarTable = {}
-							elseif tablecheck == "HuntARankARRColour" and writedata ~= nil then ffxiv_radar.HuntARankARRColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntARankARRColour = ffxiv_radar.HuntARankARRColour RadarTable = {}
-							elseif tablecheck == "HuntSRankARRColour" and writedata ~= nil then ffxiv_radar.HuntSRankARRColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntSRankARRColour = ffxiv_radar.HuntSRankARRColour RadarTable = {}
-							elseif tablecheck == "HuntBRankHWColour" and writedata ~= nil then ffxiv_radar.HuntBRankHWColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntBRankHWColour = ffxiv_radar.HuntBRankHWColour RadarTable = {}
-							elseif tablecheck == "HuntARankHWColour" and writedata ~= nil then ffxiv_radar.HuntARankHWColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntARankHWColour = ffxiv_radar.HuntARankHWColour RadarTable = {}
-							elseif tablecheck == "HuntSRankHWColour" and writedata ~= nil then ffxiv_radar.HuntSRankHWColour = writedata writedata = nil tablecheck = nil Settings.Radar.HuntSRankHWColour = ffxiv_radar.HuntSRankHWColour RadarTable = {}				
+							if tablecheck == "HuntBRankARRColour" and writedata ~= nil then ffxiv_radar.HuntBRankARRColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntBRankARRColour = ffxiv_radar.HuntBRankARRColour RadarTable = {}
+							elseif tablecheck == "HuntARankARRColour" and writedata ~= nil then ffxiv_radar.HuntARankARRColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntARankARRColour = ffxiv_radar.HuntARankARRColour RadarTable = {}
+							elseif tablecheck == "HuntSRankARRColour" and writedata ~= nil then ffxiv_radar.HuntSRankARRColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankARRColour = ffxiv_radar.HuntSRankARRColour RadarTable = {}
+							elseif tablecheck == "HuntBRankHWColour" and writedata ~= nil then ffxiv_radar.HuntBRankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntBRankHWColour = ffxiv_radar.HuntBRankHWColour RadarTable = {}
+							elseif tablecheck == "HuntARankHWColour" and writedata ~= nil then ffxiv_radar.HuntARankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntARankHWColour = ffxiv_radar.HuntARankHWColour RadarTable = {}
+							elseif tablecheck == "HuntSRankHWColour" and writedata ~= nil then ffxiv_radar.HuntSRankHWColour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.HuntSRankHWColour = ffxiv_radar.HuntSRankHWColour RadarTable = {}				
 							end
 						end
 					elseif TabVal == 2 then -- Custom List Tab.
@@ -203,7 +204,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 						if GUI:Button("Add", 70, 20) then 
 							if ContentID ~= "" then
 								RadarList[tonumber(ContentID)] = {["Colour"] = AddColour, ["CustomName"] = CustomName, ["Enabled"] = true}
-								Settings.Radar.RadarList = RadarList
+								Settings.ffxiv_radar.RadarList = RadarList
 								RadarTable = {}
 							end
 						end
@@ -218,13 +219,13 @@ function ffxiv_radar.DrawCall(event, ticks )
 							-- Current colours.
 							GUI:ColorButton(e.Colour.r,e.Colour.g,e.Colour.b,e.Colour.a) if GUI:IsItemClicked(0) then ColourSelector = true tablecheck = i.."Colour" end GUI:NextColumn()
 							-- Set custom name.
-							GUI:PushItemWidth(Size) e.CustomName, changed = GUI:InputText("##CustomName"..i, e.CustomName) if (changed) then Settings.Radar.RadarList = RadarList RadarTable = {} end GUI:PopItemWidth() GUI:NextColumn()
+							GUI:PushItemWidth(Size) e.CustomName, changed = GUI:InputText("##CustomName"..i, e.CustomName) if (changed) then Settings.ffxiv_radar.RadarList = RadarList RadarTable = {} end GUI:PopItemWidth() GUI:NextColumn()
 							-- Toggles.
-							e.Enabled, changed = GUI:Checkbox("##Enabled"..i, e.Enabled) if (changed) then Settings.Radar.RadarList = RadarList RadarTable = {} end GUI:NextColumn()
+							e.Enabled, changed = GUI:Checkbox("##Enabled"..i, e.Enabled) if (changed) then Settings.ffxiv_radar.RadarList = RadarList RadarTable = {} end GUI:NextColumn()
 							-- Delete entry.
-							if GUI:Button("Delete##"..i, 70, 20) then RadarList[i] = nil Settings.Radar.RadarList = RadarList RadarTable = {} end GUI:NextColumn()
+							if GUI:Button("Delete##"..i, 70, 20) then RadarList[i] = nil Settings.ffxiv_radar.RadarList = RadarList RadarTable = {} end GUI:NextColumn()
 							-- Update colour from colour picker.
-							if tablecheck == i.."Colour" and writedata ~= nil then e.Colour = writedata writedata = nil tablecheck = nil Settings.Radar.RadarList = RadarList RadarTable = {} end
+							if tablecheck == i.."Colour" and writedata ~= nil then e.Colour = writedata writedata = nil tablecheck = nil Settings.ffxiv_radar.RadarList = RadarList RadarTable = {} end
 						end
 						GUI:Columns()
 						GUI:TreePop()
@@ -233,29 +234,37 @@ function ffxiv_radar.DrawCall(event, ticks )
 						GUI:Columns(2) GUI:SetColumnOffset(1, 250) -- Column names.
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Show HP Bars:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Black Behind Names:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - HP Bar Style:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Toggle Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text("3D - Custom String Format:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,HP" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Show Names:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Enable Click Through:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Radar Scale (%%):") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Scan Distance:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("2D - Radar Opacity:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end
+						GUI:AlignFirstTextHeightToWidgets() GUI:Text("Text Scale:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end
 						GUI:AlignFirstTextHeightToWidgets() GUI:Text("Add Presets to Custom List:") if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Add Presets into the Custom List, this will not overwrite existing entries." ) end
 						GUI:NextColumn() -- Settings stuff.
 						local Size = GUI:GetContentRegionAvail()
-						ffxiv_radar.ShowHPBars, changed = GUI:Checkbox("##ShowHPBars", ffxiv_radar.ShowHPBars) if (changed) then Settings.Radar.ShowHPBars = ffxiv_radar.ShowHPBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
-						ffxiv_radar.BlackBars, changed = GUI:Checkbox("##BlackBars", ffxiv_radar.BlackBars) if (changed) then Settings.Radar.BlackBars = ffxiv_radar.BlackBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
-						ffxiv_radar.EnableRadarDistance3D, changed = GUI:Checkbox("##EnableRadarDistance3D", ffxiv_radar.EnableRadarDistance3D) if (changed) then Settings.Radar.EnableRadarDistance3D = ffxiv_radar.EnableRadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
-						GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance3D, changed = GUI:SliderInt("##RadarDistance3D", ffxiv_radar.RadarDistance3D,0,300) if (changed) then Settings.Radar.RadarDistance3D = ffxiv_radar.RadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
-						ffxiv_radar.MiniRadarNames, changed = GUI:Checkbox("##MiniRadarNames", ffxiv_radar.MiniRadarNames) if (changed) then Settings.Radar.MiniRadarNames = ffxiv_radar.MiniRadarNames end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
-						ffxiv_radar.ClickThrough, changed = GUI:Checkbox("##ClickThrough", ffxiv_radar.ClickThrough) if (changed) then Settings.Radar.ClickThrough = ffxiv_radar.ClickThrough end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
-						GUI:PushItemWidth(Size) ffxiv_radar.RadarSize, changed = GUI:SliderInt("##RadarSize", ffxiv_radar.RadarSize,20,1000) if (changed) then Settings.Radar.RadarSize = ffxiv_radar.RadarSize end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end GUI:PopItemWidth()
-						GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance2D, changed = GUI:SliderInt("##RadarDistance2D", ffxiv_radar.RadarDistance2D,0,300) if (changed) then Settings.Radar.RadarDistance2D = ffxiv_radar.RadarDistance2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
-						GUI:PushItemWidth(Size) ffxiv_radar.Opacity, changed = GUI:SliderInt("##Opacity", ffxiv_radar.Opacity,0,100) if (changed) then Settings.Radar.Opacity = ffxiv_radar.Opacity ffxiv_radar.UpdateColours() end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end GUI:PopItemWidth()
+						ffxiv_radar.ShowHPBars, changed = GUI:Checkbox("##ShowHPBars", ffxiv_radar.ShowHPBars) if (changed) then Settings.ffxiv_radar.ShowHPBars = ffxiv_radar.ShowHPBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show HP bars on the 3D radar." ) end
+						ffxiv_radar.BlackBars, changed = GUI:Checkbox("##BlackBars", ffxiv_radar.BlackBars) if (changed) then Settings.ffxiv_radar.BlackBars = ffxiv_radar.BlackBars end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Puts a Transparent black bar behind the names for easy reading." ) end
+						GUI:PushItemWidth(Size) ffxiv_radar.HPBarStyle, changed = GUI:Combo("##HPBarStyle", ffxiv_radar.HPBarStyle, HPBarStyles) if (changed) then Settings.ffxiv_radar.HPBarStyle = ffxiv_radar.HPBarStyle end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the style of the HP Bars used on the 3D radar." ) end GUI:PopItemWidth()
+						ffxiv_radar.EnableRadarDistance3D, changed = GUI:Checkbox("##EnableRadarDistance3D", ffxiv_radar.EnableRadarDistance3D) if (changed) then Settings.ffxiv_radar.EnableRadarDistance3D = ffxiv_radar.EnableRadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Toggle Max Distance to show on 3D radar. (Distance Set Below)" ) end
+						GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance3D, changed = GUI:SliderInt("##RadarDistance3D", ffxiv_radar.RadarDistance3D,0,300) if (changed) then Settings.ffxiv_radar.RadarDistance3D = ffxiv_radar.RadarDistance3D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 3D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
+						ffxiv_radar.CustomStringEnabled, changed = GUI:Checkbox("##CustomStringEnabled",ffxiv_radar.CustomStringEnabled) if (changed) then Settings.ffxiv_radar.CustomStringEnabled = ffxiv_radar.CustomStringEnabled end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Enable Custom Strings to be used on the 3D radar" ) end
+						GUI:PushItemWidth(Size) ffxiv_radar.CustomString, changed = GUI:InputText("##CustomString", ffxiv_radar.CustomString) if (changed) then Settings.ffxiv_radar.CustomString = ffxiv_radar.CustomString end  if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Custom Strings formatted as below.\nName,ContentID,ID,Distance,HP" ) end GUI:PopItemWidth()
+						ffxiv_radar.MiniRadarNames, changed = GUI:Checkbox("##MiniRadarNames", ffxiv_radar.MiniRadarNames) if (changed) then Settings.ffxiv_radar.MiniRadarNames = ffxiv_radar.MiniRadarNames end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Show entity names on the 2D radar." ) end
+						ffxiv_radar.ClickThrough, changed = GUI:Checkbox("##ClickThrough", ffxiv_radar.ClickThrough) if (changed) then Settings.ffxiv_radar.ClickThrough = ffxiv_radar.ClickThrough end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Allow clickthrough of the 2D radar.(Must be disabled to move radar)" ) end
+						GUI:PushItemWidth(Size) ffxiv_radar.RadarSize, changed = GUI:SliderInt("##RadarSize", ffxiv_radar.RadarSize,20,1000) if (changed) then Settings.ffxiv_radar.RadarSize = ffxiv_radar.RadarSize end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Scale the size of the 2D radar." ) end GUI:PopItemWidth()
+						GUI:PushItemWidth(Size) ffxiv_radar.RadarDistance2D, changed = GUI:SliderInt("##RadarDistance2D", ffxiv_radar.RadarDistance2D,0,300) if (changed) then Settings.ffxiv_radar.RadarDistance2D = ffxiv_radar.RadarDistance2D end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Max Distance to show on 2D radar. (About 120 is the max for normal entities)" ) end GUI:PopItemWidth()
+						GUI:PushItemWidth(Size) ffxiv_radar.Opacity, changed = GUI:SliderInt("##Opacity", ffxiv_radar.Opacity,0,100) if (changed) then Settings.ffxiv_radar.Opacity = ffxiv_radar.Opacity ffxiv_radar.UpdateColours() end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Opacity/Transparency of the 2D radar." ) end GUI:PopItemWidth()
+						GUI:PushItemWidth(Size) ffxiv_radar.TextScale, changed = GUI:SliderInt("##TextScale", ffxiv_radar.TextScale,50,250) if (changed) then Settings.ffxiv_radar.TextScale = ffxiv_radar.TextScale end if ( GUI:IsItemHovered() ) then GUI:SetTooltip( "Change the Text Scale for the 2D and 3D radar." ) end GUI:PopItemWidth()
 						if GUI:Button("Add Preset Data",Size,20) then ffxiv_radar.AddPreset() end
 						GUI:Columns()
 					end
-				end
+				end 
 				GUI:End()
 			end -- End of main GUI.
 			-- Colour Selection GUI.
@@ -299,51 +308,94 @@ function ffxiv_radar.DrawCall(event, ticks )
 						local eHP = e.hp
 						local eType = e.type
 						local eDistance = e.distance
-							-- Limit render distance if enabled.
-							if ffxiv_radar.EnableRadarDistance3D and eDistance <= (ffxiv_radar.RadarDistance3D-4) or not ffxiv_radar.EnableRadarDistance3D then
-								local Scale
-								Scale = (0.9-round((eDistance/250),3))
-								if Scale < 0.5 then Scale = 0.5 end
-								GUI:SetWindowFontScale(Scale)
-								local screenPos = RenderManager:WorldToScreen(e.pos)
-								if (table.valid(screenPos)) then
-									local stringsize = (GUI:CalcTextSize("["..e.name.."]".."["..tostring(round(eDistance,0)).."]"))
-									local stringheight = GUI:GetWindowFontSize()
-									stringheight = (stringheight*Scale)+4
-									-- Render GUI.
-									if ffxiv_radar.BlackBars then GUI:AddRectFilled((screenPos.x-(stringsize/2)), screenPos.y, (screenPos.x+(stringsize/2))+2, screenPos.y + stringheight, Colours.Transparent.black.colourval,3) end -- Black Behind Name.
-									GUI:AddCircleFilled(screenPos.x-((stringsize)/2) - 8, screenPos.y + (stringheight/2), 5*Scale, eColour.colourval) -- Filled Point Marker (Transparent).
-									GUI:AddCircle(screenPos.x-((stringsize)/2) - 8, screenPos.y + (stringheight/2), 5*Scale,eColour.colourval) -- Point Marker Outline (Solid).
-									GUI:AddText(screenPos.x-((stringsize)/2), screenPos.y, eColour.colourval, "["..e.name.."]".."["..tostring(round(eDistance,0)).."]") -- Name Text
-									if (ffxiv_radar.ShowHPBars and table.valid(eHP) and eHP.max > 0 and eHP.percent <= 100 and e.targetable and e.alive and (eType == 1 or eType == 2 or eType == 3)) then -- HP bar stuff.
-										-- Colour HP bar
-										local Rectangle = {
-											x1 = round((screenPos.x - (62*Scale)),0),
-											y1 = round((screenPos.y + (18*Scale)),0),
-											x2 = round((screenPos.x + (62*Scale)),0),
-											y2 = round((screenPos.y + (32*Scale)),0),
-										}
-										local Rectangle2 = {
-											x1 = round((screenPos.x - (61 * Scale)),0),
-											y1 = round((screenPos.y + (19 * Scale)),0),
-											x2 = round((screenPos.x + (-61 + (122 * (eHP.percent/100))) * Scale),0),
-											y2 = round((screenPos.y + (31 * Scale)),0),
-										}
-										local HPBar = GUI:ColorConvertFloat4ToU32(0,1,0,0.6)
-										--local HPBar = GUI:ColorConvertFloat4ToU32(math.abs((-100+eHP.percent)/100), eHP.percent/100, 0, 1) -- Different Colouring.
-										if eHP.percent >= 50 then
-											HPBar = GUI:ColorConvertFloat4ToU32(2-((eHP.percent/100)*2),1,0,0.6)
-										else
-											HPBar = GUI:ColorConvertFloat4ToU32(1,((eHP.percent*2)/100),0,0.6)
+						-- Limit render distance if enabled.
+						if ffxiv_radar.EnableRadarDistance3D and eDistance <= (ffxiv_radar.RadarDistance3D-4) or not ffxiv_radar.EnableRadarDistance3D then
+							local Scale
+							Scale = (0.9-round((eDistance/250),3))
+							if Scale < 0.5 then Scale = (0.5*(ffxiv_radar.TextScale/100)) else Scale = (Scale*(ffxiv_radar.TextScale/100)) end
+							GUI:SetWindowFontScale(Scale)
+							local screenPos = RenderManager:WorldToScreen(e.pos)
+							if (table.valid(screenPos)) then
+								local EntityString = ""
+								if ffxiv_radar.CustomStringEnabled then
+									EntityString = ""
+									StringTable = string.totable(ffxiv_radar.CustomString,",")
+									if ValidTable(StringTable) then
+										for stringindex,stringval in pairs(StringTable) do
+											if stringval == "Name" then EntityString = EntityString.."["..e.name.."]"
+											elseif stringval == "Distance" then EntityString = EntityString.."["..tostring(round(eDistance,0)).."]"
+											elseif stringval == "ID" then EntityString = EntityString.."["..e.id.."]"
+											elseif stringval == "ContentID" then EntityString = EntityString.."["..e.contentid.."]"
+											elseif stringval == "HP" then EntityString = EntityString.."["..eHP.current.."/"..eHP.max.."]"
+											end
 										end
-										GUI:AddRectFilled(Rectangle2.x1, Rectangle2.y1, Rectangle2.x2, Rectangle2.y2, HPBar,3) -- HP Bar Coloured.
-										GUI:AddRect(Rectangle.x1, Rectangle.y1, Rectangle.x2, Rectangle.y2, Colours.Transparent.white.colourval,3) -- HP Bar Outline.
-										local hpsize = GUI:CalcTextSize(tostring(eHP.percent))
-										GUI:AddText(screenPos.x-(hpsize/2), screenPos.y + (18*Scale), eColour.colourval, tostring(eHP.percent).."%") -- Percentage Text. eColour.colourval
+									end
+								else
+									EntityString = "["..e.name.."]".."["..tostring(round(eDistance,0)).."]"
+								end
+								local stringsize = (GUI:CalcTextSize(EntityString))
+								local stringheight = GUI:GetWindowFontSize()+2
+								-- Render GUI.
+								if ffxiv_radar.BlackBars then GUI:AddRectFilled((screenPos.x-(stringsize/2)), screenPos.y, (screenPos.x+(stringsize/2))+2, screenPos.y + stringheight, Colours.Transparent.black.colourval,3) end -- Black Behind Name.
+									GUI:AddCircleFilled(screenPos.x-((stringsize)/2) - 8*Scale, screenPos.y + (stringheight/2), 5*Scale, eColour.colourval) -- Filled Point Marker (Transparent).
+									GUI:AddCircle(screenPos.x-((stringsize)/2) - 8*Scale, screenPos.y + (stringheight/2), 5*Scale,eColour.colourval) -- Point Marker Outline (Solid).
+									GUI:AddText(screenPos.x-((stringsize)/2), screenPos.y-1, eColour.colourval, EntityString) -- Name Text
+									if (ffxiv_radar.ShowHPBars and table.valid(eHP) and eHP.max > 0 and eHP.percent <= 100 and e.targetable and e.alive and (eType == 1 or eType == 2 or eType == 3)) then -- HP bar stuff.
+										if ffxiv_radar.HPBarStyle == 1 then
+											-- Colour HP bar
+											local Rectangle = {
+												x1 = round((screenPos.x - (62*Scale)),0),
+												y1 = round((screenPos.y + (14*Scale)+(2*Scale)),0),
+												x2 = round((screenPos.x + (62*Scale)),0),
+												y2 = round((screenPos.y + (30*Scale)+(2*Scale)),0),
+											}
+											local Rectangle2 = {
+												x1 = round((screenPos.x - (62 * Scale)),0),
+												y1 = round((screenPos.y + (14 * Scale)+(2*Scale)),0),
+												x2 = round((screenPos.x + (-62 + (124 * (eHP.percent/100))) * Scale),0),
+												y2 = round((screenPos.y + (30 * Scale)+(2*Scale)),0),
+											}
+											local HPBar = GUI:ColorConvertFloat4ToU32(0,1,0,0.6)
+											--local HPBar = GUI:ColorConvertFloat4ToU32(math.abs((-100+eHP.percent)/100), eHP.percent/100, 0, 1) -- Different Colouring.
+											if eHP.percent >= 50 then
+												HPBar = GUI:ColorConvertFloat4ToU32(2-((eHP.percent/100)*2),1,0,ColourAlpha-0.2)
+											else
+												HPBar = GUI:ColorConvertFloat4ToU32(1,((eHP.percent*2)/100),0,ColourAlpha-0.2)
+											end
+											GUI:AddRectFilled(Rectangle2.x1, Rectangle2.y1, Rectangle2.x2, Rectangle2.y2, HPBar,3) -- HP Bar Coloured.
+											GUI:AddRect(Rectangle.x1, Rectangle.y1, Rectangle.x2, Rectangle.y2, Colours.Transparent.white.colourval,3) -- HP Bar Outline.
+											local hpsize = GUI:CalcTextSize(tostring(eHP.percent))
+											GUI:AddText(screenPos.x-(hpsize/2), screenPos.y + (15*Scale)+(2*Scale), eColour.colourval, tostring(eHP.percent).."%") -- Percentage Text. eColour.colourval
+										elseif ffxiv_radar.HPBarStyle == 2 then
+											-- Colour HP bar
+											local Rectangle = {
+												x1 = round((screenPos.x - (82*Scale)),0),
+												y1 = round((screenPos.y + (17*Scale)+(2*Scale)),0),
+												x2 = round((screenPos.x + (42*Scale)),0),
+												y2 = round((screenPos.y + (23*Scale)+(2*Scale)),0),
+											}
+											local Rectangle2 = {
+												x1 = round((screenPos.x - (82 * Scale)),0),
+												y1 = round((screenPos.y + (17 * Scale)+(2*Scale)),0),
+												x2 = round((screenPos.x + (-82 + (124 * (eHP.percent/100))) * Scale),0),
+												y2 = round((screenPos.y + (23 * Scale)+(2*Scale)),0),
+											}
+											local HPBar = GUI:ColorConvertFloat4ToU32(0,1,0,0.6)
+											--local HPBar = GUI:ColorConvertFloat4ToU32(math.abs((-100+eHP.percent)/100), eHP.percent/100, 0, 1) -- Different Colouring.
+											if eHP.percent >= 50 then
+												HPBar = GUI:ColorConvertFloat4ToU32(2-((eHP.percent/100)*2),1,0,ColourAlpha)
+											else
+												HPBar = GUI:ColorConvertFloat4ToU32(1,((eHP.percent*2)/100),0,ColourAlpha)
+											end
+											GUI:AddRectFilled(Rectangle2.x1, Rectangle2.y1, Rectangle2.x2, Rectangle2.y2, HPBar) -- HP Bar Coloured.
+											GUI:AddRect(Rectangle.x1, Rectangle.y1, Rectangle.x2, Rectangle.y2, Colours.Transparent.white.colourval) -- HP Bar Outline.
+											--if ffxiv_radar.BlackBars then local hpsize = GUI:CalcTextSize(tostring(eHP.percent.."%%")) GUI:AddRectFilled(screenPos.x+(50*Scale), screenPos.y+(16*Scale),screenPos.x+(47*Scale)+hpsize, screenPos.y+(13*Scale)+stringheight, Colours.Transparent.black.colourval,3) end -- Black Behind Name.
+											GUI:AddText(screenPos.x+(45*Scale)+2, screenPos.y+(13*Scale)+(2*Scale), eColour.colourval, tostring(eHP.percent).."%") -- Percentage Text. eColour.colourval
+										end
 									end
 								end
-								GUI:SetWindowFontScale(1)
 							end
+							GUI:SetWindowFontScale(1)
 						end
 					end
 					GUI:End()
@@ -384,12 +436,12 @@ function ffxiv_radar.DrawCall(event, ticks )
 							if e.distance2d <= (ffxiv_radar.RadarDistance2D-4) then
 								local EntityPosX = (((ePOS.x-PlayerPOS.x)/ffxiv_radar.RadarDistance2D)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
 								local EntityPosY = (((ePOS.z-PlayerPOS.z)/ffxiv_radar.RadarDistance2D)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
-								GUI:AddCircleFilled(EntityPosX,EntityPosY, 4, eColour.radar) -- Filled Point Marker (Transparent).
-								GUI:AddCircle(EntityPosX,EntityPosY, 4, eColour.radar) -- Point Marker Outline (Transparent).
+								GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.radar) -- Filled Point Marker (Transparent).
+								GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.colourval) -- Point Marker Outline (Transparent).
 								-- Name Toggle.
 								if ffxiv_radar.MiniRadarNames then
-									GUI:SetWindowFontScale(0.8)
-									GUI:AddText(EntityPosX+8, EntityPosY-5, eColour.radar, e.name) -- Entity name (Transparent).
+									GUI:SetWindowFontScale((0.8*(ffxiv_radar.TextScale/100)))
+									GUI:AddText(EntityPosX+(8*(ffxiv_radar.TextScale/100)), EntityPosY-(5*(ffxiv_radar.TextScale/100)), eColour.colourval, e.name) -- Entity name (Transparent).
 									GUI:SetWindowFontScale(1)
 								end
 							end
@@ -403,8 +455,6 @@ function ffxiv_radar.DrawCall(event, ticks )
 				end -- End of 2D radar.
 			end
 		end
-	else
-	--32bit
 	end
 end
 
@@ -424,6 +474,8 @@ function ffxiv_radar.Radar() -- Table
 						if radardata.cangather ~= GetEntityList.cangather then RadarTable[radarindex] = nil end 
 						-- Fix for friendly targets not being friendly until closer range.
 						if not radardata.friendly and GetEntityList.friendly then RadarTable[radarindex] = nil end 
+						-- Fix for names not showing on NPC's right away...
+						if not radardata.CustomName and radardata.name ~= GetEntityList.name then radardata.name = GetEntityList.name end
 						radardata.hp = GetEntityList.hp
 						radardata.pos = GetEntityList.pos
 						radardata.distance2d = GetEntityList.distance2d
@@ -434,13 +486,13 @@ function ffxiv_radar.Radar() -- Table
 					end
 				end
 			end
-			
 			-- Add New Data.
 			for i,e in pairs(EntityTable) do
 				local ID = e.id
 				if RadarTable[ID] == nil then
 					local Colour = ""
 					local Draw = false
+					local CustomName = false
 					local econtentid = e.contentid
 					local eattackable = e.attackable
 					local efriendly = e.friendly
@@ -449,8 +501,9 @@ function ffxiv_radar.Radar() -- Table
 					--if ffxiv_radar.InvalidNames and ename ~= "?" and ename ~= "" or not ffxiv_radar.InvalidNames then
 						if RadarList[econtentid] ~= nil and RadarList[econtentid].Enabled then -- Custom List
 							Colour = RadarList[econtentid].Colour
-							if RadarList[econtentid].CustomName ~= "" then ename = RadarList[econtentid].CustomName end -- Custom name overwite.
+							if RadarList[econtentid].CustomName ~= "" then d("Updating Name") ename = RadarList[econtentid].CustomName end -- Custom name overwite.
 							Draw = true
+							CustomName = true
 						-- Hunts.
 						elseif ((ffxiv_radar.All or ffxiv_radar.HuntSRankHW) and (econtentid == 4374 or econtentid == 4375 or econtentid == 4376 or econtentid == 4377 or econtentid == 4378 or econtentid == 4380)) then -- HW S Rank.
 							Colour = ffxiv_radar.HuntSRankHWColour
@@ -503,7 +556,7 @@ function ffxiv_radar.Radar() -- Table
 						end
 						if Draw then -- Write to table.
 							ename = ename or e.name
-							local dataset = { id = ID, attackable = eattackable, contentid = econtentid, name = ename, pos = e.pos, distance2d = e.distance2d, distance = e.distance, alive = e.alive, hp = e.hp, ["type"] = etype, Colour = Colour, targetable = e.targetable, friendly = e.friendly, cangather = e.cangather }
+							local dataset = { CustomName = CustomName, id = ID, attackable = eattackable, contentid = econtentid, name = ename, pos = e.pos, distance2d = e.distance2d, distance = e.distance, alive = e.alive, hp = e.hp, ["type"] = etype, Colour = Colour, targetable = e.targetable, friendly = e.friendly, cangather = e.cangather }
 							RadarTable[ID] = dataset
 						end
 					--end
@@ -532,7 +585,7 @@ function ffxiv_radar.AddPreset()
 	for i,e in pairs(PresetData) do
 		if RadarList[i] == nil then RadarList[i] = e end
 	end
-	Settings.Radar.RadarList = RadarList
+	Settings.ffxiv_radar.RadarList = RadarList
 end
 
 function ffxiv_radar.SetColours()
@@ -568,32 +621,32 @@ function ffxiv_radar.SetColours()
 		},
 		Transparent = {
 			white = { r = 1.0, g = 1.0, b = 1.0, a = ColourAlpha, name = white, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,1.0,ColourAlpha-0.2) },
-			lightgrey = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = lightgrey, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.3) },
-			silver = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = silver, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.4) },
-			gray = { r = 0.5, g = 0.5, b = 0.5, a = ColourAlpha, name = gray, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha-0.5) },
-			black = { r = 0.0, g = 0.0, b = 0.0, a = ColourAlpha, name = black, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha-0.6) },
-			maroon = { r = 0.5, g = 0.0, b = 0.0, a = ColourAlpha, name = maroon, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha-0.7) },
-			brown = { r = 0.6, g = 0.2, b = 0.2, a = ColourAlpha, name = brown, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha-0.8) },
-			red = { r = 1.0, g = 0.0, b = 0.0, a = ColourAlpha, name = red, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha-0.9) },
-			orange = { r = 1.0, g = 0.5, b = 0.0, a = ColourAlpha, name = orange, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha-0.10) },
-			gold = { r = 1.0, g = 0.8, b = 0.0, a = ColourAlpha, name = gold, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha-0.11) },
-			yellow = { r = 1.0, g = 1.0, b = 0.0, a = ColourAlpha, name = yellow, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha-0.12) },
-			limegreen = { r = 0.0, g = 1.0, b = 0.0, a = ColourAlpha, name = limegreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha-0.13) },
-			emeraldgreen = { r = 0.0, g = 0.8, b = 0.3, a = ColourAlpha, name = emeraldgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha-0.14) },
-			green = { r = 0.0, g = 0.5, b = 0.0, a = ColourAlpha, name = green, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha-0.15) },
-			forestgreen = { r = 0.1, g = 0.5, b = 0.1, a = ColourAlpha, name = forestgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha-0.16) },
-			manganeseblue = { r = 0.0, g = 0.7, b = 0.6, a = ColourAlpha, name = manganeseblue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha-0.17) },
-			turquoise = { r = 0.3, g = 0.9, b = 0.8, a = ColourAlpha, name = turquoise, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha-0.18) },
-			cyan = { r = 0.0, g = 1.0, b = 1.0, a = ColourAlpha, name = cyan, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha-0.19) },
-			blue = { r = 0.0, g = 0.0, b = 1.0, a = ColourAlpha, name = blue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha-0.20) },
-			navy = { r = 0.0, g = 0.0, b = 0.5, a = ColourAlpha, name = navy, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha-0.21) },
-			indigo = { r = 0.3, g = 0.0, b = 0.5, a = ColourAlpha, name = indigo, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha-0.22) },
-			blueviolet = { r = 0.5, g = 0.2, b = 0.9, a = ColourAlpha, name = blueviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha-0.23) },
-			darkviolet = { r = 0.6, g = 0.0, b = 0.8, a = ColourAlpha, name = darkviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha-0.24) },
-			purple = { r = 0.5, g = 0.0, b = 0.5, a = ColourAlpha, name = purple, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha-0.25) },
-			magenta = { r = 1.0, g = 0.0, b = 1.0, a = ColourAlpha, name = magenta, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha-0.26) },
-			hotpink = { r = 1.0, g = 0.4, b = 0.7, a = ColourAlpha, name = hotpink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha-0.27) },
-			pink = { r = 1.0, g = 0.8, b = 0.8, a = ColourAlpha, name = pink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha-0.28) },
+			lightgrey = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = lightgrey, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.2) },
+			silver = { r = 0.8, g = 0.8, b = 0.8, a = ColourAlpha, name = silver, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.8,0.8,0.8,ColourAlpha-0.2) },
+			gray = { r = 0.5, g = 0.5, b = 0.5, a = ColourAlpha, name = gray, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.5,0.5,ColourAlpha-0.2) },
+			black = { r = 0.0, g = 0.0, b = 0.0, a = ColourAlpha, name = black, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.0,ColourAlpha-0.2) },
+			maroon = { r = 0.5, g = 0.0, b = 0.0, a = ColourAlpha, name = maroon, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.0,ColourAlpha-0.2) },
+			brown = { r = 0.6, g = 0.2, b = 0.2, a = ColourAlpha, name = brown, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.2,0.2,ColourAlpha-0.2) },
+			red = { r = 1.0, g = 0.0, b = 0.0, a = ColourAlpha, name = red, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,0.0,ColourAlpha-0.2) },
+			orange = { r = 1.0, g = 0.5, b = 0.0, a = ColourAlpha, name = orange, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.5,0.0,ColourAlpha-0.2) },
+			gold = { r = 1.0, g = 0.8, b = 0.0, a = ColourAlpha, name = gold, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.0,ColourAlpha-0.2) },
+			yellow = { r = 1.0, g = 1.0, b = 0.0, a = ColourAlpha, name = yellow, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,1.0,0.0,ColourAlpha-0.2) },
+			limegreen = { r = 0.0, g = 1.0, b = 0.0, a = ColourAlpha, name = limegreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,0.0,ColourAlpha-0.2) },
+			emeraldgreen = { r = 0.0, g = 0.8, b = 0.3, a = ColourAlpha, name = emeraldgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.8,0.3,ColourAlpha-0.2) },
+			green = { r = 0.0, g = 0.5, b = 0.0, a = ColourAlpha, name = green, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.5,0.0,ColourAlpha-0.2) },
+			forestgreen = { r = 0.1, g = 0.5, b = 0.1, a = ColourAlpha, name = forestgreen, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.1,0.5,0.1,ColourAlpha-0.2) },
+			manganeseblue = { r = 0.0, g = 0.7, b = 0.6, a = ColourAlpha, name = manganeseblue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.7,0.6,ColourAlpha-0.2) },
+			turquoise = { r = 0.3, g = 0.9, b = 0.8, a = ColourAlpha, name = turquoise, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.9,0.8,ColourAlpha-0.2) },
+			cyan = { r = 0.0, g = 1.0, b = 1.0, a = ColourAlpha, name = cyan, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,1.0,1.0,ColourAlpha-0.2) },
+			blue = { r = 0.0, g = 0.0, b = 1.0, a = ColourAlpha, name = blue, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,1.0,ColourAlpha-0.2) },
+			navy = { r = 0.0, g = 0.0, b = 0.5, a = ColourAlpha, name = navy, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.0,0.0,0.5,ColourAlpha-0.2) },
+			indigo = { r = 0.3, g = 0.0, b = 0.5, a = ColourAlpha, name = indigo, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.3,0.0,0.5,ColourAlpha-0.2) },
+			blueviolet = { r = 0.5, g = 0.2, b = 0.9, a = ColourAlpha, name = blueviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.2,0.9,ColourAlpha-0.2) },
+			darkviolet = { r = 0.6, g = 0.0, b = 0.8, a = ColourAlpha, name = darkviolet, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.6,0.0,0.8,ColourAlpha-0.2) },
+			purple = { r = 0.5, g = 0.0, b = 0.5, a = ColourAlpha, name = purple, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(0.5,0.0,0.5,ColourAlpha-0.2) },
+			magenta = { r = 1.0, g = 0.0, b = 1.0, a = ColourAlpha, name = magenta, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.0,1.0,ColourAlpha-0.2) },
+			hotpink = { r = 1.0, g = 0.4, b = 0.7, a = ColourAlpha, name = hotpink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.4,0.7,ColourAlpha-0.2) },
+			pink = { r = 1.0, g = 0.8, b = 0.8, a = ColourAlpha, name = pink, colourtype = solid, colourval = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha), radar = GUI:ColorConvertFloat4ToU32(1.0,0.8,0.8,ColourAlpha-0.2) },
 		},
 	}
 end
@@ -634,48 +687,54 @@ end
 function ffxiv_radar.Settings()
 	AddColour = Colours.Solid.white
 	-- Radar Settings.
-	ffxiv_radar.ShowHPBars = Settings.Radar.ShowHPBars or true
-	ffxiv_radar.BlackBars = Settings.Radar.BlackBars or true
-	ffxiv_radar.EnableRadarDistance3D = Settings.Radar.EnableRadarDistance3D or false
-	ffxiv_radar.RadarDistance3D = Settings.Radar.RadarDistance3D or 100
-	ffxiv_radar.MiniRadarNames = Settings.Radar.MiniRadarNames or false
-	ffxiv_radar.ClickThrough = Settings.Radar.ClickThrough or false
-	ffxiv_radar.RadarSize = Settings.Radar.RadarSize or 100
-	ffxiv_radar.RadarDistance2D = Settings.Radar.RadarDistance2D or 100
-	ffxiv_radar.Opacity = Settings.Radar.Opacity or 70
+	if Settings.ffxiv_radar.ShowHPBars == nil then Settings.ffxiv_radar.ShowHPBars = true end
+	ffxiv_radar.ShowHPBars = Settings.ffxiv_radar.ShowHPBars
+	if Settings.ffxiv_radar.BlackBars == nil then Settings.ffxiv_radar.BlackBars = true end
+	ffxiv_radar.BlackBars = Settings.ffxiv_radar.BlackBars
+	ffxiv_radar.EnableRadarDistance3D = Settings.ffxiv_radar.EnableRadarDistance3D or false
+	ffxiv_radar.RadarDistance3D = Settings.ffxiv_radar.RadarDistance3D or 100
+	ffxiv_radar.MiniRadarNames = Settings.ffxiv_radar.MiniRadarNames or false
+	ffxiv_radar.ClickThrough = Settings.ffxiv_radar.ClickThrough or false
+	ffxiv_radar.RadarSize = Settings.ffxiv_radar.RadarSize or 100
+	ffxiv_radar.RadarDistance2D = Settings.ffxiv_radar.RadarDistance2D or 100
+	ffxiv_radar.Opacity = Settings.ffxiv_radar.Opacity or 70
+	ffxiv_radar.TextScale = Settings.ffxiv_radar.TextScale or 100
+	ffxiv_radar.HPBarStyle = Settings.ffxiv_radar.HPBarStyle or 1
+	ffxiv_radar.CustomStringEnabled = Settings.ffxiv_radar.CustomStringEnabled or false
+	ffxiv_radar.CustomString = Settings.ffxiv_radar.CustomString or "Name,Distance"
 	-- General Filter Toggles.
-	ffxiv_radar.Attackables = Settings.Radar.Attackables or false
-	ffxiv_radar.Fates = Settings.Radar.Fates or false
-	ffxiv_radar.Gatherables = Settings.Radar.Gatherables or false
-	ffxiv_radar.Players = Settings.Radar.Players or false
-	ffxiv_radar.NPCs = Settings.Radar.NPCs or false
-	ffxiv_radar.EventObjects = Settings.Radar.EventObjects or false
-	ffxiv_radar.All = Settings.Radar.All or false
+	ffxiv_radar.Attackables = Settings.ffxiv_radar.Attackables or false
+	ffxiv_radar.Fates = Settings.ffxiv_radar.Fates or false
+	ffxiv_radar.Gatherables = Settings.ffxiv_radar.Gatherables or false
+	ffxiv_radar.Players = Settings.ffxiv_radar.Players or false
+	ffxiv_radar.NPCs = Settings.ffxiv_radar.NPCs or false
+	ffxiv_radar.EventObjects = Settings.ffxiv_radar.EventObjects or false
+	ffxiv_radar.All = Settings.ffxiv_radar.All or false
 	-- Radar Togglea.
-	ffxiv_radar.Enable3D = Settings.Radar.Enable3D or false
-	ffxiv_radar.Enable2D = Settings.Radar.Enable2D or false
+	ffxiv_radar.Enable3D = Settings.ffxiv_radar.Enable3D or false
+	ffxiv_radar.Enable2D = Settings.ffxiv_radar.Enable2D or false
 	-- General Filter Colour Values.
-	ffxiv_radar.AttackablesColour = Settings.Radar.AttackablesColour or Colours.Solid.red
-	ffxiv_radar.FatesColour = Settings.Radar.FatesColour or Colours.Solid.pink
-	ffxiv_radar.GatherablesColour = Settings.Radar.GatherablesColour or Colours.Solid.green 
-	ffxiv_radar.PlayersColour = Settings.Radar.PlayersColour or Colours.Solid.blue
-	ffxiv_radar.NPCsColour = Settings.Radar.NPCsColour or Colours.Solid.yellow
-	ffxiv_radar.EventObjectsColour = Settings.Radar.EventObjectsColour or Colours.Solid.cyan
-	ffxiv_radar.AllColour = Settings.Radar.AllColour or Colours.Solid.gray
+	ffxiv_radar.AttackablesColour = Settings.ffxiv_radar.AttackablesColour or Colours.Solid.red
+	ffxiv_radar.FatesColour = Settings.ffxiv_radar.FatesColour or Colours.Solid.pink
+	ffxiv_radar.GatherablesColour = Settings.ffxiv_radar.GatherablesColour or Colours.Solid.green 
+	ffxiv_radar.PlayersColour = Settings.ffxiv_radar.PlayersColour or Colours.Solid.blue
+	ffxiv_radar.NPCsColour = Settings.ffxiv_radar.NPCsColour or Colours.Solid.yellow
+	ffxiv_radar.EventObjectsColour = Settings.ffxiv_radar.EventObjectsColour or Colours.Solid.cyan
+	ffxiv_radar.AllColour = Settings.ffxiv_radar.AllColour or Colours.Solid.gray
 	-- Hunt Filter Toggles.
-	ffxiv_radar.HuntBRankARR = Settings.Radar.HuntBRankARR or false
-	ffxiv_radar.HuntARankARR = Settings.Radar.HuntARankARR or false
-	ffxiv_radar.HuntSRankARR = Settings.Radar.HuntSRankARR or false
-	ffxiv_radar.HuntBRankHW = Settings.Radar.HuntBRankHW or false
-	ffxiv_radar.HuntARankHW = Settings.Radar.HuntARankHW or false
-	ffxiv_radar.HuntSRankHW = Settings.Radar.HuntSRankHW or false
+	ffxiv_radar.HuntBRankARR = Settings.ffxiv_radar.HuntBRankARR or false
+	ffxiv_radar.HuntARankARR = Settings.ffxiv_radar.HuntARankARR or false
+	ffxiv_radar.HuntSRankARR = Settings.ffxiv_radar.HuntSRankARR or false
+	ffxiv_radar.HuntBRankHW = Settings.ffxiv_radar.HuntBRankHW or false
+	ffxiv_radar.HuntARankHW = Settings.ffxiv_radar.HuntARankHW or false
+	ffxiv_radar.HuntSRankHW = Settings.ffxiv_radar.HuntSRankHW or false
 	-- Hunt Filter Colour Values.
-	ffxiv_radar.HuntBRankARRColour = Settings.Radar.HuntBRankARRColour or Colours.Solid.orange
-	ffxiv_radar.HuntARankARRColour = Settings.Radar.HuntARankARRColour or Colours.Solid.magenta
-	ffxiv_radar.HuntSRankARRColour = Settings.Radar.HuntSRankARRColour or Colours.Solid.white
-	ffxiv_radar.HuntBRankHWColour = Settings.Radar.HuntBRankHWColour or Colours.Solid.orange
-	ffxiv_radar.HuntARankHWColour = Settings.Radar.HuntARankHWColour or Colours.Solid.magenta
-	ffxiv_radar.HuntSRankHWColour = Settings.Radar.HuntSRankHWColour or Colours.Solid.white
+	ffxiv_radar.HuntBRankARRColour = Settings.ffxiv_radar.HuntBRankARRColour or Colours.Solid.orange
+	ffxiv_radar.HuntARankARRColour = Settings.ffxiv_radar.HuntARankARRColour or Colours.Solid.magenta
+	ffxiv_radar.HuntSRankARRColour = Settings.ffxiv_radar.HuntSRankARRColour or Colours.Solid.white
+	ffxiv_radar.HuntBRankHWColour = Settings.ffxiv_radar.HuntBRankHWColour or Colours.Solid.orange
+	ffxiv_radar.HuntARankHWColour = Settings.ffxiv_radar.HuntARankHWColour or Colours.Solid.magenta
+	ffxiv_radar.HuntSRankHWColour = Settings.ffxiv_radar.HuntSRankHWColour or Colours.Solid.white
 end
 
 
