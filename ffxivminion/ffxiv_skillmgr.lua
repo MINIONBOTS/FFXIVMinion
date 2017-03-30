@@ -674,6 +674,16 @@ function SkillMgr.ModuleInit()
 	gSMCraftConditions = { GetString("notused"),GetString("excellent"),GetString("good"),GetString("normal"),GetString("poor") }
 	gSMCraftConditionIndex = 1
 	
+	gSMBattleStatuses = { GetString("In Combat"), GetString("Out of Combat"), GetString("Any") }
+	gSMBattleStatusIndex = 1
+	
+	gSMFilterStatuses = { "Ignore","On","Off" }
+	gSMFilter1Index = 1
+	gSMFilter2Index = 1
+	gSMFilter3Index = 1
+	gSMFilter4Index = 1
+	gSMFilter5Index = 1
+	
 	for i = 1,5 do
 		if (type(_G["gAssistFilter"..tostring(i)]) ~= "boolean") then
 			_G["gAssistFilter"..tostring(i)] = toboolean(_G["gAssistFilter"..tostring(i)])
@@ -2765,13 +2775,13 @@ function SkillMgr.Craft()
 				local castable = true
 				
 				--Single use check
-				if (skill.singleuseonly and SkillMgr.prevSkillList[skillid]) then
+				if (skill.singleuseonly and SkillMgr.prevSkillList[prio]) then
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked single use only and has already been used.")
 					castable = false
 				end
 				
 				--Consecutive use check
-				if (skill.consecutiveuseonly and SkillMgr.prevSkillList[skillid]) then
+				if (skill.consecutiveuseonly and SkillMgr.prevSkillList[prio]) then
 					SkillMgr.DebugOutput(prio, "["..skill.name.."] is marked for consecutive use only and has already been used.")
 					castable = false
 				end
@@ -2943,6 +2953,8 @@ function SkillMgr.Craft()
 						d("CASTING(Crafting): ["..tostring(prio).."] : "..tostring(skill.name).." : "..tostring(skillid))	
 						SkillMgr.lastquality = currentQuality
 						local thisPrio = prio
+						local singleuseonly = skill.singleuseonly
+						local consecutiveuseonly = skill.consecutiveuseonly
 						
 						local ret = realskilldata:Cast(Player.id)
 						local successFunction = function ()
@@ -2954,12 +2966,18 @@ function SkillMgr.Craft()
 								SkillMgr.manipulationUses = SkillMgr.manipulationUses + 1
 							end
 
-							SkillMgr.prevSkillList[skillid] = true
-							SkillMgr.tempPrevSkillList[thisPrio] = skillid
+							if (singleuseonly) then
+								SkillMgr.prevSkillList[thisPrio] = true
+							end
+							
+							if (consecutiveuseonly) then
+								SkillMgr.tempPrevSkillList[thisPrio] = true
+							end
+							
 							if (table.valid(SkillMgr.tempPrevSkillList)) then
 								for kprio,kskillid in pairsByKeys(SkillMgr.tempPrevSkillList) do
 									if (kprio < thisPrio) then
-										SkillMgr.prevSkillList[kskillid] = true
+										SkillMgr.prevSkillList[kprio] = true
 									end
 								end								
 							end							
@@ -5538,6 +5556,43 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(2,"#battle-basic-main",false)
 		GUI:SetColumnOffset(1,150); GUI:SetColumnOffset(2,300);
 		
+		GUI:Text(GetString("Combat Status")); GUI:NextColumn(); SKM_Combo("##SKM_Combat","gSMBattleStatusIndex","SKM_Combat",gSMBattleStatuses); GUI:NextColumn();
+		GUI:Text(GetString("skmCHARGE")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_CHARGE",SKM_CHARGE),"SKM_CHARGE"); GUI:NextColumn();
+		GUI:Text(GetString("appliesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_DOBUFF",SKM_DOBUFF),"SKM_DOBUFF"); GUI:NextColumn();
+		GUI:Text(GetString("removesBuff")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_REMOVESBUFF",SKM_REMOVESBUFF),"SKM_REMOVESBUFF"); GUI:NextColumn();
+		
+		GUI:Text(GetString("skmLevelMin")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_LevelMin",SKM_LevelMin,0,0),"SKM_LevelMin"); GUI:NextColumn();
+		GUI:Text(GetString("skmLevelMax")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_LevelMax",SKM_LevelMax,0,0),"SKM_LevelMax"); GUI:NextColumn();
+		
+		GUI:Text(GetString("minRange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MinR",SKM_MinR,0,0),"SKM_MinR"); GUI:NextColumn();
+		GUI:Text(GetString("maxRange")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_MaxR",SKM_MaxR,0,0),"SKM_MaxR"); GUI:NextColumn();
+		
+		GUI:Text(GetString("prevComboSkill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PCSkillID",SKM_PCSkillID),"SKM_PCSkillID"); GUI:NextColumn();
+		GUI:Text(GetString("prevComboSkillNot")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPCSkillID",SKM_NPCSkillID),"SKM_NPCSkillID"); GUI:NextColumn();
+		
+		GUI:Text(GetString("Previous GCD Skill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PGSkillID",SKM_PGSkillID),"SKM_PGSkillID"); GUI:NextColumn();
+		GUI:Text(GetString("Previous GCD Skill NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPGSkillID",SKM_NPGSkillID),"SKM_NPGSkillID"); GUI:NextColumn();
+		
+		GUI:Text(GetString("Previous Skill")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_PSkillID",SKM_PSkillID),"SKM_PSkillID"); GUI:NextColumn();
+		GUI:Text(GetString("Previous Skill NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NPSkillID",SKM_NPSkillID),"SKM_NPSkillID"); GUI:NextColumn();
+		
+		GUI:Text(GetString("Current Action NOT")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_NCURRENTACTION",SKM_NCURRENTACTION),"SKM_NCURRENTACTION"); GUI:NextColumn();
+		
+		GUI:Text(GetString("filter1")); GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
+		GUI:Text(GetString("filter2")); GUI:NextColumn(); SKM_Combo("##SKM_FilterTwo","gSMFilter2Index","SKM_FilterTwo",gSMFilterStatuses); GUI:NextColumn();
+		GUI:Text(GetString("filter3")); GUI:NextColumn(); SKM_Combo("##SKM_FilterThree","gSMFilter3Index","SKM_FilterThree",gSMFilterStatuses); GUI:NextColumn();
+		GUI:Text(GetString("filter4")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFour","gSMFilter4Index","SKM_FilterFour",gSMFilterStatuses); GUI:NextColumn();
+		GUI:Text(GetString("filter5")); GUI:NextColumn(); SKM_Combo("##SKM_FilterFive","gSMFilter5Index","SKM_FilterFive",gSMFilterStatuses); GUI:NextColumn();
+		
+		GUI:Text(GetString("onlySolo")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlySolo",SKM_OnlySolo),"SKM_OnlySolo"); GUI:NextColumn();
+		GUI:Text(GetString("onlyParty")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_OnlyParty",SKM_OnlyParty),"SKM_OnlyParty"); GUI:NextColumn();
+		
+		GUI:Text(GetString("Party Size <=")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputInt("##SKM_PartySizeLT",SKM_PartySizeLT,0,0),"SKM_PartySizeLT"); GUI:NextColumn();
+		GUI:Text(GetString("secsSinceLastCast")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassed",SKM_SecsPassed),"SKM_SecsPassed"); GUI:NextColumn();
+		GUI:Text(GetString("Secs Passed Unique")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:InputText("##SKM_SecsPassedUnique",SKM_SecsPassedUnique),"SKM_SecsPassedUnique"); GUI:NextColumn();
+		
+		--GUI:Text(GetString("skillChecks")); GUI:NextColumn(); SKM_Combo("##SKM_FilterOne","gSMFilter1Index","SKM_FilterOne",gSMFilterStatuses); GUI:NextColumn();
+		
 		GUI:Columns(1)
 	end
 	
@@ -5566,40 +5621,9 @@ function SkillMgr.DrawBattleEditor()
 		GUI:Columns(1)
 	end
 	
-	--[[
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmCombat"),"SKM_Combat",GetString("skillDetails"),"In Combat,Out of Combat,Any")
-	GUI_NewField(SkillMgr.editwindow.name,GetString("maMarkerID"),"SKM_ID",GetString("skillDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("enabled"),"SKM_ON",GetString("skillDetails"))
+	GUI:Text(GetString("Single Use")); GUI:NextColumn(); SkillMgr.CaptureElement(GUI:Checkbox("##SKM_SingleUse",SKM_SingleUse),"SKM_SingleUse"); GUI:NextColumn();
 	
-	
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("skmCHARGE"),"SKM_CHARGE",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("appliesBuff"),"SKM_DOBUFF",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("removesBuff"),"SKM_REMOVESBUFF",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMax"),"SKM_LevelMax",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("skmLevelMin"),"SKM_LevelMin",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("minRange"),"SKM_MinR",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("maxRange"),"SKM_MaxR",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkill"),"SKM_PCSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevComboSkillNot"),"SKM_NPCSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill","SKM_PGSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Previous GCD Skill NOT","SKM_NPGSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillID"),"SKM_PSkillID",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("prevSkillIDNot"),"SKM_NPSkillID",GetString("basicDetails"))
-	--GUI_NewField(SkillMgr.editwindow.name,GetString("skmNSkillID"),"SKM_NSkillID",GetString("basicDetails"))
-	--GUI_NewField(SkillMgr.editwindow.name,GetString("nextSkillPrio"),"SKM_NSkillPrio",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("currentActionNot"),"SKM_NCURRENTACTION",GetString("basicDetails"))
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter1"),"SKM_FilterOne",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter2"),"SKM_FilterTwo",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter3"),"SKM_FilterThree",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter4"),"SKM_FilterFour",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("filter5"),"SKM_FilterFive",GetString("basicDetails"), "Ignore,Off,On")
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlySolo"),"SKM_OnlySolo",GetString("basicDetails"))
-	GUI_NewCheckbox(SkillMgr.editwindow.name,GetString("onlyParty"),"SKM_OnlyParty",GetString("basicDetails"))
-	GUI_NewNumeric(SkillMgr.editwindow.name,"Party Size <=","SKM_PartySizeLT",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,GetString("secsSinceLastCast"),"SKM_SecsPassed",GetString("basicDetails"))
-	GUI_NewField(SkillMgr.editwindow.name,"Secs Passed Unique","SKM_SecsPassedUnique",GetString("basicDetails"))
-	
-
+	--[[	
 	GUI_NewComboBox(SkillMgr.editwindow.name,GetString("skmSTYPE"),"SKM_SKTYPE",GetString("skillChecks"),"Action,Pet")
 	
 	GUI_NewNumeric(SkillMgr.editwindow.name,GetString("playerHPGT"),"SKM_PHPL",GetString("playerHPMPTP"))

@@ -1264,7 +1264,7 @@ function c_walktopos:evaluate()
 end
 function e_walktopos:execute()
 	if (IsGatherer(Player.job) or IsFisher(Player.job)) then
-		local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount
+		local needsStealth = ml_global_information.needsStealth and not ml_task_hub:CurrentTask().alwaysMount and not IsFlying()
 		local hasStealth = HasBuff(Player.id,47)
 		if (not hasStealth and needsStealth) then
 			if (Player.action ~= 367 and TimeSince(e_walktopos.lastStealth) > 1200) then

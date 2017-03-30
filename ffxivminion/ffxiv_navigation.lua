@@ -1469,21 +1469,17 @@ function ffnav.Ascend()
 		evaluator = function ()
 			local ppos = Player.pos
 			if (IsFlying()) then
-				if (Player:IsMoving(FFXIV.MOVEMENT.UP)) then
-					local hceiling, hceilingx, hceilingy, hceilingz = RayCast(ppos.x,ppos.y,ppos.z,ppos.x,ppos.y+4,ppos.z)
-					local hfloor, hfloorx, hfloory, hfloorz = RayCast(ppos.x,ppos.y+3,ppos.z,ppos.x,ppos.y-8,ppos.z)
-					if (not hfloor or math.distance3d(hfloorx, hfloory, hfloorz, ppos.x, ppos.y, ppos.z) > 8 or 
-						(hceiling and math.distance3d(hceilingx, hceilingy, hceilingz, ppos.x, ppos.y, ppos.z) > 8)) 
-					then
-						Player:StopMovement()
-						ffnav.Await(1000, function () return (not Player:IsMoving(FFXIV.MOVEMENT.UP)) end)
-						return true
-					end
-					return false
+				local meshpos = NavigationManager:GetClosestPointOnMesh(ppos)
+				if (meshpos and meshpos.distance ~= 0 and meshpos.distance < 5) then
+					Player:StopMovement()
+					ffnav.Await(1000, function () return (not Player:IsMoving(FFXIV.MOVEMENT.UP)) end)
+					return true
 				else
-					Player:Move(FFXIV.MOVEMENT.UP) 
-					ffnav.Await(150, 5000, function () return Player:IsMoving(FFXIV.MOVEMENT.UP) end)
-					return false
+					if (not Player:IsMoving(FFXIV.MOVEMENT.UP)) then
+						Player:Move(FFXIV.MOVEMENT.UP) 
+						ffnav.Await(150, 5000, function () return Player:IsMoving(FFXIV.MOVEMENT.UP) end)
+						return false
+					end
 				end
 			else
 				d("[Navigation]: Jump to Ascend.")
