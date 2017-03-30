@@ -406,7 +406,7 @@ function ffxiv_radar.DrawCall(event, ticks )
 					-- GUI Data
 					local maxWidth, maxHeight = GUI:GetScreenSize()
 					GUI:SetNextWindowPos(0, 0, GUI.SetCond_FirstUseEver)
-					GUI:SetNextWindowSize(200*(ffxiv_radar.RadarSize/100),200*(ffxiv_radar.RadarSize/100),GUI.SetCond_Always) -- Scalable GUI.
+					GUI:SetNextWindowSize(200*(ffxiv_radar.RadarSize/100)+100,200*(ffxiv_radar.RadarSize/100)+100,GUI.SetCond_Always) -- Scalable GUI.
 					local winBG = ml_gui.style.current.colors[GUI.Col_WindowBg]
 					GUI:PushStyleColor(GUI.Col_WindowBg, winBG[1], winBG[2], winBG[3], 0)
 					if ffxiv_radar.ClickThrough == true then -- 2D Radar Clickthrough toggle check.
@@ -419,6 +419,8 @@ function ffxiv_radar.DrawCall(event, ticks )
 					local PlayerPOS = Player.pos
 					local WindowPosx, WindowPosy = GUI:GetWindowPos()
 					local WindowSizex, WindowSizey = GUI:GetWindowSize()
+					WindowPosx, WindowPosy = WindowPosx+25, WindowPosy+50 -- Gives a little extra room to allow for names
+					WindowSizex, WindowSizey = WindowSizex-100, WindowSizey-100
 					local CenterX = WindowPosx+(WindowSizex/2)
 					local CenterY = WindowPosy+(WindowSizey/2)
 					local angle = ConvertHeading(PlayerPOS.h)+1.5708 -- Weird compass rotation (90° Clockwise fix) o.O
@@ -426,30 +428,34 @@ function ffxiv_radar.DrawCall(event, ticks )
 					local headingy = (math.sin(angle)) -- More weird compass shit...
 					-- Radar Render.
 					GUI:AddCircleFilled(CenterX, CenterY, ((WindowSizex/2)-4), CustomTransparency.black.colourval, 200) -- 2D Radar Fill (Transparent with slider).
-					GUI:AddLine(WindowPosx+(WindowSizex/2), WindowPosy+4, WindowPosx+(WindowSizex/2), WindowPosy+WindowSizey-4, Colours.Transparent.red.colourval, 2.0) -- X Axis Line (Transparent)
-					GUI:AddLine(WindowPosx, WindowPosy+(WindowSizey/2), WindowPosx+WindowSizex, WindowPosy+(WindowSizey/2), Colours.Transparent.red.colourval, 2.0) -- Y Axis Line (Transparent)
+					GUI:AddLine(WindowPosx+(WindowSizex/2), WindowPosy+4, WindowPosx+(WindowSizex/2), WindowPosy+WindowSizey-4, Colours.Transparent.red.colourval, 2.0) -- Y Axis Line (Transparent)
+					GUI:AddLine(WindowPosx+4, WindowPosy+(WindowSizey/2), WindowPosx+WindowSizex-4, WindowPosy+(WindowSizey/2), Colours.Transparent.red.colourval, 2.0) -- X Axis Line (Transparent)
+					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-4), Colours.Transparent.lightgrey.colourval, 200) -- 2D Radar Outline (Transparent).
+					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-5), Colours.Transparent.lightgrey.colourval, 201) -- 2D Radar Outline (Transparent).
 					if ValidTable(RadarTable) then -- Check Radar table is valid and write to screen.
 						for i,e in pairs(RadarTable) do
 							local eColour = e.Colour
 							local ePOS = e.pos
+							local edistance2d = e.distance2d
 							-- Limit render distance slider.
-							if e.distance2d <= (ffxiv_radar.RadarDistance2D-4) then
-								local EntityPosX = (((ePOS.x-PlayerPOS.x)/ffxiv_radar.RadarDistance2D)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
-								local EntityPosY = (((ePOS.z-PlayerPOS.z)/ffxiv_radar.RadarDistance2D)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
-								GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.radar) -- Filled Point Marker (Transparent).
-								GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.colourval) -- Point Marker Outline (Transparent).
-								-- Name Toggle.
-								if ffxiv_radar.MiniRadarNames then
-									GUI:SetWindowFontScale((0.8*(ffxiv_radar.TextScale/100)))
-									GUI:AddText(EntityPosX+(8*(ffxiv_radar.TextScale/100)), EntityPosY-(5*(ffxiv_radar.TextScale/100)), eColour.colourval, e.name) -- Entity name (Transparent).
-									GUI:SetWindowFontScale(1)
-								end
+							local EntityPosX = (((ePOS.x-PlayerPOS.x)/ffxiv_radar.RadarDistance2D)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
+							local EntityPosY = (((ePOS.z-PlayerPOS.z)/ffxiv_radar.RadarDistance2D)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
+							if edistance2d > (ffxiv_radar.RadarDistance2D) then 
+							
+							EntityPosX = (((ePOS.x-PlayerPOS.x)/edistance2d)*(WindowSizex/2)) + CenterX -- Entity X POS within GUI
+							EntityPosY = (((ePOS.z-PlayerPOS.z)/edistance2d)*(WindowSizey/2)) + CenterY -- Entity Y POS within GUI
+							end
+							GUI:AddCircleFilled(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.radar) -- Filled Point Marker (Transparent).
+							GUI:AddCircle(EntityPosX,EntityPosY, (4*(ffxiv_radar.TextScale/100)), eColour.colourval) -- Point Marker Outline (Transparent).
+							-- Name Toggle.
+							if ffxiv_radar.MiniRadarNames then
+								GUI:SetWindowFontScale((0.8*(ffxiv_radar.TextScale/100)))
+								GUI:AddText(EntityPosX+(8*(ffxiv_radar.TextScale/100)), EntityPosY-(5*(ffxiv_radar.TextScale/100)), eColour.colourval, e.name) -- Entity name (Transparent).
+								GUI:SetWindowFontScale(1)
 							end
 						end
 					end
 					GUI:AddLine(CenterX, CenterY, CenterX+(headingx*((WindowSizex/2)-4)), CenterY+(headingy*((WindowSizey/2)-4)), Colours.Transparent.yellow.colourval, 2.0) -- Heading Line (Transparent)
-					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-4), Colours.Transparent.white.colourval, 200) -- 2D Radar Outline (Transparent).
-					GUI:AddCircle(CenterX, CenterY, ((WindowSizex/2)-5), Colours.Transparent.white.colourval, 201) -- 2D Radar Outline (Transparent).
 					GUI:End()
 					GUI:PopStyleColor()
 				end -- End of 2D radar.
