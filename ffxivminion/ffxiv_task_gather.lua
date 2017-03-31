@@ -281,8 +281,10 @@ function e_movetonode:execute()
 		local pos;
 		if (table.valid(adjustedPos)) then
 			pos = NavigationManager:GetClosestPointOnMesh(adjustedPos)
-			pos.x = pos.x + 0.02
-			d("[MoveToNode]: Using frontal positional, nearest to mesh.")
+			if (table.valid(pos)) then
+				pos.x = pos.x + 0.02
+				d("[MoveToNode]: Using frontal positional, nearest to mesh.")
+			end
 		end
 		
 		if (not table.valid(pos)) then
